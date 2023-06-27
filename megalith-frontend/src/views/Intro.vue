@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import avatar from '@/assets/logo.svg'
 import { Notebook , Download } from '@element-plus/icons-vue'
-
 const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
 </script>
 
@@ -14,13 +13,11 @@ const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
       </RouterLink>
     </div>
   </div>
-  <div class="intro">
-    <el-avatar shape="square" :size="200" :src=avatar fit="cover"/>
-    <el-card class="box-card" shadow="never">
-      <div v-for="o in 15" :key="o" class="text item">{{ 'List item ' + o }}</div>
-    </el-card>
-  </div>
-  
+  <el-avatar shape="square" :size="200" :src=avatar fit="cover"/>
+  <el-card class="box-card" shadow="never">
+    <div v-for="o in 15" :key="o" class="text item">{{ 'List item ' + o }}</div>
+  </el-card>
+  <Stat></Stat>
 </template>
 
 <style>

@@ -1,7 +1,7 @@
 <script lang="ts" setup> 
 import { inject } from 'vue';
-const axios: any = inject('$axios')
-const data = await axios.get('/public/blog/years')
+const axios : any = inject('$axios')
+const data : Array<number> = await axios.get('/public/blog/years')
 let start : number = data[0]
 let end : number = data[1]
 </script>
@@ -18,6 +18,6 @@ let end : number = data[1]
   max-width: 250px;
   margin: 0 auto;
   text-align: center;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
 }
 </style>
