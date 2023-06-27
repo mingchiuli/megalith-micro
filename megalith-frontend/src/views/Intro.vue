@@ -7,7 +7,7 @@ const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
 
 <template>
   <div id="into-button-father">
-    <div id="into-button">
+    <div class="into-button">
       <el-button circle :icon="Download" @click="toGithub"></el-button>
       <RouterLink to='/blogs'>
         <el-button circle :icon="Notebook"></el-button>
@@ -31,7 +31,7 @@ const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
   height: 50px;
 }
 
-#into-button {
+.into-button {
   margin-top: 20px;
   position: absolute;
   right: 0;

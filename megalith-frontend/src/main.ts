@@ -8,12 +8,10 @@ import App from './App.vue'
 import router from './router'
 import axios from './axios'
 
-
-const app = createApp(App)
-
-app.provide("$axios", axios)
-
-app.use(createPinia())
+createApp(App)
+.use(createPinia())
 .use(router)
 .use(ElementPlus)
+.provide("$axios", axios)
+.provide("$router", router)
 .mount('#app')
