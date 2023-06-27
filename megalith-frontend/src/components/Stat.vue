@@ -2,37 +2,37 @@
 import { inject, reactive, toRefs } from 'vue';
 
 type stat = {
-  daySize: number, 
-  weekSize: number, 
-  monthSize: number, 
-  yearSize: number
+  dayVisit: number, 
+  weekVisit: number, 
+  monthVisit: number, 
+  yearVisit: number
 }
 const blogStat : stat = reactive({
-  "daySize": 0, 
-  "weekSize" : 0, 
-  "monthSize" : 0, 
-  "yearSize" : 0
+  "dayVisit": 0, 
+  "weekVisit": 0, 
+  "monthVisit" : 0, 
+  "yearVisit" : 0
 })
 
 const axios : any = inject('$axios')
 axios.get('/public/blog/stat').then(async (resp: Promise<stat>) => {
   const data = await resp
-  blogStat.daySize = data.daySize
-  blogStat.weekSize = data.weekSize
-  blogStat.monthSize = data.monthSize
-  blogStat.yearSize = data.yearSize
+  blogStat.dayVisit = data.dayVisit
+  blogStat.weekVisit = data.weekVisit
+  blogStat.monthVisit = data.monthVisit
+  blogStat.yearVisit = data.yearVisit
 })
 
-const {daySize, weekSize, monthSize,yearSize} = toRefs(blogStat)
+const {dayVisit, weekVisit, monthVisit, yearVisit} = toRefs(blogStat)
 </script>
 
 <template>
   <el-breadcrumb separator="/" class="vistor-stat">
     <el-breadcrumb-item>访客数</el-breadcrumb-item>
-    <el-breadcrumb-item>本日：{{ daySize }}</el-breadcrumb-item>
-    <el-breadcrumb-item>本周：{{ weekSize }}</el-breadcrumb-item>
-    <el-breadcrumb-item>本月：{{ monthSize }}</el-breadcrumb-item>
-    <el-breadcrumb-item>本年：{{ yearSize }}</el-breadcrumb-item>
+    <el-breadcrumb-item>本日：{{ dayVisit }}</el-breadcrumb-item>
+    <el-breadcrumb-item>本周：{{ weekVisit }}</el-breadcrumb-item>
+    <el-breadcrumb-item>本月：{{ monthVisit }}</el-breadcrumb-item>
+    <el-breadcrumb-item>本年：{{ yearVisit }}</el-breadcrumb-item>
   </el-breadcrumb>  
 </template>
 
