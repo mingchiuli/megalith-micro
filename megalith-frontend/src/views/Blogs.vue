@@ -7,7 +7,7 @@ import type { AxiosResponse } from 'axios';
 let page : PageAdapter = reactive({
   "content" : [],
   "totalElements" : 0,
-  "pageSize" : 0
+  "pageSize" : 5
 })
 
 const getPage = (pageNo : number) : void => {
