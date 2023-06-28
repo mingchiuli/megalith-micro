@@ -1,15 +1,23 @@
 <script lang="ts" setup> 
-import { inject } from 'vue';
-const axios : any = inject('$axios')
-const data : Array<number> = await axios.get('/public/blog/years')
-let start : number = data[0]
-let end : number = data[1]
+import { type AxiosResponse } from 'axios';
+import axios from '../axios';
+import type { Data } from "../type/entity";
+import { ref, type Ref } from 'vue';
+
+let start : Ref<number> = ref(0)
+let end : Ref<number> = ref(0)
+
+axios.get<Data<number[]>>('/public/blog/years').then((resp: AxiosResponse) => {
+  const years : number[] = resp.data.data
+  start.value = years[0]
+  end.value = years[1]
+})
 </script>
 
 <template>
   <div class="footer">
     <el-divider />
-    <el-link :underline="false" class="copyright" href="/">&copy; Powered by Kubernetes {{start}}-{{end}} </el-link>
+    <el-link :underline="false" class="copyright" href="/">&copy; Powered by Kubernetes {{ start }}-{{ end }} </el-link>
   </div>  
 </template>
 

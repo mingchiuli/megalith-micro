@@ -1,26 +1,23 @@
 <script lang="ts" setup>
-import { inject, reactive, toRefs } from 'vue';
+import { reactive, toRefs } from 'vue';
+import type { AxiosResponse } from 'axios';
+import axios from '../axios';
 
-type stat = {
-  dayVisit: number, 
-  weekVisit: number, 
-  monthVisit: number, 
-  yearVisit: number
-}
-const blogStat : stat = reactive({
+import type { Visitor, Data } from "../type/entity";
+
+const blogStat : Visitor = reactive({
   "dayVisit": 0, 
   "weekVisit": 0, 
   "monthVisit" : 0, 
   "yearVisit" : 0
 })
 
-const axios : any = inject('$axios')
-axios.get('/public/blog/stat').then(async (resp: Promise<stat>) => {
-  const data = await resp
-  blogStat.dayVisit = data.dayVisit
-  blogStat.weekVisit = data.weekVisit
-  blogStat.monthVisit = data.monthVisit
-  blogStat.yearVisit = data.yearVisit
+axios.get<Data<Visitor>>('/public/blog/stat').then((resp: AxiosResponse) => {
+  const visitor : Visitor = resp.data.data
+  blogStat.dayVisit = visitor.dayVisit
+  blogStat.weekVisit = visitor.weekVisit
+  blogStat.monthVisit = visitor.monthVisit
+  blogStat.yearVisit = visitor.yearVisit
 })
 
 const {dayVisit, weekVisit, monthVisit, yearVisit} = toRefs(blogStat)
