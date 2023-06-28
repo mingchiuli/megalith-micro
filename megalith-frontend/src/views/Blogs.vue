@@ -18,14 +18,13 @@ const getPage = (pageNo : number) : void => {
     })
 }
 
-const { content : blogs, totalElements } = toRefs(page)
-
 getPage(1)
+const { content : blogs, totalElements, pageSize } = toRefs(page)
 </script>
 <template>
   <div class="description">
     <el-timeline>
-      <el-timeline-item v-for="blog in blogs" :timestamp="blog.created" placement="top" :color="'#0bbd87'">
+      <el-timeline-item v-for="blog in blogs" :timestamp="blog.created.replace('T', ' ')" placement="top" :color="'#0bbd87'">
         <el-card shadow="never">
           <el-image :key="blog.link" :src="blog.link" lazy></el-image>
           <h4>{{ blog.title }}</h4>
@@ -33,7 +32,7 @@ getPage(1)
         </el-card>
       </el-timeline-item>
     </el-timeline>
-    <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="5" @current-change="getPage"></el-pagination>
+    <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize" @current-change="getPage"></el-pagination>
   </div>
 </template>
 <style scoped>

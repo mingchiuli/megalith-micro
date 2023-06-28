@@ -1,4 +1,4 @@
-import axios, { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
+import axios, {type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
 import { ElMessage }  from 'element-plus'
 import type { Data } from "./type/entity";
 

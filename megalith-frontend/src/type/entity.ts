@@ -9,7 +9,7 @@ interface BlogsDesc {
   id : number
   title : string
   description : string
-  created : Date
+  created : string
   link : string
 }
 

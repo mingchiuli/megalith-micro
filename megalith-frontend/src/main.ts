@@ -11,7 +11,7 @@ import "element-plus/theme-chalk/el-message.css";
 import "element-plus/theme-chalk/el-message-box.css"; 
 
 createApp(App)
-.use(createPinia())
-.use(router)
-.use(ElementPlus)
-.mount('#app')
+  .use(createPinia())
+  .use(router)
+  .use(ElementPlus)
+  .mount('#app')
