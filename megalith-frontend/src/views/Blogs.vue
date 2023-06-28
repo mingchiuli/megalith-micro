@@ -25,7 +25,7 @@ getPage(1)
 <template>
   <div class="description">
     <el-timeline>
-      <el-timeline-item v-for="blog in blogs" :timestamp="blog.created" placement="top">
+      <el-timeline-item v-for="blog in blogs" :timestamp="blog.created" placement="top" :color="'#0bbd87'">
         <el-card shadow="never">
           <el-image :key="blog.link" :src="blog.link" lazy></el-image>
           <h4>{{ blog.title }}</h4>
@@ -45,7 +45,7 @@ getPage(1)
 }
 
 .el-pagination {
-  width: fit-content;
+  width: max-content;
   margin: 0 auto;
 }
 .el-timeline {
