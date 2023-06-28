@@ -12,13 +12,14 @@ const blogStat : Visitor = reactive({
   "yearVisit" : 0
 })
 
-axios.get<Data<Visitor>>('/public/blog/stat').then((resp: AxiosResponse) => {
-  const visitor : Visitor = resp.data.data
-  blogStat.dayVisit = visitor.dayVisit
-  blogStat.weekVisit = visitor.weekVisit
-  blogStat.monthVisit = visitor.monthVisit
-  blogStat.yearVisit = visitor.yearVisit
-})
+axios.get('/public/blog/stat')
+  .then((resp: AxiosResponse<Data<Visitor>>) => {
+    const visitor : Visitor = resp.data.data
+    blogStat.dayVisit = visitor.dayVisit
+    blogStat.weekVisit = visitor.weekVisit
+    blogStat.monthVisit = visitor.monthVisit
+    blogStat.yearVisit = visitor.yearVisit
+  })
 
 const {dayVisit, weekVisit, monthVisit, yearVisit} = toRefs(blogStat)
 </script>

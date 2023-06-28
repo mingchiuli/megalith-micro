@@ -4,14 +4,14 @@ import axios from '../axios';
 import type { Data } from "../type/entity";
 import { ref, type Ref } from 'vue';
 
-let start : Ref<number> = ref(0)
+let start : number = 2021
 let end : Ref<number> = ref(0)
 
-axios.get<Data<number[]>>('/public/blog/years').then((resp: AxiosResponse) => {
-  const years : number[] = resp.data.data
-  start.value = years[0]
-  end.value = years[1]
-})
+axios.get('/public/blog/years')
+  .then((resp: AxiosResponse<Data<number[]>>) => {
+    const years : number[] = resp.data.data
+    end.value = years[1]
+  })
 </script>
 
 <template>

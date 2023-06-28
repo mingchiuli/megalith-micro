@@ -1,8 +1,22 @@
 export interface Visitor {
-  dayVisit: number
-  weekVisit: number
-  monthVisit: number
-  yearVisit: number
+  dayVisit : number
+  weekVisit : number
+  monthVisit : number
+  yearVisit : number
+}
+
+interface BlogsDesc {
+  id : number
+  title : string
+  description : string
+  created : Date
+  link : string
+}
+
+export interface PageAdapter {
+  content : BlogsDesc[]
+  pageSize : number
+  totalElements : number
 }
 
 export interface Data<T> {

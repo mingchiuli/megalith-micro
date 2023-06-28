@@ -1,5 +1,5 @@
 import axios, { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
-import { ElMessage } from 'element-plus'
+import { ElMessage }  from 'element-plus'
 import type { Data } from "./type/entity";
 
 axios.defaults.baseURL = 'http://127.0.0.1:8081'
