@@ -37,7 +37,7 @@ const {dayVisit, weekVisit, monthVisit, yearVisit} = toRefs(blogStat)
 <style scoped>
 .vistor-stat {
   margin: 0 auto;
-  width: max-content;
+  width: fit-content;
   margin-top: 30px;
   margin-bottom: 30px;
 }

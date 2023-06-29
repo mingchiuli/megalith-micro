@@ -3,6 +3,7 @@ import type { Data, PageAdapter } from '@/type/entity';
 import axios from '../axios';
 import { reactive, toRefs } from 'vue';
 import type { AxiosResponse } from 'axios';
+import Search from '@/components/Search.vue';
 
 let page : PageAdapter = reactive({
   "content" : [],
@@ -10,8 +11,8 @@ let page : PageAdapter = reactive({
   "pageSize" : 5
 })
 
-const getPage = (pageNo : number) : void => {
-  axios.get(`/public/blog/page/${pageNo}`)
+const getPage = (pageNo : number, year = '') : void => {
+  axios.get(`/public/blog/page/${pageNo}?year=${year}`)
     .then((resp : AxiosResponse<Data<PageAdapter>>) => {
       page.content = resp.data.data.content
       page.totalElements = resp.data.data.totalElements
@@ -22,6 +23,9 @@ getPage(1)
 const { content : blogs, totalElements, pageSize } = toRefs(page)
 </script>
 <template>
+  <div class="search-father">
+    <Search></Search>
+  </div>
   <div class="description">
     <el-timeline>
       <el-timeline-item v-for="blog in blogs" :timestamp="blog.created.replace('T', ' ')" placement="top" :color="'#0bbd87'">
@@ -31,20 +35,30 @@ const { content : blogs, totalElements, pageSize } = toRefs(page)
           <p>{{ blog.description }}</p>
         </el-card>
       </el-timeline-item>
-    </el-timeline>
+    </el-timeline>    
     <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize" @current-change="getPage"></el-pagination>
   </div>
 </template>
 <style scoped>
 @import '../assets/front.css';
-.description {
-  max-width: 600px;
+
+.search-father {
   margin: 0 auto;
-  margin-top: 50px;
+  max-width: fit-content;
+  margin-top: 30px;
+}
+
+.description {
+  margin: 0 auto;
+  margin-top: 30px;
+}
+
+.el-timeline >>> .el-timeline-item__wrapper {
+  padding-left: 5%;
 }
 
 .el-pagination {
-  width: max-content;
+  width: fit-content;
   margin: 0 auto;
 }
 .el-timeline {

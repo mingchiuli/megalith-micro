@@ -1,5 +1,4 @@
 import axios, {type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
-import { ElMessage }  from 'element-plus'
 import type { Data } from "./type/entity";
 
 axios.defaults.baseURL = 'http://127.0.0.1:8081'
@@ -11,16 +10,19 @@ axios.interceptors.request.use((config : InternalAxiosRequestConfig<any>) => {
 
 axios.interceptors.response.use((resp : AxiosResponse<Data<any>, any>) => {
   const data : Data<any> = resp.data
+  //@ts-ignore
   if (data.status === 200) {
     return Promise.resolve(resp)
   } else {
     if (data.status === 401) {
       // TODO
     }
+    //@ts-ignore
     ElMessage.error(data.msg)
     return Promise.reject(resp)
   }
 }, (error : AxiosError<any, any>) => {
+  //@ts-ignore
   ElMessage.error(error.message)
   return Promise.reject(error)
 })

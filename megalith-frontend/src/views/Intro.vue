@@ -25,7 +25,6 @@ const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
 
 #into-button-father {
   position: relative;
-  height: 50px;
 }
 
 #into-button-github {
