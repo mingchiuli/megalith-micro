@@ -43,14 +43,13 @@ const { content : blogs, totalElements, pageSize } = toRefs(page)
 @import '../assets/front.css';
 
 .search-father {
-  margin: 0 auto;
-  max-width: fit-content;
   margin-top: 30px;
+  position: relative;
+  min-height: 10px;
 }
 
 .description {
   margin: 0 auto;
-  margin-top: 30px;
 }
 
 .el-timeline >>> .el-timeline-item__wrapper {

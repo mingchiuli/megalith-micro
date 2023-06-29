@@ -53,7 +53,7 @@ onMounted(() => {
 
 </script>
 <template>
-  <el-button class="search-button" @click="outerVisible = true">Search</el-button>
+  <el-button class="search-button" @click="outerVisible = true" type="success">Search</el-button>
   <el-dialog v-model="outerVisible" fullscreen center align-center>
     <template #default>
       <div class="dialog-content">
@@ -74,6 +74,12 @@ onMounted(() => {
 .dialog-content {
   margin: 0 auto;
   max-width: max-content;
+}
+
+.search-button {
+  position: absolute;
+  right: 0;
+  z-index: 1;
 }
 
 </style>
