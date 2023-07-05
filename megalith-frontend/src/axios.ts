@@ -22,8 +22,8 @@ axios.interceptors.response.use((resp : AxiosResponse<Data<any>, any>) => {
     return Promise.reject(resp)
   }
 }, (error : AxiosError<any, any>) => {
-  //@ts-ignore
-  ElMessage.error(error.message)
+  //@ts-ignore  
+  ElMessage.error(error.response.data.msg)
   return Promise.reject(error)
 })
 
