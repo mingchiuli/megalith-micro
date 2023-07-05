@@ -11,10 +11,10 @@ axios.interceptors.request.use((config : InternalAxiosRequestConfig<any>) => {
 axios.interceptors.response.use((resp : AxiosResponse<Data<any>, any>) => {
   const data : Data<any> = resp.data
   //@ts-ignore
-  if (data.status === 200) {
+  if (resp.status === 200) {
     return Promise.resolve(resp)
   } else {
-    if (data.status === 401) {
+    if (resp.status === 401) {
       // TODO
     }
     //@ts-ignore

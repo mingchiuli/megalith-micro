@@ -1,26 +1,36 @@
 export interface Visitor {
-  dayVisit : number
-  weekVisit : number
-  monthVisit : number
-  yearVisit : number
+  dayVisit: number
+  weekVisit: number
+  monthVisit: number
+  yearVisit: number
 }
 
-interface BlogsDesc {
-  id : number
-  title : string
-  description : string
-  created : string
-  link : string
+export interface BlogsDesc {
+  id: number
+  title: string
+  description: string
+  created: string
+  link: string
+  content?: string
+  score?: number
+  highlight?: SearchStruct,
+  value?: SearchStruct
 }
 
-export interface PageAdapter {
-  content : BlogsDesc[]
-  pageSize : number
-  totalElements : number
+interface SearchStruct {
+  title: string[]
+  description: string[]
+  content: string[]  
+}
+
+export interface PageAdapter<T> {
+  content: T[]
+  pageSize: number
+  totalElements: number
 }
 
 export interface Data<T> {
-  status : number
+  status: number
   msg: string
-  data : T
+  data: T
 }

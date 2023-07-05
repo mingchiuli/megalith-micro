@@ -4,8 +4,8 @@ import axios from '../axios';
 import type { Data } from "../type/entity";
 import { ref, type Ref } from 'vue';
 
-let start : Ref<number> = ref(2021)
-let end : Ref<number> = ref(0)
+let start: Ref<number> = ref(2021)
+let end: Ref<number> = ref(0)
 
 axios.get('/public/blog/years')
   .then((resp: AxiosResponse<Data<number[]>>) => {
