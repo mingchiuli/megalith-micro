@@ -46,9 +46,9 @@ const { content : blogs, totalElements, pageSize } = toRefs(page)
           <el-image :key="blog.link" :src="blog.link" lazy></el-image>
           <h4>{{ blog.title }}</h4>
           <p v-if="!blog.highlight">{{ blog.description }}</p>
-          <p v-if="blog.highlight?.title" v-html="blog.highlight.title"></p>
-          <p v-if="blog.highlight?.description" v-html="blog.highlight.description"></p>
-          <p v-if="blog.highlight?.content" v-html="blog.highlight.content"></p>
+          <p v-if="blog.highlight?.title" v-for="title in blog.highlight.title" v-html="title"></p>
+          <p v-if="blog.highlight?.description" v-for="description in blog.highlight.description" v-html="description"></p>
+          <p v-if="blog.highlight?.content" v-for="content in blog.highlight.content" v-html="content"></p>
         </el-card>
       </el-timeline-item>
     </el-timeline>    
