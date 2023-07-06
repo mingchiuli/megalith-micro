@@ -1,10 +1,13 @@
 <script lang="ts" setup>
-import type { BlogsDesc, Data, PageAdapter } from '@/type/entity';
-import axios from '../axios';
+import type { BlogsDesc, Data, PageAdapter } from '@/type/entity'
+import axios from '../axios'
 import { ref, type Ref } from 'vue'
-import type { AxiosResponse } from 'axios';
+import type { AxiosResponse } from 'axios'
 
-const emit = defineEmits<(event: "search", payload: PageAdapter<BlogsDesc>) => void>();
+const emit = defineEmits<{
+  (event: "search", payload: PageAdapter<BlogsDesc>): void
+  (event: "clear", payload: boolean): void
+}>();
 
 const state = ref('')
 
@@ -27,7 +30,6 @@ const querySearchAsync = async (queryString: string, cb: any) => {
   
 const handleSelect = (item: BlogsDesc) => console.log(item)
 
-// querySearchAsync("测试", 1, false)
 
 </script>
 <template>

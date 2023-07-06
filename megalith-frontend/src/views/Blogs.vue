@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import type { BlogsDesc, Data, PageAdapter } from '@/type/entity';
-import axios from '../axios';
-import { reactive, toRefs } from 'vue';
-import type { AxiosResponse } from 'axios';
-import Search from '@/components/Search.vue';
+import type { BlogsDesc, Data, PageAdapter } from '@/type/entity'
+import axios from '../axios'
+import { reactive, toRefs } from 'vue'
+import type { AxiosResponse } from 'axios'
+import Search from '@/components/Search.vue'
 
 
 const fillSearch = (payload: PageAdapter<BlogsDesc>) => {
