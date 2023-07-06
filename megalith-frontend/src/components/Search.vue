@@ -41,9 +41,9 @@ const handleSelect = (item: BlogsDesc) => console.log(item)
         @select="handleSelect"
         :trigger-on-focus="false">
         <template #default="{ item }">          
-          <div class="value" v-if="item.value.title" v-for="title in item.value.title" v-html="title"></div>
-          <div class="value" v-if="item.value.description" v-for="description in item.value.description" v-html="description"></div>
-          <div class="value" v-if="item.value.content" v-for="content in item.value.content" v-html="content"></div>
+          <div class="value" v-if="item.value.title" v-for="title in item.value.title" v-html="'标题：' + title"></div>
+          <div class="value" v-if="item.value.description" v-for="description in item.value.description" v-html="'摘要：' + description"></div>
+          <div class="value" v-if="item.value.content" v-for="content in item.value.content" v-html="'内容：' + content"></div>
         </template>
       </el-autocomplete>
       </div>

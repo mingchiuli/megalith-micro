@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { BlogsDesc, Data, PageAdapter } from '@/type/entity';
 import axios from '../axios';
-import { reactive, toRefs, ref } from 'vue';
+import { reactive, toRefs } from 'vue';
 import type { AxiosResponse } from 'axios';
 import Search from '@/components/Search.vue';
 
@@ -46,9 +46,9 @@ const { content : blogs, totalElements, pageSize } = toRefs(page)
           <el-image :key="blog.link" :src="blog.link" lazy></el-image>
           <h4>{{ blog.title }}</h4>
           <p v-if="!blog.highlight">{{ blog.description }}</p>
-          <p v-if="blog.highlight?.title" v-for="title in blog.highlight.title" v-html="title"></p>
-          <p v-if="blog.highlight?.description" v-for="description in blog.highlight.description" v-html="description"></p>
-          <p v-if="blog.highlight?.content" v-for="content in blog.highlight.content" v-html="content"></p>
+          <p v-if="blog.highlight?.title" v-for="title in blog.highlight.title" v-html="'标题：' + title"></p>
+          <p v-if="blog.highlight?.description" v-for="description in blog.highlight.description" v-html="'摘要：' + description"></p>
+          <p v-if="blog.highlight?.content" v-for="content in blog.highlight.content" v-html="'内容：' + content"></p>
         </el-card>
       </el-timeline-item>
     </el-timeline>    
