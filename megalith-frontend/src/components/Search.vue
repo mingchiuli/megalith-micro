@@ -32,7 +32,7 @@ const handleSelect = (item: BlogsDesc) => console.log(item)
 </script>
 <template>
   <el-button class="search-button" @click="outerVisible = true" type="success">Search</el-button>
-  <el-dialog v-model="outerVisible" fullscreen center align-center>
+  <el-dialog v-model="outerVisible" center close-on-press-escape fullscreen align-center top="20vh">
     <template #default>
       <div class="dialog-content">
         <el-autocomplete v-model="state" 
@@ -68,6 +68,10 @@ const handleSelect = (item: BlogsDesc) => console.log(item)
   position: absolute;
   right: 0;
   z-index: 1;
+}
+
+.el-overlay-dialog .dialog-content {
+  margin-top: 50px
 }
 
 </style>

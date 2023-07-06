@@ -68,7 +68,7 @@ const { content : blogs, totalElements, pageSize } = toRefs(page)
   margin: 0 auto;
 }
 
-.el-timeline :deep(.el-timeline-item__wrapper) {
+.el-timeline:deep(.el-timeline-item__wrapper) {
   padding-left: 5%;
 }
 
