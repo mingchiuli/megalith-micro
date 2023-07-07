@@ -27,6 +27,7 @@ export interface PageAdapter<T> {
   content: T[]
   pageSize: number
   totalElements: number
+  pageNumber: number
 }
 
 export interface Data<T> {

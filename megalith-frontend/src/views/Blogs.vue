@@ -5,39 +5,54 @@ import { reactive, toRefs, ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
 import Search from '@/components/Search.vue'
 
-const fillSearch = (payload: PageAdapter<BlogsDesc>) => {
+const searchRef: Ref<any> = ref<any>()
+  
+const searchPageNo: Ref<number> = ref(0)
+const searchKeywords: Ref<string> = ref('')
+const year: Ref<string> = ref('')
+
+const fillSearch = (payload: PageAdapter<BlogsDesc>, keywords: string) => {
   if (payload.content.length > 0) {
     page.content = payload.content
     page.totalElements = payload.totalElements
-  } else {
-    //@ts-ignore
-    ElMessage.error("No Records")
-    getPage(1)
+    searchPageNo.value = payload.pageNumber
+    searchKeywords.value = keywords
   }
 }
 
 let page : PageAdapter<BlogsDesc> = reactive({
   "content" : [],
   "totalElements" : 0,
-  "pageSize" : 5
+  "pageSize" : 5,
+  "pageNumber": 1
 })
 
-const searchPage: Ref<number> = ref(0)
+const getPage: Function = (pageNo : number) : void => {
+  if (searchPageNo.value === 0) {
+    axios.get(`/public/blog/page/${pageNo}?year=${year.value}`)
+      .then((resp : AxiosResponse<Data<PageAdapter<BlogsDesc>>>) => {
+        page.content = resp.data.data.content
+        page.totalElements = resp.data.data.totalElements
+      })
+  } else {
+    searchRef.value.queryAllInfo(searchKeywords.value, pageNo)
+  }
+}
 
-const getPage: Function = (pageNo : number, year = '') : void => {
-  axios.get(`/public/blog/page/${pageNo}?year=${year}`)
-    .then((resp : AxiosResponse<Data<PageAdapter<BlogsDesc>>>) => {
-      page.content = resp.data.data.content
-      page.totalElements = resp.data.data.totalElements
-    })
+const clearSearchData = () => {
+  searchKeywords.value = ''
+  searchPageNo.value = 0
+  year.value = ''
+  getPage(1)
 }
 
 getPage(1)
 const { content : blogs, totalElements, pageSize } = toRefs(page)
 </script>
+
 <template>
   <div class="search-father">
-    <Search :search-page="searchPage" @search="fillSearch" @clear="getPage(1)"></Search>
+    <Search ref="searchRef" @search="fillSearch" @clear="clearSearchData"></Search>
   </div>
   <div class="description">
     <el-timeline>
@@ -56,6 +71,7 @@ const { content : blogs, totalElements, pageSize } = toRefs(page)
     <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize" @current-change="getPage"></el-pagination>
   </div>
 </template>
+
 <style scoped>
 @import '../assets/front.css';
 

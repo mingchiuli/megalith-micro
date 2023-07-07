@@ -5,12 +5,13 @@ import { ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
 
 const emit = defineEmits<{
-  (event: "search", payload: PageAdapter<BlogsDesc>): void
+  (event: "search", payload: PageAdapter<BlogsDesc>, keywords: string): void
   (event: "clear"): void
+  (event: "transYear", payload: string): void
 }>()
 
-const state = ref('')
-const year = ref('')
+const keywords: Ref<string> = ref('')
+const year : Ref<string>= ref('')
 
 const outerVisible: Ref<boolean> = ref(false)
 const innerVisible: Ref<boolean> = ref(false)
@@ -22,7 +23,7 @@ const query: Function = async (queryString: string, currentPage: number, allInfo
 
 let timeout: NodeJS.Timeout
 const querySearchAsync: Function = (queryString: string, cb: any) => {
-  const resp: Promise<PageAdapter<BlogsDesc>> =  query(queryString, '', false, year.value)
+  const resp: Promise<PageAdapter<BlogsDesc>> =  query(queryString, -1, false, year.value)
   resp.then((page: PageAdapter<BlogsDesc>) => {
     page.content.forEach((blogsDesc: BlogsDesc) => {
       blogsDesc.value = blogsDesc.highlight
@@ -47,7 +48,7 @@ const queryAllInfo: Function = (queryString: string, currentPage = 1) => {
   if (queryString !== '') {
     const resp: Promise<PageAdapter<BlogsDesc>> = query(queryString, currentPage, true, year.value)
     resp.then((page: PageAdapter<BlogsDesc>) => {
-      emit("search" ,page)
+      emit("search" , page, queryString)
     })
   } else {
     emit("clear")
@@ -55,11 +56,15 @@ const queryAllInfo: Function = (queryString: string, currentPage = 1) => {
 }
 
 const beforeClose: Function = (close: Function) => {
+  keywords.value = ''
+  year.value = ''
   emit('clear')
   close()
 }
 
+defineExpose({queryAllInfo})
 </script>
+
 <template>
   <el-button class="search-button" @click="outerVisible = true" type="success">Search</el-button>
   <el-dialog v-model="outerVisible" 
@@ -70,12 +75,13 @@ const beforeClose: Function = (close: Function) => {
   :before-close="beforeClose">
     <template #default>
       <div class="dialog-content">
-        <el-autocomplete v-model="state" 
+        <el-autocomplete v-model="keywords" 
         :fetch-suggestions="querySearchAsync" 
         placeholder="Please input" 
         @select="handleSelect"
         :trigger-on-focus="false"
-        clearable>
+        clearable
+        @keyup.enter="queryAllInfo(keywords)">
         <template #default="{ item }">          
           <div class="value" v-if="item.value.title" v-for="title in item.value.title" v-html="'标题：' + title"></div>
           <div class="value" v-if="item.value.description" v-for="description in item.value.description" v-html="'摘要：' + description"></div>
@@ -87,7 +93,7 @@ const beforeClose: Function = (close: Function) => {
     </template>
     <template #footer>
       <div class="dialog-footer">
-        <el-button type="primary" @click="queryAllInfo(state)">Confirm</el-button>
+        <el-button type="primary" @click="queryAllInfo(keywords)">Confirm</el-button>
         <el-button type="primary" @click="innerVisible = true">Archieve</el-button>
       </div>
     </template>
