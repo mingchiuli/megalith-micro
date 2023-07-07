@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import type { BlogsDesc, Data, PageAdapter } from '@/type/entity'
 import axios from '../axios'
-import { reactive, toRefs } from 'vue'
+import { reactive, toRefs, ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
 import Search from '@/components/Search.vue'
-
 
 const fillSearch = (payload: PageAdapter<BlogsDesc>) => {
   if (payload.content.length > 0) {
@@ -23,7 +22,9 @@ let page : PageAdapter<BlogsDesc> = reactive({
   "pageSize" : 5
 })
 
-const getPage = (pageNo : number, year = '') : void => {
+const searchPage: Ref<number> = ref(0)
+
+const getPage: Function = (pageNo : number, year = '') : void => {
   axios.get(`/public/blog/page/${pageNo}?year=${year}`)
     .then((resp : AxiosResponse<Data<PageAdapter<BlogsDesc>>>) => {
       page.content = resp.data.data.content
@@ -36,7 +37,7 @@ const { content : blogs, totalElements, pageSize } = toRefs(page)
 </script>
 <template>
   <div class="search-father">
-    <Search @search="fillSearch"></Search>
+    <Search :search-page="searchPage" @search="fillSearch" @clear="getPage(1)"></Search>
   </div>
   <div class="description">
     <el-timeline>
