@@ -8,7 +8,6 @@ import Years from './Years.vue'
 const emit = defineEmits<{
   (event: "search", payload: PageAdapter<BlogsDesc>, keywords: string): void
   (event: "clear"): void
-  (event: "transYear", payload: string): void
 }>()
 
 const keywords: Ref<string> = ref('')
@@ -33,9 +32,8 @@ const querySearchAsync = (queryString: string, cb: Function) => {
       //节流
       clearTimeout(timeout)
       timeout = setTimeout(() => {
-        if (page.content.length > 0) {
-          cb(page.content)
-        } else {
+        cb(page.content)
+        if (page.content.length === 0) {
           //@ts-ignore
           ElMessage.error("No Records")
         }
@@ -46,13 +44,11 @@ const querySearchAsync = (queryString: string, cb: Function) => {
   
 const handleSelect = (item: BlogsDesc) => console.log(item)
 
-const queryAllInfo = (queryString: string, currentPage = 1) => {
+const queryAllInfo = async (queryString: string, currentPage = 1) => {
   outerVisible.value = false
   if (queryString.length > 0) {
-    const resp: Promise<PageAdapter<BlogsDesc>> = query(queryString, currentPage, true, year.value)
-    resp.then((page: PageAdapter<BlogsDesc>) => {
-      emit("search" , page, queryString)
-    })
+    const page: PageAdapter<BlogsDesc> = await query(queryString, currentPage, true, year.value)
+    emit("search" , page, queryString)
   } else {
     emit("clear")
   }
@@ -67,28 +63,27 @@ const beforeClose = (close: Function) => {
 
 const refAutocomplete: Ref<any> = ref<any>()
 
-const changeYear = (payload: string) => {
+const changeYear = async (payload: string) => {
   year.value = payload
   innerVisible.value = false
-    const resp: Promise<PageAdapter<BlogsDesc>> = query(keywords.value, -1, false, year.value)
-    resp.then((page: PageAdapter<BlogsDesc>) => {
-      page.content.forEach((blogsDesc: BlogsDesc) => {
-        blogsDesc.value = blogsDesc.highlight
-      })
+  if (keywords.value.length > 0) {
+    const page: PageAdapter<BlogsDesc> = await query(keywords.value, -1, false, year.value)
+    page.content.forEach((blogsDesc: BlogsDesc) => {
+      blogsDesc.value = blogsDesc.highlight
+    })
     //节流
     clearTimeout(timeout)
     timeout = setTimeout(() => {
-      if (page.content.length > 0) {
-        refAutocomplete.value.suggestions = page.content
-      } else {
-        refAutocomplete.value.suggestions = []
+      console.log(refAutocomplete.value)
+      refAutocomplete.value.activated = true
+      refAutocomplete.value.suggestions = page.content
+      if (page.content.length === 0) {
         //@ts-ignore
         ElMessage.error("No Records")
       }
     }, 1000 * Math.random())
-  })  
+  }
 }
-
 
 defineExpose(
   { queryAllInfo }
@@ -146,6 +141,7 @@ defineExpose(
   position: absolute;
   right: 0;
   z-index: 1;
+  top: 15px;
 }
 
 .el-overlay-dialog .dialog-content {

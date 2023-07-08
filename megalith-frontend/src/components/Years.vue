@@ -23,7 +23,7 @@ const clearYear: Function = () => emit("choose-year", '')
 
 <template>
   <el-button type="primary" v-for="year in years" @click="chooseYear(year)">{{ year }}</el-button>
-  <el-button type="primary" @click="clearYear">清除年份</el-button>
+  <el-button type="primary" @click="clearYear">清除</el-button>
 </template>
 
 <style scoped>

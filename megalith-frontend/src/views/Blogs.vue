@@ -54,12 +54,14 @@ const { content : blogs, totalElements, pageSize } = toRefs(page)
   <div class="search-father">
     <Search ref="searchRef" @search="fillSearch" @clear="clearSearchData"></Search>
   </div>
+  <div>共{{ page.totalElements }}篇</div>
+  <br/>
   <div class="description">
     <el-timeline>
       <el-timeline-item v-for="blog in blogs" :timestamp="blog.created.replace('T', ' ')" placement="top" :color="'#0bbd87'">
-        <p v-if="blog.score">{{"Search Scores:" + blog.score}}</p>
         <el-card shadow="never">
           <el-image :key="blog.link" :src="blog.link" lazy></el-image>
+          <p v-if="blog.score">{{"Search Scores:" + blog.score}}</p>
           <h4>{{ blog.title }}</h4>
           <p v-if="!blog.highlight">{{ blog.description }}</p>
           <p v-if="blog.highlight?.title" v-for="title in blog.highlight.title" v-html="'标题：' + title"></p>
@@ -76,7 +78,7 @@ const { content : blogs, totalElements, pageSize } = toRefs(page)
 @import '../assets/front.css';
 
 .search-father {
-  margin-top: 30px;
+  margin-top: 20px;
   position: relative;
   min-height: 10px;
 }
