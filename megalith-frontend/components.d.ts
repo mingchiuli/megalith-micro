@@ -28,5 +28,6 @@ declare module 'vue' {
     Search: typeof import('./src/components/Search.vue')['default']
     SearchInput: typeof import('./src/components/SearchInput.vue')['default']
     Stat: typeof import('./src/components/Stat.vue')['default']
+    Years: typeof import('./src/components/Years.vue')['default']
   }
 }

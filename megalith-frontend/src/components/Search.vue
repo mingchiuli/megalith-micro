@@ -3,6 +3,7 @@ import type { BlogsDesc, Data, PageAdapter } from '@/type/entity'
 import axios from '../axios'
 import { ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
+import Years from './Years.vue'
 
 const emit = defineEmits<{
   (event: "search", payload: PageAdapter<BlogsDesc>, keywords: string): void
@@ -11,41 +12,43 @@ const emit = defineEmits<{
 }>()
 
 const keywords: Ref<string> = ref('')
-const year : Ref<string>= ref('')
+const year: Ref<string>= ref('')
 
 const outerVisible: Ref<boolean> = ref(false)
 const innerVisible: Ref<boolean> = ref(false)
 
-const query: Function = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
-  const resp : AxiosResponse<Data<PageAdapter<BlogsDesc>>> = await axios.get(`/search/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`)
+const query = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
+  const resp: AxiosResponse<Data<PageAdapter<BlogsDesc>>> = await axios.get(`/search/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`)
   return Promise.resolve(resp.data.data)
 }
 
 let timeout: NodeJS.Timeout
-const querySearchAsync: Function = (queryString: string, cb: any) => {
-  const resp: Promise<PageAdapter<BlogsDesc>> =  query(queryString, -1, false, year.value)
-  resp.then((page: PageAdapter<BlogsDesc>) => {
-    page.content.forEach((blogsDesc: BlogsDesc) => {
-      blogsDesc.value = blogsDesc.highlight
+const querySearchAsync = (queryString: string, cb: Function) => {
+  if (queryString.length > 0) {
+    const resp: Promise<PageAdapter<BlogsDesc>> =  query(queryString, -1, false, year.value)
+    resp.then((page: PageAdapter<BlogsDesc>) => {
+      page.content.forEach((blogsDesc: BlogsDesc) => {
+        blogsDesc.value = blogsDesc.highlight
+      })
+      //节流
+      clearTimeout(timeout)
+      timeout = setTimeout(() => {
+        if (page.content.length > 0) {
+          cb(page.content)
+        } else {
+          //@ts-ignore
+          ElMessage.error("No Records")
+        }
+      }, 1000 * Math.random())
     })
-    //节流
-    clearTimeout(timeout)
-    timeout = setTimeout(() => {
-      if (page.content.length > 0) {
-        cb(page.content)
-      } else {
-        //@ts-ignore
-        ElMessage.error("No Records")
-      }
-    }, 1000 * Math.random())
-  })
+  }
 }
   
 const handleSelect = (item: BlogsDesc) => console.log(item)
 
-const queryAllInfo: Function = (queryString: string, currentPage = 1) => {
+const queryAllInfo = (queryString: string, currentPage = 1) => {
   outerVisible.value = false
-  if (queryString !== '') {
+  if (queryString.length > 0) {
     const resp: Promise<PageAdapter<BlogsDesc>> = query(queryString, currentPage, true, year.value)
     resp.then((page: PageAdapter<BlogsDesc>) => {
       emit("search" , page, queryString)
@@ -55,33 +58,64 @@ const queryAllInfo: Function = (queryString: string, currentPage = 1) => {
   }
 }
 
-const beforeClose: Function = (close: Function) => {
+const beforeClose = (close: Function) => {
   keywords.value = ''
   year.value = ''
   emit('clear')
   close()
 }
 
-defineExpose({queryAllInfo})
+const refAutocomplete: Ref<any> = ref<any>()
+
+const changeYear = (payload: string) => {
+  year.value = payload
+  innerVisible.value = false
+    const resp: Promise<PageAdapter<BlogsDesc>> = query(keywords.value, -1, false, year.value)
+    resp.then((page: PageAdapter<BlogsDesc>) => {
+      page.content.forEach((blogsDesc: BlogsDesc) => {
+        blogsDesc.value = blogsDesc.highlight
+      })
+    //节流
+    clearTimeout(timeout)
+    timeout = setTimeout(() => {
+      if (page.content.length > 0) {
+        refAutocomplete.value.suggestions = page.content
+      } else {
+        refAutocomplete.value.suggestions = []
+        //@ts-ignore
+        ElMessage.error("No Records")
+      }
+    }, 1000 * Math.random())
+  })  
+}
+
+
+defineExpose(
+  { queryAllInfo }
+)
 </script>
 
 <template>
   <el-button class="search-button" @click="outerVisible = true" type="success">Search</el-button>
-  <el-dialog v-model="outerVisible" 
-  center 
-  close-on-press-escape 
-  fullscreen 
-  align-center
-  :before-close="beforeClose">
+  <el-dialog 
+    v-model="outerVisible" 
+    center 
+    close-on-press-escape 
+    fullscreen 
+    align-center
+    :before-close="beforeClose">
     <template #default>
       <div class="dialog-content">
-        <el-autocomplete v-model="keywords" 
-        :fetch-suggestions="querySearchAsync" 
-        placeholder="Please input" 
-        @select="handleSelect"
-        :trigger-on-focus="false"
-        clearable
-        @keyup.enter="queryAllInfo(keywords)">
+        <div v-if="year.length > 0">年份：{{ year }}</div>
+        <el-autocomplete 
+          v-model="keywords" 
+          :fetch-suggestions="querySearchAsync" 
+          placeholder="Please input" 
+          @select="handleSelect"
+          :trigger-on-focus="false"
+          clearable
+          @keyup.enter="queryAllInfo(keywords)"
+          ref="refAutocomplete">
         <template #default="{ item }">          
           <div class="value" v-if="item.value.title" v-for="title in item.value.title" v-html="'标题：' + title"></div>
           <div class="value" v-if="item.value.description" v-for="description in item.value.description" v-html="'摘要：' + description"></div>
@@ -89,7 +123,9 @@ defineExpose({queryAllInfo})
         </template>
       </el-autocomplete>
       </div>
-      <el-dialog v-model="innerVisible" width="50%" append-to-body title="Archieve">aaa</el-dialog>
+      <el-dialog v-model="innerVisible" width="50%" append-to-body title="Archieve">
+        <Years @choose-year="changeYear"></Years>
+      </el-dialog>
     </template>
     <template #footer>
       <div class="dialog-footer">

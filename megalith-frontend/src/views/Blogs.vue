@@ -27,7 +27,7 @@ let page : PageAdapter<BlogsDesc> = reactive({
   "pageNumber": 1
 })
 
-const getPage: Function = (pageNo : number) : void => {
+const getPage = (pageNo : number) : void => {
   if (searchPageNo.value === 0) {
     axios.get(`/public/blog/page/${pageNo}?year=${year.value}`)
       .then((resp : AxiosResponse<Data<PageAdapter<BlogsDesc>>>) => {
