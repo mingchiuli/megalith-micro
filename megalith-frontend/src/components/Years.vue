@@ -4,7 +4,7 @@ import { ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
 import type { Data } from "../type/entity"
 
-const emit = defineEmits<(event: "choose-year", payload: string) => void>()
+const emit = defineEmits<(event: "send-year", payload: string) => void>()
 
 let years: Ref<number[]> = ref([])
 
@@ -14,10 +14,10 @@ axios.get('/public/blog/years')
   })
 
 const chooseYear: Function = (year: number) => {
-  emit("choose-year", year.toString())
+  emit("send-year", year.toString())
 }
 
-const clearYear: Function = () => emit("choose-year", '')
+const clearYear: Function = () => emit("send-year", '')
 
 </script>
 

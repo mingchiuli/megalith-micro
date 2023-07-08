@@ -27,7 +27,7 @@ let page : PageAdapter<BlogsDesc> = reactive({
   "pageNumber": 1
 })
 
-const getPage = (pageNo : number) : void => {
+const getPage = (pageNo: number): void => {
   if (searchPageNo.value === 0) {
     axios.get(`/public/blog/page/${pageNo}?year=${year.value}`)
       .then((resp : AxiosResponse<Data<PageAdapter<BlogsDesc>>>) => {
@@ -42,9 +42,17 @@ const getPage = (pageNo : number) : void => {
 const clearSearchData = () => {
   searchKeywords.value = ''
   searchPageNo.value = 0
+  getPage(1)
+}
+
+const reset = () => {
+  searchKeywords.value = ''
+  searchPageNo.value = 0
   year.value = ''
   getPage(1)
 }
+
+const changeYear = (y: string) => year.value = y
 
 getPage(1)
 const { content : blogs, totalElements, pageSize } = toRefs(page)
@@ -52,7 +60,7 @@ const { content : blogs, totalElements, pageSize } = toRefs(page)
 
 <template>
   <div class="search-father">
-    <Search ref="searchRef" @search="fillSearch" @clear="clearSearchData"></Search>
+    <Search ref="searchRef" @search="fillSearch" @clear="clearSearchData" @send-year="changeYear" @reset="reset"></Search>
   </div>
   <div>共{{ page.totalElements }}篇</div>
   <br/>

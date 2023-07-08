@@ -8,6 +8,8 @@ import Years from './Years.vue'
 const emit = defineEmits<{
   (event: "search", payload: PageAdapter<BlogsDesc>, keywords: string): void
   (event: "clear"): void
+  (event: "send-year", payload: string): void
+  (event: "reset"): void
 }>()
 
 const keywords: Ref<string> = ref('')
@@ -57,7 +59,7 @@ const queryAllInfo = async (queryString: string, currentPage = 1) => {
 const beforeClose = (close: Function) => {
   keywords.value = ''
   year.value = ''
-  emit('clear')
+  emit('reset')
   close()
 }
 
@@ -65,6 +67,7 @@ const refAutocomplete: Ref<any> = ref<any>()
 
 const changeYear = async (payload: string) => {
   year.value = payload
+  emit('send-year', year.value)
   innerVisible.value = false
   if (keywords.value.length > 0) {
     const page: PageAdapter<BlogsDesc> = await query(keywords.value, -1, false, year.value)
@@ -119,7 +122,7 @@ defineExpose(
       </el-autocomplete>
       </div>
       <el-dialog v-model="innerVisible" width="50%" append-to-body title="Archieve">
-        <Years @choose-year="changeYear"></Years>
+        <Years @send-year="changeYear"></Years>
       </el-dialog>
     </template>
     <template #footer>
