@@ -4,19 +4,19 @@ import axios from '../axios'
 import { reactive, toRefs, ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
 import Search from '@/components/Search.vue'
+import { storeToRefs } from 'pinia'
+import { searchStore } from '../stores/store'
 
 const searchRef: Ref<any> = ref<any>()
-  
 const searchPageNo: Ref<number> = ref(0)
-const searchKeywords: Ref<string> = ref('')
-const year: Ref<string> = ref('')
 
-const fillSearch = (payload: PageAdapter<BlogsDesc>, keywords: string) => {
+const {keywords, year} = storeToRefs(searchStore())  
+
+const fillSearch = (payload: PageAdapter<BlogsDesc>) => {
   if (payload.content.length > 0) {
     page.content = payload.content
     page.totalElements = payload.totalElements
     searchPageNo.value = payload.pageNumber
-    searchKeywords.value = keywords
   }
 }
 
@@ -35,32 +35,28 @@ const getPage = (pageNo: number): void => {
         page.totalElements = resp.data.data.totalElements
       })
   } else {
-    searchRef.value.queryAllInfo(searchKeywords.value, pageNo)
+    searchRef.value.queryAllInfo(keywords.value, pageNo)
   }
 }
 
 const clearSearchData = () => {
-  searchKeywords.value = ''
   searchPageNo.value = 0
   getPage(1)
 }
 
-const reset = () => {
-  searchKeywords.value = ''
+const resetPage = () => {
   searchPageNo.value = 0
-  year.value = ''
   getPage(1)
 }
 
-const changeYear = (y: string) => year.value = y
+const { content : blogs, totalElements, pageSize } = toRefs(page)
 
 getPage(1)
-const { content : blogs, totalElements, pageSize } = toRefs(page)
 </script>
 
 <template>
   <div class="search-father">
-    <Search ref="searchRef" @search="fillSearch" @clear="clearSearchData" @send-year="changeYear" @reset="reset"></Search>
+    <Search ref="searchRef" @search="fillSearch" @clear="clearSearchData" @reset="resetPage"></Search>
   </div>
   <div>共{{ page.totalElements }}篇</div>
   <br/>

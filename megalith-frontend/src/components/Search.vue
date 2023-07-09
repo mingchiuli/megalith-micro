@@ -4,16 +4,17 @@ import axios from '../axios'
 import { ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
 import Years from './Years.vue'
+import { searchStore } from '../stores/store'
+import { storeToRefs } from 'pinia'
 
 const emit = defineEmits<{
-  (event: "search", payload: PageAdapter<BlogsDesc>, keywords: string): void
+  (event: "search", payload: PageAdapter<BlogsDesc>): void
   (event: "clear"): void
-  (event: "send-year", payload: string): void
   (event: "reset"): void
 }>()
 
-const keywords: Ref<string> = ref('')
-const year: Ref<string>= ref('')
+const store = searchStore()
+const {year, keywords} = storeToRefs(store)
 
 const outerVisible: Ref<boolean> = ref(false)
 const innerVisible: Ref<boolean> = ref(false)
@@ -50,7 +51,8 @@ const queryAllInfo = async (queryString: string, currentPage = 1) => {
   outerVisible.value = false
   if (queryString.length > 0) {
     const page: PageAdapter<BlogsDesc> = await query(queryString, currentPage, true, year.value)
-    emit("search" , page, queryString)
+    keywords.value = queryString  
+    emit("search" , page)
   } else {
     emit("clear")
   }
@@ -65,9 +67,7 @@ const beforeClose = (close: Function) => {
 
 const refAutocomplete: Ref<any> = ref<any>()
 
-const changeYear = async (payload: string) => {
-  year.value = payload
-  emit('send-year', year.value)
+const yearClose = async () => {
   innerVisible.value = false
   if (keywords.value.length > 0) {
     const page: PageAdapter<BlogsDesc> = await query(keywords.value, -1, false, year.value)
@@ -122,7 +122,7 @@ defineExpose(
       </el-autocomplete>
       </div>
       <el-dialog v-model="innerVisible" width="50%" append-to-body title="Archieve">
-        <Years @send-year="changeYear"></Years>
+        <Years @close="yearClose"></Years>
       </el-dialog>
     </template>
     <template #footer>

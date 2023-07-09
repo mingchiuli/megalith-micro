@@ -2,9 +2,13 @@
 import axios from '../axios'
 import { ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
-import type { Data } from "../type/entity"
+import type { Data } from '../type/entity'
+import { searchStore } from '../stores/store'
+import { storeToRefs } from 'pinia'
 
-const emit = defineEmits<(event: "send-year", payload: string) => void>()
+const emit = defineEmits<
+  (event: 'close') => void
+>()
 
 let years: Ref<number[]> = ref([])
 
@@ -13,11 +17,17 @@ axios.get('/public/blog/years')
     years.value = resp.data.data
   })
 
-const chooseYear: Function = (year: number) => {
-  emit("send-year", year.toString())
+const {year} = storeToRefs(searchStore())
+
+const chooseYear = (targetYear: number) => {
+  year.value = targetYear.toString()
+  emit("close")
 }
 
-const clearYear: Function = () => emit("send-year", '')
+const clearYear = () => {
+  year.value = ''
+  emit('close')
+}
 
 </script>
 
