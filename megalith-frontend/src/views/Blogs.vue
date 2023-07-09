@@ -39,12 +39,7 @@ const getPage = (pageNo: number): void => {
   }
 }
 
-const clearSearchData = () => {
-  searchPageNo.value = 0
-  getPage(1)
-}
-
-const resetPage = () => {
+const clear = () => {
   searchPageNo.value = 0
   getPage(1)
 }
@@ -56,7 +51,7 @@ getPage(1)
 
 <template>
   <div class="search-father">
-    <Search ref="searchRef" @search="fillSearch" @clear="clearSearchData" @reset="resetPage"></Search>
+    <Search ref="searchRef" @search="fillSearch" @clear="clear"></Search>
   </div>
   <div>共{{ page.totalElements }}篇</div>
   <br/>

@@ -3,7 +3,7 @@ import { reactive, toRefs } from 'vue'
 import type { AxiosResponse } from 'axios'
 import axios from '../axios'
 
-import type { Visitor, Data } from "../type/entity"
+import type { Visitor, Data } from '../type/entity'
 
 const blogStat : Visitor = reactive({
   "dayVisit": 0, 

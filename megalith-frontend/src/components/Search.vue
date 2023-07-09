@@ -10,7 +10,6 @@ import { storeToRefs } from 'pinia'
 const emit = defineEmits<{
   (event: "search", payload: PageAdapter<BlogsDesc>): void
   (event: "clear"): void
-  (event: "reset"): void
 }>()
 
 const store = searchStore()
@@ -61,7 +60,8 @@ const queryAllInfo = async (queryString: string, currentPage = 1) => {
 const beforeClose = (close: Function) => {
   keywords.value = ''
   year.value = ''
-  emit('reset')
+  refAutocomplete.value.suggestions = []
+  emit('clear')
   close()
 }
 
@@ -82,7 +82,7 @@ const yearClose = async () => {
       refAutocomplete.value.suggestions = page.content
       if (page.content.length === 0) {
         //@ts-ignore
-        ElMessage.error("No Records")
+        ElMessage.error('No Records')
       }
     }, 1000 * Math.random())
   }
