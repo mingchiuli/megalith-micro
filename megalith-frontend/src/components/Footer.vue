@@ -24,9 +24,9 @@ axios.get('/public/blog/years')
 
 <style scoped>
 .footer {
-  max-width: 250px;
+  max-width: 15rem;
   margin: 0 auto;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 1rem;
 }
 </style>

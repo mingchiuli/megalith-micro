@@ -22,6 +22,8 @@ declare module 'vue' {
     ElTimeline: typeof import('element-plus/es')['ElTimeline']
     ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
     Footer: typeof import('./src/components/Footer.vue')['default']
+    Hot: typeof import('./src/components/Hot.vue')['default']
+    HotBlogs: typeof import('./src/components/HotBlogs.vue')['default']
     Intro: typeof import('./src/components/Intro.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

@@ -104,8 +104,10 @@ defineExpose(
     :before-close="beforeClose">
     <template #default>
       <div class="dialog-content">
+        <Hot></Hot>
         <div v-if="year.length > 0">年份：{{ year }}</div>
-        <el-autocomplete 
+        <el-autocomplete
+          style="width: 200px;"
           v-model="keywords" 
           :fetch-suggestions="querySearchAsync" 
           placeholder="Please input" 
@@ -148,7 +150,6 @@ defineExpose(
 }
 
 .el-overlay-dialog .dialog-content {
-  margin-top: 50px
+  margin-top: 20px
 }
-
 </style>
