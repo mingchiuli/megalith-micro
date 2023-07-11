@@ -23,6 +23,11 @@ interface SearchStruct {
   content: string[]  
 }
 
+export interface Hot {
+  id: string
+  title: string
+  readCount: number
+}
 export interface PageAdapter<T> {
   content: T[]
   pageSize: number

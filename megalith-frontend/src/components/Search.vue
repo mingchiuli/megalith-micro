@@ -107,7 +107,6 @@ defineExpose(
         <Hot></Hot>
         <div v-if="year.length > 0">年份：{{ year }}</div>
         <el-autocomplete
-          style="width: 200px;"
           v-model="keywords" 
           :fetch-suggestions="querySearchAsync" 
           placeholder="Please input" 
@@ -150,6 +149,7 @@ defineExpose(
 }
 
 .el-overlay-dialog .dialog-content {
+  text-align: center;
   margin-top: 20px
 }
 </style>

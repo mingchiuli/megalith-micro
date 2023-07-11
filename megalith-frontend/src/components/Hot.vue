@@ -1,22 +1,38 @@
 <script lang="ts" setup>
+import { reactive, ref, type Ref } from 'vue';
+import type { Hot, Data } from '../type/entity'
+import { type AxiosResponse } from 'axios'
+import axios from '../axios';
+
+let hots: Ref<Hot[]> = ref([])
+
+axios.get('/public/blog/scores')
+  .then((resp: AxiosResponse<Data<Hot[]>>) => {
+    hots.value = resp.data.data
+    console.log(hots) 
+  })
 
 </script>
 
 <template>
 <el-card shadow="never" class="hot-blogs">
-  <div>本周热读</div>
-  <div>惟见长江天际流：15次</div>
-  <div>惟见长江天际流：15次</div>
-  <div>惟见长江天际流：15次</div>
-  <div>惟见长江天际流：15次</div>
-  <div>惟见长江天际流：15次</div>
+  <div class="title">本周热读</div>
+  <div class="description" v-for="hot in hots">{{ hot.title }}: {{ hot.readCount }}次</div>
 </el-card> 
 </template>
 
 <style scoped>
 .hot-blogs {
-  width: 200px;
-  margin: 0;
-  margin-bottom: 20px;
+  max-width: 250px;
+  margin-bottom: 20px
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 20px
+}
+
+.description {
+  text-align: left
 }
 </style>
