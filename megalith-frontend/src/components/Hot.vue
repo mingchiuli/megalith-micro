@@ -9,7 +9,6 @@ let hots: Ref<Hot[]> = ref([])
 axios.get('/public/blog/scores')
   .then((resp: AxiosResponse<Data<Hot[]>>) => {
     hots.value = resp.data.data
-    console.log(hots) 
   })
 
 </script>
