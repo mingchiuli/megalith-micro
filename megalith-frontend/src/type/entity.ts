@@ -24,7 +24,7 @@ interface SearchStruct {
 }
 
 export interface Hot {
-  id: string
+  id: number
   title: string
   readCount: number
 }

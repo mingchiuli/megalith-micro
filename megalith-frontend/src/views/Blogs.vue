@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import type { BlogsDesc, Data, PageAdapter } from '@/type/entity'
-import axios from '../axios'
+import axios from '@/axios'
 import { reactive, toRefs, ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
-import Search from '@/components/Search.vue'
 import { storeToRefs } from 'pinia'
-import { searchStore } from '../stores/store'
+import { searchStore } from '@/stores/store'
+import router from '@/router'
 
 const searchRef: Ref<any> = ref<any>()
 const searchPageNo: Ref<number> = ref(0)
@@ -44,6 +44,10 @@ const clear = () => {
   getPage(1)
 }
 
+const go = () => router.push({
+  name: 'blog'
+})
+
 const { content : blogs, totalElements, pageSize } = toRefs(page)
 
 getPage(1)
@@ -61,7 +65,7 @@ getPage(1)
         <el-card shadow="never">
           <el-image :key="blog.link" :src="blog.link" lazy></el-image>
           <p v-if="blog.score">{{"Search Scores:" + blog.score}}</p>
-          <h4>{{ blog.title }}</h4>
+          <el-link class="title" @click="go">{{ blog.title }}</el-link>
           <p v-if="!blog.highlight">{{ blog.description }}</p>
           <p v-if="blog.highlight?.title" v-for="title in blog.highlight.title" v-html="'标题：' + title"></p>
           <p v-if="blog.highlight?.description" v-for="description in blog.highlight.description" v-html="'摘要：' + description"></p>
@@ -96,5 +100,10 @@ getPage(1)
 }
 .el-timeline {
   padding: 0;
+}
+
+.title {
+  font-size: medium;
+  margin-top: 15px;
 }
 </style>

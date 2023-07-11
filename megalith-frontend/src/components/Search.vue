@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import type { BlogsDesc, Data, PageAdapter } from '@/type/entity'
-import axios from '../axios'
+import axios from '@/axios'
 import { ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
-import Years from './Years.vue'
-import { searchStore } from '../stores/store'
+import { searchStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 
 const emit = defineEmits<{
@@ -77,7 +76,6 @@ const yearClose = async () => {
     //节流
     clearTimeout(timeout)
     timeout = setTimeout(() => {
-      console.log(refAutocomplete.value)
       refAutocomplete.value.activated = true
       refAutocomplete.value.suggestions = page.content
       if (page.content.length === 0) {

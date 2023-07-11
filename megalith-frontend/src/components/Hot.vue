@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { reactive, ref, type Ref } from 'vue';
-import type { Hot, Data } from '../type/entity'
+import { ref, type Ref } from 'vue';
+import type { Hot, Data } from '@/type/entity'
 import { type AxiosResponse } from 'axios'
-import axios from '../axios';
+import axios from '@/axios';
+import router from '@/router';
 
 let hots: Ref<Hot[]> = ref([])
 
@@ -11,12 +12,19 @@ axios.get('/public/blog/scores')
     hots.value = resp.data.data
   })
 
+const go = (id: number) => router.push({
+  name: 'blog',
+  query: {
+    blogId: id
+  }
+}) 
+
 </script>
 
 <template>
 <el-card shadow="never" class="hot-blogs">
   <div class="title">本周热读</div>
-  <div class="description" v-for="hot in hots">{{ hot.title }}: {{ hot.readCount }}次</div>
+  <el-link class="description" v-for="hot in hots" @click="go(hot.id)">{{ hot.title }}: {{ hot.readCount }}次</el-link>
 </el-card> 
 </template>
 
@@ -32,6 +40,7 @@ axios.get('/public/blog/scores')
 }
 
 .description {
-  text-align: left
+  text-align: left;
+  margin-bottom: 10px
 }
 </style>

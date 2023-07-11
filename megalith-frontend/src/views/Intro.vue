@@ -21,7 +21,7 @@ const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
 </template>
 
 <style>
-@import '../assets/front.css';
+@import '@/assets/front.css';
 
 #into-button-father {
   position: relative;

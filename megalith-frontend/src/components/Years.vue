@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import axios from '../axios'
+import axios from '@/axios'
 import { ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
-import type { Data } from '../type/entity'
-import { searchStore } from '../stores/store'
+import type { Data } from '@/type/entity'
+import { searchStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 
 const emit = defineEmits<
@@ -17,7 +17,7 @@ axios.get('/public/blog/years')
     years.value = resp.data.data
   })
 
-const {year} = storeToRefs(searchStore())
+const { year } = storeToRefs(searchStore())
 
 const chooseYear = (targetYear: number) => {
   year.value = targetYear.toString()
