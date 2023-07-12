@@ -5,23 +5,23 @@ import axios from '@/axios'
 
 import type { Visitor, Data } from '@/type/entity'
 
-const blogStat : Visitor = reactive({
-  "dayVisit": 0, 
-  "weekVisit": 0, 
-  "monthVisit" : 0, 
-  "yearVisit" : 0
+const blogStat: Visitor = reactive({
+  "dayVisit": 0,
+  "weekVisit": 0,
+  "monthVisit": 0,
+  "yearVisit": 0
 })
 
 axios.get('/public/blog/stat')
   .then((resp: AxiosResponse<Data<Visitor>>) => {
-    const visitor : Visitor = resp.data.data
+    const visitor: Visitor = resp.data.data
     blogStat.dayVisit = visitor.dayVisit
     blogStat.weekVisit = visitor.weekVisit
     blogStat.monthVisit = visitor.monthVisit
     blogStat.yearVisit = visitor.yearVisit
   })
 
-const {dayVisit, weekVisit, monthVisit, yearVisit} = toRefs(blogStat)
+const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat)
 </script>
 
 <template>
@@ -31,7 +31,7 @@ const {dayVisit, weekVisit, monthVisit, yearVisit} = toRefs(blogStat)
     <el-breadcrumb-item>本周：{{ weekVisit }}</el-breadcrumb-item>
     <el-breadcrumb-item>本月：{{ monthVisit }}</el-breadcrumb-item>
     <el-breadcrumb-item>本年：{{ yearVisit }}</el-breadcrumb-item>
-  </el-breadcrumb>  
+  </el-breadcrumb>
 </template>
 
 <style scoped>

@@ -1,4 +1,4 @@
-<script lang="ts" setup> 
+<script lang="ts" setup>
 import { type AxiosResponse } from 'axios'
 import axios from '@/axios'
 import type { Data } from '@/type/entity'
@@ -9,7 +9,7 @@ let end: Ref<number> = ref(0)
 
 axios.get('/public/blog/years')
   .then((resp: AxiosResponse<Data<number[]>>) => {
-    const years : number[] = resp.data.data
+    const years: number[] = resp.data.data
     start.value = years[0]
     end.value = years[years.length - 1]
   })
@@ -19,7 +19,7 @@ axios.get('/public/blog/years')
   <div class="footer">
     <el-divider />
     <el-link :underline="false" class="copyright" href="/">&copy; Powered by Kubernetes {{ start }}-{{ end }} </el-link>
-  </div>  
+  </div>
 </template>
 
 <style scoped>

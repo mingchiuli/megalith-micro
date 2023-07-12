@@ -12,7 +12,7 @@ const emit = defineEmits<{
 }>()
 
 const store = searchStore()
-const {year, keywords} = storeToRefs(store)
+const { year, keywords } = storeToRefs(store)
 
 const outerVisible: Ref<boolean> = ref(false)
 const innerVisible: Ref<boolean> = ref(false)
@@ -25,7 +25,7 @@ const query = async (queryString: string, currentPage: number, allInfo: boolean,
 let timeout: NodeJS.Timeout
 const querySearchAsync = (queryString: string, cb: Function) => {
   if (queryString.length > 0) {
-    const resp: Promise<PageAdapter<BlogsDesc>> =  query(queryString, -1, false, year.value)
+    const resp: Promise<PageAdapter<BlogsDesc>> = query(queryString, -1, false, year.value)
     resp.then((page: PageAdapter<BlogsDesc>) => {
       page.content.forEach((blogsDesc: BlogsDesc) => {
         blogsDesc.value = blogsDesc.highlight
@@ -42,15 +42,15 @@ const querySearchAsync = (queryString: string, cb: Function) => {
     })
   }
 }
-  
+
 const handleSelect = (item: BlogsDesc) => console.log(item)
 
 const queryAllInfo = async (queryString: string, currentPage = 1) => {
   outerVisible.value = false
   if (queryString.length > 0) {
     const page: PageAdapter<BlogsDesc> = await query(queryString, currentPage, true, year.value)
-    keywords.value = queryString  
-    emit("search" , page)
+    keywords.value = queryString
+    emit("search", page)
   } else {
     emit("clear")
   }
@@ -93,32 +93,22 @@ defineExpose(
 
 <template>
   <el-button class="search-button" @click="outerVisible = true" type="success">Search</el-button>
-  <el-dialog 
-    v-model="outerVisible" 
-    center 
-    close-on-press-escape 
-    fullscreen 
-    align-center
-    :before-close="beforeClose">
+  <el-dialog v-model="outerVisible" center close-on-press-escape fullscreen align-center :before-close="beforeClose">
     <template #default>
       <div class="dialog-content">
         <Hot></Hot>
         <div v-if="year.length > 0">年份：{{ year }}</div>
-        <el-autocomplete
-          v-model="keywords" 
-          :fetch-suggestions="querySearchAsync" 
-          placeholder="Please input" 
-          @select="handleSelect"
-          :trigger-on-focus="false"
-          clearable
-          @keyup.enter="queryAllInfo(keywords)"
+        <el-autocomplete v-model="keywords" :fetch-suggestions="querySearchAsync" placeholder="Please input"
+          @select="handleSelect" :trigger-on-focus="false" clearable @keyup.enter="queryAllInfo(keywords)"
           ref="refAutocomplete">
-        <template #default="{ item }">          
-          <div class="value" v-if="item.value.title" v-for="title in item.value.title" v-html="'标题：' + title"></div>
-          <div class="value" v-if="item.value.description" v-for="description in item.value.description" v-html="'摘要：' + description"></div>
-          <div class="value" v-if="item.value.content" v-for="content in item.value.content" v-html="'内容：' + content"></div>
-        </template>
-      </el-autocomplete>
+          <template #default="{ item }">
+            <div class="value" v-if="item.value.title" v-for="title in item.value.title" v-html="'标题：' + title"></div>
+            <div class="value" v-if="item.value.description" v-for="description in item.value.description"
+              v-html="'摘要：' + description"></div>
+            <div class="value" v-if="item.value.content" v-for="content in item.value.content" v-html="'内容：' + content">
+            </div>
+          </template>
+        </el-autocomplete>
       </div>
       <el-dialog v-model="innerVisible" width="50%" append-to-body title="Archieve">
         <Years @close="yearClose"></Years>

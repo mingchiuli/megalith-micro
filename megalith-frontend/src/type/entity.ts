@@ -20,7 +20,7 @@ export interface BlogsDesc {
 interface SearchStruct {
   title: string[]
   description: string[]
-  content: string[]  
+  content: string[]
 }
 
 export interface Hot {

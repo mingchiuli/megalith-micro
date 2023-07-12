@@ -17,15 +17,15 @@ const go = (id: number) => router.push({
   query: {
     blogId: id
   }
-}) 
+})
 
 </script>
 
 <template>
-<el-card shadow="never" class="hot-blogs">
-  <div class="title">本周热读</div>
-  <el-link class="description" v-for="hot in hots" @click="go(hot.id)">{{ hot.title }}: {{ hot.readCount }}次</el-link>
-</el-card> 
+  <el-card shadow="never" class="hot-blogs">
+    <div class="title">本周热读</div>
+    <el-link class="description" v-for="hot in hots" @click="go(hot.id)">{{ hot.title }}: {{ hot.readCount }}</el-link>
+  </el-card>
 </template>
 
 <style scoped>
