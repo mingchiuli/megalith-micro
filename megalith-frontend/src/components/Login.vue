@@ -1,18 +1,32 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
-const input = ref('')
+import { loginStateStore } from '@/stores/store'
+import { storeToRefs } from 'pinia';
+import router from '@/router'
 
-const centerDialogVisible = ref(true)
+const input = ref('')
+const { login } = storeToRefs(loginStateStore())
+
+const beforeClose = (close: Function) => {
+  login.value = true
+  router.push({
+    name: 'blogs'
+  })
+  close()
+}
+
 </script>
 
 <template>
-  <el-dialog v-model="centerDialogVisible" center close-on-press-escape fullscreen align-center>
+  <el-dialog v-model="login" center close-on-press-escape fullscreen align-center :before-close="beforeClose">
     <template #default>
-      <div>
-        <el-input v-model="input" placeholder="Please input username" />
-      </div>
-      <div>
-        <el-input v-model="input" type="password" placeholder="Please input password" show-password />
+      <div class="input">
+        <div>
+          <el-input v-model="input" placeholder="username" clearable />
+        </div>
+        <div>
+          <el-input v-model="input" type="password" placeholder="password" show-password clearable />
+        </div>
       </div>
     </template>
     <template #footer>
@@ -27,7 +41,11 @@ const centerDialogVisible = ref(true)
 .el-input {
   width: 200px;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%);
+  margin-top: 10px;
+}
+
+.dialog-footer {
+  margin-top: 0;
 }
 </style>

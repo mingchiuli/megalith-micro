@@ -4,10 +4,15 @@ import axios from '@/axios'
 import { reactive, toRefs, ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
 import { storeToRefs } from 'pinia'
-import { searchStore } from '@/stores/store'
+import { searchStore, loginStateStore } from '@/stores/store'
 import router from '@/router'
 
-const searchRef: Ref<any> = ref<any>()
+const { login } = storeToRefs(loginStateStore())
+if (router.currentRoute.value.fullPath === '/login') {
+  login.value = true
+}
+
+const searchRef: Ref<any> = ref()
 const searchPageNo: Ref<number> = ref(0)
 
 const { keywords, year } = storeToRefs(searchStore())
@@ -54,7 +59,7 @@ getPage(1)
 </script>
 
 <template>
-  <Login></Login>
+  <Login v-if="login"></Login>
   <div class="search-father">
     <Search ref="searchRef" @search="fillSearch" @clear="clear"></Search>
   </div>

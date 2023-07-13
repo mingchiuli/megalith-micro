@@ -6,3 +6,8 @@ export const searchStore = defineStore('searchStore', () => {
   const keywords: Ref<string> = ref('')
   return { year, keywords }
 })
+
+export const loginStateStore = defineStore('loginStateStore', () => {
+  const login: Ref<boolean> = ref(false)
+  return { login }
+})
