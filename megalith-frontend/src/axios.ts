@@ -1,10 +1,23 @@
 import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
-import type { Data } from './type/entity'
+import type { Data, JWTStruct } from '@/type/entity'
 
 axios.defaults.baseURL = 'http://127.0.0.1:8081'
 axios.defaults.timeout = 10000
 
+const convert = (token: string): JWTStruct => {
+  return JSON.parse(decodeURIComponent(atob(token)))
+}
+
+
 axios.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
+  const token: string | null = localStorage.getItem('accessToken')
+  if (token) {
+    let strings: string[] = token.split(".")
+    const jwt: JWTStruct = convert(strings[1])
+    console.log(jwt.exp)
+    const now: number = Math.floor(new Date().getTime() / 1000)
+    console.log(now)
+  }
   return config
 })
 

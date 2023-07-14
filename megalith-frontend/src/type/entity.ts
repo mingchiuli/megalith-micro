@@ -23,6 +23,23 @@ interface SearchStruct {
   content: string[]
 }
 
+export interface LoginStruct {
+  username: string
+  password: string
+}
+
+export interface Token {
+  accessToken: string
+  refreshToken: string
+}
+
+export interface JWTStruct {
+  role: string
+  sub: string
+  iat: number
+  exp: number
+}
+
 export interface Hot {
   id: number
   title: string
@@ -36,7 +53,6 @@ export interface PageAdapter<T> {
 }
 
 export interface Data<T> {
-  status: number
   msg: string
   data: T
 }
