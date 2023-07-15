@@ -37,7 +37,6 @@ const beforeClose = (close: Function) => {
 }
 
 const radioSelect: Ref<string> = ref('Password')
-const radioPassword: Ref<boolean> = ref(false)
 const radioSMS: Ref<boolean> = ref(false)
 const radioEmail: Ref<boolean> = ref(false)
 
@@ -46,15 +45,12 @@ const loginType = () => {
     case 'SMS':
       radioSMS.value = true
       radioEmail.value = false
-      radioPassword.value = false
       break
     case 'Email':
       radioEmail.value = true
       radioSMS.value = false
-      radioPassword.value = false
       break  
     default:
-      radioPassword.value = true
       radioSMS.value = false
       radioEmail.value = false
       break;

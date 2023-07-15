@@ -14,9 +14,8 @@ const convert = (token: string): JWTStruct => {
 
 axios.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
   const accessToken: string | null = localStorage.getItem('accessToken')
-  const refreshToken: string | null = localStorage.getItem('refreshToken')
-  const { login } = storeToRefs(loginStateStore())
-  if (accessToken && refreshToken && config.url !== '/token/refresh') {
+  if (accessToken && config.url !== '/token/refresh') {
+    const { login } = storeToRefs(loginStateStore())
     login.value = true
     let tokenArray: string[] = accessToken.split(".")
     const jwt: JWTStruct = convert(tokenArray[1])
@@ -24,6 +23,7 @@ axios.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
     const now: number = Math.floor(new Date().getTime() / 1000)
     //ten minutes
     if (jwt.exp - now < 600) {
+      const refreshToken: string | null = localStorage.getItem('refreshToken')
       axios.get('/token/refresh', {
         headers: { Authorization: refreshToken }
       }).then((resp: AxiosResponse<Data<RefreshStruct>>) => {
@@ -33,7 +33,6 @@ axios.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
     }
     config.headers.Authorization = localStorage.getItem('accessToken')
   }
-
   return config
 })
 
