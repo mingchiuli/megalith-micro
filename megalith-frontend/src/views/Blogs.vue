@@ -7,9 +7,14 @@ import { storeToRefs } from 'pinia'
 import { searchStore, loginStateStore } from '@/stores/store'
 import router from '@/router'
 
-const { login } = storeToRefs(loginStateStore())
-if (router.currentRoute.value.fullPath === '/login') {
-  login.value = true
+
+const { login, loginDialog } = storeToRefs(loginStateStore())
+if (router.currentRoute.value.path === '/login' && !login.value) {
+  loginDialog.value = true
+} else {
+  router.push({
+    name: 'blogs'
+  })
 }
 
 const searchRef: Ref<any> = ref()
@@ -59,7 +64,7 @@ getPage(1)
 </script>
 
 <template>
-  <Login v-if="login"></Login>
+  <Login></Login>
   <div class="search-father">
     <Search ref="searchRef" @search="fillSearch" @clear="clear"></Search>
   </div>
@@ -115,4 +120,5 @@ getPage(1)
 .title {
   font-size: medium;
   margin-top: 15px;
-}</style>
+}
+</style>

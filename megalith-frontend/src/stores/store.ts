@@ -9,5 +9,6 @@ export const searchStore = defineStore('searchStore', () => {
 
 export const loginStateStore = defineStore('loginStateStore', () => {
   const login: Ref<boolean> = ref(false)
-  return { login }
+  const loginDialog: Ref<boolean> = ref(false)
+  return { login, loginDialog }
 })

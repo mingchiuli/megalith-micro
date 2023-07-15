@@ -40,6 +40,10 @@ export interface JWTStruct {
   exp: number
 }
 
+export interface RefreshStruct {
+  accessToken: string
+}
+
 export interface Hot {
   id: number
   title: string
