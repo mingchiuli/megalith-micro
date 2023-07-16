@@ -56,9 +56,23 @@ const clear = () => {
   getPage(1)
 }
 
-const go = () => router.push({
-  name: 'blog'
-})
+const readTokenDialog: Ref<boolean> = ref(false)
+
+const go = async (blogId: number) => {
+  const resp: AxiosResponse<Data<number>> = await axios.get(`/public/blog/status/${blogId}`)
+  const status: number = resp.data.data
+  if (status === 0) {
+    router.push({
+      name: 'blog',
+      params: {
+        id: blogId
+      }
+    })
+  } else {
+    //TODO 弹框
+    readTokenDialog.value = true
+  }
+}
 
 const { content: blogs, totalElements, pageSize } = toRefs(page);
 
@@ -71,6 +85,7 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
 
 <template>
   <Login v-if="loginDialog" @loginDialog="changeLoginDialog"></Login>
+  <ReadToken v-if="readTokenDialog"></ReadToken>
   <div class="search-father">
     <Search ref="searchRef" @search="fillSearch" @clear="clear"></Search>
   </div>
@@ -79,12 +94,12 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
   <div class="description">
     <el-timeline>
       <el-skeleton v-for=" in page.pageSize" :rows="10" :loading="loading" animated />
-      <el-timeline-item v-for="blog in blogs" :timestamp="blog.created.replace('T', ' ')"
-        placement="top" :color="'#0bbd87'">
+      <el-timeline-item v-for="blog in blogs" :timestamp="blog.created.replace('T', ' ')" placement="top"
+        :color="'#0bbd87'">
         <el-card shadow="never">
           <el-image :key="blog.link" :src="blog.link" lazy></el-image>
           <p v-if="blog.score">{{ "Search Scores:" + blog.score }}</p>
-          <el-link class="title" @click="go">{{ blog.title }}</el-link>
+          <el-link class="title" @click="go(blog.id)">{{ blog.title }}</el-link>
           <p v-if="!blog.highlight">{{ blog.description }}</p>
           <p v-if="blog.highlight?.title" v-for="title in blog.highlight.title" v-html="'标题：' + title"></p>
           <p v-if="blog.highlight?.description" v-for="description in blog.highlight.description"

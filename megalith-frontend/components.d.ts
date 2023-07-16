@@ -35,6 +35,7 @@ declare module 'vue' {
     HotBlogs: typeof import('./src/components/HotBlogs.vue')['default']
     Intro: typeof import('./src/components/Intro.vue')['default']
     Login: typeof import('./src/components/Login.vue')['default']
+    ReadToken: typeof import('./src/components/ReadToken.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Search: typeof import('./src/components/Search.vue')['default']

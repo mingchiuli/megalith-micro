@@ -11,9 +11,7 @@ const { login } = storeToRefs(loginStateStore())
 
 const dialog: Ref<boolean> = ref(true)
 
-const emit = defineEmits<{
-  (event: 'loginDialog', payload: boolean): void
-}>()
+const emit = defineEmits<(event: 'loginDialog', payload: boolean) => void>()
 
 const loginInfo: LoginStruct = reactive({
   username: '',
@@ -80,7 +78,7 @@ const sendCode = async (via: string) => {
       mailButtonMiles.value--;
       if (mailButtonMiles.value <= -1) {
         clearInterval(interval)
-        mailButtonText.value = '发送邮件'
+        mailButtonText.value = '发送验证码'
         mailButtonDisable.value = false
         mailButtonMiles.value = 120
       }
@@ -104,7 +102,7 @@ const sendCode = async (via: string) => {
         </div>
         <div>
           <el-input v-model="loginInfo.password" type="password"
-            :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'" show-password clearable />
+            :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'" @keyup.enter="submitLogin" show-password clearable />
         </div>
       </div>
     </template>
