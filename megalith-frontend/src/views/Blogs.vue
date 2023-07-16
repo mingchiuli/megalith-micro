@@ -7,8 +7,12 @@ import { storeToRefs } from 'pinia'
 import { searchStore, loginStateStore } from '@/stores/store'
 import router from '@/router'
 
+const loading: Ref<boolean> = ref(true)
+const loginDialog: Ref<boolean> = ref(false)
 
-const { login, loginDialog } = storeToRefs(loginStateStore())
+const changeLoginDialog = (arg: boolean) => loginDialog.value = arg
+
+const { login } = storeToRefs(loginStateStore())
 if (router.currentRoute.value.path === '/login' && !login.value) {
   loginDialog.value = true
 } else {
@@ -37,13 +41,11 @@ let page: PageAdapter<BlogsDesc> = reactive({
   "pageNumber": 1
 })
 
-const getPage = (pageNo: number): void => {
+const getPage = async (pageNo: number) => {
   if (searchPageNo.value === 0) {
-    axios.get(`/public/blog/page/${pageNo}?year=${year.value}`)
-      .then((resp: AxiosResponse<Data<PageAdapter<BlogsDesc>>>) => {
-        page.content = resp.data.data.content
-        page.totalElements = resp.data.data.totalElements
-      })
+    const resp: AxiosResponse<Data<PageAdapter<BlogsDesc>>> = await axios.get(`/public/blog/page/${pageNo}?year=${year.value}`)
+    page.content = resp.data.data.content
+    page.totalElements = resp.data.data.totalElements
   } else {
     searchRef.value.queryAllInfo(keywords.value, pageNo)
   }
@@ -58,22 +60,27 @@ const go = () => router.push({
   name: 'blog'
 })
 
-const { content: blogs, totalElements, pageSize } = toRefs(page)
+const { content: blogs, totalElements, pageSize } = toRefs(page);
 
-getPage(1)
+(async () => {
+  await getPage(1)
+  loading.value = false
+})()
+
 </script>
 
 <template>
-  <Login></Login>
+  <Login v-if="loginDialog" @loginDialog="changeLoginDialog"></Login>
   <div class="search-father">
     <Search ref="searchRef" @search="fillSearch" @clear="clear"></Search>
   </div>
-  <div>共{{ page.totalElements }}篇</div>
+  <el-text size="large">共{{ page.totalElements }}篇</el-text>
   <br />
   <div class="description">
     <el-timeline>
-      <el-timeline-item v-for="blog in blogs" :timestamp="blog.created.replace('T', ' ')" placement="top"
-        :color="'#0bbd87'">
+      <el-skeleton v-for=" in page.pageSize" :rows="10" :loading="loading" animated />
+      <el-timeline-item v-for="blog in blogs" :timestamp="blog.created.replace('T', ' ')"
+        placement="top" :color="'#0bbd87'">
         <el-card shadow="never">
           <el-image :key="blog.link" :src="blog.link" lazy></el-image>
           <p v-if="blog.score">{{ "Search Scores:" + blog.score }}</p>

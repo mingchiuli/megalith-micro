@@ -7,8 +7,8 @@ import { searchStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 
 const emit = defineEmits<{
-  (event: "search", payload: PageAdapter<BlogsDesc>): void
-  (event: "clear"): void
+  (event: 'search', payload: PageAdapter<BlogsDesc>): void
+  (event: 'clear'): void
 }>()
 
 const store = searchStore()
@@ -36,7 +36,7 @@ const querySearchAsync = (queryString: string, cb: Function) => {
         cb(page.content)
         if (page.content.length === 0) {
           //@ts-ignore
-          ElMessage.error("No Records")
+          ElMessage.error('No Records')
         }
       }, 1000 * Math.random())
     })
@@ -50,9 +50,9 @@ const queryAllInfo = async (queryString: string, currentPage = 1) => {
   if (queryString.length > 0) {
     const page: PageAdapter<BlogsDesc> = await query(queryString, currentPage, true, year.value)
     keywords.value = queryString
-    emit("search", page)
+    emit('search', page)
   } else {
-    emit("clear")
+    emit('clear')
   }
 }
 

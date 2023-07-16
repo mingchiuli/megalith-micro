@@ -23,7 +23,9 @@ const go = (id: number) => router.push({
 
 <template>
   <el-card shadow="never" class="hot-blogs">
-    <div class="title">本周热读</div>
+    <div class="title">
+      <el-text>本周热读</el-text>
+    </div>
     <el-link class="description" v-for="hot in hots" @click="go(hot.id)">{{ hot.title }}: {{ hot.readCount }}</el-link>
   </el-card>
 </template>
