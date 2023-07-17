@@ -74,6 +74,8 @@ const go = async (blogId: number) => {
   }
 }
 
+const changeReadTokenStatus = (arg: boolean) => readTokenDialog.value = arg
+
 const { content: blogs, totalElements, pageSize } = toRefs(page);
 
 (async () => {
@@ -85,7 +87,9 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
 
 <template>
   <Login v-if="loginDialog" @loginDialog="changeLoginDialog"></Login>
-  <ReadToken v-if="readTokenDialog"></ReadToken>
+  <div v-show="readTokenDialog" >
+    <ReadToken v-model:readTokenDialog="readTokenDialog"></ReadToken>
+  </div>
   <div class="search-father">
     <Search ref="searchRef" @search="fillSearch" @clear="clear"></Search>
   </div>
