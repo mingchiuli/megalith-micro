@@ -87,9 +87,7 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
 
 <template>
   <Login v-if="loginDialog" @loginDialog="changeLoginDialog"></Login>
-  <div v-show="readTokenDialog" >
-    <ReadToken v-model:readTokenDialog="readTokenDialog"></ReadToken>
-  </div>
+  <ReadToken v-model:readTokenDialog="readTokenDialog"></ReadToken>
   <div class="search-father">
     <Search ref="searchRef" @search="fillSearch" @clear="clear"></Search>
   </div>
