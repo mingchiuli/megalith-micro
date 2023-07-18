@@ -10,7 +10,6 @@ import router from '@/router'
 const loading: Ref<boolean> = ref(true)
 const loginDialog: Ref<boolean> = ref(false)
 
-const changeLoginDialog = (arg: boolean) => loginDialog.value = arg
 
 const { login } = storeToRefs(loginStateStore())
 if (router.currentRoute.value.path === '/login' && !login.value) {
@@ -74,7 +73,6 @@ const go = async (blogId: number) => {
   }
 }
 
-const changeReadTokenStatus = (arg: boolean) => readTokenDialog.value = arg
 
 const { content: blogs, totalElements, pageSize } = toRefs(page);
 
@@ -86,7 +84,7 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
 </script>
 
 <template>
-  <Login v-if="loginDialog" @loginDialog="changeLoginDialog"></Login>
+  <Login v-model:loginDialog="loginDialog"></Login>
   <ReadToken v-model:readTokenDialog="readTokenDialog"></ReadToken>
   <div class="search-father">
     <Search ref="searchRef" @search="fillSearch" @clear="clear"></Search>

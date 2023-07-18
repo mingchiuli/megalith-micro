@@ -1,12 +1,11 @@
 <script lang="ts" setup>
 import { ref, computed, type WritableComputedRef } from 'vue';
 
-
 const emit = defineEmits<(event: 'update:readTokenDialog', payload: boolean) => void>()
 
 const props = defineProps<{
   readTokenDialog: boolean
-}>();
+}>()
 
 let visible: WritableComputedRef<boolean> = computed({
   get() {

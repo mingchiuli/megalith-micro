@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { reactive, ref, type Ref } from 'vue';
+import { computed, reactive, ref, type Ref, type WritableComputedRef } from 'vue';
 import { loginStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia';
 import router from '@/router'
@@ -7,11 +7,22 @@ import type { LoginStruct, Token, Data } from '@/type/entity';
 import axios from '@/axios';
 import type { AxiosResponse } from 'axios';
 
+const props = defineProps<{
+  loginDialog: boolean
+}>()
+
+let visible: WritableComputedRef<boolean> = computed({
+  get() {
+    return props.loginDialog
+  },
+  set(value: boolean) {
+    emit('update:loginDialog', value);
+  },
+})
+
 const { login } = storeToRefs(loginStateStore())
 
-const dialog: Ref<boolean> = ref(true)
-
-const emit = defineEmits<(event: 'loginDialog', payload: boolean) => void>()
+const emit = defineEmits<(event: 'update:loginDialog', payload: boolean) => void>()
 
 const loginInfo: LoginStruct = reactive({
   username: '',
@@ -27,8 +38,8 @@ const submitLogin = async () => {
   localStorage.setItem('accessToken', token.accessToken)
   localStorage.setItem('refreshToken', token.refreshToken)
   login.value = true
-  dialog.value = false
-  emit('loginDialog', false)
+  visible.value = false
+  emit('update:loginDialog', false)
   router.push({
     name: 'blogs'
   })
@@ -89,7 +100,7 @@ const sendCode = async (via: string) => {
 </script>
 
 <template>
-  <el-dialog v-model="dialog" center close-on-press-escape fullscreen align-center :before-close="beforeClose">
+  <el-dialog v-model="visible" center close-on-press-escape fullscreen align-center :before-close="beforeClose">
     <template #default>
       <el-radio-group v-model="radioSelect" class="dialog-select" size="small">
         <el-radio-button @change="loginType" label="Password" />
