@@ -11,7 +11,9 @@ const props = defineProps<{
   loginDialog: boolean
 }>()
 
-let visible: WritableComputedRef<boolean> = computed({
+const emit = defineEmits<(event: 'update:loginDialog', payload: boolean) => void>()
+
+let loginDialog: WritableComputedRef<boolean> = computed({
   get() {
     return props.loginDialog
   },
@@ -21,9 +23,12 @@ let visible: WritableComputedRef<boolean> = computed({
 })
 
 const { login } = storeToRefs(loginStateStore())
-
-const emit = defineEmits<(event: 'update:loginDialog', payload: boolean) => void>()
-
+const mailButtonDisable: Ref<boolean> = ref(false)
+const mailButtonText: Ref<any> = ref('发送邮件')
+const mailButtonMiles: Ref<any> = ref(120)
+const radioSelect: Ref<string> = ref('Password')
+const radioSMS: Ref<boolean> = ref(false)
+const radioEmail: Ref<boolean> = ref(false)
 const loginInfo: LoginStruct = reactive({
   username: '',
   password: ''
@@ -38,7 +43,7 @@ const submitLogin = async () => {
   localStorage.setItem('accessToken', token.accessToken)
   localStorage.setItem('refreshToken', token.refreshToken)
   login.value = true
-  visible.value = false
+  loginDialog.value = false
   emit('update:loginDialog', false)
   router.push({
     name: 'blogs'
@@ -51,10 +56,6 @@ const beforeClose = (close: Function) => {
   })
   close()
 }
-
-const radioSelect: Ref<string> = ref('Password')
-const radioSMS: Ref<boolean> = ref(false)
-const radioEmail: Ref<boolean> = ref(false)
 
 const loginType = () => {
   switch (radioSelect.value) {
@@ -72,10 +73,6 @@ const loginType = () => {
       break;
   }
 }
-
-const mailButtonDisable: Ref<boolean> = ref(false)
-const mailButtonText: Ref<any> = ref('发送邮件')
-const mailButtonMiles: Ref<any> = ref(120)
 
 let interval: NodeJS.Timeout
 const sendCode = async (via: string) => {
@@ -96,11 +93,10 @@ const sendCode = async (via: string) => {
     }, 1000)
   }
 }
-
 </script>
 
 <template>
-  <el-dialog v-model="visible" center close-on-press-escape fullscreen align-center :before-close="beforeClose">
+  <el-dialog v-model="loginDialog" center close-on-press-escape fullscreen align-center :before-close="beforeClose">
     <template #default>
       <el-radio-group v-model="radioSelect" class="dialog-select" size="small">
         <el-radio-button @change="loginType" label="Password" />
@@ -113,7 +109,8 @@ const sendCode = async (via: string) => {
         </div>
         <div>
           <el-input v-model="loginInfo.password" type="password"
-            :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'" @keyup.enter="submitLogin" show-password clearable />
+            :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'" @keyup.enter="submitLogin"
+            show-password clearable />
         </div>
       </div>
     </template>

@@ -4,34 +4,17 @@ import axios from '@/axios'
 import { reactive, toRefs, ref, type Ref } from 'vue'
 import type { AxiosResponse } from 'axios'
 import { storeToRefs } from 'pinia'
-import { searchStore, loginStateStore } from '@/stores/store'
+import { loginStateStore } from '@/stores/store'
 import router from '@/router'
 
 const loading: Ref<boolean> = ref(true)
 const loginDialog: Ref<boolean> = ref(false)
-
-
 const { login } = storeToRefs(loginStateStore())
-if (router.currentRoute.value.path === '/login' && !login.value) {
-  loginDialog.value = true
-} else {
-  router.push({
-    name: 'blogs'
-  })
-}
-
 const searchRef: Ref<any> = ref()
 const searchPageNo: Ref<number> = ref(0)
-
-const { keywords, year } = storeToRefs(searchStore())
-
-const fillSearch = (payload: PageAdapter<BlogsDesc>) => {
-  if (payload.content.length > 0) {
-    page.content = payload.content
-    page.totalElements = payload.totalElements
-    searchPageNo.value = payload.pageNumber
-  }
-}
+const year: Ref<string> = ref('')
+const keywords: Ref<string> = ref('')
+const readTokenDialog: Ref<boolean> = ref(false)
 
 let page: PageAdapter<BlogsDesc> = reactive({
   "content": [],
@@ -40,11 +23,33 @@ let page: PageAdapter<BlogsDesc> = reactive({
   "pageNumber": 1
 })
 
+if (router.currentRoute.value.path === '/login' && !login.value) {
+  loginDialog.value = true
+} else {
+  router.push({
+    name: 'blogs'
+  })
+}
+
+const fillSearchData = (payload: PageAdapter<BlogsDesc>) => {
+  if (payload.content.length > 0) {
+    page.content = payload.content
+    page.totalElements = payload.totalElements
+    searchPageNo.value = payload.pageNumber
+  } else {
+    queryBlogs(1, '')
+  }
+}
+
+const queryBlogs = async (pageNo: number, year: string) => {
+  const resp: AxiosResponse<Data<PageAdapter<BlogsDesc>>> = await axios.get(`/public/blog/page/${pageNo}?year=${year}`)
+  page.content = resp.data.data.content
+  page.totalElements = resp.data.data.totalElements
+}
+
 const getPage = async (pageNo: number) => {
   if (searchPageNo.value === 0) {
-    const resp: AxiosResponse<Data<PageAdapter<BlogsDesc>>> = await axios.get(`/public/blog/page/${pageNo}?year=${year.value}`)
-    page.content = resp.data.data.content
-    page.totalElements = resp.data.data.totalElements
+    queryBlogs(pageNo, year.value)
   } else {
     searchRef.value.queryAllInfo(keywords.value, pageNo)
   }
@@ -54,8 +59,6 @@ const clear = () => {
   searchPageNo.value = 0
   getPage(1)
 }
-
-const readTokenDialog: Ref<boolean> = ref(false)
 
 const go = async (blogId: number) => {
   const resp: AxiosResponse<Data<number>> = await axios.get(`/public/blog/status/${blogId}`)
@@ -68,11 +71,9 @@ const go = async (blogId: number) => {
       }
     })
   } else {
-    //TODO 弹框
     readTokenDialog.value = true
   }
 }
-
 
 const { content: blogs, totalElements, pageSize } = toRefs(page);
 
@@ -80,14 +81,14 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
   await getPage(1)
   loading.value = false
 })()
-
 </script>
 
 <template>
   <Login v-model:loginDialog="loginDialog"></Login>
   <ReadToken v-model:readTokenDialog="readTokenDialog"></ReadToken>
   <div class="search-father">
-    <Search ref="searchRef" @search="fillSearch" @clear="clear"></Search>
+    <Search ref="searchRef" @transSearchData="fillSearchData" @clear="clear" v-model:keywords="keywords"
+      v-model:year="year"></Search>
   </div>
   <el-text size="large">共{{ page.totalElements }}篇</el-text>
   <br />

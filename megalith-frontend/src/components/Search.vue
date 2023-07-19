@@ -1,18 +1,38 @@
 <script lang="ts" setup>
 import type { BlogsDesc, Data, PageAdapter } from '@/type/entity'
 import axios from '@/axios'
-import { ref, type Ref } from 'vue'
+import { computed, ref, type Ref, type WritableComputedRef } from 'vue'
 import type { AxiosResponse } from 'axios'
-import { searchStore } from '@/stores/store'
-import { storeToRefs } from 'pinia'
 
 const emit = defineEmits<{
-  (event: 'search', payload: PageAdapter<BlogsDesc>): void
+  (event: 'transSearchData', payload: PageAdapter<BlogsDesc>): void
   (event: 'clear'): void
+  (event: 'update:year', payload: string): void
+  (event: 'update:keywords', payload: string): void
 }>()
 
-const store = searchStore()
-const { year, keywords } = storeToRefs(store)
+const props = defineProps<{
+  year: string
+  keywords: string
+}>()
+
+let year: WritableComputedRef<string> = computed({
+  get() {
+    return props.year
+  },
+  set(value: string) {
+    emit('update:year', value);
+  }
+})
+
+let keywords: WritableComputedRef<string> = computed({
+  get() {
+    return props.keywords
+  },
+  set(value: string) {
+    emit('update:keywords', value);
+  }
+})
 
 const outerVisible: Ref<boolean> = ref(false)
 const innerVisible: Ref<boolean> = ref(false)
@@ -23,7 +43,7 @@ const query = async (queryString: string, currentPage: number, allInfo: boolean,
 }
 
 let timeout: NodeJS.Timeout
-const querySearchAsync = (queryString: string, cb: Function) => {
+const queryAbstractAsync = (queryString: string, cb: Function) => {
   if (queryString.length > 0) {
     const resp: Promise<PageAdapter<BlogsDesc>> = query(queryString, -1, false, year.value)
     resp.then((page: PageAdapter<BlogsDesc>) => {
@@ -50,13 +70,13 @@ const queryAllInfo = async (queryString: string, currentPage = 1) => {
   if (queryString.length > 0) {
     const page: PageAdapter<BlogsDesc> = await query(queryString, currentPage, true, year.value)
     keywords.value = queryString
-    emit('search', page)
+    emit('transSearchData', page)
   } else {
     emit('clear')
   }
 }
 
-const beforeClose = (close: Function) => {
+const searchBeforeClose = (close: Function) => {
   keywords.value = ''
   year.value = ''
   refAutocomplete.value.suggestions = []
@@ -66,23 +86,21 @@ const beforeClose = (close: Function) => {
 
 const refAutocomplete: Ref<any> = ref<any>()
 
-const yearClose = async () => {
+const yearsCloseEvent = async () => {
   innerVisible.value = false
   if (keywords.value.length > 0) {
-    const page: PageAdapter<BlogsDesc> = await query(keywords.value, -1, false, year.value)
-    page.content.forEach((blogsDesc: BlogsDesc) => {
-      blogsDesc.value = blogsDesc.highlight
-    })
-    //节流
-    clearTimeout(timeout)
-    timeout = setTimeout(() => {
+    setTimeout(async () => {
+      const page: PageAdapter<BlogsDesc> = await query(keywords.value, -1, false, year.value)
+      page.content.forEach((blogsDesc: BlogsDesc) => {
+        blogsDesc.value = blogsDesc.highlight
+      })
       refAutocomplete.value.activated = true
       refAutocomplete.value.suggestions = page.content
       if (page.content.length === 0) {
         //@ts-ignore
         ElMessage.error('No Records')
       }
-    }, 1000 * Math.random())
+    }, 100);
   }
 }
 
@@ -93,12 +111,12 @@ defineExpose(
 
 <template>
   <el-button class="search-button" @click="outerVisible = true" type="success">Search</el-button>
-  <el-dialog v-model="outerVisible" center close-on-press-escape fullscreen align-center :before-close="beforeClose">
+  <el-dialog v-model="outerVisible" center close-on-press-escape fullscreen align-center :before-close="searchBeforeClose">
     <template #default>
       <div class="dialog-content">
         <Hot></Hot>
         <div v-if="year.length > 0">年份：{{ year }}</div>
-        <el-autocomplete v-model="keywords" :fetch-suggestions="querySearchAsync" placeholder="Please input"
+        <el-autocomplete v-model="keywords" :fetch-suggestions="queryAbstractAsync" placeholder="Please input"
           @select="handleSelect" :trigger-on-focus="false" clearable @keyup.enter="queryAllInfo(keywords)"
           ref="refAutocomplete">
           <template #default="{ item }">
@@ -111,7 +129,7 @@ defineExpose(
         </el-autocomplete>
       </div>
       <el-dialog v-model="innerVisible" width="50%" append-to-body title="Archieve">
-        <Years @close="yearClose"></Years>
+        <Years v-model:year="year" @close="yearsCloseEvent"></Years>
       </el-dialog>
     </template>
     <template #footer>

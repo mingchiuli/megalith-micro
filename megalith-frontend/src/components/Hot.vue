@@ -18,7 +18,6 @@ const go = (id: number) => router.push({
     blogId: id
   }
 })
-
 </script>
 
 <template>

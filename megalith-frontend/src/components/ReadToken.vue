@@ -39,5 +39,3 @@ const handleClose = () => {
     </template>
   </el-dialog>
 </template>
-
-<style scoped></style>
