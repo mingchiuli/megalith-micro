@@ -4,7 +4,7 @@ import { loginStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import router from '@/router'
 
-axios.defaults.baseURL = 'http://127.0.0.1:8081'
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
 axios.defaults.timeout = 10000
 
 const convert = (token: string): JWTStruct => {
