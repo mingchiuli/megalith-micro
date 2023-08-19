@@ -15,6 +15,8 @@ const searchPageNo: Ref<number> = ref(0)
 const year: Ref<string> = ref('')
 const keywords: Ref<string> = ref('')
 const readTokenDialog: Ref<boolean> = ref(false)
+const blogId: Ref<number> = ref(0)
+
 
 let page: PageAdapter<BlogsDesc> = reactive({
   "content": [],
@@ -60,18 +62,19 @@ const clear = () => {
   getPage(1)
 }
 
-const go = async (blogId: number) => {
-  const resp: AxiosResponse<Data<number>> = await axios.get(`/public/blog/status/${blogId}`)
+const go = async (id: number) => {
+  const resp: AxiosResponse<Data<number>> = await axios.get(`/public/blog/status/${id}`)
   const status: number = resp.data.data
   if (status === 0) {
     router.push({
       name: 'blog',
       params: {
-        id: blogId
+        id: id
       }
     })
   } else {
     readTokenDialog.value = true
+    blogId.value = id 
   }
 }
 
@@ -85,7 +88,7 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
 
 <template>
   <Login v-model:loginDialog="loginDialog"></Login>
-  <ReadToken v-model:readTokenDialog="readTokenDialog"></ReadToken>
+  <ReadToken v-model:readTokenDialog="readTokenDialog" v-model:blogId="blogId"></ReadToken>
   <div class="search-father">
     <Search ref="searchRef" @transSearchData="fillSearchData" @clear="clear" v-model:keywords="keywords"
       v-model:year="year"></Search>

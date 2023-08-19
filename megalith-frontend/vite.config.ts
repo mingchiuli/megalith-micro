@@ -27,13 +27,13 @@ export default defineConfig(({ mode }) => {
       }
     },
     server: {
-      host: 'localhost',
+      host: '127.0.0.1',
       port: 1919,
       proxy: {
         '/api': {
-          target: 'http://localhost:8081',	//接口地址
+          target: 'http://127.0.0.1:8081',	//接口地址
           changeOrigin: true,
-          rewrite: (path: string) => path.replace(/^\/api/, '')
+          rewrite: (path: string) => path.replace(/api/, '')
         },
       }
     },

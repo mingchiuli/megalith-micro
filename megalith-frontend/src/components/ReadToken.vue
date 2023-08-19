@@ -1,10 +1,15 @@
 <script lang="ts" setup>
-import { ref, computed, type WritableComputedRef } from 'vue';
+import { ref, computed, type WritableComputedRef } from 'vue'
+import axios from '@/axios'
+import type { Data } from '@/type/entity'
+import type { AxiosResponse } from 'axios'
+import router from '@/router'
 
 const emit = defineEmits<(event: 'update:readTokenDialog', payload: boolean) => void>()
 
 const props = defineProps<{
   readTokenDialog: boolean
+  blogId: number
 }>()
 
 let visible: WritableComputedRef<boolean> = computed({
@@ -18,9 +23,23 @@ let visible: WritableComputedRef<boolean> = computed({
 
 const input = ref('')
 
-const submit = () => {
-  emit('update:readTokenDialog', false)
-}
+const submit = async () => {
+  const resp: AxiosResponse<Data<boolean>> = await axios.get(`/public/blog/token/${props.blogId}?readToken=${input.value}`);
+  if (resp.data.data) {
+    router.push({
+      name: 'blog',
+      params: {
+        id: props.blogId,
+        token: input.value
+      }
+    })
+  } else {
+    //@ts-ignore  
+    ElMessage.error("token error")
+  }
+  emit('update:readTokenDialog', false);
+};
+
 
 const handleClose = () => {
   emit('update:readTokenDialog', false)
