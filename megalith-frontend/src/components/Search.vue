@@ -2,7 +2,6 @@
 import type { BlogsDesc, Data, PageAdapter } from '@/type/entity'
 import axios from '@/axios'
 import { computed, ref, type Ref, type WritableComputedRef } from 'vue'
-import type { AxiosResponse } from 'axios'
 
 const emit = defineEmits<{
   (event: 'transSearchData', payload: PageAdapter<BlogsDesc>): void
@@ -38,8 +37,8 @@ const outerVisible: Ref<boolean> = ref(false)
 const innerVisible: Ref<boolean> = ref(false)
 
 const query = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
-  const resp: AxiosResponse<Data<PageAdapter<BlogsDesc>>> = await axios.get(`/search/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`)
-  return Promise.resolve(resp.data.data)
+  const resp = await axios.get<never, Data<PageAdapter<BlogsDesc>>>(`/search/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`)
+  return Promise.resolve(resp.data)
 }
 
 let timeout: NodeJS.Timeout

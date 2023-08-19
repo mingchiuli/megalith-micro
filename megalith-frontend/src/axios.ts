@@ -36,11 +36,11 @@ axios.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
   return config
 })
 
-axios.interceptors.response.use((resp: AxiosResponse<Data<any>, any>) => {
+axios.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<any> => {
   const data: Data<any> = resp.data
   //@ts-ignore
   if (resp.status === 200) {
-    return Promise.resolve(resp)
+    return Promise.resolve(data)
   } else {
     if (resp.status === 401) {
       localStorage.removeItem('accessToken')

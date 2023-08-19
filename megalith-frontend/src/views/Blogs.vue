@@ -2,7 +2,6 @@
 import type { BlogsDesc, Data, PageAdapter } from '@/type/entity'
 import axios from '@/axios'
 import { reactive, toRefs, ref, type Ref } from 'vue'
-import type { AxiosResponse } from 'axios'
 import { storeToRefs } from 'pinia'
 import { loginStateStore } from '@/stores/store'
 import router from '@/router'
@@ -44,9 +43,9 @@ const fillSearchData = (payload: PageAdapter<BlogsDesc>) => {
 }
 
 const queryBlogs = async (pageNo: number, year: string) => {
-  const resp: AxiosResponse<Data<PageAdapter<BlogsDesc>>> = await axios.get(`/public/blog/page/${pageNo}?year=${year}`)
-  page.content = resp.data.data.content
-  page.totalElements = resp.data.data.totalElements
+  const resp = await axios.get<never, Data<PageAdapter<BlogsDesc>>>(`/public/blog/page/${pageNo}?year=${year}`)
+  page.content = resp.data.content
+  page.totalElements = resp.data.totalElements
 }
 
 const getPage = async (pageNo: number) => {
@@ -63,8 +62,8 @@ const clear = () => {
 }
 
 const go = async (id: number) => {
-  const resp: AxiosResponse<Data<number>> = await axios.get(`/public/blog/status/${id}`)
-  const status: number = resp.data.data
+  const resp = await axios.get<never, Data<number>>(`/public/blog/status/${id}`)
+  const status: number = resp.data
   if (status === 0) {
     router.push({
       name: 'blog',

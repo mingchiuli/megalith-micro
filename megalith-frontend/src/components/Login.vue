@@ -76,23 +76,22 @@ const loginType = () => {
 
 let interval: NodeJS.Timeout
 const sendCode = async (via: string) => {
-  const resp: AxiosResponse<Data<null>> = await axios.get(`/code/${via}?loginEmail=${loginInfo.username}`)
-  if (resp.status === 200) {
-    //@ts-ignore  
-    ElMessage.success('发送成功')
-    mailButtonDisable.value = true
-    interval = setInterval(() => {
-      mailButtonText.value = `等待${mailButtonMiles.value}秒`
-      mailButtonMiles.value--;
-      if (mailButtonMiles.value <= -1) {
-        clearInterval(interval)
-        mailButtonText.value = '发送验证码'
-        mailButtonDisable.value = false
-        mailButtonMiles.value = 120
-      }
-    }, 1000)
-  }
+  await axios.get(`/code/${via}?loginEmail=${loginInfo.username}`)
+  //@ts-ignore  
+  ElMessage.success('发送成功')
+  mailButtonDisable.value = true
+  interval = setInterval(() => {
+    mailButtonText.value = `等待${mailButtonMiles.value}秒`
+    mailButtonMiles.value--;
+    if (mailButtonMiles.value <= -1) {
+      clearInterval(interval)
+      mailButtonText.value = '发送验证码'
+      mailButtonDisable.value = false
+      mailButtonMiles.value = 120
+    }
+  }, 1000)
 }
+
 </script>
 
 <template>

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { reactive, toRefs } from 'vue'
-import type { AxiosResponse } from 'axios'
 import axios from '@/axios'
 
 import type { Visitor, Data } from '@/type/entity'
@@ -12,9 +11,9 @@ const blogStat: Visitor = reactive({
   "yearVisit": 0
 })
 
-axios.get('/public/blog/stat')
-  .then((resp: AxiosResponse<Data<Visitor>>) => {
-    const visitor: Visitor = resp.data.data
+axios.get<never, Data<Visitor>>('/public/blog/stat')
+  .then(resp => {
+    const visitor: Visitor = resp.data
     blogStat.dayVisit = visitor.dayVisit
     blogStat.weekVisit = visitor.weekVisit
     blogStat.monthVisit = visitor.monthVisit

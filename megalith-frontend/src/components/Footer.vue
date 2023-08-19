@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { type AxiosResponse } from 'axios'
 import axios from '@/axios'
 import type { Data } from '@/type/entity'
 import { ref, type Ref } from 'vue'
@@ -7,9 +6,9 @@ import { ref, type Ref } from 'vue'
 let start: Ref<number> = ref(2021)
 let end: Ref<number> = ref(0)
 
-axios.get('/public/blog/years')
-  .then((resp: AxiosResponse<Data<number[]>>) => {
-    const years: number[] = resp.data.data
+axios.get<never, Data<number[]>>('/public/blog/years')
+  .then(resp => {
+    const years: number[] = resp.data
     start.value = years[0]
     end.value = years[years.length - 1]
   })
