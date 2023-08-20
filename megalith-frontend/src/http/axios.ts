@@ -8,17 +8,13 @@ import { Base64 } from 'js-base64'
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
 axios.defaults.timeout = 10000
 
-const convert = (token: string): JWTStruct => {
-  return JSON.parse(Base64.fromBase64(token))
-}
-
 axios.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
   const accessToken: string | null = localStorage.getItem('accessToken')
   if (accessToken && config.url !== '/token/refresh') {
     const { login } = storeToRefs(loginStateStore())
     login.value = true
     let tokenArray: string[] = accessToken.split(".")
-    const jwt: JWTStruct = convert(tokenArray[1])
+    const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
 
     const now: number = Math.floor(new Date().getTime() / 1000)
     //ten minutes
