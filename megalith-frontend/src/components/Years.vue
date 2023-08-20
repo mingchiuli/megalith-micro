@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import axios from '@/axios'
+import { GET } from '@/http/http'
 import { computed, ref, type Ref, type WritableComputedRef } from 'vue'
-import type { Data } from '@/type/entity'
 
 const props = defineProps<{
   year: string
@@ -28,10 +27,9 @@ const chooseYear = (y: number | string) => {
   emit("close")
 }
 
-axios.get<never, Data<number[]>>('/public/blog/years')
-  .then(resp => {
-    years.value = resp.data
-  })
+const data = await GET<number[]>('/public/blog/years')
+years.value = data.data
+
 </script>
 
 <template>

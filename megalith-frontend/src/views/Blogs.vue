@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { BlogsDesc, Data, PageAdapter } from '@/type/entity'
-import axios from '@/axios'
+import type { BlogsDesc, PageAdapter } from '@/type/entity'
+import { GET } from '@/http/http'
 import { reactive, toRefs, ref, type Ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { loginStateStore } from '@/stores/store'
@@ -43,9 +43,9 @@ const fillSearchData = (payload: PageAdapter<BlogsDesc>) => {
 }
 
 const queryBlogs = async (pageNo: number, year: string) => {
-  const resp = await axios.get<never, Data<PageAdapter<BlogsDesc>>>(`/public/blog/page/${pageNo}?year=${year}`)
-  page.content = resp.data.content
-  page.totalElements = resp.data.totalElements
+  const data = await GET<PageAdapter<BlogsDesc>>(`/public/blog/page/${pageNo}?year=${year}`)
+  page.content = data.data.content
+  page.totalElements = data.data.totalElements
 }
 
 const getPage = async (pageNo: number) => {
@@ -62,8 +62,8 @@ const clear = () => {
 }
 
 const go = async (id: number) => {
-  const resp = await axios.get<never, Data<number>>(`/public/blog/status/${id}`)
-  const status: number = resp.data
+  const data = await GET<number>(`/public/blog/status/${id}`)
+  const status: number = data.data
   if (status === 0) {
     router.push({
       name: 'blog',

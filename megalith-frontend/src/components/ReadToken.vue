@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { ref, computed, type WritableComputedRef } from 'vue'
-import axios from '@/axios'
-import type { Data } from '@/type/entity'
+import { GET } from '@/http/http'
 import router from '@/router'
 
 const emit = defineEmits<(event: 'update:readTokenDialog', payload: boolean) => void>()
@@ -23,8 +22,8 @@ let visible: WritableComputedRef<boolean> = computed({
 const input = ref('')
 
 const submit = async () => {
-  const resp = await axios.get<never, Data<boolean>>(`/public/blog/token/${props.blogId}?readToken=${input.value}`);
-  if (resp.data) {
+  const data = await GET<boolean>(`/public/blog/token/${props.blogId}?readToken=${input.value}`)
+  if (data.data) {
     router.push({
       name: 'blog',
       params: {

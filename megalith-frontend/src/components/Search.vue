@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { BlogsDesc, Data, PageAdapter } from '@/type/entity'
-import axios from '@/axios'
+import type { BlogsDesc, PageAdapter } from '@/type/entity'
+import { GET } from '@/http/http'
 import { computed, ref, type Ref, type WritableComputedRef } from 'vue'
 
 const emit = defineEmits<{
@@ -37,8 +37,8 @@ const outerVisible: Ref<boolean> = ref(false)
 const innerVisible: Ref<boolean> = ref(false)
 
 const query = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
-  const resp = await axios.get<never, Data<PageAdapter<BlogsDesc>>>(`/search/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`)
-  return Promise.resolve(resp.data)
+  const data = await GET<PageAdapter<BlogsDesc>>(`/search/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`)
+  return Promise.resolve(data.data)
 }
 
 let timeout: NodeJS.Timeout

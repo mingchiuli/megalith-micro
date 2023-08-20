@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import { computed, reactive, ref, type Ref, type WritableComputedRef } from 'vue';
+import { computed, reactive, ref, type Ref, type WritableComputedRef } from 'vue'
 import { loginStateStore } from '@/stores/store'
-import { storeToRefs } from 'pinia';
+import { storeToRefs } from 'pinia'
 import router from '@/router'
-import type { LoginStruct, Token, Data } from '@/type/entity';
-import axios from '@/axios';
-import type { AxiosResponse } from 'axios';
+import type { LoginStruct, Token } from '@/type/entity'
+import { GET, POST } from '@/http/http'
 
 const props = defineProps<{
   loginDialog: boolean
@@ -38,8 +37,8 @@ const submitLogin = async () => {
   const form: FormData = new FormData()
   form.append('username', loginInfo.username)
   form.append('password', loginInfo.password)
-  const resp: AxiosResponse<Data<Token>> = await axios.post('/login', form)
-  const token: Token = resp.data.data
+  const data = await POST<Token>('/login', form)
+  const token: Token = data.data
   localStorage.setItem('accessToken', token.accessToken)
   localStorage.setItem('refreshToken', token.refreshToken)
   login.value = true
@@ -76,7 +75,7 @@ const loginType = () => {
 
 let interval: NodeJS.Timeout
 const sendCode = async (via: string) => {
-  await axios.get(`/code/${via}?loginEmail=${loginInfo.username}`)
+  await GET<null>(`/code/${via}?loginEmail=${loginInfo.username}`)
   //@ts-ignore  
   ElMessage.success('发送成功')
   mailButtonDisable.value = true
@@ -90,6 +89,7 @@ const sendCode = async (via: string) => {
       mailButtonMiles.value = 120
     }
   }, 1000)
+
 }
 
 </script>

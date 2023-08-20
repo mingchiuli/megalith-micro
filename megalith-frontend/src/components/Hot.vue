@@ -1,15 +1,12 @@
 <script lang="ts" setup>
-import { ref, type Ref } from 'vue';
-import type { Hot, Data } from '@/type/entity'
-import axios from '@/axios';
-import router from '@/router';
+import { ref, type Ref } from 'vue'
+import type { Hot } from '@/type/entity'
+import { GET } from '@/http/http'
+import router from '@/router'
 
 let hots: Ref<Hot[]> = ref([])
-
-axios.get<never, Data<Hot[]>>('/public/blog/scores')
-  .then(resp => {
-    hots.value = resp.data
-  })
+const data = await GET<Hot[]>('/public/blog/scores')
+hots.value = data.data
 
 const go = (id: number) => router.push({
   name: 'blog',
