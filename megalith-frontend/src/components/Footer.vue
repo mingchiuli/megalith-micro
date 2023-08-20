@@ -3,13 +3,14 @@ import { ref, type Ref } from 'vue'
 import { GET } from '@/http/http'
 
 let start: Ref<number> = ref(2021)
-let end: Ref<number> = ref(0)
+let end: Ref<number> = ref(0);
 
-const data = await GET<number[]>('/public/blog/years')
-const years: number[] = data.data
-start.value = years[0]
-end.value = years[years.length - 1]
-
+(async () => {
+  const data = await GET<number[]>('/public/blog/years')
+  const years: number[] = data.data
+  start.value = years[0]
+  end.value = years[years.length - 1]
+})()
 </script>
 
 <template>

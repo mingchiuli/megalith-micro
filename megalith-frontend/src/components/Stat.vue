@@ -2,7 +2,7 @@
 import { reactive, toRefs } from 'vue'
 import { GET } from '@/http/http'
 
-import type { Visitor, Data } from '@/type/entity'
+import type { Visitor } from '@/type/entity'
 
 const blogStat: Visitor = reactive({
   "dayVisit": 0,
@@ -11,14 +11,17 @@ const blogStat: Visitor = reactive({
   "yearVisit": 0
 })
 
-const data = await GET<Visitor>('/public/blog/stat')
-const visitor: Visitor = data.data
-blogStat.dayVisit = visitor.dayVisit
-blogStat.weekVisit = visitor.weekVisit
-blogStat.monthVisit = visitor.monthVisit
-blogStat.yearVisit = visitor.yearVisit
+const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat);
 
-const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat)
+(async () => {
+  const data = await GET<Visitor>('/public/blog/stat')
+  const visitor: Visitor = data.data
+  blogStat.dayVisit = visitor.dayVisit
+  blogStat.weekVisit = visitor.weekVisit
+  blogStat.monthVisit = visitor.monthVisit
+  blogStat.yearVisit = visitor.yearVisit
+})()
+
 </script>
 
 <template>

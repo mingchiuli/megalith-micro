@@ -27,8 +27,10 @@ const chooseYear = (y: number | string) => {
   emit("close")
 }
 
-const data = await GET<number[]>('/public/blog/years')
-years.value = data.data
+(async () => {
+  const data = await GET<number[]>('/public/blog/years')
+  years.value = data.data
+})()
 
 </script>
 

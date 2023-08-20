@@ -3,13 +3,13 @@ import type { Data, JWTStruct, RefreshStruct } from '@/type/entity'
 import { loginStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import router from '@/router'
+import { Base64 } from 'js-base64'
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
 axios.defaults.timeout = 10000
 
 const convert = (token: string): JWTStruct => {
-  return JSON.parse(atob(token))
-
+  return JSON.parse(Base64.fromBase64(token))
 }
 
 axios.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
@@ -38,7 +38,6 @@ axios.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
 
 axios.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<any> => {
   const data: Data<any> = resp.data
-  //@ts-ignore
   if (resp.status === 200) {
     return Promise.resolve(data)
   } else {

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
+import { GET } from '@/http/http';
 import type { BlogsDesc, PageAdapter } from '@/type/entity'
-import { GET } from '@/http/http'
 import { computed, ref, type Ref, type WritableComputedRef } from 'vue'
 
 const emit = defineEmits<{
@@ -32,33 +32,31 @@ let keywords: WritableComputedRef<string> = computed({
     emit('update:keywords', value);
   }
 })
-
 const outerVisible: Ref<boolean> = ref(false)
 const innerVisible: Ref<boolean> = ref(false)
 
 const query = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
-  const data = await GET<PageAdapter<BlogsDesc>>(`/search/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`)
-  return Promise.resolve(data.data)
-}
+  const data = await GET<PageAdapter<BlogsDesc>>(`/search/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`);
+  return Promise.resolve(data.data);
+};
+
 
 let timeout: NodeJS.Timeout
-const queryAbstractAsync = (queryString: string, cb: Function) => {
+const queryAbstractAsync = async (queryString: string, cb: Function) => {
   if (queryString.length > 0) {
-    const resp: Promise<PageAdapter<BlogsDesc>> = query(queryString, -1, false, year.value)
-    resp.then((page: PageAdapter<BlogsDesc>) => {
-      page.content.forEach((blogsDesc: BlogsDesc) => {
-        blogsDesc.value = blogsDesc.highlight
-      })
-      //节流
-      clearTimeout(timeout)
-      timeout = setTimeout(() => {
-        cb(page.content)
-        if (page.content.length === 0) {
-          //@ts-ignore
-          ElMessage.error('No Records')
-        }
-      }, 1000 * Math.random())
+    const page: PageAdapter<BlogsDesc> = await query(queryString, -1, false, year.value)
+    page.content.forEach((blogsDesc: BlogsDesc) => {
+      blogsDesc.value = blogsDesc.highlight
     })
+    //节流
+    clearTimeout(timeout)
+    timeout = setTimeout(() => {
+      cb(page.content)
+      if (page.content.length === 0) {
+        //@ts-ignore
+        ElMessage.error('No Records')
+      }
+    }, 1000 * Math.random())
   }
 }
 
@@ -110,7 +108,8 @@ defineExpose(
 
 <template>
   <el-button class="search-button" @click="outerVisible = true" type="success">Search</el-button>
-  <el-dialog v-model="outerVisible" center close-on-press-escape fullscreen align-center :before-close="searchBeforeClose">
+  <el-dialog v-model="outerVisible" center close-on-press-escape fullscreen align-center
+    :before-close="searchBeforeClose">
     <template #default>
       <div class="dialog-content">
         <Hot></Hot>

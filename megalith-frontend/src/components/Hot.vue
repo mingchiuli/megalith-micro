@@ -5,15 +5,19 @@ import { GET } from '@/http/http'
 import router from '@/router'
 
 let hots: Ref<Hot[]> = ref([])
-const data = await GET<Hot[]>('/public/blog/scores')
-hots.value = data.data
 
 const go = (id: number) => router.push({
   name: 'blog',
   query: {
     blogId: id
   }
-})
+});
+
+(async () => {
+  const data = await GET<Hot[]>('/public/blog/scores')
+  hots.value = data.data
+})()
+
 </script>
 
 <template>
