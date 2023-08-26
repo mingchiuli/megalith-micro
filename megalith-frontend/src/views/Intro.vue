@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import avatar from '@/assets/logo.svg'
 import { Notebook, Download } from '@element-plus/icons-vue'
+
 const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
 </script>
 

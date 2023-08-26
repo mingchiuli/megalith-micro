@@ -5,10 +5,12 @@ import { storeToRefs } from 'pinia'
 import router from '@/router'
 import { Base64 } from 'js-base64'
 
-axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
-axios.defaults.timeout = 10000
+const http = axios.create({
+  baseURL: import.meta.env.VITE_BASE_URL,
+  timeout: 10000
+});
 
-axios.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
+http.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
   const accessToken: string | null = localStorage.getItem('accessToken')
   if (accessToken && config.url !== '/token/refresh') {
     const { login } = storeToRefs(loginStateStore())
@@ -20,7 +22,7 @@ axios.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
     //ten minutes
     if (jwt.exp - now < 600) {
       const refreshToken: string | null = localStorage.getItem('refreshToken')
-      axios.get('/token/refresh', {
+      http.get('/token/refresh', {
         headers: { Authorization: refreshToken }
       }).then((resp: AxiosResponse<Data<RefreshStruct>>) => {
         const token = resp.data.data.accessToken
@@ -32,7 +34,7 @@ axios.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
   return config
 })
 
-axios.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<any> => {
+http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<any> => {
   const data: Data<any> = resp.data
   if (resp.status === 200) {
     return Promise.resolve(data)
@@ -56,4 +58,4 @@ axios.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<a
   return Promise.reject(error)
 })
 
-export default axios
+export default http
