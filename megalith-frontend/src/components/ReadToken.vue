@@ -27,7 +27,9 @@ const submit = async () => {
     router.push({
       name: 'blog',
       params: {
-        id: props.blogId,
+        id: props.blogId
+      },
+      query: {
         token: input.value
       }
     })

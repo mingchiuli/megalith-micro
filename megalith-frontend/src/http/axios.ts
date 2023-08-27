@@ -27,6 +27,15 @@ http.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
       }).then((resp: AxiosResponse<Data<RefreshStruct>>) => {
         const token = resp.data.data.accessToken
         localStorage.setItem('accessToken', token)
+      }).catch((error: AxiosError<any, any>) => {
+        //@ts-ignore  
+        ElMessage.error(error.response.data.msg)
+        if (error.response?.status === 401) {
+          clearLoginState()
+          router.push({
+            name: 'login'
+          })
+        }
       })
     }
     config.headers.Authorization = localStorage.getItem('accessToken')
@@ -40,10 +49,7 @@ http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<an
     return Promise.resolve(data)
   } else {
     if (resp.status === 401) {
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
-      const { login } = storeToRefs(loginStateStore())
-      login.value = false
+      clearLoginState()
       router.push({
         name: 'login'
       })
@@ -55,7 +61,20 @@ http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<an
 }, (error: AxiosError<any, any>) => {
   //@ts-ignore  
   ElMessage.error(error.response.data.msg)
+  if (error.response?.status === 401) {
+    clearLoginState()
+    router.push({
+      name: 'login'
+    })
+  }
   return Promise.reject(error)
 })
+
+const clearLoginState = () => {
+  localStorage.removeItem('accessToken')
+  localStorage.removeItem('refreshToken')
+  const { login } = storeToRefs(loginStateStore())
+  login.value = false
+}
 
 export default http

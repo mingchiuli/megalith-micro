@@ -1,10 +1,81 @@
 <script lang="ts" setup>
-let str = '# ssss \n 白日依山尽 \n 黄河入海流'
+import { onErrorCaptured, reactive } from 'vue';
+import { useRoute, type RouteLocationNormalizedLoaded } from 'vue-router';
+import { GET } from '@/http/http'
+import type { BlogExhibit, Data } from '@/type/entity';
+import { markdown } from '@/utils/markdown'
+import editor from 'mavon-editor';
+
+
+const router: RouteLocationNormalizedLoaded = useRoute();
+const token = router.query.token
+const blogId = router.params.id
+
+let blog: BlogExhibit = reactive({
+  "title": '',
+  "description": '',
+  "content": '<blockquote> <p>' + "aaa" +  '</p> </blockquote>',
+  "avatar": '',
+  "readCount": 0,
+  "nickname": 'Anonymous',
+  "created": ''
+});
+
+onErrorCaptured((err, instance, info): boolean => {
+  if (info === 'beforeUnmount hook') {
+    return false
+  }
+  return true
+});
+
+
+(async () => {
+  let data: Data<BlogExhibit>;
+  if (token) {
+    data = await GET<BlogExhibit>(`/public/blog/secret/${blogId}`)
+  } else {
+    data = await GET<BlogExhibit>(`/public/blog/info/${blogId}`)
+  }
+  blog.title = data.data.title
+  blog.content = '<blockquote> <p>' + data.data.description +  '</p> </blockquote>' + markdown(editor.mavonEditor, data.data.content)
+  blog.avatar = data.data.avatar
+  blog.readCount = data.data.readCount
+  blog.nickname = data.data.nickname
+  blog.created = data.data.created
+})()
 </script>
 
 <template>
-  <mavon-editor :boxShadow="false" :editable="false" :subfield="false" v-model="str" :htmi="false" :toolbarsFlag="false"
-    defaultOpen="preview" previewBackground="#ffffff" />
+  <div class="exhibit-title">{{ blog.title }}</div>
+  <el-avatar class="exhibit-avatar" :src="blog.avatar" />
+  <el-text class="exhibit-author" size="large">{{ blog.nickname }}</el-text>
+  <mavon-editor class="exhibit-mavon-editor" :boxShadow="false" :editable="false" :subfield="false" v-html="blog.content"
+    :toolbarsFlag="false" defaultOpen="preview" previewBackground="#ffffff" code-style="androidstudio" />
 </template>
 
-<style scoped></style>
+<style lang="less">
+@import '../assets/hljs.less';
+
+.exhibit-title {
+  text-align: center;
+  font-size: xx-large;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.exhibit-mavon-editor {
+  padding-top: 20px;
+  padding-left: 20px;
+}
+
+.exhibit-avatar {
+  margin: 0 auto;
+  display: block;
+}
+
+.exhibit-author {
+  display: block;
+  text-align: center;
+  margin-bottom: 15px;
+}
+</style>
