@@ -14,7 +14,7 @@ const blogId = router.params.id
 let blog: BlogExhibit = reactive({
   "title": '',
   "description": '',
-  "content": '<blockquote> <p>' + "aaa" +  '</p> </blockquote>',
+  "content": '',
   "avatar": '',
   "readCount": 0,
   "nickname": 'Anonymous',
@@ -64,8 +64,7 @@ onErrorCaptured((err, instance, info): boolean => {
 }
 
 .exhibit-mavon-editor {
-  padding-top: 20px;
-  padding-left: 20px;
+  padding: 20px;
 }
 
 .exhibit-avatar {
