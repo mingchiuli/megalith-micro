@@ -1,11 +1,11 @@
 import http from '@/http/axios'
 import type { Data } from '@/type/entity'
 
-const GET = async <T>(url: string): Promise<Data<T>> => {
+const GET = <T>(url: string): Promise<Data<T>> => {
   return http.get<never, Data<T>>(url)
 }
 
-const POST = async <T>(url: string, params: FormData): Promise<Data<T>> => {
+const POST = <T>(url: string, params: FormData): Promise<Data<T>> => {
   return http.post<never, Data<T>>(url, params)
 }
 

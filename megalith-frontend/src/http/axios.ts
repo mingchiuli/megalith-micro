@@ -22,11 +22,12 @@ http.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
     //ten minutes
     if (jwt.exp - now < 600) {
       const refreshToken: string | null = localStorage.getItem('refreshToken')
-      http.get('/token/refresh', {
+      http.get<never, Data<RefreshStruct>>('/token/refresh', {
         headers: { Authorization: refreshToken }
-      }).then((resp: AxiosResponse<Data<RefreshStruct>>) => {
-        const token = resp.data.data.accessToken
+      }).then(resp => {
+        const token = resp.data.accessToken
         localStorage.setItem('accessToken', token)
+        config.headers.Authorization = localStorage.getItem('accessToken')
       }).catch((error: AxiosError<any, any>) => {
         //@ts-ignore  
         ElMessage.error(error.response.data.msg)
@@ -37,8 +38,9 @@ http.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
           })
         }
       })
+    } else {
+      config.headers.Authorization = localStorage.getItem('accessToken')
     }
-    config.headers.Authorization = localStorage.getItem('accessToken')
   }
   return config
 })
