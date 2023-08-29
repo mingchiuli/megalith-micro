@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { GET } from '@/http/http';
+import router from '@/router';
 import type { BlogsDesc, PageAdapter } from '@/type/entity'
 import { computed, ref, type Ref, type WritableComputedRef } from 'vue'
 
@@ -60,7 +61,14 @@ const queryAbstractAsync = async (queryString: string, cb: Function) => {
   }
 }
 
-const handleSelect = (item: BlogsDesc) => console.log(item)
+const handleSelect = (item: BlogsDesc) => router.push(
+  {
+    name: 'blog',
+    params: {
+      id: item.id
+    }
+  }
+)
 
 const queryAllInfo = async (queryString: string, currentPage = 1) => {
   outerVisible.value = false

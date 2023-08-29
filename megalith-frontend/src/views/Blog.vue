@@ -37,7 +37,7 @@ onErrorCaptured((err, instance, info): boolean => {
     data = await GET<BlogExhibit>(`/public/blog/info/${blogId}`)
   }
   blog.title = data.data.title
-  blog.content = '<blockquote> <p>' + data.data.description +  '</p> </blockquote>' + markdown(editor.mavonEditor, data.data.content)
+  blog.content = '<blockquote> <p>' + data.data.description + '</p> </blockquote>' + markdown(editor.mavonEditor, data.data.content)
   blog.avatar = data.data.avatar
   blog.readCount = data.data.readCount
   blog.nickname = data.data.nickname
@@ -46,15 +46,26 @@ onErrorCaptured((err, instance, info): boolean => {
 </script>
 
 <template>
-  <div class="exhibit-title">{{ blog.title }}</div>
-  <el-avatar class="exhibit-avatar" :src="blog.avatar" />
-  <el-text class="exhibit-author" size="large">{{ blog.nickname }}</el-text>
-  <mavon-editor class="exhibit-mavon-editor" :boxShadow="false" :editable="false" :subfield="false" v-html="blog.content"
-    :toolbarsFlag="false" defaultOpen="preview" previewBackground="#ffffff" code-style="androidstudio" />
+  <div class="exhibit-content">
+    <div class="exhibit-title">{{ blog.title }}</div>
+    <el-avatar class="exhibit-avatar" :src="blog.avatar" />
+    <el-text class="exhibit-author" size="large">作者: {{ blog.nickname }}</el-text>
+    <el-text class="exhibit-time" size="default">{{ blog.created.replace('T', ' ') }}</el-text>
+    <el-text class="exhibit-read-count" size="default">阅读数: {{ blog.readCount }}</el-text>
+    <mavon-editor class="exhibit-mavon-editor" :boxShadow="false" :editable="false" :subfield="false"
+      v-html="blog.content" :toolbarsFlag="false" defaultOpen="preview" previewBackground="#ffffff"
+      code-style="androidstudio" />
+  </div>
 </template>
 
 <style lang="less">
 @import '../assets/hljs.less';
+
+.exhibit-content {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: .5rem;
+}
 
 .exhibit-title {
   text-align: center;
@@ -75,6 +86,15 @@ onErrorCaptured((err, instance, info): boolean => {
 .exhibit-author {
   display: block;
   text-align: center;
-  margin-bottom: 15px;
+}
+
+.exhibit-time {
+  display: block;
+  margin-left: 10px;
+}
+
+.exhibit-read-count {
+  display: block;
+  margin-left: 10px;
 }
 </style>

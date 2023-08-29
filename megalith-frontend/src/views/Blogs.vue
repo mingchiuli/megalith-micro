@@ -73,7 +73,7 @@ const go = async (id: number) => {
     })
   } else {
     readTokenDialog.value = true
-    blogId.value = id 
+    blogId.value = id
   }
 }
 
@@ -86,38 +86,40 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
 </script>
 
 <template>
-  <Login v-model:loginDialog="loginDialog"></Login>
-  <ReadToken v-model:readTokenDialog="readTokenDialog" v-model:blogId="blogId"></ReadToken>
-  <div class="search-father">
-    <Search ref="searchRef" @transSearchData="fillSearchData" @clear="clear" v-model:keywords="keywords"
-      v-model:year="year"></Search>
-  </div>
-  <el-text size="large">共{{ page.totalElements }}篇</el-text>
-  <br />
-  <div class="description">
-    <el-timeline>
-      <el-skeleton v-for=" in page.pageSize" :rows="10" :loading="loading" animated />
-      <el-timeline-item v-for="blog in blogs" :timestamp="blog.created.replace('T', ' ')" placement="top"
-        :color="'#0bbd87'">
-        <el-card shadow="never">
-          <el-image :key="blog.link" :src="blog.link" lazy></el-image>
-          <p v-if="blog.score">{{ "Search Scores:" + blog.score }}</p>
-          <el-link class="title" @click="go(blog.id)">{{ blog.title }}</el-link>
-          <p v-if="!blog.highlight">{{ blog.description }}</p>
-          <p v-if="blog.highlight?.title" v-for="title in blog.highlight.title" v-html="'标题：' + title"></p>
-          <p v-if="blog.highlight?.description" v-for="description in blog.highlight.description"
-            v-html="'摘要：' + description"></p>
-          <p v-if="blog.highlight?.content" v-for="content in blog.highlight.content" v-html="'内容：' + content"></p>
-        </el-card>
-      </el-timeline-item>
-    </el-timeline>
-    <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize"
-      @current-change="getPage"></el-pagination>
+  <div class="front">
+    <Login v-model:loginDialog="loginDialog"></Login>
+    <ReadToken v-model:readTokenDialog="readTokenDialog" v-model:blogId="blogId"></ReadToken>
+    <div class="search-father">
+      <Search ref="searchRef" @transSearchData="fillSearchData" @clear="clear" v-model:keywords="keywords"
+        v-model:year="year"></Search>
+    </div>
+    <el-text size="large">共{{ page.totalElements }}篇</el-text>
+    <br />
+    <div class="description">
+      <el-timeline>
+        <el-skeleton v-for=" in page.pageSize" :rows="10" :loading="loading" animated />
+        <el-timeline-item v-for="blog in blogs" :timestamp="blog.created.replace('T', ' ')" placement="top"
+          :color="'#0bbd87'">
+          <el-card shadow="never">
+            <el-image :key="blog.link" :src="blog.link" lazy></el-image>
+            <p v-if="blog.score">{{ "Search Scores:" + blog.score }}</p>
+            <el-link class="title" @click="go(blog.id)">{{ blog.title }}</el-link>
+            <p v-if="!blog.highlight">{{ blog.description }}</p>
+            <p v-if="blog.highlight?.title" v-for="title in blog.highlight.title" v-html="'标题：' + title"></p>
+            <p v-if="blog.highlight?.description" v-for="description in blog.highlight.description"
+              v-html="'摘要：' + description"></p>
+            <p v-if="blog.highlight?.content" v-for="content in blog.highlight.content" v-html="'内容：' + content"></p>
+          </el-card>
+        </el-timeline-item>
+      </el-timeline>
+      <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize"
+        @current-change="getPage"></el-pagination>
+    </div>
   </div>
 </template>
 
 <style scoped>
-@import '../assets/front.css';
+/* @import '../assets/front.css'; */
 
 .search-father {
   margin-top: 20px;

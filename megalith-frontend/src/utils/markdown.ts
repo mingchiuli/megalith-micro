@@ -7,7 +7,7 @@ export const markdown = (mavonEditor: any, content: string): string => {
     {
       highlight: (str: string, lang: string) => {
         const codeIndex: number = Date.now() + Math.floor(Math.random() * 10000000);
-        let html: string = `<button class="copy-btn" type="button" data-clipboard-action="copy" data-clipboard-target="#copy${codeIndex}">copy</button>`;
+        let html: string = `<button style="background-color: white" class="copy-btn" type="button" data-clipboard-action="copy" data-clipboard-target="#copy${codeIndex}">copy</button>`;
 
         const linesLength: number = str.split(/\n/).length - 1;
         let linesNum: string = '<span aria-hidden="true" class="line-numbers-rows">';

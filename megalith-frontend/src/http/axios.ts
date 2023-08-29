@@ -10,7 +10,7 @@ const http = axios.create({
   timeout: 10000
 });
 
-http.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
+http.interceptors.request.use(async (config: InternalAxiosRequestConfig<any>) => {
   const accessToken: string | null = localStorage.getItem('accessToken')
   if (accessToken && config.url !== '/token/refresh') {
     const { login } = storeToRefs(loginStateStore())
@@ -22,31 +22,19 @@ http.interceptors.request.use((config: InternalAxiosRequestConfig<any>) => {
     //ten minutes
     if (jwt.exp - now < 600) {
       const refreshToken: string | null = localStorage.getItem('refreshToken')
-      http.get<never, Data<RefreshStruct>>('/token/refresh', {
+      const data = await http.get<never, Data<RefreshStruct>>('/token/refresh', {
         headers: { Authorization: refreshToken }
-      }).then(resp => {
-        const token = resp.data.accessToken
-        localStorage.setItem('accessToken', token)
-        config.headers.Authorization = localStorage.getItem('accessToken')
-      }).catch((error: AxiosError<any, any>) => {
-        //@ts-ignore  
-        ElMessage.error(error.response.data.msg)
-        if (error.response?.status === 401) {
-          clearLoginState()
-          router.push({
-            name: 'login'
-          })
-        }
       })
-    } else {
-      config.headers.Authorization = localStorage.getItem('accessToken')
+      const token = data.data.accessToken
+      localStorage.setItem('accessToken', token)
     }
+    config.headers.Authorization = localStorage.getItem('accessToken')
   }
   return config
 })
 
 http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<any> => {
-  const data: Data<any> = resp.data
+  const data = resp.data
   if (resp.status === 200) {
     return Promise.resolve(data)
   } else {
