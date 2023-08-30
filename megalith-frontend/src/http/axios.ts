@@ -44,13 +44,11 @@ http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<an
         name: 'login'
       })
     }
-    //@ts-ignore
     ElMessage.error(data.msg)
     return Promise.reject(resp)
   }
 }, (error: AxiosError<any, any>) => {
-  //@ts-ignore  
-  ElMessage.error(error.response.data.msg)
+  ElMessage.error(error.response?.data.msg)
   if (error.response?.status === 401) {
     clearLoginState()
     router.push({

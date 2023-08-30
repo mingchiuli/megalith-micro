@@ -6,8 +6,7 @@ let start: Ref<number> = ref(2021)
 let end: Ref<number> = ref(0);
 
 (async () => {
-  const data = await GET<number[]>('/public/blog/years')
-  const years = data.data
+  const years = await GET<number[]>('/public/blog/years')
   start.value = years[0]
   end.value = years[years.length - 1]
 })()

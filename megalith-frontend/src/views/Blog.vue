@@ -2,7 +2,7 @@
 import { onErrorCaptured, reactive } from 'vue';
 import { useRoute, type RouteLocationNormalizedLoaded } from 'vue-router';
 import { GET } from '@/http/http'
-import type { BlogExhibit, Data } from '@/type/entity';
+import type { BlogExhibit } from '@/type/entity';
 import { markdown } from '@/utils/markdown'
 import editor from 'mavon-editor';
 
@@ -30,18 +30,18 @@ onErrorCaptured((err, instance, info): boolean => {
 
 
 (async () => {
-  let data: Data<BlogExhibit>;
+  let data: BlogExhibit;
   if (token) {
     data = await GET<BlogExhibit>(`/public/blog/secret/${blogId}`)
   } else {
     data = await GET<BlogExhibit>(`/public/blog/info/${blogId}`)
   }
-  blog.title = data.data.title
-  blog.content = '<blockquote> <p>' + data.data.description + '</p> </blockquote>' + markdown(editor.mavonEditor, data.data.content)
-  blog.avatar = data.data.avatar
-  blog.readCount = data.data.readCount
-  blog.nickname = data.data.nickname
-  blog.created = data.data.created
+  blog.title = data.title
+  blog.content = '<blockquote> <p>' + data.description + '</p> </blockquote>' + markdown(editor.mavonEditor, data.content)
+  blog.avatar = data.avatar
+  blog.readCount = data.readCount
+  blog.nickname = data.nickname
+  blog.created = data.created
 })()
 </script>
 

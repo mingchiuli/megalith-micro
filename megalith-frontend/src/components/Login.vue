@@ -37,8 +37,7 @@ const submitLogin = async () => {
   const form: FormData = new FormData()
   form.append('username', loginInfo.username)
   form.append('password', loginInfo.password)
-  const data = await POST<Token>('/login', form)
-  const token: Token = data.data
+  const token: Token = await POST<Token>('/login', form)
   localStorage.setItem('accessToken', token.accessToken)
   localStorage.setItem('refreshToken', token.refreshToken)
   login.value = true
@@ -76,7 +75,6 @@ const loginType = () => {
 let interval: NodeJS.Timeout
 const sendCode = async (via: string) => {
   await GET<null>(`/code/${via}?loginEmail=${loginInfo.username}`)
-  //@ts-ignore  
   ElMessage.success('发送成功')
   mailButtonDisable.value = true
   interval = setInterval(() => {

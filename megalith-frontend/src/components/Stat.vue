@@ -15,7 +15,7 @@ const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat);
 
 (async () => {
   const data = await GET<Visitor>('/public/blog/stat')
-  const visitor: Visitor = data.data
+  const visitor: Visitor = data
   blogStat.dayVisit = visitor.dayVisit
   blogStat.weekVisit = visitor.weekVisit
   blogStat.monthVisit = visitor.monthVisit

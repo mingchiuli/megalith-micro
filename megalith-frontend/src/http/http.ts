@@ -1,12 +1,12 @@
 import http from '@/http/axios'
 import type { Data } from '@/type/entity'
 
-const GET = <T>(url: string): Promise<Data<T>> => {
-  return http.get<never, Data<T>>(url)
+const GET = async <T>(url: string): Promise<T> => {
+  return Promise.resolve((await http.get<never, Data<T>>(url)).data)
 }
 
-const POST = <T>(url: string, params: FormData): Promise<Data<T>> => {
-  return http.post<never, Data<T>>(url, params)
+const POST = async <T>(url: string, params: FormData): Promise<T> => {
+  return Promise.resolve((await http.post<never, Data<T>>(url, params)).data)
 }
 
 export { GET, POST }

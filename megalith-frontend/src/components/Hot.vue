@@ -14,8 +14,7 @@ const go = (id: number) => router.push({
 });
 
 (async () => {
-  const data = await GET<Hot[]>('/public/blog/scores')
-  hots.value = data.data
+  hots.value = await GET<Hot[]>('/public/blog/scores')
 })()
 
 </script>

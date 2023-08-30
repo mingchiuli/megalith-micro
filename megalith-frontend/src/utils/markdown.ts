@@ -1,5 +1,4 @@
-//@ts-ignore  
-import hljs from "highlight.js";
+import hljs from 'highlight.js';
 
 export const markdown = (mavonEditor: any, content: string): string => {
   const md = mavonEditor.getMarkdownIt();

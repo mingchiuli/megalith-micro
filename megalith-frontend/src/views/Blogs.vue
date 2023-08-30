@@ -44,8 +44,8 @@ const fillSearchData = (payload: PageAdapter<BlogsDesc>) => {
 
 const queryBlogs = async (pageNo: number, year: string) => {
   const data = await GET<PageAdapter<BlogsDesc>>(`/public/blog/page/${pageNo}?year=${year}`)
-  page.content = data.data.content
-  page.totalElements = data.data.totalElements
+  page.content = data.content
+  page.totalElements = data.totalElements
 }
 
 const getPage = async (pageNo: number) => {
@@ -62,8 +62,7 @@ const clear = () => {
 }
 
 const go = async (id: number) => {
-  const data = await GET<number>(`/public/blog/status/${id}`)
-  const status: number = data.data
+  const status = await GET<number>(`/public/blog/status/${id}`)
   if (status === 0) {
     router.push({
       name: 'blog',

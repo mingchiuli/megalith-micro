@@ -22,8 +22,8 @@ let visible: WritableComputedRef<boolean> = computed({
 const input = ref('')
 
 const submit = async () => {
-  const data = await GET<boolean>(`/public/blog/token/${props.blogId}?readToken=${input.value}`)
-  if (data.data) {
+  const valid = await GET<boolean>(`/public/blog/token/${props.blogId}?readToken=${input.value}`)
+  if (valid) {
     router.push({
       name: 'blog',
       params: {
@@ -34,7 +34,6 @@ const submit = async () => {
       }
     })
   } else {
-    //@ts-ignore  
     ElMessage.error("token error")
   }
   emit('update:readTokenDialog', false);

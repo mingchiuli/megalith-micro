@@ -38,7 +38,7 @@ const innerVisible: Ref<boolean> = ref(false)
 
 const query = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
   const data = await GET<PageAdapter<BlogsDesc>>(`/search/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`);
-  return Promise.resolve(data.data);
+  return Promise.resolve(data);
 };
 
 
@@ -54,7 +54,6 @@ const queryAbstractAsync = async (queryString: string, cb: Function) => {
     timeout = setTimeout(() => {
       cb(page.content)
       if (page.content.length === 0) {
-        //@ts-ignore
         ElMessage.error('No Records')
       }
     }, 1000 * Math.random())
@@ -102,7 +101,6 @@ const yearsCloseEvent = async () => {
       refAutocomplete.value.activated = true
       refAutocomplete.value.suggestions = page.content
       if (page.content.length === 0) {
-        //@ts-ignore
         ElMessage.error('No Records')
       }
     }, 100);
