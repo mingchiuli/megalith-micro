@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onErrorCaptured, reactive } from 'vue';
+import { onErrorCaptured, reactive, ref, type Ref } from 'vue';
 import { useRoute, type RouteLocationNormalizedLoaded } from 'vue-router';
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity';
@@ -10,6 +10,8 @@ import editor from 'mavon-editor';
 const router: RouteLocationNormalizedLoaded = useRoute();
 const token = router.query.token
 const blogId = router.params.id
+let loading: Ref<boolean> = ref(true)
+
 
 let blog: BlogExhibit = reactive({
   "title": '',
@@ -17,11 +19,11 @@ let blog: BlogExhibit = reactive({
   "content": '',
   "avatar": '',
   "readCount": 0,
-  "nickname": 'Anonymous',
+  "nickname": '',
   "created": ''
 });
 
-onErrorCaptured((err, instance, info): boolean => {
+onErrorCaptured((_err, _instance, info): boolean => {
   if (info === 'beforeUnmount hook') {
     return false
   }
@@ -42,6 +44,7 @@ onErrorCaptured((err, instance, info): boolean => {
   blog.readCount = data.readCount
   blog.nickname = data.nickname
   blog.created = data.created
+  loading.value = false
 })()
 </script>
 
@@ -52,9 +55,16 @@ onErrorCaptured((err, instance, info): boolean => {
     <el-text class="exhibit-author" size="large">作者: {{ blog.nickname }}</el-text>
     <el-text class="exhibit-time" size="default">{{ blog.created.replace('T', ' ') }}</el-text>
     <el-text class="exhibit-read-count" size="default">阅读数: {{ blog.readCount }}</el-text>
-    <mavon-editor class="exhibit-mavon-editor" :boxShadow="false" :editable="false" :subfield="false"
-      v-html="blog.content" :toolbarsFlag="false" defaultOpen="preview" previewBackground="#ffffff"
-      code-style="androidstudio" />
+    <el-skeleton animated :loading="loading" :throttle="300">
+      <template #template>
+        <el-skeleton :rows="15" />
+      </template>
+      <template #default>
+        <mavon-editor class="exhibit-mavon-editor" :boxShadow="false" :editable="false" :subfield="false"
+          v-html="blog.content" :toolbarsFlag="false" defaultOpen="preview" previewBackground="#ffffff"
+          code-style="androidstudio" />
+      </template>
+    </el-skeleton>
   </div>
 </template>
 

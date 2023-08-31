@@ -8,8 +8,8 @@ let hots: Ref<Hot[]> = ref([])
 
 const go = (id: number) => router.push({
   name: 'blog',
-  query: {
-    blogId: id
+  params: {
+    id: id
   }
 });
 
@@ -24,7 +24,10 @@ const go = (id: number) => router.push({
     <div class="title">
       <el-text>本周热读</el-text>
     </div>
-    <el-link class="description" v-for="hot in hots" @click="go(hot.id)">{{ hot.title }}: {{ hot.readCount }}</el-link>
+    <div class="description" v-for="hot in hots" >
+      <el-link @click="go(hot.id)">{{ hot.title }}: {{ hot.readCount }}</el-link>
+      <br/>
+    </div>
   </el-card>
 </template>
 
@@ -42,6 +45,5 @@ const go = (id: number) => router.push({
 .description {
   text-align: left;
   margin-bottom: 10px;
-  display: block;
 }
 </style>

@@ -9,11 +9,13 @@ const emit = defineEmits<{
   (event: 'clear'): void
   (event: 'update:year', payload: string): void
   (event: 'update:keywords', payload: string): void
+  (event: 'update:loading', payload: boolean): void
 }>()
 
 const props = defineProps<{
   year: string
   keywords: string
+  loading: boolean
 }>()
 
 let year: WritableComputedRef<string> = computed({
@@ -33,14 +35,24 @@ let keywords: WritableComputedRef<string> = computed({
     emit('update:keywords', value);
   }
 })
+
+let loading: WritableComputedRef<boolean> = computed({
+  get() {
+    return props.loading
+  },
+  set(value: boolean) {
+    emit('update:loading', value);
+  }
+})
+
 const outerVisible: Ref<boolean> = ref(false)
 const innerVisible: Ref<boolean> = ref(false)
 
 const query = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
+  loading.value = true
   const data = await GET<PageAdapter<BlogsDesc>>(`/search/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`);
   return Promise.resolve(data);
 };
-
 
 let timeout: NodeJS.Timeout
 const queryAbstractAsync = async (queryString: string, cb: Function) => {
