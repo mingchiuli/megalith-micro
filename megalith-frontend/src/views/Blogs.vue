@@ -127,7 +127,6 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
 </template>
 
 <style scoped>
-/* @import '../assets/front.css'; */
 
 .search-father {
   margin-top: 20px;
