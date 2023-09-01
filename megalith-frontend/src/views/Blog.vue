@@ -1,13 +1,21 @@
 <script lang="ts" setup>
-import { onErrorCaptured, reactive, ref, type Ref } from 'vue';
-import { useRoute, type RouteLocationNormalizedLoaded } from 'vue-router';
+import { onBeforeUnmount, onErrorCaptured, reactive, ref, type Ref } from 'vue'
+import { useRoute, type RouteLocationNormalizedLoaded } from 'vue-router'
 import { GET } from '@/http/http'
-import type { BlogExhibit } from '@/type/entity';
+import type { BlogExhibit } from '@/type/entity'
 import { markdown } from '@/utils/markdown'
-import editor from 'mavon-editor';
+import editor from 'mavon-editor'
+import Clipboard from 'clipboard'
 
+const clipboard: Clipboard = new Clipboard('.copy-btn')
+clipboard.on('success', () => {
+  ElMessage.success('复制成功')
+})
+clipboard.on('error', () => {
+  ElMessage.error('复制失败')
+})
 
-const router: RouteLocationNormalizedLoaded = useRoute();
+const router: RouteLocationNormalizedLoaded = useRoute()
 const token = router.query.token
 const blogId = router.params.id
 let loading: Ref<boolean> = ref(true)
@@ -21,7 +29,11 @@ let blog: BlogExhibit = reactive({
   "readCount": 0,
   "nickname": '',
   "created": ''
-});
+})
+
+onBeforeUnmount(() => {
+  clipboard.destroy()
+})
 
 onErrorCaptured((_err, _instance, info): boolean => {
   if (info === 'beforeUnmount hook') {
@@ -29,7 +41,6 @@ onErrorCaptured((_err, _instance, info): boolean => {
   }
   return true
 });
-
 
 (async () => {
   let data: BlogExhibit;
