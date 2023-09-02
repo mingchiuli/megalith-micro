@@ -1,1 +1,1 @@
-declare module 'highlight.js'
+declare module 'highlight.js';
