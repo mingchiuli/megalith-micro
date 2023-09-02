@@ -17,7 +17,7 @@ let year = computed({
   get() {
     return props.year
   },
-  set(value: string) {
+  set(value) {
     emit('update:year', value);
   }
 })

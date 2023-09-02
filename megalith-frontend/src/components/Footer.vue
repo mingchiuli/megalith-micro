@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, type Ref } from 'vue'
+import { ref } from 'vue'
 import { GET } from '@/http/http'
 
 let start = ref(2021)
