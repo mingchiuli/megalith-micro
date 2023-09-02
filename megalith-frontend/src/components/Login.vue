@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, reactive, ref, type Ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { loginStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import router from '@/router'
