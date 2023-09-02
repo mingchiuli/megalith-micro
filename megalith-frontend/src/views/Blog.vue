@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onErrorCaptured, reactive, ref } from 'vue'
+import { onBeforeUnmount, onErrorCaptured, reactive, ref, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
@@ -7,7 +7,7 @@ import { markdown } from '@/utils/markdown'
 import editor from 'mavon-editor'
 import Clipboard from 'clipboard'
 
-const clipboard: Clipboard = new Clipboard('.copy-btn')
+const clipboard = new Clipboard('.copy-btn')
 clipboard.on('success', () => {
   ElMessage.success('复制成功')
 })
@@ -19,7 +19,6 @@ const router = useRoute()
 const token = router.query.token
 const blogId = router.params.id
 let loading = ref(true)
-
 
 let blog: BlogExhibit = reactive({
   "title": '',
@@ -40,10 +39,12 @@ onErrorCaptured((_err, _instance, info): boolean => {
     return false
   }
   return true
-});
+})
+
+const catalogue = ref();
 
 (async () => {
-  let data: BlogExhibit;
+  let data: BlogExhibit
   if (token) {
     data = await GET<BlogExhibit>(`/public/blog/secret/${blogId}`)
   } else {
@@ -56,10 +57,13 @@ onErrorCaptured((_err, _instance, info): boolean => {
   blog.nickname = data.nickname
   blog.created = data.created
   loading.value = false
+  await nextTick()
+  catalogue.value.render()
 })()
 </script>
 
 <template>
+  <Catalogue ref="catalogue"></Catalogue>
   <div class="exhibit-content">
     <div class="exhibit-title">{{ blog.title }}</div>
     <el-avatar class="exhibit-avatar" :src="blog.avatar" />

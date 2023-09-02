@@ -50,6 +50,11 @@ export interface JWTStruct {
   exp: number
 }
 
+export interface CatalogueLabel {
+  id: string
+  dist: number
+}
+
 export interface RefreshStruct {
   accessToken: string
 }
