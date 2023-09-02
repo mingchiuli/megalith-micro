@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed, type WritableComputedRef } from 'vue'
+import { ref, computed } from 'vue'
 import { GET } from '@/http/http'
 import router from '@/router'
 
@@ -10,11 +10,11 @@ const props = defineProps<{
   blogId: number
 }>()
 
-let visible: WritableComputedRef<boolean> = computed({
+let visible = computed({
   get() {
     return props.readTokenDialog
   },
-  set(value: boolean) {
+  set(value) {
     emit('update:readTokenDialog', value);
   },
 })

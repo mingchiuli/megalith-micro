@@ -2,7 +2,7 @@
 import { GET } from '@/http/http';
 import router from '@/router';
 import type { BlogsDesc, PageAdapter } from '@/type/entity'
-import { computed, ref, type Ref, type WritableComputedRef } from 'vue'
+import { computed, ref } from 'vue'
 
 const emit = defineEmits<{
   (event: 'transSearchData', payload: PageAdapter<BlogsDesc>): void
@@ -18,35 +18,35 @@ const props = defineProps<{
   loading: boolean
 }>()
 
-let year: WritableComputedRef<string> = computed({
+let year = computed({
   get() {
     return props.year
   },
-  set(value: string) {
+  set(value) {
     emit('update:year', value);
   }
 })
 
-let keywords: WritableComputedRef<string> = computed({
+let keywords = computed({
   get() {
     return props.keywords
   },
-  set(value: string) {
+  set(value) {
     emit('update:keywords', value);
   }
 })
 
-let loading: WritableComputedRef<boolean> = computed({
+let loading = computed({
   get() {
     return props.loading
   },
-  set(value: boolean) {
+  set(value) {
     emit('update:loading', value);
   }
 })
 
-const outerVisible: Ref<boolean> = ref(false)
-const innerVisible: Ref<boolean> = ref(false)
+const outerVisible = ref(false)
+const innerVisible = ref(false)
 
 const query = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
   loading.value = true
@@ -100,13 +100,13 @@ const searchBeforeClose = (close: Function) => {
   close()
 }
 
-const refAutocomplete: Ref<any> = ref<any>()
+const refAutocomplete = ref<any>()
 
 const yearsCloseEvent = async () => {
   innerVisible.value = false
   if (keywords.value.length > 0) {
     setTimeout(async () => {
-      const page: PageAdapter<BlogsDesc> = await query(keywords.value, -1, false, year.value)
+      const page = await query(keywords.value, -1, false, year.value)
       page.content.forEach((blogsDesc: BlogsDesc) => {
         blogsDesc.value = blogsDesc.highlight
       })

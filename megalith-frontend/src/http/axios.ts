@@ -1,4 +1,4 @@
-import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
+import axios, { type AxiosError, type AxiosResponse } from 'axios'
 import type { Data, JWTStruct, RefreshStruct } from '@/type/entity'
 import { loginStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
@@ -10,18 +10,18 @@ const http = axios.create({
   timeout: 10000
 });
 
-http.interceptors.request.use(async (config: InternalAxiosRequestConfig<any>) => {
+http.interceptors.request.use(async config => {
   const accessToken: string | null = localStorage.getItem('accessToken')
   if (accessToken && config.url !== '/token/refresh') {
     const { login } = storeToRefs(loginStateStore())
     login.value = true
-    let tokenArray: string[] = accessToken.split(".")
+    let tokenArray = accessToken.split(".")
     const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
 
-    const now: number = Math.floor(new Date().getTime() / 1000)
+    const now = Math.floor(new Date().getTime() / 1000)
     //ten minutes
     if (jwt.exp - now < 600) {
-      const refreshToken: string | null = localStorage.getItem('refreshToken')
+      const refreshToken = localStorage.getItem('refreshToken')
       const data = await http.get<never, Data<RefreshStruct>>('/token/refresh', {
         headers: { Authorization: refreshToken }
       })

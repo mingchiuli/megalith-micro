@@ -1,20 +1,20 @@
 <script lang="ts" setup>
 import type { BlogsDesc, PageAdapter } from '@/type/entity'
 import { GET } from '@/http/http'
-import { reactive, toRefs, ref, type Ref } from 'vue'
+import { reactive, toRefs, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { loginStateStore } from '@/stores/store'
 import router from '@/router'
 
-const loading: Ref<boolean> = ref(true)
-const loginDialog: Ref<boolean> = ref(false)
+const loading = ref(true)
+const loginDialog = ref(false)
 const { login } = storeToRefs(loginStateStore())
-const searchRef: Ref<any> = ref()
-const searchPageNo: Ref<number> = ref(0)
-const year: Ref<string> = ref('')
-const keywords: Ref<string> = ref('')
-const readTokenDialog: Ref<boolean> = ref(false)
-const blogId: Ref<number> = ref(0)
+const searchRef = ref()
+const searchPageNo = ref(0)
+const year = ref('')
+const keywords = ref('')
+const readTokenDialog = ref(false)
+const blogId = ref(0)
 
 
 let page: PageAdapter<BlogsDesc> = reactive({

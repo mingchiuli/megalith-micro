@@ -1,7 +1,7 @@
-import { ref, type Ref } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const loginStateStore = defineStore('loginStateStore', () => {
-  const login: Ref<boolean> = ref(false)
+  const login = ref(false)
   return { login }
 })

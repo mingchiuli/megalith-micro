@@ -15,11 +15,10 @@ const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat);
 
 (async () => {
   const data = await GET<Visitor>('/public/blog/stat')
-  const visitor: Visitor = data
-  blogStat.dayVisit = visitor.dayVisit
-  blogStat.weekVisit = visitor.weekVisit
-  blogStat.monthVisit = visitor.monthVisit
-  blogStat.yearVisit = visitor.yearVisit
+  blogStat.dayVisit = data.dayVisit
+  blogStat.weekVisit = data.weekVisit
+  blogStat.monthVisit = data.monthVisit
+  blogStat.yearVisit = data.yearVisit
 })()
 
 </script>

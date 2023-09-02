@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, reactive, ref, type Ref, type WritableComputedRef } from 'vue'
+import { computed, reactive, ref, type Ref } from 'vue'
 import { loginStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import router from '@/router'
@@ -12,32 +12,32 @@ const props = defineProps<{
 
 const emit = defineEmits<(event: 'update:loginDialog', payload: boolean) => void>()
 
-let loginDialog: WritableComputedRef<boolean> = computed({
+let loginDialog = computed({
   get() {
     return props.loginDialog
   },
-  set(value: boolean) {
+  set(value) {
     emit('update:loginDialog', value);
   },
 })
 
 const { login } = storeToRefs(loginStateStore())
-const mailButtonDisable: Ref<boolean> = ref(false)
-const mailButtonText: Ref<any> = ref('发送邮件')
-const mailButtonMiles: Ref<any> = ref(120)
-const radioSelect: Ref<string> = ref('Password')
-const radioSMS: Ref<boolean> = ref(false)
-const radioEmail: Ref<boolean> = ref(false)
+const mailButtonDisable = ref(false)
+const mailButtonText = ref('发送邮件')
+const mailButtonMiles = ref(120)
+const radioSelect = ref('Password')
+const radioSMS = ref(false)
+const radioEmail = ref(false)
 const loginInfo: LoginStruct = reactive({
   username: '',
   password: ''
 })
 
 const submitLogin = async () => {
-  const form: FormData = new FormData()
+  const form = new FormData()
   form.append('username', loginInfo.username)
   form.append('password', loginInfo.password)
-  const token: Token = await POST<Token>('/login', form)
+  const token = await POST<Token>('/login', form)
   localStorage.setItem('accessToken', token.accessToken)
   localStorage.setItem('refreshToken', token.refreshToken)
   login.value = true

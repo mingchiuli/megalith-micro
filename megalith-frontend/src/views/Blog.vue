@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onErrorCaptured, reactive, ref, type Ref } from 'vue'
-import { useRoute, type RouteLocationNormalizedLoaded } from 'vue-router'
+import { onBeforeUnmount, onErrorCaptured, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import { markdown } from '@/utils/markdown'
@@ -15,10 +15,10 @@ clipboard.on('error', () => {
   ElMessage.error('复制失败')
 })
 
-const router: RouteLocationNormalizedLoaded = useRoute()
+const router = useRoute()
 const token = router.query.token
 const blogId = router.params.id
-let loading: Ref<boolean> = ref(true)
+let loading = ref(true)
 
 
 let blog: BlogExhibit = reactive({
