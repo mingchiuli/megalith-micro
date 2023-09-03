@@ -52,7 +52,10 @@ export interface JWTStruct {
 
 export interface CatalogueLabel {
   id: string
+  name: string | null | undefined
+  href: string
   dist: number
+  children: CatalogueLabel[] | undefined
 }
 
 export interface RefreshStruct {
