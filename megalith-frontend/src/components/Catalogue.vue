@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { CatalogueLabel } from '@/type/entity'
-import { ref } from 'vue';
+import { ref } from 'vue'
 
 let data = ref<CatalogueLabel[]>()
 
@@ -16,7 +16,6 @@ const handleNodeClick = (data: CatalogueLabel) => {
 const render = () => {
   let aLabels = document.querySelectorAll<HTMLElement>('.exhibit-content .v-note-wrapper a')
   data.value = geneCatalogueArr(aLabels)
-  console.log(data)
 }
 
 const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] => {
@@ -28,7 +27,7 @@ const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] =>
       label: '',
       href: '',
       dist: 0,
-      children: undefined
+      children: []
     }
 
     item.id = aLabel.id
@@ -42,14 +41,14 @@ const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] =>
   return arr
 }
 
-const getChildrenTotal = (children: CatalogueLabel[] | undefined): number => {
-  if (!children) {
+const getChildrenTotal = (children: CatalogueLabel[]): number => {
+  if (children.length === 0) {
     return 0
   }
 
-  let count = 0;
+  let count = 0
   children.forEach(e => {
-    count++;
+    count++
     count += getChildrenTotal(e.children)
   })
   return count
@@ -73,7 +72,7 @@ const getChildren = (aLabels: NodeListOf<HTMLElement>, index: number): Catalogue
         label: '',
         href: '',
         dist: 0,
-        children: undefined
+        children: []
       }
 
       item.id = aLabel.id
@@ -109,10 +108,17 @@ defineExpose({
 
 <style scoped>
 .box {
+  padding: 0px;
   min-height: 100px;
   position: fixed;
   width: 200px;
   margin-left: 70rem;
   margin-top: 30px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.el-card:deep(.el-card__body) {
+  padding: 5px;
 }
 </style>

@@ -55,7 +55,7 @@ export interface CatalogueLabel {
   label: string | null | undefined
   href: string
   dist: number
-  children: CatalogueLabel[] | undefined
+  children: CatalogueLabel[]
 }
 
 export interface RefreshStruct {
