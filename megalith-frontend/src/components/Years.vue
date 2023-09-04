@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { GET } from '@/http/http'
-import { computed, ref, type Ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
   year: string
@@ -11,7 +11,7 @@ const emit = defineEmits<{
   (event: 'update:year', payload: string): void
 }>()
 
-let years: Ref<number[]> = ref([])
+let years = ref<number[]>()
 
 let year = computed({
   get() {

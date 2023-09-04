@@ -1,10 +1,22 @@
 <script lang="ts" setup>
 import type { CatalogueLabel } from '@/type/entity'
+import { ref } from 'vue';
+
+let data = ref<CatalogueLabel[]>()
+
+const defaultProps = {
+  children: 'children',
+  label: 'label',
+}
+
+const handleNodeClick = (data: CatalogueLabel) => {
+  console.log(data)
+}
 
 const render = () => {
   let aLabels = document.querySelectorAll<HTMLElement>('.exhibit-content .v-note-wrapper a')
-  const arr = geneCatalogueArr(aLabels)
-  console.log(arr)
+  data.value = geneCatalogueArr(aLabels)
+  console.log(data)
 }
 
 const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] => {
@@ -13,7 +25,7 @@ const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] =>
     const aLabel = aLabels[i]
     const item: CatalogueLabel = {
       id: '',
-      name: '',
+      label: '',
       href: '',
       dist: 0,
       children: undefined
@@ -22,7 +34,7 @@ const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] =>
     item.id = aLabel.id
     item.dist = aLabel.offsetTop
     item.href = '#' + aLabel.id
-    item.name = aLabel.parentNode?.textContent
+    item.label = aLabel.parentNode?.textContent
     item.children = getChildren(aLabels, i)
     i += getChildrenTotal(item.children)
     arr.push(item)
@@ -50,7 +62,7 @@ const getChildren = (aLabels: NodeListOf<HTMLElement>, index: number): Catalogue
   }
 
   const curLabel = aLabels[index].parentNode?.nodeName as string
-  const curLabelNo = curLabel.substring(1) as string
+  const curLabelNo = curLabel.substring(1) 
   for (let i = index + 1; i < aLabels.length; i++) {
     const aLabel = aLabels[i]
     const labelNo = aLabel.parentNode?.nodeName.substring(1) as string
@@ -58,7 +70,7 @@ const getChildren = (aLabels: NodeListOf<HTMLElement>, index: number): Catalogue
     if (parseInt(labelNo) > parseInt(curLabelNo)) {
       const item: CatalogueLabel = {
         id: '',
-        name: '',
+        label: '',
         href: '',
         dist: 0,
         children: undefined
@@ -67,7 +79,7 @@ const getChildren = (aLabels: NodeListOf<HTMLElement>, index: number): Catalogue
       item.id = aLabel.id
       item.dist = aLabel.offsetTop
       item.href = '#' + aLabel.id
-      item.name = aLabel.parentNode?.textContent
+      item.label = aLabel.parentNode?.textContent
       item.children = getChildren(aLabels, i)
       i += getChildrenTotal(item.children)
       arr.push(item)
@@ -85,12 +97,19 @@ defineExpose({
 
 <template>
   <el-card shadow="never" class="box">
-    aaa
+    <el-tree
+    :data="data"
+    :props="defaultProps"
+    accordion
+    @node-click="handleNodeClick"
+    highlight-current
+  />
   </el-card>
 </template>
 
 <style scoped>
 .box {
+  min-height: 100px;
   position: fixed;
   width: 200px;
   margin-left: 70rem;

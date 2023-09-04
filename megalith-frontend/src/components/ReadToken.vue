@@ -19,7 +19,7 @@ let visible = computed({
   },
 })
 
-const input = ref('')
+const input = ref<string>()
 
 const submit = async () => {
   const valid = await GET<boolean>(`/public/blog/token/${props.blogId}?readToken=${input.value}`)

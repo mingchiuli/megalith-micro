@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { GET } from '@/http/http'
 
 let start = ref(2021)
-let end = ref(0);
+let end = ref<number>();
 
 (async () => {
   const years = await GET<number[]>('/public/blog/years')

@@ -28,7 +28,7 @@ const mailButtonMiles = ref(120)
 const radioSelect = ref('Password')
 const radioSMS = ref(false)
 const radioEmail = ref(false)
-const loginInfo: LoginStruct = reactive({
+const loginInfo = reactive<LoginStruct>({
   username: '',
   password: ''
 })

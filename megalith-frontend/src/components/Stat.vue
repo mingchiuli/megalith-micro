@@ -4,7 +4,7 @@ import { GET } from '@/http/http'
 
 import type { Visitor } from '@/type/entity'
 
-const blogStat: Visitor = reactive({
+const blogStat = reactive<Visitor>({
   "dayVisit": 0,
   "weekVisit": 0,
   "monthVisit": 0,

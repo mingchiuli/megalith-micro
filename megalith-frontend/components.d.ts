@@ -28,6 +28,7 @@ declare module 'vue' {
     ElText: typeof import('element-plus/es')['ElText']
     ElTimeline: typeof import('element-plus/es')['ElTimeline']
     ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
+    ElTree: typeof import('element-plus/es')['ElTree']
     Footer: typeof import('./src/components/Footer.vue')['default']
     Hot: typeof import('./src/components/Hot.vue')['default']
     Login: typeof import('./src/components/Login.vue')['default']

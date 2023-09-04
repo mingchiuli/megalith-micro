@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { ref, type Ref } from 'vue'
+import { ref } from 'vue'
 import type { Hot } from '@/type/entity'
 import { GET } from '@/http/http'
 import router from '@/router'
 
-let hots: Ref<Hot[]> = ref([])
+let hots = ref<Hot[]>()
 
 const go = (id: number) => router.push({
   name: 'blog',

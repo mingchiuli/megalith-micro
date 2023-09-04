@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onErrorCaptured, reactive, ref, nextTick } from 'vue'
+import { onBeforeUnmount, onErrorCaptured, reactive, ref, nextTick, type ComponentPublicInstance } from 'vue'
 import { useRoute } from 'vue-router'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
@@ -20,7 +20,7 @@ const token = router.query.token
 const blogId = router.params.id
 let loading = ref(true)
 
-let blog: BlogExhibit = reactive({
+let blog = reactive<BlogExhibit>({
   "title": '',
   "description": '',
   "content": '',
