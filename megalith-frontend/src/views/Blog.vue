@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onErrorCaptured, reactive, ref, nextTick, type ComponentPublicInstance } from 'vue'
+import { onBeforeUnmount, onErrorCaptured, reactive, ref, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'

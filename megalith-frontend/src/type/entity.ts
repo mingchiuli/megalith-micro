@@ -52,8 +52,7 @@ export interface JWTStruct {
 
 export interface CatalogueLabel {
   id: string
-  label: string | null | undefined
-  href: string
+  label: string
   dist: number
   children: CatalogueLabel[]
 }

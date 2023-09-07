@@ -1,21 +1,22 @@
 <script lang="ts" setup>
 import type { CatalogueLabel } from '@/type/entity'
-import { ref } from 'vue'
+import type { ElTree } from 'element-plus';
+import { nextTick, ref } from 'vue'
+import Node from 'element-plus/es/components/tree/src/model/node'
 
-let data = ref<CatalogueLabel[]>()
+let data = ref<CatalogueLabel[]>([])
+let allNodes: Node[]
+const defaultProps = { children: 'children', label: 'label' }
+const rollGap = 10
+const treeRef = ref<InstanceType<typeof ElTree>>()
 
-const defaultProps = {
-  children: 'children',
-  label: 'label',
-}
+const handleNodeClick = (data: CatalogueLabel) => window.scrollTo({ top: data.dist - rollGap, behavior: 'smooth' })
 
-const handleNodeClick = (data: CatalogueLabel) => {
-  console.log(data)
-}
-
-const render = () => {
+const render = async () => {
   let aLabels = document.querySelectorAll<HTMLElement>('.exhibit-content .v-note-wrapper a')
   data.value = geneCatalogueArr(aLabels)
+  await nextTick()
+  allNodes = treeRef.value!.store._getAllNodes()
 }
 
 const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] => {
@@ -25,15 +26,13 @@ const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] =>
     const item: CatalogueLabel = {
       id: '',
       label: '',
-      href: '',
       dist: 0,
       children: []
     }
 
     item.id = aLabel.id
-    item.dist = aLabel.offsetTop
-    item.href = '#' + aLabel.id
-    item.label = aLabel.parentNode?.textContent
+    item.dist = aLabel.getBoundingClientRect().top
+    item.label = aLabel.parentNode?.textContent as string
     item.children = getChildren(aLabels, i)
     i += getChildrenTotal(item.children)
     arr.push(item)
@@ -60,25 +59,24 @@ const getChildren = (aLabels: NodeListOf<HTMLElement>, index: number): Catalogue
     return arr
   }
 
-  const curLabel = aLabels[index].parentNode?.nodeName as string
-  const curLabelNo = curLabel.substring(1) 
+  const curLabel = aLabels[index].parentNode!.nodeName
+  //提取H{i}后面的i
+  const curLabelNo = curLabel.substring(1)
   for (let i = index + 1; i < aLabels.length; i++) {
     const aLabel = aLabels[i]
-    const labelNo = aLabel.parentNode?.nodeName.substring(1) as string
+    const labelNo = aLabel.parentNode!.nodeName.substring(1)
 
     if (parseInt(labelNo) > parseInt(curLabelNo)) {
       const item: CatalogueLabel = {
         id: '',
         label: '',
-        href: '',
         dist: 0,
         children: []
       }
 
       item.id = aLabel.id
-      item.dist = aLabel.offsetTop
-      item.href = '#' + aLabel.id
-      item.label = aLabel.parentNode?.textContent
+      item.dist = aLabel.getBoundingClientRect().top
+      item.label = aLabel.parentNode?.textContent as string
       item.children = getChildren(aLabels, i)
       i += getChildrenTotal(item.children)
       arr.push(item)
@@ -89,20 +87,59 @@ const getChildren = (aLabels: NodeListOf<HTMLElement>, index: number): Catalogue
   return arr
 }
 
+const rollToTargetLabel = (data: CatalogueLabel[], scrolled: number): CatalogueLabel => {
+  let label: CatalogueLabel
+  for (const element of data) {
+    let dist = scrolled - element.dist
+    if (dist > -rollGap) {
+      label = element
+      let childLabel = rollToTargetLabel(element.children, scrolled)
+      if (childLabel) {
+        label = childLabel
+      }
+    } else {
+      break
+    }
+  }
+  return label!
+}
+
+const roll = () => {
+  let scrolled = document.documentElement.scrollTop
+
+  let temp: CatalogueLabel
+  temp = rollToTargetLabel(data.value, scrolled)!
+  //高亮和关闭树节点的逻辑
+  for (const node of allNodes) {
+    if (temp?.id === node.data.id) {
+      node.expanded = true
+      treeRef.value?.setCurrentKey(node.data.id)
+    } else {
+      node.expanded = false
+    }
+  }
+}
+
+const debounce = (fn: Function, interval = 100) => {
+  let timeout: NodeJS.Timeout
+  return () => {
+    clearTimeout(timeout)
+    timeout = setTimeout(function (this: Function) {
+      fn.apply(this, arguments)
+    }, interval)
+  }
+}
+window.addEventListener('scroll', debounce(roll))
+
 defineExpose({
   render
-});
+})
 </script>
 
 <template>
   <el-card shadow="never" class="box">
-    <el-tree
-    :data="data"
-    :props="defaultProps"
-    accordion
-    @node-click="handleNodeClick"
-    highlight-current
-  />
+    <el-tree :data="data" :props="defaultProps" accordion @node-click="handleNodeClick" ref="treeRef" node-key="id"
+      highlight-current />
   </el-card>
 </template>
 
