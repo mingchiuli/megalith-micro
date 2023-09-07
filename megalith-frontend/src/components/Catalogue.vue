@@ -110,14 +110,14 @@ const roll = () => {
   let temp: CatalogueLabel
   temp = rollToTargetLabel(data.value, scrolled)!
   //高亮和关闭树节点的逻辑
-  for (const node of allNodes) {
+  allNodes.forEach(node => {
     if (temp?.id === node.data.id) {
       node.expanded = true
       treeRef.value?.setCurrentKey(node.data.id)
     } else {
       node.expanded = false
     }
-  }
+  })
 }
 
 const debounce = (fn: Function, interval = 100) => {
