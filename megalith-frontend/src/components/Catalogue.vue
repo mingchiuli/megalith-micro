@@ -4,7 +4,7 @@ import type { ElTree } from 'element-plus';
 import { nextTick, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
 
-let data = ref<CatalogueLabel[]>([])
+let data = ref<CatalogueLabel[]>()
 let allNodes: Node[]
 const defaultProps = { children: 'children', label: 'label' }
 const rollGap = 10
@@ -108,16 +108,21 @@ const roll = () => {
   let scrolled = document.documentElement.scrollTop
 
   let temp: CatalogueLabel
-  temp = rollToTargetLabel(data.value, scrolled)!
+  temp = rollToTargetLabel(data.value as CatalogueLabel[], scrolled)!
+
   //高亮和关闭树节点的逻辑
   allNodes.forEach(node => {
     if (temp?.id === node.data.id) {
       node.expanded = true
       treeRef.value?.setCurrentKey(node.data.id)
-    } else {
-      node.expanded = false
-    }
+    } else if (node.expanded) {
+        node.expanded = false
+      }
   })
+  //处理顶级节点高亮不符合逻辑的问题
+  if (!temp) {
+    treeRef.value?.setCurrentKey(allNodes[0].data.id)
+  }
 }
 
 const debounce = (fn: Function, interval = 100) => {

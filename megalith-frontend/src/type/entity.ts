@@ -43,6 +43,25 @@ export interface Token {
   refreshToken: string
 }
 
+export interface Tab {
+  title: string
+  name: string
+}
+
+export interface Menu {
+  menuId: number
+  component?: string
+  url?: string
+  icon: string
+  orderNum: number
+  name: string
+  parentId: number
+  status: number
+  title: string
+  type: number
+  children: Menu[]
+}
+
 export interface JWTStruct {
   role: string
   sub: string

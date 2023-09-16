@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { computed, reactive, ref } from 'vue'
 import { loginStateStore } from '@/stores/store'
-import { storeToRefs } from 'pinia'
 import router from '@/router'
 import type { LoginStruct, Token } from '@/type/entity'
 import { GET, POST } from '@/http/http'
@@ -21,7 +20,6 @@ let loginDialog = computed({
   },
 })
 
-const { login } = storeToRefs(loginStateStore())
 const mailButtonDisable = ref(false)
 const mailButtonText = ref('发送邮件')
 const mailButtonMiles = ref(120)
@@ -40,7 +38,7 @@ const submitLogin = async () => {
   const token = await POST<Token>('/login', form)
   localStorage.setItem('accessToken', token.accessToken)
   localStorage.setItem('refreshToken', token.refreshToken)
-  login.value = true
+  loginStateStore().login = true
   loginDialog.value = false
   emit('update:loginDialog', false)
   router.push({

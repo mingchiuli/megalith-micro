@@ -2,13 +2,11 @@
 import type { BlogsDesc, PageAdapter } from '@/type/entity'
 import { GET } from '@/http/http'
 import { reactive, toRefs, ref } from 'vue'
-import { storeToRefs } from 'pinia'
 import { loginStateStore } from '@/stores/store'
 import router from '@/router'
 
 const loading = ref(true)
 const loginDialog = ref(false)
-const { login } = storeToRefs(loginStateStore())
 const searchRef = ref()
 const searchPageNo = ref(0)
 const year = ref('')
@@ -24,7 +22,7 @@ let page: PageAdapter<BlogsDesc> = reactive({
   "pageNumber": 1
 })
 
-if (router.currentRoute.value.path === '/login' && !login.value) {
+if (router.currentRoute.value.path === '/login' && !loginStateStore().login) {
   loginDialog.value = true
 } else {
   router.push({

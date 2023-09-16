@@ -1,7 +1,6 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios'
 import type { Data, JWTStruct, RefreshStruct } from '@/type/entity'
-import { loginStateStore } from '@/stores/store'
-import { storeToRefs } from 'pinia'
+import { loginStateStore, routeStore, menuStore } from '@/stores/store'
 import router from '@/router'
 import { Base64 } from 'js-base64'
 
@@ -13,8 +12,7 @@ const http = axios.create({
 http.interceptors.request.use(async config => {
   const accessToken: string | null = localStorage.getItem('accessToken')
   if (accessToken && config.url !== '/token/refresh') {
-    const { login } = storeToRefs(loginStateStore())
-    login.value = true
+    loginStateStore().login = true
     let tokenArray = accessToken.split(".")
     const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
 
@@ -70,8 +68,9 @@ http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<an
 const clearLoginState = () => {
   localStorage.removeItem('accessToken')
   localStorage.removeItem('refreshToken')
-  const { login } = storeToRefs(loginStateStore())
-  login.value = false
+  loginStateStore().login = false
+  routeStore().hasRoute = false 
+  menuStore().menuList = []
 }
 
 export default http

@@ -3,6 +3,7 @@ import { onBeforeUnmount, onErrorCaptured, reactive, ref, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
+import Catalogue from '@/components/Catalogue.vue'
 import { markdown } from '@/utils/markdown'
 import editor from 'mavon-editor'
 import Clipboard from 'clipboard'
@@ -41,7 +42,7 @@ onErrorCaptured((_err, _instance, info): boolean => {
   return true
 })
 
-const catalogue = ref();
+const catalogue = ref<InstanceType<typeof Catalogue>>();
 
 (async () => {
   let data: BlogExhibit
@@ -58,7 +59,7 @@ const catalogue = ref();
   blog.created = data.created
   loading.value = false
   await nextTick()
-  catalogue.value.render()
+  catalogue.value!.render()
 })()
 </script>
 
