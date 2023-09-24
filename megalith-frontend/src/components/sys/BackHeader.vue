@@ -26,7 +26,9 @@ const avatar = user.avatar
 .header-text {
   position: absolute;
   left: 50%;
-  top: 20px;
+  top: 15px;
+  line-height: 30px;
+  height: 30px;
 }
 
 .header-avatar {
