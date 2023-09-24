@@ -50,7 +50,7 @@ const innerVisible = ref(false)
 
 const query = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogsDesc>>(`/search/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`);
+  const data = await GET<PageAdapter<BlogsDesc>>(`/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`);
   return Promise.resolve(data);
 };
 
