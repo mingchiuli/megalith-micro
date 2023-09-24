@@ -2,7 +2,7 @@
 import { computed, reactive, ref } from 'vue'
 import { loginStateStore } from '@/stores/store'
 import router from '@/router'
-import type { LoginStruct, Token } from '@/type/entity'
+import type { LoginStruct, Token, UserInfo } from '@/type/entity'
 import { GET, POST } from '@/http/http'
 
 const props = defineProps<{
@@ -38,6 +38,8 @@ const submitLogin = async () => {
   const token = await POST<Token>('/login', form)
   localStorage.setItem('accessToken', token.accessToken)
   localStorage.setItem('refreshToken', token.refreshToken)
+  const info = await GET<UserInfo>('/token/userinfo')
+  localStorage.setItem('userinfo', JSON.stringify(info))
   loginStateStore().login = true
   loginDialog.value = false
   emit('update:loginDialog', false)

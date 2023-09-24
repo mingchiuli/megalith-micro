@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    BackHeader: typeof import('./src/components/sys/BackHeader.vue')['default']
     Catalogue: typeof import('./src/components/Catalogue.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAutocomplete: typeof import('element-plus/es')['ElAutocomplete']
@@ -33,12 +34,14 @@ declare module 'vue' {
     ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
     ElTree: typeof import('element-plus/es')['ElTree']
     Footer: typeof import('./src/components/Footer.vue')['default']
+    HeaderTabs: typeof import('./src/components/sys/HeaderTabs.vue')['default']
     Hot: typeof import('./src/components/Hot.vue')['default']
     Login: typeof import('./src/components/Login.vue')['default']
     ReadToken: typeof import('./src/components/ReadToken.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Search: typeof import('./src/components/Search.vue')['default']
+    SideMenu: typeof import('./src/components/sys/SideMenu.vue')['default']
     Stat: typeof import('./src/components/Stat.vue')['default']
     Years: typeof import('./src/components/Years.vue')['default']
   }

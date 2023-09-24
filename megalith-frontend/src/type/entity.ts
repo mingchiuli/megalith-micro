@@ -43,6 +43,11 @@ export interface Token {
   refreshToken: string
 }
 
+export interface UserInfo {
+  nickname: string
+  avatar: string
+}
+
 export interface Tab {
   title: string
   name: string

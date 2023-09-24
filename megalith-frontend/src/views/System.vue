@@ -7,7 +7,9 @@
     <el-container>
       <el-aside width="200px">Aside</el-aside>
       <el-container>
-        <el-header>Header</el-header>
+        <el-header class="header">
+          <BackHeader></BackHeader>
+        </el-header>
         <div style="margin: 0 1%;">
           <router-view />
         </div>
@@ -16,4 +18,13 @@
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.header {
+  padding: 0;
+}
+
+.el-header {
+  background-color: #f6f6f6;
+  color: #333;
+}
+</style>
