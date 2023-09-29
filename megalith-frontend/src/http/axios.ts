@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios'
 import type { Data, JWTStruct, RefreshStruct } from '@/type/entity'
-import { loginStateStore, routeStore, menuStore } from '@/stores/store'
+import { loginStateStore } from '@/stores/store'
+import { clearLoginState } from '@/utils/common'
 import router from '@/router'
 import { Base64 } from 'js-base64'
 
@@ -64,14 +65,5 @@ http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<an
   }
   return Promise.reject(error)
 })
-
-const clearLoginState = () => {
-  localStorage.removeItem('accessToken')
-  localStorage.removeItem('refreshToken')
-  localStorage.removeItem('userinfo')
-  loginStateStore().login = false
-  routeStore().hasRoute = false 
-  menuStore().menuList = []
-}
 
 export default http

@@ -121,7 +121,7 @@ const roll = () => {
   })
   //处理顶级节点高亮不符合逻辑的问题
   if (!temp) {
-    treeRef.value?.setCurrentKey(allNodes[0].data.id)
+    treeRef.value?.setCurrentKey(allNodes[0]?.data.id)
   }
 }
 
