@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { computed, reactive, ref } from 'vue'
 import { loginStateStore } from '@/stores/store'
-import router from '@/router'
 import type { LoginStruct, Token, UserInfo } from '@/type/entity'
 import { GET, POST } from '@/http/http'
 
@@ -43,15 +42,9 @@ const submitLogin = async () => {
   loginStateStore().login = true
   loginDialog.value = false
   emit('update:loginDialog', false)
-  router.push({
-    name: 'blogs'
-  })
 }
 
 const beforeClose = (close: Function) => {
-  router.push({
-    name: 'blogs'
-  })
   close()
 }
 
@@ -70,6 +63,8 @@ const loginType = () => {
       radioEmail.value = false
       break;
   }
+  loginInfo.username = ''
+  loginInfo.password = ''
 }
 
 let interval: NodeJS.Timeout
@@ -87,7 +82,6 @@ const sendCode = async (via: string) => {
       mailButtonMiles.value = 120
     }
   }, 1000)
-
 }
 
 </script>

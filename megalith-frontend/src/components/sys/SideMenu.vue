@@ -3,8 +3,8 @@ import { ref } from 'vue'
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import router from '@/router'
 import { menuStore, tabStore } from '@/stores/store'
-import type { Tab } from '@/type/entity';
-import { storeToRefs } from 'pinia';
+import type { Tab } from '@/type/entity'
+import { storeToRefs } from 'pinia'
 
 const { menuList } = storeToRefs(menuStore())
 
