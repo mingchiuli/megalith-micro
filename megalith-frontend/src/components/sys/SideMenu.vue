@@ -1,7 +1,12 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { ArrowLeft, ArrowRight, Document, Menu as IconMenu, Location, Setting} from '@element-plus/icons-vue'
+import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
+import router from '@/router'
+import { menuStore, tabStore } from '@/stores/store'
+import type { Tab } from '@/type/entity';
+import { storeToRefs } from 'pinia';
 
+const { menuList } = storeToRefs(menuStore())
 
 const isCollapse = ref(true)
 const reverseCollapse = () => isCollapse.value = !isCollapse.value
@@ -12,56 +17,44 @@ const handleOpen = (key: string, keyPath: string[]) => {
 const handleClose = (key: string, keyPath: string[]) => {
   console.log(key, keyPath)
 }
+
+const to = (name: string) => router.push({ name: name })
+
+const selectMenu = (item: Tab) => {
+  tabStore().addTab(item)
+  router.push({ name: item.name })
+}
 </script>
 
 <template>
   <el-button class="collapse-button" circle :icon="ArrowLeft" v-if="!isCollapse" @click="reverseCollapse"></el-button>
   <el-button class="collapse-button" circle :icon="ArrowRight" v-if="isCollapse" @click="reverseCollapse"></el-button>
-
-
-  <el-menu default-active="2" class="el-menu-vertical-demo" :collapse="isCollapse" @open="handleOpen"
-    @close="handleClose">
-    <el-sub-menu index="1">
+  <el-menu :default-active="tabStore().editableTabsValue" class="el-menu-vertical" :collapse="isCollapse"
+    @open="handleOpen" @close="handleClose" active-text-color="#ffd04b">
+    <el-sub-menu :index="String(menu.menuId)" v-for="menu in menuList">
       <template #title>
-        <el-icon>
-          <location />
+        <el-icon :size=20>
+          <component :is="menu.icon" />
         </el-icon>
-        <span>Navigator One</span>
+        <span>{{ menu.title }}</span>
       </template>
-      <el-menu-item-group>
-        <template #title><span>Group One</span></template>
-        <el-menu-item index="1-1">item one</el-menu-item>
-        <el-menu-item index="1-2">item two</el-menu-item>
-      </el-menu-item-group>
-      <el-menu-item-group title="Group Two">
-        <el-menu-item index="1-3">item three</el-menu-item>
-      </el-menu-item-group>
-      <el-sub-menu index="1-4">
-        <template #title><span>item four</span></template>
-        <el-menu-item index="1-4-1">item one</el-menu-item>
-      </el-sub-menu>
+
+      <a @click="to(item.name)" v-for="item in menu.children">
+        <el-menu-item :index="item.name" @click="selectMenu(item)">
+          <template #title>
+            <el-icon :size=20>
+              <component :is="item.icon" />
+            </el-icon>
+            <span>{{ item.title }}</span>
+          </template>
+        </el-menu-item>
+      </a>
     </el-sub-menu>
-    <el-menu-item index="2">
-      <el-icon><icon-menu /></el-icon>
-      <template #title>Navigator Two</template>
-    </el-menu-item>
-    <el-menu-item index="3" disabled>
-      <el-icon>
-        <document />
-      </el-icon>
-      <template #title>Navigator Three</template>
-    </el-menu-item>
-    <el-menu-item index="4">
-      <el-icon>
-        <setting />
-      </el-icon>
-      <template #title>Navigator Four</template>
-    </el-menu-item>
   </el-menu>
 </template>
 
 <style scoped>
-.el-menu-vertical-demo:not(.el-menu--collapse) {
+.el-menu-vertical:not(.el-menu--collapse) {
   width: 200px;
   min-height: 400px;
   border-right: none;
@@ -76,5 +69,4 @@ const handleClose = (key: string, keyPath: string[]) => {
 .collapse-button {
   transform: translate(50%);
   margin-top: 15px;
-}
-</style>
+}</style>

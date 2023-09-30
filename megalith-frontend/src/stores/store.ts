@@ -17,6 +17,27 @@ export const menuStore = defineStore('menuStore', {
   }
 })
 
+export const tabStore = defineStore('tabStore', {
+  state: () => {
+    return {
+      editableTabs: [] as Tab[],
+      editableTabsValue: ''
+    }
+  },
+  actions: {
+    addTab(tab: Tab) {
+      const index = this.editableTabs.findIndex(e => e.name === tab.name)
+      if (index === -1) {
+        this.editableTabs.push({
+          title: tab.title,
+          name: tab.name
+        })
+      }
+      this.editableTabsValue = tab.name
+    },
+  },
+})
+
 export const routeStore = defineStore('routeStore', {
   state: () => {
     return {

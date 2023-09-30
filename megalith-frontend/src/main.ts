@@ -1,16 +1,19 @@
 import './assets/main.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-
 import ElementPlus from 'element-plus'
 import mavonEditor from 'mavon-editor'
 import 'mavon-editor/dist/css/index.css'
 import App from './App.vue'
 import router from './router'
+import * as Icons from '@element-plus/icons-vue'
 
-createApp(App)
+const app = createApp(App)
   .use(createPinia())
   .use(router)
   .use(ElementPlus)
   .use(mavonEditor)
-  .mount('#app')
+
+Object.keys(Icons).forEach(key => app.component(key, Icons[key as keyof typeof Icons]))
+
+app.mount('#app')

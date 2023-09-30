@@ -4,6 +4,7 @@ import { GET } from '@/http/http'
 import { reactive, toRefs, ref } from 'vue'
 import { loginStateStore } from '@/stores/store'
 import router from '@/router'
+import { storeToRefs } from 'pinia'
 
 const loading = ref(true)
 const loginDialog = ref(false)
@@ -22,7 +23,9 @@ let page: PageAdapter<BlogsDesc> = reactive({
   "pageNumber": 1
 })
 
-if (router.currentRoute.value.path === '/login' && !loginStateStore().login) {
+const { login } = storeToRefs(loginStateStore())
+
+if (router.currentRoute.value.path === '/login' && !login.value) {
   loginDialog.value = true
 } else {
   router.push({
@@ -94,7 +97,7 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
         v-model:year="year" v-model:loading="loading"></Search>
     </div>
     <el-text size="large">共{{ page.totalElements }}篇</el-text>
-    <el-link type="success" size="large" class="door" v-if="loginStateStore().login" href="/sys">进入后台</el-link>
+    <el-link type="success" size="large" class="door" v-if="login" @click="router.push('/sys')">进入后台</el-link>
     <br />
     <div class="description">
       <el-timeline>

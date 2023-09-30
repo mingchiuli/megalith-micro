@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { onBeforeUnmount, onErrorCaptured, reactive, ref, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import Catalogue from '@/components/Catalogue.vue'
 import { markdown } from '@/utils/markdown'
 import editor from 'mavon-editor'
 import Clipboard from 'clipboard'
+import { useRoute } from 'vue-router'
 
 const clipboard = new Clipboard('.copy-btn')
 clipboard.on('success', () => {

@@ -8,26 +8,30 @@ import { Base64 } from 'js-base64'
 const http = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
   timeout: 10000
-});
+})
 
 http.interceptors.request.use(async config => {
   const accessToken: string | null = localStorage.getItem('accessToken')
-  if (accessToken && config.url !== '/token/refresh') {
-    loginStateStore().login = true
-    let tokenArray = accessToken.split(".")
-    const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
 
-    const now = Math.floor(new Date().getTime() / 1000)
-    //ten minutes
-    if (jwt.exp - now < 600) {
-      const refreshToken = localStorage.getItem('refreshToken')
-      const data = await http.get<never, Data<RefreshStruct>>('/token/refresh', {
-        headers: { Authorization: refreshToken }
-      })
-      const token = data.data.accessToken
-      localStorage.setItem('accessToken', token)
+  if (accessToken) {
+    console.log(11)
+    loginStateStore().login = true
+    if (config.url !== '/token/refresh') {
+
+      let tokenArray = accessToken.split(".")
+      const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
+      const now = Math.floor(new Date().getTime() / 1000)
+      //ten minutes
+      if (jwt.exp - now < 600) {
+        const refreshToken = localStorage.getItem('refreshToken')
+        const data = await http.get<never, Data<RefreshStruct>>('/token/refresh', {
+          headers: { Authorization: refreshToken }
+        })
+        const token = data.data.accessToken
+        localStorage.setItem('accessToken', token)
+      }
+      config.headers.Authorization = localStorage.getItem('accessToken')
     }
-    config.headers.Authorization = localStorage.getItem('accessToken')
   }
   return config
 })

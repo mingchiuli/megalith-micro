@@ -3,7 +3,6 @@ import Intro from '@/views/Intro.vue'
 import { GET } from '@/http/http'
 import type { Menu } from '@/type/entity'
 import { routeStore, menuStore, loginStateStore } from '@/stores/store'
-import { storeToRefs } from 'pinia'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,15 +46,14 @@ const router = createRouter({
 })
 
 router.beforeEach(async () => {
-  const { hasRoute } = storeToRefs(routeStore())
-  if (!hasRoute.value && loginStateStore().login) {
+  if (!routeStore().hasRoute && loginStateStore().login) {
     const menus = await GET<Menu[]>('/sys/menu/nav')
     menus.forEach(menu => {
       menuStore().menuList.push(menu)
       const route = buildRoute(menu)
       router.addRoute(route)
     })
-    hasRoute.value = true
+    routeStore().hasRoute = true
   }
 })
 

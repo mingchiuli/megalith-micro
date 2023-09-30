@@ -1,4 +1,4 @@
-import { loginStateStore, routeStore, menuStore } from '@/stores/store'
+import { loginStateStore, routeStore, menuStore, tabStore } from '@/stores/store'
 
 export function clearLoginState() {
   localStorage.removeItem('accessToken')
@@ -7,4 +7,6 @@ export function clearLoginState() {
   loginStateStore().login = false
   routeStore().hasRoute = false 
   menuStore().menuList = []
+  tabStore().editableTabs = []
+  tabStore().editableTabsValue = ''
 }
