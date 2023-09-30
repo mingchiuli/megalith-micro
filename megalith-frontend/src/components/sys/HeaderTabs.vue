@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import router from '@/router'
 import { tabStore } from '@/stores/store'
-import { storeToRefs } from 'pinia';
+import { storeToRefs } from 'pinia'
 
 const { editableTabs, editableTabsValue } = storeToRefs(tabStore())
 
