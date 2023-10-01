@@ -74,7 +74,7 @@ const sendCode = async (via: string) => {
   ElMessage.success('发送成功')
   interval = setInterval(() => {
     mailButtonText.value = `等待${mailButtonMiles.value}秒`
-    mailButtonMiles.value--;
+    mailButtonMiles.value--
     if (mailButtonMiles.value <= -1) {
       clearInterval(interval)
       mailButtonText.value = '发送验证码'

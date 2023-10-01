@@ -34,7 +34,7 @@ const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] =>
     item.dist = aLabel.getBoundingClientRect().top
     item.label = aLabel.parentNode?.textContent as string
     item.children = getChildren(aLabels, i)
-    i += getChildrenTotal(item.children)
+    i = i + getChildrenTotal(item.children)
     arr.push(item)
   }
   return arr
@@ -116,8 +116,8 @@ const roll = () => {
       node.expanded = true
       treeRef.value?.setCurrentKey(node.data.id)
     } else if (node.expanded) {
-        node.expanded = false
-      }
+      node.expanded = false
+    }
   })
   //处理顶级节点高亮不符合逻辑的问题
   if (!temp) {

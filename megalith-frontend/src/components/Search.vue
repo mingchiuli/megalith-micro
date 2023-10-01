@@ -115,7 +115,7 @@ const yearsCloseEvent = async () => {
       if (page.content.length === 0) {
         ElMessage.error('No Records')
       }
-    }, 100);
+    }, 100)
   }
 }
 
