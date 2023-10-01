@@ -9,6 +9,8 @@ declare module 'vue' {
   export interface GlobalComponents {
     BackHeader: typeof import('./src/components/sys/BackHeader.vue')['default']
     Catalogue: typeof import('./src/components/Catalogue.vue')['default']
+    Comment: typeof import('./src/components/Comment.vue')['default']
+    Discuss: typeof import('./src/components/Discuss.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAutocomplete: typeof import('element-plus/es')['ElAutocomplete']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']

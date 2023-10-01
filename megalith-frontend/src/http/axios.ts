@@ -14,7 +14,6 @@ http.interceptors.request.use(async config => {
   const accessToken: string | null = localStorage.getItem('accessToken')
 
   if (accessToken) {
-    console.log(11)
     loginStateStore().login = true
     if (config.url !== '/token/refresh') {
 

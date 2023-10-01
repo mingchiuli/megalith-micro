@@ -1,6 +1,6 @@
 import hljs from 'highlight.js'
 
-export const markdown = (mavonEditor: any, content: string): string => {
+export const markdownToHtml = (mavonEditor: any, content: string): string => {
 
   const md = mavonEditor.getMarkdownIt()
   return md.set({

@@ -3,7 +3,7 @@ import { onBeforeUnmount, onErrorCaptured, reactive, ref, nextTick } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import Catalogue from '@/components/Catalogue.vue'
-import { markdown } from '@/utils/markdown'
+import { markdownToHtml } from '@/utils/markdown'
 import editor from 'mavon-editor'
 import Clipboard from 'clipboard'
 import { useRoute } from 'vue-router'
@@ -35,6 +35,7 @@ onBeforeUnmount(() => {
   clipboard.destroy()
 })
 
+//处理mavon-editor的bug
 onErrorCaptured((_err, _instance, info): boolean => {
   if (info === 'beforeUnmount hook') {
     return false
@@ -52,7 +53,7 @@ const catalogue = ref<InstanceType<typeof Catalogue>>();
     data = await GET<BlogExhibit>(`/public/blog/info/${blogId}`)
   }
   blog.title = data.title
-  blog.content = '<blockquote> <p>' + data.description + '</p> </blockquote>' + markdown(editor.mavonEditor, data.content)
+  blog.content = '<blockquote> <p>' + data.description + '</p> </blockquote>' + markdownToHtml(editor.mavonEditor, data.content)
   blog.avatar = data.avatar
   blog.readCount = data.readCount
   blog.nickname = data.nickname
@@ -81,6 +82,7 @@ const catalogue = ref<InstanceType<typeof Catalogue>>();
           code-style="androidstudio" />
       </template>
     </el-skeleton>
+    <Discuss></Discuss>
   </div>
 </template>
 
