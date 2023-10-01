@@ -4,6 +4,8 @@ import { GET } from '@/http/http'
 import type { Menu } from '@/type/entity'
 import { routeStore, menuStore, loginStateStore } from '@/stores/store'
 
+const modules = import.meta.glob('@/views/sys/*.vue')
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -42,40 +44,38 @@ const router = createRouter({
 router.beforeEach(async () => {
   if (!routeStore().hasRoute && loginStateStore().login) {
     const menus = await GET<Menu[]>('/sys/menu/nav')
-
     const systemRoute = {
       path: '/sys',
       name: 'system',
       component: () => import('@/views/System.vue'),
       children: []
-    }
-    router.addRoute(systemRoute)
+    } as RouteRecordRaw
 
     menus.forEach(menu => {
       menuStore().menuList.push(menu)
-      const route = buildRoute(menu)
-      router.addRoute(route)
+      const route = buildRoute(menu, systemRoute)
+      if (route.path) {
+        systemRoute.children?.push(route)
+      }
     })
+    router.addRoute(systemRoute)
     routeStore().hasRoute = true
   }
 })
 
 //构建路由
-const buildRoute = (menu: Menu): RouteRecordRaw => {
-  const routes = router.getRoutes()
+const buildRoute = (menu: Menu, systemRoute: RouteRecordRaw): RouteRecordRaw => {
   let route = menuToRoute(menu)
-
-  if (menu.children) {
-    menu.children.forEach(childMenu => {
-      const childRoute = buildRoute(childMenu)
-      if (route.path) {
-        route.children?.push(childRoute)
-      } else {
-        //找到sys的路由
-        routes[routes.length - 1].children.push(childRoute)
-      }
-    })
-  }
+  
+  menu.children?.forEach(childMenu => {
+    const childRoute = buildRoute(childMenu, systemRoute)
+    if (route.path) {
+      route.children?.push(childRoute)
+    } else {
+      //找到sys的路由
+      systemRoute.children?.push(childRoute)
+    }
+  })
   return route
 }
 
@@ -86,13 +86,14 @@ const menuToRoute = (menu: Menu): RouteRecordRaw => {
   const route = {
     name: menu.name,
     path: menu.url,
-    component: menu.component ? () => import(`@/views/${menu.component}.vue`) : null,
     children: [],
+    component: modules[`/src/views/${menu.component}.vue`],
     meta: {
       icon: menu.icon,
       title: menu.title
     }
   } as RouteRecordRaw
+
   return route
 }
 

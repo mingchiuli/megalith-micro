@@ -97,7 +97,7 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
         v-model:year="year" v-model:loading="loading"></Search>
     </div>
     <el-text size="large">共{{ page.totalElements }}篇</el-text>
-    <el-link type="success" size="large" class="door" v-if="login" @click="router.push('/sys')">进入后台</el-link>
+    <el-link type="success" size="large" class="door" v-if="login" @click="router.push({name: 'system'})">进入后台</el-link>
     <br />
     <div class="description">
       <el-timeline>
