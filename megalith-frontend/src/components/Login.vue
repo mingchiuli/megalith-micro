@@ -3,6 +3,7 @@ import { computed, reactive, ref } from 'vue'
 import { loginStateStore } from '@/stores/store'
 import type { LoginStruct, Token, UserInfo } from '@/type/entity'
 import { GET, POST } from '@/http/http'
+import router from '@/router'
 
 const props = defineProps<{
   loginDialog: boolean
@@ -15,7 +16,7 @@ let loginDialog = computed({
     return props.loginDialog
   },
   set(value) {
-    emit('update:loginDialog', value);
+    emit('update:loginDialog', value)
   },
 })
 
@@ -37,14 +38,16 @@ const submitLogin = async () => {
   const token = await POST<Token>('/login', form)
   localStorage.setItem('accessToken', token.accessToken)
   localStorage.setItem('refreshToken', token.refreshToken)
+  loginStateStore().login = true
   const info = await GET<UserInfo>('/token/userinfo')
   localStorage.setItem('userinfo', JSON.stringify(info))
-  loginStateStore().login = true
   loginDialog.value = false
   emit('update:loginDialog', false)
+  router.push({ name: 'blogs' })
 }
 
 const beforeClose = (close: Function) => {
+  router.push({ name: 'blogs' })
   close()
 }
 
@@ -133,6 +136,5 @@ const sendCode = async (via: string) => {
   margin-left: 50%;
   width: max-content;
   transform: translate(-50%);
-
 }
 </style>

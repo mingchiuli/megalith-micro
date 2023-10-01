@@ -8,12 +8,6 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/sys',
-      name: 'system',
-      component: () => import('@/views/System.vue'),
-      children: []
-    },
-    {
       path: '/',
       name: 'intro',
       component: Intro,
@@ -48,6 +42,15 @@ const router = createRouter({
 router.beforeEach(async () => {
   if (!routeStore().hasRoute && loginStateStore().login) {
     const menus = await GET<Menu[]>('/sys/menu/nav')
+
+    const systemRoute = {
+      path: '/sys',
+      name: 'system',
+      component: () => import('@/views/System.vue'),
+      children: []
+    }
+    router.addRoute(systemRoute)
+
     menus.forEach(menu => {
       menuStore().menuList.push(menu)
       const route = buildRoute(menu)
@@ -59,6 +62,7 @@ router.beforeEach(async () => {
 
 //构建路由
 const buildRoute = (menu: Menu): RouteRecordRaw => {
+  const routes = router.getRoutes()
   let route = menuToRoute(menu)
 
   if (menu.children) {
@@ -68,9 +72,8 @@ const buildRoute = (menu: Menu): RouteRecordRaw => {
         route.children?.push(childRoute)
       } else {
         //找到sys的路由
-        router.getRoutes()[1].children.push(childRoute)
+        routes[routes.length - 1].children.push(childRoute)
       }
-
     })
   }
   return route

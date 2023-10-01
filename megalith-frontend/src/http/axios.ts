@@ -50,7 +50,7 @@ http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<an
     ElNotification.error({
       title: 'request forbidden',
       message: data.msg,
-      showClose: true,
+      showClose: true
     })
     ElMessage.error(data.msg)
     return Promise.reject(resp)
