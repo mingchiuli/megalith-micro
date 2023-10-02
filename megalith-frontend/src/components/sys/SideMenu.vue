@@ -6,18 +6,9 @@ import { menuStore, tabStore } from '@/stores/store'
 import type { Tab } from '@/type/entity'
 import { storeToRefs } from 'pinia'
 
+const isCollapse = ref(false)
 const { menuList } = storeToRefs(menuStore())
-
-const isCollapse = ref(true)
 const reverseCollapse = () => isCollapse.value = !isCollapse.value
-
-const handleOpen = (key: string, keyPath: string[]) => {
-  console.log(key, keyPath)
-}
-const handleClose = (key: string, keyPath: string[]) => {
-  console.log(key, keyPath)
-}
-
 const to = (name: string) => router.push({ name: name })
 
 const selectMenu = (item: Tab) => {
@@ -30,7 +21,7 @@ const selectMenu = (item: Tab) => {
   <el-button class="collapse-button" circle :icon="ArrowLeft" v-if="!isCollapse" @click="reverseCollapse"></el-button>
   <el-button class="collapse-button" circle :icon="ArrowRight" v-if="isCollapse" @click="reverseCollapse"></el-button>
   <el-menu :default-active="tabStore().editableTabsValue" class="el-menu-vertical" :collapse="isCollapse"
-    @open="handleOpen" @close="handleClose" active-text-color="#ffd04b">
+    active-text-color="#ffd04b">
     <el-sub-menu :index="String(menu.menuId)" v-for="menu in menuList">
       <template #title>
         <el-icon :size=20>
@@ -69,4 +60,5 @@ const selectMenu = (item: Tab) => {
 .collapse-button {
   transform: translate(50%);
   margin-top: 15px;
-}</style>
+}
+</style>

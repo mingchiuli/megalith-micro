@@ -2,7 +2,7 @@
 import type { BlogsDesc, PageAdapter } from '@/type/entity'
 import { GET } from '@/http/http'
 import { reactive, toRefs, ref } from 'vue'
-import { loginStateStore } from '@/stores/store'
+import { loginStateStore, tabStore } from '@/stores/store'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
 
@@ -97,7 +97,7 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
         v-model:year="year" v-model:loading="loading"></Search>
     </div>
     <el-text size="large">共{{ page.totalElements }}篇</el-text>
-    <el-link type="success" size="large" class="door" v-if="login" @click="router.push({name: 'system'})">进入后台</el-link>
+    <el-link type="success" size="large" class="door" v-if="login" @click="router.push({name: tabStore().editableTabsValue ? tabStore().editableTabsValue : 'system'})">进入后台</el-link>
     <br />
     <div class="description">
       <el-timeline>
@@ -126,6 +126,7 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
         @current-change="getPage"></el-pagination>
     </div>
   </div>
+  <Footer />
 </template>
 
 <style scoped>

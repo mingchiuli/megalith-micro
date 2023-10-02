@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import router from '@/router'
 import { tabStore } from '@/stores/store'
+import type { TabsPaneContext } from 'element-plus';
 import { storeToRefs } from 'pinia'
 
 const { editableTabs, editableTabsValue } = storeToRefs(tabStore())
 
-const clickTab = (path: string) => router.push({ name: path })
+const clickTab = (tab: TabsPaneContext) => router.push({ name: String(tab.props.name)})
 const removeTab = (name: string) => {
   let changed = false
   const tabs = editableTabs.value

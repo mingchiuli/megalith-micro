@@ -3,37 +3,35 @@
 </script>
 
 <template>
-  <div class="common-layout">
+  <el-container>
+    <el-aside width="collapse">
+      <SideMenu></SideMenu>
+    </el-aside>
     <el-container>
-      <el-aside width="collapse">
-        <SideMenu></SideMenu>
-      </el-aside>
-      <el-container>
-        <el-header class="header">
-          <BackHeader></BackHeader>
-        </el-header>
-        <el-main>
-          <HeaderTabs></HeaderTabs>
-          <div style="margin: 0 1%;">
-            <router-view />
-          </div>
-        </el-main>
-      </el-container>
+      <el-header height="60px">
+        <BackHeader></BackHeader>
+      </el-header>
+      <el-main>
+        <HeaderTabs></HeaderTabs>
+        <div style="margin: 0 1%;">
+          <router-view />
+        </div>
+      </el-main>
+      <el-footer>
+        <Footer />
+      </el-footer>
     </el-container>
-  </div>
+  </el-container>
 </template>
 
 <style scoped>
-.header {
-  padding: 0;
-}
-
 .el-header {
   background-color: #f6f6f6;
-  color: #333;
+  padding: 0;
 }
 
 .el-main {
   padding: 0;
+  height: 500px;
 }
 </style>

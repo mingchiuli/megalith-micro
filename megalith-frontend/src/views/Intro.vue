@@ -21,6 +21,7 @@ const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
     </el-card>
     <Stat></Stat>
   </div>
+  <Footer />
 </template>
 
 <style>

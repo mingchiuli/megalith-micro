@@ -84,6 +84,7 @@ const catalogue = ref<InstanceType<typeof Catalogue>>();
     </el-skeleton>
     <Discuss></Discuss>
   </div>
+  <Footer />
 </template>
 
 <style lang="less">

@@ -11,7 +11,8 @@ onMounted(() => {
 </script>
 
 <template>
-    <div id="map"></div>
+  <div id="map"></div>
 </template>
 
-<style scoped></style>
+<style scoped>
+</style>

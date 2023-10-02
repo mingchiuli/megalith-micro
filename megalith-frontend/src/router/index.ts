@@ -42,6 +42,10 @@ const router = createRouter({
 })
 
 router.beforeEach(async () => {
+  if (localStorage.getItem('accessToken')) {
+    loginStateStore().login = true
+  }
+
   if (!routeStore().hasRoute && loginStateStore().login) {
     const menus = await GET<Menu[]>('/sys/menu/nav')
     const systemRoute = {
