@@ -17,6 +17,17 @@ export interface BlogsDesc {
   value?: SearchStruct
 }
 
+export interface BlogsSys {
+  id: number
+  title: string
+  description: string
+  created: string
+  content: string
+  readCount: number
+  recentReadCount: number
+  status: number
+}
+
 export interface BlogExhibit {
   title: string
   description: string

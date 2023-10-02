@@ -13,7 +13,7 @@
       </el-header>
       <el-main>
         <HeaderTabs></HeaderTabs>
-        <div style="margin: 0 1%;">
+        <div class="content">
           <router-view />
         </div>
       </el-main>
@@ -25,6 +25,11 @@
 </template>
 
 <style scoped>
+
+.content {
+  padding: 0 10px;
+}
+
 .el-header {
   background-color: #f6f6f6;
   padding: 0;
