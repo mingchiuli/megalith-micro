@@ -46,7 +46,6 @@ http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<an
       message: data.msg,
       showClose: true
     })
-    ElMessage.error(data.msg)
     return Promise.reject(resp)
   }
 }, (error: AxiosError<any, any>) => {

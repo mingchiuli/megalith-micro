@@ -1,12 +1,13 @@
 <script lang="ts" setup>
-import { reactive, ref } from 'vue'
-import { GET } from '@/http/http'
+import { reactive, ref, toRefs } from 'vue'
+import { GET, POST } from '@/http/http'
 import type { BlogsSys, PageAdapter } from '@/type/entity'
 import editor from 'mavon-editor'
+import router from '@/router'
+import { Timer } from '@element-plus/icons-vue'
 
 const mavonEditor: any = editor.mavonEditor
 const md = mavonEditor.getMarkdownIt()
-
 const input = ref('')
 const multipleSelection = ref<BlogsSys[]>([])
 const delBtlStatus = ref(false)
@@ -16,36 +17,59 @@ let page: PageAdapter<BlogsSys> = reactive({
   "totalElements": 0,
   "pageSize": 5,
   "pageNumber": 1
-});
+})
 
-const clearInput = () => console.log(11)
-const del = () => console.log()
-
-import { Timer } from '@element-plus/icons-vue'
-
-const handleEdit = (index: number, row: BlogsSys) => {
-  console.log(index, row)
+const delBatch = async () => {
+  const args: number[] = []
+  multipleSelection.value.forEach(item => {
+    args.push(item.id)
+  })
+  await POST<null>('/sys/blog/delete', args)
+  ElNotification({
+    title: '操作成功',
+    message: '批量删除成功',
+    type: 'success',
+  })
+  multipleSelection.value = []
+  fillTable()
 }
-const handleDelete = (index: number, row: BlogsSys) => {
-  console.log(index, row)
+
+const handleEdit = (row: BlogsSys) => {
+  console.log(row)
+}
+const handleDelete = async (row: BlogsSys) => {
+  const id: number[] = []
+  id.push(row.id)
+  await POST<null>('/sys/blog/delete', id)
+  ElNotification({
+    title: '操作成功',
+    message: '删除成功',
+    type: 'success',
+  })
+  fillTable()
 }
 
-const handleCheck = (index: number, row: BlogsSys) => {
-  console.log(index, row)
+const handleCheck = (row: BlogsSys) => {
+  router.push({
+    name: 'blog',
+    params: {
+      id: row.id
+    }
+  })
 }
 
 const handleSelectionChange = (val: BlogsSys[]) => {
-  console.log(val)
-  multipleSelection.value = val;
+  multipleSelection.value = val
   delBtlStatus.value = val.length === 0
 }
 
 const fillTable = async () => {
   const data = await GET<PageAdapter<BlogsSys>>('/sys/blog/blogs')
-  console.log(data)
   page.content = data.content
   page.totalElements = data.totalElements
 };
+
+const { content, totalElements, pageSize, pageNumber } = toRefs(page);
 
 (async () => {
   await fillTable()
@@ -56,20 +80,22 @@ const fillTable = async () => {
   <el-form :inline="true" @submit.prevent class="button">
     <el-form-item>
       <el-input v-model="input" placeholder="Please input" clearable maxlength="20" size="large" class="search-input"
-        @clear="clearInput" />
+        @clear="fillTable" />
     </el-form-item>
     <el-form-item>
       <el-button type="primary" size="large">搜索</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button type="danger" size="large" :disabled="delBtlStatus">批量删除</el-button>
+      <el-popconfirm title="确定批量删除?" @confirm="delBatch">
+        <template #reference>
+          <el-button type="danger" size="large" :disabled="delBtlStatus">批量删除</el-button>
+        </template>
+      </el-popconfirm>
     </el-form-item>
   </el-form>
 
-
-  <el-table :data="page.content" style="width: 100%" border stripe @selection-change="handleSelectionChange">
+  <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange">
     <el-table-column type="selection" width="55" />
-
     <el-table-column label="id" width="80" align="center">
       <template #default="scope">
         <span>{{ scope.row.id }}</span>
@@ -110,8 +136,6 @@ const fillTable = async () => {
       </template>
     </el-table-column>
 
-
-
     <el-table-column label="创建时间" width="180" align="center">
       <template #default="scope">
         <div style="display: flex; align-items: center">
@@ -139,16 +163,20 @@ const fillTable = async () => {
 
     <el-table-column label="操作" fixed="right" width="200" align="center">
       <template #default="scope">
-        <el-button size="small" type="primary" @click="handleCheck(scope.$index, scope.row)">查看</el-button>
-        <el-button size="small" type="success" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-        <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+        <el-button size="small" type="primary" @click="handleCheck(scope.row)">查看</el-button>
+        <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
+        <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
+          <template #reference>
+            <el-button size="small" type="danger">删除</el-button>
+          </template>
+        </el-popconfirm>
       </template>
     </el-table-column>
   </el-table>
 
   <el-pagination @size-change="console.log()" @current-change="console.log()"
-    layout="total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="1" :page-size="10"
-    :total="10">
+    layout="total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber" :page-size="pageSize"
+    :total="totalElements">
   </el-pagination>
 </template>
 
