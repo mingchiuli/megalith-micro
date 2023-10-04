@@ -6,17 +6,17 @@ import { GET, POST } from '@/http/http'
 import router from '@/router'
 
 const props = defineProps<{
-  loginDialog: boolean
+  loginDialogVisible: boolean
 }>()
 
-const emit = defineEmits<(event: 'update:loginDialog', payload: boolean) => void>()
+const emit = defineEmits<(event: 'update:loginDialogVisible', payload: boolean) => void>()
 
-let loginDialog = computed({
+let loginDialogVisible = computed({
   get() {
-    return props.loginDialog
+    return props.loginDialogVisible
   },
   set(value) {
-    emit('update:loginDialog', value)
+    emit('update:loginDialogVisible', value)
   },
 })
 
@@ -41,8 +41,8 @@ const submitLogin = async () => {
   loginStateStore().login = true
   const info = await GET<UserInfo>('/token/userinfo')
   localStorage.setItem('userinfo', JSON.stringify(info))
-  loginDialog.value = false
-  emit('update:loginDialog', false)
+  loginDialogVisible.value = false
+  emit('update:loginDialogVisible', false)
   router.push({ name: 'blogs' })
 }
 
@@ -90,7 +90,7 @@ const sendCode = async (via: string) => {
 </script>
 
 <template>
-  <el-dialog v-model="loginDialog" center close-on-press-escape fullscreen align-center :before-close="beforeClose">
+  <el-dialog v-model="loginDialogVisible" center close-on-press-escape fullscreen align-center :before-close="beforeClose">
     <template #default>
       <el-radio-group v-model="radioSelect" class="dialog-select" size="small">
         <el-radio-button @change="loginType" label="Password" />

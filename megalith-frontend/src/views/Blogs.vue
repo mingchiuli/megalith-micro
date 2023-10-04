@@ -8,11 +8,11 @@ import { storeToRefs } from 'pinia'
 import Search from '@/components/Search.vue'
 
 const loading = ref(true)
-const loginDialog = ref(false)
+const loginDialogVisible = ref(false)
 const searchRef = ref<InstanceType<typeof Search>>()
 const year = ref('')
 const keywords = ref('')
-const readTokenDialog = ref(false)
+const readTokenDialogVisible = ref(false)
 const blogId = ref(0)
 
 let page: PageAdapter<BlogsDesc> = reactive({
@@ -25,7 +25,7 @@ let page: PageAdapter<BlogsDesc> = reactive({
 const { login } = storeToRefs(loginStateStore())
 
 if (router.currentRoute.value.path === '/login' && !login.value) {
-  loginDialog.value = true
+  loginDialogVisible.value = true
 } else {
   router.push({
     name: 'blogs'
@@ -55,7 +55,7 @@ const getPage = async (pageNo: number) => {
   if (!keywords.value) {
     queryBlogs(pageNumber.value, year.value)
   } else {
-    searchRef.value?.queryAllInfo(keywords.value, pageNumber.value)
+    searchRef.value?.searchAllInfo(keywords.value, pageNumber.value)
   }
 }
 
@@ -69,7 +69,7 @@ const go = async (id: number) => {
       }
     })
   } else {
-    readTokenDialog.value = true
+    readTokenDialogVisible.value = true
     blogId.value = id
   }
 }
@@ -84,8 +84,8 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
 
 <template>
   <div class="front">
-    <Login v-model:loginDialog="loginDialog"></Login>
-    <ReadToken v-model:readTokenDialog="readTokenDialog" v-model:blogId="blogId"></ReadToken>
+    <Login v-model:loginDialogVisible="loginDialogVisible"></Login>
+    <ReadToken v-model:readTokenDialogVisible="readTokenDialogVisible" v-model:blogId="blogId"></ReadToken>
     <div class="search-father">
       <Search ref="searchRef" @transSearchData="fillSearchData" @clear="getPage(1)" v-model:keywords="keywords"
         v-model:year="year" v-model:loading="loading"></Search>

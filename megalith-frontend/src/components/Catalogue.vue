@@ -34,7 +34,7 @@ const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] =>
     item.dist = aLabel.getBoundingClientRect().top
     item.label = aLabel.parentNode?.textContent as string
     item.children = getChildren(aLabels, i)
-    i = i + getChildrenTotal(item.children)
+    i += getChildrenTotal(item.children)
     arr.push(item)
   }
   return arr

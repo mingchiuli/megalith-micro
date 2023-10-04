@@ -110,7 +110,7 @@ const handleCurrentChange = async (val: number) => {
   <el-form :inline="true" @submit.prevent class="button">
     <el-form-item>
       <el-input v-model="input" placeholder="Please input" clearable maxlength="20" size="large" class="search-input"
-        @clear="queryBLogs" />
+        @clear="queryBLogs" @keyup.enter="searchBlogs" />
     </el-form-item>
     <el-form-item>
       <el-button type="primary" size="large" @click="searchBlogs">搜索</el-button>
@@ -125,7 +125,7 @@ const handleCurrentChange = async (val: number) => {
   </el-form>
 
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
-    v-loading="loading">
+    :loading="loading">
     <el-table-column type="selection" width="55" />
     <el-table-column label="id" width="80" align="center">
       <template #default="scope">

@@ -2,6 +2,7 @@
 import { GET } from '@/http/http';
 import router from '@/router';
 import type { BlogsDesc, PageAdapter } from '@/type/entity'
+import type { ElAutocomplete } from 'element-plus';
 import { computed, ref } from 'vue'
 
 const emit = defineEmits<{
@@ -45,19 +46,20 @@ let loading = computed({
   }
 })
 
-const outerVisible = ref(false)
-const innerVisible = ref(false)
+const searchDialogVisible = ref(false)
+const yearDialogVisible = ref(false)
 
-const query = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
+const search = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
   loading.value = true
   const data = await GET<PageAdapter<BlogsDesc>>(`/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`);
   return Promise.resolve(data);
-};
+}
 
 let timeout: NodeJS.Timeout
-const queryAbstractAsync = async (queryString: string, cb: Function) => {
-  if (queryString.length > 0) {
-    const page: PageAdapter<BlogsDesc> = await query(queryString, -1, false, year.value)
+const searchAbstractAsync = async (queryString: string, cb: Function) => {
+  if (queryString.length) {
+    //-1是后端一个默认参数
+    const page: PageAdapter<BlogsDesc> = await search(queryString, -1, false, year.value)
     page.content.forEach((blogsDesc: BlogsDesc) => {
       blogsDesc.value = blogsDesc.highlight
     })
@@ -65,26 +67,24 @@ const queryAbstractAsync = async (queryString: string, cb: Function) => {
     clearTimeout(timeout)
     timeout = setTimeout(() => {
       cb(page.content)
-      if (page.content.length === 0) {
+      if (!page.content.length) {
         ElMessage.error('No Records')
       }
     }, 1000 * Math.random())
   }
 }
 
-const handleSelect = (item: BlogsDesc) => router.push(
-  {
-    name: 'blog',
-    params: {
-      id: item.id
-    }
+const handleSelect = (item: BlogsDesc) => router.push({
+  name: 'blog',
+  params: {
+    id: item.id
   }
-)
+})
 
-const queryAllInfo = async (queryString: string, currentPage = 1) => {
-  outerVisible.value = false
-  if (queryString.length > 0) {
-    const page: PageAdapter<BlogsDesc> = await query(queryString, currentPage, true, year.value)
+const searchAllInfo = async (queryString: string, currentPage = 1) => {
+  searchDialogVisible.value = false
+  if (queryString.length) {
+    const page: PageAdapter<BlogsDesc> = await search(queryString, currentPage, true, year.value)
     keywords.value = queryString
     emit('transSearchData', page)
   } else {
@@ -95,46 +95,43 @@ const queryAllInfo = async (queryString: string, currentPage = 1) => {
 const searchBeforeClose = (close: Function) => {
   keywords.value = ''
   year.value = ''
-  refAutocomplete.value.suggestions = []
+  refAutocomplete.value!.suggestions = []
   emit('clear')
   close()
 }
 
-const refAutocomplete = ref<any>()
+const refAutocomplete = ref<InstanceType<typeof ElAutocomplete>>()
 
 const yearsCloseEvent = async () => {
-  innerVisible.value = false
-  if (keywords.value.length > 0) {
-    setTimeout(async () => {
-      const page = await query(keywords.value, -1, false, year.value)
-      page.content.forEach((blogsDesc: BlogsDesc) => {
-        blogsDesc.value = blogsDesc.highlight
-      })
-      refAutocomplete.value.activated = true
-      refAutocomplete.value.suggestions = page.content
-      if (page.content.length === 0) {
-        ElMessage.error('No Records')
-      }
+  if (keywords.value.length) {
+    setTimeout(() => {
+      refAutocomplete.value!.activated = true
     }, 100)
   }
 }
 
+const clearSearch = () => {
+  keywords.value = ''
+  searchDialogVisible.value = false
+  emit('clear')
+}
+
 defineExpose(
-  { queryAllInfo }
+  { searchAllInfo }
 )
 </script>
 
 <template>
-  <el-button class="search-button" @click="outerVisible = true" type="success">Search</el-button>
-  <el-dialog v-model="outerVisible" center close-on-press-escape fullscreen align-center
+  <el-button class="search-button" @click="searchDialogVisible = true" type="success">Search</el-button>
+  <el-dialog v-model="searchDialogVisible" center close-on-press-escape fullscreen align-center
     :before-close="searchBeforeClose">
     <template #default>
       <div class="dialog-content">
         <Hot></Hot>
-        <div v-if="year.length > 0">年份：{{ year }}</div>
-        <el-autocomplete v-model="keywords" :fetch-suggestions="queryAbstractAsync" placeholder="Please input"
-          @select="handleSelect" :trigger-on-focus="false" clearable @keyup.enter="queryAllInfo(keywords)"
-          ref="refAutocomplete">
+        <div v-if="year.length">年份：{{ year }}</div>
+        <el-autocomplete v-model="keywords" :fetch-suggestions="searchAbstractAsync" placeholder="Please input"
+          @select="handleSelect" :trigger-on-focus="false" clearable @keyup.enter="searchAllInfo(keywords)"
+          ref="refAutocomplete" @clear="clearSearch">
           <template #default="{ item }">
             <div class="value" v-if="item.value.title" v-for="title in item.value.title" v-html="'标题：' + title"></div>
             <div class="value" v-if="item.value.description" v-for="description in item.value.description"
@@ -144,14 +141,12 @@ defineExpose(
           </template>
         </el-autocomplete>
       </div>
-      <el-dialog v-model="innerVisible" width="50%" append-to-body title="Archieve">
-        <Years v-model:year="year" @close="yearsCloseEvent"></Years>
-      </el-dialog>
+      <Years v-model:year="year" v-model:yearDialogVisible="yearDialogVisible" @close="yearsCloseEvent"></Years>
     </template>
     <template #footer>
       <div class="dialog-footer">
-        <el-button type="primary" @click="queryAllInfo(keywords)">Confirm</el-button>
-        <el-button type="primary" @click="innerVisible = true">Archieve</el-button>
+        <el-button type="primary" @click="searchAllInfo(keywords)">Confirm</el-button>
+        <el-button type="primary" @click="yearDialogVisible = true">Archieve</el-button>
       </div>
     </template>
   </el-dialog>

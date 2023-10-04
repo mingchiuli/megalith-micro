@@ -3,19 +3,19 @@ import { ref, computed } from 'vue'
 import { GET } from '@/http/http'
 import router from '@/router'
 
-const emit = defineEmits<(event: 'update:readTokenDialog', payload: boolean) => void>()
+const emit = defineEmits<(event: 'update:readTokenDialogVisible', payload: boolean) => void>()
 
 const props = defineProps<{
-  readTokenDialog: boolean
+  readTokenDialogVisible: boolean
   blogId: number
 }>()
 
 let visible = computed({
   get() {
-    return props.readTokenDialog
+    return props.readTokenDialogVisible
   },
   set(value) {
-    emit('update:readTokenDialog', value);
+    emit('update:readTokenDialogVisible', value);
   },
 })
 
@@ -36,12 +36,12 @@ const submit = async () => {
   } else {
     ElMessage.error("token error")
   }
-  emit('update:readTokenDialog', false);
+  emit('update:readTokenDialogVisible', false);
 };
 
 
 const handleClose = () => {
-  emit('update:readTokenDialog', false)
+  emit('update:readTokenDialogVisible', false)
 }
 </script>
 

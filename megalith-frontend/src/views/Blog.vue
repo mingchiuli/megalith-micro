@@ -48,7 +48,7 @@ const catalogue = ref<InstanceType<typeof Catalogue>>();
 (async () => {
   let data: BlogExhibit
   if (token) {
-    data = await GET<BlogExhibit>(`/public/blog/secret/${blogId}`)
+    data = await GET<BlogExhibit>(`/public/blog/secret/${blogId}?readToken=${token}`)
   } else {
     data = await GET<BlogExhibit>(`/public/blog/info/${blogId}`)
   }
