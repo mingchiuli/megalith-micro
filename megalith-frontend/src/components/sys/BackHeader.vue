@@ -19,7 +19,7 @@ const logout = () => {
 <template>
   <div class="header">
     <div class="header-center">
-      <el-text class="header-title" size="large">管理后台</el-text>
+      <el-text class="header-title" size="large">后台</el-text>
     </div>
     <div class="header-right"> 
       <el-dropdown class="header-dropdown">
@@ -51,8 +51,9 @@ const logout = () => {
 
 .header-center {
   display: flex;
-  margin-right: 30%;
+  margin-right: 20%;
   margin-left: 50%;
+  align-items: center;
 }
 
 .header-right {
