@@ -11,6 +11,7 @@ const md = mavonEditor.getMarkdownIt()
 const input = ref('')
 const multipleSelection = ref<BlogsSys[]>([])
 const delBtlStatus = ref(false)
+const loading = ref(false)
 
 let page: PageAdapter<BlogsSys> = reactive({
   "content": [],
@@ -31,7 +32,7 @@ const delBatch = async () => {
     type: 'success',
   })
   multipleSelection.value = []
-  fillTable()
+  queryBLogs()
 }
 
 const handleEdit = (row: BlogsSys) => {
@@ -46,7 +47,7 @@ const handleDelete = async (row: BlogsSys) => {
     message: '删除成功',
     type: 'success',
   })
-  fillTable()
+  queryBLogs()
 }
 
 const handleCheck = (row: BlogsSys) => {
@@ -63,16 +64,45 @@ const handleSelectionChange = (val: BlogsSys[]) => {
   delBtlStatus.value = val.length === 0
 }
 
-const fillTable = async () => {
-  const data = await GET<PageAdapter<BlogsSys>>('/sys/blog/blogs')
+const { content, totalElements, pageSize, pageNumber } = toRefs(page)
+
+const queryBLogs = async () => {
+  loading.value = true
+  const data = await GET<PageAdapter<BlogsSys>>(`/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}`)
+  content.value = data.content
+  totalElements.value = data.totalElements
+  loading.value = false
+}
+
+const searchBlogs = async () => {
+  loading.value = true
+  const data = await GET<PageAdapter<BlogsSys>>(`search/sys/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
   page.content = data.content
   page.totalElements = data.totalElements
+  loading.value = false
+}
+
+const handleSizeChange = async (val: number) => {
+  pageSize.value = val
+  pageNumber.value = 1
+  if (input.value) {
+    await searchBlogs()
+  } else {
+    await queryBLogs()
+  }
+}
+
+const handleCurrentChange = async (val: number) => {
+  pageNumber.value = val
+  if (input.value) {
+    await searchBlogs()
+  } else {
+    await queryBLogs()
+  }
 };
 
-const { content, totalElements, pageSize, pageNumber } = toRefs(page);
-
 (async () => {
-  await fillTable()
+  await queryBLogs()
 })()
 </script>
 
@@ -80,10 +110,10 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
   <el-form :inline="true" @submit.prevent class="button">
     <el-form-item>
       <el-input v-model="input" placeholder="Please input" clearable maxlength="20" size="large" class="search-input"
-        @clear="fillTable" />
+        @clear="queryBLogs" />
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" size="large">搜索</el-button>
+      <el-button type="primary" size="large" @click="searchBlogs">搜索</el-button>
     </el-form-item>
     <el-form-item>
       <el-popconfirm title="确定批量删除?" @confirm="delBatch">
@@ -94,7 +124,8 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
     </el-form-item>
   </el-form>
 
-  <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange">
+  <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
+    v-loading="loading">
     <el-table-column type="selection" width="55" />
     <el-table-column label="id" width="80" align="center">
       <template #default="scope">
@@ -174,9 +205,9 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
     </el-table-column>
   </el-table>
 
-  <el-pagination @size-change="console.log()" @current-change="console.log()"
-    layout="total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber" :page-size="pageSize"
-    :total="totalElements">
+  <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+    layout="total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber"
+    :page-size="pageSize" :total="totalElements">
   </el-pagination>
 </template>
 

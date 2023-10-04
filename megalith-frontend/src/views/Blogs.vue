@@ -5,16 +5,15 @@ import { reactive, toRefs, ref } from 'vue'
 import { loginStateStore, tabStore } from '@/stores/store'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
+import Search from '@/components/Search.vue'
 
 const loading = ref(true)
 const loginDialog = ref(false)
-const searchRef = ref()
-const searchPageNo = ref(0)
+const searchRef = ref<InstanceType<typeof Search>>()
 const year = ref('')
 const keywords = ref('')
 const readTokenDialog = ref(false)
 const blogId = ref(0)
-
 
 let page: PageAdapter<BlogsDesc> = reactive({
   "content": [],
@@ -34,10 +33,9 @@ if (router.currentRoute.value.path === '/login' && !login.value) {
 }
 
 const fillSearchData = (payload: PageAdapter<BlogsDesc>) => {
-  if (payload.content.length > 0) {
-    page.content = payload.content
-    page.totalElements = payload.totalElements
-    searchPageNo.value = payload.pageNumber
+  if (payload.content.length) {
+    content.value = payload.content
+    totalElements.value = payload.totalElements
     loading.value = false
   } else {
     queryBlogs(1, '')
@@ -53,16 +51,12 @@ const queryBlogs = async (pageNo: number, year: string) => {
 }
 
 const getPage = async (pageNo: number) => {
-  if (searchPageNo.value === 0) {
-    queryBlogs(pageNo, year.value)
+  pageNumber.value = pageNo
+  if (!keywords.value) {
+    queryBlogs(pageNumber.value, year.value)
   } else {
-    searchRef.value.queryAllInfo(keywords.value, pageNo)
+    searchRef.value?.queryAllInfo(keywords.value, pageNumber.value)
   }
-}
-
-const clear = () => {
-  searchPageNo.value = 0
-  getPage(1)
 }
 
 const go = async (id: number) => {
@@ -80,7 +74,7 @@ const go = async (id: number) => {
   }
 }
 
-const { content: blogs, totalElements, pageSize } = toRefs(page);
+const { content, totalElements, pageSize, pageNumber } = toRefs(page);
 
 (async () => {
   await getPage(1)
@@ -93,7 +87,7 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
     <Login v-model:loginDialog="loginDialog"></Login>
     <ReadToken v-model:readTokenDialog="readTokenDialog" v-model:blogId="blogId"></ReadToken>
     <div class="search-father">
-      <Search ref="searchRef" @transSearchData="fillSearchData" @clear="clear" v-model:keywords="keywords"
+      <Search ref="searchRef" @transSearchData="fillSearchData" @clear="getPage(1)" v-model:keywords="keywords"
         v-model:year="year" v-model:loading="loading"></Search>
     </div>
     <el-text size="large">共{{ page.totalElements }}篇</el-text>
@@ -106,7 +100,7 @@ const { content: blogs, totalElements, pageSize } = toRefs(page);
             <el-skeleton v-for=" in page.pageSize" :rows="5" :loading="loading" animated />
           </template>
           <template #default>
-            <el-timeline-item v-for="blog in blogs" :timestamp="blog.created.replace('T', ' ')" placement="top"
+            <el-timeline-item v-for="blog in content" :timestamp="blog.created.replace('T', ' ')" placement="top"
               :color="'#0bbd87'">
               <el-card shadow="never">
                 <el-image :key="blog.link" :src="blog.link" lazy></el-image>
