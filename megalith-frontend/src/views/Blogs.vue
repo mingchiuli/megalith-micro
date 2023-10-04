@@ -9,6 +9,7 @@ import Search from '@/components/Search.vue'
 
 const loading = ref(true)
 const loginDialogVisible = ref(false)
+const searchDialogVisible = ref(false)
 const searchRef = ref<InstanceType<typeof Search>>()
 const year = ref('')
 const keywords = ref('')
@@ -87,8 +88,9 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
     <Login v-model:loginDialogVisible="loginDialogVisible"></Login>
     <ReadToken v-model:readTokenDialogVisible="readTokenDialogVisible" v-model:blogId="blogId"></ReadToken>
     <div class="search-father">
+      <el-button class="search-button" @click="searchDialogVisible = true" type="success">Search</el-button>
       <Search ref="searchRef" @transSearchData="fillSearchData" @clear="getPage(1)" v-model:keywords="keywords"
-        v-model:year="year" v-model:loading="loading"></Search>
+        v-model:year="year" v-model:loading="loading" v-model:searchDialogVisible="searchDialogVisible"></Search>
     </div>
     <el-text size="large">共{{ page.totalElements }}篇</el-text>
     <el-link type="success" size="large" class="door" v-if="login" @click="router.push({name: tabStore().editableTabsValue ? tabStore().editableTabsValue : 'system'})">进入后台</el-link>
@@ -156,5 +158,12 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
 .title {
   font-size: medium;
   margin-top: 15px;
+}
+
+.search-button {
+  position: absolute;
+  right: 0;
+  z-index: 1;
+  top: 15px;
 }
 </style>

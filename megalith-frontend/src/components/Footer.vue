@@ -24,6 +24,9 @@ let end = ref<number>();
   max-width: 15rem;
   margin: 0 auto;
   text-align: center;
-  margin-bottom: 1rem;
+}
+
+.el-link {
+  margin-bottom: 20px;
 }
 </style>

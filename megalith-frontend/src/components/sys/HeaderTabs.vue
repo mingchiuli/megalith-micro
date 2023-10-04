@@ -6,7 +6,7 @@ import { storeToRefs } from 'pinia'
 
 const { editableTabs, editableTabsValue } = storeToRefs(tabStore())
 
-const clickTab = (tab: TabsPaneContext) => router.push({ name: String(tab.props.name)})
+const clickTab = (tab: TabsPaneContext) => router.push({ name: String(tab.props.name) })
 const removeTab = (name: string) => {
   let changed = false
   const tabs = editableTabs.value
@@ -37,4 +37,5 @@ const removeTab = (name: string) => {
   </el-tabs>
 </template>
 
-<style scoped></style>
+<style scoped>
+</style>

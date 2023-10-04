@@ -125,7 +125,7 @@ const handleCurrentChange = async (val: number) => {
   </el-form>
 
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
-    :loading="loading">
+    v-loading="loading">
     <el-table-column type="selection" width="55" />
     <el-table-column label="id" width="80" align="center">
       <template #default="scope">
@@ -206,7 +206,7 @@ const handleCurrentChange = async (val: number) => {
   </el-table>
 
   <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-    layout="total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber"
+    layout="->, total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber"
     :page-size="pageSize" :total="totalElements">
   </el-pagination>
 </template>
@@ -221,7 +221,6 @@ const handleCurrentChange = async (val: number) => {
 }
 
 .el-pagination {
-  float: right;
   margin-top: 10px;
 }
 </style>

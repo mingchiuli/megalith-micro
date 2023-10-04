@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { GET } from '@/http/http';
-import router from '@/router';
+import { GET } from '@/http/http'
+import router from '@/router'
 import type { BlogsDesc, PageAdapter } from '@/type/entity'
-import type { ElAutocomplete } from 'element-plus';
+import type { ElAutocomplete } from 'element-plus'
 import { computed, ref } from 'vue'
 
 const emit = defineEmits<{
@@ -11,12 +11,14 @@ const emit = defineEmits<{
   (event: 'update:year', payload: string): void
   (event: 'update:keywords', payload: string): void
   (event: 'update:loading', payload: boolean): void
+  (event: 'update:searchDialogVisible', payload: boolean): void
 }>()
 
 const props = defineProps<{
   year: string
   keywords: string
   loading: boolean
+  searchDialogVisible: boolean
 }>()
 
 let year = computed({
@@ -24,7 +26,7 @@ let year = computed({
     return props.year
   },
   set(value) {
-    emit('update:year', value);
+    emit('update:year', value)
   }
 })
 
@@ -33,7 +35,7 @@ let keywords = computed({
     return props.keywords
   },
   set(value) {
-    emit('update:keywords', value);
+    emit('update:keywords', value)
   }
 })
 
@@ -46,13 +48,20 @@ let loading = computed({
   }
 })
 
-const searchDialogVisible = ref(false)
-const yearDialogVisible = ref(false)
+let searchDialogVisible = computed({
+  get() {
+    return props.searchDialogVisible
+  },
+  set(value) {
+    emit('update:searchDialogVisible', value);
+  }
+})
 
+const yearDialogVisible = ref(false)
 const search = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
   loading.value = true
   const data = await GET<PageAdapter<BlogsDesc>>(`/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`);
-  return Promise.resolve(data);
+  return Promise.resolve(data)
 }
 
 let timeout: NodeJS.Timeout
@@ -122,7 +131,6 @@ defineExpose(
 </script>
 
 <template>
-  <el-button class="search-button" @click="searchDialogVisible = true" type="success">Search</el-button>
   <el-dialog v-model="searchDialogVisible" center close-on-press-escape fullscreen align-center
     :before-close="searchBeforeClose">
     <template #default>
@@ -156,13 +164,6 @@ defineExpose(
 .dialog-content {
   margin: 0 auto;
   max-width: max-content;
-}
-
-.search-button {
-  position: absolute;
-  right: 0;
-  z-index: 1;
-  top: 15px;
 }
 
 .el-overlay-dialog .dialog-content {

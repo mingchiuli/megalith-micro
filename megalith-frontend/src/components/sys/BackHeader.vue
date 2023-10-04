@@ -18,49 +18,45 @@ const logout = () => {
 
 <template>
   <div class="header">
-    <el-text class="header-title" size="large">管理后台</el-text>
-    <el-dropdown class="header-dropdown">
-      <span class="el-dropdown-link">
-        {{ nickname }}
-        <el-icon class="el-icon--right">
-          <arrow-down />
-        </el-icon>
-      </span>
-      <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item @click="router.push('/blogs')">回到首页</el-dropdown-item>
-          <el-dropdown-item divided @click="logout">退出登录</el-dropdown-item>
-        </el-dropdown-menu>
-      </template>
-    </el-dropdown>
-    <el-avatar class="header-avatar" size="default" :src="avatar"></el-avatar>
+    <div class="header-center">
+      <el-text class="header-title" size="large">管理后台</el-text>
+    </div>
+    <div class="header-right"> 
+      <el-dropdown class="header-dropdown">
+        <span class="el-dropdown-link">
+          {{ nickname }}
+          <el-icon class="el-icon--right">
+            <arrow-down />
+          </el-icon>
+        </span>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="router.push('/blogs')">回到首页</el-dropdown-item>
+            <el-dropdown-item divided @click="logout">退出登录</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <el-avatar class="header-avatar" size="default" :src="avatar"></el-avatar>
+    </div>
+
   </div>
 </template>
 
 <style scoped>
 .header {
-  position: relative;
+  background-color: #f6f6f6;
+  display: flex;
+  height: 60px;
 }
 
-.header-title {
-  position: absolute;
-  left: 50%;
-  transform: translate(-50%);
-  top: 15px;
-  line-height: 30px;
+.header-center {
+  display: flex;
+  margin-right: 30%;
+  margin-left: 50%;
 }
 
-.header-avatar {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-}
-
-.header-dropdown {
-  position: absolute;
-  top: 20px;
-  right: 70px;
-  line-height: 20px;
-
+.header-right {
+  display: flex;
+  align-items: center;
 }
 </style>

@@ -8,16 +8,16 @@
       <SideMenu></SideMenu>
     </el-aside>
     <el-container>
-      <el-header height="60px">
+      <el-header height="100px">
         <BackHeader></BackHeader>
+        <HeaderTabs></HeaderTabs>
       </el-header>
       <el-main>
-        <HeaderTabs></HeaderTabs>
         <div class="content">
           <router-view />
         </div>
       </el-main>
-      <el-footer>
+      <el-footer height="50px">
         <Footer />
       </el-footer>
     </el-container>
@@ -31,12 +31,13 @@
 }
 
 .el-header {
-  background-color: #f6f6f6;
   padding: 0;
+  margin-bottom: 20px;
 }
 
 .el-main {
   padding: 0;
-  height: 500px;
+  height: 550px;
 }
+
 </style>
