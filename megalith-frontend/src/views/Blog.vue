@@ -16,9 +16,9 @@ clipboard.on('error', () => {
   ElMessage.error('复制失败')
 })
 
-const router = useRoute()
-const token = router.query.token
-const blogId = router.params.id
+const route = useRoute()
+const token = route.query.token
+const blogId = route.params.id
 let loading = ref(true)
 
 let blog = reactive<BlogExhibit>({

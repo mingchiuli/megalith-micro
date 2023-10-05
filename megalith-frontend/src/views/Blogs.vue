@@ -102,10 +102,10 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
             <el-skeleton v-for=" in page.pageSize" :rows="5" :loading="loading" animated />
           </template>
           <template #default>
-            <el-timeline-item v-for="blog in content" :timestamp="blog.created.replace('T', ' ')" placement="top"
+            <el-timeline-item v-for="blog in content" :timestamp="blog.created" placement="top"
               :color="'#0bbd87'">
               <el-card shadow="never">
-                <el-image :key="blog.link" :src="blog.link" lazy></el-image>
+                <el-image v-if="blog.link" :key="blog.link" :src="blog.link" lazy></el-image>
                 <p v-if="blog.score">{{ "Search Scores:" + blog.score }}</p>
                 <el-link class="title" @click="go(blog.id)">{{ blog.title }}</el-link>
                 <p v-if="!blog.highlight">{{ blog.description }}</p>

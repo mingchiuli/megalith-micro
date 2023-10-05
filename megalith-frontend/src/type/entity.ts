@@ -28,6 +28,16 @@ export interface BlogsSys {
   status: number
 }
 
+export interface BlogsEdit {
+  id: number
+  title: string
+  description: string
+  content: string
+  link: string
+  status: number
+}
+
+
 export interface BlogExhibit {
   title: string
   description: string

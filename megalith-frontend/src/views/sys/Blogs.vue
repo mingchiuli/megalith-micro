@@ -36,8 +36,14 @@ const delBatch = async () => {
 }
 
 const handleEdit = (row: BlogsSys) => {
-  console.log(row)
+  router.push({
+    name: 'systemEdit',
+    query: {
+      id: row.id
+    }
+  })
 }
+
 const handleDelete = async (row: BlogsSys) => {
   const id: number[] = []
   id.push(row.id)
@@ -127,11 +133,6 @@ const handleCurrentChange = async (val: number) => {
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
     <el-table-column type="selection" width="55" />
-    <el-table-column label="id" width="80" align="center">
-      <template #default="scope">
-        <span>{{ scope.row.id }}</span>
-      </template>
-    </el-table-column>
 
     <el-table-column label="标题" width="150" align="center">
       <template #default="scope">
@@ -173,7 +174,7 @@ const handleCurrentChange = async (val: number) => {
           <el-icon>
             <timer />
           </el-icon>
-          <span style="margin-left: 10px">{{ scope.row.created.replace('T', ' ') }}</span>
+          <span style="margin-left: 10px">{{ scope.row.created }}</span>
         </div>
       </template>
     </el-table-column>
