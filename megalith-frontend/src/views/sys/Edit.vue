@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import { type UploadFile, type UploadProps, type UploadRequestOptions, type UploadUserFile } from 'element-plus'
+import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { useRoute } from 'vue-router'
 import type { BlogsEdit } from '@/type/entity'
 import router from '@/router'
+import { genFileId } from 'element-plus'
 
 const fileList = ref<UploadUserFile[]>([])
 const dialogVisible = ref(false)
@@ -14,6 +15,7 @@ const md = ref<any>()
 const route = useRoute()
 const blogId = route.query.id
 const loading = ref(false)
+const uploadInstance = ref<UploadInstance>()
 
 type Form = {
   id?: number
@@ -65,12 +67,16 @@ const imgDel = async (pos: Array<any>) => {
 }
 
 const upload = async (image: UploadRequestOptions) => {
+  await uploadFile(image.file)
+}
+
+const uploadFile = async (file: UploadRawFile) => {
   const formdata = new FormData()
-  formdata.append('image', image.file)
+  formdata.append('image', file)
   const url = await POST<string>('sys/blog/oss/upload', formdata)
   setTimeout(() => {
     fileList.value.push({
-      name: image.filename,
+      name: file.name,
       url: url
     })
     form.link = url
@@ -98,11 +104,12 @@ const onSubmit = async () => {
   })
 }
 
-const handleExceed: UploadProps['onExceed'] = (files, uploadFiles) => {
-  ElMessage.warning(
-    `The limit is 1, you selected ${files.length} files this time, add up to ${files.length + uploadFiles.length
-    } totally`
-  )
+const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
+  uploadInstance.value!.clearFiles()
+  const file = files[0] as UploadRawFile
+  await uploadFile(file)
+  file.uid = genFileId()
+  uploadInstance.value!.handleStart(file)
 }
 
 const handlePictureCardPreview = (file: UploadFile) => {
@@ -147,7 +154,8 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
       <el-form-item class="cover">
         <span style="margin-right: 10px;">封面</span>
         <el-upload action="#" list-type="picture-card" :before-upload="beforeAvatarUpload" :limit="1"
-          :on-exceed="handleExceed" :http-request="upload" :on-remove="handleRemove" :file-list="fileList">
+          :on-exceed="handleExceed" :http-request="upload" :on-remove="handleRemove" :file-list="fileList"
+          ref="uploadInstance">
           <el-icon>
             <Plus />
           </el-icon>

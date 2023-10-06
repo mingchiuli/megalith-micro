@@ -154,7 +154,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="内容" width="300" align="center">
+    <el-table-column label="内容" width="350" align="center">
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="bottom" width="auto" :show-after="1000">
           <template #default>

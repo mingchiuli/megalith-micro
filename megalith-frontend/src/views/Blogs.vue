@@ -158,6 +158,8 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
 .title {
   font-size: medium;
   margin-top: 15px;
+  display: block;
+  max-width: fit-content;
 }
 
 .search-button {
