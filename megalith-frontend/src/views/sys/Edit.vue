@@ -1,11 +1,10 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile } from 'element-plus'
+import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { useRoute } from 'vue-router'
 import type { BlogsEdit } from '@/type/entity'
 import router from '@/router'
-import { genFileId } from 'element-plus'
 
 const fileList = ref<UploadUserFile[]>([])
 const dialogVisible = ref(false)
@@ -119,7 +118,7 @@ const handlePictureCardPreview = (file: UploadFile) => {
 
 const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png') {
-    ElMessage.error('Avatar picture must be JPG format!')
+    ElMessage.error('Avatar picture must be JPG/PNG format!')
     return false
   } else if (rawFile.size / 1024 / 1024 > 5) {
     ElMessage.error('Avatar picture size can not exceed 5MB!')

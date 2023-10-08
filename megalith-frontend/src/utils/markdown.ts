@@ -1,4 +1,5 @@
 import hljs from 'highlight.js'
+import type { HighlightResult } from 'highlight.js'
 
 export const markdownToHtml = (mavonEditor: any, content: string): string => {
 
@@ -15,16 +16,16 @@ export const markdownToHtml = (mavonEditor: any, content: string): string => {
       }
       linesNum += '</span>'
       if (lang && hljs.getLanguage(lang)) {
-        const preCode = hljs.highlight(lang, str, true).value
+        const highlightResult: HighlightResult = hljs.highlight(str, { language: lang, ignoreIllegals: true })
+        const preCode = highlightResult.value
         html = html + preCode
         if (linesLength) {
           html += `<b class="name">${lang}</b>`
         }
-        return `<pre class="hljs"><code>${html}</code>${linesNum}</pre><textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy${codeIndex}">${str}</textarea>`
+      } else {
+        const preCode = md.utils.escapeHtml(str)
+        html = html + preCode
       }
-
-      const preCode = md.utils.escapeHtml(str)
-      html = html + preCode
       return `<pre class="hljs"><code>${html}</code>${linesNum}</pre><textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy${codeIndex}">${str}</textarea>`
     }
   }).render(content)
