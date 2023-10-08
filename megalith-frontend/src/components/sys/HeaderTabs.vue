@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import router from '@/router'
 import { tabStore } from '@/stores/store'
+import type { Tab } from '@/type/entity';
 import type { TabsPaneContext } from 'element-plus';
 import { storeToRefs } from 'pinia'
 
@@ -9,7 +10,7 @@ const { editableTabs, editableTabsValue } = storeToRefs(tabStore())
 const clickTab = (tab: TabsPaneContext) => router.push({ name: String(tab.props.name) })
 const removeTab = (name: string) => {
   let changed = false
-  const tabs = editableTabs.value
+  const tabs: Tab[] = editableTabs.value
   if (tabs.length === 1) {
     return
   }
