@@ -1,47 +1,86 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
-import { Client } from '@stomp/stompjs'
+import { onUnmounted, ref } from 'vue'
+import { Client } from '@stomp/stompjs';
 
-const stompClient = new Client({
-  connectHeaders: { "Authorization": localStorage.getItem('accessToken')!, "Type": 'Log' },
+const msg = ref('')
+const loading = ref(false)
+let timer: NodeJS.Timeout
+
+const client = new Client({
+  brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/log`,
+  connectHeaders: { "Authorization": localStorage.getItem('accessToken')!, "Type": "Log" },
   debug: function (str) {
-    //debug日志，调试时候开启
-    // console.log(str);
+    console.log(str)
   },
-  reconnectDelay: 2000,//重连时间
-  heartbeatIncoming: 2000,
-  heartbeatOutgoing: 2000,
+  reconnectDelay: 5000,
+  heartbeatIncoming: 4000,
+  heartbeatOutgoing: 4000,
 })
 
-// stompClient.webSocketFactory = function () {
-//   //因为服务端监听的是/sysLog路径下面的请求，所以跟服务端保持一致
-//   return new SockJS(import.meta.env.VITE_BASE_URL + '/sysLog');
-// };
+const connect = () => {
+  client.onConnect = function (_frame) {
+    client.subscribe('/logs/log', res => {
+      let str = res.body
+      if (str.includes('INFO')) {
+        msg.value += '<p style="color: green">' + res.body + '</p>'
+      } else if (str.includes('ERROR')) {
+        msg.value += '<p style="color: darkred">' + res.body + '</p>'
+      } else {
+        msg.value += '<p style="color: orange">' + res.body + '</p>'
+      }
+      if (!loading.value) {
+        loading.value = false
+      }
+    })
+  }
+  client.activate()
 
+  client.onStompError = function (frame) {
+    ElNotification.error({
+      title: 'Broker reported error: ' + frame.headers['message'],
+      message: 'Additional details: ' + frame.body,
+      showClose: true
+    })
+  }
+}
 
 const show = () => {
-
+  client.publish({
+    destination: '/app/log/start'
+  })
 }
 
 const stop = () => {
-
+  client.publish({
+    destination: '/app/log/stop'
+  })
 }
 
-const loading = ref(false)
+onUnmounted(() => {
+  clearInterval(timer)
+  stop()
+  client.deactivate()
+});
 
-const msg = ref('')
-
-
+(() => {
+  connect()
+  timer = setInterval(() => {
+    if (!client.connected) {
+      ElNotification.warning("websocket reconnection ...")
+      connect()
+    }
+  }, 2000)
+})()
 </script>
 
 <template>
-  <el-card class="box-card">
-    <div slot="header" class="clearfix">
+  <el-card shadow="never">
+    <div class="header">
       <span id="SLTitle">日志平台</span>
       <div id="SLContent">
-        <el-button class="SLButton" type="text" @click="show">Start monitor</el-button>
+        <el-button class="SLButton" link @click="show">Start</el-button>
         <el-divider direction="vertical"></el-divider>
-        <el-button class="SLButton" type="text" @click="stop">Stop monitor</el-button>
+        <el-button class="SLButton" link @click="stop">Stop</el-button>
       </div>
     </div>
     <div v-html="msg" class="text-item" v-loading="loading"></div>
@@ -49,6 +88,7 @@ const msg = ref('')
 </template>
 
 <style scoped>
+
 #SLTitle {
   font-size: large;
 }
@@ -60,5 +100,9 @@ const msg = ref('')
 
 .SLButton {
   font-size: medium;
+}
+
+.text-item {
+  overflow: auto;
 }
 </style>
