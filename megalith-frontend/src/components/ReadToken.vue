@@ -36,12 +36,11 @@ const submit = async () => {
   } else {
     ElMessage.error("token error")
   }
-  emit('update:readTokenDialogVisible', false);
-};
-
+  visible.value = false
+}
 
 const handleClose = () => {
-  emit('update:readTokenDialogVisible', false)
+  visible.value = false
 }
 </script>
 

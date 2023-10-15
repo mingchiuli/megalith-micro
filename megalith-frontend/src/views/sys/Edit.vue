@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId } from 'element-plus'
+import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { useRoute } from 'vue-router'
 import type { BlogsEdit } from '@/type/entity'
@@ -25,13 +25,28 @@ type Form = {
   link: string
 }
 
-let form: Form = reactive({
+const form: Form = reactive({
   id: 0,
   title: '',
   description: '',
   content: '',
   status: '0',
   link: ''
+})
+
+const formRules = reactive<FormRules<Form>>({
+  title: [
+    { required: true, message: '请输入标题', trigger: 'blur' }
+  ],
+  description: [
+    { required: true, message: '请输入描述', trigger: 'blur' }
+  ],
+  content: [
+    { required: true, message: '请输入内容', trigger: 'blur' }
+  ],
+  status: [
+    { required: true, message: '请选择状态', trigger: 'blur' }
+  ]
 })
 
 const loadEditContent = async () => {
@@ -134,16 +149,16 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
 
 <template>
   <div class="father">
-    <el-form :model="form">
-      <el-form-item class="title">
+    <el-form :model="form" :rules="formRules">
+      <el-form-item class="title" prop="title">
         <el-input v-model="form.title" placeholder="标题" maxlength="10" />
       </el-form-item>
 
-      <el-form-item class="desc">
+      <el-form-item class="desc" prop="description">
         <el-input autosize type="textarea" v-model="form.description" placeholder="摘要" maxlength="30" />
       </el-form-item>
 
-      <el-form-item class="status">
+      <el-form-item class="status" prop="status">
         <el-radio-group v-model="form.status">
           <el-radio label="0">公开</el-radio>
           <el-radio label="1">隐藏</el-radio>
@@ -180,7 +195,7 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
         </el-dialog>
       </el-form-item>
 
-      <el-form-item class="content" v-loading="loading">
+      <el-form-item class="content" v-loading="loading" prop="content">
         <mavon-editor style="height: 100%" v-model="form.content" :subfield="false" :ishljs="true" ref="md"
           code-style="androidstudio" @imgAdd="imgAdd" @imgDel="imgDel" class="content"></mavon-editor>
       </el-form-item>

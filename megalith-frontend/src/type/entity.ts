@@ -13,8 +13,8 @@ export interface BlogsDesc {
   link: string
   content?: string
   score?: number
-  highlight?: SearchStruct,
-  value?: SearchStruct
+  highlight?: SearchBlogsHighlightStruct,
+  value?: SearchBlogsHighlightStruct
 }
 
 export interface BlogsSys {
@@ -48,10 +48,26 @@ export interface BlogExhibit {
   nickname: string
 }
 
-interface SearchStruct {
+interface SearchBlogsHighlightStruct {
   title: string[]
   description: string[]
   content: string[]
+}
+
+export interface SearchFavors {
+  id: string
+  status: number
+  title: string
+  description: string
+  link: string
+  created: string
+  score: string
+  highlight: SearchFavorsHighlightStruct
+}
+
+interface SearchFavorsHighlightStruct {
+  title: string[]
+  description: string[]
 }
 
 export interface LoginStruct {

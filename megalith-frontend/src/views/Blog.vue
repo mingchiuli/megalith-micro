@@ -19,9 +19,10 @@ clipboard.on('error', () => {
 const route = useRoute()
 const token = route.query.token
 const blogId = route.params.id
-let loading = ref(true)
+const loading = ref(true)
+const loadingCatalogue = ref(true)
 
-let blog = reactive<BlogExhibit>({
+const blog = reactive<BlogExhibit>({
   "title": '',
   "description": '',
   "content": '',
@@ -65,12 +66,12 @@ const catalogue = ref<InstanceType<typeof Catalogue>>();
 </script>
 
 <template>
-  <Catalogue ref="catalogue"></Catalogue>
+  <Catalogue v-if="loadingCatalogue" ref="catalogue" v-model:loadingCatalogue="loadingCatalogue"></Catalogue>
   <div class="exhibit-content">
     <div class="exhibit-title">{{ blog.title }}</div>
     <el-avatar class="exhibit-avatar" :src="blog.avatar" />
     <el-text class="exhibit-author" size="large">作者: {{ blog.nickname }}</el-text>
-    <el-text class="exhibit-time" size="default">{{ blog.created.replace('T', ' ') }}</el-text>
+    <el-text class="exhibit-time" size="default">{{ blog.created }}</el-text>
     <el-text class="exhibit-read-count" size="default">阅读数: {{ blog.readCount }}</el-text>
     <el-skeleton animated :loading="loading" :throttle="300">
       <template #template>

@@ -60,5 +60,6 @@ const selectMenu = (item: Tab) => {
 .collapse-button {
   transform: translate(50%);
   margin-top: 15px;
+  margin-bottom: 15px;
 }
 </style>

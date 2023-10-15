@@ -9,9 +9,6 @@ let timer: NodeJS.Timeout
 const client = new Client({
   brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/log`,
   connectHeaders: { "Authorization": localStorage.getItem('accessToken')!, "Type": "Log" },
-  debug: function (str) {
-    console.log(str)
-  },
   reconnectDelay: 5000,
   heartbeatIncoming: 4000,
   heartbeatOutgoing: 4000,
@@ -103,6 +100,7 @@ onUnmounted(() => {
 }
 
 .text-item {
+  min-height: 450px;
   overflow: auto;
 }
 </style>

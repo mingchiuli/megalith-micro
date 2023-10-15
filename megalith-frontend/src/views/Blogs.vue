@@ -16,7 +16,7 @@ const keywords = ref('')
 const readTokenDialogVisible = ref(false)
 const blogId = ref(0)
 
-let page: PageAdapter<BlogsDesc> = reactive({
+const page: PageAdapter<BlogsDesc> = reactive({
   "content": [],
   "totalElements": 0,
   "pageSize": 5,
@@ -54,13 +54,13 @@ const queryBlogs = async (pageNo: number, year: string) => {
 const getPage = async (pageNo: number) => {
   pageNumber.value = pageNo
   if (!keywords.value) {
-    queryBlogs(pageNumber.value, year.value)
+    await queryBlogs(pageNumber.value, year.value)
   } else {
     searchRef.value?.searchAllInfo(keywords.value, pageNumber.value)
   }
 }
 
-const go = async (id: number) => {
+const to = async (id: number) => {
   const status = await GET<number>(`/public/blog/status/${id}`)
   if (status === 0) {
     router.push({
@@ -106,13 +106,13 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
               :color="'#0bbd87'">
               <el-card shadow="never">
                 <el-image v-if="blog.link" :key="blog.link" :src="blog.link" lazy></el-image>
-                <p v-if="blog.score">{{ "Search Scores:" + blog.score }}</p>
-                <el-link class="title" @click="go(blog.id)">{{ blog.title }}</el-link>
+                <p v-if="blog.score">{{ "Search Scores: " + blog.score }}</p>
+                <el-link class="title" @click="to(blog.id)">{{ blog.title }}</el-link>
                 <p v-if="!blog.highlight">{{ blog.description }}</p>
-                <p v-if="blog.highlight?.title" v-for="title in blog.highlight.title" v-html="'标题：' + title"></p>
+                <p v-if="blog.highlight?.title" v-for="title in blog.highlight.title" v-html="'标题: ' + title"></p>
                 <p v-if="blog.highlight?.description" v-for="description in blog.highlight.description"
-                  v-html="'摘要：' + description"></p>
-                <p v-if="blog.highlight?.content" v-for="content in blog.highlight.content" v-html="'内容：' + content"></p>
+                  v-html="'摘要: ' + description"></p>
+                <p v-if="blog.highlight?.content" v-for="content in blog.highlight.content" v-html="'内容: ' + content"></p>
               </el-card>
             </el-timeline-item>
           </template>

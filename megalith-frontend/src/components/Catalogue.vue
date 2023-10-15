@@ -1,8 +1,23 @@
 <script lang="ts" setup>
 import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus';
-import { nextTick, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
+
+const props = defineProps<{
+  loadingCatalogue: boolean
+}>()
+
+const emit = defineEmits<(event: 'update:loadingCatalogue', payload: boolean) => void>()
+
+let loadingCatalogue = computed({
+  get() {
+    return props.loadingCatalogue
+  },
+  set(value) {
+    emit('update:loadingCatalogue', value)
+  },
+})
 
 let data = ref<CatalogueLabel[]>()
 let allNodes: Node[]
@@ -14,9 +29,14 @@ const handleNodeClick = (data: CatalogueLabel) => window.scrollTo({ top: data.di
 
 const render = async () => {
   let aLabels = document.querySelectorAll<HTMLElement>('.exhibit-content .v-note-wrapper a')
-  data.value = geneCatalogueArr(aLabels)
-  await nextTick()
-  allNodes = treeRef.value!.store._getAllNodes()
+  const arrs = geneCatalogueArr(aLabels)
+  if (arrs.length > 0) {
+    data.value = arrs
+    await nextTick()
+    allNodes = treeRef.value!.store._getAllNodes()
+  } else {
+    loadingCatalogue.value = false
+  }
 }
 
 const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] => {
@@ -105,23 +125,24 @@ const rollToTargetLabel = (data: CatalogueLabel[], scrolled: number): CatalogueL
 }
 
 const roll = () => {
-  let scrolled = document.documentElement.scrollTop
+  if (allNodes) {
+    let scrolled = document.documentElement.scrollTop
+    let temp: CatalogueLabel
+    temp = rollToTargetLabel(data.value as CatalogueLabel[], scrolled)!
 
-  let temp: CatalogueLabel
-  temp = rollToTargetLabel(data.value as CatalogueLabel[], scrolled)!
-
-  //高亮和关闭树节点的逻辑
-  allNodes.forEach(node => {
-    if (temp?.id === node.data.id) {
-      node.expanded = true
-      treeRef.value?.setCurrentKey(node.data.id)
-    } else if (node.expanded) {
-      node.expanded = false
+    //高亮和关闭树节点的逻辑
+    allNodes.forEach(node => {
+      if (temp?.id === node.data.id) {
+        node.expanded = true
+        treeRef.value?.setCurrentKey(node.data.id)
+      } else if (node.expanded) {
+        node.expanded = false
+      }
+    })
+    //处理顶级节点高亮不符合逻辑的问题
+    if (!temp) {
+      treeRef.value?.setCurrentKey(undefined)
     }
-  })
-  //处理顶级节点高亮不符合逻辑的问题
-  if (!temp) {
-    treeRef.value?.setCurrentKey(undefined)
   }
 }
 

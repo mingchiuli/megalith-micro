@@ -13,7 +13,7 @@ const multipleSelection = ref<BlogsSys[]>([])
 const delBtlStatus = ref(false)
 const loading = ref(false)
 
-let page: PageAdapter<BlogsSys> = reactive({
+const page: PageAdapter<BlogsSys> = reactive({
   "content": [],
   "totalElements": 0,
   "pageSize": 5,
@@ -80,6 +80,11 @@ const queryBLogs = async () => {
   loading.value = false
 }
 
+const clearQueryBLogs = async () => {
+  pageNumber.value = 1
+  await queryBLogs()
+}
+
 const searchBlogs = async () => {
   loading.value = true
   const data = await GET<PageAdapter<BlogsSys>>(`search/sys/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
@@ -113,10 +118,10 @@ const handleCurrentChange = async (val: number) => {
 </script>
 
 <template>
-  <el-form :inline="true" @submit.prevent class="button">
+  <el-form :inline="true" @submit.prevent class="button-form">
     <el-form-item>
       <el-input v-model="input" placeholder="Please input" clearable maxlength="20" size="large" class="search-input"
-        @clear="queryBLogs" @keyup.enter="searchBlogs" />
+        @clear="clearQueryBLogs" @keyup.enter="searchBlogs" />
     </el-form-item>
     <el-form-item>
       <el-button type="primary" size="large" @click="searchBlogs">搜索</el-button>
@@ -217,7 +222,7 @@ const handleCurrentChange = async (val: number) => {
   width: 200px;
 }
 
-.button .el-form-item {
+.button-form .el-form-item {
   margin-right: 10px;
 }
 

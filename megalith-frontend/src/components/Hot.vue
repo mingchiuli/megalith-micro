@@ -6,7 +6,7 @@ import router from '@/router'
 
 let hots = ref<Hot[]>()
 
-const go = (id: number) => router.push({
+const to = (id: number) => router.push({
   name: 'blog',
   params: {
     id: id
@@ -25,7 +25,7 @@ const go = (id: number) => router.push({
       <el-text>本周热读</el-text>
     </div>
     <div class="description" v-for="hot in hots" >
-      <el-link @click="go(hot.id)">{{ hot.title }}: {{ hot.readCount }}</el-link>
+      <el-link @click="to(hot.id)">{{ hot.title }}: {{ hot.readCount }}</el-link>
       <br/>
     </div>
   </el-card>

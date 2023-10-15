@@ -42,7 +42,6 @@ const submitLogin = async () => {
   const info = await GET<UserInfo>('/token/userinfo')
   localStorage.setItem('userinfo', JSON.stringify(info))
   loginDialogVisible.value = false
-  emit('update:loginDialogVisible', false)
   router.push({ name: 'blogs' })
 }
 
