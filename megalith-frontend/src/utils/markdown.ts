@@ -1,9 +1,10 @@
 import hljs from 'highlight.js'
 import type { HighlightResult } from 'highlight.js'
+import type MarkdownIt from 'markdown-it'
 
 export const markdownToHtml = (mavonEditor: any, content: string): string => {
 
-  const md = mavonEditor.getMarkdownIt()
+  const md: MarkdownIt = mavonEditor.getMarkdownIt()
   return md.set({
     highlight: (str: string, lang: string) => {
       const codeIndex = Date.now() + Math.floor(Math.random() * 10000000)

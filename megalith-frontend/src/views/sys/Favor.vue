@@ -49,6 +49,11 @@ let page: PageAdapter<SearchFavors> = reactive({
 const searchFavors = async () => {
   loading.value = true
   const data = await GET<PageAdapter<SearchFavors>>(`/search/website/${pageNumber.value}?keyword=${input.value}`)
+  if (data.content.length === 0) {
+    clearSearchFavors()
+    searchFavors()
+    return
+  }
   page.content = data.content
   page.totalElements = data.totalElements
   loading.value = false
