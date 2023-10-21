@@ -3,7 +3,7 @@ import { reactive, ref } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { useRoute } from 'vue-router'
-import type { BlogsEdit } from '@/type/entity'
+import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
 
 const fileList = ref<UploadUserFile[]>([])
@@ -52,7 +52,7 @@ const formRules = reactive<FormRules<Form>>({
 const loadEditContent = async () => {
   if (blogId) {
     loading.value = true
-    const data = await GET<BlogsEdit>(`/sys/blog/echo/${blogId}`)
+    const data = await GET<BlogEdit>(`/sys/blog/echo/${blogId}`)
     form.title = data.title
     form.description = data.description
     form.content = data.content

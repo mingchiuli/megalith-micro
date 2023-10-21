@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { BlogsDesc, PageAdapter } from '@/type/entity'
+import type { BlogDesc, PageAdapter } from '@/type/entity'
 import { GET } from '@/http/http'
 import { reactive, toRefs, ref } from 'vue'
 import { loginStateStore, tabStore } from '@/stores/store'
@@ -16,7 +16,7 @@ const keywords = ref('')
 const readTokenDialogVisible = ref(false)
 const blogId = ref(0)
 
-const page: PageAdapter<BlogsDesc> = reactive({
+const page: PageAdapter<BlogDesc> = reactive({
   "content": [],
   "totalElements": 0,
   "pageSize": 5,
@@ -33,7 +33,7 @@ if (router.currentRoute.value.path === '/login' && !login.value) {
   })
 }
 
-const fillSearchData = (payload: PageAdapter<BlogsDesc>) => {
+const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
   if (payload.content.length) {
     content.value = payload.content
     totalElements.value = payload.totalElements
@@ -45,7 +45,7 @@ const fillSearchData = (payload: PageAdapter<BlogsDesc>) => {
 
 const queryBlogs = async (pageNo: number, year: string) => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogsDesc>>(`/public/blog/page/${pageNo}?year=${year}`)
+  const data = await GET<PageAdapter<BlogDesc>>(`/public/blog/page/${pageNo}?year=${year}`)
   page.content = data.content
   page.totalElements = data.totalElements
   loading.value = false

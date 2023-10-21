@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive, ref, toRefs } from 'vue'
 import { GET, POST } from '@/http/http'
-import type { BlogsSys, PageAdapter } from '@/type/entity'
+import type { BlogSys, PageAdapter } from '@/type/entity'
 import editor from 'mavon-editor'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
@@ -9,11 +9,11 @@ import { Timer } from '@element-plus/icons-vue'
 const mavonEditor: any = editor.mavonEditor
 const md = mavonEditor.getMarkdownIt()
 const input = ref('')
-const multipleSelection = ref<BlogsSys[]>([])
+const multipleSelection = ref<BlogSys[]>([])
 const delBtlStatus = ref(false)
 const loading = ref(false)
 
-const page: PageAdapter<BlogsSys> = reactive({
+const page: PageAdapter<BlogSys> = reactive({
   "content": [],
   "totalElements": 0,
   "pageSize": 5,
@@ -35,7 +35,7 @@ const delBatch = async () => {
   queryBLogs()
 }
 
-const handleEdit = (row: BlogsSys) => {
+const handleEdit = (row: BlogSys) => {
   router.push({
     name: 'systemEdit',
     query: {
@@ -44,7 +44,7 @@ const handleEdit = (row: BlogsSys) => {
   })
 }
 
-const handleDelete = async (row: BlogsSys) => {
+const handleDelete = async (row: BlogSys) => {
   const id: number[] = []
   id.push(row.id)
   await POST<null>('/sys/blog/delete', id)
@@ -56,7 +56,7 @@ const handleDelete = async (row: BlogsSys) => {
   queryBLogs()
 }
 
-const handleCheck = (row: BlogsSys) => {
+const handleCheck = (row: BlogSys) => {
   router.push({
     name: 'blog',
     params: {
@@ -65,7 +65,7 @@ const handleCheck = (row: BlogsSys) => {
   })
 }
 
-const handleSelectionChange = (val: BlogsSys[]) => {
+const handleSelectionChange = (val: BlogSys[]) => {
   multipleSelection.value = val
   delBtlStatus.value = val.length === 0
 }
@@ -74,7 +74,7 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
 const queryBLogs = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogsSys>>(`/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}`)
+  const data = await GET<PageAdapter<BlogSys>>(`/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}`)
   content.value = data.content
   totalElements.value = data.totalElements
   loading.value = false
@@ -87,7 +87,7 @@ const clearQueryBLogs = async () => {
 
 const searchBlogs = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogsSys>>(`search/sys/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
+  const data = await GET<PageAdapter<BlogSys>>(`search/sys/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
   page.content = data.content
   page.totalElements = data.totalElements
   loading.value = false

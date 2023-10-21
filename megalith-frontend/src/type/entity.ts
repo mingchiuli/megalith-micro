@@ -5,7 +5,7 @@ export interface Visitor {
   yearVisit: number
 }
 
-export interface BlogsDesc {
+export interface BlogDesc {
   id: number
   title: string
   description: string
@@ -17,7 +17,7 @@ export interface BlogsDesc {
   value?: SearchBlogsHighlightStruct
 }
 
-export interface BlogsSys {
+export interface BlogSys {
   id: number
   title: string
   description: string
@@ -28,7 +28,20 @@ export interface BlogsSys {
   status: number
 }
 
-export interface BlogsEdit {
+export interface UserSys {
+  id: number
+  username: string
+  nickname: string
+  avatar: string
+  email: string
+  phone: string
+  status: number
+  created: string
+  lastLogin: string
+  role: string
+}
+
+export interface BlogEdit {
   id: number
   title: string
   description: string
