@@ -5,9 +5,10 @@ import type { BlogSys, PageAdapter } from '@/type/entity'
 import editor from 'mavon-editor'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
+import type markdownIt from 'markdown-it'
 
 const mavonEditor: any = editor.mavonEditor
-const md = mavonEditor.getMarkdownIt()
+const md: markdownIt = mavonEditor.getMarkdownIt()
 const input = ref('')
 const multipleSelection = ref<BlogSys[]>([])
 const delBtlStatus = ref(false)
