@@ -6,7 +6,7 @@ import type { FormRules } from 'element-plus';
 
 const input = ref('')
 const loading = ref(false)
-const visible = ref(false)
+const dialogVisible = ref(false)
 
 const formRules = reactive<FormRules<FavorForm>>({
   title: [
@@ -24,11 +24,11 @@ const formRules = reactive<FormRules<FavorForm>>({
 })
 
 const form: FavorForm = reactive({
-  id: '',
+  id: undefined,
   title: '',
   description: '',
   link: '',
-  status: ''
+  status: 0
 })
 
 type FavorForm = {
@@ -36,7 +36,7 @@ type FavorForm = {
   title: string
   description: string
   link: string
-  status: string
+  status: number
 }
 
 let page: PageAdapter<SearchFavors> = reactive({
@@ -67,7 +67,7 @@ const clearSearchFavors = async () => {
 
 const infoHandleClose = () => {
   resetForm()
-  visible.value = false
+  dialogVisible.value = false
 }
 
 const to = (url: string) => {
@@ -80,8 +80,8 @@ const editFavor = async (id: string) => {
   form.title = data.title
   form.description = data.description
   form.link = data.link
-  form.status = String(data.status)
-  visible.value = true
+  form.status = data.status
+  dialogVisible.value = true
 }
 
 const delFavor = async (id: string) => {
@@ -97,9 +97,6 @@ const delFavor = async (id: string) => {
 }
 
 const submitForm = async () => {
-  if (form.id === '') {
-    delete form.id
-  }
   await POST<null>('/search/website/save', form)
   ElNotification({
     title: '操作成功',
@@ -107,7 +104,7 @@ const submitForm = async () => {
     type: 'success',
   })
   resetForm()
-  visible.value = false
+  dialogVisible.value = false
   pageNumber.value = 1
   input.value = ''
   setTimeout(() => {
@@ -116,11 +113,11 @@ const submitForm = async () => {
 }
 
 const resetForm = () => {
-  form.id = ''
+  form.id = undefined
   form.title = ''
   form.description = ''
   form.link = ''
-  form.status = '0'
+  form.status = 0
 }
 
 const handleCurrentChange = async (pageNo: number) => {
@@ -145,7 +142,7 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
       <el-button type="primary" size="large" @click="searchFavors">搜索</el-button>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" size="large" @click="visible = true">新增</el-button>
+      <el-button type="primary" size="large" @click="dialogVisible = true">新增</el-button>
     </el-form-item>
   </el-form>
 
@@ -165,7 +162,7 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
         <div class="text item">
           {{ favor.description }}
         </div>
-        <div class="text item">Timestamp: {{ favor.created }}</div>
+        <div class="text item">创建时间: {{ favor.created }}</div>
         <div class="text item">
           <div v-if="favor.score !== 'NaN'">{{ "Search Scores: " + favor.score }}</div>
           <p v-if="favor.highlight?.title" v-for="title in favor.highlight.title" v-html="'标题: ' + title"></p>
@@ -180,28 +177,28 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
   </el-pagination>
 
 
-  <el-dialog title="新增/编辑" v-model="visible" width="600px" :before-close="infoHandleClose">
+  <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="infoHandleClose">
     <el-form :model="form" :rules="formRules" label-width="100px">
-      <el-form-item label="标题" prop="title" label-width="100px">
+      <el-form-item label="标题" prop="title">
         <el-input v-model="form.title"></el-input>
       </el-form-item>
 
-      <el-form-item label="描述" prop="description" label-width="100px">
+      <el-form-item label="描述" prop="description">
         <el-input v-model="form.description"></el-input>
       </el-form-item>
 
-      <el-form-item label="链接" prop="link" label-width="100px">
+      <el-form-item label="链接" prop="link">
         <el-input v-model="form.link" placeholder="以https/http开头"></el-input>
       </el-form-item>
 
-      <el-form-item label="状态" prop="status" label-width="100px">
+      <el-form-item label="状态" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio label="0">公开</el-radio>
-          <el-radio label="1">隐藏</el-radio>
+          <el-radio :label=0>公开</el-radio>
+          <el-radio :label=1>隐藏</el-radio>
         </el-radio-group>
       </el-form-item>
 
-      <el-form-item>
+      <el-form-item label-width="400px">
         <el-button type="primary" @click="submitForm">Submit</el-button>
         <el-button @click="resetForm">Reset</el-button>
       </el-form-item>

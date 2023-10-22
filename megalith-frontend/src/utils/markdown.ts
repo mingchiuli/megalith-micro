@@ -1,5 +1,4 @@
-import hljs from 'highlight.js'
-import type { HighlightResult } from 'highlight.js'
+import hljs, { type HighlightResult } from 'highlight.js'
 import type MarkdownIt from 'markdown-it'
 
 export const markdownToHtml = (mavonEditor: any, content: string): string => {

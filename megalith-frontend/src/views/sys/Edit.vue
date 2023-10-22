@@ -21,16 +21,16 @@ type Form = {
   title: string
   description: string
   content: string
-  status: string
+  status: number
   link: string
 }
 
 const form: Form = reactive({
-  id: 0,
+  id: undefined,
   title: '',
   description: '',
   content: '',
-  status: '0',
+  status: 0,
   link: ''
 })
 
@@ -57,7 +57,7 @@ const loadEditContent = async () => {
     form.description = data.description
     form.content = data.content
     form.link = data.link
-    form.status = String(data.status)
+    form.status = data.status
     form.id = data.id
     if (data.link) {
       fileList.value.push({
@@ -104,9 +104,6 @@ const handleRemove = async (_file: UploadFile) => {
 }
 
 const onSubmit = async () => {
-  if (form.id === 0) {
-    delete form.id
-  }
   await POST<null>('/sys/blog/save', form)
   ElNotification({
     title: '操作成功',
@@ -160,8 +157,8 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
 
       <el-form-item class="status" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio label="0">公开</el-radio>
-          <el-radio label="1">隐藏</el-radio>
+          <el-radio :label=0>公开</el-radio>
+          <el-radio :label=1>隐藏</el-radio>
         </el-radio-group>
       </el-form-item>
 

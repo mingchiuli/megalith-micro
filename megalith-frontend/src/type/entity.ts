@@ -41,6 +41,16 @@ export interface UserSys {
   role: string
 }
 
+export interface RoleSys {
+  id: number
+  name: string
+  code: string
+  remark: string
+  created: string
+  updated: string
+  status: number
+}
+
 export interface BlogEdit {
   id: number
   title: string
