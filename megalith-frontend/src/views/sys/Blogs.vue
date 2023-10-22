@@ -35,15 +35,6 @@ const delBatch = async () => {
   queryBLogs()
 }
 
-const handleEdit = (row: BlogSys) => {
-  router.push({
-    name: 'systemEdit',
-    query: {
-      id: row.id
-    }
-  })
-}
-
 const handleDelete = async (row: BlogSys) => {
   const id: number[] = []
   id.push(row.id)
@@ -54,6 +45,15 @@ const handleDelete = async (row: BlogSys) => {
     type: 'success',
   })
   queryBLogs()
+}
+
+const handleEdit = (row: BlogSys) => {
+  router.push({
+    name: 'systemEdit',
+    query: {
+      id: row.id
+    }
+  })
 }
 
 const handleCheck = (row: BlogSys) => {
@@ -139,12 +139,7 @@ const handleCurrentChange = async (val: number) => {
     v-loading="loading">
     <el-table-column type="selection" width="55" />
 
-    <el-table-column label="标题" width="150" align="center">
-      <template #default="scope">
-        <span>{{ scope.row.title }}</span>
-      </template>
-    </el-table-column>
-
+    <el-table-column label="标题" width="150" align="center" prop="title" />
     <el-table-column label="摘要" width="200" align="center">
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="top" width="auto">

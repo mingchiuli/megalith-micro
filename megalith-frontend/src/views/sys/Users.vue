@@ -29,6 +29,22 @@ const delBatch = async () => {
   queryUsers()
 }
 
+const handleDelete = async (row: UserSys) => {
+  const id: number[] = []
+  id.push(row.id)
+  await POST<null>('/sys/user/delete', id)
+  ElNotification({
+    title: '操作成功',
+    message: '删除成功',
+    type: 'success',
+  })
+  queryUsers()
+}
+
+const handleEdit = (row: UserSys) => {
+  
+}
+
 const handleSelectionChange = (val: UserSys[]) => {
   multipleSelection.value = val
   delBtlStatus.value = val.length === 0
@@ -55,6 +71,9 @@ const handleCurrentChange = async (val: number) => {
   queryUsers()
 };
 
+(async () => {
+  await queryUsers()
+})()
 </script>
 
 <template>
@@ -74,6 +93,57 @@ const handleCurrentChange = async (val: number) => {
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
     <el-table-column type="selection" width="55" />
+    <el-table-column label="用户名" width="150" align="center" prop="username" />
+    <el-table-column label="昵称" width="150" align="center" prop="nickname" />
+    
+    <el-table-column label="头像" width="70" align="center">
+      <template #default="scope">
+        <el-avatar size="default" :src="scope.row.avatar" />
+      </template>
+    </el-table-column>
+
+    <el-table-column label="邮箱" width="150" align="center" prop="email" />
+    <el-table-column label="手机号" width="150" align="center" prop="phone" />
+
+    <el-table-column label="状态" width="70" align="center">
+      <template #default="scope">
+        <el-tag size="small" v-if="scope.row.status === 0" type="success">启用</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">停用</el-tag>
+      </template>
+    </el-table-column>
+
+    <el-table-column label="创建时间" width="180" align="center">
+      <template #default="scope">
+        <div style="display: flex; align-items: center">
+          <el-icon>
+            <timer />
+          </el-icon>
+          <span style="margin-left: 10px">{{ scope.row.created }}</span>
+        </div>
+      </template>
+    </el-table-column>
+
+    <el-table-column label="最后登录时间" width="180" align="center">
+      <template #default="scope">
+        <div style="display: flex; align-items: center">
+          <el-icon>
+            <timer />
+          </el-icon>
+          <span style="margin-left: 10px">{{ scope.row.lastLogin }}</span>
+        </div>
+      </template>
+    </el-table-column>
+
+    <el-table-column label="操作" fixed="right" width="200" align="center">
+      <template #default="scope">
+        <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
+        <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
+          <template #reference>
+            <el-button size="small" type="danger">删除</el-button>
+          </template>
+        </el-popconfirm>
+      </template>
+    </el-table-column>
 
   </el-table>
 
@@ -86,5 +156,9 @@ const handleCurrentChange = async (val: number) => {
 <style scoped>
 .button-form .el-form-item {
   margin-right: 10px;
+}
+
+.el-pagination {
+  margin-top: 10px;
 }
 </style>
