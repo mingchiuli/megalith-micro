@@ -28,6 +28,19 @@ export interface BlogSys {
   status: number
 }
 
+export interface BlogDelSys {
+  id: number
+  idx: number
+  userId: number
+  title: string
+  description: string
+  content: string
+  created: string
+  status: number
+  link: string
+  readCount: number
+}
+
 export interface UserSys {
   id: number
   username: string
