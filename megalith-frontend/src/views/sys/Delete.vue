@@ -109,7 +109,7 @@ const handleResume = async (row: BlogDelSys) => {
 
     <el-table-column label="封面" width="70" align="center">
       <template #default="scope">
-        <el-avatar size="default" :src="scope.row.link" />
+        <el-avatar shape="square" size="default" :src="scope.row.link" />
       </template>
     </el-table-column>
 
