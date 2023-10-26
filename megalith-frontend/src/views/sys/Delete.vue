@@ -1,23 +1,21 @@
 <script lang="ts" setup>
-import { GET } from '@/http/http';
-import type { BlogDelSys, PageAdapter } from '@/type/entity';
-import { reactive, ref, toRefs } from 'vue';
+import { GET } from '@/http/http'
+import type { BlogDelSys, PageAdapter } from '@/type/entity'
+import { reactive, ref, toRefs } from 'vue'
 import editor from 'mavon-editor'
-import type markdownIt from 'markdown-it';
-
+import type markdownIt from 'markdown-it'
 
 const mavonEditor: any = editor.mavonEditor
 const md: markdownIt = mavonEditor.getMarkdownIt()
-
+const loading = ref(false)
+const multipleSelection = ref<BlogDelSys[]>([])
+const delBtlStatus = ref(false)
 const page: PageAdapter<BlogDelSys> = reactive({
   "content": [],
   "totalElements": 0,
   "pageSize": 10,
   "pageNumber": 1
 })
-const loading = ref(false)
-const multipleSelection = ref<BlogDelSys[]>([])
-const delBtlStatus = ref(false)
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
 const handleSelectionChange = (val: BlogDelSys[]) => {
@@ -77,7 +75,7 @@ const handleResume = async (row: BlogDelSys) => {
 
     <el-table-column label="内容" width="350" align="center">
       <template #default="scope">
-        <el-popover effect="light" trigger="hover" placement="bottom" width="auto" :show-after="1000">
+        <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000" popper-style="height: 300px;overflow: auto;">
           <template #default>
             <span v-html=md.render(scope.row.content)></span>
           </template>
@@ -120,7 +118,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="操作" fixed="right" width="200" align="center">
+    <el-table-column label="操作" fixed="right" width="120" align="center">
       <template #default="scope">
         <el-button size="small" type="primary" @click="handleResume(scope.row)">恢复</el-button>
       </template>

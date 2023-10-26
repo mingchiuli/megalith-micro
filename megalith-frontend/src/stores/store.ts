@@ -26,6 +26,7 @@ export const tabStore = defineStore('tabStore', {
   },
   actions: {
     addTab(tab: Tab) {
+      console.log(tab)
       const index = this.editableTabs.findIndex(e => e.name === tab.name)
       if (index === -1) {
         this.editableTabs.push({

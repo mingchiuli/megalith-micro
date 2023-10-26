@@ -26,6 +26,7 @@ export interface BlogSys {
   readCount: number
   recentReadCount: number
   status: number
+  link: string
 }
 
 export interface BlogDelSys {

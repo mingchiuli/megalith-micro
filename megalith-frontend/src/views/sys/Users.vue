@@ -15,6 +15,7 @@ const page: PageAdapter<UserSys> = reactive({
   "pageSize": 5,
   "pageNumber": 1
 })
+const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
 const formRules = reactive<FormRules<Form>>({
   username: [
@@ -109,8 +110,6 @@ const handleSelectionChange = (val: UserSys[]) => {
   delBtlStatus.value = val.length === 0
 }
 
-const { content, totalElements, pageSize, pageNumber } = toRefs(page)
-
 const queryUsers = async () => {
   loading.value = true
   const data = await GET<PageAdapter<UserSys>>(`/sys/user/page/${pageNumber.value}?size=${pageSize.value}`)
@@ -158,7 +157,7 @@ const handleSizeChange = async (val: number) => {
 const handleCurrentChange = async (val: number) => {
   pageNumber.value = val
   queryUsers()
-};
+}
 
 (async () => {
   await queryUsers()
@@ -225,7 +224,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="操作" fixed="right" width="200" align="center">
+    <el-table-column label="操作" fixed="right" width="180" align="center">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">

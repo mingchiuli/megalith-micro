@@ -6,6 +6,7 @@ import editor from 'mavon-editor'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
 import type markdownIt from 'markdown-it'
+import { tabStore } from '@/stores/store'
 
 const mavonEditor: any = editor.mavonEditor
 const md: markdownIt = mavonEditor.getMarkdownIt()
@@ -13,13 +14,13 @@ const input = ref('')
 const multipleSelection = ref<BlogSys[]>([])
 const delBtlStatus = ref(false)
 const loading = ref(false)
-
 const page: PageAdapter<BlogSys> = reactive({
   "content": [],
   "totalElements": 0,
   "pageSize": 5,
   "pageNumber": 1
 })
+const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
 const delBatch = async () => {
   const args: number[] = []
@@ -71,8 +72,6 @@ const handleSelectionChange = (val: BlogSys[]) => {
   delBtlStatus.value = val.length === 0
 }
 
-const { content, totalElements, pageSize, pageNumber } = toRefs(page)
-
 const queryBLogs = async () => {
   loading.value = true
   const data = await GET<PageAdapter<BlogSys>>(`/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}`)
@@ -87,11 +86,13 @@ const clearQueryBLogs = async () => {
 }
 
 const searchBlogs = async () => {
-  loading.value = true
-  const data = await GET<PageAdapter<BlogSys>>(`search/sys/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
-  page.content = data.content
-  page.totalElements = data.totalElements
-  loading.value = false
+  if (input.value) {
+    loading.value = true
+    const data = await GET<PageAdapter<BlogSys>>(`search/sys/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
+    page.content = data.content
+    page.totalElements = data.totalElements
+    loading.value = false
+  }
 }
 
 const handleSizeChange = async (val: number) => {
@@ -111,9 +112,10 @@ const handleCurrentChange = async (val: number) => {
   } else {
     await queryBLogs()
   }
-};
+}
 
 (async () => {
+  tabStore().addTab({ title: '日志管理', name: 'systemBlogs' })
   await queryBLogs()
 })()
 </script>
@@ -157,7 +159,7 @@ const handleCurrentChange = async (val: number) => {
 
     <el-table-column label="内容" width="350" align="center">
       <template #default="scope">
-        <el-popover effect="light" trigger="hover" placement="bottom" width="auto" :show-after="1000">
+        <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000" popper-style="height: 300px;overflow: auto;">
           <template #default>
             <span v-html=md.render(scope.row.content)></span>
           </template>
@@ -187,6 +189,12 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
+    <el-table-column label="封面" width="70" align="center">
+      <template #default="scope">
+        <el-avatar shape="square" size="default" :src="scope.row.link" />
+      </template>
+    </el-table-column>
+
     <el-table-column label="状态" width="70" align="center">
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === 0" type="success">公开</el-tag>
@@ -194,7 +202,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="操作" fixed="right" width="200" align="center">
+    <el-table-column label="操作" fixed="right" width="250" align="center">
       <template #default="scope">
         <el-button size="small" type="primary" @click="handleCheck(scope.row)">查看</el-button>
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>

@@ -2,11 +2,18 @@
 import { reactive, ref, toRefs } from 'vue'
 import type { PageAdapter, SearchFavors } from '@/type/entity'
 import { GET, POST } from '@/http/http'
-import type { FormRules } from 'element-plus';
+import type { FormRules } from 'element-plus'
 
 const input = ref('')
 const loading = ref(false)
 const dialogVisible = ref(false)
+let page: PageAdapter<SearchFavors> = reactive({
+  "content": [],
+  "totalElements": 0,
+  "pageSize": 9,
+  "pageNumber": 1
+})
+const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
 const formRules = reactive<FormRules<FavorForm>>({
   title: [
@@ -38,13 +45,6 @@ type FavorForm = {
   link: string
   status: number
 }
-
-let page: PageAdapter<SearchFavors> = reactive({
-  "content": [],
-  "totalElements": 0,
-  "pageSize": 9,
-  "pageNumber": 1
-})
 
 const searchFavors = async () => {
   loading.value = true
@@ -124,8 +124,6 @@ const handleCurrentChange = async (pageNo: number) => {
   pageNumber.value = pageNo
   await searchFavors()
 }
-
-const { content, totalElements, pageSize, pageNumber } = toRefs(page);
 
 (async () => {
   searchFavors()

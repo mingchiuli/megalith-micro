@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { GET } from '@/http/http'
 import router from '@/router'
-import type { BlogsDesc, PageAdapter } from '@/type/entity'
+import type { BlogDesc, PageAdapter } from '@/type/entity'
 import type { ElAutocomplete } from 'element-plus'
 import { computed, ref } from 'vue'
 
 const emit = defineEmits<{
-  (event: 'transSearchData', payload: PageAdapter<BlogsDesc>): void
+  (event: 'transSearchData', payload: PageAdapter<BlogDesc>): void
   (event: 'clear'): void
   (event: 'update:year', payload: string): void
   (event: 'update:keywords', payload: string): void
@@ -58,9 +58,9 @@ let searchDialogVisible = computed({
 })
 
 const yearDialogVisible = ref(false)
-const search = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogsDesc>> => {
+const search = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogDesc>> => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogsDesc>>(`/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`);
+  const data = await GET<PageAdapter<BlogDesc>>(`/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`);
   return Promise.resolve(data)
 }
 
@@ -68,8 +68,8 @@ let timeout: NodeJS.Timeout
 const searchAbstractAsync = async (queryString: string, cb: Function) => {
   if (queryString.length) {
     //-1是后端一个默认参数
-    const page: PageAdapter<BlogsDesc> = await search(queryString, -1, false, year.value)
-    page.content.forEach((blogsDesc: BlogsDesc) => {
+    const page: PageAdapter<BlogDesc> = await search(queryString, -1, false, year.value)
+    page.content.forEach((blogsDesc: BlogDesc) => {
       blogsDesc.value = blogsDesc.highlight
     })
     //节流
@@ -83,7 +83,7 @@ const searchAbstractAsync = async (queryString: string, cb: Function) => {
   }
 }
 
-const handleSelect = (item: BlogsDesc) => router.push({
+const handleSelect = (item: BlogDesc) => router.push({
   name: 'blog',
   params: {
     id: item.id
@@ -93,7 +93,7 @@ const handleSelect = (item: BlogsDesc) => router.push({
 const searchAllInfo = async (queryString: string, currentPage = 1) => {
   searchDialogVisible.value = false
   if (queryString.length) {
-    const page: PageAdapter<BlogsDesc> = await search(queryString, currentPage, true, year.value)
+    const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, year.value)
     keywords.value = queryString
     emit('transSearchData', page)
   } else {
