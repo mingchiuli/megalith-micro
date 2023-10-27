@@ -13,7 +13,7 @@ const delBtlStatus = ref(false)
 const page: PageAdapter<BlogDelSys> = reactive({
   "content": [],
   "totalElements": 0,
-  "pageSize": 10,
+  "pageSize": 5,
   "pageNumber": 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
@@ -33,6 +33,12 @@ const queryDelBLogs = async () => {
 
 const handleCurrentChange = async (pageNo: number) => {
   pageNumber.value = pageNo
+  await queryDelBLogs()
+}
+
+const handleSizeChange = async (val: number) => {
+  pageSize.value = val
+  pageNumber.value = 1
   await queryDelBLogs()
 }
 
@@ -125,9 +131,10 @@ const handleResume = async (row: BlogDelSys) => {
     </el-table-column>
   </el-table>
 
-  <el-pagination @current-change="handleCurrentChange" layout="->, prev, pager, next" :current-page="pageNumber"
-    :page-size="pageSize" :total="totalElements">
-  </el-pagination>
+  <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+    layout="->, total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber"
+    :page-size="pageSize" :total="totalElements" />
+
 </template>
 
 <style scoped>

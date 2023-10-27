@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules } from 'element-plus'
+import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
+import { tabStore } from '@/stores/store'
 
 const fileList = ref<UploadUserFile[]>([])
 const dialogVisible = ref(false)
@@ -13,8 +14,11 @@ const disabled = ref(false)
 const md = ref<any>()
 const route = useRoute()
 const blogId = route.query.id
-const loading = ref(false)
 const uploadInstance = ref<UploadInstance>()
+const render = ref(false)
+
+
+const formRef = ref<FormInstance>()
 
 type Form = {
   id?: number
@@ -51,7 +55,6 @@ const formRules = reactive<FormRules<Form>>({
 
 const loadEditContent = async () => {
   if (blogId) {
-    loading.value = true
     const data = await GET<BlogEdit>(`/sys/blog/echo/${blogId}`)
     form.title = data.title
     form.description = data.description
@@ -65,8 +68,9 @@ const loadEditContent = async () => {
         url: data.link
       })
     }
-    loading.value = false
   }
+  //为了reset
+  render.value = true
 }
 
 const imgAdd = async (idx: number, file: File) => {
@@ -103,17 +107,23 @@ const handleRemove = async (_file: UploadFile) => {
   fileList.value = []
 }
 
-const onSubmit = async () => {
-  await POST<null>('/sys/blog/save', form)
-  ElNotification({
-    title: '操作成功',
-    message: '编辑成功',
-    type: 'success',
-  })
-  router.push({
-    name: "systemBlogs"
+const submitForm = async (ref: FormInstance) => {
+  await ref.validate(async (valid, _fields) => {
+    if (valid) {
+      await POST<null>('/sys/blog/save', form)
+      ElNotification({
+        title: '操作成功',
+        message: '编辑成功',
+        type: 'success',
+      })
+      router.push({
+        name: "systemBlogs"
+      })
+    }
   })
 }
+
+const resetForm = (ref: FormInstance) => ref.resetFields()
 
 const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
   uploadInstance.value!.clearFiles()
@@ -141,12 +151,13 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
 
 (async () => {
   await loadEditContent()
+  tabStore().addTab({ title: '编辑博客', name: 'systemEdit' })
 })()
 </script>
 
 <template>
-  <div class="father">
-    <el-form :model="form" :rules="formRules">
+  <div class="father" v-if="render">
+    <el-form :model="form" :rules="formRules" ref="formRef">
       <el-form-item class="title" prop="title">
         <el-input v-model="form.title" placeholder="标题" maxlength="10" />
       </el-form-item>
@@ -192,12 +203,17 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
         </el-dialog>
       </el-form-item>
 
-      <el-form-item class="content" v-loading="loading" prop="content">
+      <el-form-item class="content" prop="content">
         <mavon-editor style="height: 100%" v-model="form.content" :subfield="false" :ishljs="true" ref="md"
           code-style="androidstudio" @imgAdd="imgAdd" @imgDel="imgDel" class="content"></mavon-editor>
       </el-form-item>
-      <el-button type="primary" @click="onSubmit" class="submit-button">提交</el-button>
+
+      <div class="submit-button">
+        <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
+        <el-button type="primary" @click="resetForm(formRef!)">Reset</el-button>
+      </div>
     </el-form>
+
   </div>
 </template>
 
@@ -225,7 +241,8 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
 
 .submit-button {
   display: block;
-  margin: 10px 0 auto auto;
+  margin: 10px auto;
+  text-align: center;
 }
 
 .content {

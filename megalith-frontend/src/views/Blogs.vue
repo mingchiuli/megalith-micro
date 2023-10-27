@@ -119,7 +119,7 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
         </el-skeleton>
       </el-timeline>
       <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize"
-        @current-change="getPage"></el-pagination>
+        @current-change="getPage" />
     </div>
   </div>
   <Footer />

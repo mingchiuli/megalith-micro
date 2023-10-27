@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { GET, POST } from '@/http/http'
 import type { PageAdapter, RoleSys, UserSys } from '@/type/entity'
-import type { FormRules } from 'element-plus';
+import type { FormInstance, FormRules } from 'element-plus';
 import { reactive, ref, toRefs } from 'vue'
 
 const multipleSelection = ref<UserSys[]>([])
@@ -41,6 +41,8 @@ const formRules = reactive<FormRules<Form>>({
   ],
 })
 
+const formRef = ref<FormInstance>()
+
 type Form = {
   id?: number
   username: string
@@ -77,7 +79,7 @@ const delBatch = async () => {
     type: 'success',
   })
   multipleSelection.value = []
-  queryUsers()
+  await queryUsers()
 }
 
 const handleDelete = async (row: UserSys) => {
@@ -92,8 +94,8 @@ const handleDelete = async (row: UserSys) => {
   queryUsers()
 }
 
+//这个地方，一定要数据先填入，再改表单可见性，否则reset会变成清空表单数据
 const handleEdit = async (row: UserSys) => {
-  dialogVisible.value = true
   const data = await GET<UserSys>(`/sys/user/info/${row.id}`)
   form.id = data.id
   form.username = data.username
@@ -103,6 +105,7 @@ const handleEdit = async (row: UserSys) => {
   form.role = data.role
   form.status = data.status
   form.avatar = data.avatar
+  dialogVisible.value = true
 }
 
 const handleSelectionChange = (val: UserSys[]) => {
@@ -119,24 +122,30 @@ const queryUsers = async () => {
 }
 
 const handleClose = () => {
-  resetForm()
+  clearForm()
   dialogVisible.value = false
 }
 
-const submitForm = async () => {
-  await POST<null>('/sys/user/save', form)
-  ElNotification({
-    title: '操作成功',
-    message: '编辑成功',
-    type: 'success',
+const submitForm = async (ref: FormInstance) => {
+  await ref.validate(async (valid, _fields) => {
+    if (valid) {
+      await POST<null>('/sys/user/save', form)
+      ElNotification({
+        title: '操作成功',
+        message: '编辑成功',
+        type: 'success',
+      })
+      clearForm()
+      dialogVisible.value = false
+      pageNumber.value = 1
+      await queryUsers()
+    }
   })
-  resetForm()
-  dialogVisible.value = false
-  pageNumber.value = 1
-  queryUsers()
 }
 
-const resetForm = () => {
+const resetForm = (ref: FormInstance) => ref.resetFields()
+
+const clearForm = () => {
   form.id = undefined
   form.username = ''
   form.nickname = ''
@@ -151,12 +160,12 @@ const resetForm = () => {
 const handleSizeChange = async (val: number) => {
   pageSize.value = val
   pageNumber.value = 1
-  queryUsers()
+  await queryUsers()
 }
 
 const handleCurrentChange = async (val: number) => {
   pageNumber.value = val
-  queryUsers()
+  await queryUsers()
 }
 
 (async () => {
@@ -239,11 +248,10 @@ const handleCurrentChange = async (val: number) => {
 
   <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
     layout="->, total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber"
-    :page-size="pageSize" :total="totalElements">
-  </el-pagination>
+    :page-size="pageSize" :total="totalElements" />
 
   <el-dialog v-model="dialogVisible" title="新增/编辑" width="600px" :before-close="handleClose">
-    <el-form :model="form" :rules="formRules">
+    <el-form :model="form" :rules="formRules" ref="formRef">
 
       <el-form-item label="用户名" label-width="100px" prop="username" class="username">
         <el-input v-model="form.username" maxlength="30" />
@@ -284,8 +292,8 @@ const handleCurrentChange = async (val: number) => {
       </el-form-item>
 
       <el-form-item label-width="400px">
-        <el-button type="primary" @click="submitForm">提交</el-button>
-        <el-button @click="resetForm">Reset</el-button>
+        <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
+        <el-button @click="resetForm(formRef!)">Reset</el-button>
       </el-form-item>
     </el-form>
 

@@ -2,7 +2,7 @@
 import { reactive, ref, toRefs } from 'vue'
 import type { PageAdapter, SearchFavors } from '@/type/entity'
 import { GET, POST } from '@/http/http'
-import type { FormRules } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 
 const input = ref('')
 const loading = ref(false)
@@ -15,7 +15,9 @@ let page: PageAdapter<SearchFavors> = reactive({
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
-const formRules = reactive<FormRules<FavorForm>>({
+const formRef = ref<FormInstance>()
+
+const formRules = reactive<FormRules<Form>>({
   title: [
     { required: true, message: '请输入标题', trigger: 'blur' }
   ],
@@ -30,7 +32,7 @@ const formRules = reactive<FormRules<FavorForm>>({
   ]
 })
 
-const form: FavorForm = reactive({
+const form: Form = reactive({
   id: undefined,
   title: '',
   description: '',
@@ -38,7 +40,7 @@ const form: FavorForm = reactive({
   status: 0
 })
 
-type FavorForm = {
+type Form = {
   id?: string
   title: string
   description: string
@@ -66,7 +68,7 @@ const clearSearchFavors = async () => {
 }
 
 const infoHandleClose = () => {
-  resetForm()
+  clearForm()
   dialogVisible.value = false
 }
 
@@ -74,7 +76,7 @@ const to = (url: string) => {
   window.location.href = url
 }
 
-const editFavor = async (id: string) => {
+const handleEdit = async (id: string) => {
   const data = await GET<SearchFavors>(`/search/website/info/${id}`)
   form.id = data.id
   form.title = data.title
@@ -84,11 +86,11 @@ const editFavor = async (id: string) => {
   dialogVisible.value = true
 }
 
-const delFavor = async (id: string) => {
+const handleDelete = async (id: string) => {
   await GET<null>(`/search/website/delete/${id}`)
   ElNotification({
     title: '操作成功',
-    message: '编辑成功',
+    message: '删除成功',
     type: 'success',
   })
   setTimeout(() => {
@@ -96,29 +98,35 @@ const delFavor = async (id: string) => {
   }, 1000)
 }
 
-const submitForm = async () => {
-  await POST<null>('/search/website/save', form)
-  ElNotification({
-    title: '操作成功',
-    message: '编辑成功',
-    type: 'success',
+const submitForm = async (ref: FormInstance) => {
+  await ref.validate(async (valid, _fields) => {
+    if (valid) {
+      await POST<null>('/search/website/save', form)
+      ElNotification({
+        title: '操作成功',
+        message: '编辑成功',
+        type: 'success',
+      })
+      clearForm()
+      dialogVisible.value = false
+      pageNumber.value = 1
+      input.value = ''
+      setTimeout(() => {
+        searchFavors()
+      }, 1000)
+    }
   })
-  resetForm()
-  dialogVisible.value = false
-  pageNumber.value = 1
-  input.value = ''
-  setTimeout(() => {
-    searchFavors()
-  }, 1000)
 }
 
-const resetForm = () => {
+const clearForm = () => {
   form.id = undefined
   form.title = ''
   form.description = ''
   form.link = ''
   form.status = 0
 }
+
+const resetForm = (ref: FormInstance) => ref.resetFields()
 
 const handleCurrentChange = async (pageNo: number) => {
   pageNumber.value = pageNo
@@ -148,8 +156,8 @@ const handleCurrentChange = async (pageNo: number) => {
     <el-card shadow="never" class="wrapper-content" v-for="favor in content">
       <template #header>
         <el-link @click="to(favor.link)">{{ favor.title }}</el-link>
-        <el-button class="icon-button" link @click="editFavor(favor.id)">编辑</el-button>
-        <el-popconfirm title="确认删除?" @confirm="delFavor(favor.id)">
+        <el-button class="icon-button" link @click="handleEdit(favor.id)">编辑</el-button>
+        <el-popconfirm title="确认删除?" @confirm="handleDelete(favor.id)">
           <template #reference>
             <el-button class="icon-button" link>删除</el-button>
           </template>
@@ -171,12 +179,11 @@ const handleCurrentChange = async (pageNo: number) => {
     </el-card>
   </div>
   <el-pagination @current-change="handleCurrentChange" layout="prev, pager, next" :current-page="pageNumber"
-    :page-size="pageSize" :total="totalElements">
-  </el-pagination>
+    :page-size="pageSize" :total="totalElements" />
 
 
   <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="infoHandleClose">
-    <el-form :model="form" :rules="formRules" label-width="100px">
+    <el-form :model="form" :rules="formRules" label-width="100px" ref="formRef">
       <el-form-item label="标题" prop="title">
         <el-input v-model="form.title"></el-input>
       </el-form-item>
@@ -197,8 +204,8 @@ const handleCurrentChange = async (pageNo: number) => {
       </el-form-item>
 
       <el-form-item label-width="400px">
-        <el-button type="primary" @click="submitForm">Submit</el-button>
-        <el-button @click="resetForm">Reset</el-button>
+        <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
+        <el-button @click="resetForm(formRef!)">Reset</el-button>
       </el-form-item>
     </el-form>
 

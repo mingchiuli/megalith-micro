@@ -34,7 +34,7 @@ const delBatch = async () => {
     type: 'success',
   })
   multipleSelection.value = []
-  queryBLogs()
+  await queryBLogs()
 }
 
 const handleDelete = async (row: BlogSys) => {
@@ -46,7 +46,7 @@ const handleDelete = async (row: BlogSys) => {
     message: '删除成功',
     type: 'success',
   })
-  queryBLogs()
+  await queryBLogs()
 }
 
 const handleEdit = (row: BlogSys) => {
@@ -217,8 +217,7 @@ const handleCurrentChange = async (val: number) => {
 
   <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
     layout="->, total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber"
-    :page-size="pageSize" :total="totalElements">
-  </el-pagination>
+    :page-size="pageSize" :total="totalElements" />
 </template>
 
 <style scoped>
