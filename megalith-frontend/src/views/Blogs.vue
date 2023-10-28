@@ -99,7 +99,7 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
       <el-timeline>
         <el-skeleton animated :loading="loading" :throttle="300">
           <template #template>
-            <el-skeleton v-for=" in page.pageSize" :rows="5" :loading="loading" animated />
+            <el-skeleton v-for=" in page.pageSize" :rows="5" animated />
           </template>
           <template #default>
             <el-timeline-item v-for="blog in content" :timestamp="blog.created" placement="top"

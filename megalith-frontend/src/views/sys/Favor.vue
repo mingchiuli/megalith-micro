@@ -152,31 +152,37 @@ const handleCurrentChange = async (pageNo: number) => {
     </el-form-item>
   </el-form>
 
-  <div class="wrapper" v-loading="loading">
-    <el-card shadow="never" class="wrapper-content" v-for="favor in content">
-      <template #header>
-        <el-link @click="to(favor.link)">{{ favor.title }}</el-link>
-        <el-button class="icon-button" link @click="handleEdit(favor.id)">编辑</el-button>
-        <el-popconfirm title="确认删除?" @confirm="handleDelete(favor.id)">
-          <template #reference>
-            <el-button class="icon-button" link>删除</el-button>
-          </template>
-        </el-popconfirm>
+  <div class="wrapper">
+    <el-skeleton animated :loading="loading" :throttle="300">
+      <template #template>
+        <el-skeleton v-for=" in page.pageSize" :rows="3" animated />
       </template>
-
-      <div>
-        <div class="text item">
-          {{ favor.description }}
-        </div>
-        <div class="text item">创建时间: {{ favor.created }}</div>
-        <div class="text item">
-          <div v-if="favor.score !== 'NaN'">{{ "Search Scores: " + favor.score }}</div>
-          <p v-if="favor.highlight?.title" v-for="title in favor.highlight.title" v-html="'标题: ' + title"></p>
-          <p v-if="favor.highlight?.description" v-for="description in favor.highlight.description"
-            v-html="'摘要: ' + description"></p>
-        </div>
-      </div>
-    </el-card>
+      <template #default>
+        <el-card shadow="never" class="wrapper-content" v-for="favor in content">
+          <template #header>
+            <el-link @click="to(favor.link)">{{ favor.title }}</el-link>
+            <el-button class="icon-button" link @click="handleEdit(favor.id)">编辑</el-button>
+            <el-popconfirm title="确认删除?" @confirm="handleDelete(favor.id)">
+              <template #reference>
+                <el-button class="icon-button" link>删除</el-button>
+              </template>
+            </el-popconfirm>
+          </template>
+          <div>
+            <div class="text item">
+              {{ favor.description }}
+            </div>
+            <div class="text item">创建时间: {{ favor.created }}</div>
+            <div class="text item">
+              <div v-if="favor.score !== 'NaN'">{{ "Search Scores: " + favor.score }}</div>
+              <p v-if="favor.highlight?.title" v-for="title in favor.highlight.title" v-html="'标题: ' + title"></p>
+              <p v-if="favor.highlight?.description" v-for="description in favor.highlight.description"
+                v-html="'摘要: ' + description"></p>
+            </div>
+          </div>
+        </el-card>
+      </template>
+    </el-skeleton>
   </div>
   <el-pagination @current-change="handleCurrentChange" layout="prev, pager, next" :current-page="pageNumber"
     :page-size="pageSize" :total="totalElements" />

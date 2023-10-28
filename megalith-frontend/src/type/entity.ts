@@ -55,7 +55,7 @@ export interface UserSys {
   role: string
 }
 
-export interface UserMenu {
+export interface MenuSys {
   menuId: number
   parentId: number
   title: string
@@ -65,7 +65,7 @@ export interface UserMenu {
   icon: string
   orderNum: number
   status: number
-  children: UserMenu[]
+  children: MenuSys[]
 }
 
 export interface RoleSys {
