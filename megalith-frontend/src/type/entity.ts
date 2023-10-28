@@ -55,6 +55,19 @@ export interface UserSys {
   role: string
 }
 
+export interface UserMenu {
+  menuId: number
+  parentId: number
+  title: string
+  name: string
+  url: string
+  type: number
+  icon: string
+  orderNum: number
+  status: number
+  children: UserMenu[]
+}
+
 export interface RoleSys {
   id: number
   name: string

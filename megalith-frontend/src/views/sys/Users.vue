@@ -16,7 +16,6 @@ const page: PageAdapter<UserSys> = reactive({
   "pageNumber": 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
-
 const formRules = reactive<FormRules<Form>>({
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' }
@@ -40,9 +39,7 @@ const formRules = reactive<FormRules<Form>>({
     { required: true, message: '请选择状态', trigger: 'blur' }
   ],
 })
-
 const formRef = ref<FormInstance>()
-
 type Form = {
   id?: number
   username: string
@@ -54,7 +51,6 @@ type Form = {
   status: number
   role: string
 }
-
 const form: Form = reactive({
   id: undefined,
   username: '',
@@ -170,7 +166,7 @@ const handleCurrentChange = async (val: number) => {
 
 (async () => {
   await queryUsers()
-  const roles = await GET<RoleSys[]>('/sys/role/valid/all')
+  const roles = await GET<RoleSys[]>('/sys/user/role/valid/all')
   roleList.value = roles
 })()
 </script>

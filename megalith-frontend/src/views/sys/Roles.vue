@@ -1,13 +1,19 @@
 <script lang="ts" setup>
 import { GET, POST } from '@/http/http'
 import type { PageAdapter, RoleSys } from '@/type/entity'
-import type { FormInstance, FormRules } from 'element-plus';
+import type { ElTree, FormInstance, FormRules } from 'element-plus';
 import { reactive, ref, toRefs } from 'vue'
 
 const dialogVisible = ref(false)
 const delBtlStatus = ref(false)
 const loading = ref(false)
 const multipleSelection = ref<RoleSys[]>([])
+const defaultProps = { children: 'children', label: 'title' }
+const formRef = ref<FormInstance>()
+const menuDialogVisible = ref(false)
+const menuTreeRef = ref<InstanceType<typeof ElTree>>()
+let permTreeData = ref<PermForm[]>([])
+let menuId = ref<number>()
 const page: PageAdapter<RoleSys> = reactive({
   "content": [],
   "totalElements": 0,
@@ -15,7 +21,6 @@ const page: PageAdapter<RoleSys> = reactive({
   "pageNumber": 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
-
 const formRules = reactive<FormRules<Form>>({
   name: [
     { required: true, message: '请输入名字', trigger: 'blur' }
@@ -30,9 +35,6 @@ const formRules = reactive<FormRules<Form>>({
     { required: true, message: '请选择状态', trigger: 'blur' }
   ]
 })
-
-const formRef = ref<FormInstance>()
-
 type Form = {
   id?: number
   name: string
@@ -40,7 +42,6 @@ type Form = {
   remark: string
   status: number
 }
-
 const form: Form = reactive({
   id: undefined,
   name: '',
@@ -48,6 +49,25 @@ const form: Form = reactive({
   remark: '',
   status: 0
 })
+type PermForm = {
+  roleId: number
+  menuId: number
+  title: string
+  check: boolean
+  children: PermForm[]
+}
+
+const submitPermFormHandle = async (ref: InstanceType<typeof ElTree>) => {
+  const ids = ref.getCheckedKeys()
+  await POST<null>(`/sys/role/perm/${menuId.value}`, ids)
+  ElNotification({
+    title: '操作成功',
+    message: '编辑成功',
+    type: 'success',
+  })
+  permTreeData.value = []
+  menuDialogVisible.value = false
+}
 
 const resetForm = (ref: FormInstance) => ref.resetFields()
 
@@ -81,6 +101,11 @@ const infoHandleClose = () => {
   dialogVisible.value = false
 }
 
+const menuHandleClose = () => {
+  permTreeData.value = []
+  menuDialogVisible.value = false
+}
+
 const handleEdit = async (row: RoleSys) => {
   const data = await GET<RoleSys>(`/sys/role/info/${row.id}`)
   form.id = data.id
@@ -91,8 +116,11 @@ const handleEdit = async (row: RoleSys) => {
   dialogVisible.value = true
 }
 
-const handlePermission = (row: RoleSys) => {
-
+const handleMenu = async (row: RoleSys) => {
+  const data = await GET<PermForm[]>(`/sys/role/perm/${row.id}`)
+  permTreeData.value = data
+  menuId.value = row.id
+  menuDialogVisible.value = true
 }
 
 const delBatch = async () => {
@@ -106,7 +134,7 @@ const delBatch = async () => {
     message: '批量删除成功',
     type: 'success',
   })
-  multipleSelection.value = []
+  multipleSelection.value.splice(0)
   await queryRoles()
 }
 
@@ -126,6 +154,23 @@ const handleSelectionChange = (val: RoleSys[]) => {
 const handleCurrentChange = async (pageNo: number) => {
   pageNumber.value = pageNo
   await queryRoles()
+}
+
+const getCheckKeys = (permForms: PermForm[]): Array<number> => {
+  const ids: Array<number> = []
+  getKeysIds(permForms, ids)
+  return ids
+}
+
+const getKeysIds = (permForms: PermForm[], ids: Array<number>) => {
+  permForms.forEach(item => {
+    if (item.check) {
+      ids.push(item.menuId)
+    }
+    if (item.children) {
+      getKeysIds(item.children, ids)
+    }
+  })
 }
 
 const handleDelete = async (row: RoleSys) => {
@@ -200,7 +245,7 @@ const handleDelete = async (row: RoleSys) => {
     <el-table-column label="操作" fixed="right" width="250" align="center">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
-        <el-button size="small" type="warning" @click="handlePermission(scope.row)">路由权限</el-button>
+        <el-button size="small" type="warning" @click="handleMenu(scope.row)">路由权限</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
           <template #reference>
             <el-button size="small" type="danger">删除</el-button>
@@ -239,7 +284,17 @@ const handleDelete = async (row: RoleSys) => {
         <el-button @click="resetForm(formRef!)">Reset</el-button>
       </el-form-item>
     </el-form>
+  </el-dialog>
 
+  <el-dialog title="路由权限" v-model="menuDialogVisible" width="600px" :before-close="menuHandleClose">
+    <el-form>
+
+      <el-tree :data="permTreeData" show-checkbox :default-expand-all=true node-key="menuId" :props="defaultProps"
+        :default-checked-keys="getCheckKeys(permTreeData)" ref="menuTreeRef" />
+      <el-form-item label-width="450px">
+        <el-button type="primary" @click="submitPermFormHandle(menuTreeRef!)">Submit</el-button>
+      </el-form-item>
+    </el-form>
   </el-dialog>
 </template>
 
