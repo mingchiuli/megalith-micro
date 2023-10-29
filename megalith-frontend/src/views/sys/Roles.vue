@@ -69,8 +69,6 @@ const submitPermFormHandle = async (ref: InstanceType<typeof ElTree>) => {
   menuDialogVisible.value = false
 }
 
-const resetForm = (ref: FormInstance) => ref.resetFields()
-
 const clearForm = () => {
   form.id = undefined
   form.name = ''
@@ -96,7 +94,7 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
-const infoHandleClose = () => {
+const handleClose = () => {
   clearForm()
   dialogVisible.value = false
 }
@@ -242,7 +240,7 @@ const handleDelete = async (row: RoleSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="操作" fixed="right" width="250" align="center">
+    <el-table-column label="操作" width="250" align="center">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
         <el-button size="small" type="warning" @click="handleMenu(scope.row)">路由权限</el-button>
@@ -258,7 +256,7 @@ const handleDelete = async (row: RoleSys) => {
   <el-pagination @current-change="handleCurrentChange" layout="->, prev, pager, next" :current-page="pageNumber"
     :page-size="pageSize" :total="totalElements" />
 
-  <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="infoHandleClose">
+  <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="handleClose">
     <el-form :model="form" :rules="formRules" label-width="100px" ref="formRef">
       <el-form-item label="名字" prop="name">
         <el-input v-model="form.name"></el-input>
@@ -281,7 +279,6 @@ const handleDelete = async (row: RoleSys) => {
 
       <el-form-item label-width="400px">
         <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
-        <el-button @click="resetForm(formRef!)">Reset</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>

@@ -59,6 +59,7 @@ export interface MenuSys {
   menuId: number
   parentId: number
   title: string
+  component: string
   name: string
   url: string
   type: number

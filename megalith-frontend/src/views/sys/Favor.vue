@@ -126,8 +126,6 @@ const clearForm = () => {
   form.status = 0
 }
 
-const resetForm = (ref: FormInstance) => ref.resetFields()
-
 const handleCurrentChange = async (pageNo: number) => {
   pageNumber.value = pageNo
   await searchFavors()
@@ -211,7 +209,6 @@ const handleCurrentChange = async (pageNo: number) => {
 
       <el-form-item label-width="400px">
         <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
-        <el-button @click="resetForm(formRef!)">Reset</el-button>
       </el-form-item>
     </el-form>
 

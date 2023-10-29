@@ -202,7 +202,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="操作" fixed="right" width="250" align="center">
+    <el-table-column label="操作" width="250" align="center">
       <template #default="scope">
         <el-button size="small" type="primary" @click="handleCheck(scope.row)">查看</el-button>
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>

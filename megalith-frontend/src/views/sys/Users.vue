@@ -90,7 +90,6 @@ const handleDelete = async (row: UserSys) => {
   queryUsers()
 }
 
-//这个地方，一定要数据先填入，再改表单可见性，否则reset会变成清空表单数据
 const handleEdit = async (row: UserSys) => {
   const data = await GET<UserSys>(`/sys/user/info/${row.id}`)
   form.id = data.id
@@ -138,8 +137,6 @@ const submitForm = async (ref: FormInstance) => {
     }
   })
 }
-
-const resetForm = (ref: FormInstance) => ref.resetFields()
 
 const clearForm = () => {
   form.id = undefined
@@ -229,7 +226,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="操作" fixed="right" width="180" align="center">
+    <el-table-column label="操作" width="180" align="center">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
@@ -287,9 +284,8 @@ const handleCurrentChange = async (val: number) => {
         </el-radio-group>
       </el-form-item>
 
-      <el-form-item label-width="400px">
+      <el-form-item label-width="450px">
         <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
-        <el-button @click="resetForm(formRef!)">Reset</el-button>
       </el-form-item>
     </el-form>
 

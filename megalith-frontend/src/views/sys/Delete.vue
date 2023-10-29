@@ -124,7 +124,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="操作" fixed="right" width="120" align="center">
+    <el-table-column label="操作" width="120" align="center">
       <template #default="scope">
         <el-button size="small" type="primary" @click="handleResume(scope.row)">恢复</el-button>
       </template>

@@ -15,8 +15,6 @@ const md = ref<any>()
 const route = useRoute()
 const blogId = route.query.id
 const uploadInstance = ref<UploadInstance>()
-const render = ref(false)
-
 
 const formRef = ref<FormInstance>()
 
@@ -69,8 +67,6 @@ const loadEditContent = async () => {
       })
     }
   }
-  //为了reset
-  render.value = true
 }
 
 const imgAdd = async (idx: number, file: File) => {
@@ -156,7 +152,7 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
 </script>
 
 <template>
-  <div class="father" v-if="render">
+  <div class="father">
     <el-form :model="form" :rules="formRules" ref="formRef">
       <el-form-item class="title" prop="title">
         <el-input v-model="form.title" placeholder="标题" maxlength="10" />
@@ -210,7 +206,6 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
 
       <div class="submit-button">
         <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
-        <el-button type="primary" @click="resetForm(formRef!)">Reset</el-button>
       </div>
     </el-form>
 
