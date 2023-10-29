@@ -15,7 +15,6 @@ const props = {
   disabled: (data: MenuSys) => data.status !== 0
 }
 
-
 type Form = {
   menuId?: number
   parentId: number
@@ -156,7 +155,7 @@ const submitForm = async (ref: FormInstance) => {
     </el-form-item>
   </el-form>
 
-  <el-table v-loading="loading" :data="content" row-key="menuId" border stripe default-expand-all	>
+  <el-table v-loading="loading" :data="content" row-key="menuId" border stripe default-expand-all>
 
     <el-table-column prop="title" label="标题" sortable align="center" width="150" />
     <el-table-column prop="icon" label="图标" align="center" width="150" />
@@ -181,8 +180,8 @@ const submitForm = async (ref: FormInstance) => {
     </el-table-column>
     <el-table-column prop="icon" label="操作" align="center" width="250">
       <template #default="scope">
-        <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
-        <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
+        <el-button size="small" type="success" @click="handleEdit(scope.row)" v-if="scope.row.menuId !== 0">编辑</el-button>
+        <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)" v-if="scope.row.menuId !== 0">
           <template #reference>
             <el-button size="small" type="danger">删除</el-button>
           </template>
