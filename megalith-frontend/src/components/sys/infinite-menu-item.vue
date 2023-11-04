@@ -25,7 +25,6 @@ const selectMenu = (item: Tab) => {
     </template>
   </el-menu-item>
 
-
   <!-- 有子节点，使用 el-sub-menu 渲染 -->
   <el-sub-menu v-else :index="String(item.menuId)">
     <template #title>
