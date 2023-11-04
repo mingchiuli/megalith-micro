@@ -65,7 +65,7 @@ const catalogue = ref<InstanceType<typeof Catalogue>>();
 </script>
 
 <template>
-  <Catalogue v-if="loadingCatalogue" ref="catalogue" v-model:loadingCatalogue="loadingCatalogue"></Catalogue>
+  <catalogue v-if="loadingCatalogue" ref="catalogue" v-model:loadingCatalogue="loadingCatalogue"></catalogue>
   <div class="exhibit-content">
     <div class="exhibit-title">{{ blog.title }}</div>
     <el-avatar class="exhibit-avatar" :src="blog.avatar" />
@@ -82,9 +82,9 @@ const catalogue = ref<InstanceType<typeof Catalogue>>();
           code-style="androidstudio" />
       </template>
     </el-skeleton>
-    <Discuss></Discuss>
+    <discuss></discuss>
   </div>
-  <Footer />
+  <my-footer />
 </template>
 
 <style lang="less">

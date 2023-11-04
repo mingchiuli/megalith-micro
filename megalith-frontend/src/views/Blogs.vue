@@ -85,12 +85,12 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
 
 <template>
   <div class="front">
-    <Login v-model:loginDialogVisible="loginDialogVisible"></Login>
-    <ReadToken v-model:readTokenDialogVisible="readTokenDialogVisible" v-model:blogId="blogId"></ReadToken>
+    <blog-login v-model:loginDialogVisible="loginDialogVisible"></blog-login>
+    <read-token v-model:readTokenDialogVisible="readTokenDialogVisible" v-model:blogId="blogId"></read-token>
     <div class="search-father">
       <el-button class="search-button" @click="searchDialogVisible = true" type="success">Search</el-button>
-      <Search ref="searchRef" @transSearchData="fillSearchData" @clear="getPage(1)" v-model:keywords="keywords"
-        v-model:year="year" v-model:loading="loading" v-model:searchDialogVisible="searchDialogVisible"></Search>
+      <search ref="searchRef" @transSearchData="fillSearchData" @clear="getPage(1)" v-model:keywords="keywords"
+        v-model:year="year" v-model:loading="loading" v-model:searchDialogVisible="searchDialogVisible"></search>
     </div>
     <el-text size="large">共{{ page.totalElements }}篇</el-text>
     <el-link type="success" size="large" class="door" v-if="login" @click="router.push({name: tabStore().editableTabsValue ? tabStore().editableTabsValue : 'system'})">进入后台</el-link>
@@ -122,7 +122,7 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
         @current-change="getPage" />
     </div>
   </div>
-  <Footer />
+  <my-footer />
 </template>
 
 <style scoped>

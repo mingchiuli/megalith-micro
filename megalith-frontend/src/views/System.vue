@@ -5,12 +5,12 @@
 <template>
   <el-container>
     <el-aside width="collapse">
-      <SideMenu></SideMenu>
+      <side-menu />
     </el-aside>
     <el-container>
       <el-header height="100px">
-        <BackHeader></BackHeader>
-        <HeaderTabs></HeaderTabs>
+        <back-header />
+        <header-tabs />
       </el-header>
       <el-main>
         <div class="content">
@@ -18,7 +18,7 @@
         </div>
       </el-main>
       <el-footer height="50px">
-        <Footer />
+        <my-footer />
       </el-footer>
     </el-container>
   </el-container>

@@ -10,9 +10,9 @@ const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
     <div id="into-button-father">
       <div class="into-button">
         <el-button id="into-button-github" circle :icon="Download" @click="toGithub"></el-button>
-        <RouterLink to='/blogs'>
+        <router-link to='/blogs'>
           <el-button circle :icon="Notebook"></el-button>
-        </RouterLink>
+        </router-link>
       </div>
     </div>
     <el-avatar shape="square" :size="200" :src=avatar fit="cover" />
@@ -31,9 +31,9 @@ const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
         All codes for this program can be obtained in GitHub. If you want to get them, please click the left button.<br />
       </el-text>
     </el-card>
-    <Stat></Stat>
+    <stat></stat>
   </div>
-  <Footer />
+  <my-footer />
 </template>
 
 <style>

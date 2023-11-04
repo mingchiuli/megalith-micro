@@ -135,7 +135,7 @@ defineExpose(
     :before-close="searchBeforeClose">
     <template #default>
       <div class="dialog-content">
-        <Hot></Hot>
+        <hot></hot>
         <div v-if="year.length">年份：{{ year }}</div>
         <el-autocomplete v-model="keywords" :fetch-suggestions="searchAbstractAsync" placeholder="Please input"
           @select="handleSelect" :trigger-on-focus="false" clearable @keyup.enter="searchAllInfo(keywords)"
@@ -149,7 +149,7 @@ defineExpose(
           </template>
         </el-autocomplete>
       </div>
-      <Years v-model:year="year" v-model:yearDialogVisible="yearDialogVisible" @close="yearsCloseEvent"></Years>
+      <years v-model:year="year" v-model:yearDialogVisible="yearDialogVisible" @close="yearsCloseEvent"></years>
     </template>
     <template #footer>
       <div class="dialog-footer">

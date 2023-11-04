@@ -33,7 +33,7 @@ export const tabStore = defineStore('tabStore', {
           name: tab.name
         })
       }
-      this.editableTabsValue = tab.name
+      this.editableTabsValue  = tab.name
     },
   },
 })

@@ -16,7 +16,7 @@ let loadingCatalogue = computed({
   },
   set(value) {
     emit('update:loadingCatalogue', value)
-  },
+  }
 })
 
 let data = ref<CatalogueLabel[]>()

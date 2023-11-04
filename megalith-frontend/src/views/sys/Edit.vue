@@ -113,7 +113,7 @@ const submitForm = async (ref: FormInstance) => {
         type: 'success',
       })
       router.push({
-        name: "systemBlogs"
+        name: "system-blogs"
       })
     }
   })
@@ -145,7 +145,7 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
 
 (async () => {
   await loadEditContent()
-  tabStore().addTab({ title: '编辑博客', name: 'systemEdit' })
+  tabStore().addTab({ title: '编辑博客', name: 'system-edit' })
 })()
 </script>
 

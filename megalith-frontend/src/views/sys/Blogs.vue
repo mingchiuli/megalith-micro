@@ -60,7 +60,7 @@ const handleDelete = async (row: BlogSys) => {
 
 const handleEdit = (row: BlogSys) => {
   router.push({
-    name: 'systemEdit',
+    name: 'system-edit',
     query: {
       id: row.id
     }
@@ -130,7 +130,7 @@ const handleCurrentChange = async (val: number) => {
 }
 
 (async () => {
-  tabStore().addTab({ title: '日志管理', name: 'systemBlogs' })
+  tabStore().addTab({ title: '日志管理', name: 'system-blogs' })
   await queryBLogs()
 })()
 </script>
