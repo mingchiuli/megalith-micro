@@ -226,7 +226,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="操作" width="180" align="center">
+    <el-table-column fixed="right" label="操作" width="180" align="center">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">

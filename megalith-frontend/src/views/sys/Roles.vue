@@ -240,7 +240,7 @@ const handleDelete = async (row: RoleSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="操作" width="250" align="center">
+    <el-table-column fixed="right" label="操作" width="250" align="center">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
         <el-button size="small" type="warning" @click="handleMenu(scope.row)">路由权限</el-button>

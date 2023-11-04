@@ -178,7 +178,7 @@ const submitForm = async (ref: FormInstance) => {
         <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">Disable</el-tag>
       </template>
     </el-table-column>
-    <el-table-column prop="icon" label="操作" align="center" width="250">
+    <el-table-column fixed="right" prop="icon" label="操作" align="center" width="250">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)" v-if="scope.row.menuId !== 0">编辑</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)" v-if="scope.row.menuId !== 0">

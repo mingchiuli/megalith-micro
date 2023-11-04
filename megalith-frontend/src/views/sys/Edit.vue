@@ -119,8 +119,6 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
-const resetForm = (ref: FormInstance) => ref.resetFields()
-
 const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
   uploadInstance.value!.clearFiles()
   const file = files[0] as UploadRawFile
