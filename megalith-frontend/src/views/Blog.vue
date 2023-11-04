@@ -4,7 +4,6 @@ import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import Catalogue from '@/components/Catalogue.vue'
 import { markdownToHtml } from '@/utils/markdown'
-import editor from 'mavon-editor'
 import Clipboard from 'clipboard'
 import { useRoute } from 'vue-router'
 
@@ -54,7 +53,7 @@ const catalogue = ref<InstanceType<typeof Catalogue>>();
     data = await GET<BlogExhibit>(`/public/blog/info/${blogId}`)
   }
   blog.title = data.title
-  blog.content = '<blockquote> <p>' + data.description + '</p> </blockquote>' + markdownToHtml(editor.mavonEditor, data.content)
+  blog.content = '<blockquote> <p>' + data.description + '</p> </blockquote>' + markdownToHtml(data.content)
   blog.avatar = data.avatar
   blog.readCount = data.readCount
   blog.nickname = data.nickname
@@ -89,7 +88,7 @@ const catalogue = ref<InstanceType<typeof Catalogue>>();
 </template>
 
 <style lang="less">
-@import '../assets/hljs.less';
+@import '@/assets/hljs.less';
 
 .exhibit-content {
   max-width: 40rem;

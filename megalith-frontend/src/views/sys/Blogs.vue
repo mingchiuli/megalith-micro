@@ -2,14 +2,11 @@
 import { reactive, ref, toRefs } from 'vue'
 import { GET, POST } from '@/http/http'
 import type { BlogSys, PageAdapter } from '@/type/entity'
-import editor from 'mavon-editor'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
-import type markdownIt from 'markdown-it'
 import { tabStore } from '@/stores/store'
+import { markdownToHtmlSimp } from '@/utils/markdown'
 
-const mavonEditor: any = editor.mavonEditor
-const md: markdownIt = mavonEditor.getMarkdownIt()
 const input = ref('')
 const multipleSelection = ref<BlogSys[]>([])
 const delBtlStatus = ref(false)
@@ -161,7 +158,7 @@ const handleCurrentChange = async (val: number) => {
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000" popper-style="height: 300px;overflow: auto;">
           <template #default>
-            <span v-html=md.render(scope.row.content)></span>
+            <span v-html=markdownToHtmlSimp(scope.row.content) />
           </template>
           <template #reference>
             <span>{{ scope.row.content.length > 30 ? scope.row.content.substring(0, 30) + '...' : scope.row.content
@@ -221,6 +218,7 @@ const handleCurrentChange = async (val: number) => {
 </template>
 
 <style scoped>
+
 .search-input {
   width: 200px;
 }

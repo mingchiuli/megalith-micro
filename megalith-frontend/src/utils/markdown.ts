@@ -1,8 +1,9 @@
 import hljs, { type HighlightResult } from 'highlight.js'
 import type MarkdownIt from 'markdown-it'
+import editor from 'mavon-editor'
 
-export const markdownToHtml = (mavonEditor: any, content: string): string => {
-
+export const markdownToHtml = (content: string): string => {
+  const mavonEditor: any = editor.mavonEditor;
   const md: MarkdownIt = mavonEditor.getMarkdownIt()
   return md.set({
     highlight: (str: string, lang: string) => {
@@ -29,5 +30,11 @@ export const markdownToHtml = (mavonEditor: any, content: string): string => {
       return `<pre class="hljs"><code>${html}</code>${linesNum}</pre><textarea style="position: absolute;top: -9999px;left: -9999px;z-index: -9999;" id="copy${codeIndex}">${str}</textarea>`
     }
   }).render(content)
+}
+
+export const markdownToHtmlSimp = (content: string): string => {
+  const mavonEditor: any = editor.mavonEditor;
+  const md: MarkdownIt = mavonEditor.getMarkdownIt()
+  return md.render(content)
 }
 
