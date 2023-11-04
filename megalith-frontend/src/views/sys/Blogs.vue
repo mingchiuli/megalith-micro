@@ -8,9 +8,11 @@ import { tabStore } from '@/stores/store'
 import { markdownToHtmlSimp } from '@/utils/markdown'
 
 const input = ref('')
+const readToken = ref('')
 const multipleSelection = ref<BlogSys[]>([])
 const delBtlStatus = ref(false)
 const loading = ref(false)
+const passwordVisible = ref(false)
 const page: PageAdapter<BlogSys> = reactive({
   "content": [],
   "totalElements": 0,
@@ -18,6 +20,16 @@ const page: PageAdapter<BlogSys> = reactive({
   "pageNumber": 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
+
+const copyReadToken = () => {
+  navigator.clipboard.writeText(readToken.value)
+  ElNotification({
+    title: '复制成功',
+    message: '请妥善保管',
+    type: 'success',
+  })
+  passwordVisible.value = false
+}
 
 const delBatch = async () => {
   const args: number[] = []
@@ -53,6 +65,12 @@ const handleEdit = (row: BlogSys) => {
       id: row.id
     }
   })
+}
+
+const handlePassword = async (row: BlogSys) => {
+  const token = await GET<string>(`/sys/blog/lock/${row.id}`)
+  readToken.value = token
+  passwordVisible.value = true
 }
 
 const handleCheck = (row: BlogSys) => {
@@ -156,7 +174,8 @@ const handleCurrentChange = async (val: number) => {
 
     <el-table-column label="内容" width="350" align="center">
       <template #default="scope">
-        <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000" popper-style="height: 300px;overflow: auto;">
+        <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000"
+          popper-style="height: 300px;overflow: auto;">
           <template #default>
             <span v-html=markdownToHtmlSimp(scope.row.content) />
           </template>
@@ -199,10 +218,17 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column fixed="right" label="操作" width="250" align="center">
+    <el-table-column fixed="right" label="操作" width="300" align="center">
       <template #default="scope">
         <el-button size="small" type="primary" @click="handleCheck(scope.row)">查看</el-button>
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
+
+        <el-popconfirm title="确定复制?" @confirm="copyReadToken">
+          <template #reference>
+            <el-button size="small" type="warning" @click="handlePassword(scope.row)">密码</el-button>
+          </template>
+        </el-popconfirm>
+
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
           <template #reference>
             <el-button size="small" type="danger">删除</el-button>
@@ -218,7 +244,6 @@ const handleCurrentChange = async (val: number) => {
 </template>
 
 <style scoped>
-
 .search-input {
   width: 200px;
 }

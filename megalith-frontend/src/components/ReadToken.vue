@@ -40,6 +40,7 @@ const submit = async () => {
 }
 
 const handleClose = () => {
+  input.value = ''
   visible.value = false
 }
 </script>

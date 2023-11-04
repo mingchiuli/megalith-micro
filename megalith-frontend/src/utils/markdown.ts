@@ -34,7 +34,6 @@ export const markdownToHtml = (content: string): string => {
 
 export const markdownToHtmlSimp = (content: string): string => {
   const mavonEditor: any = editor.mavonEditor;
-  const md: MarkdownIt = mavonEditor.getMarkdownIt()
-  return md.render(content)
+  return mavonEditor.getMarkdownIt().render(content)
 }
 
