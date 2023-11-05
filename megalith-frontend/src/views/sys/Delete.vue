@@ -117,7 +117,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="状态" width="70" align="center">
+    <el-table-column label="状态" width="90" align="center">
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === 0" type="success">公开</el-tag>
         <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">隐藏</el-tag>

@@ -197,7 +197,7 @@ const handleCurrentChange = async (val: number) => {
     <el-table-column label="邮箱" width="150" align="center" prop="email" />
     <el-table-column label="手机号" width="150" align="center" prop="phone" />
 
-    <el-table-column label="状态" width="70" align="center">
+    <el-table-column label="状态" width="90" align="center">
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === 0" type="success">启用</el-tag>
         <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">停用</el-tag>

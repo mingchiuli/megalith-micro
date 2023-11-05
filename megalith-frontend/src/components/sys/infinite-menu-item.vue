@@ -33,7 +33,7 @@ const selectMenu = (item: Tab) => {
       </el-icon>
       <span>{{ item.title }}</span>
     </template>
-    <!-- 循环渲染 -->
+    <!-- 递归渲染 -->
     <infinite-menu-item v-for="sub in item.children" :item="sub" />
   </el-sub-menu>
 </template>

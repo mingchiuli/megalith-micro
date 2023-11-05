@@ -15,7 +15,7 @@ const client = new Client({
 })
 
 const connect = () => {
-  client.onConnect = (_frame) => {
+  client.onConnect = _frame => {
     client.subscribe('/logs/log', res => {
       let str = res.body
       if (str.includes('INFO')) {
@@ -32,7 +32,7 @@ const connect = () => {
   }
   client.activate()
 
-  client.onStompError = (frame) => {
+  client.onStompError = frame => {
     ElNotification.error({
       title: 'Broker reported error: ' + frame.headers['message'],
       message: 'Additional details: ' + frame.body,
