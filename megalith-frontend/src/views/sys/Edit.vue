@@ -94,6 +94,11 @@ const uploadFile = async (file: UploadRawFile) => {
       url: url
     })
     form.link = url
+    ElNotification({
+    title: '操作成功',
+    message: '图片上传成功',
+    type: 'success',
+  })
   }, 2000)
 }
 
