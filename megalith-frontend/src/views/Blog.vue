@@ -53,6 +53,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
     data = await GET<BlogExhibit>(`/public/blog/info/${blogId}`)
   }
   blog.title = data.title
+  document.title = data.title
   blog.content = '<blockquote> <p>' + data.description + '</p> </blockquote>' + markdownToHtml(data.content)
   blog.avatar = data.avatar
   blog.readCount = data.readCount

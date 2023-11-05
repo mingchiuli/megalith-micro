@@ -45,7 +45,7 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach(async () => {
+router.beforeEach(async (to, _from, next) => {
   if (localStorage.getItem('accessToken')) {
     loginStateStore().login = true
   }
@@ -69,6 +69,11 @@ router.beforeEach(async () => {
     router.addRoute(systemRoute)
     routeStore().hasRoute = true
   }
+
+  if (to.meta.title) {
+    document.title = to.meta.title as string
+  }
+  next()
 })
 
 //构建路由
