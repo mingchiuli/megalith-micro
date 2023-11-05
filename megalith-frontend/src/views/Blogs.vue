@@ -5,12 +5,12 @@ import { reactive, toRefs, ref } from 'vue'
 import { loginStateStore, tabStore } from '@/stores/store'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
-import Search from '@/components/Search.vue'
+import search from '@/components/search.vue'
 
 const loading = ref(true)
 const loginDialogVisible = ref(false)
 const searchDialogVisible = ref(false)
-const searchRef = ref<InstanceType<typeof Search>>()
+const searchRef = ref<InstanceType<typeof search>>()
 const year = ref('')
 const keywords = ref('')
 const readTokenDialogVisible = ref(false)

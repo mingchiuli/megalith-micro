@@ -37,6 +37,10 @@ const router = createRouter({
       path: '/blog/:id',
       name: 'blog',
       component: () => import('@/views/blog.vue')
+    },
+    {
+      path: '/:catchAll(.*)',
+      component: () => import('@/views/404.vue')
     }
   ]
 })

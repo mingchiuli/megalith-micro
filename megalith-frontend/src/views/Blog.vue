@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onErrorCaptured, reactive, ref, nextTick } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
-import Catalogue from '@/components/Catalogue.vue'
+import catalogue from '@/components/catalogue.vue'
 import { markdownToHtml } from '@/utils/markdown'
 import Clipboard from 'clipboard'
 import { useRoute } from 'vue-router'
@@ -43,7 +43,7 @@ onErrorCaptured((_err, _instance, info): boolean => {
   return true
 })
 
-const catalogue = ref<InstanceType<typeof Catalogue>>();
+const catalogueRef = ref<InstanceType<typeof catalogue>>();
 
 (async () => {
   let data: BlogExhibit
@@ -65,7 +65,7 @@ const catalogue = ref<InstanceType<typeof Catalogue>>();
 </script>
 
 <template>
-  <catalogue v-if="loadingCatalogue" ref="catalogue" v-model:loadingCatalogue="loadingCatalogue"></catalogue>
+  <catalogue v-if="loadingCatalogue" ref="catalogueRef" v-model:loadingCatalogue="loadingCatalogue"></catalogue>
   <div class="exhibit-content">
     <div class="exhibit-title">{{ blog.title }}</div>
     <el-avatar class="exhibit-avatar" :src="blog.avatar" />
