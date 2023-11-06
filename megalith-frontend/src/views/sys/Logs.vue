@@ -1,9 +1,7 @@
 <script lang="ts" setup>
-import { onUnmounted, ref } from 'vue'
+import { onUnmounted } from 'vue'
 import { Client } from '@stomp/stompjs';
 
-const msg = ref('')
-const loading = ref(false)
 let timer: NodeJS.Timeout
 
 const client = new Client({
@@ -29,9 +27,6 @@ const connect = () => {
         p.style.color = 'darkred'
       } else {
         p.style.color = 'orange'
-      }
-      if (!loading.value) {
-        loading.value = false
       }
     })
   }
@@ -85,7 +80,7 @@ onUnmounted(() => {
         <el-button class="SLButton" link @click="stop">Stop</el-button>
       </div>
     </div>
-    <div v-html="msg" id="parent" class="text-item" v-loading="loading"></div>
+    <div id="parent" class="text-item"></div>
   </el-card>
 </template>
 
