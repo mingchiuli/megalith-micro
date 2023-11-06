@@ -155,10 +155,10 @@ const handleCurrentChange = async (val: number) => {
 
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
-    <el-table-column type="selection" width="55" />
+    <el-table-column type="selection" />
 
-    <el-table-column label="标题" width="150" align="center" prop="title" />
-    <el-table-column label="摘要" width="200" align="center">
+    <el-table-column label="标题" align="center" prop="title" />
+    <el-table-column label="摘要" align="center">
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="top" width="auto">
           <template #default>
@@ -172,7 +172,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="内容" width="350" align="center">
+    <el-table-column label="内容" align="center">
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000"
           popper-style="height: 300px;overflow: auto;">
@@ -187,7 +187,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="创建时间" width="180" align="center">
+    <el-table-column label="创建时间" width="180" align="center" >
       <template #default="scope">
         <div style="display: flex; align-items: center">
           <el-icon>
@@ -198,20 +198,20 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="阅读统计" width="150" align="center">
+    <el-table-column label="阅读统计" align="center" >
       <template #default="scope">
         <div>总阅读数: {{ scope.row.readCount }}</div>
         <div>本周阅读数: {{ scope.row.recentReadCount }}</div>
       </template>
     </el-table-column>
 
-    <el-table-column label="封面" width="70" align="center">
+    <el-table-column label="封面" align="center">
       <template #default="scope">
         <el-avatar shape="square" size="default" :src="scope.row.link" />
       </template>
     </el-table-column>
 
-    <el-table-column label="状态" width="90" align="center">
+    <el-table-column label="状态" align="center">
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === 0" type="success">公开</el-tag>
         <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">隐藏</el-tag>

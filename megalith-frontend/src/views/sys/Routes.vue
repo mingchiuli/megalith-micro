@@ -157,10 +157,10 @@ const submitForm = async (ref: FormInstance) => {
 
   <el-table v-loading="loading" :data="content" row-key="menuId" border stripe default-expand-all>
 
-    <el-table-column prop="title" label="标题" sortable align="center" width="150" />
-    <el-table-column prop="icon" label="图标" align="center" width="150" />
+    <el-table-column prop="title" label="标题" sortable width="100" align="center" />
+    <el-table-column prop="icon" label="图标" align="center" />
 
-    <el-table-column prop="type" label="类型" align="center" width="150">
+    <el-table-column prop="type" label="类型" align="center" >
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.type === 0">分类</el-tag>
         <el-tag size="small" v-else-if="scope.row.type === 1" type="success">菜单</el-tag>
@@ -168,11 +168,11 @@ const submitForm = async (ref: FormInstance) => {
       </template>
     </el-table-column>
 
-    <el-table-column prop="url" label="URL" align="center" width="150" />
-    <el-table-column prop="component" label="组件URI" align="center" width="150" />
-    <el-table-column prop="name" label="组件名" align="center" width="150" />
-    <el-table-column prop="orderNum" label="排序" align="center" width="150" />
-    <el-table-column prop="status" label="状态" align="center" width="150">
+    <el-table-column prop="url" label="URL" align="center" />
+    <el-table-column prop="component" label="组件URI" align="center" />
+    <el-table-column prop="name" label="组件名" align="center" />
+    <el-table-column prop="orderNum" label="排序" align="center" />
+    <el-table-column prop="status" label="状态" align="center" >
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === 0" type="success">Normal</el-tag>
         <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">Disable</el-tag>

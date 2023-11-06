@@ -184,11 +184,11 @@ const handleCurrentChange = async (val: number) => {
 
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
-    <el-table-column type="selection" width="55" />
-    <el-table-column label="用户名" width="150" align="center" prop="username" />
-    <el-table-column label="昵称" width="150" align="center" prop="nickname" />
+    <el-table-column type="selection" />
+    <el-table-column label="用户名" align="center" prop="username" />
+    <el-table-column label="昵称" align="center" prop="nickname" />
 
-    <el-table-column label="头像" width="70" align="center">
+    <el-table-column label="头像" align="center">
       <template #default="scope">
         <el-avatar size="default" :src="scope.row.avatar" />
       </template>
@@ -197,7 +197,7 @@ const handleCurrentChange = async (val: number) => {
     <el-table-column label="邮箱" width="150" align="center" prop="email" />
     <el-table-column label="手机号" width="150" align="center" prop="phone" />
 
-    <el-table-column label="状态" width="90" align="center">
+    <el-table-column label="状态" align="center">
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === 0" type="success">启用</el-tag>
         <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">停用</el-tag>

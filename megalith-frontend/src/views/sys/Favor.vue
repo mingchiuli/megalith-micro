@@ -239,7 +239,7 @@ const handleCurrentChange = async (pageNo: number) => {
 }
 
 .wrapper-content {
-  width: 350px;
+  width: 20rem;
   margin: 20px 0;
 }
 

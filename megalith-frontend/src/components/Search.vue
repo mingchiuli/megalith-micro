@@ -134,9 +134,9 @@ defineExpose(
   <el-dialog v-model="searchDialogVisible" center close-on-press-escape fullscreen align-center
     :before-close="searchBeforeClose">
     <template #default>
-      <div class="dialog-content">
-        <hot></hot>
-        <div v-if="year.length">年份：{{ year }}</div>
+      <hot class="dialog-hot"></hot>
+      <div class="dialog-year" v-if="year.length">年份：{{ year }}</div>
+      <div class="dialog-autocomplete">
         <el-autocomplete v-model="keywords" :fetch-suggestions="searchAbstractAsync" placeholder="Please input"
           @select="handleSelect" :trigger-on-focus="false" clearable @keyup.enter="searchAllInfo(keywords)"
           ref="refAutocomplete" @clear="clearSearch">
@@ -149,6 +149,7 @@ defineExpose(
           </template>
         </el-autocomplete>
       </div>
+
       <years v-model:year="year" v-model:yearDialogVisible="yearDialogVisible" @close="yearsCloseEvent"></years>
     </template>
     <template #footer>
@@ -161,13 +162,17 @@ defineExpose(
 </template>
 
 <style scoped>
-.dialog-content {
-  margin: 0 auto;
+.dialog-year {
+  text-align: center;
+  margin-top: 5px;
+}
+
+.dialog-autocomplete {
+  margin: 30px auto 0 auto;
   max-width: max-content;
 }
 
-.el-overlay-dialog .dialog-content {
-  text-align: center;
-  margin-top: 20px
+.dialog-hot {
+  margin: 0 auto;
 }
 </style>

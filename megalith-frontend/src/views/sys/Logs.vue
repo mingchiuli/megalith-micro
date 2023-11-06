@@ -16,14 +16,19 @@ const client = new Client({
 
 const connect = () => {
   client.onConnect = _frame => {
+    const parent = document.getElementById('parent')!
     client.subscribe('/logs/log', res => {
       let str = res.body
+      let p = document.createElement('p')
+      const log = document.createTextNode(res.body)
+      p.appendChild(log)
+      parent.appendChild(p)
       if (str.includes('INFO')) {
-        msg.value += '<p style="color: green">' + res.body + '</p>'
+        p.style.color = 'green'
       } else if (str.includes('ERROR')) {
-        msg.value += '<p style="color: darkred">' + res.body + '</p>'
+        p.style.color = 'darkred'
       } else {
-        msg.value += '<p style="color: orange">' + res.body + '</p>'
+        p.style.color = 'orange'
       }
       if (!loading.value) {
         loading.value = false
@@ -80,7 +85,7 @@ onUnmounted(() => {
         <el-button class="SLButton" link @click="stop">Stop</el-button>
       </div>
     </div>
-    <div v-html="msg" class="text-item" v-loading="loading"></div>
+    <div v-html="msg" id="parent" class="text-item" v-loading="loading"></div>
   </el-card>
 </template>
 

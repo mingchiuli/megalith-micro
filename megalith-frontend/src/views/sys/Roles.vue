@@ -205,13 +205,13 @@ const handleDelete = async (row: RoleSys) => {
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
 
-    <el-table-column type="selection" width="55" />
-    <el-table-column label="名字" width="150" align="center" prop="name" />
-    <el-table-column label="唯一编码" width="200" align="center" prop="code" />
+    <el-table-column type="selection" />
+    <el-table-column label="名字" align="center" prop="name" />
+    <el-table-column label="唯一编码" align="center" prop="code" />
 
-    <el-table-column label="描述" width="350" align="center" prop="remark" />
+    <el-table-column label="描述" align="center" prop="remark" />
 
-    <el-table-column label="状态" width="90" align="center">
+    <el-table-column label="状态" align="center">
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === 0" type="success">公开</el-tag>
         <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">隐藏</el-tag>
