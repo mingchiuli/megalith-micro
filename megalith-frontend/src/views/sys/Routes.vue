@@ -157,7 +157,7 @@ const submitForm = async (ref: FormInstance) => {
 
   <el-table v-loading="loading" :data="content" row-key="menuId" border stripe default-expand-all>
 
-    <el-table-column prop="title" label="标题" sortable width="100" align="center" />
+    <el-table-column prop="title" label="标题" sortable width="150" align="center" />
     <el-table-column prop="icon" label="图标" align="center" />
 
     <el-table-column prop="type" label="类型" align="center" >
