@@ -1,14 +1,15 @@
 <script lang="ts" setup>
-
 </script>
 
 <template>
-  <el-container>
-    <el-aside width="collapse">
-      <side-menu />
+  <el-container style="height: 100vh">
+    <el-aside width="200">
+      <el-scrollbar>
+        <side-menu />
+      </el-scrollbar>
     </el-aside>
     <el-container>
-      <el-header height="100px">
+      <el-header height="100">
         <back-header />
         <header-tabs />
       </el-header>
@@ -17,7 +18,7 @@
           <router-view />
         </div>
       </el-main>
-      <el-footer height="50px">
+      <el-footer>
         <my-footer />
       </el-footer>
     </el-container>
@@ -25,19 +26,11 @@
 </template>
 
 <style scoped>
-
-.content {
-  padding: 0 10px;
-}
-
 .el-header {
-  padding: 0;
-  margin-bottom: 20px;
+  --el-header-padding: 0
 }
 
-.el-main {
-  padding: 0;
-  height: 550px;
+.el-footer {
+  --el-footer-height: 100
 }
-
 </style>
