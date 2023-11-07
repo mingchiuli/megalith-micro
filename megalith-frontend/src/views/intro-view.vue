@@ -31,7 +31,7 @@ const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
         All codes for this program can be obtained in GitHub. If you want to get them, please click the left button.<br />
       </el-text>
     </el-card>
-    <stat></stat>
+    <stat-item />
   </div>
   <my-footer-item />
 </template>

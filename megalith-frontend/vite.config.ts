@@ -31,12 +31,12 @@ export default defineConfig(({ mode }) => {
       port: 1919,
       proxy: {
         '/api': {
-          target: 'http://81.68.192.120:8081',	//接口地址
+          target: 'http://120.0.0.1:8081',	//接口地址
           changeOrigin: true,
           rewrite: (path: string) => path.replace(/api/, '')
         },
         '/ws': {
-          target: 'ws://81.68.192.120:8081',
+          target: 'ws://120.0.0.1:8081',
           changeOrigin: true,
           rewrite: (path: string) => path.replace(/wsapi/, '')
         }
