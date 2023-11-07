@@ -78,7 +78,7 @@ router.beforeEach(async (to, _from, next) => {
 
 //构建路由
 const buildRoute = (menu: Menu, systemRoute: RouteRecordRaw): RouteRecordRaw => {
-  let route = menuToRoute(menu)
+  const route = menuToRoute(menu)
   
   menu.children?.forEach(childMenu => {
     const childRoute = buildRoute(childMenu, systemRoute)
