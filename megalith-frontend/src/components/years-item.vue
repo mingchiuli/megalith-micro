@@ -47,7 +47,7 @@ const chooseYear = (y: number | string) => {
 
 <template>
   <el-dialog v-model="yearDialogVisible" width="50%" append-to-body title="Archieve">
-    <el-button type="primary" v-for="year in years" @click="chooseYear(year)">{{ year }}</el-button>
+    <el-button type="primary" v-for="year in years" v-bind:key="year" @click="chooseYear(year)">{{ year }}</el-button>
     <el-button type="primary" @click="chooseYear('')">清除</el-button>
   </el-dialog>
 </template>

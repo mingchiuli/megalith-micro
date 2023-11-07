@@ -24,7 +24,7 @@ const to = (id: number) => router.push({
     <div class="title">
       <el-text>本周热读</el-text>
     </div>
-    <div class="description" v-for="hot in hots" >
+    <div class="description" v-for="(hot, key) in hots" v-bind:key="key" >
       <el-link @click="to(hot.id)">{{ hot.title }}: {{ hot.readCount }}</el-link>
       <br/>
     </div>

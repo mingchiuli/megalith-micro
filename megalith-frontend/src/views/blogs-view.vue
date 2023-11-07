@@ -5,7 +5,7 @@ import { reactive, toRefs, ref } from 'vue'
 import { loginStateStore, tabStore } from '@/stores/store'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
-import search from '@/components/search.vue'
+import search from '@/components/search-item.vue'
 
 const loading = ref(true)
 const loginDialogVisible = ref(false)
@@ -85,48 +85,52 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
 
 <template>
   <div class="front">
-    <blog-login v-model:loginDialogVisible="loginDialogVisible"></blog-login>
-    <read-token v-model:readTokenDialogVisible="readTokenDialogVisible" v-model:blogId="blogId"></read-token>
+    <blog-login-item v-model:loginDialogVisible="loginDialogVisible"></blog-login-item>
+    <read-token-item v-model:readTokenDialogVisible="readTokenDialogVisible" v-model:blogId="blogId"></read-token-item>
     <div class="search-father">
       <el-button class="search-button" @click="searchDialogVisible = true" type="success">Search</el-button>
-      <search ref="searchRef" @transSearchData="fillSearchData" @clear="getPage(1)" v-model:keywords="keywords"
-        v-model:year="year" v-model:loading="loading" v-model:searchDialogVisible="searchDialogVisible"></search>
+      <search-item ref="searchRef" @transSearchData="fillSearchData" @clear="getPage(1)" v-model:keywords="keywords"
+        v-model:year="year" v-model:loading="loading" v-model:searchDialogVisible="searchDialogVisible"></search-item>
     </div>
     <el-text size="large">共{{ page.totalElements }}篇</el-text>
-    <el-link type="success" size="large" class="door" v-if="login" @click="router.push({name: tabStore().editableTabsValue ? tabStore().editableTabsValue : 'system'})">进入后台</el-link>
+    <el-link type="success" size="large" class="door" v-if="login"
+      @click="router.push({ name: tabStore().editableTabsValue ? tabStore().editableTabsValue : 'system' })">进入后台</el-link>
     <br />
     <div class="description">
       <el-timeline>
         <el-skeleton animated :loading="loading" :throttle="300">
           <template #template>
-            <el-skeleton v-for=" in page.pageSize" :rows="5" animated />
+            <el-skeleton v-for="i in page.pageSize" v-bind:key="i" :rows="5" animated />
           </template>
           <template #default>
-            <el-timeline-item v-for="blog in content" :timestamp="blog.created" placement="top"
+            <el-timeline-item v-for="blog in content" v-bind:key="blog.id" :timestamp="blog.created" placement="top"
               :color="'#0bbd87'">
               <el-card shadow="never">
                 <el-image v-if="blog.link" :key="blog.link" :src="blog.link" lazy></el-image>
                 <p v-if="blog.score">{{ "Search Scores: " + blog.score }}</p>
                 <el-link class="title" @click="to(blog.id)">{{ blog.title }}</el-link>
                 <p v-if="!blog.highlight">{{ blog.description }}</p>
-                <p v-if="blog.highlight?.title" v-for="title in blog.highlight.title" v-html="'标题: ' + title"></p>
-                <p v-if="blog.highlight?.description" v-for="description in blog.highlight.description"
-                  v-html="'摘要: ' + description"></p>
-                <p v-if="blog.highlight?.content" v-for="content in blog.highlight.content" v-html="'内容: ' + content"></p>
+                <template v-if="blog.highlight?.title">
+                  <p v-for="(title, key) in blog.highlight.title" v-bind:key="key" v-html="'标题: ' + title"></p>
+                </template>
+                <template v-if="blog.highlight?.description">
+                  <p v-for="(description, key) in blog.highlight.description" v-bind:key="key" v-html="'摘要: ' + description"></p>
+                </template>
+                <template v-if="blog.highlight?.content">
+                  <p v-for="(content, key) in blog.highlight.content" v-bind:key="key" v-html="'内容: ' + content"></p>
+                </template>
               </el-card>
             </el-timeline-item>
           </template>
         </el-skeleton>
       </el-timeline>
-      <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize"
-        @current-change="getPage" />
+      <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize" @current-change="getPage" />
     </div>
   </div>
-  <my-footer />
+  <my-footer-item />
 </template>
 
 <style scoped>
-
 .door {
   width: fit-content;
   margin-left: 5px;

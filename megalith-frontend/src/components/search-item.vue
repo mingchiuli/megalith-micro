@@ -134,23 +134,28 @@ defineExpose(
   <el-dialog v-model="searchDialogVisible" center close-on-press-escape fullscreen align-center
     :before-close="searchBeforeClose">
     <template #default>
-      <hot class="dialog-hot"></hot>
+      <hot-item class="dialog-hot"></hot-item>
       <div class="dialog-year" v-if="year.length">年份：{{ year }}</div>
       <div class="dialog-autocomplete">
         <el-autocomplete v-model="keywords" :fetch-suggestions="searchAbstractAsync" placeholder="Please input"
           @select="handleSelect" :trigger-on-focus="false" clearable @keyup.enter="searchAllInfo(keywords)"
           ref="refAutocomplete" @clear="clearSearch">
           <template #default="{ item }">
-            <div class="value" v-if="item.value.title" v-for="title in item.value.title" v-html="'标题：' + title"></div>
-            <div class="value" v-if="item.value.description" v-for="description in item.value.description"
-              v-html="'摘要：' + description"></div>
-            <div class="value" v-if="item.value.content" v-for="content in item.value.content" v-html="'内容：' + content">
-            </div>
+            <template v-if="item.value.title">
+              <div class="value" v-for="(title, key) in item.value.title" v-bind:key="key" v-html="'标题：' + title"></div>
+            </template>
+            <template v-if="item.value.description">
+              <div class="value" v-for="(description, key) in item.value.description" v-bind:key="key"
+                v-html="'摘要：' + description"></div>
+            </template>
+            <template v-if="item.value.content">
+              <div class="value" v-for="(content, key) in item.value.content" v-bind:key="key" v-html="'内容：' + content"></div>
+            </template>
           </template>
         </el-autocomplete>
       </div>
 
-      <years v-model:year="year" v-model:yearDialogVisible="yearDialogVisible" @close="yearsCloseEvent"></years>
+      <years-item v-model:year="year" v-model:yearDialogVisible="yearDialogVisible" @close="yearsCloseEvent"></years-item>
     </template>
     <template #footer>
       <div class="dialog-footer">

@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onErrorCaptured, reactive, ref, nextTick } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
-import catalogue from '@/components/catalogue.vue'
+import catalogue from '@/components/catalogue-item.vue'
 import { markdownToHtml } from '@/utils/markdown'
 import Clipboard from 'clipboard'
 import { useRoute } from 'vue-router'
@@ -66,7 +66,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
 </script>
 
 <template>
-  <catalogue v-if="loadingCatalogue" ref="catalogueRef" v-model:loadingCatalogue="loadingCatalogue"></catalogue>
+  <catalogue-item v-if="loadingCatalogue" ref="catalogueRef" v-model:loadingCatalogue="loadingCatalogue"></catalogue-item>
   <div class="exhibit-content">
     <div class="exhibit-title">{{ blog.title }}</div>
     <el-avatar class="exhibit-avatar" :src="blog.avatar" />
@@ -83,9 +83,9 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
           code-style="androidstudio" />
       </template>
     </el-skeleton>
-    <discuss></discuss>
+    <discuss-item />
   </div>
-  <my-footer />
+  <my-footer-item />
 </template>
 
 <style lang="less">

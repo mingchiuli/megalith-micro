@@ -13,7 +13,7 @@ const http = axios.create({
 http.interceptors.request.use(async config => {
   if (config.url !== '/token/refresh' && loginStateStore().login) {
     const accessToken = localStorage.getItem('accessToken') as string
-    let tokenArray = accessToken.split(".")
+    const tokenArray = accessToken.split(".")
     const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
     const now = Math.floor(new Date().getTime() / 1000)
     //ten minutes

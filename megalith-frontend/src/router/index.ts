@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-import Intro from '@/views/intro.vue'
+import Intro from '@/views/intro-view.vue'
 import { GET } from '@/http/http'
 import type { Menu } from '@/type/entity'
 import { routeStore, menuStore, loginStateStore } from '@/stores/store'
@@ -20,7 +20,7 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: () => import('@/views/blogs.vue'),
+      component: () => import('@/views/blogs-view.vue'),
       meta: {
         title: '登录'
       }
@@ -28,7 +28,7 @@ const router = createRouter({
     {
       path: '/blogs',
       name: 'blogs',
-      component: () => import('@/views/blogs.vue'),
+      component: () => import('@/views/blogs-view.vue'),
       meta: {
         title: '内容列表'
       }
@@ -36,11 +36,11 @@ const router = createRouter({
     {
       path: '/blog/:id',
       name: 'blog',
-      component: () => import('@/views/blog.vue')
+      component: () => import('@/views/blog-view.vue')
     },
     {
       path: '/:catchAll(.*)',
-      component: () => import('@/views/404.vue')
+      component: () => import('@/views/404-view.vue')
     }
   ]
 })
@@ -53,9 +53,9 @@ router.beforeEach(async (to, _from, next) => {
   if (!routeStore().hasRoute && loginStateStore().login) {
     const menus = await GET<Menu[]>('/sys/menu/nav')
     const systemRoute = {
-      path: '/sys',
+      path: '/backend',
       name: 'system',
-      component: () => import('@/views/system.vue'),
+      component: () => import('@/views/system-view.vue'),
       children: []
     } as RouteRecordRaw
 

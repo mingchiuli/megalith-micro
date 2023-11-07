@@ -153,10 +153,10 @@ const handleCurrentChange = async (pageNo: number) => {
   <div class="wrapper">
     <el-skeleton animated :loading="loading" :throttle="300">
       <template #template>
-        <el-skeleton v-for=" in page.pageSize" :rows="3" animated />
+        <el-skeleton v-for="i in page.pageSize" v-bind:key="i" :rows="3" animated />
       </template>
       <template #default>
-        <el-card shadow="never" class="wrapper-content" v-for="favor in content">
+        <el-card shadow="never" class="wrapper-content" v-for="favor in content" v-bind:key="favor.id">
           <template #header>
             <el-link @click="to(favor.link)">{{ favor.title }}</el-link>
             <el-button class="icon-button" link @click="handleEdit(favor.id)">编辑</el-button>
@@ -173,9 +173,13 @@ const handleCurrentChange = async (pageNo: number) => {
             <div class="text item">创建时间: {{ favor.created }}</div>
             <div class="text item">
               <div v-if="favor.score !== 'NaN'">{{ "Search Scores: " + favor.score }}</div>
-              <p v-if="favor.highlight?.title" v-for="title in favor.highlight.title" v-html="'标题: ' + title"></p>
-              <p v-if="favor.highlight?.description" v-for="description in favor.highlight.description"
-                v-html="'摘要: ' + description"></p>
+              <template v-if="favor.highlight?.title">
+                <p v-for="(title, key) in favor.highlight.title" v-bind:key="key" v-html="'标题: ' + title"></p>
+              </template>
+              <template v-if="favor.highlight?.description">
+                <p v-for="(description, key) in favor.highlight.description" v-bind:key="key" v-html="'摘要: ' + description"></p>
+              </template>
+
             </div>
           </div>
         </el-card>

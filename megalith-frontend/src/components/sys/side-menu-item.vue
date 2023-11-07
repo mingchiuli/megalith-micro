@@ -15,7 +15,7 @@ const reverseCollapse = () => isCollapse.value = !isCollapse.value
   <el-button class="collapse-button" circle :icon="ArrowRight" v-if="isCollapse" @click="reverseCollapse"></el-button>
   <el-menu :default-active="tabStore().editableTabsValue" class="el-menu-vertical" :collapse="isCollapse"
     active-text-color="#ffd04b">
-    <infinite-menu-item v-for="item in menuList" :item="item" />
+    <infinite-menu-item v-for="item in menuList" v-bind:key="item.menuId" :item="item" />
   </el-menu>
 </template>
 

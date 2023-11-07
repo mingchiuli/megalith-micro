@@ -34,7 +34,7 @@ const selectMenu = (item: Tab) => {
       <span>{{ item.title }}</span>
     </template>
     <!-- 递归渲染 -->
-    <infinite-menu-item v-for="sub in item.children" :item="sub" />
+    <infinite-menu-item v-for="sub in item.children" v-bind:key="sub.menuId" :item="sub" />
   </el-sub-menu>
 </template>
 

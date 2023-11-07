@@ -2,16 +2,16 @@
 </script>
 
 <template>
-  <el-container style="height: 100vh">
+  <el-container style="height: 100vh;">
     <el-aside width="200">
       <el-scrollbar>
-        <side-menu />
+        <side-menu-item />
       </el-scrollbar>
     </el-aside>
     <el-container>
       <el-header height="100">
-        <back-header />
-        <header-tabs />
+        <back-header-item />
+        <header-tabs-item />
       </el-header>
       <el-main>
         <div class="content">
@@ -19,7 +19,7 @@
         </div>
       </el-main>
       <el-footer>
-        <my-footer />
+        <my-footer-item />
       </el-footer>
     </el-container>
   </el-container>

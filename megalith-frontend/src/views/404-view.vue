@@ -6,7 +6,7 @@ const value = ref(new Date())
 <template>
   <el-card class="hint" shadow="never"> 404 NOT FOUND </el-card>
   <el-calendar class="calendar" v-model="value" />
-  <my-footer />
+  <my-footer-item />
 </template>
 
 <style scoped>
