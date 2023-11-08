@@ -175,7 +175,7 @@ defineExpose({
   min-height: 100px;
   position: fixed;
   width: 200px;
-  margin-left: 75%;
+  margin-left: 80%;
   margin-top: 30px;
   overflow-y: auto;
   overflow-x: auto;
