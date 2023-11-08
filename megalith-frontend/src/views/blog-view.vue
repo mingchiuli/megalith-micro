@@ -21,7 +21,7 @@ const blogId = route.params.id
 const loading = ref(true)
 const showCatalogue = ref(true)
 const loadingCatalogue = ref(true)
-if (document.body.clientWidth < 1400) {
+if (document.body.clientWidth < 900) {
   showCatalogue.value = false
 }
 
