@@ -267,7 +267,7 @@ const handleDelete = async (row: RoleSys) => {
       </el-form-item>
 
       <el-form-item label="描述" prop="remark">
-        <el-input v-model="form.remark" placeholder="以https/http开头"></el-input>
+        <el-input v-model="form.remark" placeholder="文字描述"></el-input>
       </el-form-item>
 
       <el-form-item label="状态" prop="status">
