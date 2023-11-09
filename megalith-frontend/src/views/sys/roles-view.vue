@@ -58,8 +58,10 @@ type PermForm = {
 }
 
 const submitPermFormHandle = async (ref: InstanceType<typeof ElTree>) => {
+  //全选和半选都要包含
   const ids = ref.getCheckedKeys()
-  await POST<null>(`/sys/role/perm/${menuId.value}`, ids)
+  const halfCheckedIds = ref.getHalfCheckedKeys()
+  await POST<null>(`/sys/role/perm/${menuId.value}`, ids.concat(halfCheckedIds))
   ElNotification({
     title: '操作成功',
     message: '编辑成功',
