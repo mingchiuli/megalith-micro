@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus';
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
 
 const props = defineProps<{
@@ -155,7 +155,14 @@ const debounce = (fn: Function, interval = 100) => {
     }, interval)
   }
 }
-window.addEventListener('scroll', debounce(roll))
+
+onMounted(() => {
+  window.addEventListener('scroll', debounce(roll))
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', debounce(roll))
+})
 
 defineExpose({
   render
