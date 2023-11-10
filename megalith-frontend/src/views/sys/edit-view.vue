@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { useRoute } from 'vue-router'
@@ -13,7 +13,8 @@ const dialogImageUrl = ref('')
 const disabled = ref(false)
 const md = ref<any>()
 const route = useRoute()
-const blogId = route.query.id
+let blogId = route.query.id
+
 const uploadInstance = ref<UploadInstance>()
 
 const formRef = ref<FormInstance>()
@@ -36,6 +37,15 @@ const form: Form = reactive({
   link: ''
 })
 
+let count = 0
+watch(form, async () => {
+  count++
+  if (count >= 5) {
+    count = 0
+    await POST<null>('/sys/blog/tmp/save', form)
+  }
+})
+
 const formRules = reactive<FormRules<Form>>({
   title: [
     { required: true, message: '请输入标题', trigger: 'blur' }
@@ -52,26 +62,30 @@ const formRules = reactive<FormRules<Form>>({
 })
 
 const loadEditContent = async () => {
-  if (blogId) {
-    const data = await GET<BlogEdit>(`/sys/blog/echo/${blogId}`)
-    form.title = data.title
-    form.description = data.description
-    form.content = data.content
-    form.link = data.link
-    form.status = data.status
-    form.id = data.id
-    if (data.link) {
-      fileList.value.push({
-        name: 'Cover',
-        url: data.link
-      })
-    }
+  let data
+  if (!blogId) {
+    data = await GET<BlogEdit>('/sys/blog/echo')
+  } else {
+    data = await GET<BlogEdit>(`/sys/blog/echo?blogId=${blogId}`)
+  }
+  form.title = data.title
+  form.description = data.description
+  form.content = data.content
+  form.link = data.link
+  form.status = data.status
+  form.id = data.id
+  if (data.link) {
+    fileList.value.push({
+      name: 'Cover',
+      url: data.link
+    })
   }
 }
 
 const imgAdd = async (idx: number, file: File) => {
   const formdata = new FormData()
   formdata.append('image', file)
+  formdata.append('nickname', JSON.parse(localStorage.getItem('userinfo')!).nickname)
   const url = await POST<string>('sys/blog/oss/upload', formdata)
   setTimeout(() => md.value.$img2Url(idx, url), 2000)
 }
@@ -87,6 +101,7 @@ const upload = async (image: UploadRequestOptions) => {
 const uploadFile = async (file: UploadRawFile) => {
   const formdata = new FormData()
   formdata.append('image', file)
+  formdata.append('nickname', JSON.parse(localStorage.getItem('userinfo')!).nickname)
   const url = await POST<string>('sys/blog/oss/upload', formdata)
   setTimeout(() => {
     fileList.value.push({
@@ -95,10 +110,10 @@ const uploadFile = async (file: UploadRawFile) => {
     })
     form.link = url
     ElNotification({
-    title: '操作成功',
-    message: '图片上传成功',
-    type: 'success',
-  })
+      title: '操作成功',
+      message: '图片上传成功',
+      type: 'success',
+    })
   }, 2000)
 }
 
