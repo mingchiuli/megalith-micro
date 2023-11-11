@@ -65,9 +65,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   blog.created = data.created
   loading.value = false
   await nextTick()
-  setTimeout(() => {
-    catalogueRef.value?.render()
-  }, 3000)
+  catalogueRef.value?.render()
 })()
 </script>
 
