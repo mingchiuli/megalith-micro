@@ -28,7 +28,7 @@ const treeRef = ref<InstanceType<typeof ElTree>>()
 const handleNodeClick = (data: CatalogueLabel) => window.scrollTo({ top: data.dist - rollGap, behavior: 'smooth' })
 
 const render = async () => {
-  let aLabels = document.querySelectorAll<HTMLElement>('.exhibit-content .v-note-wrapper a')
+  let aLabels = document.querySelectorAll<HTMLElement>('.exhibit-content .v-note-wrapper a[id^=_]')
   const arrs = geneCatalogueArr(aLabels)
   if (arrs.length > 0) {
     data.value = arrs
