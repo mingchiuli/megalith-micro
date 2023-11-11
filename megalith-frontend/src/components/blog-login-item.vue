@@ -72,13 +72,8 @@ const loginType = () => {
 let interval: NodeJS.Timeout
 const sendCode = async (via: string) => {
   mailButtonDisable.value = true
-  try {
-    await GET<null>(`/code/${via}?loginName=${loginInfo.username}`)
-  } catch(e) {
-    ElMessage.error('发送失败')
-    radioEmail.value = true
-    return
-  }
+  await GET<null>(`/code/${via}?loginName=${loginInfo.username}`)
+  
   ElMessage.success('发送成功')
   interval = setInterval(() => {
     mailButtonText.value = `等待${mailButtonMiles.value}秒`
