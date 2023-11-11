@@ -254,8 +254,7 @@ const handleSizeChange = async (val: number) => {
 }
 
 .el-pagination {
-  width: fit-content;
-  margin: 0 auto;
+  margin-top: 10px;
 }
 
 .text {
