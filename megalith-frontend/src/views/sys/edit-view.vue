@@ -218,7 +218,7 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <mavon-editor style="height: 100%" v-model="form.content" :subfield="false" :ishljs="true" ref="md"
+        <mavon-editor :boxShadow="false" style="height: 100%" v-model="form.content" :subfield="false" :ishljs="true" ref="md"
           code-style="androidstudio" @imgAdd="imgAdd" @imgDel="imgDel" class="content"></mavon-editor>
       </el-form-item>
 
