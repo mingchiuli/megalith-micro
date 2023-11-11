@@ -5,8 +5,8 @@ onMounted(() => {
   const clustrmaps = document.createElement('script')
   clustrmaps.type = 'text/javascript'
   clustrmaps.id = 'clustrmaps'
-  clustrmaps.src = '//cdn.clustrmaps.com/map_v2.js?cl=ffffff&w=800&t=tt&d=ar4DoR6oA5WqQNwFUItzONV-k0aTuIMK3CCTVl9Onyg&co=2d78ad&cmo=3acc3a&cmn=ff5353&ct=ffffff'
-  document.getElementById('map')?.appendChild(clustrmaps)
+  clustrmaps.src = '//cdn.clustrmaps.com/map_v2.js?cl=ffffff&w=800&t=n&d=axViRjet6dzNbyFy3Ga1gq-OT4fMp4qg_lIdwsiLNXo'
+  document.getElementById('map')!.appendChild(clustrmaps)
 })
 </script>
 
