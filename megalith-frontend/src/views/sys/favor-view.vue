@@ -50,7 +50,7 @@ type Form = {
 
 const searchFavors = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<SearchFavors>>(`/search/website/${pageNumber.value}?keyword=${input.value}`)
+  const data = await GET<PageAdapter<SearchFavors>>(`/search/website/${pageNumber.value}?keyword=${input.value}&pageSize=${pageSize.value}`)
   if (data.content.length === 0) {
     clearSearchFavors()
     searchFavors()
@@ -131,6 +131,12 @@ const handleCurrentChange = async (pageNo: number) => {
   await searchFavors()
 }
 
+const handleSizeChange = async (val: number) => {
+  pageSize.value = val
+  pageNumber.value = 1
+  await searchFavors()
+}
+
 (async () => {
   searchFavors()
 })()
@@ -186,9 +192,9 @@ const handleCurrentChange = async (pageNo: number) => {
       </template>
     </el-skeleton>
   </div>
-  <el-pagination @current-change="handleCurrentChange" layout="prev, pager, next" :current-page="pageNumber"
+  <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+    layout="->, total, sizes, prev, pager, next, jumper" :page-sizes="[9, 27, 45, 63]" :current-page="pageNumber"
     :page-size="pageSize" :total="totalElements" />
-
 
   <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="infoHandleClose">
     <el-form :model="form" :rules="formRules" label-width="100px" ref="formRef">
