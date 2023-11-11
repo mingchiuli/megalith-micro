@@ -198,7 +198,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="阅读统计" align="center" >
+    <el-table-column label="阅读统计" align="center" width="180" >
       <template #default="scope">
         <div>总阅读数: {{ scope.row.readCount }}</div>
         <div>本周阅读数: {{ scope.row.recentReadCount }}</div>
