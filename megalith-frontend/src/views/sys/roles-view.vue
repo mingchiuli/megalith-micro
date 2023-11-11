@@ -164,10 +164,10 @@ const getCheckKeys = (permForms: PermForm[]): Array<number> => {
 
 const getKeysIds = (permForms: PermForm[], ids: Array<number>) => {
   permForms.forEach(item => {
-    if (item.check) {
+    if (item.check && item.children.length === 0) {
       ids.push(item.menuId)
     }
-    if (item.children) {
+    if (item.children.length !== 0) {
       getKeysIds(item.children, ids)
     }
   })
