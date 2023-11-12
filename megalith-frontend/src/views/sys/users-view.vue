@@ -7,7 +7,7 @@ import { reactive, ref, toRefs } from 'vue'
 const multipleSelection = ref<UserSys[]>([])
 const dialogVisible = ref(false)
 const loading = ref(false)
-const delBtlStatus = ref(false)
+const delBtlStatus = ref(true)
 const roleList = ref<RoleSys[]>([])
 const page: PageAdapter<UserSys> = reactive({
   "content": [],

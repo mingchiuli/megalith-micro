@@ -5,7 +5,7 @@ import type { ElTree, FormInstance, FormRules } from 'element-plus';
 import { reactive, ref, toRefs } from 'vue'
 
 const dialogVisible = ref(false)
-const delBtlStatus = ref(false)
+const delBtlStatus = ref(true)
 const loading = ref(false)
 const multipleSelection = ref<RoleSys[]>([])
 const defaultProps = { children: 'children', label: 'title' }

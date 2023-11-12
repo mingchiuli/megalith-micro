@@ -10,7 +10,7 @@ import { markdownToHtmlSimp } from '@/utils/markdown'
 const input = ref('')
 const readToken = ref('')
 const multipleSelection = ref<BlogSys[]>([])
-const delBtlStatus = ref(false)
+const delBtlStatus = ref(true)
 const loading = ref(false)
 const passwordVisible = ref(false)
 const page: PageAdapter<BlogSys> = reactive({
