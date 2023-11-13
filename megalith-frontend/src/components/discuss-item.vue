@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import 'disqusjs/dist/styles/disqusjs.css'
 import { onMounted, ref } from 'vue'
 
 const activeName = ref('first')
