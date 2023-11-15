@@ -191,6 +191,11 @@ defineExpose({
   margin-top: 30px;
   overflow-y: auto;
   overflow-x: auto;
+  /* overflow: auto; */
+}
+
+.box:deep(.el-tree-node) {
+  overflow: auto;
 }
 
 .el-card:deep(.el-card__body) {
