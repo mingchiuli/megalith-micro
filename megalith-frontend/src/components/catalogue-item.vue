@@ -28,11 +28,13 @@ const treeRef = ref<InstanceType<typeof ElTree>>()
 const handleNodeClick = (data: CatalogueLabel) => window.scrollTo({ top: data.dist - rollGap, behavior: 'smooth' })
 
 const render = async () => {
-  let aLabels = document.querySelectorAll<HTMLElement>('.exhibit-content .v-note-wrapper a[id^=_]')
+  const aLabels = document.querySelectorAll<HTMLElement>('.exhibit-content .v-note-wrapper a[id*=_]')
   const arrs = geneCatalogueArr(aLabels)
   if (arrs.length > 0) {
     data.value = arrs
     await nextTick()
+    const anchor = document.getElementById(location.hash.substring(1))
+    window.scrollTo({ top: anchor?.getBoundingClientRect().top, behavior: 'instant' })
     allNodes = treeRef.value!.store._getAllNodes()
   } else {
     loadingCatalogue.value = false
@@ -132,9 +134,11 @@ const roll = () => {
 
     //高亮和关闭树节点的逻辑
     allNodes.forEach(node => {
-      if (temp?.id === node.data.id) {
+      const id = node.data.id
+      if (temp?.id === id) {
         node.expanded = true
-        treeRef.value?.setCurrentKey(node.data.id)
+        treeRef.value?.setCurrentKey(id)
+        history.replaceState(null, '', `#${id}`)
       } else if (node.expanded) {
         node.expanded = false
       }
@@ -142,6 +146,7 @@ const roll = () => {
     //处理顶级节点高亮不符合逻辑的问题
     if (!temp) {
       treeRef.value?.setCurrentKey(undefined)
+      history.replaceState(null, '', ' ')
     }
   }
 }
