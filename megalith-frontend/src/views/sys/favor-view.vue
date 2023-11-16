@@ -238,7 +238,7 @@ const handleSizeChange = async (val: number) => {
 
 .icon-button {
   position: relative;
-  left: 13rem;
+  left: 70%;
   padding: 3px 0;
 }
 
