@@ -165,12 +165,14 @@ const handleSizeChange = async (val: number) => {
         <el-card shadow="never" class="wrapper-content" v-for="favor in content" v-bind:key="favor.id">
           <template #header>
             <el-link @click="to(favor.link)">{{ favor.title }}</el-link>
-            <el-button class="icon-button" link @click="handleEdit(favor.id)">编辑</el-button>
-            <el-popconfirm title="确认删除?" @confirm="handleDelete(favor.id)">
-              <template #reference>
-                <el-button class="icon-button" link>删除</el-button>
-              </template>
-            </el-popconfirm>
+            <div class="icon-button">
+              <el-button link @click="handleEdit(favor.id)">编辑</el-button>
+              <el-popconfirm title="确认删除?" @confirm="handleDelete(favor.id)">
+                <template #reference>
+                  <el-button link>删除</el-button>
+                </template>
+              </el-popconfirm>
+            </div>
           </template>
           <div>
             <div class="text item">
@@ -180,10 +182,10 @@ const handleSizeChange = async (val: number) => {
             <div class="text item">
               <div v-if="favor.score !== 'NaN'">{{ "Search Scores: " + favor.score }}</div>
               <template v-if="favor.highlight?.title">
-                <p v-for="(title, key) in favor.highlight.title" v-bind:key="key" v-html="'标题: ' + title"></p>
+                <p v-for="(title, key) in favor.highlight.title" v-bind:key="key" v-html="'标题: ' + title" />
               </template>
               <template v-if="favor.highlight?.description">
-                <p v-for="(description, key) in favor.highlight.description" v-bind:key="key" v-html="'摘要: ' + description"></p>
+                <p v-for="(description, key) in favor.highlight.description" v-bind:key="key" v-html="'摘要: ' + description" />
               </template>
 
             </div>
@@ -235,7 +237,8 @@ const handleSizeChange = async (val: number) => {
 }
 
 .icon-button {
-  float: right;
+  position: relative;
+  left: 13rem;
   padding: 3px 0;
 }
 
