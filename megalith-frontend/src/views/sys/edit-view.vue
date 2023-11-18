@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onUnmounted, reactive, ref, watch } from 'vue'
+import { onBeforeMount, onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { useRoute } from 'vue-router'
@@ -78,6 +78,12 @@ const pushActionForm: PushActionForm = {
 }
 
 let version = 0
+
+const pushAllData = async () => {
+  await POST<null>('/sys/blog/push/all', form)
+  version = 0
+}
+
 watch(() => form.content, async (n, o) => {
   if (!client.connected || !n || !o) return
 
@@ -97,8 +103,7 @@ watch(() => form.content, async (n, o) => {
   }
 
   if (pushAll) {
-    await POST<null>('/sys/blog/push/all', form)
-    version = 0
+    await pushAllData()
     return
   }
 
@@ -244,6 +249,8 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   return true
 }
 
+onBeforeMount(async () => await pushAllData())
+
 onUnmounted(() => {
   clearInterval(timer)
   stop()
@@ -253,7 +260,7 @@ onUnmounted(() => {
 (async () => {
   await loadEditContent()
   //推全量
-  await POST<null>('/sys/blog/push/all', form)
+  await pushAllData()
   tabStore().addTab({ title: '编辑博客', name: 'system-edit' })
   connect()
   timer = setInterval(() => {
