@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { GET, POST } from '@/http/http'
 import type { PageAdapter, RoleSys } from '@/type/entity'
-import type { ElTree, FormInstance, FormRules } from 'element-plus';
+import type { ElTree, FormInstance, FormRules } from 'element-plus'
+import { Status } from '@/type/entity'
 import { reactive, ref, toRefs } from 'vue'
 
 const dialogVisible = ref(false)
@@ -215,8 +216,8 @@ const handleDelete = async (row: RoleSys) => {
 
     <el-table-column label="状态" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === 0" type="success">启用</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">禁用</el-tag>
+        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">启用</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">禁用</el-tag>
       </template>
     </el-table-column>
 
@@ -274,8 +275,8 @@ const handleDelete = async (row: RoleSys) => {
 
       <el-form-item label="状态" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio :label=0>启用</el-radio>
-          <el-radio :label=1>禁用</el-radio>
+          <el-radio :label=Status.NORMAL>启用</el-radio>
+          <el-radio :label=Status.BLOCK>禁用</el-radio>
         </el-radio-group>
       </el-form-item>
 

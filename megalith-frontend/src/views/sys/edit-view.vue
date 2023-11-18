@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { onBeforeMount, onUnmounted, reactive, ref, watch } from 'vue'
+import { onBeforeUnmount, onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
+import { Status } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
@@ -237,7 +238,7 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   return true
 }
 
-onBeforeMount(async () => await pushAllData())
+onBeforeUnmount(async () => await pushAllData())
 
 onUnmounted(() => {
   clearInterval(timer)
@@ -273,8 +274,8 @@ onUnmounted(() => {
 
       <el-form-item class="status" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio :label=0>公开</el-radio>
-          <el-radio :label=1>隐藏</el-radio>
+          <el-radio :label=Status.NORMAL>公开</el-radio>
+          <el-radio :label=Status.BLOCK>隐藏</el-radio>
         </el-radio-group>
       </el-form-item>
 

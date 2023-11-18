@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive, ref, toRefs } from 'vue'
 import { GET, POST } from '@/http/http'
-import type { BlogSys, PageAdapter } from '@/type/entity'
+import { Status, type BlogSys, type PageAdapter } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
 import { tabStore } from '@/stores/store'
@@ -213,8 +213,8 @@ const handleCurrentChange = async (val: number) => {
 
     <el-table-column label="状态" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === 0" type="success">公开</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">隐藏</el-tag>
+        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">公开</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">隐藏</el-tag>
       </template>
     </el-table-column>
 

@@ -189,3 +189,14 @@ export interface Data<T> {
   msg: string
   data: T
 }
+
+export enum Status {
+  NORMAL = 0,
+  BLOCK
+}
+
+export enum RoutesEnum {
+  CATALOUGE = 0,
+  MENU,
+  ROUTE
+}

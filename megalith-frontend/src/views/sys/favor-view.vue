@@ -2,6 +2,7 @@
 import { reactive, ref, toRefs } from 'vue'
 import type { PageAdapter, SearchFavors } from '@/type/entity'
 import { GET, POST } from '@/http/http'
+import { Status } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 
 const input = ref('')
@@ -214,8 +215,8 @@ const handleSizeChange = async (val: number) => {
 
       <el-form-item label="状态" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio :label=0>公开</el-radio>
-          <el-radio :label=1>隐藏</el-radio>
+          <el-radio :label=Status.NORMAL>公开</el-radio>
+          <el-radio :label=Status.BLOCK>隐藏</el-radio>
         </el-radio-group>
       </el-form-item>
 

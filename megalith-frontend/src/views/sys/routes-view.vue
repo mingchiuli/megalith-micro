@@ -3,6 +3,8 @@ import { GET, POST } from '@/http/http'
 import type { MenuSys } from '@/type/entity'
 import { type FormInstance, type FormRules } from 'element-plus'
 import { reactive, ref } from 'vue'
+import { Status, RoutesEnum } from '@/type/entity'
+
 const dialogVisible = ref(false)
 const loading = ref(false)
 const content = ref<MenuSys[]>([])
@@ -162,9 +164,9 @@ const submitForm = async (ref: FormInstance) => {
 
     <el-table-column prop="type" label="类型" align="center" >
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.type === 0">分类</el-tag>
-        <el-tag size="small" v-else-if="scope.row.type === 1" type="success">菜单</el-tag>
-        <el-tag size="small" v-else-if="scope.row.type === 2" type="info">路由</el-tag>
+        <el-tag size="small" v-if="scope.row.type === RoutesEnum.CATALOUGE">分类</el-tag>
+        <el-tag size="small" v-else-if="scope.row.type === RoutesEnum.MENU" type="success">菜单</el-tag>
+        <el-tag size="small" v-else-if="scope.row.type === RoutesEnum.ROUTE" type="info">路由</el-tag>
       </template>
     </el-table-column>
 
@@ -174,8 +176,8 @@ const submitForm = async (ref: FormInstance) => {
     <el-table-column prop="orderNum" label="排序" align="center" />
     <el-table-column prop="status" label="状态" align="center" >
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === 0" type="success">Normal</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">Disable</el-tag>
+        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">Normal</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">Disable</el-tag>
       </template>
     </el-table-column>
     <el-table-column fixed="right" prop="icon" label="操作" align="center" width="250">

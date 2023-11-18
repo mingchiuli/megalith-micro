@@ -6,6 +6,7 @@ import { loginStateStore, tabStore } from '@/stores/store'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
 import search from '@/components/search-item.vue'
+import { Status } from '@/type/entity'
 
 const loading = ref(true)
 const loginDialogVisible = ref(false)
@@ -62,7 +63,7 @@ const getPage = async (pageNo: number) => {
 
 const to = async (id: number) => {
   const status = await GET<number>(`/public/blog/status/${id}`)
-  if (status === 0) {
+  if (status === Status.NORMAL) {
     router.push({
       name: 'blog',
       params: {

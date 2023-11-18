@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { GET } from '@/http/http'
 import type { BlogDelSys, PageAdapter } from '@/type/entity'
+import { Status } from '@/type/entity'
 import { reactive, ref, toRefs } from 'vue'
 import editor from 'mavon-editor'
 import type markdownIt from 'markdown-it'
@@ -119,8 +120,8 @@ const handleResume = async (row: BlogDelSys) => {
 
     <el-table-column label="状态" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === 0" type="success">公开</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">隐藏</el-tag>
+        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">公开</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">隐藏</el-tag>
       </template>
     </el-table-column>
 
