@@ -57,10 +57,6 @@ const form: Form = reactive({
 
 type PushActionForm = {
   id?: number
-  title?: string
-  description?: string
-  status?: number
-  link?: string
   contentChange?: string
   operateTypeCode?: number
   version?: number
@@ -68,10 +64,6 @@ type PushActionForm = {
 
 const pushActionForm: PushActionForm = {
   id: undefined,
-  title: undefined,
-  description: undefined,
-  status: undefined,
-  link: undefined,
   contentChange: undefined,
   operateTypeCode: undefined,
   version: undefined
@@ -88,10 +80,6 @@ watch(() => form.content, async (n, o) => {
   if (!client.connected || !n || !o) return
 
   pushActionForm.id = form.id
-  pushActionForm.description = form.description
-  pushActionForm.title = form.title
-  pushActionForm.status = form.status
-  pushActionForm.link = form.link
 
   let nLen = n.length
   let oLen = o.length
