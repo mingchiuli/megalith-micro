@@ -40,11 +40,8 @@ onBeforeUnmount(() => {
 })
 
 //处理mavon-editor的bug
-onErrorCaptured((_err, _instance, info): boolean => {
-  if (info === 'beforeUnmount hook') {
-    return false
-  }
-  return true
+onErrorCaptured((_err, _instance, _info): boolean => {
+  return false
 })
 
 const catalogueRef = ref<InstanceType<typeof catalogue>>();
