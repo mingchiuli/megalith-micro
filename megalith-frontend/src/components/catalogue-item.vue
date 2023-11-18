@@ -161,12 +161,14 @@ const debounce = (fn: Function, interval = 100) => {
   }
 }
 
+const throttle = debounce(roll)
+
 onMounted(() => {
-  window.addEventListener('scroll', debounce(roll))
+  window.addEventListener('scroll', throttle)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('scroll', debounce(roll))
+  window.removeEventListener('scroll', throttle)
 })
 
 defineExpose({
