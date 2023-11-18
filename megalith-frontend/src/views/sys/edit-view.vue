@@ -1,11 +1,121 @@
 <script lang="ts" setup>
-import { reactive, ref, watch } from 'vue'
+import { onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
 import { tabStore } from '@/stores/store'
+import { Client } from '@stomp/stompjs'
+
+let timer: NodeJS.Timeout
+
+const client = new Client({
+  brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/edit`,
+  connectHeaders: { "Authorization": localStorage.getItem('accessToken')!, "Type": "EDIT" },
+  reconnectDelay: 5000,
+  heartbeatIncoming: 4000,
+  heartbeatOutgoing: 4000,
+})
+
+const connect = () => {
+  client.onConnect = _frame => {
+    client.subscribe('/edits/push/all', async _res => {
+      await POST<null>('/sys/blog/push/all', form)
+      version = 0
+    })
+  }
+
+  client.activate()
+
+  client.onStompError = frame => {
+    ElNotification.error({
+      title: 'Broker reported error: ' + frame.headers['message'],
+      message: 'Additional details: ' + frame.body,
+      showClose: true
+    })
+  }
+}
+
+type Form = {
+  id?: number
+  title?: string
+  description?: string
+  content?: string
+  status?: number
+  link?: string
+}
+
+const form: Form = reactive({
+  id: undefined,
+  title: undefined,
+  description: undefined,
+  content: undefined,
+  status: undefined,
+  link: undefined
+})
+
+type PushActionForm = {
+  id?: number
+  title?: string
+  description?: string
+  status?: number
+  link?: string
+  contentChange?: string
+  operateTypeCode?: number
+  version?: number
+}
+
+const pushActionForm: PushActionForm = {
+  id: undefined,
+  title: undefined,
+  description: undefined,
+  status: undefined,
+  link: undefined,
+  contentChange: undefined,
+  operateTypeCode: undefined,
+  version: undefined
+}
+
+let version = 0
+watch(() => form.content, async (n, o) => {
+  if (!client.connected || !n || !o) return
+
+  pushActionForm.id = form.id
+  pushActionForm.description = form.description
+  pushActionForm.title = form.title
+  pushActionForm.status = form.status
+  pushActionForm.link = form.link
+
+  let nLen = n.length
+  let oLen = o.length
+  let pushAll = false
+  for (let i = 0; i < Math.min(nLen, oLen); i++) {
+    if (n.charAt(i) != o.charAt(i)) {
+      pushAll = true
+    }
+  }
+
+  if (pushAll) {
+    await POST<null>('/sys/blog/push/all', form)
+    version = 0
+    return
+  }
+
+  if (n.length > o.length) {
+    pushActionForm.operateTypeCode = 0
+    pushActionForm.contentChange = n.substring(oLen)
+  } else {
+    pushActionForm.operateTypeCode = 1
+    pushActionForm.contentChange = o.substring(nLen)
+  }
+  pushActionForm.version = version
+  version++
+  client.publish({
+    destination: '/app/edit/push/action',
+    body: JSON.stringify(pushActionForm)
+  })
+})
 
 const fileList = ref<UploadUserFile[]>([])
 const dialogVisible = ref(false)
@@ -16,36 +126,7 @@ const route = useRoute()
 let blogId = route.query.id
 
 const uploadInstance = ref<UploadInstance>()
-
 const formRef = ref<FormInstance>()
-
-type Form = {
-  id?: number
-  title: string
-  description: string
-  content: string
-  status: number
-  link: string
-}
-
-const form: Form = reactive({
-  id: undefined,
-  title: '',
-  description: '',
-  content: '',
-  status: 0,
-  link: ''
-})
-
-let count = 0
-watch(form, async () => {
-  count++
-  if (count >= 5) {
-    count = 0
-    await POST<null>('/sys/blog/tmp/save', form)
-  }
-})
-
 const formRules = reactive<FormRules<Form>>({
   title: [
     { required: true, message: '请输入标题', trigger: 'blur' }
@@ -163,9 +244,24 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   return true
 }
 
+onUnmounted(() => {
+  clearInterval(timer)
+  stop()
+  client.deactivate()
+});
+
 (async () => {
   await loadEditContent()
+  //推全量
+  await POST<null>('/sys/blog/push/all', form)
   tabStore().addTab({ title: '编辑博客', name: 'system-edit' })
+  connect()
+  timer = setInterval(() => {
+    if (!client.connected) {
+      ElNotification.warning("websocket reconnection ...")
+      connect()
+    }
+  }, 2000)
 })()
 </script>
 
@@ -218,8 +314,8 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <mavon-editor :boxShadow="false" style="height: 100%" v-model="form.content" :subfield="false" :ishljs="true" ref="md"
-          code-style="androidstudio" @imgAdd="imgAdd" @imgDel="imgDel" class="content"></mavon-editor>
+        <mavon-editor :boxShadow="false" style="height: 100%" v-model="form.content" :subfield="false" :ishljs="true"
+          ref="md" code-style="androidstudio" @imgAdd="imgAdd" @imgDel="imgDel" class="content" />
       </el-form-item>
 
       <div class="submit-button">

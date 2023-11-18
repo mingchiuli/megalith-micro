@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onUnmounted } from 'vue'
-import { Client } from '@stomp/stompjs';
+import { Client } from '@stomp/stompjs'
 
 let timer: NodeJS.Timeout
 
