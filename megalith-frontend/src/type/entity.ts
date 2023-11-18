@@ -200,3 +200,9 @@ export enum RoutesEnum {
   MENU,
   ROUTE
 }
+
+export enum OperateTypeCode {
+  APPEND = 0,
+  SUBSTRACT,
+  OTHER
+}

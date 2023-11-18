@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
-import { Status } from '@/type/entity'
+import { OperateTypeCode, Status } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
@@ -21,10 +21,7 @@ const client = new Client({
 
 const connect = () => {
   client.onConnect = _frame => {
-    client.subscribe('/edits/push/all', async _res => {
-      await POST<null>('/sys/blog/push/all', form)
-      version = 0
-    })
+    client.subscribe('/edits/push/all', async _res => pushAllData())
   }
 
   client.activate()
@@ -97,10 +94,10 @@ watch(() => form.content, async (n, o) => {
   }
 
   if (n.length > o.length) {
-    pushActionForm.operateTypeCode = 0
+    pushActionForm.operateTypeCode = OperateTypeCode.APPEND
     pushActionForm.contentChange = n.substring(oLen)
   } else {
-    pushActionForm.operateTypeCode = 1
+    pushActionForm.operateTypeCode = OperateTypeCode.SUBSTRACT
     pushActionForm.contentChange = o.substring(nLen)
   }
   pushActionForm.version = version
