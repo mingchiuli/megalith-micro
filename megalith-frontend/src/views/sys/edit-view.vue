@@ -249,7 +249,7 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   return true
 }
 
-onBeforeUnmount(async () => await pushAllData())
+onBeforeUnmount(() => pushAllData())
 
 onUnmounted(() => {
   clearInterval(timer)
@@ -262,7 +262,6 @@ onUnmounted(() => {
 
   tabStore().addTab({ title: '编辑博客', name: 'system-edit' })
   connect()
-  pushAllData()
   timer = setInterval(() => {
     if (!client.connected) {
       ElNotification.warning("websocket reconnection ...")
