@@ -262,6 +262,7 @@ onUnmounted(() => {
 
   tabStore().addTab({ title: '编辑博客', name: 'system-edit' })
   connect()
+  pushAllData()
   timer = setInterval(() => {
     if (!client.connected) {
       ElNotification.warning("websocket reconnection ...")
