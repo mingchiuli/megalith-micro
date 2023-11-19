@@ -11,6 +11,7 @@ declare module 'vue' {
     BlogLoginItem: typeof import('./src/components/blog-login-item.vue')['default']
     CatalogueItem: typeof import('./src/components/catalogue-item.vue')['default']
     DiscussItem: typeof import('./src/components/discuss-item.vue')['default']
+    ElAffix: typeof import('element-plus/es')['ElAffix']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAutocomplete: typeof import('element-plus/es')['ElAutocomplete']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']

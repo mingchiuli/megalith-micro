@@ -67,7 +67,11 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
 </script>
 
 <template>
-  <catalogue-item v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogueRef" v-model:loadingCatalogue="loadingCatalogue" />
+  <el-affix :offset="30">
+    <catalogue-item v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogueRef"
+      v-model:loadingCatalogue="loadingCatalogue" />
+  </el-affix>
+
   <div class="exhibit-content">
     <div class="exhibit-title">{{ blog.title }}</div>
     <el-avatar class="exhibit-avatar" :src="blog.avatar" />

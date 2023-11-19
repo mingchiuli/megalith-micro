@@ -72,6 +72,20 @@ let version = 0
 const pushAllData = async () => {
   await POST<null>('/sys/blog/push/all', form)
   version = 0
+  if (transType.value !== 'warning') {
+    transType.value = 'warning'
+  }
+}
+
+const pushAction = (pushActionForm: PushActionForm) => {
+  version++
+  client.publish({
+    destination: '/app/edit/push/action',
+    body: JSON.stringify(pushActionForm)
+  })
+  if (transType.value !== 'success') {
+    transType.value = 'success'
+  }
 }
 
 watch(() => form.content, async (n, o) => {
@@ -101,13 +115,10 @@ watch(() => form.content, async (n, o) => {
     pushActionForm.contentChange = o.substring(nLen)
   }
   pushActionForm.version = version
-  version++
-  client.publish({
-    destination: '/app/edit/push/action',
-    body: JSON.stringify(pushActionForm)
-  })
+  pushAction(pushActionForm)
 })
 
+const transType = ref('success')
 const fileList = ref<UploadUserFile[]>([])
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
@@ -313,6 +324,7 @@ onUnmounted(() => {
 
       <div class="submit-button">
         <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
+        <el-button :type="transType" icon="Edit" circle disabled />
       </div>
     </el-form>
 
