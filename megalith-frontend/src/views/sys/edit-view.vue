@@ -22,10 +22,10 @@ const client = new Client({
 const connect = () => {
   client.onConnect = _frame => {
     client.subscribe('/edits/push/all', _res => pushAllData())
+    pushAllData()
   }
 
   client.activate()
-  pushAllData()
 
   client.onStompError = frame => {
     ElNotification.error({
