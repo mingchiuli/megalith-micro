@@ -323,8 +323,9 @@ onUnmounted(() => {
       </el-form-item>
 
       <div class="submit-button">
+        <div class="trans-radius" v-if="transType === 'success'" style="background-color: #67c23a;" />
+        <div class="trans-radius" v-else style="background-color: #e6a23c;" />
         <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
-        <el-button :type="transType" icon="Edit" circle disabled />
       </div>
     </el-form>
 
@@ -332,6 +333,14 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+
+.trans-radius {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin: 5px auto;
+}
+
 .father {
   max-width: 40rem;
   margin: 0 auto;
