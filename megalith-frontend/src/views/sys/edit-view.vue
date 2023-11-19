@@ -21,7 +21,7 @@ const client = new Client({
 
 const connect = () => {
   client.onConnect = _frame => {
-    client.subscribe('/edits/push/all', async _res => pushAllData())
+    client.subscribe('/edits/push/all', _res => pushAllData())
   }
 
   client.activate()
@@ -69,26 +69,29 @@ const pushActionForm: PushActionForm = {
 
 let version = 0
 
-const pushAllData = async () => {
-  await POST<null>('/sys/blog/push/all', form)
+const pushAllData = () => {
+  client.publish({
+    destination: '/app/edit/push/all',
+    body: JSON.stringify(form)
+  })
   version = 0
   if (transType.value !== 'warning') {
     transType.value = 'warning'
   }
 }
 
-const pushAction = (pushActionForm: PushActionForm) => {
-  version++
+const pushActionData = (pushActionForm: PushActionForm) => {
   client.publish({
     destination: '/app/edit/push/action',
     body: JSON.stringify(pushActionForm)
   })
+  version++
   if (transType.value !== 'success') {
     transType.value = 'success'
   }
 }
 
-watch(() => form.content, async (n, o) => {
+watch(() => form.content, (n, o) => {
   if (!client.connected || !n || !o) return
 
   pushActionForm.id = form.id
@@ -103,7 +106,7 @@ watch(() => form.content, async (n, o) => {
   }
 
   if (pushAll) {
-    await pushAllData()
+    pushAllData()
     return
   }
 
@@ -115,7 +118,7 @@ watch(() => form.content, async (n, o) => {
     pushActionForm.contentChange = o.substring(nLen)
   }
   pushActionForm.version = version
-  pushAction(pushActionForm)
+  pushActionData(pushActionForm)
 })
 
 const transType = ref('success')
@@ -256,14 +259,14 @@ onUnmounted(() => {
 
 (async () => {
   await loadEditContent()
-  //推全量
-  await pushAllData()
+
   tabStore().addTab({ title: '编辑博客', name: 'system-edit' })
   connect()
   timer = setInterval(() => {
     if (!client.connected) {
       ElNotification.warning("websocket reconnection ...")
       connect()
+      pushAllData()
     }
   }, 2000)
 })()
