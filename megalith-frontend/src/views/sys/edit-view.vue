@@ -326,8 +326,8 @@ onUnmounted(() => {
       </el-form-item>
 
       <div class="submit-button">
-        <div class="trans-radius" v-if="transType === 'success'" style="background-color: #67c23a;" />
-        <div class="trans-radius" v-else style="background-color: #e6a23c;" />
+        <div class="trans-radius" v-show="transType === 'success'" style="background-color: #67c23a;" />
+        <div class="trans-radius" v-show="transType === 'warning'" style="background-color: #e6a23c;" />
         <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
       </div>
     </el-form>
