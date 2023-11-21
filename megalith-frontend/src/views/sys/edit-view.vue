@@ -93,8 +93,8 @@ const pushAllData = () => {
     body: JSON.stringify(form)
   })
   version = 0
-  if (transType.value !== 'warning') {
-    transType.value = 'warning'
+  if (transColor.value !== '#e6a23c') {
+    transColor.value = '#e6a23c'
   }
 }
 
@@ -104,8 +104,8 @@ const pushActionData = (pushActionForm: PushActionForm) => {
     body: JSON.stringify(pushActionForm)
   })
   version++
-  if (transType.value !== 'success') {
-    transType.value = 'success'
+  if (transColor.value !== '#67c23a') {
+    transColor.value = '#67c23a'
   }
 }
 
@@ -141,7 +141,7 @@ watch(() => form.content, (n, o) => {
   pushActionData(pushActionForm)
 })
 
-const transType = ref('success')
+const transColor = ref('#67c23a')
 const fileList = ref<UploadUserFile[]>([])
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
@@ -344,8 +344,7 @@ onUnmounted(() => {
             </emoji>
           </template>
           <template #defFooters>
-            <span class="trans-radius" v-show="transType === 'success'" style="background-color: #67c23a" ></span>
-            <span class="trans-radius" v-show="transType === 'warning'" style="background-color: #e6a23c" ></span>
+            <span class="trans-radius" :style="{'background-color': transColor}" />
           </template>
         </md-editor>
       </el-form-item>
