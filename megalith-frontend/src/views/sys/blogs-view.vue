@@ -5,7 +5,7 @@ import { Status, type BlogSys, type PageAdapter } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
 import { tabStore } from '@/stores/store'
-import { markdownToHtmlSimp } from '@/utils/markdown'
+import { render } from '@/utils/tools'
 
 const input = ref('')
 const readToken = ref('')
@@ -177,7 +177,7 @@ const handleCurrentChange = async (val: number) => {
         <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000"
           popper-style="height: 300px;overflow: auto;">
           <template #default>
-            <span v-html=markdownToHtmlSimp(scope.row.content) />
+            <span v-html=render(scope.row.content) />
           </template>
           <template #reference>
             <span>{{ scope.row.content.length > 30 ? scope.row.content.substring(0, 30) + '...' : scope.row.content
@@ -255,4 +255,4 @@ const handleCurrentChange = async (val: number) => {
 .el-pagination {
   margin-top: 10px;
 }
-</style>
+</style>@/utils/tools

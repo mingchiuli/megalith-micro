@@ -1,6 +1,6 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios'
 import type { Data, JWTStruct, RefreshStruct } from '@/type/entity'
-import { clearLoginState } from '@/utils/common'
+import { clearLoginState } from '@/utils/tools'
 import router from '@/router'
 import { Base64 } from 'js-base64'
 import { loginStateStore } from '@/stores/store'

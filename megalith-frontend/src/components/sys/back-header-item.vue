@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { UserInfo } from '@/type/entity'
 import { ArrowDown } from '@element-plus/icons-vue'
-import { clearLoginState } from '@/utils/common'
+import { clearLoginState } from '@/utils/tools'
 import router from '@/router'
 
 const info = localStorage.getItem('userinfo')
@@ -57,4 +57,4 @@ const logout = () => {
   position: absolute;
   right: 60px;
 }
-</style>
+</style>@/utils/tools

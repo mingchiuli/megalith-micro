@@ -8,6 +8,21 @@ import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
 import { tabStore } from '@/stores/store'
 import { Client } from '@stomp/stompjs'
+import { MdEditor, type Footers, type ToolbarNames } from 'md-editor-v3'
+import 'md-editor-v3/lib/style.css'
+import '@vavt/v3-extension/lib/asset/ExportPDF.css'
+import { ExportPDF, Emoji } from '@vavt/v3-extension'
+import '@vavt/v3-extension/lib/asset/Emoji.css'
+
+const toolbars: ToolbarNames[] = [
+  'bold', 1, 'underline', 'italic', '-',
+  'title', 'strikeThrough', 'sub', 'sup', 'quote', 'unorderedList', 'orderedList', 'task', '-',
+  'codeRow', 'code', 'link', 'image', 'table', 'mermaid', 'katex', '-',
+  'revoke', 'next', 'save', '=',
+  0, 'pageFullscreen', 'fullscreen', 'preview', 'htmlPreview', 'catalog', 'github'
+]
+const footers: Footers[] = ['markdownTotal', '=', 0, 'scrollSwitch']
+
 
 let timer: NodeJS.Timeout
 
@@ -59,13 +74,15 @@ type PushActionForm = {
   contentChange?: string
   operateTypeCode?: number
   version?: number
+  index?: number
 }
 
 const pushActionForm: PushActionForm = {
   id: undefined,
   contentChange: undefined,
   operateTypeCode: undefined,
-  version: undefined
+  version: undefined,
+  index: undefined
 }
 
 let version = 0
@@ -99,26 +116,28 @@ watch(() => form.content, (n, o) => {
 
   let nLen = n.length
   let oLen = o.length
-  let pushAll = false
-  for (let i = 0; i < Math.min(nLen, oLen); i++) {
-    if (n.charAt(i) != o.charAt(i)) {
-      pushAll = true
+  let contentLen = Math.abs(nLen - oLen)
+  const minLen = Math.min(nLen, oLen)
+  let index = 0
+  for (let i = 0; i < minLen; i++) {
+    if (n.charAt(i) !== o.charAt(i)) {
+      index = i
     }
   }
 
-  if (pushAll) {
-    pushAllData()
-    return
+  if (index === 0) {
+    index = minLen - 1
   }
 
+  pushActionForm.index = index
+  pushActionForm.version = version
   if (n.length > o.length) {
     pushActionForm.operateTypeCode = OperateTypeCode.APPEND
-    pushActionForm.contentChange = n.substring(oLen)
+    pushActionForm.contentChange = n.substring(index, index + contentLen)
   } else {
     pushActionForm.operateTypeCode = OperateTypeCode.SUBSTRACT
-    pushActionForm.contentChange = o.substring(nLen)
+    pushActionForm.contentChange = o.substring(index, index + contentLen)
   }
-  pushActionForm.version = version
   pushActionData(pushActionForm)
 })
 
@@ -127,7 +146,6 @@ const fileList = ref<UploadUserFile[]>([])
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 const disabled = ref(false)
-const md = ref<any>()
 const route = useRoute()
 let blogId = route.query.id
 
@@ -169,16 +187,12 @@ const loadEditContent = async () => {
   }
 }
 
-const imgAdd = async (idx: number, file: File) => {
+const onUploadImg = async (files: File[], callback: Function) => {
   const formdata = new FormData()
-  formdata.append('image', file)
+  formdata.append('image', files[0])
   formdata.append('nickname', JSON.parse(localStorage.getItem('userinfo')!).nickname)
   const url = await POST<string>('sys/blog/oss/upload', formdata)
-  setTimeout(() => md.value.$img2Url(idx, url), 2000)
-}
-
-const imgDel = async (pos: Array<any>) => {
-  await GET<null>(`sys/blog/oss/delete?url=${pos[0]}`)
+  callback([url])
 }
 
 const upload = async (image: UploadRequestOptions) => {
@@ -321,13 +335,22 @@ onUnmounted(() => {
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <mavon-editor :boxShadow="false" style="height: 100%" v-model="form.content" :subfield="false" :ishljs="true"
-          ref="md" code-style="androidstudio" @imgAdd="imgAdd" @imgDel="imgDel" class="content" />
+        <md-editor v-model="form.content" :preview="false" :toolbars="toolbars" :toolbarsExclude="['github']"
+          @onUploadImg="onUploadImg" :footers="footers">
+          <template #defToolbars>
+            <Export-PDF v-model="form.content" />
+            <emoji>
+              <template #trigger> Emoji </template>
+            </emoji>
+          </template>
+          <template #defFooters>
+            <span class="trans-radius" v-show="transType === 'success'" style="background-color: #67c23a" ></span>
+            <span class="trans-radius" v-show="transType === 'warning'" style="background-color: #e6a23c" ></span>
+          </template>
+        </md-editor>
       </el-form-item>
 
       <div class="submit-button">
-        <div class="trans-radius" v-show="transType === 'success'" style="background-color: #67c23a;" />
-        <div class="trans-radius" v-show="transType === 'warning'" style="background-color: #e6a23c;" />
         <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
       </div>
     </el-form>
@@ -336,12 +359,11 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-
 .trans-radius {
+  display: inline-block;
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  margin: 5px auto;
 }
 
 .father {
@@ -374,5 +396,9 @@ onUnmounted(() => {
 .content {
   max-width: 40rem;
   margin: 0 auto;
+}
+
+#md-editor-v3:deep(.md-editor-footer) {
+  height: 30px;
 }
 </style>

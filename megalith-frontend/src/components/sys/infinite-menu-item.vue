@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { tabStore } from '@/stores/store';
-import type { Menu, Tab } from '@/type/entity';
+import { tabStore } from '@/stores/store'
+import type { Menu, Tab } from '@/type/entity'
 import router from '@/router'
 
 defineProps<{

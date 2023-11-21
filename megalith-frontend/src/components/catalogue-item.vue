@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { CatalogueLabel } from '@/type/entity'
-import type { ElTree } from 'element-plus';
+import type { ElTree } from 'element-plus'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
 
@@ -28,12 +28,12 @@ const treeRef = ref<InstanceType<typeof ElTree>>()
 const handleNodeClick = (data: CatalogueLabel) => window.scrollTo({ top: data.dist - rollGap, behavior: 'smooth' })
 
 const render = async () => {
-  const aLabels = document.querySelectorAll<HTMLElement>('.exhibit-content .v-note-wrapper a[id*=_]')
+  const aLabels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
   const arrs = geneCatalogueArr(aLabels)
   if (arrs.length > 0) {
     data.value = arrs
     await nextTick()
-    const anchor = document.getElementById(location.hash.substring(1))
+    const anchor = document.getElementById(decodeURI(location.hash.substring(1)))
     window.scrollTo({ top: anchor?.getBoundingClientRect().top, behavior: 'instant' })
     allNodes = treeRef.value!.store._getAllNodes()
   } else {
@@ -54,7 +54,7 @@ const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] =>
 
     item.id = aLabel.id
     item.dist = aLabel.getBoundingClientRect().top
-    item.label = aLabel.parentNode?.textContent as string
+    item.label = aLabel.innerText
     item.children = getChildren(aLabels, i)
     i += getChildrenTotal(item.children)
     arr.push(item)
@@ -81,12 +81,11 @@ const getChildren = (aLabels: NodeListOf<HTMLElement>, index: number): Catalogue
     return arr
   }
 
-  const curLabel = aLabels[index].parentNode!.nodeName
-  //提取H{i}后面的i
+  const curLabel = aLabels[index].nodeName
   const curLabelNo = curLabel.substring(1)
   for (let i = index + 1; i < aLabels.length; i++) {
     const aLabel = aLabels[i]
-    const labelNo = aLabel.parentNode!.nodeName.substring(1)
+    const labelNo = aLabel.nodeName.substring(1)
 
     if (parseInt(labelNo) > parseInt(curLabelNo)) {
       const item: CatalogueLabel = {
@@ -98,7 +97,7 @@ const getChildren = (aLabels: NodeListOf<HTMLElement>, index: number): Catalogue
 
       item.id = aLabel.id
       item.dist = aLabel.getBoundingClientRect().top
-      item.label = aLabel.parentNode?.textContent as string
+      item.label = aLabel.innerText
       item.children = getChildren(aLabels, i)
       i += getChildrenTotal(item.children)
       arr.push(item)

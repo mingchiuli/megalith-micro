@@ -3,11 +3,8 @@ import { GET } from '@/http/http'
 import type { BlogDelSys, PageAdapter } from '@/type/entity'
 import { Status } from '@/type/entity'
 import { reactive, ref, toRefs } from 'vue'
-import editor from 'mavon-editor'
-import type markdownIt from 'markdown-it'
+import { render } from '@/utils/tools'
 
-const mavonEditor: any = editor.mavonEditor
-const md: markdownIt = mavonEditor.getMarkdownIt()
 const loading = ref(false)
 const multipleSelection = ref<BlogDelSys[]>([])
 const delBtlStatus = ref(false)
@@ -84,7 +81,7 @@ const handleResume = async (row: BlogDelSys) => {
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000" popper-style="height: 300px;overflow: auto;">
           <template #default>
-            <span v-html=md.render(scope.row.content)></span>
+            <span v-html=render(scope.row.content)></span>
           </template>
           <template #reference>
             <span>{{ scope.row.content.length > 30 ? scope.row.content.substring(0, 30) + '...' : scope.row.content

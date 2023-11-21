@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import router from '@/router'
 import { tabStore } from '@/stores/store'
-import type { Tab } from '@/type/entity';
-import type { TabsPaneContext } from 'element-plus';
+import type { Tab } from '@/type/entity'
+import type { TabsPaneContext } from 'element-plus'
 import { storeToRefs } from 'pinia'
 
 const { editableTabs, editableTabsValue } = storeToRefs(tabStore())

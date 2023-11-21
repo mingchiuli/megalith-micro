@@ -1,19 +1,11 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onErrorCaptured, reactive, ref, nextTick } from 'vue'
+import { reactive, ref, nextTick } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import catalogue from '@/components/catalogue-item.vue'
-import { markdownToHtml } from '@/utils/markdown'
-import Clipboard from 'clipboard'
+import { MdPreview } from 'md-editor-v3'
+import 'md-editor-v3/lib/preview.css'
 import { useRoute } from 'vue-router'
-
-const clipboard = new Clipboard('.copy-btn')
-clipboard.on('success', () => {
-  ElMessage.success('复制成功')
-})
-clipboard.on('error', () => {
-  ElMessage.error('复制失败')
-})
 
 const route = useRoute()
 const token = route.query.token
@@ -35,15 +27,6 @@ const blog = reactive<BlogExhibit>({
   "created": ''
 })
 
-onBeforeUnmount(() => {
-  clipboard.destroy()
-})
-
-//处理mavon-editor的bug
-onErrorCaptured((_err, _instance, _info): boolean => {
-  return false
-})
-
 const catalogueRef = ref<InstanceType<typeof catalogue>>();
 
 (async () => {
@@ -55,14 +38,17 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   }
   blog.title = data.title
   document.title = data.title
-  blog.content = '<blockquote> <p>' + data.description + '</p> </blockquote>' + markdownToHtml(data.content)
   blog.avatar = data.avatar
   blog.readCount = data.readCount
   blog.nickname = data.nickname
   blog.created = data.created
   loading.value = false
+  blog.content = '>' + data.description + '\n\n' + data.content
   await nextTick()
-  catalogueRef.value?.render()
+  //基于一些不知道的原因
+  setTimeout(() => {
+    catalogueRef.value?.render()
+  }, 100)
 })()
 </script>
 
@@ -83,9 +69,9 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
         <el-skeleton :rows="15" />
       </template>
       <template #default>
-        <mavon-editor class="exhibit-mavon-editor" :boxShadow="false" :editable="false" :subfield="false"
-          v-html="blog.content" :toolbarsFlag="false" defaultOpen="preview" previewBackground="#ffffff"
-          code-style="androidstudio" />
+        <el-card shadow="never" class="content">
+          <md-preview editorId="preview-only" v-model="blog.content" />
+        </el-card>
       </template>
     </el-skeleton>
     <discuss-item />
@@ -93,9 +79,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   <my-footer-item />
 </template>
 
-<style lang="less">
-@import '@/assets/hljs.less';
-
+<style scoped>
 .exhibit-content {
   max-width: 40rem;
   margin: 0 auto;
@@ -131,5 +115,13 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
 .exhibit-read-count {
   display: block;
   margin-left: 10px;
+}
+
+.el-card:deep(.md-editor-preview-wrapper) {
+  padding: 20px 20px;
+}
+
+.content:deep(.el-card__body) {
+  padding: 0;
 }
 </style>
