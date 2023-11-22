@@ -4,6 +4,7 @@ import type { PageAdapter, RoleSys, UserSys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref, toRefs } from 'vue'
 import { Status } from '@/type/entity'
+import { displayStateStore } from '@/stores/store'
 
 const multipleSelection = ref<UserSys[]>([])
 const dialogVisible = ref(false)
@@ -17,6 +18,7 @@ const page: PageAdapter<UserSys> = reactive({
   "pageNumber": 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
+
 const formRules = reactive<FormRules<Form>>({
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' }
@@ -227,7 +229,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column fixed="right" label="操作" width="180" align="center">
+    <el-table-column :fixed="displayStateStore().fix" label="操作" width="180" align="center">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">

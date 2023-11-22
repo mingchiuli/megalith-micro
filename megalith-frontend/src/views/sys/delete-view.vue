@@ -4,6 +4,7 @@ import type { BlogDelSys, PageAdapter } from '@/type/entity'
 import { Status } from '@/type/entity'
 import { reactive, ref, toRefs } from 'vue'
 import { render } from '@/utils/tools'
+import { displayStateStore } from '@/stores/store'
 
 const loading = ref(false)
 const multipleSelection = ref<BlogDelSys[]>([])
@@ -122,7 +123,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column fixed="right" label="操作" width="120" align="center">
+    <el-table-column :fixed="displayStateStore().fix" label="操作" width="120" align="center">
       <template #default="scope">
         <el-button size="small" type="primary" @click="handleResume(scope.row)">恢复</el-button>
       </template>

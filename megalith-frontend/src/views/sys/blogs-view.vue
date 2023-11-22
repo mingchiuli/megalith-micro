@@ -4,7 +4,7 @@ import { GET, POST } from '@/http/http'
 import { Status, type BlogSys, type PageAdapter } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
-import { tabStore } from '@/stores/store'
+import { tabStore, displayStateStore } from '@/stores/store'
 import { render } from '@/utils/tools'
 
 const input = ref('')
@@ -218,7 +218,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column fixed="right" label="操作" width="300" align="center">
+    <el-table-column :fixed="displayStateStore().fix" label="操作" width="300" align="center">
       <template #default="scope">
         <el-button size="small" type="primary" @click="handleCheck(scope.row)">查看</el-button>
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>

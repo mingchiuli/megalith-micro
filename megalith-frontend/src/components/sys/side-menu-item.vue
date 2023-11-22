@@ -1,15 +1,15 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { shallowRef } from 'vue'
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
-import { menuStore, tabStore } from '@/stores/store'
+import { menuStore, tabStore, displayStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 
-const isCollapse = ref(false)
+const { expand } = storeToRefs(displayStateStore())
 const { menuList } = storeToRefs(menuStore())
-let arrow = ref(ArrowLeft)
+let arrow = shallowRef(ArrowLeft)
 const reverseCollapse = () => {
-  isCollapse.value = !isCollapse.value
-  if (!isCollapse.value) {
+  expand.value = !expand.value
+  if (!expand.value) {
     arrow.value = ArrowLeft
   } else {
     arrow.value = ArrowRight
@@ -20,7 +20,7 @@ const reverseCollapse = () => {
 
 <template>
   <el-button class="collapse-button" circle :icon="arrow" @click="reverseCollapse"></el-button>
-  <el-menu :default-active="tabStore().editableTabsValue" class="el-menu-vertical" :collapse="isCollapse"
+  <el-menu :default-active="tabStore().editableTabsValue" class="el-menu-vertical" :collapse="!expand"
     active-text-color="#ffd04b">
     <infinite-menu-item v-for="item in menuList" v-bind:key="item.menuId" :item="item" />
   </el-menu>

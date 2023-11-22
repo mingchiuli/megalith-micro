@@ -4,6 +4,7 @@ import type { MenuSys } from '@/type/entity'
 import { type FormInstance, type FormRules } from 'element-plus'
 import { reactive, ref } from 'vue'
 import { Status, RoutesEnum } from '@/type/entity'
+import { displayStateStore } from '@/stores/store'
 
 const dialogVisible = ref(false)
 const loading = ref(false)
@@ -180,7 +181,7 @@ const submitForm = async (ref: FormInstance) => {
         <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">Disable</el-tag>
       </template>
     </el-table-column>
-    <el-table-column fixed="right" prop="icon" label="操作" align="center" width="250">
+    <el-table-column :fixed="displayStateStore().fix" prop="icon" label="操作" align="center" width="250">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)" v-if="scope.row.menuId !== 0">编辑</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)" v-if="scope.row.menuId !== 0">

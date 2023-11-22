@@ -1,6 +1,16 @@
 import { defineStore } from 'pinia'
 import type { Menu, Tab } from '@/type/entity'
 
+export const displayStateStore = defineStore('displayStateStore', {
+  state: () => {
+    return {
+      fix: document.body.clientWidth > 900 ? 'right' : false,
+      showCatalogue: document.body.clientWidth > 900,
+      expand: document.body.clientWidth > 900
+    }
+  }
+})
+
 export const loginStateStore = defineStore('loginStateStore', {
   state: () => {
     return {

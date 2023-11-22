@@ -6,16 +6,13 @@ import catalogue from '@/components/catalogue-item.vue'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { useRoute } from 'vue-router'
+import { displayStateStore } from '@/stores/store'
 
 const route = useRoute()
 const token = route.query.token
 const blogId = route.params.id
 const loading = ref(true)
-const showCatalogue = ref(true)
 const loadingCatalogue = ref(true)
-if (document.body.clientWidth < 900) {
-  showCatalogue.value = false
-}
 
 const blog = reactive<BlogExhibit>({
   "title": '',
@@ -46,15 +43,13 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   blog.content = '>' + data.description + '\n\n' + data.content
   await nextTick()
   //基于一些不知道的原因
-  setTimeout(() => {
-    catalogueRef.value?.render()
-  }, 1000)
+  setTimeout(() => catalogueRef.value?.render(), 1000)
 })()
 </script>
 
 <template>
   <el-affix :offset="30">
-    <catalogue-item v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogueRef"
+    <catalogue-item v-if="loadingCatalogue" v-show="displayStateStore().showCatalogue" ref="catalogueRef"
       v-model:loadingCatalogue="loadingCatalogue" class="catalogue" />
   </el-affix>
 
