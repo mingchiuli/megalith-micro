@@ -177,8 +177,8 @@ const submitForm = async (ref: FormInstance) => {
     <el-table-column prop="orderNum" label="排序" align="center" />
     <el-table-column prop="status" label="状态" align="center" >
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">Normal</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">Disable</el-tag>
+        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">正常</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">禁用</el-tag>
       </template>
     </el-table-column>
     <el-table-column :fixed="displayStateStore().fix" prop="icon" label="操作" align="center" width="250">
