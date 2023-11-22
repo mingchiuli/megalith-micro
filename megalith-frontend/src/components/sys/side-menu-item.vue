@@ -6,7 +6,7 @@ import { storeToRefs } from 'pinia'
 
 const { expand } = storeToRefs(displayStateStore())
 const { menuList } = storeToRefs(menuStore())
-let arrow = shallowRef(expand ? ArrowLeft : ArrowRight)
+let arrow = shallowRef(expand.value ? ArrowLeft : ArrowRight)
 const reverseCollapse = () => {
   expand.value = !expand.value
   if (!expand.value) {
