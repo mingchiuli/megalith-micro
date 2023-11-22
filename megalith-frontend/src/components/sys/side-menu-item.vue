@@ -6,13 +6,13 @@ import { storeToRefs } from 'pinia'
 
 const { expand } = storeToRefs(displayStateStore())
 const { menuList } = storeToRefs(menuStore())
-let arrow = shallowRef(ArrowLeft)
+let arrow = shallowRef(expand ? ArrowLeft : ArrowRight)
 const reverseCollapse = () => {
   expand.value = !expand.value
   if (!expand.value) {
-    arrow.value = ArrowLeft
-  } else {
     arrow.value = ArrowRight
+  } else {
+    arrow.value = ArrowLeft
   } 
 }
 
