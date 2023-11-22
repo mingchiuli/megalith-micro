@@ -25,3 +25,13 @@ export const clearLoginState = () => {
 export const render = (content: string): string => {
   return md.render(content)
 }
+
+export const debounce = (fn: Function, interval = 100) => {
+  let timeout: NodeJS.Timeout
+  return () => {
+    clearTimeout(timeout)
+    timeout = setTimeout(function (this: Function) {
+      fn.apply(this)
+    }, interval)
+  }
+}

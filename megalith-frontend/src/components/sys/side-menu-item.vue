@@ -6,13 +6,20 @@ import { storeToRefs } from 'pinia'
 
 const isCollapse = ref(false)
 const { menuList } = storeToRefs(menuStore())
-const reverseCollapse = () => isCollapse.value = !isCollapse.value
+let arrow = ref(ArrowLeft)
+const reverseCollapse = () => {
+  isCollapse.value = !isCollapse.value
+  if (!isCollapse.value) {
+    arrow.value = ArrowLeft
+  } else {
+    arrow.value = ArrowRight
+  } 
+}
 
 </script>
 
 <template>
-  <el-button class="collapse-button" circle :icon="ArrowLeft" v-if="!isCollapse" @click="reverseCollapse"></el-button>
-  <el-button class="collapse-button" circle :icon="ArrowRight" v-if="isCollapse" @click="reverseCollapse"></el-button>
+  <el-button class="collapse-button" circle :icon="arrow" @click="reverseCollapse"></el-button>
   <el-menu :default-active="tabStore().editableTabsValue" class="el-menu-vertical" :collapse="isCollapse"
     active-text-color="#ffd04b">
     <infinite-menu-item v-for="item in menuList" v-bind:key="item.menuId" :item="item" />

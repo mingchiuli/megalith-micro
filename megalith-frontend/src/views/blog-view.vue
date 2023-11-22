@@ -48,14 +48,14 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   //基于一些不知道的原因
   setTimeout(() => {
     catalogueRef.value?.render()
-  }, 100)
+  }, 1000)
 })()
 </script>
 
 <template>
   <el-affix :offset="30">
     <catalogue-item v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogueRef"
-      v-model:loadingCatalogue="loadingCatalogue" />
+      v-model:loadingCatalogue="loadingCatalogue" class="catalogue" />
   </el-affix>
 
   <div class="exhibit-content">
@@ -70,7 +70,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
       </template>
       <template #default>
         <el-card shadow="never" class="content">
-          <md-preview editorId="preview-only" v-model="blog.content" />
+          <md-preview editorId="preview-only" v-model="blog.content" :showCodeRowNumber="true" />
         </el-card>
       </template>
     </el-skeleton>
@@ -123,5 +123,9 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
 
 .content:deep(.el-card__body) {
   padding: 0;
+}
+
+.catalogue {
+  margin-left: 80%;
 }
 </style>

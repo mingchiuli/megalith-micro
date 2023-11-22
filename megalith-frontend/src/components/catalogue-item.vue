@@ -19,6 +19,7 @@ let loadingCatalogue = computed({
   }
 })
 
+const loading = ref(true)
 let data = ref<CatalogueLabel[]>()
 let allNodes: Node[]
 const defaultProps = { children: 'children', label: 'label' }
@@ -32,6 +33,7 @@ const render = async () => {
   const arrs = geneCatalogueArr(aLabels)
   if (arrs.length > 0) {
     data.value = arrs
+    loading.value = false
     await nextTick()
     const anchor = document.getElementById(decodeURI(location.hash.substring(1)))
     window.scrollTo({ top: anchor?.getBoundingClientRect().top, behavior: 'instant' })
@@ -177,8 +179,15 @@ defineExpose({
 
 <template>
   <el-card shadow="never" class="box">
-    <el-tree :data="data" :props="defaultProps" accordion @node-click="handleNodeClick" ref="treeRef" node-key="id"
-      highlight-current />
+    <el-skeleton animated :loading="loading" :throttle="0">
+      <template #template>
+        <el-skeleton :rows="2" animated />
+      </template>
+      <template #default>
+        <el-tree :data="data" :props="defaultProps" accordion @node-click="handleNodeClick" ref="treeRef" node-key="id"
+          highlight-current />
+      </template>
+    </el-skeleton>
   </el-card>
 </template>
 
@@ -187,7 +196,6 @@ defineExpose({
   padding: 0px;
   min-height: 100px;
   width: 200px;
-  margin-left: 80%;
   overflow-y: auto;
   overflow-x: auto;
 }
