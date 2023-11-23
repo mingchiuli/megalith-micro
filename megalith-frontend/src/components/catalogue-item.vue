@@ -179,7 +179,7 @@ defineExpose({
 
 <template>
   <el-card shadow="never" class="box">
-    <el-skeleton animated :loading="loading" :throttle="0">
+    <el-skeleton animated :loading="loading" :throttle="100">
       <template #template>
         <el-skeleton :rows="2" animated />
       </template>

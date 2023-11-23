@@ -43,7 +43,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   blog.content = '>' + data.description + '\n\n' + data.content
   await nextTick()
   //基于一些不知道的原因
-  setTimeout(() => catalogueRef.value?.render(), 1000)
+  setTimeout(() => catalogueRef.value?.render(), 100)
 })()
 </script>
 

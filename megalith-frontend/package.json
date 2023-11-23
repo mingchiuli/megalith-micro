@@ -13,16 +13,16 @@
   },
   "dependencies": {
     "@stomp/stompjs": "^7.0.0",
-    "@types/markdown-it": "^13.0.4",
+    "@types/markdown-it": "^13.0.7",
     "@vavt/v3-extension": "^1.1.0",
-    "axios": "^1.5.1",
-    "element-plus": "^2.4.1",
+    "axios": "^1.6.2",
+    "element-plus": "^2.4.2",
     "highlight.js": "^11.9.0",
     "js-base64": "^3.7.5",
     "markdown-it": "^13.0.2",
     "md-editor-v3": "^4.8.3",
     "pinia": "^2.1.7",
-    "vue": "^3.3.6",
+    "vue": "^3.3.8",
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
@@ -42,7 +42,7 @@
     "unplugin-auto-import": "^0.16.6",
     "unplugin-element-plus": "^0.8.0",
     "unplugin-vue-components": "^0.25.2",
-    "vite": "^4.5.0",
-    "vue-tsc": "^1.8.19"
+    "vite": "^5.0.2",
+    "vue-tsc": "^1.8.22"
   }
 }
