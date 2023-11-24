@@ -264,8 +264,6 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   return true
 }
 
-onBeforeUnmount(() => pushAllData())
-
 onUnmounted(() => {
   clearInterval(timer)
   stop()
