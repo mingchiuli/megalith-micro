@@ -206,3 +206,8 @@ export enum OperateTypeCode {
   SUBSTRACT,
   OTHER
 }
+
+export enum OperaColor {
+  SUCCESS = '#67c23a',
+  WARNING = '#e6a23c'
+}

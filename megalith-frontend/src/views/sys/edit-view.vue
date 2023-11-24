@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onUnmounted, reactive, ref, watch } from 'vue'
+import { onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
-import { OperateTypeCode, Status } from '@/type/entity'
+import { OperaColor, OperateTypeCode, Status } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
@@ -92,8 +92,8 @@ const pushAllData = () => {
     body: JSON.stringify(form)
   })
   version = 0
-  if (transColor.value !== '#e6a23c') {
-    transColor.value = '#e6a23c'
+  if (transColor.value !== OperaColor.WARNING) {
+    transColor.value = OperaColor.WARNING
   }
 }
 
@@ -103,8 +103,8 @@ const pushActionData = (pushActionForm: PushActionForm) => {
     body: JSON.stringify(pushActionForm)
   })
   version++
-  if (transColor.value !== '#67c23a') {
-    transColor.value = '#67c23a'
+  if (transColor.value !== OperaColor.SUCCESS) {
+    transColor.value = OperaColor.SUCCESS
   }
 }
 
