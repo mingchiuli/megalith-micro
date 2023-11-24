@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onUnmounted, reactive, ref, watch } from 'vue'
+import { onBeforeUnmount, onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { OperaColor, OperateTypeCode, Status } from '@/type/entity'
@@ -37,6 +37,7 @@ const client = new Client({
 const connect = () => {
   client.onConnect = _frame => {
     client.subscribe('/edits/push/all', _res => pushAllData())
+    pushAllData()
   }
 
   client.activate()
@@ -223,6 +224,7 @@ const handleRemove = async (_file: UploadFile) => {
   fileList.value = []
 }
 
+let commit = false
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid, _fields) => {
     if (valid) {
@@ -232,6 +234,7 @@ const submitForm = async (ref: FormInstance) => {
         message: '编辑成功',
         type: 'success',
       })
+      commit = true
       router.push({
         name: "system-blogs"
       })
@@ -263,6 +266,12 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   return true
 }
 
+onBeforeUnmount(() => {
+  if (!commit) {
+    pushAllData()
+  }
+})
+
 onUnmounted(() => {
   clearInterval(timer)
   client.deactivate()
@@ -277,7 +286,6 @@ onUnmounted(() => {
     if (!client.connected) {
       ElNotification.warning("websocket reconnection ...")
       connect()
-      pushAllData()
     }
   }, 2000)
 })()
