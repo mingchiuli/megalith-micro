@@ -265,7 +265,6 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
 
 onUnmounted(() => {
   clearInterval(timer)
-  stop()
   client.deactivate()
 });
 
