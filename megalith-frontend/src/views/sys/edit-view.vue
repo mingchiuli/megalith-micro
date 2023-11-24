@@ -37,7 +37,6 @@ const client = new Client({
 const connect = () => {
   client.onConnect = _frame => {
     client.subscribe('/edits/push/all', _res => pushAllData())
-    pushAllData()
   }
 
   client.activate()
@@ -279,6 +278,7 @@ onUnmounted(() => {
     if (!client.connected) {
       ElNotification.warning("websocket reconnection ...")
       connect()
+      pushAllData()
     }
   }, 2000)
 })()
