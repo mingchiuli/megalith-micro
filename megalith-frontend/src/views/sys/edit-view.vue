@@ -285,7 +285,6 @@ onUnmounted(() => {
     if (!client.connected) {
       ElNotification.warning("websocket reconnection ...")
       connect()
-      pushAllData()
     }
   }, 2000)
 })()
