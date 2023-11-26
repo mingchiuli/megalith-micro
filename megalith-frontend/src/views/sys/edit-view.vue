@@ -111,8 +111,6 @@ const pushActionData = (pushActionForm: PushActionForm) => {
 }
 
 watch(() => form.content, (n, o) => {
-  console.log('old:' + o)
-  console.log('new:' + n)
   if (!client.connected || (!n && !o)) return
 
   pushActionForm.id = form.id
@@ -121,7 +119,6 @@ watch(() => form.content, (n, o) => {
   //全部删除
   if (!n) {
     pushActionForm.operateTypeCode = OperateTypeCode.REMOVE
-    console.log("触发全部删除")
     pushActionData(pushActionForm)
     return
   }
@@ -130,7 +127,6 @@ watch(() => form.content, (n, o) => {
   if (!o) {
     pushActionForm.contentChange = n
     pushActionForm.operateTypeCode = OperateTypeCode.TAIL_APPEND
-    console.log("触发初始化新增 新增内容: " + n)
     pushActionData(pushActionForm)
     return
   }
