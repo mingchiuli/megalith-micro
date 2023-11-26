@@ -74,11 +74,11 @@ onUnmounted(() => {
   <el-card shadow="never">
     <div class="header">
       <span id="SLTitle">日志平台</span>
-      <div id="SLContent">
+      <span id="SLContent">
         <el-button class="SLButton" link @click="show">Start</el-button>
         <el-divider direction="vertical"></el-divider>
         <el-button class="SLButton" link @click="stop">Stop</el-button>
-      </div>
+      </span>
     </div>
     <div id="parent" class="text-item"></div>
   </el-card>
