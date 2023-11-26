@@ -109,8 +109,18 @@ const pushActionData = (pushActionForm: PushActionForm) => {
   }
 }
 
+const clearPushActionForm = () => {
+  pushActionForm.contentChange = undefined
+  pushActionForm.indexEnd = undefined
+  pushActionForm.indexStart = undefined
+  pushActionForm.operateTypeCode = undefined
+  pushActionForm.version = undefined
+}
+
 watch(() => form.content, (n, o) => {
   if (!client.connected || (!n && !o)) return
+
+  clearPushActionForm()
 
   pushActionForm.id = form.id
   pushActionForm.version = version
