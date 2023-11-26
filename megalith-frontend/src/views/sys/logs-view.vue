@@ -86,12 +86,17 @@ onUnmounted(() => {
 
 <style scoped>
 
+.header {
+  position: relative;
+}
+
 #SLTitle {
   font-size: large;
 }
 
 #SLContent {
-  float: right;
+  position: absolute;
+  right: 0;
   padding: 0.5% 0;
 }
 
