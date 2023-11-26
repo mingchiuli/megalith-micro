@@ -345,11 +345,11 @@ onUnmounted(() => {
   <div class="father">
     <el-form :model="form" :rules="formRules" ref="formRef">
       <el-form-item class="title" prop="title">
-        <el-input v-model="form.title" placeholder="标题" maxlength="10" />
+        <el-input v-model="form.title" placeholder="标题" maxlength="20" />
       </el-form-item>
 
       <el-form-item class="desc" prop="description">
-        <el-input autosize type="textarea" v-model="form.description" placeholder="摘要" maxlength="30" />
+        <el-input autosize type="textarea" v-model="form.description" placeholder="摘要" maxlength="60" />
       </el-form-item>
 
       <el-form-item class="status" prop="status">
