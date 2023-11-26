@@ -3,6 +3,7 @@ import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
+import { displayStateStore } from '@/stores/store';
 
 const props = defineProps<{
   loadingCatalogue: boolean
@@ -38,6 +39,7 @@ const render = async () => {
     const anchor = document.getElementById(decodeURI(location.hash.substring(1)))
     window.scrollTo({ top: anchor?.getBoundingClientRect().top, behavior: 'instant' })
     allNodes = treeRef.value!.store._getAllNodes()
+    displayStateStore().updateShowCatalogue()
   } else {
     loadingCatalogue.value = false
   }

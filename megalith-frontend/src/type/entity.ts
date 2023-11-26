@@ -202,9 +202,12 @@ export enum RoutesEnum {
 }
 
 export enum OperateTypeCode {
-  APPEND = 0,
-  SUBSTRACT,
-  OTHER
+  TAIL_APPEND = 0,
+  TAIL_SUBTRACT,
+  HEAD_APPEND,
+  HEAD_SUBTRACT,
+  REPLACE,
+  REMOVE
 }
 
 export enum OperaColor {

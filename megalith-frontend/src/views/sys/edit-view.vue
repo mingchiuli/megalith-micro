@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onUnmounted, reactive, ref, watch } from 'vue'
+import { onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { OperaColor, OperateTypeCode, Status } from '@/type/entity'
@@ -73,7 +73,8 @@ type PushActionForm = {
   contentChange?: string
   operateTypeCode?: number
   version?: number
-  index?: number
+  indexStart?: number
+  indexEnd?: number
 }
 
 const pushActionForm: PushActionForm = {
@@ -81,7 +82,8 @@ const pushActionForm: PushActionForm = {
   contentChange: undefined,
   operateTypeCode: undefined,
   version: undefined,
-  index: undefined
+  indexStart: undefined,
+  indexEnd: undefined
 }
 
 let version = 0
@@ -109,34 +111,87 @@ const pushActionData = (pushActionForm: PushActionForm) => {
 }
 
 watch(() => form.content, (n, o) => {
-  if (!client.connected || !n || !o) return
+  console.log('old:' + o)
+  console.log('new:' + n)
+  if (!client.connected || (!n && !o)) return
 
   pushActionForm.id = form.id
+  pushActionForm.version = version
+
+  //全部删除
+  if (!n) {
+    pushActionForm.operateTypeCode = OperateTypeCode.REMOVE
+    console.log("触发全部删除")
+    pushActionData(pushActionForm)
+    return
+  }
+
+  //初始化新增
+  if (!o) {
+    pushActionForm.contentChange = n
+    pushActionForm.operateTypeCode = OperateTypeCode.TAIL_APPEND
+    console.log("触发初始化新增 新增内容: " + n)
+    pushActionData(pushActionForm)
+    return
+  }
 
   let nLen = n.length
   let oLen = o.length
-  let contentLen = Math.abs(nLen - oLen)
   const minLen = Math.min(nLen, oLen)
-  let index = 0
+
+  let indexStart = oLen
   for (let i = 0; i < minLen; i++) {
     if (n.charAt(i) !== o.charAt(i)) {
-      index = i
+      indexStart = i
+      break
     }
   }
 
-  if (index === 0) {
-    index = minLen - 1
+  if (indexStart === oLen) {
+    //向末尾添加
+    if (oLen < nLen) {
+      pushActionForm.contentChange = n.substring(indexStart)
+      pushActionForm.operateTypeCode = OperateTypeCode.TAIL_APPEND
+    } else {
+      //从末尾删除
+      pushActionForm.indexStart = nLen
+      pushActionForm.operateTypeCode = OperateTypeCode.TAIL_SUBTRACT
+    }
+    pushActionData(pushActionForm)
+    return
   }
 
-  pushActionForm.index = index
-  pushActionForm.version = version
-  if (n.length > o.length) {
-    pushActionForm.operateTypeCode = OperateTypeCode.APPEND
-    pushActionForm.contentChange = n.substring(index, index + contentLen)
-  } else {
-    pushActionForm.operateTypeCode = OperateTypeCode.SUBSTRACT
-    pushActionForm.contentChange = o.substring(index, index + contentLen)
+  let oIndexEnd = -1
+  let nIndexEnd = -1
+  for (let i = oLen -1, j = nLen - 1; i >= 0 && j >= 0; i--, j--) {
+    if (o.charAt(i) !== n.charAt(j)) {
+      oIndexEnd = i + 1
+      nIndexEnd = j + 1
+      break
+    }
   }
+
+  if (oIndexEnd === -1) {
+    //从开头添加
+    if (oLen < nLen) {
+      pushActionForm.contentChange = n.substring(0, nLen - oLen)
+      pushActionForm.operateTypeCode = OperateTypeCode.HEAD_APPEND
+
+    } else {
+      //从开头删除
+      pushActionForm.indexStart = oLen - nLen
+      pushActionForm.operateTypeCode = OperateTypeCode.HEAD_SUBTRACT
+    }
+    pushActionData(pushActionForm)
+    return
+  }
+
+  //新内容的结束切割索引
+  const contentChange = n.substring(indexStart, nIndexEnd)
+  pushActionForm.contentChange = contentChange
+  pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
+  pushActionForm.indexStart = indexStart
+  pushActionForm.indexEnd = oIndexEnd
   pushActionData(pushActionForm)
 })
 
@@ -264,12 +319,6 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   }
   return true
 }
-
-onBeforeUnmount(() => {
-  if (!commit) {
-    pushAllData()
-  }
-})
 
 onUnmounted(() => {
   clearInterval(timer)

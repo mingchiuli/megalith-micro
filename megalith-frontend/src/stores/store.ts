@@ -5,8 +5,16 @@ export const displayStateStore = defineStore('displayStateStore', {
   state: () => {
     return {
       fix: document.body.clientWidth > 900 ? 'right' : false,
-      showCatalogue: document.body.clientWidth > 900,
+      showCatalogue: false,
       expand: document.body.clientWidth > 900
+    }
+  },
+
+  actions: {
+    updateShowCatalogue() {
+      if (document.body.clientWidth > 900) {
+        this.showCatalogue = true
+      }
     }
   }
 })
