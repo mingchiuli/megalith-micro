@@ -200,7 +200,7 @@ watch(() => form.content, (n, o) => {
   pushActionData(pushActionForm)
 })
 
-const transColor = ref('#67c23a')
+const transColor = ref(OperaColor.SUCCESS)
 const fileList = ref<UploadUserFile[]>([])
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
