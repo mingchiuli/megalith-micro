@@ -40,7 +40,6 @@ const connect = () => {
   }
 
   client.activate()
-
   client.onStompError = frame => {
     ElNotification.error({
       title: 'Broker reported error: ' + frame.headers['message'],
@@ -274,7 +273,6 @@ const handleRemove = async (_file: UploadFile) => {
   fileList.value = []
 }
 
-let commit = false
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid, _fields) => {
     if (valid) {
@@ -284,7 +282,6 @@ const submitForm = async (ref: FormInstance) => {
         message: '编辑成功',
         type: 'success',
       })
-      commit = true
       router.push({
         name: "system-blogs"
       })
@@ -323,7 +320,6 @@ onUnmounted(() => {
 
 (async () => {
   await loadEditContent()
-
   tabStore().addTab({ title: '编辑博客', name: 'system-edit' })
   connect()
   timer = setInterval(() => {
