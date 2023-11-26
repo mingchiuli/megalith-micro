@@ -100,6 +100,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
 .exhibit-author {
   display: block;
   text-align: center;
+  margin-top: 5px;
 }
 
 .exhibit-time {
