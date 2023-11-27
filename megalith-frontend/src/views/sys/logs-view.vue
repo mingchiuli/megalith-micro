@@ -55,7 +55,6 @@ const stop = () => {
 
 onUnmounted(() => {
   clearInterval(timer)
-  stop()
   client.deactivate()
 });
 
