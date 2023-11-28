@@ -11,9 +11,12 @@ export const displayStateStore = defineStore('displayStateStore', {
   },
 
   actions: {
-    updateShowCatalogue() {
-      if (document.body.clientWidth > 900) {
+    updateShowCatalogue(b: boolean) {
+      if (document.body.clientWidth > 900 && b) {
         this.showCatalogue = true
+      }
+      if (!b) {
+        this.showCatalogue = false
       }
     }
   }
