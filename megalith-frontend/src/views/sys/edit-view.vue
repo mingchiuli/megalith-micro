@@ -118,8 +118,6 @@ const clearPushActionForm = () => {
 }
 
 watch(() => form.content, (n, o) => {
-  console.log('老的：' + o)
-  console.log('新的: ' + n)
   if (!client.connected || (!n && !o)) return
 
   clearPushActionForm()
@@ -209,6 +207,7 @@ watch(() => form.content, (n, o) => {
       pushActionForm.indexStart = oIndexEnd - 1
       pushActionForm.indexEnd = oLen - (nLen - (len + oIndexEnd - 1))
     }
+    console.log('内容变更1: ', contentChange)
     pushActionForm.contentChange = contentChange
     pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
     pushActionData(pushActionForm)
@@ -216,12 +215,18 @@ watch(() => form.content, (n, o) => {
   }
 
   //中间正常插入
-  const contentChange = n.substring(indexStart, nIndexEnd)
-  pushActionForm.contentChange = contentChange
-  pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
-  pushActionForm.indexStart = indexStart
-  pushActionForm.indexEnd = oIndexEnd
-  pushActionData(pushActionForm)
+  if (indexStart <= oIndexEnd && indexStart <= nIndexEnd) {
+    const contentChange = n.substring(indexStart, nIndexEnd)
+    pushActionForm.contentChange = contentChange
+    pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
+    pushActionForm.indexStart = indexStart
+    pushActionForm.indexEnd = oIndexEnd
+    pushActionData(pushActionForm)
+    return 
+  }
+
+  //全不满足直接推全量数据
+  pushAllData()
 })
 
 const transColor = ref(OperaColor.SUCCESS)
