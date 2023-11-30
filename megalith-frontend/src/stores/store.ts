@@ -31,13 +31,13 @@ export const tabStore = defineStore('tabStore', () => {
   const editableTabsValue = ref('')
   const addTab = (tab: Tab) => {
     const index = editableTabs.value.findIndex(e => e.name === tab.name)
-      if (index === -1) {
-        editableTabs.value.push({
-          title: tab.title,
-          name: tab.name
-        })
-      }
-      editableTabsValue.value = tab.name
+    if (index === -1) {
+      editableTabs.value.push({
+        title: tab.title,
+        name: tab.name
+      })
+    }
+    editableTabsValue.value = tab.name
   }
 
   return { editableTabs, editableTabsValue, addTab }
