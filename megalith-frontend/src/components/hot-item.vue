@@ -3,7 +3,6 @@ import { ref } from 'vue'
 import type { Hot } from '@/type/entity'
 import { GET } from '@/http/http'
 import router from '@/router'
-import type { title } from 'process';
 
 let hots = ref<Hot[]>()
 
