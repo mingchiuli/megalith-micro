@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { Menu, Tab } from '@/type/entity'
-import { reactive, ref } from 'vue'
+import { ref } from 'vue'
 
 
 export const displayStateStore = defineStore('displayStateStore', () => {
@@ -21,18 +21,18 @@ export const loginStateStore = defineStore('loginStateStore', () => {
 })
 
 export const menuStore = defineStore('menuStore', () => {
-  const menuList = reactive<Menu[]>([])
+  const menuList = ref<Menu[]>([])
   return { menuList }
 })
 
 
 export const tabStore = defineStore('tabStore', () => {
-  const editableTabs = reactive<Tab[]>([])
+  const editableTabs = ref<Tab[]>([])
   const editableTabsValue = ref('')
   const addTab = (tab: Tab) => {
-    const index = editableTabs.findIndex(e => e.name === tab.name)
+    const index = editableTabs.value.findIndex(e => e.name === tab.name)
       if (index === -1) {
-        editableTabs.push({
+        editableTabs.value.push({
           title: tab.title,
           name: tab.name
         })
