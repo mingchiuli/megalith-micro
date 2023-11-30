@@ -21,9 +21,11 @@ const page: PageAdapter<BlogDesc> = reactive({
   "content": [],
   "totalElements": 0,
   "pageSize": 5,
-  "pageNumber": blogsPageNumStore().value
-})
-
+  //不用这个字段
+  "pageNumber": undefined
+})  
+//用这个字段
+const { pageNum } = storeToRefs(blogsPageNumStore())
 const { login } = storeToRefs(loginStateStore())
 
 if (router.currentRoute.value.path === '/login' && !login.value) {
@@ -53,11 +55,11 @@ const queryBlogs = async (pageNo: number, year: string) => {
 }
 
 const getPage = async (pageNo: number) => {
-  pageNumber.value = pageNo
+  pageNum.value = pageNo
   if (!keywords.value) {
-    await queryBlogs(pageNumber.value, year.value)
+    await queryBlogs(pageNo, year.value)
   } else {
-    searchRef.value!.searchAllInfo(keywords.value, pageNumber.value)
+    searchRef.value!.searchAllInfo(keywords.value, pageNo)
   }
 }
 
@@ -76,10 +78,10 @@ const to = async (id: number) => {
   }
 }
 
-const { content, totalElements, pageSize, pageNumber } = toRefs(page);
+const { content, totalElements, pageSize } = toRefs(page);
 
 (async () => {
-  await getPage(1)
+  await getPage(pageNum.value)
   loading.value = false
 })()
 </script>
@@ -125,7 +127,7 @@ const { content, totalElements, pageSize, pageNumber } = toRefs(page);
           </template>
         </el-skeleton>
       </el-timeline>
-      <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize" @current-change="getPage" />
+      <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize" @current-change="getPage" :current-page="pageNum" />
     </div>
   </div>
   <my-footer-item />

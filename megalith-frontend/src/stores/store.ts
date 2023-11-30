@@ -49,6 +49,6 @@ export const routeStore = defineStore('routeStore', () => {
 })
 
 export const blogsPageNumStore = defineStore('blogsPageNumStore', () => {
-  const value = ref(1)
-  return { value }
+  const pageNum = ref(1)
+  return { pageNum }
 })

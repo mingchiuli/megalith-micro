@@ -182,7 +182,7 @@ export interface PageAdapter<T> {
   content: T[]
   pageSize: number
   totalElements: number
-  pageNumber: number
+  pageNumber: number | undefined
 }
 
 export interface Data<T> {

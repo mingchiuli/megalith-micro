@@ -6,7 +6,7 @@ import { OperaColor, OperateTypeCode, Status } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
-import { tabStore } from '@/stores/store'
+import { tabStore, blogsPageNumStore } from '@/stores/store'
 import { Client } from '@stomp/stompjs'
 import { MdEditor, type Footers, type ToolbarNames } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
@@ -22,7 +22,6 @@ const toolbars: ToolbarNames[] = [
   0, 'pageFullscreen', 'fullscreen', 'preview', 'htmlPreview', 'catalog', 'github'
 ]
 const footers: Footers[] = ['markdownTotal', '=', 0, 'scrollSwitch']
-
 
 let timer: NodeJS.Timeout
 
@@ -292,6 +291,7 @@ const submitForm = async (ref: FormInstance) => {
         message: '编辑成功',
         type: 'success',
       })
+      blogsPageNumStore().pageNum = 1
       router.push({
         name: "system-blogs"
       })
