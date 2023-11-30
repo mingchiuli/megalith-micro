@@ -39,7 +39,7 @@ const render = async () => {
     const anchor = document.getElementById(decodeURI(location.hash.substring(1)))
     window.scrollTo({ top: anchor?.getBoundingClientRect().top, behavior: 'instant' })
     allNodes = treeRef.value!.store._getAllNodes()
-    displayStateStore().updateShowCatalogue(true)
+    displayStateStore().updateShowCatalogue()
   } else {
     loadingCatalogue.value = false
   }
@@ -172,7 +172,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', throttle)
-  displayStateStore().updateShowCatalogue(false)
 })
 
 defineExpose({

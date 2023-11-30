@@ -2,7 +2,7 @@
 import type { BlogDesc, PageAdapter } from '@/type/entity'
 import { GET } from '@/http/http'
 import { reactive, toRefs, ref } from 'vue'
-import { loginStateStore, tabStore } from '@/stores/store'
+import { loginStateStore, tabStore, blogsPageNumStore } from '@/stores/store'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
 import search from '@/components/search-item.vue'
@@ -21,7 +21,7 @@ const page: PageAdapter<BlogDesc> = reactive({
   "content": [],
   "totalElements": 0,
   "pageSize": 5,
-  "pageNumber": 1
+  "pageNumber": blogsPageNumStore().value
 })
 
 const { login } = storeToRefs(loginStateStore())

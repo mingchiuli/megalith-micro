@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import type { Hot } from '@/type/entity'
 import { GET } from '@/http/http'
 import router from '@/router'
+import type { title } from 'process';
 
 let hots = ref<Hot[]>()
 
@@ -25,7 +26,7 @@ const to = (id: number) => router.push({
       <el-text>本周热读</el-text>
     </div>
     <div class="description" v-for="(hot, key) in hots" v-bind:key="key" >
-      <el-link @click="to(hot.id)">{{ hot.title }}: {{ hot.readCount }}</el-link>
+      <el-link @click="to(hot.id)">{{ hot.title ? hot.title : '匿名文章' }}: {{ hot.readCount }}</el-link>
       <br/>
     </div>
   </el-card>
