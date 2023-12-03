@@ -48,7 +48,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
 </script>
 
 <template>
-  <el-affix :offset="30">
+  <el-affix :offset="30" style="height: 100px;">
     <catalogue-item v-if="loadingCatalogue" v-show="displayStateStore().showCatalogue" ref="catalogueRef"
       v-model:loadingCatalogue="loadingCatalogue" class="catalogue" />
   </el-affix>
