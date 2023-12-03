@@ -4,6 +4,7 @@ import { loginStateStore } from '@/stores/store'
 import type { LoginStruct, Token, UserInfo } from '@/type/entity'
 import { GET, POST } from '@/http/http'
 import router from '@/router'
+import http from '@/http/axios'
 
 const props = defineProps<{
   loginDialogVisible: boolean
@@ -70,27 +71,30 @@ const loginType = () => {
 }
 
 let interval: NodeJS.Timeout
-const sendCode = async (via: string) => {
+const sendCode = (via: string) => {
   mailButtonDisable.value = true
-  await GET<null>(`/code/${via}?loginName=${loginInfo.username}`)
-  
-  ElMessage.success('发送成功')
-  interval = setInterval(() => {
-    mailButtonText.value = `等待${mailButtonMiles.value}秒`
-    mailButtonMiles.value--
-    if (mailButtonMiles.value <= -1) {
-      clearInterval(interval)
-      mailButtonText.value = '发送验证码'
-      mailButtonDisable.value = false
-      mailButtonMiles.value = 120
-    }
-  }, 1000)
+  http.get(`/code/${via}?loginName=${loginInfo.username}`).then(_res => {
+    ElMessage.success('发送成功')
+    interval = setInterval(() => {
+      mailButtonText.value = `等待${mailButtonMiles.value}秒`
+      mailButtonMiles.value--
+      if (mailButtonMiles.value <= -1) {
+        clearInterval(interval)
+        mailButtonText.value = '发送验证码'
+        mailButtonDisable.value = false
+        mailButtonMiles.value = 120
+      }
+    }, 1000)
+  }).catch(_e => {
+    mailButtonDisable.value = false
+  })
 }
 
 </script>
 
 <template>
-  <el-dialog v-model="loginDialogVisible" center close-on-press-escape fullscreen align-center :before-close="beforeClose">
+  <el-dialog v-model="loginDialogVisible" center close-on-press-escape fullscreen align-center
+    :before-close="beforeClose">
     <template #default>
       <el-radio-group v-model="radioSelect" class="dialog-select" size="small">
         <el-radio-button @change="loginType" label="Password" />
