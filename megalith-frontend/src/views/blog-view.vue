@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { reactive, ref, nextTick } from 'vue'
+import { reactive, ref, nextTick, computed, onUnmounted } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import catalogue from '@/components/catalogue-item.vue'
@@ -7,12 +7,15 @@ import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { useRoute } from 'vue-router'
 import { displayStateStore } from '@/stores/store'
+import { storeToRefs } from 'pinia'
 
 const route = useRoute()
 const token = route.query.token
 const blogId = route.params.id
 const loading = ref(true)
 const loadingCatalogue = ref(true)
+const { showCatalogue } = storeToRefs(displayStateStore())
+const affixHeight = computed(() => showCatalogue ? '100px' : '0')
 
 const blog = reactive<BlogExhibit>({
   "title": '',
@@ -23,6 +26,8 @@ const blog = reactive<BlogExhibit>({
   "nickname": '',
   "created": ''
 })
+
+onUnmounted(() => displayStateStore().showCatalogue = false )
 
 const catalogueRef = ref<InstanceType<typeof catalogue>>();
 
@@ -48,8 +53,8 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
 </script>
 
 <template>
-  <el-affix :offset="30" style="height: 100px;">
-    <catalogue-item v-if="loadingCatalogue" v-show="displayStateStore().showCatalogue" ref="catalogueRef"
+  <el-affix :offset="30" class="affix">
+    <catalogue-item v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogueRef"
       v-model:loadingCatalogue="loadingCatalogue" class="catalogue" />
   </el-affix>
 
@@ -78,50 +83,54 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
 .exhibit-content {
   max-width: 40rem;
   margin: 0 auto;
-  padding: .5rem;
+  padding: .5rem
 }
 
 .exhibit-title {
   text-align: center;
   font-size: xx-large;
   margin-top: 30px;
-  margin-bottom: 20px;
+  margin-bottom: 20px
 }
 
 .exhibit-mavon-editor {
-  padding: 20px;
+  padding: 20px
 }
 
 .exhibit-avatar {
   margin: 0 auto;
-  display: block;
+  display: block
 }
 
 .exhibit-author {
   display: block;
   text-align: center;
-  margin-top: 5px;
+  margin-top: 5px
 }
 
 .exhibit-time {
   display: block;
-  margin-left: 10px;
+  margin-left: 10px
 }
 
 .exhibit-read-count {
   display: block;
-  margin-left: 10px;
+  margin-left: 10px
 }
 
 .el-card:deep(.md-editor-preview-wrapper) {
-  padding: 20px 20px;
+  padding: 20px 20px
 }
 
 .content:deep(.el-card__body) {
-  padding: 0;
+  padding: 0
 }
 
 .catalogue {
-  margin-left: 80%;
+  margin-left: 80%
+}
+
+.affix {
+  height: v-bind(affixHeight)
 }
 </style>

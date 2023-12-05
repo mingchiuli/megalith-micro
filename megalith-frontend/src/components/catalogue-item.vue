@@ -199,14 +199,14 @@ defineExpose({
   min-height: 100px;
   width: 200px;
   overflow-y: auto;
-  overflow-x: auto;
+  overflow-x: auto
 }
 
 .box:deep(.el-tree-node) {
-  overflow: auto;
+  overflow: auto
 }
 
 .el-card:deep(.el-card__body) {
-  padding: 5px;
+  padding: 5px
 }
 </style>
