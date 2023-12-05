@@ -15,7 +15,7 @@ const blogId = route.params.id
 const loading = ref(true)
 const loadingCatalogue = ref(true)
 const { showCatalogue } = storeToRefs(displayStateStore())
-const affixHeight = computed(() => showCatalogue ? '100px' : '0')
+const affixHeight = computed(() => showCatalogue.value ? '100px' : '0')
 
 const blog = reactive<BlogExhibit>({
   "title": '',
@@ -27,8 +27,7 @@ const blog = reactive<BlogExhibit>({
   "created": ''
 })
 
-onUnmounted(() => displayStateStore().showCatalogue = false )
-
+onUnmounted(() => displayStateStore().showCatalogue = false)
 const catalogueRef = ref<InstanceType<typeof catalogue>>();
 
 (async () => {
@@ -48,15 +47,17 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   blog.content = '>' + data.description + '\n\n' + data.content
   await nextTick()
   //基于一些不知道的原因
-  setTimeout(() => catalogueRef.value?.render(), 100)
+  setTimeout(async () => await catalogueRef.value?.render(), 100)
 })()
 </script>
 
 <template>
-  <el-affix :offset="30" class="affix">
-    <catalogue-item v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogueRef"
-      v-model:loadingCatalogue="loadingCatalogue" class="catalogue" />
-  </el-affix>
+  <div class="father">
+    <div class="affix">
+      <catalogue-item v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogueRef"
+        v-model:loadingCatalogue="loadingCatalogue" />
+    </div>
+  </div>
 
   <div class="exhibit-content">
     <div class="exhibit-title">{{ blog.title }}</div>
@@ -126,11 +127,14 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   padding: 0
 }
 
-.catalogue {
-  margin-left: 80%
+.affix {
+  right: 10%;
+  position: fixed;
+  margin-top: 30px;
+  display: block
 }
 
-.affix {
+.father {
   height: v-bind(affixHeight)
 }
 </style>
