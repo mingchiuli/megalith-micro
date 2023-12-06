@@ -417,42 +417,42 @@ onUnmounted(() => {
   display: inline-block;
   width: 10px;
   height: 10px;
-  border-radius: 50%;
+  border-radius: 50%
 }
 
 .father {
   max-width: 40rem;
-  margin: 0 auto;
+  margin: 0 auto
 }
 
 .title {
-  width: 200px;
+  width: 200px
 }
 
 .desc {
-  width: 300px;
+  width: 300px
 }
 
 .status {
-  width: 300px;
+  width: 300px
 }
 
 .el-upload__text {
-  width: 290px;
+  width: 290px
 }
 
 .submit-button {
   display: block;
   margin: 10px auto;
-  text-align: center;
+  text-align: center
 }
 
 .content {
   max-width: 40rem;
-  margin: 0 auto;
+  margin: 0 auto
 }
 
 #md-editor-v3:deep(.md-editor-footer) {
-  height: 30px;
+  height: 30px
 }
 </style>

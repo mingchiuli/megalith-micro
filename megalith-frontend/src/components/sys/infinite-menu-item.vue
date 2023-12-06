@@ -37,5 +37,3 @@ const selectMenu = (item: Tab) => {
     <infinite-menu-item v-for="sub in item.children" v-bind:key="sub.menuId" :item="sub" />
   </el-sub-menu>
 </template>
-
-<style scoped></style>

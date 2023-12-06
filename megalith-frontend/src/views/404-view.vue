@@ -11,11 +11,11 @@ const value = ref(new Date())
 
 <style scoped>
 .hint {
-  text-align: center;
+  text-align: center
 }
 
 .calendar {
   margin: 0 auto;
-  max-width: 600px;
+  max-width: 600px
 }
 </style>

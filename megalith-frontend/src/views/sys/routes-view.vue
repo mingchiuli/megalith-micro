@@ -248,6 +248,6 @@ const submitForm = async (ref: FormInstance) => {
 
 <style scoped>
 .button-form .el-form-item {
-  margin-right: 10px;
+  margin-right: 10px
 }
 </style>

@@ -297,34 +297,34 @@ const handleCurrentChange = async (val: number) => {
 
 <style scoped>
 .button-form .el-form-item {
-  margin-right: 10px;
+  margin-right: 10px
 }
 
 .el-pagination {
-  margin-top: 10px;
+  margin-top: 10px
 }
 
 .username {
-  width: 300px;
+  width: 300px
 }
 
 .nickname {
-  width: 300px;
+  width: 300px
 }
 
 .password {
-  width: 400px;
+  width: 400px
 }
 
 .avatar {
-  width: 500px;
+  width: 500px
 }
 
 .email {
-  width: 400px;
+  width: 400px
 }
 
 .phone {
-  width: 400px;
+  width: 400px
 }
 </style>

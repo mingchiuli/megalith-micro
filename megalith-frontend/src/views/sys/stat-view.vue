@@ -16,6 +16,6 @@ onMounted(() => {
 
 <style scoped>
 #map {
-  margin-top: 30px;
+  margin-top: 30px
 }
 </style>

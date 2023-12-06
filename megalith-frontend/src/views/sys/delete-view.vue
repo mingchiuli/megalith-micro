@@ -138,6 +138,6 @@ const handleResume = async (row: BlogDelSys) => {
 
 <style scoped>
 .el-pagination {
-  margin-top: 10px;
+  margin-top: 10px
 }
 </style>

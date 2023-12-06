@@ -37,6 +37,3 @@ const removeTab = (name: string) => {
     </el-tab-pane>
   </el-tabs>
 </template>
-
-<style scoped>
-</style>

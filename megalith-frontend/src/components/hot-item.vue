@@ -44,6 +44,6 @@ const to = (id: number) => router.push({
 
 .description {
   text-align: left;
-  margin-bottom: 10px;
+  margin-bottom: 10px
 }
 </style>

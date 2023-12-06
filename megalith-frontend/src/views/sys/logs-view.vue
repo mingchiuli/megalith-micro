@@ -87,25 +87,25 @@ onUnmounted(() => {
 <style scoped>
 
 .header {
-  position: relative;
+  position: relative
 }
 
 #SLTitle {
-  font-size: large;
+  font-size: large
 }
 
 #SLContent {
   position: absolute;
   right: 0;
-  padding: 0.5% 0;
+  padding: 0.5% 0
 }
 
 .SLButton {
-  font-size: medium;
+  font-size: medium
 }
 
 .text-item {
   min-height: 450px;
-  overflow: auto;
+  overflow: auto
 }
 </style>

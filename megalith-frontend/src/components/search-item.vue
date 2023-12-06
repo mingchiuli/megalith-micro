@@ -169,15 +169,15 @@ defineExpose(
 <style scoped>
 .dialog-year {
   text-align: center;
-  margin-top: 5px;
+  margin-top: 5px
 }
 
 .dialog-autocomplete {
   margin: 30px auto 0 auto;
-  max-width: max-content;
+  max-width: max-content
 }
 
 .dialog-hot {
-  margin: 0 auto;
+  margin: 0 auto
 }
 </style>

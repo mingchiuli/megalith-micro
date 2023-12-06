@@ -23,10 +23,10 @@ let end = ref<number>();
 .footer {
   max-width: 15rem;
   margin: 0 auto;
-  text-align: center;
+  text-align: center
 }
 
 .el-link {
-  margin-bottom: 20px;
+  margin-bottom: 20px
 }
 </style>

@@ -38,6 +38,6 @@ const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat);
   margin: 0 auto;
   width: fit-content;
   margin-top: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1rem
 }
 </style>

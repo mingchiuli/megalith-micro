@@ -302,10 +302,10 @@ const handleDelete = async (row: RoleSys) => {
 
 <style scoped>
 .button-form .el-form-item {
-  margin-right: 10px;
+  margin-right: 10px
 }
 
 .el-pagination {
-  margin-top: 10px;
+  margin-top: 10px
 }
 </style>

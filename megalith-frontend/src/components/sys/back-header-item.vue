@@ -41,7 +41,7 @@ const logout = () => {
   line-height: 60px;
   background-color: #f6f6f6;
   display: inline-block;
-  width: 100%;
+  width: 100%
 }
 
 /* 用line-height对于图片时失效 */
@@ -49,12 +49,12 @@ const logout = () => {
   margin-top: 10px;
   height: 40px;
   position: absolute;
-  right: 10px;
+  right: 10px
 }
 
 .header-dropdown {
   line-height: 60px;
   position: absolute;
-  right: 60px;
+  right: 60px
 }
-</style>@/utils/tools
+</style>

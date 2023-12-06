@@ -245,14 +245,14 @@ const handleCurrentChange = async (val: number) => {
 
 <style scoped>
 .search-input {
-  width: 200px;
+  width: 200px
 }
 
 .button-form .el-form-item {
-  margin-right: 10px;
+  margin-right: 10px
 }
 
 .el-pagination {
-  margin-top: 10px;
+  margin-top: 10px
 }
-</style>@/utils/tools
+</style>

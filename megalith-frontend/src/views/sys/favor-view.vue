@@ -230,17 +230,17 @@ const handleSizeChange = async (val: number) => {
 
 <style scoped>
 .search-input {
-  width: 200px;
+  width: 200px
 }
 
 .button-form .el-form-item {
-  margin-right: 10px;
+  margin-right: 10px
 }
 
 .icon-button {
   position: relative;
   left: 70%;
-  padding: 3px 0;
+  padding: 3px 0
 }
 
 .wrapper {
@@ -249,23 +249,23 @@ const handleSizeChange = async (val: number) => {
   display: flex;
   justify-content: space-around;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: wrap
 }
 
 .wrapper-content {
   width: 20rem;
-  margin: 20px 0;
+  margin: 20px 0
 }
 
 .el-pagination {
-  margin-top: 10px;
+  margin-top: 10px
 }
 
 .text {
-  font-size: 14px;
+  font-size: 14px
 }
 
 .item {
-  margin-bottom: 18px;
+  margin-bottom: 18px
 }
 </style>

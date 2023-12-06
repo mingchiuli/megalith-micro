@@ -54,6 +54,6 @@ const chooseYear = (y: number | string) => {
 
 <style scoped>
 .el-button {
-  margin: 5px;
+  margin: 5px
 }
 </style>

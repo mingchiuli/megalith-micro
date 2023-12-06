@@ -136,43 +136,43 @@ const { content, totalElements, pageSize } = toRefs(page);
 <style scoped>
 .door {
   width: fit-content;
-  margin-left: 5px;
+  margin-left: 5px
 }
 
 .search-father {
   margin-top: 20px;
   position: relative;
-  min-height: 10px;
+  min-height: 10px
 }
 
 .description {
-  margin: 0 auto;
+  margin: 0 auto
 }
 
 .el-timeline:deep(.el-timeline-item__wrapper) {
-  padding-left: 5%;
+  padding-left: 5%
 }
 
 .el-pagination {
   width: fit-content;
-  margin: 0 auto;
+  margin: 0 auto
 }
 
 .el-timeline {
-  padding: 0;
+  padding: 0
 }
 
 .title {
   font-size: medium;
   margin-top: 15px;
   display: block;
-  max-width: fit-content;
+  max-width: fit-content
 }
 
 .search-button {
   position: absolute;
   right: 0;
   z-index: 1;
-  top: 15px;
+  top: 15px
 }
 </style>
