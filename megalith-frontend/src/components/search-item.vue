@@ -119,11 +119,7 @@ const yearsCloseEvent = async () => {
   }
 }
 
-const clearSearch = () => {
-  keywords.value = ''
-  searchDialogVisible.value = false
-  emit('clear')
-}
+const clearSearch = () => keywords.value = ''
 
 defineExpose(
   { searchAllInfo }
