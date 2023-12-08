@@ -12,7 +12,8 @@ export const displayStateStore = defineStore('displayStateStore', () => {
       showCatalogue.value = true
     }
   }
-  return { fix, showCatalogue, expand, updateShowCatalogue }
+  const titleShift = ref(document.body.clientWidth > 900)
+  return { fix, showCatalogue, expand, updateShowCatalogue, titleShift }
 })
 
 export const loginStateStore = defineStore('loginStateStore', () => {

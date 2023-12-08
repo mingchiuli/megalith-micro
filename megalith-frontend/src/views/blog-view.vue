@@ -14,8 +14,8 @@ const token = route.query.token
 const blogId = route.params.id
 const loading = ref(true)
 const loadingCatalogue = ref(true)
-const { showCatalogue } = storeToRefs(displayStateStore())
-const affixHeight = computed(() => showCatalogue.value ? '100px' : '0')
+const { titleShift, showCatalogue } = storeToRefs(displayStateStore())
+const affixHeight = computed(() => titleShift.value ? '100px' : '0')
 
 const blog = reactive<BlogExhibit>({
   "title": '',
