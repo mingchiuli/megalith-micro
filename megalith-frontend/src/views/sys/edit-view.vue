@@ -426,18 +426,22 @@ onUnmounted(() => {
 }
 
 .title {
+  margin-top: 5px;
   width: 200px
 }
 
 .desc {
+  margin-top: 5px;
   width: 300px
 }
 
 .status {
+  margin-top: 5px;
   width: 300px
 }
 
 .el-upload__text {
+  margin-top: 5px;
   width: 290px
 }
 
@@ -449,7 +453,7 @@ onUnmounted(() => {
 
 .content {
   max-width: 40rem;
-  margin: 0 auto
+  margin: 5px auto
 }
 
 #md-editor-v3:deep(.md-editor-footer) {
