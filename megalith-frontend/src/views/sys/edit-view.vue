@@ -167,7 +167,7 @@ watch(() => form.content, (n, o) => {
 
   let oIndexEnd = -1
   let nIndexEnd = -1
-  for (let i = oLen -1, j = nLen - 1; i >= 0 && j >= 0; i--, j--) {
+  for (let i = oLen - 1, j = nLen - 1; i >= 0 && j >= 0; i--, j--) {
     if (o.charAt(i) !== n.charAt(j)) {
       oIndexEnd = i + 1
       nIndexEnd = j + 1
@@ -190,13 +190,41 @@ watch(() => form.content, (n, o) => {
     return
   }
 
-  //新内容的结束切割索引
-  const contentChange = n.substring(indexStart, nIndexEnd)
-  pushActionForm.contentChange = contentChange
-  pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
-  pushActionForm.indexStart = indexStart
-  pushActionForm.indexEnd = oIndexEnd
-  pushActionData(pushActionForm)
+  //中间插入重复字符
+  if (indexStart > oIndexEnd) {
+    let len = indexStart - oIndexEnd + 1
+    let contentChange
+
+    //增
+    if (nLen > oLen) {
+      contentChange = n.substring(oIndexEnd, oIndexEnd + len)
+      pushActionForm.indexStart = oIndexEnd
+      pushActionForm.indexEnd = oLen - (nLen - (oIndexEnd + len))
+      //删
+    } else {
+      contentChange = n.substring(oIndexEnd - 1, oIndexEnd - 1 + len)
+      pushActionForm.indexStart = oIndexEnd - 1
+      pushActionForm.indexEnd = oLen - (nLen - (len + oIndexEnd - 1))
+    }
+    pushActionForm.contentChange = contentChange
+    pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
+    pushActionData(pushActionForm)
+    return
+  }
+
+  //中间正常插入
+  if (indexStart <= oIndexEnd && indexStart <= nIndexEnd) {
+    const contentChange = n.substring(indexStart, nIndexEnd)
+    pushActionForm.contentChange = contentChange
+    pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
+    pushActionForm.indexStart = indexStart
+    pushActionForm.indexEnd = oIndexEnd
+    pushActionData(pushActionForm)
+    return
+  }
+
+  //全不满足直接推全量数据
+  pushAllData()
 })
 
 const transColor = ref(OperaColor.SUCCESS)
@@ -399,7 +427,7 @@ onUnmounted(() => {
             </emoji>
           </template>
           <template #defFooters>
-            <span class="trans-radius" :style="{'background-color': transColor}" />
+            <span class="trans-radius" :style="{ 'background-color': transColor }" />
           </template>
         </md-editor>
       </el-form-item>
