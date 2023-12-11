@@ -30,13 +30,14 @@ const treeRef = ref<InstanceType<typeof ElTree>>()
 const handleNodeClick = (data: CatalogueLabel) => window.scrollTo({ top: data.dist - rollGap, behavior: 'smooth' })
 
 const render = async () => {
-  const aLabels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
-  const arrs = geneCatalogueArr(aLabels)
+  const labels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
+  const arrs = geneCatalogueArr(labels)
   if (arrs.length > 0) {
     data.value = arrs
     loading.value = false
     await nextTick()
-    const anchor = document.getElementById(decodeURI(location.hash.substring(1)))
+    const anchor = selectAnchorNode(labels, location.hash)
+    console.log(anchor)
     window.scrollTo({ top: anchor?.getBoundingClientRect().top, behavior: 'instant' })
     allNodes = treeRef.value!.store._getAllNodes()
   } else {
@@ -45,10 +46,19 @@ const render = async () => {
   displayStateStore().updateShowCatalogue()
 }
 
-const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] => {
+const selectAnchorNode = (labels: NodeListOf<HTMLElement>, hash: string): HTMLElement | null => {
+  for (let label of labels) {
+    if (label.getAttribute('data-line') === hash.substring(1)) {
+      return label
+    }
+  }
+  return null
+}
+
+const geneCatalogueArr = (labels: NodeListOf<HTMLElement>): CatalogueLabel[] => {
   const arr: CatalogueLabel[] = []
-  for (let i = 0; i < aLabels.length; i++) {
-    const aLabel = aLabels[i]
+  for (let i = 0; i < labels.length; i++) {
+    const aLabel = labels[i]
     const item: CatalogueLabel = {
       id: '',
       label: '',
@@ -59,7 +69,7 @@ const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] =>
     item.id = aLabel.getAttribute('data-line')!
     item.dist = aLabel.getBoundingClientRect().top
     item.label = aLabel.innerText
-    item.children = getChildren(aLabels, i)
+    item.children = getChildren(labels, i)
     i += getChildrenTotal(item.children)
     arr.push(item)
   }
@@ -79,16 +89,16 @@ const getChildrenTotal = (children: CatalogueLabel[]): number => {
   return count
 }
 
-const getChildren = (aLabels: NodeListOf<HTMLElement>, index: number): CatalogueLabel[] => {
+const getChildren = (labels: NodeListOf<HTMLElement>, index: number): CatalogueLabel[] => {
   const arr: CatalogueLabel[] = []
-  if (index === aLabels.length - 1) {
+  if (index === labels.length - 1) {
     return arr
   }
 
-  const curLabel = aLabels[index].nodeName
+  const curLabel = labels[index].nodeName
   const curLabelNo = curLabel.substring(1)
-  for (let i = index + 1; i < aLabels.length; i++) {
-    const aLabel = aLabels[i]
+  for (let i = index + 1; i < labels.length; i++) {
+    const aLabel = labels[i]
     const labelNo = aLabel.nodeName.substring(1)
 
     if (parseInt(labelNo) > parseInt(curLabelNo)) {
@@ -102,7 +112,7 @@ const getChildren = (aLabels: NodeListOf<HTMLElement>, index: number): Catalogue
       item.id = aLabel.getAttribute('data-line')!
       item.dist = aLabel.getBoundingClientRect().top
       item.label = aLabel.innerText
-      item.children = getChildren(aLabels, i)
+      item.children = getChildren(labels, i)
       i += getChildrenTotal(item.children)
       arr.push(item)
     } else {
