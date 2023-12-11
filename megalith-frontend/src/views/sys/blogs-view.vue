@@ -25,7 +25,7 @@ const copyReadToken = () => {
   navigator.clipboard.writeText(readToken.value)
   ElNotification({
     title: '复制成功',
-    message: '请妥善保管',
+    message: '请保管',
     type: 'success',
   })
   passwordVisible.value = false

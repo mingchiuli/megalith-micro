@@ -3,7 +3,7 @@ import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
-import { displayStateStore } from '@/stores/store';
+import { displayStateStore } from '@/stores/store'
 
 const props = defineProps<{
   loadingCatalogue: boolean
@@ -56,7 +56,7 @@ const geneCatalogueArr = (aLabels: NodeListOf<HTMLElement>): CatalogueLabel[] =>
       children: []
     }
 
-    item.id = aLabel.id
+    item.id = aLabel.getAttribute('data-line')!
     item.dist = aLabel.getBoundingClientRect().top
     item.label = aLabel.innerText
     item.children = getChildren(aLabels, i)
@@ -99,7 +99,7 @@ const getChildren = (aLabels: NodeListOf<HTMLElement>, index: number): Catalogue
         children: []
       }
 
-      item.id = aLabel.id
+      item.id = aLabel.getAttribute('data-line')!
       item.dist = aLabel.getBoundingClientRect().top
       item.label = aLabel.innerText
       item.children = getChildren(aLabels, i)
@@ -134,7 +134,6 @@ const roll = () => {
     let scrolled = document.documentElement.scrollTop
     let temp: CatalogueLabel
     temp = rollToTargetLabel(data.value as CatalogueLabel[], scrolled)!
-
     //高亮和关闭树节点的逻辑
     allNodes.forEach(node => {
       const id = node.data.id
