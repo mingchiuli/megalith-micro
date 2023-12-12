@@ -128,7 +128,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
 }
 
 .affix {
-  left: 75%;
+  right: 100px;
   position: fixed;
   margin-top: 30px;
   display: block
