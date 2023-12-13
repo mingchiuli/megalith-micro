@@ -103,6 +103,17 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
+    <el-table-column label="更新时间" width="180" align="center">
+      <template #default="scope">
+        <div style="display: flex; align-items: center">
+          <el-icon>
+            <timer />
+          </el-icon>
+          <span style="margin-left: 10px">{{ scope.row.updated }}</span>
+        </div>
+      </template>
+    </el-table-column>
+
     <el-table-column label="阅读统计" align="center">
       <template #default="scope">
         <div>总阅读数: {{ scope.row.readCount }}</div>

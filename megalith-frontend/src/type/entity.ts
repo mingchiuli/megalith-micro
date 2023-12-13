@@ -38,6 +38,7 @@ export interface BlogDelSys {
   description: string
   content: string
   created: string
+  updated: string
   status: number
   link: string
   readCount: number
