@@ -22,6 +22,7 @@ export interface BlogSys {
   title: string
   description: string
   created: string
+  updated: string
   content: string
   readCount: number
   recentReadCount: number
@@ -112,6 +113,7 @@ export interface SearchFavors {
   description: string
   link: string
   created: string
+  updated: string
   score: string
   highlight: SearchFavorsHighlightStruct
 }

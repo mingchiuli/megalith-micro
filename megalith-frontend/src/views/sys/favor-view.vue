@@ -180,6 +180,7 @@ const handleSizeChange = async (val: number) => {
               {{ favor.description }}
             </div>
             <div class="text item">创建时间: {{ favor.created }}</div>
+            <div class="text item">更新时间: {{ favor.updated }}</div>
             <div class="text item">
               <div v-if="favor.score !== 'NaN'">{{ "Search Scores: " + favor.score }}</div>
               <template v-if="favor.highlight?.title">
