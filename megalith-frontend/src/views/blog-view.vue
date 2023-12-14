@@ -56,8 +56,8 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   } else if (width > catalogueWidth.value + 110) {
     right.value = 100
     showCatalogue.value = true
-  } else if (width > catalogueWidth.value + 10) {
-    right.value = 10
+  } else if (width > catalogueWidth.value + 5) {
+    right.value = 2.5
     showCatalogue.value = true
   } else {
     showCatalogue.value = false
