@@ -16,6 +16,8 @@ const loading = ref(true)
 const loadingCatalogue = ref(true)
 const { titleShift, showCatalogue } = storeToRefs(displayStateStore())
 const affixHeight = computed(() => titleShift.value ? '100px' : '0')
+const catalogueWidth = ref(200)
+const right = ref(100)
 
 const blog = reactive<BlogExhibit>({
   "title": '',
@@ -46,6 +48,13 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   loading.value = false
   blog.content = '>' + data.description + '\n\n' + data.content
   await nextTick()
+  //计算距离
+  const screenWidth = window.screen.width
+  const label = document.querySelector<HTMLElement>('.content')
+  const width = (screenWidth - label!.scrollWidth) / 4
+  if (width > catalogueWidth.value + 50) {
+    right.value = width
+  }
   //基于一些不知道的原因
   setTimeout(async () => await catalogueRef.value?.render(), 100)
 })()
@@ -55,7 +64,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   <div class="father">
     <div class="affix">
       <catalogue-item v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogueRef"
-        v-model:loadingCatalogue="loadingCatalogue" />
+        v-model:loadingCatalogue="loadingCatalogue" :width="catalogueWidth" />
     </div>
   </div>
 
@@ -128,7 +137,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
 }
 
 .affix {
-  right: 100px;
+  right: v-bind(right + 'px');
   position: fixed;
   margin-top: 30px;
   display: block

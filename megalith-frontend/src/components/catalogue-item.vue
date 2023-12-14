@@ -7,6 +7,7 @@ import { displayStateStore } from '@/stores/store'
 
 const props = defineProps<{
   loadingCatalogue: boolean
+  width: number
 }>()
 
 const emit = defineEmits<(event: 'update:loadingCatalogue', payload: boolean) => void>()
@@ -19,6 +20,8 @@ let loadingCatalogue = computed({
     emit('update:loadingCatalogue', value)
   }
 })
+
+const width = computed(() => props.width)
 
 const loading = ref(true)
 let data = ref<CatalogueLabel[]>()
@@ -37,7 +40,6 @@ const render = async () => {
     loading.value = false
     await nextTick()
     const anchor = selectAnchorNode(labels, location.hash)
-    console.log(anchor)
     window.scrollTo({ top: anchor?.getBoundingClientRect().top, behavior: 'instant' })
     allNodes = treeRef.value!.store._getAllNodes()
   } else {
@@ -206,7 +208,7 @@ defineExpose({
 .box {
   padding: 0px;
   min-height: 100px;
-  width: 200px;
+  width: v-bind(width + 'px');
   overflow-y: auto;
   overflow-x: auto
 }
