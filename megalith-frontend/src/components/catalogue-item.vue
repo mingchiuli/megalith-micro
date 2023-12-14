@@ -45,7 +45,7 @@ const render = async () => {
   } else {
     loadingCatalogue.value = false
   }
-  displayStateStore().updateShowCatalogue()
+  // displayStateStore().updateShowCatalogue()
 }
 
 const selectAnchorNode = (labels: NodeListOf<HTMLElement>, hash: string): HTMLElement | null => {

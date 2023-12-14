@@ -5,15 +5,8 @@ import { ref } from 'vue'
 
 export const displayStateStore = defineStore('displayStateStore', () => {
   const fix = ref(document.body.clientWidth > 900 ? 'right' : false)
-  const showCatalogue = ref(false)
   const expand = ref(document.body.clientWidth > 900)
-  const updateShowCatalogue = () => {
-    if (document.body.clientWidth > 900) {
-      showCatalogue.value = true
-    }
-  }
-  const titleShift = ref(document.body.clientWidth > 900)
-  return { fix, showCatalogue, expand, updateShowCatalogue, titleShift }
+  return { fix, expand }
 })
 
 export const loginStateStore = defineStore('loginStateStore', () => {
@@ -25,7 +18,6 @@ export const menuStore = defineStore('menuStore', () => {
   const menuList = ref<Menu[]>([])
   return { menuList }
 })
-
 
 export const tabStore = defineStore('tabStore', () => {
   const editableTabs = ref<Tab[]>([])

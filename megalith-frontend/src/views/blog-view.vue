@@ -1,23 +1,21 @@
 <script lang="ts" setup>
-import { reactive, ref, nextTick, computed, onUnmounted } from 'vue'
+import { reactive, ref, nextTick } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import catalogue from '@/components/catalogue-item.vue'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { useRoute } from 'vue-router'
-import { displayStateStore } from '@/stores/store'
-import { storeToRefs } from 'pinia'
 
 const route = useRoute()
 const token = route.query.token
 const blogId = route.params.id
 const loading = ref(true)
 const loadingCatalogue = ref(true)
-const { titleShift, showCatalogue } = storeToRefs(displayStateStore())
-const affixHeight = computed(() => titleShift.value ? '100px' : '0')
+const affixHeight = ref(document.body.clientWidth > 900 ? '100px' : '0')
+const showCatalogue = ref(false)
 const catalogueWidth = ref(200)
-const right = ref(100)
+const right = ref(10)
 
 const blog = reactive<BlogExhibit>({
   "title": '',
@@ -29,7 +27,6 @@ const blog = reactive<BlogExhibit>({
   "created": ''
 })
 
-onUnmounted(() => displayStateStore().showCatalogue = false)
 const catalogueRef = ref<InstanceType<typeof catalogue>>();
 
 (async () => {
@@ -51,10 +48,18 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   //计算距离
   const screenWidth = window.screen.width
   const label = document.querySelector<HTMLElement>('.content')
-  const width = (screenWidth - label!.scrollWidth) / 4
-  if (width > catalogueWidth.value + 50) {
+  const width = (screenWidth - label!.clientWidth) / 2
+
+  if (width / 2 > catalogueWidth.value + 10) {
     right.value = width
+    showCatalogue.value = true
+  } else if (width > catalogueWidth.value + 110) {
+    right.value = 100
+    showCatalogue.value = true
+  } else {
+    showCatalogue.value = false
   }
+
   //基于一些不知道的原因
   setTimeout(async () => await catalogueRef.value?.render(), 100)
 })()
