@@ -46,9 +46,9 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   blog.content = '>' + data.description + '\n\n' + data.content
   await nextTick()
   //计算距离
-  const screenWidth = window.screen.width
+  const screenWidth = window.outerWidth
   const label = document.querySelector<HTMLElement>('.content')
-  const width = (screenWidth - label!.clientWidth) / 2
+  const width = (screenWidth - label!.offsetWidth) / 2
 
   if (width / 2 > catalogueWidth.value + 10) {
     right.value = width
@@ -56,8 +56,8 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   } else if (width > catalogueWidth.value + 110) {
     right.value = 100
     showCatalogue.value = true
-  } else if (width > catalogueWidth.value + 5) {
-    right.value = 2.5
+  } else if (width > catalogueWidth.value + 10) {
+    right.value = 5
     showCatalogue.value = true
   } else {
     showCatalogue.value = false
