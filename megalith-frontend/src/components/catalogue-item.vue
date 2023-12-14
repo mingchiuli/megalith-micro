@@ -3,7 +3,6 @@ import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
-import { displayStateStore } from '@/stores/store'
 
 const props = defineProps<{
   loadingCatalogue: boolean
