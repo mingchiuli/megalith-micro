@@ -50,8 +50,9 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   const label = document.querySelector<HTMLElement>('.content')
   const width = (screenWidth - label!.offsetWidth) / 2
 
-  if (width / 2 > catalogueWidth.value + 10) {
-    right.value = width / 2
+  const halfWidth = width / 2
+  if (halfWidth > catalogueWidth.value + 10) {
+    right.value = halfWidth
     showCatalogue.value = true
   } else if (width > catalogueWidth.value + 110) {
     right.value = 100
