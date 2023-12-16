@@ -3,8 +3,6 @@ import { reactive, ref, nextTick } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import catalogue from '@/components/catalogue-item.vue'
-import { MdPreview } from 'md-editor-v3'
-import 'md-editor-v3/lib/preview.css'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
