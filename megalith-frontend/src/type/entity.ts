@@ -24,8 +24,8 @@ export interface BlogSys {
   created: string
   updated: string
   content: string
-  readCount: number
-  recentReadCount: number
+  readCount?: number
+  recentReadCount?: number
   status: number
   link: string
 }

@@ -7,12 +7,11 @@ import { Timer } from '@element-plus/icons-vue'
 import { tabStore, displayStateStore } from '@/stores/store'
 import { render } from '@/utils/tools'
 
+const search = ref(false)
 const input = ref('')
-const readToken = ref('')
 const multipleSelection = ref<BlogSys[]>([])
 const delBtlStatus = ref(true)
 const loading = ref(false)
-const passwordVisible = ref(false)
 const page: PageAdapter<BlogSys> = reactive({
   "content": [],
   "totalElements": 0,
@@ -20,16 +19,6 @@ const page: PageAdapter<BlogSys> = reactive({
   "pageNumber": 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
-
-const copyReadToken = () => {
-  navigator.clipboard.writeText(readToken.value)
-  ElNotification({
-    title: '复制成功',
-    message: '请保管',
-    type: 'success',
-  })
-  passwordVisible.value = false
-}
 
 const delBatch = async () => {
   const args: number[] = []
@@ -69,8 +58,12 @@ const handleEdit = (row: BlogSys) => {
 
 const handlePassword = async (row: BlogSys) => {
   const token = await GET<string>(`/sys/blog/lock/${row.id}`)
-  readToken.value = token
-  passwordVisible.value = true
+  navigator.clipboard.writeText(token)
+  ElNotification({
+    title: '操作成功',
+    message: '复制成功',
+    type: 'success',
+  })
 }
 
 const handleCheck = (row: BlogSys) => {
@@ -88,6 +81,9 @@ const handleSelectionChange = (val: BlogSys[]) => {
 }
 
 const queryBLogs = async () => {
+  if (search.value) {
+    search.value = false
+  }
   loading.value = true
   const data = await GET<PageAdapter<BlogSys>>(`/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}`)
   content.value = data.content
@@ -102,6 +98,7 @@ const clearQueryBLogs = async () => {
 
 const searchBlogs = async () => {
   if (input.value) {
+    search.value = true
     loading.value = true
     const data = await GET<PageAdapter<BlogSys>>(`search/sys/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
     page.content = data.content
@@ -187,7 +184,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="创建时间" width="180" align="center" >
+    <el-table-column label="创建时间" width="180" align="center">
       <template #default="scope">
         <div style="display: flex; align-items: center">
           <el-icon>
@@ -198,7 +195,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="更新时间" width="180" align="center" >
+    <el-table-column label="更新时间" width="180" align="center">
       <template #default="scope">
         <div style="display: flex; align-items: center">
           <el-icon>
@@ -209,7 +206,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="阅读统计" align="center" width="180" >
+    <el-table-column label="阅读统计" align="center" width="180" v-if="!search">
       <template #default="scope">
         <div>总阅读数: {{ scope.row.readCount }}</div>
         <div>本周阅读数: {{ scope.row.recentReadCount }}</div>
@@ -233,13 +230,7 @@ const handleCurrentChange = async (val: number) => {
       <template #default="scope">
         <el-button size="small" type="primary" @click="handleCheck(scope.row)">查看</el-button>
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
-
-        <el-popconfirm title="确定复制?" @confirm="copyReadToken">
-          <template #reference>
-            <el-button size="small" type="warning" @click="handlePassword(scope.row)">密码</el-button>
-          </template>
-        </el-popconfirm>
-
+        <el-button size="small" type="warning" @click="handlePassword(scope.row)">密码</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
           <template #reference>
             <el-button size="small" type="danger">删除</el-button>
