@@ -58,10 +58,9 @@ const handleEdit = (row: BlogSys) => {
 
 const handlePassword = async (row: BlogSys) => {
   const token = await GET<string>(`/sys/blog/lock/${row.id}`)
-  navigator.clipboard.writeText(token)
   ElNotification({
     title: '操作成功',
-    message: '复制成功',
+    message: token,
     type: 'success',
   })
 }
