@@ -276,7 +276,6 @@ const loadEditContent = async () => {
 const onUploadImg = async (files: File[], callback: Function) => {
   const formdata = new FormData()
   formdata.append('image', files[0])
-  formdata.append('nickname', JSON.parse(localStorage.getItem('userinfo')!).nickname)
   const url = await POST<string>('sys/blog/oss/upload', formdata)
   callback([url])
 }
@@ -288,7 +287,6 @@ const upload = async (image: UploadRequestOptions) => {
 const uploadFile = async (file: UploadRawFile) => {
   const formdata = new FormData()
   formdata.append('image', file)
-  formdata.append('nickname', JSON.parse(localStorage.getItem('userinfo')!).nickname)
   const url = await POST<string>('sys/blog/oss/upload', formdata)
   fileList.value.push({
     name: file.name,
