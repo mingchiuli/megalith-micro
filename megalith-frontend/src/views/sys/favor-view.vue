@@ -73,9 +73,7 @@ const infoHandleClose = () => {
   dialogVisible.value = false
 }
 
-const to = (url: string) => {
-  window.location.href = url
-}
+const to = (url: string) => window.open(url)
 
 const handleEdit = async (id: string) => {
   const data = await GET<SearchFavors>(`/search/website/info/${id}`)

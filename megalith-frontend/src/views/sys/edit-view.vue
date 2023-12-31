@@ -34,18 +34,16 @@ const client = new Client({
 })
 
 const connect = () => {
-  client.onConnect = _frame => {
+  client.onConnect = _frame =>
     client.subscribe('/edits/push/all', _res => pushAllData())
-  }
 
   client.activate()
-  client.onStompError = frame => {
+  client.onStompError = frame =>
     ElNotification.error({
       title: 'Broker reported error: ' + frame.headers['message'],
       message: 'Additional details: ' + frame.body,
       showClose: true
     })
-  }
 }
 
 type Form = {
