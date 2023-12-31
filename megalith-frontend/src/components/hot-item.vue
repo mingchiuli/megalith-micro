@@ -5,6 +5,7 @@ import { GET } from '@/http/http'
 import router from '@/router'
 
 let hots = ref<Hot[]>()
+const loading = ref(false)
 
 const to = (id: number) => router.push({
   name: 'blog',
@@ -14,13 +15,15 @@ const to = (id: number) => router.push({
 });
 
 (async () => {
+  loading.value = true
   hots.value = await GET<Hot[]>('/public/blog/scores')
+  loading.value = false
 })()
 
 </script>
 
 <template>
-  <el-card shadow="never" class="hot-blogs">
+  <el-card shadow="never" class="hot-blogs" v-loading="loading" >
     <div class="title">
       <el-text>本周热读</el-text>
     </div>
