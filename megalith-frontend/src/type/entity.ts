@@ -205,15 +205,24 @@ export enum RoutesEnum {
 }
 
 export enum OperateTypeCode {
+  NONE = -1,
   TAIL_APPEND = 0,
-  TAIL_SUBTRACT,
-  HEAD_APPEND,
-  HEAD_SUBTRACT,
-  REPLACE,
-  REMOVE
+  TAIL_SUBTRACT = 1,
+  HEAD_APPEND = 2,
+  HEAD_SUBTRACT = 3,
+  REPLACE = 4,
+  REMOVE = 5
 }
 
 export enum OperaColor {
   SUCCESS = '#67c23a',
   WARNING = '#e6a23c'
+}
+
+export enum FieldName {
+  DESCRIPTION = 'description',
+  CONTENT = 'content',
+  STATUS = 'status',
+  LINK = 'link',
+  TITLE = 'title'
 }

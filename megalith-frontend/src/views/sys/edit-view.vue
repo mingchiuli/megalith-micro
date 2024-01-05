@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { onUnmounted, reactive, ref, watch } from 'vue'
-import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
+import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance, timePickerDefaultProps } from 'element-plus'
 import { GET, POST } from '@/http/http'
-import { OperaColor, OperateTypeCode, Status } from '@/type/entity'
+import { FieldName, OperaColor, OperateTypeCode, Status } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
@@ -66,7 +66,7 @@ const form: Form = reactive({
 
 type PushActionForm = {
   id?: number
-  contentChange?: string
+  contentChange?: string | number
   operateTypeCode?: number
   version?: number
   indexStart?: number
@@ -120,28 +120,37 @@ const clearPushActionForm = () => {
 watch(() => form.description, (n, o) => {
   if (!client.connected || (!n && !o)) return
   preDeal()
-  pushActionForm.field = 'description'
+  pushActionForm.field = FieldName.DESCRIPTION
   deal(n, o)
+})
+
+watch(() => form.status, (n, o) => {
+  if (!client.connected || (!n && !o)) return
+  preDeal()
+  pushActionForm.operateTypeCode = OperateTypeCode.NONE
+  pushActionForm.field = FieldName.STATUS
+  pushActionForm.contentChange = form.status
+  pushActionData(pushActionForm)
 })
 
 watch(() => form.link, (n, o) => {
   if (!client.connected || (!n && !o)) return
   preDeal()
-  pushActionForm.field = 'link'
+  pushActionForm.field = FieldName.LINK
   deal(n, o)
 })
 
 watch(() => form.title, (n, o) => {
   if (!client.connected || (!n && !o)) return
   preDeal()
-  pushActionForm.field = 'title'
+  pushActionForm.field = FieldName.TITLE
   deal(n, o)
 })
 
 watch(() => form.content, (n, o) => {
   if (!client.connected || (!n && !o)) return
   preDeal()
-  pushActionForm.field = 'content'
+  pushActionForm.field = FieldName.CONTENT
   deal(n, o)
 })
 
