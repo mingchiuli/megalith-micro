@@ -71,6 +71,7 @@ type PushActionForm = {
   version?: number
   indexStart?: number
   indexEnd?: number
+  field?: string
 }
 
 const pushActionForm: PushActionForm = {
@@ -79,7 +80,8 @@ const pushActionForm: PushActionForm = {
   operateTypeCode: undefined,
   version: undefined,
   indexStart: undefined,
-  indexEnd: undefined
+  indexEnd: undefined,
+  field: undefined
 }
 
 let version = 0
@@ -112,18 +114,46 @@ const clearPushActionForm = () => {
   pushActionForm.indexStart = undefined
   pushActionForm.operateTypeCode = undefined
   pushActionForm.version = undefined
+  pushActionForm.field = undefined
 }
+
+watch(() => form.description, (n, o) => {
+  if (!client.connected || (!n && !o)) return
+  preDeal()
+  pushActionForm.field = 'description'
+  deal(n, o)
+})
+
+watch(() => form.link, (n, o) => {
+  if (!client.connected || (!n && !o)) return
+  preDeal()
+  pushActionForm.field = 'link'
+  deal(n, o)
+})
+
+watch(() => form.title, (n, o) => {
+  if (!client.connected || (!n && !o)) return
+  preDeal()
+  pushActionForm.field = 'title'
+  deal(n, o)
+})
 
 watch(() => form.content, (n, o) => {
   if (!client.connected || (!n && !o)) return
+  preDeal()
+  pushActionForm.field = 'content'
+  deal(n, o)
+})
 
+const preDeal = () => {
   clearPushActionForm()
-
   pushActionForm.id = form.id
   pushActionForm.version = version
+}
 
-  //全部删除
-  if (!n) {
+const deal = (n: string | undefined, o: string | undefined) => {
+    //全部删除
+    if (!n) {
     pushActionForm.operateTypeCode = OperateTypeCode.REMOVE
     pushActionData(pushActionForm)
     return
@@ -223,7 +253,8 @@ watch(() => form.content, (n, o) => {
 
   //全不满足直接推全量数据
   pushAllData()
-})
+}
+
 
 const transColor = ref(OperaColor.SUCCESS)
 const fileList = ref<UploadUserFile[]>([])
