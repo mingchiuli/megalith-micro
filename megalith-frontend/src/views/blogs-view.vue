@@ -55,8 +55,8 @@ const queryBlogs = async (pageNo: number, year: string) => {
 }
 
 const getPage = async (pageNo: number) => {
-  pageNum.value = pageNo
   if (!keywords.value) {
+    pageNum.value = pageNo
     await queryBlogs(pageNo, year.value)
   } else {
     searchRef.value!.searchAllInfo(keywords.value, pageNo)
