@@ -226,3 +226,9 @@ export enum FieldName {
   LINK = 'link',
   TITLE = 'title'
 }
+
+export enum ParaType {
+  NONE,
+  TAIL_APPEND,
+  TAIL_SUBTRACT
+}

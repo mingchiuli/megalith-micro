@@ -2,7 +2,7 @@
 import { onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance, timePickerDefaultProps } from 'element-plus'
 import { GET, POST } from '@/http/http'
-import { FieldName, OperaColor, OperateTypeCode, Status } from '@/type/entity'
+import { FieldName, OperaColor, OperateTypeCode, ParaType, Status } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
@@ -72,6 +72,8 @@ type PushActionForm = {
   indexStart?: number
   indexEnd?: number
   field?: string
+  paraNo?: number
+  paraTypeCode?: number
 }
 
 const pushActionForm: PushActionForm = {
@@ -81,7 +83,9 @@ const pushActionForm: PushActionForm = {
   version: undefined,
   indexStart: undefined,
   indexEnd: undefined,
-  field: undefined
+  field: undefined,
+  paraNo: undefined,
+  paraTypeCode: undefined
 }
 
 let version = 0
@@ -115,18 +119,20 @@ const clearPushActionForm = () => {
   pushActionForm.operateTypeCode = undefined
   pushActionForm.version = undefined
   pushActionForm.field = undefined
+  pushActionForm.paraNo = undefined
+  pushActionForm.paraTypeCode = undefined
 }
 
 watch(() => form.description, (n, o) => {
   if (!client.connected || (!n && !o)) return
-  preDeal()
+  commonDeal()
   pushActionForm.field = FieldName.DESCRIPTION
   deal(n, o)
 })
 
 watch(() => form.status, (n, o) => {
   if (!client.connected || (!n && !o)) return
-  preDeal()
+  commonDeal()
   pushActionForm.operateTypeCode = OperateTypeCode.NONE
   pushActionForm.field = FieldName.STATUS
   pushActionForm.contentChange = form.status
@@ -135,26 +141,70 @@ watch(() => form.status, (n, o) => {
 
 watch(() => form.link, (n, o) => {
   if (!client.connected || (!n && !o)) return
-  preDeal()
+  commonDeal()
   pushActionForm.field = FieldName.LINK
   deal(n, o)
 })
 
 watch(() => form.title, (n, o) => {
   if (!client.connected || (!n && !o)) return
-  preDeal()
+  commonDeal()
   pushActionForm.field = FieldName.TITLE
   deal(n, o)
 })
 
 watch(() => form.content, (n, o) => {
   if (!client.connected || (!n && !o)) return
-  preDeal()
+  commonDeal()
   pushActionForm.field = FieldName.CONTENT
-  deal(n, o)
+
+  const nArr = n?.split('\n\n')
+  const oArr = o?.split('\n\n')
+
+  //本段内操作
+  if (nArr?.length === oArr?.length) {
+    for (let i = 0; i < nArr?.length!; i++) {
+      //理论上一个动作改不了很多段
+      if (nArr![i] !== oArr![i]) {
+        pushActionForm.paraNo = i + 1
+
+        pushActionForm.paraTypeCode = ParaType.NONE
+        deal(nArr![i], oArr![i])
+      }
+    }
+    return
+  }
+  //向后新增段
+  if (nArr?.length! > oArr?.length!) {
+    for (let i = 0; i < oArr?.length!; i++) {
+      if (i === oArr?.length! - 1 && nArr![i] + '\n' === oArr![i] && nArr![i + 1] === '') {
+        pushActionForm.paraNo = nArr?.length
+        pushActionForm.paraTypeCode = ParaType.TAIL_APPEND
+        pushActionData(pushActionForm)
+        return
+      }
+    }
+    //推全量
+    pushAllData()
+    return
+  }
+
+  //向前减少段
+  if (nArr?.length! < oArr?.length!) {
+    for (let i = 0; i < nArr?.length!; i++) {
+      if (i === nArr?.length! - 1 && nArr![i] === oArr![i] + '\n' && oArr![i + 1] === '') {
+        pushActionForm.paraNo = oArr?.length
+        pushActionForm.paraTypeCode = ParaType.TAIL_SUBTRACT
+        pushActionData(pushActionForm)
+        return
+      }
+    }
+    //推全量
+    pushAllData()
+  }
 })
 
-const preDeal = () => {
+const commonDeal = () => {
   clearPushActionForm()
   pushActionForm.id = form.id
   pushActionForm.version = version
@@ -259,7 +309,6 @@ const deal = (n: string | undefined, o: string | undefined) => {
     pushActionData(pushActionForm)
     return
   }
-
   //全不满足直接推全量数据
   pushAllData()
 }
