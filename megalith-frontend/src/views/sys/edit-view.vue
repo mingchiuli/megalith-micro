@@ -2,7 +2,7 @@
 import { onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance, timePickerDefaultProps } from 'element-plus'
 import { GET, POST } from '@/http/http'
-import { FieldName, OperaColor, OperateTypeCode, ParaType, Status } from '@/type/entity'
+import { FieldName, OperaColor, OperateTypeCode, ParaInfo, ParaType, Status } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
@@ -158,8 +158,8 @@ watch(() => form.content, (n, o) => {
   commonDeal()
   pushActionForm.field = FieldName.CONTENT
 
-  const nArr = n?.split('\n\n')
-  const oArr = o?.split('\n\n')
+  const nArr = n?.split(ParaInfo.PARA_SPLIT)
+  const oArr = o?.split(ParaInfo.PARA_SPLIT)
 
   //本段内操作
   if (nArr?.length === oArr?.length) {

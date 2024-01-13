@@ -227,6 +227,10 @@ export enum FieldName {
   TITLE = 'title'
 }
 
+export enum ParaInfo {
+  PARA_SPLIT = '\n\n'
+}
+
 export enum ParaType {
   NONE,
   TAIL_APPEND,
