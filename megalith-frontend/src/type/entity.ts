@@ -205,6 +205,7 @@ export enum RoutesEnum {
 }
 
 export enum OperateTypeCode {
+  PARAGRAPH = -2,
   NONE = -1,
   TAIL_APPEND = 0,
   TAIL_SUBTRACT = 1,

@@ -179,6 +179,7 @@ watch(() => form.content, (n, o) => {
       if (i === oArr?.length! - 1 && nArr![i] + '\n' === oArr![i] && nArr![i + 1] === '') {
         pushActionForm.paraNo = nArr?.length
         pushActionForm.paraTypeCode = ParaType.TAIL_APPEND
+        pushActionForm.operateTypeCode = OperateTypeCode.PARAGRAPH
         pushActionData(pushActionForm)
         return
       }
@@ -194,6 +195,7 @@ watch(() => form.content, (n, o) => {
       if (i === nArr?.length! - 1 && nArr![i] === oArr![i] + '\n' && oArr![i + 1] === '') {
         pushActionForm.paraNo = oArr?.length
         pushActionForm.paraTypeCode = ParaType.TAIL_SUBTRACT
+        pushActionForm.operateTypeCode = OperateTypeCode.PARAGRAPH
         pushActionData(pushActionForm)
         return
       }
