@@ -126,6 +126,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
 }
 
 .exhibit-time {
+  margin-top: 10px;
   display: block;
   margin-left: 10px
 }
