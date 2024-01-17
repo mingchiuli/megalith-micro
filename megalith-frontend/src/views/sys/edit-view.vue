@@ -15,10 +15,9 @@ import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
 
 const toolbars: ToolbarNames[] = [
-  'bold', 1, 'underline', 'italic', '-',
+  'revoke', 'next', 'bold', 1, 'underline', 'italic', '-',
   'title', 'strikeThrough', 'sub', 'sup', 'quote', 'unorderedList', 'orderedList', 'task', '-',
   'codeRow', 'code', 'link', 'image', 'table', 'mermaid', 'katex', '-',
-  'revoke', 'next', 'save', '=',
   0, 'pageFullscreen', 'fullscreen', 'preview', 'htmlPreview', 'catalog', 'github'
 ]
 const footers: Footers[] = ['markdownTotal', '=', 0, 'scrollSwitch']
