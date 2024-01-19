@@ -207,7 +207,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="创建时间" width="180" align="center">
+    <el-table-column label="创建时间" min-width="180" align="center">
       <template #default="scope">
         <div style="display: flex; align-items: center">
           <el-icon>
@@ -218,7 +218,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="最后登录时间" width="180" align="center">
+    <el-table-column label="最后登录时间" min-width="180" align="center">
       <template #default="scope">
         <div style="display: flex; align-items: center">
           <el-icon>
@@ -229,7 +229,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="displayStateStore().fix" label="操作" width="180" align="center">
+    <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="180" align="center">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">

@@ -63,8 +63,8 @@ const handleResume = async (row: BlogDelSys) => {
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
 
-    <el-table-column label="标题" align="center" prop="title" />
-    <el-table-column label="摘要" align="center">
+    <el-table-column label="标题" align="center" prop="title" min-width="80" />
+    <el-table-column label="摘要" align="center" min-width="200" >
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="top" width="auto">
           <template #default>
@@ -78,7 +78,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="内容" align="center">
+    <el-table-column label="内容" align="center" min-width="200" >
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000"
           popper-style="height: 300px;overflow: auto;">
@@ -92,7 +92,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="创建时间" width="180" align="center">
+    <el-table-column label="创建时间" min-width="180" align="center">
       <template #default="scope">
         <div style="display: flex; align-items: center">
           <el-icon>
@@ -103,7 +103,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="更新时间" width="180" align="center">
+    <el-table-column label="更新时间" min-width="180" align="center">
       <template #default="scope">
         <div style="display: flex; align-items: center">
           <el-icon>
@@ -114,7 +114,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="阅读统计" align="center">
+    <el-table-column label="阅读统计" align="center" min-width="180" >
       <template #default="scope">
         <div>总阅读数: {{ scope.row.readCount }}</div>
       </template>
@@ -134,7 +134,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="displayStateStore().fix" label="操作" width="120" align="center">
+    <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="120" align="center">
       <template #default="scope">
         <el-button size="small" type="primary" @click="handleResume(scope.row)">恢复</el-button>
       </template>

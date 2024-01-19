@@ -223,7 +223,7 @@ const handleDelete = async (row: RoleSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="创建时间" width="180" align="center">
+    <el-table-column label="创建时间" min-width="180" align="center">
       <template #default="scope">
         <div style="display: flex; align-items: center">
           <el-icon>
@@ -234,7 +234,7 @@ const handleDelete = async (row: RoleSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="更新时间" width="180" align="center">
+    <el-table-column label="更新时间" min-width="180" align="center">
       <template #default="scope">
         <div style="display: flex; align-items: center">
           <el-icon>
@@ -245,7 +245,7 @@ const handleDelete = async (row: RoleSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="displayStateStore().fix" label="操作" width="250" align="center">
+    <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="250" align="center">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
         <el-button size="small" type="warning" @click="handleMenu(scope.row)">路由权限</el-button>

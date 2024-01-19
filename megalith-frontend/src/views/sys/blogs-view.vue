@@ -153,10 +153,10 @@ const handleCurrentChange = async (val: number) => {
     v-loading="loading">
     <el-table-column type="selection" />
 
-    <el-table-column label="标题" align="center" prop="title" />
-    <el-table-column label="摘要" align="center">
+    <el-table-column label="标题" align="center" prop="title" min-width="80" />
+    <el-table-column label="摘要" align="center" min-width="200" >
       <template #default="scope">
-        <el-popover effect="light" trigger="hover" placement="top" width="auto">
+        <el-popover effect="light" trigger="hover" placement="top" min-width="200" >
           <template #default>
             <span> {{ scope.row.description }}</span>
           </template>
@@ -168,7 +168,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="内容" align="center">
+    <el-table-column label="内容" align="center" min-width="200" >
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000"
           popper-style="height: 300px;overflow: auto;">
@@ -183,7 +183,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="创建时间" width="180" align="center">
+    <el-table-column label="创建时间" min-width="180" align="center">
       <template #default="scope">
         <div style="display: flex; align-items: center">
           <el-icon>
@@ -194,7 +194,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="更新时间" width="180" align="center">
+    <el-table-column label="更新时间" min-width="180" align="center">
       <template #default="scope">
         <div style="display: flex; align-items: center">
           <el-icon>
@@ -205,7 +205,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="阅读统计" align="center" width="180" v-if="!search">
+    <el-table-column label="阅读统计" align="center" min-width="180" v-if="!search">
       <template #default="scope">
         <div>总阅读数: {{ scope.row.readCount }}</div>
         <div>本周阅读数: {{ scope.row.recentReadCount }}</div>
@@ -225,7 +225,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="displayStateStore().fix" label="操作" width="300" align="center">
+    <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="300" align="center">
       <template #default="scope">
         <el-button size="small" type="primary" @click="handleCheck(scope.row)">查看</el-button>
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>

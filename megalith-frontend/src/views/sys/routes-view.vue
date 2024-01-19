@@ -160,7 +160,7 @@ const submitForm = async (ref: FormInstance) => {
 
   <el-table v-loading="loading" :data="content" row-key="menuId" border stripe default-expand-all>
 
-    <el-table-column prop="title" label="标题" sortable width="150" align="center" />
+    <el-table-column prop="title" label="标题" sortable min-width="150" align="center" />
     <el-table-column prop="icon" label="图标" align="center" />
 
     <el-table-column prop="type" label="类型" align="center" >
@@ -181,7 +181,7 @@ const submitForm = async (ref: FormInstance) => {
         <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">禁用</el-tag>
       </template>
     </el-table-column>
-    <el-table-column :fixed="displayStateStore().fix" prop="icon" label="操作" align="center" width="250">
+    <el-table-column :fixed="displayStateStore().fix" prop="icon" label="操作" align="center" min-width="250">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)" v-if="scope.row.menuId !== 0">编辑</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)" v-if="scope.row.menuId !== 0">
