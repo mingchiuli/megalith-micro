@@ -153,7 +153,7 @@ const handleCurrentChange = async (val: number) => {
     v-loading="loading">
     <el-table-column type="selection" />
 
-    <el-table-column label="标题" align="center" prop="title" min-width="80" />
+    <el-table-column label="标题" align="center" prop="title" min-width="180" />
     <el-table-column label="摘要" align="center" min-width="200" >
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="top" min-width="200" >

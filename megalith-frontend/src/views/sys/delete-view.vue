@@ -63,7 +63,7 @@ const handleResume = async (row: BlogDelSys) => {
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
 
-    <el-table-column label="标题" align="center" prop="title" min-width="80" />
+    <el-table-column label="标题" align="center" prop="title" min-width="180" />
     <el-table-column label="摘要" align="center" min-width="200" >
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="top" width="auto">
