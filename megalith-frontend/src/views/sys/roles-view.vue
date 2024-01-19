@@ -214,7 +214,7 @@ const handleDelete = async (row: RoleSys) => {
     <el-table-column label="名字" align="center" prop="name" />
     <el-table-column label="唯一编码" align="center" prop="code" />
 
-    <el-table-column label="描述" align="center" prop="remark" />
+    <el-table-column label="描述" align="center" prop="remark" min-width="200"/>
 
     <el-table-column label="状态" align="center">
       <template #default="scope">
