@@ -188,7 +188,7 @@ const handleCurrentChange = async (val: number) => {
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
     <el-table-column type="selection" />
-    <el-table-column label="用户名" align="center" prop="username" />
+    <el-table-column label="用户名" align="center" prop="username" min-width="100" />
     <el-table-column label="昵称" align="center" prop="nickname" />
 
     <el-table-column label="头像" align="center">
