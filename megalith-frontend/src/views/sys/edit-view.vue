@@ -6,7 +6,7 @@ import { FieldName, OperaColor, OperateTypeCode, ParaInfo, ParaType, Status } fr
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
-import { tabStore, blogsPageNumStore } from '@/stores/store'
+import { tabStore, blogsStore } from '@/stores/store'
 import { Client } from '@stomp/stompjs'
 import { MdEditor, type Footers, type ToolbarNames } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
@@ -402,7 +402,7 @@ const submitForm = async (ref: FormInstance) => {
         message: '编辑成功',
         type: 'success',
       })
-      blogsPageNumStore().pageNum = 1
+      blogsStore().pageNum = 1
       router.push({
         name: "system-blogs"
       })

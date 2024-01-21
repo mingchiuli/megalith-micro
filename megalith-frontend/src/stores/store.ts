@@ -41,8 +41,9 @@ export const routeStore = defineStore('routeStore', () => {
   return { hasRoute }
 })
 
-export const blogsPageNumStore = defineStore('blogsPageNumStore', () => {
+export const blogsStore = defineStore('blogsPageNumStore', () => {
   const pageNum = ref(1)
   const searchPageNum = ref(1)
-  return { pageNum, searchPageNum }
+  const keywords = ref('')
+  return { pageNum, searchPageNum, keywords }
 })

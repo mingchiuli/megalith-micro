@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { BlogDesc, PageAdapter } from '@/type/entity'
 import { GET } from '@/http/http'
-import { reactive, toRefs, ref } from 'vue'
-import { loginStateStore, tabStore, blogsPageNumStore } from '@/stores/store'
+import { reactive, toRefs, ref, nextTick } from 'vue'
+import { loginStateStore, tabStore, blogsStore } from '@/stores/store'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
 import search from '@/components/search-item.vue'
@@ -13,7 +13,6 @@ const loginDialogVisible = ref(false)
 const searchDialogVisible = ref(false)
 const searchRef = ref<InstanceType<typeof search>>()
 const year = ref('')
-const keywords = ref('')
 const readTokenDialogVisible = ref(false)
 const blogId = ref(0)
 
@@ -25,8 +24,10 @@ const page: PageAdapter<BlogDesc> = reactive({
   "pageNumber": undefined
 })  
 //用这个字段
-const { searchPageNum } = storeToRefs(blogsPageNumStore())
-const { pageNum } = storeToRefs(blogsPageNumStore())
+const { searchPageNum } = storeToRefs(blogsStore())
+const { pageNum } = storeToRefs(blogsStore())
+const { keywords } = storeToRefs(blogsStore())
+
 const { login } = storeToRefs(loginStateStore())
 
 if (router.currentRoute.value.path === '/login' && !login.value) {
@@ -47,6 +48,11 @@ const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
   }
 }
 
+const clear = () => {
+  searchPageNum.value = 1
+  getPage(1)
+}
+
 const queryBlogs = async (pageNo: number, year: string) => {
   loading.value = true
   const data = await GET<PageAdapter<BlogDesc>>(`/public/blog/page/${pageNo}?year=${year}`)
@@ -61,6 +67,7 @@ const getPage = async (pageNo: number) => {
     await queryBlogs(pageNo, year.value)
   } else {
     searchPageNum.value = pageNo
+    await nextTick()
     searchRef.value!.searchAllInfo(keywords.value, pageNo)
   }
 }
@@ -83,7 +90,7 @@ const to = async (id: number) => {
 const { content, totalElements, pageSize } = toRefs(page);
 
 (async () => {
-  await getPage(pageNum.value)
+  await getPage(keywords.value ? searchPageNum.value : pageNum.value)
   loading.value = false
 })()
 </script>
@@ -94,7 +101,7 @@ const { content, totalElements, pageSize } = toRefs(page);
     <read-token-item v-model:readTokenDialogVisible="readTokenDialogVisible" v-model:blogId="blogId"></read-token-item>
     <div class="search-father">
       <el-button class="search-button" @click="searchDialogVisible = true" type="success">Search</el-button>
-      <search-item ref="searchRef" @transSearchData="fillSearchData" @clear="getPage(1)" v-model:keywords="keywords"
+      <search-item ref="searchRef" @transSearchData="fillSearchData" @clear="clear" v-model:keywords="keywords"
         v-model:year="year" v-model:loading="loading" v-model:searchDialogVisible="searchDialogVisible"></search-item>
     </div>
     <el-text size="large">共{{ page.totalElements }}篇</el-text>
