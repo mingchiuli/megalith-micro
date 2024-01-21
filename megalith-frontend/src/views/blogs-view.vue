@@ -25,6 +25,7 @@ const page: PageAdapter<BlogDesc> = reactive({
   "pageNumber": undefined
 })  
 //用这个字段
+const { searchPageNum } = storeToRefs(blogsPageNumStore())
 const { pageNum } = storeToRefs(blogsPageNumStore())
 const { login } = storeToRefs(loginStateStore())
 
@@ -59,6 +60,7 @@ const getPage = async (pageNo: number) => {
     pageNum.value = pageNo
     await queryBlogs(pageNo, year.value)
   } else {
+    searchPageNum.value = pageNo
     searchRef.value!.searchAllInfo(keywords.value, pageNo)
   }
 }
@@ -127,7 +129,7 @@ const { content, totalElements, pageSize } = toRefs(page);
           </template>
         </el-skeleton>
       </el-timeline>
-      <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize" @current-change="getPage" :current-page="pageNum" />
+      <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize" @current-change="getPage" :current-page="keywords ? searchPageNum : pageNum" />
     </div>
   </div>
   <my-footer-item />
