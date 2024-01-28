@@ -90,6 +90,7 @@ const pushActionForm: PushActionForm = {
 let version = 0
 //中文输入法的问题
 let isComposing = false
+let skip = false
 
 const pushAllData = () => {
   client.publish({
@@ -125,14 +126,14 @@ const clearPushActionForm = () => {
 }
 
 watch(() => form.description, (n, o) => {
-  if (!client.connected || (!n && !o) || isComposing) return
+  if (!client.connected || (!n && !o) || skip) return
   commonDeal()
   pushActionForm.field = FieldName.DESCRIPTION
-  deal(n, o)
+  dealStr(n, o)
 })
 
 watch(() => form.status, (n, o) => {
-  if (!client.connected || (!n && !o) || isComposing) return
+  if (!client.connected || (!n && !o) || skip) return
   commonDeal()
   pushActionForm.operateTypeCode = OperateTypeCode.NONE
   pushActionForm.field = FieldName.STATUS
@@ -141,21 +142,21 @@ watch(() => form.status, (n, o) => {
 })
 
 watch(() => form.link, (n, o) => {
-  if (!client.connected || (!n && !o) || isComposing) return
+  if (!client.connected || (!n && !o) || skip) return
   commonDeal()
   pushActionForm.field = FieldName.LINK
-  deal(n, o)
+  dealStr(n, o)
 })
 
 watch(() => form.title, (n, o) => {
-  if (!client.connected || (!n && !o) || isComposing) return
+  if (!client.connected || (!n && !o) || skip) return
   commonDeal()
   pushActionForm.field = FieldName.TITLE
-  deal(n, o)
+  dealStr(n, o)
 })
 
 watch(() => form.content, (n, o) => {
-  if (!client.connected || (!n && !o) || isComposing) return
+  if (!client.connected || (!n && !o) || skip) return
   commonDeal()
   pushActionForm.field = FieldName.CONTENT
 
@@ -169,7 +170,7 @@ watch(() => form.content, (n, o) => {
       if (nArr![i] !== oArr![i]) {
         pushActionForm.paraNo = i + 1
         pushActionForm.paraTypeCode = ParaType.NONE
-        deal(nArr![i], oArr![i])
+        dealStr(nArr![i], oArr![i])
       }
     }
     return
@@ -212,7 +213,7 @@ const commonDeal = () => {
   pushActionForm.version = version
 }
 
-const deal = (n: string | undefined, o: string | undefined) => {
+const dealStr = (n: string | undefined, o: string | undefined) => {
     //全部删除
     if (!n) {
     pushActionForm.operateTypeCode = OperateTypeCode.REMOVE
@@ -307,14 +308,17 @@ const deal = (n: string | undefined, o: string | undefined) => {
     pushActionForm.contentChange = contentChange
     pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
     pushActionForm.indexStart = indexStart
-    pushActionForm.indexEnd = oIndexEnd
+    if (isComposing) {
+      pushActionForm.indexEnd = indexStart
+    } else {
+      pushActionForm.indexEnd = oIndexEnd
+    }
     pushActionData(pushActionForm)
     return
   }
   //全不满足直接推全量数据
   pushAllData()
 }
-
 
 const transColor = ref(OperaColor.SUCCESS)
 const fileList = ref<UploadUserFile[]>([])
@@ -412,10 +416,11 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
-const regChinese = /[\u4e00-\u9fa5]/
+const regChinese = /^[\u4e00-\u9fa5]+$/
 const onInput = (event: InputEvent) => {
+  isComposing = event.isComposing
   const content = event.data
-  isComposing = event.isComposing && !regChinese.test(content!)
+  skip = event.isComposing && !regChinese.test(content!)
 }
 
 const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
