@@ -48,9 +48,6 @@ const editFormRules = reactive<FormRules<Form>>({
   parentId: [
     { required: true, message: '请输入父ID', trigger: 'blur' }
   ],
-  name: [
-    { required: true, message: '请输入名字', trigger: 'blur' }
-  ],
   title: [
     { required: true, message: '请输入标题', trigger: 'blur' }
   ],
@@ -201,22 +198,22 @@ const submitForm = async (ref: FormInstance) => {
       </el-form-item>
 
       <el-form-item label="标题" prop="title" label-width="100px">
-        <el-input v-model="form.title" autocomplete="off"></el-input>
+        <el-input v-model="form.title" autocomplete="off" />
       </el-form-item>
 
       <el-form-item label="图标" prop="icon" label-width="100px">
-        <el-input v-model="form.icon" autocomplete="off"></el-input>
+        <el-input v-model="form.icon" autocomplete="off" />
       </el-form-item>
       <el-form-item label="Url" prop="url" label-width="100px">
-        <el-input v-model="form.url" autocomplete="off"></el-input>
+        <el-input v-model="form.url" autocomplete="off" />
       </el-form-item>
 
       <el-form-item label="组件名" prop="name" label-width="100px">
-        <el-input v-model="form.name" autocomplete="off"></el-input>
+        <el-input v-model="form.name" autocomplete="off" />
       </el-form-item>
 
       <el-form-item label="组件URI" prop="component" label-width="100px">
-        <el-input v-model="form.component" autocomplete="off"></el-input>
+        <el-input v-model="form.component" autocomplete="off" />
       </el-form-item>
 
       <el-form-item label="类型" prop="type" label-width="100px">
