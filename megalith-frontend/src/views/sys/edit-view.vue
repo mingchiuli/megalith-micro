@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onUnmounted, reactive, ref, watch } from 'vue'
-import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance, timePickerDefaultProps } from 'element-plus'
+import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { FieldName, OperaColor, OperateTypeCode, ParaInfo, ParaType, Status } from '@/type/entity'
 import { useRoute } from 'vue-router'
