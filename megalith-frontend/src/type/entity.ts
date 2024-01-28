@@ -88,6 +88,7 @@ export interface BlogEdit {
   content: string
   link: string
   status: number
+  version: number
 }
 
 

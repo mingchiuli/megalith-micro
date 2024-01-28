@@ -358,6 +358,7 @@ const loadEditContent = async () => {
   form.link = data.link
   form.status = data.status
   form.id = data.id
+  version = data.version + 1
   if (data.link) {
     fileList.value.push({
       name: 'Cover',
