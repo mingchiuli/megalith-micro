@@ -88,6 +88,8 @@ const pushActionForm: PushActionForm = {
 }
 
 let version = 0
+//中文输入法的问题
+let isComposing = false
 
 const pushAllData = () => {
   client.publish({
@@ -123,14 +125,14 @@ const clearPushActionForm = () => {
 }
 
 watch(() => form.description, (n, o) => {
-  if (!client.connected || (!n && !o)) return
+  if (!client.connected || (!n && !o) || isComposing) return
   commonDeal()
   pushActionForm.field = FieldName.DESCRIPTION
   deal(n, o)
 })
 
 watch(() => form.status, (n, o) => {
-  if (!client.connected || (!n && !o)) return
+  if (!client.connected || (!n && !o) || isComposing) return
   commonDeal()
   pushActionForm.operateTypeCode = OperateTypeCode.NONE
   pushActionForm.field = FieldName.STATUS
@@ -139,21 +141,21 @@ watch(() => form.status, (n, o) => {
 })
 
 watch(() => form.link, (n, o) => {
-  if (!client.connected || (!n && !o)) return
+  if (!client.connected || (!n && !o) || isComposing) return
   commonDeal()
   pushActionForm.field = FieldName.LINK
   deal(n, o)
 })
 
 watch(() => form.title, (n, o) => {
-  if (!client.connected || (!n && !o)) return
+  if (!client.connected || (!n && !o) || isComposing) return
   commonDeal()
   pushActionForm.field = FieldName.TITLE
   deal(n, o)
 })
 
 watch(() => form.content, (n, o) => {
-  if (!client.connected || (!n && !o)) return
+  if (!client.connected || (!n && !o) || isComposing) return
   commonDeal()
   pushActionForm.field = FieldName.CONTENT
 
@@ -410,6 +412,12 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
+const regChinese = /[\u4e00-\u9fa5]/
+const onInput = (event: InputEvent) => {
+  const content = event.data
+  isComposing = event.isComposing && !regChinese.test(content!)
+}
+
 const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
   uploadInstance.value!.clearFiles()
   const file = files[0] as UploadRawFile
@@ -502,7 +510,7 @@ onUnmounted(() => {
 
       <el-form-item class="content" prop="content">
         <md-editor v-model="form.content" :preview="false" :toolbars="toolbars" :toolbarsExclude="['github']"
-          @onUploadImg="onUploadImg" :footers="footers">
+          @onUploadImg="onUploadImg" :footers="footers" @onInput="onInput">
           <template #defToolbars>
             <Export-PDF v-model="form.content" />
             <emoji>
