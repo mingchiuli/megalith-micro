@@ -417,7 +417,7 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
-const regChinese = /^[\u4e00-\u9fa5]+$/
+const regChinese = /[\u4e00-\u9fa5]$/
 const onInput = (event: InputEvent) => {
   isComposing = event.isComposing
   const content = event.data
