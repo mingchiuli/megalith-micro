@@ -91,6 +91,7 @@ let version = 0
 //中文输入法的问题
 let isComposing = false
 let skip = false
+let input = ''
 
 const pushAllData = () => {
   client.publish({
@@ -309,7 +310,12 @@ const dealStr = (n: string | undefined, o: string | undefined) => {
     pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
     pushActionForm.indexStart = indexStart
     if (isComposing) {
-      pushActionForm.indexEnd = indexStart
+      if (input === contentChange) {
+        pushActionForm.indexEnd = indexStart
+      } else {
+        pushAllData()
+        return
+      }
     } else {
       pushActionForm.indexEnd = oIndexEnd
     }
@@ -421,6 +427,7 @@ const regChinese = /[\u4e00-\u9fa5]$/
 const onInput = (event: InputEvent) => {
   isComposing = event.isComposing
   const content = event.data
+  input = content ?? ''
   skip = event.isComposing && !regChinese.test(content!)
 }
 
