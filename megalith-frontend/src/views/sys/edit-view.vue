@@ -309,18 +309,18 @@ const dealStr = (n: string | undefined, o: string | undefined) => {
     pushActionForm.contentChange = contentChange
     pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
     pushActionForm.indexStart = indexStart
-    if (isComposing) {
-      if (input === contentChange) {
-        pushActionForm.indexEnd = indexStart
-      } else {
-        pushAllData()
-        return
-      }
-    } else {
+
+    if (!isComposing) {
       pushActionForm.indexEnd = oIndexEnd
+      pushActionData(pushActionForm)
+      return
     }
-    pushActionData(pushActionForm)
-    return
+
+    if (input === contentChange) {
+      pushActionForm.indexEnd = indexStart
+      pushActionData(pushActionForm)
+      return
+    }
   }
   //全不满足直接推全量数据
   pushAllData()
