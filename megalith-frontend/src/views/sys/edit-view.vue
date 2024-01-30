@@ -93,11 +93,8 @@ let isComposing = false
 let skip = false
 let input = ''
 
-const pushAllData = () => {
-  client.publish({
-    destination: '/app/edit/push/all',
-    body: JSON.stringify(form)
-  })
+const pushAllData = async () => {
+  await POST<null>('/sys/blog/push/all', form)
   version = 0
   if (transColor.value !== OperaColor.WARNING) {
     transColor.value = OperaColor.WARNING
@@ -401,7 +398,7 @@ const uploadFile = async (file: UploadRawFile) => {
 }
 
 const handleRemove = async (_file: UploadFile) => {
-  await GET<null>(`sys/blog/oss/delete?url=${form.link}`)
+  await GET<null>(`/sys/blog/oss/delete?url=${form.link}`)
   form.link = ''
   fileList.value = []
 }
