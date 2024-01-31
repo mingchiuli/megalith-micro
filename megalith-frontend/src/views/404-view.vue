@@ -4,8 +4,10 @@ const value = ref(new Date())
 </script>
 
 <template>
-  <el-card class="hint" shadow="never"> 404 NOT FOUND </el-card>
-  <el-calendar class="calendar" v-model="value" />
+  <div class="front">
+    <el-card class="hint" shadow="never"> 404 NOT FOUND </el-card>
+    <el-calendar class="calendar" v-model="value" />
+  </div>
   <my-footer-item />
 </template>
 
