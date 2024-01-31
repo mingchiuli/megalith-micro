@@ -10,6 +10,7 @@ const value = ref(new Date())
 </template>
 
 <style scoped>
+@import '@/assets/front.css';
 .hint {
   text-align: center
 }

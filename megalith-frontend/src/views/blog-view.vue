@@ -75,7 +75,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
     </div>
   </div>
 
-  <div class="exhibit-content">
+  <div class="front">
     <div class="exhibit-title">{{ blog.title }}</div>
     <el-avatar class="exhibit-avatar" :src="blog.avatar" />
     <el-text class="exhibit-author" size="large">作者: {{ blog.nickname }}</el-text>
@@ -97,11 +97,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
 </template>
 
 <style scoped>
-.exhibit-content {
-  max-width: 40rem;
-  margin: 0 auto;
-  padding: .5rem
-}
+@import '@/assets/front.css';
 
 .exhibit-title {
   text-align: center;

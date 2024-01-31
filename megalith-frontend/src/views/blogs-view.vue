@@ -143,6 +143,8 @@ const { content, totalElements, pageSize } = toRefs(page);
 </template>
 
 <style scoped>
+@import '@/assets/front.css';
+
 .door {
   width: fit-content;
   margin-left: 5px
