@@ -33,7 +33,6 @@ const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
     </el-card>
     <stat-item />
   </div>
-  <my-footer-item />
 </template>
 
 <style>

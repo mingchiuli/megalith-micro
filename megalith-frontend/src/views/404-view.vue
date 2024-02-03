@@ -8,11 +8,11 @@ const value = ref(new Date())
     <el-card class="hint" shadow="never"> 404 NOT FOUND </el-card>
     <el-calendar class="calendar" v-model="value" />
   </div>
-  <my-footer-item />
 </template>
 
 <style scoped>
 @import '@/assets/front.css';
+
 .hint {
   text-align: center
 }

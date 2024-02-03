@@ -93,7 +93,6 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
     </el-skeleton>
     <discuss-item />
   </div>
-  <my-footer-item />
 </template>
 
 <style scoped>

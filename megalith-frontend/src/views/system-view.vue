@@ -1,4 +1,12 @@
 <script lang="ts" setup>
+import { pageStore } from '@/stores/store'
+import { onUnmounted } from 'vue'
+
+pageStore().front = false
+
+onUnmounted(() => {
+  pageStore().front = true
+})
 </script>
 
 <template>

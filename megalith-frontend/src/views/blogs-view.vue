@@ -139,7 +139,6 @@ const { content, totalElements, pageSize } = toRefs(page);
       <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize" @current-change="getPage" :current-page="keywords ? searchPageNum : pageNum" />
     </div>
   </div>
-  <my-footer-item />
 </template>
 
 <style scoped>
