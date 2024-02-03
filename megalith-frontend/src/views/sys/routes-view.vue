@@ -168,7 +168,7 @@ const submitForm = async (ref: FormInstance) => {
       </template>
     </el-table-column>
 
-    <el-table-column prop="url" label="URL" align="center" />
+    <el-table-column prop="url" label="URL" align="center" min-width="180" />
     <el-table-column prop="component" label="组件URI" align="center" min-width="180" />
     <el-table-column prop="name" label="组件名" align="center" min-width="180" />
     <el-table-column prop="orderNum" label="排序" align="center" />
