@@ -125,37 +125,41 @@ const clearPushActionForm = () => {
 
 watch(() => form.description, (n, o) => {
   if (!client.connected || (!n && !o) || skip) return
-  commonDeal()
+  commonPreDeal()
   pushActionForm.field = FieldName.DESCRIPTION
   dealStr(n, o)
+  commonPostDeal()
 })
 
 watch(() => form.status, (n, o) => {
   if (!client.connected || (!n && !o) || skip) return
-  commonDeal()
+  commonPreDeal()
   pushActionForm.operateTypeCode = OperateTypeCode.NONE
   pushActionForm.field = FieldName.STATUS
   pushActionForm.contentChange = form.status
   pushActionData(pushActionForm)
+  commonPostDeal()
 })
 
 watch(() => form.link, (n, o) => {
   if (!client.connected || (!n && !o) || skip) return
-  commonDeal()
+  commonPreDeal()
   pushActionForm.field = FieldName.LINK
   dealStr(n, o)
+  commonPostDeal()
 })
 
 watch(() => form.title, (n, o) => {
   if (!client.connected || (!n && !o) || skip) return
-  commonDeal()
+  commonPreDeal()
   pushActionForm.field = FieldName.TITLE
   dealStr(n, o)
+  commonPostDeal()
 })
 
 watch(() => form.content, (n, o) => {
   if (!client.connected || (!n && !o) || skip) return
-  commonDeal()
+  commonPreDeal()
   pushActionForm.field = FieldName.CONTENT
 
   const nArr = n?.split(ParaInfo.PARA_SPLIT)
@@ -171,6 +175,7 @@ watch(() => form.content, (n, o) => {
         dealStr(nArr![i], oArr![i])
       }
     }
+    commonPostDeal()
     return
   }
   //向后新增段
@@ -181,11 +186,13 @@ watch(() => form.content, (n, o) => {
         pushActionForm.paraTypeCode = ParaType.TAIL_APPEND
         pushActionForm.operateTypeCode = OperateTypeCode.PARAGRAPH
         pushActionData(pushActionForm)
+        commonPostDeal()
         return
       }
     }
     //推全量
     pushAllData()
+    commonPostDeal()
     return
   }
 
@@ -197,15 +204,22 @@ watch(() => form.content, (n, o) => {
         pushActionForm.paraTypeCode = ParaType.TAIL_SUBTRACT
         pushActionForm.operateTypeCode = OperateTypeCode.PARAGRAPH
         pushActionData(pushActionForm)
+        commonPostDeal()
         return
       }
     }
     //推全量
     pushAllData()
+    commonPostDeal()
   }
 })
 
-const commonDeal = () => {
+const commonPostDeal = () => {
+  isComposing = false
+  skip = false
+}
+
+const commonPreDeal = () => {
   clearPushActionForm()
   pushActionForm.id = form.id
   pushActionForm.version = version
@@ -302,6 +316,7 @@ const dealStr = (n: string | undefined, o: string | undefined) => {
 
   //中间正常插入
   if (indexStart <= oIndexEnd && indexStart <= nIndexEnd) {
+
     const contentChange = n.substring(indexStart, nIndexEnd)
     pushActionForm.contentChange = contentChange
     pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
