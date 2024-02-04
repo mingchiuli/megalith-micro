@@ -320,20 +320,23 @@ const dealStr = (n: string | undefined, o: string | undefined) => {
     const contentChange = n.substring(indexStart, nIndexEnd)
     pushActionForm.contentChange = contentChange
     pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
-    pushActionForm.indexStart = indexStart
 
     if (!isComposing) {
+      pushActionForm.indexStart = indexStart
       pushActionForm.indexEnd = oIndexEnd
       pushActionData(pushActionForm)
       return
     }
 
-    pushActionForm.indexEnd = indexStart
     if (input === contentChange) {
+      pushActionForm.indexStart = indexStart
+      pushActionForm.indexEnd = indexStart
       pushActionData(pushActionForm)
       return
     }
 
+    pushActionForm.indexEnd = nIndexEnd - input.length
+    pushActionForm.indexStart = nIndexEnd - input.length
     pushActionForm.contentChange = input
     pushActionData(pushActionForm)
     return
