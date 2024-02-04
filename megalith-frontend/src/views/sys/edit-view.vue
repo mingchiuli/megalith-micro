@@ -328,11 +328,15 @@ const dealStr = (n: string | undefined, o: string | undefined) => {
       return
     }
 
+    pushActionForm.indexEnd = indexStart
     if (input === contentChange) {
-      pushActionForm.indexEnd = indexStart
       pushActionData(pushActionForm)
       return
     }
+
+    pushActionForm.contentChange = input
+    pushActionData(pushActionForm)
+    return
   }
   //全不满足直接推全量数据
   pushAllData()
