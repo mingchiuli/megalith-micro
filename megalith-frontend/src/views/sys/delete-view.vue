@@ -43,7 +43,7 @@ const handleSizeChange = async (val: number) => {
 
 const handleResume = async (row: BlogDelSys) => {
   loading.value = true
-  await GET<PageAdapter<BlogDelSys>>(`/sys/blog/recover/${row.id}/${row.idx}`)
+  await GET<PageAdapter<BlogDelSys>>(`/sys/blog/recover/${row.idx}`)
   loading.value = false
   ElNotification({
     title: '操作成功',
