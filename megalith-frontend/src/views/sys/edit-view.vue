@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onUnmounted, reactive, ref, watch } from 'vue'
+import { defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { FieldName, OperaColor, OperateTypeCode, ParaInfo, ParaType, Status } from '@/type/entity'
@@ -8,19 +8,7 @@ import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
 import { tabStore, blogsStore } from '@/stores/store'
 import { Client } from '@stomp/stompjs'
-import { MdEditor, type Footers, type ToolbarNames } from 'md-editor-v3'
-import 'md-editor-v3/lib/style.css'
-import '@vavt/v3-extension/lib/asset/ExportPDF.css'
-import { ExportPDF, Emoji } from '@vavt/v3-extension'
-import '@vavt/v3-extension/lib/asset/Emoji.css'
-
-const toolbars: ToolbarNames[] = [
-  'revoke', 'next', 'bold', 1, 'underline', 'italic', '-',
-  'title', 'strikeThrough', 'sub', 'sup', 'quote', 'unorderedList', 'orderedList', 'task', '-',
-  'codeRow', 'code', 'link', 'image', 'table', 'mermaid', 'katex', '-',
-  0, 'pageFullscreen', 'fullscreen', 'preview', 'htmlPreview', 'catalog', 'github'
-]
-const footers: Footers[] = ['markdownTotal', '=', 0, 'scrollSwitch']
+import EditorLoadingItem from '@/components/sys/editor-loading-item.vue'
 
 let timer: NodeJS.Timeout
 
@@ -226,8 +214,8 @@ const commonPreDeal = () => {
 }
 
 const dealStr = (n: string | undefined, o: string | undefined) => {
-    //全部删除
-    if (!n) {
+  //全部删除
+  if (!n) {
     pushActionForm.operateTypeCode = OperateTypeCode.REMOVE
     pushActionData(pushActionForm)
     return
@@ -392,13 +380,6 @@ const loadEditContent = async () => {
   }
 }
 
-const onUploadImg = async (files: File[], callback: Function) => {
-  const formdata = new FormData()
-  formdata.append('image', files[0])
-  const url = await POST<string>('sys/blog/oss/upload', formdata)
-  callback([url])
-}
-
 const upload = async (image: UploadRequestOptions) => {
   await uploadFile(image.file)
 }
@@ -442,13 +423,6 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
-const regChinese = /[\u4e00-\u9fa5]$/
-const onInput = (event: InputEvent) => {
-  isComposing = event.isComposing
-  const content = event.data
-  input = content ?? ''
-  skip = event.isComposing && !regChinese.test(content!)
-}
 
 const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
   uploadInstance.value!.clearFiles()
@@ -473,6 +447,14 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   }
   return true
 }
+
+const CustomEditorItem = defineAsyncComponent({
+  loader: () => import('@/components/sys/editor-item.vue'),
+  loadingComponent: EditorLoadingItem,
+  delay: 200,
+  errorComponent: EditorLoadingItem,
+  timeout: 3000
+})
 
 onUnmounted(() => {
   clearInterval(timer)
@@ -541,18 +523,8 @@ onUnmounted(() => {
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <md-editor v-model="form.content" :preview="false" :toolbars="toolbars" :toolbarsExclude="['github']"
-          @onUploadImg="onUploadImg" :footers="footers" @onInput="onInput">
-          <template #defToolbars>
-            <Export-PDF v-model="form.content" />
-            <emoji>
-              <template #trigger> Emoji </template>
-            </emoji>
-          </template>
-          <template #defFooters>
-            <span class="trans-radius" :style="{ 'background-color': transColor }" />
-          </template>
-        </md-editor>
+        <CustomEditorItem v-model:content="form.content" v-model:input="input" v-model:isComposing="isComposing"
+        v-model:skip="skip" v-model:transColor="transColor" />
       </el-form-item>
 
       <div class="submit-button">
@@ -564,13 +536,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.trans-radius {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%
-}
-
 .father {
   max-width: 40rem;
   margin: 0 auto
@@ -605,9 +570,5 @@ onUnmounted(() => {
 .content {
   max-width: 40rem;
   margin: 5px auto
-}
-
-#md-editor-v3:deep(.md-editor-footer) {
-  height: 30px
 }
 </style>

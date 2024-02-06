@@ -154,9 +154,9 @@ const handleCurrentChange = async (val: number) => {
     <el-table-column type="selection" />
 
     <el-table-column label="标题" align="center" prop="title" min-width="180" />
-    <el-table-column label="摘要" align="center" min-width="200" >
+    <el-table-column label="摘要" align="center" min-width="200">
       <template #default="scope">
-        <el-popover effect="light" trigger="hover" placement="top" min-width="200" >
+        <el-popover effect="light" trigger="hover" placement="top" min-width="200">
           <template #default>
             <span> {{ scope.row.description }}</span>
           </template>
@@ -168,7 +168,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="内容" align="center" min-width="200" >
+    <el-table-column label="内容" align="center" min-width="200">
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000"
           popper-style="height: 300px;overflow: auto;">
@@ -229,7 +229,8 @@ const handleCurrentChange = async (val: number) => {
       <template #default="scope">
         <el-button size="small" type="primary" @click="handleCheck(scope.row)">查看</el-button>
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
-        <el-button size="small" type="warning" @click="handlePassword(scope.row)">密码</el-button>
+        <el-button v-if="scope.row.status === Status.BLOCK" size="small" type="warning"
+          @click="handlePassword(scope.row)">密码</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
           <template #reference>
             <el-button size="small" type="danger">删除</el-button>
