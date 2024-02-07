@@ -210,7 +210,7 @@ const handleDelete = async (row: RoleSys) => {
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
 
-    <el-table-column type="selection" />
+    <el-table-column type="selection" :fixed="displayStateStore().fixSelection" />
     <el-table-column label="名字" align="center" prop="name" />
     <el-table-column label="唯一编码" align="center" prop="code" />
 

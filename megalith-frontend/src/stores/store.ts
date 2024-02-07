@@ -5,8 +5,9 @@ import { ref } from 'vue'
 
 export const displayStateStore = defineStore('displayStateStore', () => {
   const fix = ref(document.body.clientWidth > 900 ? 'right' : false)
+  const fixSelection = ref(document.body.clientWidth > 900 ? 'left' : false)
   const expand = ref(document.body.clientWidth > 900)
-  return { fix, expand }
+  return { fix, expand, fixSelection }
 })
 
 export const loginStateStore = defineStore('loginStateStore', () => {
