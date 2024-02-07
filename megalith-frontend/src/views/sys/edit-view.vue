@@ -21,8 +21,9 @@ const client = new Client({
 })
 
 const connect = () => {
+  const key = form.id ? form.userId + '/' + form.id : form.userId?.toString()
   client.onConnect = _frame =>
-    client.subscribe('/edits/push/all', _res => pushAllData())
+    client.subscribe('/edits/push/all/' + key, _res => pushAllData())
 
   client.activate()
   client.onStompError = frame =>
@@ -35,6 +36,7 @@ const connect = () => {
 
 type Form = {
   id?: number
+  userId?: number
   title?: string
   description?: string
   content?: string
@@ -44,6 +46,7 @@ type Form = {
 
 const form: Form = reactive({
   id: undefined,
+  userId: undefined,
   title: undefined,
   description: undefined,
   content: undefined,
@@ -371,6 +374,7 @@ const loadEditContent = async () => {
   form.link = data.link
   form.status = data.status
   form.id = data.id
+  form.userId = data.userId
   version = data.version + 1
   if (data.link) {
     fileList.value.push({

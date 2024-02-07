@@ -83,6 +83,7 @@ export interface RoleSys {
 
 export interface BlogEdit {
   id: number
+  userId: number
   title: string
   description: string
   content: string
