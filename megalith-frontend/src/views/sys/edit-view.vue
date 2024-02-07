@@ -463,8 +463,9 @@ const CustomEditorItem = defineAsyncComponent({
 onUnmounted(() => {
   clearInterval(timer)
   client.deactivate()
-});
+})
 
+let reconnected = false;
 (async () => {
   await loadEditContent()
   tabStore().addTab({ title: '编辑博客', name: 'system-edit' })
@@ -473,10 +474,12 @@ onUnmounted(() => {
     if (!client.connected) {
       ElNotification.warning("websocket reconnection ...")
       connect()
-      if (client.connected) {
-        loadEditContent()
-        ElNotification.success("websocket reconnected")
-      }
+      reconnected = true
+    }
+    if (reconnected && client.connected) {
+      loadEditContent()
+      ElNotification.success("websocket reconnected")
+      reconnected = false
     }
   }, 5000)
 })()
