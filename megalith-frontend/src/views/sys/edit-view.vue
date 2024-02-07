@@ -473,8 +473,12 @@ onUnmounted(() => {
     if (!client.connected) {
       ElNotification.warning("websocket reconnection ...")
       connect()
+      if (client.connected) {
+        loadEditContent()
+        ElNotification.success("websocket reconnected")
+      }
     }
-  }, 2000)
+  }, 5000)
 })()
 </script>
 
