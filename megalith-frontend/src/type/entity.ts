@@ -235,7 +235,7 @@ export enum ParaInfo {
 }
 
 export enum ParaType {
-  NONE,
+  INNER,
   TAIL_APPEND,
   TAIL_SUBTRACT
 }

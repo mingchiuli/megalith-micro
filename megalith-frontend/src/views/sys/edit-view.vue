@@ -162,7 +162,7 @@ watch(() => form.content, (n, o) => {
       //理论上一个动作改不了很多段
       if (nArr![i] !== oArr![i]) {
         pushActionForm.paraNo = i + 1
-        pushActionForm.paraTypeCode = ParaType.NONE
+        pushActionForm.paraTypeCode = ParaType.INNER
         dealStr(nArr![i], oArr![i])
       }
     }
