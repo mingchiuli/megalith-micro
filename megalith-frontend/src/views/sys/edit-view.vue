@@ -529,7 +529,7 @@ let reconnected = false;
         </el-upload>
 
         <el-dialog v-model="dialogVisible">
-          <img w-full :src="dialogImageUrl" alt="Preview Image" />
+          <img style="width: 100%;" :src="dialogImageUrl" alt="Preview Image" />
         </el-dialog>
       </el-form-item>
 
