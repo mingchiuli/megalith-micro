@@ -27,7 +27,7 @@ onUnmounted(() => {
         </div>
       </el-main>
       <el-footer>
-        <my-footer-item />
+        <MyFooterItem />
       </el-footer>
     </el-container>
   </el-container>

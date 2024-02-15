@@ -6,5 +6,5 @@ import { pageStore } from '@/stores/store'
 
 <template>
   <router-view />
-  <my-footer-item v-if="pageStore().front"/>
+  <MyFooterItem v-if="pageStore().front" />
 </template>

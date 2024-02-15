@@ -91,7 +91,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
         </el-card>
       </template>
     </el-skeleton>
-    <discuss-item />
+    <DiscussItem />
   </div>
 </template>
 
