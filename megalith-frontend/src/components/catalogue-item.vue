@@ -1,17 +1,14 @@
 <script lang="ts" setup>
 import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
 
-const props = defineProps<{
+defineProps<{
   width: number
 }>()
 
 const loadingCatalogue = defineModel<boolean>('loadingCatalogue')
-
-const width = computed(() => props.width)
-
 const loading = ref(true)
 let data = ref<CatalogueLabel[]>()
 let allNodes: Node[]
