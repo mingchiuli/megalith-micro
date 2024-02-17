@@ -6,8 +6,8 @@ import type { ElAutocomplete } from 'element-plus'
 import { ref } from 'vue'
 
 const emit = defineEmits<{
-  (event: 'transSearchData', payload: PageAdapter<BlogDesc>): void
-  (event: 'clear'): void
+  transSearchData: [payload: PageAdapter<BlogDesc>]
+  clear: [payload: void]  
 }>()
 
 const year = defineModel<string>('year')
