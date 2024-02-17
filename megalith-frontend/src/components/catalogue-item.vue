@@ -5,20 +5,10 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
 
 const props = defineProps<{
-  loadingCatalogue: boolean
   width: number
 }>()
 
-const emit = defineEmits<(event: 'update:loadingCatalogue', payload: boolean) => void>()
-
-let loadingCatalogue = computed({
-  get() {
-    return props.loadingCatalogue
-  },
-  set(value) {
-    emit('update:loadingCatalogue', value)
-  }
-})
+const loadingCatalogue = defineModel<boolean>('loadingCatalogue')
 
 const width = computed(() => props.width)
 

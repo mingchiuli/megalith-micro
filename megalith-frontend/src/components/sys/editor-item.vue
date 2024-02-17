@@ -1,73 +1,16 @@
 <script lang="ts" setup>
 import { POST } from '@/http/http';
-import { computed } from 'vue'
 import { MdEditor, type Footers, type ToolbarNames } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import '@vavt/v3-extension/lib/asset/ExportPDF.css'
 import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
 
-
-const props = defineProps<{
-  content: string | undefined
-  isComposing: boolean
-  skip: boolean
-  input: string
-  transColor: string
-}>()
-
-const emit = defineEmits<{
-  (event: 'update:isComposing', payload: boolean): void
-  (event: 'update:content', payload: string | undefined): void
-  (event: 'update:skip', payload: boolean): void
-  (event: 'update:input', payload: string): void
-  (event: 'update:transColor', payload: string): void
-}>()
-
-let isComposing = computed({
-  get() {
-    return props.isComposing
-  },
-  set(value) {
-    emit('update:isComposing', value)
-  }
-})
-
-let content = computed({
-  get() {
-    return props.content
-  },
-  set(value) {
-    emit('update:content', value)
-  }
-})
-
-let skip = computed({
-  get() {
-    return props.skip
-  },
-  set(value) {
-    emit('update:skip', value)
-  }
-})
-
-let input = computed({
-  get() {
-    return props.input
-  },
-  set(value) {
-    emit('update:input', value)
-  }
-})
-
-let transColor = computed({
-  get() {
-    return props.transColor
-  },
-  set(value) {
-    emit('update:transColor', value)
-  }
-})
+const isComposing = defineModel<boolean>('isComposing')
+const content = defineModel<string | undefined>('content')
+const skip = defineModel<boolean>('skip')
+const input = defineModel<string>('input')
+const transColor = defineModel<string>('transColor')
 
 const toolbars: ToolbarNames[] = [
   'revoke', 'next', 'bold', 1, 'underline', 'italic', '-',

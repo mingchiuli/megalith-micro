@@ -1,37 +1,11 @@
 <script lang="ts" setup>
 import { GET } from '@/http/http'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
-const props = defineProps<{
-  year: string
-  yearDialogVisible: boolean
-}>()
-
-const emit = defineEmits<{
-  (event: 'close'): void
-  (event: 'update:year', payload: string): void
-  (event: 'update:yearDialogVisible', payload: boolean): void
-}>()
-
+const emit = defineEmits<(event: 'close') => void>()
 const years = ref<number[]>()
-
-const yearDialogVisible = computed({
-  get() {
-    return props.yearDialogVisible
-  },
-  set(value) {
-    emit('update:yearDialogVisible', value);
-  }
-})
-
-let year = computed({
-  get() {
-    return props.year
-  },
-  set(value) {
-    emit('update:year', value)
-  }
-})
+const year = defineModel('year')
+const yearDialogVisible = defineModel('yearDialogVisible')
 
 const chooseYear = (y: number | string) => {
   year.value = y.toString()

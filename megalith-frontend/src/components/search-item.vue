@@ -3,59 +3,17 @@ import { GET } from '@/http/http'
 import router from '@/router'
 import type { BlogDesc, PageAdapter } from '@/type/entity'
 import type { ElAutocomplete } from 'element-plus'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 const emit = defineEmits<{
   (event: 'transSearchData', payload: PageAdapter<BlogDesc>): void
   (event: 'clear'): void
-  (event: 'update:year', payload: string): void
-  (event: 'update:keywords', payload: string): void
-  (event: 'update:loading', payload: boolean): void
-  (event: 'update:searchDialogVisible', payload: boolean): void
 }>()
 
-const props = defineProps<{
-  year: string
-  keywords: string
-  loading: boolean
-  searchDialogVisible: boolean
-}>()
-
-let year = computed({
-  get() {
-    return props.year
-  },
-  set(value) {
-    emit('update:year', value)
-  }
-})
-
-let keywords = computed({
-  get() {
-    return props.keywords
-  },
-  set(value) {
-    emit('update:keywords', value)
-  }
-})
-
-let loading = computed({
-  get() {
-    return props.loading
-  },
-  set(value) {
-    emit('update:loading', value);
-  }
-})
-
-let searchDialogVisible = computed({
-  get() {
-    return props.searchDialogVisible
-  },
-  set(value) {
-    emit('update:searchDialogVisible', value);
-  }
-})
+const year = defineModel<string>('year')
+const keywords = defineModel<string>('keywords')
+const loading = defineModel<boolean>('loading')
+const searchDialogVisible = defineModel<boolean>('searchDialogVisible')
 
 const yearDialogVisible = ref(false)
 const search = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogDesc>> => {
@@ -68,7 +26,7 @@ let timeout: NodeJS.Timeout
 const searchAbstractAsync = async (queryString: string, cb: Function) => {
   if (queryString.length) {
     //-1是后端一个默认参数
-    const page: PageAdapter<BlogDesc> = await search(queryString, -1, false, year.value)
+    const page: PageAdapter<BlogDesc> = await search(queryString, -1, false, year.value!)
     page.content.forEach((blogsDesc: BlogDesc) => {
       blogsDesc.value = blogsDesc.highlight
     })
@@ -93,7 +51,7 @@ const handleSelect = (item: BlogDesc) => router.push({
 const searchAllInfo = async (queryString: string, currentPage = 1) => {
   searchDialogVisible.value = false
   if (queryString.length) {
-    const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, year.value)
+    const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, year.value!)
     keywords.value = queryString
     emit('transSearchData', page)
   } else {
@@ -112,7 +70,7 @@ const searchBeforeClose = (close: Function) => {
 const refAutocomplete = ref<InstanceType<typeof ElAutocomplete>>()
 
 const yearsCloseEvent = async () => {
-  if (keywords.value.length) {
+  if (keywords.value!.length) {
     setTimeout(() => {
       refAutocomplete.value!.activated = true
     }, 100)
@@ -131,10 +89,10 @@ defineExpose(
     :before-close="searchBeforeClose">
     <template #default>
       <hot-item class="dialog-hot"></hot-item>
-      <div class="dialog-year" v-if="year.length">年份：{{ year }}</div>
+      <div class="dialog-year" v-if="year!.length">年份：{{ year }}</div>
       <div class="dialog-autocomplete">
         <el-autocomplete v-model="keywords" :fetch-suggestions="searchAbstractAsync" placeholder="Please input"
-          @select="handleSelect" :trigger-on-focus="false" clearable @keyup.enter="searchAllInfo(keywords)"
+          @select="handleSelect" :trigger-on-focus="false" clearable @keyup.enter="searchAllInfo(keywords!)"
           ref="refAutocomplete" @clear="clearSearch">
           <template #default="{ item }">
             <template v-if="item.value.title">
@@ -155,7 +113,7 @@ defineExpose(
     </template>
     <template #footer>
       <div class="dialog-footer">
-        <el-button type="primary" @click="searchAllInfo(keywords)">Confirm</el-button>
+        <el-button type="primary" @click="searchAllInfo(keywords!)">Confirm</el-button>
         <el-button type="primary" @click="yearDialogVisible = true">Archieve</el-button>
       </div>
     </template>

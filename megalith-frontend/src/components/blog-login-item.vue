@@ -1,25 +1,12 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { loginStateStore } from '@/stores/store'
 import type { LoginStruct, Token, UserInfo } from '@/type/entity'
 import { GET, POST } from '@/http/http'
 import router from '@/router'
 import http from '@/http/axios'
 
-const props = defineProps<{
-  loginDialogVisible: boolean
-}>()
-
-const emit = defineEmits<(event: 'update:loginDialogVisible', payload: boolean) => void>()
-
-let loginDialogVisible = computed({
-  get() {
-    return props.loginDialogVisible
-  },
-  set(value) {
-    emit('update:loginDialogVisible', value)
-  },
-})
+const loginDialogVisible = defineModel<boolean>('loginDialogVisible')
 
 const mailButtonDisable = ref(false)
 const mailButtonText = ref('发送邮件')

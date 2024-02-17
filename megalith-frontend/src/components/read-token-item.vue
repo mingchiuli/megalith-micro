@@ -1,24 +1,13 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { GET } from '@/http/http'
 import router from '@/router'
 
-const emit = defineEmits<(event: 'update:readTokenDialogVisible', payload: boolean) => void>()
-
 const props = defineProps<{
-  readTokenDialogVisible: boolean
   blogId: number
 }>()
 
-let visible = computed({
-  get() {
-    return props.readTokenDialogVisible
-  },
-  set(value) {
-    emit('update:readTokenDialogVisible', value);
-  },
-})
-
+const readTokenDialogVisible = defineModel<boolean>('readTokenDialogVisible')
 const input = ref<string>()
 
 const submit = async () => {
@@ -36,17 +25,17 @@ const submit = async () => {
   } else {
     ElMessage.error("token error")
   }
-  visible.value = false
+  readTokenDialogVisible.value = false
 }
 
 const handleClose = () => {
   input.value = ''
-  visible.value = false
+  readTokenDialogVisible.value = false
 }
 </script>
 
 <template>
-  <el-dialog v-model="visible" title="阅读码" width="300px" :before-close="handleClose">
+  <el-dialog v-model="readTokenDialogVisible" title="阅读码" width="300px" :before-close="handleClose">
     <el-input v-model="input" type="password" placeholder="Please input password" show-password />
     <template #footer>
       <span class="dialog-footer">
