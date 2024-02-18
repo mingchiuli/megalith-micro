@@ -274,7 +274,7 @@ const handleCurrentChange = async (val: number) => {
       </el-form-item>
 
       <el-form-item label="角色" label-width="100px" prop="role" class="role">
-        <el-select v-model="form.role" placeholder="请选择">
+        <el-select class="role-option" v-model="form.role" placeholder="请选择">
           <el-option v-for="item in roleList" :key="item.code" :label="item.name" :value="item.code">
           </el-option>
         </el-select>
@@ -296,6 +296,10 @@ const handleCurrentChange = async (val: number) => {
 </template>
 
 <style scoped>
+
+.role-option {
+  width: 150px;
+}
 .button-form .el-form-item {
   margin-right: 10px
 }
