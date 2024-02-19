@@ -427,7 +427,6 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
-
 const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
   uploadInstance.value!.clearFiles()
   const file = files[0] as UploadRawFile
@@ -470,14 +469,14 @@ let reconnected = false;
   await loadEditContent()
   tabStore().addTab({ title: '编辑博客', name: 'system-edit' })
   connect()
-  timer = setInterval(() => {
+  timer = setInterval(async () => {
     if (!client.connected) {
       ElNotification.warning("websocket reconnection ...")
       connect()
       reconnected = true
     }
     if (reconnected && client.connected) {
-      loadEditContent()
+      await loadEditContent()
       ElNotification.success("websocket reconnected")
       reconnected = false
     }

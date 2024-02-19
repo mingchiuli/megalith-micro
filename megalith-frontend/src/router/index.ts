@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Intro from '@/views/intro-view.vue'
 import { GET } from '@/http/http'
 import type { Menu } from '@/type/entity'
-import { routeStore, menuStore, loginStateStore } from '@/stores/store'
+import { routeStore, menuStore, loginStateStore, displayStateStore } from '@/stores/store'
 
 const modules = import.meta.glob('@/views/sys/*.vue')
 
@@ -46,6 +46,10 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, _from, next) => {
+  if (to.path.startsWith('/sys')) {
+    displayStateStore().welcomeBackend = false
+  }
+
   if (localStorage.getItem('accessToken')) {
     loginStateStore().login = true
   }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { pageStore } from '@/stores/store'
+import { pageStore, displayStateStore } from '@/stores/store'
 import { onUnmounted } from 'vue'
 
 pageStore().front = false
@@ -22,6 +22,7 @@ onUnmounted(() => {
         <header-tabs-item />
       </el-header>
       <el-main>
+        <el-text class="welcome" v-if="displayStateStore().welcomeBackend">欢迎来到管理系统</el-text>
         <div class="content">
           <router-view />
         </div>
@@ -40,5 +41,14 @@ onUnmounted(() => {
 
 .el-footer {
   --el-footer-height: 100
+}
+
+.welcome {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: xx-large
 }
 </style>
