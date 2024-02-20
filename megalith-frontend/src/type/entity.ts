@@ -207,14 +207,21 @@ export enum RoutesEnum {
 }
 
 export enum OperateTypeCode {
-  PARAGRAPH = -2,
-  NONE = -1,
-  TAIL_APPEND = 0,
-  TAIL_SUBTRACT = 1,
-  HEAD_APPEND = 2,
-  HEAD_SUBTRACT = 3,
-  REPLACE = 4,
-  REMOVE = 5
+  STATUS = -1,
+  NON_PARA_TAIL_APPEND = 0,
+  NON_PARA_TAIL_SUBTRACT = 1,
+  NON_PARA_HEAD_APPEND = 2,
+  NON_PARA_HEAD_SUBTRACT = 3,
+  NON_PARA_REPLACE = 4,
+  NON_PARA_REMOVE = 5,
+  PARA_TAIL_APPEND = 6,
+  PARA_TAIL_SUBTRACT = 7,
+  PARA_HEAD_APPEND = 8,
+  PARA_HEAD_SUBTRACT = 9,
+  PARA_REPLACE = 10,
+  PARA_REMOVE = 11,
+  PARA_SPLIT_APPEND = 12,
+  PARA_SPLIT_SUBTRACT = 13
 }
 
 export enum OperaColor {
@@ -230,12 +237,11 @@ export enum FieldName {
   TITLE = 'title'
 }
 
-export enum ParaInfo {
-  PARA_SPLIT = '\n\n'
+export enum FieldType {
+  NON_PARA = 'non_para',
+  PARA = 'para'
 }
 
-export enum ParaType {
-  INNER,
-  TAIL_APPEND,
-  TAIL_SUBTRACT
+export enum ParaInfo {
+  PARA_SPLIT = '\n\n'
 }
