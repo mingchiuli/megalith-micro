@@ -2,7 +2,7 @@
 import { defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
-import { FieldName, OperaColor, OperateTypeCode, ParaInfo, ParaType, Status } from '@/type/entity'
+import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
@@ -63,7 +63,6 @@ type PushActionForm = {
   indexEnd?: number
   field?: string
   paraNo?: number
-  paraTypeCode?: number
 }
 
 const pushActionForm: PushActionForm = {
@@ -75,7 +74,6 @@ const pushActionForm: PushActionForm = {
   indexEnd: undefined,
   field: undefined,
   paraNo: undefined,
-  paraTypeCode: undefined
 }
 
 let version = 0
@@ -83,6 +81,7 @@ let version = 0
 let isComposing = false
 let skip = false
 let input = ''
+let fieldType: string
 
 const pushAllData = async () => {
   await POST<null>('/sys/blog/push/all', form)
@@ -111,22 +110,19 @@ const clearPushActionForm = () => {
   pushActionForm.version = undefined
   pushActionForm.field = undefined
   pushActionForm.paraNo = undefined
-  pushActionForm.paraTypeCode = undefined
 }
 
 watch(() => form.description, (n, o) => {
   if (!client.connected || (!n && !o) || skip) return
-  commonPreDeal()
-  pushActionForm.field = FieldName.DESCRIPTION
-  dealStr(n, o)
+  commonPreDeal(FieldType.NON_PARA, FieldName.DESCRIPTION)
+  deal(n, o)
   commonPostDeal()
 })
 
 watch(() => form.status, (n, o) => {
   if (!client.connected || (!n && !o) || skip) return
-  commonPreDeal()
-  pushActionForm.operateTypeCode = OperateTypeCode.NONE
-  pushActionForm.field = FieldName.STATUS
+  commonPreDeal(FieldType.NON_PARA, FieldName.STATUS)
+  pushActionForm.operateTypeCode = OperateTypeCode.STATUS
   pushActionForm.contentChange = form.status
   pushActionData(pushActionForm)
   commonPostDeal()
@@ -134,24 +130,21 @@ watch(() => form.status, (n, o) => {
 
 watch(() => form.link, (n, o) => {
   if (!client.connected || (!n && !o) || skip) return
-  commonPreDeal()
-  pushActionForm.field = FieldName.LINK
-  dealStr(n, o)
+  commonPreDeal(FieldType.NON_PARA, FieldName.LINK)
+  deal(n, o)
   commonPostDeal()
 })
 
 watch(() => form.title, (n, o) => {
   if (!client.connected || (!n && !o) || skip) return
-  commonPreDeal()
-  pushActionForm.field = FieldName.TITLE
-  dealStr(n, o)
+  commonPreDeal(FieldType.NON_PARA, FieldName.TITLE)
+  deal(n, o)
   commonPostDeal()
 })
 
 watch(() => form.content, (n, o) => {
   if (!client.connected || (!n && !o) || skip) return
-  commonPreDeal()
-  pushActionForm.field = FieldName.CONTENT
+  commonPreDeal(FieldType.PARA, FieldName.CONTENT)
 
   const nArr = n?.split(ParaInfo.PARA_SPLIT)
   const oArr = o?.split(ParaInfo.PARA_SPLIT)
@@ -162,8 +155,7 @@ watch(() => form.content, (n, o) => {
       //理论上一个动作改不了很多段
       if (nArr![i] !== oArr![i]) {
         pushActionForm.paraNo = i + 1
-        pushActionForm.paraTypeCode = ParaType.INNER
-        dealStr(nArr![i], oArr![i])
+        deal(nArr![i], oArr![i])
       }
     }
     commonPostDeal()
@@ -174,8 +166,7 @@ watch(() => form.content, (n, o) => {
     for (let i = 0; i < oArr?.length!; i++) {
       if (i === oArr?.length! - 1 && nArr![i] + '\n' === oArr![i] && nArr![i + 1] === '') {
         pushActionForm.paraNo = nArr?.length
-        pushActionForm.paraTypeCode = ParaType.TAIL_APPEND
-        pushActionForm.operateTypeCode = OperateTypeCode.PARAGRAPH
+        pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_APPEND
         pushActionData(pushActionForm)
         commonPostDeal()
         return
@@ -192,8 +183,7 @@ watch(() => form.content, (n, o) => {
     for (let i = 0; i < nArr?.length!; i++) {
       if (i === nArr?.length! - 1 && nArr![i] === oArr![i] + '\n' && oArr![i + 1] === '') {
         pushActionForm.paraNo = oArr?.length
-        pushActionForm.paraTypeCode = ParaType.TAIL_SUBTRACT
-        pushActionForm.operateTypeCode = OperateTypeCode.PARAGRAPH
+        pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_SUBTRACT
         pushActionData(pushActionForm)
         commonPostDeal()
         return
@@ -210,16 +200,22 @@ const commonPostDeal = () => {
   skip = false
 }
 
-const commonPreDeal = () => {
+const commonPreDeal = (fieldTypeParam: string, opreateField: string) => {
   clearPushActionForm()
+  pushActionForm.field = opreateField
   pushActionForm.id = form.id
   pushActionForm.version = version
+  fieldType = fieldTypeParam
 }
 
-const dealStr = (n: string | undefined, o: string | undefined) => {
+const deal = (n: string | undefined, o: string | undefined) => {
   //全部删除
   if (!n) {
-    pushActionForm.operateTypeCode = OperateTypeCode.REMOVE
+    if (fieldType === FieldType.PARA) {
+      pushActionForm.operateTypeCode = OperateTypeCode.PARA_REMOVE
+    } else {
+      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REMOVE
+    }
     pushActionData(pushActionForm)
     return
   }
@@ -227,7 +223,11 @@ const dealStr = (n: string | undefined, o: string | undefined) => {
   //初始化新增
   if (!o) {
     pushActionForm.contentChange = n
-    pushActionForm.operateTypeCode = OperateTypeCode.TAIL_APPEND
+    if (fieldType === FieldType.PARA) {
+      pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_APPEND
+    } else {
+      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_APPEND
+    }
     pushActionData(pushActionForm)
     return
   }
@@ -248,11 +248,19 @@ const dealStr = (n: string | undefined, o: string | undefined) => {
     //向末尾添加
     if (oLen < nLen) {
       pushActionForm.contentChange = n.substring(indexStart)
-      pushActionForm.operateTypeCode = OperateTypeCode.TAIL_APPEND
+      if (fieldType === FieldType.PARA) {
+        pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_APPEND
+      } else {
+        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_APPEND
+      }
     } else {
       //从末尾删除
       pushActionForm.indexStart = nLen
-      pushActionForm.operateTypeCode = OperateTypeCode.TAIL_SUBTRACT
+      if (fieldType === FieldType.PARA) {
+        pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_SUBTRACT
+      } else {
+        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_SUBTRACT
+      }
     }
     pushActionData(pushActionForm)
     return
@@ -272,12 +280,19 @@ const dealStr = (n: string | undefined, o: string | undefined) => {
     //从开头添加
     if (oLen < nLen) {
       pushActionForm.contentChange = n.substring(0, nLen - oLen)
-      pushActionForm.operateTypeCode = OperateTypeCode.HEAD_APPEND
-
+      if (fieldType === FieldType.PARA) {
+        pushActionForm.operateTypeCode = OperateTypeCode.PARA_HEAD_APPEND
+      } else {
+        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_HEAD_APPEND
+      }
     } else {
       //从开头删除
       pushActionForm.indexStart = oLen - nLen
-      pushActionForm.operateTypeCode = OperateTypeCode.HEAD_SUBTRACT
+      if (fieldType === FieldType.PARA) {
+        pushActionForm.operateTypeCode = OperateTypeCode.PARA_HEAD_SUBTRACT
+      } else {
+        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_HEAD_SUBTRACT
+      }
     }
     pushActionData(pushActionForm)
     return
@@ -300,7 +315,11 @@ const dealStr = (n: string | undefined, o: string | undefined) => {
       pushActionForm.indexEnd = oLen - (nLen - (len + oIndexEnd - 1))
     }
     pushActionForm.contentChange = contentChange
-    pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
+    if (fieldType === FieldType.PARA) {
+      pushActionForm.operateTypeCode = OperateTypeCode.PARA_REPLACE
+    } else {
+      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
+    }
     pushActionData(pushActionForm)
     return
   }
@@ -310,7 +329,11 @@ const dealStr = (n: string | undefined, o: string | undefined) => {
 
     const contentChange = n.substring(indexStart, nIndexEnd)
     pushActionForm.contentChange = contentChange
-    pushActionForm.operateTypeCode = OperateTypeCode.REPLACE
+    if (fieldType === FieldType.PARA) {
+      pushActionForm.operateTypeCode = OperateTypeCode.PARA_REPLACE
+    } else {
+      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
+    }
 
     if (!isComposing) {
       pushActionForm.indexStart = indexStart
@@ -534,7 +557,7 @@ let reconnected = false;
 
       <el-form-item class="content" prop="content">
         <CustomEditorItem v-model:content="form.content" v-model:input="input" v-model:isComposing="isComposing"
-        v-model:skip="skip" v-model:transColor="transColor" />
+          v-model:skip="skip" v-model:transColor="transColor" />
       </el-form-item>
 
       <div class="submit-button">

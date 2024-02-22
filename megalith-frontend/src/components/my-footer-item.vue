@@ -15,7 +15,7 @@ let end = ref<number>();
 <template>
   <div class="footer">
     <el-divider />
-    <el-link :underline="false" class="copyright" href="/">&copy; Powered by Kubernetes {{ start }}-{{ end }} </el-link>
+    <el-link :underline="false" class="copyright" href="/">&copy; Powered by Docker {{ start }}-{{ end }} </el-link>
   </div>
 </template>
 
