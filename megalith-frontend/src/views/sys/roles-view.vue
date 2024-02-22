@@ -14,7 +14,7 @@ const defaultProps = { children: 'children', label: 'title' }
 const formRef = ref<FormInstance>()
 const menuDialogVisible = ref(false)
 const menuTreeRef = ref<InstanceType<typeof ElTree>>()
-let permTreeData = ref<PermForm[]>([])
+let menuTreeData = ref<MenuForm[]>([])
 let menuId = ref<number>()
 const page: PageAdapter<RoleSys> = reactive({
   "content": [],
@@ -52,25 +52,25 @@ const form: Form = reactive({
   remark: '',
   status: 0
 })
-type PermForm = {
+type MenuForm = {
   roleId: number
   menuId: number
   title: string
   check: boolean
-  children: PermForm[]
+  children: MenuForm[]
 }
 
-const submitPermFormHandle = async (ref: InstanceType<typeof ElTree>) => {
+const submitmenuFormHandle = async (ref: InstanceType<typeof ElTree>) => {
   //全选和半选都要包含
   const ids = ref.getCheckedKeys()
   const halfCheckedIds = ref.getHalfCheckedKeys()
-  await POST<null>(`/sys/role/perm/${menuId.value}`, ids.concat(halfCheckedIds))
+  await POST<null>(`/sys/role/menu/${menuId.value}`, ids.concat(halfCheckedIds))
   ElNotification({
     title: '操作成功',
     message: '编辑成功',
     type: 'success',
   })
-  permTreeData.value = []
+  menuTreeData.value = []
   menuDialogVisible.value = false
 }
 
@@ -105,7 +105,7 @@ const handleClose = () => {
 }
 
 const menuHandleClose = () => {
-  permTreeData.value = []
+  menuTreeData.value = []
   menuDialogVisible.value = false
 }
 
@@ -120,8 +120,8 @@ const handleEdit = async (row: RoleSys) => {
 }
 
 const handleMenu = async (row: RoleSys) => {
-  const data = await GET<PermForm[]>(`/sys/role/perm/${row.id}`)
-  permTreeData.value = data
+  const data = await GET<MenuForm[]>(`/sys/role/menu/${row.id}`)
+  menuTreeData.value = data
   menuId.value = row.id
   menuDialogVisible.value = true
 }
@@ -159,14 +159,14 @@ const handleCurrentChange = async (pageNo: number) => {
   await queryRoles()
 }
 
-const getCheckKeys = (permForms: PermForm[]): Array<number> => {
+const getCheckKeys = (menuForms: MenuForm[]): Array<number> => {
   const ids: Array<number> = []
-  getKeysIds(permForms, ids)
+  getKeysIds(menuForms, ids)
   return ids
 }
 
-const getKeysIds = (permForms: PermForm[], ids: Array<number>) => {
-  permForms.forEach(item => {
+const getKeysIds = (menuForms: MenuForm[], ids: Array<number>) => {
+  menuForms.forEach(item => {
     if (item.check && item.children.length === 0) {
       ids.push(item.menuId)
     }
@@ -291,10 +291,10 @@ const handleDelete = async (row: RoleSys) => {
   <el-dialog title="路由权限" v-model="menuDialogVisible" width="600px" :before-close="menuHandleClose">
     <el-form>
 
-      <el-tree :data="permTreeData" show-checkbox :default-expand-all=true node-key="menuId" :props="defaultProps"
-        :default-checked-keys="getCheckKeys(permTreeData)" ref="menuTreeRef" />
+      <el-tree :data="menuTreeData" show-checkbox :default-expand-all=true node-key="menuId" :props="defaultProps"
+        :default-checked-keys="getCheckKeys(menuTreeData)" ref="menuTreeRef" />
       <el-form-item label-width="450px">
-        <el-button type="primary" @click="submitPermFormHandle(menuTreeRef!)">Submit</el-button>
+        <el-button type="primary" @click="submitmenuFormHandle(menuTreeRef!)">Submit</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
