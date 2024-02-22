@@ -44,6 +44,16 @@ export interface BlogDelSys {
   readCount: number
 }
 
+export interface AuthoritySys {
+  id: number
+  name: string
+  code: string
+  remark: string
+  created: string
+  updated: string
+  status: number
+}
+
 export interface UserSys {
   id: number
   username: string
