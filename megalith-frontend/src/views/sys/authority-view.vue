@@ -221,6 +221,8 @@ const clearForm = () => {
 </template>
 
 <style scoped>
-
+.button-form .el-form-item {
+  margin-right: 10px
+}
 </style>
 
