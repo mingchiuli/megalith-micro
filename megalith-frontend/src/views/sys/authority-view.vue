@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { GET, POST } from '@/http/http'
-import type { PageAdapter, RoleSys, AuthoritySys } from '@/type/entity'
+import type { AuthoritySys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
-import { reactive, ref, toRefs } from 'vue'
+import { reactive, ref } from 'vue'
 import { Status } from '@/type/entity'
 import { displayStateStore } from '@/stores/store'
 
@@ -10,8 +10,8 @@ const multipleSelection = ref<AuthoritySys[]>([])
 const dialogVisible = ref(false)
 const loading = ref(false)
 const delBtlStatus = ref(true)
-const roleList = ref<RoleSys[]>([])
 
+let content = reactive<AuthoritySys[]>([])
 
 const formRules = reactive<FormRules<Form>>({
   name: [
@@ -33,8 +33,6 @@ type Form = {
   name: string
   code: string
   remark: string
-  created: string
-  updated: string
   status: number
 }
 
@@ -43,8 +41,6 @@ const form: Form = reactive({
   name: '',
   code: '',
   remark: '',
-  created: '',
-  updated: '',
   status: 0,
 })
 
@@ -60,31 +56,28 @@ const delBatch = async () => {
     type: 'success',
   })
   multipleSelection.value = []
-  await queryUsers()
+  await queryAuthorities()
 }
 
 const handleDelete = async (row: AuthoritySys) => {
   const id: number[] = []
   id.push(row.id)
-  await POST<null>('/sys/user/delete', id)
+  await POST<null>('/sys/authority/delete', id)
   ElNotification({
     title: '操作成功',
     message: '删除成功',
     type: 'success',
   })
-  queryUsers()
+  await queryAuthorities()
 }
 
 const handleEdit = async (row: AuthoritySys) => {
-  const data = await GET<AuthoritySys>(`/sys/user/info/${row.id}`)
+  const data = await GET<AuthoritySys>(`/sys/authority/info/${row.id}`)
+  form.code = data.code
   form.id = data.id
-  form.username = data.username
-  form.nickname = data.nickname
-  form.phone = data.phone
-  form.email = data.email
-  form.role = data.role
+  form.name = data.name
+  form.remark = data.remark
   form.status = data.status
-  form.avatar = data.avatar
   dialogVisible.value = true
 }
 
@@ -93,11 +86,9 @@ const handleSelectionChange = (val: AuthoritySys[]) => {
   delBtlStatus.value = val.length === 0
 }
 
-const queryUsers = async () => {
+const queryAuthorities = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<AuthoritySys>>(`/sys/user/page/${pageNumber.value}?size=${pageSize.value}`)
-  content.value = data.content
-  totalElements.value = data.totalElements
+  content = await GET<AuthoritySys[]>('/sys/authority/list')
   loading.value = false
 }
 
@@ -109,7 +100,7 @@ const handleClose = () => {
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid, _fields) => {
     if (valid) {
-      await POST<null>('/sys/user/save', form)
+      await POST<null>('/sys/authority/save', form)
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
@@ -117,39 +108,21 @@ const submitForm = async (ref: FormInstance) => {
       })
       clearForm()
       dialogVisible.value = false
-      pageNumber.value = 1
-      await queryUsers()
+      await queryAuthorities()
     }
   })
 }
 
 const clearForm = () => {
   form.id = undefined
-  form.username = ''
-  form.nickname = ''
-  form.password = ''
-  form.avatar = ''
-  form.email = ''
-  form.phone = ''
-  form.role = ''
+  form.name = ''
+  form.code = ''
+  form.remark = ''
   form.status = 0
 }
 
-const handleSizeChange = async (val: number) => {
-  pageSize.value = val
-  pageNumber.value = 1
-  await queryUsers()
-}
-
-const handleCurrentChange = async (val: number) => {
-  pageNumber.value = val
-  await queryUsers()
-}
-
 (async () => {
-  await queryUsers()
-  const roles = await GET<RoleSys[]>('/sys/user/role/valid/all')
-  roleList.value = roles
+  await queryAuthorities()
 })()
 </script>
 
@@ -170,17 +143,10 @@ const handleCurrentChange = async (val: number) => {
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
     <el-table-column type="selection" :fixed="displayStateStore().fixSelection" />
-    <el-table-column label="用户名" align="center" prop="username" min-width="180" />
-    <el-table-column label="昵称" align="center" prop="nickname" min-width="180" />
+    <el-table-column label="接口名字" align="center" prop="name" min-width="300" />
+    <el-table-column label="唯一编码" align="center" prop="code" min-width="180" />
 
-    <el-table-column label="头像" align="center">
-      <template #default="scope">
-        <el-avatar size="default" :src="scope.row.avatar" />
-      </template>
-    </el-table-column>
-
-    <el-table-column label="邮箱" min-width="200" align="center" prop="email" />
-    <el-table-column label="手机号" min-width="200" align="center" prop="phone" />
+    <el-table-column label="描述" min-width="300" align="center" prop="remark" />
 
     <el-table-column label="状态" align="center">
       <template #default="scope">
@@ -200,13 +166,13 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="最后登录时间" min-width="180" align="center">
+    <el-table-column label="更新时间" min-width="180" align="center">
       <template #default="scope">
         <div style="display: flex; align-items: center">
           <el-icon>
             <timer />
           </el-icon>
-          <span style="margin-left: 10px">{{ scope.row.lastLogin }}</span>
+          <span style="margin-left: 10px">{{ scope.row.updated }}</span>
         </div>
       </template>
     </el-table-column>
@@ -224,45 +190,22 @@ const handleCurrentChange = async (val: number) => {
 
   </el-table>
 
-  <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-    layout="->, total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber"
-    :page-size="pageSize" :total="totalElements" />
-
   <el-dialog v-model="dialogVisible" title="新增/编辑" width="600px" :before-close="handleClose">
     <el-form :model="form" :rules="formRules" ref="formRef">
 
-      <el-form-item label="用户名" label-width="100px" prop="username" class="username">
-        <el-input v-model="form.username" maxlength="30" />
+      <el-form-item label="接口名字" label-width="100px" prop="name" >
+        <el-input v-model="form.name" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="昵称" label-width="100px" prop="nickname" class="nickname">
-        <el-input v-model="form.nickname" maxlength="30" />
+      <el-form-item label="唯一编码" label-width="100px" prop="code" >
+        <el-input v-model="form.code" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="密码" label-width="100px" class="password">
-        <el-input v-model="form.password" type="password" maxlength="30" />
+      <el-form-item label="描述" label-width="100px" prop="remark" >
+        <el-input v-model="form.remark" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="头像链接" label-width="100px" prop="avatar" class="avatar">
-        <el-input v-model="form.avatar" />
-      </el-form-item>
-
-      <el-form-item label="邮箱" label-width="100px" prop="email" class="email">
-        <el-input v-model="form.email" maxlength="30" />
-      </el-form-item>
-
-      <el-form-item label="手机号" label-width="100px" prop="phone" class="phone">
-        <el-input v-model="form.phone" maxlength="30" />
-      </el-form-item>
-
-      <el-form-item label="角色" label-width="100px" prop="role" class="role">
-        <el-select class="role-option" v-model="form.role" placeholder="请选择">
-          <el-option v-for="item in roleList" :key="item.code" :label="item.name" :value="item.code">
-          </el-option>
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="状态" label-width="100px" prop="status" class="status">
+      <el-form-item label="状态" label-width="100px" prop="status" >
         <el-radio-group v-model="form.status">
           <el-radio :label=Status.NORMAL>启用</el-radio>
           <el-radio :label=Status.BLOCK>禁用</el-radio>
