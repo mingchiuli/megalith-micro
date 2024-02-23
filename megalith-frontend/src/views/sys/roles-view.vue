@@ -13,9 +13,11 @@ const multipleSelection = ref<RoleSys[]>([])
 const defaultProps = { children: 'children', label: 'title' }
 const formRef = ref<FormInstance>()
 const menuDialogVisible = ref(false)
+const authorityDialogVisible = ref(false)
 const menuTreeRef = ref<InstanceType<typeof ElTree>>()
 let menuTreeData = ref<MenuForm[]>([])
-let menuId = ref<number>()
+let authorityData = ref<AuthorityForm[]>([])
+let roleId = ref<number>()
 const page: PageAdapter<RoleSys> = reactive({
   "content": [],
   "totalElements": 0,
@@ -60,11 +62,17 @@ type MenuForm = {
   children: MenuForm[]
 }
 
+type AuthorityForm = {
+  authorityId: number
+  code: string
+  check: boolean
+}
+
 const submitmenuFormHandle = async (ref: InstanceType<typeof ElTree>) => {
   //全选和半选都要包含
   const ids = ref.getCheckedKeys()
   const halfCheckedIds = ref.getHalfCheckedKeys()
-  await POST<null>(`/sys/role/menu/${menuId.value}`, ids.concat(halfCheckedIds))
+  await POST<null>(`/sys/role/menu/${roleId.value}`, ids.concat(halfCheckedIds))
   ElNotification({
     title: '操作成功',
     message: '编辑成功',
@@ -72,6 +80,21 @@ const submitmenuFormHandle = async (ref: InstanceType<typeof ElTree>) => {
   })
   menuTreeData.value = []
   menuDialogVisible.value = false
+}
+
+const submitAuthorityFormHandle = async () => {
+  const ids = authorityData.value
+    .filter(item => item.check)
+    .map(item => item.authorityId)
+    console.log(ids)
+  await POST<null>(`/sys/role/authority/${roleId.value}`, ids)
+  ElNotification({
+    title: '操作成功',
+    message: '编辑成功',
+    type: 'success',
+  })
+  authorityData.value = []
+  authorityDialogVisible.value = false
 }
 
 const clearForm = () => {
@@ -104,6 +127,11 @@ const handleClose = () => {
   dialogVisible.value = false
 }
 
+const authorityHandleClose = () => {
+  authorityData.value = []
+  authorityDialogVisible.value = false
+}
+
 const menuHandleClose = () => {
   menuTreeData.value = []
   menuDialogVisible.value = false
@@ -122,8 +150,14 @@ const handleEdit = async (row: RoleSys) => {
 const handleMenu = async (row: RoleSys) => {
   const data = await GET<MenuForm[]>(`/sys/role/menu/${row.id}`)
   menuTreeData.value = data
-  menuId.value = row.id
+  roleId.value = row.id
   menuDialogVisible.value = true
+}
+
+const handleAuthority = async (row: RoleSys) => {
+  authorityData.value = await GET<AuthorityForm[]>(`/sys/role/authority/${row.id}`)
+  roleId.value = row.id
+  authorityDialogVisible.value = true
 }
 
 const delBatch = async () => {
@@ -214,7 +248,7 @@ const handleDelete = async (row: RoleSys) => {
     <el-table-column label="名字" align="center" prop="name" />
     <el-table-column label="唯一编码" align="center" prop="code" />
 
-    <el-table-column label="描述" align="center" prop="remark" min-width="200"/>
+    <el-table-column label="描述" align="center" prop="remark" min-width="200" />
 
     <el-table-column label="状态" align="center">
       <template #default="scope">
@@ -245,10 +279,11 @@ const handleDelete = async (row: RoleSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="250" align="center">
+    <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="300" align="center">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
         <el-button size="small" type="warning" @click="handleMenu(scope.row)">路由权限</el-button>
+        <el-button size="small" type="info" @click="handleAuthority(scope.row)">接口权限</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
           <template #reference>
             <el-button size="small" type="danger">删除</el-button>
@@ -290,11 +325,23 @@ const handleDelete = async (row: RoleSys) => {
 
   <el-dialog title="路由权限" v-model="menuDialogVisible" width="600px" :before-close="menuHandleClose">
     <el-form>
-
       <el-tree :data="menuTreeData" show-checkbox :default-expand-all=true node-key="menuId" :props="defaultProps"
         :default-checked-keys="getCheckKeys(menuTreeData)" ref="menuTreeRef" />
       <el-form-item label-width="450px">
         <el-button type="primary" @click="submitmenuFormHandle(menuTreeRef!)">Submit</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
+
+  <el-dialog title="接口权限" v-model="authorityDialogVisible" width="600px" :before-close="authorityHandleClose">
+    <el-form>
+
+      <span class="authority-display" v-for="item in authorityData" :key="item.authorityId">
+        <el-checkbox v-model="item.check" :label="item.code" size="large" />
+      </span>
+
+      <el-form-item label-width="450px">
+        <el-button type="primary" @click="submitAuthorityFormHandle">Submit</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
@@ -307,5 +354,12 @@ const handleDelete = async (row: RoleSys) => {
 
 .el-pagination {
   margin-top: 10px
+}
+
+.authority-display {
+  padding: 10px;
+  width: 200px;
+  height: 20px;
+  display: inline-block;
 }
 </style>
