@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Intro from '@/views/intro-view.vue'
 import { GET } from '@/http/http'
-import type { Menu } from '@/type/entity'
+import { RoutesEnum, type Menu } from '@/type/entity'
 import { routeStore, menuStore, loginStateStore, displayStateStore } from '@/stores/store'
 
 const modules = import.meta.glob('@/views/sys/*.vue')
@@ -63,13 +63,15 @@ router.beforeEach(async (to, _from, next) => {
       children: []
     } as RouteRecordRaw
 
-    menus.forEach(menu => {
-      menuStore().menuList.push(menu)
-      const route = buildRoute(menu, systemRoute)
-      if (route.path) {
-        systemRoute.children?.push(route)
-      }
-    })
+    menus
+      .filter(item => RoutesEnum.BUTTON !== item.type)
+      .forEach(menu => {
+        menuStore().menuList.push(menu)
+        const route = buildRoute(menu, systemRoute)
+        if (route.path) {
+          systemRoute.children?.push(route)
+        }
+      })
     router.addRoute(systemRoute)
     routeStore().hasRoute = true
   }
@@ -83,7 +85,7 @@ router.beforeEach(async (to, _from, next) => {
 //构建路由
 const buildRoute = (menu: Menu, systemRoute: RouteRecordRaw): RouteRecordRaw => {
   const route = menuToRoute(menu)
-  
+
   menu.children?.forEach(childMenu => {
     const childRoute = buildRoute(childMenu, systemRoute)
     if (route.path) {

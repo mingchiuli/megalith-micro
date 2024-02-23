@@ -213,7 +213,7 @@ export enum Status {
 export enum RoutesEnum {
   CATALOUGE = 0,
   MENU,
-  ROUTE
+  BUTTON
 }
 
 export enum OperateTypeCode {

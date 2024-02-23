@@ -164,7 +164,7 @@ const submitForm = async (ref: FormInstance) => {
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.type === RoutesEnum.CATALOUGE">分类</el-tag>
         <el-tag size="small" v-else-if="scope.row.type === RoutesEnum.MENU" type="success">菜单</el-tag>
-        <el-tag size="small" v-else-if="scope.row.type === RoutesEnum.ROUTE" type="info">路由</el-tag>
+        <el-tag size="small" v-else-if="scope.row.type === RoutesEnum.BUTTON" type="info">按钮</el-tag>
       </template>
     </el-table-column>
 
