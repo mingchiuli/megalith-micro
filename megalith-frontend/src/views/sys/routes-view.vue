@@ -220,7 +220,7 @@ const submitForm = async (ref: FormInstance) => {
         <el-radio-group v-model="form.type">
           <el-radio :label=0>分类</el-radio>
           <el-radio :label=1>菜单</el-radio>
-          <el-radio :label=2>路由</el-radio>
+          <el-radio :label=2>按钮</el-radio>
         </el-radio-group>
       </el-form-item>
 
