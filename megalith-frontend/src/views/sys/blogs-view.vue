@@ -228,7 +228,7 @@ const handleCurrentChange = async (val: number) => {
     <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="300" align="center">
       <template #default="scope">
         <el-button size="small" type="primary" @click="handleCheck(scope.row)">查看</el-button>
-        <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
+        <el-button v-if="scope.row.owner" size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
         <el-button v-if="scope.row.status === Status.BLOCK" size="small" type="warning"
           @click="handlePassword(scope.row)">密码</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
