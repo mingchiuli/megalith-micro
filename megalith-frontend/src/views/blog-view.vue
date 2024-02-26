@@ -71,7 +71,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   <div class="father">
     <div class="affix">
       <catalogue-item v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogueRef"
-        v-model:loadingCatalogue="loadingCatalogue" :width="catalogueWidth" />
+        v-model:loading-catalogue="loadingCatalogue" :width="catalogueWidth" />
     </div>
   </div>
 

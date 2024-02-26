@@ -7,7 +7,7 @@ import { ref } from 'vue'
 
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
-  clear: [payload: void]  
+  clear: [payload: void]
 }>()
 
 const year = defineModel<string>('year')
@@ -28,7 +28,7 @@ const searchAbstractAsync = async (queryString: string, cb: Function) => {
     //-1是后端一个默认参数
     const page: PageAdapter<BlogDesc> = await search(queryString, -1, false, year.value!)
     page.content.forEach((blogsDesc: BlogDesc) => {
-      blogsDesc.value = blogsDesc.highlight
+      blogsDesc.value = ''
     })
     //节流
     clearTimeout(timeout)
@@ -91,19 +91,20 @@ defineExpose(
       <hot-item class="dialog-hot"></hot-item>
       <div class="dialog-year" v-if="year!.length">年份：{{ year }}</div>
       <div class="dialog-autocomplete">
-        <el-autocomplete v-model="keywords" :fetch-suggestions="searchAbstractAsync" placeholder="Please input"
+        <el-autocomplete id="elc" v-model="keywords" :fetch-suggestions="searchAbstractAsync" placeholder="Please input"
           @select="handleSelect" :trigger-on-focus="false" clearable @keyup.enter="searchAllInfo(keywords!)"
           ref="refAutocomplete" @clear="clearSearch">
           <template #default="{ item }">
-            <template v-if="item.value.title">
-              <div class="value" v-for="(title, key) in item.value.title" v-bind:key="key" v-html="'标题：' + title"></div>
+            <template v-if="item.highlight.title">
+              <div class="value" v-for="(title, key) in item.highlight.title" v-bind:key="key" v-html="'标题：' + title" />
             </template>
-            <template v-if="item.value.description">
-              <div class="value" v-for="(description, key) in item.value.description" v-bind:key="key"
-                v-html="'摘要：' + description"></div>
+            <template v-if="item.highlight.description">
+              <div class="value" v-for="(description, key) in item.highlight.description" v-bind:key="key"
+                v-html="'摘要：' + description" />
             </template>
-            <template v-if="item.value.content">
-              <div class="value" v-for="(content, key) in item.value.content" v-bind:key="key" v-html="'内容：' + content"></div>
+            <template v-if="item.highlight.content">
+              <div id="scroll" class="value" v-for="(content, key) in item.highlight.content" v-bind:key="key"
+                v-html="'内容：' + content" />
             </template>
           </template>
         </el-autocomplete>

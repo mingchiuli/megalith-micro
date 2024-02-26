@@ -97,12 +97,12 @@ const { content, totalElements, pageSize } = toRefs(page);
 
 <template>
   <div class="front">
-    <BlogLoginItem v-model:loginDialogVisible="loginDialogVisible" />
-    <ReadTokenItem v-model:readTokenDialogVisible="readTokenDialogVisible" v-model:blogId="blogId" />
+    <BlogLoginItem v-model:login-dialog-visible="loginDialogVisible" />
+    <ReadTokenItem v-model:read-token-dialog-visible="readTokenDialogVisible" v-model:blog-id="blogId" />
     <div class="search-father">
       <el-button class="search-button" @click="searchDialogVisible = true" type="success">Search</el-button>
-      <SearchItem ref="searchRef" @transSearchData="fillSearchData" @clear="clear" v-model:keywords="keywords"
-        v-model:year="year" v-model:loading="loading" v-model:searchDialogVisible="searchDialogVisible" />
+      <SearchItem ref="searchRef" @trans-search-data="fillSearchData" @clear="clear" v-model:keywords="keywords"
+        v-model:year="year" v-model:loading="loading" v-model:search-dialog-visible="searchDialogVisible" />
     </div>
     <el-text size="large">共{{ page.totalElements }}篇</el-text>
     <el-link type="success" size="large" class="door" v-if="login"
