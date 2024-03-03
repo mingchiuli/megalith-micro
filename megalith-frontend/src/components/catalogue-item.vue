@@ -27,7 +27,7 @@ const render = async () => {
     loading.value = false
     await nextTick()
     const anchor = selectAnchorNode(labels, location.hash)
-    window.scrollTo({ top: anchor?.getBoundingClientRect().top, behavior: 'instant' })
+    window.scrollTo({ top: anchor ? anchor?.getBoundingClientRect().top + document.documentElement.scrollTop : 0, behavior: 'instant' })
     allNodes = treeRef.value!.store._getAllNodes()
   } else {
     loadingCatalogue.value = false
@@ -45,6 +45,7 @@ const selectAnchorNode = (labels: NodeListOf<HTMLElement>, hash: string): HTMLEl
 
 const geneCatalogueArr = (labels: NodeListOf<HTMLElement>): CatalogueLabel[] => {
   const arr: CatalogueLabel[] = []
+  const scrolled = document.documentElement.scrollTop
   for (let i = 0; i < labels.length; i++) {
     const aLabel = labels[i]
     const item: CatalogueLabel = {
@@ -55,7 +56,8 @@ const geneCatalogueArr = (labels: NodeListOf<HTMLElement>): CatalogueLabel[] => 
     }
 
     item.id = aLabel.getAttribute('data-line')!
-    item.dist = aLabel.getBoundingClientRect().top
+    //顶端距离
+    item.dist = aLabel.getBoundingClientRect().top + scrolled
     item.label = aLabel.innerText
     item.children = getChildren(labels, i)
     i += getChildrenTotal(item.children)
@@ -85,6 +87,7 @@ const getChildren = (labels: NodeListOf<HTMLElement>, index: number): CatalogueL
 
   const curLabel = labels[index].nodeName
   const curLabelNo = curLabel.substring(1)
+  const scrolled = document.documentElement.scrollTop
   for (let i = index + 1; i < labels.length; i++) {
     const aLabel = labels[i]
     const labelNo = aLabel.nodeName.substring(1)
@@ -98,7 +101,7 @@ const getChildren = (labels: NodeListOf<HTMLElement>, index: number): CatalogueL
       }
 
       item.id = aLabel.getAttribute('data-line')!
-      item.dist = aLabel.getBoundingClientRect().top
+      item.dist = aLabel.getBoundingClientRect().top + scrolled
       item.label = aLabel.innerText
       item.children = getChildren(labels, i)
       i += getChildrenTotal(item.children)
@@ -127,11 +130,17 @@ const rollToTargetLabel = (data: CatalogueLabel[], scrolled: number): CatalogueL
   return label!
 }
 
-const roll = () => {
+const roll = async () => {
   if (allNodes) {
+    //防止图片偏移位置不对
     let scrolled = document.documentElement.scrollTop
-    let temp: CatalogueLabel
-    temp = rollToTargetLabel(data.value as CatalogueLabel[], scrolled)!
+    const labels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
+    const arrs = geneCatalogueArr(labels)
+    data.value = arrs
+    await nextTick()
+    allNodes = treeRef.value!.store._getAllNodes()
+
+    let temp: CatalogueLabel = rollToTargetLabel(data.value, scrolled)!
     //高亮和关闭树节点的逻辑
     allNodes.forEach(node => {
       const id = node.data.id
