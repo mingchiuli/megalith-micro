@@ -162,37 +162,28 @@ watch(() => form.content, (n, o) => {
     return
   }
   //向后新增段
-  if (nArr?.length! > oArr?.length!) {
-    for (let i = 0; i < oArr?.length!; i++) {
-      if (i === oArr?.length! - 1 && nArr![i] + '\n' === oArr![i] && nArr![i + 1] === '') {
-        pushActionForm.paraNo = nArr?.length
-        pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_APPEND
-        pushActionData(pushActionForm)
-        commonPostDeal()
-        return
-      }
-    }
-    //推全量
-    pushAllData()
+  const nLen = nArr?.length!
+  const oLen = oArr?.length!
+  if (nLen - 1 === oLen && nArr![oLen - 1] + '\n' === oArr![oLen - 1] && nArr![oLen] === '') {
+    pushActionForm.paraNo = nLen
+    pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_APPEND
+    pushActionData(pushActionForm)
     commonPostDeal()
     return
   }
 
   //向前减少段
-  if (nArr?.length! < oArr?.length!) {
-    for (let i = 0; i < nArr?.length!; i++) {
-      if (i === nArr?.length! - 1 && nArr![i] === oArr![i] + '\n' && oArr![i + 1] === '') {
-        pushActionForm.paraNo = oArr?.length
-        pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_SUBTRACT
-        pushActionData(pushActionForm)
-        commonPostDeal()
-        return
-      }
-    }
-    //推全量
-    pushAllData()
+  if (nLen + 1 === oLen && nArr![nLen - 1] === oArr![nLen - 1] + '\n' && oArr![nLen] === '') {
+    pushActionForm.paraNo = oLen
+    pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_SUBTRACT
+    pushActionData(pushActionForm)
     commonPostDeal()
+    return
   }
+
+  //推全量
+  pushAllData()
+  commonPostDeal()
 })
 
 const commonPostDeal = () => {
