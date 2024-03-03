@@ -3,6 +3,7 @@ import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
+import { debounce } from '@/utils/tools';
 
 defineProps<{
   width: number
@@ -147,16 +148,6 @@ const roll = () => {
       treeRef.value?.setCurrentKey(undefined)
       history.replaceState(null, '', ' ')
     }
-  }
-}
-
-const debounce = (fn: Function, interval = 100) => {
-  let timeout: NodeJS.Timeout
-  return () => {
-    clearTimeout(timeout)
-    timeout = setTimeout(function (this: Function) {
-      fn.apply(this, arguments)
-    }, interval)
   }
 }
 
