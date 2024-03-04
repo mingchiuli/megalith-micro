@@ -4,7 +4,6 @@ import type { ElTree } from 'element-plus'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
 import { debounce } from '@/utils/tools';
-import { id } from 'element-plus/es/locale';
 
 defineProps<{
   width: number
@@ -58,6 +57,7 @@ const geneCatalogueArr = (labels: NodeListOf<HTMLElement>): CatalogueLabel[] => 
 
     item.id = aLabel.getAttribute('data-line')!
     //顶端距离
+    //防止图片偏移位置不对
     item.dist = aLabel.getBoundingClientRect().top + scrolled
     item.label = aLabel.innerText
     item.children = getChildren(labels, i)
@@ -143,7 +143,6 @@ const extractAndFlushData = async () => {
 
 const roll = async () => {
   if (allNodes) {
-    //防止图片偏移位置不对
     let scrolled = document.documentElement.scrollTop
     await extractAndFlushData()
     let temp: CatalogueLabel = rollToTargetLabel(data.value!, scrolled)!
