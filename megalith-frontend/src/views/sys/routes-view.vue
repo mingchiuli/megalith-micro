@@ -218,16 +218,16 @@ const submitForm = async (ref: FormInstance) => {
 
       <el-form-item label="类型" prop="type" label-width="100px">
         <el-radio-group v-model="form.type">
-          <el-radio :label=0>分类</el-radio>
-          <el-radio :label=1>菜单</el-radio>
-          <el-radio :label=2>按钮</el-radio>
+          <el-radio :value=RoutesEnum.CATALOUGE>分类</el-radio>
+          <el-radio :value=RoutesEnum.MENU>菜单</el-radio>
+          <el-radio :value=RoutesEnum.BUTTON>按钮</el-radio>
         </el-radio-group>
       </el-form-item>
 
       <el-form-item label="状态" prop="status" label-width="100px">
         <el-radio-group v-model="form.status">
-          <el-radio :label=0>正常</el-radio>
-          <el-radio :label=1>禁用</el-radio>
+          <el-radio :value=Status.NORMAL>正常</el-radio>
+          <el-radio :value=Status.BLOCK>禁用</el-radio>
         </el-radio-group>
       </el-form-item>
 

@@ -209,7 +209,7 @@ const handleCurrentChange = async (val: number) => {
 
     <el-table-column label="创建时间" min-width="180" align="center">
       <template #default="scope">
-        <div style="display: flex; align-items: center">
+        <div style="align-items: center">
           <el-icon>
             <timer />
           </el-icon>
@@ -220,7 +220,7 @@ const handleCurrentChange = async (val: number) => {
 
     <el-table-column label="最后登录时间" min-width="180" align="center">
       <template #default="scope">
-        <div style="display: flex; align-items: center">
+        <div style="align-items: center">
           <el-icon>
             <timer />
           </el-icon>
@@ -282,8 +282,8 @@ const handleCurrentChange = async (val: number) => {
 
       <el-form-item label="状态" label-width="100px" prop="status" class="status">
         <el-radio-group v-model="form.status">
-          <el-radio :label=Status.NORMAL>启用</el-radio>
-          <el-radio :label=Status.BLOCK>禁用</el-radio>
+          <el-radio :value=Status.NORMAL>启用</el-radio>
+          <el-radio :value=Status.BLOCK>禁用</el-radio>
         </el-radio-group>
       </el-form-item>
 

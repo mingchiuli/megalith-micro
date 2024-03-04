@@ -1,16 +1,17 @@
 <script lang="ts" setup>
-import { POST } from '@/http/http';
-import { MdEditor, type Footers, type ToolbarNames } from 'md-editor-v3'
+import { POST } from '@/http/http'
+import { MdEditor, type Footers, type ToolbarNames, type ExposeParam } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import '@vavt/v3-extension/lib/asset/ExportPDF.css'
 import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
+import { ref } from 'vue'
 
 const isComposing = defineModel<boolean>('isComposing')
 const content = defineModel<string | undefined>('content')
-const skip = defineModel<boolean>('skip')
-const input = defineModel<string>('input')
 const transColor = defineModel<string>('transColor')
+
+const editorRef = ref<ExposeParam>()
 
 const toolbars: ToolbarNames[] = [
   'revoke', 'next', 'bold', 1, 'underline', 'italic', '-',
@@ -19,14 +20,19 @@ const toolbars: ToolbarNames[] = [
   0, 'pageFullscreen', 'fullscreen', 'preview', 'htmlPreview', 'catalog', 'github'
 ]
 const footers: Footers[] = ['markdownTotal', '=', 0, 'scrollSwitch']
-const regChinese = /[\u4e00-\u9fa5]$/
 
-const onInput = (event: InputEvent) => {
-  isComposing.value = event.isComposing
-  const content = event.data
-  input.value = content ?? ''
-  skip.value = event.isComposing && !regChinese.test(content!)
-}
+editorRef.value?.domEventHandlers({
+  compositionstart: () => {
+    if (!isComposing.value) {
+      isComposing.value = true
+    }
+  },
+  compositionend: () => {
+    if (!isComposing.value) {
+      isComposing.value = false
+    }
+  },
+});
 
 const onUploadImg = async (files: File[], callback: Function) => {
   const formdata = new FormData()
@@ -38,7 +44,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 <template>
   <md-editor v-model="content" :preview="false" :toolbars="toolbars" :toolbarsExclude="['github']"
-    @onUploadImg="onUploadImg" :footers="footers" @onInput="onInput">
+    @onUploadImg="onUploadImg" :footers="footers">
     <template #defToolbars>
       <Export-PDF v-model="content" />
       <emoji>

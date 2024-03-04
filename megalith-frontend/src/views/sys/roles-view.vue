@@ -259,7 +259,7 @@ const handleDelete = async (row: RoleSys) => {
 
     <el-table-column label="创建时间" min-width="180" align="center">
       <template #default="scope">
-        <div style="display: flex; align-items: center">
+        <div style="align-items: center">
           <el-icon>
             <timer />
           </el-icon>
@@ -270,7 +270,7 @@ const handleDelete = async (row: RoleSys) => {
 
     <el-table-column label="更新时间" min-width="180" align="center">
       <template #default="scope">
-        <div style="display: flex; align-items: center">
+        <div style="align-items: center">
           <el-icon>
             <timer />
           </el-icon>
@@ -312,8 +312,8 @@ const handleDelete = async (row: RoleSys) => {
 
       <el-form-item label="状态" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio :label=Status.NORMAL>启用</el-radio>
-          <el-radio :label=Status.BLOCK>禁用</el-radio>
+          <el-radio :value=Status.NORMAL>启用</el-radio>
+          <el-radio :value=Status.BLOCK>禁用</el-radio>
         </el-radio-group>
       </el-form-item>
 

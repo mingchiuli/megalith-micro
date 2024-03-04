@@ -214,8 +214,8 @@ const handleSizeChange = async (val: number) => {
 
       <el-form-item label="状态" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio :label=Status.NORMAL>公开</el-radio>
-          <el-radio :label=Status.BLOCK>隐藏</el-radio>
+          <el-radio :value=Status.NORMAL>公开</el-radio>
+          <el-radio :value=Status.BLOCK>隐藏</el-radio>
         </el-radio-group>
       </el-form-item>
 

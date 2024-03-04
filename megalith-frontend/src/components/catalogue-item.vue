@@ -3,7 +3,7 @@ import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
-import { debounce } from '@/utils/tools';
+import { debounce } from '@/utils/tools'
 
 defineProps<{
   width: number
@@ -24,13 +24,14 @@ const render = async () => {
   if (labels.length > 0) {
     const arrs = geneCatalogueArr(labels)
     data.value = arrs
+    //这行不能动
+    loading.value = false
     await nextTick()
     const anchor = selectAnchorNode(labels, location.hash)
     window.scrollTo({ top: anchor ? anchor?.getBoundingClientRect().top + document.documentElement.scrollTop : 0, behavior: 'instant' })
     allNodes = treeRef.value!.store._getAllNodes()
     return
   }
-  loading.value = false
   loadingCatalogue.value = false
 }
 
@@ -137,7 +138,6 @@ const extractAndFlushData = async () => {
     const arrs = geneCatalogueArr(labels)
     data.value = arrs
     await nextTick()
-    allNodes = treeRef.value!.store._getAllNodes()
   }
 }
 

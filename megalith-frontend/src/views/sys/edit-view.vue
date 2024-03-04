@@ -79,8 +79,6 @@ const pushActionForm: PushActionForm = {
 let version = 0
 //中文输入法的问题
 let isComposing = false
-let skip = false
-let input = ''
 let fieldType: string
 
 const pushAllData = async () => {
@@ -113,37 +111,33 @@ const clearPushActionForm = () => {
 }
 
 watch(() => form.description, (n, o) => {
-  if (!client.connected || (!n && !o) || skip) return
+  if (!client.connected || (!n && !o) || isComposing) return
   commonPreDeal(FieldType.NON_PARA, FieldName.DESCRIPTION)
   deal(n, o)
-  commonPostDeal()
 })
 
 watch(() => form.status, (n, o) => {
-  if (!client.connected || (!n && !o) || skip) return
+  if (!client.connected || (!n && !o) || isComposing) return
   commonPreDeal(FieldType.NON_PARA, FieldName.STATUS)
   pushActionForm.operateTypeCode = OperateTypeCode.STATUS
   pushActionForm.contentChange = form.status
   pushActionData(pushActionForm)
-  commonPostDeal()
 })
 
 watch(() => form.link, (n, o) => {
-  if (!client.connected || (!n && !o) || skip) return
+  if (!client.connected || (!n && !o) || isComposing) return
   commonPreDeal(FieldType.NON_PARA, FieldName.LINK)
   deal(n, o)
-  commonPostDeal()
 })
 
 watch(() => form.title, (n, o) => {
-  if (!client.connected || (!n && !o) || skip) return
+  if (!client.connected || (!n && !o) || isComposing) return
   commonPreDeal(FieldType.NON_PARA, FieldName.TITLE)
   deal(n, o)
-  commonPostDeal()
 })
 
 watch(() => form.content, (n, o) => {
-  if (!client.connected || (!n && !o) || skip) return
+  if (!client.connected || (!n && !o) || isComposing) return
   commonPreDeal(FieldType.PARA, FieldName.CONTENT)
 
   const nArr = n?.split(ParaInfo.PARA_SPLIT)
@@ -158,7 +152,6 @@ watch(() => form.content, (n, o) => {
         deal(nArr![i], oArr![i])
       }
     }
-    commonPostDeal()
     return
   }
   //向后新增段
@@ -168,7 +161,6 @@ watch(() => form.content, (n, o) => {
     pushActionForm.paraNo = nLen
     pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_APPEND
     pushActionData(pushActionForm)
-    commonPostDeal()
     return
   }
 
@@ -177,19 +169,12 @@ watch(() => form.content, (n, o) => {
     pushActionForm.paraNo = oLen
     pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_SUBTRACT
     pushActionData(pushActionForm)
-    commonPostDeal()
     return
   }
 
   //推全量
   pushAllData()
-  commonPostDeal()
 })
-
-const commonPostDeal = () => {
-  isComposing = false
-  skip = false
-}
 
 const commonPreDeal = (fieldTypeParam: string, opreateField: string) => {
   clearPushActionForm()
@@ -325,24 +310,8 @@ const deal = (n: string | undefined, o: string | undefined) => {
     } else {
       pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
     }
-
-    if (!isComposing) {
-      pushActionForm.indexStart = indexStart
-      pushActionForm.indexEnd = oIndexEnd
-      pushActionData(pushActionForm)
-      return
-    }
-
-    if (input === contentChange) {
-      pushActionForm.indexStart = indexStart
-      pushActionForm.indexEnd = indexStart
-      pushActionData(pushActionForm)
-      return
-    }
-
-    pushActionForm.indexEnd = nIndexEnd - input.length
-    pushActionForm.indexStart = nIndexEnd - input.length
-    pushActionForm.contentChange = input
+    pushActionForm.indexStart = indexStart
+    pushActionForm.indexEnd = indexStart
     pushActionData(pushActionForm)
     return
   }
@@ -511,8 +480,8 @@ let reconnected = false;
 
       <el-form-item class="status" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio :label=Status.NORMAL>公开</el-radio>
-          <el-radio :label=Status.BLOCK>隐藏</el-radio>
+          <el-radio :value=Status.NORMAL>公开</el-radio>
+          <el-radio :value=Status.BLOCK>隐藏</el-radio>
         </el-radio-group>
       </el-form-item>
 
@@ -547,8 +516,8 @@ let reconnected = false;
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <CustomEditorItem v-model:content="form.content" v-model:input="input" v-model:isComposing="isComposing"
-          v-model:skip="skip" v-model:transColor="transColor" />
+        <CustomEditorItem v-model:content="form.content" v-model:isComposing="isComposing"
+          v-model:transColor="transColor" />
       </el-form-item>
 
       <div class="submit-button">

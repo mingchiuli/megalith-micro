@@ -94,7 +94,7 @@ const handleResume = async (row: BlogDelSys) => {
 
     <el-table-column label="创建时间" min-width="180" align="center">
       <template #default="scope">
-        <div style="display: flex; align-items: center">
+        <div style="align-items: center">
           <el-icon>
             <timer />
           </el-icon>
@@ -105,7 +105,7 @@ const handleResume = async (row: BlogDelSys) => {
 
     <el-table-column label="更新时间" min-width="180" align="center">
       <template #default="scope">
-        <div style="display: flex; align-items: center">
+        <div style="align-items: center">
           <el-icon>
             <timer />
           </el-icon>

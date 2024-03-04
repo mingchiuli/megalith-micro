@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { reactive, ref, nextTick } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import catalogue from '@/components/catalogue-item.vue'
@@ -63,7 +63,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   }
 
   //基于一些不知道的原因
-  setTimeout(async () => await catalogueRef.value?.render(), 100)
+  setTimeout(async () => await catalogueRef.value?.render(), 1000)
 })()
 </script>
 
