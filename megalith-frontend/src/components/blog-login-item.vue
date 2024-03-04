@@ -84,9 +84,9 @@ const sendCode = (via: string) => {
     :before-close="beforeClose">
     <template #default>
       <el-radio-group v-model="radioSelect" class="dialog-select" size="small">
-        <el-radio-button @change="loginType" label="Password" />
-        <el-radio-button @change="loginType" label="Email" />
-        <el-radio-button @change="loginType" label="SMS" />
+        <el-radio-button @change="loginType" label="Password" value="Password" />
+        <el-radio-button @change="loginType" label="Email" value="Email" />
+        <el-radio-button @change="loginType" label="SMS" value="SMS" />
       </el-radio-group>
       <div class="input">
         <div>
