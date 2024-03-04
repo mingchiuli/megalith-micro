@@ -58,7 +58,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
 </template>
 
 <style scoped>
-#md-editor-v3:deep(.md-editor-footer) {
+.md-editor:deep(.md-editor-footer) {
   height: 30px
 }
 
