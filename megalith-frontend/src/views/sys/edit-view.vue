@@ -311,7 +311,7 @@ const deal = (n: string | undefined, o: string | undefined) => {
       pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
     }
     pushActionForm.indexStart = indexStart
-    pushActionForm.indexEnd = indexStart
+    pushActionForm.indexEnd = oIndexEnd
     pushActionData(pushActionForm)
     return
   }
