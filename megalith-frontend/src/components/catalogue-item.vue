@@ -4,6 +4,7 @@ import type { ElTree } from 'element-plus'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
 import { debounce } from '@/utils/tools';
+import { id } from 'element-plus/es/locale';
 
 defineProps<{
   width: number
@@ -21,17 +22,17 @@ const handleNodeClick = (data: CatalogueLabel) => window.scrollTo({ top: data.di
 
 const render = async () => {
   const labels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
-  const arrs = geneCatalogueArr(labels)
-  if (arrs.length > 0) {
+  if (labels.length > 0) {
+    const arrs = geneCatalogueArr(labels)
     data.value = arrs
-    loading.value = false
     await nextTick()
     const anchor = selectAnchorNode(labels, location.hash)
     window.scrollTo({ top: anchor ? anchor?.getBoundingClientRect().top + document.documentElement.scrollTop : 0, behavior: 'instant' })
     allNodes = treeRef.value!.store._getAllNodes()
-  } else {
-    loadingCatalogue.value = false
+    return
   }
+  loading.value = false
+  loadingCatalogue.value = false
 }
 
 const selectAnchorNode = (labels: NodeListOf<HTMLElement>, hash: string): HTMLElement | null => {
@@ -130,17 +131,22 @@ const rollToTargetLabel = (data: CatalogueLabel[], scrolled: number): CatalogueL
   return label!
 }
 
-const roll = async () => {
-  if (allNodes) {
-    //防止图片偏移位置不对
-    let scrolled = document.documentElement.scrollTop
-    const labels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
+const extractAndFlushData = async () => {
+  const labels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
+  if (labels.length > 0) {
     const arrs = geneCatalogueArr(labels)
     data.value = arrs
     await nextTick()
     allNodes = treeRef.value!.store._getAllNodes()
+  }
+}
 
-    let temp: CatalogueLabel = rollToTargetLabel(data.value, scrolled)!
+const roll = async () => {
+  if (allNodes) {
+    //防止图片偏移位置不对
+    let scrolled = document.documentElement.scrollTop
+    await extractAndFlushData()
+    let temp: CatalogueLabel = rollToTargetLabel(data.value!, scrolled)!
     //高亮和关闭树节点的逻辑
     allNodes.forEach(node => {
       const id = node.data.id
