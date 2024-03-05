@@ -28,7 +28,7 @@ editorRef.value?.domEventHandlers({
     }
   },
   compositionend: () => {
-    if (!isComposing.value) {
+    if (isComposing.value) {
       isComposing.value = false
     }
   },
