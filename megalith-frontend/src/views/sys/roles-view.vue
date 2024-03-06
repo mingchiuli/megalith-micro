@@ -259,7 +259,7 @@ const handleDelete = async (row: RoleSys) => {
 
     <el-table-column label="创建时间" min-width="180" align="center">
       <template #default="scope">
-        <div style="align-items: center">
+        <div class="time-icon">
           <el-icon>
             <timer />
           </el-icon>
@@ -270,7 +270,7 @@ const handleDelete = async (row: RoleSys) => {
 
     <el-table-column label="更新时间" min-width="180" align="center">
       <template #default="scope">
-        <div style="align-items: center">
+        <div class="time-icon">
           <el-icon>
             <timer />
           </el-icon>
@@ -348,6 +348,8 @@ const handleDelete = async (row: RoleSys) => {
 </template>
 
 <style scoped>
+@import '@/assets/main.css';
+
 .button-form .el-form-item {
   margin-right: 10px
 }

@@ -160,7 +160,7 @@ const submitForm = async (ref: FormInstance) => {
     <el-table-column prop="title" label="标题" sortable min-width="150" align="center" />
     <el-table-column prop="icon" label="图标" align="center" min-width="150" />
 
-    <el-table-column prop="type" label="类型" align="center" >
+    <el-table-column prop="type" label="类型" align="center">
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.type === RoutesEnum.CATALOUGE">分类</el-tag>
         <el-tag size="small" v-else-if="scope.row.type === RoutesEnum.MENU" type="success">菜单</el-tag>
@@ -172,15 +172,41 @@ const submitForm = async (ref: FormInstance) => {
     <el-table-column prop="component" label="组件URI" align="center" min-width="180" />
     <el-table-column prop="name" label="组件名" align="center" min-width="180" />
     <el-table-column prop="orderNum" label="排序" align="center" />
-    <el-table-column prop="status" label="状态" align="center" >
+
+    <el-table-column label="创建时间" min-width="180" align="center">
+      <template #default="scope">
+        <div class="time-icon">
+          <el-icon>
+            <timer v-if="scope.row.parentId !== -1" />
+          </el-icon>
+          <span style="margin-left: 10px">{{ scope.row.created }}</span>
+        </div>
+      </template>
+    </el-table-column>
+
+    <el-table-column label="更新时间" min-width="180" align="center">
+      <template #default="scope">
+        <div class="time-icon">
+          <el-icon>
+            <timer v-if="scope.row.parentId !== -1" />
+          </el-icon>
+          <span style="margin-left: 10px">{{ scope.row.updated }}</span>
+        </div>
+      </template>
+    </el-table-column>
+
+    <el-table-column prop="status" label="状态" align="center">
+
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">正常</el-tag>
         <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">禁用</el-tag>
       </template>
     </el-table-column>
     <el-table-column :fixed="displayStateStore().fix" prop="icon" label="操作" align="center" min-width="250">
+
       <template #default="scope">
-        <el-button size="small" type="success" @click="handleEdit(scope.row)" v-if="scope.row.menuId !== 0">编辑</el-button>
+        <el-button size="small" type="success" @click="handleEdit(scope.row)"
+          v-if="scope.row.menuId !== 0">编辑</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)" v-if="scope.row.menuId !== 0">
           <template #reference>
             <el-button size="small" type="danger">删除</el-button>
@@ -244,6 +270,8 @@ const submitForm = async (ref: FormInstance) => {
 </template>
 
 <style scoped>
+@import '@/assets/main.css';
+
 .button-form .el-form-item {
   margin-right: 10px
 }

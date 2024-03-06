@@ -79,6 +79,8 @@ export interface MenuSys {
   icon: string
   orderNum: number
   status: number
+  created: string
+  updated: string
   children: MenuSys[]
 }
 

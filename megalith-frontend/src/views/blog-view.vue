@@ -25,7 +25,16 @@ const blog = reactive<BlogExhibit>({
   "created": ''
 })
 
-const catalogueRef = ref<InstanceType<typeof catalogue>>();
+const catalogueRef = ref<InstanceType<typeof catalogue>>()
+
+let renderCatalogueCount = 0
+const renderCatalogue = async (html: string) => {
+  if (html && renderCatalogueCount === 0) {
+    await nextTick()
+    renderCatalogueCount++
+    await catalogueRef.value?.render()
+  }
+}
 
 (async () => {
   let data: BlogExhibit
@@ -42,7 +51,6 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   blog.created = data.created
   loading.value = false
   blog.content = '>' + data.description + '\n\n' + data.content
-  await nextTick()
   //计算距离
   const screenWidth = window.outerWidth
   const label = document.querySelector<HTMLElement>('.content')
@@ -61,9 +69,6 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
   } else {
     showCatalogue.value = false
   }
-
-  //基于一些不知道的原因
-  setTimeout(async () => await catalogueRef.value?.render(), 1000)
 })()
 </script>
 
@@ -85,9 +90,11 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>();
       <template #template>
         <el-skeleton :rows="15" />
       </template>
+
       <template #default>
         <el-card shadow="never" class="content">
-          <md-preview editorId="preview-only" v-model="blog.content" :showCodeRowNumber="true" />
+          <md-preview editorId="preview-only" v-model="blog.content" :showCodeRowNumber="true"
+            @on-html-changed="renderCatalogue" />
         </el-card>
       </template>
     </el-skeleton>

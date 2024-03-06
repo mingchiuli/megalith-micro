@@ -185,7 +185,7 @@ const handleCurrentChange = async (val: number) => {
 
     <el-table-column label="创建时间" min-width="180" align="center">
       <template #default="scope">
-        <div style="align-items: center">
+        <div class="time-icon">
           <el-icon>
             <timer />
           </el-icon>
@@ -196,7 +196,7 @@ const handleCurrentChange = async (val: number) => {
 
     <el-table-column label="更新时间" min-width="180" align="center">
       <template #default="scope">
-        <div style="align-items: center">
+        <div class="time-icon">
           <el-icon>
             <timer />
           </el-icon>
@@ -246,6 +246,8 @@ const handleCurrentChange = async (val: number) => {
 </template>
 
 <style scoped>
+@import '@/assets/main.css';
+
 .search-input {
   width: 200px
 }

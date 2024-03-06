@@ -44,7 +44,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 <template>
   <md-editor v-model="content" :preview="false" :toolbars="toolbars" :toolbarsExclude="['github']"
-    @onUploadImg="onUploadImg" :footers="footers">
+    @on-upload-img="onUploadImg" :footers="footers" >
     <template #defToolbars>
       <Export-PDF v-model="content" />
       <emoji>

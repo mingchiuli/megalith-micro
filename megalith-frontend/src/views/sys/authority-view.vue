@@ -157,22 +157,22 @@ const clearForm = () => {
 
     <el-table-column label="创建时间" min-width="180" align="center">
       <template #default="scope">
-        <div style="align-items: center">
+        <div class="time-icon">
           <el-icon>
             <timer />
           </el-icon>
-          <span>{{ scope.row.created }}</span>
+          <span style="margin-left: 10px">{{ scope.row.created }}</span>
         </div>
       </template>
     </el-table-column>
 
     <el-table-column label="更新时间" min-width="180" align="center">
       <template #default="scope">
-        <div style="align-items: center">
+        <div class="time-icon">
           <el-icon>
             <timer />
           </el-icon>
-          <span>{{ scope.row.updated }}</span>
+          <span style="margin-left: 10px">{{ scope.row.updated }}</span>
         </div>
       </template>
     </el-table-column>
@@ -221,6 +221,8 @@ const clearForm = () => {
 </template>
 
 <style scoped>
+@import '@/assets/main.css';
+
 .button-form .el-form-item {
   margin-right: 10px
 }
