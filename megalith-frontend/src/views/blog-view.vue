@@ -51,6 +51,7 @@ const renderCatalogue = async (html: string) => {
   blog.created = data.created
   loading.value = false
   blog.content = '>' + data.description + '\n\n' + data.content
+  await nextTick()
   //计算距离
   const screenWidth = window.outerWidth
   const label = document.querySelector<HTMLElement>('.content')
