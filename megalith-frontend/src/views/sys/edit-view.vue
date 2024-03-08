@@ -158,6 +158,13 @@ watch(() => form.content, (n, o) => {
   const nLen = nArr?.length!
   const oLen = oArr?.length!
   if (nLen - 1 === oLen && nArr![oLen - 1] + '\n' === oArr![oLen - 1] && nArr![oLen] === '') {
+    //每段必须相同，否则推全量
+    for (let i = 0; i < nLen; i++) {
+      if (nArr![i] !== oArr![i]) {
+        pushAllData()
+        return
+      }
+    }
     pushActionForm.paraNo = nLen
     pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_APPEND
     pushActionData(pushActionForm)
@@ -166,6 +173,12 @@ watch(() => form.content, (n, o) => {
 
   //向前减少段
   if (nLen + 1 === oLen && nArr![nLen - 1] === oArr![nLen - 1] + '\n' && oArr![nLen] === '') {
+    for (let i = 0; i < oLen; i++) {
+      if (nArr![i] !== oArr![i]) {
+        pushAllData()
+        return
+      }
+    }
     pushActionForm.paraNo = oLen
     pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_SUBTRACT
     pushActionData(pushActionForm)
