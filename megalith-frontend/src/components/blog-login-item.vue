@@ -115,17 +115,17 @@ const sendCode = (via: string) => {
   width: 180px;
   left: 50%;
   transform: translate(-50%);
-  margin-top: 10px;
+  margin-top: 10px
 }
 
 .dialog-footer {
-  margin-top: 0;
+  margin-top: 0
 }
 
 .dialog-select {
   margin-top: 30px;
   margin-left: 50%;
   width: max-content;
-  transform: translate(-50%);
+  transform: translate(-50%)
 }
 </style>

@@ -5,7 +5,9 @@ import type { ElTree, FormInstance, FormRules } from 'element-plus'
 import { Status } from '@/type/entity'
 import { reactive, ref, toRefs } from 'vue'
 import { displayStateStore } from '@/stores/store'
+import { storeToRefs } from 'pinia'
 
+const { extend } = storeToRefs(displayStateStore())
 const dialogVisible = ref(false)
 const delBtlStatus = ref(true)
 const loading = ref(false)
@@ -21,7 +23,7 @@ let roleId = ref<number>()
 const page: PageAdapter<RoleSys> = reactive({
   "content": [],
   "totalElements": 0,
-  "pageSize": 5,
+  "pageSize": extend.value ? 15 : 5,
   "pageNumber": 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
