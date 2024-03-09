@@ -39,11 +39,6 @@ export const tabStore = defineStore('tabStore', () => {
   return { editableTabs, editableTabsValue, addTab }
 })
 
-export const routeStore = defineStore('routeStore', () => {
-  const hasRoute = ref(false)
-  return { hasRoute }
-})
-
 export const blogsStore = defineStore('blogsPageNumStore', () => {
   const pageNum = ref(1)
   const searchPageNum = ref(1)

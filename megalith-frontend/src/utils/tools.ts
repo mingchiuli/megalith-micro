@@ -1,4 +1,4 @@
-import { loginStateStore, routeStore, menuStore, tabStore } from '@/stores/store'
+import { loginStateStore, menuStore, tabStore } from '@/stores/store'
 import hljs from 'highlight.js'
 import MarkdownIt from 'markdown-it'
 
@@ -16,7 +16,6 @@ export const clearLoginState = () => {
   localStorage.removeItem('refreshToken')
   localStorage.removeItem('userinfo')
   loginStateStore().login = false
-  routeStore().hasRoute = false
   menuStore().menuList = []
   tabStore().editableTabs = []
   tabStore().editableTabsValue = ''

@@ -2,7 +2,8 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Intro from '@/views/intro-view.vue'
 import { GET } from '@/http/http'
 import { RoutesEnum, type Menu } from '@/type/entity'
-import { routeStore, menuStore, loginStateStore, displayStateStore } from '@/stores/store'
+import { menuStore, loginStateStore, displayStateStore } from '@/stores/store'
+import { storeToRefs } from 'pinia'
 
 const modules = import.meta.glob('@/views/sys/*.vue')
 
@@ -50,11 +51,11 @@ router.beforeEach(async (to, _from, next) => {
     displayStateStore().welcomeBackend = false
   }
 
-  if (localStorage.getItem('accessToken')) {
+  if (localStorage.getItem('accessToken') && !loginStateStore().login) {
     loginStateStore().login = true
   }
 
-  if (!routeStore().hasRoute && loginStateStore().login) {
+  if (loginStateStore().login) {
     const menus = await GET<Menu[]>('/sys/menu/nav')
     const systemRoute = {
       path: '/backend',
@@ -63,17 +64,18 @@ router.beforeEach(async (to, _from, next) => {
       children: []
     } as RouteRecordRaw
 
+    const { menuList } = storeToRefs(menuStore())
+    menuList.value = []
     menus
       .filter(item => RoutesEnum.BUTTON !== item.type)
       .forEach(menu => {
-        menuStore().menuList.push(menu)
+        menuList.value.push(menu)
         const route = buildRoute(menu, systemRoute)
         if (route.path) {
           systemRoute.children?.push(route)
         }
       })
     router.addRoute(systemRoute)
-    routeStore().hasRoute = true
   }
 
   if (to.meta.title) {
