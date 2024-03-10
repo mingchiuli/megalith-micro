@@ -9,6 +9,7 @@ import router from '@/router'
 import { tabStore, blogsStore } from '@/stores/store'
 import { Client } from '@stomp/stompjs'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
+import { checkAccessToken } from '@/utils/tools'
 
 let timer: NodeJS.Timeout
 
@@ -468,6 +469,7 @@ let reconnected = false;
   timer = setInterval(async () => {
     if (!client.connected) {
       ElNotification.warning("websocket reconnection ...")
+      checkAccessToken(localStorage.getItem('accessToken')!)
       connect()
       reconnected = true
     }

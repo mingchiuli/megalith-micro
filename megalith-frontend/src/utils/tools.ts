@@ -1,5 +1,8 @@
+import http from '@/http/axios'
 import { loginStateStore, menuStore, tabStore } from '@/stores/store'
+import type { Data, JWTStruct, RefreshStruct } from '@/type/entity'
 import hljs from 'highlight.js'
+import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
 
 const md = new MarkdownIt({
@@ -32,5 +35,20 @@ export const debounce = (fn: Function, interval = 100) => {
     timeout = setTimeout(function (this: Function) {
       fn.apply(this)
     }, interval)
+  }
+}
+
+export const checkAccessToken = async (accessToken: string) => {
+  const tokenArray = accessToken.split(".")
+  const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
+  const now = Math.floor(new Date().getTime() / 1000)
+  //ten minutes
+  if (jwt.exp - now < 100) {
+    const refreshToken = localStorage.getItem('refreshToken')
+    const data = await http.get<never, Data<RefreshStruct>>('/token/refresh', {
+      headers: { Authorization: refreshToken }
+    })
+    const token = data.data.accessToken
+    localStorage.setItem('accessToken', token)
   }
 }

@@ -1,8 +1,7 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios'
-import type { Data, JWTStruct, RefreshStruct } from '@/type/entity'
-import { clearLoginState } from '@/utils/tools'
+import type { Data } from '@/type/entity'
+import { checkAccessToken, clearLoginState } from '@/utils/tools'
 import router from '@/router'
-import { Base64 } from 'js-base64'
 import { loginStateStore } from '@/stores/store'
 
 const http = axios.create({
@@ -13,18 +12,7 @@ const http = axios.create({
 http.interceptors.request.use(async config => {
   if (config.url !== '/token/refresh' && loginStateStore().login) {
     const accessToken = localStorage.getItem('accessToken') as string
-    const tokenArray = accessToken.split(".")
-    const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
-    const now = Math.floor(new Date().getTime() / 1000)
-    //ten minutes
-    if (jwt.exp - now < 600) {
-      const refreshToken = localStorage.getItem('refreshToken')
-      const data = await http.get<never, Data<RefreshStruct>>('/token/refresh', {
-        headers: { Authorization: refreshToken }
-      })
-      const token = data.data.accessToken
-      localStorage.setItem('accessToken', token)
-    }
+    checkAccessToken(accessToken)
     config.headers.Authorization = localStorage.getItem('accessToken')
   }
   return config
