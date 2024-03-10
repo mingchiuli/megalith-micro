@@ -1,6 +1,6 @@
 import http from '@/http/axios'
 import { loginStateStore, menuStore, tabStore } from '@/stores/store'
-import type { Data, JWTStruct, RefreshStruct } from '@/type/entity'
+import type { CatalogueLabel, Data, JWTStruct, Menu, RefreshStruct } from '@/type/entity'
 import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
@@ -54,4 +54,61 @@ export const checkAccessToken = async (): Promise<string> => {
     return token
   }
   return accessToken
+}
+
+export const diffMenus = (menusOld: Menu[], menusNew: Menu[]): boolean => {
+  if (menusOld.length !== menusNew.length) {
+    return true
+  }
+
+  for (let i = 0; i < menusNew.length; i++) {
+    const idNew = menusNew[i].menuId
+    const idOld = menusOld[i].menuId
+    const componentNew = menusNew[i].component
+    const componentOld = menusOld[i].component
+    const urlNew = menusNew[i].url
+    const urlOld = menusOld[i].url
+    const iconNew = menusNew[i].icon
+    const iconOld = menusOld[i].icon
+    const orderNumNew = menusNew[i].orderNum
+    const orderNumOld = menusOld[i].orderNum
+    const nameNew = menusNew[i].name
+    const nameOld = menusOld[i].name
+    const parentIdNew = menusNew[i].parentId
+    const parentIdOld = menusOld[i].parentId
+    const statusNew = menusNew[i].status
+    const statusOld = menusOld[i].status
+    const titleNew = menusNew[i].title
+    const titleOld = menusOld[i].title
+    const typeNew = menusNew[i].type
+    const typeOld = menusOld[i].type
+
+    if (idNew !== idOld || componentNew !== componentOld || urlNew !== urlOld || iconNew !== iconOld || orderNumNew !== orderNumOld || nameNew !== nameOld || parentIdNew !== parentIdOld || statusNew !== statusOld || titleNew !== titleOld || typeNew !== typeOld) {
+      return true
+    }
+    const diff = diffMenus(menusNew[i].children, menusOld[i].children)
+    if (diff) {
+      return true
+    }
+  }
+  return false
+}
+
+export const diffCatalogue = (cataloguesOld: CatalogueLabel[], cataloguesNew: CatalogueLabel[]): boolean => {
+  if (cataloguesOld.length !== cataloguesNew.length) {
+    return true
+  }
+
+  for (let i = 0; i < cataloguesNew.length; i++) {
+    const newDist = cataloguesNew[i].dist
+    const oldDist = cataloguesOld[i].dist
+    if (newDist !== oldDist) {
+      return true
+    }
+    const diff = diffCatalogue(cataloguesNew[i].children, cataloguesOld[i].children)
+    if (diff) {
+      return true
+    }
+  }
+  return false
 }

@@ -3,7 +3,7 @@ import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
-import { debounce } from '@/utils/tools'
+import { debounce, diffCatalogue } from '@/utils/tools'
 
 defineProps<{
   width: number
@@ -136,8 +136,11 @@ const extractAndFlushData = async () => {
   const labels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
   if (labels.length > 0) {
     const arrs = geneCatalogueArr(labels)
-    data.value = arrs
-    await nextTick()
+    const diff = diffCatalogue(data.value!, arrs)
+    if (diff) {
+      data.value = arrs
+      await nextTick()
+    }
   }
 }
 

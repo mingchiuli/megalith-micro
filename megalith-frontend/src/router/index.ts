@@ -4,6 +4,7 @@ import { GET } from '@/http/http'
 import { RoutesEnum, type Menu } from '@/type/entity'
 import { menuStore, loginStateStore, displayStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
+import { diffMenus } from '@/utils/tools'
 
 const modules = import.meta.glob('@/views/sys/*.vue')
 
@@ -65,17 +66,21 @@ router.beforeEach(async (to, _from, next) => {
     } as RouteRecordRaw
 
     const { menuList } = storeToRefs(menuStore())
-    menuList.value = []
-    menus
-      .filter(item => RoutesEnum.BUTTON !== item.type)
-      .forEach(menu => {
-        menuList.value.push(menu)
-        const route = buildRoute(menu, systemRoute)
-        if (route.path) {
-          systemRoute.children?.push(route)
-        }
-      })
-    router.addRoute(systemRoute)
+    const diff = diffMenus(menuList.value, menus)
+    if (diff) {
+      menuList.value = []
+      router.removeRoute('system')
+      menus
+        .filter(item => RoutesEnum.BUTTON !== item.type)
+        .forEach(menu => {
+          menuList.value.push(menu)
+          const route = buildRoute(menu, systemRoute)
+          if (route.path) {
+            systemRoute.children?.push(route)
+          }
+        })
+      router.addRoute(systemRoute)
+    }
   }
 
   if (to.meta.title) {
