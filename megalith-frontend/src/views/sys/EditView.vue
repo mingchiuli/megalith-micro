@@ -13,16 +13,17 @@ import { checkAccessToken } from '@/utils/tools'
 
 let timer: NodeJS.Timeout
 
-const client = new Client({
+let client: Client;
+const connect = () => {
+  if (client) client.deactivate()
+  const key = form.id ? form.userId + '/' + form.id : form.userId?.toString()
+  client = new Client({
   brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/edit`,
   connectHeaders: { "Authorization": localStorage.getItem('accessToken')!, "Type": "EDIT" },
   reconnectDelay: 5000,
   heartbeatIncoming: 4000,
   heartbeatOutgoing: 4000,
 })
-
-const connect = () => {
-  const key = form.id ? form.userId + '/' + form.id : form.userId?.toString()
   client.onConnect = _frame =>
     client.subscribe('/edits/push/all/' + key, _res => pushAllData())
 
