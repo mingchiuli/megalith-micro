@@ -5,7 +5,7 @@ import { reactive, toRefs, ref, nextTick } from 'vue'
 import { loginStateStore, tabStore, blogsStore } from '@/stores/store'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
-import Search from '@/components/search-item.vue'
+import Search from '@/components/SearchItem.vue'
 import { Status } from '@/type/entity'
 
 const loading = ref(true)

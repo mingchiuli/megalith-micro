@@ -13,13 +13,13 @@ onUnmounted(() => {
   <el-container style="height: 100vh;">
     <el-aside width="200">
       <el-scrollbar>
-        <side-menu-item />
+        <SideMenuItem />
       </el-scrollbar>
     </el-aside>
     <el-container>
       <el-header height="100">
-        <back-header-item />
-        <header-tabs-item />
+        <BackHeaderItem />
+        <HeaderTabsItem />
       </el-header>
       <el-main>
         <el-text class="welcome" v-if="displayStateStore().welcomeBackend">欢迎来到管理系统</el-text>

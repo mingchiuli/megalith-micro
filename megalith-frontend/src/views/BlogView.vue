@@ -2,7 +2,7 @@
 import { nextTick, reactive, ref } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
-import catalogue from '@/components/catalogue-item.vue'
+import catalogue from '@/components/CatalogueItem.vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()

@@ -8,7 +8,7 @@ import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
 import { tabStore, blogsStore } from '@/stores/store'
 import { Client } from '@stomp/stompjs'
-import EditorLoadingItem from '@/components/sys/editor-loading-item.vue'
+import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 
 let timer: NodeJS.Timeout
 
@@ -448,7 +448,7 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
 }
 
 const CustomEditorItem = defineAsyncComponent({
-  loader: () => import('@/components/sys/editor-item.vue'),
+  loader: () => import('@/components/sys/EditorItem.vue'),
   loadingComponent: EditorLoadingItem,
   delay: 200,
   errorComponent: EditorLoadingItem,

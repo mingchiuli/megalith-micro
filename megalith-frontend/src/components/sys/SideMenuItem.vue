@@ -22,7 +22,7 @@ const reverseCollapse = () => {
   <el-button class="collapse-button" circle :icon="arrow" @click="reverseCollapse"></el-button>
   <el-menu :default-active="tabStore().editableTabsValue" class="el-menu-vertical" :collapse="!expand"
     active-text-color="#ffd04b">
-    <infinite-menu-item v-for="item in menuList" v-bind:key="item.menuId" :item="item" />
+    <InfiniteMenuItem v-for="item in menuList" v-bind:key="item.menuId" :item="item" />
   </el-menu>
 </template>
 

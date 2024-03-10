@@ -88,7 +88,7 @@ defineExpose(
   <el-dialog v-model="searchDialogVisible" center close-on-press-escape fullscreen align-center
     :before-close="searchBeforeClose">
     <template #default>
-      <hot-item class="dialog-hot"></hot-item>
+      <HotItem class="dialog-hot" />
       <div class="dialog-year" v-if="year!.length">年份：{{ year }}</div>
       <div class="dialog-autocomplete">
         <el-autocomplete id="elc" v-model="keywords" :fetch-suggestions="searchAbstractAsync" placeholder="Please input"
