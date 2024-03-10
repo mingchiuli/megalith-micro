@@ -88,7 +88,6 @@ const submitAuthorityFormHandle = async () => {
   const ids = authorityData.value
     .filter(item => item.check)
     .map(item => item.authorityId)
-    console.log(ids)
   await POST<null>(`/sys/role/authority/${roleId.value}`, ids)
   ElNotification({
     title: '操作成功',
