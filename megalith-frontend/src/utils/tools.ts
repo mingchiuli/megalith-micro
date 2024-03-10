@@ -44,7 +44,7 @@ export const checkAccessToken = async (): Promise<string> => {
   const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
   const now = Math.floor(new Date().getTime() / 1000)
   //ten minutes
-  if (jwt.exp - now < 100) {
+  if (jwt.exp - now < 600) {
     const refreshToken = localStorage.getItem('refreshToken')
     const data = await http.get<never, Data<RefreshStruct>>('/token/refresh', {
       headers: { Authorization: refreshToken }
