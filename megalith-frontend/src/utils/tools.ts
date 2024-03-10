@@ -38,7 +38,8 @@ export const debounce = (fn: Function, interval = 100) => {
   }
 }
 
-export const checkAccessToken = async (accessToken: string) => {
+export const checkAccessToken = async (): Promise<string> => {
+  const accessToken = localStorage.getItem('accessToken')!
   const tokenArray = accessToken.split(".")
   const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
   const now = Math.floor(new Date().getTime() / 1000)
@@ -50,5 +51,7 @@ export const checkAccessToken = async (accessToken: string) => {
     })
     const token = data.data.accessToken
     localStorage.setItem('accessToken', token)
+    return token
   }
+  return accessToken
 }

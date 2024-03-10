@@ -13,17 +13,16 @@ import { checkAccessToken } from '@/utils/tools'
 
 let timer: NodeJS.Timeout
 
-let client: Client;
-const connect = () => {
-  if (client) client.deactivate()
-  const key = form.id ? form.userId + '/' + form.id : form.userId?.toString()
-  client = new Client({
+let client = new Client({
   brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/edit`,
   connectHeaders: { "Authorization": localStorage.getItem('accessToken')!, "Type": "EDIT" },
   reconnectDelay: 5000,
   heartbeatIncoming: 4000,
   heartbeatOutgoing: 4000,
 })
+
+const connect = () => {
+  const key = form.id ? form.userId + '/' + form.id : form.userId?.toString()
   client.onConnect = _frame =>
     client.subscribe('/edits/push/all/' + key, _res => pushAllData())
 
@@ -470,7 +469,8 @@ let reconnected = false;
   timer = setInterval(async () => {
     if (!client.connected) {
       ElNotification.warning("websocket reconnection ...")
-      checkAccessToken(localStorage.getItem('accessToken')!)
+      const token = await checkAccessToken()
+      client.connectHeaders = { "Authorization": token, "Type": "EDIT" }
       connect()
       reconnected = true
     }
