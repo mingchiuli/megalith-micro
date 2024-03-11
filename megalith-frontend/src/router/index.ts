@@ -57,7 +57,7 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   if (loginStateStore().login) {
-    const menus = await GET<Menu[]>('/sys/menu/nav')
+    const all = await GET<Menu[]>('/sys/menu/nav')
     const systemRoute = {
       path: '/backend',
       name: 'system',
@@ -66,12 +66,12 @@ router.beforeEach(async (to, _from, next) => {
     } as RouteRecordRaw
 
     const { menuList } = storeToRefs(menuStore())
+    const menus = all.filter(item => RoutesEnum.BUTTON !== item.type)
     const dif = diff(menuList.value, menus)
     if (dif) {
       menuList.value = []
       router.removeRoute('system')
       menus
-        .filter(item => RoutesEnum.BUTTON !== item.type)
         .forEach(menu => {
           menuList.value.push(menu)
           const route = buildRoute(menu, systemRoute)
