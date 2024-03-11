@@ -1,6 +1,6 @@
 import http from '@/http/axios'
 import { loginStateStore, menuStore, tabStore } from '@/stores/store'
-import type { CatalogueLabel, Data, JWTStruct, Menu, RefreshStruct } from '@/type/entity'
+import type {  ChildrenFather, Data, JWTStruct, RefreshStruct } from '@/type/entity'
 import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
@@ -56,7 +56,7 @@ export const checkAccessToken = async (): Promise<string> => {
   return accessToken
 }
 
-export const diff = (oldArr: Array<CatalogueLabel | Menu>, newArr:  Array<CatalogueLabel | Menu>): boolean => {
+export const diff = (oldArr: ChildrenFather[], newArr:  ChildrenFather[]) => {
   if (oldArr.length !== newArr.length) {
     return true
   }

@@ -159,7 +159,7 @@ export interface Tab {
   name: string
 }
 
-export interface Menu extends ChildrenFather<Menu> {
+export interface Menu extends ChildrenFather {
   [propName: string]: any
   menuId: number
   component?: string
@@ -173,9 +173,9 @@ export interface Menu extends ChildrenFather<Menu> {
   type: number
 }
 
-interface ChildrenFather<T> {
+export interface ChildrenFather {
   [propName: string]: any
-  children: T[]
+  children: any[]
 }
 
 export interface JWTStruct {
@@ -185,7 +185,7 @@ export interface JWTStruct {
   exp: number
 }
 
-export interface CatalogueLabel extends ChildrenFather<CatalogueLabel> {
+export interface CatalogueLabel extends ChildrenFather {
   id: string
   label: string
   dist: number
