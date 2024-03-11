@@ -7,7 +7,7 @@ import { Status } from '@/type/entity'
 import { displayStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 
-const { extend } = storeToRefs(displayStateStore())
+const { expand } = storeToRefs(displayStateStore())
 const multipleSelection = ref<UserSys[]>([])
 const dialogVisible = ref(false)
 const loading = ref(false)
@@ -16,7 +16,7 @@ const roleList = ref<RoleSys[]>([])
 const page: PageAdapter<UserSys> = reactive({
   "content": [],
   "totalElements": 0,
-  "pageSize": extend.value ? 15 : 5,
+  "pageSize": expand.value ? 15 : 5,
   "pageNumber": 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)

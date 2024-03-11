@@ -7,14 +7,14 @@ import { render } from '@/utils/tools'
 import { displayStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 
-const { extend } = storeToRefs(displayStateStore())
+const { expand } = storeToRefs(displayStateStore())
 const loading = ref(false)
 const multipleSelection = ref<BlogDelSys[]>([])
 const delBtlStatus = ref(false)
 const page: PageAdapter<BlogDelSys> = reactive({
   "content": [],
   "totalElements": 0,
-  "pageSize": extend.value ? 15 : 5,
+  "pageSize": expand.value ? 15 : 5,
   "pageNumber": 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)

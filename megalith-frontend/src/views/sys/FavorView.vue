@@ -7,14 +7,14 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { storeToRefs } from 'pinia'
 import { displayStateStore } from '@/stores/store'
 
-const { extend } = storeToRefs(displayStateStore())
+const { expand } = storeToRefs(displayStateStore())
 const input = ref('')
 const loading = ref(false)
 const dialogVisible = ref(false)
 let page: PageAdapter<SearchFavors> = reactive({
   "content": [],
   "totalElements": 0,
-  "pageSize": extend.value ? 27 : 9,
+  "pageSize": expand.value ? 27 : 9,
   "pageNumber": 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
