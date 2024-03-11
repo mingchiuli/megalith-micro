@@ -7,8 +7,9 @@ export const displayStateStore = defineStore('displayStateStore', () => {
   const fix = ref(document.body.clientWidth > 900 ? 'right' : false)
   const fixSelection = ref(document.body.clientWidth > 900 ? 'left' : false)
   const expand = ref(document.body.clientWidth > 900)
+  const moreItems = ref(document.body.clientWidth > 2000)
   const welcomeBackend = ref(true)
-  return { fix, expand, fixSelection, welcomeBackend }
+  return { fix, expand, moreItems, fixSelection, welcomeBackend }
 })
 
 export const loginStateStore = defineStore('loginStateStore', () => {

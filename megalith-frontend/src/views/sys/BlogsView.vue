@@ -8,7 +8,7 @@ import { tabStore, displayStateStore } from '@/stores/store'
 import { render } from '@/utils/tools'
 import { storeToRefs } from 'pinia'
 
-const { expand } = storeToRefs(displayStateStore())
+const { moreItems } = storeToRefs(displayStateStore())
 const search = ref(false)
 const input = ref('')
 const multipleSelection = ref<BlogSys[]>([])
@@ -17,7 +17,7 @@ const loading = ref(false)
 const page: PageAdapter<BlogSys> = reactive({
   "content": [],
   "totalElements": 0,
-  "pageSize": expand.value ? 20 : 5,
+  "pageSize": moreItems.value ? 20 : 5,
   "pageNumber": 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
