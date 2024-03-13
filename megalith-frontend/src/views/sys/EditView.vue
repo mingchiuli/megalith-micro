@@ -383,6 +383,10 @@ const loadEditContent = async () => {
   form.id = data.id
   form.userId = data.userId
   version = data.version + 1
+  if (fileList.value.length !== 0) {
+    //移除全部
+    fileList.value.splice(0, fileList.value.length)
+  }
   if (data.link) {
     fileList.value.push({
       name: 'Cover',
