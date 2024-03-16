@@ -166,8 +166,6 @@ watch(() => form.content, (n, o) => {
         return
       }
       if (i === oLen - 1 && nArr![i] + '\n' !== oArr![i]) {
-        console.log(nArr!)
-        console.log(oArr!)
         pushAllData()
         return
       }
