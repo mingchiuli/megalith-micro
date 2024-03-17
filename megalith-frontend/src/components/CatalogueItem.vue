@@ -140,6 +140,8 @@ const extractAndFlushData = async () => {
     if (dif) {
       data.value = arrs
       await nextTick()
+      //重新获取，否则获取的对象就不一样
+      allNodes = treeRef.value!.store._getAllNodes()
     }
   }
 }
