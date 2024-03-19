@@ -7,10 +7,13 @@ import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
 import { ref } from 'vue'
 
-const isComposing = defineModel<boolean>('isComposing')
+const emit = defineEmits<{
+  composing: [payload: boolean]
+}>()
+
 const content = defineModel<string | undefined>('content')
 const transColor = defineModel<string>('transColor')
-
+const readOnly = defineModel<boolean>('readOnly')
 const editorRef = ref<ExposeParam>()
 
 const toolbars: ToolbarNames[] = [
@@ -23,14 +26,10 @@ const footers: Footers[] = ['markdownTotal', '=', 0, 'scrollSwitch']
 
 editorRef.value?.domEventHandlers({
   compositionstart: () => {
-    if (!isComposing.value) {
-      isComposing.value = true
-    }
+    emit('composing', true)
   },
   compositionend: () => {
-    if (isComposing.value) {
-      isComposing.value = false
-    }
+    emit('composing', false)
   },
 });
 
@@ -44,7 +43,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 <template>
   <md-editor v-model="content" :preview="false" :toolbars="toolbars" :toolbarsExclude="['github']"
-    @on-upload-img="onUploadImg" :footers="footers" >
+    @on-upload-img="onUploadImg" :footers="footers" :read-only="readOnly">
     <template #defToolbars>
       <Export-PDF v-model="content" />
       <emoji>

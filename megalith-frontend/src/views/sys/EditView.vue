@@ -81,6 +81,7 @@ let version = 0
 //中文输入法的问题
 let isComposing = false
 let fieldType: string
+let readOnly = ref(false)
 
 const pushAllData = async () => {
   await POST<null>('/sys/blog/push/all', form)
@@ -118,10 +119,7 @@ watch(() => form.description, (n, o) => {
 })
 
 watch(() => form.status, (n, o) => {
-  if (!client.connected || (!n && !o) || isComposing || disConnectSkip) {
-    disConnectSkip = false
-    return
-  }
+  if (!client.connected || (!n && !o) || isComposing) return
   commonPreDeal(FieldType.NON_PARA, FieldName.STATUS)
   pushActionForm.operateTypeCode = OperateTypeCode.STATUS
   pushActionForm.contentChange = form.status
@@ -452,6 +450,8 @@ const handlePictureCardPreview = (file: UploadFile) => {
   dialogVisible.value = true
 }
 
+const dealComposing = (payload: boolean) => isComposing = payload
+
 const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png') {
     ElMessage.error('Avatar picture must be JPG/PNG format!')
@@ -468,7 +468,7 @@ const CustomEditorItem = defineAsyncComponent({
   loadingComponent: EditorLoadingItem,
   delay: 200,
   errorComponent: EditorLoadingItem,
-  timeout: 3000
+  timeout: 5000
 })
 
 onUnmounted(() => {
@@ -483,18 +483,20 @@ let reconnected = false;
   connect()
   timer = setInterval(async () => {
     if (!client.connected) {
-      ElNotification.warning("websocket reconnection ...")
+      readOnly.value = true
+      ElNotification.warning("websocket reconnecting ...")
       const token = await checkAccessToken()
       client.connectHeaders = { "Authorization": token, "Type": "EDIT" }
       connect()
       reconnected = true
     }
     if (reconnected && client.connected) {
-      await loadEditContent()
+      readOnly.value = false
+      await pushAllData()
       ElNotification.success("websocket reconnected")
       reconnected = false
     }
-  }, 5000)
+  }, 3000)
 })()
 </script>
 
@@ -547,8 +549,8 @@ let reconnected = false;
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <CustomEditorItem v-model:content="form.content" v-model:isComposing="isComposing"
-          v-model:transColor="transColor" />
+        <CustomEditorItem v-model:content="form.content" @composing="dealComposing"
+          v-model:trans-color="transColor" v-model:read-only="readOnly" />
       </el-form-item>
 
       <div class="submit-button">
