@@ -118,7 +118,10 @@ watch(() => form.description, (n, o) => {
 })
 
 watch(() => form.status, (n, o) => {
-  if (!client.connected || (!n && !o) || isComposing) return
+  if (!client.connected || (!n && !o) || isComposing || disConnectSkip) {
+    disConnectSkip = false
+    return
+  }
   commonPreDeal(FieldType.NON_PARA, FieldName.STATUS)
   pushActionForm.operateTypeCode = OperateTypeCode.STATUS
   pushActionForm.contentChange = form.status
