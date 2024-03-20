@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
+import { defineAsyncComponent, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status } from '@/type/entity'
@@ -64,6 +64,7 @@ type PushActionForm = {
   indexEnd?: number
   field?: string
   paraNo?: number
+  reconnected: boolean
 }
 
 const pushActionForm: PushActionForm = {
@@ -75,6 +76,7 @@ const pushActionForm: PushActionForm = {
   indexEnd: undefined,
   field: undefined,
   paraNo: undefined,
+  reconnected: false
 }
 
 let version = 0
@@ -96,6 +98,7 @@ const pushActionData = (pushActionForm: PushActionForm) => {
     destination: '/app/edit/push/action',
     body: JSON.stringify(pushActionForm)
   })
+  console.log(pushActionForm)
   version++
   if (transColor.value !== OperaColor.SUCCESS) {
     transColor.value = OperaColor.SUCCESS
@@ -205,6 +208,7 @@ const commonPreDeal = (fieldTypeParam: string, opreateField: string) => {
   pushActionForm.id = form.id
   pushActionForm.version = version
   fieldType = fieldTypeParam
+  pushActionForm.reconnected = reconnected
 }
 
 const deal = (n: string | undefined, o: string | undefined) => {
@@ -492,8 +496,9 @@ let reconnected = false;
     }
     if (reconnected && client.connected) {
       readOnly.value = false
-      await pushAllData()
+      await loadEditContent()
       ElNotification.success("websocket reconnected")
+      await nextTick()
       reconnected = false
     }
   }, 3000)
@@ -504,15 +509,15 @@ let reconnected = false;
   <div class="father">
     <el-form :model="form" :rules="formRules" ref="formRef">
       <el-form-item class="title" prop="title">
-        <el-input v-model="form.title" placeholder="标题" maxlength="20" />
+        <el-input v-model="form.title" placeholder="标题" maxlength="20" :disabled="readOnly" />
       </el-form-item>
 
       <el-form-item class="desc" prop="description">
-        <el-input autosize type="textarea" v-model="form.description" placeholder="摘要" maxlength="60" />
+        <el-input autosize type="textarea" v-model="form.description" placeholder="摘要" maxlength="60" :disabled="readOnly" />
       </el-form-item>
 
       <el-form-item class="status" prop="status">
-        <el-radio-group v-model="form.status">
+        <el-radio-group v-model="form.status" :disabled="readOnly">
           <el-radio :value=Status.NORMAL>公开</el-radio>
           <el-radio :value=Status.BLOCK>隐藏</el-radio>
         </el-radio-group>
@@ -522,7 +527,7 @@ let reconnected = false;
         <span style="margin-right: 10px;">封面</span>
         <el-upload action="#" list-type="picture-card" :before-upload="beforeAvatarUpload" :limit="1"
           :on-exceed="handleExceed" :http-request="upload" :on-remove="handleRemove" :file-list="fileList"
-          ref="uploadInstance">
+          ref="uploadInstance" :disabled="readOnly">
           <el-icon>
             <Plus />
           </el-icon>
@@ -544,7 +549,7 @@ let reconnected = false;
         </el-upload>
 
         <el-dialog v-model="dialogVisible">
-          <img style="width: 100%;" :src="dialogImageUrl" alt="Preview Image" />
+          <img style="width: 100%;" :src="dialogImageUrl" alt="" />
         </el-dialog>
       </el-form-item>
 
@@ -554,7 +559,7 @@ let reconnected = false;
       </el-form-item>
 
       <div class="submit-button">
-        <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
+        <el-button type="primary" @click="submitForm(formRef!)" :disabled="readOnly">Submit</el-button>
       </div>
     </el-form>
 
