@@ -98,7 +98,6 @@ const pushActionData = (pushActionForm: PushActionForm) => {
     destination: '/app/edit/push/action',
     body: JSON.stringify(pushActionForm)
   })
-  console.log(pushActionForm)
   version++
   if (transColor.value !== OperaColor.SUCCESS) {
     transColor.value = OperaColor.SUCCESS
