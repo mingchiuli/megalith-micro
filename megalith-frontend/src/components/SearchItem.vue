@@ -26,7 +26,7 @@ const search = async (queryString: string, currentPage: number, allInfo: boolean
 }
 
 let timeout: NodeJS.Timeout
-let suggestionEle: Element | null
+let suggestionEle: HTMLElement | null
 const controller = new AbortController()
 const { signal } = controller
 const searchAbstractAsync = async (queryString: string, cb: Function) => {
@@ -46,6 +46,7 @@ const searchAbstractAsync = async (queryString: string, cb: Function) => {
       }
       if (!suggestionEle) {
         suggestionEle = document.querySelector('.select-list .el-autocomplete-suggestion__wrap')
+        suggestionEle!.style.maxHeight = '175px'
         suggestionEle?.addEventListener('scroll', debounce(() => load(suggestionEle!, cb)), { signal })
       }
     }, 1000 * Math.random())
@@ -60,9 +61,7 @@ const load = async (e: Element, cb: Function) => {
   if (keywords.value && e.scrollTop + e.clientHeight >= e.scrollHeight - 1) {
     const page: PageAdapter<BlogDesc> = await search(keywords.value!, currentPage + 1, false, year.value!)
     if (page.content.length === 0) return
-    if (page.content.length > 0) {
-      currentPage++
-    }
+    currentPage++
     page.content.forEach((blogsDesc: BlogDesc) => {
       suggestionList.value.push(blogsDesc)
     })
