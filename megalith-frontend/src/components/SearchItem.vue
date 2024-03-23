@@ -92,7 +92,7 @@ defineExpose(
       <div class="dialog-year" v-if="year!.length">年份：{{ year }}</div>
       <div class="dialog-autocomplete">
         <el-autocomplete id="elc" v-model="keywords" :fetch-suggestions="searchAbstractAsync" placeholder="Please input"
-          @select="handleSelect" :trigger-on-focus="false" clearable @keyup.enter="searchAllInfo(keywords!)"
+          @select="handleSelect" :trigger-on-focus="false" :fit-input-width="true" clearable @keyup.enter="searchAllInfo(keywords!)"
           ref="refAutocomplete" @clear="clearSearch">
           <template #default="{ item }">
             <template v-if="item.highlight.title">
