@@ -14,7 +14,6 @@ export interface BlogDesc {
   content?: string
   score?: number
   highlight?: SearchBlogsHighlightStruct,
-  value?: string
 }
 
 export interface BlogSys {
