@@ -47,7 +47,7 @@ const searchAbstractAsync = async (queryString: string, cb: Function) => {
       if (!suggestionEle) {
         suggestionEle = document.querySelector('.select-list .el-autocomplete-suggestion__wrap')
         suggestionEle!.style.maxHeight = '175px'
-        suggestionEle?.addEventListener('scroll', debounce(() => load(suggestionEle!, cb)), { signal })
+        suggestionEle!.addEventListener('scroll', debounce(() => load(suggestionEle!, cb)), { signal })
       }
     }, 1000 * Math.random())
   }
@@ -59,7 +59,7 @@ watch(() => keywords.value, () => {
 
 const load = async (e: Element, cb: Function) => {
   if (keywords.value && e.scrollTop + e.clientHeight >= e.scrollHeight - 1) {
-    const page: PageAdapter<BlogDesc> = await search(keywords.value!, currentPage + 1, false, year.value!)
+    const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, year.value!)
     if (page.content.length === 0) return
     currentPage++
     page.content.forEach((blogsDesc: BlogDesc) => {
