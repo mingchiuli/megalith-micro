@@ -90,7 +90,6 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
 const searchBeforeClose = (close: Function) => {
   keywords.value = ''
   year.value = ''
-  refAutocomplete.value!.suggestions = []
   emit('clear')
   close()
 }
