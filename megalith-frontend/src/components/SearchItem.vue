@@ -27,6 +27,8 @@ const search = async (queryString: string, currentPage: number, allInfo: boolean
 
 let timeout: NodeJS.Timeout
 let suggestionEle: Element | null
+const controller = new AbortController()
+const { signal } = controller
 const searchAbstractAsync = async (queryString: string, cb: Function) => {
   if (queryString.length) {
     //-1是后端一个默认参数
@@ -44,7 +46,7 @@ const searchAbstractAsync = async (queryString: string, cb: Function) => {
       }
       if (!suggestionEle) {
         suggestionEle = document.querySelector('.select-list .el-autocomplete-suggestion__wrap')
-        suggestionEle?.addEventListener('scroll', debounce(() => load(suggestionEle!, cb)))
+        suggestionEle?.addEventListener('scroll', debounce(() => load(suggestionEle!, cb)), { signal })
       }
     }, 1000 * Math.random())
   }
@@ -110,7 +112,7 @@ const clearSearch = () => {
 }
 
 onBeforeUnmount(() => {
-  suggestionEle?.removeEventListener('scroll', debounce(() => load))
+  controller.abort()
 })
 
 defineExpose(
