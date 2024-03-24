@@ -33,7 +33,7 @@ const searchAbstractAsync = async (queryString: string, cb: Function) => {
   if (queryString.length) {
     const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, false, year.value!)
     page.content.forEach((blogsDesc: BlogDesc) => {
-      blogsDesc.value = blogsDesc.title
+      blogsDesc.value = keywords.value
       suggestionList.value.push(blogsDesc)
     })
     //节流
@@ -63,7 +63,7 @@ const load = async (e: Element, cb: Function) => {
     if (page.content.length === 0) return
     currentPage++
     page.content.forEach((blogsDesc: BlogDesc) => {
-      blogsDesc.value = blogsDesc.title
+      blogsDesc.value = keywords.value
       suggestionList.value.push(blogsDesc)
     })
     cb(suggestionList.value)
