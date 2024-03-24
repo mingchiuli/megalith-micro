@@ -5,6 +5,7 @@ import type { BlogDesc, PageAdapter } from '@/type/entity'
 import type { ElAutocomplete } from 'element-plus'
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { debounce } from '@/utils/tools'
+import { displayStateStore } from '@/stores/store'
 
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
@@ -46,7 +47,7 @@ const searchAbstractAsync = async (queryString: string, cb: Function) => {
       }
       if (!suggestionEle) {
         suggestionEle = document.querySelector('.select-list .el-autocomplete-suggestion__wrap')
-        suggestionEle!.style.maxHeight = '175px'
+        suggestionEle!.style.maxHeight = displayStateStore().expand ? '300px' : '175px'
         suggestionEle!.addEventListener('scroll', debounce(() => load(suggestionEle!, cb)), { signal })
       }
     }, 1000 * Math.random())
