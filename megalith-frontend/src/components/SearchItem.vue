@@ -31,9 +31,9 @@ const controller = new AbortController()
 const { signal } = controller
 const searchAbstractAsync = async (queryString: string, cb: Function) => {
   if (queryString.length) {
-    //-1是后端一个默认参数
     const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, false, year.value!)
     page.content.forEach((blogsDesc: BlogDesc) => {
+      blogsDesc.value = blogsDesc.title
       suggestionList.value.push(blogsDesc)
     })
     //节流
@@ -63,18 +63,21 @@ const load = async (e: Element, cb: Function) => {
     if (page.content.length === 0) return
     currentPage++
     page.content.forEach((blogsDesc: BlogDesc) => {
+      blogsDesc.value = blogsDesc.title
       suggestionList.value.push(blogsDesc)
     })
     cb(suggestionList.value)
   }
 }
 
-const handleSelect = (item: BlogDesc) => router.push({
-  name: 'blog',
-  params: {
-    id: item.id
-  }
-})
+const handleSelect = (item: BlogDesc) => {
+  router.push({
+    name: 'blog',
+    params: {
+      id: item.id
+    }
+  })
+}
 
 const searchAllInfo = async (queryString: string, currentPage = 1) => {
   searchDialogVisible.value = false
