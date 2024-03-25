@@ -22,7 +22,7 @@ const page: PageAdapter<BlogDesc> = reactive({
   "pageSize": 5,
   //不用这个字段
   "pageNumber": undefined
-})  
+})
 //用这个字段
 const { searchPageNum } = storeToRefs(blogsStore())
 const { pageNum } = storeToRefs(blogsStore())
@@ -40,6 +40,7 @@ if (router.currentRoute.value.path === '/login' && !login.value) {
 
 const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
   if (payload.content.length) {
+    statImg(payload.content)
     content.value = payload.content
     totalElements.value = payload.totalElements
     loading.value = false
@@ -56,12 +57,20 @@ const clear = () => {
 const queryBlogs = async (pageNo: number, year: string) => {
   loading.value = true
   const data = await GET<PageAdapter<BlogDesc>>(`/public/blog/page/${pageNo}?year=${year}`)
+  statImg(data.content)
   page.content = data.content
   page.totalElements = data.totalElements
-  loading.value = false
+}
+
+const statImg = (items: BlogDesc[]) => {
+  items.forEach(item => {
+    if (item.link) imgCount++
+  })
+  if (!imgCount) loading.value = false
 }
 
 const getPage = async (pageNo: number) => {
+  imgCount = 0
   if (!keywords.value) {
     pageNum.value = pageNo
     await queryBlogs(pageNo, year.value)
@@ -70,6 +79,13 @@ const getPage = async (pageNo: number) => {
     await nextTick()
     searchRef.value!.searchAllInfo(keywords.value, pageNo)
   }
+}
+
+let count = 0
+let imgCount = 0
+const loadImg = () => {
+  count++
+  if (imgCount <= count) loading.value = false
 }
 
 const to = async (id: number) => {
@@ -91,7 +107,6 @@ const { content, totalElements, pageSize } = toRefs(page);
 
 (async () => {
   await getPage(keywords.value ? searchPageNum.value : pageNum.value)
-  loading.value = false
 })()
 </script>
 
@@ -114,29 +129,29 @@ const { content, totalElements, pageSize } = toRefs(page);
           <template #template>
             <el-skeleton v-for="i in page.pageSize" v-bind:key="i" :rows="5" animated />
           </template>
-          <template #default>
-            <el-timeline-item v-for="blog in content" v-bind:key="blog.id" :timestamp="blog.created" placement="top"
-              :color="'#0bbd87'">
-              <el-card shadow="hover" @click="to(blog.id)">
-                <el-image v-if="blog.link" :key="blog.link" :src="blog.link" lazy></el-image>
-                <p v-if="blog.score">{{ "Search Scores: " + blog.score }}</p>
-                <el-link class="title" >{{ blog.title }}</el-link>
-                <p v-if="!blog.highlight">{{ blog.description }}</p>
-                <template v-if="blog.highlight?.title">
-                  <p v-for="(title, key) in blog.highlight.title" v-bind:key="key" v-html="'标题: ' + title"></p>
-                </template>
-                <template v-if="blog.highlight?.description">
-                  <p v-for="(description, key) in blog.highlight.description" v-bind:key="key" v-html="'摘要: ' + description"></p>
-                </template>
-                <template v-if="blog.highlight?.content">
-                  <p v-for="(content, key) in blog.highlight.content" v-bind:key="key" v-html="'内容: ' + content"></p>
-                </template>
-              </el-card>
-            </el-timeline-item>
-          </template>
         </el-skeleton>
+        <el-timeline-item v-for="blog in content" v-bind:key="blog.id" :timestamp="blog.created" placement="top"
+          :color="'#0bbd87'" v-show="!loading">
+          <el-card shadow="hover" @click="to(blog.id)">
+            <el-image v-if="blog.link" :key="blog.link" :src="blog.link" @load="loadImg"></el-image>
+            <p v-if="blog.score">{{ "Search Scores: " + blog.score }}</p>
+            <el-link class="title">{{ blog.title }}</el-link>
+            <p v-if="!blog.highlight">{{ blog.description }}</p>
+            <template v-if="blog.highlight?.title">
+              <p v-for="(title, key) in blog.highlight.title" v-bind:key="key" v-html="'标题: ' + title"></p>
+            </template>
+            <template v-if="blog.highlight?.description">
+              <p v-for="(description, key) in blog.highlight.description" v-bind:key="key"
+                v-html="'摘要: ' + description"></p>
+            </template>
+            <template v-if="blog.highlight?.content">
+              <p v-for="(content, key) in blog.highlight.content" v-bind:key="key" v-html="'内容: ' + content"></p>
+            </template>
+          </el-card>
+        </el-timeline-item>
       </el-timeline>
-      <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize" @current-change="getPage" :current-page="keywords ? searchPageNum : pageNum" />
+      <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize" @current-change="getPage"
+        :current-page="keywords ? searchPageNum : pageNum" />
     </div>
   </div>
 </template>
