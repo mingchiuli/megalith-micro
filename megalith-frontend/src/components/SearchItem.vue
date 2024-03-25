@@ -5,6 +5,7 @@ import type { BlogDesc, PageAdapter } from '@/type/entity'
 import type { ElAutocomplete } from 'element-plus'
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { debounce } from '@/utils/tools'
+import { ElLoading } from 'element-plus'
 
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
@@ -29,6 +30,10 @@ let timeout: NodeJS.Timeout
 let suggestionEle: HTMLElement | null
 const controller = new AbortController()
 const { signal } = controller
+const loadDiv = document.createElement('div')
+loadDiv.setAttribute('style', 'height: 20px')
+let loadingInstance: ReturnType<typeof ElLoading.service>
+
 const searchAbstractAsync = async (queryString: string, cb: Function) => {
   if (queryString.length) {
     const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, false, year.value!)
@@ -46,6 +51,7 @@ const searchAbstractAsync = async (queryString: string, cb: Function) => {
       }
       if (!suggestionEle) {
         suggestionEle = document.querySelector('.select-list .el-autocomplete-suggestion__wrap')
+        suggestionEle!.append(loadDiv)
         suggestionEle!.style.maxHeight = '175px'
         suggestionEle!.addEventListener('scroll', debounce(() => load(suggestionEle!, cb)), { signal })
       }
@@ -61,7 +67,8 @@ watch(() => keywords.value, () => {
 const load = async (e: Element, cb: Function) => {
   if (keywords.value && e.scrollTop + e.clientHeight >= e.scrollHeight - 1) {
     const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, year.value!)
-    if (page.content.length === 0) return
+    loadingInstance.close()
+    if (!page.content.length) return
     currentPage++
     page.content.forEach((blogsDesc: BlogDesc) => {
       blogsDesc.value = keywords.value

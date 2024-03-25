@@ -40,12 +40,20 @@ if (router.currentRoute.value.path === '/login' && !login.value) {
 
 const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
   if (payload.content.length) {
+    statImgs(payload.content)
     content.value = payload.content
     totalElements.value = payload.totalElements
-    loading.value = false
   } else {
     queryBlogs(1, '')
   }
+}
+
+const statImgs = (blogs: BlogDesc[]) => {
+  blogs.forEach(item => {
+    if (item.link) {
+      imgCount++
+    }
+  })
 }
 
 const clear = () => {
@@ -56,9 +64,9 @@ const clear = () => {
 const queryBlogs = async (pageNo: number, year: string) => {
   loading.value = true
   const data = await GET<PageAdapter<BlogDesc>>(`/public/blog/page/${pageNo}?year=${year}`)
+  statImgs(data.content)
   page.content = data.content
   page.totalElements = data.totalElements
-  loading.value = false
 }
 
 const getPage = async (pageNo: number) => {
@@ -69,6 +77,15 @@ const getPage = async (pageNo: number) => {
     searchPageNum.value = pageNo
     await nextTick()
     searchRef.value!.searchAllInfo(keywords.value, pageNo)
+  }
+}
+
+let count: number
+let imgCount: number
+const loadImg = () => {
+  count++
+  if (count >= imgCount) {
+    loading.value = false
   }
 }
 
@@ -118,7 +135,7 @@ const { content, totalElements, pageSize } = toRefs(page);
             <el-timeline-item v-for="blog in content" v-bind:key="blog.id" :timestamp="blog.created" placement="top"
               :color="'#0bbd87'">
               <el-card shadow="hover" @click="to(blog.id)">
-                <el-image v-if="blog.link" :key="blog.link" :src="blog.link" lazy></el-image>
+                <el-image v-if="blog.link" :key="blog.link" :src="blog.link" lazy @load="loadImg"></el-image>
                 <p v-if="blog.score">{{ "Search Scores: " + blog.score }}</p>
                 <el-link class="title" >{{ blog.title }}</el-link>
                 <p v-if="!blog.highlight">{{ blog.description }}</p>
