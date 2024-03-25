@@ -54,6 +54,7 @@ const searchAbstractAsync = async (queryString: string, cb: Function) => {
 }
 
 watch(() => keywords.value, () => {
+  currentPage = 1
   suggestionList.value.splice(0, suggestionList.value.length)
 })
 
