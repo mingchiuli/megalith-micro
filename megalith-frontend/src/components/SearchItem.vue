@@ -146,7 +146,9 @@ const clearSearch = () => {
 }
 
 onBeforeUnmount(() => {
-  controller.abort()
+  if (controller) {
+    controller.abort()
+  }
 })
 
 defineExpose(

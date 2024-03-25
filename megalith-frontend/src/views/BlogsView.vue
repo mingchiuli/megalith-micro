@@ -39,6 +39,8 @@ if (router.currentRoute.value.path === '/login' && !login.value) {
 }
 
 const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
+  imgCount = 0
+  count = 0
   if (payload.content.length) {
     statImg(payload.content)
     content.value = payload.content
@@ -50,6 +52,8 @@ const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
 }
 
 const clear = () => {
+  page.content = []
+  page.totalElements = 0
   searchPageNum.value = 1
   getPage(1)
 }
@@ -71,6 +75,7 @@ const statImg = (items: BlogDesc[]) => {
 
 const getPage = async (pageNo: number) => {
   imgCount = 0
+  count = 0
   if (!keywords.value) {
     pageNum.value = pageNo
     await queryBlogs(pageNo, year.value)
@@ -85,7 +90,9 @@ let count = 0
 let imgCount = 0
 const loadImg = () => {
   count++
-  if (imgCount <= count) loading.value = false
+  if (imgCount <= count) {
+    loading.value = false
+  }
 }
 
 const to = async (id: number) => {
