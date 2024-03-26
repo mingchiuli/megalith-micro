@@ -53,6 +53,7 @@ const searchAbstractAsync = async (queryString: string, cb: Function) => {
         suggestionEle!.append(div)
         controller = new AbortController()
         const { signal } = controller
+        fin = false
         suggestionEle!.addEventListener('scroll', debounce(() => load(suggestionEle!, cb)), { signal })
       }
     }, 1000 * Math.random())
