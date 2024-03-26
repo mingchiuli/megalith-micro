@@ -65,8 +65,10 @@ watch(() => keywords.value, () => {
 })
 
 let lock = false
+let fin = false
 const load = async (e: Element, cb: Function) => {
   if (!lock && keywords.value && e.scrollTop + e.clientHeight >= e.scrollHeight) {
+    if (fin) return
     lock = true
     e.append(div)
     loadingInstance = ElLoading.service({ target: div })
@@ -83,6 +85,7 @@ const load = async (e: Element, cb: Function) => {
       controller.abort()
       if (e.lastChild === div) e.removeChild(div)
       lock = false
+      fin = true
       return
     }
     loadingInstance.close()
