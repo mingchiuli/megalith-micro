@@ -30,10 +30,10 @@ export const render = (content: string): string => {
 
 export const debounce = (fn: Function, interval = 100) => {
   let timeout: NodeJS.Timeout
-  return () => {
+  return (...args: any[]) => {
     clearTimeout(timeout)
     timeout = setTimeout(function (this: Function) {
-      fn.apply(this)
+      fn.apply(this, args)
     }, interval)
   }
 }

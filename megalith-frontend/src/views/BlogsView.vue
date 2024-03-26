@@ -131,12 +131,12 @@ const { content, totalElements, pageSize } = toRefs(page);
       @click="router.push({ name: tabStore().editableTabsValue ? tabStore().editableTabsValue : 'system' })">进入后台</el-link>
     <br />
     <div class="description">
+      <el-skeleton animated :loading="loading" :throttle="300">
+        <template #template>
+          <el-skeleton v-for="i in page.pageSize" v-bind:key="i" :rows="5" animated />
+        </template>
+      </el-skeleton>
       <el-timeline>
-        <el-skeleton animated :loading="loading" :throttle="300">
-          <template #template>
-            <el-skeleton v-for="i in page.pageSize" v-bind:key="i" :rows="5" animated />
-          </template>
-        </el-skeleton>
         <el-timeline-item v-for="blog in content" v-bind:key="blog.id" :timestamp="blog.created" placement="top"
           :color="'#0bbd87'" v-show="!loading">
           <el-card shadow="hover" @click="to(blog.id)">

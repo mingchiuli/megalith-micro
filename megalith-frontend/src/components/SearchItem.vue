@@ -39,8 +39,7 @@ const searchAbstractAsync = async (queryString: string, cb: Function) => {
       blogsDesc.value = keywords.value
       suggestionList.value.push(blogsDesc)
     })
-    //节流
-    clearTimeout(timeout)
+    //防止空内容闪烁
     timeout = setTimeout(() => {
       //不执行cd，下拉框没数据就不会收回去
       cb(suggestionList.value)
@@ -72,7 +71,7 @@ const load = async (e: Element, cb: Function) => {
     e.append(div)
     loadingInstance = ElLoading.service({ target: div })
     const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, year.value!)
-    if (page.content.length < page.pageSize && e.lastChild === div) {
+    if (page.content.length < page.pageSize) {
       if (page.content.length) {
         page.content.forEach((blogsDesc: BlogDesc) => {
           blogsDesc.value = keywords.value
@@ -82,7 +81,7 @@ const load = async (e: Element, cb: Function) => {
       }
       loadingInstance.close()
       controller.abort()
-      e.removeChild(div)
+      if (e.lastChild === div) e.removeChild(div)
       lock = false
       return
     }
@@ -149,6 +148,7 @@ onBeforeUnmount(() => {
   if (controller) {
     controller.abort()
   }
+  clearTimeout(timeout)
 })
 
 defineExpose(
