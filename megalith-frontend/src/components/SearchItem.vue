@@ -16,7 +16,7 @@ const year = defineModel<string>('year')
 const keywords = defineModel<string>('keywords')
 const loading = defineModel<boolean>('loading')
 const searchDialogVisible = defineModel<boolean>('searchDialogVisible')
-const suggestionList = ref<BlogDesc[]>([])
+let suggestionList = ref<BlogDesc[]>([])
 let currentPage = 1
 
 const yearDialogVisible = ref(false)
@@ -28,11 +28,9 @@ const search = async (queryString: string, currentPage: number, allInfo: boolean
 
 let timeout: NodeJS.Timeout
 let suggestionEle: HTMLElement | null
-const controller = new AbortController()
-const { signal } = controller
-const loadDiv = document.createElement('div')
-loadDiv.setAttribute('style', 'height: 20px')
-let loadingInstance: ReturnType<typeof ElLoading.service>
+let controller: AbortController
+const div = document.createElement('div')
+let loadingInstance: ReturnType<typeof ElLoading.service> | null
 
 const searchAbstractAsync = async (queryString: string, cb: Function) => {
   if (queryString.length) {
@@ -44,15 +42,18 @@ const searchAbstractAsync = async (queryString: string, cb: Function) => {
     //节流
     clearTimeout(timeout)
     timeout = setTimeout(() => {
+      //不执行cd，下拉框没数据就不会收回去
       cb(suggestionList.value)
       if (!page.content.length) {
         ElMessage.error('No Records')
         return
       }
+
       if (!suggestionEle) {
         suggestionEle = document.querySelector('.select-list .el-autocomplete-suggestion__wrap')
-        suggestionEle!.append(loadDiv)
-        suggestionEle!.style.maxHeight = '175px'
+        suggestionEle!.append(div)
+        controller = new AbortController()
+        const { signal } = controller
         suggestionEle!.addEventListener('scroll', debounce(() => load(suggestionEle!, cb)), { signal })
       }
     }, 1000 * Math.random())
@@ -64,17 +65,36 @@ watch(() => keywords.value, () => {
   suggestionList.value.splice(0, suggestionList.value.length)
 })
 
+let lock = false
 const load = async (e: Element, cb: Function) => {
-  if (keywords.value && e.scrollTop + e.clientHeight >= e.scrollHeight - 1) {
+  if (!lock && keywords.value && e.scrollTop + e.clientHeight >= e.scrollHeight) {
+    lock = true
+    e.append(div)
+    loadingInstance = ElLoading.service({ target: div })
     const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, year.value!)
+    if (page.content.length < page.pageSize && e.lastChild === div) {
+      if (page.content.length) {
+        page.content.forEach((blogsDesc: BlogDesc) => {
+          blogsDesc.value = keywords.value
+          suggestionList.value.push(blogsDesc)
+        })
+        cb(suggestionList.value)
+      }
+      loadingInstance.close()
+      controller.abort()
+      e.removeChild(div)
+      lock = false
+      return
+    }
     loadingInstance.close()
-    if (!page.content.length) return
+    e.removeChild(div)
     currentPage++
     page.content.forEach((blogsDesc: BlogDesc) => {
       blogsDesc.value = keywords.value
       suggestionList.value.push(blogsDesc)
     })
     cb(suggestionList.value)
+    lock = false
   }
 }
 
@@ -101,6 +121,9 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
 const searchBeforeClose = (close: Function) => {
   keywords.value = ''
   year.value = ''
+  controller.abort()
+  suggestionEle = null
+  suggestionList.value.splice(0, suggestionList.value.length)
   emit('clear')
   close()
 }
@@ -118,10 +141,14 @@ const yearsCloseEvent = async () => {
 const clearSearch = () => {
   currentPage = 1
   keywords.value = ''
+  controller.abort()
+  suggestionEle = null
 }
 
 onBeforeUnmount(() => {
-  controller.abort()
+  if (controller) {
+    controller.abort()
+  }
 })
 
 defineExpose(
