@@ -91,14 +91,11 @@ const renderCatalogue = async (html: string) => {
       <template #template>
         <el-skeleton :rows="15" />
       </template>
-
-      <template #default>
-        <el-card shadow="never" class="content">
-          <md-preview editorId="preview-only" v-model="blog.content" :showCodeRowNumber="true"
-            @on-html-changed="renderCatalogue" />
-        </el-card>
-      </template>
     </el-skeleton>
+    <el-card shadow="never" class="content" v-show="!loading">
+      <md-preview editorId="preview-only" v-model="blog.content" :showCodeRowNumber="true"
+        @on-html-changed="renderCatalogue" />
+    </el-card>
     <DiscussItem />
   </div>
 </template>
