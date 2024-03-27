@@ -31,6 +31,7 @@ let renderCatalogueCount = 0
 const renderCatalogue = async (html: string) => {
   if (html && renderCatalogueCount === 0) {
     await nextTick()
+    loading.value = false
     renderCatalogueCount++
     await catalogueRef.value?.render()
   }
@@ -49,7 +50,6 @@ const renderCatalogue = async (html: string) => {
   blog.readCount = data.readCount
   blog.nickname = data.nickname
   blog.created = data.created
-  loading.value = false
   blog.content = '>' + data.description + '\n\n' + data.content
   await nextTick()
   //计算距离
