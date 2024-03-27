@@ -30,28 +30,15 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>()
 let renderCatalogueCount = 0
 const renderCatalogue = async (html: string) => {
   if (html && renderCatalogueCount === 0) {
-    await nextTick()
     loading.value = false
+    await nextTick()
+    computeWidth()
     renderCatalogueCount++
     await catalogueRef.value?.render()
   }
 }
 
-(async () => {
-  let data: BlogExhibit
-  if (token) {
-    data = await GET<BlogExhibit>(`/public/blog/secret/${blogId}?readToken=${token}`)
-  } else {
-    data = await GET<BlogExhibit>(`/public/blog/info/${blogId}`)
-  }
-  blog.title = data.title
-  document.title = data.title
-  blog.avatar = data.avatar
-  blog.readCount = data.readCount
-  blog.nickname = data.nickname
-  blog.created = data.created
-  blog.content = '>' + data.description + '\n\n' + data.content
-  await nextTick()
+const computeWidth = () => {
   //计算距离
   const screenWidth = window.outerWidth
   const label = document.querySelector<HTMLElement>('.content')
@@ -70,6 +57,22 @@ const renderCatalogue = async (html: string) => {
   } else {
     showCatalogue.value = false
   }
+}
+
+(async () => {
+  let data: BlogExhibit
+  if (token) {
+    data = await GET<BlogExhibit>(`/public/blog/secret/${blogId}?readToken=${token}`)
+  } else {
+    data = await GET<BlogExhibit>(`/public/blog/info/${blogId}`)
+  }
+  blog.title = data.title
+  document.title = data.title
+  blog.avatar = data.avatar
+  blog.readCount = data.readCount
+  blog.nickname = data.nickname
+  blog.created = data.created
+  blog.content = '>' + data.description + '\n\n' + data.content
 })()
 </script>
 
