@@ -6,8 +6,6 @@ import { GET, POST } from '@/http/http'
 import router from '@/router'
 import http from '@/http/axios'
 
-const loginDialogVisible = defineModel<boolean>('loginDialogVisible')
-
 const mailButtonDisable = ref(false)
 const mailButtonText = ref('发送邮件')
 const mailButtonMiles = ref(120)
@@ -29,7 +27,6 @@ const submitLogin = async () => {
   loginStateStore().login = true
   const info = await GET<UserInfo>('/token/userinfo')
   localStorage.setItem('userinfo', JSON.stringify(info))
-  loginDialogVisible.value = false
   router.push({ name: 'blogs' })
 }
 
@@ -76,11 +73,12 @@ const sendCode = (via: string) => {
     mailButtonDisable.value = false
   })
 }
+const fullscreen = ref(true)
 
 </script>
 
 <template>
-  <el-dialog v-model="loginDialogVisible" center close-on-press-escape fullscreen align-center
+  <el-dialog v-model="fullscreen" center close-on-press-escape fullscreen align-center
     :before-close="beforeClose">
     <template #default>
       <el-radio-group v-model="radioSelect" class="dialog-select" size="small">

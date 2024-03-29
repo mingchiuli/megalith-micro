@@ -22,7 +22,7 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: () => import('@/views/BlogsView.vue'),
+      component: () => import('@/views/LoginView.vue'),
       meta: {
         title: '登录'
       }
@@ -54,6 +54,12 @@ router.beforeEach(async (to, _from, next) => {
 
   if (localStorage.getItem('accessToken') && !loginStateStore().login) {
     loginStateStore().login = true
+  }
+
+  if (to.path.startsWith('/login') && loginStateStore().login) {
+    router.push({
+      name: 'blogs'
+    })
   }
 
   if (loginStateStore().login) {

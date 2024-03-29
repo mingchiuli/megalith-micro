@@ -46,7 +46,6 @@ http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<an
     router.push({
       name: 'login'
     })
-    if (router.currentRoute.value.fullPath === 'blogs') location.reload()
   }
   return Promise.reject(error)
 })

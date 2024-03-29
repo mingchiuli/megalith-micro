@@ -9,7 +9,6 @@ import Search from '@/components/SearchItem.vue'
 import { Status } from '@/type/entity'
 
 const loading = ref(true)
-const loginDialogVisible = ref(false)
 const searchDialogVisible = ref(false)
 const searchRef = ref<InstanceType<typeof Search>>()
 const year = ref('')
@@ -29,14 +28,6 @@ const { pageNum } = storeToRefs(blogsStore())
 const { keywords } = storeToRefs(blogsStore())
 
 const { login } = storeToRefs(loginStateStore())
-
-if (router.currentRoute.value.path === '/login' && !login.value) {
-  loginDialogVisible.value = true
-} else {
-  router.push({
-    name: 'blogs'
-  })
-}
 
 const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
   initImgCount()
@@ -123,7 +114,6 @@ const { content, totalElements, pageSize } = toRefs(page);
 
 <template>
   <div class="front">
-    <BlogLoginItem v-model:login-dialog-visible="loginDialogVisible" />
     <ReadTokenItem v-model:read-token-dialog-visible="readTokenDialogVisible" v-model:blog-id="blogId" />
     <div class="search-father">
       <el-button class="search-button" @click="searchDialogVisible = true" type="success">Search</el-button>
