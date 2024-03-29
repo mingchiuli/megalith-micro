@@ -8,7 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     BackHeaderItem: typeof import('./src/components/sys/BackHeaderItem.vue')['default']
-    BlogLoginItem: typeof import('./src/components/BlogLoginItem.vue')['default']
     CatalogueItem: typeof import('./src/components/CatalogueItem.vue')['default']
     DiscussItem: typeof import('./src/components/DiscussItem.vue')['default']
     EditorItem: typeof import('./src/components/sys/EditorItem.vue')['default']
