@@ -29,7 +29,7 @@ const catalogueRef = ref<InstanceType<typeof catalogue>>()
 
 let renderCatalogueCount = 0
 const renderCatalogue = async (html: string) => {
-  if (html && renderCatalogueCount === 0) {
+  if (html && !renderCatalogueCount) {
     loading.value = false
     await nextTick()
     computeWidth()

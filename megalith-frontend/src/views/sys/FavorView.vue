@@ -55,7 +55,7 @@ type Form = {
 const searchFavors = async () => {
   loading.value = true
   const data = await GET<PageAdapter<SearchFavors>>(`/search/website/${pageNumber.value}?keyword=${input.value}&pageSize=${pageSize.value}`)
-  if (data.content.length === 0) {
+  if (!data.content.length) {
     clearSearchFavors()
     searchFavors()
     return

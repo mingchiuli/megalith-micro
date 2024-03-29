@@ -202,7 +202,7 @@ const getCheckKeys = (menuForms: MenuForm[]): Array<number> => {
 
 const getKeysIds = (menuForms: MenuForm[], ids: Array<number>) => {
   menuForms.forEach(item => {
-    if (item.check && item.children.length === 0) {
+    if (item.check && !item.children.length) {
       ids.push(item.menuId)
     }
     if (item.children.length !== 0) {

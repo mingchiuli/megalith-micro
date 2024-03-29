@@ -69,7 +69,7 @@ const geneCatalogueArr = (labels: NodeListOf<HTMLElement>): CatalogueLabel[] => 
 }
 
 const getChildrenTotal = (children: CatalogueLabel[]): number => {
-  if (children.length === 0) {
+  if (!children.length) {
     return 0
   }
 
