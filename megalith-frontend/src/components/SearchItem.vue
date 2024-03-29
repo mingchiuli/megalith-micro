@@ -124,9 +124,7 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
 const searchBeforeClose = (close: Function) => {
   keywords.value = ''
   year.value = ''
-  if (controller) {
-    controller.abort()
-  }
+  if (controller) controller.abort()
   suggestionEle = null
   suggestionList.value.splice(0, suggestionList.value.length)
   emit('clear')
@@ -146,16 +144,12 @@ const yearsCloseEvent = async () => {
 const clearSearch = () => {
   currentPage = 1
   keywords.value = ''
-  if (controller) {
-    controller.abort()
-  }
+  if (controller) controller.abort()
   suggestionEle = null
 }
 
 onBeforeUnmount(() => {
-  if (controller) {
-    controller.abort()
-  }
+  if (controller) controller.abort()
   clearTimeout(timeout)
 })
 
