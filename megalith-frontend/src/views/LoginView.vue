@@ -30,11 +30,6 @@ const submitLogin = async () => {
   router.push({ name: 'blogs' })
 }
 
-const beforeClose = (close: Function) => {
-  router.push({ name: 'blogs' })
-  close()
-}
-
 const loginType = () => {
   switch (radioSelect.value) {
     case 'SMS':
@@ -73,51 +68,51 @@ const sendCode = (via: string) => {
     mailButtonDisable.value = false
   })
 }
-const fullscreen = ref(true)
 
 </script>
 
 <template>
-  <el-dialog v-model="fullscreen" center close-on-press-escape fullscreen align-center
-    :before-close="beforeClose">
-    <template #default>
-      <el-radio-group v-model="radioSelect" class="dialog-select" size="small">
-        <el-radio-button @change="loginType" label="Password" value="Password" />
-        <el-radio-button @change="loginType" label="Email" value="Email" />
-        <el-radio-button @change="loginType" label="SMS" value="SMS" />
-      </el-radio-group>
-      <div class="input">
-        <div>
-          <el-input v-model="loginInfo.username" placeholder="Login Name" clearable />
-        </div>
-        <div>
-          <el-input v-model="loginInfo.password" type="password"
-            :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'" @keyup.enter="submitLogin"
-            show-password clearable />
-        </div>
+  <div class="front">
+    <el-radio-group v-model="radioSelect" class="dialog-select" size="small">
+      <el-radio-button @change="loginType" label="Password" value="Password" />
+      <el-radio-button @change="loginType" label="Email" value="Email" />
+      <el-radio-button @change="loginType" label="SMS" value="SMS" />
+    </el-radio-group>
+    <div>
+      <div>
+        <el-input v-model="loginInfo.username" placeholder="Login Name" clearable />
       </div>
-    </template>
-    <template #footer>
+      <div>
+        <el-input v-model="loginInfo.password" type="password"
+          :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'" @keyup.enter="submitLogin"
+          show-password clearable />
+      </div>
       <div class="dialog-footer">
         <el-button type="primary" @click="submitLogin">登录</el-button>
         <el-button type="primary" v-show="radioEmail" @click="sendCode('email')" :disabled="mailButtonDisable">{{
-          mailButtonText }}</el-button>
+      mailButtonText }}</el-button>
         <el-button type="primary" v-show="radioSMS" @click="sendCode('sms')" disabled>发送短信</el-button>
       </div>
-    </template>
-  </el-dialog>
+    </div>
+  </div>
+
 </template>
 
 <style scoped>
+@import '@/assets/front.css';
+
 .el-input {
   width: 180px;
-  left: 50%;
+  margin-left: 50%;
   transform: translate(-50%);
   margin-top: 10px
 }
 
 .dialog-footer {
-  margin-top: 0
+  margin-left: 50%;
+  width: max-content;
+  margin-top: 20px;
+  transform: translate(-50%)
 }
 
 .dialog-select {
