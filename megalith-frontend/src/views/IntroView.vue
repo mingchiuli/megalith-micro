@@ -21,7 +21,7 @@ const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
         This is Adam Lea, a junior software developer who is majoring in Java.<br />
         His short CV is following:<br />
         <br />
-        2023-now, Boss Zhipin(NASDAQ:BZ), Software Engineering, Software Backend Programmer<br />
+        2023-now, Software Engineering, Software Backend Programmer<br />
         2020-2023, Jinan University, International Trade, Master of Economics degree<br />
         2014-2018, Northwest A&F University, Grape and Wine Engineering, Bachelor of Engineering degree<br />
         <br />
