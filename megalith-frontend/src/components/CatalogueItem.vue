@@ -119,7 +119,7 @@ const rollToTargetLabel = (data: CatalogueLabel[], scrolled: number): CatalogueL
   let label: CatalogueLabel
   for (const element of data) {
     let dist = scrolled - element.dist
-    if (dist >= -rollGap) {
+    if (dist >= -rollGap - 1) {
       label = element
       let childLabel = rollToTargetLabel(element.children, scrolled)
       if (childLabel) {
