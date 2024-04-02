@@ -19,6 +19,7 @@ let client = new Client({
   reconnectDelay: 2000,
   heartbeatIncoming: 1000,
   heartbeatOutgoing: 1000,
+  connectionTimeout: 1000
 })
 
 const connect = () => {
