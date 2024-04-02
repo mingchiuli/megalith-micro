@@ -16,9 +16,9 @@ let timer: NodeJS.Timeout
 let client = new Client({
   brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/edit`,
   connectHeaders: { "Authorization": localStorage.getItem('accessToken')!, "Type": "EDIT" },
-  reconnectDelay: 5000,
-  heartbeatIncoming: 4000,
-  heartbeatOutgoing: 4000,
+  reconnectDelay: 2000,
+  heartbeatIncoming: 1000,
+  heartbeatOutgoing: 1000,
 })
 
 const connect = () => {
