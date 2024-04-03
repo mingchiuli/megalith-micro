@@ -17,9 +17,9 @@ let client = new Client({
   brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/edit`,
   connectHeaders: { "Authorization": localStorage.getItem('accessToken')!, "Type": "EDIT" },
   reconnectDelay: 2000,
-  heartbeatIncoming: 1000,
-  heartbeatOutgoing: 1000,
-  connectionTimeout: 1000
+  heartbeatIncoming: 2000,
+  heartbeatOutgoing: 2000,
+  connectionTimeout: 2000
 })
 
 const connect = () => {
