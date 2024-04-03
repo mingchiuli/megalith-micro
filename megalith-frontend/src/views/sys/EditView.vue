@@ -7,7 +7,7 @@ import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
 import { tabStore, blogsStore } from '@/stores/store'
-import { Client } from '@stomp/stompjs'
+import { Client, StompSocketState } from '@stomp/stompjs'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkAccessToken } from '@/utils/tools'
 
@@ -486,15 +486,14 @@ let reconnected = false;
   tabStore().addTab({ title: '编辑博客', name: 'system-edit' })
   connect()
   timer = setInterval(async () => {
-    if (!client.connected) {
+    if (client.webSocket?.readyState !== StompSocketState.OPEN) {
       readOnly.value = true
       ElNotification.warning("websocket reconnecting ...")
       const token = await checkAccessToken()
       client.connectHeaders = { "Authorization": token, "Type": "EDIT" }
-      connect()
       reconnected = true
     }
-    if (reconnected && client.connected) {
+    if (reconnected && client.webSocket?.readyState === StompSocketState.OPEN) {
       readOnly.value = false
       await loadEditContent()
       ElNotification.success("websocket reconnected")
@@ -513,7 +512,8 @@ let reconnected = false;
       </el-form-item>
 
       <el-form-item class="desc" prop="description">
-        <el-input autosize type="textarea" v-model="form.description" placeholder="摘要" maxlength="60" :disabled="readOnly" />
+        <el-input autosize type="textarea" v-model="form.description" placeholder="摘要" maxlength="60"
+          :disabled="readOnly" />
       </el-form-item>
 
       <el-form-item class="status" prop="status">
@@ -554,8 +554,8 @@ let reconnected = false;
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <CustomEditorItem v-model:content="form.content" @composing="dealComposing"
-          v-model:trans-color="transColor" v-model:read-only="readOnly" />
+        <CustomEditorItem v-model:content="form.content" @composing="dealComposing" v-model:trans-color="transColor"
+          v-model:read-only="readOnly" />
       </el-form-item>
 
       <div class="submit-button">
