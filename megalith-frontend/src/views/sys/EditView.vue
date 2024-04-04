@@ -487,6 +487,7 @@ let reconnected = false;
   connect()
   timer = setInterval(async () => {
     if (client.webSocket?.readyState !== StompSocketState.OPEN) {
+      transColor.value = OperaColor.FAILED
       readOnly.value = true
       ElNotification.warning("websocket reconnecting ...")
       const token = await checkAccessToken()
@@ -494,6 +495,7 @@ let reconnected = false;
       reconnected = true
     }
     if (reconnected && client.webSocket?.readyState === StompSocketState.OPEN) {
+      transColor.value = OperaColor.SUCCESS
       readOnly.value = false
       await loadEditContent()
       ElNotification.success("websocket reconnected")
@@ -554,7 +556,7 @@ let reconnected = false;
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <CustomEditorItem v-model:content="form.content" @composing="dealComposing" v-model:trans-color="transColor"
+        <CustomEditorItem v-model:content="form.content" @composing="dealComposing" :trans-color="transColor"
           v-model:read-only="readOnly" />
       </el-form-item>
 

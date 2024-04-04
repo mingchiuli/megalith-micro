@@ -11,9 +11,12 @@ const emit = defineEmits<{
   composing: [payload: boolean]
 }>()
 
+defineProps<{
+  transColor: string
+  readOnly: boolean
+}>()
+
 const content = defineModel<string | undefined>('content')
-const transColor = defineModel<string>('transColor')
-const readOnly = defineModel<boolean>('readOnly')
 const editorRef = ref<ExposeParam>()
 
 const toolbars: ToolbarNames[] = [

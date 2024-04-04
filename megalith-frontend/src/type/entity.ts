@@ -243,7 +243,8 @@ export enum OperateTypeCode {
 
 export enum OperaColor {
   SUCCESS = '#67c23a',
-  WARNING = '#e6a23c'
+  WARNING = '#e6a23c',
+  FAILED = '#FF0000'
 }
 
 export enum FieldName {
