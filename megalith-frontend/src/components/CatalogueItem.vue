@@ -157,7 +157,7 @@ const roll = async () => {
       if (temp?.id === id) {
         node.expanded = true
         treeRef.value?.setCurrentKey(id)
-        history.replaceState(null, '', `#${id}`)
+        history.replaceState(history.state, '', `#${id}`)
       } else if (node.expanded) {
         node.expanded = false
       }
@@ -165,7 +165,7 @@ const roll = async () => {
     //处理顶级节点高亮不符合逻辑的问题
     if (!temp) {
       treeRef.value?.setCurrentKey(undefined)
-      history.replaceState(null, '', ' ')
+      history.replaceState(history.state, '', ' ')
     }
   }
 }
@@ -177,7 +177,6 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  history.replaceState(null, '', ' ')
   window.removeEventListener('scroll', throttle)
 })
 

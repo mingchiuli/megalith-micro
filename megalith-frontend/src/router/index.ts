@@ -63,30 +63,31 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   if (loginStateStore().login) {
-    const all = await GET<Menu[]>('/sys/menu/nav')
-    const systemRoute = {
-      path: '/backend',
-      name: 'system',
-      component: () => import('@/views/SystemView.vue'),
-      children: []
-    } as RouteRecordRaw
+    GET<Menu[]>('/sys/menu/nav').then(all => {
+      const systemRoute = {
+        path: '/backend',
+        name: 'system',
+        component: () => import('@/views/SystemView.vue'),
+        children: []
+      } as RouteRecordRaw
 
-    const { menuList } = storeToRefs(menuStore())
-    const menus = all.filter(item => RoutesEnum.BUTTON !== item.type)
-    const dif = diff(menuList.value, menus)
-    if (dif) {
-      menuList.value = []
-      router.removeRoute('system')
-      menus
-        .forEach(menu => {
-          menuList.value.push(menu)
-          const route = buildRoute(menu, systemRoute)
-          if (route.path) {
-            systemRoute.children?.push(route)
-          }
-        })
-      router.addRoute(systemRoute)
-    }
+      const { menuList } = storeToRefs(menuStore())
+      const menus = all.filter(item => RoutesEnum.BUTTON !== item.type)
+      const dif = diff(menuList.value, menus)
+      if (dif) {
+        menuList.value = []
+        router.removeRoute('system')
+        menus
+          .forEach(menu => {
+            menuList.value.push(menu)
+            const route = buildRoute(menu, systemRoute)
+            if (route.path) {
+              systemRoute.children?.push(route)
+            }
+          })
+        router.addRoute(systemRoute)
+      }
+    })
   }
 
   if (to.meta.title) {
