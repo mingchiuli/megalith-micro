@@ -177,6 +177,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  history.replaceState(null, '', ' ')
   window.removeEventListener('scroll', throttle)
 })
 
