@@ -7,8 +7,9 @@ import router from '@/router'
 import http from '@/http/axios'
 
 const mailButtonDisable = ref(false)
-const mailButtonText = ref('发送邮件')
-const mailButtonMiles = ref(120)
+const smsButtonDisable = ref(false)
+const buttonText = ref('')
+const buttonMiles = ref(120)
 const radioSelect = ref('Password')
 const radioSMS = ref(false)
 const radioEmail = ref(false)
@@ -35,10 +36,12 @@ const loginType = () => {
     case 'SMS':
       radioSMS.value = true
       radioEmail.value = false
+      buttonText.value = '发送短信'
       break
     case 'Email':
       radioEmail.value = true
       radioSMS.value = false
+      buttonText.value = '发送邮件'
       break
     default:
       radioSMS.value = false
@@ -51,21 +54,25 @@ const loginType = () => {
 
 let interval: NodeJS.Timeout
 const sendCode = (via: string) => {
+  smsButtonDisable.value = true
   mailButtonDisable.value = true
+
   http.get(`/code/${via}?loginName=${loginInfo.username}`).then(_res => {
     ElMessage.success('发送成功')
     interval = setInterval(() => {
-      mailButtonText.value = `等待${mailButtonMiles.value}秒`
-      mailButtonMiles.value--
-      if (mailButtonMiles.value <= -1) {
+      buttonText.value = `等待${buttonMiles.value}秒`
+      buttonMiles.value--
+      if (buttonMiles.value <= -1) {
         clearInterval(interval)
-        mailButtonText.value = '发送验证码'
+        buttonText.value = '发送验证码'
         mailButtonDisable.value = false
-        mailButtonMiles.value = 120
+        smsButtonDisable.value = false
+        buttonMiles.value = 120
       }
     }, 1000)
   }).catch(_e => {
     mailButtonDisable.value = false
+    smsButtonDisable.value = false
   })
 }
 
@@ -83,15 +90,16 @@ const sendCode = (via: string) => {
         <el-input v-model="loginInfo.username" placeholder="Login Name" clearable />
       </div>
       <div>
-        <el-input v-model="loginInfo.password" type="password"
+        <el-input v-model="loginInfo.password" type="text"
           :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'" @keyup.enter="submitLogin"
-          show-password clearable />
+          clearable :show-password="radioSelect === 'Password' ? true : false" />
       </div>
       <div class="dialog-footer">
         <el-button type="primary" @click="submitLogin">登录</el-button>
         <el-button type="primary" v-show="radioEmail" @click="sendCode('email')" :disabled="mailButtonDisable">{{
-      mailButtonText }}</el-button>
-        <el-button type="primary" v-show="radioSMS" @click="sendCode('sms')" disabled>发送短信</el-button>
+      buttonText }}</el-button>
+        <el-button type="primary" v-show="radioSMS" @click="sendCode('sms')" :disabled="smsButtonDisable">{{ buttonText
+          }}</el-button>
       </div>
     </div>
   </div>
