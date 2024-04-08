@@ -1,6 +1,8 @@
 import http from '@/http/axios'
+import { GET, POST } from '@/http/http'
+import router from '@/router'
 import { loginStateStore, menuStore, tabStore } from '@/stores/store'
-import type {  ChildrenFather, Data, JWTStruct, RefreshStruct } from '@/type/entity'
+import type {  ChildrenFather, Data, JWTStruct, RefreshStruct, Token, UserInfo } from '@/type/entity'
 import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
@@ -80,4 +82,17 @@ export const diff = (oldArr: ChildrenFather[], newArr:  ChildrenFather[]) => {
     }
   }
   return false
+}
+
+export const submitLogin = async (username: string, password: string) => {
+  const form = new FormData()
+  form.append('username', username)
+  form.append('password', password)
+  const token = await POST<Token>('/login', form)
+  localStorage.setItem('accessToken', token.accessToken)
+  localStorage.setItem('refreshToken', token.refreshToken)
+  loginStateStore().login = true
+  const info = await GET<UserInfo>('/token/userinfo')
+  localStorage.setItem('userinfo', JSON.stringify(info))
+  router.push('/blogs')
 }

@@ -28,6 +28,14 @@ const router = createRouter({
       }
     },
     {
+      path: '/register/:token',
+      name: 'register',
+      component: () => import('@/views/RegisterView.vue'),
+      meta: {
+        title: '注册'
+      }
+    },
+    {
       path: '/blogs',
       name: 'blogs',
       component: () => import('@/views/BlogsView.vue'),

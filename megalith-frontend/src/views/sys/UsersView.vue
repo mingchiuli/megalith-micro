@@ -166,6 +166,15 @@ const handleCurrentChange = async (val: number) => {
   await queryUsers()
 }
 
+const getRegisterLink = async () => {
+  const link = await GET<string>('/sys/user/auth/register/page')
+  ElNotification({
+    title: '操作成功',
+    message: link,
+    type: 'success',
+  })
+}
+
 (async () => {
   await queryUsers()
   const roles = await GET<RoleSys[]>('/sys/user/role/valid/all')
@@ -184,6 +193,9 @@ const handleCurrentChange = async (val: number) => {
           <el-button type="danger" size="large" :disabled="delBtlStatus">批量删除</el-button>
         </template>
       </el-popconfirm>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" size="large" @click="getRegisterLink">生成注册链接</el-button>
     </el-form-item>
   </el-form>
 
@@ -304,6 +316,7 @@ const handleCurrentChange = async (val: number) => {
 .role-option {
   width: 150px;
 }
+
 .button-form .el-form-item {
   margin-right: 10px
 }

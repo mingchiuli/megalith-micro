@@ -424,6 +424,14 @@ const handleRemove = async (_file: UploadFile) => {
   fileList.value = []
 }
 
+const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
+  uploadInstance.value!.clearFiles()
+  const file = files[0] as UploadRawFile
+  await uploadFile(file)
+  file.uid = genFileId()
+  uploadInstance.value!.handleStart(file)
+}
+
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid, _fields) => {
     if (valid) {
@@ -439,14 +447,6 @@ const submitForm = async (ref: FormInstance) => {
       })
     }
   })
-}
-
-const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
-  uploadInstance.value!.clearFiles()
-  const file = files[0] as UploadRawFile
-  await uploadFile(file)
-  file.uid = genFileId()
-  uploadInstance.value!.handleStart(file)
 }
 
 const handlePictureCardPreview = (file: UploadFile) => {
@@ -595,7 +595,6 @@ let reconnected = false;
 }
 
 .submit-button {
-  display: block;
   margin: 10px auto;
   text-align: center
 }

@@ -1,10 +1,8 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import { loginStateStore } from '@/stores/store'
-import type { LoginStruct, Token, UserInfo } from '@/type/entity'
-import { GET, POST } from '@/http/http'
-import router from '@/router'
+import type { LoginStruct } from '@/type/entity'
 import http from '@/http/axios'
+import { submitLogin } from '@/utils/tools'
 
 const mailButtonDisable = ref(false)
 const smsButtonDisable = ref(false)
@@ -17,19 +15,6 @@ const loginInfo = reactive<LoginStruct>({
   username: '',
   password: ''
 })
-
-const submitLogin = async () => {
-  const form = new FormData()
-  form.append('username', loginInfo.username)
-  form.append('password', loginInfo.password)
-  const token = await POST<Token>('/login', form)
-  localStorage.setItem('accessToken', token.accessToken)
-  localStorage.setItem('refreshToken', token.refreshToken)
-  loginStateStore().login = true
-  const info = await GET<UserInfo>('/token/userinfo')
-  localStorage.setItem('userinfo', JSON.stringify(info))
-  router.push({ name: 'blogs' })
-}
 
 const loginType = () => {
   switch (radioSelect.value) {
@@ -91,11 +76,11 @@ const sendCode = (via: string) => {
       </div>
       <div>
         <el-input v-model="loginInfo.password" type="text"
-          :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'" @keyup.enter="submitLogin"
+          :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'" @keyup.enter="submitLogin(loginInfo.username, loginInfo.password)"
           clearable :show-password="radioSelect === 'Password' ? true : false" />
       </div>
       <div class="dialog-footer">
-        <el-button type="primary" @click="submitLogin">登录</el-button>
+        <el-button type="primary" @click="submitLogin(loginInfo.username, loginInfo.password)">登录</el-button>
         <el-button type="primary" v-show="radioEmail" @click="sendCode('email')" :disabled="mailButtonDisable">{{
       buttonText }}</el-button>
         <el-button type="primary" v-show="radioSMS" @click="sendCode('sms')" :disabled="smsButtonDisable">{{ buttonText
