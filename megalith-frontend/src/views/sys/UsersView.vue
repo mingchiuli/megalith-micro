@@ -28,6 +28,9 @@ const formRules = reactive<FormRules<Form>>({
   nickname: [
     { required: true, message: '请输入昵称', trigger: 'blur' }
   ],
+  password: [
+    { required: false, message: '请输入密码', trigger: 'blur' }
+  ],
   avatar: [
     { required: true, message: '请输入头像链接', trigger: 'blur' }
   ],
@@ -271,7 +274,7 @@ const getRegisterLink = async () => {
         <el-input v-model="form.nickname" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="密码" label-width="100px" class="password">
+      <el-form-item label="密码" label-width="100px" prop="password" class="password">
         <el-input v-model="form.password" type="password" maxlength="30" />
       </el-form-item>
 
