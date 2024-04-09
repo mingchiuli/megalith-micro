@@ -141,7 +141,7 @@ const handleRemove = async (_file: UploadFile) => {
 }
 
 const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
-  await GET<null>(`/sys/user/register/image/delete?url=${form.avatar}&token=${token.value}`)
+  GET<null>(`/sys/user/register/image/delete?url=${form.avatar}&token=${token.value}`)
   uploadInstance.value!.clearFiles()
   const file = files[0] as UploadRawFile
   await uploadFile(file)
