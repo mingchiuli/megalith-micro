@@ -20,6 +20,15 @@ const fileList = ref<UploadUserFile[]>([])
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 
+
+const validatePassword = (rule: any, value: string, callback: Function) => {
+  if (value !== form.password) {
+    callback(new Error('两次输入的密码不一致'))
+    return
+  }
+  callback()
+}
+
 const formRules = reactive<FormRules<Form>>({
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' }
@@ -30,6 +39,10 @@ const formRules = reactive<FormRules<Form>>({
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' }
   ],
+  confirmPassword: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { validator: validatePassword, trigger: 'blur' }
+  ],
   avatar: [
     { required: false, message: '请输入头像链接', trigger: 'blur' }
   ],
@@ -37,9 +50,11 @@ const formRules = reactive<FormRules<Form>>({
     { required: true, message: '请输入邮箱', trigger: 'blur' }
   ],
   phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' }
+    { required: false, message: '请输入手机号', trigger: 'blur' }
   ]
 })
+
+
 const formRef = ref<FormInstance>()
 
 type Form = {
@@ -47,6 +62,7 @@ type Form = {
   username: string
   nickname: string
   password: string
+  confirmPassword: string
   avatar: string
   email: string
   phone?: string
@@ -58,6 +74,7 @@ const form: Form = reactive({
   username: '',
   nickname: '',
   password: '',
+  confirmPassword: '',
   avatar: '',
   email: '',
   phone: ''
@@ -146,8 +163,11 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
         <el-input v-model="form.nickname" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="密码" label-width="70" prop="nickname" class="password">
+      <el-form-item label="密码" label-width="70" prop="password" class="password">
         <el-input v-model="form.password" type="password" maxlength="30" />
+      </el-form-item>
+      <el-form-item label="确认密码" label-width="70" prop="confirmPassword" class="password">
+        <el-input v-model="form.confirmPassword" type="password" maxlength="30" />
       </el-form-item>
 
       <el-form-item class="avatar" label-width="30">
@@ -204,5 +224,4 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
 .submit-button {
   text-align: center
 }
-
 </style>
