@@ -156,22 +156,22 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
 
     <el-form :model="form" :rules="formRules" ref="formRef" class="father">
 
-      <el-form-item label="用户名" label-width="70" prop="username" class="username">
+      <el-form-item label="用户名" label-width="80" prop="username" class="username">
         <el-input v-model="form.username" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="昵称" label-width="70" prop="nickname" class="nickname">
+      <el-form-item label="昵称" label-width="80" prop="nickname" class="nickname">
         <el-input v-model="form.nickname" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="密码" label-width="70" prop="password" class="password">
+      <el-form-item label="密码" label-width="80" prop="password" class="password">
         <el-input v-model="form.password" type="password" maxlength="30" />
       </el-form-item>
-      <el-form-item label="确认密码" label-width="70" prop="confirmPassword" class="password">
+      <el-form-item label="确认密码" label-width="80" prop="confirmPassword" class="password">
         <el-input v-model="form.confirmPassword" type="password" maxlength="30" />
       </el-form-item>
 
-      <el-form-item class="avatar" label-width="30">
+      <el-form-item class="avatar" label-width="40">
         <span style="margin-right: 10px;">头像</span>
         <el-upload action="#" list-type="picture-card" :before-upload="beforeAvatarUpload" :limit="1"
           :on-exceed="handleExceed" :http-request="upload" :on-remove="handleRemove" :file-list="fileList"
@@ -201,11 +201,11 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
         </el-dialog>
       </el-form-item>
 
-      <el-form-item label="邮箱" label-width="70" prop="email" class="email">
+      <el-form-item label="邮箱" label-width="80" prop="email" class="email">
         <el-input v-model="form.email" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="手机号" label-width="70" prop="phone" class="phone">
+      <el-form-item label="手机号" label-width="80" prop="phone" class="phone">
         <el-input v-model="form.phone" maxlength="30" />
       </el-form-item>
 
