@@ -169,8 +169,8 @@ const handleCurrentChange = async (val: number) => {
   await queryUsers()
 }
 
-const getRegisterLink = async () => {
-  const link = await GET<string>('/sys/user/auth/register/page')
+const getRegisterLink = async (username: string) => {
+  const link = await GET<string>(`/sys/user/auth/register/page?username=${username}`)
   ElNotification({
     title: '操作成功',
     message: link,
@@ -198,7 +198,7 @@ const getRegisterLink = async () => {
       </el-popconfirm>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" size="large" @click="getRegisterLink">生成注册链接</el-button>
+      <el-button type="primary" size="large" @click="getRegisterLink('')">注册链接</el-button>
     </el-form-item>
   </el-form>
 
@@ -246,7 +246,7 @@ const getRegisterLink = async () => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="180" align="center">
+    <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="280" align="center">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
@@ -254,6 +254,7 @@ const getRegisterLink = async () => {
             <el-button size="small" type="danger">删除</el-button>
           </template>
         </el-popconfirm>
+        <el-button v-if="scope.row.role !== 'admin'" size="small" type="warning" @click="getRegisterLink(scope.row.username)">修改链接</el-button>
       </template>
     </el-table-column>
 

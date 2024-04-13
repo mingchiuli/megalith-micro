@@ -6,9 +6,33 @@ import router from '@/router'
 import { useRoute } from 'vue-router'
 import { submitLogin } from '@/utils/tools'
 
+type Form = {
+  id?: number
+  username: string
+  nickname: string
+  password: string
+  confirmPassword: string
+  avatar: string
+  email: string
+  phone?: string
+}
+
+const form: Form = reactive({
+  id: undefined,
+  username: '',
+  nickname: '',
+  password: '',
+  confirmPassword: '',
+  avatar: '',
+  email: '',
+  phone: ''
+})
+
 const route = useRoute()
 const token = ref<string | string[]>()
 token.value = route.params.token
+const username = route.query.username as string
+form.username = username
 
 GET<boolean>(`/sys/user/register/check?token=${token.value}`).then(res => {
   if (!res) {
@@ -56,29 +80,6 @@ const formRules = reactive<FormRules<Form>>({
 
 
 const formRef = ref<FormInstance>()
-
-type Form = {
-  id?: number
-  username: string
-  nickname: string
-  password: string
-  confirmPassword: string
-  avatar: string
-  email: string
-  phone?: string
-}
-
-
-const form: Form = reactive({
-  id: undefined,
-  username: '',
-  nickname: '',
-  password: '',
-  confirmPassword: '',
-  avatar: '',
-  email: '',
-  phone: ''
-})
 
 const upload = async (image: UploadRequestOptions) => {
   await uploadFile(image.file)
@@ -157,7 +158,7 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
     <el-form :model="form" :rules="formRules" ref="formRef" class="father">
 
       <el-form-item label="用户名" label-width="80" prop="username" class="username">
-        <el-input v-model="form.username" maxlength="30" />
+        <el-input v-model="form.username" maxlength="30" :disabled="username !== ''" />
       </el-form-item>
 
       <el-form-item label="昵称" label-width="80" prop="nickname" class="nickname">
