@@ -25,7 +25,7 @@ const to = (id: number) => router.push({
 <template>
   <el-card shadow="never" class="hot-blogs" v-loading="loading" >
     <div class="title">
-      <el-text>本周热读</el-text>
+      <el-text>本周阅读排行</el-text>
     </div>
     <div class="description" v-for="(hot, key) in hots" v-bind:key="key" >
       <el-link @click="to(hot.id)">{{ hot.title ? hot.title : '匿名文章' }}: {{ hot.readCount }}</el-link>
