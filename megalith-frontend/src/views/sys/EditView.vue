@@ -490,7 +490,6 @@ let reconnected = false;
     if (client.webSocket?.readyState !== StompSocketState.OPEN) {
       transColor.value = OperaColor.FAILED
       readOnly.value = true
-      ElNotification.warning("websocket reconnecting ...")
       const token = await checkAccessToken()
       client.connectHeaders = { "Authorization": token, "Type": "EDIT" }
       reconnected = true
@@ -499,7 +498,6 @@ let reconnected = false;
       transColor.value = OperaColor.SUCCESS
       readOnly.value = false
       await loadEditContent()
-      ElNotification.success("websocket reconnected")
       await nextTick()
       reconnected = false
     }
