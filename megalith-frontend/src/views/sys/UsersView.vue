@@ -198,7 +198,7 @@ const getRegisterLink = async (username: string) => {
       </el-popconfirm>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" size="large" @click="getRegisterLink('')">注册链接</el-button>
+      <el-button type="warning" size="large" @click="getRegisterLink('')">注册链接</el-button>
     </el-form-item>
   </el-form>
 
