@@ -32,7 +32,7 @@ const formRules = reactive<FormRules<Form>>({
     { required: false, message: '请输入密码', trigger: 'blur' }
   ],
   avatar: [
-    { required: true, message: '请输入头像链接', trigger: 'blur' }
+    { required: false, message: '请输入头像链接', trigger: 'blur' }
   ],
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' }
