@@ -127,7 +127,7 @@ const { content, totalElements, pageSize } = toRefs(page);
     <div class="description">
       <el-skeleton animated :loading="loading" :throttle="300">
         <template #template>
-          <el-skeleton v-for="i in page.pageSize" v-bind:key="i" :rows="5" animated />
+          <el-skeleton v-for="i in page.pageSize" v-bind:key="i" :rows="10" animated />
         </template>
       </el-skeleton>
       <el-timeline>
