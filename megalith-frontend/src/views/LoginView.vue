@@ -39,10 +39,9 @@ const loginType = () => {
 
 let interval: NodeJS.Timeout
 const sendCode = (via: string) => {
+  if (!loginInfo.username || !loginInfo.password) return
   smsButtonDisable.value = true
   mailButtonDisable.value = true
-
-  if (!loginInfo.username || !loginInfo.password) return
   http.get(`/code/${via}?loginName=${loginInfo.username}`).then(_res => {
     ElMessage.success('发送成功')
     interval = setInterval(() => {
