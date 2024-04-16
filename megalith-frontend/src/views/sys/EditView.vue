@@ -85,12 +85,11 @@ let version = 0
 let isComposing = false
 let fieldType: string
 let readOnly = ref(false)
-let lockContent = false
 
 const pushAllData = async () => {
-  lockContent = true
+  readOnly.value = true
   await POST<null>('/sys/blog/push/all', form)
-  lockContent = false
+  readOnly.value = false
   version = 0
   if (transColor.value !== OperaColor.WARNING) {
     transColor.value = OperaColor.WARNING
@@ -131,11 +130,6 @@ const preCheck = (n: string | undefined, o: string | undefined): boolean => {
     return false
   }
 
-  if (lockContent) {
-    form.content = o
-    return false
-  }
-
   return true
 }
 
@@ -147,10 +141,6 @@ watch(() => form.description, (n, o) => {
 
 watch(() => form.status, (n, o) => {
   if (!client.connected || (!n && !o) || isComposing) return
-  if (lockContent) {
-    form.status = o
-    return
-  }
   commonPreDeal(FieldType.NON_PARA, FieldName.STATUS)
   pushActionForm.operateTypeCode = OperateTypeCode.STATUS
   pushActionForm.contentChange = form.status
