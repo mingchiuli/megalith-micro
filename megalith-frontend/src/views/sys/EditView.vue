@@ -85,9 +85,12 @@ let version = 0
 let isComposing = false
 let fieldType: string
 let readOnly = ref(false)
+let lockContent = false
 
 const pushAllData = async () => {
+  lockContent = true
   await POST<null>('/sys/blog/push/all', form)
+  lockContent = false
   version = 0
   if (transColor.value !== OperaColor.WARNING) {
     transColor.value = OperaColor.WARNING
@@ -115,14 +118,39 @@ const clearPushActionForm = () => {
   pushActionForm.paraNo = undefined
 }
 
+const preCheck = (n: string | undefined, o: string | undefined): boolean => {
+  if (!client.connected) {
+    return false
+  }
+
+  if (!n && !o) {
+    return false
+  }
+
+  if (isComposing) {
+    return false
+  }
+
+  if (lockContent) {
+    form.content = o
+    return false
+  }
+
+  return true
+}
+
 watch(() => form.description, (n, o) => {
-  if (!client.connected || (!n && !o) || isComposing) return
+  if (!preCheck(n, o)) return
   commonPreDeal(FieldType.NON_PARA, FieldName.DESCRIPTION)
   deal(n, o)
 })
 
 watch(() => form.status, (n, o) => {
   if (!client.connected || (!n && !o) || isComposing) return
+  if (lockContent) {
+    form.status = o
+    return
+  }
   commonPreDeal(FieldType.NON_PARA, FieldName.STATUS)
   pushActionForm.operateTypeCode = OperateTypeCode.STATUS
   pushActionForm.contentChange = form.status
@@ -130,19 +158,19 @@ watch(() => form.status, (n, o) => {
 })
 
 watch(() => form.link, (n, o) => {
-  if (!client.connected || (!n && !o) || isComposing) return
+  if (!preCheck(n, o)) return
   commonPreDeal(FieldType.NON_PARA, FieldName.LINK)
   deal(n, o)
 })
 
 watch(() => form.title, (n, o) => {
-  if (!client.connected || (!n && !o) || isComposing) return
+  if (!preCheck(n, o)) return
   commonPreDeal(FieldType.NON_PARA, FieldName.TITLE)
   deal(n, o)
 })
 
 watch(() => form.content, (n, o) => {
-  if (!client.connected || (!n && !o) || isComposing) return
+  if (!preCheck(n, o)) return
   commonPreDeal(FieldType.PARA, FieldName.CONTENT)
 
   const nArr = n?.split(ParaInfo.PARA_SPLIT)
