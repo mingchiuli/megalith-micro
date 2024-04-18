@@ -87,9 +87,7 @@ let fieldType: string
 let readOnly = ref(false)
 
 const pushAllData = async () => {
-  readOnly.value = true
   await POST<null>('/sys/blog/push/all', form)
-  readOnly.value = false
   version = 0
   if (transColor.value !== OperaColor.WARNING) {
     transColor.value = OperaColor.WARNING
@@ -321,19 +319,15 @@ const deal = (n: string | undefined, o: string | undefined) => {
 
   //中间插入重复字符
   if (indexStart > oIndexEnd) {
-    let len = indexStart - oIndexEnd + 1
     let contentChange
-
-    //增
-    if (nLen > oLen) {
-      contentChange = n.substring(oIndexEnd, oIndexEnd + len)
-      pushActionForm.indexStart = oIndexEnd
-      pushActionForm.indexEnd = oLen - (nLen - (oIndexEnd + len))
-      //删
+    if (nIndexEnd > oIndexEnd) {
+      pushActionForm.indexStart = indexStart
+      pushActionForm.indexEnd = indexStart
+      contentChange = n.substring(indexStart, nIndexEnd + (indexStart - oIndexEnd))
     } else {
-      contentChange = n.substring(oIndexEnd - 1, oIndexEnd - 1 + len)
-      pushActionForm.indexStart = oIndexEnd - 1
-      pushActionForm.indexEnd = oLen - (nLen - (len + oIndexEnd - 1))
+      contentChange = ''
+      pushActionForm.indexStart = indexStart
+      pushActionForm.indexEnd = indexStart + oIndexEnd - nIndexEnd
     }
     pushActionForm.contentChange = contentChange
     if (fieldType === FieldType.PARA) {

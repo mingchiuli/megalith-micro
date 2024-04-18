@@ -33,7 +33,7 @@ editorRef.value?.domEventHandlers({
   },
   compositionend: () => {
     emit('composing', false)
-  },
+  }
 });
 
 const onUploadImg = async (files: File[], callback: Function) => {
