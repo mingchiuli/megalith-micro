@@ -3,7 +3,7 @@ import { GET, POST } from '@/http/http'
 import type { PageAdapter, RoleSys, UserSys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref, toRefs } from 'vue'
-import { Status } from '@/type/entity'
+import { Status, Role } from '@/type/entity'
 import { displayStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 
@@ -254,7 +254,7 @@ const getRegisterLink = async (username: string) => {
             <el-button size="small" type="danger">删除</el-button>
           </template>
         </el-popconfirm>
-        <el-button v-if="scope.row.role !== 'admin'" size="small" type="warning" @click="getRegisterLink(scope.row.username)">修改链接</el-button>
+        <el-button v-if="scope.row.role !== Role.ADMIN" size="small" type="warning" @click="getRegisterLink(scope.row.username)">修改链接</el-button>
       </template>
     </el-table-column>
 

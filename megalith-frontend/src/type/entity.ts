@@ -263,3 +263,7 @@ export enum FieldType {
 export enum ParaInfo {
   PARA_SPLIT = '\n\n'
 }
+
+export enum Role {
+  ADMIN = 'admin'
+}
