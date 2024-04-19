@@ -13,20 +13,20 @@
   },
   "dependencies": {
     "@stomp/stompjs": "^7.0.0",
-    "@types/markdown-it": "^14.0.0",
+    "@types/markdown-it": "^14.0.1",
     "@vavt/v3-extension": "^1.1.2",
     "axios": "^1.6.8",
-    "element-plus": "^2.6.3",
+    "element-plus": "^2.7.0",
     "highlight.js": "^11.9.0",
     "js-base64": "^3.7.7",
     "markdown-it": "^14.1.0",
-    "md-editor-v3": "^4.13.0",
+    "md-editor-v3": "^4.13.2",
     "pinia": "^2.1.7",
-    "vue": "^3.4.21",
-    "vue-router": "^4.3.0"
+    "vue": "^3.4.23",
+    "vue-router": "^4.3.2"
   },
   "devDependencies": {
-    "@rushstack/eslint-patch": "^1.10.1",
+    "@rushstack/eslint-patch": "^1.10.2",
     "@tsconfig/node18": "^2.0.1",
     "@types/node": "^18.16.17",
     "@types/sockjs-client": "^1.5.4",
@@ -35,14 +35,14 @@
     "@vue/eslint-config-typescript": "^13.0.0",
     "@vue/tsconfig": "^0.5.1",
     "eslint": "^9.0.0",
-    "eslint-plugin-vue": "^9.24.1",
+    "eslint-plugin-vue": "^9.25.0",
     "prettier": "^3.2.5",
-    "typescript": "~5.4.2",
+    "typescript": "~5.4.5",
     "npm-run-all2": "^6.1.2",
     "unplugin-auto-import": "^0.17.5",
     "unplugin-element-plus": "^0.8.0",
     "unplugin-vue-components": "^0.26.0",
-    "vite": "^5.2.8",
-    "vue-tsc": "^2.0.11"
+    "vite": "^5.2.9",
+    "vue-tsc": "^2.0.13"
   }
 }
