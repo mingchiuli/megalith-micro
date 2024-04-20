@@ -202,10 +202,10 @@ const getCheckKeys = (menuForms: MenuForm[]): Array<number> => {
 
 const getKeysIds = (menuForms: MenuForm[], ids: Array<number>) => {
   menuForms.forEach(item => {
-    if (item.check && !item.children.length) {
+    if (item.check) {
       ids.push(item.menuId)
     }
-    if (item.children.length !== 0) {
+    if (item.children.length) {
       getKeysIds(item.children, ids)
     }
   })
@@ -327,7 +327,7 @@ const handleDelete = async (row: RoleSys) => {
   <el-dialog title="路由权限" v-model="menuDialogVisible" width="600px" :before-close="menuHandleClose">
     <el-form>
       <el-tree :data="menuTreeData" show-checkbox :default-expand-all=true node-key="menuId" :props="defaultProps"
-        :default-checked-keys="getCheckKeys(menuTreeData)" ref="menuTreeRef" />
+        :default-checked-keys="getCheckKeys(menuTreeData)" ref="menuTreeRef" :check-strictly="true" />
       <el-form-item label-width="450px">
         <el-button type="primary" @click="submitmenuFormHandle(menuTreeRef!)">Submit</el-button>
       </el-form-item>

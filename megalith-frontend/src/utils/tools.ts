@@ -88,11 +88,17 @@ export const diff = (oldArr: any[], newArr: any[]) => {
   return false
 }
 
-const checkButtonAuth = (name: string) => {
+export const checkButtonAuth = (name: string) => {
   const { buttonList } = storeToRefs(buttonStore())
   return buttonList.value
     .map(item => item.name)
     .includes(name)
+}
+
+export const getButtonType = (name: string) => {
+  const { buttonList } = storeToRefs(buttonStore())
+  return buttonList.value
+    .filter(item => item.name == name)[0]?.icon
 }
 
 export const submitLogin = async (username: string, password: string) => {

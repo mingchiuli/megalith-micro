@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import { reactive, ref, toRefs } from 'vue'
 import { GET, POST } from '@/http/http'
-import { Status, type BlogSys, type PageAdapter } from '@/type/entity'
+import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
 import { tabStore, displayStateStore } from '@/stores/store'
-import { render } from '@/utils/tools'
+import { render, checkButtonAuth, getButtonType } from '@/utils/tools'
 import { storeToRefs } from 'pinia'
+import http from '@/http/axios'
 
 const { moreItems } = storeToRefs(displayStateStore())
 const search = ref(false)
@@ -118,6 +119,23 @@ const handleSizeChange = async (val: number) => {
   }
 }
 
+const download = async () => {
+  http.get('/sys/blog/download').then(resp => {
+    const content = JSON.stringify(resp)
+    let fileName = 'download'
+    let blob = new Blob([content], {
+      type: 'application/json'
+    })
+    let aDom = document.createElement('a')
+    aDom.download = fileName
+    aDom.style.display = 'none'
+    aDom.href = URL.createObjectURL(blob)
+    document.body.appendChild(aDom)
+    aDom.click()
+    document.body.removeChild(aDom)
+  })
+}
+
 const handleCurrentChange = async (val: number) => {
   pageNumber.value = val
   if (input.value) {
@@ -149,6 +167,9 @@ const handleCurrentChange = async (val: number) => {
         </template>
       </el-popconfirm>
     </el-form-item>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_DOWNLOAD)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_DOWNLOAD)" size="large" @click="download">内容导出</el-button>
+    </el-form-item>
   </el-form>
 
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
@@ -163,8 +184,7 @@ const handleCurrentChange = async (val: number) => {
             <span> {{ scope.row.description }}</span>
           </template>
           <template #reference>
-            <span>{{ scope.row.description.length > 20 ? scope.row.description.substring(0, 20) + '...' :
-              scope.row.description }}</span>
+            <span>{{ scope.row.description.length > 20 ? scope.row.description.substring(0, 20) + '...' : scope.row.description }}</span>
           </template>
         </el-popover>
       </template>
@@ -178,8 +198,7 @@ const handleCurrentChange = async (val: number) => {
             <span v-html=render(scope.row.content) />
           </template>
           <template #reference>
-            <span>{{ scope.row.content.length > 30 ? scope.row.content.substring(0, 30) + '...' : scope.row.content
-            }}</span>
+            <span>{{ scope.row.content.length > 30 ? scope.row.content.substring(0, 30) + '...' : scope.row.conten }}</span>
           </template>
         </el-popover>
       </template>

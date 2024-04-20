@@ -274,3 +274,7 @@ export enum ParaInfo {
 export enum Role {
   ADMIN = 'admin'
 }
+
+export enum ButtonAuth {
+  SYS_BLOG_DOWNLOAD = 'system-blogs-download'
+}
