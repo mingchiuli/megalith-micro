@@ -1,11 +1,12 @@
 import http from '@/http/axios'
 import { GET, POST } from '@/http/http'
 import router from '@/router'
-import { loginStateStore, menuStore, tabStore } from '@/stores/store'
+import { buttonStore, loginStateStore, menuStore, tabStore } from '@/stores/store'
 import type { Data, JWTStruct, RefreshStruct, Token, UserInfo } from '@/type/entity'
 import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
+import { storeToRefs } from 'pinia'
 
 const md = new MarkdownIt({
   highlight: (str: string, lang: string) => {
@@ -85,6 +86,13 @@ export const diff = (oldArr: any[], newArr: any[]) => {
     }
   }
   return false
+}
+
+const checkButtonAuth = (name: string) => {
+  const { buttonList } = storeToRefs(buttonStore())
+  return buttonList.value
+    .map(item => item.name)
+    .includes(name)
 }
 
 export const submitLogin = async (username: string, password: string) => {
