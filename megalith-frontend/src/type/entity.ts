@@ -159,6 +159,11 @@ export interface Tab {
   name: string
 }
 
+export interface MenusAndButtons {
+  menus: Menu[]
+  buttons: Button[]
+}
+
 export interface Menu extends ChildrenFather, Button {}
 
 export interface Button {
