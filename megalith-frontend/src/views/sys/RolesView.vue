@@ -324,7 +324,7 @@ const handleDelete = async (row: RoleSys) => {
     </el-form>
   </el-dialog>
 
-  <el-dialog title="路由权限" v-model="menuDialogVisible" width="600px" :before-close="menuHandleClose">
+  <el-dialog title="菜单权限" v-model="menuDialogVisible" width="600px" :before-close="menuHandleClose">
     <el-form>
       <el-tree :data="menuTreeData" show-checkbox :default-expand-all=true node-key="menuId" :props="defaultProps"
         :default-checked-keys="getCheckKeys(menuTreeData)" ref="menuTreeRef" :check-strictly="true" />
