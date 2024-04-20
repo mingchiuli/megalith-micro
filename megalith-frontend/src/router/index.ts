@@ -71,8 +71,8 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   if (loginStateStore().login) {
-    GET<MenusAndButtons>('/sys/menu/nav').then(all => {
-      const buttons = all.buttons
+    GET<MenusAndButtons>('/sys/menu/nav').then(allKindsInfo => {
+      const buttons = allKindsInfo.buttons
       const { buttonList } = storeToRefs(buttonStore())
       const difButton = diff(buttonList.value, buttons)
       if (difButton) {
@@ -88,7 +88,7 @@ router.beforeEach(async (to, _from, next) => {
       } as RouteRecordRaw
 
       const { menuList } = storeToRefs(menuStore())
-      const menus = all.menus
+      const menus = allKindsInfo.menus
       const difMenu = diff(menuList.value, menus)
       if (difMenu) {
         menuList.value = []
