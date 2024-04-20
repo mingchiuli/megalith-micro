@@ -283,7 +283,7 @@ const handleDelete = async (row: RoleSys) => {
     <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="300" align="center">
       <template #default="scope">
         <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
-        <el-button size="small" type="warning" @click="handleMenu(scope.row)">路由权限</el-button>
+        <el-button size="small" type="warning" @click="handleMenu(scope.row)">菜单权限</el-button>
         <el-button size="small" type="info" @click="handleAuthority(scope.row)">接口权限</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
           <template #reference>
