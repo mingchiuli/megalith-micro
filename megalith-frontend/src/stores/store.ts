@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Menu, Tab } from '@/type/entity'
+import type { Button, Menu, Tab } from '@/type/entity'
 import { ref } from 'vue'
 
 
@@ -20,6 +20,11 @@ export const loginStateStore = defineStore('loginStateStore', () => {
 export const menuStore = defineStore('menuStore', () => {
   const menuList = ref<Menu[]>([])
   return { menuList }
+})
+
+export const buttonStore = defineStore('buttonStore', () => {
+  const buttonList = ref<Button[]>([])
+  return { buttonList }
 })
 
 export const tabStore = defineStore('tabStore', () => {

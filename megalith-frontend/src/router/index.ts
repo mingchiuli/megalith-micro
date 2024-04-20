@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Intro from '@/views/IntroView.vue'
 import { GET } from '@/http/http'
-import { RoutesEnum, type Menu } from '@/type/entity'
-import { menuStore, loginStateStore, displayStateStore } from '@/stores/store'
+import { RoutesEnum, type Button, type Menu } from '@/type/entity'
+import { menuStore, loginStateStore, displayStateStore, buttonStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import { diff } from '@/utils/tools'
 
@@ -72,6 +72,14 @@ router.beforeEach(async (to, _from, next) => {
 
   if (loginStateStore().login) {
     GET<Menu[]>('/sys/menu/nav').then(all => {
+      const buttons = all.filter(item => item.type === RoutesEnum.BUTTON) as Button[]
+      const { buttonList } = storeToRefs(buttonStore())
+      const difButton = diff(buttonList.value, buttons)
+      if (difButton) {
+        buttonList.value = []
+        buttons.forEach(button => buttonList.value.push(button))
+      }
+
       const systemRoute = {
         path: '/backend',
         name: 'system',
@@ -81,8 +89,8 @@ router.beforeEach(async (to, _from, next) => {
 
       const { menuList } = storeToRefs(menuStore())
       const menus = all.filter(item => RoutesEnum.BUTTON !== item.type)
-      const dif = diff(menuList.value, menus)
-      if (dif) {
+      const difMenu = diff(menuList.value, menus)
+      if (difMenu) {
         menuList.value = []
         router.removeRoute('system')
         menus

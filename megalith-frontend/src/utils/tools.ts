@@ -2,7 +2,7 @@ import http from '@/http/axios'
 import { GET, POST } from '@/http/http'
 import router from '@/router'
 import { loginStateStore, menuStore, tabStore } from '@/stores/store'
-import type {  ChildrenFather, Data, JWTStruct, RefreshStruct, Token, UserInfo } from '@/type/entity'
+import type { Data, JWTStruct, RefreshStruct, Token, UserInfo } from '@/type/entity'
 import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
@@ -59,7 +59,7 @@ export const checkAccessToken = async (): Promise<string> => {
   return accessToken
 }
 
-export const diff = (oldArr: ChildrenFather[], newArr:  ChildrenFather[]) => {
+export const diff = (oldArr: any[], newArr: any[]) => {
   if (oldArr.length !== newArr.length) {
     return true
   }
@@ -77,9 +77,11 @@ export const diff = (oldArr: ChildrenFather[], newArr:  ChildrenFather[]) => {
         return true
       }
     }
-    const dif = diff(newObj.children, oldObj.children)
-    if (dif) {
-      return true
+    if (newObj.children && oldObj.children) {
+      const dif = diff(newObj.children, oldObj.children)
+      if (dif) {
+        return true
+      }
     }
   }
   return false

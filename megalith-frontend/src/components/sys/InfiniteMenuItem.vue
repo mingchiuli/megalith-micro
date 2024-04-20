@@ -2,6 +2,7 @@
 import { tabStore } from '@/stores/store'
 import type { Menu, Tab } from '@/type/entity'
 import router from '@/router'
+import { RoutesEnum } from '@/type/entity'
 
 defineProps<{
   item: Menu
@@ -16,7 +17,7 @@ const selectMenu = (item: Tab) => {
 
 <template>
   <!-- 没有子节点，使用 el-menu-item 渲染 -->
-  <el-menu-item v-if="!item.children.length" :index="item.name" @click="selectMenu(item)">
+  <el-menu-item v-if="!item.children.length && item.type === RoutesEnum.MENU" :index="item.name" @click="selectMenu(item)">
     <template #title>
       <el-icon :size=20>
         <component :is="item.icon" />

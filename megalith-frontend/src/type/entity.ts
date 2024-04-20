@@ -159,7 +159,9 @@ export interface Tab {
   name: string
 }
 
-export interface Menu extends ChildrenFather {
+export interface Menu extends ChildrenFather, Button {}
+
+export interface Button {
   [propName: string]: any
   menuId: number
   component?: string
