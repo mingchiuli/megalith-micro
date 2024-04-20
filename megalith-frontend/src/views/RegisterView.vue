@@ -4,7 +4,7 @@ import { genFileId, type FormInstance, type FormRules, type UploadFile, type Upl
 import { GET, POST } from '@/http/http'
 import router from '@/router'
 import { useRoute } from 'vue-router'
-import { submitLogin } from '@/utils/tools'
+import { clearLoginState, submitLogin } from '@/utils/tools'
 
 type Form = {
   id?: number
@@ -32,7 +32,9 @@ const route = useRoute()
 const token = ref<string | string[]>()
 token.value = route.params.token
 const username = route.query.username as string
-form.username = username
+if (username) {
+  form.username = username
+}
 
 GET<boolean>(`/sys/user/register/check?token=${token.value}`).then(res => {
   if (!res) {
@@ -122,6 +124,7 @@ const submitForm = async (ref: FormInstance) => {
         message: '编辑成功',
         type: 'success',
       })
+      clearLoginState()
       await submitLogin(form.username, form.password)
     }
   })
@@ -158,7 +161,7 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
     <el-form :model="form" :rules="formRules" ref="formRef" class="father">
 
       <el-form-item label="用户名" label-width="80" prop="username" class="username">
-        <el-input v-model="form.username" maxlength="30" :disabled="username !== ''" />
+        <el-input v-model="form.username" maxlength="30" :disabled="username !== undefined && username !== ''" />
       </el-form-item>
 
       <el-form-item label="昵称" label-width="80" prop="nickname" class="nickname">
