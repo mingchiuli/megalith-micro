@@ -3,8 +3,10 @@ import { GET, POST } from '@/http/http'
 import type { MenuSys } from '@/type/entity'
 import { type FormInstance, type FormRules } from 'element-plus'
 import { reactive, ref } from 'vue'
-import { Status, RoutesEnum } from '@/type/entity'
+import { Status, RoutesEnum, ButtonAuth } from '@/type/entity'
 import { displayStateStore } from '@/stores/store'
+import http from '@/http/axios'
+import { checkButtonAuth, getButtonType } from '@/utils/tools'
 
 const dialogVisible = ref(false)
 const loading = ref(false)
@@ -105,6 +107,23 @@ const clearForm = () => {
   form.status = 0
 }
 
+const download = async () => {
+  http.get('/sys/menu/download').then(resp => {
+    const content = JSON.stringify(resp)
+    let fileName = 'download'
+    let blob = new Blob([content], {
+      type: 'application/json'
+    })
+    let aDom = document.createElement('a')
+    aDom.download = fileName
+    aDom.style.display = 'none'
+    aDom.href = URL.createObjectURL(blob)
+    document.body.appendChild(aDom)
+    aDom.click()
+    document.body.removeChild(aDom)
+  })
+}
+
 const queryMenus = async () => {
   loading.value = true
   const data = await GET<Array<MenuSys>>('/sys/menu/list')
@@ -152,6 +171,9 @@ const submitForm = async (ref: FormInstance) => {
   <el-form :inline="true" @submit.prevent class="button-form">
     <el-form-item>
       <el-button type="primary" size="large" @click="dialogVisible = true">新增</el-button>
+    </el-form-item>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_MENU_DOWNLOAD)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DOWNLOAD)" size="large" @click="download">内容导出</el-button>
     </el-form-item>
   </el-form>
 

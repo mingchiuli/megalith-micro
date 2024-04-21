@@ -3,8 +3,10 @@ import { GET, POST } from '@/http/http'
 import type { AuthoritySys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref } from 'vue'
-import { Status } from '@/type/entity'
+import { Status, ButtonAuth } from '@/type/entity'
 import { displayStateStore } from '@/stores/store'
+import http from '@/http/axios'
+import { checkButtonAuth, getButtonType } from '@/utils/tools'
 
 const multipleSelection = ref<AuthoritySys[]>([])
 const dialogVisible = ref(false)
@@ -81,6 +83,23 @@ const handleEdit = async (row: AuthoritySys) => {
   dialogVisible.value = true
 }
 
+const download = async () => {
+  http.get('/sys/authority/download').then(resp => {
+    const content = JSON.stringify(resp)
+    let fileName = 'download'
+    let blob = new Blob([content], {
+      type: 'application/json'
+    })
+    let aDom = document.createElement('a')
+    aDom.download = fileName
+    aDom.style.display = 'none'
+    aDom.href = URL.createObjectURL(blob)
+    document.body.appendChild(aDom)
+    aDom.click()
+    document.body.removeChild(aDom)
+  })
+}
+
 const handleSelectionChange = (val: AuthoritySys[]) => {
   multipleSelection.value = val
   delBtlStatus.value = val.length === 0
@@ -137,6 +156,9 @@ const clearForm = () => {
           <el-button type="danger" size="large" :disabled="delBtlStatus">批量删除</el-button>
         </template>
       </el-popconfirm>
+    </el-form-item>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)" size="large" @click="download">内容导出</el-button>
     </el-form-item>
   </el-form>
 

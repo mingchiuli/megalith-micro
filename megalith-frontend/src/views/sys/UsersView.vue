@@ -3,9 +3,11 @@ import { GET, POST } from '@/http/http'
 import type { PageAdapter, RoleSys, UserSys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref, toRefs } from 'vue'
-import { Status, Role } from '@/type/entity'
+import { Status, Role, ButtonAuth } from '@/type/entity'
 import { displayStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
+import http from '@/http/axios'
+import { checkButtonAuth, getButtonType } from '@/utils/tools'
 
 const { moreItems } = storeToRefs(displayStateStore())
 const multipleSelection = ref<UserSys[]>([])
@@ -146,6 +148,23 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
+const download = async () => {
+  http.get('/sys/user/download').then(resp => {
+    const content = JSON.stringify(resp)
+    let fileName = 'download'
+    let blob = new Blob([content], {
+      type: 'application/json'
+    })
+    let aDom = document.createElement('a')
+    aDom.download = fileName
+    aDom.style.display = 'none'
+    aDom.href = URL.createObjectURL(blob)
+    document.body.appendChild(aDom)
+    aDom.click()
+    document.body.removeChild(aDom)
+  })
+}
+
 const clearForm = () => {
   form.id = undefined
   form.username = ''
@@ -199,6 +218,9 @@ const getRegisterLink = async (username: string) => {
     </el-form-item>
     <el-form-item>
       <el-button type="warning" size="large" @click="getRegisterLink('')">注册链接</el-button>
+    </el-form-item>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_USER_DOWNLOAD)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_USER_DOWNLOAD)" size="large" @click="download">内容导出</el-button>
     </el-form-item>
   </el-form>
 

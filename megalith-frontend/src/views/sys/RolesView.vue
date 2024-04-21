@@ -2,10 +2,12 @@
 import { GET, POST } from '@/http/http'
 import type { PageAdapter, RoleSys } from '@/type/entity'
 import type { ElTree, FormInstance, FormRules } from 'element-plus'
-import { Status } from '@/type/entity'
+import { Status, ButtonAuth } from '@/type/entity'
 import { reactive, ref, toRefs } from 'vue'
 import { displayStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
+import http from '@/http/axios'
+import { checkButtonAuth, getButtonType } from '@/utils/tools'
 
 const { moreItems } = storeToRefs(displayStateStore())
 const dialogVisible = ref(false)
@@ -68,6 +70,23 @@ type AuthorityForm = {
   authorityId: number
   code: string
   check: boolean
+}
+
+const download = async () => {
+  http.get('/sys/role/download').then(resp => {
+    const content = JSON.stringify(resp)
+    let fileName = 'download'
+    let blob = new Blob([content], {
+      type: 'application/json'
+    })
+    let aDom = document.createElement('a')
+    aDom.download = fileName
+    aDom.style.display = 'none'
+    aDom.href = URL.createObjectURL(blob)
+    document.body.appendChild(aDom)
+    aDom.click()
+    document.body.removeChild(aDom)
+  })
 }
 
 const submitmenuFormHandle = async (ref: InstanceType<typeof ElTree>) => {
@@ -239,6 +258,9 @@ const handleDelete = async (row: RoleSys) => {
           <el-button type="danger" size="large" :disabled="delBtlStatus">批量删除</el-button>
         </template>
       </el-popconfirm>
+    </el-form-item>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_DOWNLOAD)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_DOWNLOAD)" size="large" @click="download">内容导出</el-button>
     </el-form-item>
   </el-form>
 

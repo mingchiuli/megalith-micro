@@ -276,5 +276,9 @@ export enum Role {
 }
 
 export enum ButtonAuth {
-  SYS_BLOG_DOWNLOAD = 'system-blogs-download'
+  SYS_BLOG_DOWNLOAD = 'system-blogs-download',
+  SYS_AUTHORITY_DOWNLOAD = 'system-authorities-download',
+  SYS_USER_DOWNLOAD = 'system-users-download',
+  SYS_MENU_DOWNLOAD = 'system-menus-download',
+  SYS_ROLE_DOWNLOAD = 'system-roles-download'
 }
