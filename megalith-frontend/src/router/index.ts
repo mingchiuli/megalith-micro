@@ -70,51 +70,65 @@ router.beforeEach(async (to, _from, next) => {
     })
   }
 
-  if (loginStateStore().login) {
-    GET<MenusAndButtons>('/sys/menu/nav').then(allKindsInfo => {
-      const buttons = allKindsInfo.buttons
-      const { buttonList } = storeToRefs(buttonStore())
-      const difButton = diff(buttonList.value, buttons)
-      if (difButton) {
-        buttonList.value = []
-        buttons.forEach(button => buttonList.value.push(button))
-      }
-
-      const systemRoute = {
-        path: '/backend',
-        name: 'system',
-        component: () => import('@/views/SystemView.vue'),
-        children: []
-      } as RouteRecordRaw
-
-      const { menuList } = storeToRefs(menuStore())
-      const menus = allKindsInfo.menus
-      const difMenu = diff(menuList.value, menus)
-      if (difMenu) {
-        menuList.value = []
-        if(router.hasRoute('system')) {
-          router.removeRoute('system')
-        }
-        menus
-          .forEach(menu => {
-            menuList.value.push(menu)
-            const route = buildRoute(menu, systemRoute)
-            if (route.path) {
-              systemRoute.children?.push(route)
-            }
-          })
-        //后台刷新404
-        router.addRoute(systemRoute)
-      }
-      router.push(to.path)
-    })
-  }
-
   if (to.meta.title) {
     document.title = to.meta.title as string
   }
-  next()
+
+  if (loginStateStore().login) {
+    let allKindsInfo: MenusAndButtons
+    if (!router.hasRoute(to.name!)) {
+      //页面被手动刷新
+      allKindsInfo = await GET<MenusAndButtons>('/sys/menu/nav')
+      callBackRequireRoutes(allKindsInfo)
+      //重定向解决刷新404
+      next(to.path)
+    } else {
+      GET<MenusAndButtons>('/sys/menu/nav').then(resp => {
+        allKindsInfo = resp
+        callBackRequireRoutes(allKindsInfo)
+      })
+      next()
+    }
+  }
 })
+
+
+const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
+  const buttons = allKindsInfo.buttons
+  const { buttonList } = storeToRefs(buttonStore())
+  const difButton = diff(buttonList.value, buttons)
+  if (difButton) {
+    buttonList.value = []
+    buttons.forEach(button => buttonList.value.push(button))
+  }
+
+  const systemRoute = {
+    path: '/backend',
+    name: 'system',
+    component: () => import('@/views/SystemView.vue'),
+    children: []
+  } as RouteRecordRaw
+
+  const { menuList } = storeToRefs(menuStore())
+  const menus = allKindsInfo.menus
+  const difMenu = diff(menuList.value, menus)
+  if (difMenu) {
+    menuList.value = []
+    if (router.hasRoute('system')) {
+      router.removeRoute('system')
+    }
+    menus
+      .forEach(menu => {
+        menuList.value.push(menu)
+        const route = buildRoute(menu, systemRoute)
+        if (route.path) {
+          systemRoute.children?.push(route)
+        }
+      })
+
+    router.addRoute(systemRoute)
+  }
+}
 
 //构建路由
 const buildRoute = (menu: Menu, systemRoute: RouteRecordRaw): RouteRecordRaw => {
