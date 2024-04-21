@@ -1,5 +1,5 @@
 import http from '@/http/axios'
-import { GET, POST } from '@/http/http'
+import { DOWNLOAD_DATA, GET, POST } from '@/http/http'
 import router from '@/router'
 import { buttonStore, loginStateStore, menuStore, tabStore } from '@/stores/store'
 import type { Data, JWTStruct, RefreshStruct, Token, UserInfo } from '@/type/entity'
@@ -103,6 +103,12 @@ export const getButtonType = (name: string) => {
     .filter(item => item.name == name)[0]?.icon
 }
 
+export const getButtonTitle = (name: string) => {
+  const { buttonList } = storeToRefs(buttonStore())
+  return buttonList.value
+    .filter(item => item.name == name)[0]?.title
+}
+
 export const submitLogin = async (username: string, password: string) => {
   const form = new FormData()
   form.append('username', username)
@@ -114,4 +120,20 @@ export const submitLogin = async (username: string, password: string) => {
   const info = await GET<UserInfo>('/token/userinfo')
   localStorage.setItem('userinfo', JSON.stringify(info))
   router.push('/blogs')
+}
+
+export const downloadData = async (url: string) => {
+  const resp = await DOWNLOAD_DATA(url)
+  const content = JSON.stringify(resp)
+  let fileName = 'download'
+  let blob = new Blob([content], {
+    type: 'application/json'
+  })
+  let aDom = document.createElement('a')
+  aDom.download = fileName
+  aDom.style.display = 'none'
+  aDom.href = URL.createObjectURL(blob)
+  document.body.appendChild(aDom)
+  aDom.click()
+  document.body.removeChild(aDom)
 }

@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { GET } from '@/http/http'
 import type { BlogDelSys, PageAdapter } from '@/type/entity'
-import { Status } from '@/type/entity'
+import { Status, ButtonAuth } from '@/type/entity'
 import { reactive, ref, toRefs } from 'vue'
-import { render } from '@/utils/tools'
 import { displayStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
+import { checkButtonAuth, getButtonType, render, getButtonTitle } from '@/utils/tools'
 
 const { moreItems } = storeToRefs(displayStateStore())
 const loading = ref(false)
@@ -138,7 +138,7 @@ const handleResume = async (row: BlogDelSys) => {
 
     <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="120" align="center">
       <template #default="scope">
-        <el-button size="small" type="primary" @click="handleResume(scope.row)">恢复</el-button>
+        <el-button size="small" :type="getButtonType(ButtonAuth.SYS_DELETE_RESUME)" v-if="checkButtonAuth(ButtonAuth.SYS_DELETE_RESUME)" @click="handleResume(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_DELETE_RESUME) }}</el-button>
       </template>
     </el-table-column>
   </el-table>

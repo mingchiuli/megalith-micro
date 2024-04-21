@@ -3,9 +3,9 @@ import { GET, POST } from '@/http/http'
 import type { AuthoritySys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref } from 'vue'
-import { Status } from '@/type/entity'
+import { Status, ButtonAuth } from '@/type/entity'
 import { displayStateStore } from '@/stores/store'
-import http from '@/http/axios'
+import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
 
 const multipleSelection = ref<AuthoritySys[]>([])
 const dialogVisible = ref(false)
@@ -82,23 +82,6 @@ const handleEdit = async (row: AuthoritySys) => {
   dialogVisible.value = true
 }
 
-const download = async () => {
-  http.get('/sys/authority/download').then(resp => {
-    const content = JSON.stringify(resp)
-    let fileName = 'download'
-    let blob = new Blob([content], {
-      type: 'application/json'
-    })
-    let aDom = document.createElement('a')
-    aDom.download = fileName
-    aDom.style.display = 'none'
-    aDom.href = URL.createObjectURL(blob)
-    document.body.appendChild(aDom)
-    aDom.click()
-    document.body.removeChild(aDom)
-  })
-}
-
 const handleSelectionChange = (val: AuthoritySys[]) => {
   multipleSelection.value = val
   delBtlStatus.value = val.length === 0
@@ -146,18 +129,18 @@ const clearForm = () => {
 
 <template>
   <el-form :inline="true" @submit.prevent class="button-form">
-    <el-form-item>
-      <el-button type="primary" size="large" @click="dialogVisible = true">新增</el-button>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_CREATE)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_CREATE)" size="large" @click="dialogVisible = true">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_CREATE) }}</el-button>
     </el-form-item>
-    <el-form-item>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_BATCH_DEL)">
       <el-popconfirm title="确定批量删除?" @confirm="delBatch">
         <template #reference>
-          <el-button type="danger" size="large" :disabled="delBtlStatus">批量删除</el-button>
+          <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_BATCH_DEL)"  size="large" :disabled="delBtlStatus">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_BATCH_DEL) }}</el-button>
         </template>
       </el-popconfirm>
     </el-form-item>
-    <el-form-item>
-      <el-button type="info" size="large" @click="download">内容导出</el-button>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)" size="large" @click="downloadData('/sys/authority/download')">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_DOWNLOAD) }}</el-button>
     </el-form-item>
   </el-form>
 
@@ -200,10 +183,10 @@ const clearForm = () => {
 
     <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="180" align="center">
       <template #default="scope">
-        <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
+        <el-button size="small" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_EDIT)" v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_EDIT) }}</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
           <template #reference>
-            <el-button size="small" type="danger">删除</el-button>
+            <el-button size="small" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DELETE)" v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_DELETE) }}</el-button>
           </template>
         </el-popconfirm>
       </template>
@@ -214,19 +197,19 @@ const clearForm = () => {
   <el-dialog v-model="dialogVisible" title="新增/编辑" width="600px" :before-close="handleClose">
     <el-form :model="form" :rules="formRules" ref="formRef">
 
-      <el-form-item label="接口名字" label-width="100px" prop="name" >
+      <el-form-item label="接口名字" label-width="100px" prop="name">
         <el-input v-model="form.name" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="唯一编码" label-width="100px" prop="code" >
+      <el-form-item label="唯一编码" label-width="100px" prop="code">
         <el-input v-model="form.code" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="描述" label-width="100px" prop="remark" >
+      <el-form-item label="描述" label-width="100px" prop="remark">
         <el-input v-model="form.remark" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="状态" label-width="100px" prop="status" >
+      <el-form-item label="状态" label-width="100px" prop="status">
         <el-radio-group v-model="form.status">
           <el-radio :value=Status.NORMAL>启用</el-radio>
           <el-radio :value=Status.BLOCK>禁用</el-radio>
@@ -248,4 +231,3 @@ const clearForm = () => {
   margin-right: 10px
 }
 </style>
-

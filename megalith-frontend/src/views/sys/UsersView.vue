@@ -3,10 +3,10 @@ import { GET, POST } from '@/http/http'
 import type { PageAdapter, RoleSys, UserSys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref, toRefs } from 'vue'
-import { Status, Role } from '@/type/entity'
+import { Status, ButtonAuth } from '@/type/entity'
 import { displayStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
-import http from '@/http/axios'
+import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
 
 const { moreItems } = storeToRefs(displayStateStore())
 const multipleSelection = ref<UserSys[]>([])
@@ -147,23 +147,6 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
-const download = async () => {
-  http.get('/sys/user/download').then(resp => {
-    const content = JSON.stringify(resp)
-    let fileName = 'download'
-    let blob = new Blob([content], {
-      type: 'application/json'
-    })
-    let aDom = document.createElement('a')
-    aDom.download = fileName
-    aDom.style.display = 'none'
-    aDom.href = URL.createObjectURL(blob)
-    document.body.appendChild(aDom)
-    aDom.click()
-    document.body.removeChild(aDom)
-  })
-}
-
 const clearForm = () => {
   form.id = undefined
   form.username = ''
@@ -205,21 +188,21 @@ const getRegisterLink = async (username: string) => {
 
 <template>
   <el-form :inline="true" @submit.prevent class="button-form">
-    <el-form-item>
-      <el-button type="primary" size="large" @click="dialogVisible = true">新增</el-button>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_USER_CREATE)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_USER_CREATE)" size="large" @click="dialogVisible = true">{{ getButtonTitle(ButtonAuth.SYS_USER_CREATE) }}</el-button>
     </el-form-item>
-    <el-form-item>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_USER_BATCH_DEL)">
       <el-popconfirm title="确定批量删除?" @confirm="delBatch">
         <template #reference>
-          <el-button type="danger" size="large" :disabled="delBtlStatus">批量删除</el-button>
+          <el-button :type="getButtonType(ButtonAuth.SYS_USER_BATCH_DEL)" size="large" :disabled="delBtlStatus">{{ getButtonTitle(ButtonAuth.SYS_USER_BATCH_DEL) }}</el-button>
         </template>
       </el-popconfirm>
     </el-form-item>
-    <el-form-item>
-      <el-button type="warning" size="large" @click="getRegisterLink('')">注册链接</el-button>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_USER_REGISTER)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_USER_REGISTER)" size="large" @click="getRegisterLink('')">{{ getButtonTitle(ButtonAuth.SYS_USER_REGISTER) }}</el-button>
     </el-form-item>
-    <el-form-item>
-      <el-button type="info" size="large" @click="download">内容导出</el-button>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_USER_DOWNLOAD)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_USER_DOWNLOAD)" size="large" @click="downloadData('/sys/user/download')">{{ getButtonTitle(ButtonAuth.SYS_USER_DOWNLOAD) }}</el-button>
     </el-form-item>
   </el-form>
 
@@ -269,13 +252,13 @@ const getRegisterLink = async (username: string) => {
 
     <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="280" align="center">
       <template #default="scope">
-        <el-button size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
+        <el-button size="small" v-if="checkButtonAuth(ButtonAuth.SYS_USER_EDIT)" :type="getButtonType(ButtonAuth.SYS_USER_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_USER_EDIT) }}</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
           <template #reference>
-            <el-button size="small" type="danger">删除</el-button>
+            <el-button size="small" v-if="checkButtonAuth(ButtonAuth.SYS_USER_DELETE)" :type="getButtonType(ButtonAuth.SYS_USER_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_USER_DELETE) }}</el-button>
           </template>
         </el-popconfirm>
-        <el-button v-if="scope.row.role !== Role.ADMIN" size="small" type="warning" @click="getRegisterLink(scope.row.username)">修改链接</el-button>
+        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_USER_MODIFY_REGISTER)" size="small" :type="getButtonType(ButtonAuth.SYS_USER_MODIFY_REGISTER)" @click="getRegisterLink(scope.row.username)">{{ getButtonTitle(ButtonAuth.SYS_USER_MODIFY_REGISTER) }}</el-button>
       </template>
     </el-table-column>
 

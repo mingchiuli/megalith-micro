@@ -4,10 +4,9 @@ import { GET, POST } from '@/http/http'
 import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
-import { tabStore, displayStateStore } from '@/stores/store'
-import { render, checkButtonAuth, getButtonType } from '@/utils/tools'
+import { displayStateStore } from '@/stores/store'
+import { render, checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
 import { storeToRefs } from 'pinia'
-import http from '@/http/axios'
 
 const { moreItems } = storeToRefs(displayStateStore())
 const search = ref(false)
@@ -119,22 +118,6 @@ const handleSizeChange = async (val: number) => {
   }
 }
 
-const download = async () => {
-  http.get('/sys/blog/download').then(resp => {
-    const content = JSON.stringify(resp)
-    let fileName = 'download'
-    let blob = new Blob([content], {
-      type: 'application/json'
-    })
-    let aDom = document.createElement('a')
-    aDom.download = fileName
-    aDom.style.display = 'none'
-    aDom.href = URL.createObjectURL(blob)
-    document.body.appendChild(aDom)
-    aDom.click()
-    document.body.removeChild(aDom)
-  })
-}
 
 const handleCurrentChange = async (val: number) => {
   pageNumber.value = val
@@ -156,18 +139,18 @@ const handleCurrentChange = async (val: number) => {
       <el-input v-model="input" placeholder="Please input" clearable maxlength="20" size="large" class="search-input"
         @clear="clearQueryBLogs" @keyup.enter="searchBlogs" />
     </el-form-item>
-    <el-form-item>
-      <el-button type="primary" size="large" @click="searchBlogs">搜索</el-button>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_SEARCH)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_SEARCH)" size="large" @click="searchBlogs">{{ getButtonTitle(ButtonAuth.SYS_BLOG_SEARCH) }}</el-button>
     </el-form-item>
-    <el-form-item>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_BATCH_DEL)">
       <el-popconfirm title="确定批量删除?" @confirm="delBatch">
         <template #reference>
-          <el-button type="danger" size="large" :disabled="delBtlStatus">批量删除</el-button>
+          <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_BATCH_DEL)" size="large" :disabled="delBtlStatus">{{ getButtonTitle(ButtonAuth.SYS_BLOG_BATCH_DEL) }}</el-button>
         </template>
       </el-popconfirm>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_DOWNLOAD)" size="large" @click="download">内容导出</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_DOWNLOAD)" size="large" @click="downloadData('/sys/blog/download')">{{ getButtonTitle(ButtonAuth.SYS_BLOG_DOWNLOAD) }}</el-button>
     </el-form-item>
   </el-form>
 
@@ -197,7 +180,7 @@ const handleCurrentChange = async (val: number) => {
             <span v-html=render(scope.row.content) />
           </template>
           <template #reference>
-            <span>{{ scope.row.content.length > 30 ? scope.row.content.substring(0, 30) + '...' : scope.row.conten }}</span>
+            <span>{{ scope.row.content.length > 30 ? scope.row.content.substring(0, 30) + '...' : scope.row.content }}</span>
           </template>
         </el-popover>
       </template>
@@ -247,13 +230,13 @@ const handleCurrentChange = async (val: number) => {
 
     <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="300" align="center">
       <template #default="scope">
-        <el-button size="small" type="primary" @click="handleCheck(scope.row)">查看</el-button>
-        <el-button v-if="scope.row.owner" size="small" type="success" @click="handleEdit(scope.row)">编辑</el-button>
-        <el-button v-if="scope.row.status === Status.BLOCK" size="small" type="warning"
-          @click="handlePassword(scope.row)">密码</el-button>
+        <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_CHECK)" v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_CHECK)" @click="handleCheck(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_CHECK) }}</el-button>
+        <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_EDIT)" v-if="scope.row.owner && checkButtonAuth(ButtonAuth.SYS_BLOG_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_EDIT) }}</el-button>
+        <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_PASSWORD)" v-if="scope.row.status === Status.BLOCK && checkButtonAuth(ButtonAuth.SYS_BLOG_PASSWORD)"
+          @click="handlePassword(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_PASSWORD) }}</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
           <template #reference>
-            <el-button size="small" type="danger">删除</el-button>
+            <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_DELETE)" v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_DELETE) }}</el-button>
           </template>
         </el-popconfirm>
       </template>

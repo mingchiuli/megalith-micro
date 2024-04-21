@@ -2,10 +2,11 @@
 import { reactive, ref, toRefs } from 'vue'
 import type { PageAdapter, SearchFavors } from '@/type/entity'
 import { GET, POST } from '@/http/http'
-import { Status } from '@/type/entity'
+import { Status, ButtonAuth } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { storeToRefs } from 'pinia'
 import { displayStateStore } from '@/stores/store'
+import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 
 const { moreItems } = storeToRefs(displayStateStore())
 const input = ref('')
@@ -150,11 +151,11 @@ const handleSizeChange = async (val: number) => {
       <el-input v-model="input" placeholder="Please input" clearable maxlength="20" size="large" class="search-input"
         @clear="clearSearchFavors" @keyup.enter="searchFavors" />
     </el-form-item>
-    <el-form-item>
-      <el-button type="primary" size="large" @click="searchFavors">搜索</el-button>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_FAVOR_SEARCH)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_FAVOR_SEARCH)" size="large" @click="searchFavors">{{ getButtonTitle(ButtonAuth.SYS_FAVOR_SEARCH) }}</el-button>
     </el-form-item>
-    <el-form-item>
-      <el-button type="primary" size="large" @click="dialogVisible = true">新增</el-button>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_FAVOR_CREATE)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_FAVOR_CREATE)" size="large" @click="dialogVisible = true">{{ getButtonTitle(ButtonAuth.SYS_FAVOR_CREATE) }}</el-button>
     </el-form-item>
   </el-form>
 
@@ -168,10 +169,10 @@ const handleSizeChange = async (val: number) => {
           <template #header>
             <el-link @click="to(favor.link)">{{ favor.title }}</el-link>
             <div class="icon-button">
-              <el-button link @click="handleEdit(favor.id)">编辑</el-button>
+              <el-button v-if="checkButtonAuth(ButtonAuth.SYS_FAVOR_EDIT)" link @click="handleEdit(favor.id)">{{ getButtonTitle(ButtonAuth.SYS_FAVOR_EDIT) }}</el-button>
               <el-popconfirm title="确认删除?" @confirm="handleDelete(favor.id)">
                 <template #reference>
-                  <el-button link>删除</el-button>
+                  <el-button link v-if="checkButtonAuth(ButtonAuth.SYS_FAVOR_DELETE)" >{{ getButtonTitle(ButtonAuth.SYS_FAVOR_DELETE) }}</el-button>
                 </template>
               </el-popconfirm>
             </div>

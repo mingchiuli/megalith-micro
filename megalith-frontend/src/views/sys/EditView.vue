@@ -2,14 +2,14 @@
 import { defineAsyncComponent, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
-import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status } from '@/type/entity'
+import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
-import { tabStore, blogsStore } from '@/stores/store'
+import { blogsStore } from '@/stores/store'
 import { Client, StompSocketState } from '@stomp/stompjs'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { checkAccessToken } from '@/utils/tools'
+import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 
 let timer: NodeJS.Timeout
 
@@ -571,7 +571,7 @@ let reconnected = false;
       </el-form-item>
 
       <div class="submit-button">
-        <el-button type="primary" @click="submitForm(formRef!)" :disabled="readOnly">Submit</el-button>
+        <el-button :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)" v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)" @click="submitForm(formRef!)" :disabled="readOnly">{{ getButtonTitle(ButtonAuth.SYS_EDIT_COMMIT) }}</el-button>
       </div>
     </el-form>
 

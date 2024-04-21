@@ -3,9 +3,10 @@ import { GET, POST } from '@/http/http'
 import type { MenuSys } from '@/type/entity'
 import { type FormInstance, type FormRules } from 'element-plus'
 import { reactive, ref } from 'vue'
-import { Status, RoutesEnum } from '@/type/entity'
+import { Status, RoutesEnum, ButtonAuth } from '@/type/entity'
 import { displayStateStore } from '@/stores/store'
-import http from '@/http/axios'
+import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
+
 
 const dialogVisible = ref(false)
 const loading = ref(false)
@@ -106,23 +107,6 @@ const clearForm = () => {
   form.status = 0
 }
 
-const download = async () => {
-  http.get('/sys/menu/download').then(resp => {
-    const content = JSON.stringify(resp)
-    let fileName = 'download'
-    let blob = new Blob([content], {
-      type: 'application/json'
-    })
-    let aDom = document.createElement('a')
-    aDom.download = fileName
-    aDom.style.display = 'none'
-    aDom.href = URL.createObjectURL(blob)
-    document.body.appendChild(aDom)
-    aDom.click()
-    document.body.removeChild(aDom)
-  })
-}
-
 const queryMenus = async () => {
   loading.value = true
   const data = await GET<Array<MenuSys>>('/sys/menu/list')
@@ -168,11 +152,11 @@ const submitForm = async (ref: FormInstance) => {
 
 <template>
   <el-form :inline="true" @submit.prevent class="button-form">
-    <el-form-item>
-      <el-button type="primary" size="large" @click="dialogVisible = true">新增</el-button>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_MENU_CREATE)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_MENU_CREATE)" size="large" @click="dialogVisible = true">{{ getButtonTitle(ButtonAuth.SYS_MENU_CREATE) }}</el-button>
     </el-form-item>
-    <el-form-item>
-      <el-button type="info" size="large" @click="download">内容导出</el-button>
+    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_MENU_DOWNLOAD)">
+      <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DOWNLOAD)" size="large" @click="downloadData('/sys/menu/download')">{{ getButtonTitle(ButtonAuth.SYS_MENU_DOWNLOAD) }}</el-button>
     </el-form-item>
   </el-form>
 
@@ -226,11 +210,11 @@ const submitForm = async (ref: FormInstance) => {
     <el-table-column :fixed="displayStateStore().fix" prop="icon" label="操作" align="center" min-width="250">
 
       <template #default="scope">
-        <el-button size="small" type="success" @click="handleEdit(scope.row)"
-          v-if="scope.row.menuId !== 0">编辑</el-button>
+        <el-button size="small" :type="getButtonType(ButtonAuth.SYS_MENU_EDIT)" @click="handleEdit(scope.row)"
+          v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_EDIT)">{{ getButtonTitle(ButtonAuth.SYS_MENU_EDIT) }}</el-button>
         <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)" v-if="scope.row.menuId !== 0">
           <template #reference>
-            <el-button size="small" type="danger">删除</el-button>
+            <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DELETE)" size="small" v-if="checkButtonAuth(ButtonAuth.SYS_MENU_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_MENU_DELETE) }}</el-button>
           </template>
         </el-popconfirm>
       </template>
