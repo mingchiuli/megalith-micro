@@ -21,7 +21,9 @@ export const clearLoginState = () => {
   localStorage.removeItem('accessToken')
   localStorage.removeItem('refreshToken')
   localStorage.removeItem('userinfo')
-  router.removeRoute('system')
+  if(router.hasRoute('system')) {
+    router.removeRoute('system')
+  }
   loginStateStore().login = false
   menuStore().menuList = []
   tabStore().editableTabs = []

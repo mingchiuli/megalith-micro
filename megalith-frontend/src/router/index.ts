@@ -92,7 +92,9 @@ router.beforeEach(async (to, _from, next) => {
       const difMenu = diff(menuList.value, menus)
       if (difMenu) {
         menuList.value = []
-        router.removeRoute('system')
+        if(router.hasRoute('system')) {
+          router.removeRoute('system')
+        }
         menus
           .forEach(menu => {
             menuList.value.push(menu)
@@ -101,8 +103,10 @@ router.beforeEach(async (to, _from, next) => {
               systemRoute.children?.push(route)
             }
           })
+        //后台刷新404
         router.addRoute(systemRoute)
       }
+      router.push(to.path)
     })
   }
 
