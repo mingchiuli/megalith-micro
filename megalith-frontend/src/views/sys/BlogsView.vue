@@ -146,7 +146,6 @@ const handleCurrentChange = async (val: number) => {
 }
 
 (async () => {
-  tabStore().addTab({ title: '日志管理', name: 'system-blogs' })
   await queryBLogs()
 })()
 </script>

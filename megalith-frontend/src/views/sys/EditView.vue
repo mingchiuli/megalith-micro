@@ -496,7 +496,6 @@ onUnmounted(() => {
 let reconnected = false;
 (async () => {
   await loadEditContent()
-  tabStore().addTab({ title: '编辑博客', name: 'system-edit' })
   connect()
   timer = setInterval(async () => {
     if (client.webSocket?.readyState !== StompSocketState.OPEN) {
