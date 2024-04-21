@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Intro from '@/views/IntroView.vue'
 import { GET } from '@/http/http'
-import { type Menu, type MenusAndButtons } from '@/type/entity'
-import { menuStore, loginStateStore, displayStateStore, buttonStore } from '@/stores/store'
+import { type Menu, type MenusAndButtons, type Tab } from '@/type/entity'
+import { menuStore, loginStateStore, displayStateStore, buttonStore, tabStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import { diff } from '@/utils/tools'
 
@@ -80,6 +80,13 @@ router.beforeEach(async (to, _from, next) => {
       //页面被手动刷新
       allKindsInfo = await GET<MenusAndButtons>('/sys/menu/nav')
       callBackRequireRoutes(allKindsInfo)
+      if (to.path.startsWith('/sys')) {
+        const menu = findByPath(allKindsInfo.menus, to.path)
+        if (menu) {
+          const tab: Tab = { "name": menu.name, "title": menu.title }
+          tabStore().addTab(tab)
+        }
+      }
       //重定向解决刷新404
       next(to.path)
     } else {
@@ -91,6 +98,20 @@ router.beforeEach(async (to, _from, next) => {
     }
   }
 })
+
+const findByPath = (menus: Menu[], path: string): Menu | undefined => {
+  for (const menu of menus) {
+    if (menu.url === path) {
+      return menu
+    }
+    if (menu.children) {
+      const item = findByPath(menu.children, path)
+      if (item) {
+        return item
+      }
+    }
+  }
+}
 
 
 const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
