@@ -17,7 +17,7 @@ const props = {
   label: 'title',
   //这个value代表根据这个值找节点，和v-model="value"的value不是一个概念
   value: 'menuId',
-  disabled: (data: MenuSys) => data.status !== 0 || data.type !== RoutesEnum.BUTTON
+  disabled: (data: MenuSys) => data.status !== 0 || data.type === RoutesEnum.BUTTON
 }
 
 type Form = {
