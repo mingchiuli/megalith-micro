@@ -167,7 +167,7 @@ const submitForm = async (ref: FormInstance) => {
 
     <el-table-column prop="type" label="类型" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.type === RoutesEnum.CATALOUGE">分类</el-tag>
+        <el-tag size="small" v-if="scope.row.type === RoutesEnum.CATALOGUE">分类</el-tag>
         <el-tag size="small" v-else-if="scope.row.type === RoutesEnum.MENU" type="success">菜单</el-tag>
         <el-tag size="small" v-else-if="scope.row.type === RoutesEnum.BUTTON" type="info">按钮</el-tag>
       </template>
@@ -249,7 +249,7 @@ const submitForm = async (ref: FormInstance) => {
 
       <el-form-item label="类型" prop="type" label-width="100px">
         <el-radio-group v-model="form.type">
-          <el-radio :value=RoutesEnum.CATALOUGE>分类</el-radio>
+          <el-radio :value=RoutesEnum.CATALOGUE>分类</el-radio>
           <el-radio :value=RoutesEnum.MENU>菜单</el-radio>
           <el-radio :value=RoutesEnum.BUTTON>按钮</el-radio>
         </el-radio-group>
