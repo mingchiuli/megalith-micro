@@ -27,7 +27,7 @@ const selectMenu = (item: Tab) => {
   </el-menu-item>
 
   <!-- 有子节点，使用 el-sub-menu 渲染 -->
-  <el-sub-menu v-else-if="item.type === RoutesEnum.CATALOUGE" :index="String(item.menuId)">
+  <el-sub-menu v-else-if="item.type === RoutesEnum.CATALOGUE" :index="String(item.menuId)">
     <template #title>
       <el-icon :size=20>
         <component :is="item.icon" />

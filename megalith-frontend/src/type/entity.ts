@@ -225,7 +225,7 @@ export enum Status {
 }
 
 export enum RoutesEnum {
-  CATALOUGE = 0,
+  CATALOGUE = 0,
   MENU,
   BUTTON
 }
