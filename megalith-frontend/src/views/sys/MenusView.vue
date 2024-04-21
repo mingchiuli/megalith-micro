@@ -207,7 +207,7 @@ const submitForm = async (ref: FormInstance) => {
         <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">禁用</el-tag>
       </template>
     </el-table-column>
-    <el-table-column :fixed="displayStateStore().fix" prop="icon" label="操作" align="center" min-width="250">
+    <el-table-column :fixed="displayStateStore().fix" prop="icon" label="操作" align="center" min-width="180">
 
       <template #default="scope">
         <el-button size="small" :type="getButtonType(ButtonAuth.SYS_MENU_EDIT)" @click="handleEdit(scope.row)"
