@@ -3,10 +3,9 @@ import { GET, POST } from '@/http/http'
 import type { MenuSys } from '@/type/entity'
 import { type FormInstance, type FormRules } from 'element-plus'
 import { reactive, ref } from 'vue'
-import { Status, RoutesEnum, ButtonAuth } from '@/type/entity'
+import { Status, RoutesEnum } from '@/type/entity'
 import { displayStateStore } from '@/stores/store'
 import http from '@/http/axios'
-import { checkButtonAuth, getButtonType } from '@/utils/tools'
 
 const dialogVisible = ref(false)
 const loading = ref(false)
@@ -172,8 +171,8 @@ const submitForm = async (ref: FormInstance) => {
     <el-form-item>
       <el-button type="primary" size="large" @click="dialogVisible = true">新增</el-button>
     </el-form-item>
-    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_MENU_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DOWNLOAD)" size="large" @click="download">内容导出</el-button>
+    <el-form-item>
+      <el-button type="info" size="large" @click="download">内容导出</el-button>
     </el-form-item>
   </el-form>
 

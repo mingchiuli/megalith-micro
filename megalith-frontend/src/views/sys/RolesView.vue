@@ -2,12 +2,11 @@
 import { GET, POST } from '@/http/http'
 import type { PageAdapter, RoleSys } from '@/type/entity'
 import type { ElTree, FormInstance, FormRules } from 'element-plus'
-import { Status, ButtonAuth } from '@/type/entity'
+import { Status } from '@/type/entity'
 import { reactive, ref, toRefs } from 'vue'
 import { displayStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import http from '@/http/axios'
-import { checkButtonAuth, getButtonType } from '@/utils/tools'
 
 const { moreItems } = storeToRefs(displayStateStore())
 const dialogVisible = ref(false)
@@ -259,8 +258,8 @@ const handleDelete = async (row: RoleSys) => {
         </template>
       </el-popconfirm>
     </el-form-item>
-    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_DOWNLOAD)" size="large" @click="download">内容导出</el-button>
+    <el-form-item>
+      <el-button type="info" size="large" @click="download">内容导出</el-button>
     </el-form-item>
   </el-form>
 

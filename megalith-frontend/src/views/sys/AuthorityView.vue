@@ -3,10 +3,9 @@ import { GET, POST } from '@/http/http'
 import type { AuthoritySys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref } from 'vue'
-import { Status, ButtonAuth } from '@/type/entity'
+import { Status } from '@/type/entity'
 import { displayStateStore } from '@/stores/store'
 import http from '@/http/axios'
-import { checkButtonAuth, getButtonType } from '@/utils/tools'
 
 const multipleSelection = ref<AuthoritySys[]>([])
 const dialogVisible = ref(false)
@@ -157,8 +156,8 @@ const clearForm = () => {
         </template>
       </el-popconfirm>
     </el-form-item>
-    <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)" size="large" @click="download">内容导出</el-button>
+    <el-form-item>
+      <el-button type="info" size="large" @click="download">内容导出</el-button>
     </el-form-item>
   </el-form>
 
