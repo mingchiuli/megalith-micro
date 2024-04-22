@@ -125,11 +125,11 @@ export const submitLogin = async (username: string, password: string) => {
 export const downloadData = async (url: string) => {
   const resp = await DOWNLOAD_DATA(url)
   const content = JSON.stringify(resp)
-  let fileName = 'download'
-  let blob = new Blob([content], {
+  const fileName = 'download'
+  const blob = new Blob([content], {
     type: 'application/json'
   })
-  let aDom = document.createElement('a')
+  const aDom = document.createElement('a')
   aDom.download = fileName
   aDom.style.display = 'none'
   aDom.href = URL.createObjectURL(blob)

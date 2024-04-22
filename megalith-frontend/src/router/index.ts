@@ -96,7 +96,10 @@ router.beforeEach(async (to, _from, next) => {
       })
       next()
     }
+  } else {
+    next()
   }
+  
 })
 
 const findByPath = (menus: Menu[], path: string): Menu | undefined => {
