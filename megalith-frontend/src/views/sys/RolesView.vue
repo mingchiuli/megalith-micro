@@ -287,14 +287,26 @@ const handleDelete = async (row: RoleSys) => {
 
     <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="300" align="center">
       <template #default="scope">
-        <el-button size="small" v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_EDIT)" :type="getButtonType(ButtonAuth.SYS_ROLE_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_EDIT) }}</el-button>
-        <el-button size="small" v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_MENU_PERM)" :type="getButtonType(ButtonAuth.SYS_ROLE_MENU_PERM)" @click="handleMenu(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_MENU_PERM) }}</el-button>
-        <el-button size="small" v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)" :type="getButtonType(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)" @click="handleAuthority(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_AUTHORITY_PERM) }}</el-button>
-        <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
-          <template #reference>
-            <el-button size="small" v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_DELETE)" :type="getButtonType(ButtonAuth.SYS_ROLE_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_DELETE) }}</el-button>
-          </template>
-        </el-popconfirm>
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_EDIT)">
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_EDIT) }}</el-button>
+        </template>
+
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_MENU_PERM)">
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_MENU_PERM)" @click="handleMenu(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_MENU_PERM) }}</el-button>
+        </template>
+
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)">
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)" @click="handleAuthority(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_AUTHORITY_PERM) }}</el-button>
+        </template>
+
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_DELETE)">
+          <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
+            <template #reference>
+              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_DELETE) }}</el-button>
+            </template>
+          </el-popconfirm>
+        </template>
+        
       </template>
     </el-table-column>
   </el-table>

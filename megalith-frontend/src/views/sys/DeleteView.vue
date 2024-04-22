@@ -138,7 +138,9 @@ const handleResume = async (row: BlogDelSys) => {
 
     <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="120" align="center">
       <template #default="scope">
-        <el-button size="small" :type="getButtonType(ButtonAuth.SYS_DELETE_RESUME)" v-if="checkButtonAuth(ButtonAuth.SYS_DELETE_RESUME)" @click="handleResume(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_DELETE_RESUME) }}</el-button>
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_DELETE_RESUME)">
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_DELETE_RESUME)" @click="handleResume(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_DELETE_RESUME) }}</el-button>
+        </template>
       </template>
     </el-table-column>
   </el-table>

@@ -230,15 +230,26 @@ const handleCurrentChange = async (val: number) => {
 
     <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="300" align="center">
       <template #default="scope">
-        <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_CHECK)" v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_CHECK)" @click="handleCheck(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_CHECK) }}</el-button>
-        <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_EDIT)" v-if="scope.row.owner && checkButtonAuth(ButtonAuth.SYS_BLOG_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_EDIT) }}</el-button>
-        <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_PASSWORD)" v-if="scope.row.status === Status.BLOCK && checkButtonAuth(ButtonAuth.SYS_BLOG_PASSWORD)"
-          @click="handlePassword(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_PASSWORD) }}</el-button>
-        <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
-          <template #reference>
-            <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_DELETE)" v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_DELETE) }}</el-button>
-          </template>
-        </el-popconfirm>
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_CHECK)">
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_CHECK)" @click="handleCheck(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_CHECK) }}</el-button>
+        </template>
+
+        <template v-if="scope.row.owner && checkButtonAuth(ButtonAuth.SYS_BLOG_EDIT)">
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_EDIT) }}</el-button>
+        </template>
+
+        <template v-if="scope.row.status === Status.BLOCK && checkButtonAuth(ButtonAuth.SYS_BLOG_PASSWORD)">
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_PASSWORD)" @click="handlePassword(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_PASSWORD) }}</el-button>
+        </template>
+
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_DELETE)">
+          <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
+            <template #reference>
+              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_DELETE) }}</el-button>
+            </template>
+          </el-popconfirm>
+        </template>
+        
       </template>
     </el-table-column>
   </el-table>

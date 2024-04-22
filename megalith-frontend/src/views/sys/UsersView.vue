@@ -252,13 +252,21 @@ const getRegisterLink = async (username: string) => {
 
     <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="280" align="center">
       <template #default="scope">
-        <el-button size="small" v-if="checkButtonAuth(ButtonAuth.SYS_USER_EDIT)" :type="getButtonType(ButtonAuth.SYS_USER_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_USER_EDIT) }}</el-button>
-        <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
-          <template #reference>
-            <el-button size="small" v-if="checkButtonAuth(ButtonAuth.SYS_USER_DELETE)" :type="getButtonType(ButtonAuth.SYS_USER_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_USER_DELETE) }}</el-button>
-          </template>
-        </el-popconfirm>
-        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_USER_MODIFY_REGISTER)" size="small" :type="getButtonType(ButtonAuth.SYS_USER_MODIFY_REGISTER)" @click="getRegisterLink(scope.row.username)">{{ getButtonTitle(ButtonAuth.SYS_USER_MODIFY_REGISTER) }}</el-button>
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_USER_EDIT)">
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_USER_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_USER_EDIT) }}</el-button>
+        </template>
+        
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_USER_DELETE)">
+          <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
+            <template #reference>
+              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_USER_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_USER_DELETE) }}</el-button>
+            </template>
+          </el-popconfirm>
+        </template>
+        
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_USER_MODIFY_REGISTER)">
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_USER_MODIFY_REGISTER)" @click="getRegisterLink(scope.row.username)">{{ getButtonTitle(ButtonAuth.SYS_USER_MODIFY_REGISTER) }}</el-button>
+        </template>
       </template>
     </el-table-column>
 

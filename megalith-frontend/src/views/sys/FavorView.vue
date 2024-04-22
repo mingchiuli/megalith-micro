@@ -169,12 +169,17 @@ const handleSizeChange = async (val: number) => {
           <template #header>
             <el-link @click="to(favor.link)">{{ favor.title }}</el-link>
             <div class="icon-button">
-              <el-button v-if="checkButtonAuth(ButtonAuth.SYS_FAVOR_EDIT)" link @click="handleEdit(favor.id)">{{ getButtonTitle(ButtonAuth.SYS_FAVOR_EDIT) }}</el-button>
-              <el-popconfirm title="确认删除?" @confirm="handleDelete(favor.id)">
-                <template #reference>
-                  <el-button link v-if="checkButtonAuth(ButtonAuth.SYS_FAVOR_DELETE)" >{{ getButtonTitle(ButtonAuth.SYS_FAVOR_DELETE) }}</el-button>
-                </template>
-              </el-popconfirm>
+              <template v-if="checkButtonAuth(ButtonAuth.SYS_FAVOR_EDIT)">
+                <el-button link @click="handleEdit(favor.id)">{{ getButtonTitle(ButtonAuth.SYS_FAVOR_EDIT) }}</el-button>
+              </template>
+              <template v-if="checkButtonAuth(ButtonAuth.SYS_FAVOR_DELETE)">
+
+                <el-popconfirm title="确认删除?" @confirm="handleDelete(favor.id)">
+                  <template #reference>
+                    <el-button link>{{ getButtonTitle(ButtonAuth.SYS_FAVOR_DELETE) }}</el-button>
+                  </template>
+                </el-popconfirm>
+              </template>
             </div>
           </template>
           <div>
@@ -189,7 +194,8 @@ const handleSizeChange = async (val: number) => {
                 <p v-for="(title, key) in favor.highlight.title" v-bind:key="key" v-html="'标题: ' + title" />
               </template>
               <template v-if="favor.highlight?.description">
-                <p v-for="(description, key) in favor.highlight.description" v-bind:key="key" v-html="'摘要: ' + description" />
+                <p v-for="(description, key) in favor.highlight.description" v-bind:key="key"
+                  v-html="'摘要: ' + description" />
               </template>
 
             </div>

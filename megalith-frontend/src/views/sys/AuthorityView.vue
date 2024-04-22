@@ -135,12 +135,13 @@ const clearForm = () => {
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_BATCH_DEL)">
       <el-popconfirm title="确定批量删除?" @confirm="delBatch">
         <template #reference>
-          <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_BATCH_DEL)"  size="large" :disabled="delBtlStatus">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_BATCH_DEL) }}</el-button>
+          <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_BATCH_DEL)" size="large" :disabled="delBtlStatus">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_BATCH_DEL) }}</el-button>
         </template>
       </el-popconfirm>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)" size="large" @click="downloadData('/sys/authority/download')">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_DOWNLOAD) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)" size="large"
+        @click="downloadData('/sys/authority/download')">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_DOWNLOAD) }}</el-button>
     </el-form-item>
   </el-form>
 
@@ -183,12 +184,18 @@ const clearForm = () => {
 
     <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="180" align="center">
       <template #default="scope">
-        <el-button size="small" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_EDIT)" v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_EDIT) }}</el-button>
-        <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
-          <template #reference>
-            <el-button size="small" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DELETE)" v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_DELETE) }}</el-button>
-          </template>
-        </el-popconfirm>
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_EDIT)">
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_EDIT) }}</el-button>
+        </template>
+
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DELETE)">
+          <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
+            <template #reference>
+              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_DELETE) }}</el-button>
+            </template>
+          </el-popconfirm>
+        </template>
+
       </template>
     </el-table-column>
 

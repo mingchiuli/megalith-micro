@@ -210,13 +210,18 @@ const submitForm = async (ref: FormInstance) => {
     <el-table-column :fixed="displayStateStore().fix" prop="icon" label="操作" align="center" min-width="180">
 
       <template #default="scope">
-        <el-button size="small" :type="getButtonType(ButtonAuth.SYS_MENU_EDIT)" @click="handleEdit(scope.row)"
-          v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_EDIT)">{{ getButtonTitle(ButtonAuth.SYS_MENU_EDIT) }}</el-button>
-        <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
-          <template #reference>
-            <el-button v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_DELETE)" :type="getButtonType(ButtonAuth.SYS_MENU_DELETE)" size="small" >{{ getButtonTitle(ButtonAuth.SYS_MENU_DELETE) }}</el-button>
-          </template>
-        </el-popconfirm>
+        <template v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_EDIT)">
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_MENU_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_MENU_EDIT) }}</el-button>
+        </template>
+        
+        <template v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_DELETE)">
+          <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
+            <template #reference>
+              <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DELETE)" size="small" >{{ getButtonTitle(ButtonAuth.SYS_MENU_DELETE) }}</el-button>
+            </template>
+          </el-popconfirm>
+        </template>
+        
       </template>
     </el-table-column>
   </el-table>
