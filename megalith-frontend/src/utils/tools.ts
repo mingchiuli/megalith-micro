@@ -110,6 +110,7 @@ export const getButtonTitle = (name: string) => {
 }
 
 export const submitLogin = async (username: string, password: string) => {
+  if (!username || !password) return
   const form = new FormData()
   form.append('username', username)
   form.append('password', password)

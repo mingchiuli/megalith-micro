@@ -39,7 +39,7 @@ const loginType = () => {
 
 let interval: NodeJS.Timeout
 const sendCode = (via: string) => {
-  if (!loginInfo.username || !loginInfo.password) return
+  if (!loginInfo.username) return
   smsButtonDisable.value = true
   mailButtonDisable.value = true
   http.get(`/code/${via}?loginName=${loginInfo.username}`).then(_res => {
