@@ -14,12 +14,15 @@ const to = (id: number) => router.push({
   }
 });
 
-(async () => {
+const load = async () => {
   loading.value = true
   hots.value = await GET<Hot[]>('/public/blog/scores')
   loading.value = false
-})()
+}
 
+defineExpose(
+  { load }
+)
 </script>
 
 <template>

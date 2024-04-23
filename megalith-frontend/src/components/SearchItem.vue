@@ -6,6 +6,7 @@ import type { ElAutocomplete } from 'element-plus'
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { debounce } from '@/utils/tools'
 import { ElLoading } from 'element-plus'
+import type HotItem from './HotItem.vue'
 
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
@@ -18,6 +19,7 @@ const loading = defineModel<boolean>('loading')
 const searchDialogVisible = defineModel<boolean>('searchDialogVisible')
 let suggestionList = ref<BlogDesc[]>([])
 let currentPage = 1
+const hotItemRef = ref<InstanceType<typeof HotItem>>()
 
 const yearDialogVisible = ref(false)
 const search = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogDesc>> => {
@@ -141,6 +143,10 @@ const yearsCloseEvent = async () => {
   }
 }
 
+const openDialog = () => {
+  hotItemRef.value!.load()
+}
+
 const clearSearch = () => {
   currentPage = 1
   keywords.value = ''
@@ -160,9 +166,9 @@ defineExpose(
 
 <template>
   <el-dialog v-model="searchDialogVisible" center close-on-press-escape fullscreen align-center
-    :before-close="searchBeforeClose">
+    :before-close="searchBeforeClose" @open="openDialog">
     <template #default>
-      <HotItem class="dialog-hot" />
+      <HotItem ref="hotItemRef" class="dialog-hot" />
       <div class="dialog-year" v-if="year!.length">年份：{{ year }}</div>
       <div class="dialog-autocomplete">
         <el-autocomplete id="elc" v-model="keywords" :fetch-suggestions="searchAbstractAsync" placeholder="Please input"
