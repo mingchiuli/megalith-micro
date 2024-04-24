@@ -11,7 +11,6 @@ import { Status } from '@/type/entity'
 const loading = ref(true)
 const searchDialogVisible = ref(false)
 const searchRef = ref<InstanceType<typeof Search>>()
-const year = ref('')
 const readTokenDialogVisible = ref(false)
 const blogId = ref(0)
 
@@ -26,6 +25,7 @@ const page: PageAdapter<BlogDesc> = reactive({
 const { searchPageNum } = storeToRefs(blogsStore())
 const { pageNum } = storeToRefs(blogsStore())
 const { keywords } = storeToRefs(blogsStore())
+const { year } = storeToRefs(blogsStore())
 
 const { login } = storeToRefs(loginStateStore())
 
