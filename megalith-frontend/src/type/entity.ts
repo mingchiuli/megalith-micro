@@ -154,35 +154,34 @@ export interface UserInfo {
   avatar: string
 }
 
+export interface ChildrenFather {
+  [propName: string]: any
+  children: any[]
+}
+
 export interface Tab {
   title: string
   name: string
 }
 
-export interface MenusAndButtons {
-  menus: Menu[]
-  buttons: Button[]
-}
-
-export interface Menu extends ChildrenFather, Button {}
-
-export interface Button {
+export interface Button extends Tab {
   [propName: string]: any
   menuId: number
   component?: string
   url?: string
   icon: string
   orderNum: number
-  name: string
   parentId: number
   status: number
-  title: string
   type: number
 }
 
-export interface ChildrenFather {
+export interface Menu extends ChildrenFather, Button, Tab {}
+
+export interface MenusAndButtons {
   [propName: string]: any
-  children: any[]
+  menus: Menu[]
+  buttons: Button[]
 }
 
 export interface JWTStruct {

@@ -6,10 +6,11 @@ import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, Bu
 import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
-import { blogsStore } from '@/stores/store'
+import { blogsStore, menuStore, tabStore } from '@/stores/store'
 import { Client, StompSocketState } from '@stomp/stompjs'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
+import { storeToRefs } from 'pinia'
 
 let timer: NodeJS.Timeout
 
@@ -495,6 +496,9 @@ onUnmounted(() => {
 
 let reconnected = false;
 (async () => {
+  const { menuList } = storeToRefs(menuStore())
+  const tab = menuList.value.filter(item => item.url === route.path)[0]
+  tabStore().addTab(tab)
   await loadEditContent()
   connect()
   timer = setInterval(async () => {
