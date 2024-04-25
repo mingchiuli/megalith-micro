@@ -4,12 +4,12 @@ import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawF
 import { GET, POST } from '@/http/http'
 import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth } from '@/type/entity'
 import { useRoute } from 'vue-router'
-import type { BlogEdit } from '@/type/entity'
+import type { BlogEdit, Tab } from '@/type/entity'
 import router from '@/router'
 import { blogsStore, menuStore, tabStore } from '@/stores/store'
 import { Client, StompSocketState } from '@stomp/stompjs'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
+import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle, findMenuByPath } from '@/utils/tools'
 import { storeToRefs } from 'pinia'
 
 let timer: NodeJS.Timeout
@@ -497,7 +497,7 @@ onUnmounted(() => {
 let reconnected = false;
 (async () => {
   const { menuList } = storeToRefs(menuStore())
-  const tab = menuList.value.filter(item => item.url === route.path)[0]
+  const tab = findMenuByPath(menuList.value, route.path) as Tab
   tabStore().addTab(tab)
   await loadEditContent()
   connect()

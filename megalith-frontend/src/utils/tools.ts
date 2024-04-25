@@ -2,7 +2,7 @@ import http from '@/http/axios'
 import { DOWNLOAD_DATA, GET, POST } from '@/http/http'
 import router from '@/router'
 import { buttonStore, loginStateStore, menuStore, tabStore } from '@/stores/store'
-import type { Data, JWTStruct, RefreshStruct, Token, UserInfo } from '@/type/entity'
+import type { Data, JWTStruct, Menu, RefreshStruct, Tab, Token, UserInfo } from '@/type/entity'
 import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
@@ -137,4 +137,18 @@ export const downloadData = async (url: string) => {
   document.body.appendChild(aDom)
   aDom.click()
   document.body.removeChild(aDom)
+}
+
+export const findMenuByPath = (menus: Menu[], path: string): Menu | Tab | undefined => {
+  for (const menu of menus) {
+    if (menu.url === path) {
+      return menu
+    }
+    if (menu.children) {
+      const item = findMenuByPath(menu.children, path)
+      if (item) {
+        return item
+      }
+    }
+  }
 }
