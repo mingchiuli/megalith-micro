@@ -239,6 +239,17 @@ const getRegisterLink = async (username: string) => {
       </template>
     </el-table-column>
 
+    <el-table-column label="更新时间" min-width="180" align="center">
+      <template #default="scope">
+        <div class="time-icon">
+          <el-icon>
+            <timer />
+          </el-icon>
+          <span style="margin-left: 10px">{{ scope.row.updated }}</span>
+        </div>
+      </template>
+    </el-table-column>
+
     <el-table-column label="最后登录时间" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">

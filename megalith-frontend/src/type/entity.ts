@@ -64,6 +64,7 @@ export interface UserSys {
   phone: string
   status: number
   created: string
+  updated: string
   lastLogin: string
   role: string
 }
