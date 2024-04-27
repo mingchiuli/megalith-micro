@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory, type RouteLocationNormalized, type RouteRecordRaw } from 'vue-router'
 import Intro from '@/views/IntroView.vue'
 import { GET } from '@/http/http'
 import { type Menu, type MenusAndButtons, type Tab } from '@/type/entity'
@@ -76,31 +76,38 @@ router.beforeEach(async (to, _from, next) => {
 
   if (loginStateStore().login) {
     let allKindsInfo: MenusAndButtons
+    //页面被手动刷新
     if (!router.hasRoute(to.name!)) {
-      //页面被手动刷新
       allKindsInfo = await GET<MenusAndButtons>('/sys/menu/nav')
       callBackRequireRoutes(allKindsInfo)
-      if (to.path.startsWith('/sys')) {
-        const menu = findMenuByPath(allKindsInfo.menus, to.path)
-        if (menu) {
-          const tab: Tab = { "name": menu.name, "title": menu.title }
-          tabStore().addTab(tab)
-        }
-      }
+      dealSysTab(to, allKindsInfo)
       //重定向解决刷新404
       next(to.path)
     } else {
+      //正常路由切换diff
       GET<MenusAndButtons>('/sys/menu/nav').then(resp => {
         allKindsInfo = resp
         callBackRequireRoutes(allKindsInfo)
+        dealSysTab(to, allKindsInfo)
       })
       next()
     }
   } else {
     next()
   }
-  
+
 })
+
+const dealSysTab = (to: RouteLocationNormalized, allKindsInfo: MenusAndButtons) => {
+  //处理tab
+  if (to.path.startsWith('/sys')) {
+    const menu = findMenuByPath(allKindsInfo.menus, to.path)
+    if (menu) {
+      const tab: Tab = { "name": menu.name, "title": menu.title }
+      tabStore().addTab(tab)
+    }
+  }
+}
 
 const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
   const buttons = allKindsInfo.buttons
