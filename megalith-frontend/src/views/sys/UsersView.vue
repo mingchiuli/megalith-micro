@@ -3,7 +3,7 @@ import { GET, POST } from '@/http/http'
 import type { PageAdapter, RoleSys, UserSys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref, toRefs } from 'vue'
-import { Status, ButtonAuth } from '@/type/entity'
+import { Status, ButtonAuth, Role } from '@/type/entity'
 import { displayStateStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
@@ -275,7 +275,7 @@ const getRegisterLink = async (username: string) => {
           </el-popconfirm>
         </template>
         
-        <template v-if="checkButtonAuth(ButtonAuth.SYS_USER_MODIFY_REGISTER)">
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_USER_MODIFY_REGISTER) && scope.row.role !== Role.ADMIN">
           <el-button size="small" :type="getButtonType(ButtonAuth.SYS_USER_MODIFY_REGISTER)" @click="getRegisterLink(scope.row.username)">{{ getButtonTitle(ButtonAuth.SYS_USER_MODIFY_REGISTER) }}</el-button>
         </template>
       </template>
