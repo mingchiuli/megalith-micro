@@ -134,7 +134,7 @@ const { content, totalElements, pageSize } = toRefs(page);
         <el-timeline-item v-for="blog in content" v-bind:key="blog.id" :timestamp="blog.created" placement="top"
           :color="'#0bbd87'" v-show="!loading">
           <el-card shadow="hover" @click="to(blog.id)">
-            <el-image v-if="blog.link" :key="blog.link" :src="blog.link" @load="loadImg"></el-image>
+            <el-image v-if="blog.link" :key="blog.link" :src="blog.link" @load="loadImg" @error="loading = false"></el-image>
             <p v-if="blog.score">{{ "Search Scores: " + blog.score }}</p>
             <el-link class="title">{{ blog.title }}</el-link>
             <p v-if="!blog.highlight">{{ blog.description }}</p>
