@@ -76,7 +76,7 @@ watch(() => keywords.value, () => {
 
 let lock = false
 let fin = false
-const load = async (e: Element, cb: Function) => {
+const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
   if (!lock && keywords.value && e.scrollTop + e.clientHeight >= e.scrollHeight) {
     if (fin) return
     lock = true
