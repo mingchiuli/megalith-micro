@@ -19,7 +19,8 @@
     },
     "moduleResolution": "Node",
     "types": [
-      "node"
+      "node",
+      "element-plus/global"
     ]
   }
 }

@@ -2,7 +2,7 @@
 import { GET } from '@/http/http'
 import router from '@/router'
 import type { BlogDesc, PageAdapter } from '@/type/entity'
-import type { ElAutocomplete } from 'element-plus'
+import type { AutocompleteFetchSuggestions, AutocompleteFetchSuggestionsCallback, ElAutocomplete } from 'element-plus'
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { debounce } from '@/utils/tools'
 import { ElLoading } from 'element-plus'
@@ -34,31 +34,38 @@ let controller: AbortController
 const div = document.createElement('div')
 let loadingInstance: ReturnType<typeof ElLoading.service> | null
 
-const searchAbstractAsync = async (queryString: string, cb: Function) => {
+const searchAbstractAsync: AutocompleteFetchSuggestions = (queryString: string, cb: AutocompleteFetchSuggestionsCallback) => {
   if (queryString.length) {
-    const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, false, year.value!)
-    page.content.forEach((blogsDesc: BlogDesc) => {
-      blogsDesc.value = keywords.value
-      suggestionList.value.push(blogsDesc)
-    })
-    //防止空内容闪烁
-    timeout = setTimeout(() => {
-      //不执行cd，下拉框没数据就不会收回去
-      cb(suggestionList.value)
-      if (!page.content.length) {
-        ElMessage.error('No Records')
-        return
-      }
+    search(queryString, currentPage, false, year.value!).then(page => {
+      page.content.forEach((blogsDesc: BlogDesc) => {
+        blogsDesc.value = keywords.value
+        suggestionList.value.push(blogsDesc)
+      })
 
-      if (!suggestionEle) {
-        suggestionEle = document.querySelector('.select-list .el-autocomplete-suggestion__wrap')
-        suggestionEle!.append(div)
-        controller = new AbortController()
-        const { signal } = controller
-        fin = false
-        suggestionEle!.addEventListener('scroll', debounce(() => load(suggestionEle!, cb)), { signal })
-      }
-    }, 1000 * Math.random())
+      page.content.forEach((blogsDesc: BlogDesc) => {
+        blogsDesc.value = keywords.value
+        suggestionList.value.push(blogsDesc)
+      })
+
+      //防止空内容闪烁
+      timeout = setTimeout(() => {
+        //不执行cd，下拉框没数据就不会收回去
+        cb(suggestionList.value)
+        if (!page.content.length) {
+          ElMessage.error('No Records')
+          return
+        }
+
+        if (!suggestionEle) {
+          suggestionEle = document.querySelector('.select-list .el-autocomplete-suggestion__wrap')
+          suggestionEle!.append(div)
+          controller = new AbortController()
+          const { signal } = controller
+          fin = false
+          suggestionEle!.addEventListener('scroll', debounce(() => load(suggestionEle!, cb)), { signal })
+        }
+      }, 1000 * Math.random())
+    })
   }
 }
 
@@ -103,11 +110,12 @@ const load = async (e: Element, cb: Function) => {
   }
 }
 
-const handleSelect = (item: BlogDesc) => {
+const handleSelect = (item: Record<string, any>) => {
+  const blog = item as BlogDesc
   router.push({
     name: 'blog',
     params: {
-      id: item.id
+      id: blog.id
     }
   })
 }

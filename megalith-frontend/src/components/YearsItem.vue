@@ -5,7 +5,7 @@ import { ref } from 'vue'
 const emit = defineEmits<(event: 'close') => void>()
 const years = ref<number[]>()
 const year = defineModel('year')
-const yearDialogVisible = defineModel('yearDialogVisible')
+const yearDialogVisible = defineModel<boolean>('yearDialogVisible')
 
 const chooseYear = (y: number | string) => {
   year.value = y.toString()

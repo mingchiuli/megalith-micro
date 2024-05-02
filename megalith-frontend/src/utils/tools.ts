@@ -97,10 +97,10 @@ export const checkButtonAuth = (name: string) => {
     .includes(name)
 }
 
-export const getButtonType = (name: string) => {
+export const getButtonType = (name: string): "" | "default" | "success" | "warning" | "info" | "text" | "primary" | "danger" => {
   const { buttonList } = storeToRefs(buttonStore())
   return buttonList.value
-    .filter(item => item.name == name)[0]?.icon
+    .filter(item => item.name == name)[0]?.icon as "" | "default" | "success" | "warning" | "info" | "text" | "primary" | "danger"
 }
 
 export const getButtonTitle = (name: string) => {
