@@ -243,7 +243,7 @@ const handleDelete = async (row: RoleSys) => {
       </el-popconfirm>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_DOWNLOAD)" size="large" @click="downloadData('/sys/role/download')">{{ getButtonTitle(ButtonAuth.SYS_ROLE_DOWNLOAD) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_DOWNLOAD)" size="large" @click="downloadData('/sys/role/download', 'role')">{{ getButtonTitle(ButtonAuth.SYS_ROLE_DOWNLOAD) }}</el-button>
     </el-form-item>
   </el-form>
 

@@ -123,10 +123,9 @@ export const submitLogin = async (username: string, password: string) => {
   router.push('/blogs')
 }
 
-export const downloadData = async (url: string) => {
+export const downloadData = async (url: string, fileName: string) => {
   const resp = await DOWNLOAD_DATA(url)
   const content = JSON.stringify(resp)
-  const fileName = 'download'
   const blob = new Blob([content], {
     type: 'application/json'
   })

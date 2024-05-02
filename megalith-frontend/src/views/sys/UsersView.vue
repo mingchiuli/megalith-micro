@@ -202,7 +202,7 @@ const getRegisterLink = async (username: string) => {
       <el-button :type="getButtonType(ButtonAuth.SYS_USER_REGISTER)" size="large" @click="getRegisterLink('')">{{ getButtonTitle(ButtonAuth.SYS_USER_REGISTER) }}</el-button>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_USER_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_USER_DOWNLOAD)" size="large" @click="downloadData('/sys/user/download')">{{ getButtonTitle(ButtonAuth.SYS_USER_DOWNLOAD) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_USER_DOWNLOAD)" size="large" @click="downloadData('/sys/user/download', 'user')">{{ getButtonTitle(ButtonAuth.SYS_USER_DOWNLOAD) }}</el-button>
     </el-form-item>
   </el-form>
 

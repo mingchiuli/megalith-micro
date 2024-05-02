@@ -156,7 +156,7 @@ const submitForm = async (ref: FormInstance) => {
       <el-button :type="getButtonType(ButtonAuth.SYS_MENU_CREATE)" size="large" @click="dialogVisible = true">{{ getButtonTitle(ButtonAuth.SYS_MENU_CREATE) }}</el-button>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_MENU_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DOWNLOAD)" size="large" @click="downloadData('/sys/menu/download')">{{ getButtonTitle(ButtonAuth.SYS_MENU_DOWNLOAD) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DOWNLOAD)" size="large" @click="downloadData('/sys/menu/download', 'menu')">{{ getButtonTitle(ButtonAuth.SYS_MENU_DOWNLOAD) }}</el-button>
     </el-form-item>
   </el-form>
 

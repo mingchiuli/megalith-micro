@@ -150,7 +150,7 @@ const handleCurrentChange = async (val: number) => {
       </el-popconfirm>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_DOWNLOAD)" size="large" @click="downloadData('/sys/blog/download')">{{ getButtonTitle(ButtonAuth.SYS_BLOG_DOWNLOAD) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_DOWNLOAD)" size="large" @click="downloadData('/sys/blog/download', 'blogs')">{{ getButtonTitle(ButtonAuth.SYS_BLOG_DOWNLOAD) }}</el-button>
     </el-form-item>
   </el-form>
 

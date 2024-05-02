@@ -141,7 +141,7 @@ const clearForm = () => {
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)">
       <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)" size="large"
-        @click="downloadData('/sys/authority/download')">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_DOWNLOAD) }}</el-button>
+        @click="downloadData('/sys/authority/download', 'authority')">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_DOWNLOAD) }}</el-button>
     </el-form-item>
   </el-form>
 
