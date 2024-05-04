@@ -4,11 +4,10 @@ import { GET, POST } from '@/http/http'
 import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
-import { displayStateStore } from '@/stores/store'
 import { render, checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
-import { storeToRefs } from 'pinia'
+import { displayState } from '@/position/position'
 
-const { moreItems } = storeToRefs(displayStateStore())
+const { fixSelection, fix, moreItems } = displayState()
 const search = ref(false)
 const input = ref('')
 const multipleSelection = ref<BlogSys[]>([])
@@ -156,7 +155,7 @@ const handleCurrentChange = async (val: number) => {
 
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
-    <el-table-column type="selection" :fixed="displayStateStore().fixSelection" />
+    <el-table-column type="selection" :fixed="fixSelection" />
 
     <el-table-column label="标题" align="center" prop="title" min-width="180" />
     <el-table-column label="摘要" align="center" min-width="200">
@@ -228,7 +227,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="300" align="center">
+    <el-table-column :fixed="fix" label="操作" min-width="300" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_CHECK)">
           <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_CHECK)" @click="handleCheck(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_CHECK) }}</el-button>

@@ -4,10 +4,10 @@ import type { MenuSys } from '@/type/entity'
 import { type FormInstance, type FormRules } from 'element-plus'
 import { reactive, ref } from 'vue'
 import { Status, RoutesEnum, ButtonAuth } from '@/type/entity'
-import { displayStateStore } from '@/stores/store'
 import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
+import { displayState } from '@/position/position'
 
-
+const { fix } = displayState()
 const dialogVisible = ref(false)
 const loading = ref(false)
 const content = ref<MenuSys[]>([])
@@ -207,7 +207,7 @@ const submitForm = async (ref: FormInstance) => {
         <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">禁用</el-tag>
       </template>
     </el-table-column>
-    <el-table-column :fixed="displayStateStore().fix" label="操作" align="center" min-width="180">
+    <el-table-column :fixed="fix" label="操作" align="center" min-width="180">
 
       <template #default="scope">
         <template v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_EDIT)">

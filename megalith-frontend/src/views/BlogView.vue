@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { nextTick, reactive, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import catalogue from '@/components/CatalogueItem.vue'
@@ -58,6 +58,9 @@ const computeWidth = () => {
     showCatalogue.value = false
   }
 }
+
+onMounted(() => window.addEventListener('resize', computeWidth))
+onUnmounted(() => window.removeEventListener('resize', computeWidth));
 
 (async () => {
   let data: BlogExhibit

@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, type RouteLocationNormalized, type Rout
 import Intro from '@/views/IntroView.vue'
 import { GET } from '@/http/http'
 import { type Menu, type MenusAndButtons, type Tab } from '@/type/entity'
-import { menuStore, loginStateStore, displayStateStore, buttonStore, tabStore } from '@/stores/store'
+import { menuStore, loginStateStore, welcomeStateStore, buttonStore, tabStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import { diff, findMenuByPath } from '@/utils/tools'
 
@@ -57,7 +57,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, _from, next) => {
   if (to.path.startsWith('/sys')) {
-    displayStateStore().welcomeBackend = false
+    welcomeStateStore().welcomeBackend = false
   }
 
   if (localStorage.getItem('accessToken') && !loginStateStore().login) {

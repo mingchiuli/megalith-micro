@@ -4,9 +4,10 @@ import type { AuthoritySys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref } from 'vue'
 import { Status, ButtonAuth } from '@/type/entity'
-import { displayStateStore } from '@/stores/store'
 import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
+import { displayState } from '@/position/position'
 
+const { fixSelection, fix } = displayState()
 const multipleSelection = ref<AuthoritySys[]>([])
 const dialogVisible = ref(false)
 const loading = ref(false)
@@ -147,7 +148,7 @@ const clearForm = () => {
 
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
-    <el-table-column type="selection" :fixed="displayStateStore().fixSelection" />
+    <el-table-column type="selection" :fixed="fixSelection" />
     <el-table-column label="接口名字" align="center" prop="name" min-width="300" />
     <el-table-column label="唯一编码" align="center" prop="code" min-width="180" />
 
@@ -182,7 +183,7 @@ const clearForm = () => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="180" align="center">
+    <el-table-column :fixed="fix" label="操作" min-width="180" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_EDIT)">
           <el-button size="small" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_EDIT) }}</el-button>

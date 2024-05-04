@@ -4,11 +4,10 @@ import type { PageAdapter, SearchFavors } from '@/type/entity'
 import { GET, POST } from '@/http/http'
 import { Status, ButtonAuth } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
-import { storeToRefs } from 'pinia'
-import { displayStateStore } from '@/stores/store'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
+import { displayState } from '@/position/position'
 
-const { moreItems } = storeToRefs(displayStateStore())
+const { moreItems } = displayState()
 const input = ref('')
 const loading = ref(false)
 const dialogVisible = ref(false)

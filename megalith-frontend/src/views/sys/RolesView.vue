@@ -4,12 +4,10 @@ import type { PageAdapter, RoleSys } from '@/type/entity'
 import type { ElTree, FormInstance, FormRules } from 'element-plus'
 import { Status, ButtonAuth } from '@/type/entity'
 import { reactive, ref, toRefs } from 'vue'
-import { displayStateStore } from '@/stores/store'
-import { storeToRefs } from 'pinia'
 import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
+import { displayState } from '@/position/position'
 
-
-const { moreItems } = storeToRefs(displayStateStore())
+const { moreItems, fixSelection, fix } = displayState()
 const dialogVisible = ref(false)
 const delBtlStatus = ref(true)
 const loading = ref(false)
@@ -250,7 +248,7 @@ const handleDelete = async (row: RoleSys) => {
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
 
-    <el-table-column type="selection" :fixed="displayStateStore().fixSelection" />
+    <el-table-column type="selection" :fixed="fixSelection" />
     <el-table-column label="名字" align="center" prop="name" />
     <el-table-column label="唯一编码" align="center" prop="code" />
 
@@ -285,7 +283,7 @@ const handleDelete = async (row: RoleSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="300" align="center">
+    <el-table-column :fixed="fix" label="操作" min-width="300" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_EDIT)">
           <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_EDIT) }}</el-button>

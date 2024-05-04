@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import { shallowRef } from 'vue'
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
-import { menuStore, tabStore, displayStateStore } from '@/stores/store'
+import { menuStore, tabStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
+import { displayState } from '@/position/position'
 
-const { expand } = storeToRefs(displayStateStore())
+const { expand } = displayState()
 const { menuList } = storeToRefs(menuStore())
 let arrow = shallowRef(expand.value ? ArrowLeft : ArrowRight)
 const reverseCollapse = () => {

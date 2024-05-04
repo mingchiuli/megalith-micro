@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { pageStore, displayStateStore } from '@/stores/store'
+import { pageStore, welcomeStateStore } from '@/stores/store'
 import { onUnmounted } from 'vue'
 
 pageStore().front = false
@@ -22,7 +22,7 @@ onUnmounted(() => {
         <HeaderTabsItem />
       </el-header>
       <el-main>
-        <el-text class="welcome" v-if="displayStateStore().welcomeBackend">欢迎来到管理系统</el-text>
+        <el-text class="welcome" v-if="welcomeStateStore().welcomeBackend">欢迎来到管理系统</el-text>
         <div class="content">
           <router-view />
         </div>

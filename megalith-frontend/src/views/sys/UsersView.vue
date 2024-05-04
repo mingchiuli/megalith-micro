@@ -4,11 +4,10 @@ import type { PageAdapter, RoleSys, UserSys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref, toRefs } from 'vue'
 import { Status, ButtonAuth } from '@/type/entity'
-import { displayStateStore } from '@/stores/store'
-import { storeToRefs } from 'pinia'
 import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
+import { displayState } from '@/position/position'
 
-const { moreItems } = storeToRefs(displayStateStore())
+const { moreItems, fixSelection, fix } = displayState()
 const multipleSelection = ref<UserSys[]>([])
 const dialogVisible = ref(false)
 const loading = ref(false)
@@ -208,7 +207,7 @@ const getRegisterLink = async (username: string) => {
 
   <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
     v-loading="loading">
-    <el-table-column type="selection" :fixed="displayStateStore().fixSelection" />
+    <el-table-column type="selection" :fixed="fixSelection" />
     <el-table-column label="用户名" align="center" prop="username" min-width="180" />
     <el-table-column label="昵称" align="center" prop="nickname" min-width="180" />
 
@@ -261,7 +260,7 @@ const getRegisterLink = async (username: string) => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="displayStateStore().fix" label="操作" min-width="280" align="center">
+    <el-table-column :fixed="fix" label="操作" min-width="280" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_USER_EDIT)">
           <el-button size="small" :type="getButtonType(ButtonAuth.SYS_USER_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_USER_EDIT) }}</el-button>

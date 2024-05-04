@@ -3,13 +3,9 @@ import type { Button, Menu, Tab } from '@/type/entity'
 import { ref } from 'vue'
 
 
-export const displayStateStore = defineStore('displayStateStore', () => {
-  const fix = ref(document.body.clientWidth > 900 ? 'right' : false)
-  const fixSelection = ref(document.body.clientWidth > 900 ? 'left' : false)
-  const expand = ref(document.body.clientWidth > 900)
-  const moreItems = ref(document.body.clientWidth > 2000)
+export const welcomeStateStore = defineStore('welcomeStateStore', () => {
   const welcomeBackend = ref(true)
-  return { fix, expand, moreItems, fixSelection, welcomeBackend }
+  return { welcomeBackend }
 })
 
 export const loginStateStore = defineStore('loginStateStore', () => {
