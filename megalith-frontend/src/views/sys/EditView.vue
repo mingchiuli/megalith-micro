@@ -88,7 +88,9 @@ let fieldType: string
 let readOnly = ref(false)
 
 const pushAllData = async () => {
+  readOnly.value = true
   await POST<null>('/sys/blog/push/all', form)
+  readOnly.value = false
   version = 0
   if (transColor.value !== OperaColor.WARNING) {
     transColor.value = OperaColor.WARNING
