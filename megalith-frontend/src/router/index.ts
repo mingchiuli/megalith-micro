@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory, type RouteLocationNormalized, type RouteRecordRaw } from 'vue-router'
-import Intro from '@/views/IntroView.vue'
 import { GET } from '@/http/http'
 import { type Menu, type MenusAndButtons, type Tab } from '@/type/entity'
 import { menuStore, loginStateStore, welcomeStateStore, buttonStore, tabStore } from '@/stores/store'
@@ -14,7 +13,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'intro',
-      component: Intro,
+      component: () => import('@/views/IntroView.vue'),
       meta: {
         title: '简介'
       }
