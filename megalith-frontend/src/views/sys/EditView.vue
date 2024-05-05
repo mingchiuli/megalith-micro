@@ -89,7 +89,7 @@ let readOnly = ref(false)
 
 const pushAllData = async () => {
   readOnly.value = true
-  await POST<null>('/sys/blog/push/all', form)
+  await POST<null>('/edit/push/all', form)
   readOnly.value = false
   version = 0
   if (transColor.value !== OperaColor.WARNING) {
