@@ -320,14 +320,16 @@ const deal = (n: string | undefined, o: string | undefined) => {
     return
   }
 
-  //中间插入重复字符
+  //中间操作重复字符
   if (indexStart > oIndexEnd) {
     let contentChange
     if (nIndexEnd > oIndexEnd) {
+      //增
       pushActionForm.indexStart = indexStart
       pushActionForm.indexEnd = indexStart
       contentChange = n.substring(indexStart, nIndexEnd + (indexStart - oIndexEnd))
     } else {
+      //删
       contentChange = ''
       pushActionForm.indexStart = indexStart
       pushActionForm.indexEnd = indexStart + oIndexEnd - nIndexEnd
@@ -342,18 +344,25 @@ const deal = (n: string | undefined, o: string | undefined) => {
     return
   }
 
-  //中间正常插入
-  if (indexStart <= oIndexEnd && indexStart <= nIndexEnd) {
+  //中间正常插入/删除
+  if (indexStart <= oIndexEnd) {
+    let contentChange
+    if (indexStart < nIndexEnd) {
+      contentChange = n.substring(indexStart, nIndexEnd)
+      pushActionForm.indexStart = indexStart
+      pushActionForm.indexEnd = oIndexEnd
+    } else {
+      contentChange = ''
+      pushActionForm.indexStart = indexStart
+      pushActionForm.indexEnd = indexStart + (oIndexEnd - nIndexEnd)
+    }
 
-    const contentChange = n.substring(indexStart, nIndexEnd)
     pushActionForm.contentChange = contentChange
     if (fieldType === FieldType.PARA) {
       pushActionForm.operateTypeCode = OperateTypeCode.PARA_REPLACE
     } else {
       pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
     }
-    pushActionForm.indexStart = indexStart
-    pushActionForm.indexEnd = oIndexEnd
     pushActionData(pushActionForm)
     return
   }
