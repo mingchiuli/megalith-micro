@@ -66,7 +66,6 @@ type PushActionForm = {
   indexEnd?: number
   field?: string
   paraNo?: number
-  reconnected: boolean
 }
 
 const pushActionForm: PushActionForm = {
@@ -78,7 +77,6 @@ const pushActionForm: PushActionForm = {
   indexEnd: undefined,
   field: undefined,
   paraNo: undefined,
-  reconnected: false
 }
 
 let version = 0
@@ -227,7 +225,6 @@ const commonPreDeal = (fieldTypeParam: string, opreateField: string) => {
   pushActionForm.id = form.id
   pushActionForm.version = version
   fieldType = fieldTypeParam
-  pushActionForm.reconnected = reconnected
 }
 
 const deal = (n: string | undefined, o: string | undefined) => {
