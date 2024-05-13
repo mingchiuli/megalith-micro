@@ -79,17 +79,15 @@ const pushActionForm: PushActionForm = {
   paraNo: undefined,
 }
 
-let version = 0
+let version = -1
 //中文输入法的问题
 let isComposing = false
 let fieldType: string
 let readOnly = ref(false)
 
 const pushAllData = async () => {
-  readOnly.value = true
   await POST<null>('/edit/push/all', form)
-  readOnly.value = false
-  version = 0
+  version = -1
   if (transColor.value !== OperaColor.WARNING) {
     transColor.value = OperaColor.WARNING
   }
@@ -100,7 +98,6 @@ const pushActionData = (pushActionForm: PushActionForm) => {
     destination: '/app/edit/push/action',
     body: JSON.stringify(pushActionForm)
   })
-  version++
   if (transColor.value !== OperaColor.SUCCESS) {
     transColor.value = OperaColor.SUCCESS
   }
@@ -129,6 +126,7 @@ const preCheck = (n: string | undefined, o: string | undefined): boolean => {
     return false
   }
 
+  version++
   return true
 }
 
@@ -406,7 +404,7 @@ const loadEditContent = async () => {
   form.status = data.status
   form.id = data.id
   form.userId = data.userId
-  version = data.version + 1
+  version = data.version
   if (fileList.value.length !== 0) {
     //移除全部
     fileList.value.splice(0, fileList.value.length)
