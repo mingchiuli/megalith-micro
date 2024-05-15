@@ -126,7 +126,6 @@ const preCheck = (n: string | undefined, o: string | undefined): boolean => {
     return false
   }
 
-  version++
   return true
 }
 
@@ -221,7 +220,7 @@ const commonPreDeal = (fieldTypeParam: string, opreateField: string) => {
   clearPushActionForm()
   pushActionForm.field = opreateField
   pushActionForm.id = form.id
-  pushActionForm.version = version
+  pushActionForm.version = ++version
   fieldType = fieldTypeParam
 }
 
