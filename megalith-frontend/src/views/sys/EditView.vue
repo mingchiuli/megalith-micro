@@ -85,12 +85,13 @@ let isComposing = false
 let fieldType: string
 let readOnly = ref(false)
 
-const pushAllData = async () => {
-  await POST<null>('/edit/push/all', form)
-  version = -1
-  if (transColor.value !== OperaColor.WARNING) {
-    transColor.value = OperaColor.WARNING
-  }
+const pushAllData = () => {
+  POST<null>('/edit/push/all', form).then(resp => {
+    version = -1
+    if (transColor.value !== OperaColor.WARNING) {
+      transColor.value = OperaColor.WARNING
+    }
+  })
 }
 
 const pushActionData = (pushActionForm: PushActionForm) => {
