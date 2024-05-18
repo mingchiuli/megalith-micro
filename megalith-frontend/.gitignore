@@ -19,7 +19,6 @@ coverage
 
 # Editor directories and files
 .vscode
-!.vscode/extensions.json
 .idea
 *.suo
 *.ntvs*
@@ -27,4 +26,3 @@ coverage
 *.sln
 *.sw?
 megalith/*
-.vscode/extensions.json
