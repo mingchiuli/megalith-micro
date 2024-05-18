@@ -86,7 +86,7 @@ let fieldType: string
 let readOnly = ref(false)
 
 const pushAllData = () => {
-  POST<null>('/edit/push/all', form).then(resp => {
+  POST<null>('/edit/push/all', form).then(_resp => {
     version = -1
     if (transColor.value !== OperaColor.WARNING) {
       transColor.value = OperaColor.WARNING

@@ -47,7 +47,7 @@ const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 
 
-const validatePassword = (rule: any, value: string, callback: Function) => {
+const validatePassword = (_rule: any, value: string, callback: Function) => {
   if (value !== form.password) {
     callback(new Error('两次输入的密码不一致'))
     return

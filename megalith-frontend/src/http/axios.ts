@@ -33,7 +33,7 @@ http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<an
       message: data.msg,
       showClose: true
     })
-    return Promise.reject(resp)
+    return Promise.reject(new Error('401'))
   }
 }, (error: AxiosError<any, any>) => {
   ElNotification.error({
