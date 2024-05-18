@@ -120,7 +120,7 @@ export const submitLogin = async (username: string, password: string) => {
   loginStateStore().login = true
   const info = await GET<UserInfo>('/token/userinfo')
   localStorage.setItem('userinfo', JSON.stringify(info))
-  router.push('/sys')
+  router.push('/backend')
 }
 
 export const downloadData = async (url: string, fileName: string) => {
