@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defineAsyncComponent, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
+import { defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth } from '@/type/entity'
@@ -79,7 +79,6 @@ const pushActionForm: PushActionForm = {
   paraNo: undefined,
 }
 
-let debugMsg = ref('')
 let version = -1
 //中文输入法的问题
 let isComposing = false
@@ -125,6 +124,10 @@ const preCheck = (n: string | undefined, o: string | undefined): boolean => {
   }
 
   if (isComposing) {
+    return false
+  }
+
+  if (reconnected) {
     return false
   }
 
@@ -234,7 +237,6 @@ const deal = (n: string | undefined, o: string | undefined) => {
     } else {
       pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REMOVE
     }
-    debugMsg.value += `全部删除\t`
     pushActionData(pushActionForm)
     return
   }
@@ -247,7 +249,6 @@ const deal = (n: string | undefined, o: string | undefined) => {
     } else {
       pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_APPEND
     }
-    debugMsg.value += `初始化新增:${n}\t`
     pushActionData(pushActionForm)
     return
   }
@@ -268,7 +269,6 @@ const deal = (n: string | undefined, o: string | undefined) => {
     //向末尾添加
     if (oLen < nLen) {
       pushActionForm.contentChange = n.substring(indexStart)
-      debugMsg.value += `向末尾添加:${pushActionForm.contentChange}\t`
       if (fieldType === FieldType.PARA) {
         pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_APPEND
       } else {
@@ -277,7 +277,6 @@ const deal = (n: string | undefined, o: string | undefined) => {
     } else {
       //从末尾删除
       pushActionForm.indexStart = nLen
-      debugMsg.value += `从末尾删除:${o.substring(n.length)}\t`
       if (fieldType === FieldType.PARA) {
         pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_SUBTRACT
       } else {
@@ -302,7 +301,6 @@ const deal = (n: string | undefined, o: string | undefined) => {
     //从开头添加
     if (oLen < nLen) {
       pushActionForm.contentChange = n.substring(0, nLen - oLen)
-      debugMsg.value += `从开头添加:${pushActionForm.contentChange}\t`
       if (fieldType === FieldType.PARA) {
         pushActionForm.operateTypeCode = OperateTypeCode.PARA_HEAD_APPEND
       } else {
@@ -311,7 +309,6 @@ const deal = (n: string | undefined, o: string | undefined) => {
     } else {
       //从开头删除
       pushActionForm.indexStart = oLen - nLen
-      debugMsg.value += `从开头删除:${o.substring(0, pushActionForm.indexStart)}\t`
       if (fieldType === FieldType.PARA) {
         pushActionForm.operateTypeCode = OperateTypeCode.PARA_HEAD_SUBTRACT
       } else {
@@ -330,13 +327,11 @@ const deal = (n: string | undefined, o: string | undefined) => {
       pushActionForm.indexStart = indexStart
       pushActionForm.indexEnd = indexStart
       contentChange = n.substring(indexStart, nIndexEnd + (indexStart - oIndexEnd))
-      debugMsg.value += `中间操作重复字符新增了:${contentChange}\t`
     } else {
       //删
       contentChange = ''
       pushActionForm.indexStart = indexStart
       pushActionForm.indexEnd = indexStart + oIndexEnd - nIndexEnd
-      debugMsg.value += `中间操作重复字符删除了:${o.substring(indexStart, indexStart + oIndexEnd - nIndexEnd)}\t`
     }
     pushActionForm.contentChange = contentChange
     if (fieldType === FieldType.PARA) {
@@ -353,11 +348,9 @@ const deal = (n: string | undefined, o: string | undefined) => {
     let contentChange
     if (indexStart < nIndexEnd) {
       contentChange = n.substring(indexStart, nIndexEnd)
-      debugMsg.value += `中间插入了:${contentChange}\t`
       pushActionForm.indexStart = indexStart
       pushActionForm.indexEnd = oIndexEnd
     } else {
-      debugMsg.value += `中间删除了:${o.substring(indexStart, indexStart + (oIndexEnd - nIndexEnd))}\t`
       contentChange = ''
       pushActionForm.indexStart = indexStart
       pushActionForm.indexEnd = indexStart + (oIndexEnd - nIndexEnd)
@@ -530,7 +523,6 @@ let reconnected = false;
       transColor.value = OperaColor.SUCCESS
       readOnly.value = false
       await loadEditContent()
-      await nextTick()
       reconnected = false
     }
   }, 3000)
@@ -589,10 +581,6 @@ let reconnected = false;
       <el-form-item class="content" prop="content">
         <CustomEditorItem v-model:content="form.content" @composing="dealComposing" :trans-color="transColor"
           :read-only="readOnly" />
-      </el-form-item>
-
-      <el-form-item class="content" prop="content">
-        <div>{{ debugMsg }}</div>
       </el-form-item>
 
       <div class="submit-button">
