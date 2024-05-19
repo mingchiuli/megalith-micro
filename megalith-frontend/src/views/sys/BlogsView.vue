@@ -1,11 +1,14 @@
 <script lang="ts" setup>
 import { reactive, ref, toRefs } from 'vue'
 import { GET, POST } from '@/http/http'
-import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
+import { Status, type BlogSys, type PageAdapter, ButtonAuth, type Tab } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
-import { render, checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
+import { render, checkButtonAuth, getButtonType, downloadData, getButtonTitle, findMenuByPath } from '@/utils/tools'
 import { displayState } from '@/position/position'
+import { menuStore, tabStore } from '@/stores/store'
+import { storeToRefs } from 'pinia'
+import { useRoute } from 'vue-router'
 
 const { fixSelection, fix, moreItems } = displayState()
 const search = ref(false)
@@ -73,6 +76,10 @@ const handleCheck = (row: BlogSys) => {
       id: row.id
     }
   })
+  const route = useRoute()
+  const { menuList } = storeToRefs(menuStore())
+  const tab = findMenuByPath(menuList.value, route.path) as Tab
+  tabStore().addTab(tab)
 }
 
 const handleSelectionChange = (val: BlogSys[]) => {

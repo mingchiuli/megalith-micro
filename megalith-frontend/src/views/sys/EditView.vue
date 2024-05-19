@@ -4,13 +4,12 @@ import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawF
 import { GET, POST } from '@/http/http'
 import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth } from '@/type/entity'
 import { useRoute } from 'vue-router'
-import type { BlogEdit, Tab } from '@/type/entity'
+import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
-import { blogsStore, menuStore, tabStore } from '@/stores/store'
+import { blogsStore } from '@/stores/store'
 import { Client, StompSocketState } from '@stomp/stompjs'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle, findMenuByPath } from '@/utils/tools'
-import { storeToRefs } from 'pinia'
+import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 
 let timer: NodeJS.Timeout
 
@@ -506,9 +505,6 @@ onUnmounted(() => {
 
 let reconnected = false;
 (async () => {
-  const { menuList } = storeToRefs(menuStore())
-  const tab = findMenuByPath(menuList.value, route.path) as Tab
-  tabStore().addTab(tab)
   await loadEditContent()
   connect()
   timer = setInterval(async () => {
@@ -520,12 +516,12 @@ let reconnected = false;
       reconnected = true
     }
     if (reconnected && client.webSocket?.readyState === StompSocketState.OPEN) {
-      transColor.value = OperaColor.SUCCESS
-      readOnly.value = false
       await loadEditContent()
+      readOnly.value = false
+      transColor.value = OperaColor.SUCCESS
       reconnected = false
     }
-  }, 3000)
+  }, 1000)
 })()
 </script>
 
