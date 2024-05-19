@@ -521,7 +521,7 @@ let reconnected = false;
       transColor.value = OperaColor.SUCCESS
       reconnected = false
     }
-  }, 1000)
+  }, 2000)
 })()
 </script>
 
