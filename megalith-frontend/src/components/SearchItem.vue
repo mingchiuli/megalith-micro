@@ -84,13 +84,11 @@ const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
     loadingInstance = ElLoading.service({ target: div })
     const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, year.value!)
     if (page.content.length < page.pageSize) {
-      if (page.content.length) {
-        page.content.forEach((blogsDesc: BlogDesc) => {
-          blogsDesc.value = keywords.value
-          suggestionList.value.push(blogsDesc)
-        })
-        cb(suggestionList.value)
-      }
+      page.content.forEach((blogsDesc: BlogDesc) => {
+        blogsDesc.value = keywords.value
+        suggestionList.value.push(blogsDesc)
+      })
+      cb(suggestionList.value)
       loadingInstance.close()
       controller.abort()
       if (e.lastChild === div) e.removeChild(div)
