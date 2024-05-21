@@ -23,17 +23,12 @@ let client = new Client({
 })
 
 const connect = () => {
-  const key = form.id ? form.userId + '/' + form.id : form.userId?.toString()
-  client.onConnect = _frame =>
-    client.subscribe('/edits/push/all/' + key, _res => pushAllData())
-
+  const key = form.id ?  `${form.userId}/${form.id}` : form.userId!.toString()
+  client.onConnect = _frame => {
+    client.subscribe(`/edits/push/${key}`, _res => pushAllData())
+    client.subscribe(`/edits/pull/${key}`, _res => pullAllData())
+  }
   client.activate()
-  client.onStompError = frame =>
-    ElNotification.error({
-      title: 'Broker reported error: ' + frame.headers['message'],
-      message: 'Additional details: ' + frame.body,
-      showClose: true
-    })
 }
 
 type Form = {
@@ -80,7 +75,7 @@ const pushActionForm: PushActionForm = {
 
 let version = -1
 //中文输入法的问题
-let isComposing = false
+let composing = false
 let fieldType: string
 let readOnly = ref(false)
 
@@ -122,11 +117,15 @@ const preCheck = (n: string | undefined, o: string | undefined): boolean => {
     return false
   }
 
-  if (isComposing) {
+  if (composing) {
     return false
   }
 
-  if (reconnected) {
+  if (reconnecting) {
+    return false
+  }
+
+  if (pulling) {
     return false
   }
 
@@ -140,7 +139,7 @@ watch(() => form.description, (n, o) => {
 })
 
 watch(() => form.status, (n, o) => {
-  if (!client.connected || (!n && !o) || isComposing) return
+  if (!client.connected || (!n && !o) || composing) return
   commonPreDeal(FieldType.NON_PARA, FieldName.STATUS)
   pushActionForm.operateTypeCode = OperateTypeCode.STATUS
   pushActionForm.contentChange = form.status
@@ -374,7 +373,7 @@ const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 const disabled = ref(false)
 const route = useRoute()
-let blogId = route.query.id
+const blogId = route.query.id
 
 const uploadInstance = ref<UploadInstance>()
 const formRef = ref<FormInstance>()
@@ -392,6 +391,12 @@ const formRules = reactive<FormRules<Form>>({
     { required: true, message: '请选择状态', trigger: 'blur' }
   ]
 })
+
+let pulling = false
+const pullAllData = () => {
+  pulling = true
+  loadEditContent().then(_res => pulling = false)
+}
 
 const loadEditContent = async () => {
   let data
@@ -477,7 +482,7 @@ const handlePictureCardPreview = (file: UploadFile) => {
   dialogVisible.value = true
 }
 
-const dealComposing = (payload: boolean) => isComposing = payload
+const dealComposing = (payload: boolean) => composing = payload
 
 const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png') {
@@ -503,7 +508,7 @@ onUnmounted(() => {
   client.deactivate()
 })
 
-let reconnected = false;
+let reconnecting = false;
 (async () => {
   await loadEditContent()
   connect()
@@ -513,13 +518,13 @@ let reconnected = false;
       readOnly.value = true
       const token = await checkAccessToken()
       client.connectHeaders = { "Authorization": token, "Type": "EDIT" }
-      reconnected = true
+      reconnecting = true
     }
-    if (reconnected && client.webSocket?.readyState === StompSocketState.OPEN) {
+    if (reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
       await loadEditContent()
       readOnly.value = false
       transColor.value = OperaColor.SUCCESS
-      reconnected = false
+      reconnecting = false
     }
   }, 2000)
 })()
