@@ -401,9 +401,9 @@ const pullAllData = () => {
 const loadEditContent = async () => {
   let data
   if (!blogId) {
-    data = await GET<BlogEdit>('/sys/blog/echo')
+    data = await GET<BlogEdit>('/edit/pull/echo')
   } else {
-    data = await GET<BlogEdit>(`/sys/blog/echo?blogId=${blogId}`)
+    data = await GET<BlogEdit>(`/edit/pull/echo?blogId=${blogId}`)
   }
   form.title = data.title
   form.description = data.description
