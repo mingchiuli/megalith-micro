@@ -14,7 +14,7 @@ import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle } from
 let timer: NodeJS.Timeout
 
 let client = new Client({
-  brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/edit`,
+  brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/edit/ws`,
   connectHeaders: { "Authorization": localStorage.getItem('accessToken')!, "Type": "EDIT" },
   reconnectDelay: 2000,
   heartbeatIncoming: 2000,
@@ -90,7 +90,7 @@ const pushAllData = () => {
 
 const pushActionData = (pushActionForm: PushActionForm) => {
   client.publish({
-    destination: '/app/edit/push/action',
+    destination: '/app/edit/ws/push/action',
     body: JSON.stringify(pushActionForm)
   })
   if (transColor.value !== OperaColor.SUCCESS) {
