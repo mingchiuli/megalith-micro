@@ -33,12 +33,13 @@ const connect = () => {
 
 type Form = {
   id?: number
-  userId?: number
-  title?: string
-  description?: string
-  content?: string
-  status?: number
-  link?: string
+  userId: number | undefined
+  title: string | undefined
+  description: string | undefined
+  content: string | undefined
+  status: number | undefined
+  link: string | undefined
+  version?: number
 }
 
 const form: Form = reactive({
@@ -48,7 +49,8 @@ const form: Form = reactive({
   description: undefined,
   content: undefined,
   status: undefined,
-  link: undefined
+  link: undefined,
+  version: undefined
 })
 
 type PushActionForm = {
@@ -78,10 +80,16 @@ let version = -1
 let composing = false
 let fieldType: string
 let readOnly = ref(false)
+let pulling = false
+
+const pullAllData = () => {
+  pulling = true
+  loadEditContent().then(_res => pulling = false)
+}
 
 const pushAllData = () => {
+  form.version = version
   POST<null>('/edit/push/all', form).then(_resp => {
-    version = -1
     if (transColor.value !== OperaColor.WARNING) {
       transColor.value = OperaColor.WARNING
     }
@@ -391,12 +399,6 @@ const formRules = reactive<FormRules<Form>>({
     { required: true, message: '请选择状态', trigger: 'blur' }
   ]
 })
-
-let pulling = false
-const pullAllData = () => {
-  pulling = true
-  loadEditContent().then(_res => pulling = false)
-}
 
 const loadEditContent = async () => {
   let data
