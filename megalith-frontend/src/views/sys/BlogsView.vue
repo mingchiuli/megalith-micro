@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive, ref, toRefs } from 'vue'
 import { GET, POST } from '@/http/http'
-import { Status, type BlogSys, type PageAdapter, ButtonAuth, type Tab } from '@/type/entity'
+import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
 import { render, checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
