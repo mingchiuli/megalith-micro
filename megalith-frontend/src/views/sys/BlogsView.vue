@@ -58,6 +58,10 @@ const handleEdit = (row: BlogSys) => {
       id: row.id
     }
   })
+  const route = useRoute()
+  const { menuList } = storeToRefs(menuStore())
+  const tab = findMenuByPath(menuList.value, route.path) as Tab
+  tabStore().addTab(tab)
 }
 
 const handlePassword = async (row: BlogSys) => {
@@ -76,10 +80,6 @@ const handleCheck = (row: BlogSys) => {
       id: row.id
     }
   })
-  const route = useRoute()
-  const { menuList } = storeToRefs(menuStore())
-  const tab = findMenuByPath(menuList.value, route.path) as Tab
-  tabStore().addTab(tab)
 }
 
 const handleSelectionChange = (val: BlogSys[]) => {
