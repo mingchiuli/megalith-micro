@@ -1,6 +1,6 @@
 {
   "name": "megalith-frontend",
-  "version": "1.0.0",
+  "version": "latest",
   "private": true,
   "type": "module",
   "scripts": {
