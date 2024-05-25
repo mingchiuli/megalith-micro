@@ -19,10 +19,4 @@ jobs:
           port: ${{ secrets.PORT }}
           source: 'megalith'
           target: ${{ secrets.TAERGET }}
-          script: |
-            cd /nginx/html/megalith
-            mv ./* ..
-            cd ..
-            rm -rf megalith
-          
           
