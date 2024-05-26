@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { GET } from '@/http/http'
 import router from '@/router'
-import type { BlogDesc, PageAdapter } from '@/type/entity'
+import type { BlogDesc, PageAdapter, SearchPage } from '@/type/entity'
 import type { AutocompleteFetchSuggestions, AutocompleteFetchSuggestionsCallback, ElAutocomplete } from 'element-plus'
 import { onBeforeUnmount, ref } from 'vue'
 import { debounce } from '@/utils/tools'
@@ -22,12 +22,14 @@ let currentPage = 1
 const hotItemRef = ref<InstanceType<typeof HotItem>>()
 
 const yearDialogVisible = ref(false)
-const search = async (queryString: string, currentPage: number, allInfo: boolean, year: string): Promise<PageAdapter<BlogDesc>> => {
+const search = async (queryString: string, currentPage: number, allInfo: boolean, year: string, searchOrder: number | null): Promise<SearchPage<BlogDesc>> => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogDesc>>(`/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`);
+  const data = await GET<SearchPage<BlogDesc>>(`/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`)
+  data.additional = searchOrder
   return Promise.resolve(data)
 }
 
+let searchOrder = 1
 let timeout: NodeJS.Timeout
 let suggestionEle: HTMLElement | null
 let controller: AbortController
@@ -36,9 +38,11 @@ let loadingInstance: ReturnType<typeof ElLoading.service> | null
 
 const searchAbstractAsync: AutocompleteFetchSuggestions = (queryString: string, cb: AutocompleteFetchSuggestionsCallback) => {
   if (queryString.length) {
-    search(queryString, currentPage, false, year.value!).then(page => {
-      currentPage = 1
-      suggestionList.value.splice(0, suggestionList.value.length)
+    searchOrder++;
+    search(queryString, currentPage, false, year.value!, searchOrder).then(page => {
+      if (page.additional !== searchOrder) {
+        return
+      }
       page.content.forEach((blogsDesc: BlogDesc) => {
         blogsDesc.value = keywords.value
         suggestionList.value.push(blogsDesc)
@@ -74,7 +78,7 @@ const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
     lock = true
     e.append(div)
     loadingInstance = ElLoading.service({ target: div })
-    const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, year.value!)
+    const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, year.value!, null)
     if (page.content.length < page.pageSize) {
       page.content.forEach((blogsDesc: BlogDesc) => {
         blogsDesc.value = keywords.value
@@ -113,7 +117,7 @@ const handleSelect = (item: Record<string, any>) => {
 const searchAllInfo = async (queryString: string, currentPage = 1) => {
   searchDialogVisible.value = false
   if (queryString.length) {
-    const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, year.value!)
+    const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, year.value!, null)
     keywords.value = queryString
     emit('transSearchData', page)
   } else {
@@ -146,6 +150,7 @@ const openDialog = () => {
 }
 
 const clearSearch = () => {
+  searchOrder = 1
   currentPage = 1
   keywords.value = ''
   if (controller) controller.abort()

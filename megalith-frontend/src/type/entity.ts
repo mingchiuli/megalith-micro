@@ -214,6 +214,10 @@ export interface PageAdapter<T> {
   pageNumber: number | undefined
 }
 
+export interface SearchPage<T> extends PageAdapter<T> {
+  additional: any
+}
+
 export interface Data<T> {
   msg: string
   data: T
