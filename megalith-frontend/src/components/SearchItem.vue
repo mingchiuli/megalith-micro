@@ -38,11 +38,13 @@ let loadingInstance: ReturnType<typeof ElLoading.service> | null
 
 const searchAbstractAsync: AutocompleteFetchSuggestions = (queryString: string, cb: AutocompleteFetchSuggestionsCallback) => {
   if (queryString.length) {
-    searchOrder++;
+    searchOrder++
     search(queryString, currentPage, false, year.value!, searchOrder).then(page => {
       if (page.additional !== searchOrder) {
         return
       }
+      currentPage = 1
+      suggestionList.value.slice(0, suggestionList.value.length)
       page.content.forEach((blogsDesc: BlogDesc) => {
         blogsDesc.value = keywords.value
         suggestionList.value.push(blogsDesc)
