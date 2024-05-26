@@ -3,7 +3,7 @@ import { GET } from '@/http/http'
 import router from '@/router'
 import type { BlogDesc, PageAdapter } from '@/type/entity'
 import type { AutocompleteFetchSuggestions, AutocompleteFetchSuggestionsCallback, ElAutocomplete } from 'element-plus'
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
 import { debounce } from '@/utils/tools'
 import { ElLoading } from 'element-plus'
 import type HotItem from './HotItem.vue'
@@ -37,11 +37,8 @@ let loadingInstance: ReturnType<typeof ElLoading.service> | null
 const searchAbstractAsync: AutocompleteFetchSuggestions = (queryString: string, cb: AutocompleteFetchSuggestionsCallback) => {
   if (queryString.length) {
     search(queryString, currentPage, false, year.value!).then(page => {
-      page.content.forEach((blogsDesc: BlogDesc) => {
-        blogsDesc.value = keywords.value
-        suggestionList.value.push(blogsDesc)
-      })
-
+      currentPage = 1
+      suggestionList.value.splice(0, suggestionList.value.length)
       page.content.forEach((blogsDesc: BlogDesc) => {
         blogsDesc.value = keywords.value
         suggestionList.value.push(blogsDesc)
@@ -68,11 +65,6 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (queryString: string, 
     })
   }
 }
-
-watch(() => keywords.value, () => {
-  currentPage = 1
-  suggestionList.value.splice(0, suggestionList.value.length)
-})
 
 let lock = false
 let fin = false
