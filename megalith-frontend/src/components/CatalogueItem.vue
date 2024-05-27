@@ -17,7 +17,7 @@ const defaultProps = { children: 'children', label: 'label' }
 const rollGap = 10
 const treeRef = ref<InstanceType<typeof ElTree>>()
 
-const handleNodeClick = (data: CatalogueLabel) => window.scrollTo({ top: data.dist - rollGap, behavior: 'smooth' })
+const handleNodeClick = (data: CatalogueLabel) => window.scrollTo({ top: data.dist - rollGap, behavior: 'instant' })
 
 const render = async () => {
   const labels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
