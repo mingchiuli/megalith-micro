@@ -35,7 +35,7 @@ const toGithub = () => window.location.href = 'https://github.com/mingchiuli'
 .into-avatar {
   margin: 0 auto;
   width: fit-content;
-  margin-top: 1rem;
+  margin-top: 5rem;
   margin-bottom: 5rem
 }
 
