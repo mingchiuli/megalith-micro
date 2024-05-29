@@ -40,7 +40,7 @@ const formRules = reactive<FormRules<Form>>({
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' }
   ],
-  role: [
+  roles: [
     { required: true, message: '请选择角色', trigger: 'blur' }
   ],
   status: [
@@ -57,7 +57,7 @@ type Form = {
   email: string
   phone: string
   status: number
-  role: string[]
+  roles: string[]
 }
 const form: Form = reactive({
   id: undefined,
@@ -68,7 +68,7 @@ const form: Form = reactive({
   email: '',
   phone: '',
   status: 0,
-  role: []
+  roles: []
 })
 
 const delBatch = async () => {
@@ -105,7 +105,7 @@ const handleEdit = async (row: UserSys) => {
   form.nickname = data.nickname
   form.phone = data.phone
   form.email = data.email
-  form.role = data.role
+  form.roles = data.roles
   form.status = data.status
   form.avatar = data.avatar
   dialogVisible.value = true
@@ -154,7 +154,7 @@ const clearForm = () => {
   form.avatar = ''
   form.email = ''
   form.phone = ''
-  form.role = []
+  form.roles = []
   form.status = 0
 }
 
@@ -314,7 +314,7 @@ const getRegisterLink = async (username: string) => {
       </el-form-item>
 
       <el-form-item label="角色" label-width="100px" prop="role" class="role">
-        <el-select multiple class="role-option" v-model="form.role" placeholder="请选择">
+        <el-select multiple class="role-option" v-model="form.roles" placeholder="请选择">
           <el-option v-for="item in roleList" :key="item.code" :label="item.name" :value="item.code">
           </el-option>
         </el-select>

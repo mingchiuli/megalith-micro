@@ -66,7 +66,7 @@ export interface UserSys {
   created: string
   updated: string
   lastLogin: string
-  role: string[]
+  roles: string[]
 }
 
 export interface MenuSys {
