@@ -283,7 +283,7 @@ const handleDelete = async (row: RoleSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="fix" label="操作" min-width="300" align="center">
+    <el-table-column :fixed="fix" label="操作" min-width="350" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_EDIT)">
           <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_EDIT) }}</el-button>

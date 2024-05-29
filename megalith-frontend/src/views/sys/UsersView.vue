@@ -57,7 +57,7 @@ type Form = {
   email: string
   phone: string
   status: number
-  role: string
+  role: string[]
 }
 const form: Form = reactive({
   id: undefined,
@@ -68,7 +68,7 @@ const form: Form = reactive({
   email: '',
   phone: '',
   status: 0,
-  role: ''
+  role: []
 })
 
 const delBatch = async () => {
@@ -154,7 +154,7 @@ const clearForm = () => {
   form.avatar = ''
   form.email = ''
   form.phone = ''
-  form.role = ''
+  form.role = []
   form.status = 0
 }
 
@@ -314,7 +314,7 @@ const getRegisterLink = async (username: string) => {
       </el-form-item>
 
       <el-form-item label="角色" label-width="100px" prop="role" class="role">
-        <el-select class="role-option" v-model="form.role" placeholder="请选择">
+        <el-select multiple class="role-option" v-model="form.role" placeholder="请选择">
           <el-option v-for="item in roleList" :key="item.code" :label="item.name" :value="item.code">
           </el-option>
         </el-select>
