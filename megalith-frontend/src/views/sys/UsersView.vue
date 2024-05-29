@@ -158,6 +158,10 @@ const clearForm = () => {
   form.status = 0
 }
 
+const getRoleName = (item: string): string => {
+  return roleList.value.filter(role => role.code === item)[0].name
+}
+
 const handleSizeChange = async (val: number) => {
   pageSize.value = val
   pageNumber.value = 1
@@ -224,6 +228,12 @@ const getRegisterLink = async (username: string) => {
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">启用</el-tag>
         <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">停用</el-tag>
+      </template>
+    </el-table-column>
+
+    <el-table-column label="角色" align="center">
+      <template #default="scope">
+        <el-tag size="small" v-for="item in scope.row.roles" v-bind:key="item.code" type="success">{{ getRoleName(item) }}</el-tag>
       </template>
     </el-table-column>
 
