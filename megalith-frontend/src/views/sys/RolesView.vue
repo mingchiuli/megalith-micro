@@ -250,7 +250,7 @@ const handleDelete = async (row: RoleSys) => {
 
     <el-table-column type="selection" :fixed="fixSelection" />
     <el-table-column label="名字" align="center" prop="name" />
-    <el-table-column label="唯一编码" align="center" prop="code" />
+    <el-table-column label="唯一编码" align="center" prop="code" min-width="120" />
 
     <el-table-column label="描述" align="center" prop="remark" min-width="200" />
 
