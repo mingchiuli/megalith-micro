@@ -250,7 +250,7 @@ const handleDelete = async (row: RoleSys) => {
 
     <el-table-column type="selection" :fixed="fixSelection" />
     <el-table-column label="名字" align="center" prop="name" />
-    <el-table-column label="唯一编码" align="center" prop="code" />
+    <el-table-column label="唯一编码" align="center" prop="code" min-width="120" />
 
     <el-table-column label="描述" align="center" prop="remark" min-width="200" />
 
@@ -283,7 +283,7 @@ const handleDelete = async (row: RoleSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="fix" label="操作" min-width="300" align="center">
+    <el-table-column :fixed="fix" label="操作" min-width="350" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_EDIT)">
           <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_EDIT) }}</el-button>
