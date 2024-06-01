@@ -26,13 +26,15 @@ const connect = () => {
   const key = form.id ?  `${form.userId}/${form.id}` : form.userId!.toString()
   client.onConnect = _frame => {
     client.subscribe(`/edits/push/${key}`, res => {
-      if (res.body === String(version)) {
+      const v = res.body
+      if (v === String(version)) {
         pushAllData()
       }
       
     })
     client.subscribe(`/edits/pull/${key}`, res => {
-      if (res.body === String(version)) {
+      const v = res.body
+      if (v === String(version)) {
         pullAllData()
       }
     })
