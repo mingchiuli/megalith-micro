@@ -25,8 +25,19 @@ let client = new Client({
 const connect = () => {
   const key = form.id ?  `${form.userId}/${form.id}` : form.userId!.toString()
   client.onConnect = _frame => {
-    client.subscribe(`/edits/push/${key}`, _res => pushAllData())
-    client.subscribe(`/edits/pull/${key}`, _res => pullAllData())
+    client.subscribe(`/edits/push/${key}`, res => {
+      console.log(res.body)
+      if (res.body === String(version)) {
+        pushAllData()
+      }
+      
+    })
+    client.subscribe(`/edits/pull/${key}`, res => {
+      console.log(res.body)
+      if (res.body === String(version)) {
+        pullAllData()
+      }
+    })
   }
   client.activate()
 }
