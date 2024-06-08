@@ -90,6 +90,14 @@ const loadImg = () => {
   }
 }
 
+const search = () => {
+  if (!keywords) {
+    searchDialogVisible.value = true
+  } else {
+    clear()
+  }
+}
+
 const to = async (id: number) => {
   const status = await GET<number>(`/public/blog/status/${id}`)
   if (status === Status.NORMAL) {
@@ -116,7 +124,7 @@ const { content, totalElements, pageSize } = toRefs(page);
   <div class="front">
     <ReadTokenItem v-model:read-token-dialog-visible="readTokenDialogVisible" v-model:blog-id="blogId" />
     <div class="search-father">
-      <el-button class="search-button" @click="searchDialogVisible = true" type="success">Search</el-button>
+      <el-button class="search-button" @click="search" type="success">{{ keywords ? 'Clear' : 'Search' }}</el-button>
       <SearchItem ref="searchRef" @trans-search-data="fillSearchData" @clear="clear" v-model:keywords="keywords"
         v-model:year="year" v-model:loading="loading" v-model:search-dialog-visible="searchDialogVisible" />
     </div>
