@@ -91,7 +91,7 @@ const loadImg = () => {
 }
 
 const search = () => {
-  if (!keywords) {
+  if (!keywords.value) {
     searchDialogVisible.value = true
   } else {
     clear()
