@@ -10,7 +10,7 @@ import type HotItem from './HotItem.vue'
 
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
-  clear: [payload: void]
+  refresh: [payload: void]
 }>()
 
 const year = defineModel<string>('year')
@@ -123,7 +123,7 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
     keywords.value = queryString
     emit('transSearchData', page)
   } else {
-    emit('clear')
+    emit('refresh')
   }
 }
 
@@ -133,7 +133,7 @@ const searchBeforeClose = (close: Function) => {
   if (controller) controller.abort()
   suggestionEle = null
   suggestionList.value.splice(0, suggestionList.value.length)
-  emit('clear')
+  emit('refresh')
   close()
 }
 

@@ -42,10 +42,9 @@ const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
   }
 }
 
-const clear = () => {
+const refresh = () => {
   page.content = []
   page.totalElements = 0
-  searchPageNum.value = 1
   getPage(1)
 }
 
@@ -94,7 +93,8 @@ const search = () => {
   if (!keywords.value) {
     searchDialogVisible.value = true
   } else {
-    clear()
+    keywords.value = ''
+    refresh()
   }
 }
 
@@ -125,7 +125,7 @@ const { content, totalElements, pageSize } = toRefs(page);
     <ReadTokenItem v-model:read-token-dialog-visible="readTokenDialogVisible" v-model:blog-id="blogId" />
     <div class="search-father">
       <el-button class="search-button" @click="search" type="success">{{ keywords ? 'Clear' : 'Search' }}</el-button>
-      <SearchItem ref="searchRef" @trans-search-data="fillSearchData" @clear="clear" v-model:keywords="keywords"
+      <SearchItem ref="searchRef" @trans-search-data="fillSearchData" @refresh="refresh" v-model:keywords="keywords"
         v-model:year="year" v-model:loading="loading" v-model:search-dialog-visible="searchDialogVisible" />
     </div>
     <el-text size="large">共{{ page.totalElements }}篇</el-text>
