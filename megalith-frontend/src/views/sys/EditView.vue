@@ -125,7 +125,7 @@ const clearPushActionForm = () => {
 
 const preCheck = (n: string | undefined, o: string | undefined): boolean => {
 
-  if (!client.connected) {
+  if (client.webSocket?.readyState !== StompSocketState.OPEN) {
     if (!netErrorEdited.value) {
       netErrorEdited.value = true
     }
