@@ -25,12 +25,12 @@ let client = new Client({
 const connect = async () => {
   const key = form.id ?  `${form.userId}/${form.id}` : form.userId!.toString()
   client.onConnect = _frame => {
-    client.subscribe(`/edits/push/${key}`, _res => {
-      pushAllData()
+    client.subscribe(`/edits/push/${key}`, async _res => {
+      await pushAllData()
     })
 
-    client.subscribe(`/edits/pull/${key}`, _res => {
-      pullAllData()
+    client.subscribe(`/edits/pull/${key}`, async _res => {
+      await pullAllData()
     })
   }
   
