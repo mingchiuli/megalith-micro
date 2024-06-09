@@ -22,10 +22,9 @@ let client = new Client({
   connectionTimeout: 2000
 })
 
-const connect = () => {
+const connect = async () => {
   const key = form.id ?  `${form.userId}/${form.id}` : form.userId!.toString()
   client.onConnect = _frame => {
-
     client.subscribe(`/edits/push/${key}`, _res => {
       pushAllData()
     })
@@ -86,21 +85,22 @@ let version = -1
 //中文输入法的问题
 let composing = false
 let fieldType: string
-let readOnly = ref(false)
+const readOnly = ref(false)
+const netErrorEdited = ref(false)
 let pulling = false
 
-const pullAllData = () => {
+const pullAllData = async () => {
   pulling = true
-  loadEditContent().then(_res => pulling = false)
+  await loadEditContent()
+  pulling = false
 }
 
-const pushAllData = () => {
+const pushAllData = async () => {
   form.version = version
-  POST<null>('/edit/push/all', form).then(_resp => {
-    if (transColor.value !== OperaColor.WARNING) {
+  await POST<null>('/edit/push/all', form)
+  if (transColor.value !== OperaColor.WARNING) {
       transColor.value = OperaColor.WARNING
-    }
-  })
+  }
 }
 
 const pushActionData = (pushActionForm: PushActionForm) => {
@@ -124,7 +124,11 @@ const clearPushActionForm = () => {
 }
 
 const preCheck = (n: string | undefined, o: string | undefined): boolean => {
+
   if (!client.connected) {
+    if (!netErrorEdited.value) {
+      netErrorEdited.value = true
+    }
     return false
   }
 
@@ -235,6 +239,9 @@ watch(() => form.content, (n, o) => {
 })
 
 const commonPreDeal = (fieldTypeParam: string, opreateField: string) => {
+  if (netErrorEdited.value) {
+    netErrorEdited.value = false
+  }
   clearPushActionForm()
   pushActionForm.field = opreateField
   pushActionForm.id = form.id
@@ -520,7 +527,7 @@ onUnmounted(() => {
 let reconnecting = false;
 (async () => {
   await loadEditContent()
-  connect()
+  await connect()
   timer = setInterval(async () => {
     if (client.webSocket?.readyState !== StompSocketState.OPEN) {
       transColor.value = OperaColor.FAILED
@@ -530,7 +537,11 @@ let reconnecting = false;
       reconnecting = true
     }
     if (reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
-      await loadEditContent()
+      if (netErrorEdited.value) {
+        await pushAllData()
+      } else {
+        await pullAllData()
+      }
       readOnly.value = false
       transColor.value = OperaColor.SUCCESS
       reconnecting = false
