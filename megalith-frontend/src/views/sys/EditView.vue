@@ -589,8 +589,7 @@ let reconnecting = false;
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <CustomEditorItem v-model:content="form.content" @composing="dealComposing" :trans-color="transColor"
-          :read-only="readOnly" />
+        <CustomEditorItem v-model:content="form.content" @composing="dealComposing" :trans-color="transColor" />
       </el-form-item>
 
       <div class="submit-button">

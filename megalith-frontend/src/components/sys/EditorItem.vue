@@ -13,7 +13,6 @@ const emit = defineEmits<{
 
 defineProps<{
   transColor: string
-  readOnly: boolean
 }>()
 
 const content = defineModel<string | undefined>('content')
@@ -46,7 +45,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 <template>
   <md-editor v-model="content" :preview="false" :toolbars="toolbars" :toolbarsExclude="['github']"
-    @on-upload-img="onUploadImg" :footers="footers" :read-only="readOnly">
+    @on-upload-img="onUploadImg" :footers="footers" >
     <template #defToolbars>
       <Export-PDF v-model="content" />
       <emoji>
