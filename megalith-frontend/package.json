@@ -15,7 +15,7 @@
   "dependencies": {
     "@stomp/stompjs": "^7.0.0",
     "@types/markdown-it": "^14.1.1",
-    "@vavt/v3-extension": "^1.2.2",
+    "@vavt/v3-extension": "^1.2.3-v3",
     "axios": "^1.7.2",
     "element-plus": "^2.7.4",
     "highlight.js": "^11.9.0",
