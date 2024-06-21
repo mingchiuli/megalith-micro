@@ -125,7 +125,7 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
     if (page.content.length) {
       emit('transSearchData', page)
       return
-    } 
+    }
   }
   emit('refresh')
 }
