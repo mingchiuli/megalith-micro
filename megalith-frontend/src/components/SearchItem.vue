@@ -121,12 +121,12 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
   searchDialogVisible.value = false
   if (queryString.length) {
     const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, year.value!, null)
-    keywords.value = queryString
     if (page.content.length) {
       emit('transSearchData', page)
       return
     }
   }
+  keywords.value = ''
   emit('refresh')
 }
 

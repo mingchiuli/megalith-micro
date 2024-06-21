@@ -33,7 +33,7 @@ const delBatch = async () => {
     type: 'success',
   })
   multipleSelection.value = []
-  await queryBLogs()
+  await queryBlogs()
 }
 
 const handleDelete = async (row: BlogSys) => {
@@ -45,7 +45,7 @@ const handleDelete = async (row: BlogSys) => {
     message: '删除成功',
     type: 'success',
   })
-  await queryBLogs()
+  await queryBlogs()
 }
 
 const handleEdit = (row: BlogSys) => {
@@ -80,7 +80,7 @@ const handleSelectionChange = (val: BlogSys[]) => {
   delBtlStatus.value = val.length === 0
 }
 
-const queryBLogs = async () => {
+const queryBlogs = async () => {
   if (search.value) {
     search.value = false
   }
@@ -91,16 +91,16 @@ const queryBLogs = async () => {
   loading.value = false
 }
 
-const clearQueryBLogs = async () => {
+const clearQueryBlogs = async () => {
   pageNumber.value = 1
-  await queryBLogs()
+  await queryBlogs()
 }
 
 const searchBlogs = async () => {
   if (input.value) {
     search.value = true
     loading.value = true
-    const data = await GET<PageAdapter<BlogSys>>(`search/sys/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
+    const data = await GET<PageAdapter<BlogSys>>(`/search/sys/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
     page.content = data.content
     page.totalElements = data.totalElements
     loading.value = false
@@ -113,7 +113,7 @@ const handleSizeChange = async (val: number) => {
   if (input.value) {
     await searchBlogs()
   } else {
-    await queryBLogs()
+    await queryBlogs()
   }
 }
 
@@ -123,12 +123,12 @@ const handleCurrentChange = async (val: number) => {
   if (input.value) {
     await searchBlogs()
   } else {
-    await queryBLogs()
+    await queryBlogs()
   }
 }
 
 (async () => {
-  await queryBLogs()
+  await queryBlogs()
 })()
 </script>
 
@@ -136,7 +136,7 @@ const handleCurrentChange = async (val: number) => {
   <el-form :inline="true" @submit.prevent class="button-form">
     <el-form-item>
       <el-input v-model="input" placeholder="Please input" clearable maxlength="20" size="large" class="search-input"
-        @clear="clearQueryBLogs" @keyup.enter="searchBlogs" />
+        @clear="clearQueryBlogs" @keyup.enter="searchBlogs" />
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_SEARCH)">
       <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_SEARCH)" size="large" @click="searchBlogs">{{ getButtonTitle(ButtonAuth.SYS_BLOG_SEARCH) }}</el-button>
