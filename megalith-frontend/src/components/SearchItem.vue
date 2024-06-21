@@ -44,7 +44,7 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (queryString: string, 
         return
       }
       currentPage = 1
-      suggestionList.value.slice(0, suggestionList.value.length)
+      suggestionList.value = []
       page.content.forEach((blogsDesc: BlogDesc) => {
         blogsDesc.value = keywords.value
         suggestionList.value.push(blogsDesc)
@@ -55,6 +55,7 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (queryString: string, 
         //不执行cd，下拉框没数据就不会收回去
         cb(suggestionList.value)
         if (!page.content.length) {
+          suggestionList.value = []
           ElMessage.error('No Records')
           return
         }
@@ -132,7 +133,7 @@ const searchBeforeClose = (close: Function) => {
   year.value = ''
   if (controller) controller.abort()
   suggestionEle = null
-  suggestionList.value.splice(0, suggestionList.value.length)
+  suggestionList.value = []
   emit('refresh')
   close()
 }
