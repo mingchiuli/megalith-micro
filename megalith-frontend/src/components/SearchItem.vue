@@ -122,10 +122,12 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
   if (queryString.length) {
     const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, year.value!, null)
     keywords.value = queryString
-    emit('transSearchData', page)
-  } else {
-    emit('refresh')
+    if (page.content.length) {
+      emit('transSearchData', page)
+      return
+    } 
   }
+  emit('refresh')
 }
 
 const searchBeforeClose = (close: Function) => {
