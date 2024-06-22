@@ -12,10 +12,12 @@ import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 
 let timer: NodeJS.Timeout
+const route = useRoute()
+const blogId = route.query.id
 
 let client = new Client({
   brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/edit/ws`,
-  connectHeaders: { "Authorization": localStorage.getItem('accessToken')!, "Type": "EDIT" },
+  connectHeaders: { "Authorization": localStorage.getItem('accessToken')!, "Type": "EDIT", "Identity": String(blogId) },
   reconnectDelay: 2000,
   heartbeatIncoming: 2000,
   heartbeatOutgoing: 2000,
@@ -397,8 +399,6 @@ const fileList = ref<UploadUserFile[]>([])
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 const disabled = ref(false)
-const route = useRoute()
-const blogId = route.query.id
 
 const uploadInstance = ref<UploadInstance>()
 const formRef = ref<FormInstance>()
