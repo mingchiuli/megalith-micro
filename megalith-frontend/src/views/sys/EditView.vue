@@ -7,7 +7,7 @@ import { useRoute } from 'vue-router'
 import type { BlogEdit } from '@/type/entity'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
-import { Client, StompSocketState } from '@stomp/stompjs'
+import { Client, StompSocketState, type StompSubscription } from '@stomp/stompjs'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 
@@ -22,14 +22,17 @@ let client = new Client({
   connectionTimeout: 2000
 })
 
+let pushAllSubscribe: StompSubscription
+let pullAllSubscribe: StompSubscription
+
 const connect = async () => {
   const key = form.id ?  `${form.userId}/${form.id}` : form.userId!.toString()
   client.onConnect = _frame => {
-    client.subscribe(`/edits/push/${key}`, async _res => {
+    pushAllSubscribe = client.subscribe(`/edits/push/${key}`, async _res => {
       await pushAllData()
     })
 
-    client.subscribe(`/edits/pull/${key}`, async _res => {
+    pullAllSubscribe = client.subscribe(`/edits/pull/${key}`, async _res => {
       await pullAllData()
     })
   }
@@ -521,6 +524,8 @@ const CustomEditorItem = defineAsyncComponent({
 
 onUnmounted(() => {
   clearInterval(timer)
+  pushAllSubscribe.unsubscribe()
+  pullAllSubscribe.unsubscribe()
   client.deactivate()
 })
 
