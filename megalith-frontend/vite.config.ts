@@ -32,12 +32,11 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': {
           target: 'http://127.0.0.1:8081',	//接口地址
-          changeOrigin: true,
           rewrite: (path: string) => path.replace(/api/, '')
         },
         '/wsapi': {
           target: 'ws://127.0.0.1:8081',
-          changeOrigin: true,
+          ws: true,
           rewrite: (path: string) => path.replace(/wsapi/, '')
         }
       }
