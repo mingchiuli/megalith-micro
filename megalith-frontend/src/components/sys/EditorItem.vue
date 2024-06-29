@@ -5,7 +5,7 @@ import 'md-editor-v3/lib/style.css'
 import '@vavt/v3-extension/lib/asset/ExportPDF.css'
 import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const emit = defineEmits<{
   composing: [payload: boolean]
@@ -26,14 +26,16 @@ const toolbars: ToolbarNames[] = [
 ]
 const footers: Footers[] = ['markdownTotal', '=', 0, 'scrollSwitch']
 
-editorRef.value?.domEventHandlers({
-  compositionstart: () => {
-    emit('composing', true)
-  },
-  compositionend: () => {
-    emit('composing', false)
-  }
-});
+onMounted(() => {
+  editorRef.value?.domEventHandlers({
+    compositionstart: () => {
+      emit('composing', true)
+    },
+    compositionend: () => {
+      emit('composing', false)
+    }
+  });
+})
 
 const onUploadImg = async (files: File[], callback: Function) => {
   const formdata = new FormData()
