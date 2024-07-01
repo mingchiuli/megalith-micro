@@ -15,16 +15,16 @@
   "dependencies": {
     "@stomp/stompjs": "^7.0.0",
     "@types/markdown-it": "^14.1.1",
-    "@vavt/v3-extension": "^1.2.3-v3",
+    "@vavt/v3-extension": "^1.2.4",
     "axios": "^1.7.2",
-    "element-plus": "^2.7.5",
+    "element-plus": "^2.7.6",
     "highlight.js": "^11.9.0",
     "js-base64": "^3.7.7",
     "markdown-it": "^14.1.0",
     "md-editor-v3": "^4.17.0",
     "pinia": "^2.1.7",
-    "vue": "^3.4.29",
-    "vue-router": "^4.3.3"
+    "vue": "^3.4.31",
+    "vue-router": "^4.4.0"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.10.3",
