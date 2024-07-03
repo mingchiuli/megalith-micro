@@ -96,6 +96,11 @@ const clearQueryBlogs = async () => {
   await queryBlogs()
 }
 
+const searchBlogsAction = () => {
+  pageNumber.value = 1
+  searchBlogs()
+}
+
 const searchBlogs = async () => {
   if (input.value) {
     search.value = true
@@ -136,10 +141,10 @@ const handleCurrentChange = async (val: number) => {
   <el-form :inline="true" @submit.prevent class="button-form">
     <el-form-item>
       <el-input v-model="input" placeholder="Please input" clearable maxlength="20" size="large" class="search-input"
-        @clear="clearQueryBlogs" @keyup.enter="searchBlogs" />
+        @clear="clearQueryBlogs" @keyup.enter="searchBlogsAction" />
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_SEARCH)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_SEARCH)" size="large" @click="searchBlogs">{{ getButtonTitle(ButtonAuth.SYS_BLOG_SEARCH) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_SEARCH)" size="large" @click="searchBlogsAction">{{ getButtonTitle(ButtonAuth.SYS_BLOG_SEARCH) }}</el-button>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_BATCH_DEL)">
       <el-popconfirm title="确定批量删除?" @confirm="delBatch">
