@@ -244,9 +244,6 @@ watch(() => form.content, (n, o) => {
 })
 
 const commonPreDeal = (fieldTypeParam: string, opreateField: string) => {
-  if (netErrorEdited.value) {
-    netErrorEdited.value = false
-  }
   clearPushActionForm()
   pushActionForm.field = opreateField
   pushActionForm.id = form.id
@@ -550,6 +547,7 @@ let reconnecting = false;
       readOnly.value = false
       transColor.value = OperaColor.SUCCESS
       reconnecting = false
+      netErrorEdited.value = false
     }
   }, 2000)
 })()
