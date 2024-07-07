@@ -225,7 +225,8 @@ export interface Data<T> {
 
 export enum Status {
   NORMAL = 0,
-  BLOCK
+  BLOCK,
+  SENSITIVE_FILTER
 }
 
 export enum RoutesEnum {

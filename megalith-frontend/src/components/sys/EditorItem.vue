@@ -9,6 +9,7 @@ import { onMounted, ref } from 'vue'
 
 const emit = defineEmits<{
   composing: [payload: boolean]
+  sensitive: [payload: string]
 }>()
 
 defineProps<{
@@ -35,6 +36,13 @@ onMounted(() => {
       emit('composing', false)
     }
   });
+  document.getElementById("md-editor")!.onmouseup = () => {
+    let selectedText = getSelection()!.toString() // 获取选中的文本
+    if (selectedText) {
+      // 选中文本后要执行的操作
+      emit('sensitive', selectedText)
+    }
+  }
 })
 
 const onUploadImg = async (files: File[], callback: Function) => {
@@ -46,7 +54,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
 </script>
 
 <template>
-  <md-editor v-model="content" :preview="false" :toolbars="toolbars" :toolbarsExclude="['github']"
+  <md-editor id="md-editor" v-model="content" :preview="false" :toolbars="toolbars" :toolbarsExclude="['github']"
     @on-upload-img="onUploadImg" :footers="footers" ref="editorRef">
     <template #defToolbars>
       <Export-PDF v-model="content" />

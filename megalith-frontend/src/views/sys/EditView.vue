@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
-import { type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
+import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth } from '@/type/entity'
 import { useRoute } from 'vue-router'
@@ -28,7 +28,7 @@ let pushAllSubscribe: StompSubscription
 let pullAllSubscribe: StompSubscription
 
 const connect = async () => {
-  const key = form.id ?  `${form.userId}/${form.id}` : form.userId!.toString()
+  const key = form.id ? `${form.userId}/${form.id}` : form.userId!.toString()
   client.onConnect = _frame => {
     pushAllSubscribe = client.subscribe(`/edits/push/${key}`, async _res => {
       await pushAllData()
@@ -38,9 +38,15 @@ const connect = async () => {
       await pullAllData()
     })
   }
-  
   client.activate()
 }
+
+type SensitiveTagsItem = {
+  name: string
+  type: TagProps['type']
+}
+
+const sensitiveTags = ref<SensitiveTagsItem[]>([])
 
 type Form = {
   id?: number
@@ -51,6 +57,7 @@ type Form = {
   status: number | undefined
   link: string | undefined
   version?: number
+  sensitiveContentList: string[]
 }
 
 const form: Form = reactive({
@@ -61,7 +68,8 @@ const form: Form = reactive({
   content: undefined,
   status: undefined,
   link: undefined,
-  version: undefined
+  version: undefined,
+  sensitiveContentList: []
 })
 
 type PushActionForm = {
@@ -104,7 +112,7 @@ const pushAllData = async () => {
   form.version = version
   await POST<null>('/edit/push/all', form)
   if (transColor.value !== OperaColor.WARNING) {
-      transColor.value = OperaColor.WARNING
+    transColor.value = OperaColor.WARNING
   }
 }
 
@@ -479,6 +487,8 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid, _fields) => {
     if (valid) {
+      //deal form
+      sensitiveTags.value.forEach(item => form.sensitiveContentList.push(item.name))
       await POST<null>('/sys/blog/save', form)
       ElNotification({
         title: '操作成功',
@@ -498,7 +508,13 @@ const handlePictureCardPreview = (file: UploadFile) => {
   dialogVisible.value = true
 }
 
+const handleTagClose = (tagName: string) => {
+  sensitiveTags.value = sensitiveTags.value.filter(item => item.name !== tagName)
+}
+
 const dealComposing = (payload: boolean) => composing = payload
+
+const dealSensitive = (payload: string) => sensitiveTags.value.push({ name: payload, type: 'warning' })
 
 const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png') {
@@ -556,20 +572,30 @@ let reconnecting = false;
 <template>
   <div class="father">
     <el-form :model="form" :rules="formRules" ref="formRef">
-      <el-form-item class="title" prop="title">
+      <el-form-item class="title">
         <el-input v-model="form.title" placeholder="标题" maxlength="20" :disabled="readOnly" />
       </el-form-item>
 
-      <el-form-item class="desc" prop="description">
+      <el-form-item class="desc">
         <el-input autosize type="textarea" v-model="form.description" placeholder="摘要" maxlength="60"
           :disabled="readOnly" />
       </el-form-item>
 
-      <el-form-item class="status" prop="status">
+      <el-form-item class="status">
         <el-radio-group v-model="form.status" :disabled="readOnly">
           <el-radio :value=Status.NORMAL>公开</el-radio>
           <el-radio :value=Status.BLOCK>隐藏</el-radio>
+          <el-radio :value=Status.SENSITIVE_FILTER>打码</el-radio>
         </el-radio-group>
+      </el-form-item>
+
+      <el-form-item>
+        <span style="margin-right: 10px;">打码</span>
+        <div>
+          <el-tag v-for="tag in sensitiveTags" :key="tag.name" closable :type="tag.type" @close="handleTagClose(tag.name)">
+            {{ tag.name }}
+          </el-tag>
+        </div>
       </el-form-item>
 
       <el-form-item class="cover">
@@ -602,12 +628,14 @@ let reconnecting = false;
         </el-dialog>
       </el-form-item>
 
-      <el-form-item class="content" prop="content">
-        <CustomEditorItem v-model:content="form.content" @composing="dealComposing" :trans-color="transColor" />
+      <el-form-item class="content">
+        <CustomEditorItem v-model:content="form.content" @composing="dealComposing" @sensitive="dealSensitive" :trans-color="transColor" />
       </el-form-item>
 
       <div class="submit-button">
-        <el-button :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)" v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)" @click="submitForm(formRef!)" :disabled="readOnly">{{ getButtonTitle(ButtonAuth.SYS_EDIT_COMMIT) }}</el-button>
+        <el-button :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)" v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)"
+          @click="submitForm(formRef!)" :disabled="readOnly">{{ getButtonTitle(ButtonAuth.SYS_EDIT_COMMIT)
+          }}</el-button>
       </div>
     </el-form>
 
@@ -633,6 +661,10 @@ let reconnecting = false;
 .status {
   margin-top: 5px;
   width: 300px
+}
+
+.el-tag {
+  margin-right: 10px;
 }
 
 .el-upload__text {

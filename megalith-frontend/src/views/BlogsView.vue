@@ -100,7 +100,7 @@ const search = () => {
 
 const to = async (id: number) => {
   const status = await GET<number>(`/public/blog/status/${id}`)
-  if (status === Status.NORMAL) {
+  if (status === Status.NORMAL || status === Status.SENSITIVE_FILTER) {
     router.push({
       name: 'blog',
       params: {
