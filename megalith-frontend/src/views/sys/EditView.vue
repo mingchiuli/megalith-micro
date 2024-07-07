@@ -74,7 +74,7 @@ const form: Form = reactive({
 
 type PushActionForm = {
   id?: number
-  contentChange?: string | number
+  contentChange?: string
   operateTypeCode?: number
   version?: number
   indexStart?: number
@@ -174,7 +174,15 @@ watch(() => form.status, (n, o) => {
   if (!client.connected || (!n && !o) || composing) return
   commonPreDeal(FieldType.NON_PARA, FieldName.STATUS)
   pushActionForm.operateTypeCode = OperateTypeCode.STATUS
-  pushActionForm.contentChange = form.status
+  pushActionForm.contentChange = String(form.status)
+  pushActionData(pushActionForm)
+})
+
+watch(() => form.sensitiveContentList, (n, o) => {
+  if (!client.connected || (!n && !o) || composing) return
+  commonPreDeal(FieldType.NON_PARA, FieldName.SENSITIVE_CONTENT_LIST)
+  pushActionForm.operateTypeCode = OperateTypeCode.SENSITIVE_CONTENT_LIST
+  pushActionForm.contentChange = JSON.stringify(form.sensitiveContentList)
   pushActionData(pushActionForm)
 })
 

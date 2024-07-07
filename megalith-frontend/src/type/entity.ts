@@ -250,7 +250,8 @@ export enum OperateTypeCode {
   PARA_REPLACE = 10,
   PARA_REMOVE = 11,
   PARA_SPLIT_APPEND = 12,
-  PARA_SPLIT_SUBTRACT = 13
+  PARA_SPLIT_SUBTRACT = 13,
+  SENSITIVE_CONTENT_LIST = 14
 }
 
 export enum OperaColor {
@@ -264,7 +265,8 @@ export enum FieldName {
   CONTENT = 'content',
   STATUS = 'status',
   LINK = 'link',
-  TITLE = 'title'
+  TITLE = 'title',
+  SENSITIVE_CONTENT_LIST = "sensitiveContentList"
 }
 
 export enum FieldType {
