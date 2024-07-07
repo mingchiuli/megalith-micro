@@ -104,6 +104,7 @@ export interface BlogEdit {
   link: string
   status: number
   version: number
+  sensitiveContentList: string[]
 }
 
 
