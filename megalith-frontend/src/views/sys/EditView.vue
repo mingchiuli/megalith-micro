@@ -178,10 +178,12 @@ watch(() => form.status, (n, o) => {
   pushActionData(pushActionForm)
 })
 
-watch(() => form.sensitiveContentList, (n, o) => {
+watch(() => sensitiveTags, (n, o) => {
   if (!client.connected || (!n && !o) || composing) return
   commonPreDeal(FieldType.NON_PARA, FieldName.SENSITIVE_CONTENT_LIST)
   pushActionForm.operateTypeCode = OperateTypeCode.SENSITIVE_CONTENT_LIST
+  form.sensitiveContentList = []
+  sensitiveTags.value.forEach(item => form.sensitiveContentList.push(item.name))
   pushActionForm.contentChange = JSON.stringify(form.sensitiveContentList)
   pushActionData(pushActionForm)
 })
@@ -496,8 +498,6 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid, _fields) => {
     if (valid) {
-      //deal form
-      sensitiveTags.value.forEach(item => form.sensitiveContentList.push(item.name))
       await POST<null>('/sys/blog/save', form)
       ElNotification({
         title: '操作成功',
@@ -584,16 +584,16 @@ let reconnecting = false;
 <template>
   <div class="father">
     <el-form :model="form" :rules="formRules" ref="formRef">
-      <el-form-item class="title">
+      <el-form-item class="title" prop="title">
         <el-input v-model="form.title" placeholder="标题" maxlength="20" :disabled="readOnly" />
       </el-form-item>
 
-      <el-form-item class="desc">
+      <el-form-item class="desc" prop="description">
         <el-input autosize type="textarea" v-model="form.description" placeholder="摘要" maxlength="60"
           :disabled="readOnly" />
       </el-form-item>
 
-      <el-form-item class="status">
+      <el-form-item class="status" prop="status">
         <el-radio-group v-model="form.status" :disabled="readOnly">
           <el-radio :value=Status.NORMAL>公开</el-radio>
           <el-radio :value=Status.BLOCK>隐藏</el-radio>
@@ -640,7 +640,7 @@ let reconnecting = false;
         </el-dialog>
       </el-form-item>
 
-      <el-form-item class="content">
+      <el-form-item class="content" prop="content">
         <CustomEditorItem v-model:content="form.content" @composing="dealComposing" @sensitive="dealSensitive" :trans-color="transColor" />
       </el-form-item>
 
