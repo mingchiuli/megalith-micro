@@ -527,7 +527,7 @@ const dealComposing = (payload: boolean) => composing = payload
 const dealSensitive = (payload: string) => {
   if (form.status === Status.SENSITIVE_FILTER) {
     sensitiveTags.value.push({ name: payload, type: 'warning' })
-    sensitiveTags.value = sensitiveTags.value.filter((item, index) => sensitiveTags.value.indexOf(item) === index)
+    sensitiveTags.value = Array.from(new Set(sensitiveTags.value))
   }
 }
 
