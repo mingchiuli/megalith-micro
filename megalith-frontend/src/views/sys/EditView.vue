@@ -186,7 +186,7 @@ watch(() => sensitiveTags, (n, o) => {
   sensitiveTags.value.forEach(item => form.sensitiveContentList.push(item.name))
   pushActionForm.contentChange = JSON.stringify(form.sensitiveContentList)
   pushActionData(pushActionForm)
-})
+}, { deep: true })
 
 watch(() => form.link, (n, o) => {
   if (!preCheck(n, o)) return
