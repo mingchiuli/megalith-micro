@@ -525,9 +525,17 @@ const handleTagClose = (tagName: string) => {
 const dealComposing = (payload: boolean) => composing = payload
 
 const dealSensitive = (payload: string) => {
-  if (form.status === Status.SENSITIVE_FILTER) {
+  if (form.status !== Status.SENSITIVE_FILTER) {
+    return
+  }
+  let flag = true
+  sensitiveTags.value.forEach(item => {
+    if (item.name === payload) {
+      flag = false
+    }
+  })
+  if (flag) {
     sensitiveTags.value.push({ name: payload, type: 'warning' })
-    sensitiveTags.value = Array.from(new Set(sensitiveTags.value))
   }
 }
 
@@ -607,7 +615,8 @@ let reconnecting = false;
       <el-form-item>
         <span style="margin-right: 10px;">打码</span>
         <div>
-          <el-tag v-for="tag in sensitiveTags" :key="tag.name" closable :type="tag.type" @close="handleTagClose(tag.name)">
+          <el-tag v-for="tag in sensitiveTags" :key="tag.name" closable :type="tag.type"
+            @close="handleTagClose(tag.name)">
             {{ tag.name }}
           </el-tag>
         </div>
@@ -644,7 +653,8 @@ let reconnecting = false;
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <CustomEditorItem v-model:content="form.content" @composing="dealComposing" @sensitive="dealSensitive" :trans-color="transColor" />
+        <CustomEditorItem v-model:content="form.content" @composing="dealComposing" @sensitive="dealSensitive"
+          :trans-color="transColor" />
       </el-form-item>
 
       <div class="submit-button">
