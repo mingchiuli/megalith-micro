@@ -612,7 +612,7 @@ let reconnecting = false;
         </el-radio-group>
       </el-form-item>
 
-      <el-form-item>
+      <el-form-item v-if="form.status === Status.SENSITIVE_FILTER">
         <span style="margin-right: 10px;">打码</span>
         <div>
           <el-tag v-for="tag in sensitiveTags" :key="tag.name" closable :type="tag.type"
