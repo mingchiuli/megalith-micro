@@ -447,6 +447,7 @@ const loadEditContent = async () => {
   form.id = data.id
   form.userId = data.userId
   data.sensitiveContentList.forEach(item => sensitiveTags.value.push({ name: item, type: 'warning' }))
+  sensitiveTags.value.forEach(item => form.sensitiveContentList.push(item.name))
   version = data.version
   if (fileList.value.length !== 0) {
     //移除全部
