@@ -525,8 +525,10 @@ const handleTagClose = (tagName: string) => {
 const dealComposing = (payload: boolean) => composing = payload
 
 const dealSensitive = (payload: string) => {
-  sensitiveTags.value.push({ name: payload, type: 'warning' })
-  sensitiveTags.value = sensitiveTags.value.filter((item, index) => sensitiveTags.value.indexOf(item) === index)
+  if (form.status === Status.SENSITIVE_FILTER) {
+    sensitiveTags.value.push({ name: payload, type: 'warning' })
+    sensitiveTags.value = sensitiveTags.value.filter((item, index) => sensitiveTags.value.indexOf(item) === index)
+  }
 }
 
 const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
