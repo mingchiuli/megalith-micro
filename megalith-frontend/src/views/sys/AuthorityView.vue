@@ -95,8 +95,8 @@ const queryAuthorities = async () => {
 }
 
 const handleClose = () => {
-  dialogVisible.value = false
   clearForm()
+  dialogVisible.value = false
 }
 
 const submitForm = async (ref: FormInstance) => {
@@ -108,8 +108,8 @@ const submitForm = async (ref: FormInstance) => {
         message: '编辑成功',
         type: 'success',
       })
-      dialogVisible.value = false
       clearForm()
+      dialogVisible.value = false
       await queryAuthorities()
     }
   })

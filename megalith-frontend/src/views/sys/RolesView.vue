@@ -115,8 +115,8 @@ const submitForm = async (ref: FormInstance) => {
         message: '编辑成功',
         type: 'success',
       })
-      dialogVisible.value = false
       clearForm()
+      dialogVisible.value = false
       pageNumber.value = 1
       await queryRoles()
     }
@@ -124,18 +124,18 @@ const submitForm = async (ref: FormInstance) => {
 }
 
 const handleClose = () => {
-  dialogVisible.value = false
   clearForm()
+  dialogVisible.value = false
 }
 
 const authorityHandleClose = () => {
-  authorityDialogVisible.value = false
   authorityData.value = []
+  authorityDialogVisible.value = false
 }
 
 const menuHandleClose = () => {
-  menuDialogVisible.value = false
   menuTreeData.value = []
+  menuDialogVisible.value = false
 }
 
 const handleEdit = async (row: RoleSys) => {
