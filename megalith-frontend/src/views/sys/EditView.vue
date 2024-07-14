@@ -110,7 +110,7 @@ const pullAllData = async () => {
 
 const pushAllData = async () => {
   form.version = version
-  await POST<null>('/edit/push/all', form)
+  await POST<null>('/sys/blog/edit/push/all', form)
   if (transColor.value !== OperaColor.WARNING) {
     transColor.value = OperaColor.WARNING
   }
@@ -435,9 +435,9 @@ const formRules = reactive<FormRules<Form>>({
 const loadEditContent = async () => {
   let data
   if (!blogId) {
-    data = await GET<BlogEdit>('/edit/pull/echo')
+    data = await GET<BlogEdit>('/sys/blog/edit/pull/echo')
   } else {
-    data = await GET<BlogEdit>(`/edit/pull/echo?blogId=${blogId}`)
+    data = await GET<BlogEdit>(`/sys/blog/edit/pull/echo?blogId=${blogId}`)
   }
   form.title = data.title
   form.description = data.description
