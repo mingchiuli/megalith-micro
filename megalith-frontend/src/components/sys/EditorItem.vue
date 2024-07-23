@@ -37,7 +37,7 @@ onMounted(() => {
     }
   });
   document.getElementById("md-editor")!.onmouseup = () => {
-    let selectedText = editorRef.value?.getSelectedText() // 获取选中的文本
+    const selectedText = editorRef.value?.getSelectedText() // 获取选中的文本
     if (selectedText) {
       // 选中文本后要执行的操作
       emit('sensitive', selectedText)
