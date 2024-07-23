@@ -2,7 +2,7 @@ import http from '@/http/axios'
 import { DOWNLOAD_DATA, GET, POST } from '@/http/http'
 import router from '@/router'
 import { buttonStore, loginStateStore, menuStore, tabStore } from '@/stores/store'
-import type { Data, JWTStruct, Menu, RefreshStruct, Tab, Token, UserInfo } from '@/type/entity'
+import { FieldType, OperateTypeCode, PushType, type Data, type JWTStruct, type Menu, type PushActionForm, type RefreshStruct, type Tab, type Token, type UserInfo } from '@/type/entity'
 import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
@@ -150,4 +150,138 @@ export const findMenuByPath = (menus: Menu[], path: string): Menu | Tab | undefi
       }
     }
   }
+}
+
+export const dealAction = (n: string | undefined, o: string | undefined, pushActionForm: PushActionForm, fieldType: FieldType) : PushType => {
+  //全部删除
+  if (!n) {
+    if (fieldType === FieldType.PARA) {
+      pushActionForm.operateTypeCode = OperateTypeCode.PARA_REMOVE
+    } else {
+      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REMOVE
+    }
+    return PushType.PUSH_ACTION
+  }
+
+  //初始化新增
+  if (!o) {
+    pushActionForm.contentChange = n
+    if (fieldType === FieldType.PARA) {
+      pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_APPEND
+    } else {
+      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_APPEND
+    }
+    return PushType.PUSH_ACTION
+  }
+
+  const nLen = n.length
+  const oLen = o.length
+  const minLen = Math.min(nLen, oLen)
+
+  let indexStart = oLen
+  for (let i = 0; i < minLen; i++) {
+    if (n.charAt(i) !== o.charAt(i)) {
+      indexStart = i
+      break
+    }
+  }
+
+  if (indexStart === oLen) {
+    //向末尾添加
+    if (oLen < nLen) {
+      pushActionForm.contentChange = n.substring(indexStart)
+      if (fieldType === FieldType.PARA) {
+        pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_APPEND
+      } else {
+        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_APPEND
+      }
+    } else {
+      //从末尾删除
+      pushActionForm.indexStart = nLen
+      if (fieldType === FieldType.PARA) {
+        pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_SUBTRACT
+      } else {
+        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_SUBTRACT
+      }
+    }
+    return PushType.PUSH_ACTION
+  }
+
+  let oIndexEnd = -1
+  let nIndexEnd = -1
+  for (let i = oLen - 1, j = nLen - 1; i >= 0 && j >= 0; i--, j--) {
+    if (o.charAt(i) !== n.charAt(j)) {
+      oIndexEnd = i + 1
+      nIndexEnd = j + 1
+      break
+    }
+  }
+
+  if (oIndexEnd === -1) {
+    //从开头添加
+    if (oLen < nLen) {
+      pushActionForm.contentChange = n.substring(0, nLen - oLen)
+      if (fieldType === FieldType.PARA) {
+        pushActionForm.operateTypeCode = OperateTypeCode.PARA_HEAD_APPEND
+      } else {
+        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_HEAD_APPEND
+      }
+    } else {
+      //从开头删除
+      pushActionForm.indexStart = oLen - nLen
+      if (fieldType === FieldType.PARA) {
+        pushActionForm.operateTypeCode = OperateTypeCode.PARA_HEAD_SUBTRACT
+      } else {
+        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_HEAD_SUBTRACT
+      }
+    }
+    return PushType.PUSH_ACTION
+  }
+
+  //中间操作重复字符
+  if (indexStart > oIndexEnd) {
+    let contentChange
+    if (nIndexEnd > oIndexEnd) {
+      //增
+      pushActionForm.indexStart = indexStart
+      pushActionForm.indexEnd = indexStart
+      contentChange = n.substring(indexStart, nIndexEnd + (indexStart - oIndexEnd))
+    } else {
+      //删
+      contentChange = ''
+      pushActionForm.indexStart = indexStart
+      pushActionForm.indexEnd = indexStart + oIndexEnd - nIndexEnd
+    }
+    pushActionForm.contentChange = contentChange
+    if (fieldType === FieldType.PARA) {
+      pushActionForm.operateTypeCode = OperateTypeCode.PARA_REPLACE
+    } else {
+      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
+    }
+    return PushType.PUSH_ACTION
+  }
+
+  //中间正常插入/删除
+  if (indexStart <= oIndexEnd) {
+    let contentChange
+    if (indexStart < nIndexEnd) {
+      contentChange = n.substring(indexStart, nIndexEnd)
+      pushActionForm.indexStart = indexStart
+      pushActionForm.indexEnd = oIndexEnd
+    } else {
+      contentChange = ''
+      pushActionForm.indexStart = indexStart
+      pushActionForm.indexEnd = indexStart + (oIndexEnd - nIndexEnd)
+    }
+
+    pushActionForm.contentChange = contentChange
+    if (fieldType === FieldType.PARA) {
+      pushActionForm.operateTypeCode = OperateTypeCode.PARA_REPLACE
+    } else {
+      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
+    }
+    return PushType.PUSH_ACTION
+  }
+  //全不满足直接推全量数据
+  return PushType.PUSH_ALL
 }

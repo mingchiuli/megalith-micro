@@ -2,14 +2,14 @@
 import { defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
-import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth } from '@/type/entity'
+import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, PushType } from '@/type/entity'
 import { useRoute } from 'vue-router'
-import type { BlogEdit } from '@/type/entity'
+import type { BlogEdit, EditForm, PushActionForm } from '@/type/entity'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
 import { Client, StompSocketState, type StompSubscription } from '@stomp/stompjs'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
+import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle, dealAction } from '@/utils/tools'
 
 let timer: NodeJS.Timeout
 const route = useRoute()
@@ -48,19 +48,7 @@ type SensitiveTagsItem = {
 
 const sensitiveTags = ref<SensitiveTagsItem[]>([])
 
-type Form = {
-  id?: number
-  userId: number | undefined
-  title: string | undefined
-  description: string | undefined
-  content: string | undefined
-  status: number | undefined
-  link: string | undefined
-  version?: number
-  sensitiveContentList: string[]
-}
-
-const form: Form = reactive({
+const form: EditForm = reactive({
   id: undefined,
   userId: undefined,
   title: undefined,
@@ -71,17 +59,6 @@ const form: Form = reactive({
   version: undefined,
   sensitiveContentList: []
 })
-
-type PushActionForm = {
-  id?: number
-  contentChange?: string
-  operateTypeCode?: number
-  version?: number
-  indexStart?: number
-  indexEnd?: number
-  field?: string
-  paraNo?: number
-}
 
 const pushActionForm: PushActionForm = {
   id: undefined,
@@ -97,7 +74,7 @@ const pushActionForm: PushActionForm = {
 let version = -1
 //中文输入法的问题
 let composing = false
-let fieldType: string
+let fieldType: FieldType
 const readOnly = ref(false)
 const netErrorEdited = ref(false)
 let pulling = false
@@ -261,7 +238,7 @@ watch(() => form.content, (n, o) => {
   pushAllData()
 })
 
-const commonPreDeal = (fieldTypeParam: string, opreateField: string) => {
+const commonPreDeal = (fieldTypeParam: FieldType, opreateField: string) => {
   clearPushActionForm()
   pushActionForm.field = opreateField
   pushActionForm.id = form.id
@@ -270,143 +247,15 @@ const commonPreDeal = (fieldTypeParam: string, opreateField: string) => {
 }
 
 const deal = (n: string | undefined, o: string | undefined) => {
-  //全部删除
-  if (!n) {
-    if (fieldType === FieldType.PARA) {
-      pushActionForm.operateTypeCode = OperateTypeCode.PARA_REMOVE
-    } else {
-      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REMOVE
-    }
+  const type = dealAction(n, o, pushActionForm, fieldType)
+  if (PushType.PUSH_ACTION === type) {
     pushActionData(pushActionForm)
     return
   }
 
-  //初始化新增
-  if (!o) {
-    pushActionForm.contentChange = n
-    if (fieldType === FieldType.PARA) {
-      pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_APPEND
-    } else {
-      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_APPEND
-    }
-    pushActionData(pushActionForm)
-    return
+  if (PushType.PULL_ALL === type) {
+    pushAllData()
   }
-
-  let nLen = n.length
-  let oLen = o.length
-  const minLen = Math.min(nLen, oLen)
-
-  let indexStart = oLen
-  for (let i = 0; i < minLen; i++) {
-    if (n.charAt(i) !== o.charAt(i)) {
-      indexStart = i
-      break
-    }
-  }
-
-  if (indexStart === oLen) {
-    //向末尾添加
-    if (oLen < nLen) {
-      pushActionForm.contentChange = n.substring(indexStart)
-      if (fieldType === FieldType.PARA) {
-        pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_APPEND
-      } else {
-        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_APPEND
-      }
-    } else {
-      //从末尾删除
-      pushActionForm.indexStart = nLen
-      if (fieldType === FieldType.PARA) {
-        pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_SUBTRACT
-      } else {
-        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_SUBTRACT
-      }
-    }
-    pushActionData(pushActionForm)
-    return
-  }
-
-  let oIndexEnd = -1
-  let nIndexEnd = -1
-  for (let i = oLen - 1, j = nLen - 1; i >= 0 && j >= 0; i--, j--) {
-    if (o.charAt(i) !== n.charAt(j)) {
-      oIndexEnd = i + 1
-      nIndexEnd = j + 1
-      break
-    }
-  }
-
-  if (oIndexEnd === -1) {
-    //从开头添加
-    if (oLen < nLen) {
-      pushActionForm.contentChange = n.substring(0, nLen - oLen)
-      if (fieldType === FieldType.PARA) {
-        pushActionForm.operateTypeCode = OperateTypeCode.PARA_HEAD_APPEND
-      } else {
-        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_HEAD_APPEND
-      }
-    } else {
-      //从开头删除
-      pushActionForm.indexStart = oLen - nLen
-      if (fieldType === FieldType.PARA) {
-        pushActionForm.operateTypeCode = OperateTypeCode.PARA_HEAD_SUBTRACT
-      } else {
-        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_HEAD_SUBTRACT
-      }
-    }
-    pushActionData(pushActionForm)
-    return
-  }
-
-  //中间操作重复字符
-  if (indexStart > oIndexEnd) {
-    let contentChange
-    if (nIndexEnd > oIndexEnd) {
-      //增
-      pushActionForm.indexStart = indexStart
-      pushActionForm.indexEnd = indexStart
-      contentChange = n.substring(indexStart, nIndexEnd + (indexStart - oIndexEnd))
-    } else {
-      //删
-      contentChange = ''
-      pushActionForm.indexStart = indexStart
-      pushActionForm.indexEnd = indexStart + oIndexEnd - nIndexEnd
-    }
-    pushActionForm.contentChange = contentChange
-    if (fieldType === FieldType.PARA) {
-      pushActionForm.operateTypeCode = OperateTypeCode.PARA_REPLACE
-    } else {
-      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
-    }
-    pushActionData(pushActionForm)
-    return
-  }
-
-  //中间正常插入/删除
-  if (indexStart <= oIndexEnd) {
-    let contentChange
-    if (indexStart < nIndexEnd) {
-      contentChange = n.substring(indexStart, nIndexEnd)
-      pushActionForm.indexStart = indexStart
-      pushActionForm.indexEnd = oIndexEnd
-    } else {
-      contentChange = ''
-      pushActionForm.indexStart = indexStart
-      pushActionForm.indexEnd = indexStart + (oIndexEnd - nIndexEnd)
-    }
-
-    pushActionForm.contentChange = contentChange
-    if (fieldType === FieldType.PARA) {
-      pushActionForm.operateTypeCode = OperateTypeCode.PARA_REPLACE
-    } else {
-      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
-    }
-    pushActionData(pushActionForm)
-    return
-  }
-  //全不满足直接推全量数据
-  pushAllData()
 }
 
 const transColor = ref(OperaColor.SUCCESS)
@@ -417,7 +266,7 @@ const disabled = ref(false)
 
 const uploadInstance = ref<UploadInstance>()
 const formRef = ref<FormInstance>()
-const formRules = reactive<FormRules<Form>>({
+const formRules = reactive<FormRules<EditForm>>({
   title: [
     { required: true, message: '请输入标题', trigger: 'blur' }
   ],

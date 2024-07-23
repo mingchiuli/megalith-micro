@@ -275,6 +275,12 @@ export enum FieldType {
   PARA = 'para'
 }
 
+export enum PushType {
+  PUSH_ACTION = 'push_action',
+  PUSH_ALL = 'push_all',
+  PULL_ALL = 'pull_all'
+}
+
 export enum ParaInfo {
   PARA_SPLIT = '\n\n'
 }
@@ -325,4 +331,27 @@ export enum ButtonAuth {
   SYS_USER_EDIT = 'system-users-edit',
   SYS_USER_MODIFY_REGISTER = 'system-users-modify-register',
   SYS_USER_DOWNLOAD = 'system-users-download'
+}
+
+export interface PushActionForm {
+  id?: number
+  contentChange?: string
+  operateTypeCode?: number
+  version?: number
+  indexStart?: number
+  indexEnd?: number
+  field?: string
+  paraNo?: number
+}
+
+export interface EditForm {
+  id?: number
+  userId: number | undefined
+  title: string | undefined
+  description: string | undefined
+  content: string | undefined
+  status: number | undefined
+  link: string | undefined
+  version?: number
+  sensitiveContentList: string[]
 }
