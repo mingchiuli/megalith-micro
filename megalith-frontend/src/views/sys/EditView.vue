@@ -2,7 +2,7 @@
 import { defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
-import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, PushType } from '@/type/entity'
+import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import type { BlogEdit, EditForm, PushActionForm } from '@/type/entity'
 import router from '@/router'
@@ -248,12 +248,12 @@ const commonPreDeal = (fieldTypeParam: FieldType, opreateField: FieldName) => {
 
 const deal = (n: string | undefined, o: string | undefined) => {
   const type = dealAction(n, o, pushActionForm, fieldType)
-  if (PushType.PUSH_ACTION === type) {
+  if (ActionType.PUSH_ACTION === type) {
     pushActionData(pushActionForm)
     return
   }
 
-  if (PushType.PULL_ALL === type) {
+  if (ActionType.PULL_ALL === type) {
     pushAllData()
   }
 }

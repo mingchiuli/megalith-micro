@@ -275,7 +275,7 @@ export enum FieldType {
   PARA = 'para'
 }
 
-export enum PushType {
+export enum ActionType {
   PUSH_ACTION = 'push_action',
   PUSH_ALL = 'push_all',
   PULL_ALL = 'pull_all'

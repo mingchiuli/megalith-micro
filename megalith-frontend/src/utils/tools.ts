@@ -2,7 +2,7 @@ import http from '@/http/axios'
 import { DOWNLOAD_DATA, GET, POST } from '@/http/http'
 import router from '@/router'
 import { buttonStore, loginStateStore, menuStore, tabStore } from '@/stores/store'
-import { FieldType, OperateTypeCode, PushType, type Data, type JWTStruct, type Menu, type PushActionForm, type RefreshStruct, type Tab, type Token, type UserInfo } from '@/type/entity'
+import { FieldType, OperateTypeCode, ActionType, type Data, type JWTStruct, type Menu, type PushActionForm, type RefreshStruct, type Tab, type Token, type UserInfo } from '@/type/entity'
 import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
@@ -152,7 +152,7 @@ export const findMenuByPath = (menus: Menu[], path: string): Menu | Tab | undefi
   }
 }
 
-export const dealAction = (n: string | undefined, o: string | undefined, pushActionForm: PushActionForm, fieldType: FieldType) : PushType => {
+export const dealAction = (n: string | undefined, o: string | undefined, pushActionForm: PushActionForm, fieldType: FieldType) : ActionType => {
   //全部删除
   if (!n) {
     if (fieldType === FieldType.PARA) {
@@ -160,7 +160,7 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
     } else {
       pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REMOVE
     }
-    return PushType.PUSH_ACTION
+    return ActionType.PUSH_ACTION
   }
 
   //初始化新增
@@ -171,7 +171,7 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
     } else {
       pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_APPEND
     }
-    return PushType.PUSH_ACTION
+    return ActionType.PUSH_ACTION
   }
 
   const nLen = n.length
@@ -204,7 +204,7 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
         pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_SUBTRACT
       }
     }
-    return PushType.PUSH_ACTION
+    return ActionType.PUSH_ACTION
   }
 
   let oIndexEnd = -1
@@ -235,7 +235,7 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
         pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_HEAD_SUBTRACT
       }
     }
-    return PushType.PUSH_ACTION
+    return ActionType.PUSH_ACTION
   }
 
   //中间操作重复字符
@@ -258,7 +258,7 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
     } else {
       pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
     }
-    return PushType.PUSH_ACTION
+    return ActionType.PUSH_ACTION
   }
 
   //中间正常插入/删除
@@ -280,8 +280,8 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
     } else {
       pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
     }
-    return PushType.PUSH_ACTION
+    return ActionType.PUSH_ACTION
   }
   //全不满足直接推全量数据
-  return PushType.PUSH_ALL
+  return ActionType.PUSH_ALL
 }
