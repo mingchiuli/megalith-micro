@@ -238,7 +238,7 @@ watch(() => form.content, (n, o) => {
   pushAllData()
 })
 
-const commonPreDeal = (fieldTypeParam: FieldType, opreateField: string) => {
+const commonPreDeal = (fieldTypeParam: FieldType, opreateField: FieldName) => {
   clearPushActionForm()
   pushActionForm.field = opreateField
   pushActionForm.id = form.id

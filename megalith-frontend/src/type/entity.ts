@@ -336,11 +336,11 @@ export enum ButtonAuth {
 export interface PushActionForm {
   id?: number
   contentChange?: string
-  operateTypeCode?: number
+  operateTypeCode?: OperateTypeCode
   version?: number
   indexStart?: number
   indexEnd?: number
-  field?: string
+  field?: FieldName
   paraNo?: number
 }
 
