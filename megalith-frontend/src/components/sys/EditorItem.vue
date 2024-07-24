@@ -81,8 +81,8 @@ onMounted(() => {
         //前面div的文本长度
         if (!item.textContent) {
           //换行+1个字\n
-          idx += 1
-          console.log(idx)
+          // idx++
+          // console.log(idx)
         } else {
           idx += item.textContent.length
           console.log(idx)
