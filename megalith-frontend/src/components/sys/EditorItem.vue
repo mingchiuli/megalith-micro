@@ -43,20 +43,30 @@ onMounted(() => {
     if (selectedText) {
       // 选中文本后要执行的操作
       let ele = selection!.getRangeAt(0).startContainer.parentNode
-      console.log(ele)
-      let parentNode = ele
-      while (parentNode!.nodeName !== 'DIV') {
-        parentNode = parentNode!.parentNode!
+      let idx = 0
+
+      if (ele!.nodeName !== 'DIV') {
+        const eleSiblings = []
+        let eleSibling = ele!.previousSibling
+
+        while (eleSibling) {
+          eleSiblings.push(eleSibling)
+          eleSibling = eleSibling.previousSibling
+        }
+
+        eleSiblings.forEach(item => {
+          //同级别的span文本长度
+          idx += item.textContent?.length!
+        })
       }
+
       const previousSiblings = []
-      let currentElement = parentNode!.previousSibling
+      let currentElement = ele!.previousSibling
 
       while (currentElement) {
         previousSiblings.push(currentElement)
         currentElement = currentElement.previousSibling
       }
-
-      let idx = 0
 
       for (let i = 0; i < previousSiblings.length; i++) {
         let item = previousSiblings[i]
@@ -64,31 +74,15 @@ onMounted(() => {
         if (!item.textContent) {
           //换行+1个字\n
           idx += 1
-          console.log(idx)
         } else {
           idx += item.textContent.length
-          console.log(idx)
         }
 
-        //第一行不额外加1
+        //第一行在数组最后，因为倒着加的，故不额外加1
         if (i !== previousSiblings.length - 1) {
           idx++
         }
       }
-
-      const eleSiblings = []
-      let eleSibling = ele!.previousSibling
-
-      while (eleSibling) {
-        console.log(eleSibling)
-        eleSiblings.push(eleSibling)
-        eleSibling = eleSibling.previousSibling
-      }
-
-      eleSiblings.forEach(item => {
-        //同级别的span文本长度
-        idx += item.textContent?.length!
-      })
 
       idx += selection!.anchorOffset
       console.log(idx)
