@@ -64,7 +64,6 @@ onMounted(() => {
           idx += 1
           console.log(idx)
         } else {
-          console.log(item.textContent)
           idx += item.textContent.length
           console.log(idx)
         }
@@ -75,6 +74,7 @@ onMounted(() => {
       let eleSibling = ele!.previousSibling
       
       while (eleSibling) {
+        console.log(eleSibling)
         eleSiblings.push(eleSibling)
         eleSibling = eleSibling.previousSibling
       }
