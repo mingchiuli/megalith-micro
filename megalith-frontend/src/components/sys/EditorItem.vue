@@ -59,11 +59,12 @@ onMounted(() => {
       let idx = 0
       previousSiblings.forEach(item => {
         if (!item.textContent) {
-          //换行+2个字
-          idx += 2
+          //换行+1个字
+          idx += 1
         } else {
           idx += item.textContent.length
         }
+        idx++
       })
       idx += selection!.anchorOffset
       console.log(idx)
