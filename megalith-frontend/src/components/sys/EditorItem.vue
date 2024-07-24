@@ -46,7 +46,9 @@ onMounted(() => {
       currentElement = currentElement.previousSibling
     }
 
-    previousSiblings.forEach(item => console.log(item.textContent))
+    previousSiblings.forEach(item => {
+      console.log(item.nodeType, item.textContent, item)
+    })
 
 
     if (selectedText) {
