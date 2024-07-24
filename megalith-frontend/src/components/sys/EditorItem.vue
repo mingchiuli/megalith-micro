@@ -44,9 +44,13 @@ onMounted(() => {
     if (selectedText) {
       // 选中文本后要执行的操作
 
-      const ele = selection!.getRangeAt(0).startContainer.parentNode
+      let ele = selection!.getRangeAt(0).startContainer.parentNode
+      while (ele!.nodeName !== 'DIV') {
+        ele = ele!.parentNode!
+      }
       const previousSiblings = []
       let currentElement = ele!.previousSibling
+
       while (currentElement) {
         previousSiblings.push(currentElement)
         currentElement = currentElement.previousSibling
