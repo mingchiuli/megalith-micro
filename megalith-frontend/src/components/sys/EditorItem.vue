@@ -40,53 +40,56 @@ onMounted(() => {
     const selection = document.getSelection()
     const selectedText = selection!.toString() // 获取选中的文本
 
-    if (selectedText) {
-      // 选中文本后要执行的操作
-      let ele = selection!.getRangeAt(0).startContainer.parentNode
-      let idx = 0
+    if (!selectedText) {
+      return
+    }
 
-      if (ele!.nodeName !== 'DIV') {
-        const eleSiblings = []
-        let eleSibling = ele!.previousSibling
+    // 选中文本后要执行的操作
+    let ele = selection!.getRangeAt(0).startContainer.parentNode
+    let idx = 0
 
-        while (eleSibling) {
-          eleSiblings.push(eleSibling)
-          eleSibling = eleSibling.previousSibling
-        }
+    if (ele!.nodeName !== 'DIV') {
+      const eleSiblings = []
+      let eleSibling = ele!.previousSibling
 
-        eleSiblings.forEach(item => {
-          //同级别的span文本长度
-          idx += item.textContent?.length!
-        })
-
-        //从span替换为div
-        while (ele!.nodeName !== 'DIV') {
-          ele = ele?.parentNode!
-        }
+      while (eleSibling) {
+        eleSiblings.push(eleSibling)
+        eleSibling = eleSibling.previousSibling
       }
 
-      const previousSiblings = []
-      let currentElement = ele!.previousSibling
-
-      while (currentElement) {
-        previousSiblings.push(currentElement)
-        currentElement = currentElement.previousSibling
-      }
-
-      previousSiblings.forEach(item => {
-        //上移一行
-        idx++
-        if (item.textContent) {
-          idx += item.textContent.length
-        }
+      eleSiblings.forEach(item => {
+        //同级别的span文本长度
+        idx += item.textContent?.length!
       })
 
-      idx += selection!.anchorOffset
-      console.log(idx)
-
-      emit('sensitive', selectedText)
+      //从span替换为div
+      while (ele!.nodeName !== 'DIV') {
+        ele = ele?.parentNode!
+      }
     }
+
+    const previousSiblings = []
+    let currentElement = ele!.previousSibling
+
+    while (currentElement) {
+      previousSiblings.push(currentElement)
+      currentElement = currentElement.previousSibling
+    }
+
+    previousSiblings.forEach(item => {
+      //上移一行
+      idx++
+      if (item.textContent) {
+        idx += item.textContent.length
+      }
+    })
+
+    idx += selection!.anchorOffset
+    console.log(idx)
+
+    emit('sensitive', selectedText)
   }
+
 })
 
 const onUploadImg = async (files: File[], callback: Function) => {
