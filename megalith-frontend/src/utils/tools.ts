@@ -154,7 +154,7 @@ export const findMenuByPath = (menus: Menu[], path: string): Menu | Tab | undefi
 
 export const dealAction = (n: string | undefined, o: string | undefined, pushActionForm: PushActionForm, fieldType: FieldType) : ActionType => {
   //全部删除
-  const para = fieldType === FieldType.PARA;
+  const para = fieldType === FieldType.PARA
   if (!n) {
     pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_REMOVE : OperateTypeCode.NON_PARA_REMOVE
     return ActionType.PUSH_ACTION
