@@ -295,7 +295,10 @@ const loadEditContent = async () => {
   form.status = data.status
   form.id = data.id
   form.userId = data.userId
+  //不清空会重复显示
+  sensitiveTags.value = []
   data.sensitiveContentList.forEach(item => sensitiveTags.value.push({ name: item, type: 'warning' }))
+  form.sensitiveContentList = []
   sensitiveTags.value.forEach(item => form.sensitiveContentList.push(item.name))
   version = data.version
   if (fileList.value.length !== 0) {
