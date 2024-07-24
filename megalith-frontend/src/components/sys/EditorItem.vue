@@ -57,6 +57,7 @@ onMounted(() => {
         eleSiblings.forEach(item => {
           //同级别的span文本长度
           idx += item.textContent?.length!
+          console.log('aaa' + idx)
         })
 
         //从span替换为div
@@ -81,8 +82,10 @@ onMounted(() => {
         if (!item.textContent) {
           //换行+1个字\n
           idx += 1
+          console.log(idx)
         } else {
           idx += item.textContent.length
+          console.log(idx)
         }
       }
 
