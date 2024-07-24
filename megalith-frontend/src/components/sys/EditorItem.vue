@@ -57,7 +57,9 @@ onMounted(() => {
       }
 
       let idx = 0
-      previousSiblings.forEach(item => {
+
+      for (let i = 0; i < previousSiblings.length; i++) {
+        let item = previousSiblings[i]
         //前面div的文本长度
         if (!item.textContent) {
           //换行+1个字\n
@@ -67,12 +69,16 @@ onMounted(() => {
           idx += item.textContent.length
           console.log(idx)
         }
-        idx++
-      })
+
+        //第一行不额外加1
+        if (i !== previousSiblings.length - 1) {
+          idx++
+        }
+      }
 
       const eleSiblings = []
       let eleSibling = ele!.previousSibling
-      
+
       while (eleSibling) {
         console.log(eleSibling)
         eleSiblings.push(eleSibling)
