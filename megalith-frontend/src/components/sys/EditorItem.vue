@@ -49,7 +49,7 @@ onMounted(() => {
 
     let idx = 0
     previousSiblings.forEach(item => {
-      if ('<empty string>' === item.textContent) {
+      if (!item.textContent) {
         idx += 2
       } else {
         idx += item.textContent?.length!
