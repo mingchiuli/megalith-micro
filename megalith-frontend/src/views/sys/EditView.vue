@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
+import { defineAsyncComponent, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType } from '@/type/entity'
@@ -407,6 +407,22 @@ const CustomEditorItem = defineAsyncComponent({
   timeout: 5000
 })
 
+onMounted(() => {
+  document.getElementById("title")!.onmouseup = () => {
+    const selectedText = getSelection()?.toString() // 获取选中的文本
+    if (selectedText) {
+      dealSensitive(selectedText)
+    }
+  }
+
+  document.getElementById("desc")!.onmouseup = () => {
+    const selectedText = getSelection()?.toString() // 获取选中的文本
+    if (selectedText) {
+      dealSensitive(selectedText)
+    }
+  }
+})
+
 onUnmounted(() => {
   clearInterval(timer)
   pushAllSubscribe.unsubscribe()
@@ -444,11 +460,11 @@ let reconnecting = false;
 <template>
   <div class="father">
     <el-form :model="form" :rules="formRules" ref="formRef">
-      <el-form-item class="title" prop="title">
+      <el-form-item class="title" id="title" prop="title">
         <el-input v-model="form.title" placeholder="标题" maxlength="20" :disabled="readOnly" />
       </el-form-item>
 
-      <el-form-item class="desc" prop="description">
+      <el-form-item class="desc" id="desc" prop="description">
         <el-input autosize type="textarea" v-model="form.description" placeholder="摘要" maxlength="60"
           :disabled="readOnly" />
       </el-form-item>

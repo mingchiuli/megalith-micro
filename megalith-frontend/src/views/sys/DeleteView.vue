@@ -132,6 +132,7 @@ const handleResume = async (row: BlogDelSys) => {
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">公开</el-tag>
         <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">隐藏</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.SENSITIVE_FILTER" type="warning">打码</el-tag>
       </template>
     </el-table-column>
 

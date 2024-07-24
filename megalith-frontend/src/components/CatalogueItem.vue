@@ -37,7 +37,7 @@ const render = async () => {
 
 const selectAnchorNode = (labels: NodeListOf<HTMLElement>, hash: string): HTMLElement | null => {
   for (let label of labels) {
-    if (label.getAttribute('data-line') === hash.substring(1)) {
+    if (label.getAttribute('data-line-custom') === hash.substring(1)) {
       return label
     }
   }
@@ -56,7 +56,9 @@ const geneCatalogueArr = (labels: NodeListOf<HTMLElement>): CatalogueLabel[] => 
       children: []
     }
 
-    item.id = aLabel.getAttribute('data-line')!
+    const id = String(i)
+    aLabel.setAttribute('data-line-custom', id)
+    item.id = id
     //顶端距离
     //防止图片偏移位置不对
     item.dist = aLabel.getBoundingClientRect().top + scrolled
@@ -102,7 +104,7 @@ const getChildren = (labels: NodeListOf<HTMLElement>, index: number): CatalogueL
         children: []
       }
 
-      item.id = aLabel.getAttribute('data-line')!
+      item.id = aLabel.getAttribute('data-line-custom')!
       item.dist = aLabel.getBoundingClientRect().top + scrolled
       item.label = aLabel.innerText
       item.children = getChildren(labels, i)
