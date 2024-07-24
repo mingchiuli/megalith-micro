@@ -58,6 +58,7 @@ onMounted(() => {
       }
 
       let idx = 0
+      console.log(previousSiblings)
       previousSiblings.forEach(item => {
         if (!item.textContent) {
           //换行+1个字
