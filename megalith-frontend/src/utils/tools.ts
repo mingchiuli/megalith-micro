@@ -154,23 +154,16 @@ export const findMenuByPath = (menus: Menu[], path: string): Menu | Tab | undefi
 
 export const dealAction = (n: string | undefined, o: string | undefined, pushActionForm: PushActionForm, fieldType: FieldType) : ActionType => {
   //全部删除
+  const para = fieldType === FieldType.PARA;
   if (!n) {
-    if (fieldType === FieldType.PARA) {
-      pushActionForm.operateTypeCode = OperateTypeCode.PARA_REMOVE
-    } else {
-      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REMOVE
-    }
+    pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_REMOVE : OperateTypeCode.NON_PARA_REMOVE
     return ActionType.PUSH_ACTION
   }
 
   //初始化新增
   if (!o) {
     pushActionForm.contentChange = n
-    if (fieldType === FieldType.PARA) {
-      pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_APPEND
-    } else {
-      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_APPEND
-    }
+    pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_TAIL_APPEND : OperateTypeCode.NON_PARA_TAIL_APPEND
     return ActionType.PUSH_ACTION
   }
 
@@ -190,19 +183,11 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
     //向末尾添加
     if (oLen < nLen) {
       pushActionForm.contentChange = n.substring(indexStart)
-      if (fieldType === FieldType.PARA) {
-        pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_APPEND
-      } else {
-        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_APPEND
-      }
+      pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_TAIL_APPEND : OperateTypeCode.NON_PARA_TAIL_APPEND
     } else {
       //从末尾删除
       pushActionForm.indexStart = nLen
-      if (fieldType === FieldType.PARA) {
-        pushActionForm.operateTypeCode = OperateTypeCode.PARA_TAIL_SUBTRACT
-      } else {
-        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_TAIL_SUBTRACT
-      }
+      pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_TAIL_SUBTRACT : OperateTypeCode.NON_PARA_TAIL_SUBTRACT
     }
     return ActionType.PUSH_ACTION
   }
@@ -221,19 +206,11 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
     //从开头添加
     if (oLen < nLen) {
       pushActionForm.contentChange = n.substring(0, nLen - oLen)
-      if (fieldType === FieldType.PARA) {
-        pushActionForm.operateTypeCode = OperateTypeCode.PARA_HEAD_APPEND
-      } else {
-        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_HEAD_APPEND
-      }
+      pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_HEAD_APPEND : OperateTypeCode.NON_PARA_HEAD_APPEND
     } else {
       //从开头删除
       pushActionForm.indexStart = oLen - nLen
-      if (fieldType === FieldType.PARA) {
-        pushActionForm.operateTypeCode = OperateTypeCode.PARA_HEAD_SUBTRACT
-      } else {
-        pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_HEAD_SUBTRACT
-      }
+      pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_HEAD_SUBTRACT : OperateTypeCode.NON_PARA_HEAD_SUBTRACT
     }
     return ActionType.PUSH_ACTION
   }
@@ -253,11 +230,7 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
       pushActionForm.indexEnd = indexStart + oIndexEnd - nIndexEnd
     }
     pushActionForm.contentChange = contentChange
-    if (fieldType === FieldType.PARA) {
-      pushActionForm.operateTypeCode = OperateTypeCode.PARA_REPLACE
-    } else {
-      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
-    }
+    pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_REPLACE : OperateTypeCode.NON_PARA_REPLACE
     return ActionType.PUSH_ACTION
   }
 
@@ -275,11 +248,7 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
     }
 
     pushActionForm.contentChange = contentChange
-    if (fieldType === FieldType.PARA) {
-      pushActionForm.operateTypeCode = OperateTypeCode.PARA_REPLACE
-    } else {
-      pushActionForm.operateTypeCode = OperateTypeCode.NON_PARA_REPLACE
-    }
+    pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_REPLACE : OperateTypeCode.NON_PARA_REPLACE
     return ActionType.PUSH_ACTION
   }
   //全不满足直接推全量数据
