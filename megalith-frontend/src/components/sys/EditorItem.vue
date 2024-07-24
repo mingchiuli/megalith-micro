@@ -39,27 +39,31 @@ onMounted(() => {
   document.getElementById("md-editor")!.onmouseup = () => {
     const selection = document.getSelection()
     const selectedText = selection!.toString() // 获取选中的文本
-    const ele = selection!.getRangeAt(0).startContainer.parentNode
-    let previousSiblings = []
-    let currentElement = ele!.previousSibling
-    while (currentElement) {
-      previousSiblings.push(currentElement)
-      currentElement = currentElement.previousSibling
-    }
 
-    let idx = 0
-    previousSiblings.forEach(item => {
-      if (!item.textContent) {
-        idx += 2
-      } else {
-        idx += item.textContent?.length!
-      }
-    })
-    idx += selection!.anchorOffset
-    console.log(idx)
 
     if (selectedText) {
       // 选中文本后要执行的操作
+
+      const ele = selection!.getRangeAt(0).startContainer.parentNode
+      const previousSiblings = []
+      let currentElement = ele!.previousSibling
+      while (currentElement) {
+        previousSiblings.push(currentElement)
+        currentElement = currentElement.previousSibling
+      }
+
+      let idx = 0
+      previousSiblings.forEach(item => {
+        if (!item.textContent) {
+          //换行+2个字
+          idx += 2
+        } else {
+          idx += item.textContent.length
+        }
+      })
+      idx += selection!.anchorOffset
+      console.log(idx)
+
       emit('sensitive', selectedText)
     }
   }
