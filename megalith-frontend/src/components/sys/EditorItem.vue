@@ -48,6 +48,7 @@ onMounted(() => {
       while (ele!.nodeName !== 'DIV') {
         ele = ele!.parentNode!
       }
+      console.log(ele)
       const previousSiblings = []
       let currentElement = ele!.previousSibling
 
