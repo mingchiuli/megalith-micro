@@ -53,7 +53,6 @@ onMounted(() => {
 
       while (currentElement) {
         previousSiblings.push(currentElement)
-        console.log(currentElement.textContent)
         currentElement = currentElement.previousSibling
       }
 
@@ -61,10 +60,13 @@ onMounted(() => {
       previousSiblings.forEach(item => {
         //前面div的文本长度
         if (!item.textContent) {
-          //换行+1个字
+          //换行+1个字\n
           idx += 1
+          console.log(idx)
         } else {
+          console.log(item.textContent)
           idx += item.textContent.length
+          console.log(idx)
         }
         idx++
       })
@@ -74,7 +76,6 @@ onMounted(() => {
       
       while (eleSibling) {
         eleSiblings.push(eleSibling)
-        console.log(eleSibling.textContent)
         eleSibling = eleSibling.previousSibling
       }
 
