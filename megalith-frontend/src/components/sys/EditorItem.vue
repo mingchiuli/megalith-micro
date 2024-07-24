@@ -40,17 +40,15 @@ onMounted(() => {
     const selection = document.getSelection()
     const selectedText = selection!.toString() // 获取选中的文本
 
-
     if (selectedText) {
       // 选中文本后要执行的操作
-
       let ele = selection!.getRangeAt(0).startContainer.parentNode
-      while (ele!.nodeName !== 'DIV') {
-        ele = ele!.parentNode!
+      let parentNode = ele
+      while (parentNode!.nodeName !== 'DIV') {
+        parentNode = parentNode!.parentNode!
       }
-      console.log(ele)
       const previousSiblings = []
-      let currentElement = ele!.previousSibling
+      let currentElement = parentNode!.previousSibling
 
       while (currentElement) {
         previousSiblings.push(currentElement)
@@ -58,8 +56,8 @@ onMounted(() => {
       }
 
       let idx = 0
-      console.log(previousSiblings)
       previousSiblings.forEach(item => {
+        //前面div的文本长度
         if (!item.textContent) {
           //换行+1个字
           idx += 1
@@ -68,6 +66,20 @@ onMounted(() => {
         }
         idx++
       })
+
+      const eleSiblings = []
+      let eleSibling = parentNode!.previousSibling
+      
+      while (eleSibling) {
+        eleSiblings.push(eleSibling)
+        eleSibling = eleSibling.previousSibling
+      }
+
+      eleSiblings.forEach(item => {
+        //同级别的span文本长度
+        idx += item.textContent?.length!
+      })
+
       idx += selection!.anchorOffset
       console.log(idx)
 
