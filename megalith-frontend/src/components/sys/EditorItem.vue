@@ -57,7 +57,6 @@ onMounted(() => {
         eleSiblings.forEach(item => {
           //同级别的span文本长度
           idx += item.textContent?.length!
-          console.log('aaa' + idx)
         })
 
         //从span替换为div
@@ -74,20 +73,13 @@ onMounted(() => {
         currentElement = currentElement.previousSibling
       }
 
-      for (let i = 0; i < previousSiblings.length; i++) {
-        let item = previousSiblings[i]
+      previousSiblings.forEach(item => {
         //上移一行
         idx++
-        //前面div的文本长度
-        if (!item.textContent) {
-          //换行+1个字\n
-          // idx++
-          // console.log(idx)
-        } else {
+        if (item.textContent) {
           idx += item.textContent.length
-          console.log(idx)
         }
-      }
+      })
 
       idx += selection!.anchorOffset
       console.log(idx)
