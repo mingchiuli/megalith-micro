@@ -75,17 +75,14 @@ onMounted(() => {
 
       for (let i = 0; i < previousSiblings.length; i++) {
         let item = previousSiblings[i]
+        //上移一行
+        idx++
         //前面div的文本长度
         if (!item.textContent) {
           //换行+1个字\n
           idx += 1
         } else {
           idx += item.textContent.length
-        }
-
-        //第一行在数组最后，因为倒着加的，故不额外加1
-        if (i !== previousSiblings.length - 1) {
-          idx++
         }
       }
 
