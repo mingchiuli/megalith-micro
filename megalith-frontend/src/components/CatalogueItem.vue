@@ -104,7 +104,9 @@ const getChildren = (labels: NodeListOf<HTMLElement>, index: number): CatalogueL
         children: []
       }
 
-      item.id = aLabel.getAttribute('data-line-custom')!
+      const id = String(index)
+      aLabel.setAttribute('data-line-custom', id)
+      item.id = id
       item.dist = aLabel.getBoundingClientRect().top + scrolled
       item.label = aLabel.innerText
       item.children = getChildren(labels, i)
