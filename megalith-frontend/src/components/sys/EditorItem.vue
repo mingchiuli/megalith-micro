@@ -58,6 +58,11 @@ onMounted(() => {
           //同级别的span文本长度
           idx += item.textContent?.length!
         })
+
+        //从span替换为div
+        while (ele!.nodeName !== 'DIV') {
+          ele = ele?.parentNode!
+        }
       }
 
       const previousSiblings = []
