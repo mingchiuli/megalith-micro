@@ -64,7 +64,7 @@ onMounted(() => {
 
       //从span替换为div
       while (ele!.nodeName !== 'DIV') {
-        ele = ele?.parentNode!
+        ele = ele!.parentNode
       }
     }
 
