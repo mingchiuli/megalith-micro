@@ -63,7 +63,6 @@ const sensitiveTags = computed(() => {
 const titleRef = ref<InstanceType<typeof ElInput>>()
 const descRef = ref<InstanceType<typeof ElInput>>()
 
-
 const form: EditForm = reactive({
   id: undefined,
   userId: undefined,
@@ -273,10 +272,12 @@ const deal = (n: string | undefined, o: string | undefined) => {
 const transColor = ref(OperaColor.SUCCESS)
 const fileList = computed(() => {
   const arr: UploadUserFile[] = []
-  arr.push({
-    name: 'Cover',
-    url: form.link
-  })
+  if (form.link) {
+    arr.push({
+      name: 'Cover',
+      url: form.link
+    })
+  }
   return arr
 })
 const dialogVisible = ref(false)
@@ -377,7 +378,7 @@ const handlePictureCardPreview = (file: UploadFile) => {
 
 const handleTagClose = (tag: SensitiveTagsItem) => {
   const sensitiveItem = tag.element
-  form.sensitiveContentList.filter(item => !(item.content === sensitiveItem.content && item.startIndex === sensitiveItem.startIndex && item.type === sensitiveItem.type))
+  form.sensitiveContentList = form.sensitiveContentList.filter(item => !(item.content === sensitiveItem.content && item.startIndex === sensitiveItem.startIndex && item.type === sensitiveItem.type))
 }
 
 const dealComposing = (payload: boolean) => composing = payload
