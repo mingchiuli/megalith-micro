@@ -253,7 +253,7 @@ const commonPreDeal = (fieldTypeParam: FieldType, opreateField: FieldName) => {
   clearPushActionForm()
   pushActionForm.field = opreateField
   pushActionForm.id = form.id
-  pushActionForm.version = form.version!++
+  pushActionForm.version = ++form.version!
   fieldType = fieldTypeParam
 }
 
