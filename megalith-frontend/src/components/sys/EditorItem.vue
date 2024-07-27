@@ -49,19 +49,27 @@ onMounted(() => {
     let text = selection!.getRangeAt(0).startContainer
     let idx = 0
     let label = text!.parentNode
-    if (label!.nodeName !== 'DIV' || label?.childNodes.length !== 1) {
+    if (label!.nodeName !== 'DIV' || label!.childNodes.length !== 1) {
 
       //从span替换为div
       while (label!.nodeName !== 'DIV') {
         label = label!.parentNode
       }
 
+      if (text.parentNode?.nodeName === 'SPAN') {
+        text = text.parentNode
+      }
+      console.log(text)
       const eleSiblings: Node[] = []
-      label?.childNodes.forEach(item => {
+
+      for(let i = 0; i < label!.childNodes?.length!; i++) {
+        const item = label!.childNodes[i]!
         if (item !== text) {
           eleSiblings.push(item)
+        } else {
+          break;
         }
-      })
+      }
 
       eleSiblings.forEach(item => {
         //同级别的span文本长度
