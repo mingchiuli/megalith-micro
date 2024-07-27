@@ -255,6 +255,11 @@ export enum OperateTypeCode {
   SENSITIVE_CONTENT_LIST = 14
 }
 
+export enum SubscribeType {
+  PUSH_ALL = -1,
+  PULL_ALL = -2
+}
+
 export enum OperaColor {
   SUCCESS = '#67c23a',
   WARNING = '#e6a23c',
@@ -372,4 +377,11 @@ export interface SensitiveTrans {
   startIndex: number
   content: string
   type: SensitiveType
+}
+
+export interface SubscribeItem {
+  version: number
+  userId: number
+  blogId: number
+  type: number
 }

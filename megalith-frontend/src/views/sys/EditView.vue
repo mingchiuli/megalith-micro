@@ -4,7 +4,7 @@ import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, 
 import { GET, POST } from '@/http/http'
 import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType } from '@/type/entity'
 import { useRoute } from 'vue-router'
-import type { BlogEdit, EditForm, PushActionForm, SensitiveItem, SensitiveTrans } from '@/type/entity'
+import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem } from '@/type/entity'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
 import { Client, StompSocketState, type StompSubscription } from '@stomp/stompjs'
@@ -24,18 +24,21 @@ let client = new Client({
   connectionTimeout: 2000
 })
 
-let pushAllSubscribe: StompSubscription
-let pullAllSubscribe: StompSubscription
+let subscribe: StompSubscription
 
 const connect = async () => {
   const key = form.id ? `${form.userId}/${form.id}` : form.userId!.toString()
   client.onConnect = _frame => {
-    pushAllSubscribe = client.subscribe(`/edits/push/${key}`, async _res => {
-      await pushAllData()
-    })
+    subscribe = client.subscribe(`/edits/${key}`, async res => {
+      const body: SubscribeItem = JSON.parse(res.body)
 
-    pullAllSubscribe = client.subscribe(`/edits/pull/${key}`, async _res => {
-      await pullAllData()
+      if (body.type === SubscribeType.PULL_ALL) {
+        await pushAllData()
+      }
+
+      if (body.type === SubscribeType.PUSH_ALL) {
+        await pushAllData()
+      }
     })
   }
   client.activate()
@@ -475,14 +478,9 @@ const handleDescSelect = () => {
 
 onUnmounted(() => {
   clearInterval(timer)
-  if (pushAllSubscribe) {
-    pushAllSubscribe.unsubscribe()
+  if (subscribe) {
+    subscribe.unsubscribe()
   }
-
-  if (pullAllSubscribe) {
-    pullAllSubscribe.unsubscribe()
-  }
-  
   client.deactivate()
 })
 
