@@ -434,8 +434,12 @@ const CustomEditorItem = defineAsyncComponent({
 
 const handleTitleSelect = () => {
   const title = titleRef.value?.input!
-  const start = title.selectionStart!
+  let start = title.selectionStart!
   const end = title.selectionEnd!
+
+  if (start > end) {
+    start = end
+  }
 
   const selectedText = form.title?.substring(start, end)
   if (selectedText) {
@@ -451,8 +455,13 @@ const handleTitleSelect = () => {
 const handleDescSelect = () => {
   const desc = descRef.value?.textarea!
 
-  const start = desc.selectionStart!
+  let start = desc.selectionStart!
   const end = desc.selectionEnd!
+
+  if (start > end) {
+    start = end
+  }
+
   const selectedText = form.description?.substring(start, end)
   if (selectedText) {
     const sensitive: SensitiveItem = {

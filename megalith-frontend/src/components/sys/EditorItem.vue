@@ -46,6 +46,7 @@ onMounted(() => {
     }
 
     // 选中文本后要执行的操作
+    //文本标签，外面套了一层span或div
     let text = selection!.getRangeAt(0).startContainer
     let idx = 0
     let label = text!.parentNode
@@ -92,8 +93,12 @@ onMounted(() => {
       }
     })
 
-    idx += selection!.anchorOffset
-
+    if (selection!.anchorOffset > selection!.focusOffset) {
+      idx += selection!.focusOffset
+    } else {
+      idx += selection!.anchorOffset
+    }
+    
     const sensitive : SensitiveTrans = {
       startIndex: idx,
       content: selectedText,
