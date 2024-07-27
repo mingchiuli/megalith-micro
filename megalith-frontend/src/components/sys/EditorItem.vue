@@ -46,14 +46,19 @@ onMounted(() => {
     }
 
     // 选中文本后要执行的操作
-    let ele = selection!.getRangeAt(0).startContainer
+    let text = selection!.getRangeAt(0).startContainer
     let idx = 0
-    let parent = ele!.parentNode
-    if (parent!.nodeName !== 'DIV' || parent?.childNodes.length !== 1) {
+    let label = text!.parentNode
+    if (label!.nodeName !== 'DIV' || label?.childNodes.length !== 1) {
+
+      //从span替换为div
+      while (label!.nodeName !== 'DIV') {
+        label = label!.parentNode
+      }
 
       const eleSiblings: Node[] = []
-      parent?.childNodes.forEach(item => {
-        if (item !== ele) {
+      label?.childNodes.forEach(item => {
+        if (item !== text) {
           eleSiblings.push(item)
         }
       })
@@ -62,15 +67,10 @@ onMounted(() => {
         //同级别的span文本长度
         idx += item.textContent?.length!
       })
-
-      //从span替换为div
-      while (parent!.nodeName !== 'DIV') {
-        parent = parent!.parentNode
-      }
     }
 
     const previousSiblings = []
-    let currentElement = parent!.previousSibling
+    let currentElement = label!.previousSibling
 
     while (currentElement) {
       previousSiblings.push(currentElement)

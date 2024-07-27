@@ -466,8 +466,14 @@ const handleDescSelect = () => {
 
 onUnmounted(() => {
   clearInterval(timer)
-  pushAllSubscribe.unsubscribe()
-  pullAllSubscribe.unsubscribe()
+  if (pushAllSubscribe) {
+    pushAllSubscribe.unsubscribe()
+  }
+
+  if (pullAllSubscribe) {
+    pullAllSubscribe.unsubscribe()
+  }
+  
   client.deactivate()
 })
 
