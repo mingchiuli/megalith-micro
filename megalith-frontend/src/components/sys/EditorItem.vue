@@ -70,7 +70,7 @@ onMounted(() => {
     }
 
     const previousSiblings = []
-    let currentElement = ele!.previousSibling
+    let currentElement = parent!.previousSibling
 
     while (currentElement) {
       previousSiblings.push(currentElement)
