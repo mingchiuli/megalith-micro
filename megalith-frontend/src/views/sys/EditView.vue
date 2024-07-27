@@ -328,10 +328,6 @@ const uploadFile = async (file: UploadRawFile) => {
   const formdata = new FormData()
   formdata.append('image', file)
   const url = await POST<string>('sys/blog/oss/upload', formdata)
-  fileList.value.push({
-    name: file.name,
-    url: url
-  })
   form.link = url
   ElNotification({
     title: '操作成功',
