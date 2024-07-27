@@ -439,8 +439,11 @@ const CustomEditorItem = defineAsyncComponent({
 })
 
 onMounted(() => {
-  document.getElementById("title")!.onmouseup = () => {
-    const selectedText = getSelection()?.toString() // 获取选中的文本
+  const title = document.getElementById("title")! as HTMLInputElement
+  title.onmouseup = () => {
+    const start = title.selectionStart!
+    const end = title.selectionEnd!
+    const selectedText = title.innerText.substring(start, end)
     if (selectedText) {
       const sensitive: SensitiveItem = {
         content: selectedText,
@@ -451,8 +454,11 @@ onMounted(() => {
     }
   }
 
-  document.getElementById("desc")!.onmouseup = () => {
-    const selectedText = getSelection()?.toString() // 获取选中的文本
+  const desc = document.getElementById("desc")! as HTMLInputElement
+  desc.onmouseup = () => {
+    const start = desc.selectionStart!
+    const end = desc.selectionEnd!
+    const selectedText = desc.innerText.substring(start, end)
     if (selectedText) {
       const sensitive: SensitiveItem = {
         content: selectedText,
