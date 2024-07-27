@@ -59,7 +59,6 @@ onMounted(() => {
       if (text.parentNode?.nodeName === 'SPAN') {
         text = text.parentNode
       }
-      console.log(text)
       const eleSiblings: Node[] = []
 
       for(let i = 0; i < label!.childNodes?.length!; i++) {
