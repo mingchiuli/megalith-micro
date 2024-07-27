@@ -17,7 +17,7 @@ const blogId = route.query.id
 
 let client = new Client({
   brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/edit/ws`,
-  connectHeaders: { "Authorization": localStorage.getItem('accessToken')!, "Type": "EDIT", "Identity": String(blogId) },
+  connectHeaders: { "Authorization": localStorage.getItem('accessToken')! },
   reconnectDelay: 2000,
   heartbeatIncoming: 2000,
   heartbeatOutgoing: 2000,
