@@ -33,7 +33,7 @@ const connect = async () => {
       const body: SubscribeItem = JSON.parse(res.body)
 
       if (body.type === SubscribeType.PULL_ALL) {
-        await pushAllData()
+        await pullAllData()
       }
 
       if (body.type === SubscribeType.PUSH_ALL) {
