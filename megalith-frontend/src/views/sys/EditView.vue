@@ -449,7 +449,7 @@ const handleTitleSelect = () => {
   const end = title.selectionEnd!
   console.log(start, end)
 
-  const selectedText = title.textContent.substring(start, end)
+  const selectedText = title.textContent?.substring(start, end)
   console.log(title.textContent)
 
   if (selectedText) {
