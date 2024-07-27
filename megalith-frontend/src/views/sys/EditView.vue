@@ -444,6 +444,7 @@ const CustomEditorItem = defineAsyncComponent({
 
 const handleTitleSelect = () => {
   const title = titleRef.value?.input!
+  console.log(title)
   const start = title.selectionStart!
   const end = title.selectionEnd!
   const selectedText = title.innerText.substring(start, end)
@@ -459,6 +460,8 @@ const handleTitleSelect = () => {
 
 const handleDescSelect = () => {
   const desc = descRef.value?.input!
+  console.log(desc)
+
   const start = desc.selectionStart!
   const end = desc.selectionEnd!
   const selectedText = desc.innerText.substring(start, end)
