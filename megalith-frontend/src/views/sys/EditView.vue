@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { defineAsyncComponent, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
-import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
+import { defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
+import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance, ElInput } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType } from '@/type/entity'
 import { useRoute } from 'vue-router'
@@ -47,6 +47,10 @@ type SensitiveTagsItem = {
 }
 
 const sensitiveTags = ref<SensitiveTagsItem[]>([])
+
+const titleRef = ref<InstanceType<typeof ElInput>>()
+const descRef = ref<InstanceType<typeof ElInput>>()
+
 
 const form: EditForm = reactive({
   id: undefined,
@@ -438,37 +442,35 @@ const CustomEditorItem = defineAsyncComponent({
   timeout: 5000
 })
 
-onMounted(() => {
-  const title = document.getElementById("title")! as HTMLInputElement
-  title.onmouseup = () => {
-    const start = title.selectionStart!
-    const end = title.selectionEnd!
-    const selectedText = title.innerText.substring(start, end)
-    if (selectedText) {
-      const sensitive: SensitiveItem = {
-        content: selectedText,
-        startIndex: getSelection()?.anchorOffset!,
-        type: SensitiveType.TITLE
-      }
-      dealSensitive(sensitive)
+const handleTitleInput = () => {
+  const title = titleRef.value?.input!
+  const start = title.selectionStart!
+  const end = title.selectionEnd!
+  const selectedText = title.innerText.substring(start, end)
+  if (selectedText) {
+    const sensitive: SensitiveItem = {
+      content: selectedText,
+      startIndex: getSelection()?.anchorOffset!,
+      type: SensitiveType.TITLE
     }
+    dealSensitive(sensitive)
   }
+}
 
-  const desc = document.getElementById("desc")! as HTMLInputElement
-  desc.onmouseup = () => {
-    const start = desc.selectionStart!
-    const end = desc.selectionEnd!
-    const selectedText = desc.innerText.substring(start, end)
-    if (selectedText) {
-      const sensitive: SensitiveItem = {
-        content: selectedText,
-        startIndex: getSelection()?.anchorOffset!,
-        type: SensitiveType.DESCRIPTION
-      }
-      dealSensitive(sensitive)
+const handleDescInput = () => {
+  const desc = descRef.value?.input!
+  const start = desc.selectionStart!
+  const end = desc.selectionEnd!
+  const selectedText = desc.innerText.substring(start, end)
+  if (selectedText) {
+    const sensitive: SensitiveItem = {
+      content: selectedText,
+      startIndex: getSelection()?.anchorOffset!,
+      type: SensitiveType.DESCRIPTION
     }
+    dealSensitive(sensitive)
   }
-})
+}
 
 onUnmounted(() => {
   clearInterval(timer)
@@ -507,13 +509,14 @@ let reconnecting = false;
 <template>
   <div class="father">
     <el-form :model="form" :rules="formRules" ref="formRef">
-      <el-form-item class="title" id="title" prop="title">
-        <el-input v-model="form.title" placeholder="标题" maxlength="20" :disabled="readOnly" />
+      <el-form-item class="title" prop="title">
+        <el-input ref="titleRef" @input="handleTitleInput" v-model="form.title" placeholder="标题" maxlength="20"
+          :disabled="readOnly" />
       </el-form-item>
 
-      <el-form-item class="desc" id="desc" prop="description">
-        <el-input autosize type="textarea" v-model="form.description" placeholder="摘要" maxlength="60"
-          :disabled="readOnly" />
+      <el-form-item class="desc" prop="description">
+        <el-input ref="descRef" @input="handleDescInput" autosize type="textarea" v-model="form.description"
+          placeholder="摘要" maxlength="60" :disabled="readOnly" />
       </el-form-item>
 
       <el-form-item class="status" prop="status">
