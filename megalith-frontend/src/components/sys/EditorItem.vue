@@ -46,17 +46,17 @@ onMounted(() => {
     }
 
     // 选中文本后要执行的操作
-    let ele = selection!.getRangeAt(0).startContainer.parentNode
+    let ele = selection!.getRangeAt(0).startContainer
     let idx = 0
+    let parent = ele!.parentNode
+    if (parent!.nodeName !== 'DIV' || parent?.childNodes.length !== 1) {
 
-    if (ele!.nodeName !== 'DIV') {
-      const eleSiblings = []
-      let eleSibling = ele!.previousSibling
-
-      while (eleSibling) {
-        eleSiblings.push(eleSibling)
-        eleSibling = eleSibling.previousSibling
-      }
+      const eleSiblings: Node[] = []
+      parent?.childNodes.forEach(item => {
+        if (item !== ele) {
+          eleSiblings.push(item)
+        }
+      })
 
       eleSiblings.forEach(item => {
         //同级别的span文本长度
@@ -64,8 +64,8 @@ onMounted(() => {
       })
 
       //从span替换为div
-      while (ele!.nodeName !== 'DIV') {
-        ele = ele!.parentNode
+      while (parent!.nodeName !== 'DIV') {
+        parent = parent!.parentNode
       }
     }
 
