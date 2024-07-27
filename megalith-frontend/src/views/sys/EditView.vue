@@ -459,12 +459,11 @@ const handleTitleSelect = () => {
 }
 
 const handleDescSelect = () => {
-  const desc = descRef.value?.input!
-  console.log(desc)
+  const desc = descRef.value?.textarea!
 
   const start = desc.selectionStart!
   const end = desc.selectionEnd!
-  const selectedText = desc.innerText.substring(start, end)
+  const selectedText = form.description?.substring(start, end)
   if (selectedText) {
     const sensitive: SensitiveItem = {
       content: selectedText,
