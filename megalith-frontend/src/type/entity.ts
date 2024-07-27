@@ -104,7 +104,7 @@ export interface BlogEdit {
   link: string
   status: number
   version: number
-  sensitiveContentList: string[]
+  sensitiveContentList: SensitiveItem[]
 }
 
 
@@ -270,6 +270,12 @@ export enum FieldName {
   SENSITIVE_CONTENT_LIST = "sensitiveContentList"
 }
 
+export enum SensitiveType {
+  TITLE = 1,
+  DESCRIPTION = 2,
+  CONTENT = 3
+}
+
 export enum FieldType {
   NON_PARA = 'non_para',
   PARA = 'para'
@@ -353,5 +359,17 @@ export interface EditForm {
   status: number | undefined
   link: string | undefined
   version?: number
-  sensitiveContentList: string[]
+  sensitiveContentList: SensitiveItem[]
+}
+
+export interface SensitiveItem {
+  startIndex: number
+  content: string
+  type: SensitiveType
+}
+
+export interface SensitiveTrans {
+  startIndex: number
+  content: string
+  type: SensitiveType
 }

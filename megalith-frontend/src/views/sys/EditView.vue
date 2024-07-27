@@ -2,9 +2,9 @@
 import { defineAsyncComponent, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance } from 'element-plus'
 import { GET, POST } from '@/http/http'
-import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType } from '@/type/entity'
+import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType } from '@/type/entity'
 import { useRoute } from 'vue-router'
-import type { BlogEdit, EditForm, PushActionForm } from '@/type/entity'
+import type { BlogEdit, EditForm, PushActionForm, SensitiveItem, SensitiveTrans } from '@/type/entity'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
 import { Client, StompSocketState, type StompSubscription } from '@stomp/stompjs'
@@ -42,7 +42,7 @@ const connect = async () => {
 }
 
 type SensitiveTagsItem = {
-  name: string
+  element: SensitiveItem
   type: TagProps['type']
 }
 
@@ -160,7 +160,7 @@ watch(() => sensitiveTags, (n, o) => {
   commonPreDeal(FieldType.NON_PARA, FieldName.SENSITIVE_CONTENT_LIST)
   pushActionForm.operateTypeCode = OperateTypeCode.SENSITIVE_CONTENT_LIST
   form.sensitiveContentList = []
-  sensitiveTags.value.forEach(item => form.sensitiveContentList.push(item.name))
+  sensitiveTags.value.forEach(item => form.sensitiveContentList.push(item.element))
   pushActionForm.contentChange = JSON.stringify(form.sensitiveContentList)
   pushActionData(pushActionForm)
 }, { deep: true })
@@ -299,11 +299,14 @@ const loadEditContent = async () => {
   if (sensitiveTags.value.length !== 0) {
     sensitiveTags.value = []
   }
-  data.sensitiveContentList.forEach(item => sensitiveTags.value.push({ name: item, type: 'warning' }))
+  data.sensitiveContentList.forEach(item => {
+    let type = getSensitiveType(item.type)
+    sensitiveTags.value.push({ element: item, type: type })
+  })
   if (form.sensitiveContentList.length !== 0) {
     form.sensitiveContentList = []
   }
-  sensitiveTags.value.forEach(item => form.sensitiveContentList.push(item.name))
+  sensitiveTags.value.forEach(item => form.sensitiveContentList.push(item.element))
   version = data.version
   if (fileList.value.length !== 0) {
     //移除全部
@@ -374,25 +377,46 @@ const handlePictureCardPreview = (file: UploadFile) => {
   dialogVisible.value = true
 }
 
-const handleTagClose = (tagName: string) => {
-  sensitiveTags.value = sensitiveTags.value.filter(item => item.name !== tagName)
+const handleTagClose = (tag: SensitiveTagsItem) => {
+  const sensitiveItem = tag.element
+  sensitiveTags.value = sensitiveTags.value.filter(item => item.element.content === sensitiveItem.content && item.element.startIndex === sensitiveItem.startIndex && item.element.type === sensitiveItem.type)
 }
 
 const dealComposing = (payload: boolean) => composing = payload
 
-const dealSensitive = (payload: string) => {
+const dealSensitive = (payload: SensitiveTrans) => {
   if (form.status !== Status.SENSITIVE_FILTER) {
     return
   }
+
   let flag = true
   sensitiveTags.value.forEach(item => {
-    if (item.name === payload) {
+    if (item.element.content === payload.content && item.element.startIndex === payload.startIndex && item.element.type === payload.type) {
       flag = false
     }
   })
   if (flag) {
-    sensitiveTags.value.push({ name: payload, type: 'warning' })
+    let type = getSensitiveType(payload.type)
+    const element: SensitiveItem = {
+      content: payload.content,
+      startIndex: payload.startIndex,
+      type: payload.type
+    }
+    sensitiveTags.value.push({ element: element, type: type })
   }
+}
+
+const getSensitiveType = (type: number) => {
+
+  let typeProp: TagProps['type']
+  if (SensitiveType.TITLE === type) {
+    typeProp = 'success'
+  } else if (SensitiveType.DESCRIPTION === type) {
+    typeProp = 'primary'
+  } else {
+    typeProp = 'warning'
+  }
+  return typeProp
 }
 
 const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
@@ -418,14 +442,24 @@ onMounted(() => {
   document.getElementById("title")!.onmouseup = () => {
     const selectedText = getSelection()?.toString() // 获取选中的文本
     if (selectedText) {
-      dealSensitive(selectedText)
+      const sensitive: SensitiveItem = {
+        content: selectedText,
+        startIndex: getSelection()?.anchorOffset!,
+        type: SensitiveType.TITLE
+      }
+      dealSensitive(sensitive)
     }
   }
 
   document.getElementById("desc")!.onmouseup = () => {
     const selectedText = getSelection()?.toString() // 获取选中的文本
     if (selectedText) {
-      dealSensitive(selectedText)
+      const sensitive: SensitiveItem = {
+        content: selectedText,
+        startIndex: getSelection()?.anchorOffset!,
+        type: SensitiveType.DESCRIPTION
+      }
+      dealSensitive(sensitive)
     }
   }
 })
@@ -487,9 +521,9 @@ let reconnecting = false;
       <el-form-item v-if="form.status === Status.SENSITIVE_FILTER">
         <span style="margin-right: 10px;">打码</span>
         <div>
-          <el-tag v-for="tag in sensitiveTags" :key="tag.name" closable :type="tag.type"
-            @close="handleTagClose(tag.name)">
-            {{ tag.name }}
+          <el-tag v-for="tag in sensitiveTags" :key="tag.element" closable :type="tag.type"
+            @close="handleTagClose(tag)">
+            {{ tag.element.startIndex }} - {{ tag.element.content }}
           </el-tag>
         </div>
       </el-form-item>

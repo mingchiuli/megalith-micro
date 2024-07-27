@@ -6,10 +6,11 @@ import '@vavt/v3-extension/lib/asset/ExportPDF.css'
 import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
 import { onMounted, ref } from 'vue'
+import { SensitiveType, type SensitiveTrans } from '@/type/entity'
 
 const emit = defineEmits<{
   composing: [payload: boolean]
-  sensitive: [payload: string]
+  sensitive: [payload: SensitiveTrans]
 }>()
 
 defineProps<{
@@ -85,9 +86,14 @@ onMounted(() => {
     })
 
     idx += selection!.anchorOffset
-    console.log(idx)
 
-    emit('sensitive', selectedText)
+    const sensitive : SensitiveTrans = {
+      startIndex: idx,
+      content: selectedText,
+      type: SensitiveType.CONTENT
+    }
+
+    emit('sensitive', sensitive)
   }
 
 })
