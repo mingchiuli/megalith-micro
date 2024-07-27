@@ -383,7 +383,7 @@ const handlePictureCardPreview = (file: UploadFile) => {
 
 const handleTagClose = (tag: SensitiveTagsItem) => {
   const sensitiveItem = tag.element
-  sensitiveTags.value = sensitiveTags.value.filter(item => item.element.content === sensitiveItem.content && item.element.startIndex === sensitiveItem.startIndex && item.element.type === sensitiveItem.type)
+  sensitiveTags.value = sensitiveTags.value.filter(item => !(item.element.content === sensitiveItem.content && item.element.startIndex === sensitiveItem.startIndex && item.element.type === sensitiveItem.type))
 }
 
 const dealComposing = (payload: boolean) => composing = payload
@@ -442,7 +442,7 @@ const CustomEditorItem = defineAsyncComponent({
   timeout: 5000
 })
 
-const handleTitleInput = () => {
+const handleTitleSelect = () => {
   const title = titleRef.value?.input!
   const start = title.selectionStart!
   const end = title.selectionEnd!
@@ -457,7 +457,7 @@ const handleTitleInput = () => {
   }
 }
 
-const handleDescInput = () => {
+const handleDescSelect = () => {
   const desc = descRef.value?.input!
   const start = desc.selectionStart!
   const end = desc.selectionEnd!
@@ -510,12 +510,12 @@ let reconnecting = false;
   <div class="father">
     <el-form :model="form" :rules="formRules" ref="formRef">
       <el-form-item class="title" prop="title">
-        <el-input ref="titleRef" @input="handleTitleInput" v-model="form.title" placeholder="标题" maxlength="20"
+        <el-input ref="titleRef" @select="handleTitleSelect" v-model="form.title" placeholder="标题" maxlength="20"
           :disabled="readOnly" />
       </el-form-item>
 
       <el-form-item class="desc" prop="description">
-        <el-input ref="descRef" @input="handleDescInput" autosize type="textarea" v-model="form.description"
+        <el-input ref="descRef" @select="handleDescSelect" autosize type="textarea" v-model="form.description"
           placeholder="摘要" maxlength="60" :disabled="readOnly" />
       </el-form-item>
 
