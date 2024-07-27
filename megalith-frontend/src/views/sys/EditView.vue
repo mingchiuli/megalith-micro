@@ -450,6 +450,8 @@ const handleTitleSelect = () => {
   console.log(start, end)
 
   const selectedText = title.innerText.substring(start, end)
+  console.log(title.innerText)
+
   if (selectedText) {
     const sensitive: SensitiveItem = {
       content: selectedText,
