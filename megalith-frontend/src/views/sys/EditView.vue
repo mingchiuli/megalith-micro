@@ -451,7 +451,7 @@ const handleTitleSelect = () => {
   if (selectedText) {
     const sensitive: SensitiveItem = {
       content: selectedText,
-      startIndex: getSelection()?.anchorOffset!,
+      startIndex: start,
       type: SensitiveType.TITLE
     }
     dealSensitive(sensitive)
@@ -468,7 +468,7 @@ const handleDescSelect = () => {
   if (selectedText) {
     const sensitive: SensitiveItem = {
       content: selectedText,
-      startIndex: getSelection()?.anchorOffset!,
+      startIndex: start,
       type: SensitiveType.DESCRIPTION
     }
     dealSensitive(sensitive)
