@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance, ElInput } from 'element-plus'
 import { GET, POST } from '@/http/http'
 import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType } from '@/type/entity'
@@ -46,7 +46,19 @@ type SensitiveTagsItem = {
   type: TagProps['type']
 }
 
-const sensitiveTags = ref<SensitiveTagsItem[]>([])
+const sensitiveTags = computed(() => {
+  const arr: SensitiveTagsItem[] = []
+  form.sensitiveContentList.forEach(item => {
+    const element: SensitiveItem = {
+      content: item.content,
+      startIndex: item.startIndex,
+      type: item.type
+    }
+    const type = getSensitiveType(item.type)
+    arr.push({ element: element, type: type })
+  })
+  return arr
+})
 
 const titleRef = ref<InstanceType<typeof ElInput>>()
 const descRef = ref<InstanceType<typeof ElInput>>()
@@ -75,7 +87,6 @@ const pushActionForm: PushActionForm = {
   paraNo: undefined,
 }
 
-let version = -1
 //中文输入法的问题
 let composing = false
 let fieldType: FieldType
@@ -90,7 +101,6 @@ const pullAllData = async () => {
 }
 
 const pushAllData = async () => {
-  form.version = version
   await POST<null>('/sys/blog/edit/push/all', form)
   if (transColor.value !== OperaColor.WARNING) {
     transColor.value = OperaColor.WARNING
@@ -159,12 +169,10 @@ watch(() => form.status, (n, o) => {
   pushActionData(pushActionForm)
 })
 
-watch(() => sensitiveTags, (n, o) => {
+watch(() => form.sensitiveContentList, (n, o) => {
   if (!client.connected || (!n && !o) || composing) return
   commonPreDeal(FieldType.NON_PARA, FieldName.SENSITIVE_CONTENT_LIST)
   pushActionForm.operateTypeCode = OperateTypeCode.SENSITIVE_CONTENT_LIST
-  form.sensitiveContentList = []
-  sensitiveTags.value.forEach(item => form.sensitiveContentList.push(item.element))
   pushActionForm.contentChange = JSON.stringify(form.sensitiveContentList)
   pushActionData(pushActionForm)
 }, { deep: true })
@@ -246,7 +254,7 @@ const commonPreDeal = (fieldTypeParam: FieldType, opreateField: FieldName) => {
   clearPushActionForm()
   pushActionForm.field = opreateField
   pushActionForm.id = form.id
-  pushActionForm.version = ++version
+  pushActionForm.version = form.version!++
   fieldType = fieldTypeParam
 }
 
@@ -263,7 +271,14 @@ const deal = (n: string | undefined, o: string | undefined) => {
 }
 
 const transColor = ref(OperaColor.SUCCESS)
-const fileList = ref<UploadUserFile[]>([])
+const fileList = computed(() => {
+  const arr: UploadUserFile[] = []
+  arr.push({
+    name: 'Cover',
+    url: form.link
+  })
+  return arr
+})
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 const disabled = ref(false)
@@ -300,28 +315,8 @@ const loadEditContent = async () => {
   form.id = data.id
   form.userId = data.userId
   //不清空会重复显示
-  if (sensitiveTags.value.length !== 0) {
-    sensitiveTags.value = []
-  }
-  data.sensitiveContentList.forEach(item => {
-    let type = getSensitiveType(item.type)
-    sensitiveTags.value.push({ element: item, type: type })
-  })
-  if (form.sensitiveContentList.length !== 0) {
-    form.sensitiveContentList = []
-  }
-  sensitiveTags.value.forEach(item => form.sensitiveContentList.push(item.element))
-  version = data.version
-  if (fileList.value.length !== 0) {
-    //移除全部
-    fileList.value.splice(0, fileList.value.length)
-  }
-  if (data.link) {
-    fileList.value.push({
-      name: 'Cover',
-      url: data.link
-    })
-  }
+  form.sensitiveContentList = data.sensitiveContentList
+  form.version = data.version
 }
 
 const upload = async (image: UploadRequestOptions) => {
@@ -347,7 +342,6 @@ const uploadFile = async (file: UploadRawFile) => {
 const handleRemove = async (_file: UploadFile) => {
   await GET<null>(`/sys/blog/oss/delete?url=${form.link}`)
   form.link = ''
-  fileList.value = []
 }
 
 const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
@@ -383,7 +377,7 @@ const handlePictureCardPreview = (file: UploadFile) => {
 
 const handleTagClose = (tag: SensitiveTagsItem) => {
   const sensitiveItem = tag.element
-  sensitiveTags.value = sensitiveTags.value.filter(item => !(item.element.content === sensitiveItem.content && item.element.startIndex === sensitiveItem.startIndex && item.element.type === sensitiveItem.type))
+  form.sensitiveContentList.filter(item => !(item.content === sensitiveItem.content && item.startIndex === sensitiveItem.startIndex && item.type === sensitiveItem.type))
 }
 
 const dealComposing = (payload: boolean) => composing = payload
@@ -394,19 +388,18 @@ const dealSensitive = (payload: SensitiveTrans) => {
   }
 
   let flag = true
-  sensitiveTags.value.forEach(item => {
-    if (item.element.content === payload.content && item.element.startIndex === payload.startIndex && item.element.type === payload.type) {
+  form.sensitiveContentList.forEach(item => {
+    if (item.content === payload.content && item.startIndex === payload.startIndex && item.type === payload.type) {
       flag = false
     }
   })
   if (flag) {
-    let type = getSensitiveType(payload.type)
     const element: SensitiveItem = {
       content: payload.content,
       startIndex: payload.startIndex,
       type: payload.type
     }
-    sensitiveTags.value.push({ element: element, type: type })
+    form.sensitiveContentList.push(element)
   }
 }
 
@@ -532,8 +525,7 @@ let reconnecting = false;
       <el-form-item v-if="form.status === Status.SENSITIVE_FILTER">
         <span style="margin-right: 10px;">打码</span>
         <div>
-          <el-tag v-for="tag in sensitiveTags" :key="tag.element" closable :type="tag.type"
-            @close="handleTagClose(tag)">
+          <el-tag v-for="tag in sensitiveTags" :key="tag" closable :type="tag.type" @close="handleTagClose(tag)">
             {{ tag.element.startIndex }} - {{ tag.element.content }}
           </el-tag>
         </div>
