@@ -528,7 +528,7 @@ let reconnecting = false;
       <el-form-item v-if="form.status === Status.SENSITIVE_FILTER">
         <span style="margin-right: 10px;">打码</span>
         <div>
-          <el-tag v-for="tag in sensitiveTags" :key="tag" closable :type="tag.type" @close="handleTagClose(tag)">
+          <el-tag v-for="tag in sensitiveTags" :key="tag.element.startIndex" closable :type="tag.type" @close="handleTagClose(tag)">
             {{ tag.element.startIndex }} - {{ tag.element.content }}
           </el-tag>
         </div>
