@@ -2,7 +2,7 @@ import http from '@/http/axios'
 import { DOWNLOAD_DATA, GET, POST } from '@/http/http'
 import router from '@/router'
 import { buttonStore, loginStateStore, menuStore, tabStore } from '@/stores/store'
-import { FieldType, OperateTypeCode, ActionType, type Data, type JWTStruct, type Menu, type PushActionForm, type RefreshStruct, type Tab, type Token, type UserInfo } from '@/type/entity'
+import { FieldType, OperateTypeCode, ActionType, type Data, type JWTStruct, type Menu, type PushActionForm, type RefreshStruct, type Tab, type Token, type UserInfo, type EditForm, Status, SensitiveType, FieldName } from '@/type/entity'
 import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
@@ -253,4 +253,68 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
   }
   //全不满足直接推全量数据
   return ActionType.PUSH_ALL
+}
+
+export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm) => {
+  if (form.status !== Status.SENSITIVE_FILTER) {
+    return
+  }
+  const field = pushActionForm.field
+  const operateType = pushActionForm.operateTypeCode
+  const len = form.sensitiveContentList.length
+
+  /**
+   * type 1
+   */
+
+  if (field === FieldName.TITLE && (operateType === OperateTypeCode.NON_PARA_REMOVE || operateType === OperateTypeCode.NON_PARA_HEAD_APPEND || operateType === OperateTypeCode.NON_PARA_HEAD_SUBTRACT)) {
+    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.TITLE)
+    if (len !== sensitiveList.length) {
+      form.sensitiveContentList = sensitiveList
+    }
+    return
+  }
+
+  if (field === FieldName.DESCRIPTION && (operateType === OperateTypeCode.NON_PARA_REMOVE || operateType === OperateTypeCode.NON_PARA_HEAD_APPEND || operateType === OperateTypeCode.NON_PARA_HEAD_SUBTRACT)) {
+    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.DESCRIPTION)
+    if (len !== sensitiveList.length) {
+      form.sensitiveContentList = sensitiveList
+    }
+    return
+  }
+
+  if (field === FieldName.CONTENT && (operateType === OperateTypeCode.PARA_REMOVE || operateType === OperateTypeCode.PARA_HEAD_APPEND || operateType === OperateTypeCode.PARA_HEAD_SUBTRACT)) {
+    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.CONTENT)
+    if (len !== sensitiveList.length) {
+      form.sensitiveContentList = sensitiveList
+    }
+    return
+  }
+
+  /**
+   * type 2
+   */
+
+  if (field === FieldName.TITLE && operateType === (OperateTypeCode.NON_PARA_TAIL_SUBTRACT || OperateTypeCode.NON_PARA_REPLACE)){
+    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.TITLE || item.startIndex < pushActionForm.indexStart!)
+    if (sensitiveList.length !== len) {
+      form.sensitiveContentList = sensitiveList
+    }
+    return
+  }
+
+  if (field === FieldName.DESCRIPTION && (OperateTypeCode.NON_PARA_TAIL_SUBTRACT || OperateTypeCode.NON_PARA_REPLACE)) {
+    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.DESCRIPTION || item.startIndex < pushActionForm.indexStart!)
+    if (sensitiveList.length !== len) {
+      form.sensitiveContentList = sensitiveList
+    }
+    return
+  }
+
+  if (field === FieldName.CONTENT && operateType === (OperateTypeCode.PARA_TAIL_SUBTRACT || OperateTypeCode.PARA_REPLACE)) {
+    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.CONTENT || item.startIndex < pushActionForm.indexStart!)
+    if (sensitiveList.length !== len) {
+      form.sensitiveContentList = sensitiveList
+    }
+  }
 }

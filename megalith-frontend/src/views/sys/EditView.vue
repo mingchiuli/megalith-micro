@@ -9,7 +9,7 @@ import router from '@/router'
 import { blogsStore } from '@/stores/store'
 import { Client, StompSocketState, type StompSubscription } from '@stomp/stompjs'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle, dealAction } from '@/utils/tools'
+import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle, dealAction, recheckSensitive } from '@/utils/tools'
 
 let timer: NodeJS.Timeout
 const route = useRoute()
@@ -161,6 +161,7 @@ watch(() => form.description, (n, o) => {
   if (!preCheck(n, o)) return
   commonPreDeal(FieldType.NON_PARA, FieldName.DESCRIPTION)
   deal(n, o)
+  recheckSensitive(pushActionForm, form)
 })
 
 watch(() => form.status, (n, o) => {
@@ -189,6 +190,7 @@ watch(() => form.title, (n, o) => {
   if (!preCheck(n, o)) return
   commonPreDeal(FieldType.NON_PARA, FieldName.TITLE)
   deal(n, o)
+  recheckSensitive(pushActionForm, form)
 })
 
 watch(() => form.content, (n, o) => {
@@ -205,6 +207,7 @@ watch(() => form.content, (n, o) => {
       if (nArr![i] !== oArr![i]) {
         pushActionForm.paraNo = i + 1
         deal(nArr![i], oArr![i])
+        recheckSensitive(pushActionForm, form)
       }
     }
     return
