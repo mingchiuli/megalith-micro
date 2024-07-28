@@ -296,7 +296,7 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm)
    */
 
   if (field === FieldName.TITLE && (operateType === OperateTypeCode.NON_PARA_TAIL_SUBTRACT || operateType === OperateTypeCode.NON_PARA_REPLACE)){
-    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.TITLE || item.startIndex + item.content.length < indexStart)
+    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.TITLE || item.startIndex + item.content.length - 1 < indexStart)
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
     }
@@ -304,7 +304,7 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm)
   }
 
   if (field === FieldName.DESCRIPTION && (operateType === OperateTypeCode.NON_PARA_TAIL_SUBTRACT || operateType === OperateTypeCode.NON_PARA_REPLACE)) {
-    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.DESCRIPTION || item.startIndex + item.content.length < indexStart)
+    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.DESCRIPTION || item.startIndex + item.content.length - 1 < indexStart)
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
     }
@@ -312,7 +312,7 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm)
   }
 
   if (field === FieldName.CONTENT && (operateType === OperateTypeCode.PARA_TAIL_SUBTRACT || operateType ===  OperateTypeCode.PARA_REPLACE)) {
-    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.CONTENT || item.startIndex + item.content.length < indexStart)
+    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.CONTENT || item.startIndex + item.content.length - 1 < indexStart)
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
     }
