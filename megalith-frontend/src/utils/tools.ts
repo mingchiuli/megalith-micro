@@ -295,7 +295,7 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm)
    * type 2
    */
 
-  if (field === FieldName.TITLE && operateType === (OperateTypeCode.NON_PARA_TAIL_SUBTRACT || OperateTypeCode.NON_PARA_REPLACE)){
+  if (field === FieldName.TITLE && (operateType === OperateTypeCode.NON_PARA_TAIL_SUBTRACT || operateType === OperateTypeCode.NON_PARA_REPLACE)){
     const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.TITLE || item.startIndex + item.content.length < indexStart)
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
@@ -303,7 +303,7 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm)
     return
   }
 
-  if (field === FieldName.DESCRIPTION && (OperateTypeCode.NON_PARA_TAIL_SUBTRACT || OperateTypeCode.NON_PARA_REPLACE)) {
+  if (field === FieldName.DESCRIPTION && (operateType === OperateTypeCode.NON_PARA_TAIL_SUBTRACT || operateType === OperateTypeCode.NON_PARA_REPLACE)) {
     const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.DESCRIPTION || item.startIndex + item.content.length < indexStart)
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
@@ -311,10 +311,8 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm)
     return
   }
 
-  if (field === FieldName.CONTENT && operateType === (OperateTypeCode.PARA_TAIL_SUBTRACT || OperateTypeCode.PARA_REPLACE)) {
+  if (field === FieldName.CONTENT && (operateType === OperateTypeCode.PARA_TAIL_SUBTRACT || operateType ===  OperateTypeCode.PARA_REPLACE)) {
     const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.CONTENT || item.startIndex + item.content.length < indexStart)
-    console.log(sensitiveList)
-    console.log(len)
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
     }
