@@ -6,15 +6,16 @@ import '@vavt/v3-extension/lib/asset/ExportPDF.css'
 import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
 import { onMounted, ref } from 'vue'
-import { SensitiveType, type SensitiveTrans } from '@/type/entity'
+import { SensitiveType, Status, type SensitiveTrans } from '@/type/entity'
 
 const emit = defineEmits<{
   composing: [payload: boolean]
   sensitive: [payload: SensitiveTrans]
 }>()
 
-defineProps<{
+const props = defineProps<{
   transColor: string
+  formStatus: number | undefined
 }>()
 
 const content = defineModel<string | undefined>('content')
@@ -38,6 +39,10 @@ onMounted(() => {
     }
   });
   document.getElementById("md-editor")!.onmouseup = () => {
+    if (props.formStatus !== Status.SENSITIVE_FILTER) {
+      return
+    }
+
     const selection = document.getSelection()
     const selectedText = selection!.toString() // 获取选中的文本
 
@@ -46,7 +51,7 @@ onMounted(() => {
     }
 
     // 选中文本后要执行的操作
-    //文本标签，外面套了一层span或div
+    //文本标签,外面套了一层span或div
     let text = selection!.getRangeAt(0).startContainer
     let idx = 0
     let label = text!.parentNode

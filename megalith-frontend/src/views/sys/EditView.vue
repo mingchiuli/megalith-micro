@@ -383,10 +383,6 @@ const handleTagClose = (tag: SensitiveTagsItem) => {
 const dealComposing = (payload: boolean) => composing = payload
 
 const dealSensitive = (payload: SensitiveTrans) => {
-  if (form.status !== Status.SENSITIVE_FILTER) {
-    return
-  }
-
   let flag = true
   form.sensitiveContentList.forEach(item => {
     if (item.content === payload.content && item.startIndex === payload.startIndex && item.type === payload.type) {
@@ -573,7 +569,7 @@ let reconnecting = false;
 
       <el-form-item class="content" prop="content">
         <CustomEditorItem v-model:content="form.content" @composing="dealComposing" @sensitive="dealSensitive"
-          :trans-color="transColor" />
+          :trans-color="transColor" :form-status="form.status"/>
       </el-form-item>
 
       <div class="submit-button">
