@@ -151,27 +151,30 @@ const extractAndFlushData = async () => {
 }
 
 const roll = async () => {
-  if (allNodes) {
-    let scrolled = document.documentElement.scrollTop
-    await extractAndFlushData()
-    let temp: CatalogueLabel = rollToTargetLabel(data.value!, scrolled)!
-    //高亮和关闭树节点的逻辑
-    allNodes.forEach(node => {
-      const id = node.data.id
-      if (temp?.id === id) {
-        node.expanded = true
-        treeRef.value?.setCurrentKey(id)
-        history.replaceState(history.state, '', `#${id}`)
-      } else if (node.expanded) {
-        node.expanded = false
-      }
-    })
-    //处理顶级节点高亮不符合逻辑的问题
-    if (!temp) {
-      treeRef.value?.setCurrentKey(undefined)
-      history.replaceState(history.state, '', ' ')
-    }
+  if (!allNodes) {
+    return
   }
+
+  let scrolled = document.documentElement.scrollTop
+  await extractAndFlushData()
+  let temp: CatalogueLabel = rollToTargetLabel(data.value!, scrolled)!
+  //高亮和关闭树节点的逻辑
+  allNodes.forEach(node => {
+    const id = node.data.id
+    if (temp?.id === id) {
+      node.expanded = true
+      treeRef.value?.setCurrentKey(id)
+      history.replaceState(history.state, '', `#${id}`)
+    } else if (node.expanded) {
+      node.expanded = false
+    }
+  })
+  //处理顶级节点高亮不符合逻辑的问题
+  if (!temp) {
+    treeRef.value?.setCurrentKey(undefined)
+    history.replaceState(history.state, '', ' ')
+  }
+
 }
 
 const throttle = debounce(roll)
