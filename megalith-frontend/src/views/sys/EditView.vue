@@ -550,7 +550,7 @@ let reconnecting = false;
       <el-form-item v-if="form.status === Status.SENSITIVE_FILTER">
         <span style="margin-right: 10px;">打码</span>
 
-        <el-popover v-for="tag in sensitiveTags" :key="`${tag.element.type}-${tag.element.startIndex}`" placement="top-start" trigger="hover" :content="String(tag.element.startIndex)">
+        <el-popover v-for="tag in sensitiveTags" :key="`${tag.element.type}-${tag.element.startIndex}`" placement="top-start" trigger="hover" :width="50" :content="String(tag.element.startIndex)">
           <template #reference>
             <el-tag closable :type="tag.type" @close="handleTagClose(tag)">
               {{ tag.element.content }}
