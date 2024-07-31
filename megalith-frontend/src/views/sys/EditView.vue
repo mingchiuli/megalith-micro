@@ -380,7 +380,7 @@ const handlePictureCardPreview = (file: UploadFile) => {
 
 const handleTagClose = (tag: SensitiveTagsItem) => {
   const sensitiveItem = tag.element
-  form.sensitiveContentList = form.sensitiveContentList.filter(item => item.startIndex !== sensitiveItem.startIndex && item.type !== sensitiveItem.type)
+  form.sensitiveContentList = form.sensitiveContentList.filter(item => item.type !== sensitiveItem.type || (item.startIndex !== sensitiveItem.startIndex && item.type === sensitiveItem.type))
 }
 
 const dealComposing = (payload: boolean) => composing = payload
