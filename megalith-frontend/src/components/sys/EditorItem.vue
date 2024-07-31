@@ -62,8 +62,8 @@ onMounted(() => {
         label = label!.parentNode
       }
 
-      if (text.parentNode?.nodeName === 'SPAN') {
-        text = text.parentNode
+      if (text.parentNode!.nodeName === 'SPAN') {
+        text = text.parentNode!
       }
       const eleSiblings: Node[] = []
 
