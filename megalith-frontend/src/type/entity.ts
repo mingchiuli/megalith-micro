@@ -369,13 +369,19 @@ export interface EditForm {
 
 export interface SensitiveItem {
   startIndex: number
+  endIndex: number
+  type: SensitiveType
+}
+
+export interface SensitiveExhibit {
+  startIndex: number
   content: string
   type: SensitiveType
 }
 
 export interface SensitiveTrans {
   startIndex: number
-  content: string
+  endIndex: number
   type: SensitiveType
 }
 

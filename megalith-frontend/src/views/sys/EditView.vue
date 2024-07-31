@@ -2,7 +2,7 @@
 import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance, ElInput } from 'element-plus'
 import { GET, POST } from '@/http/http'
-import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType } from '@/type/entity'
+import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem } from '@/type/entity'
 import router from '@/router'
@@ -45,15 +45,16 @@ const connect = async () => {
 }
 
 type SensitiveTagsItem = {
-  element: SensitiveItem
+  element: SensitiveExhibit
   type: TagProps['type']
 }
 
 const sensitiveTags = computed(() => {
   const arr: SensitiveTagsItem[] = []
   form.sensitiveContentList.forEach(item => {
-    const element: SensitiveItem = {
-      content: item.content,
+    const str = getExhibitWords(item.type, form)
+    const element: SensitiveExhibit = {
+      content: str.substring(item.startIndex, item.endIndex),
       startIndex: item.startIndex,
       type: item.type
     }
@@ -380,7 +381,7 @@ const handlePictureCardPreview = (file: UploadFile) => {
 
 const handleTagClose = (tag: SensitiveTagsItem) => {
   const sensitiveItem = tag.element
-  form.sensitiveContentList = form.sensitiveContentList.filter(item => !(item.content === sensitiveItem.content && item.startIndex === sensitiveItem.startIndex && item.type === sensitiveItem.type))
+  form.sensitiveContentList = form.sensitiveContentList.filter(item => item.startIndex !== sensitiveItem.startIndex && item.type !== sensitiveItem.type)
 }
 
 const dealComposing = (payload: boolean) => composing = payload
@@ -388,13 +389,13 @@ const dealComposing = (payload: boolean) => composing = payload
 const dealSensitive = (payload: SensitiveTrans) => {
   let flag = true
   form.sensitiveContentList.forEach(item => {
-    if (item.content === payload.content && item.startIndex === payload.startIndex && item.type === payload.type) {
+    if ((item.endIndex === payload.endIndex || item.startIndex === payload.startIndex) && item.type === payload.type) {
       flag = false
     }
   })
   if (flag) {
     const element: SensitiveItem = {
-      content: payload.content,
+      endIndex: payload.endIndex,
       startIndex: payload.startIndex,
       type: payload.type
     }
@@ -402,7 +403,7 @@ const dealSensitive = (payload: SensitiveTrans) => {
   }
 }
 
-const getSensitiveType = (type: number) => {
+const getSensitiveType = (type: SensitiveType) => {
 
   let typeProp: TagProps['type']
   if (SensitiveType.TITLE === type) {
@@ -413,6 +414,18 @@ const getSensitiveType = (type: number) => {
     typeProp = 'warning'
   }
   return typeProp
+}
+
+const getExhibitWords = (type: SensitiveType, form: EditForm) => {
+  let words: string
+  if (SensitiveType.TITLE === type) {
+    words = form.title!
+  } else if (SensitiveType.DESCRIPTION === type) {
+    words = form.description!
+  } else {
+    words = form.content!
+  }
+  return words
 }
 
 const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
@@ -437,17 +450,19 @@ const CustomEditorItem = defineAsyncComponent({
 const handleTitleSelect = () => {
   const title = titleRef.value?.input!
   let start = title.selectionStart!
-  const end = title.selectionEnd!
+  let end = title.selectionEnd!
 
   if (start > end) {
+    const tmp = start
     start = end
+    end = tmp
   }
 
   const selectedText = form.title?.substring(start, end)
   if (selectedText) {
     const sensitive: SensitiveItem = {
-      content: selectedText,
       startIndex: start,
+      endIndex: end,
       type: SensitiveType.TITLE
     }
     dealSensitive(sensitive)
@@ -458,17 +473,19 @@ const handleDescSelect = () => {
   const desc = descRef.value?.textarea!
 
   let start = desc.selectionStart!
-  const end = desc.selectionEnd!
+  let end = desc.selectionEnd!
 
   if (start > end) {
+    const tmp = start
     start = end
+    end = tmp
   }
 
   const selectedText = form.description?.substring(start, end)
   if (selectedText) {
     const sensitive: SensitiveItem = {
-      content: selectedText,
       startIndex: start,
+      endIndex: end,
       type: SensitiveType.DESCRIPTION
     }
     dealSensitive(sensitive)
@@ -533,11 +550,12 @@ let reconnecting = false;
 
       <el-form-item v-if="form.status === Status.SENSITIVE_FILTER">
         <span style="margin-right: 10px;">打码</span>
-        <div>
-          <el-tag v-for="tag in sensitiveTags" :key="tag.element.startIndex" closable :type="tag.type" @close="handleTagClose(tag)">
-            {{ tag.element.startIndex }} - {{ tag.element.content }}
-          </el-tag>
-        </div>
+        <el-popover v-for="tag in sensitiveTags" :key="tag.element.startIndex" placement="top-start" trigger="hover"
+          content={{ tag.element.startIndex }}>
+          <template #reference>
+            <el-button :type="tag.type" closable @close="handleTagClose(tag)">{{ tag.element.content }}</el-button>
+          </template>
+        </el-popover>
       </el-form-item>
 
       <el-form-item class="cover">
@@ -572,7 +590,7 @@ let reconnecting = false;
 
       <el-form-item class="content" prop="content">
         <CustomEditorItem v-model:content="form.content" @composing="dealComposing" @sensitive="dealSensitive"
-          :trans-color="transColor" :form-status="form.status"/>
+          :trans-color="transColor" :form-status="form.status" />
       </el-form-item>
 
       <div class="submit-button">
