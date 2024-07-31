@@ -343,6 +343,7 @@ const uploadFile = async (file: UploadRawFile) => {
 }
 
 const handleRemove = async (_file: UploadFile) => {
+  if (!form.link) return
   await GET<null>(`/sys/blog/oss/delete?url=${form.link}`)
   form.link = ''
 }
