@@ -106,7 +106,7 @@ onMounted(() => {
     
     const sensitive : SensitiveTrans = {
       startIndex: idx,
-      content: selectedText,
+      endIndex: idx + selectedText.length,
       type: SensitiveType.CONTENT
     }
 
