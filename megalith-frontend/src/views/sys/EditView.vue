@@ -2,9 +2,8 @@
 import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance, ElInput } from 'element-plus'
 import { GET, POST } from '@/http/http'
-import { FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit } from '@/type/entity'
+import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit } from '@/type/entity'
 import { useRoute } from 'vue-router'
-import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem } from '@/type/entity'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
 import { Client, StompSocketState, type StompSubscription } from '@stomp/stompjs'
@@ -550,10 +549,12 @@ let reconnecting = false;
 
       <el-form-item v-if="form.status === Status.SENSITIVE_FILTER">
         <span style="margin-right: 10px;">打码</span>
-        <el-popover v-for="tag in sensitiveTags" :key="tag.element.startIndex" placement="top-start" trigger="hover"
-          content={{ tag.element.startIndex }}>
+
+        <el-popover v-for="tag in sensitiveTags" :key="`${tag.element.type}-${tag.element.startIndex}`" placement="top-start" trigger="hover" :content="String(tag.element.startIndex)">
           <template #reference>
-            <el-button :type="tag.type" closable @close="handleTagClose(tag)">{{ tag.element.content }}</el-button>
+            <el-tag closable :type="tag.type" @close="handleTagClose(tag)">
+              {{ tag.element.content }}
+            </el-tag>
           </template>
         </el-popover>
       </el-form-item>
