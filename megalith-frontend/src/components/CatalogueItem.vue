@@ -31,18 +31,19 @@ const render = async () => {
   //这行不能动
   loading.value = false
   await nextTick()
-  const anchor = selectAnchorNode(labels, location.hash)
-  window.scrollTo({ top: anchor ? anchor?.getBoundingClientRect().top + document.documentElement.scrollTop : 0, behavior: 'instant' })
+  const height = selectAnchorNode(arrs, location.hash.substring(1))
+  window.scrollTo({ top: height + document.documentElement.scrollTop, behavior: 'instant' })
   allNodes = treeRef.value!.store._getAllNodes()
 }
 
-const selectAnchorNode = (labels: NodeListOf<HTMLElement>, hash: string): HTMLElement | null => {
+const selectAnchorNode = (labels: CatalogueLabel[], id: string): number => {
   for (let label of labels) {
-    if (label.getAttribute('data-line-custom') === hash.substring(1)) {
-      return label
+    if (label.id === id) {
+      return label.dist
     }
+    return selectAnchorNode(label.children, id)
   }
-  return null
+  return 0
 }
 
 const geneCatalogueArr = (labels: NodeListOf<HTMLElement>): CatalogueLabel[] => {
@@ -58,7 +59,6 @@ const geneCatalogueArr = (labels: NodeListOf<HTMLElement>): CatalogueLabel[] => 
     }
 
     const id = String(i)
-    aLabel.setAttribute('data-line-custom', id)
     item.id = id
     //顶端距离
     //防止图片偏移位置不对
@@ -109,7 +109,6 @@ const getChildren = (labels: NodeListOf<HTMLElement>, index: number): CatalogueL
     }
 
     const id = String(i)
-    aLabel.setAttribute('data-line-custom', id)
     item.id = id
     item.dist = aLabel.getBoundingClientRect().top + scrolled
     item.label = aLabel.innerText
