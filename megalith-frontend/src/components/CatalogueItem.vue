@@ -31,17 +31,20 @@ const render = async () => {
   //这行不能动
   loading.value = false
   await nextTick()
-  const height = selectAnchorNode(arrs, location.hash.substring(1))
+  const height = selectAnchorHeight(arrs, location.hash.substring(1))
   window.scrollTo({ top: height + document.documentElement.scrollTop, behavior: 'instant' })
   allNodes = treeRef.value!.store._getAllNodes()
 }
 
-const selectAnchorNode = (labels: CatalogueLabel[], id: string): number => {
+const selectAnchorHeight = (labels: CatalogueLabel[], id: string): number => {
   for (let label of labels) {
     if (label.id === id) {
       return label.dist
     }
-    return selectAnchorNode(label.children, id)
+    const h = selectAnchorHeight(label.children, id)
+    if (h !== 0) {
+      return h
+    }
   }
   return 0
 }
