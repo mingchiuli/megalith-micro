@@ -581,12 +581,12 @@ let reconnecting = false;
           </el-icon>
           <template #file="{ file }">
             <div>
-              <img :src="file.url" alt="" />
-              <span>
-                <span @click="handlePictureCardPreview(file)">
+              <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
+              <span class="el-upload-list__item-actions">
+                <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)">
                   <el-icon><zoom-in /></el-icon>
                 </span>
-                <span v-if="!disabled" @click="handleRemove(file)">
+                <span v-if="!disabled" class="el-upload-list__item-delete" @click="handleRemove(file)">
                   <el-icon>
                     <Delete />
                   </el-icon>
