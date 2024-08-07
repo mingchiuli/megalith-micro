@@ -591,13 +591,13 @@ let reconnecting = false;
                     <Delete />
                   </el-icon>
                 </span>
+                <span v-if="showPercentage">
+                  <el-progress type="dashboard" :percentage="uploadPercentage" :color="colors" />
+                </span>
               </span>
             </div>
           </template>
         </el-upload>
-        <span v-if="showPercentage">
-          <el-progress type="dashboard" :percentage="uploadPercentage" :color="colors" />
-        </span>
 
         <el-dialog v-model="dialogVisible">
           <img style="width: 100%;" :src="dialogImageUrl" alt="" />
