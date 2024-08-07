@@ -236,22 +236,22 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
 }
 
 .username {
-  width: 200px
+  width: 300px
 }
 
 .nickname {
-  width: 200px
+  width: 300px
 }
 
 .password {
-  width: 200px
+  width: 300px
 }
 
 .email {
-  width: 200px
+  width: 300px
 }
 
 .phone {
-  width: 200px
+  width: 300px
 }
 </style>
