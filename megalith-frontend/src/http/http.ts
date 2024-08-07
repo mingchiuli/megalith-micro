@@ -19,7 +19,7 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
   percentageShow.value = true
   percentage.value = 0
   let url = ''
-  http.post(dest, formData, {
+  await http.post(dest, formData, {
     onUploadProgress: progressEvent => {
       const { loaded, total } = progressEvent
       percentage.value = Math.floor((loaded * 100) / total!)
