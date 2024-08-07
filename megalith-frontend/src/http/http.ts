@@ -18,14 +18,20 @@ const DOWNLOAD_DATA = async (url: string): Promise<AxiosResponse<any, any>> => {
 const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>, percentageShow: Ref<boolean>): Promise<string> => {
   percentageShow.value = true
   percentage.value = 0
-  const url = (await http.post(dest, formData, {
+  let url = ''
+  http.post(dest, formData, {
     onUploadProgress: (progressEvent) => {
       const { loaded, total } = progressEvent
-      percentage.value = Math.round((loaded * 100) / total!)
+      percentage.value = Math.floor((loaded * 100) / total!)
     }
-  })).data as string
-  percentage.value = 100
-  percentageShow.value = false
+  }).then(res => {
+    percentage.value = 100
+    percentageShow.value = false
+    url = res.data
+  }).catch(e => {
+    percentageShow.value = false
+    return Promise.reject(new Error(e))
+  })
   return Promise.resolve(url)
 }
 
