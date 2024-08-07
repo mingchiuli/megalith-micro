@@ -227,7 +227,7 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
 
 <style scoped>
 .father {
-  max-width: 20rem;
+  max-width: 30rem;
   margin: 50px auto
 }
 
