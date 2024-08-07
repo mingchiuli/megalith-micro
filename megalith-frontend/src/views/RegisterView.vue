@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { genFileId, type FormInstance, type FormRules, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile } from 'element-plus'
-import { GET, POST } from '@/http/http'
+import { GET, POST, UPLOAD } from '@/http/http'
 import router from '@/router'
 import { useRoute } from 'vue-router'
 import { clearLoginState, submitLogin } from '@/utils/tools'
+import { colors } from '@/type/entity'
+
 
 type Form = {
   id?: number
@@ -36,6 +38,9 @@ if (username) {
   form.username = username
 }
 
+const uploadPercentage = ref(0)
+const showPercentage = ref(false)
+
 GET<boolean>(`/sys/user/register/check?token=${token.value}`).then(res => {
   if (!res) {
     router.push('/blogs')
@@ -45,7 +50,6 @@ GET<boolean>(`/sys/user/register/check?token=${token.value}`).then(res => {
 const fileList = ref<UploadUserFile[]>([])
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
-
 
 const validatePassword = (_rule: any, value: string, callback: Function) => {
   if (value !== form.password) {
@@ -91,7 +95,7 @@ const uploadFile = async (file: UploadRawFile) => {
   const formdata = new FormData()
   formdata.append('image', file)
   formdata.append('token', token.value as string)
-  const url = await POST<string>('sys/user/register/image/upload', formdata)
+  const url = await UPLOAD('sys/user/register/image/upload', formdata, uploadPercentage, showPercentage)
   fileList.value.push({
     name: file.name,
     url: url
@@ -185,6 +189,7 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
           </el-icon>
           <template #file="{ file }">
             <div>
+              <el-progress v-if="showPercentage" type="dashboard" :percentage="uploadPercentage" :color="colors" />
               <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
               <span class="el-upload-list__item-actions">
                 <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)">
