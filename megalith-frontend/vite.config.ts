@@ -43,7 +43,6 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: fileName,
-      assetsPublicPath: './',
       chunkSizeWarningLimit: 2000,
       cssCodeSplit: true, //css 拆分
       sourcemap: false, //不生成sourcemap
