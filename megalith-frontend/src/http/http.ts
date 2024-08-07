@@ -17,6 +17,7 @@ const DOWNLOAD_DATA = async (url: string): Promise<AxiosResponse<any, any>> => {
 
 const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>, percentageShow: Ref<boolean>): Promise<string> => {
   percentageShow.value = true
+  percentage.value = 0
   const url = (await http.post(dest, formData, {
     onUploadProgress: (progressEvent) => {
       const { loaded, total } = progressEvent
