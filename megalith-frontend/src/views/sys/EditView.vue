@@ -95,6 +95,16 @@ let fieldType: FieldType
 const readOnly = ref(false)
 const netErrorEdited = ref(false)
 let pulling = false
+const uploadPercentage = ref(0)
+const showPercentage = ref(false)
+
+const colors = [
+  { color: '#f56c6c', percentage: 20 },
+  { color: '#e6a23c', percentage: 40 },
+  { color: '#5cb87a', percentage: 60 },
+  { color: '#1989fa', percentage: 80 },
+  { color: '#6f7ad3', percentage: 100 },
+]
 
 const pullAllData = async () => {
   pulling = true
@@ -333,7 +343,7 @@ const upload = async (image: UploadRequestOptions) => {
 const uploadFile = async (file: UploadRawFile) => {
   const formdata = new FormData()
   formdata.append('image', file)
-  const url = await UPLOAD(formdata, 'sys/blog/oss/upload')
+  const url = await UPLOAD('sys/blog/oss/upload', formdata, uploadPercentage, showPercentage)
   form.link = url
   ElNotification({
     title: '操作成功',
@@ -551,7 +561,8 @@ let reconnecting = false;
 
       <el-form-item v-if="form.status === Status.SENSITIVE_FILTER">
         <span style="margin-right: 10px;">打码</span>
-        <el-popover v-for="tag in sensitiveTags" :key="`${tag.element.type}-${tag.element.startIndex}`" placement="top-start" trigger="hover" :content="`${tag.element.content}`">
+        <el-popover v-for="tag in sensitiveTags" :key="`${tag.element.type}-${tag.element.startIndex}`"
+          placement="top-start" trigger="hover" :content="`${tag.element.content}`">
           <template #reference>
             <el-tag closable :type="tag.type" @close="handleTagClose(tag)">
               {{ tag.element.startIndex }}
@@ -570,15 +581,18 @@ let reconnecting = false;
           </el-icon>
           <template #file="{ file }">
             <div>
-              <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
-              <span class="el-upload-list__item-actions">
-                <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)">
+              <img :src="file.url" alt="" />
+              <span>
+                <span @click="handlePictureCardPreview(file)">
                   <el-icon><zoom-in /></el-icon>
                 </span>
-                <span v-if="!disabled" class="el-upload-list__item-delete" @click="handleRemove(file)">
+                <span v-if="!disabled" @click="handleRemove(file)">
                   <el-icon>
                     <Delete />
                   </el-icon>
+                </span>
+                <span v-if="showPercentage">
+                  <el-progress type="dashboard" :percentage="uploadPercentage" :color="colors" />
                 </span>
               </span>
             </div>
