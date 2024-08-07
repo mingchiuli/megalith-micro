@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance, ElInput } from 'element-plus'
-import { GET, POST } from '@/http/http'
+import { GET, POST, UPLOAD } from '@/http/http'
 import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
@@ -333,7 +333,7 @@ const upload = async (image: UploadRequestOptions) => {
 const uploadFile = async (file: UploadRawFile) => {
   const formdata = new FormData()
   formdata.append('image', file)
-  const url = await POST<string>('sys/blog/oss/upload', formdata)
+  const url = await UPLOAD(formdata, 'sys/blog/oss/upload')
   form.link = url
   ElNotification({
     title: '操作成功',
@@ -525,6 +525,7 @@ let reconnecting = false;
     }
   }, 2000)
 })()
+
 </script>
 
 <template>

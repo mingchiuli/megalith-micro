@@ -14,4 +14,15 @@ const DOWNLOAD_DATA = async (url: string): Promise<AxiosResponse<any, any>> => {
   return await http.get<never, AxiosResponse<any, any>>(url)
 }
 
-export { GET, POST, DOWNLOAD_DATA }
+const UPLOAD = async (formData: FormData, dest: string): Promise<string> => {
+  const url = (await http.post(dest, formData, {
+    onUploadProgress: (progressEvent) => {
+      const { loaded, total } = progressEvent
+      const percentCompleted = Math.round((loaded * 100) / total!)
+      console.log(`上传进度: ${percentCompleted}%`)
+    }
+  })).data
+  return Promise.resolve(url)
+}
+
+export { GET, POST, DOWNLOAD_DATA, UPLOAD }
