@@ -165,18 +165,18 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
     <el-form :model="form" :rules="formRules" ref="formRef" class="father">
 
       <el-form-item label="用户名" label-width="80" prop="username" class="username">
-        <el-input v-model="form.username" maxlength="20" :disabled="username !== undefined && username !== ''" />
+        <el-input v-model="form.username" maxlength="30" :disabled="username !== undefined && username !== ''" />
       </el-form-item>
 
       <el-form-item label="昵称" label-width="80" prop="nickname" class="nickname">
-        <el-input v-model="form.nickname" maxlength="20" />
+        <el-input v-model="form.nickname" maxlength="30" />
       </el-form-item>
 
       <el-form-item label="密码" label-width="80" prop="password" class="password">
-        <el-input v-model="form.password" type="password" maxlength="20" />
+        <el-input v-model="form.password" type="password" maxlength="30" />
       </el-form-item>
       <el-form-item label="确认密码" label-width="80" prop="confirmPassword" class="password">
-        <el-input v-model="form.confirmPassword" type="password" maxlength="20" />
+        <el-input v-model="form.confirmPassword" type="password" maxlength="30" />
       </el-form-item>
 
       <el-form-item class="avatar" label-width="40">
@@ -211,11 +211,11 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
       </el-form-item>
 
       <el-form-item label="邮箱" label-width="80" prop="email" class="email">
-        <el-input v-model="form.email" maxlength="20" />
+        <el-input v-model="form.email" maxlength="30" />
       </el-form-item>
 
       <el-form-item label="手机号" label-width="80" prop="phone" class="phone">
-        <el-input v-model="form.phone" maxlength="20" />
+        <el-input v-model="form.phone" maxlength="30" />
       </el-form-item>
 
       <div class="submit-button">
