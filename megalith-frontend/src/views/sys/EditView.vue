@@ -565,7 +565,7 @@ let reconnecting = false;
           <template #file="{ file }">
             <div>
               <el-progress v-if="showPercentage" type="dashboard" :percentage="uploadPercentage" :color="colors" />
-              <!-- <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" /> -->
+              <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
               <span class="el-upload-list__item-actions">
                 <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)">
                   <el-icon><zoom-in /></el-icon>
