@@ -44,8 +44,10 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
     }
   }).then(res => {
     percentage.value = 100
-    percentageShow.value = false
     url = res.data
+    setTimeout(() => {
+      percentageShow.value = false
+    }, 500)
   }).catch(e => {
     percentageShow.value = false
     return Promise.reject(new Error(e))
