@@ -19,7 +19,7 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
       const { loaded, total } = progressEvent
       percentage.value = Math.floor((loaded * 100) / total!)
     },
-    // responseType: 'blob'
+    responseType: 'blob'
   }).then(res => {
     data = res
     percentage.value = 100
