@@ -14,10 +14,11 @@ const DOWNLOAD_DATA = async (url: string): Promise<any> => {
   let data: any
   await http.get(url, {
     onDownloadProgress: progressEvent => {
-      const { loaded, total, rate } = progressEvent
-      console.log(Math.floor((loaded * 100) / total!), ' ', rate)
+      const { loaded, total } = progressEvent
+      console.log(Math.floor((loaded * 100) / total!))
     }
   }).then(res => {
+    console.log(`res: ${res.data}`)
     data = res.data
   }).catch(e => {
     return Promise.reject(new Error(e))
@@ -31,8 +32,7 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
   let url = ''
   await http.post(dest, formData, {
     onUploadProgress: progressEvent => {
-      const { loaded, total, rate } = progressEvent
-      console.log(rate)
+      const { loaded, total } = progressEvent
       percentage.value = Math.floor((loaded * 100) / total!)
     }
   }).then(res => {
