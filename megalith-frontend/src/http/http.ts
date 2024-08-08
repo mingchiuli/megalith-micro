@@ -18,7 +18,7 @@ const DOWNLOAD_DATA = async (url: string): Promise<any> => {
       console.log(Math.floor((loaded * 100) / total!))
     }
   }).then(res => {
-    console.log(`res: ${res.data}`)
+    console.log(`res: ${res}`)
     data = res.data
   }).catch(e => {
     return Promise.reject(new Error(e))
