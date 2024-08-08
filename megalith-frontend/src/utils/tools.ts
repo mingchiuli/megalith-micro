@@ -125,7 +125,6 @@ export const submitLogin = async (username: string, password: string) => {
 
 export const downloadData = async (url: string, fileName: string) => {
   const resp = await DOWNLOAD_DATA(url)
-  console.log(`aaa:${resp}`)
   const content = JSON.stringify(resp)
   const blob = new Blob([content], {
     type: 'application/json'

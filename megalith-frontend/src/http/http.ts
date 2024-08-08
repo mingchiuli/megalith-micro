@@ -15,6 +15,8 @@ const DOWNLOAD_DATA = async (url: string): Promise<any> => {
   await http.get(url, {
     onDownloadProgress: progressEvent => {
       const { loaded, total } = progressEvent
+      console.log(loaded)
+      console.log(total)
       console.log(Math.floor((loaded * 100) / total!))
     }
   }).then(res => {
