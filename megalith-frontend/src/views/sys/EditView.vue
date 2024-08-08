@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
-import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, genFileId, type FormRules, type FormInstance, ElInput } from 'element-plus'
+import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile, type FormRules, type FormInstance, ElInput } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit, colors } from '@/type/entity'
 import { useRoute } from 'vue-router'
@@ -350,13 +350,6 @@ const handleRemove = async (_file: UploadFile) => {
   form.link = ''
 }
 
-const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
-  GET<null>(`/sys/blog/oss/delete?url=${form.link}`)
-  form.link = ''
-  const file = files[0] as UploadRawFile
-  await uploadFile(file)
-}
-
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid, _fields) => {
     if (valid) {
@@ -564,8 +557,8 @@ let reconnecting = false;
       <el-form-item class="cover">
         <span style="margin-right: 10px;">封面</span>
         <el-upload action="#" list-type="picture-card" :before-upload="beforeAvatarUpload" :limit="1"
-          :on-exceed="handleExceed" :http-request="upload" :on-remove="handleRemove" :file-list="fileList"
-          ref="uploadInstance" :disabled="readOnly">
+          :http-request="upload" :on-remove="handleRemove" :file-list="fileList" ref="uploadInstance"
+          :disabled="readOnly">
           <el-icon>
             <Plus />
           </el-icon>

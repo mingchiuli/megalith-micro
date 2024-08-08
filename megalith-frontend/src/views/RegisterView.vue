@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { reactive, ref } from 'vue'
-import { genFileId, type FormInstance, type FormRules, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile } from 'element-plus'
+import { computed, reactive, ref } from 'vue'
+import { type FormInstance, type FormRules, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import router from '@/router'
 import { useRoute } from 'vue-router'
@@ -47,7 +47,17 @@ GET<boolean>(`/sys/user/register/check?token=${token.value}`).then(res => {
   }
 })
 
-const fileList = ref<UploadUserFile[]>([])
+const fileList = computed(() => {
+  const arr: UploadUserFile[] = []
+  if (form.avatar) {
+    arr.push({
+      name: 'Cover',
+      url: form.avatar
+    })
+  }
+  return arr
+})
+
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 
@@ -143,18 +153,9 @@ const handlePictureCardPreview = (file: UploadFile) => {
 const uploadInstance = ref<UploadInstance>()
 
 const handleRemove = async (_file: UploadFile) => {
+  if (form.avatar) return
   await GET<null>(`/sys/user/register/image/delete?url=${form.avatar}&token=${token.value}`)
   form.avatar = ''
-  fileList.value = []
-}
-
-const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
-  GET<null>(`/sys/user/register/image/delete?url=${form.avatar}&token=${token.value}`)
-  uploadInstance.value!.clearFiles()
-  const file = files[0] as UploadRawFile
-  await uploadFile(file)
-  file.uid = genFileId()
-  uploadInstance.value!.handleStart(file)
 }
 
 </script>
@@ -182,8 +183,7 @@ const handleExceed: UploadProps['onExceed'] = async (files, _uploadFiles) => {
       <el-form-item class="avatar" label-width="40">
         <span style="margin-right: 10px;">头像</span>
         <el-upload action="#" list-type="picture-card" :before-upload="beforeAvatarUpload" :limit="1"
-          :on-exceed="handleExceed" :http-request="upload" :on-remove="handleRemove" :file-list="fileList"
-          ref="uploadInstance">
+          :http-request="upload" :on-remove="handleRemove" :file-list="fileList" ref="uploadInstance">
           <el-icon>
             <Plus />
           </el-icon>
