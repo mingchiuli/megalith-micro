@@ -22,7 +22,9 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
   }).then(res => {
     data = res
     percentage.value = 100
-    percentageShow.value = false
+    setTimeout(() => {
+      percentageShow.value = false
+    }, 500);
   }).catch(e => {
     percentageShow.value = false
     return Promise.reject(new Error(e))
@@ -42,8 +44,10 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
     }
   }).then(res => {
     percentage.value = 100
-    percentageShow.value = false
     url = res.data
+    setTimeout(() => {
+      percentageShow.value = false
+    }, 500);
   }).catch(e => {
     percentageShow.value = false
     return Promise.reject(new Error(e))
