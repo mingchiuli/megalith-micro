@@ -126,8 +126,8 @@ export const submitLogin = async (username: string, password: string) => {
 
 export const downloadData = async (url: string, fileName: string, percentage: Ref<number>, percentageShow: Ref<boolean>) => {
   const resp = await DOWNLOAD_DATA(url, percentage, percentageShow)
-  console.log(resp)
   const content = JSON.stringify(resp)
+  console.log(content)
   const blob = new Blob([content], {
     type: 'application/json'
   })
