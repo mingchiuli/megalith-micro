@@ -337,6 +337,7 @@ const uploadFile = async (file: UploadRawFile) => {
   formdata.append('image', file)
   const url = await UPLOAD('sys/blog/oss/upload', formdata, uploadPercentage, showPercentage)
   form.link = url
+  console.log(fileList)
   ElNotification({
     title: '操作成功',
     message: '图片上传成功',
