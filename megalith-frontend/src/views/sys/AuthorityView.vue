@@ -12,6 +12,8 @@ const multipleSelection = ref<AuthoritySys[]>([])
 const dialogVisible = ref(false)
 const loading = ref(false)
 const delBtlStatus = ref(true)
+const uploadPercentage = ref(0)
+const showPercentage = ref(false)
 
 let content = reactive<AuthoritySys[]>([])
 
@@ -59,6 +61,10 @@ const delBatch = async () => {
   })
   multipleSelection.value = []
   await queryAuthorities()
+}
+
+const download = async () => {
+  await downloadData('/sys/authority/download', 'authorities', uploadPercentage, showPercentage)
 }
 
 const handleDelete = async (row: AuthoritySys) => {
@@ -131,18 +137,23 @@ const clearForm = () => {
 <template>
   <el-form :inline="true" @submit.prevent class="button-form">
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_CREATE)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_CREATE)" size="large" @click="dialogVisible = true">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_CREATE) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_CREATE)" size="large" @click="dialogVisible = true">{{
+        getButtonTitle(ButtonAuth.SYS_AUTHORITY_CREATE) }}</el-button>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_BATCH_DEL)">
       <el-popconfirm title="确定批量删除?" @confirm="delBatch">
         <template #reference>
-          <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_BATCH_DEL)" size="large" :disabled="delBtlStatus">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_BATCH_DEL) }}</el-button>
+          <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_BATCH_DEL)" size="large" :disabled="delBtlStatus">{{
+            getButtonTitle(ButtonAuth.SYS_AUTHORITY_BATCH_DEL) }}</el-button>
         </template>
       </el-popconfirm>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)" size="large"
-        @click="downloadData('/sys/authority/download', 'authority')">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_DOWNLOAD) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)" size="large" @click="download">{{
+        getButtonTitle(ButtonAuth.SYS_AUTHORITY_DOWNLOAD) }}</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-progress v-if="showPercentage" type="circle" width="40" :percentage="uploadPercentage" />
     </el-form-item>
   </el-form>
 
@@ -186,13 +197,15 @@ const clearForm = () => {
     <el-table-column :fixed="fix" label="操作" min-width="180" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_EDIT)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_EDIT) }}</el-button>
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_EDIT)" @click="handleEdit(scope.row)">{{
+            getButtonTitle(ButtonAuth.SYS_AUTHORITY_EDIT) }}</el-button>
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DELETE)">
           <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
             <template #reference>
-              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_DELETE) }}</el-button>
+              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DELETE)">{{
+                getButtonTitle(ButtonAuth.SYS_AUTHORITY_DELETE) }}</el-button>
             </template>
           </el-popconfirm>
         </template>

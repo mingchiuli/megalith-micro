@@ -1,5 +1,6 @@
 import http from '@/http/axios'
 import type { Data } from '@/type/entity'
+import type { AxiosResponse } from 'axios'
 import type { Ref } from 'vue'
 
 const GET = async <T>(url: string): Promise<T> => {
@@ -10,22 +11,23 @@ const POST = async <T>(url: string, params: any): Promise<T> => {
   return Promise.resolve((await http.post<never, Data<T>>(url, params)).data)
 }
 
-const DOWNLOAD_DATA = async (url: string): Promise<any> => {
-  let data: any
+const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageShow: Ref<boolean>): Promise<AxiosResponse<any, any>> => {
+  let data: AxiosResponse<any, any>
   await http.get(url, {
     onDownloadProgress: progressEvent => {
       const { loaded, total } = progressEvent
-      console.log(loaded)
-      console.log(total)
-      console.log(Math.floor((loaded * 100) / total!))
+      percentage.value = Math.floor((loaded * 100) / total!)
     },
     responseType: 'blob',
   }).then(res => {
+    percentage.value = 100
+    percentageShow.value = false
     data = res
   }).catch(e => {
+    percentageShow.value = false
     return Promise.reject(new Error(e))
   })
-  return Promise.resolve(data)
+  return Promise.resolve(data!)
 }
 
 const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>, percentageShow: Ref<boolean>): Promise<string> => {

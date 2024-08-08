@@ -17,9 +17,13 @@ const formRef = ref<FormInstance>()
 const menuDialogVisible = ref(false)
 const authorityDialogVisible = ref(false)
 const menuTreeRef = ref<InstanceType<typeof ElTree>>()
+const uploadPercentage = ref(0)
+const showPercentage = ref(false)
 let menuTreeData = ref<MenuForm[]>([])
 let authorityData = ref<AuthorityForm[]>([])
 let roleId = ref<number>()
+
+
 const page: PageAdapter<RoleSys> = reactive({
   "content": [],
   "totalElements": 0,
@@ -68,6 +72,10 @@ type AuthorityForm = {
   authorityId: number
   code: string
   check: boolean
+}
+
+const download = async () => {
+  await downloadData('/sys/role/download', 'roles', uploadPercentage, showPercentage)
 }
 
 const submitmenuFormHandle = async (ref: InstanceType<typeof ElTree>) => {
@@ -231,17 +239,23 @@ const handleDelete = async (row: RoleSys) => {
 <template>
   <el-form :inline="true" @submit.prevent class="button-form">
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_CREATE)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_CREATE)" size="large" @click="dialogVisible = true">{{ getButtonTitle(ButtonAuth.SYS_ROLE_CREATE) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_CREATE)" size="large" @click="dialogVisible = true">{{
+        getButtonTitle(ButtonAuth.SYS_ROLE_CREATE) }}</el-button>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_BATCH_DEL)">
       <el-popconfirm title="确定批量删除?" @confirm="delBatch">
         <template #reference>
-          <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_BATCH_DEL)" size="large" :disabled="delBtlStatus">{{ getButtonTitle(ButtonAuth.SYS_ROLE_BATCH_DEL) }}</el-button>
+          <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_BATCH_DEL)" size="large" :disabled="delBtlStatus">{{
+            getButtonTitle(ButtonAuth.SYS_ROLE_BATCH_DEL) }}</el-button>
         </template>
       </el-popconfirm>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_DOWNLOAD)" size="large" @click="downloadData('/sys/role/download', 'role')">{{ getButtonTitle(ButtonAuth.SYS_ROLE_DOWNLOAD) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_DOWNLOAD)" size="large" @click="download">{{
+        getButtonTitle(ButtonAuth.SYS_ROLE_DOWNLOAD) }}</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-progress v-if="showPercentage" type="circle" width="40" :percentage="uploadPercentage" />
     </el-form-item>
   </el-form>
 
@@ -286,25 +300,29 @@ const handleDelete = async (row: RoleSys) => {
     <el-table-column :fixed="fix" label="操作" min-width="350" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_EDIT)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_EDIT) }}</el-button>
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_EDIT)" @click="handleEdit(scope.row)">{{
+            getButtonTitle(ButtonAuth.SYS_ROLE_EDIT) }}</el-button>
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_MENU_PERM)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_MENU_PERM)" @click="handleMenu(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_MENU_PERM) }}</el-button>
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_MENU_PERM)" @click="handleMenu(scope.row)">{{
+            getButtonTitle(ButtonAuth.SYS_ROLE_MENU_PERM) }}</el-button>
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)" @click="handleAuthority(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_AUTHORITY_PERM) }}</el-button>
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)"
+            @click="handleAuthority(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_AUTHORITY_PERM) }}</el-button>
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_DELETE)">
           <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
             <template #reference>
-              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_DELETE) }}</el-button>
+              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_DELETE)">{{
+                getButtonTitle(ButtonAuth.SYS_ROLE_DELETE) }}</el-button>
             </template>
           </el-popconfirm>
         </template>
-        
+
       </template>
     </el-table-column>
   </el-table>

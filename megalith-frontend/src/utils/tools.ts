@@ -7,6 +7,7 @@ import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
 import { storeToRefs } from 'pinia'
+import type { Ref } from 'vue'
 
 const md = new MarkdownIt({
   highlight: (str: string, lang: string) => {
@@ -123,8 +124,8 @@ export const submitLogin = async (username: string, password: string) => {
   router.push('/backend')
 }
 
-export const downloadData = async (url: string, fileName: string) => {
-  const resp = await DOWNLOAD_DATA(url)
+export const downloadData = async (url: string, fileName: string, percentage: Ref<number>, percentageShow: Ref<boolean>) => {
+  const resp = await DOWNLOAD_DATA(url, percentage, percentageShow)
   const content = JSON.stringify(resp)
   const blob = new Blob([content], {
     type: 'application/json'

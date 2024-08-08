@@ -13,6 +13,8 @@ const dialogVisible = ref(false)
 const loading = ref(false)
 const delBtlStatus = ref(true)
 const roleList = ref<RoleSys[]>([])
+const uploadPercentage = ref(0)
+const showPercentage = ref(false)
 const page: PageAdapter<UserSys> = reactive({
   "content": [],
   "totalElements": 0,
@@ -70,6 +72,11 @@ const form: Form = reactive({
   status: 0,
   roles: []
 })
+
+
+const download = async () => {
+  await downloadData('/sys/user/download', 'users', uploadPercentage, showPercentage)
+}
 
 const delBatch = async () => {
   const args: number[] = []
@@ -205,7 +212,10 @@ const getRegisterLink = async (username: string) => {
       <el-button :type="getButtonType(ButtonAuth.SYS_USER_REGISTER)" size="large" @click="getRegisterLink('')">{{ getButtonTitle(ButtonAuth.SYS_USER_REGISTER) }}</el-button>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_USER_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_USER_DOWNLOAD)" size="large" @click="downloadData('/sys/user/download', 'user')">{{ getButtonTitle(ButtonAuth.SYS_USER_DOWNLOAD) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_USER_DOWNLOAD)" size="large" @click="download">{{ getButtonTitle(ButtonAuth.SYS_USER_DOWNLOAD) }}</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-progress v-if="showPercentage" type="circle" width="40" :percentage="uploadPercentage" />
     </el-form-item>
   </el-form>
 

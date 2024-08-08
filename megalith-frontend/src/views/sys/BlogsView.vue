@@ -13,6 +13,9 @@ const input = ref('')
 const multipleSelection = ref<BlogSys[]>([])
 const delBtlStatus = ref(true)
 const loading = ref(false)
+const uploadPercentage = ref(0)
+const showPercentage = ref(false)
+
 const page: PageAdapter<BlogSys> = reactive({
   "content": [],
   "totalElements": 0,
@@ -64,6 +67,10 @@ const handlePassword = async (row: BlogSys) => {
     message: token,
     type: 'success',
   })
+}
+
+const download = async () => {
+  await downloadData('/sys/blog/download', 'blogs', uploadPercentage, showPercentage)
 }
 
 const handleCheck = (row: BlogSys) => {
@@ -154,7 +161,10 @@ const handleCurrentChange = async (val: number) => {
       </el-popconfirm>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_DOWNLOAD)" size="large" @click="downloadData('/sys/blog/download', 'blogs')">{{ getButtonTitle(ButtonAuth.SYS_BLOG_DOWNLOAD) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_DOWNLOAD)" size="large" @click="download">{{ getButtonTitle(ButtonAuth.SYS_BLOG_DOWNLOAD) }}</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-progress v-if="showPercentage" type="circle" width="40" :percentage="uploadPercentage" />
     </el-form-item>
   </el-form>
 

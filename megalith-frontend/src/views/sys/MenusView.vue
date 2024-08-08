@@ -12,6 +12,8 @@ const dialogVisible = ref(false)
 const loading = ref(false)
 const content = ref<MenuSys[]>([])
 const formRef = ref<FormInstance>()
+const uploadPercentage = ref(0)
+const showPercentage = ref(false)
 
 const props = {
   label: 'title',
@@ -94,6 +96,10 @@ const handleClose = () => {
   dialogVisible.value = false
 }
 
+const download = async () => {
+  await downloadData('/sys/menu/download', 'menus', uploadPercentage, showPercentage)
+}
+
 const clearForm = () => {
   form.menuId = undefined
   form.parentId = 0
@@ -153,10 +159,16 @@ const submitForm = async (ref: FormInstance) => {
 <template>
   <el-form :inline="true" @submit.prevent class="button-form">
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_MENU_CREATE)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_MENU_CREATE)" size="large" @click="dialogVisible = true">{{ getButtonTitle(ButtonAuth.SYS_MENU_CREATE) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_MENU_CREATE)" size="large" @click="dialogVisible = true">{{
+        getButtonTitle(ButtonAuth.SYS_MENU_CREATE) }}</el-button>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_MENU_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DOWNLOAD)" size="large" @click="downloadData('/sys/menu/download', 'menu')">{{ getButtonTitle(ButtonAuth.SYS_MENU_DOWNLOAD) }}</el-button>
+      <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DOWNLOAD)" size="large"
+        @click="download">{{ getButtonTitle(ButtonAuth.SYS_MENU_DOWNLOAD)
+        }}</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-progress v-if="showPercentage" type="circle" width="40" :percentage="uploadPercentage" />
     </el-form-item>
   </el-form>
 
@@ -211,17 +223,19 @@ const submitForm = async (ref: FormInstance) => {
 
       <template #default="scope">
         <template v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_EDIT)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_MENU_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_MENU_EDIT) }}</el-button>
+          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_MENU_EDIT)" @click="handleEdit(scope.row)">{{
+            getButtonTitle(ButtonAuth.SYS_MENU_EDIT) }}</el-button>
         </template>
-        
+
         <template v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_DELETE)">
           <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
             <template #reference>
-              <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DELETE)" size="small" >{{ getButtonTitle(ButtonAuth.SYS_MENU_DELETE) }}</el-button>
+              <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DELETE)" size="small">{{
+                getButtonTitle(ButtonAuth.SYS_MENU_DELETE) }}</el-button>
             </template>
           </el-popconfirm>
         </template>
-        
+
       </template>
     </el-table-column>
   </el-table>
