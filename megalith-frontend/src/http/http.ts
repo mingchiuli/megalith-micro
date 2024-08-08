@@ -13,6 +13,7 @@ const POST = async <T>(url: string, params: any): Promise<T> => {
 const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageShow: Ref<boolean>): Promise<any> => {
   let data: any
   percentageShow.value = true
+  percentage.value = 0
   await http.get(url, {
     onDownloadProgress: progressEvent => {
       const { loaded, total } = progressEvent

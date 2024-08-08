@@ -164,7 +164,7 @@ const handleCurrentChange = async (val: number) => {
       <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_DOWNLOAD)" size="large" @click="download">{{ getButtonTitle(ButtonAuth.SYS_BLOG_DOWNLOAD) }}</el-button>
     </el-form-item>
     <el-form-item>
-      <el-progress v-if="showPercentage" type="circle" :percentage="uploadPercentage" />
+      <el-progress v-if="showPercentage" type="circle" :width="90" :percentage="uploadPercentage" />
     </el-form-item>
   </el-form>
 
