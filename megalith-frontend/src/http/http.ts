@@ -17,9 +17,8 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
       const { loaded, total } = progressEvent
       percentage.value = Math.floor((loaded * 100) / total!)
     },
-    responseType: 'stream',
+    responseType: 'text',
   }).then(res => {
-    console.log(JSON.stringify(res))
     data = res
     percentage.value = 100
     percentageShow.value = false
@@ -28,8 +27,8 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
     return Promise.reject(new Error(e))
   })
   
-  console.log(data!)
-  return Promise.resolve(data!)
+  console.log(data)
+  return Promise.resolve(data)
 }
 
 const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>, percentageShow: Ref<boolean>): Promise<string> => {
