@@ -153,7 +153,7 @@ const clearForm = () => {
         getButtonTitle(ButtonAuth.SYS_AUTHORITY_DOWNLOAD) }}</el-button>
     </el-form-item>
     <el-form-item>
-      <el-progress v-if="showPercentage" type="circle" width="40" :percentage="uploadPercentage" />
+      <el-progress v-if="showPercentage" type="circle" :width="40" :percentage="uploadPercentage" />
     </el-form-item>
   </el-form>
 
