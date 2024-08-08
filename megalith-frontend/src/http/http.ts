@@ -18,7 +18,8 @@ const DOWNLOAD_DATA = async (url: string): Promise<any> => {
       console.log(loaded)
       console.log(total)
       console.log(Math.floor((loaded * 100) / total!))
-    }
+    },
+    responseType: 'blob',
   }).then(res => {
     data = res
   }).catch(e => {
