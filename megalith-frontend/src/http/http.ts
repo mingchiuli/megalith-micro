@@ -20,13 +20,14 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
     },
     responseType: 'blob',
   }).then(res => {
-    percentage.value = 100
-    percentageShow.value = false
     data = res
   }).catch(e => {
     percentageShow.value = false
     return Promise.reject(new Error(e))
   })
+  percentage.value = 100
+  percentageShow.value = false
+  console.log(data!)
   return Promise.resolve(data!)
 }
 
