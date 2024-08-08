@@ -566,7 +566,7 @@ let reconnecting = false;
         <el-upload action="#" list-type="picture-card" :before-upload="beforeAvatarUpload" :limit="1"
           :on-exceed="handleExceed" :http-request="upload" :on-remove="handleRemove" :file-list="fileList"
           ref="uploadInstance" :disabled="readOnly">
-          <el-icon v-if="!form.link">
+          <el-icon>
             <Plus />
           </el-icon>
           <template #file="{ file }">
