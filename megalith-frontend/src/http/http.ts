@@ -19,6 +19,7 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
     },
     responseType: 'blob',
   }).then(res => {
+    console.log(JSON.stringify(res))
     data = res
     percentage.value = 100
     percentageShow.value = false
