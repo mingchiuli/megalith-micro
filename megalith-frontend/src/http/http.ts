@@ -19,7 +19,7 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
       const { loaded, total } = progressEvent
       percentage.value = Math.floor((loaded * 100) / total!)
     },
-  }).then(async res => {
+  }).then(res => {
     data = res
     percentage.value = 100
     setTimeout(() => {
@@ -42,7 +42,7 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
       const { loaded, total } = progressEvent
       percentage.value = Math.floor((loaded * 100) / total!)
     }
-  }).then(async res => {
+  }).then(res => {
     percentage.value = 100
     url = res.data
     setTimeout(() => {
