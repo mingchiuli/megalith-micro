@@ -1,6 +1,6 @@
 import http from '@/http/axios'
 import type { Data } from '@/type/entity'
-import { nextTick, type Ref } from 'vue'
+import { type Ref } from 'vue'
 
 const GET = async <T>(url: string): Promise<T> => {
   return Promise.resolve((await http.get<never, Data<T>>(url)).data)
@@ -22,8 +22,9 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
   }).then(async res => {
     data = res
     percentage.value = 100
-    await nextTick()
-    percentageShow.value = false
+    setTimeout(() => {
+      percentageShow.value = false
+    }, 500)
   }).catch(e => {
     percentageShow.value = false
     return Promise.reject(new Error(e))
@@ -44,8 +45,9 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
   }).then(async res => {
     percentage.value = 100
     url = res.data
-    await nextTick()
-    percentageShow.value = false
+    setTimeout(() => {
+      percentageShow.value = false
+    }, 500)
   }).catch(e => {
     percentageShow.value = false
     return Promise.reject(new Error(e))
