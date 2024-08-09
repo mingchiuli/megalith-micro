@@ -30,7 +30,7 @@ const render = async () => {
   data.value = arrs
   //这行不能动
   loading.value = false
-  await nextTick()
+  //await nextTick()
   const height = selectAnchorHeight(arrs, location.hash.substring(1))
   window.scrollTo({ top: height + document.documentElement.scrollTop, behavior: 'instant' })
   allNodes = treeRef.value!.store._getAllNodes()
