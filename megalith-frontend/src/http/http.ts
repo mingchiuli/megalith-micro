@@ -1,6 +1,6 @@
 import http from '@/http/axios'
 import type { Data } from '@/type/entity'
-import { type Ref } from 'vue'
+import { type Ref, nextTick } from 'vue'
 
 const GET = async <T>(url: string): Promise<T> => {
   return Promise.resolve((await http.get<never, Data<T>>(url)).data)
@@ -18,6 +18,7 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
     onDownloadProgress: progressEvent => {
       const { loaded, total } = progressEvent
       percentage.value = Math.floor((loaded * 100) / total!)
+      await nextTick()
     },
   }).then(res => {
     data = res
