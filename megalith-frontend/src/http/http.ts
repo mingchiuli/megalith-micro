@@ -23,6 +23,7 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
     data = res
     percentage.value = 100
     await nextTick()
+    percentageShow.value = false
   }).catch(e => {
     percentageShow.value = false
     return Promise.reject(new Error(e))
