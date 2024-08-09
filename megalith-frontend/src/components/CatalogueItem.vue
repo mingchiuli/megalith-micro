@@ -28,10 +28,9 @@ const render = async () => {
 
   const arrs = geneCatalogueArr(labels)
   data.value = arrs
-  //这行不能动
-  loading.value = false
   const height = selectAnchorHeight(arrs, location.hash.substring(1))
   window.scrollTo({ top: height + document.documentElement.scrollTop, behavior: 'instant' })
+  loading.value = false
   await nextTick()
   allNodes = treeRef.value!.store._getAllNodes()
 }
