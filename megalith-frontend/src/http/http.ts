@@ -15,7 +15,7 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
   percentageShow.value = true
   percentage.value = 0
   await http.get(url, {
-    onDownloadProgress: progressEvent => {
+    onDownloadProgress: async progressEvent => {
       const { loaded, total } = progressEvent
       percentage.value = Math.floor((loaded * 100) / total!)
       await nextTick()
