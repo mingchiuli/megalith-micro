@@ -16,7 +16,7 @@
     "@stomp/stompjs": "^7.0.0",
     "@types/markdown-it": "^14.1.2",
     "@vavt/v3-extension": "^1.2.4",
-    "axios": "^1.7.3",
+    "axios": "^1.7.4",
     "element-plus": "^2.8.0",
     "highlight.js": "^11.10.0",
     "js-base64": "^3.7.7",
