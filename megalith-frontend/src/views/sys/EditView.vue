@@ -493,7 +493,8 @@ onUnmounted(() => {
   client.deactivate()
 })
 
-let reconnecting = false;
+let reconnecting = false
+let lock = false;
 (async () => {
   await loadEditContent()
   await connect()
@@ -505,7 +506,8 @@ let reconnecting = false;
       client.connectHeaders = { "Authorization": token, "Type": "EDIT" }
       reconnecting = true
     }
-    if (reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
+    if (!lock && reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
+      lock = true
       if (netErrorEdited.value) {
         await pushAllData()
       } else {
@@ -515,6 +517,7 @@ let reconnecting = false;
       transColor.value = OperaColor.SUCCESS
       reconnecting = false
       netErrorEdited.value = false
+      lock = false
     }
   }, 2000)
 })()
