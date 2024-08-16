@@ -25,11 +25,10 @@ const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat);
 
 <template>
   <el-breadcrumb separator="/" class="vistor-stat">
-    <el-breadcrumb-item>访客数</el-breadcrumb-item>
-    <el-breadcrumb-item>本日：{{ dayVisit }}</el-breadcrumb-item>
-    <el-breadcrumb-item>本周：{{ weekVisit }}</el-breadcrumb-item>
-    <el-breadcrumb-item>本月：{{ monthVisit }}</el-breadcrumb-item>
-    <el-breadcrumb-item>本年：{{ yearVisit }}</el-breadcrumb-item>
+    <el-breadcrumb-item>day：{{ dayVisit }}</el-breadcrumb-item>
+    <el-breadcrumb-item>week：{{ weekVisit }}</el-breadcrumb-item>
+    <el-breadcrumb-item>month：{{ monthVisit }}</el-breadcrumb-item>
+    <el-breadcrumb-item>year：{{ yearVisit }}</el-breadcrumb-item>
   </el-breadcrumb>
 </template>
 
