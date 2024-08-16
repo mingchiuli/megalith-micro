@@ -2,7 +2,7 @@
 import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
-import catalogue from '@/components/CatalogueItem.vue'
+import Catalogue from '@/components/CatalogueItem.vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -25,7 +25,7 @@ const blog = reactive<BlogExhibit>({
   "created": ''
 })
 
-const catalogueRef = ref<InstanceType<typeof catalogue>>()
+const catalogueRef = ref<InstanceType<typeof Catalogue>>()
 
 let renderCatalogueCount = 0
 const renderCatalogue = async (html: string) => {
@@ -82,7 +82,7 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth));
 <template>
   <div class="father">
     <div class="affix">
-      <catalogue-item v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogueRef"
+      <CatalogueItem v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogueRef"
         v-model:loading-catalogue="loadingCatalogue" :width="catalogueWidth" />
     </div>
   </div>
