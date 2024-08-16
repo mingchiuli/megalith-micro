@@ -90,12 +90,7 @@ const loadImg = () => {
 }
 
 const search = () => {
-  if (!keywords.value) {
-    searchDialogVisible.value = true
-  } else {
-    keywords.value = ''
-    refresh()
-  }
+  searchDialogVisible.value = true
 }
 
 const to = async (id: number) => {
@@ -124,7 +119,7 @@ const { content, totalElements, pageSize } = toRefs(page);
   <div class="front">
     <ReadTokenItem v-model:read-token-dialog-visible="readTokenDialogVisible" v-model:blog-id="blogId" />
     <div class="search-father">
-      <el-button class="search-button" @click="search" type="success">{{ keywords ? 'Clear' : 'Search' }}</el-button>
+      <el-button class="search-button" @click="search" type="success">Search</el-button>
       <SearchItem ref="searchRef" @trans-search-data="fillSearchData" @refresh="refresh" v-model:keywords="keywords"
         v-model:year="year" v-model:loading="loading" v-model:search-dialog-visible="searchDialogVisible" />
     </div>
