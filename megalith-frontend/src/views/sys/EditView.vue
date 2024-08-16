@@ -508,16 +508,20 @@ let lock = false;
     }
     if (!lock && reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
       lock = true
-      if (netErrorEdited.value) {
-        await pushAllData()
-      } else {
-        await pullAllData()
+      try {
+        if (netErrorEdited.value) {
+          await pushAllData()
+        } else {
+          await pullAllData()
+        }
+      } finally {
+        lock = false
       }
       readOnly.value = false
       transColor.value = OperaColor.SUCCESS
       reconnecting = false
       netErrorEdited.value = false
-      lock = false
+      
     }
   }, 2000)
 })()
