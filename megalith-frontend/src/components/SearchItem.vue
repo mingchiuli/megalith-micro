@@ -6,7 +6,7 @@ import type { AutocompleteFetchSuggestions, AutocompleteFetchSuggestionsCallback
 import { onBeforeUnmount, ref } from 'vue'
 import { debounce } from '@/utils/tools'
 import { ElLoading } from 'element-plus'
-import type HotItem from './HotItem.vue'
+import type HotItem from '@/components/HotItem.vue'
 
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
@@ -52,7 +52,7 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (queryString: string, 
 
       //防止空内容闪烁
       timeout = setTimeout(() => {
-        //不执行cd，下拉框没数据就不会收回去
+        //不执行cd 下拉框没数据就不会收回去
         cb(suggestionList.value)
         if (!page.content.length) {
           suggestionList.value = []

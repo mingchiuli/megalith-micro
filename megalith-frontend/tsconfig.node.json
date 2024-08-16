@@ -9,7 +9,7 @@
   ],
   "compilerOptions": {
     "composite": true,
-    "module": "Node16",
+    "module": "NodeNext",
     "types": [
       "node"
     ]
