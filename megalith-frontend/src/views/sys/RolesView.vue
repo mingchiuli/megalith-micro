@@ -192,6 +192,12 @@ const queryRoles = async () => {
   loading.value = false
 }
 
+const handleSizeChange = async (val: number) => {
+  pageSize.value = val
+  pageNumber.value = 1
+  await queryRoles()
+}
+
 const handleSelectionChange = (val: RoleSys[]) => {
   multipleSelection.value = val
   delBtlStatus.value = val.length === 0
@@ -327,7 +333,8 @@ const handleDelete = async (row: RoleSys) => {
     </el-table-column>
   </el-table>
 
-  <el-pagination @current-change="handleCurrentChange" layout="->, prev, pager, next" :current-page="pageNumber"
+  <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+    layout="->, total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber"
     :page-size="pageSize" :total="totalElements" />
 
   <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="handleClose">
