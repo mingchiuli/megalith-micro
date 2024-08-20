@@ -77,14 +77,14 @@ router.beforeEach(async (to, _from, next) => {
     let allKindsInfo: MenusAndButtons
     //页面被手动刷新
     if (!to.name || !router.hasRoute(to.name)) {
-      allKindsInfo = await GET<MenusAndButtons>('/sys/menu/nav')
+      allKindsInfo = await GET<MenusAndButtons>('/auth/menu/nav')
       callBackRequireRoutes(allKindsInfo)
       dealSysTab(to, allKindsInfo)
       //重定向解决刷新404
       next(to)
     } else {
       //正常路由切换diff
-      GET<MenusAndButtons>('/sys/menu/nav').then(resp => {
+      GET<MenusAndButtons>('/auth/menu/nav').then(resp => {
         allKindsInfo = resp
         callBackRequireRoutes(allKindsInfo)
         dealSysTab(to, allKindsInfo)
