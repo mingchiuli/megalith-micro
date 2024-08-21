@@ -630,6 +630,7 @@ let lock = false;
 
 .el-tag {
   margin-right: 10px;
+  margin-bottom: 10px;
 }
 
 .el-upload__text {
