@@ -1,0 +1,77 @@
+{"properties": [
+  {
+    "name": "blog.highest-role",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.highest-role'"
+  },
+  {
+    "name": "blog.jwt.access-token-expire",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.jwt.access-token-expire'"
+  },
+  {
+    "name": "blog.oss.host",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.oss.host'"
+  },
+  {
+    "name": "blog.oss.endpoint",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.oss.endpoint'"
+  },
+  {
+    "name": "blog.oss.bucket-name",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.oss.bucket-name'"
+  },
+  {
+    "name": "blog.oss.access-key-id",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.oss.access-key-id'"
+  },
+  {
+    "name": "blog.oss.access-key-secret",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.oss.access-key-secret'"
+  },
+  {
+    "name": "blog.oss.base-url",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.oss.base-url'"
+  },
+  {
+    "name": "blog.register.page-prefix",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.register.page-prefix'"
+  },
+  {
+    "name": "blog.aliyun.oss.bucket-name",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.aliyun.oss.bucket-name'"
+  },
+  {
+    "name": "blog.aliyun.access-key-id",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.aliyun.access-key-id'"
+  },
+  {
+    "name": "blog.aliyun.access-key-secret",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.aliyun.access-key-secret'"
+  },
+  {
+    "name": "blog.jwt.secret",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.jwt.secret'"
+  },
+  {
+    "name": "blog.jwt.refresh-token-expire",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.jwt.refresh-token-expire'"
+  },
+  {
+    "name": "blog.blog-page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.blog-page-size'"
+  }
+]}
