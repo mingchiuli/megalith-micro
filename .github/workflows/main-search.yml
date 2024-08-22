@@ -22,7 +22,7 @@ jobs:
           java --version
           native-image --version
       - name: Build
-        run: micro-search/gradlew bootBuildImage
+        run: micro-search/gradlew :micro-search:bootBuildImage
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKER_PWD: ${{ secrets.DOCKERHUB_PWD }}

@@ -22,7 +22,7 @@ jobs:
           java --version
           native-image --version
       - name: Build
-        run: micro-websocket/gradlew bootBuildImage
+        run: micro-websocket/gradlew :micro-websocket:bootBuildImage
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKER_PWD: ${{ secrets.DOCKERHUB_PWD }}
