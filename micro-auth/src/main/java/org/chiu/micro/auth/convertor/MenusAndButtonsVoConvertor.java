@@ -12,8 +12,7 @@ import java.util.ArrayList;
 
 public class MenusAndButtonsVoConvertor {
 
-	private MenusAndButtonsVoConvertor() {
-	}
+	private MenusAndButtonsVoConvertor() {}
 
 	public static MenusAndButtonsVo convert(MenusAndButtonsDto dto) {
 		List<ButtonDto> buttons = dto.getButtons();
