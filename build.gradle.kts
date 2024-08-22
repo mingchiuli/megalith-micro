@@ -11,11 +11,3 @@ dependencies {
 	implementation(project(":micro-websocket"))
 	implementation(project(":micro-search"))
 }
-
-ext {
-  versions = [
-    springboot = "3.3.2",
-    redisson = "3.35.0",
-		caffeine = "3.1.8"
-  ]
-}
