@@ -1,4 +1,3 @@
-rootProject.name = "megalith-micro"
 include("micro-gateway")
 include("micro-auth")
 include("micro-blog")
