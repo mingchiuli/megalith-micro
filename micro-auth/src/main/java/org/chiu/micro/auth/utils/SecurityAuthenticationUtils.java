@@ -17,6 +17,8 @@ import static org.chiu.micro.auth.lang.ExceptionMessage.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
+import org.springframework.util.StringUtils;
 
 @Component
 @RequiredArgsConstructor
@@ -51,13 +53,23 @@ public class SecurityAuthenticationUtils {
 
     @SneakyThrows
     public AuthDto getAuthDto(String token) {
-        String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
-        Claims claims = tokenUtils.getVerifierByToken(jwt);
-        Long userId = Long.valueOf(claims.getUserId());
-        List<String> roles = claims.getRoles();
-        List<String> rawRoles = getRawRoleCodes(roles);
-        List<String> authorities = getAuthorities(userId, rawRoles);
-
+        Long userId;
+        List<String> rawRoles;
+        List<String> authorities;
+        
+        if (!StringUtils.hasLength(token)) {
+            userId = 0L;
+            rawRoles = Collections.emptyList();
+            authorities = Collections.emptyList(); 
+        } else {
+            String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
+            Claims claims = tokenUtils.getVerifierByToken(jwt);
+            userId = Long.valueOf(claims.getUserId());
+            List<String> roles = claims.getRoles();
+            rawRoles = getRawRoleCodes(roles);
+            authorities = getAuthorities(userId, rawRoles);
+        }
+        
         return AuthDto.builder()
                 .userId(userId)
                 .roles(rawRoles)
