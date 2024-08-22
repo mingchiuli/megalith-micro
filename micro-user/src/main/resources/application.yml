@@ -1,0 +1,45 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+      enabled: true
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+  profiles:
+    default: dev
+    active: dev
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: update
+  rabbitmq:
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+    listener:
+      simple:
+        acknowledge-mode: manual
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: NON_NULL
+    time-zone: GMT+8
+server:
+  port: 8081
+  max-http-request-header-size: 10MB
+
+blog:
+  jwt:
+    access-token-expire: 21600
+    refresh-token-expire: 604800
+  highest-role: admin
+  oss:
+    base-url: https://${blog.aliyun.oss.bucket-name}.${blog.oss.endpoint}
+    endpoint: oss-cn-hangzhou.aliyuncs.com

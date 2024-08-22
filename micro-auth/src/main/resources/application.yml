@@ -1,0 +1,37 @@
+spring:
+  mail:
+    host: smtp.163.com
+    port: 465
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+  threads:
+    virtual:
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+      enabled: true
+  profiles:
+    default: dev
+    active: dev
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: NON_NULL
+    time-zone: GMT+8
+server:
+  port: 8081
+  max-http-request-header-size: 10MB
+
+blog:
+  email-try-count: 3
+  password-error-intervalTime: 900000
+  jwt:
+    access-token-expire: 21600
+    refresh-token-expire: 604800
+  highest-role: admin
+  sms:
+    base-url: https://dysmsapi.aliyuncs.com

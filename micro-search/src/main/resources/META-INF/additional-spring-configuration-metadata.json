@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "blog.highest-role",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.highest-role'"
+  },
+  {
+    "name": "blog.blog-page-size",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.blog-page-size'"
+  }
+]}

@@ -1,0 +1,22 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+  profiles:
+    default: dev
+    active: dev
+  rabbitmq:
+    listener:
+      simple:
+        acknowledge-mode: manual
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: NON_NULL
+    time-zone: GMT+8
+server:
+  port: 8081
+  max-http-request-header-size: 10MB
+
+blog:
+  highest-role: admin
+  blog-page-size: 5
