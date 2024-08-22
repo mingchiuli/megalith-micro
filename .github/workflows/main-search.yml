@@ -1,0 +1,38 @@
+name: GraalVM build
+on:
+  push:
+    branches:
+      - 'main'
+      - 'micro-search/**'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'      # See 'Options' section below for all supported versions
+          distribution: 'graalvm' # See 'Options' section below for all available distributions
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Print Info
+        run: |
+          echo "GRAALVM_HOME: $GRAALVM_HOME"
+          echo "JAVA_HOME: $JAVA_HOME"
+          java --version
+          native-image --version
+      - name: Build
+        run: micro-search/gradlew bootBuildImage
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_PWD: ${{ secrets.DOCKERHUB_PWD }}
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.0.2
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            docker pull mingchiuli/micro-search:latest
+            docker compose --compatibility up -d
+            docker rmi $(docker images | grep 'none' | awk '{print $3}')
