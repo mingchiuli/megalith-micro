@@ -35,7 +35,7 @@ public class PageAdapter<T> {
 
     private int totalPages;
 
-    //只用把原来的page类放进来即可
+    //把原来的page类放进来即可
     public PageAdapter(Page<T> page) {
         this.content = page.getContent();
         this.totalElements = page.getTotalElements();
