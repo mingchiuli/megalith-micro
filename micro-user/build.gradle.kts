@@ -3,7 +3,7 @@ import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 plugins {
 	java
 	id("org.springframework.boot") version "3.3.2"
-	id("io.spring.dependency-management") version "1.1.5"
+	id("io.spring.dependency-management") version "1.1.6"
 	id("org.graalvm.buildtools.native") version "0.10.2"
 }
 
@@ -29,7 +29,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.security:spring-security-crypto")
-	implementation("org.redisson:redisson-spring-boot-starter:3.34.1")
+	implementation("org.redisson:redisson-spring-boot-starter:3.35.0")
 	runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

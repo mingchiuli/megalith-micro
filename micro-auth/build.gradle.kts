@@ -2,7 +2,7 @@ import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
 plugins {
 	java
-	id("org.springframework.boot") version "${versions.springboot}"
+	id("org.springframework.boot") version "3.3.2"
 	id("io.spring.dependency-management") version "1.1.6"
 	id("org.graalvm.buildtools.native") version "0.10.2"
 }
@@ -30,8 +30,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-amqp")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.redisson:redisson-spring-boot-starter:${versions.redisson}")
-	implementation("com.github.ben-manes.caffeine:caffeine:${versions.caffeine}")
+	implementation("org.redisson:redisson-spring-boot-starter:3.25.0")
+	implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 	implementation("com.nimbusds:nimbus-jose-jwt:9.40")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
