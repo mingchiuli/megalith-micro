@@ -3,8 +3,6 @@ package org.chiu.micro.websocket.config.interceptor;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.Optional;
-
 import org.chiu.micro.websocket.dto.AuthDto;
 import org.chiu.micro.websocket.rpc.wrapper.AuthHttpServiceWrapper;
 import org.springframework.lang.NonNull;
@@ -17,6 +15,7 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * @author mingchiuli
@@ -33,7 +32,11 @@ public class MessageInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
     
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            String token = Optional.ofNullable(accessor.getFirstNativeHeader("Authorization")).orElse("");
+            String token = accessor.getFirstNativeHeader("Authorization");
+            if (!StringUtils.hasLength(token)) {
+                return message;
+            }
+            
             AuthDto authDto = authHttpServiceWrapper.getAuthentication(token);
             PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(authDto.getUserId(), null, AuthorityUtils.createAuthorityList(authDto.getAuthorities()));
             accessor.setUser(authentication);
