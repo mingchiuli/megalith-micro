@@ -62,6 +62,7 @@ public class BlogEntityVoConvertor {
                             .created(document.getCreated().toLocalDateTime())
                             .updated(document.getUpdated().toLocalDateTime())
                             .status(document.getStatus())
+                            .link(document.getLink())
                             .owner(document.getUserId().equals(operateUserId))
                             .build();
                 })
