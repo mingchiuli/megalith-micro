@@ -1,0 +1,47 @@
+{"properties": [
+  {
+    "name": "blog.jwt.secret",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.jwt.secret'"
+  },
+  {
+    "name": "blog.jwt.access-token-expire",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.jwt.access-token-expire'"
+  },
+  {
+    "name": "blog.jwt.refresh-token-expire",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.jwt.refresh-token-expire'"
+  },
+  {
+    "name": "blog.highest-role",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.highest-role'"
+  },
+  {
+    "name": "blog.sms.base-url",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.sms.base-url'"
+  },
+  {
+    "name": "blog.email-try-count",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.email-try-count'"
+  },
+  {
+    "name": "blog.password-error-intervalTime",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.password-error-intervalTime'"
+  },
+  {
+    "name": "blog.aliyun.access-key-id",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.aliyun.access-key-id'"
+  },
+  {
+    "name": "blog.aliyun.access-key-secret",
+    "type": "java.lang.String",
+    "description": "A description for 'blog.aliyun.access-key-secret'"
+  }
+]}
