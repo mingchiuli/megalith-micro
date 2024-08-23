@@ -11,7 +11,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Check Out Code
+      - name: Check out Code
         uses: actions/checkout@v4
       - name: Prepare
         uses: graalvm/setup-graalvm@v1
