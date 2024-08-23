@@ -7,13 +7,19 @@ on:
       - 'micro-auth/**'
       - 'build.gradle.kts'
 jobs:
-  check-and-prepare:
-    name: Check and Prepare
+  check:
+    name: Check
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Code
         uses: actions/checkout@v4
-      - name: Prepare Script
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs:
+      - check
+    steps:
+      - name: Prepare
         uses: graalvm/setup-graalvm@v1
         with:
           java-version: '21'      # See 'Options' section below for all supported versions
@@ -25,12 +31,6 @@ jobs:
           echo "JAVA_HOME: $JAVA_HOME"
           java --version
           native-image --version
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs:
-      - check-and-prepare
-    steps:
       - name: Build
         run: ./gradlew :micro-auth:bootBuildImage
         env:
