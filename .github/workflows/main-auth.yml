@@ -1,4 +1,4 @@
-name: GraalVM build
+name: GraalVM build mciro-auth
 on:
   push:
     branches:
