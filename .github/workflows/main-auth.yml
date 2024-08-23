@@ -5,6 +5,7 @@ on:
       - 'main'
     paths:
       - 'micro-auth/**'
+      - 'build.gradle.kts'
 jobs:
   build:
     runs-on: ubuntu-latest
