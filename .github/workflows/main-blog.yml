@@ -5,6 +5,7 @@ on:
       - 'main'
     paths:
       - 'micro-blog/**'
+      - 'build.gradle.kts'
 jobs:
   build:
     runs-on: ubuntu-latest
