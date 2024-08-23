@@ -37,7 +37,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				-march=compatibility
 				--gc=serial
 				-R:MaxHeapSize=256m
-				-O2
+				-O3
 			""",
 		"BP_HEALTH_CHECKER_ENABLED" to "true"
 	)
