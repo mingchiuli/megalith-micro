@@ -9,6 +9,15 @@ subprojects {
 	plugins.apply("org.springframework.boot")
 	plugins.apply("io.spring.dependency-management")
 	plugins.apply("org.graalvm.buildtools.native")
+	plugins.apply("java")
+
+	java {
+		sourceCompatibility = JavaVersion.VERSION_21
+	}
+
+	repositories {
+		mavenCentral()
+	}
 }
 
 dependencies {
