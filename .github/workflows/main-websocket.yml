@@ -5,6 +5,7 @@ on:
       - 'main'
     paths:
       - 'micro-websocket/**'
+      - 'build.gradle.kts'
 jobs:
   build:
     runs-on: ubuntu-latest
