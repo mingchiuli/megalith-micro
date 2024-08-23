@@ -5,6 +5,7 @@ on:
       - 'main'
     paths:
       - 'micro-gateway/**'
+      - 'build.gradle.kts'
 jobs:
   build:
     runs-on: ubuntu-latest
