@@ -1,9 +1,3 @@
 rootProject.name = "megalith-micro"
 
-include("micro-gateway")
-include("micro-auth")
-include("micro-blog")
-include("micro-user")
-include("micro-search")
-include("micro-websocket")
-include("micro-exhibit")
+include("micro-gateway", "micro-auth", "micro-blog", "micro-user", "micro-search", "micro-websocket", "micro-exhibit")
