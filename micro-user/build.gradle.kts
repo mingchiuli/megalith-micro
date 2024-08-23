@@ -1,12 +1,5 @@
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
-plugins {
-	java
-	id("org.springframework.boot")
-	id("io.spring.dependency-management")
-	id("org.graalvm.buildtools.native")
-}
-
 group = "org.chiu"
 version = "latest"
 
