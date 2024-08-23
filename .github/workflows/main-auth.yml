@@ -6,19 +6,13 @@ on:
     paths:
       - 'micro-auth/**'
       - 'build.gradle.kts'
-jobs:
-  check:
-    name: Check
+jobs:      
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Code
         uses: actions/checkout@v4
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs:
-      - check
-    steps:
       - name: Prepare
         uses: graalvm/setup-graalvm@v1
         with:
