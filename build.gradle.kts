@@ -1,14 +1,9 @@
-plugins {
-	java
-	id("org.springframework.boot") version "3.3.3"
-	id("io.spring.dependency-management") version "1.1.6"
-	id("org.graalvm.buildtools.native") version "0.10.2"
-}
+
 
 subprojects {
-	plugins.apply("org.springframework.boot")
-	plugins.apply("io.spring.dependency-management")
-	plugins.apply("org.graalvm.buildtools.native")
+	plugins.apply("org.springframework.boot:3.3.3")
+	plugins.apply("io.spring.dependency-management:1.1.6")
+	plugins.apply("org.graalvm.buildtools.native:0.10.2")
 	plugins.apply("java")
 
 	java {
