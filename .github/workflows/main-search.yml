@@ -5,6 +5,7 @@ on:
       - 'main'
     paths:
       - 'micro-search/**'
+      - 'build.gradle.kts'
 jobs:
   build:
     runs-on: ubuntu-latest
