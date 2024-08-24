@@ -40,6 +40,7 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
   await http.post(dest, formData, {
     headers: {
       'Accept': 'text/event-stream',
+      'Content-Type': 'multipart/form-data',
     },
     responseType: 'stream',
     adapter: 'fetch',
