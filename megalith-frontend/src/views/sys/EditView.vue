@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
-import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput } from 'element-plus'
+import { type TagProps, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput, type UploadUserFile } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit } from '@/type/entity'
 import { useRoute } from 'vue-router'
@@ -65,7 +65,6 @@ const sensitiveTags = computed(() => {
 
 const titleRef = ref<InstanceType<typeof ElInput>>()
 const descRef = ref<InstanceType<typeof ElInput>>()
-const uploadInstance = ref<UploadInstance>()
 
 const fileList = computed(() => {
   const arr: UploadUserFile[] = []
