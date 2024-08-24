@@ -56,7 +56,7 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
     url = resp as string
     url = url
         .substring('data:'.length)
-        .replace('\n', '')
+        .replaceAll('\n', '')
   }).catch(e => {
     percentageShow.value = false
     return Promise.reject(new Error(e))

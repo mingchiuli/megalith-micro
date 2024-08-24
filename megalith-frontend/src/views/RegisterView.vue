@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, reactive, ref } from 'vue'
-import { type FormInstance, type FormRules, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile } from 'element-plus'
+import { type FormInstance, type FormRules, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import router from '@/router'
 import { useRoute } from 'vue-router'
@@ -149,9 +149,6 @@ const handlePictureCardPreview = (file: UploadFile) => {
   dialogVisible.value = true
 }
 
-
-const uploadInstance = ref<UploadInstance>()
-
 const handleRemove = async (_file: UploadFile) => {
   if (form.avatar) return
   await GET<null>(`/sys/user/register/image/delete?url=${form.avatar}&token=${token.value}`)
@@ -183,7 +180,7 @@ const handleRemove = async (_file: UploadFile) => {
       <el-form-item class="avatar" label-width="40">
         <span style="margin-right: 10px;">头像</span>
         <el-upload action="#" list-type="picture-card" :before-upload="beforeAvatarUpload" :limit="1"
-          :http-request="upload" :on-remove="handleRemove" :file-list="fileList" ref="uploadInstance">
+          :http-request="upload" :on-remove="handleRemove" :file-list="fileList">
           <el-icon>
             <Plus />
           </el-icon>
