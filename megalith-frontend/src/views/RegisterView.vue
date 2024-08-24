@@ -5,6 +5,7 @@ import { GET, POST, UPLOAD } from '@/http/http'
 import router from '@/router'
 import { useRoute } from 'vue-router'
 import { clearLoginState, submitLogin } from '@/utils/tools'
+import { Colors } from '@/type/entity'
 
 
 type Form = {
@@ -190,6 +191,8 @@ const handleRemove = async (_file: UploadFile) => {
         </el-dialog>
       </el-form-item>
 
+      <el-progress type="line" :percentage="uploadPercentage" :color="Colors" />
+
       <el-form-item label="邮箱" label-width="80" prop="email" class="email">
         <el-input v-model="form.email" maxlength="30" />
       </el-form-item>
@@ -233,5 +236,9 @@ const handleRemove = async (_file: UploadFile) => {
 
 .phone {
   width: 300px
+}
+
+.el-progress {
+  width: 150px;
 }
 </style>

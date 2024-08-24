@@ -2,7 +2,7 @@
 import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type TagProps, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput, type UploadUserFile } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
-import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit, colors } from '@/type/entity'
+import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit, Colors } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
@@ -106,7 +106,7 @@ let fieldType: FieldType
 const readOnly = ref(false)
 const netErrorEdited = ref(false)
 let pulling = false
-const uploadPercentage = ref(20)
+const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
 const pullAllData = async () => {
@@ -564,16 +564,12 @@ let lock = false;
           </el-icon>
         </el-upload>
 
-        <el-progress type="dashboard" :percentage="uploadPercentage" :color="colors" />
-
         <el-dialog v-model="dialogVisible">
           <img style="width: 100%;" :src="dialogImageUrl" alt="" />
         </el-dialog>
       </el-form-item>
 
-      <el-form-item>
-        <el-progress style="width: 120px;" type="line" :percentage="uploadPercentage" :color="colors" />
-      </el-form-item>
+      <el-progress type="line" :percentage="uploadPercentage" :color="Colors" />
 
       <el-form-item class="content" prop="content">
         <CustomEditorItem v-model:content="form.content" @composing="dealComposing" @sensitive="dealSensitive"
@@ -629,5 +625,9 @@ let lock = false;
 .content {
   max-width: 40rem;
   margin: 5px auto
+}
+
+.el-progress {
+  width: 150px;
 }
 </style>

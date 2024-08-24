@@ -392,7 +392,7 @@ export interface SubscribeItem {
   type: number
 }
 
-export const colors = [
+export const Colors = [
   { color: '#f56c6c', percentage: 20 },
   { color: '#e6a23c', percentage: 40 },
   { color: '#5cb87a', percentage: 60 },
