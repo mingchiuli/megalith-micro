@@ -558,10 +558,10 @@ let lock = false;
         <span style="margin-right: 10px;">封面</span>
         <el-upload v-model:file-list="fileList" action="#" list-type="picture-card" :before-upload="beforeUpload" :limit="1" :http-request="upload"
           :on-remove="handleRemove" :disabled="readOnly" :on-preview="handlePictureCardPreview">
+          <el-progress v-if="showPercentage" :percentage="uploadPercentage" status="success" />
           <el-icon>
             <Plus />
           </el-icon>
-          <el-progress v-if="showPercentage" :percentage="uploadPercentage" status="success" />
         </el-upload>
 
         <el-dialog v-model="dialogVisible">
