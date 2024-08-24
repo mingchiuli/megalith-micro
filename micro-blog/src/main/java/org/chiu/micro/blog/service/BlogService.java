@@ -7,6 +7,7 @@ import org.chiu.micro.blog.req.ImgUploadReq;
 import org.chiu.micro.blog.vo.BlogDeleteVo;
 import org.chiu.micro.blog.vo.BlogEntityRpcVo;
 import org.chiu.micro.blog.vo.BlogEntityVo;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,7 +25,7 @@ public interface BlogService {
 
     void deleteBatch(List<Long> ids, Long userId, List<String> roles);
 
-    String uploadOss(ImgUploadReq image, Long userId);
+    SseEmitter uploadOss(ImgUploadReq image, Long userId);
 
     void deleteOss(String url);
 

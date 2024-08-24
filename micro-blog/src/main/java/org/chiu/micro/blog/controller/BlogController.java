@@ -17,8 +17,10 @@ import org.chiu.micro.blog.page.PageAdapter;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.validation.Valid;
 
@@ -82,11 +84,11 @@ public class BlogController {
         return Result.success(() -> blogService.recoverDeletedBlog(idx, authDto.getUserId()));
     }
 
-    @PostMapping("/oss/upload")
-    public Result<String> uploadOss(@RequestBody ImgUploadReq image,
-                                    HttpServletRequest request) {
+    @PostMapping(value = "/oss/upload", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter uploadOss(@RequestBody ImgUploadReq image,
+                                HttpServletRequest request) {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
-        return Result.success(() -> blogService.uploadOss(image, authDto.getUserId()));
+        return blogService.uploadOss(image, authDto.getUserId());
     }
 
     @GetMapping("/oss/delete")
