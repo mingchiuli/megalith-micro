@@ -213,12 +213,14 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public void deleteOss(String url) {
-        String objectName = url.replace(baseUrl + "/", "");
-        Map<String, String> headers = new HashMap<>();
-        String gmtDate = ossSignUtils.getGMTDate();
-        headers.put(HttpHeaders.DATE, gmtDate);
-        headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
-        ossHttpService.deleteOssObject(objectName, headers);
+        taskExecutor.execute(() -> {
+            String objectName = url.replace(baseUrl + "/", "");
+            Map<String, String> headers = new HashMap<>();
+            String gmtDate = ossSignUtils.getGMTDate();
+            headers.put(HttpHeaders.DATE, gmtDate);
+            headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
+            ossHttpService.deleteOssObject(objectName, headers);
+        });
     }
 
     @Override
