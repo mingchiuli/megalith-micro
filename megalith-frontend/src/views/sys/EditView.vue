@@ -556,9 +556,9 @@ let lock = false;
 
       <el-form-item class="cover">
         <span style="margin-right: 10px;">封面</span>
-        <el-upload v-model:file-list="fileList" action="#" list-type="picture-card" :before-upload="beforeUpload" :limit="1" :http-request="upload"
-          :on-remove="handleRemove" :disabled="readOnly" :on-preview="handlePictureCardPreview">
-          <el-progress v-if="showPercentage" :percentage="uploadPercentage" status="success" />
+        <el-upload v-model:file-list="fileList" action="#" list-type="picture-card" :before-upload="beforeUpload"
+          :limit="1" :http-request="upload" :on-remove="handleRemove" :disabled="readOnly"
+          :on-preview="handlePictureCardPreview">
           <el-icon>
             <Plus />
           </el-icon>
@@ -567,6 +567,10 @@ let lock = false;
         <el-dialog v-model="dialogVisible">
           <img style="width: 100%;" :src="dialogImageUrl" alt="" />
         </el-dialog>
+      </el-form-item>
+
+      <el-form-item>
+        <el-progress v-if="showPercentage" :percentage="uploadPercentage" status="success" />
       </el-form-item>
 
       <el-form-item class="content" prop="content">
@@ -579,7 +583,7 @@ let lock = false;
           @click="submitForm(formRef!)" :disabled="readOnly">{{ getButtonTitle(ButtonAuth.SYS_EDIT_COMMIT)
           }}</el-button>
       </div>
-    </el-form>
+      </el-form>
 
   </div>
 </template>
