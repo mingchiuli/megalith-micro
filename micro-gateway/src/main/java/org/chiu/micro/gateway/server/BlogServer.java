@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PostExchange;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 
 public interface BlogServer {
@@ -40,7 +39,7 @@ public interface BlogServer {
     Result<Void> recoverDeletedBlog(@PathVariable Integer idx, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @PostExchange(value = "/oss/upload")
-    SseEmitter uploadOss(@RequestBody ImgUploadReq image, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
+    byte[] uploadOss(@RequestBody ImgUploadReq image, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @GetExchange("/oss/delete")
     Result<Void> deleteOss(@RequestParam String url);

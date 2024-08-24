@@ -17,7 +17,6 @@ import org.chiu.micro.blog.page.PageAdapter;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -84,7 +83,7 @@ public class BlogController {
         return Result.success(() -> blogService.recoverDeletedBlog(idx, authDto.getUserId()));
     }
 
-    @PostMapping(value = "/oss/upload", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostMapping(value = "/oss/upload")
     public SseEmitter uploadOss(@RequestBody ImgUploadReq image,
                                 HttpServletRequest request) {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
