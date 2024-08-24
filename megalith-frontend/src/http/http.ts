@@ -53,7 +53,8 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
         }, 500)
       }
     },
-  }).then(async (resp: any) => {
+  }).then((resp: any) => {
+    console.log(resp)
     url = resp as string
     url = url
         .substring('data:'.length)
