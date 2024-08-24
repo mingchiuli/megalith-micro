@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.servlet.ServletOutputStream;
 import lombok.RequiredArgsConstructor;
@@ -80,10 +79,10 @@ public class BlogServerWrapper {
         return blogServer.recoverDeletedBlog(idx, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
-    @PostMapping(value = "/oss/upload", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostMapping(value = "/oss/upload")
     @SneakyThrows
-    public SseEmitter uploadOss(@RequestParam MultipartFile image,
-                                HttpServletRequest request) {
+    public byte[] uploadOss(@RequestParam MultipartFile image,
+                            HttpServletRequest request) {
         ImgUploadReq req = new ImgUploadReq();
         req.setData(image.getBytes());
         req.setFileName(image.getOriginalFilename());
