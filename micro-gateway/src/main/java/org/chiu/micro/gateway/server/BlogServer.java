@@ -10,7 +10,6 @@ import org.chiu.micro.gateway.vo.BlogDeleteVo;
 import org.chiu.micro.gateway.vo.BlogEditVo;
 import org.chiu.micro.gateway.vo.BlogEntityVo;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -40,7 +39,7 @@ public interface BlogServer {
     @GetExchange("/recover/{idx}")
     Result<Void> recoverDeletedBlog(@PathVariable Integer idx, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
-    @PostExchange(value = "/oss/upload", contentType = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostExchange(value = "/oss/upload")
     SseEmitter uploadOss(@RequestBody ImgUploadReq image, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @GetExchange("/oss/delete")
