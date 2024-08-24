@@ -58,6 +58,7 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
       }
     },
   }).then(async (resp: any) => {
+    console.log(resp)
     const stream = resp as ReadableStream
     const reader = stream.pipeThrough(new TextDecoderStream()).getReader()
     const read = await reader.read()
