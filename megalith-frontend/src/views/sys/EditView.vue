@@ -569,7 +569,7 @@ let lock = false;
         </el-dialog>
       </el-form-item>
 
-      <el-progress type="line" :percentage="uploadPercentage" :color="Colors" />
+      <el-progress v-if="showPercentage" type="line" :percentage="uploadPercentage" :color="Colors" />
 
       <el-form-item class="content" prop="content">
         <CustomEditorItem v-model:content="form.content" @composing="dealComposing" @sensitive="dealSensitive"

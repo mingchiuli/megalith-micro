@@ -191,7 +191,7 @@ const handleRemove = async (_file: UploadFile) => {
         </el-dialog>
       </el-form-item>
 
-      <el-progress type="line" :percentage="uploadPercentage" :color="Colors" />
+      <el-progress v-if="showPercentage" type="line" :percentage="uploadPercentage" :color="Colors" />
 
       <el-form-item label="邮箱" label-width="80" prop="email" class="email">
         <el-input v-model="form.email" maxlength="30" />
