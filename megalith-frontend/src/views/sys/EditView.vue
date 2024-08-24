@@ -2,7 +2,7 @@
 import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type TagProps, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput, type UploadUserFile } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
-import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit, colors } from '@/type/entity'
+import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
@@ -291,7 +291,6 @@ const deal = (n: string | undefined, o: string | undefined) => {
 const transColor = ref(OperaColor.SUCCESS)
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
-const disabled = ref(false)
 
 const formRef = ref<FormInstance>()
 const formRules = reactive<FormRules<EditForm>>({
@@ -558,26 +557,10 @@ let lock = false;
       <el-form-item class="cover">
         <span style="margin-right: 10px;">封面</span>
         <el-upload v-model:file-list="fileList" action="#" list-type="picture-card" :before-upload="beforeUpload" :limit="1" :http-request="upload"
-          :on-remove="handleRemove" :disabled="readOnly">
+          :on-remove="handleRemove" :disabled="readOnly" :on-preview="handlePictureCardPreview">
           <el-icon>
             <Plus />
           </el-icon>
-          <template #file="{ file }">
-            <div>
-              <el-progress v-if="showPercentage" type="dashboard" :percentage="uploadPercentage" :color="colors" />
-              <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
-              <span class="el-upload-list__item-actions">
-                <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)">
-                  <el-icon><zoom-in /></el-icon>
-                </span>
-                <span v-if="!disabled" class="el-upload-list__item-delete" @click="handleRemove(file)">
-                  <el-icon>
-                    <Delete />
-                  </el-icon>
-                </span>
-              </span>
-            </div>
-          </template>
         </el-upload>
 
         <el-dialog v-model="dialogVisible">
