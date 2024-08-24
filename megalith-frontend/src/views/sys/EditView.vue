@@ -561,6 +561,7 @@ let lock = false;
           <el-icon>
             <Plus />
           </el-icon>
+          <el-progress v-if="showPercentage" :percentage="uploadPercentage" status="success" />
         </el-upload>
 
         <el-dialog v-model="dialogVisible">

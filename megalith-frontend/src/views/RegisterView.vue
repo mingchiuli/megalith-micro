@@ -5,7 +5,6 @@ import { GET, POST, UPLOAD } from '@/http/http'
 import router from '@/router'
 import { useRoute } from 'vue-router'
 import { clearLoginState, submitLogin } from '@/utils/tools'
-import { colors } from '@/type/entity'
 
 
 type Form = {
@@ -118,7 +117,7 @@ const uploadFile = async (file: UploadRawFile) => {
   })
 }
 
-const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
+const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
   if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png') {
     ElMessage.error('Avatar picture must be JPG/PNG format!')
     return false
@@ -179,27 +178,11 @@ const handleRemove = async (_file: UploadFile) => {
 
       <el-form-item class="avatar" label-width="40">
         <span style="margin-right: 10px;">头像</span>
-        <el-upload action="#" list-type="picture-card" :before-upload="beforeAvatarUpload" :limit="1"
-          :http-request="upload" :on-remove="handleRemove" :file-list="fileList">
+        <el-upload v-model:file-list="fileList" action="#" list-type="picture-card" :before-upload="beforeUpload" :limit="1" :http-request="upload"
+          :on-remove="handleRemove" :on-preview="handlePictureCardPreview">
           <el-icon>
             <Plus />
           </el-icon>
-          <template #file="{ file }">
-            <div>
-              <el-progress v-if="showPercentage" type="dashboard" :percentage="uploadPercentage" :color="colors" />
-              <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
-              <span class="el-upload-list__item-actions">
-                <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)">
-                  <el-icon><zoom-in /></el-icon>
-                </span>
-                <span class="el-upload-list__item-delete" @click="handleRemove(file)">
-                  <el-icon>
-                    <Delete />
-                  </el-icon>
-                </span>
-              </span>
-            </div>
-          </template>
         </el-upload>
 
         <el-dialog v-model="dialogVisible">
