@@ -546,14 +546,25 @@ let lock = false;
 
       <el-form-item class="cover">
         <span style="margin-right: 10px;">封面</span>
-        <el-upload action="#" list-type="picture-card" :on-preview="handlePictureCardPreview" :on-remove="handleRemove"
-          :disabled="disabled" :limit="1" :before-upload="beforeUpload" :http-request="upload">
+        <el-upload action="#" list-type="picture-card" :before-upload="beforeUpload" :limit="1" :http-request="upload"
+          :on-remove="handleRemove" :disabled="readOnly">
           <el-icon>
             <Plus />
           </el-icon>
-          <template>
+          <template #file="{ file }">
             <div>
               <el-progress v-if="showPercentage" type="dashboard" :percentage="uploadPercentage" :color="colors" />
+              <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
+              <span class="el-upload-list__item-actions">
+                <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)">
+                  <el-icon><zoom-in /></el-icon>
+                </span>
+                <span v-if="!disabled" class="el-upload-list__item-delete" @click="handleRemove(file)">
+                  <el-icon>
+                    <Delete />
+                  </el-icon>
+                </span>
+              </span>
             </div>
           </template>
         </el-upload>
