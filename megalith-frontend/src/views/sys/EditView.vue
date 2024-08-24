@@ -2,7 +2,7 @@
 import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type TagProps, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput, type UploadUserFile } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
-import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit } from '@/type/entity'
+import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit, colors } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
@@ -556,7 +556,6 @@ let lock = false;
 
       <el-form-item class="cover">
         <span style="margin-right: 10px;">封面</span>
-        <el-progress v-if="showPercentage" :percentage="uploadPercentage" status="success" />
         <el-upload v-model:file-list="fileList" action="#" list-type="picture-card" :before-upload="beforeUpload"
           :limit="1" :http-request="upload" :on-remove="handleRemove" :disabled="readOnly"
           :on-preview="handlePictureCardPreview">
@@ -564,6 +563,8 @@ let lock = false;
             <Plus />
           </el-icon>
         </el-upload>
+
+        <el-progress type="dashboard" :percentage="uploadPercentage" :color="colors" />
 
         <el-dialog v-model="dialogVisible">
           <img style="width: 100%;" :src="dialogImageUrl" alt="" />
