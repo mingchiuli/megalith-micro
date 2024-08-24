@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
-import { type TagProps, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput } from 'element-plus'
+import { type TagProps, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput, type UploadUserFile } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit, colors } from '@/type/entity'
 import { useRoute } from 'vue-router'
@@ -60,6 +60,17 @@ const sensitiveTags = computed(() => {
     const type = getSensitiveType(item.type)
     arr.push({ element: element, type: type })
   })
+  return arr
+})
+
+const fileList = computed(() => {
+  const arr: UploadUserFile[] = []
+  if (form.link) {
+    arr.push({
+      name: 'Cover',
+      url: form.link
+    })
+  }
   return arr
 })
 
@@ -328,8 +339,7 @@ const uploadFile = async (file: UploadRawFile) => {
   form.link = url
 }
 
-const handleRemove = async (file: UploadFile) => {
-  file.url = undefined
+const handleRemove = async (_file: UploadFile) => {
   if (!form.link) return
   await GET<null>(`/sys/blog/oss/delete?url=${form.link}`)
   form.link = ''
@@ -547,7 +557,7 @@ let lock = false;
 
       <el-form-item class="cover">
         <span style="margin-right: 10px;">封面</span>
-        <el-upload action="#" list-type="picture-card" :before-upload="beforeUpload" :limit="1" :http-request="upload"
+        <el-upload v-model:file-list="fileList" action="#" list-type="picture-card" :before-upload="beforeUpload" :limit="1" :http-request="upload"
           :on-remove="handleRemove" :disabled="readOnly">
           <el-icon>
             <Plus />
