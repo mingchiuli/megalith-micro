@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
-import { type TagProps, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput, type UploadUserFile } from 'element-plus'
+import { type TagProps, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
-import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit } from '@/type/entity'
+import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit, colors } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
@@ -66,16 +66,6 @@ const sensitiveTags = computed(() => {
 const titleRef = ref<InstanceType<typeof ElInput>>()
 const descRef = ref<InstanceType<typeof ElInput>>()
 
-const fileList = computed(() => {
-  const arr: UploadUserFile[] = []
-  if (form.link) {
-    arr.push({
-      name: 'Cover',
-      url: form.link
-    })
-  }
-  return arr
-})
 const form: EditForm = reactive({
   id: undefined,
   userId: undefined,
@@ -556,12 +546,16 @@ let lock = false;
 
       <el-form-item class="cover">
         <span style="margin-right: 10px;">封面</span>
-        <el-upload v-model:file-list="fileList" action="#" list-type="picture-card"
-          :on-preview="handlePictureCardPreview" :on-remove="handleRemove" :disabled="disabled" :limit="1"
-          :before-upload=beforeUpload :http-request="upload">
+        <el-upload action="#" list-type="picture-card" :on-preview="handlePictureCardPreview" :on-remove="handleRemove"
+          :disabled="disabled" :limit="1" :before-upload="beforeUpload" :http-request="upload">
           <el-icon>
             <Plus />
           </el-icon>
+          <template>
+            <div>
+              <el-progress v-if="showPercentage" type="dashboard" :percentage="uploadPercentage" :color="colors" />
+            </div>
+          </template>
         </el-upload>
 
         <el-dialog v-model="dialogVisible">
