@@ -38,10 +38,7 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
   percentage.value = 0
   let url = ''
   await http.post(dest, formData, {
-    responseType: 'stream',
-    headers: {
-      Accept: 'text/event-stream',
-    },
+    // responseType: 'stream',
     onUploadProgress: progressEvent => {
       const { loaded, total } = progressEvent
       percentage.value = Math.ceil((loaded * 100) / total!)
