@@ -43,7 +43,7 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
       'Content-Type': 'multipart/form-data',
     },
     responseType: 'stream',
-    adapter: 'fetch',
+    // adapter: 'fetch',
     onUploadProgress: progressEvent => {
       const { loaded, total } = progressEvent
       console.log(`load${loaded}, total:${total}`)
@@ -63,6 +63,8 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
     const read = await reader.read()
     console.log(read)
     url = read.value!
+        .substring('data:'.length)
+        .replace('\n', '')
   }).catch(e => {
     percentageShow.value = false
     return Promise.reject(new Error(e))
