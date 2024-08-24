@@ -38,16 +38,27 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
   percentage.value = 0
   let url = ''
   await http.post(dest, formData, {
+    headers: {
+      'Accept': 'text/event-stream',
+    },
+    responseType: 'stream',
+    adapter: 'fetch',
     onUploadProgress: progressEvent => {
       const { loaded, total } = progressEvent
-      percentage.value = Math.floor((loaded * 100) / total!)
-    }
-  }).then(res => {
-    percentage.value = 100
-    url = res.data
-    setTimeout(() => {
-      percentageShow.value = false
-    }, 500)
+      percentage.value = Math.ceil((loaded * 100) / total!)
+      if (loaded === total) {
+        ElNotification({
+          title: '操作成功',
+          message: '图片上传成功',
+          type: 'success',
+        })
+        percentageShow.value = false
+      }
+    },
+  }).then(async res => {
+    const stream: ReadableStream = res.data
+    const reader = stream.pipeThrough(new TextDecoderStream()).getReader()
+    url = (await reader.read()).value!
   }).catch(e => {
     percentageShow.value = false
     return Promise.reject(new Error(e))
