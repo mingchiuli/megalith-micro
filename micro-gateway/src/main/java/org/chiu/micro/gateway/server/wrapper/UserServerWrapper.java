@@ -108,7 +108,7 @@ public class UserServerWrapper {
 
     @GetMapping("/role/roles")
     public byte[] getPage(@RequestParam(required = false) Integer currentPage,
-                                                     @RequestParam(required = false) Integer size) {
+                          @RequestParam(required = false) Integer size) {
         return userServer.getRolePage(currentPage, size);
     }
 
@@ -124,7 +124,7 @@ public class UserServerWrapper {
 
     @PostMapping("/role/menu/{roleId}")
     public byte[] saveMenu(@PathVariable Long roleId,
-                                 @RequestBody List<Long> menuIds) {
+                           @RequestBody List<Long> menuIds) {
         return userServer.saveMenu(roleId, menuIds);
     }
 
@@ -135,7 +135,7 @@ public class UserServerWrapper {
 
     @PostMapping("/role/authority/{roleId}")
     public byte[] saveAuthority(@PathVariable Long roleId,
-                                      @RequestBody List<Long> authorityIds) {
+                                @RequestBody List<Long> authorityIds) {
         return userServer.saveAuthority(roleId, authorityIds);
     }
 
@@ -174,14 +174,14 @@ public class UserServerWrapper {
 
     @PostMapping("/user/register/save")
     public byte[] saveRegisterPage(@RequestParam String token,
-                                         @RequestBody UserEntityRegisterReq userEntityRegisterReq) {
+                                   @RequestBody UserEntityRegisterReq userEntityRegisterReq) {
         return userServer.saveRegisterPage(token, userEntityRegisterReq);
     }
 
     @PostMapping("/user/register/image/upload")
     @SneakyThrows
     public byte[] imageUpload(@RequestParam MultipartFile image,
-                                      @RequestParam String token) {
+                              @RequestParam String token) {
         var req = new ImgUploadReq();
         req.setData(image.getBytes());
         req.setFileName(image.getOriginalFilename());
@@ -190,7 +190,7 @@ public class UserServerWrapper {
 
     @GetMapping("/user/register/image/delete")
     public byte[] imageDelete(@RequestParam String url,
-                                    @RequestParam String token) {
+                              @RequestParam String token) {
         return userServer.imageDelete(token, url);
     }
 
@@ -201,7 +201,7 @@ public class UserServerWrapper {
 
     @GetMapping("/user/page/{currentPage}")
     public byte[] listPageUser(@PathVariable Integer currentPage,
-                                                          @RequestParam(required = false) Integer size) {
+                               @RequestParam(required = false) Integer size) {
         return userServer.listPageUser(currentPage, size);
     }
 

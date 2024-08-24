@@ -35,42 +35,42 @@ public class BlogServerWrapper {
 
     @PostMapping("/save")
     public byte[] saveOrUpdate(@RequestBody BlogEntityReq blog,
-                                     HttpServletRequest request) {
+                               HttpServletRequest request) {
         
         return blogServer.saveOrUpdate(blog, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @PostMapping("/delete")
     public byte[] deleteBlogs(@RequestBody List<Long> ids,
-                                    HttpServletRequest request) {
+                              HttpServletRequest request) {
         var req = new DeleteBlogsReq();
         req.setIds(ids);
         return blogServer.deleteBatch(req, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/lock/{blogId}")
-    public byte[] setBlogToken(@PathVariable Long blogId, 
-                                       HttpServletRequest request) {
+    public byte[] setBlogToken(@PathVariable Long blogId,
+                               HttpServletRequest request) {
         return blogServer.setBlogToken(blogId, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/blogs")
     public byte[] getAllBlogs(@RequestParam(required = false) Integer currentPage,
-                                                         @RequestParam(required = false) Integer size,
-                                                         HttpServletRequest request) {
+                              @RequestParam(required = false) Integer size,
+                              HttpServletRequest request) {
         return blogServer.findAllABlogs(currentPage, size, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/deleted")
     public byte[] getDeletedBlogs(@RequestParam Integer currentPage,
-                                                             @RequestParam Integer size,
-                                                             HttpServletRequest request) {
+                                  @RequestParam Integer size,
+                                  HttpServletRequest request) {
         return blogServer.findDeletedBlogs(currentPage, size, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/recover/{idx}")
     public byte[] recoverDeletedBlog(@PathVariable Integer idx,
-                                           HttpServletRequest request) {
+                                     HttpServletRequest request) {
         return blogServer.recoverDeletedBlog(idx, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
@@ -104,13 +104,13 @@ public class BlogServerWrapper {
 
     @PostMapping("/edit/push/all")
     public byte[] pullSaveBlog(@RequestBody BlogEditPushAllReq blog,
-                                     HttpServletRequest request) {
+                               HttpServletRequest request) {
         return blogServer.pushAll(blog, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/edit/pull/echo")
     public byte[] getEchoDetail(@RequestParam(value = "blogId", required = false) Long id,
-                                            HttpServletRequest request) {
+                                HttpServletRequest request) {
         return blogServer.findEdit(id, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 

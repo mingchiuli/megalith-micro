@@ -19,31 +19,32 @@ public class ExhibitServerWrapper {
     private final ExhibitServer exhibitServer;
 
     @GetMapping("/info/{id}")
-    public byte[] getBlogDetail(@PathVariable Long id, HttpServletRequest request) {
+    public byte[] getBlogDetail(@PathVariable Long id,
+                                HttpServletRequest request) {
         return exhibitServer.getBlogDetail(id, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/page/{currentPage}")
     public byte[] getPage(@PathVariable Integer currentPage,
-                                                          @RequestParam(required = false) Integer year) {
+                          @RequestParam(required = false) Integer year) {
         return exhibitServer.findPage(currentPage, year);
     }
 
     @GetMapping("/secret/{blogId}")
     public byte[] getLockedBlog(@PathVariable Long blogId,
-                                               @RequestParam(value = "readToken") String token) {
+                                @RequestParam(value = "readToken") String token) {
         return exhibitServer.getLockedBlog(blogId, token);
     }
 
     @GetMapping("/token/{blogId}")
     public byte[] checkReadToken(@PathVariable Long blogId,
-                                          @RequestParam(value = "readToken") String token) {
+                                 @RequestParam(value = "readToken") String token) {
         return exhibitServer.checkToken(blogId, token);
     }
 
     @GetMapping("/status/{blogId}")
     public byte[] getBlogStatus(@PathVariable Long blogId,
-                                         HttpServletRequest request) {
+                                HttpServletRequest request) {
         return exhibitServer.getBlogStatus(blogId, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
