@@ -1,14 +1,6 @@
 package org.chiu.micro.gateway.server.wrapper;
 
-import java.util.List;
-
-import org.chiu.micro.gateway.lang.Result;
-import org.chiu.micro.gateway.page.PageAdapter;
 import org.chiu.micro.gateway.server.ExhibitServer;
-import org.chiu.micro.gateway.vo.BlogDescriptionVo;
-import org.chiu.micro.gateway.vo.BlogExhibitVo;
-import org.chiu.micro.gateway.vo.BlogHotReadVo;
-import org.chiu.micro.gateway.vo.VisitStatisticsVo;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,46 +19,46 @@ public class ExhibitServerWrapper {
     private final ExhibitServer exhibitServer;
 
     @GetMapping("/info/{id}")
-    public Result<BlogExhibitVo> getBlogDetail(@PathVariable Long id, HttpServletRequest request) {
+    public byte[] getBlogDetail(@PathVariable Long id, HttpServletRequest request) {
         return exhibitServer.getBlogDetail(id, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/page/{currentPage}")
-    public Result<PageAdapter<BlogDescriptionVo>> getPage(@PathVariable Integer currentPage,
+    public byte[] getPage(@PathVariable Integer currentPage,
                                                           @RequestParam(required = false) Integer year) {
         return exhibitServer.findPage(currentPage, year);
     }
 
     @GetMapping("/secret/{blogId}")
-    public Result<BlogExhibitVo> getLockedBlog(@PathVariable Long blogId,
+    public byte[] getLockedBlog(@PathVariable Long blogId,
                                                @RequestParam(value = "readToken") String token) {
         return exhibitServer.getLockedBlog(blogId, token);
     }
 
     @GetMapping("/token/{blogId}")
-    public Result<Boolean> checkReadToken(@PathVariable Long blogId,
+    public byte[] checkReadToken(@PathVariable Long blogId,
                                           @RequestParam(value = "readToken") String token) {
         return exhibitServer.checkToken(blogId, token);
     }
 
     @GetMapping("/status/{blogId}")
-    public Result<Integer> getBlogStatus(@PathVariable Long blogId,
+    public byte[] getBlogStatus(@PathVariable Long blogId,
                                          HttpServletRequest request) {
         return exhibitServer.getBlogStatus(blogId, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/years")
-    public Result<List<Integer>> searchYears() {
+    public byte[] searchYears() {
         return exhibitServer.searchYears();
     }
 
     @GetMapping("/stat")
-    public Result<VisitStatisticsVo> getVisitStatistics() {
+    public byte[] getVisitStatistics() {
         return exhibitServer.getVisitStatistics();
     }
 
     @GetMapping("/scores")
-    public Result<List<BlogHotReadVo>> getScoreBlogs() {
+    public byte[] getScoreBlogs() {
         return exhibitServer.getScoreBlogs();
     }
 }

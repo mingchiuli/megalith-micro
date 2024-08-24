@@ -6,16 +6,11 @@ import java.nio.charset.StandardCharsets;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.chiu.micro.gateway.lang.Result;
-import org.chiu.micro.gateway.page.PageAdapter;
 import org.chiu.micro.gateway.req.BlogEditPushAllReq;
 import org.chiu.micro.gateway.req.BlogEntityReq;
 import org.chiu.micro.gateway.req.DeleteBlogsReq;
 import org.chiu.micro.gateway.req.ImgUploadReq;
 import org.chiu.micro.gateway.server.BlogServer;
-import org.chiu.micro.gateway.vo.BlogDeleteVo;
-import org.chiu.micro.gateway.vo.BlogEditVo;
-import org.chiu.micro.gateway.vo.BlogEntityVo;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,14 +34,14 @@ public class BlogServerWrapper {
     private final BlogServer blogServer;
 
     @PostMapping("/save")
-    public Result<Void> saveOrUpdate(@RequestBody BlogEntityReq blog,
+    public byte[] saveOrUpdate(@RequestBody BlogEntityReq blog,
                                      HttpServletRequest request) {
         
         return blogServer.saveOrUpdate(blog, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @PostMapping("/delete")
-    public Result<Void> deleteBlogs(@RequestBody List<Long> ids,
+    public byte[] deleteBlogs(@RequestBody List<Long> ids,
                                     HttpServletRequest request) {
         var req = new DeleteBlogsReq();
         req.setIds(ids);
@@ -54,27 +49,27 @@ public class BlogServerWrapper {
     }
 
     @GetMapping("/lock/{blogId}")
-    public Result<String> setBlogToken(@PathVariable Long blogId, 
+    public byte[] setBlogToken(@PathVariable Long blogId, 
                                        HttpServletRequest request) {
         return blogServer.setBlogToken(blogId, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/blogs")
-    public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@RequestParam(required = false) Integer currentPage,
+    public byte[] getAllBlogs(@RequestParam(required = false) Integer currentPage,
                                                          @RequestParam(required = false) Integer size,
                                                          HttpServletRequest request) {
         return blogServer.findAllABlogs(currentPage, size, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/deleted")
-    public Result<PageAdapter<BlogDeleteVo>> getDeletedBlogs(@RequestParam Integer currentPage,
+    public byte[] getDeletedBlogs(@RequestParam Integer currentPage,
                                                              @RequestParam Integer size,
                                                              HttpServletRequest request) {
         return blogServer.findDeletedBlogs(currentPage, size, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/recover/{idx}")
-    public Result<Void> recoverDeletedBlog(@PathVariable Integer idx,
+    public byte[] recoverDeletedBlog(@PathVariable Integer idx,
                                            HttpServletRequest request) {
         return blogServer.recoverDeletedBlog(idx, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
@@ -90,7 +85,7 @@ public class BlogServerWrapper {
     }
 
     @GetMapping("/oss/delete")
-    public Result<Void> deleteOss(@RequestParam String url) {
+    public byte[] deleteOss(@RequestParam String url) {
         return blogServer.deleteOss(url);
     }
 
@@ -108,13 +103,13 @@ public class BlogServerWrapper {
     }
 
     @PostMapping("/edit/push/all")
-    public Result<Void> pullSaveBlog(@RequestBody BlogEditPushAllReq blog,
+    public byte[] pullSaveBlog(@RequestBody BlogEditPushAllReq blog,
                                      HttpServletRequest request) {
         return blogServer.pushAll(blog, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/edit/pull/echo")
-    public Result<BlogEditVo> getEchoDetail(@RequestParam(value = "blogId", required = false) Long id,
+    public byte[] getEchoDetail(@RequestParam(value = "blogId", required = false) Long id,
                                             HttpServletRequest request) {
         return blogServer.findEdit(id, request.getHeader(HttpHeaders.AUTHORIZATION));
     }

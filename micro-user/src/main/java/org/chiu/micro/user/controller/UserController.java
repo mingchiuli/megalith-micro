@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.chiu.micro.user.vo.UserEntityVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -45,9 +46,9 @@ public class UserController {
     }
 
     @PostMapping("/register/image/upload")
-    public Result<String> imageUpload(@RequestBody ImgUploadReq req,
+    public SseEmitter imageUpload(@RequestBody ImgUploadReq req,
                                       @RequestParam String token) {
-        return Result.success(() -> userService.imageUpload(token, req));
+        return userService.imageUpload(token, req);
     }
 
     @GetMapping("/register/image/delete")
