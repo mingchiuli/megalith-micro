@@ -569,7 +569,7 @@ let lock = false;
         </el-dialog>
       </el-form-item>
 
-      <el-form-item>
+      <el-form-item class="process">
         <el-progress v-if="showPercentage" :percentage="uploadPercentage" status="success" />
       </el-form-item>
 
@@ -607,6 +607,10 @@ let lock = false;
 .status {
   margin-top: 5px;
   width: 300px
+}
+
+.process {
+  height: 10px;
 }
 
 .el-tag {
