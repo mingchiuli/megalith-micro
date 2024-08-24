@@ -1,11 +1,7 @@
 package org.chiu.micro.gateway.server.wrapper;
 
 
-import org.chiu.micro.gateway.lang.Result;
-import org.chiu.micro.gateway.page.PageAdapter;
 import org.chiu.micro.gateway.server.SearchServer;
-import org.chiu.micro.gateway.vo.BlogDocumentVo;
-import org.chiu.micro.gateway.vo.BlogEntityVo;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +20,7 @@ public class SearchServerWrapper {
     private final SearchServer searchServer;
 
     @GetMapping("/public/blog")
-    public Result<PageAdapter<BlogDocumentVo>> selectBlogsByES(@RequestParam(required = false) Integer currentPage,
+    public byte[] selectBlogsByES(@RequestParam(required = false) Integer currentPage,
                                                                @RequestParam Boolean allInfo,
                                                                @RequestParam(required = false) String year,
                                                                @RequestParam String keywords) {
@@ -33,7 +29,7 @@ public class SearchServerWrapper {
 
     @GetMapping("/sys/blogs")
     @PreAuthorize("hasAuthority('sys:search:blogs')")
-    public Result<PageAdapter<BlogEntityVo>> searchAllBlogs(@RequestParam(required = false) Integer currentPage,
+    public byte[] searchAllBlogs(@RequestParam(required = false) Integer currentPage,
                                                             @RequestParam(required = false) Integer size,
                                                             @RequestParam String keywords,
                                                             HttpServletRequest request) {

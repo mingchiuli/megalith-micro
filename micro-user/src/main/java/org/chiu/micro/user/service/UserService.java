@@ -2,6 +2,7 @@ package org.chiu.micro.user.service;
 
 import org.chiu.micro.user.req.ImgUploadReq;
 import org.chiu.micro.user.vo.UserEntityRpcVo;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +21,7 @@ public interface UserService {
 
     String getRegisterPage(String username);
 
-    String imageUpload(String token, ImgUploadReq req);
+    SseEmitter imageUpload(String token, ImgUploadReq req);
 
     void imageDelete(String token, String url);
 
