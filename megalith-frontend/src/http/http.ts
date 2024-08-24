@@ -38,10 +38,6 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
   percentage.value = 0
   let url = ''
   await http.post(dest, formData, {
-    // headers: {
-    //   'Accept': 'text/event-stream',
-    //   'Content-Type': 'multipart/form-data',
-    // },
     responseType: 'stream',
     onUploadProgress: progressEvent => {
       const { loaded, total } = progressEvent
@@ -54,11 +50,10 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
         })
         setTimeout(() => {
           percentageShow.value = false
-        }, 100)
+        }, 500)
       }
     },
   }).then(async (resp: any) => {
-    console.log(resp)
     url = resp as string
     url = url
         .substring('data:'.length)
