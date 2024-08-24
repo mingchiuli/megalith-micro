@@ -2,7 +2,7 @@
 import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
 import { type TagProps, type UploadFile, type UploadInstance, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
-import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit, colors } from '@/type/entity'
+import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
@@ -65,7 +65,18 @@ const sensitiveTags = computed(() => {
 
 const titleRef = ref<InstanceType<typeof ElInput>>()
 const descRef = ref<InstanceType<typeof ElInput>>()
+const uploadInstance = ref<UploadInstance>()
 
+const fileList = computed(() => {
+  const arr: UploadUserFile[] = []
+  if (form.link) {
+    arr.push({
+      name: 'Cover',
+      url: form.link
+    })
+  }
+  return arr
+})
 const form: EditForm = reactive({
   id: undefined,
   userId: undefined,
@@ -282,7 +293,6 @@ const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 const disabled = ref(false)
 
-const uploadInstance = ref<UploadInstance>()
 const formRef = ref<FormInstance>()
 const formRules = reactive<FormRules<EditForm>>({
   title: [
@@ -329,8 +339,7 @@ const uploadFile = async (file: UploadRawFile) => {
   form.link = url
 }
 
-const handleRemove = async (file: UploadFile) => {
-  file.url = undefined
+const handleRemove = async (_file: UploadFile) => {
   if (!form.link) return
   await GET<null>(`/sys/blog/oss/delete?url=${form.link}`)
   form.link = ''
@@ -407,7 +416,7 @@ const getExhibitWords = (type: SensitiveType, form: EditForm) => {
   return words
 }
 
-const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
+const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
   if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png') {
     ElMessage.error('Avatar picture must be JPG/PNG format!')
     return false
@@ -507,7 +516,6 @@ let lock = false;
       transColor.value = OperaColor.SUCCESS
       reconnecting = false
       netErrorEdited.value = false
-      
     }
   }, 2000)
 })()
@@ -549,28 +557,12 @@ let lock = false;
 
       <el-form-item class="cover">
         <span style="margin-right: 10px;">封面</span>
-        <el-upload action="#" list-type="picture-card" :before-upload="beforeAvatarUpload" :limit="1"
-          :http-request="upload" :on-remove="handleRemove" ref="uploadInstance"
-          :disabled="readOnly">
+        <el-upload v-model:file-list="fileList" action="#" list-type="picture-card"
+          :on-preview="handlePictureCardPreview" :on-remove="handleRemove" :disabled="disabled" :limit="1"
+          :before-upload=beforeUpload :http-request="upload">
           <el-icon>
             <Plus />
           </el-icon>
-          <template #file="{ file }">
-            <div>
-              <el-progress v-if="showPercentage" type="dashboard" :percentage="uploadPercentage" :color="colors" />
-              <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
-              <span class="el-upload-list__item-actions">
-                <span class="el-upload-list__item-preview" @click="handlePictureCardPreview(file)">
-                  <el-icon><zoom-in /></el-icon>
-                </span>
-                <span v-if="!disabled" class="el-upload-list__item-delete" @click="handleRemove(file)">
-                  <el-icon>
-                    <Delete />
-                  </el-icon>
-                </span>
-              </span>
-            </div>
-          </template>
         </el-upload>
 
         <el-dialog v-model="dialogVisible">
