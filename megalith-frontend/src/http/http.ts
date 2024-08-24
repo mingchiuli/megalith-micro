@@ -45,6 +45,7 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
     adapter: 'fetch',
     onUploadProgress: progressEvent => {
       const { loaded, total } = progressEvent
+      console.log(`load${loaded}, total:${total}`)
       percentage.value = Math.ceil((loaded * 100) / total!)
       if (loaded === total) {
         ElNotification({
