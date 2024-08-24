@@ -106,7 +106,7 @@ let fieldType: FieldType
 const readOnly = ref(false)
 const netErrorEdited = ref(false)
 let pulling = false
-const uploadPercentage = ref(0)
+const uploadPercentage = ref(20)
 const showPercentage = ref(false)
 
 const pullAllData = async () => {
@@ -571,8 +571,8 @@ let lock = false;
         </el-dialog>
       </el-form-item>
 
-      <el-form-item >
-        <el-progress type="line" :percentage="uploadPercentage" :color="colors" />
+      <el-form-item>
+        <el-progress style="width: 120px;" type="line" :percentage="uploadPercentage" :color="colors" />
       </el-form-item>
 
       <el-form-item class="content" prop="content">
