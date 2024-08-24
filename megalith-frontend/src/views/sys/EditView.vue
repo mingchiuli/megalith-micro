@@ -571,6 +571,10 @@ let lock = false;
         </el-dialog>
       </el-form-item>
 
+      <el-form-item >
+        <el-progress type="line" :percentage="uploadPercentage" :color="colors" />
+      </el-form-item>
+
       <el-form-item class="content" prop="content">
         <CustomEditorItem v-model:content="form.content" @composing="dealComposing" @sensitive="dealSensitive"
           :trans-color="transColor" :form-status="form.status" />
