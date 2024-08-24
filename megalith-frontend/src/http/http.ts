@@ -38,15 +38,13 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
   percentage.value = 0
   let url = ''
   await http.post(dest, formData, {
-    headers: {
-      'Accept': 'text/event-stream',
-      'Content-Type': 'multipart/form-data',
-    },
+    // headers: {
+    //   'Accept': 'text/event-stream',
+    //   'Content-Type': 'multipart/form-data',
+    // },
     responseType: 'stream',
-    // adapter: 'fetch',
     onUploadProgress: progressEvent => {
       const { loaded, total } = progressEvent
-      console.log(`load${loaded}, total:${total}`)
       percentage.value = Math.ceil((loaded * 100) / total!)
       if (loaded === total) {
         ElNotification({
@@ -54,16 +52,15 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
           message: '图片上传成功',
           type: 'success',
         })
-        percentageShow.value = false
+        setTimeout(() => {
+          percentageShow.value = false
+        }, 100)
       }
     },
   }).then(async (resp: any) => {
     console.log(resp)
-    const stream = resp as ReadableStream
-    const reader = stream.pipeThrough(new TextDecoderStream()).getReader()
-    const read = await reader.read()
-    console.log(read)
-    url = read.value!
+    url = resp as string
+    url = url
         .substring('data:'.length)
         .replace('\n', '')
   }).catch(e => {
