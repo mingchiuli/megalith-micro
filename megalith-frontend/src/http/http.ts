@@ -60,7 +60,9 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
   }).then(async (resp: any) => {
     const stream = resp as ReadableStream
     const reader = stream.pipeThrough(new TextDecoderStream()).getReader()
-    url = (await reader.read()).value!
+    const read = await reader.read()
+    console.log(read)
+    url = read.value!
   }).catch(e => {
     percentageShow.value = false
     return Promise.reject(new Error(e))
