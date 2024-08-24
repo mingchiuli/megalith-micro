@@ -46,6 +46,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ResourceUtils;
@@ -201,7 +202,7 @@ public class BlogServiceImpl implements BlogService {
             // https://bloglmc.oss-cn-hangzhou.aliyuncs.com/admin/42166d224f4a20a45eca28b691529822730ed0ee.jpeg
 
             try {
-                sseEmitter.send(baseUrl + "/" + objectName);
+                sseEmitter.send(baseUrl + "/" + objectName, MediaType.TEXT_PLAIN);
                 sseEmitter.complete();
             } catch(IOException e) {
                 sseEmitter.completeWithError(e);

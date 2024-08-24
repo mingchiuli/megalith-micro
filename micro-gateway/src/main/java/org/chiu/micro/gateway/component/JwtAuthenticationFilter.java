@@ -49,7 +49,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             AuthDto authDto  = authHttpServiceWrapper.getAuthentication(jwt);
-            
             authentication = new PreAuthenticatedAuthenticationToken(authDto.getUserId(), null, AuthorityUtils.createAuthorityList(authDto.getAuthorities()));
         } catch (AuthException e) {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);

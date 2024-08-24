@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -113,7 +114,7 @@ public class UserServiceImpl implements UserService {
             headers.put(HttpHeaders.CONTENT_TYPE, "image/jpg");
             ossHttpService.putOssObject(objectName, imageBytes, headers);
             try {
-                sseEmitter.send(baseUrl + "/" + objectName);
+                sseEmitter.send(baseUrl + "/" + objectName, MediaType.TEXT_PLAIN);
                 sseEmitter.complete();
             } catch(IOException e) {
                 sseEmitter.completeWithError(e);

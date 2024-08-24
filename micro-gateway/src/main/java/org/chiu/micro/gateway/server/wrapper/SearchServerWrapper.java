@@ -1,6 +1,5 @@
 package org.chiu.micro.gateway.server.wrapper;
 
-
 import org.chiu.micro.gateway.server.SearchServer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,18 +20,18 @@ public class SearchServerWrapper {
 
     @GetMapping("/public/blog")
     public byte[] selectBlogsByES(@RequestParam(required = false) Integer currentPage,
-                                                               @RequestParam Boolean allInfo,
-                                                               @RequestParam(required = false) String year,
-                                                               @RequestParam String keywords) {
+                                  @RequestParam Boolean allInfo,
+                                  @RequestParam(required = false) String year,
+                                  @RequestParam String keywords) {
         return searchServer.selectBlogsByES(currentPage, allInfo, year, keywords);
     }
 
     @GetMapping("/sys/blogs")
     @PreAuthorize("hasAuthority('sys:search:blogs')")
     public byte[] searchAllBlogs(@RequestParam(required = false) Integer currentPage,
-                                                            @RequestParam(required = false) Integer size,
-                                                            @RequestParam String keywords,
-                                                            HttpServletRequest request) {
+                                 @RequestParam(required = false) Integer size,
+                                 @RequestParam String keywords,
+                                 HttpServletRequest request) {
         return searchServer.searchAllBlogs(currentPage, size, keywords, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 }
