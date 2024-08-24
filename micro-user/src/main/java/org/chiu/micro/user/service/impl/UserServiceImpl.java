@@ -130,12 +130,14 @@ public class UserServiceImpl implements UserService {
         if (Objects.isNull(exist) || Boolean.FALSE.equals(exist)) {
             throw new MissException(NO_AUTH.getMsg());
         }
-        String objectName = url.replace(baseUrl + "/", "");
-        Map<String, String> headers = new HashMap<>();
-        String gmtDate = ossSignUtils.getGMTDate();
-        headers.put(HttpHeaders.DATE, gmtDate);
-        headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
-        ossHttpService.deleteOssObject(objectName, headers);
+        taskExecutor.execute(() -> {
+            String objectName = url.replace(baseUrl + "/", "");
+            Map<String, String> headers = new HashMap<>();
+            String gmtDate = ossSignUtils.getGMTDate();
+            headers.put(HttpHeaders.DATE, gmtDate);
+            headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
+            ossHttpService.deleteOssObject(objectName, headers);
+        });
     }
 
     @Override

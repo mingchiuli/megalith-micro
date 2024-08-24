@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 
 
 /**
@@ -91,7 +92,7 @@ public class BlogController {
     }
 
     @GetMapping("/oss/delete")
-    public Result<Void> deleteOss(@RequestParam String url) {
+    public Result<Void> deleteOss(@RequestParam @NotBlank String url) {
         return Result.success(() -> blogService.deleteOss(url));
     }
 
