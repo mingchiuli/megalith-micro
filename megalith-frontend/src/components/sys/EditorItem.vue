@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { POST } from '@/http/http'
+import { UPLOAD } from '@/http/http'
 import { MdEditor, type Footers, type ToolbarNames, type ExposeParam } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import '@vavt/v3-extension/lib/asset/ExportPDF.css'
 import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
 import { onMounted, ref } from 'vue'
-import { SensitiveType, Status, type SensitiveTrans } from '@/type/entity'
+import { SensitiveType, Status, type SensitiveTrans, Colors } from '@/type/entity'
 
 const emit = defineEmits<{
   composing: [payload: boolean]
@@ -20,6 +20,9 @@ const props = defineProps<{
 
 const content = defineModel<string | undefined>('content')
 const editorRef = ref<ExposeParam>()
+
+const uploadPercentage = ref(0)
+const showPercentage = ref(false)
 
 const toolbars: ToolbarNames[] = [
   'revoke', 'next', 'bold', 1, 'underline', 'italic', '-',
@@ -118,7 +121,7 @@ onMounted(() => {
 const onUploadImg = async (files: File[], callback: Function) => {
   const formdata = new FormData()
   formdata.append('image', files[0])
-  const url = await POST<string>('sys/blog/oss/upload', formdata)
+  const url = await UPLOAD('sys/blog/oss/upload', formdata, uploadPercentage, showPercentage)
   callback([url])
 }
 </script>
@@ -133,6 +136,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
       </emoji>
     </template>
     <template #defFooters>
+      <el-progress v-if="showPercentage" type="line" :percentage="uploadPercentage" :color="Colors" />
       <span class="trans-radius" :style="{ 'background-color': transColor }" />
     </template>
   </md-editor>
@@ -148,5 +152,9 @@ const onUploadImg = async (files: File[], callback: Function) => {
   width: 10px;
   height: 10px;
   border-radius: 50%
+}
+
+.el-progress {
+  width: 150px;
 }
 </style>
