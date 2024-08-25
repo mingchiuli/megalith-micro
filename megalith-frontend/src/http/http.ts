@@ -41,11 +41,6 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
     onUploadProgress: progressEvent => {
       const { loaded, total } = progressEvent
       percentage.value = Math.ceil((loaded * 100) / total!)
-      if (loaded === total) {
-        setTimeout(() => {
-          percentageShow.value = false
-        }, 500)
-      }
     },
   }).then((resp: any) => {
     url = resp as string
@@ -53,8 +48,9 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
         .substring('data:'.length)
         .replaceAll('\n', '')
   }).catch(e => {
-    percentageShow.value = false
     return Promise.reject(new Error(e))
+  }).finally(() => {
+    percentageShow.value = false
   })
   return Promise.resolve(url)
 }
