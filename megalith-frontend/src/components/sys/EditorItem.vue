@@ -30,7 +30,7 @@ const toolbars: ToolbarNames[] = [
   'codeRow', 'code', 'link', 'image', 'table', 'mermaid', 'katex', '-',
   0, 'pageFullscreen', 'fullscreen', 'preview', 'htmlPreview', 'catalog', 'github'
 ]
-const footers: Footers[] = ['markdownTotal', 1, '=', 0, 'scrollSwitch']
+const footers: Footers[] = ['markdownTotal', 0, '=', 1, 'scrollSwitch']
 
 onMounted(() => {
   editorRef.value?.domEventHandlers({
@@ -136,9 +136,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
       </emoji>
     </template>
     <template #defFooters>
-      <span>
-        <el-progress v-if="showPercentage" type="line" :percentage="uploadPercentage" :color="Colors" />
-      </span>
+      <el-progress v-if="showPercentage" type="line" :percentage="uploadPercentage" :color="Colors" />
       <span class="trans-radius" :style="{ 'background-color': transColor }" />
     </template>
   </md-editor>
@@ -157,7 +155,8 @@ const onUploadImg = async (files: File[], callback: Function) => {
 }
 
 .el-progress {
-  width: 150px;
+  width: 180px;
+  height: 40px;
   display: inline-block
 }
 </style>
