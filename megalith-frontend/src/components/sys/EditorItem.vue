@@ -136,7 +136,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
       </emoji>
     </template>
     <template #defFooters>
-      <el-progress  type="line" :percentage="uploadPercentage" :color="Colors" status="success" />
+      <el-progress v-if="showPercentage" type="line" :percentage="uploadPercentage" :color="Colors" status="success" />
       <span class="trans-radius" :style="{ 'background-color': transColor }" />
     </template>
   </md-editor>
@@ -148,14 +148,14 @@ const onUploadImg = async (files: File[], callback: Function) => {
 }
 
 .trans-radius {
-  display: inline-block;
+  display: inline-flex;
   width: 10px;
   height: 10px;
   border-radius: 50%
 }
 
 .el-progress {
-  width: 180px;
-  display: inline-block
+  width: 100px;
+  display: inline-flex
 }
 </style>
