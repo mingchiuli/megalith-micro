@@ -21,13 +21,10 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
     },
   }).then(res => {
     data = res
-    percentage.value = 100
-    setTimeout(() => {
-      percentageShow.value = false
-    }, 500)
   }).catch(e => {
-    percentageShow.value = false
     return Promise.reject(new Error(e))
+  }).finally(() => {
+    percentageShow.value = false
   })
   
   return Promise.resolve(data)
