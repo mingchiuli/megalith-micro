@@ -144,11 +144,11 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 <style scoped>
 .md-editor:deep(.md-editor-footer) {
-  height: 50px
+  height: 40px
 }
 
 .trans-radius {
-  display: inline;
+  display: inline-block;
   width: 10px;
   height: 10px;
   border-radius: 50%
@@ -156,6 +156,6 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 .el-progress {
   width: 150px;
-  display: inline
+  display: inline-block
 }
 </style>
