@@ -10,7 +10,6 @@ import { Client, StompSocketState, type StompSubscription } from '@stomp/stompjs
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle, dealAction, recheckSensitive } from '@/utils/tools'
 
-let timer: NodeJS.Timeout
 const route = useRoute()
 const blogId = route.query.id
 
