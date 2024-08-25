@@ -156,5 +156,6 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 .el-progress {
   width: 150px;
+  display: inline
 }
 </style>
