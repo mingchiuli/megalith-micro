@@ -30,7 +30,7 @@ const toolbars: ToolbarNames[] = [
   'codeRow', 'code', 'link', 'image', 'table', 'mermaid', 'katex', '-',
   0, 'pageFullscreen', 'fullscreen', 'preview', 'htmlPreview', 'catalog', 'github'
 ]
-const footers: Footers[] = ['markdownTotal', '=', 0, 'scrollSwitch']
+const footers: Footers[] = ['markdownTotal', 1, '=', 0, 'scrollSwitch']
 
 onMounted(() => {
   editorRef.value?.domEventHandlers({
@@ -70,7 +70,7 @@ onMounted(() => {
       }
       const eleSiblings: Node[] = []
 
-      for(let i = 0; i < label!.childNodes?.length!; i++) {
+      for (let i = 0; i < label!.childNodes?.length!; i++) {
         const item = label!.childNodes[i]!
         if (item !== text) {
           eleSiblings.push(item)
@@ -106,8 +106,8 @@ onMounted(() => {
     } else {
       idx += selection!.anchorOffset
     }
-    
-    const sensitive : SensitiveTrans = {
+
+    const sensitive: SensitiveTrans = {
       startIndex: idx,
       endIndex: idx + selectedText.length,
       type: SensitiveType.CONTENT
@@ -136,7 +136,9 @@ const onUploadImg = async (files: File[], callback: Function) => {
       </emoji>
     </template>
     <template #defFooters>
-      <el-progress v-if="showPercentage" type="line" :percentage="uploadPercentage" :color="Colors" />
+      <span>
+        <el-progress v-if="showPercentage" type="line" :percentage="uploadPercentage" :color="Colors" />
+      </span>
       <span class="trans-radius" :style="{ 'background-color': transColor }" />
     </template>
   </md-editor>
