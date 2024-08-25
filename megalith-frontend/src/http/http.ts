@@ -42,11 +42,6 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
       const { loaded, total } = progressEvent
       percentage.value = Math.ceil((loaded * 100) / total!)
       if (loaded === total) {
-        ElNotification({
-          title: '操作成功',
-          message: '图片上传成功',
-          type: 'success',
-        })
         setTimeout(() => {
           percentageShow.value = false
         }, 500)
