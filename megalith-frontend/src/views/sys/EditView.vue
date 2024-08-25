@@ -481,7 +481,9 @@ const handleDescSelect = () => {
   }
 }
 
+let timeoutId: NodeJS.Timeout
 onUnmounted(() => {
+  clearTimeout(timeoutId)
   if (subscribe) {
     subscribe.unsubscribe()
   }
@@ -490,7 +492,6 @@ onUnmounted(() => {
 
 let reconnecting = false
 let lock = false
-
 const healthCheck = async () => {
   if (client.webSocket?.readyState !== StompSocketState.OPEN) {
     transColor.value = OperaColor.FAILED
@@ -518,7 +519,7 @@ const healthCheck = async () => {
     }
   }
 
-  setTimeout(async () => {
+  timeoutId = setTimeout(async () => {
     await healthCheck()
   }, 2000)
 }
