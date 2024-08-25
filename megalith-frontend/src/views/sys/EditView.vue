@@ -111,8 +111,11 @@ const showPercentage = ref(false)
 
 const pullAllData = async () => {
   pulling = true
-  await loadEditContent()
-  pulling = false
+  try {
+    await loadEditContent()
+  } finally {
+    pulling = false
+  }
 }
 
 const pushAllData = async () => {
@@ -508,13 +511,14 @@ let lock = false;
         } else {
           await pullAllData()
         }
+
+        readOnly.value = false
+        transColor.value = OperaColor.SUCCESS
+        reconnecting = false
+        netErrorEdited.value = false
       } finally {
         lock = false
       }
-      readOnly.value = false
-      transColor.value = OperaColor.SUCCESS
-      reconnecting = false
-      netErrorEdited.value = false
     }
   }, 2000)
 })()
@@ -581,7 +585,7 @@ let lock = false;
           @click="submitForm(formRef!)" :disabled="readOnly">{{ getButtonTitle(ButtonAuth.SYS_EDIT_COMMIT)
           }}</el-button>
       </div>
-      </el-form>
+    </el-form>
 
   </div>
 </template>
