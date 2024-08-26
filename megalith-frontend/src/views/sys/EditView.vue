@@ -437,6 +437,10 @@ const CustomEditorItem = defineAsyncComponent({
 })
 
 const handleTitleSelect = () => {
+  if (form.status !== Status.SENSITIVE_FILTER) {
+      return
+  }
+  
   const title = titleRef.value?.input!
   let start = title.selectionStart!
   let end = title.selectionEnd!
@@ -459,6 +463,9 @@ const handleTitleSelect = () => {
 }
 
 const handleDescSelect = () => {
+  if (form.status !== Status.SENSITIVE_FILTER) {
+      return
+  }
   const desc = descRef.value?.textarea!
 
   let start = desc.selectionStart!
