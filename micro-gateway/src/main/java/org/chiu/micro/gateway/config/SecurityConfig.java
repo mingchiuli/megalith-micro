@@ -72,7 +72,7 @@ public class SecurityConfig {
                                 .hasAuthority("sys:blog:oss:delete")
                                 .requestMatchers(HttpMethod.GET, "/sys/blog/download")
                                 .hasAuthority("sys:blog:download")
-                                .requestMatchers(HttpMethod.GET, "/sys/blog/edit/push/all")
+                                .requestMatchers(HttpMethod.POST, "/sys/blog/edit/push/all")
                                 .hasAuthority("sys:blog:push:all")
                                 .requestMatchers(HttpMethod.GET, "/sys/blog/edit/pull/echo")
                                 .hasAuthority("sys:blog:echo")
