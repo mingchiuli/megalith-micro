@@ -15,4 +15,14 @@ public class AuthorityEntityReq {
     private String remark;
 
     private Integer status;
+
+    private String prototype;
+
+    private String methodType;
+
+    private String routePattern;
+
+    private String requestHost;
+    
+    private String requestPort;
 }
