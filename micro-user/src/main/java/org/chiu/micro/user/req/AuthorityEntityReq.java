@@ -1,6 +1,7 @@
 package org.chiu.micro.user.req;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 
@@ -18,5 +19,21 @@ public class AuthorityEntityReq {
     @NotBlank
     private String remark;
 
+    @NotBlank
+    private String prototype;
+
+    @NotBlank
+    private String methodType;
+
+    @NotBlank
+    private String routePattern;
+
+    @NotBlank
+    private String requestHost;
+    
+    @NotBlank
+    private String requestPort;
+
+    @NotNull
     private Integer status;
 }
