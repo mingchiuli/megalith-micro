@@ -198,11 +198,11 @@ const clearForm = () => {
     <el-table-column label="接口名字" align="center" prop="name" min-width="300" />
     <el-table-column label="唯一编码" align="center" prop="code" min-width="180" />
 
-    <el-table-column label="协议" align="center" prop="prototype" min-width="180" />
-    <el-table-column label="方法类型" align="center" prop="methodType" min-width="180" />
+    <el-table-column label="协议" align="center" prop="prototype" min-width="130" />
+    <el-table-column label="方法类型" align="center" prop="methodType" min-width="130" />
     <el-table-column label="路由匹配" align="center" prop="routePattern" min-width="300" />
     <el-table-column label="请求域名" align="center" prop="requestHost" min-width="250" />
-    <el-table-column label="请求端口" align="center" prop="requestPort" min-width="180" />
+    <el-table-column label="请求端口" align="center" prop="requestPort" min-width="130" />
 
     <el-table-column label="描述" min-width="300" align="center" prop="remark" />
 
