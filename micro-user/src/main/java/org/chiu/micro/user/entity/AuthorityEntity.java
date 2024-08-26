@@ -41,6 +41,21 @@ public class AuthorityEntity {
     @Column(name = "remark")
     private String remark;
 
+    @Column(name = "prototype")
+    private String prototype;
+
+    @Column(name = "method_type")
+    private String methodType;
+
+    @Column(name = "route_pattern")
+    private String routePattern;
+
+    @Column(name = "request_host")
+    private String requestHost;
+    
+    @Column(name = "request_port")
+    private String requestPort;
+    
     @Column(name = "created", updatable = false)
     @CreatedDate
     private LocalDateTime created;

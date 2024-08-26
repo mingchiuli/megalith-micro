@@ -1,6 +1,7 @@
 package org.chiu.micro.user.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,16 @@ public class AuthorityVo {
     private String code;
 
     private String remark;
+
+    private String prototype;
+
+    private String methodType;
+
+    private String routePattern;
+
+    private String requestHost;
+    
+    private String requestPort;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime created;
