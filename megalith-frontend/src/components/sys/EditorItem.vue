@@ -42,7 +42,6 @@ onMounted(() => {
     }
   });
   document.getElementById("md-editor")!.onmouseup = () => {
-    console.log(props.formStatus)
     if (props.formStatus !== Status.SENSITIVE_FILTER) {
       return
     }
