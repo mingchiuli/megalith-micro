@@ -53,6 +53,11 @@ export interface AuthoritySys {
   created: string
   updated: string
   status: number
+  prototype: string
+  methodType: string
+  routePattern: string
+  requestHost: string
+  requestPort: string
 }
 
 export interface UserSys {
