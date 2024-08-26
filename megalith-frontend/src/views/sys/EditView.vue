@@ -187,8 +187,8 @@ watch(() => form.status, (n, o) => {
   pushActionData(pushActionForm)
 })
 
-watch(() => form.sensitiveContentList, (n: [], o: []) => {
-  if (!client.connected || ((!n && !o) || (o.length === 0 && n.length === 0)) || composing) return
+watch(() => form.sensitiveContentList, (n: string[], o: string[]) => {
+  if (!client.connected || (o.length === 0 && n.length === 0) || composing) return
   commonPreDeal(FieldType.NON_PARA, FieldName.SENSITIVE_CONTENT_LIST)
   pushActionForm.operateTypeCode = OperateTypeCode.SENSITIVE_CONTENT_LIST
   pushActionForm.contentChange = JSON.stringify(form.sensitiveContentList)
