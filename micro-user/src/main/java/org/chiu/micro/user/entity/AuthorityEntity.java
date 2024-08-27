@@ -24,7 +24,7 @@ import java.util.Objects;
 @DynamicUpdate
 @EntityListeners(AuditingEntityListener.class)
 @Table(name ="m_authority",
-        uniqueConstraints = {@UniqueConstraint(columnNames = "code"), @UniqueConstraint(columnNames = "name")})
+        uniqueConstraints = {@UniqueConstraint(columnNames = "code"), @UniqueConstraint(columnNames = "name"), @UniqueConstraint(columnNames = "request_host")})
 public class AuthorityEntity {
 
     @Id
@@ -53,9 +53,6 @@ public class AuthorityEntity {
     @Column(name = "request_host")
     private String requestHost;
     
-    @Column(name = "request_port")
-    private String requestPort;
-    
     @Column(name = "created", updatable = false)
     @CreatedDate
     private LocalDateTime created;
@@ -80,6 +77,9 @@ public class AuthorityEntity {
         if (!Objects.equals(remark, that.remark)) return false;
         if (!Objects.equals(created, that.created)) return false;
         if (!Objects.equals(updated, that.updated)) return false;
+        if (!Objects.equals(prototype, that.prototype)) return false;
+        if (!Objects.equals(methodType, that.methodType)) return false;
+        if (!Objects.equals(requestHost, that.requestHost)) return false;
         return Objects.equals(status, that.status);
     }
 

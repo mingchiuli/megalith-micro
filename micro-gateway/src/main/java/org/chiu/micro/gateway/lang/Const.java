@@ -21,7 +21,9 @@ public enum Const {
     
     HTTP("http"),
     
-    WHITELIST("whitelist");
+    WHITELIST("whitelist"),
+    
+    SERVICE("micro-gateway");
 
     private final String info;
 

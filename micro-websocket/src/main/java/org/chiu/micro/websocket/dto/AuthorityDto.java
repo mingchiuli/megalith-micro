@@ -1,10 +1,10 @@
-package org.chiu.micro.gateway.dto;
+package org.chiu.micro.websocket.dto;
 
 
 import lombok.*;
 
+
 @Data
-@Builder
 public class AuthorityDto {
 
     private Long id;

@@ -11,7 +11,15 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum Const {
 
-    TEMP_EDIT_BLOG("temp_edit_blog:");
+    TEMP_EDIT_BLOG("temp_edit_blog:"),
+    
+    SERVICE("micro-websocket"),
+    
+    HTTP("http"),
+    
+    WS("ws"),
+    
+    WHITELIST("whitelist");
 
     private final String info;
 

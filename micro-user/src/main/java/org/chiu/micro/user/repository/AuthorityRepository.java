@@ -9,4 +9,6 @@ public interface AuthorityRepository extends JpaRepository<AuthorityEntity, Long
 
     List<AuthorityEntity> findByStatus(Integer status);
 
+    List<AuthorityEntity> findByRequestHost(String service);
+
 }
