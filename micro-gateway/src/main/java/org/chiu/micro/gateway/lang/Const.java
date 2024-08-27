@@ -17,7 +17,11 @@ public enum Const {
 
     MONTH_VISIT("{visit_record}_month"),
 
-    YEAR_VISIT("{visit_record}_year");
+    YEAR_VISIT("{visit_record}_year"),
+    
+    HTTP("http"),
+    
+    WHITELIST("whitelist");
 
     private final String info;
 
