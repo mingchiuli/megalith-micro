@@ -23,7 +23,5 @@ public class AuthorityDto {
 
     private String requestHost;
     
-    private String requestPort;
-
     private Integer status;
 }
