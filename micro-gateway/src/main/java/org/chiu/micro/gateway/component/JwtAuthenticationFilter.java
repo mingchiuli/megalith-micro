@@ -26,9 +26,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper;
@@ -38,6 +40,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain chain)
             throws IOException, ServletException {
+
+
+        String mapping = request.getRequestURI();
+        log.info("mapping {}", mapping);
+        String method = request.getMethod();
+        log.info("method {}", method);
+        request.getParameterMap().forEach((k, v) -> {
+            log.info("k v {}, {}", k, v);
+        });
+
+        
 
         String jwt = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (!StringUtils.hasLength(jwt)) {
