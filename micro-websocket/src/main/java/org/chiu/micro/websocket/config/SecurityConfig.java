@@ -3,6 +3,11 @@ package org.chiu.micro.websocket.config;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
+import org.chiu.micro.websocket.dto.AuthorityDto;
+import org.chiu.micro.websocket.lang.Const;
+import org.chiu.micro.websocket.rpc.wrapper.UserHttpServiceWrapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -16,13 +21,17 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String[] URL_WHITELIST = {
-        "/edit/ws/**",
-        "/actuator/**"
-    };
+    private final UserHttpServiceWrapper userHttpServiceWrapper;
 
     @Bean
     SecurityFilterChain configure(HttpSecurity http) throws Exception {
+
+        List<String> whitelist = userHttpServiceWrapper.getAuthorities().stream()
+                .filter(item -> Const.HTTP.getInfo().equals(item.getPrototype()))
+                .filter(item -> item.getCode().startsWith(Const.WHITELIST.getInfo()))
+                .map(AuthorityDto::getRoutePattern)
+                .toList();
+
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -33,7 +42,7 @@ public class SecurityConfig {
                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
-                                .requestMatchers(URL_WHITELIST)
+                                .requestMatchers(whitelist.toArray(new String[0]))
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated())

@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface AuthorityService {
 
+    List<AuthorityVo> findAll(String service);
+
     List<AuthorityVo> findAll();
 
     AuthorityVo findById(Long id);

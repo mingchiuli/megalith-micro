@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.chiu.micro.user.exception.MissException;
 import org.chiu.micro.user.lang.AuthMenuOperateEnum;
+import org.chiu.micro.user.lang.StatusEnum;
 import org.chiu.micro.user.entity.AuthorityEntity;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
 import org.chiu.micro.user.repository.AuthorityRepository;
@@ -35,6 +36,14 @@ public class AuthorityServiceImpl implements AuthorityService {
     private final RoleRepository roleRepository;
 
     private final ApplicationContext applicationContext;
+
+    @Override
+    public List<AuthorityVo> findAll(String service) {
+        List<AuthorityEntity> authorityEntities = authorityRepository.findByRequestHost(service).stream()
+                .filter(item -> StatusEnum.NORMAL.getCode().equals(item.getStatus()))
+                .toList();
+        return AuthorityVoConvertor.convert(authorityEntities);
+    }
 
     @Override
     public List<AuthorityVo> findAll() {

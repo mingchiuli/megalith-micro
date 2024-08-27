@@ -1,12 +1,12 @@
-package org.chiu.micro.gateway.rpc.wrapper;
+package org.chiu.micro.websocket.rpc.wrapper;
 
 import java.util.List;
 
-import org.chiu.micro.gateway.dto.AuthorityDto;
-import org.chiu.micro.gateway.exception.MissException;
-import org.chiu.micro.gateway.lang.Const;
-import org.chiu.micro.gateway.lang.Result;
-import org.chiu.micro.gateway.rpc.UserHttpService;
+import org.chiu.micro.websocket.dto.AuthorityDto;
+import org.chiu.micro.websocket.exception.MissException;
+import org.chiu.micro.websocket.lang.Const;
+import org.chiu.micro.websocket.lang.Result;
+import org.chiu.micro.websocket.rpc.UserHttpService;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
