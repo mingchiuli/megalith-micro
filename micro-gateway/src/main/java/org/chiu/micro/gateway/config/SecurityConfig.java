@@ -44,6 +44,7 @@ public class SecurityConfig {
                 .filter(item -> !item.getCode().startsWith(Const.WHITELIST.getInfo()))
                 .map(AuthorityDto::getRoutePattern)
                 .toList();
+        System.out.println(nonWhiteList.toString());
 
         return http
                 .cors(Customizer.withDefaults())
