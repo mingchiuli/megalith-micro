@@ -27,9 +27,5 @@ public class AuthorityDto {
     
     private String requestPort;
 
-    private LocalDateTime created;
-
-    private LocalDateTime updated;
-
     private Integer status;
 }
