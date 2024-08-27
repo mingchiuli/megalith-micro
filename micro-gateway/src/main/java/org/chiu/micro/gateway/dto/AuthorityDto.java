@@ -4,7 +4,6 @@ package org.chiu.micro.gateway.dto;
 import lombok.*;
 
 @Data
-@Builder
 public class AuthorityDto {
 
     private Long id;
@@ -23,7 +22,5 @@ public class AuthorityDto {
 
     private String requestHost;
     
-    private String requestPort;
-
     private Integer status;
 }

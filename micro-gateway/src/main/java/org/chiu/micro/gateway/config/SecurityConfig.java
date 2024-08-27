@@ -39,17 +39,14 @@ public class SecurityConfig {
                 .toList();
 
         List<AuthorityDto> nonWhiteList = authorities.stream()
-                .filter(item -> item.getCode().startsWith(Const.WHITELIST.getInfo()))
+                .filter(item -> !item.getCode().startsWith(Const.WHITELIST.getInfo()))
                 .toList();
 
         List<String> urlWhite = authorities.stream()
-                .filter(item -> !item.getCode().startsWith(Const.WHITELIST.getInfo()))
+                .filter(item -> item.getCode().startsWith(Const.WHITELIST.getInfo()))
                 .map(AuthorityDto::getRoutePattern)
                 .toList();
-        System.out.println(nonWhiteList.toString());
-
-
-        log.info("inti {}", authorities);
+  
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
