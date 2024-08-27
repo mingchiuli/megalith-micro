@@ -41,10 +41,7 @@ const formRules = reactive<FormRules<Form>>({
   ],
   requestHost: [
     { required: true, message: '请输入调用域名', trigger: 'blur' }
-  ],
-  requestPort: [
-    { required: true, message: '请输入端口', trigger: 'blur' }
-  ],
+  ]
 })
 const formRef = ref<FormInstance>()
 type Form = {
@@ -57,7 +54,6 @@ type Form = {
   methodType: string
   routePattern: string
   requestHost: string
-  requestPort: string
 }
 
 const form: Form = reactive({
@@ -70,7 +66,6 @@ const form: Form = reactive({
   methodType: '',
   routePattern: '',
   requestHost: '',
-  requestPort: ''
 })
 
 const delBatch = async () => {
@@ -114,7 +109,6 @@ const handleEdit = async (row: AuthoritySys) => {
   form.prototype = data.prototype
   form.methodType = data.methodType
   form.requestHost = data.requestHost
-  form.requestPort = data.requestPort
   form.routePattern = data.routePattern
   dialogVisible.value = true
 }
@@ -160,7 +154,6 @@ const clearForm = () => {
   form.prototype = ''
   form.methodType = ''
   form.requestHost = ''
-  form.requestPort = ''
   form.routePattern = ''
 }
 
@@ -202,7 +195,6 @@ const clearForm = () => {
     <el-table-column label="方法类型" align="center" prop="methodType" min-width="130" />
     <el-table-column label="路由匹配" align="center" prop="routePattern" min-width="300" />
     <el-table-column label="请求域名" align="center" prop="requestHost" min-width="250" />
-    <el-table-column label="请求端口" align="center" prop="requestPort" min-width="130" />
 
     <el-table-column label="描述" min-width="300" align="center" prop="remark" />
 
@@ -285,10 +277,6 @@ const clearForm = () => {
 
       <el-form-item label="请求域名" label-width="100px" prop="remark">
         <el-input v-model="form.requestHost" maxlength="30" />
-      </el-form-item>
-
-      <el-form-item label="请求端口" label-width="100px" prop="remark">
-        <el-input v-model="form.requestPort" maxlength="30" />
       </el-form-item>
 
       <el-form-item label="状态" label-width="100px" prop="status">

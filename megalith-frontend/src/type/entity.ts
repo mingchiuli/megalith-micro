@@ -57,7 +57,6 @@ export interface AuthoritySys {
   methodType: string
   routePattern: string
   requestHost: string
-  requestPort: string
 }
 
 export interface UserSys {
