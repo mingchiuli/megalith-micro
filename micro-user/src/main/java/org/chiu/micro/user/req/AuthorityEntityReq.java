@@ -30,9 +30,6 @@ public class AuthorityEntityReq {
 
     @NotBlank
     private String requestHost;
-    
-    @NotBlank
-    private String requestPort;
 
     @NotNull
     private Integer status;
