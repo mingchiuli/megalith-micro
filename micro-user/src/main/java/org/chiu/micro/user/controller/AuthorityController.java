@@ -22,10 +22,9 @@ public class AuthorityController {
     private final AuthorityService authorityService;
 
     @GetMapping("/list")
-    public Result<List<AuthorityVo>> list(@RequestParam String service) {
-        return Result.success(() -> authorityService.findAll(service));
+    public Result<List<AuthorityVo>> list() {
+        return Result.success(authorityService::findAll);
     }
-
 
     @GetMapping("/info/{id}")
     public Result<AuthorityVo> info(@PathVariable Long id) {

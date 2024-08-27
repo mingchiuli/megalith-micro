@@ -24,7 +24,7 @@ public class AuthorityProvider {
 
     @GetMapping("/list")
     public Result<List<AuthorityVo>> list(@RequestParam String service) {
-        return Result.success(() -> authorityService.findAll(service));
+        return Result.success(() -> authorityService.findAllByService(service));
     }
 
 }
