@@ -54,7 +54,7 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach(async (to, _from, next) => {
+router.beforeEach(async (to, from, next) => {
   if (to.path.startsWith('/sys')) {
     welcomeStateStore().welcomeBackend = false
   }
@@ -79,10 +79,11 @@ router.beforeEach(async (to, _from, next) => {
     if (!to.name || !router.hasRoute(to.name)) {
       allKindsInfo = await GET<MenusAndButtons>('/auth/menu/nav')
       callBackRequireRoutes(allKindsInfo)
-      console.log(router.getRoutes())
-      console.log(router.hasRoute(to.name!))
-      console.log(router.hasRoute(to.path))
-      console.log(to.name)
+      console.log(from.path)
+      console.log(to.path)
+      // if (from.path === to.path) {
+      //   return
+      // }
       dealSysTab(to, allKindsInfo)
       //重定向解决刷新404
       next(to)
