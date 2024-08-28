@@ -21,7 +21,7 @@ public class AuthorityDto {
 
     private String routePattern;
 
-    private String requestHost;
+    private String serviceName;
     
     private Integer status;
 }
