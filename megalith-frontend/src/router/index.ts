@@ -79,11 +79,11 @@ router.beforeEach(async (to, from, next) => {
     if (!to.name || !router.hasRoute(to.name)) {
       allKindsInfo = await GET<MenusAndButtons>('/auth/menu/nav')
       callBackRequireRoutes(allKindsInfo)
+      console.log(from.redirectedFrom)
       console.log(from.path)
       console.log(to.path)
-      // if (from.path === to.path) {
-      //   return
-      // }
+      console.log(to.redirectedFrom)
+      
       dealSysTab(to, allKindsInfo)
       //重定向解决刷新404
       next(to)
