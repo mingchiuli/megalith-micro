@@ -9,6 +9,7 @@ import org.chiu.micro.user.entity.RoleAuthorityEntity;
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
 import org.chiu.micro.user.lang.AuthMenuOperateEnum;
+import org.chiu.micro.user.lang.Const;
 import org.chiu.micro.user.repository.AuthorityRepository;
 import org.chiu.micro.user.repository.RoleAuthorityRepository;
 import org.chiu.micro.user.repository.RoleRepository;
@@ -71,8 +72,9 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
                 .toList();
         List<RoleAuthorityVo> roleAuthorityVos = new ArrayList<>();
 
-        allAuthorityEntities.forEach(item -> roleAuthorityVos
-                .add(RoleAuthorityVo.builder()
+        allAuthorityEntities.stream()
+                .filter(item -> item.getCode().startsWith(Const.WHITELIST.getInfo()))
+                .forEach(item -> roleAuthorityVos.add(RoleAuthorityVo.builder()
                         .authorityId(item.getId())
                         .code(item.getCode())
                         .check(ids.contains(item.getId()))

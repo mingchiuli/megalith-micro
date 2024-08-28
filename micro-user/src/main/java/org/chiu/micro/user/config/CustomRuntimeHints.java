@@ -8,6 +8,8 @@ import org.chiu.micro.user.valid.MenuValueConstraintValidator;
 import org.chiu.micro.user.valid.PhoneConstraintValidator;
 import org.chiu.micro.user.valid.UsernameConstraintValidator;
 import org.springframework.aot.hint.*;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import java.util.LinkedHashSet;
 
@@ -16,7 +18,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
     
     @SneakyThrows
     @Override// Register method for reflection
-    public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+    public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {
         // Register method for reflection
 
         hints.reflection().registerConstructor(LinkedHashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);

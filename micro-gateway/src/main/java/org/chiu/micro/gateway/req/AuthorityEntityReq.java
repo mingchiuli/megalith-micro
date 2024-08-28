@@ -22,7 +22,6 @@ public class AuthorityEntityReq {
 
     private String routePattern;
 
-    private String requestHost;
+    private String serviceName;
     
-    private String requestPort;
 }
