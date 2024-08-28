@@ -39,7 +39,7 @@ const formRules = reactive<FormRules<Form>>({
   routePattern: [
     { required: true, message: '请输入路由匹配', trigger: 'blur' }
   ],
-  requestHost: [
+  serviceName: [
     { required: true, message: '请输入调用域名', trigger: 'blur' }
   ]
 })
@@ -53,7 +53,7 @@ type Form = {
   prototype: string
   methodType: string
   routePattern: string
-  requestHost: string
+  serviceName: string
 }
 
 const form: Form = reactive({
@@ -65,7 +65,7 @@ const form: Form = reactive({
   prototype: '',
   methodType: '',
   routePattern: '',
-  requestHost: '',
+  serviceName: '',
 })
 
 const delBatch = async () => {
@@ -108,7 +108,7 @@ const handleEdit = async (row: AuthoritySys) => {
   form.status = data.status
   form.prototype = data.prototype
   form.methodType = data.methodType
-  form.requestHost = data.requestHost
+  form.serviceName = data.serviceName
   form.routePattern = data.routePattern
   dialogVisible.value = true
 }
@@ -153,7 +153,7 @@ const clearForm = () => {
   form.status = 0
   form.prototype = ''
   form.methodType = ''
-  form.requestHost = ''
+  form.serviceName = ''
   form.routePattern = ''
 }
 
@@ -194,7 +194,7 @@ const clearForm = () => {
     <el-table-column label="协议" align="center" prop="prototype" min-width="130" />
     <el-table-column label="方法类型" align="center" prop="methodType" min-width="130" />
     <el-table-column label="路由匹配" align="center" prop="routePattern" min-width="300" />
-    <el-table-column label="请求域名" align="center" prop="requestHost" min-width="250" />
+    <el-table-column label="请求服务" align="center" prop="serviceName" min-width="250" />
 
     <el-table-column label="描述" min-width="300" align="center" prop="remark" />
 
@@ -275,8 +275,8 @@ const clearForm = () => {
         <el-input v-model="form.routePattern" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="请求域名" label-width="100px" prop="remark">
-        <el-input v-model="form.requestHost" maxlength="30" />
+      <el-form-item label="请求服务" label-width="100px" prop="remark">
+        <el-input v-model="form.serviceName" maxlength="30" />
       </el-form-item>
 
       <el-form-item label="状态" label-width="100px" prop="status">
