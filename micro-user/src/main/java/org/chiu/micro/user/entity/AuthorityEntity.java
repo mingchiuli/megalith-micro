@@ -50,8 +50,8 @@ public class AuthorityEntity {
     @Column(name = "route_pattern")
     private String routePattern;
 
-    @Column(name = "request_host")
-    private String requestHost;
+    @Column(name = "service_name")
+    private String serviceName;
     
     @Column(name = "created", updatable = false)
     @CreatedDate
@@ -79,7 +79,7 @@ public class AuthorityEntity {
         if (!Objects.equals(updated, that.updated)) return false;
         if (!Objects.equals(prototype, that.prototype)) return false;
         if (!Objects.equals(methodType, that.methodType)) return false;
-        if (!Objects.equals(requestHost, that.requestHost)) return false;
+        if (!Objects.equals(serviceName, that.serviceName)) return false;
         return Objects.equals(status, that.status);
     }
 
