@@ -81,6 +81,7 @@ router.beforeEach(async (to, _from, next) => {
       callBackRequireRoutes(allKindsInfo)
       console.log(router.getRoutes())
       console.log(router.hasRoute(to.name!))
+      console.log(router.hasRoute(to.path))
       console.log(to.name)
       dealSysTab(to, allKindsInfo)
       //重定向解决刷新404
