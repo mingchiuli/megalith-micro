@@ -73,7 +73,7 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
         List<RoleAuthorityVo> roleAuthorityVos = new ArrayList<>();
 
         allAuthorityEntities.stream()
-                .filter(item -> item.getCode().startsWith(Const.WHITELIST.getInfo()))
+                .filter(item -> !item.getCode().startsWith(Const.WHITELIST.getInfo()))
                 .forEach(item -> roleAuthorityVos.add(RoleAuthorityVo.builder()
                         .authorityId(item.getId())
                         .code(item.getCode())
