@@ -27,10 +27,13 @@ public class MessageInterceptor implements ChannelInterceptor {
 
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
 
+    @SuppressWarnings("null")
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-    
+        
+        
+
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String token = accessor.getFirstNativeHeader("Authorization");
             if (!StringUtils.hasLength(token)) {

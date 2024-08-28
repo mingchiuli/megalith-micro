@@ -6,19 +6,22 @@ import org.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import org.chiu.micro.exhibit.dto.BlogExhibitDto;
 import org.chiu.micro.exhibit.dto.BlogSensitiveContentDto;
 import org.springframework.aot.hint.*;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.springframework.util.ReflectionUtils.*;
+import org.springframework.util.ReflectionUtils;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
     
+    @SuppressWarnings("null")
     @SneakyThrows
     @Override// Register method for reflection
-    public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+    public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {
         // Register method for reflection
-        hints.reflection().registerMethod(findMethod(CacheBlogEvictMessageListener.class, "handleMessage", Set.class), ExecutableMode.INVOKE);
+        hints.reflection().registerMethod(ReflectionUtils.findMethod(CacheBlogEvictMessageListener.class, "handleMessage", Set.class), ExecutableMode.INVOKE);
 
         hints.reflection().registerConstructor(LinkedHashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
     

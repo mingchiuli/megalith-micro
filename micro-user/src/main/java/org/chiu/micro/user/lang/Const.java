@@ -15,7 +15,9 @@ public enum Const {
 
     REGISTER_PREFIX("register_prefix:"),
 
-    USER("user");
+    USER("user"),
+    
+    WHITELIST("whitelist");
 
     private final String info;
 }

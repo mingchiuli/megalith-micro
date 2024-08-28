@@ -111,7 +111,7 @@ public class BlogServiceImpl implements BlogService {
         token = token.trim();
         String password = redisTemplate.opsForValue().get(READ_TOKEN.getInfo() + blogId);
         if (StringUtils.hasLength(token) && StringUtils.hasLength(password)) {
-            return password.equals(token);
+            return Objects.equals(password, token);
         }
         return false;
     }
