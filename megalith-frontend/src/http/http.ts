@@ -24,7 +24,9 @@ const DOWNLOAD_DATA = async (url: string, percentage: Ref<number>, percentageSho
   }).catch(e => {
     return Promise.reject(new Error(e))
   }).finally(() => {
-    percentageShow.value = false
+    setTimeout(() => {
+      percentageShow.value = false
+    }, 500)
   })
   
   return Promise.resolve(data)
@@ -47,7 +49,9 @@ const UPLOAD = async (dest: string, formData: FormData, percentage: Ref<number>,
   }).catch(e => {
     return Promise.reject(new Error(e))
   }).finally(() => {
-    percentageShow.value = false
+    setTimeout(() => {
+      percentageShow.value = false
+    }, 500)
   })
   return Promise.resolve(url)
 }
