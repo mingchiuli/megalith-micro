@@ -76,10 +76,10 @@ router.beforeEach(async (to, _from, next) => {
   if (loginStateStore().login) {
     let allKindsInfo: MenusAndButtons
     //页面被手动刷新
-    if (!router.hasRoute(to!.name)) {
+    if (!router.hasRoute(to.name!)) {
       allKindsInfo = await GET<MenusAndButtons>('/auth/menu/nav')
       callBackRequireRoutes(allKindsInfo)
-      if (!router.hasRoute(to!.name)) {
+      if (!router.hasRoute(to.name!)) {
         //404
         next()
         return
