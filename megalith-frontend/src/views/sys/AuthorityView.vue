@@ -22,7 +22,7 @@ const formRules = reactive<FormRules<Form>>({
     { required: true, message: '请输入名字', trigger: 'blur' }
   ],
   code: [
-    { required: true, message: '请输入唯一编码', trigger: 'blur' }
+    { required: true, message: '请输入唯一编码(白名单需要以whitelist开头)', trigger: 'blur' }
   ],
   remark: [
     { required: true, message: '请输入描述', trigger: 'blur' }
