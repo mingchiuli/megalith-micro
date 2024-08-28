@@ -56,7 +56,7 @@ export interface AuthoritySys {
   prototype: string
   methodType: string
   routePattern: string
-  requestHost: string
+  serviceName: string
 }
 
 export interface UserSys {
