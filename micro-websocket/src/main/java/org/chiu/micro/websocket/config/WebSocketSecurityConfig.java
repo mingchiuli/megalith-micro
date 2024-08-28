@@ -13,6 +13,7 @@ import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 支持security注解@PreAuthorize
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class WebSocketSecurityConfig {
 
     private final UserHttpServiceWrapper userHttpServiceWrapper;
@@ -35,6 +37,7 @@ public class WebSocketSecurityConfig {
                 .filter(item -> !item.getCode().startsWith(Const.WHITELIST.getInfo()))
                 .toList();
 
+        log.info(authorities.toString());
         var builder = messages
                 .simpTypeMatchers(SimpMessageType.CONNECT, SimpMessageType.DISCONNECT, SimpMessageType.OTHER)
                 .permitAll();
