@@ -54,7 +54,7 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, from) => {
   if (to.path.startsWith('/sys')) {
     welcomeStateStore().welcomeBackend = false
   }
@@ -82,7 +82,6 @@ router.beforeEach(async (to, from, next) => {
       console.log(router.getRoutes())
       dealSysTab(to, allKindsInfo)
       //重定向解决刷新404
-      next(to.path)
     } else {
       //正常路由切换diff
       GET<MenusAndButtons>('/auth/menu/nav').then(resp => {
@@ -90,10 +89,7 @@ router.beforeEach(async (to, from, next) => {
         callBackRequireRoutes(allKindsInfo)
         dealSysTab(to, allKindsInfo)
       })
-      next()
     }
-  } else {
-    next()
   }
 })
 
