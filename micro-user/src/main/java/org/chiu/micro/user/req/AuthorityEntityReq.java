@@ -29,7 +29,7 @@ public class AuthorityEntityReq {
     private String routePattern;
 
     @NotBlank
-    private String requestHost;
+    private String serviceName;
 
     @NotNull
     private Integer status;
