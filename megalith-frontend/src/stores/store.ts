@@ -13,6 +13,11 @@ export const loginStateStore = defineStore('loginStateStore', () => {
   return { login }
 })
 
+export const authMarkStore = defineStore('authMarkStore', () => {
+  const auth = ref(false)
+  return { auth }
+})
+
 export const menuStore = defineStore('menuStore', () => {
   const menuList = ref<Menu[]>([])
   return { menuList }

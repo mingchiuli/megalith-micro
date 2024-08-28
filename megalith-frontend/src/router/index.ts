@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, type RouteLocationNormalized, type RouteRecordRaw } from 'vue-router'
 import { GET } from '@/http/http'
 import { type Menu, type MenusAndButtons, type Tab } from '@/type/entity'
-import { menuStore, loginStateStore, welcomeStateStore, buttonStore, tabStore } from '@/stores/store'
+import { menuStore, loginStateStore, welcomeStateStore, buttonStore, tabStore, authMarkStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import { diff, findMenuByPath } from '@/utils/tools'
 
@@ -54,7 +54,7 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to, _from) => {
   if (to.path.startsWith('/sys')) {
     welcomeStateStore().welcomeBackend = false
   }
@@ -77,11 +77,13 @@ router.beforeEach(async (to, from) => {
     let allKindsInfo: MenusAndButtons
     //页面被手动刷新
     if (!to.name || !router.hasRoute(to.name)) {
-      allKindsInfo = await GET<MenusAndButtons>('/auth/menu/nav')
-      callBackRequireRoutes(allKindsInfo)
-      console.log(router.getRoutes())
-      dealSysTab(to, allKindsInfo)
-      return to.fullPath
+      if (!authMarkStore().auth) {
+        allKindsInfo = await GET<MenusAndButtons>('/auth/menu/nav')
+        callBackRequireRoutes(allKindsInfo)
+        dealSysTab(to, allKindsInfo)
+        authMarkStore().auth = true
+        return to.fullPath
+      }
     } else {
       //正常路由切换diff
       GET<MenusAndButtons>('/auth/menu/nav').then(resp => {
