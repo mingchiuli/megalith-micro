@@ -86,7 +86,7 @@ router.beforeEach(async (to, from, next) => {
       
       dealSysTab(to, allKindsInfo)
       //重定向解决刷新404
-      next(to)
+      next()
     } else {
       //正常路由切换diff
       GET<MenusAndButtons>('/auth/menu/nav').then(resp => {
