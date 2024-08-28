@@ -75,7 +75,7 @@ router.beforeEach(async (to, from, next) => {
     if (!to.name || !router.hasRoute(to.name)) {
       allKindsInfo = await GET<MenusAndButtons>('/auth/menu/nav')
       callBackRequireRoutes(allKindsInfo)
-      console.log(from.redirectedFrom)
+      console.log(router.getRoutes())
       console.log(from.path)
       console.log(to.path)
       console.log(to.redirectedFrom)
