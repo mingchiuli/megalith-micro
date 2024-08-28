@@ -47,6 +47,10 @@ const router = createRouter({
       name: 'blog',
       component: () => import('@/views/BlogView.vue')
     },
+    {
+      path: '/:catchAll(.*)',
+      component: () => import('@/views/404View.vue')
+    }
   ]
 })
 
@@ -76,13 +80,9 @@ router.beforeEach(async (to, from, next) => {
       allKindsInfo = await GET<MenusAndButtons>('/auth/menu/nav')
       callBackRequireRoutes(allKindsInfo)
       console.log(router.getRoutes())
-      console.log(from.path)
-      console.log(to.path)
-      console.log(to.redirectedFrom)
-      
       dealSysTab(to, allKindsInfo)
       //重定向解决刷新404
-      next()
+      next(to.path)
     } else {
       //正常路由切换diff
       GET<MenusAndButtons>('/auth/menu/nav').then(resp => {
