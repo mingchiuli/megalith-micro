@@ -7,9 +7,11 @@ import org.chiu.micro.blog.valid.BlogSaveValue;
 import org.chiu.micro.blog.vo.BlogDeleteVo;
 import org.chiu.micro.blog.vo.BlogEntityVo;
 import org.chiu.micro.blog.req.BlogEntityReq;
-import org.chiu.micro.blog.req.DeleteBlogsReq;
 import org.chiu.micro.blog.req.ImgUploadReq;
 import org.chiu.micro.blog.rpc.wrapper.AuthHttpServiceWrapper;
+
+import java.util.List;
+
 import org.chiu.micro.blog.dto.AuthDto;
 import org.chiu.micro.blog.lang.Result;
 import org.chiu.micro.blog.page.PageAdapter;
@@ -21,8 +23,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 
 
 /**
@@ -48,10 +50,10 @@ public class BlogController {
     }
 
     @PostMapping("/delete")
-    public Result<Void> deleteBlogs(@RequestBody @Valid DeleteBlogsReq req,
+    public Result<Void> deleteBlogs(@RequestBody @NotEmpty List<Long> ids,
                                     HttpServletRequest request) {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
-        return Result.success(() -> blogService.deleteBatch(req.getIds(), authDto.getUserId(), authDto.getRoles()));
+        return Result.success(() -> blogService.deleteBatch(ids, authDto.getUserId(), authDto.getRoles()));
     }
 
     @GetMapping("/lock/{blogId}")

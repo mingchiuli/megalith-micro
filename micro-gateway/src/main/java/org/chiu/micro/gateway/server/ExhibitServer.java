@@ -9,7 +9,7 @@ import org.springframework.web.service.annotation.GetExchange;
 public interface ExhibitServer {
 
     @GetExchange("/info/{blogId}")
-    byte[] getBlogDetail(@PathVariable(name = "blogId") Long blogId, @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String token);
+    byte[] getBlogDetail(@PathVariable Long blogId, @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String token);
 
     @GetExchange("/page/{currentPage}")
     byte[] findPage(@PathVariable Integer currentPage, @RequestParam(required = false) Integer year);

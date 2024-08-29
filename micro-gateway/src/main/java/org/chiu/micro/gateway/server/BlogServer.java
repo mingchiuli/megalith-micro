@@ -1,9 +1,8 @@
 package org.chiu.micro.gateway.server;
 
-import org.chiu.micro.gateway.req.BlogEditPushAllReq;
-import org.chiu.micro.gateway.req.BlogEntityReq;
-import org.chiu.micro.gateway.req.DeleteBlogsReq;
-import org.chiu.micro.gateway.req.ImgUploadReq;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,10 +15,10 @@ import org.springframework.web.service.annotation.PostExchange;
 public interface BlogServer {
 
     @PostExchange("/save")
-    byte[] saveOrUpdate(@RequestBody BlogEntityReq blog, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
+    byte[] saveOrUpdate(@RequestBody byte[] data, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @PostExchange("/delete")
-    byte[] deleteBatch(@RequestBody DeleteBlogsReq req, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
+    byte[] deleteBatch(@RequestBody List<Long> ids, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @GetExchange("/lock/{blogId}")
     byte[] setBlogToken(@PathVariable Long blogId, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
@@ -34,7 +33,7 @@ public interface BlogServer {
     byte[] recoverDeletedBlog(@PathVariable Integer idx, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @PostExchange(value = "/oss/upload")
-    byte[] uploadOss(@RequestBody ImgUploadReq image, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
+    byte[] uploadOss(@RequestBody Map<String, Object> image, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @GetExchange("/oss/delete")
     byte[] deleteOss(@RequestParam String url);
@@ -43,7 +42,7 @@ public interface BlogServer {
     byte[] download();
 
     @PostExchange("/edit/push/all")
-    byte[] pushAll(@RequestBody BlogEditPushAllReq blog, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
+    byte[] pushAll(@RequestBody byte[] blog, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @GetExchange("/edit/pull/echo")
     byte[] findEdit(@RequestParam(value = "blogId", required = false) Long id, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);

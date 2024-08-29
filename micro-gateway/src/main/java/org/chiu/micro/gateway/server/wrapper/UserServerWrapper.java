@@ -1,13 +1,9 @@
 package org.chiu.micro.gateway.server.wrapper;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.chiu.micro.gateway.req.AuthorityEntityReq;
-import org.chiu.micro.gateway.req.ImgUploadReq;
-import org.chiu.micro.gateway.req.MenuEntityReq;
-import org.chiu.micro.gateway.req.RoleEntityReq;
-import org.chiu.micro.gateway.req.UserEntityRegisterReq;
-import org.chiu.micro.gateway.req.UserEntityReq;
 import org.chiu.micro.gateway.server.UserServer;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,8 +42,8 @@ public class UserServerWrapper {
     }
 
     @PostMapping("/authority/save")
-    public byte[] saveOrUpdateAuthority(@RequestBody AuthorityEntityReq req) {
-        return userServer.saveOrUpdateAuthority(req);
+    public byte[] saveOrUpdateAuthority(@RequestBody byte[] data) {
+        return userServer.saveOrUpdateAuthority(data);
     }
 
     @PostMapping("/authority/delete")
@@ -79,8 +75,8 @@ public class UserServerWrapper {
     }
 
     @PostMapping("/menu/save")
-    public byte[] saveOrUpdateMenu(@RequestBody MenuEntityReq menu) {
-        return userServer.saveOrUpdateMenu(menu);
+    public byte[] saveOrUpdateMenu(@RequestBody byte[] data) {
+        return userServer.saveOrUpdateMenu(data);
     }
 
     @PostMapping("/menu/delete/{id}")
@@ -113,8 +109,8 @@ public class UserServerWrapper {
     }
 
     @PostMapping("/role/save")
-    public byte[] saveOrUpdateRole(@RequestBody RoleEntityReq role) {
-        return userServer.saveOrUpdateRole(role);
+    public byte[] saveOrUpdateRole(@RequestBody byte[] data) {
+        return userServer.saveOrUpdateRole(data);
     }
 
     @PostMapping("/role/delete")
@@ -174,18 +170,18 @@ public class UserServerWrapper {
 
     @PostMapping("/user/register/save")
     public byte[] saveRegisterPage(@RequestParam String token,
-                                   @RequestBody UserEntityRegisterReq userEntityRegisterReq) {
-        return userServer.saveRegisterPage(token, userEntityRegisterReq);
+                                   @RequestBody byte[] data) {
+        return userServer.saveRegisterPage(token, data);
     }
 
     @PostMapping("/user/register/image/upload")
     @SneakyThrows
     public byte[] imageUpload(@RequestParam MultipartFile image,
                               @RequestParam String token) {
-        var req = new ImgUploadReq();
-        req.setData(image.getBytes());
-        req.setFileName(image.getOriginalFilename());
-        return userServer.imageUpload(token, req);
+        Map<String, Object> params = new HashMap<>();
+        params.put("fileName", image.getOriginalFilename());
+        params.put("data", image.getBytes());
+        return userServer.imageUpload(token, params);
     }
 
     @GetMapping("/user/register/image/delete")
@@ -195,8 +191,8 @@ public class UserServerWrapper {
     }
 
     @PostMapping("/user/save")
-    public byte[] saveOrUpdateUser(@RequestBody UserEntityReq userEntityReq) {
-        return userServer.saveOrUpdateUser(userEntityReq);
+    public byte[] saveOrUpdateUser(@RequestBody byte[] data) {
+        return userServer.saveOrUpdateUser(data);
     }
 
     @GetMapping("/user/page/{currentPage}")

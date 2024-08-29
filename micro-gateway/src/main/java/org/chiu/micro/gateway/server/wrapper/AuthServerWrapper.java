@@ -26,13 +26,13 @@ public class AuthServerWrapper {
   }
 
   @GetMapping("/code/email")
-  public byte[] createEmailCode(@RequestParam(value = "loginName") String loginEmail) {
-    return authServer.createEmailCode(loginEmail);
+  public byte[] createEmailCode(@RequestParam String loginName) {
+    return authServer.createEmailCode(loginName);
   }
 
   @GetMapping("/code/sms")
-  public byte[] createSmsCode(@RequestParam(value = "loginName") String loginPhone) {
-    return authServer.createSmsCode(loginPhone);
+  public byte[] createSmsCode(@RequestParam String loginName) {
+    return authServer.createSmsCode(loginName);
   }
 
   @GetMapping("/token/refresh")

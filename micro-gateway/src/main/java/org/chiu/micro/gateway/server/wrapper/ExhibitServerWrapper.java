@@ -32,8 +32,8 @@ public class ExhibitServerWrapper {
 
     @GetMapping("/secret/{blogId}")
     public byte[] getLockedBlog(@PathVariable Long blogId,
-                                @RequestParam(value = "readToken") String token) {
-        return exhibitServer.getLockedBlog(blogId, token);
+                                @RequestParam String readToken) {
+        return exhibitServer.getLockedBlog(blogId, readToken);
     }
 
     @GetMapping("/token/{blogId}")

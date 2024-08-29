@@ -13,10 +13,10 @@ public interface AuthServer {
   byte[] login(@RequestParam String username, @RequestParam String password);
 
   @GetExchange("/code/email")
-  byte[] createEmailCode(@RequestParam(value = "loginName") String loginEmail);
+  byte[] createEmailCode(@RequestParam String loginName);
 
   @GetExchange("/code/sms")
-  byte[] createSmsCode(@RequestParam(value = "loginName") String loginPhone);
+  byte[] createSmsCode(@RequestParam String loginName);
 
   @GetExchange("/token/refresh")
   byte[] refreshToken(@RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
