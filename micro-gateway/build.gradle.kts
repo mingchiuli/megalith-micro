@@ -41,7 +41,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 	docker {
 		publish.set(true)
 		publishRegistry {
-			imageName.set("docker.io/mingchiuli/micro-gateway:${version}")
+			imageName.set("docker.io/mingchiuli/megalith-micro-gateway:${version}")
 			url.set("https://docker.io")
 			val un = System.getenv("DOCKER_USERNAME")
 			val pwd = System.getenv("DOCKER_PWD")
