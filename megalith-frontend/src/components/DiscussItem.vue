@@ -35,6 +35,7 @@ onMounted(() => {
   <div id="comment-div">
     <el-tabs :stretch=true v-model="activeName">
       <el-tab-pane label="Disqus" name="first">
+        <el-text>如果评论加载不出来请切换至Giscus -> 你需要科学上网</el-text>
         <div id="disqus_thread" style="width: inherit"></div>
       </el-tab-pane>
       <el-tab-pane label="Giscus" name="second">
