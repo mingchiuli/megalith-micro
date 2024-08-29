@@ -1,13 +1,8 @@
 package org.chiu.micro.gateway.server;
 
 import java.util.List;
+import java.util.Map;
 
-import org.chiu.micro.gateway.req.AuthorityEntityReq;
-import org.chiu.micro.gateway.req.ImgUploadReq;
-import org.chiu.micro.gateway.req.MenuEntityReq;
-import org.chiu.micro.gateway.req.RoleEntityReq;
-import org.chiu.micro.gateway.req.UserEntityRegisterReq;
-import org.chiu.micro.gateway.req.UserEntityReq;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,7 +18,7 @@ public interface UserServer {
     byte[] findByAuthorityId(@PathVariable Long id);
 
     @PostExchange("/authority/save")
-    byte[] saveOrUpdateAuthority(@RequestBody AuthorityEntityReq req);
+    byte[] saveOrUpdateAuthority(@RequestBody byte[] data);
 
     @PostExchange("/authority/delete")
     byte[] deleteAuthorities(@RequestBody List<Long> ids);
@@ -38,7 +33,7 @@ public interface UserServer {
     byte[] menuTree();
 
     @PostExchange("/menu/save")
-    byte[] saveOrUpdateMenu(@RequestBody MenuEntityReq req);
+    byte[] saveOrUpdateMenu(@RequestBody byte[] data);
 
     @PostExchange("/menu/delete/{id}")
     byte[] deleteMenu(@PathVariable Long id);
@@ -53,7 +48,7 @@ public interface UserServer {
     byte[] getRolePage(@RequestParam(required = false) Integer currentPage, @RequestParam(required = false) Integer size);
 
     @PostExchange("/role/save")
-    byte[] saveOrUpdateRole(@RequestBody RoleEntityReq role);
+    byte[] saveOrUpdateRole(@RequestBody byte[] data);
 
     @PostExchange("/role/delete")
     byte[] deleteRole(@RequestBody List<Long> ids);
@@ -83,16 +78,16 @@ public interface UserServer {
     byte[] checkRegisterPage(@RequestParam String token);
 
     @PostExchange("/user/register/save")
-    byte[] saveRegisterPage(@RequestParam String token, @RequestBody UserEntityRegisterReq userEntityRegisterReq);
+    byte[] saveRegisterPage(@RequestParam String token, @RequestBody byte[] data);
 
     @PostExchange("/user/register/image/upload")
-    byte[] imageUpload(@RequestParam String token, @RequestBody ImgUploadReq image);
+    byte[] imageUpload(@RequestParam String token, @RequestBody Map<String, Object> data);
 
     @GetExchange("/user/register/image/delete")
     byte[] imageDelete(@RequestParam String token, @RequestParam String url);
 
     @PostExchange("/user/save")
-    byte[] saveOrUpdateUser(@RequestBody UserEntityReq userEntityReq);
+    byte[] saveOrUpdateUser(@RequestBody byte[] data);
 
     @GetExchange("/user/page/{currentPage}")
     byte[] listPageUser(@PathVariable Integer currentPage, @RequestParam(required = false) Integer size);

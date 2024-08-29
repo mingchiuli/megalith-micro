@@ -1,15 +1,13 @@
 package org.chiu.micro.gateway.server.wrapper;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.nio.charset.StandardCharsets;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.chiu.micro.gateway.req.BlogEditPushAllReq;
-import org.chiu.micro.gateway.req.BlogEntityReq;
-import org.chiu.micro.gateway.req.DeleteBlogsReq;
-import org.chiu.micro.gateway.req.ImgUploadReq;
 import org.chiu.micro.gateway.server.BlogServer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -34,18 +32,17 @@ public class BlogServerWrapper {
     private final BlogServer blogServer;
 
     @PostMapping("/save")
-    public byte[] saveOrUpdate(@RequestBody BlogEntityReq blog,
+    public byte[] saveOrUpdate(@RequestBody byte[] data,
                                HttpServletRequest request) {
         
-        return blogServer.saveOrUpdate(blog, request.getHeader(HttpHeaders.AUTHORIZATION));
+        return blogServer.saveOrUpdate(data, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @PostMapping("/delete")
     public byte[] deleteBlogs(@RequestBody List<Long> ids,
                               HttpServletRequest request) {
-        var req = new DeleteBlogsReq();
-        req.setIds(ids);
-        return blogServer.deleteBatch(req, request.getHeader(HttpHeaders.AUTHORIZATION));
+     
+        return blogServer.deleteBatch(ids, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/lock/{blogId}")
@@ -78,10 +75,10 @@ public class BlogServerWrapper {
     @SneakyThrows
     public byte[] uploadOss(@RequestParam MultipartFile image,
                             HttpServletRequest request) {
-        ImgUploadReq req = new ImgUploadReq();
-        req.setData(image.getBytes());
-        req.setFileName(image.getOriginalFilename());
-        return blogServer.uploadOss(req, request.getHeader(HttpHeaders.AUTHORIZATION));
+        Map<String, Object> params = new HashMap<>();
+        params.put("fileName", image.getOriginalFilename());
+        params.put("data", image.getBytes());
+        return blogServer.uploadOss(params, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/oss/delete")
@@ -103,15 +100,15 @@ public class BlogServerWrapper {
     }
 
     @PostMapping("/edit/push/all")
-    public byte[] pullSaveBlog(@RequestBody BlogEditPushAllReq blog,
+    public byte[] pullSaveBlog(@RequestBody byte[] data,
                                HttpServletRequest request) {
-        return blogServer.pushAll(blog, request.getHeader(HttpHeaders.AUTHORIZATION));
+        return blogServer.pushAll(data, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/edit/pull/echo")
-    public byte[] getEchoDetail(@RequestParam(value = "blogId", required = false) Long id,
+    public byte[] getEchoDetail(@RequestParam(required = false) Long blogId,
                                 HttpServletRequest request) {
-        return blogServer.findEdit(id, request.getHeader(HttpHeaders.AUTHORIZATION));
+        return blogServer.findEdit(blogId, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
 }
