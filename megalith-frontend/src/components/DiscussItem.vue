@@ -35,10 +35,10 @@ onMounted(() => {
   <div id="comment-div">
     <el-tabs :stretch=true v-model="activeName">
       <el-tab-pane label="Giscus" name="first">
-        <div id="giscus_thread" style="width: inherit"></div>
+        <div id="disqus_thread" style="width: inherit"></div>
       </el-tab-pane>
-      <el-tab-pane label="Utterance" name="second">
-        <div id="utterance" style="width: inherit"></div>
+      <el-tab-pane label="Giscus" name="second">
+        <div id="giscus_thread" style="width: inherit"></div>
       </el-tab-pane>
     </el-tabs>
   </div>
