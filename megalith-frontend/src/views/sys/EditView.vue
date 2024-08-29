@@ -573,8 +573,7 @@ const healthCheck = async () => {
         </el-popover>
       </el-form-item>
 
-      <el-form-item class="cover">
-        <span style="margin-right: 10px;">封面</span>
+      <el-form-item class="cover" label="封面">
         <el-upload v-model:file-list="fileList" action="#" list-type="picture-card" :before-upload="beforeUpload"
           :limit="1" :http-request="upload" :on-remove="handleRemove" :disabled="readOnly"
           :on-preview="handlePictureCardPreview">
@@ -588,7 +587,9 @@ const healthCheck = async () => {
         </el-dialog>
       </el-form-item>
 
-      <el-progress v-if="showPercentage" type="line" :percentage="uploadPercentage" :color="Colors" />
+      <el-form-item label="进度" class="progress" v-if="showPercentage" >
+        <el-progress  type="line" :percentage="uploadPercentage" :color="Colors" />
+      </el-form-item>
 
       <el-form-item class="content" prop="content">
         <CustomEditorItem v-model:content="form.content" @composing="dealComposing" @sensitive="dealSensitive"
@@ -617,6 +618,11 @@ const healthCheck = async () => {
 }
 
 .desc {
+  margin-top: 5px;
+  width: 300px
+}
+
+.progress {
   margin-top: 5px;
   width: 300px
 }
