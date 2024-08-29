@@ -1,7 +1,7 @@
 import http from '@/http/axios'
 import { DOWNLOAD_DATA, GET, POST } from '@/http/http'
 import router from '@/router'
-import { buttonStore, loginStateStore, menuStore, tabStore } from '@/stores/store'
+import { buttonStore, loginStateStore, menuStore, tabStore, authMarkStore } from '@/stores/store'
 import { FieldType, OperateTypeCode, ActionType, type Data, type JWTStruct, type Menu, type PushActionForm, type RefreshStruct, type Tab, type Token, type UserInfo, type EditForm, Status, SensitiveType, FieldName } from '@/type/entity'
 import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
@@ -25,6 +25,7 @@ export const clearLoginState = () => {
   if(router.hasRoute('system')) {
     router.removeRoute('system')
   }
+  authMarkStore().auth = false
   loginStateStore().login = false
   menuStore().menuList = []
   tabStore().editableTabs = []
