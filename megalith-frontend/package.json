@@ -21,7 +21,7 @@
     "highlight.js": "^11.10.0",
     "js-base64": "^3.7.7",
     "markdown-it": "^14.1.0",
-    "md-editor-v3": "^4.19.1",
+    "md-editor-v3": "^4.19.2",
     "pinia": "^2.2.2",
     "vue": "^3.4.38",
     "vue-router": "^4.4.3"
