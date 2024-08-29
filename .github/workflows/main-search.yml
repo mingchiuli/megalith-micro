@@ -44,6 +44,6 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            docker pull mingchiuli/micro-search:latest
+            docker pull mingchiuli/megalith-micro-search:latest
             docker compose --compatibility up -d
             docker rmi $(docker images | grep 'none' | awk '{print $3}')
