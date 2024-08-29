@@ -18,7 +18,7 @@ public interface UserServer {
     byte[] findByAuthorityId(@PathVariable Long id);
 
     @PostExchange("/authority/save")
-    byte[] saveOrUpdateAuthority(@RequestBody byte[] data);
+    byte[] saveOrUpdateAuthority(@RequestBody Object data);
 
     @PostExchange("/authority/delete")
     byte[] deleteAuthorities(@RequestBody List<Long> ids);
@@ -33,7 +33,7 @@ public interface UserServer {
     byte[] menuTree();
 
     @PostExchange("/menu/save")
-    byte[] saveOrUpdateMenu(@RequestBody byte[] data);
+    byte[] saveOrUpdateMenu(@RequestBody Object data);
 
     @PostExchange("/menu/delete/{id}")
     byte[] deleteMenu(@PathVariable Long id);
@@ -48,7 +48,7 @@ public interface UserServer {
     byte[] getRolePage(@RequestParam(required = false) Integer currentPage, @RequestParam(required = false) Integer size);
 
     @PostExchange("/role/save")
-    byte[] saveOrUpdateRole(@RequestBody byte[] data);
+    byte[] saveOrUpdateRole(@RequestBody Object data);
 
     @PostExchange("/role/delete")
     byte[] deleteRole(@RequestBody List<Long> ids);
@@ -78,7 +78,7 @@ public interface UserServer {
     byte[] checkRegisterPage(@RequestParam String token);
 
     @PostExchange("/user/register/save")
-    byte[] saveRegisterPage(@RequestParam String token, @RequestBody byte[] data);
+    byte[] saveRegisterPage(@RequestParam String token, @RequestBody Object data);
 
     @PostExchange("/user/register/image/upload")
     byte[] imageUpload(@RequestParam String token, @RequestBody Map<String, Object> data);
@@ -87,7 +87,7 @@ public interface UserServer {
     byte[] imageDelete(@RequestParam String token, @RequestParam String url);
 
     @PostExchange("/user/save")
-    byte[] saveOrUpdateUser(@RequestBody byte[] data);
+    byte[] saveOrUpdateUser(@RequestBody Object data);
 
     @GetExchange("/user/page/{currentPage}")
     byte[] listPageUser(@PathVariable Integer currentPage, @RequestParam(required = false) Integer size);

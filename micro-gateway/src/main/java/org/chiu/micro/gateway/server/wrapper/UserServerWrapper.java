@@ -42,7 +42,7 @@ public class UserServerWrapper {
     }
 
     @PostMapping("/authority/save")
-    public byte[] saveOrUpdateAuthority(@RequestBody byte[] data) {
+    public byte[] saveOrUpdateAuthority(@RequestBody Object data) {
         return userServer.saveOrUpdateAuthority(data);
     }
 
@@ -75,7 +75,7 @@ public class UserServerWrapper {
     }
 
     @PostMapping("/menu/save")
-    public byte[] saveOrUpdateMenu(@RequestBody byte[] data) {
+    public byte[] saveOrUpdateMenu(@RequestBody Object data) {
         return userServer.saveOrUpdateMenu(data);
     }
 
@@ -109,7 +109,7 @@ public class UserServerWrapper {
     }
 
     @PostMapping("/role/save")
-    public byte[] saveOrUpdateRole(@RequestBody byte[] data) {
+    public byte[] saveOrUpdateRole(@RequestBody Object data) {
         return userServer.saveOrUpdateRole(data);
     }
 
@@ -170,7 +170,7 @@ public class UserServerWrapper {
 
     @PostMapping("/user/register/save")
     public byte[] saveRegisterPage(@RequestParam String token,
-                                   @RequestBody byte[] data) {
+                                   @RequestBody Object data) {
         return userServer.saveRegisterPage(token, data);
     }
 

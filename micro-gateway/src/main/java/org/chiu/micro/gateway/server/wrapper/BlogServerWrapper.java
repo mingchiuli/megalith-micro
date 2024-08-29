@@ -32,7 +32,7 @@ public class BlogServerWrapper {
     private final BlogServer blogServer;
 
     @PostMapping("/save")
-    public byte[] saveOrUpdate(@RequestBody byte[] data,
+    public byte[] saveOrUpdate(@RequestBody Object data,
                                HttpServletRequest request) {
         
         return blogServer.saveOrUpdate(data, request.getHeader(HttpHeaders.AUTHORIZATION));
@@ -100,7 +100,7 @@ public class BlogServerWrapper {
     }
 
     @PostMapping("/edit/push/all")
-    public byte[] pullSaveBlog(@RequestBody byte[] data,
+    public byte[] pullSaveBlog(@RequestBody Object data,
                                HttpServletRequest request) {
         return blogServer.pushAll(data, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
