@@ -24,7 +24,7 @@ import java.util.Objects;
 @DynamicUpdate
 @EntityListeners(AuditingEntityListener.class)
 @Table(name ="m_authority",
-        uniqueConstraints = {@UniqueConstraint(columnNames = "code"), @UniqueConstraint(columnNames = "name")}, indexes = {@Index(columnList = "request_host")})
+        uniqueConstraints = {@UniqueConstraint(columnNames = "code")}, indexes = {@Index(columnList = "request_host")})
 public class AuthorityEntity {
 
     @Id
