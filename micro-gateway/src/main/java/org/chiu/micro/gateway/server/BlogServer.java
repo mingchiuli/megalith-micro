@@ -15,7 +15,7 @@ import org.springframework.web.service.annotation.PostExchange;
 public interface BlogServer {
 
     @PostExchange("/save")
-    byte[] saveOrUpdate(@RequestBody byte[] data, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
+    byte[] saveOrUpdate(@RequestBody Object data, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @PostExchange("/delete")
     byte[] deleteBatch(@RequestBody List<Long> ids, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
@@ -27,7 +27,7 @@ public interface BlogServer {
     byte[] findAllABlogs(@RequestParam(required = false) Integer currentPage, @RequestParam(required = false) Integer size, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @GetExchange("/deleted")
-    byte[] findDeletedBlogs(@RequestParam Integer currentPage, @RequestParam(value = "size") Integer size, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
+    byte[] findDeletedBlogs(@RequestParam Integer currentPage, @RequestParam Integer size, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @GetExchange("/recover/{idx}")
     byte[] recoverDeletedBlog(@PathVariable Integer idx, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
@@ -42,7 +42,7 @@ public interface BlogServer {
     byte[] download();
 
     @PostExchange("/edit/push/all")
-    byte[] pushAll(@RequestBody byte[] blog, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
+    byte[] pushAll(@RequestBody Object blog, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @GetExchange("/edit/pull/echo")
     byte[] findEdit(@RequestParam(value = "blogId", required = false) Long id, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
