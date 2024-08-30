@@ -11,13 +11,17 @@ import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
+import lombok.RequiredArgsConstructor;
+
 import java.time.Duration;
 import java.net.http.HttpClient;
-import java.util.concurrent.Executors;
 
 
 @Configuration
+@RequiredArgsConstructor
 public class RpcConfig {
+
+    private final HttpClient httpClient;
 
     @Value("${blog.sms.base-url}")
     private String baseUrl;
@@ -25,9 +29,7 @@ public class RpcConfig {
     @Bean
     SmsHttpService smsHttpService() {
 
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
-                .executor(Executors.newVirtualThreadPerTaskExecutor())  // Configure to use virtual threads
-                .build());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory(baseUrl);
@@ -49,9 +51,7 @@ public class RpcConfig {
     @Bean
     UserHttpService userHttpService() {
 
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
-                .executor(Executors.newVirtualThreadPerTaskExecutor())  // Configure to use virtual threads
-                .build());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()

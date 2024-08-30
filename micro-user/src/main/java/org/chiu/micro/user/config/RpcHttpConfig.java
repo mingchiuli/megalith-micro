@@ -10,12 +10,14 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
+import lombok.RequiredArgsConstructor;
+
 import java.time.Duration;
 import java.net.http.HttpClient;
-import java.util.concurrent.Executors;
 
 
 @Configuration
+@RequiredArgsConstructor
 public class RpcHttpConfig {
 
     @Value("${blog.aliyun.oss.bucket-name}")
@@ -27,12 +29,12 @@ public class RpcHttpConfig {
     @Value("${blog.oss.base-url}")
     private String baseUrl;
 
+    private final HttpClient httpClient;
+
     @Bean
     OssHttpService ossHttpService() {
 
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
-                .executor(Executors.newVirtualThreadPerTaskExecutor())  // Configure to use virtual threads
-                .build());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
