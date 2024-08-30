@@ -189,7 +189,7 @@ const clearForm = () => {
     v-loading="loading">
     <el-table-column type="selection" :fixed="fixSelection" />
     <el-table-column label="接口名字" align="center" prop="name" min-width="300" />
-    <el-table-column label="唯一编码" align="center" prop="code" min-width="180" />
+    <el-table-column label="唯一编码" align="center" prop="code" min-width="300" />
 
     <el-table-column label="协议" align="center" prop="prototype" min-width="130" />
     <el-table-column label="方法类型" align="center" prop="methodType" min-width="130" />
