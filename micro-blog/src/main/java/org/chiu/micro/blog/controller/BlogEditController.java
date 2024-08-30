@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/sys/blog")
+@RequestMapping(value = "/sys/blog/edit")
 @Validated
 public class BlogEditController {
 
@@ -29,14 +29,14 @@ public class BlogEditController {
 
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
   
-    @PostMapping("/edit/push/all")
+    @PostMapping("/push/all")
     public Result<Void> pushSaveBlog(@RequestBody @PushAllValue BlogEditPushAllReq blog,
                                      HttpServletRequest request) {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
         return Result.success(() -> blogEditService.pushAll(blog, authDto.getUserId()));
     }
 
-    @GetMapping("/edit/pull/echo")
+    @GetMapping("/pull/echo")
     public Result<BlogEditVo> getEchoDetail(@RequestParam(value = "blogId", required = false) Long id,
                                             HttpServletRequest request) {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
