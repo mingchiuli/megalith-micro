@@ -252,31 +252,31 @@ const clearForm = () => {
     <el-form :model="form" :rules="formRules" ref="formRef">
 
       <el-form-item label="接口名字" label-width="100px" prop="name">
-        <el-input v-model="form.name" maxlength="30" />
+        <el-input v-model="form.name" maxlength="50" />
       </el-form-item>
 
       <el-form-item label="唯一编码" label-width="100px" prop="code">
-        <el-input v-model="form.code" maxlength="30" />
+        <el-input v-model="form.code" maxlength="50" />
       </el-form-item>
 
       <el-form-item label="描述" label-width="100px" prop="remark">
-        <el-input v-model="form.remark" maxlength="30" />
+        <el-input v-model="form.remark" maxlength="50" />
       </el-form-item>
 
       <el-form-item label="协议" label-width="100px" prop="remark">
-        <el-input v-model="form.prototype" maxlength="30" />
+        <el-input v-model="form.prototype" maxlength="50" />
       </el-form-item>
 
       <el-form-item label="方法类型" label-width="100px" prop="remark">
-        <el-input v-model="form.methodType" maxlength="30" />
+        <el-input v-model="form.methodType" maxlength="50" />
       </el-form-item>
 
       <el-form-item label="路由匹配" label-width="100px" prop="remark">
-        <el-input v-model="form.routePattern" maxlength="30" />
+        <el-input v-model="form.routePattern" maxlength="50" />
       </el-form-item>
 
       <el-form-item label="请求服务" label-width="100px" prop="remark">
-        <el-input v-model="form.serviceName" maxlength="30" />
+        <el-input v-model="form.serviceName" maxlength="50" />
       </el-form-item>
 
       <el-form-item label="状态" label-width="100px" prop="status">
