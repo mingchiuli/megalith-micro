@@ -2,7 +2,6 @@ package org.chiu.micro.gateway.config;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
-import java.util.concurrent.Executors;
 
 import org.chiu.micro.gateway.server.AuthServer;
 import org.chiu.micro.gateway.server.BlogServer;
@@ -16,19 +15,22 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
+import lombok.RequiredArgsConstructor;
+
 
 /**
  * ServerConfig
  */
 @Configuration
+@RequiredArgsConstructor
 public class ServerConfig {
+
+    private final HttpClient httpClient;
 
     @Bean
     BlogServer blogServer() {
 
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
-                .executor(Executors.newVirtualThreadPerTaskExecutor())  // Configure to use virtual threads
-                .build());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
@@ -45,9 +47,7 @@ public class ServerConfig {
     @Bean
     SearchServer searchServer() {
 
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
-                .executor(Executors.newVirtualThreadPerTaskExecutor())  // Configure to use virtual threads
-                .build());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
@@ -64,9 +64,7 @@ public class ServerConfig {
     @Bean
     ExhibitServer exhibitServer() {
 
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
-                .executor(Executors.newVirtualThreadPerTaskExecutor())  // Configure to use virtual threads
-                .build());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
@@ -83,9 +81,7 @@ public class ServerConfig {
     @Bean
     UserServer userServer() {
 
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
-                .executor(Executors.newVirtualThreadPerTaskExecutor())  // Configure to use virtual threads
-                .build());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
@@ -102,9 +98,7 @@ public class ServerConfig {
     @Bean
     AuthServer authServer() {
 
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
-                .executor(Executors.newVirtualThreadPerTaskExecutor())  // Configure to use virtual threads
-                .build());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()

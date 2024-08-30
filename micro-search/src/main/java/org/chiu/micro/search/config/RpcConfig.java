@@ -9,19 +9,21 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
+import lombok.RequiredArgsConstructor;
+
 import java.time.Duration;
 import java.net.http.HttpClient;
-import java.util.concurrent.Executors;
 
 @Configuration
+@RequiredArgsConstructor
 public class RpcConfig {
+
+    private final HttpClient httpClient;
 
     @Bean
     BlogHttpService blogHttpService() {
 
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
-                .executor(Executors.newVirtualThreadPerTaskExecutor())  // Configure to use virtual threads
-                .build());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
@@ -38,9 +40,7 @@ public class RpcConfig {
     @Bean
     AuthHttpService authHttpService() {
 
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
-                .executor(Executors.newVirtualThreadPerTaskExecutor())  // Configure to use virtual threads
-                .build());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
