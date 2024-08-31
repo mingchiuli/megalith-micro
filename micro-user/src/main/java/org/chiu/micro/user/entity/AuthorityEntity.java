@@ -24,7 +24,7 @@ import java.util.Objects;
 @DynamicUpdate
 @EntityListeners(AuditingEntityListener.class)
 @Table(name ="m_authority",
-        uniqueConstraints = {@UniqueConstraint(columnNames = "code")}, indexes = {@Index(columnList = "service_name")})
+        uniqueConstraints = {@UniqueConstraint(columnNames = "code")}, indexes = {@Index(columnList = "service_host")})
 public class AuthorityEntity {
 
     @Id
@@ -50,8 +50,8 @@ public class AuthorityEntity {
     @Column(name = "route_pattern")
     private String routePattern;
 
-    @Column(name = "service_name")
-    private String serviceName;
+    @Column(name = "service_host")
+    private String serviceHost;
 
     @Column(name = "service_port")
     private Integer servicePort;
@@ -82,7 +82,7 @@ public class AuthorityEntity {
         if (!Objects.equals(updated, that.updated)) return false;
         if (!Objects.equals(prototype, that.prototype)) return false;
         if (!Objects.equals(methodType, that.methodType)) return false;
-        if (!Objects.equals(serviceName, that.serviceName)) return false;
+        if (!Objects.equals(serviceHost, that.serviceHost)) return false;
         return Objects.equals(status, that.status);
     }
 
