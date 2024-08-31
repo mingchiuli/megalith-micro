@@ -52,6 +52,9 @@ public class AuthorityEntity {
 
     @Column(name = "service_name")
     private String serviceName;
+
+    @Column(name = "service_port")
+    private Integer servicePort;
     
     @Column(name = "created", updatable = false)
     @CreatedDate
