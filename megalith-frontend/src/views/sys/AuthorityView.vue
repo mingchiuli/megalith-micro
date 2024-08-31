@@ -160,7 +160,7 @@ const clearForm = () => {
   form.prototype = ''
   form.methodType = ''
   form.serviceHost = ''
-  form.servicePort = 0
+  form.servicePort = 8081
   form.routePattern = ''
 }
 
