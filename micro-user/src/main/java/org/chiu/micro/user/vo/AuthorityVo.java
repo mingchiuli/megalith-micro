@@ -24,7 +24,7 @@ public class AuthorityVo {
 
     private String routePattern;
 
-    private String serviceName;
+    private String serviceHost;
 
     private Integer servicePort;
     
