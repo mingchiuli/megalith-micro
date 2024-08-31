@@ -25,6 +25,8 @@ public class AuthorityVo {
     private String routePattern;
 
     private String serviceName;
+
+    private Integer servicePort;
     
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime created;
