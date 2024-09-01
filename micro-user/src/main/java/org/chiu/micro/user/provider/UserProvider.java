@@ -45,7 +45,6 @@ public class UserProvider {
         return Result.success(() -> userService.findById(userId));
     }
 
-
     @GetMapping("/status/{username}/{status}")
     public Result<Void> changeUserStatusByUsername(@PathVariable String username, @PathVariable Integer status) {
         return Result.success(() -> userService.changeUserStatusByUsername(username, status));

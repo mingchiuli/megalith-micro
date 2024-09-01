@@ -9,7 +9,7 @@ import org.chiu.micro.gateway.component.JwtAuthenticationEntryPoint;
 import org.chiu.micro.gateway.component.JwtAuthenticationFilter;
 import org.chiu.micro.gateway.dto.AuthorityDto;
 import org.chiu.micro.gateway.lang.Const;
-import org.chiu.micro.gateway.rpc.wrapper.UserHttpServiceWrapper;
+import org.chiu.micro.gateway.rpc.wrapper.AuthHttpServiceWrapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,12 +29,12 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    private final UserHttpServiceWrapper userHttpServiceWrapper;
+    private final AuthHttpServiceWrapper authHttpServiceWrapper;
 
     @Bean
     SecurityFilterChain configure(HttpSecurity http) throws Exception {
 
-        List<AuthorityDto> authorities = userHttpServiceWrapper.getAuthorities();
+        List<AuthorityDto> authorities = authHttpServiceWrapper.getSystemAuthorities();
 
         List<AuthorityDto> nonWhiteList = authorities.stream()
                 .filter(item -> !item.getCode().startsWith(Const.WHITELIST.getInfo()))

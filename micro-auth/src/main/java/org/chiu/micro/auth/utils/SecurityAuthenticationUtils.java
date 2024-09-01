@@ -60,7 +60,7 @@ public class SecurityAuthenticationUtils {
         if (!StringUtils.hasLength(token)) {
             userId = 0L;
             rawRoles = Collections.emptyList();
-            authorities = Collections.emptyList(); 
+            authorities = Collections.emptyList();
         } else {
             String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
             Claims claims = tokenUtils.getVerifierByToken(jwt);

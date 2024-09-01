@@ -1,7 +1,6 @@
 package org.chiu.micro.websocket.config;
 
 import org.chiu.micro.websocket.rpc.AuthHttpService;
-import org.chiu.micro.websocket.rpc.UserHttpService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -36,22 +35,5 @@ public class RpcConfig {
         HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(restClientAdapter)
                 .build();
         return factory.createClient(AuthHttpService.class);
-    }
-
-    @Bean
-    UserHttpService userHttpService() {
-
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
-        requestFactory.setReadTimeout(Duration.ofSeconds(10));
-
-        RestClient client = RestClient.builder()
-                .baseUrl("http://micro-user:8081/inner")
-                .requestFactory(requestFactory)
-                .build();
-
-        RestClientAdapter restClientAdapter = RestClientAdapter.create(client);
-        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(restClientAdapter)
-                .build();
-        return factory.createClient(UserHttpService.class);
     }
 }

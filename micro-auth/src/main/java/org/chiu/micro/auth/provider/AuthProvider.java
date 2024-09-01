@@ -1,8 +1,12 @@
 package org.chiu.micro.auth.provider;
 
+import java.util.List;
+
 import org.chiu.micro.auth.dto.AuthDto;
 import org.chiu.micro.auth.lang.Result;
+import org.chiu.micro.auth.service.AuthService;
 import org.chiu.micro.auth.utils.SecurityAuthenticationUtils;
+import org.chiu.micro.auth.vo.AuthorityVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,18 +17,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 @RestController
-@RequestMapping(value = "/inner")
+@RequestMapping(value = "/inner/auth")
 @RequiredArgsConstructor
 @Validated
 public class AuthProvider {
 
     private final SecurityAuthenticationUtils securityAuthenticationUtils;
 
-    @GetMapping("/auth")
+    private final AuthService authService;
+
+    @GetMapping
     @SneakyThrows
     public Result<AuthDto> findById(@RequestParam String token) {
-        AuthDto authDto = securityAuthenticationUtils.getAuthDto(token);
-        return Result.success(authDto);
+        return Result.success(() -> securityAuthenticationUtils.getAuthDto(token));
     }
 
+    @GetMapping("/system")
+    public Result<List<AuthorityVo>> list(@RequestParam List<String> service) {
+        return Result.success(() -> authService.getSystemAuthority(service));
+    }
 }
