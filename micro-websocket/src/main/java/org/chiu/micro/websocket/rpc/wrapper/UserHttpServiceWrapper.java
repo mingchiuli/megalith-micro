@@ -1,5 +1,6 @@
 package org.chiu.micro.websocket.rpc.wrapper;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.chiu.micro.websocket.dto.AuthorityDto;
@@ -18,7 +19,7 @@ public class UserHttpServiceWrapper {
     private final UserHttpService userHttpService;
 
      public List<AuthorityDto> getAuthorities() {
-        Result<List<AuthorityDto>> result = userHttpService.getAuthorities(Const.SERVICE.getInfo());
+        Result<List<AuthorityDto>> result = userHttpService.getAuthorities(Collections.singletonList(Const.WEBSOCKET_SERVICE.getInfo()));
         
         if (result.getCode() != 200) {
             throw new MissException(result.getMsg());

@@ -23,7 +23,15 @@ public enum Const {
     
     WHITELIST("whitelist"),
     
-    SERVICE("micro-gateway");
+    USER_SERVICE("micro-user"),
+    
+    BLOG_SERVICE("micro-blog"),
+    
+    SEARCH_SERVICE("micro-search"),
+    
+    EXHIBIT_SERVICE("micro-exhibit"),
+    
+    AUTH_SERVICE("micro-auth");
 
     private final String info;
 

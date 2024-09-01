@@ -10,5 +10,5 @@ import org.springframework.web.service.annotation.GetExchange;
 public interface UserHttpService {
 
     @GetExchange("/authority/list")
-    Result<List<AuthorityDto>> getAuthorities(@RequestParam String service);
+    Result<List<AuthorityDto>> getAuthorities(@RequestParam List<String> service);
 }

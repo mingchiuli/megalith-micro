@@ -38,10 +38,8 @@ public class AuthorityServiceImpl implements AuthorityService {
     private final ApplicationContext applicationContext;
 
     @Override
-    public List<AuthorityVo> findAllByService(String service) {
-        List<AuthorityEntity> authorityEntities = authorityRepository.findByServiceHost(service).stream()
-                .filter(item -> StatusEnum.NORMAL.getCode().equals(item.getStatus()))
-                .toList();
+    public List<AuthorityVo> findAllByService(List<String> service) {
+        List<AuthorityEntity> authorityEntities = authorityRepository.findByServiceHostInAndStatus(service, StatusEnum.NORMAL.getCode());
         return AuthorityVoConvertor.convert(authorityEntities);
     }
 
