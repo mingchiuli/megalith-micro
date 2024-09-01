@@ -13,7 +13,7 @@ public enum Const {
 
     TEMP_EDIT_BLOG("temp_edit_blog:"),
     
-    SERVICE("micro-websocket"),
+    WEBSOCKET_SERVICE("micro-websocket"),
     
     HTTP("http"),
     
