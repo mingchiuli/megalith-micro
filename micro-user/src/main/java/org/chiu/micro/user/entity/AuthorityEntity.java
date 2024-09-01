@@ -83,6 +83,7 @@ public class AuthorityEntity {
         if (!Objects.equals(prototype, that.prototype)) return false;
         if (!Objects.equals(methodType, that.methodType)) return false;
         if (!Objects.equals(serviceHost, that.serviceHost)) return false;
+        if (!Objects.equals(servicePort, that.servicePort)) return false;
         return Objects.equals(status, that.status);
     }
 
