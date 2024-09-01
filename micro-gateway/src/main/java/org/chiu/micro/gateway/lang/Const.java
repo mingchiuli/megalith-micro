@@ -31,7 +31,9 @@ public enum Const {
     
     EXHIBIT_SERVICE("micro-exhibit"),
     
-    AUTH_SERVICE("micro-auth");
+    AUTH_SERVICE("micro-auth"),
+    
+    GATEWAY_SERVICE("micro-gateway");
 
     private final String info;
 
