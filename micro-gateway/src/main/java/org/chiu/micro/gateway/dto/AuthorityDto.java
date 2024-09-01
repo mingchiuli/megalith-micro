@@ -20,7 +20,9 @@ public class AuthorityDto {
 
     private String routePattern;
 
-    private String serviceName;
+    private String serviceHost;
+
+    private Integer servicePort;
     
     private Integer status;
 }

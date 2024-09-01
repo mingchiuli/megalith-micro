@@ -34,9 +34,7 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain configure(HttpSecurity http) throws Exception {
 
-        List<AuthorityDto> authorities = userHttpServiceWrapper.getAuthorities().stream()
-                .filter(item -> Const.HTTP.getInfo().equals(item.getPrototype()))
-                .toList();
+        List<AuthorityDto> authorities = userHttpServiceWrapper.getAuthorities();
 
         List<AuthorityDto> nonWhiteList = authorities.stream()
                 .filter(item -> !item.getCode().startsWith(Const.WHITELIST.getInfo()))
