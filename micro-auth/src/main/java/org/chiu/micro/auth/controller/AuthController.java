@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.chiu.micro.auth.dto.AuthDto;
 import org.chiu.micro.auth.lang.Result;
-import org.chiu.micro.auth.service.AuthMenuService;
+import org.chiu.micro.auth.service.AuthService;
 import org.chiu.micro.auth.utils.SecurityAuthenticationUtils;
 import org.chiu.micro.auth.vo.MenusAndButtonsVo;
 import org.springframework.http.HttpHeaders;
@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = "/auth")
 public class AuthController {
 
-    private final AuthMenuService authMenuService;
+    private final AuthService authMenuService;
 
     private final SecurityAuthenticationUtils securityAuthenticationUtils;
 

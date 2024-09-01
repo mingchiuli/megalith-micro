@@ -2,6 +2,7 @@ package org.chiu.micro.auth.rpc.wrapper;
 
 import java.util.List;
 
+import org.chiu.micro.auth.dto.AuthorityDto;
 import org.chiu.micro.auth.dto.MenusAndButtonsRpcDto;
 import org.chiu.micro.auth.dto.RoleEntityDto;
 import org.chiu.micro.auth.dto.UserEntityDto;
@@ -88,4 +89,11 @@ public class UserHttpServiceWrapper {
         return result.getData();
     }
 
+    public List<AuthorityDto> getSystemAuthorities(List<String> serviceHost) {
+        Result<List<AuthorityDto>> result = userHttpService.getAuthorities(serviceHost);
+        if (result.getCode() != 200) {
+            throw new MissException(result.getMsg());
+        }
+        return result.getData();
+    }
 }

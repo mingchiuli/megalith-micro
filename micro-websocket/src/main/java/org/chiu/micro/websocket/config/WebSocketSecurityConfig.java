@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.chiu.micro.websocket.dto.AuthorityDto;
 import org.chiu.micro.websocket.lang.Const;
-import org.chiu.micro.websocket.rpc.wrapper.UserHttpServiceWrapper;
+import org.chiu.micro.websocket.rpc.wrapper.AuthHttpServiceWrapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -24,13 +24,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebSocketSecurityConfig {
 
-    private final UserHttpServiceWrapper userHttpServiceWrapper;
+    private final AuthHttpServiceWrapper authHttpServiceWrapper;
 
     @Bean
-    AuthorizationManager<Message<?>> authorizationManager(
-            MessageMatcherDelegatingAuthorizationManager.Builder messages) {
+    AuthorizationManager<Message<?>> authorizationManager(MessageMatcherDelegatingAuthorizationManager.Builder messages) {
 
-        List<AuthorityDto> authorities = userHttpServiceWrapper.getAuthorities().stream()
+        List<AuthorityDto> authorities = authHttpServiceWrapper.getSystemAuthorities().stream()
                 .filter(item -> Const.WS.getInfo().equals(item.getPrototype()))
                 .filter(item -> !item.getCode().startsWith(Const.WHITELIST.getInfo()))
                 .toList();
