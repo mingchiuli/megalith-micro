@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.web.bind.annotation.PostMapping;
+
 
 @RestController
 @RequestMapping(value = "/inner/auth")
@@ -33,7 +35,7 @@ public class AuthProvider {
         return Result.success(() -> securityAuthenticationUtils.getAuthDto(token));
     }
 
-    @GetMapping("/system")
+    @PostMapping("/system")
     public Result<List<AuthorityVo>> list(@RequestBody List<String> service) {
         return Result.success(() -> authService.getSystemAuthority(service));
     }
