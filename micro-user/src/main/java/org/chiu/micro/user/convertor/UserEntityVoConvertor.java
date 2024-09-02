@@ -5,13 +5,13 @@ import org.chiu.micro.user.entity.UserEntity;
 import org.chiu.micro.user.vo.UserEntityVo;
 import org.springframework.data.domain.Page;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class UserEntityVoConvertor {
 
-    private UserEntityVoConvertor() {}
+    private UserEntityVoConvertor() {
+    }
 
     public static UserEntityVo convert(UserEntity userEntity, List<String> roleCodes) {
         return UserEntityVo.builder()
@@ -29,9 +29,8 @@ public class UserEntityVoConvertor {
     }
 
     public static PageAdapter<UserEntityVo> convert(Page<UserEntity> page, Map<Long, List<String>> userIdRoleMap) {
-        List<UserEntityVo> content = new ArrayList<>();
-        page.getContent().forEach(user -> content
-                .add(UserEntityVo.builder()
+        List<UserEntityVo> content = page.getContent().stream()
+                .map(user -> UserEntityVo.builder()
                         .email(user.getEmail())
                         .phone(user.getPhone())
                         .updated(user.getUpdated())
@@ -43,7 +42,8 @@ public class UserEntityVoConvertor {
                         .lastLogin(user.getLastLogin())
                         .username(user.getUsername())
                         .roles(userIdRoleMap.get(user.getId()))
-                        .build()));
+                        .build())
+                .toList();
 
         return PageAdapter.<UserEntityVo>builder()
                 .empty(page.isEmpty())

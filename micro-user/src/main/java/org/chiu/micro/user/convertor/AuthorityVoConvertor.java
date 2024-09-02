@@ -3,17 +3,16 @@ package org.chiu.micro.user.convertor;
 import org.chiu.micro.user.entity.AuthorityEntity;
 import org.chiu.micro.user.vo.AuthorityVo;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class AuthorityVoConvertor {
 
-    private AuthorityVoConvertor() {}
+    private AuthorityVoConvertor() {
+    }
 
     public static List<AuthorityVo> convert(List<AuthorityEntity> authorityEntities) {
-        List<AuthorityVo> vos = new ArrayList<>();
-        authorityEntities.forEach(item -> vos
-                .add(AuthorityVo.builder()
+        return authorityEntities.stream()
+                .map(item -> AuthorityVo.builder()
                         .id(item.getId())
                         .name(item.getName())
                         .code(item.getCode())
@@ -26,8 +25,8 @@ public class AuthorityVoConvertor {
                         .updated(item.getUpdated())
                         .status(item.getStatus())
                         .remark(item.getRemark())
-                        .build()));
-        return vos;
+                        .build())
+                .toList();
     }
 
     public static AuthorityVo convert(AuthorityEntity authorityEntity) {

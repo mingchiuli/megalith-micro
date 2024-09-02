@@ -11,19 +11,20 @@ public class MenuWithChildDtoConvertor {
     }
 
     public static List<MenuWithChildDto> convert(List<MenuDisplayDto> displayDtos) {
-        return displayDtos.stream().map(item -> MenuWithChildDto.builder()
-                .menuId(item.getMenuId())
-                .icon(item.getIcon())
-                .name(item.getName())
-                .title(item.getTitle())
-                .status(item.getStatus())
-                .component(item.getComponent())
-                .url(item.getUrl())
-                .parentId(item.getParentId())
-                .orderNum(item.getOrderNum())
-                .type(item.getType())
-                .children(convert(item.getChildren()))
-                .build())
+        return displayDtos.stream()
+                .map(item -> MenuWithChildDto.builder()
+                        .menuId(item.getMenuId())
+                        .icon(item.getIcon())
+                        .name(item.getName())
+                        .title(item.getTitle())
+                        .status(item.getStatus())
+                        .component(item.getComponent())
+                        .url(item.getUrl())
+                        .parentId(item.getParentId())
+                        .orderNum(item.getOrderNum())
+                        .type(item.getType())
+                        .children(convert(item.getChildren()))
+                        .build())
                 .toList();
     }
 

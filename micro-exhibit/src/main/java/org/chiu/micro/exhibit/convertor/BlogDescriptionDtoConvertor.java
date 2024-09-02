@@ -1,6 +1,5 @@
 package org.chiu.micro.exhibit.convertor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.chiu.micro.exhibit.dto.BlogDescriptionDto;
@@ -13,19 +12,21 @@ import org.chiu.micro.exhibit.page.PageAdapter;
  **/
 public class BlogDescriptionDtoConvertor {
 
-    private BlogDescriptionDtoConvertor() {}
+    private BlogDescriptionDtoConvertor() {
+    }
 
     public static PageAdapter<BlogDescriptionDto> convert(PageAdapter<BlogEntityDto> page) {
-        List<BlogEntityDto> content = page.getContent();
-        List<BlogDescriptionDto> dtos = new ArrayList<>();
-        content.forEach(item -> dtos.add(BlogDescriptionDto.builder()
-                .id(item.getId())
-                .description(item.getDescription())
-                .title(item.getTitle())
-                .status(item.getStatus())
-                .created(item.getCreated())
-                .link(item.getLink())
-                .build()));
+
+        List<BlogDescriptionDto> dtos = page.getContent().stream()
+                .map(item -> BlogDescriptionDto.builder()
+                        .id(item.getId())
+                        .description(item.getDescription())
+                        .title(item.getTitle())
+                        .status(item.getStatus())
+                        .created(item.getCreated())
+                        .link(item.getLink())
+                        .build())
+                .toList();
 
         return PageAdapter.<BlogDescriptionDto>builder()
                 .content(dtos)

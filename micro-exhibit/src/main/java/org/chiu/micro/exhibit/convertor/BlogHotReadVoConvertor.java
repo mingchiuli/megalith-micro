@@ -2,46 +2,37 @@ package org.chiu.micro.exhibit.convertor;
 
 import org.chiu.micro.exhibit.vo.BlogHotReadVo;
 import org.chiu.micro.exhibit.dto.BlogEntityDto;
-import org.chiu.micro.exhibit.exception.MissException;
 import org.springframework.data.redis.core.ZSetOperations;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static org.chiu.micro.exhibit.lang.ExceptionMessage.NO_FOUND;
-import static org.chiu.micro.exhibit.lang.StatusEnum.NORMAL;
-import static org.chiu.micro.exhibit.lang.StatusEnum.SENSITIVE_FILTER;
+import static org.chiu.micro.exhibit.lang.StatusEnum.HIDE;
 
 public class BlogHotReadVoConvertor {
 
     private BlogHotReadVoConvertor() {}
 
     public static List<BlogHotReadVo> convert(List<BlogEntityDto> blogs, Set<ZSetOperations.TypedTuple<String>> set) {
+    
+        Map<Long, String> idTitleMap = blogs.stream().collect(Collectors.toMap(BlogEntityDto::getId, BlogEntityDto::getTitle));
 
         List<Long> ids = blogs.stream()
-                .filter(item -> NORMAL.getCode().equals(item.getStatus()) || SENSITIVE_FILTER.getCode().equals(item.getStatus()))
+                .filter(item -> !HIDE.getCode().equals(item.getStatus()))
                 .map(BlogEntityDto::getId)
                 .toList();
 
-        List<BlogHotReadVo> items = Optional.ofNullable(set).orElseGet(LinkedHashSet::new).stream()
-                .filter(item -> ids.contains(Long.valueOf(Optional.ofNullable(item.getValue()).orElse("0"))))
+        return Optional.ofNullable(set).orElseGet(LinkedHashSet::new).stream()
+                .filter(item -> ids.contains(Long.valueOf(item.getValue())))
                 .map(item -> BlogHotReadVo.builder()
-                        .id(Long.valueOf(Optional.ofNullable(item.getValue()).orElse("0")))
+                        .id(Long.valueOf(item.getValue()))
                         .readCount(Optional.ofNullable(item.getScore()).orElse(0d).longValue())
+                        .title(idTitleMap.get(Long.valueOf(item.getValue())))
                         .build())
                 .toList();
-
-        items.forEach(item -> {
-            String title = blogs.stream()
-                    .filter(blog -> blog.getId().equals(item.getId()))
-                    .findAny()
-                    .orElseThrow(() -> new MissException(NO_FOUND))
-                    .getTitle();
-            item.setTitle(title);
-        });
-
-        return items;
     }
 }

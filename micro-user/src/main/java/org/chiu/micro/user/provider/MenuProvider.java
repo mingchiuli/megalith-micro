@@ -5,8 +5,8 @@ import org.chiu.micro.user.service.RoleMenuService;
 import org.chiu.micro.user.vo.MenusAndButtonsVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.constraints.NotBlank;
@@ -21,7 +21,7 @@ public class MenuProvider {
     private final RoleMenuService roleMenuService;
   
     @PostMapping("/nav")
-    public Result<MenusAndButtonsVo> nav(@RequestBody @NotBlank String role) {
+    public Result<MenusAndButtonsVo> nav(@RequestParam @NotBlank String role) {
         return Result.success(() -> roleMenuService.getCurrentUserNav(role));
     }
 }
