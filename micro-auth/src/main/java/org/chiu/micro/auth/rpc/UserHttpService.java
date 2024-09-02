@@ -9,7 +9,6 @@ import org.chiu.micro.auth.dto.UserEntityDto;
 import org.chiu.micro.auth.lang.Result;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
@@ -39,13 +38,13 @@ public interface UserHttpService {
     @GetExchange("/user/login/query/{username}")
     Result<UserEntityDto> findByUsernameOrEmailOrPhone(@PathVariable String username);
 
-    @PostExchange("/user/role/authority")
-    Result<List<String>> getAuthoritiesByRoleCode(@RequestParam String rawRole);
+    @GetExchange("/user/role/authority/{rawRole}")
+    Result<List<String>> getAuthoritiesByRoleCode(@PathVariable String rawRole);
 
-    @PostExchange("/menu/nav")
-    Result<MenusAndButtonsRpcDto> getCurrentUserNav(@RequestParam String role);
+    @GetExchange("/menu/nav/{role}")
+    Result<MenusAndButtonsRpcDto> getCurrentUserNav(@PathVariable String role);
 
-    @GetExchange("/authority/list")
+    @PostExchange("/authority/list")
     Result<List<AuthorityDto>> getAuthorities(@RequestBody List<String> service);
   
 }
