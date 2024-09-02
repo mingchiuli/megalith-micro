@@ -5,7 +5,6 @@ import org.chiu.micro.search.vo.BlogEntityVo;
 import org.chiu.micro.search.page.PageAdapter;
 import org.chiu.micro.search.document.BlogDocument;
 import org.springframework.data.domain.Page;
-import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 
 import java.util.List;
@@ -16,9 +15,8 @@ public class BlogEntityVoConvertor {
     private BlogEntityVoConvertor() {}
 
     public static PageAdapter<BlogEntityVo> convert(Page<BlogEntityDto> page, Map<Long, Integer> readMap, Long operateUserId) {
-        List<BlogEntityDto> items = page.getContent();
 
-        List<BlogEntityVo> entities = items.stream()
+        List<BlogEntityVo> entities = page.getContent().stream()
                 .map(blogEntity -> BlogEntityVo.builder()
                         .id(blogEntity.getId())
                         .title(blogEntity.getTitle())
@@ -47,11 +45,10 @@ public class BlogEntityVoConvertor {
     }
 
     public static PageAdapter<BlogEntityVo> convert(SearchHits<BlogDocument> search, Integer currentPage ,Integer pageSize, Long operateUserId) {
-        List<SearchHit<BlogDocument>> hits = search.getSearchHits();
         long totalHits = search.getTotalHits();
         long totalPage = totalHits % pageSize == 0 ? totalHits / pageSize : totalHits / pageSize + 1;
 
-        List<BlogEntityVo> entities = hits.stream()
+        List<BlogEntityVo> entities = search.getSearchHits().stream()
                 .map(hit -> {
                     BlogDocument document = hit.getContent();
                     return BlogEntityVo.builder()

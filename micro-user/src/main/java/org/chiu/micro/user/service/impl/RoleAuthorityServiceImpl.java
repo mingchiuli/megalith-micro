@@ -57,7 +57,8 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
         roleRepository.findById(roleId)
                 .map(RoleEntity::getCode)
                 .ifPresent(role -> {
-                    var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(role), AuthMenuOperateEnum.AUTH.getType());
+                    var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(role),
+                            AuthMenuOperateEnum.AUTH.getType());
                     applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
                 });
     }
@@ -70,16 +71,15 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
         List<Long> ids = authorityEntities.stream()
                 .map(RoleAuthorityEntity::getAuthorityId)
                 .toList();
-        List<RoleAuthorityVo> roleAuthorityVos = new ArrayList<>();
 
-        allAuthorityEntities.stream()
+        return allAuthorityEntities.stream()
                 .filter(item -> !item.getCode().startsWith(Const.WHITELIST.getInfo()))
-                .forEach(item -> roleAuthorityVos.add(RoleAuthorityVo.builder()
+                .map(item -> RoleAuthorityVo.builder()
                         .authorityId(item.getId())
                         .code(item.getCode())
                         .check(ids.contains(item.getId()))
-                        .build()));
-        return roleAuthorityVos;
+                        .build())
+                .toList();
     }
 
     private List<String> getAuthoritiesByRoleCode(String roleCode) {
@@ -100,11 +100,8 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
                 .map(RoleAuthorityEntity::getAuthorityId)
                 .toList();
 
-        List<AuthorityEntity> authorities = authorityRepository.findAllById(authorityIds).stream()
+        return authorityRepository.findAllById(authorityIds).stream()
                 .filter(item -> NORMAL.getCode().equals(item.getStatus()))
-                .toList();
-
-        return authorities.stream()
                 .map(AuthorityEntity::getCode)
                 .toList();
     }

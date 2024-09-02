@@ -7,11 +7,11 @@ import org.chiu.micro.user.service.AuthorityService;
 import org.chiu.micro.user.vo.AuthorityVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
@@ -23,7 +23,7 @@ public class AuthorityProvider {
     private final AuthorityService authorityService;
 
     @GetMapping("/list")
-    public Result<List<AuthorityVo>> list(@RequestParam List<String> service) {
+    public Result<List<AuthorityVo>> list(@RequestBody List<String> service) {
         return Result.success(() -> authorityService.findAllByService(service));
     }
 

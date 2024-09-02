@@ -10,12 +10,13 @@ import java.util.Map;
 
 public class BlogEntityVoConvertor {
 
-    private BlogEntityVoConvertor() {}
+    private BlogEntityVoConvertor() {
+    }
 
-    public static PageAdapter<BlogEntityVo> convert(Page<BlogEntity> page, Map<Long, Integer> readMap, Long operateUserId) {
-        List<BlogEntity> items = page.getContent();
+    public static PageAdapter<BlogEntityVo> convert(Page<BlogEntity> page, Map<Long, Integer> readMap,
+            Long operateUserId) {
 
-        List<BlogEntityVo> entities = items.stream()
+        List<BlogEntityVo> entities = page.getContent().stream()
                 .map(blogEntity -> BlogEntityVo.builder()
                         .id(blogEntity.getId())
                         .title(blogEntity.getTitle())

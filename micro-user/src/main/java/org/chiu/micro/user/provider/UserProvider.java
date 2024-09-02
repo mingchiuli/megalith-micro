@@ -14,6 +14,7 @@ import org.chiu.micro.user.vo.RoleEntityRpcVo;
 import org.chiu.micro.user.vo.UserEntityRpcVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -81,7 +82,7 @@ public class UserProvider {
     }
 
     @PostMapping("/role/authority")
-    Result<List<String>> getAuthoritiesByRoleCodes(@RequestBody @NotBlank String rawRoles) {
+    Result<List<String>> getAuthoritiesByRoleCodes(@RequestParam @NotBlank String rawRoles) {
         return Result.success(() -> roleAuthorityService.getAuthoritiesByRoleCodes(rawRoles));
     }
 }

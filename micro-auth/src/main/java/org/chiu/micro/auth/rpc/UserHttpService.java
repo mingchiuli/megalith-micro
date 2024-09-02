@@ -40,12 +40,12 @@ public interface UserHttpService {
     Result<UserEntityDto> findByUsernameOrEmailOrPhone(@PathVariable String username);
 
     @PostExchange("/user/role/authority")
-    Result<List<String>> getAuthoritiesByRoleCode(@RequestBody String rawRole);
+    Result<List<String>> getAuthoritiesByRoleCode(@RequestParam String rawRole);
 
     @PostExchange("/menu/nav")
-    Result<MenusAndButtonsRpcDto> getCurrentUserNav(@RequestBody String role);
+    Result<MenusAndButtonsRpcDto> getCurrentUserNav(@RequestParam String role);
 
     @GetExchange("/authority/list")
-    Result<List<AuthorityDto>> getAuthorities(@RequestParam List<String> service);
+    Result<List<AuthorityDto>> getAuthorities(@RequestBody List<String> service);
   
 }

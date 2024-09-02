@@ -5,12 +5,12 @@ import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.vo.RoleEntityVo;
 import org.springframework.data.domain.Page;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class RoleEntityVoConvertor {
 
-    private RoleEntityVoConvertor() {}
+    private RoleEntityVoConvertor() {
+    }
 
     public static RoleEntityVo convert(RoleEntity roleEntity) {
         return RoleEntityVo.builder()
@@ -23,9 +23,8 @@ public class RoleEntityVoConvertor {
     }
 
     public static PageAdapter<RoleEntityVo> convert(Page<RoleEntity> page) {
-        List<RoleEntityVo> content = new ArrayList<>();
-        page.getContent().forEach(role -> content
-                .add(RoleEntityVo.builder()
+        List<RoleEntityVo> content = page.getContent().stream()
+                .map(role -> RoleEntityVo.builder()
                         .code(role.getCode())
                         .name(role.getName())
                         .remark(role.getRemark())
@@ -33,7 +32,8 @@ public class RoleEntityVoConvertor {
                         .updated(role.getUpdated())
                         .created(role.getCreated())
                         .id(role.getId())
-                        .build()));
+                        .build())
+                .toList();
 
         return PageAdapter.<RoleEntityVo>builder()
                 .empty(page.isEmpty())
@@ -48,14 +48,14 @@ public class RoleEntityVoConvertor {
     }
 
     public static List<RoleEntityVo> convert(List<RoleEntity> entities) {
-        List<RoleEntityVo> vos = new ArrayList<>();
-        entities.forEach(item -> vos
-                .add(RoleEntityVo.builder()
+
+        return entities.stream()
+                .map(item -> RoleEntityVo.builder()
                         .code(item.getCode())
                         .id(item.getId())
                         .status(item.getStatus())
                         .name(item.getName())
-                        .build()));
-        return vos;
+                        .build())
+                .toList();
     }
 }

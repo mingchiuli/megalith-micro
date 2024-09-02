@@ -84,21 +84,19 @@ public class UserRoleServiceImpl implements UserRoleService {
             userEntity = new UserEntity();
             userEntityReq.setPassword(
                     passwordEncoder.encode(Optional.ofNullable(userEntityReq.getPassword())
-                            .orElseThrow(() -> new CommitException(PASSWORD_REQUIRED))
-        )
-            );
+                            .orElseThrow(() -> new CommitException(PASSWORD_REQUIRED))));
             userOperateEnum = UserOperateEnum.CREATE;
         }
 
         BeanUtils.copyProperties(userEntityReq, userEntity);
 
         Long userId = userEntity.getId();
-        List<UserRoleEntity> userRoleEntities = new ArrayList<>();
-        roleRepository.findByCodeIn(roles)
-                .forEach(role -> userRoleEntities.add(UserRoleEntity.builder()
+        List<UserRoleEntity> userRoleEntities = roleRepository.findByCodeIn(roles).stream()
+                .map(role -> UserRoleEntity.builder()
                         .userId(userId)
                         .roleId(role.getId())
-                        .build()));
+                        .build())
+                .toList();
 
         userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
         var userIndexMessage = new UserIndexMessage(userId, userOperateEnum);
@@ -147,8 +145,8 @@ public class UserRoleServiceImpl implements UserRoleService {
                 .map(UserRoleEntity::getRoleId).toList();
 
         return roleRepository.findAllById(roleIds).stream()
-                    .map(RoleEntity::getCode)
-                    .toList();
+                .map(RoleEntity::getCode)
+                .toList();
     }
 
     @Override
@@ -177,6 +175,7 @@ public class UserRoleServiceImpl implements UserRoleService {
                 .collect(Collectors.toMap(RoleEntity::getId, RoleEntity::getCode));
 
         Map<Long, List<String>> userIdRoleMap = new HashMap<>();
+
         userRoleEntities.forEach(item -> {
             Long id = item.getUserId();
             userIdRoleMap.putIfAbsent(id, new ArrayList<>());
