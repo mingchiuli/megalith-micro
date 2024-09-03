@@ -14,7 +14,7 @@ const reverseCollapse = () => {
     arrow.value = ArrowRight
   } else {
     arrow.value = ArrowLeft
-  } 
+  }
 }
 
 </script>

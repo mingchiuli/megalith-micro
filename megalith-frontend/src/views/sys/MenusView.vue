@@ -2,7 +2,7 @@
 import { GET, POST } from '@/http/http'
 import type { MenuSys } from '@/type/entity'
 import { type FormInstance, type FormRules } from 'element-plus'
-import { reactive, ref } from 'vue'
+import { reactive, ref, useTemplateRef } from 'vue'
 import { Status, RoutesEnum, ButtonAuth } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/position/position'
@@ -11,7 +11,7 @@ const { fix } = displayState()
 const dialogVisible = ref(false)
 const loading = ref(false)
 const content = ref<MenuSys[]>([])
-const formRef = ref<FormInstance>()
+const formRef = useTemplateRef<FormInstance>('form')
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
@@ -242,7 +242,7 @@ const submitForm = async (ref: FormInstance) => {
 
   <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="handleClose">
 
-    <el-form :model="form" :rules="editFormRules" ref="formRef" label-width="100px">
+    <el-form :model="form" :rules="editFormRules" ref="form" label-width="100px">
       <el-form-item label="祖先菜单" prop="parentId">
         <el-tree-select v-model="form.parentId" :props="props" :data="content" check-strictly />
       </el-form-item>

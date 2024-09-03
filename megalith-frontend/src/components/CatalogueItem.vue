@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
 import { debounce, diff } from '@/utils/tools'
 
@@ -15,7 +15,7 @@ let data = ref<CatalogueLabel[]>()
 let allNodes: Node[]
 const defaultProps = { children: 'children', label: 'label' }
 const rollGap = 10
-const treeRef = ref<InstanceType<typeof ElTree>>()
+const treeRef = useTemplateRef<InstanceType<typeof ElTree>>('tree')
 
 const handleNodeClick = (data: CatalogueLabel) => window.scrollTo({ top: data.dist - rollGap, behavior: 'instant' })
 
@@ -201,7 +201,7 @@ defineExpose({
         <el-skeleton :rows="2" animated />
       </template>
       <template #default>
-        <el-tree :data="data" :props="defaultProps" accordion @node-click="handleNodeClick" ref="treeRef" node-key="id"
+        <el-tree :data="data" :props="defaultProps" accordion @node-click="handleNodeClick" ref="tree" node-key="id"
           highlight-current />
       </template>
     </el-skeleton>

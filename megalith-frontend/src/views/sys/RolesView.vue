@@ -3,7 +3,7 @@ import { GET, POST } from '@/http/http'
 import type { PageAdapter, RoleSys } from '@/type/entity'
 import type { ElTree, FormInstance, FormRules } from 'element-plus'
 import { Status, ButtonAuth } from '@/type/entity'
-import { reactive, ref, toRefs } from 'vue'
+import { reactive, ref, toRefs, useTemplateRef } from 'vue'
 import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/position/position'
 
@@ -13,10 +13,10 @@ const delBtlStatus = ref(true)
 const loading = ref(false)
 const multipleSelection = ref<RoleSys[]>([])
 const defaultProps = { children: 'children', label: 'title' }
-const formRef = ref<FormInstance>()
+const formRef = useTemplateRef<FormInstance>('form')
 const menuDialogVisible = ref(false)
 const authorityDialogVisible = ref(false)
-const menuTreeRef = ref<InstanceType<typeof ElTree>>()
+const menuTreeRef = useTemplateRef<InstanceType<typeof ElTree>>('menuTree')
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 let menuTreeData = ref<MenuForm[]>([])
@@ -338,7 +338,7 @@ const handleDelete = async (row: RoleSys) => {
     :page-size="pageSize" :total="totalElements" />
 
   <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="handleClose">
-    <el-form :model="form" :rules="formRules" label-width="100px" ref="formRef">
+    <el-form :model="form" :rules="formRules" label-width="100px" ref="form">
       <el-form-item label="名字" prop="name">
         <el-input v-model="form.name"></el-input>
       </el-form-item>
@@ -367,7 +367,7 @@ const handleDelete = async (row: RoleSys) => {
   <el-dialog title="菜单权限" v-model="menuDialogVisible" width="600px" :before-close="menuHandleClose">
     <el-form>
       <el-tree :data="menuTreeData" show-checkbox :default-expand-all=true node-key="menuId" :props="defaultProps"
-        :default-checked-keys="getCheckKeys(menuTreeData)" ref="menuTreeRef" :check-strictly="true" />
+        :default-checked-keys="getCheckKeys(menuTreeData)" ref="menuTree" :check-strictly="true" />
       <el-form-item label-width="450px">
         <el-button type="primary" @click="submitmenuFormHandle(menuTreeRef!)">Submit</el-button>
       </el-form-item>
