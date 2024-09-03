@@ -146,6 +146,8 @@ const clearPushActionForm = () => {
 }
 
 const preCheck = (n: string | undefined, o: string | undefined): boolean => {
+  console.log(o)
+  console.log(n)
   if (!n && !o) {
     return false
   }
