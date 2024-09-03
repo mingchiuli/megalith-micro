@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { GET } from '@/http/http'
 import router from '@/router'
 
-const props = defineProps<{
+const { blogId } = defineProps<{
   blogId: number
 }>()
 
@@ -11,12 +11,12 @@ const readTokenDialogVisible = defineModel<boolean>('readTokenDialogVisible')
 const input = ref<string>()
 
 const submit = async () => {
-  const valid = await GET<boolean>(`/public/blog/token/${props.blogId}?readToken=${input.value}`)
+  const valid = await GET<boolean>(`/public/blog/token/${blogId}?readToken=${input.value}`)
   if (valid) {
     router.push({
       name: 'blog',
       params: {
-        id: props.blogId
+        id: blogId
       },
       query: {
         token: input.value

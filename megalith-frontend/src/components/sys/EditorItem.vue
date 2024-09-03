@@ -13,7 +13,7 @@ const emit = defineEmits<{
   sensitive: [payload: SensitiveTrans]
 }>()
 
-const props = defineProps<{
+const { transColor, formStatus } = defineProps<{
   transColor: string
   formStatus: number | undefined
 }>()
@@ -42,7 +42,7 @@ onMounted(() => {
     }
   });
   document.getElementById("md-editor")!.onmouseup = () => {
-    if (props.formStatus !== Status.SENSITIVE_FILTER) {
+    if (formStatus !== Status.SENSITIVE_FILTER) {
       return
     }
 
