@@ -8,11 +8,12 @@ import router from '@/router'
 import { blogsStore } from '@/stores/store'
 import { Client, StompSocketState, type StompSubscription } from '@stomp/stompjs'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle, dealAction, recheckSensitive } from '@/utils/tools'
+import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle, dealAction, recheckSensitive, getJWTStruct } from '@/utils/tools'
 
 const route = useRoute()
 const blogId = route.query.id
-
+const userId = getJWTStruct().sub
+  
 let client = new Client({
   brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/edit/ws`,
   connectHeaders: { "Authorization": localStorage.getItem('accessToken')! },
@@ -25,7 +26,7 @@ let client = new Client({
 let subscribe: StompSubscription
 
 const connect = async () => {
-  const key = form.id ? `${form.userId}/${form.id}` : form.userId!.toString()
+  const key = blogId ? `${userId}/${blogId}` : userId.toString()
   client.onConnect = _frame => {
     subscribe = client.subscribe(`/edits/${key}`, async res => {
       const body: SubscribeItem = JSON.parse(res.body)
