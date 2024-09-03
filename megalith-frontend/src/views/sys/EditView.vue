@@ -146,15 +146,14 @@ const clearPushActionForm = () => {
 }
 
 const preCheck = (n: string | undefined, o: string | undefined): boolean => {
-
+  if (!n && !o) {
+    return false
+  }
+  
   if (client.webSocket?.readyState !== StompSocketState.OPEN) {
     if (!netErrorEdited.value) {
       netErrorEdited.value = true
     }
-    return false
-  }
-
-  if (!n && !o) {
     return false
   }
 
