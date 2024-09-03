@@ -533,7 +533,6 @@ const healthCheck = async () => {
 
 
 (async () => {
-  await loadEditContent()
   await connect()
   await healthCheck()
 })()
