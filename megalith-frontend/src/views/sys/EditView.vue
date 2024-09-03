@@ -146,9 +146,11 @@ const clearPushActionForm = () => {
 }
 
 const preCheck = (n: string | undefined, o: string | undefined): boolean => {
-  console.log(o)
-  console.log(n)
   if (!n && !o) {
+    return false
+  }
+
+  if (n === o) {
     return false
   }
   
@@ -502,7 +504,7 @@ onUnmounted(() => {
 let reconnecting = false
 let lock = false
 const healthCheck = async () => {
-  if (client.webSocket?.readyState !== StompSocketState.OPEN) {
+  if (client.webSocket!.readyState !== StompSocketState.OPEN) {
     transColor.value = OperaColor.FAILED
     readOnly.value = true
     const token = await checkAccessToken()
@@ -510,7 +512,7 @@ const healthCheck = async () => {
     reconnecting = true
   }
 
-  if (!lock && reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
+  if (!lock && reconnecting && client.webSocket!.readyState === StompSocketState.OPEN) {
     lock = true
     try {
       if (netErrorEdited.value) {
@@ -536,7 +538,10 @@ const healthCheck = async () => {
 
 (async () => {
   await connect()
-  await healthCheck()
+  await loadEditContent()
+  setTimeout(async () => {
+    await healthCheck()
+  }, 2000)
 })()
 
 </script>
