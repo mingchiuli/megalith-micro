@@ -153,15 +153,6 @@ const preCheck = (n: string | undefined, o: string | undefined): boolean => {
   if (n === o) {
     return false
   }
-  
-  if (client.webSocket?.readyState !== StompSocketState.OPEN) {
-    if (!netErrorEdited.value) {
-      netErrorEdited.value = true
-      console.log(n)
-      console.log(o)
-    }
-    return false
-  }
 
   if (composing) {
     return false
@@ -172,6 +163,13 @@ const preCheck = (n: string | undefined, o: string | undefined): boolean => {
   }
 
   if (pulling) {
+    return false
+  }
+
+  if (client.webSocket?.readyState !== StompSocketState.OPEN) {
+    if (!netErrorEdited.value) {
+      netErrorEdited.value = true
+    }
     return false
   }
 
@@ -330,7 +328,6 @@ const loadEditContent = async () => {
   form.status = data.status
   form.id = data.id
   form.userId = data.userId
-  //不清空会重复显示
   form.sensitiveContentList = data.sensitiveContentList
   form.version = data.version
 }
@@ -540,7 +537,14 @@ const healthCheck = async () => {
 
 (async () => {
   await connect()
-  await loadEditContent()
+  
+  for (;;) {
+    if (client.webSocket?.readyState === StompSocketState.OPEN) {
+      await loadEditContent()
+      break
+    }
+  }
+  
   setTimeout(async () => {
     await healthCheck()
   }, 2000)
