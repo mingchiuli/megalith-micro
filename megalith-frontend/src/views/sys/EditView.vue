@@ -504,7 +504,7 @@ onUnmounted(() => {
 let reconnecting = false
 let lock = false
 const healthCheck = async () => {
-  if (client.webSocket!.readyState !== StompSocketState.OPEN) {
+  if (client.webSocket?.readyState !== StompSocketState.OPEN) {
     transColor.value = OperaColor.FAILED
     readOnly.value = true
     const token = await checkAccessToken()
@@ -512,7 +512,7 @@ const healthCheck = async () => {
     reconnecting = true
   }
 
-  if (!lock && reconnecting && client.webSocket!.readyState === StompSocketState.OPEN) {
+  if (!lock && reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
     lock = true
     try {
       if (netErrorEdited.value) {
