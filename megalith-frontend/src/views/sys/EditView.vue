@@ -491,9 +491,11 @@ const handleDescSelect = () => {
   }
 }
 
-let timeoutId: NodeJS.Timeout
+let healthCheckTimeoutId: NodeJS.Timeout
+let initTimeoutId: NodeJS.Timeout
 onUnmounted(() => {
-  clearTimeout(timeoutId)
+  clearTimeout(healthCheckTimeoutId)
+  clearTimeout(initTimeoutId)
   if (subscribe) {
     subscribe.unsubscribe()
   }
@@ -529,25 +531,22 @@ const healthCheck = async () => {
     }
   }
 
-  timeoutId = setTimeout(async () => {
-    await healthCheck()
-  }, 2000)
+  healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 2000)
 }
 
+const init = async () => {
+  if (client.webSocket?.readyState === StompSocketState.OPEN) {
+    await loadEditContent()
+    await healthCheck()
+    return
+  }
+
+  initTimeoutId = setTimeout(async () => init(), 100) 
+}
 
 (async () => {
   await connect()
-  
-  for (;;) {
-    if (client.webSocket?.readyState === StompSocketState.OPEN) {
-      await loadEditContent()
-      break
-    }
-  }
-  
-  setTimeout(async () => {
-    await healthCheck()
-  }, 2000)
+  await init()
 })()
 
 </script>
