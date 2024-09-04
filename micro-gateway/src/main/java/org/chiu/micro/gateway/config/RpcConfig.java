@@ -37,4 +37,5 @@ public class RpcConfig {
                 .build();
         return factory.createClient(AuthHttpService.class);
     }
+    
 }
