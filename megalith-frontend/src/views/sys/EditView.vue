@@ -157,6 +157,8 @@ const preCheck = (n: string | undefined, o: string | undefined): boolean => {
   if (client.webSocket?.readyState !== StompSocketState.OPEN) {
     if (!netErrorEdited.value) {
       netErrorEdited.value = true
+      console.log(n)
+      console.log(o)
     }
     return false
   }
