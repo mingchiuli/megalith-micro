@@ -144,6 +144,7 @@ const extractAndFlushData = async () => {
   }
   const arrs = geneCatalogueArr(labels)
   const dif = diff(data.value!, arrs)
+  console.log(dif)
   if (dif) {
     data.value = arrs
     await nextTick()
