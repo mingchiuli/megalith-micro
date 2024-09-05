@@ -164,6 +164,9 @@ const roll = async () => {
   //高亮和关闭树节点的逻辑
   for (const node of allNodes) {
     const id = node.data.id
+    if (temp?.id === id) {
+      console.log(node.expanded)
+    }
     if (temp?.id === id && !node.expanded) {
       node.expanded = true
       treeRef.value?.setCurrentKey(id)
