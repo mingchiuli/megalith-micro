@@ -16,11 +16,12 @@ let allNodes: Node[]
 const defaultProps = { children: 'children', label: 'label' }
 const rollGap = 10
 const treeRef = useTemplateRef<InstanceType<typeof ElTree>>('tree')
+let labels: NodeListOf<HTMLElement>
 
 const handleNodeClick = (data: CatalogueLabel) => window.scrollTo({ top: data.dist - rollGap, behavior: 'instant' })
 
 const render = async () => {
-  const labels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
+  labels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
   if (labels.length === 0) {
     loadingCatalogue.value = false
     return
@@ -138,7 +139,6 @@ const rollToTargetLabel = (data: CatalogueLabel[], scrolled: number): CatalogueL
 }
 
 const extractAndFlushData = async () => {
-  const labels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
   if (labels.length === 0) {
     return
   }
