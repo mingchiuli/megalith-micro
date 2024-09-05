@@ -162,9 +162,11 @@ const roll = async () => {
   await extractAndFlushData()
   let temp: CatalogueLabel = rollToTargetLabel(data.value!, scrolled)!
   //高亮和关闭树节点的逻辑
+  console.log(allNodes)
   for (const node of allNodes) {
     const id = node.data.id
     if (temp?.id === id && !node.expanded) {
+      console.log(node)
       node.expanded = true
       treeRef.value?.setCurrentKey(id)
       history.replaceState(history.state, '', `#${id}`)
