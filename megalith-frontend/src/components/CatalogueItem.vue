@@ -3,7 +3,7 @@ import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
 import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
 import Node from 'element-plus/es/components/tree/src/model/node'
-import { debounce, diff } from '@/utils/tools'
+import { debounce } from '@/utils/tools'
 
 defineProps<{
   width: number
@@ -143,14 +143,10 @@ const extractAndFlushData = async () => {
     return
   }
   const arrs = geneCatalogueArr(labels)
-  const dif = diff(data.value!, arrs)
-  console.log('diff:' +dif)
-  if (dif) {
-    data.value = arrs
-    await nextTick()
-    //重新获取，否则获取的对象就不一样
-    allNodes = treeRef.value!.store._getAllNodes()
-  }
+  data.value = arrs
+  await nextTick()
+  //重新获取，否则获取的对象就不一样
+  allNodes = treeRef.value!.store._getAllNodes()
 }
 
 const roll = async () => {
@@ -161,13 +157,9 @@ const roll = async () => {
   let scrolled = document.documentElement.scrollTop
   await extractAndFlushData()
   let temp: CatalogueLabel = rollToTargetLabel(data.value!, scrolled)!
-  console.log(temp)
   //高亮和关闭树节点的逻辑
   for (const node of allNodes) {
     const id = node.data.id
-    if (temp?.id === id) {
-      console.log(node.expanded)
-    }
     if (temp?.id === id && !node.expanded) {
       node.expanded = true
       treeRef.value?.setCurrentKey(id)
