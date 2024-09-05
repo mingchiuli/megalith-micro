@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch, useTemplateRef } from 'vue'
 import { type TagProps, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput, type UploadUserFile } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit, Colors } from '@/type/entity'
@@ -74,8 +74,8 @@ const fileList = computed(() => {
   return arr
 })
 
-const titleRef = ref<InstanceType<typeof ElInput>>()
-const descRef = ref<InstanceType<typeof ElInput>>()
+const titleRef = useTemplateRef<InstanceType<typeof ElInput>>('title')
+const descRef = useTemplateRef<InstanceType<typeof ElInput>>('desc')
 
 const form: EditForm = reactive({
   id: undefined,
@@ -294,11 +294,11 @@ const deal = (n: string | undefined, o: string | undefined) => {
   }
 }
 
-const transColor = ref(OperaColor.SUCCESS)
+const transColor = ref(OperaColor.FAILED)
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 
-const formRef = ref<FormInstance>()
+const formRef = useTemplateRef<FormInstance>('form')
 const formRules = reactive<FormRules<EditForm>>({
   title: [
     { required: true, message: '请输入标题', trigger: 'blur' }
@@ -536,12 +536,13 @@ const healthCheck = async () => {
 
 const init = async () => {
   if (client.webSocket?.readyState === StompSocketState.OPEN) {
+    transColor.value = OperaColor.SUCCESS
     await loadEditContent()
     await healthCheck()
     return
   }
 
-  initTimeoutId = setTimeout(async () => init(), 100) 
+  initTimeoutId = setTimeout(async () => init(), 100)
 }
 
 (async () => {
@@ -553,14 +554,14 @@ const init = async () => {
 
 <template>
   <div class="father">
-    <el-form :model="form" :rules="formRules" ref="formRef">
+    <el-form :model="form" :rules="formRules" ref="form">
       <el-form-item class="title" prop="title">
-        <el-input ref="titleRef" @select="handleTitleSelect" v-model="form.title" placeholder="标题" maxlength="20"
+        <el-input ref="title" @select="handleTitleSelect" v-model="form.title" placeholder="标题" maxlength="20"
           :disabled="readOnly" />
       </el-form-item>
 
       <el-form-item class="desc" prop="description">
-        <el-input ref="descRef" @select="handleDescSelect" autosize type="textarea" v-model="form.description"
+        <el-input ref="desc" @select="handleDescSelect" autosize type="textarea" v-model="form.description"
           placeholder="摘要" maxlength="60" :disabled="readOnly" />
       </el-form-item>
 
