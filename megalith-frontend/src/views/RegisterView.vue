@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, useTemplateRef } from 'vue'
 import { type FormInstance, type FormRules, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import router from '@/router'
@@ -95,7 +95,7 @@ const formRules = reactive<FormRules<Form>>({
 })
 
 
-const formRef = ref<FormInstance>()
+const formRef = useTemplateRef<FormInstance>('form')
 
 const upload = async (image: UploadRequestOptions) => {
   await uploadFile(image.file)
@@ -160,7 +160,7 @@ const handleRemove = async (_file: UploadFile) => {
 <template>
   <div class="front">
 
-    <el-form :model="form" :rules="formRules" ref="formRef" class="father">
+    <el-form :model="form" :rules="formRules" ref="form" class="father">
 
       <el-form-item label="用户名" label-width="80" prop="username" class="username">
         <el-input v-model="form.username" maxlength="30" :disabled="username !== undefined && username !== ''" />

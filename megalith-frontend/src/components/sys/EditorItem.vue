@@ -5,7 +5,7 @@ import 'md-editor-v3/lib/style.css'
 import '@vavt/v3-extension/lib/asset/ExportPDF.css'
 import { Emoji } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, useTemplateRef } from 'vue'
 import { SensitiveType, Status, type SensitiveTrans, Colors } from '@/type/entity'
 
 const emit = defineEmits<{
@@ -19,7 +19,7 @@ const { transColor, formStatus } = defineProps<{
 }>()
 
 const content = defineModel<string | undefined>('content')
-const editorRef = ref<ExposeParam>()
+const editorRef = useTemplateRef<ExposeParam>('editor')
 
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
@@ -128,7 +128,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 <template>
   <md-editor id="md-editor" v-model="content" :preview="false" :toolbars="toolbars" :toolbarsExclude="['github']"
-    @on-upload-img="onUploadImg" :footers="footers" ref="editorRef">
+    @on-upload-img="onUploadImg" :footers="footers" ref="editor">
     <template #defToolbars>
       <Export-PDF v-model="content" />
       <emoji>

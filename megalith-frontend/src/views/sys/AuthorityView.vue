@@ -2,7 +2,7 @@
 import { GET, POST } from '@/http/http'
 import type { AuthoritySys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
-import { reactive, ref } from 'vue'
+import { reactive, ref, useTemplateRef } from 'vue'
 import { Status, ButtonAuth } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/position/position'
@@ -46,7 +46,7 @@ const formRules = reactive<FormRules<Form>>({
     { required: true, message: '请输入调用端口', trigger: 'blur' }
   ]
 })
-const formRef = ref<FormInstance>()
+const formRef = useTemplateRef<FormInstance>('form')
 type Form = {
   id?: number
   name: string
@@ -257,7 +257,7 @@ const clearForm = () => {
   </el-table>
 
   <el-dialog v-model="dialogVisible" title="新增/编辑" width="600px" :before-close="handleClose">
-    <el-form :model="form" :rules="formRules" ref="formRef">
+    <el-form :model="form" :rules="formRules" ref="form">
 
       <el-form-item label="接口名字" label-width="100px" prop="name">
         <el-input v-model="form.name" maxlength="50" />

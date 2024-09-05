@@ -140,12 +140,12 @@ const searchBeforeClose = (close: Function) => {
   close()
 }
 
-const refAutocomplete = ref<InstanceType<typeof ElAutocomplete>>()
+const refAutocompleteRef = useTemplateRef<InstanceType<typeof ElAutocomplete>>('refAutocomplete')
 
 const yearsCloseEvent = async () => {
   if (keywords.value!.length) {
     setTimeout(() => {
-      refAutocomplete.value!.activated = true
+      refAutocompleteRef.value!.activated = true
     }, 100)
   }
 }

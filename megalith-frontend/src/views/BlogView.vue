@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, reactive, ref, useTemplateRef } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import Catalogue from '@/components/CatalogueItem.vue'
@@ -25,7 +25,7 @@ const blog = reactive<BlogExhibit>({
   "created": ''
 })
 
-const catalogueRef = ref<InstanceType<typeof Catalogue>>()
+const catalogueRef = useTemplateRef<InstanceType<typeof Catalogue>>('catalogue')
 
 let renderCatalogueCount = 0
 const renderCatalogue = async (html: string) => {
@@ -82,7 +82,7 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth));
 <template>
   <div class="father">
     <div class="affix">
-      <CatalogueItem v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogueRef"
+      <CatalogueItem v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogue"
         v-model:loading-catalogue="loadingCatalogue" :width="catalogueWidth" />
     </div>
   </div>
