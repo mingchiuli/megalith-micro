@@ -165,6 +165,7 @@ const roll = async () => {
   for (const node of allNodes) {
     const id = node.data.id
     if (temp?.id === id && !node.expanded) {
+      console.log(node,data)
       node.expanded = true
       treeRef.value?.setCurrentKey(id)
       history.replaceState(history.state, '', `#${id}`)
