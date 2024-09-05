@@ -168,7 +168,9 @@ const roll = async () => {
       node.expanded = true
       treeRef.value?.setCurrentKey(id)
       history.replaceState(history.state, '', `#${id}`)
-      break
+    }
+    if (temp?.id !== id && node.expanded) {
+      node.expanded = false
     }
   }
   //处理顶级节点高亮不符合逻辑的问题
