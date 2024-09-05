@@ -124,11 +124,11 @@ const getChildren = (labels: NodeListOf<HTMLElement>, index: number): CatalogueL
 const rollToTargetLabel = (data: CatalogueLabel[], scrolled: number): CatalogueLabel => {
   let label: CatalogueLabel
   for (const element of data) {
-    label = element
     if (scrolled - element.dist < -rollGap - 1) {
       break
     }
 
+    label = element
     let childLabel = rollToTargetLabel(element.children, scrolled)
     if (childLabel) {
       label = childLabel
