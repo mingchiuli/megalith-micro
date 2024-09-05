@@ -160,6 +160,7 @@ const roll = async () => {
   let scrolled = document.documentElement.scrollTop
   await extractAndFlushData()
   let temp: CatalogueLabel = rollToTargetLabel(data.value!, scrolled)!
+  console.log(temp)
   //高亮和关闭树节点的逻辑
   for (const node of allNodes) {
     const id = node.data.id
