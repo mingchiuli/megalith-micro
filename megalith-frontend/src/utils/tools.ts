@@ -85,6 +85,7 @@ export const diff = (oldArr: any[], newArr: any[]) => {
       }
 
       if (newObj[key] !== oldObj[key]) {
+        console.log('diff:' + newObj[key] + ' ' + oldObj[key])
         return true
       }
     }
