@@ -124,12 +124,11 @@ const getChildren = (labels: NodeListOf<HTMLElement>, index: number): CatalogueL
 const rollToTargetLabel = (data: CatalogueLabel[], scrolled: number): CatalogueLabel => {
   let label: CatalogueLabel
   for (const element of data) {
-    let dist = scrolled - element.dist
-    if (dist < -rollGap - 1) {
+    label = element
+    if (scrolled - element.dist < -rollGap - 1) {
       break
     }
 
-    label = element
     let childLabel = rollToTargetLabel(element.children, scrolled)
     if (childLabel) {
       label = childLabel
@@ -165,7 +164,6 @@ const roll = async () => {
   for (const node of allNodes) {
     const id = node.data.id
     if (temp?.id === id && !node.expanded) {
-      console.log(node,data)
       node.expanded = true
       treeRef.value?.setCurrentKey(id)
       history.replaceState(history.state, '', `#${id}`)
