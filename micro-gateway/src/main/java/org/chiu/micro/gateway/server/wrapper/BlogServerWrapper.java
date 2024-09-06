@@ -54,8 +54,9 @@ public class BlogServerWrapper {
     @GetMapping("/blogs")
     public byte[] getAllBlogs(@RequestParam(required = false) Integer currentPage,
                               @RequestParam(required = false) Integer size,
+                              @RequestParam(required = false) String keywords,
                               HttpServletRequest request) {
-        return blogServer.findAllABlogs(currentPage, size, request.getHeader(HttpHeaders.AUTHORIZATION));
+        return blogServer.findAllABlogs(currentPage, size, keywords, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @GetMapping("/deleted")
