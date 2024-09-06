@@ -8,7 +8,6 @@ import { render, checkButtonAuth, getButtonType, downloadData, getButtonTitle } 
 import { displayState } from '@/position/position'
 
 const { fixSelection, fix, moreItems } = displayState()
-const search = ref(false)
 const input = ref('')
 const multipleSelection = ref<BlogSys[]>([])
 const delBtlStatus = ref(true)
@@ -36,7 +35,7 @@ const delBatch = async () => {
     type: 'success',
   })
   multipleSelection.value = []
-  await queryBlogs()
+  await searchBlogs()
 }
 
 const handleDelete = async (row: BlogSys) => {
@@ -48,7 +47,7 @@ const handleDelete = async (row: BlogSys) => {
     message: '删除成功',
     type: 'success',
   })
-  await queryBlogs()
+  await searchBlogs()
 }
 
 const handleEdit = (row: BlogSys) => {
@@ -87,20 +86,9 @@ const handleSelectionChange = (val: BlogSys[]) => {
   delBtlStatus.value = val.length === 0
 }
 
-const queryBlogs = async () => {
-  if (search.value) {
-    search.value = false
-  }
-  loading.value = true
-  const data = await GET<PageAdapter<BlogSys>>(`/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}`)
-  content.value = data.content
-  totalElements.value = data.totalElements
-  loading.value = false
-}
-
 const clearQueryBlogs = async () => {
   pageNumber.value = 1
-  await queryBlogs()
+  await searchBlogs()
 }
 
 const searchBlogsAction = () => {
@@ -110,7 +98,6 @@ const searchBlogsAction = () => {
 
 const searchBlogs = async () => {
   if (input.value) {
-    search.value = true
     loading.value = true
     const data = await GET<PageAdapter<BlogSys>>(`/search/sys/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
     page.content = data.content
@@ -122,25 +109,17 @@ const searchBlogs = async () => {
 const handleSizeChange = async (val: number) => {
   pageSize.value = val
   pageNumber.value = 1
-  if (input.value) {
-    await searchBlogs()
-  } else {
-    await queryBlogs()
-  }
+  await searchBlogs()
 }
 
 
 const handleCurrentChange = async (val: number) => {
   pageNumber.value = val
-  if (input.value) {
-    await searchBlogs()
-  } else {
-    await queryBlogs()
-  }
+  await searchBlogs()
 }
 
 (async () => {
-  await queryBlogs()
+  await searchBlogs()
 })()
 </script>
 
@@ -222,7 +201,7 @@ const handleCurrentChange = async (val: number) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="阅读统计" align="center" min-width="180" v-if="!search">
+    <el-table-column label="阅读统计" align="center" min-width="180">
       <template #default="scope">
         <div>总阅读数: {{ scope.row.readCount }}</div>
         <div>本周阅读数: {{ scope.row.recentReadCount }}</div>
