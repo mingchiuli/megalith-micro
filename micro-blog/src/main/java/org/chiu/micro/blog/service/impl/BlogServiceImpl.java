@@ -296,7 +296,6 @@ public class BlogServiceImpl implements BlogService {
     public PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, Long userId, String keywords) {
 
         BlogSearchDto dto = searchHttpServiceWrapper.searchBlogs(currentPage, size, keywords);
-        log.info("query return ids:{}, param: {}, {}", dto.getIds(), currentPage, size);
         List<Long> ids = dto.getIds();
         List<BlogEntity> items = blogRepository.findAllById(ids).stream()
                 .sorted(Comparator.comparing(BlogEntity::getCreated).reversed())
