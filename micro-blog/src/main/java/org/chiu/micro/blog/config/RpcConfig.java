@@ -2,6 +2,7 @@ package org.chiu.micro.blog.config;
 
 import org.chiu.micro.blog.rpc.AuthHttpService;
 import org.chiu.micro.blog.rpc.OssHttpService;
+import org.chiu.micro.blog.rpc.SearchHttpService;
 import org.chiu.micro.blog.rpc.UserHttpService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -83,5 +84,22 @@ public class RpcConfig {
         HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(restClientAdapter)
                 .build();
         return factory.createClient(AuthHttpService.class);
+    }
+
+    @Bean
+    SearchHttpService searchHttpService() {
+
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(Duration.ofSeconds(10));
+
+        RestClient client = RestClient.builder()
+                .baseUrl("http://micro-search:8081/inner")
+                .requestFactory(requestFactory)
+                .build();
+
+        RestClientAdapter restClientAdapter = RestClientAdapter.create(client);
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(restClientAdapter)
+                .build();
+        return factory.createClient(SearchHttpService.class);
     }
 }
