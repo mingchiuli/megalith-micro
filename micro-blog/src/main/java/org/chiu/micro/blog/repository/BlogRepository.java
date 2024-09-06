@@ -42,10 +42,6 @@ public interface BlogRepository extends JpaRepository<BlogEntity, Long> {
     @Query(value = "SELECT blog.id from BlogEntity blog")
     List<Long> findIds(Pageable pageRequest);
 
-
-    Page<BlogEntity> findAllByUserId(Long userId, Pageable pageRequest);
-
-
     Optional<BlogEntity> findByIdAndUserId(Long id, Long userId);
 
     @Query(value = "SELECT blog.userId from BlogEntity blog where blog.id = ?1")

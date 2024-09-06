@@ -25,8 +25,7 @@ import java.util.Objects;
 @Builder
 @EntityListeners(AuditingEntityListener.class)
 @Table(name ="m_blog",
-        indexes = {@Index(columnList = "created"),
-                @Index(columnList = "user_id,created")})
+        indexes = {@Index(columnList = "created")})
 public class BlogEntity {
 
     @Id
