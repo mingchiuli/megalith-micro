@@ -273,7 +273,6 @@ public class BlogSearchServiceImpl implements BlogSearchService {
 
         
         SearchHits<BlogDocument> searchResp = elasticsearchTemplate.search(nativeQueryBuilder.build(), BlogDocument.class);
-        // searchResp.getTotalHits()
 
         List<Long> ids = searchResp.getSearchHits().stream()
                 .map(SearchHit::getContent)
