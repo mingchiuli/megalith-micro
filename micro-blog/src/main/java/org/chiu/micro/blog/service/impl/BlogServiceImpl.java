@@ -22,12 +22,14 @@ import org.chiu.micro.blog.convertor.BlogEntityRpcVoConvertor;
 import org.chiu.micro.blog.convertor.BlogEntityVoConvertor;
 import org.chiu.micro.blog.entity.BlogEntity;
 import org.chiu.micro.blog.entity.BlogSensitiveContentEntity;
+import org.chiu.micro.blog.dto.BlogSearchDto;
 import org.chiu.micro.blog.dto.UserEntityDto;
 import org.chiu.micro.blog.event.BlogOperateEvent;
 import org.chiu.micro.blog.repository.BlogRepository;
 import org.chiu.micro.blog.req.BlogEntityReq;
 import org.chiu.micro.blog.req.ImgUploadReq;
 import org.chiu.micro.blog.rpc.OssHttpService;
+import org.chiu.micro.blog.rpc.wrapper.SearchHttpServiceWrapper;
 import org.chiu.micro.blog.rpc.wrapper.UserHttpServiceWrapper;
 import org.chiu.micro.blog.service.BlogService;
 import org.chiu.micro.blog.vo.BlogDeleteVo;
@@ -93,6 +95,8 @@ public class BlogServiceImpl implements BlogService {
     private final BlogSensitiveWrapper blogSensitiveWrapper;
 
     private final BlogSensitiveContentRepository blogSensitiveContentRepository;
+
+    private final SearchHttpServiceWrapper searchHttpServiceWrapper;
 
     @Value("${blog.highest-role}")
     private String highestRole;
@@ -289,17 +293,11 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @SuppressWarnings("all")
-    public PageAdapter<BlogEntityVo> findAllABlogs(Integer currentPage, Integer size, Long userId, List<String> roles) {
+    public PageAdapter<BlogEntityVo> findAllABlogs(Integer currentPage, Integer size, Long userId, String keywords) {
 
-        var pageRequest = PageRequest.of(currentPage - 1, size, Sort.by("created").descending());
-        Page<BlogEntity> page = roles.contains(highestRole) ?
-                blogRepository.findAll(pageRequest) :
-                blogRepository.findAllByUserId(userId, pageRequest);
-
-        List<BlogEntity> items = page.getContent();
-        List<String> ids = items.stream()
-                .map(item -> String.valueOf(item.getId()))
-                .toList();
+        BlogSearchDto dto = searchHttpServiceWrapper.searchBlogs(currentPage, size, keywords);
+        List<Long> ids = dto.getIds();
+        List<BlogEntity> items = blogRepository.findAllById(ids);
 
         List<String> res = redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),
                 Collections.singletonList(HOT_READ.getInfo()),
@@ -310,7 +308,7 @@ public class BlogServiceImpl implements BlogService {
             readMap.put(Long.valueOf(res.get(i)), Integer.valueOf(res.get(i + 1)));
         }
 
-        return BlogEntityVoConvertor.convert(page, readMap, userId);
+        return BlogEntityVoConvertor.convert(items, readMap, userId, currentPage, size, dto.getTotal());
     }
 
     @Override

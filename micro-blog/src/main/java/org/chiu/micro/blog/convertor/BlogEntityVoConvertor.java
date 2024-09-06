@@ -3,7 +3,6 @@ package org.chiu.micro.blog.convertor;
 import org.chiu.micro.blog.entity.BlogEntity;
 import org.chiu.micro.blog.vo.BlogEntityVo;
 import org.chiu.micro.blog.page.PageAdapter;
-import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Map;
@@ -13,10 +12,9 @@ public class BlogEntityVoConvertor {
     private BlogEntityVoConvertor() {
     }
 
-    public static PageAdapter<BlogEntityVo> convert(Page<BlogEntity> page, Map<Long, Integer> readMap,
-            Long operateUserId) {
+    public static PageAdapter<BlogEntityVo> convert(List<BlogEntity> items, Map<Long, Integer> readMap, Long operateUserId, Integer currentPage, Integer size, Long total) {
 
-        List<BlogEntityVo> entities = page.getContent().stream()
+        List<BlogEntityVo> entities = items.stream()
                 .map(blogEntity -> BlogEntityVo.builder()
                         .id(blogEntity.getId())
                         .title(blogEntity.getTitle())
@@ -32,15 +30,16 @@ public class BlogEntityVoConvertor {
                         .build())
                 .toList();
 
+        long anchor = (currentPage - 1) * size + items.size();
         return PageAdapter.<BlogEntityVo>builder()
                 .content(entities)
-                .last(page.isLast())
-                .first(page.isFirst())
-                .pageNumber(page.getNumber())
-                .totalPages(page.getTotalPages())
-                .pageSize(page.getSize())
-                .totalElements(page.getTotalElements())
-                .empty(page.isEmpty())
+                .last(anchor >= total)
+                .first(currentPage == 1)
+                .pageNumber(currentPage)
+                .totalPages((int) (total % size == 0 ? total / size : total / size + 1))
+                .pageSize(size)
+                .totalElements(total)
+                .empty(items.size() == 0)
                 .build();
     }
 }

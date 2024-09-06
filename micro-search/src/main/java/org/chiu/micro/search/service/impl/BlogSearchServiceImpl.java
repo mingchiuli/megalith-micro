@@ -6,20 +6,21 @@ import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.json.JsonData;
 
 import org.chiu.micro.search.lang.StatusEnum;
-import org.chiu.micro.search.convertor.BlogEntityVoConvertor;
-import org.chiu.micro.search.vo.BlogEntityVo;
 import org.chiu.micro.search.page.PageAdapter;
 import org.chiu.micro.search.convertor.BlogDocumentVoConvertor;
 import org.chiu.micro.search.document.BlogDocument;
 import org.chiu.micro.search.service.BlogSearchService;
 import org.chiu.micro.search.utils.ESHighlightBuilderUtils;
 import org.chiu.micro.search.vo.BlogDocumentVo;
+import org.chiu.micro.search.vo.BlogSearchVo;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
+import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder;
+import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -46,14 +47,15 @@ public class BlogSearchServiceImpl implements BlogSearchService {
     private String highestRole;
 
     @Override
-    public PageAdapter<BlogDocumentVo> selectBlogsByES(Integer currentPage, String keywords, Boolean allInfo, String year) {
+    public PageAdapter<BlogDocumentVo> selectBlogsByES(Integer currentPage, String keywords, Boolean allInfo,
+            String year) {
 
         var matchQuery = NativeQuery.builder()
                 .withQuery(query -> query
                         .functionScore(functionScore -> functionScore
                                 .query(baseQuery -> baseQuery
-                                        //做高亮必須在query里搜高亮字段
-                                        //不做高亮可以不写，但是也基于评分策略
+                                        // 做高亮必須在query里搜高亮字段
+                                        // 不做高亮可以不写，但是也基于评分策略
                                         .bool(boolQry -> boolQry
                                                 .should(should -> should
                                                         .match(match -> match
@@ -77,8 +79,8 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                                                         .match(match -> match
                                                                 .field(CONTENT.getField())
                                                                 .fuzziness("auto")
-                                                                .query(keywords))).
-                                                should(should -> should
+                                                                .query(keywords)))
+                                                .should(should -> should
                                                         .matchPhrase(matchPhrase -> matchPhrase
                                                                 .field(CONTENT.getField())
                                                                 .query(keywords)))
@@ -86,8 +88,12 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                                                 .filter(filter -> filter
                                                         .range(range -> range
                                                                 .field(CREATED.getField())
-                                                                .from(StringUtils.hasLength(year) ? year + "-01-01T00:00:00.000+08:00" : null)
-                                                                .to(StringUtils.hasLength(year) ? year + "-12-31T23:59:59.999+08:00" : null)))
+                                                                .from(StringUtils.hasLength(year)
+                                                                        ? year + "-01-01T00:00:00.000+08:00"
+                                                                        : null)
+                                                                .to(StringUtils.hasLength(year)
+                                                                        ? year + "-12-31T23:59:59.999+08:00"
+                                                                        : null)))
                                                 .filter(filter -> filter
                                                         .term(termQry -> termQry
                                                                 .field(STATUS.getField())
@@ -141,12 +147,12 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                 .withSort(sort -> sort
                         .score(score -> score
                                 .order(SortOrder.Desc)))
-                .withPageable(Objects.equals(currentPage, -1) ?
-                        PageRequest.of(0, 10) :
-                        PageRequest.of(currentPage - 1, blogPageSize))
-                .withHighlightQuery(Boolean.TRUE.equals(allInfo) ?
-                        ESHighlightBuilderUtils.blogHighlightQueryOrigin :
-                        ESHighlightBuilderUtils.blogHighlightQuerySimple)
+                .withPageable(Objects.equals(currentPage, -1)
+                        ? PageRequest.of(0, 10)
+                        : PageRequest.of(currentPage - 1, blogPageSize))
+                .withHighlightQuery(Boolean.TRUE.equals(allInfo)
+                        ? ESHighlightBuilderUtils.blogHighlightQueryOrigin
+                        : ESHighlightBuilderUtils.blogHighlightQuerySimple)
                 .build();
         SearchHits<BlogDocument> search = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
 
@@ -154,100 +160,133 @@ public class BlogSearchServiceImpl implements BlogSearchService {
     }
 
     @Override
-    public PageAdapter<BlogEntityVo> searchAllBlogs(String keywords, Integer currentPage, Integer size, Long userId, List<String> roles) {
+    public BlogSearchVo searchBlogs(String keywords, Integer currentPage, Integer size, Long userId, List<String> roles) {
 
         var boolQryBuilder = new BoolQuery.Builder();
-        var builder = boolQryBuilder
-                .should(should -> should
-                        .match(match -> match
-                                .field(TITLE.getField())
-                                .fuzziness("auto")
-                                .query(keywords)))
-                .should(should -> should
-                        .matchPhrase(matchPhrase -> matchPhrase
-                                .field(TITLE.getField())
-                                .query(keywords)))
-                .should(should -> should
-                        .match(match -> match
-                                .field(DESCRIPTION.getField())
-                                .fuzziness("auto")
-                                .query(keywords)))
-                .should(should -> should
-                        .matchPhrase(matchPhrase -> matchPhrase
-                                .field(DESCRIPTION.getField())
-                                .query(keywords)))
-                .should(should -> should
-                        .match(match -> match
-                                .field(CONTENT.getField())
-                                .fuzziness("auto")
-                                .query(keywords)))
-                .should(should -> should
-                        .matchPhrase(matchPhrase -> matchPhrase
-                                .field(CONTENT.getField())
-                                .query(keywords)))
-                .minimumShouldMatch("1");
-
-        if (!roles.contains(highestRole)) {
-            var filterQry = Query.of(filter -> filter
-                    .term(term -> term
-                            .field(USERID.getField())
-                            .value(userId)));
-            builder.filter(filterQry);
+        boolean search = StringUtils.hasText(keywords);
+        if (search) {
+            boolQryBuilder
+                    .should(should -> should
+                            .match(match -> match
+                                    .field(TITLE.getField())
+                                    .fuzziness("auto")
+                                    .query(keywords)))
+                    .should(should -> should
+                            .matchPhrase(matchPhrase -> matchPhrase
+                                    .field(TITLE.getField())
+                                    .query(keywords)))
+                    .should(should -> should
+                            .match(match -> match
+                                    .field(DESCRIPTION.getField())
+                                    .fuzziness("auto")
+                                    .query(keywords)))
+                    .should(should -> should
+                            .matchPhrase(matchPhrase -> matchPhrase
+                                    .field(DESCRIPTION.getField())
+                                    .query(keywords)))
+                    .should(should -> should
+                            .match(match -> match
+                                    .field(CONTENT.getField())
+                                    .fuzziness("auto")
+                                    .query(keywords)))
+                    .should(should -> should
+                            .matchPhrase(matchPhrase -> matchPhrase
+                                    .field(CONTENT.getField())
+                                    .query(keywords)))
+                    .minimumShouldMatch("1");
         }
 
-        BoolQuery boolQuery = builder.build();
+        if (!roles.contains(highestRole)) {
+            var boolQry = BoolQuery.of(bool -> bool
+                    .should(should -> should
+                            .term(term -> term
+                                    .field(USERID.getField())
+                                    .value(userId)))
+                    .should(should -> should
+                            .term(term -> term
+                                    .field(STATUS.getField())
+                                    .value(StatusEnum.NORMAL.getCode())))
+                    .minimumShouldMatch("1"));
+            boolQryBuilder.filter(filter -> filter.bool(boolQry));
+        }
 
-        var nativeQuery = NativeQuery.builder()
-                .withQuery(query -> query
-                        .functionScore(functionScore -> functionScore
-                                .query(baseQry -> baseQry
-                                        .bool(boolQuery))
-                                .functions(function -> function
-                                        .filter(filter -> filter
-                                                .matchPhrase(matchPhrase -> matchPhrase
-                                                        .field(TITLE.getField())
-                                                        .query(keywords)))
-                                        .weight(2.0))
-                                .functions(function -> function
-                                        .filter(filter -> filter
-                                                .matchPhrase(matchPhrase -> matchPhrase
-                                                        .field(DESCRIPTION.getField())
-                                                        .query(keywords)))
-                                        .weight(1.75))
-                                .functions(function -> function
-                                        .filter(filter -> filter
-                                                .matchPhrase(matchPhrase -> matchPhrase
-                                                        .field(CONTENT.getField())
-                                                        .query(keywords)))
-                                        .weight(1.5))
-                                .functions(function -> function
-                                        .filter(filter -> filter
-                                                .match(match -> match
-                                                        .field(TITLE.getField())
-                                                        .query(keywords)))
-                                        .weight(1.5))
-                                .functions(function -> function
-                                        .filter(filter -> filter
-                                                .match(match -> match
-                                                        .field(DESCRIPTION.getField())
-                                                        .query(keywords)))
-                                        .weight(1.25))
-                                .functions(function -> function
-                                        .filter(filter -> filter
-                                                .match(match -> match
-                                                        .field(CONTENT.getField())
-                                                        .query(keywords)))
-                                        .weight(1.0))
-                                .scoreMode(FunctionScoreMode.Sum)
-                                .boostMode(FunctionBoostMode.Multiply)))
+        BoolQuery boolQuery = boolQryBuilder.build();
+
+        NativeQueryBuilder nativeQueryBuilder = NativeQuery.builder();
+        if (search) {
+            nativeQueryBuilder
+                    .withQuery(query -> query
+                            .functionScore(functionScore -> functionScore
+                                    .query(baseQry -> baseQry
+                                            .bool(boolQuery))
+                                    .functions(function -> function
+                                            .filter(filter -> filter
+                                                    .matchPhrase(matchPhrase -> matchPhrase
+                                                            .field(TITLE.getField())
+                                                            .query(keywords)))
+                                            .weight(2.0))
+                                    .functions(function -> function
+                                            .filter(filter -> filter
+                                                    .matchPhrase(matchPhrase -> matchPhrase
+                                                            .field(DESCRIPTION.getField())
+                                                            .query(keywords)))
+                                            .weight(1.75))
+                                    .functions(function -> function
+                                            .filter(filter -> filter
+                                                    .matchPhrase(matchPhrase -> matchPhrase
+                                                            .field(CONTENT.getField())
+                                                            .query(keywords)))
+                                            .weight(1.5))
+                                    .functions(function -> function
+                                            .filter(filter -> filter
+                                                    .match(match -> match
+                                                            .field(TITLE.getField())
+                                                            .query(keywords)))
+                                            .weight(1.5))
+                                    .functions(function -> function
+                                            .filter(filter -> filter
+                                                    .match(match -> match
+                                                            .field(DESCRIPTION.getField())
+                                                            .query(keywords)))
+                                            .weight(1.25))
+                                    .functions(function -> function
+                                            .filter(filter -> filter
+                                                    .match(match -> match
+                                                            .field(CONTENT.getField())
+                                                            .query(keywords)))
+                                            .weight(1.0))
+                                    .scoreMode(FunctionScoreMode.Sum)
+                                    .boostMode(FunctionBoostMode.Multiply)));
+        }
+
+        nativeQueryBuilder
                 .withPageable(PageRequest.of(currentPage - 1, size))
-                .withSort(sort -> sort
-                        .score(score -> score
-                                .order(SortOrder.Desc)))
+                .withSort(search
+                        ? sort -> sort
+                                .score(score -> score
+                                        .order(SortOrder.Desc))
+                        : sort -> sort
+                                .field(field -> field
+                                        .field(CREATED.getField())
+                                        .order(SortOrder.Desc)))
                 .build();
 
-        SearchHits<BlogDocument> search = elasticsearchTemplate.search(nativeQuery, BlogDocument.class);
-        return BlogEntityVoConvertor.convert(search, currentPage, size, userId);
+        
+        SearchHits<BlogDocument> searchResp = elasticsearchTemplate.search(nativeQueryBuilder.build(), BlogDocument.class);
+        // searchResp.getTotalHits()
+
+        List<Long> ids = searchResp.getSearchHits().stream()
+                .map(SearchHit::getContent)
+                .map(BlogDocument::getId)
+                .toList();
+
+        return BlogSearchVo.builder()
+                .ids(ids)
+                .currentPage(currentPage)
+                .size(size)
+                .total(searchResp.getTotalHits())
+                .build();
+                
     }
 
 }

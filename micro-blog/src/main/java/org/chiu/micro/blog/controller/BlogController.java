@@ -66,9 +66,10 @@ public class BlogController {
     @GetMapping("/blogs")
     public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@RequestParam(defaultValue = "1") Integer currentPage,
                                                          @RequestParam(defaultValue = "5") Integer size,
+                                                         @RequestParam(required = false) String keywords,
                                                          HttpServletRequest request) {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
-        return Result.success(() -> blogService.findAllABlogs(currentPage, size, authDto.getUserId(), authDto.getRoles()));
+        return Result.success(() -> blogService.findAllABlogs(currentPage, size, authDto.getUserId(), keywords));
     }
 
     @GetMapping("/deleted")
