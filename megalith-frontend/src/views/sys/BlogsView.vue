@@ -99,7 +99,7 @@ const searchBlogsAction = () => {
 const searchBlogs = async () => {
   if (input.value) {
     loading.value = true
-    const data = await GET<PageAdapter<BlogSys>>(`/search/sys/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
+    const data = await GET<PageAdapter<BlogSys>>(`/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
     page.content = data.content
     page.totalElements = data.totalElements
     loading.value = false
