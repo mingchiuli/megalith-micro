@@ -24,7 +24,7 @@ public interface BlogServer {
     byte[] setBlogToken(@PathVariable Long blogId, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @GetExchange("/blogs")
-    byte[] findAllABlogs(@RequestParam(required = false) Integer currentPage, @RequestParam(required = false) Integer size, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
+    byte[] findAllABlogs(@RequestParam(required = false) Integer currentPage, @RequestParam(required = false) Integer size, @RequestParam(required = false) String keywords, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
     @GetExchange("/deleted")
     byte[] findDeletedBlogs(@RequestParam Integer currentPage, @RequestParam Integer size, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
