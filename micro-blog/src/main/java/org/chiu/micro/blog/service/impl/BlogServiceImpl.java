@@ -293,7 +293,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @SuppressWarnings("all")
-    public PageAdapter<BlogEntityVo> findAllABlogs(Integer currentPage, Integer size, Long userId, String keywords) {
+    public PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, Long userId, String keywords) {
 
         BlogSearchDto dto = searchHttpServiceWrapper.searchBlogs(currentPage, size, keywords);
         List<Long> ids = dto.getIds();
@@ -301,7 +301,9 @@ public class BlogServiceImpl implements BlogService {
 
         List<String> res = redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),
                 Collections.singletonList(HOT_READ.getInfo()),
-                jsonUtils.writeValueAsString(ids));
+                jsonUtils.writeValueAsString(ids.stream()
+                        .map(String::valueOf)
+                        .toList()));
 
         Map<Long, Integer> readMap = new HashMap<>();
         for (int i = 0; i < res.size(); i += 2) {

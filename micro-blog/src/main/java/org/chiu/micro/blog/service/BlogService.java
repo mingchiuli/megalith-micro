@@ -16,7 +16,7 @@ public interface BlogService {
 
     void saveOrUpdate(BlogEntityReq blog, Long userId);
 
-    PageAdapter<BlogEntityVo> findAllABlogs(Integer currentPage, Integer size, Long userId, String keywords);
+    PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, Long userId, String keywords);
 
     void recoverDeletedBlog(Integer idx, Long userId);
 
