@@ -29,9 +29,9 @@ public class SearchProvider {
 
     @GetMapping("/blog/search")
     public Result<BlogSearchVo> searchAllBlogs(@RequestParam(defaultValue = "1") Integer currentPage,
-                                             @RequestParam(defaultValue = "5") Integer size,
-                                             @RequestParam @Size(min = 1, max = 20) String keywords,
-                                             HttpServletRequest request) {
+                                               @RequestParam(defaultValue = "5") Integer size,
+                                               @RequestParam @Size(min = 0, max = 20) String keywords,
+                                               HttpServletRequest request) {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
         return Result.success(() -> blogSearchService.searchBlogs(keywords, currentPage, size, authDto.getUserId(), authDto.getRoles()));
     }
