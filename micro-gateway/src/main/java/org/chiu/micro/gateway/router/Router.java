@@ -56,7 +56,7 @@ public class Router {
 
         String method = request.getMethod();
         String requestURI = request.getRequestURI();
-
+        log.info("parameterMap:{}", request.getParameterMap());
         AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(
                 AuthorityRouteReq.builder()
                         .routeMapping(requestURI)
@@ -97,7 +97,6 @@ public class Router {
                         .retrieve()
                         .toEntity(byte[].class);
             } else {
-                log.info("parameterMap:{}", parameterMap);
                 responseEntity = restClient
                         .post()
                         .uri(url, uriBuilder -> {
