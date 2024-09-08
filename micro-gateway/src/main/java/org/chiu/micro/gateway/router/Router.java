@@ -56,7 +56,6 @@ public class Router {
 
         String method = request.getMethod();
         String requestURI = request.getRequestURI();
-        log.info("parameterMap:{}", request.getParameterMap().entrySet().toString());
         AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(
                 AuthorityRouteReq.builder()
                         .routeMapping(requestURI)
@@ -77,7 +76,6 @@ public class Router {
         String authorization = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
 
         String url = Const.PROTOFILE.getInfo() + serviceHost + Const.PROTOFILE_SPLIT.getInfo() + servicePort + requestURI;
-        log.info("url:{}", url);
 
         HttpMethod httpMethod = HttpMethod.valueOf(method);
         Map<String, String[]> parameterMap = request.getParameterMap();
@@ -86,18 +84,13 @@ public class Router {
         if (HttpMethod.POST.equals(httpMethod)) {
             // upload request
             if (request instanceof MultipartHttpServletRequest req) {
-                log.info("call MultipartHttpServletRequest");
                 Map<String, MultipartFile> fileMap = req.getFileMap();
                 MultiValueMap<String, Resource> parts = new LinkedMultiValueMap<>();
                 fileMap.entrySet().forEach(entry -> parts.add(entry.getKey(), entry.getValue().getResource()));
                 responseEntity = restClient
                         .post()
                         .uri(url, uriBuilder -> {
-                            parameterMap.entrySet().forEach(entry -> {
-                                log.info("key:{}", entry.getKey());
-                                log.info("value:{}", List.of(entry.getValue()).toString());
-                                uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue()));
-                            });
+                            parameterMap.entrySet().forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
                             return uriBuilder.build();
                         })
                         .body(parts)
@@ -105,15 +98,10 @@ public class Router {
                         .retrieve()
                         .toEntity(byte[].class);
             } else {
-                log.info("call post");
                 responseEntity = restClient
                         .post()
                         .uri(url, uriBuilder -> {
-                            parameterMap.entrySet().forEach(entry -> {
-                                log.info("key:{}", entry.getKey());
-                                log.info("value:{}", List.of(entry.getValue()).toString());
-                                uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue()));
-                            });
+                            parameterMap.entrySet().forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
                             return uriBuilder.build();
                         })
                         .contentType(MediaType.APPLICATION_JSON)

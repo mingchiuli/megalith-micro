@@ -110,7 +110,6 @@ public class SecurityAuthenticationUtils {
     }
 
     public boolean routeMatch(String routePattern, String targetMethod, String routeMapping, String method) {
-        log.info("routeMatch:{}, {}, {}, {}", routePattern, targetMethod, routeMapping, method);
         if (!Objects.equals(targetMethod, method)) {
             return false;
         }

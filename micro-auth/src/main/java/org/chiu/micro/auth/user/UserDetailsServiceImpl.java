@@ -24,7 +24,6 @@ public final class UserDetailsServiceImpl implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		
-		log.info("username:{}",username);
 		UserEntityDto user = userHttpServiceWrapper.findByUsernameOrEmailOrPhone(username);
 
 		Long userId = user.getId();
