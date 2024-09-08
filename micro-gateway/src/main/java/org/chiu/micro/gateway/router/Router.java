@@ -97,10 +97,15 @@ public class Router {
                         .retrieve()
                         .toEntity(byte[].class);
             } else {
+                log.info("call post");
                 responseEntity = restClient
                         .post()
                         .uri(url, uriBuilder -> {
-                            parameterMap.entrySet().forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
+                            parameterMap.entrySet().forEach(entry -> {
+                                log.info("key:{}", entry.getKey());
+                                log.info("value:{}", List.of(entry.getValue()).toString());
+                                uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue()));
+                            });
                             return uriBuilder.build();
                         })
                         .body(request.getInputStream().readAllBytes())
