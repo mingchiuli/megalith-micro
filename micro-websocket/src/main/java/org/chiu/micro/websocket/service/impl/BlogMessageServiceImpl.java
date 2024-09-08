@@ -76,7 +76,7 @@ public class BlogMessageServiceImpl implements BlogMessageService {
                 .build();
 
             String subscriptionKey = KeyFactory.createSubscriptionKey(userId, blogId);
-            simpMessagingTemplate.convertAndSend("/edits/" + subscriptionKey, dto);
+            simpMessagingTemplate.convertAndSend("/edits" + subscriptionKey, dto);
         }
     }
 

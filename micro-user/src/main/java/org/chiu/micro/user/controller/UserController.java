@@ -1,6 +1,5 @@
 package org.chiu.micro.user.controller;
 
-import org.chiu.micro.user.req.ImgUploadReq;
 import org.chiu.micro.user.req.UserEntityRegisterReq;
 import org.chiu.micro.user.service.UserRoleService;
 import org.chiu.micro.user.service.UserService;
@@ -11,8 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.chiu.micro.user.vo.UserEntityVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 
@@ -46,9 +47,9 @@ public class UserController {
     }
 
     @PostMapping("/register/image/upload")
-    public SseEmitter imageUpload(@RequestBody ImgUploadReq req,
-                                      @RequestParam String token) {
-        return userService.imageUpload(token, req);
+    public SseEmitter imageUpload(@RequestBody MultipartFile file,
+                                  @RequestParam String token) {
+        return userService.imageUpload(token, file);
     }
 
     @GetMapping("/register/image/delete")
@@ -79,7 +80,8 @@ public class UserController {
     }
 
     @GetMapping("/download")
-    public byte[] download() {
-        return userService.download();
+    public Result<Void> download(HttpServletResponse response) {
+        userService.download(response);
+        return Result.success();
     }
 }

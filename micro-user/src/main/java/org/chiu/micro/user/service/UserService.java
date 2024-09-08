@@ -1,8 +1,10 @@
 package org.chiu.micro.user.service;
 
-import org.chiu.micro.user.req.ImgUploadReq;
 import org.chiu.micro.user.vo.UserEntityRpcVo;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,13 +23,13 @@ public interface UserService {
 
     String getRegisterPage(String username);
 
-    SseEmitter imageUpload(String token, ImgUploadReq req);
+    SseEmitter imageUpload(String token, MultipartFile req);
 
     void imageDelete(String token, String url);
 
     Boolean checkRegisterPage(String token);
 
-    byte[] download();
+    void download(HttpServletResponse response);
 
     UserEntityRpcVo findById(Long userId);
 

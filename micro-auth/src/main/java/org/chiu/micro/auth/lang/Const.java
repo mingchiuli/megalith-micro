@@ -31,9 +31,19 @@ public enum Const {
     
     HOT_AUTHORITIES("hot_authorities"),
 
-    HOT_MENUS_AND_BUTTONS("hot_menus_and_buttons"),;
-
-
+    HOT_MENUS_AND_BUTTONS("hot_menus_and_buttons"),
+    
+    USER_SERVICE("micro-user"),
+    
+    BLOG_SERVICE("micro-blog"),
+    
+    SEARCH_SERVICE("micro-search"),
+    
+    EXHIBIT_SERVICE("micro-exhibit"),
+    
+    AUTH_SERVICE("micro-auth"),
+    
+    GATEWAY_SERVICE("micro-gateway");
 
     private final String info;
 

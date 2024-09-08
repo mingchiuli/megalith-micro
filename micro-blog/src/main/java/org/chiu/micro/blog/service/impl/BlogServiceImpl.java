@@ -27,7 +27,6 @@ import org.chiu.micro.blog.dto.UserEntityDto;
 import org.chiu.micro.blog.event.BlogOperateEvent;
 import org.chiu.micro.blog.repository.BlogRepository;
 import org.chiu.micro.blog.req.BlogEntityReq;
-import org.chiu.micro.blog.req.ImgUploadReq;
 import org.chiu.micro.blog.rpc.OssHttpService;
 import org.chiu.micro.blog.rpc.wrapper.SearchHttpServiceWrapper;
 import org.chiu.micro.blog.rpc.wrapper.UserHttpServiceWrapper;
@@ -54,6 +53,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -140,6 +140,7 @@ public class BlogServiceImpl implements BlogService {
     public void download(HttpServletResponse response) {
         ServletOutputStream outputStream = response.getOutputStream();
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
         Set<BlogEntity> items = Collections.newSetFromMap(new ConcurrentHashMap<>());
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
@@ -184,18 +185,18 @@ public class BlogServiceImpl implements BlogService {
 
     @SneakyThrows
     @Override
-    public SseEmitter uploadOss(ImgUploadReq image, Long userId) {
-        Assert.notNull(image.getData(), UPLOAD_MISS.getMsg());
+    public SseEmitter uploadOss(MultipartFile file, Long userId) {
+        byte[] imageBytes = file.getBytes();
+        String originalFilename = Optional.ofNullable(file.getOriginalFilename())
+                .orElseGet(() -> UUID.randomUUID().toString())
+                .replace(" ", "");
+        Assert.notNull(imageBytes, UPLOAD_MISS.getMsg());
         var sseEmitter = new SseEmitter();
         taskExecutor.execute(() -> {
             String uuid = UUID.randomUUID().toString();
-            String originalFilename = image.getFileName();
-            originalFilename = Optional.ofNullable(originalFilename)
-                    .orElseGet(() -> UUID.randomUUID().toString())
-                    .replace(" ", "");
+            
             UserEntityDto user = userHttpServiceWrapper.findById(userId);
             String objectName = user.getNickname() + "/" + uuid + "-" + originalFilename;
-            byte[] imageBytes = image.getData();
     
             Map<String, String> headers = new HashMap<>();
             String gmtDate = ossSignUtils.getGMTDate();
