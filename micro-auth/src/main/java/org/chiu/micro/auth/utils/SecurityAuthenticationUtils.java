@@ -5,7 +5,9 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import org.chiu.micro.auth.dto.AuthDto;
+import org.chiu.micro.auth.dto.AuthorityDto;
 import org.chiu.micro.auth.exception.AuthException;
+import org.chiu.micro.auth.lang.Const;
 import org.chiu.micro.auth.token.Claims;
 import org.chiu.micro.auth.token.TokenUtils;
 import org.chiu.micro.auth.wrapper.AuthWrapper;
@@ -80,12 +82,31 @@ public class SecurityAuthenticationUtils {
 
     @SneakyThrows
     public List<String> getAuthAuthority(String token) {
+        List<String> authorities = new ArrayList<>();
+        List<AuthorityDto> allAuthorities = authWrapper.getAllSystemAuthorities();
+        List<String> whiteList = allAuthorities.stream()
+                .filter(authority -> authority.getCode().startsWith(Const.WHITELIST.getInfo()))
+                .map(AuthorityDto::getCode)
+                .toList();
+
+        authorities.addAll(whiteList);
+
+        if (!StringUtils.hasLength(token)) {
+            return authorities;
+        }
+
         String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
         Claims claims = tokenUtils.getVerifierByToken(jwt);
-        Long userId = Long.valueOf(claims.getUserId());
         List<String> roles = claims.getRoles();
         List<String> rawRoles = getRawRoleCodes(roles);
-        return getAuthorities(userId, rawRoles);
+
+        rawRoles.forEach(role -> authorities.addAll(authWrapper.getAuthoritiesByRoleCode(role)));
+
+        authorities.addAll(authorities.stream()
+                .distinct()
+                .toList());
+
+        return authorities;
     }
 
     public boolean routeMatch(String routePattern, String targetMethod, String routeMapping, String method) {
@@ -102,7 +123,7 @@ public class SecurityAuthenticationUtils {
             String prefix = routePattern
                     .replace("/**", "")
                     .replace("/*", "");
-            
+
             if (routeMapping.startsWith(prefix)) {
                 return true;
             }
