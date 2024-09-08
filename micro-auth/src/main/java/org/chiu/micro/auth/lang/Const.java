@@ -43,7 +43,9 @@ public enum Const {
     
     AUTH_SERVICE("micro-auth"),
     
-    GATEWAY_SERVICE("micro-gateway");
+    GATEWAY_SERVICE("micro-gateway"),
+    
+    WHITELIST("whitelist");
 
     private final String info;
 
