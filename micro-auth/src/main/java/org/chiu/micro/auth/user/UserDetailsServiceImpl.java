@@ -1,6 +1,7 @@
 package org.chiu.micro.auth.user;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.chiu.micro.auth.dto.UserEntityDto;
 import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public final class UserDetailsServiceImpl implements UserDetailsService {
 
 	private final UserHttpServiceWrapper userHttpServiceWrapper;
@@ -22,6 +24,7 @@ public final class UserDetailsServiceImpl implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		
+		log.info("username:{}",username);
 		UserEntityDto user = userHttpServiceWrapper.findByUsernameOrEmailOrPhone(username);
 
 		Long userId = user.getId();
