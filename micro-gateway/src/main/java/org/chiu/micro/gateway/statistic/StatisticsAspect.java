@@ -50,7 +50,7 @@ public class StatisticsAspect {
         script = resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
-    @Pointcut(value ="execution(* org.chiu.micro.gateway.server.*.*(..))")
+    @Pointcut(value ="execution(* org.chiu.micro.gateway.router.*.*(..))")
     public void pt() {}
 
     //必须同步
