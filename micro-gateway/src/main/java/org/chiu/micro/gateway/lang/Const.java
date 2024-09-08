@@ -19,21 +19,9 @@ public enum Const {
 
     YEAR_VISIT("{visit_record}_year"),
     
-    HTTP("http"),
+    PROTOFILE("http://"),
     
-    WHITELIST("whitelist"),
-    
-    USER_SERVICE("micro-user"),
-    
-    BLOG_SERVICE("micro-blog"),
-    
-    SEARCH_SERVICE("micro-search"),
-    
-    EXHIBIT_SERVICE("micro-exhibit"),
-    
-    AUTH_SERVICE("micro-auth"),
-    
-    GATEWAY_SERVICE("micro-gateway");
+    PROTOFILE_SPLIT(":");
 
     private final String info;
 

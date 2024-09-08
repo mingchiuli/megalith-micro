@@ -7,7 +7,6 @@ import org.chiu.micro.blog.valid.BlogSaveValue;
 import org.chiu.micro.blog.vo.BlogDeleteVo;
 import org.chiu.micro.blog.vo.BlogEntityVo;
 import org.chiu.micro.blog.req.BlogEntityReq;
-import org.chiu.micro.blog.req.ImgUploadReq;
 import org.chiu.micro.blog.rpc.wrapper.AuthHttpServiceWrapper;
 
 import java.util.List;
@@ -21,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.validation.constraints.NotBlank;
@@ -88,10 +88,10 @@ public class BlogController {
     }
 
     @PostMapping(value = "/oss/upload")
-    public SseEmitter uploadOss(@RequestBody ImgUploadReq image,
+    public SseEmitter uploadOss(@RequestBody MultipartFile file,
                                 HttpServletRequest request) {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
-        return blogService.uploadOss(image, authDto.getUserId());
+        return blogService.uploadOss(file, authDto.getUserId());
     }
 
     @GetMapping("/oss/delete")

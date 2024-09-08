@@ -4,8 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.chiu.micro.gateway.lang.Result;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -21,12 +19,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ExceptionHandler(value = BadCredentialsException.class)
-    public Result<Object> handler(BadCredentialsException e) {
-        return Result.fail(e.getMessage(), () -> log.error("authentication exception:", e));
-    }
-
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     public Result<String> handler(MethodArgumentNotValidException e) {
@@ -41,12 +33,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = IllegalArgumentException.class)
     public Result<String> handler(IllegalArgumentException e) {
         return Result.fail(e.getMessage(), () -> log.error("Assert exception------------", e));
-    }
-
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ExceptionHandler(value = AccessDeniedException.class)
-    public Result<String> handler(AccessDeniedException e){
-        return Result.fail(e.getMessage(),  () -> log.error("authorization exception------------", e));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

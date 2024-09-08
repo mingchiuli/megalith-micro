@@ -4,13 +4,17 @@ import java.util.List;
 
 import org.chiu.micro.auth.dto.AuthDto;
 import org.chiu.micro.auth.lang.Result;
+import org.chiu.micro.auth.req.AuthorityRouteReq;
 import org.chiu.micro.auth.service.AuthService;
 import org.chiu.micro.auth.utils.SecurityAuthenticationUtils;
+import org.chiu.micro.auth.vo.AuthorityRouteVo;
 import org.chiu.micro.auth.vo.AuthorityVo;
+import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,7 +40,12 @@ public class AuthProvider {
     }
 
     @PostMapping("/system")
-    public Result<List<AuthorityVo>> list(@RequestBody List<String> service) {
+    public Result<List<AuthorityVo>> system(@RequestBody List<String> service) {
         return Result.success(() -> authService.getSystemAuthority(service));
+    }
+
+    @PostMapping("/route")
+    public Result<AuthorityRouteVo> route(@RequestBody AuthorityRouteReq req, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) {
+        return Result.success(() -> authService.route(req, token));
     }
 }

@@ -2,6 +2,7 @@ package org.chiu.micro.auth.utils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import org.chiu.micro.auth.dto.AuthDto;
 import org.chiu.micro.auth.exception.AuthException;
@@ -11,17 +12,18 @@ import org.chiu.micro.auth.wrapper.AuthWrapper;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-
 import static org.chiu.micro.auth.lang.Const.*;
 import static org.chiu.micro.auth.lang.ExceptionMessage.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Collections;
 import org.springframework.util.StringUtils;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityAuthenticationUtils {
 
     private final AuthWrapper authWrapper;
@@ -29,7 +31,6 @@ public class SecurityAuthenticationUtils {
     private final TokenUtils<Claims> tokenUtils;
 
     private final StringRedisTemplate redisTemplate;
-
 
     private List<String> getRawRoleCodes(List<String> roles) {
         List<String> rawRoles = new ArrayList<>();
@@ -56,7 +57,7 @@ public class SecurityAuthenticationUtils {
         Long userId;
         List<String> rawRoles;
         List<String> authorities;
-        
+
         if (!StringUtils.hasLength(token)) {
             userId = 0L;
             rawRoles = Collections.emptyList();
@@ -69,11 +70,53 @@ public class SecurityAuthenticationUtils {
             rawRoles = getRawRoleCodes(roles);
             authorities = getAuthorities(userId, rawRoles);
         }
-        
+
         return AuthDto.builder()
                 .userId(userId)
                 .roles(rawRoles)
                 .authorities(authorities)
                 .build();
     }
+
+    @SneakyThrows
+    public List<String> getAuthAuthority(String token) {
+        String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
+        Claims claims = tokenUtils.getVerifierByToken(jwt);
+        Long userId = Long.valueOf(claims.getUserId());
+        List<String> roles = claims.getRoles();
+        List<String> rawRoles = getRawRoleCodes(roles);
+        return getAuthorities(userId, rawRoles);
+    }
+
+    public boolean routeMatch(String routePattern, String targetMethod, String routeMapping, String method) {
+        log.info("routeMatch:{}, {}, {}, {}", routePattern, targetMethod, routeMapping, method);
+        if (!Objects.equals(targetMethod, method)) {
+            return false;
+        }
+
+        if (Objects.equals(routePattern, routeMapping)) {
+            return true;
+        }
+
+        if (routePattern.endsWith("/**")) {
+            String prefix = routePattern
+                    .replace("/**", "")
+                    .replace("/*", "");
+            
+            if (routeMapping.startsWith(prefix)) {
+                return true;
+            }
+        }
+
+        if (routePattern.endsWith("/*")) {
+            String prefix = routePattern.replace("/*", "");
+
+            if (routeMapping.startsWith(prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 }

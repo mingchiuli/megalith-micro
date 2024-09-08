@@ -1,6 +1,9 @@
 package org.chiu.micro.user.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.SneakyThrows;
 import org.chiu.micro.user.http.OssHttpService;
 import org.chiu.micro.user.utils.OssSignUtils;
@@ -9,7 +12,6 @@ import org.chiu.micro.user.convertor.UserEntityRpcVoConvertor;
 import org.chiu.micro.user.entity.UserEntity;
 import org.chiu.micro.user.exception.MissException;
 import org.chiu.micro.user.repository.UserRepository;
-import org.chiu.micro.user.req.ImgUploadReq;
 import org.chiu.micro.user.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,12 +26,14 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import static org.chiu.micro.user.lang.Const.*;
 import static org.chiu.micro.user.lang.ExceptionMessage.*;
@@ -88,24 +92,23 @@ public class UserServiceImpl implements UserService {
 
     @SneakyThrows
     @Override
-    public SseEmitter imageUpload(String token, ImgUploadReq req) {
+    public SseEmitter imageUpload(String token, MultipartFile file) {
         Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX.getInfo() + token);
         if (Objects.isNull(exist) || Boolean.FALSE.equals(exist)) {
             throw new MissException(NO_AUTH.getMsg());
         }
-
-        Assert.notNull(req.getData(), UPLOAD_MISS.getMsg());
+        byte[] imageBytes = file.getBytes();
+        Assert.notNull(imageBytes, UPLOAD_MISS.getMsg());
         var sseEmitter = new SseEmitter();
         
         taskExecutor.execute(() -> {
             String uuid = UUID.randomUUID().toString();
-            String originalFilename = req.getFileName();
+            String originalFilename = file.getOriginalFilename();
             originalFilename = Optional.ofNullable(originalFilename)
                     .orElseGet(() -> UUID.randomUUID().toString())
                     .replace(" ", "");
             String objectName = "avatar/" + uuid + "-" + originalFilename;
-            byte[] imageBytes = req.getData();
-    
+
             Map<String, String> headers = new HashMap<>();
             String gmtDate = ossSignUtils.getGMTDate();
             headers.put(HttpHeaders.DATE, gmtDate);
@@ -147,9 +150,15 @@ public class UserServiceImpl implements UserService {
 
     @SneakyThrows
     @Override
-    public byte[] download() {
+    public void download(HttpServletResponse response) {
         List<UserEntity> users = userRepository.findAll();
-        return objectMapper.writeValueAsBytes(users);
+        byte[] data = objectMapper.writeValueAsBytes(users);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        ServletOutputStream outputStream = response.getOutputStream();
+        outputStream.write(data);
+        outputStream.flush();
+        outputStream.close();
     }
 
     @Override

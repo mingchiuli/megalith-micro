@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.chiu.micro.auth.cache.Cache;
 import org.chiu.micro.auth.convertor.MenusAndButtonsDtoConvertor;
+import org.chiu.micro.auth.dto.AuthorityDto;
 import org.chiu.micro.auth.dto.MenusAndButtonsDto;
 import org.chiu.micro.auth.dto.MenusAndButtonsRpcDto;
 import org.chiu.micro.auth.lang.Const;
@@ -27,6 +28,11 @@ public class AuthWrapper {
 	@Cache(prefix = Const.HOT_AUTHORITIES)
 	public List<String> getAuthoritiesByRoleCode(String rawRole) {
 		return userHttpServiceWrapper.getAuthoritiesByRoleCode(rawRole);
+	}
+
+    @Cache(prefix = Const.HOT_AUTHORITIES)
+	public List<AuthorityDto> getAllSystemAuthorities() {
+		return userHttpServiceWrapper.getSystemAuthorities(List.of(Const.AUTH_SERVICE.getInfo(), Const.BLOG_SERVICE.getInfo(), Const.EXHIBIT_SERVICE.getInfo(), Const.USER_SERVICE.getInfo(), Const.SEARCH_SERVICE.getInfo()));
 	}
 
 }
