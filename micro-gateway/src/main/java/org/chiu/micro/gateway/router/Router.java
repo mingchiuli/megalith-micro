@@ -86,6 +86,7 @@ public class Router {
         if (HttpMethod.POST.equals(httpMethod)) {
             // upload request
             if (request instanceof MultipartHttpServletRequest req) {
+                log.info("call MultipartHttpServletRequest");
                 Map<String, MultipartFile> fileMap = req.getFileMap();
                 MultiValueMap<String, Resource> parts = new LinkedMultiValueMap<>();
                 fileMap.entrySet().forEach(entry -> parts.add(entry.getKey(), entry.getValue().getResource()));
