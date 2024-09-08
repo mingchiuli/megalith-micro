@@ -88,10 +88,10 @@ public class BlogController {
     }
 
     @PostMapping(value = "/oss/upload")
-    public SseEmitter uploadOss(@RequestBody MultipartFile file,
+    public SseEmitter uploadOss(@RequestBody MultipartFile image,
                                 HttpServletRequest request) {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
-        return blogService.uploadOss(file, authDto.getUserId());
+        return blogService.uploadOss(image, authDto.getUserId());
     }
 
     @GetMapping("/oss/delete")
