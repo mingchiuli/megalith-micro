@@ -26,7 +26,7 @@ let client = new Client({
 let subscribe: StompSubscription
 
 const connect = async () => {
-  const key = blogId ? `${userId}/${blogId}` : userId.toString()
+  const key = blogId ? `${blogId}` : `init/${userId}`
   client.onConnect = _frame => {
     subscribe = client.subscribe(`/edits/${key}`, async res => {
       const body: SubscribeItem = JSON.parse(res.body)
