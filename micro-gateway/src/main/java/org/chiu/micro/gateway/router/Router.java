@@ -83,14 +83,17 @@ public class Router {
 
         if (HttpMethod.POST.equals(httpMethod)) {
             Object body;
+            MediaType contenType;
             if (request instanceof MultipartHttpServletRequest req) {
                 // upload / login request
                 Map<String, MultipartFile> fileMap = req.getFileMap();
                 MultiValueMap<String, Resource> parts = new LinkedMultiValueMap<>();
                 fileMap.entrySet().forEach(entry -> parts.add(entry.getKey(), entry.getValue().getResource()));
                 body = parts;
+                contenType = MediaType.MULTIPART_FORM_DATA;
             } else {
                 body = request.getInputStream().readAllBytes();
+                contenType = MediaType.APPLICATION_JSON;
             }
             responseEntity = restClient
                         .post()
@@ -98,7 +101,7 @@ public class Router {
                             parameterMap.entrySet().forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
                             return uriBuilder.build();
                         })
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(contenType)
                         .body(body)
                         .header(HttpHeaders.AUTHORIZATION, authorization)
                         .retrieve()
