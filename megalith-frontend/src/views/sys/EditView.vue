@@ -176,6 +176,26 @@ const preCheck = (n: string | undefined, o: string | undefined): boolean => {
   return true
 }
 
+const loadEditContent = async () => {
+  let data
+  if (!blogId) {
+    data = await GET<BlogEdit>('/sys/blog/edit/pull/echo')
+  } else {
+    data = await GET<BlogEdit>(`/sys/blog/edit/pull/echo?blogId=${blogId}`)
+  }
+  form.title = data.title
+  form.description = data.description
+  form.content = data.content
+  form.link = data.link
+  form.status = data.status
+  form.id = data.id
+  form.userId = data.userId
+  form.sensitiveContentList = data.sensitiveContentList
+  form.version = data.version
+}
+
+await loadEditContent()
+
 if (form.userId!.toString() === userId) {
   watch(() => form.description, (n, o) => {
     if (!preCheck(n, o)) return
@@ -315,24 +335,6 @@ const formRules = reactive<FormRules<EditForm>>({
     { required: true, message: '请选择状态', trigger: 'blur' }
   ]
 })
-
-const loadEditContent = async () => {
-  let data
-  if (!blogId) {
-    data = await GET<BlogEdit>('/sys/blog/edit/pull/echo')
-  } else {
-    data = await GET<BlogEdit>(`/sys/blog/edit/pull/echo?blogId=${blogId}`)
-  }
-  form.title = data.title
-  form.description = data.description
-  form.content = data.content
-  form.link = data.link
-  form.status = data.status
-  form.id = data.id
-  form.userId = data.userId
-  form.sensitiveContentList = data.sensitiveContentList
-  form.version = data.version
-}
 
 const upload = async (image: UploadRequestOptions) => {
   await uploadFile(image.file)
@@ -539,7 +541,6 @@ const healthCheck = async () => {
 const init = async () => {
   if (client.webSocket?.readyState === StompSocketState.OPEN) {
     transColor.value = OperaColor.SUCCESS
-    await loadEditContent()
     await healthCheck()
     return
   }
