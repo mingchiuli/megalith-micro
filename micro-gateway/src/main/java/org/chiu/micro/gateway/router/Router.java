@@ -92,7 +92,14 @@ public class Router {
                 fileMap.entrySet().forEach(entry -> parts.add(entry.getKey(), entry.getValue().getResource()));
                 responseEntity = restClient
                         .post()
-                        .uri(url)
+                        .uri(url, uriBuilder -> {
+                            parameterMap.entrySet().forEach(entry -> {
+                                log.info("key:{}", entry.getKey());
+                                log.info("value:{}", List.of(entry.getValue()).toString());
+                                uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue()));
+                            });
+                            return uriBuilder.build();
+                        })
                         .body(parts)
                         .header(HttpHeaders.AUTHORIZATION, authorization)
                         .retrieve()
