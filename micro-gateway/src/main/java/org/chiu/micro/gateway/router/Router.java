@@ -56,7 +56,7 @@ public class Router {
 
         String method = request.getMethod();
         String requestURI = request.getRequestURI();
-        log.info("parameterMap:{}", request.getParameterMap());
+        log.info("parameterMap:{}", request.getParameterMap().entrySet().toString());
         AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(
                 AuthorityRouteReq.builder()
                         .routeMapping(requestURI)
