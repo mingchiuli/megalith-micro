@@ -119,9 +119,7 @@ public class SecurityAuthenticationUtils {
         }
 
         if (routePattern.endsWith("/**")) {
-            String prefix = routePattern
-                    .replace("/**", "")
-                    .replace("/*", "");
+            String prefix = routePattern.replace("/**", "");
 
             if (routeMapping.startsWith(prefix)) {
                 return true;
@@ -131,7 +129,7 @@ public class SecurityAuthenticationUtils {
         if (routePattern.endsWith("/*")) {
             String prefix = routePattern.replace("/*", "");
 
-            if (routeMapping.startsWith(prefix)) {
+            if (routeMapping.startsWith(prefix) && routeMapping.lastIndexOf("/", prefix.length()) == routeMapping.indexOf("/", prefix.length())) {
                 return true;
             }
         }
