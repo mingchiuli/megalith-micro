@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.chiu.micro.gateway.dto.AuthorityRouteDto;
 import org.chiu.micro.gateway.lang.Const;
@@ -73,6 +74,7 @@ public class Router {
 
         String serviceHost = authorityRoute.getServiceHost();
         Integer servicePort = authorityRoute.getServicePort();
+        String authorization = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
 
         String url = Const.PROTOFILE.getInfo() + serviceHost + Const.PROTOFILE_SPLIT.getInfo() + servicePort + requestURI;
         log.info("url:{}", url);
@@ -91,7 +93,7 @@ public class Router {
                         .post()
                         .uri(url)
                         .body(parts)
-                        .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
+                        .header(HttpHeaders.AUTHORIZATION, authorization)
                         .retrieve()
                         .toEntity(byte[].class);
             } else {
@@ -102,7 +104,7 @@ public class Router {
                             return uriBuilder.build();
                         })
                         .body(request.getInputStream().readAllBytes())
-                        .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
+                        .header(HttpHeaders.AUTHORIZATION, authorization)
                         .retrieve()
                         .toEntity(byte[].class);
             }
@@ -115,7 +117,7 @@ public class Router {
                         parameterMap.entrySet().forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
                         return uriBuilder.build();
                     })
-                    .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
+                    .header(HttpHeaders.AUTHORIZATION, authorization)
                     .retrieve()
                     .toEntity(byte[].class);
         }
