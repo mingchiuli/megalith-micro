@@ -13,7 +13,7 @@ import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle, dealA
 const route = useRoute()
 const blogId = route.query.id
 const userId = getJWTStruct().sub
-  
+
 let client = new Client({
   brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/edit/ws`,
   connectHeaders: { "Authorization": localStorage.getItem('accessToken')! },
@@ -176,103 +176,105 @@ const preCheck = (n: string | undefined, o: string | undefined): boolean => {
   return true
 }
 
-watch(() => form.description, (n, o) => {
-  if (!preCheck(n, o)) return
-  commonPreDeal(FieldType.NON_PARA, FieldName.DESCRIPTION)
-  deal(n, o)
-  recheckSensitive(pushActionForm, form)
-})
+if (form.userId!.toString() === userId) {
+  watch(() => form.description, (n, o) => {
+    if (!preCheck(n, o)) return
+    commonPreDeal(FieldType.NON_PARA, FieldName.DESCRIPTION)
+    deal(n, o)
+    recheckSensitive(pushActionForm, form)
+  })
 
-watch(() => form.status, (n, o) => {
-  if (!client.connected || (!n && !o) || composing) return
-  commonPreDeal(FieldType.NON_PARA, FieldName.STATUS)
-  pushActionForm.operateTypeCode = OperateTypeCode.STATUS
-  pushActionForm.contentChange = String(form.status)
-  pushActionData(pushActionForm)
-})
-
-watch(() => form.sensitiveContentList, (n, o) => {
-  if (!client.connected || (o.length === 0 && n.length === 0) || composing) return
-  commonPreDeal(FieldType.NON_PARA, FieldName.SENSITIVE_CONTENT_LIST)
-  pushActionForm.operateTypeCode = OperateTypeCode.SENSITIVE_CONTENT_LIST
-  pushActionForm.contentChange = JSON.stringify(form.sensitiveContentList)
-  pushActionData(pushActionForm)
-}, { deep: true })
-
-watch(() => form.link, (n, o) => {
-  if (!preCheck(n, o)) return
-  commonPreDeal(FieldType.NON_PARA, FieldName.LINK)
-  deal(n, o)
-})
-
-watch(() => form.title, (n, o) => {
-  if (!preCheck(n, o)) return
-  commonPreDeal(FieldType.NON_PARA, FieldName.TITLE)
-  deal(n, o)
-  recheckSensitive(pushActionForm, form)
-})
-
-watch(() => form.content, (n, o) => {
-  if (!preCheck(n, o)) return
-  commonPreDeal(FieldType.PARA, FieldName.CONTENT)
-
-  const nArr = n?.split(ParaInfo.PARA_SPLIT)
-  const oArr = o?.split(ParaInfo.PARA_SPLIT)
-
-  //本段内操作
-  if (nArr?.length === oArr?.length) {
-    for (let i = 0; i < nArr?.length!; i++) {
-      //理论上一个动作改不了很多段
-      if (nArr![i] !== oArr![i]) {
-        pushActionForm.paraNo = i + 1
-        deal(nArr![i], oArr![i])
-        recheckSensitive(pushActionForm, form)
-      }
-    }
-    return
-  }
-  //向后新增段
-  const nLen = nArr?.length!
-  const oLen = oArr?.length!
-  if (nLen - 1 === oLen && nArr![oLen - 1] + '\n' === oArr![oLen - 1] && nArr![oLen] === '') {
-    //每段必须相同，否则推全量
-    for (let i = 0; i < oLen; i++) {
-      if (i !== oLen - 1 && nArr![i] !== oArr![i]) {
-        pushAllData()
-        return
-      }
-      if (i === oLen - 1 && nArr![i] + '\n' !== oArr![i]) {
-        pushAllData()
-        return
-      }
-    }
-    pushActionForm.paraNo = nLen
-    pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_APPEND
+  watch(() => form.status, (n, o) => {
+    if (!client.connected || (!n && !o) || composing) return
+    commonPreDeal(FieldType.NON_PARA, FieldName.STATUS)
+    pushActionForm.operateTypeCode = OperateTypeCode.STATUS
+    pushActionForm.contentChange = String(form.status)
     pushActionData(pushActionForm)
-    return
-  }
+  })
 
-  //向前减少段
-  if (nLen + 1 === oLen && nArr![nLen - 1] === oArr![nLen - 1] + '\n' && oArr![nLen] === '') {
-    for (let i = 0; i < nLen; i++) {
-      if (i !== nLen - 1 && nArr![i] !== oArr![i]) {
-        pushAllData()
-        return
-      }
-      if (i === nLen - 1 && nArr![i] !== oArr![i] + '\n') {
-        pushAllData()
-        return
-      }
-    }
-    pushActionForm.paraNo = oLen
-    pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_SUBTRACT
+  watch(() => form.sensitiveContentList, (n, o) => {
+    if (!client.connected || (o.length === 0 && n.length === 0) || composing) return
+    commonPreDeal(FieldType.NON_PARA, FieldName.SENSITIVE_CONTENT_LIST)
+    pushActionForm.operateTypeCode = OperateTypeCode.SENSITIVE_CONTENT_LIST
+    pushActionForm.contentChange = JSON.stringify(form.sensitiveContentList)
     pushActionData(pushActionForm)
-    return
-  }
+  }, { deep: true })
 
-  //推全量
-  pushAllData()
-})
+  watch(() => form.link, (n, o) => {
+    if (!preCheck(n, o)) return
+    commonPreDeal(FieldType.NON_PARA, FieldName.LINK)
+    deal(n, o)
+  })
+
+  watch(() => form.title, (n, o) => {
+    if (!preCheck(n, o)) return
+    commonPreDeal(FieldType.NON_PARA, FieldName.TITLE)
+    deal(n, o)
+    recheckSensitive(pushActionForm, form)
+  })
+
+  watch(() => form.content, (n, o) => {
+    if (!preCheck(n, o)) return
+    commonPreDeal(FieldType.PARA, FieldName.CONTENT)
+
+    const nArr = n?.split(ParaInfo.PARA_SPLIT)
+    const oArr = o?.split(ParaInfo.PARA_SPLIT)
+
+    //本段内操作
+    if (nArr?.length === oArr?.length) {
+      for (let i = 0; i < nArr?.length!; i++) {
+        //理论上一个动作改不了很多段
+        if (nArr![i] !== oArr![i]) {
+          pushActionForm.paraNo = i + 1
+          deal(nArr![i], oArr![i])
+          recheckSensitive(pushActionForm, form)
+        }
+      }
+      return
+    }
+    //向后新增段
+    const nLen = nArr?.length!
+    const oLen = oArr?.length!
+    if (nLen - 1 === oLen && nArr![oLen - 1] + '\n' === oArr![oLen - 1] && nArr![oLen] === '') {
+      //每段必须相同，否则推全量
+      for (let i = 0; i < oLen; i++) {
+        if (i !== oLen - 1 && nArr![i] !== oArr![i]) {
+          pushAllData()
+          return
+        }
+        if (i === oLen - 1 && nArr![i] + '\n' !== oArr![i]) {
+          pushAllData()
+          return
+        }
+      }
+      pushActionForm.paraNo = nLen
+      pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_APPEND
+      pushActionData(pushActionForm)
+      return
+    }
+
+    //向前减少段
+    if (nLen + 1 === oLen && nArr![nLen - 1] === oArr![nLen - 1] + '\n' && oArr![nLen] === '') {
+      for (let i = 0; i < nLen; i++) {
+        if (i !== nLen - 1 && nArr![i] !== oArr![i]) {
+          pushAllData()
+          return
+        }
+        if (i === nLen - 1 && nArr![i] !== oArr![i] + '\n') {
+          pushAllData()
+          return
+        }
+      }
+      pushActionForm.paraNo = oLen
+      pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_SUBTRACT
+      pushActionData(pushActionForm)
+      return
+    }
+
+    //推全量
+    pushAllData()
+  })
+}
 
 const commonPreDeal = (fieldTypeParam: FieldType, opreateField: FieldName) => {
   clearPushActionForm()
@@ -441,9 +443,9 @@ const CustomEditorItem = defineAsyncComponent({
 
 const handleTitleSelect = () => {
   if (form.status !== Status.SENSITIVE_FILTER) {
-      return
+    return
   }
-  
+
   const title = titleRef.value?.input!
   let start = title.selectionStart!
   let end = title.selectionEnd!
@@ -467,7 +469,7 @@ const handleTitleSelect = () => {
 
 const handleDescSelect = () => {
   if (form.status !== Status.SENSITIVE_FILTER) {
-      return
+    return
   }
   const desc = descRef.value?.textarea!
 
@@ -599,8 +601,8 @@ const init = async () => {
         </el-dialog>
       </el-form-item>
 
-      <el-form-item label="进度" class="progress" v-if="showPercentage" >
-        <el-progress  type="line" :percentage="uploadPercentage" :color="Colors" />
+      <el-form-item label="进度" class="progress" v-if="showPercentage">
+        <el-progress type="line" :percentage="uploadPercentage" :color="Colors" />
       </el-form-item>
 
       <el-form-item class="content" prop="content">
