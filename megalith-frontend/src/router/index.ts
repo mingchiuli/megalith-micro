@@ -119,7 +119,10 @@ const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
     path: '/backend',
     name: 'system',
     component: () => import('@/views/SystemView.vue'),
-    children: []
+    children: [],
+    meta: {
+      title: '后台管理系统'
+    }
   } as RouteRecordRaw
 
   const { menuList } = storeToRefs(menuStore())

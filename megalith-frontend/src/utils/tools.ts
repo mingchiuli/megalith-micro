@@ -130,7 +130,6 @@ export const submitLogin = async (username: string, password: string) => {
   const info = await GET<UserInfo>('/token/userinfo')
   localStorage.setItem('userinfo', JSON.stringify(info))
   router.push('/backend')
-  document.title = '后台管理系统'
 }
 
 export const downloadData = async (url: string, fileName: string, percentage: Ref<number>, percentageShow: Ref<boolean>) => {
