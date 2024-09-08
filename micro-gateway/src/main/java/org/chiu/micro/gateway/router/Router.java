@@ -97,6 +97,8 @@ public class Router {
                         .retrieve()
                         .toEntity(byte[].class);
             } else {
+                log.info("parameterMap:{}", parameterMap);
+                log.info("parameterMap:{}", parameterMap);
                 responseEntity = restClient
                         .post()
                         .uri(url, uriBuilder -> {
