@@ -22,7 +22,7 @@ const formRules = reactive<FormRules<Form>>({
     { required: true, message: '请输入名字', trigger: 'blur' }
   ],
   code: [
-    { required: true, message: '请输入唯一编码(白名单需要以whitelist开头)', trigger: 'blur' }
+    { required: true, message: '请输入权限编码(白名单需要以whitelist开头)', trigger: 'blur' }
   ],
   remark: [
     { required: true, message: '请输入描述', trigger: 'blur' }
@@ -196,7 +196,7 @@ const clearForm = () => {
     v-loading="loading">
     <el-table-column type="selection" :fixed="fixSelection" />
     <el-table-column label="接口名字" align="center" prop="name" min-width="300" />
-    <el-table-column label="唯一编码" align="center" prop="code" min-width="300" />
+    <el-table-column label="权限编码" align="center" prop="code" min-width="300" />
 
     <el-table-column label="协议" align="center" prop="prototype" min-width="130" />
     <el-table-column label="方法类型" align="center" prop="methodType" min-width="130" />
@@ -263,7 +263,7 @@ const clearForm = () => {
         <el-input v-model="form.name" maxlength="50" />
       </el-form-item>
 
-      <el-form-item label="唯一编码" label-width="100px" prop="code">
+      <el-form-item label="权限编码" label-width="100px" prop="code">
         <el-input v-model="form.code" maxlength="50" />
       </el-form-item>
 
