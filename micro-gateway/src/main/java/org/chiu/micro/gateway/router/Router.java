@@ -82,34 +82,27 @@ public class Router {
         ResponseEntity<byte[]> responseEntity = null;
 
         if (HttpMethod.POST.equals(httpMethod)) {
-            // upload request
+            Object body;
             if (request instanceof MultipartHttpServletRequest req) {
+                // upload / login request
                 Map<String, MultipartFile> fileMap = req.getFileMap();
                 MultiValueMap<String, Resource> parts = new LinkedMultiValueMap<>();
                 fileMap.entrySet().forEach(entry -> parts.add(entry.getKey(), entry.getValue().getResource()));
-                responseEntity = restClient
-                        .post()
-                        .uri(url, uriBuilder -> {
-                            parameterMap.entrySet().forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
-                            return uriBuilder.build();
-                        })
-                        .body(parts)
-                        .header(HttpHeaders.AUTHORIZATION, authorization)
-                        .retrieve()
-                        .toEntity(byte[].class);
+                body = parts;
             } else {
-                responseEntity = restClient
+                body = request.getInputStream().readAllBytes();
+            }
+            responseEntity = restClient
                         .post()
                         .uri(url, uriBuilder -> {
                             parameterMap.entrySet().forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
                             return uriBuilder.build();
                         })
                         .contentType(MediaType.APPLICATION_JSON)
-                        .body(request.getInputStream().readAllBytes())
+                        .body(body)
                         .header(HttpHeaders.AUTHORIZATION, authorization)
                         .retrieve()
                         .toEntity(byte[].class);
-            }
         }
 
         if (HttpMethod.GET.equals(httpMethod)) {
