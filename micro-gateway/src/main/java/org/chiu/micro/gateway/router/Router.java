@@ -116,6 +116,7 @@ public class Router {
                             });
                             return uriBuilder.build();
                         })
+                        .contentType(MediaType.APPLICATION_JSON)
                         .body(request.getInputStream().readAllBytes())
                         .header(HttpHeaders.AUTHORIZATION, authorization)
                         .retrieve()
