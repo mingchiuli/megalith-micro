@@ -23,7 +23,6 @@ public class AuthHttpServiceWrapper {
 
     public AuthorityRouteDto getAuthorityRoute(AuthorityRouteReq req) {
         HttpServletRequest request = ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
-        log.info("getAuthorityRoute{}", request.getHeader(HttpHeaders.AUTHORIZATION));
         Result<AuthorityRouteDto> result = authHttpService.getAuthorityRoute(req, request.getHeader(HttpHeaders.AUTHORIZATION));
         
         if (result.getCode() != 200) {
