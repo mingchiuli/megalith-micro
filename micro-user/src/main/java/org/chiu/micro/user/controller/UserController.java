@@ -47,9 +47,9 @@ public class UserController {
     }
 
     @PostMapping("/register/image/upload")
-    public SseEmitter imageUpload(@RequestBody MultipartFile file,
+    public SseEmitter imageUpload(@RequestBody MultipartFile image,
                                   @RequestParam String token) {
-        return userService.imageUpload(token, file);
+        return userService.imageUpload(token, image);
     }
 
     @GetMapping("/register/image/delete")
