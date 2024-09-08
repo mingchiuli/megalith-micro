@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,7 +22,8 @@ public class AuthHttpServiceWrapper {
     private final AuthHttpService authHttpService;
 
     public AuthorityRouteDto getAuthorityRoute(AuthorityRouteReq req) {
-        var request = ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
+        HttpServletRequest request = ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
+        log.info("getAuthorityRoute{}", request.getHeader(HttpHeaders.AUTHORIZATION));
         Result<AuthorityRouteDto> result = authHttpService.getAuthorityRoute(req, request.getHeader(HttpHeaders.AUTHORIZATION));
         
         if (result.getCode() != 200) {
