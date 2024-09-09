@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.chiu.micro.gateway.dto.AuthorityRouteDto;
-import org.chiu.micro.gateway.lang.Const;
 import org.chiu.micro.gateway.lang.ExceptionMessage;
 import org.chiu.micro.gateway.lang.Result;
 import org.chiu.micro.gateway.req.AuthorityRouteReq;
@@ -76,7 +75,7 @@ public class Router {
         Integer servicePort = authorityRoute.getServicePort();
         String authorization = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
 
-        String url = Const.PROTOFILE.getInfo() + serviceHost + Const.PROTOFILE_SPLIT.getInfo() + servicePort + requestURI;
+        String url = "http" + serviceHost + ":" + servicePort + requestURI;
 
         HttpMethod httpMethod = HttpMethod.valueOf(method);
         Map<String, String[]> parameterMap = request.getParameterMap();

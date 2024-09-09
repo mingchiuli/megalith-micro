@@ -17,11 +17,7 @@ public enum Const {
 
     MONTH_VISIT("{visit_record}_month"),
 
-    YEAR_VISIT("{visit_record}_year"),
-    
-    PROTOFILE("http://"),
-    
-    PROTOFILE_SPLIT(":");
+    YEAR_VISIT("{visit_record}_year");
 
     private final String info;
 
