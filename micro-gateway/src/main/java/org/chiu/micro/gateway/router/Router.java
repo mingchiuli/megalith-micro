@@ -75,7 +75,7 @@ public class Router {
         Integer servicePort = authorityRoute.getServicePort();
         String authorization = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
 
-        String url = "http" + serviceHost + ":" + servicePort + requestURI;
+        String url = "http://" + serviceHost + ":" + servicePort + requestURI;
 
         HttpMethod httpMethod = HttpMethod.valueOf(method);
         Map<String, String[]> parameterMap = request.getParameterMap();
