@@ -16,7 +16,7 @@ public class KeyFactory {
 
     public static String createSubscriptionKey(Long userId, Long blogId) {
         return Objects.isNull(blogId) ?
-                "/init/" + userId.toString() :
+                "/init/" + userId :
                 "/" + blogId;
     }
 }
