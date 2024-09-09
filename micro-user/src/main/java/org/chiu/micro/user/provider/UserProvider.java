@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 
 import org.chiu.micro.user.lang.Result;
-import org.chiu.micro.user.service.RoleAuthorityService;
 import org.chiu.micro.user.service.RoleService;
 import org.chiu.micro.user.service.UserRoleService;
 import org.chiu.micro.user.service.UserService;
@@ -37,7 +36,6 @@ public class UserProvider {
 
     private final UserRoleService userRoleService;
 
-    private final RoleAuthorityService roleAuthorityService;
 
     @GetMapping("/{userId}")
     public Result<UserEntityRpcVo> findById(@PathVariable Long userId) {
@@ -77,10 +75,5 @@ public class UserProvider {
     @GetMapping("/login/query/{username}")
     Result<UserEntityRpcVo> findByUsernameOrEmailOrPhone(@PathVariable String username) {
         return Result.success(() -> userService.findByUsernameOrEmailOrPhone(username));
-    }
-
-    @GetMapping("/role/authority/{rawRoles}")
-    Result<List<String>> getAuthoritiesByRoleCodes(@PathVariable String rawRoles) {
-        return Result.success(() -> roleAuthorityService.getAuthoritiesByRoleCodes(rawRoles));
     }
 }
