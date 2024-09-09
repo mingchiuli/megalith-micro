@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-
+import org.chiu.micro.search.lang.Result;
 
 /**
  * @author mingchiuli
@@ -24,23 +24,23 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     public String handler(MethodArgumentNotValidException e) {
         log.error("entity validate exception------------", e);
-        return e.getBindingResult().getAllErrors().stream()
+        return Result.fail(e.getBindingResult().getAllErrors().stream()
                 .map(ObjectError::getDefaultMessage)
-                .collect(Collectors.joining(","));
+                .collect(Collectors.joining(",")));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = IllegalArgumentException.class)
     public String handler(IllegalArgumentException e) {
         log.error("Assert exception------------", e);
-        return e.getMessage();
+        return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = RuntimeException.class)
     public String handler(RuntimeException e) {
         log.error("runtime exception------------", e);
-        return e.getMessage();
+        return Result.fail(e.getMessage());
     }
 
 }
