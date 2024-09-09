@@ -22,18 +22,12 @@ http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<an
   if (resp.status === 200) {
     return Promise.resolve(data)
   } else {
-    if (resp.status === 401) {
-      clearLoginState()
-      router.push({
-        name: 'login'
-      })
-    }
     ElNotification.error({
       title: 'request forbidden',
       message: data.msg,
       showClose: true
     })
-    return Promise.reject(new Error('401'))
+    return Promise.reject(new Error(data.msg))
   }
 }, (error: AxiosError<any, any>) => {
   ElNotification.error({
