@@ -38,7 +38,7 @@ public interface UserHttpService {
     @GetExchange("/user/login/query/{username}")
     Result<UserEntityDto> findByUsernameOrEmailOrPhone(@PathVariable String username);
 
-    @GetExchange("/user/authority/role/{rawRole}")
+    @GetExchange("/authority/role/{rawRole}")
     Result<List<String>> getAuthoritiesByRoleCode(@PathVariable String rawRole);
 
     @GetExchange("/menu/nav/{role}")
