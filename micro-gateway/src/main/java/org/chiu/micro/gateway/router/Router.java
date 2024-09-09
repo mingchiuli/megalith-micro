@@ -106,12 +106,12 @@ public class Router {
                         .header(HttpHeaders.AUTHORIZATION, authorization)
                         .retrieve()
                         .onStatus(HttpStatusCode::isError, (req, resp) -> {
-					        HttpStatusCode statusCode = resp.getStatusCode();
-					        byte[] body = resp.getBody().readAllBytes();
-					        response.setStatus(statusCode.value());
-					        response.getOutputStream().write(body);
+			    HttpStatusCode statusCode = resp.getStatusCode();
+			    byte[] body = resp.getBody().readAllBytes();
+			    response.setStatus(statusCode.value());
+			    response.getOutputStream().write(body);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-				        })
+			})
                         .toEntity(byte[].class);
         }
 
@@ -125,12 +125,12 @@ public class Router {
                     .header(HttpHeaders.AUTHORIZATION, authorization)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, resp) -> {
-					    HttpStatusCode statusCode = resp.getStatusCode();
-					    byte[] body = resp.getBody().readAllBytes();
-					    response.setStatus(statusCode.value());
-					    response.getOutputStream().write(body);
+		        HttpStatusCode statusCode = resp.getStatusCode();
+			byte[] body = resp.getBody().readAllBytes();
+			response.setStatus(statusCode.value());
+			response.getOutputStream().write(body);
                         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-				    })
+		    })
                     .toEntity(byte[].class);
         }
 
