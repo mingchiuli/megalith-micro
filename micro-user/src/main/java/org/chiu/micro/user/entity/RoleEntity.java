@@ -8,7 +8,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * @author mingchiuli
@@ -22,6 +21,7 @@ import java.util.Objects;
 @Builder
 @Entity
 @DynamicUpdate
+@EqualsAndHashCode
 @EntityListeners(AuditingEntityListener.class)
 @Table(name ="m_role",
         indexes = {@Index(columnList = "created")},
@@ -52,25 +52,4 @@ public class RoleEntity {
 
     @Column(name = "status")
     private Integer status;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        RoleEntity that = (RoleEntity) o;
-
-        if (!Objects.equals(id, that.id)) return false;
-        if (!Objects.equals(name, that.name)) return false;
-        if (!Objects.equals(code, that.code)) return false;
-        if (!Objects.equals(remark, that.remark)) return false;
-        if (!Objects.equals(created, that.created)) return false;
-        if (!Objects.equals(updated, that.updated)) return false;
-        return Objects.equals(status, that.status);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

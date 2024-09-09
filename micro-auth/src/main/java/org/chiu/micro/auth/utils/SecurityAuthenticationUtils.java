@@ -54,8 +54,7 @@ public class SecurityAuthenticationUtils {
                 .toList();
     }
 
-    @SneakyThrows
-    public AuthDto getAuthDto(String token) {
+    public AuthDto getAuthDto(String token) throws AuthException {
         Long userId;
         List<String> rawRoles;
         List<String> authorities;

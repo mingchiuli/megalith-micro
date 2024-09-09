@@ -8,7 +8,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * @Author limingjiu
@@ -21,6 +20,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@EqualsAndHashCode
 @DynamicUpdate
 @EntityListeners(AuditingEntityListener.class)
 @Table(name ="m_authority",
@@ -66,29 +66,4 @@ public class AuthorityEntity {
 
     @Column(name = "status")
     private Integer status;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        AuthorityEntity that = (AuthorityEntity) o;
-
-        if (!Objects.equals(id, that.id)) return false;
-        if (!Objects.equals(name, that.name)) return false;
-        if (!Objects.equals(code, that.code)) return false;
-        if (!Objects.equals(remark, that.remark)) return false;
-        if (!Objects.equals(created, that.created)) return false;
-        if (!Objects.equals(updated, that.updated)) return false;
-        if (!Objects.equals(prototype, that.prototype)) return false;
-        if (!Objects.equals(methodType, that.methodType)) return false;
-        if (!Objects.equals(serviceHost, that.serviceHost)) return false;
-        if (!Objects.equals(servicePort, that.servicePort)) return false;
-        return Objects.equals(status, that.status);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

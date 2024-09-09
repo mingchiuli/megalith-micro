@@ -8,7 +8,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * @author mingchiuli
@@ -22,6 +21,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @Entity
 @DynamicUpdate
+@EqualsAndHashCode
 @EntityListeners(AuditingEntityListener.class)
 @Table(name ="m_user",
         indexes = {@Index(columnList = "created")},
@@ -64,31 +64,6 @@ public class UserEntity {
 
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        UserEntity that = (UserEntity) o;
-
-        if (!Objects.equals(id, that.id)) return false;
-        if (!Objects.equals(username, that.username)) return false;
-        if (!Objects.equals(nickname, that.nickname)) return false;
-        if (!Objects.equals(avatar, that.avatar)) return false;
-        if (!Objects.equals(email, that.email)) return false;
-        if (!Objects.equals(phone, that.phone)) return false;
-        if (!Objects.equals(password, that.password)) return false;
-        if (!Objects.equals(status, that.status)) return false;
-        if (!Objects.equals(created, that.created)) return false;
-        if (!Objects.equals(lastLogin, that.lastLogin)) return false;
-        return Objects.equals(updated, that.updated);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 
     public UserEntity(Long id, String nickname, String avatar) {
         this.id = id;

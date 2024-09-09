@@ -3,8 +3,11 @@ package org.chiu.micro.user.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.Objects;
+import java.time.LocalDateTime;
 
 /**
  * @Author limingjiu
@@ -18,6 +21,8 @@ import java.util.Objects;
 @NoArgsConstructor
 @Builder
 @DynamicUpdate
+@EqualsAndHashCode
+@EntityListeners(AuditingEntityListener.class)
 @Table(name ="m_role_authority",
         indexes = {@Index(columnList = "role_id"), @Index(columnList = "authority_id")})
 public class RoleAuthorityEntity {
@@ -33,20 +38,11 @@ public class RoleAuthorityEntity {
     @Column(name = "authority_id")
     private Long authorityId;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    @Column(name = "created", updatable = false)
+    @CreatedDate
+    private LocalDateTime created;
 
-        RoleAuthorityEntity that = (RoleAuthorityEntity) o;
-
-        if (!Objects.equals(id, that.id)) return false;
-        if (!Objects.equals(roleId, that.roleId)) return false;
-        return Objects.equals(authorityId, that.authorityId);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
+    @Column(name = "updated")
+    @LastModifiedDate
+    private LocalDateTime updated;
 }
