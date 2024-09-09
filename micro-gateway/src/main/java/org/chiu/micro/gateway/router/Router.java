@@ -108,9 +108,9 @@ public class Router {
                         .retrieve()
                         .onStatus(HttpStatusCode::isError, (req, resp) -> {
 			    HttpStatusCode statusCode = resp.getStatusCode();
-			    byte[] body = resp.getBody().readAllBytes();
+			    byte[] respBody = resp.getBody().readAllBytes();
 			    response.setStatus(statusCode.value());
-			    response.getOutputStream().write(body);
+			    response.getOutputStream().write(respBody);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 			})
                         .toEntity(byte[].class);
@@ -127,17 +127,17 @@ public class Router {
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, resp) -> {
 		        HttpStatusCode statusCode = resp.getStatusCode();
-			byte[] body = resp.getBody().readAllBytes();
+			byte[] respBody = resp.getBody().readAllBytes();
 			response.setStatus(statusCode.value());
-			response.getOutputStream().write(body);
+			response.getOutputStream().write(respBody);
                         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		    })
                     .toEntity(byte[].class);
         }
 
         if (response.getStatus() != HttpStatus.OK.value()) {
-			return;
-		}
+	    return;
+	}
 
         if (responseEntity == null || responseEntity.getBody() == null) {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
