@@ -28,6 +28,7 @@ import org.chiu.micro.gateway.req.AuthorityRouteReq;
 import org.chiu.micro.gateway.rpc.wrapper.AuthHttpServiceWrapper;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
