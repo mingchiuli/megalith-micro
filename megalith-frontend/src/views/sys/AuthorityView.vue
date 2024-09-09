@@ -70,7 +70,7 @@ const form: Form = reactive({
   methodType: '',
   routePattern: '',
   serviceHost: '',
-  servicePort: 0
+  servicePort: 8081
 })
 
 const delBatch = async () => {
