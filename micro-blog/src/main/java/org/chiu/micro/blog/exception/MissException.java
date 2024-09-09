@@ -11,8 +11,4 @@ public class MissException extends BaseException {
     public MissException(String message) {
         super(message);
     }
-
-    public MissException(ExceptionMessage exceptionMessage) {
-        super(exceptionMessage);
-    }
 }
