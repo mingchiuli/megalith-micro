@@ -16,7 +16,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-aop")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.redisson:redisson-spring-boot-starter:3.35.0")
+	implementation("org.redisson:redisson-spring-boot-starter:3.36.0")
 	implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
