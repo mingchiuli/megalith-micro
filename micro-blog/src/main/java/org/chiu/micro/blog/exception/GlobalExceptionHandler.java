@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
+import org.chiu.micro.blog.lang.Result;
+
 
 /**
  * @author mingchiuli
@@ -23,30 +25,30 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = BaseException.class)
     public String handler(BaseException e){
         log.error("diy exception------------", e);
-        return e.getMessage();
+        return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     public String handler(MethodArgumentNotValidException e) {
         log.error("entity validate exception------------", e);
-        return e.getBindingResult().getAllErrors().stream()
+        return Result.fail(e.getBindingResult().getAllErrors().stream()
                 .map(ObjectError::getDefaultMessage)
-                .collect(Collectors.joining(","));
+                .collect(Collectors.joining(",")));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = IllegalArgumentException.class)
     public String handler(IllegalArgumentException e) {
         log.error("Assert exception------------", e);
-        return e.getMessage();
+        return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = RuntimeException.class)
     public String handler(RuntimeException e) {
         log.error("runtime exception------------", e);
-        return e.getMessage();
+        return Result.fail(e.getMessage());
     }
 
 }
