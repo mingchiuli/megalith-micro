@@ -96,47 +96,49 @@ public class Router {
                 contenType = MediaType.APPLICATION_JSON;
             }
             responseEntity = restClient
-                        .post()
-                        .uri(url, uriBuilder -> {
-                            parameterMap.entrySet().forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
-                            return uriBuilder.build();
-                        })
-                        .contentType(contenType)
-                        .body(body)
-                        .header(HttpHeaders.AUTHORIZATION, authorization)
-                        .retrieve()
-                        .onStatus(HttpStatusCode::isError, (req, resp) -> {
-			    HttpStatusCode statusCode = resp.getStatusCode();
-			    byte[] respBody = resp.getBody().readAllBytes();
-			    response.setStatus(statusCode.value());
-			    response.getOutputStream().write(respBody);
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-			})
-                        .toEntity(byte[].class);
+                    .post()
+                    .uri(url, uriBuilder -> {
+                        parameterMap.entrySet()
+                                .forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
+                        return uriBuilder.build();
+                    })
+                    .contentType(contenType)
+                    .body(body)
+                    .header(HttpHeaders.AUTHORIZATION, authorization)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (req, resp) -> {
+                        HttpStatusCode statusCode = resp.getStatusCode();
+                        byte[] respBody = resp.getBody().readAllBytes();
+                        response.setStatus(statusCode.value());
+                        response.getOutputStream().write(respBody);
+                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    })
+                    .toEntity(byte[].class);
         }
 
         if (HttpMethod.GET.equals(httpMethod)) {
             responseEntity = restClient
                     .get()
                     .uri(url, uriBuilder -> {
-                        parameterMap.entrySet().forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
+                        parameterMap.entrySet()
+                                .forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
                         return uriBuilder.build();
                     })
                     .header(HttpHeaders.AUTHORIZATION, authorization)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, resp) -> {
-		        HttpStatusCode statusCode = resp.getStatusCode();
-			byte[] respBody = resp.getBody().readAllBytes();
-			response.setStatus(statusCode.value());
-			response.getOutputStream().write(respBody);
+                        HttpStatusCode statusCode = resp.getStatusCode();
+                        byte[] respBody = resp.getBody().readAllBytes();
+                        response.setStatus(statusCode.value());
+                        response.getOutputStream().write(respBody);
                         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-		    })
+                    })
                     .toEntity(byte[].class);
         }
 
         if (response.getStatus() != HttpStatus.OK.value()) {
-	    return;
-	}
+            return;
+        }
 
         if (responseEntity == null || responseEntity.getBody() == null) {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -158,7 +160,7 @@ public class Router {
         byte[] data = responseEntity.getBody();
         response.setContentLength(data == null ? 0 : data.length);
         response.setStatus(responseEntity.getStatusCode().value());
-        
+
         var outputStream = response.getOutputStream();
         outputStream.write(data);
         outputStream.flush();
