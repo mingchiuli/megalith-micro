@@ -67,7 +67,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 					accessExpire);
 
 			String refreshToken = tokenUtils.generateToken(userId.toString(),
-					Collections.singletonList("REFRESH_TOKEN"),
+					Collections.singletonList("refresh"),
 					refreshExpire);
 
 			outputStream.write(
