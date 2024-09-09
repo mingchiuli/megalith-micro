@@ -139,6 +139,8 @@ public class Router {
         }
         byte[] data = responseEntity.getBody();
         response.setContentLength(data == null ? 0 : data.length);
+        response.setStatus(responseEntity.getStatusCode().value());
+        
         var outputStream = response.getOutputStream();
         outputStream.write(data);
         outputStream.flush();

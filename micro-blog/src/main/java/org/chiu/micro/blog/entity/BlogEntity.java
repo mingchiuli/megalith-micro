@@ -9,7 +9,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * @author mingchiuli
@@ -23,6 +22,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @DynamicUpdate
 @Builder
+@EqualsAndHashCode
 @EntityListeners(AuditingEntityListener.class)
 @Table(name ="m_blog",
         indexes = {@Index(columnList = "created")})
@@ -61,28 +61,4 @@ public class BlogEntity {
 
     @Column(name = "read_count")
     private Long readCount;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        BlogEntity that = (BlogEntity) o;
-
-        if (!Objects.equals(id, that.id)) return false;
-        if (!Objects.equals(userId, that.userId)) return false;
-        if (!Objects.equals(title, that.title)) return false;
-        if (!Objects.equals(description, that.description)) return false;
-        if (!Objects.equals(content, that.content)) return false;
-        if (!Objects.equals(created, that.created)) return false;
-        if (!Objects.equals(updated, that.updated)) return false;
-        if (!Objects.equals(status, that.status)) return false;
-        if (!Objects.equals(link, that.link)) return false;
-        return Objects.equals(readCount, that.readCount);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

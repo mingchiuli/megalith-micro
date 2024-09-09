@@ -3,6 +3,7 @@ package org.chiu.micro.auth.controller;
 import lombok.RequiredArgsConstructor;
 
 import org.chiu.micro.auth.dto.AuthDto;
+import org.chiu.micro.auth.exception.AuthException;
 import org.chiu.micro.auth.lang.Result;
 import org.chiu.micro.auth.service.TokenService;
 import org.chiu.micro.auth.utils.SecurityAuthenticationUtils;
@@ -31,13 +32,13 @@ public class TokenController {
 
 
     @GetMapping("/refresh")
-    public Result<Map<String, String>> refreshToken(HttpServletRequest request) {
+    public Result<Map<String, String>> refreshToken(HttpServletRequest request) throws AuthException {
         AuthDto authDto = securityAuthenticationUtils.getAuthDto(request.getHeader(HttpHeaders.AUTHORIZATION));
         return Result.success(() -> tokenService.refreshToken(authDto.getUserId()));
     }
 
     @GetMapping("/userinfo")
-    public Result<UserInfoVo> userinfo(HttpServletRequest request) {
+    public Result<UserInfoVo> userinfo(HttpServletRequest request) throws AuthException {
         AuthDto authDto = securityAuthenticationUtils.getAuthDto(request.getHeader(HttpHeaders.AUTHORIZATION));
         return Result.success(() -> tokenService.userinfo(authDto.getUserId()));
     }

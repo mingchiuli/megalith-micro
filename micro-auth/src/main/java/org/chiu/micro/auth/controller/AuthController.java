@@ -3,6 +3,7 @@ package org.chiu.micro.auth.controller;
 import java.util.List;
 
 import org.chiu.micro.auth.dto.AuthDto;
+import org.chiu.micro.auth.exception.AuthException;
 import org.chiu.micro.auth.lang.Result;
 import org.chiu.micro.auth.service.AuthService;
 import org.chiu.micro.auth.utils.SecurityAuthenticationUtils;
@@ -25,7 +26,7 @@ public class AuthController {
     private final SecurityAuthenticationUtils securityAuthenticationUtils;
 
     @GetMapping("/menu/nav")
-    public Result<MenusAndButtonsVo> nav(HttpServletRequest request) {
+    public Result<MenusAndButtonsVo> nav(HttpServletRequest request) throws AuthException {
         AuthDto authDto = securityAuthenticationUtils.getAuthDto(request.getHeader(HttpHeaders.AUTHORIZATION));
         List<String> roles = authDto.getRoles();
         return Result.success(() -> authMenuService.getCurrentUserNav(roles));

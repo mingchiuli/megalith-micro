@@ -3,6 +3,7 @@ package org.chiu.micro.auth.provider;
 import java.util.List;
 
 import org.chiu.micro.auth.dto.AuthDto;
+import org.chiu.micro.auth.exception.AuthException;
 import org.chiu.micro.auth.lang.Result;
 import org.chiu.micro.auth.req.AuthorityRouteReq;
 import org.chiu.micro.auth.service.AuthService;
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
@@ -34,9 +34,9 @@ public class AuthProvider {
     private final AuthService authService;
 
     @GetMapping("/{token}")
-    @SneakyThrows
-    public Result<AuthDto> findById(@PathVariable String token) {
-        return Result.success(() -> securityAuthenticationUtils.getAuthDto(token));
+    public Result<AuthDto> findById(@PathVariable String token) throws AuthException {
+        AuthDto authDto = securityAuthenticationUtils.getAuthDto(token);
+        return Result.success(authDto);
     }
 
     @PostMapping("/system")

@@ -27,6 +27,12 @@ public class GlobalExceptionHandler {
         return e.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(value = AuthException.class)
+    public String handler(AuthException e) {
+        return e.getMessage();
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = BaseException.class)
     public String handler(BaseException e){
