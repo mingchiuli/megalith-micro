@@ -42,7 +42,26 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
 
     @Override
     public List<String> getAuthoritiesByRoleCodes(String roleCode) {
-        return getAuthoritiesByRoleCode(roleCode);
+        if ("REFRESH_TOKEN".equals(roleCode)) {
+            return Collections.singletonList("token:refresh");
+        }
+
+        Optional<RoleEntity> roleEntityOptional = roleRepository.findByCodeAndStatus(roleCode, NORMAL.getCode());
+
+        if (roleEntityOptional.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        RoleEntity roleEntity = roleEntityOptional.get();
+
+        List<Long> authorityIds = roleAuthorityRepository.findByRoleId(roleEntity.getId()).stream()
+                .map(RoleAuthorityEntity::getAuthorityId)
+                .toList();
+
+        return authorityRepository.findAllById(authorityIds).stream()
+                .filter(item -> NORMAL.getCode().equals(item.getStatus()))
+                .map(AuthorityEntity::getCode)
+                .toList();
     }
 
     /**
@@ -81,29 +100,4 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
                         .build())
                 .toList();
     }
-
-    private List<String> getAuthoritiesByRoleCode(String roleCode) {
-
-        if ("REFRESH_TOKEN".equals(roleCode)) {
-            return Collections.singletonList("token:refresh");
-        }
-
-        Optional<RoleEntity> roleEntityOptional = roleRepository.findByCodeAndStatus(roleCode, NORMAL.getCode());
-
-        if (roleEntityOptional.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        RoleEntity roleEntity = roleEntityOptional.get();
-
-        List<Long> authorityIds = roleAuthorityRepository.findByRoleId(roleEntity.getId()).stream()
-                .map(RoleAuthorityEntity::getAuthorityId)
-                .toList();
-
-        return authorityRepository.findAllById(authorityIds).stream()
-                .filter(item -> NORMAL.getCode().equals(item.getStatus()))
-                .map(AuthorityEntity::getCode)
-                .toList();
-    }
-
 }
