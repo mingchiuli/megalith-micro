@@ -42,10 +42,7 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
 
     @Override
     public List<String> getAuthoritiesByRoleCodes(String roleCode) {
-        if ("REFRESH_TOKEN".equals(roleCode)) {
-            return Collections.singletonList("token:refresh");
-        }
-
+        
         Optional<RoleEntity> roleEntityOptional = roleRepository.findByCodeAndStatus(roleCode, NORMAL.getCode());
 
         if (roleEntityOptional.isEmpty()) {
