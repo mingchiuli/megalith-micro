@@ -3,6 +3,7 @@ package org.chiu.micro.auth.exception;
 import lombok.extern.slf4j.Slf4j;
 
 import org.chiu.micro.auth.lang.Result;
+import java.lang.Void;
 
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -25,25 +26,25 @@ public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(value = BadCredentialsException.class)
-    public String handler(BadCredentialsException e) {
+    public Result<Void> handler(BadCredentialsException e) {
         return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(value = AuthException.class)
-    public String handler(AuthException e) {
+    public Result<Void> handler(AuthException e) {
         return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = BaseException.class)
-    public String handler(BaseException e){
+    public Result<Void> handler(BaseException e){
         return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    public String handler(MethodArgumentNotValidException e) {
+    public Result<Void> handler(MethodArgumentNotValidException e) {
         return Result.fail(e.getBindingResult().getAllErrors().stream()
                 .findFirst()
                 .<String>map(MessageSourceResolvable::getDefaultMessage).orElse(""));
@@ -51,19 +52,19 @@ public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = IllegalArgumentException.class)
-    public String handler(IllegalArgumentException e) {
+    public Result<Void> handler(IllegalArgumentException e) {
         return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(value = AccessDeniedException.class)
-    public String handler(AccessDeniedException e){
+    public Result<Void> handler(AccessDeniedException e){
         return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = RuntimeException.class)
-    public String handler(RuntimeException e) {
+    public Result<Void> handler(RuntimeException e) {
         return Result.fail(e.getMessage());
     }
 
