@@ -1,6 +1,7 @@
 package org.chiu.micro.user.exception;
 
 import java.util.stream.Collectors;
+import java.lang.Void;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import org.chiu.micro.user.lang.Result;
 
 
 /**
@@ -22,32 +24,32 @@ public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = BaseException.class)
-    public String handler(BaseException e){
+    public Result<Void> handler(BaseException e){
         log.error("diy exception------------", e);
-        return e.getMessage();
+        return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    public String handler(MethodArgumentNotValidException e) {
+    public Result<Void> handler(MethodArgumentNotValidException e) {
         log.error("entity validate exception------------", e);
-        return e.getBindingResult().getAllErrors().stream()
+        return Result.fail(e.getBindingResult().getAllErrors().stream()
                 .map(ObjectError::getDefaultMessage)
-                .collect(Collectors.joining(","));
+                .collect(Collectors.joining(",")));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = IllegalArgumentException.class)
-    public String handler(IllegalArgumentException e) {
+    public Result<Void> handler(IllegalArgumentException e) {
         log.error("Assert exception------------", e);
-        return e.getMessage();
+        return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = RuntimeException.class)
-    public String handler(RuntimeException e) {
+    public Result<Void> handler(RuntimeException e) {
         log.error("runtime exception------------", e);
-        return e.getMessage();
+        return Result.fail(e.getMessage());
     }
 
 }
