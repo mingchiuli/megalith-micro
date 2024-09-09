@@ -30,7 +30,7 @@ public class AuthWrapper {
 		return userHttpServiceWrapper.getAuthoritiesByRoleCode(rawRole);
 	}
 
-    @Cache(prefix = Const.HOT_AUTHORITIES)
+        @Cache(prefix = Const.HOT_AUTHORITIES)
 	public List<AuthorityDto> getAllSystemAuthorities() {
 		return userHttpServiceWrapper.getSystemAuthorities(List.of(Const.AUTH_SERVICE.getInfo(), Const.BLOG_SERVICE.getInfo(), Const.EXHIBIT_SERVICE.getInfo(), Const.USER_SERVICE.getInfo(), Const.SEARCH_SERVICE.getInfo()));
 	}
