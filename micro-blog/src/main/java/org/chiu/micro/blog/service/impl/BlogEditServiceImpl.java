@@ -73,13 +73,17 @@ public class BlogEditServiceImpl implements BlogEditService {
     @Override
     public void pushAll(BlogEditPushAllReq blog, Long userId) {
         Long id = blog.getId();
+        Long originUserId = null;
         if (id != null) {
             BlogEntity blogEntity = blogRepository.findById(id)
                 .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
             AuthUtils.checkEditAuth(blogEntity, userId);
+            originUserId = blogEntity.getUserId();
+        } else {
+            originUserId = userId;
         }
         
-        String redisKey = KeyFactory.createBlogEditRedisKey(userId, id);
+        String redisKey = KeyFactory.createBlogEditRedisKey(originUserId, id);
         boolean exist = redisTemplate.hasKey(redisKey);
         if (!exist) {
             return;
@@ -99,7 +103,7 @@ public class BlogEditServiceImpl implements BlogEditService {
                 Collections.singletonList(redisKey),
                 paragraphListString, ID.getMsg(), USER_ID.getMsg(), TITLE.getMsg(), DESCRIPTION.getMsg(),
                 STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
-                Objects.isNull(blog.getId()) ? "" : blog.getId().toString(), userId.toString(), blog.getTitle(),
+                Objects.isNull(blog.getId()) ? "" : blog.getId().toString(), originUserId.toString(), blog.getTitle(),
                 blog.getDescription(), blog.getStatus().toString(), blog.getLink(), blog.getVersion().toString(), jsonUtils.writeValueAsString(blog.getSensitiveContentList()),
                 A_WEEK.getInfo());
     }
@@ -107,13 +111,17 @@ public class BlogEditServiceImpl implements BlogEditService {
     @Override
     @SneakyThrows
     public BlogEditVo findEdit(Long id, Long userId) {
+        Long originUserId = null;
         if (id != null) {
             BlogEntity blogEntity = blogRepository.findById(id)
                 .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
             AuthUtils.checkEditAuth(blogEntity, userId);
+            originUserId = blogEntity.getUserId();
+        } else {
+            originUserId = userId;
         }
         
-        String redisKey = KeyFactory.createBlogEditRedisKey(userId, id);
+        String redisKey = KeyFactory.createBlogEditRedisKey(originUserId, id);
         Map<String, String> entries = redisTemplate.<String, String>opsForHash()
                 .entries(redisKey);
 
@@ -149,7 +157,7 @@ public class BlogEditServiceImpl implements BlogEditService {
             // 新文章
             blog = BlogEntityDto.builder()
                     .status(StatusEnum.NORMAL.getCode())
-                    .userId(userId)
+                    .userId(originUserId)
                     .content("")
                     .description("")
                     .link("")
@@ -173,7 +181,7 @@ public class BlogEditServiceImpl implements BlogEditService {
                     Collections.singletonList(redisKey),
                     paragraphListString, ID.getMsg(), USER_ID.getMsg(), TITLE.getMsg(), DESCRIPTION.getMsg(),
                             STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
-                    Objects.isNull(blog.getId()) ? "" : blog.getId().toString(), userId.toString(), blog.getTitle(),
+                    Objects.isNull(blog.getId()) ? "" : blog.getId().toString(), originUserId.toString(), blog.getTitle(),
                             blog.getDescription(), blog.getStatus().toString(), blog.getLink(), Integer.toString(version), jsonUtils.writeValueAsString(sensitiveContentList),
                     A_WEEK.getInfo());
         }
