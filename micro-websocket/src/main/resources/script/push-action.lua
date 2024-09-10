@@ -5,6 +5,12 @@ end
 
 local key = KEYS[1]
 
+local status = redis.call('hget', key, 'status')
+local uid = redis.call('hget', key, 'userId')
+local userId = ARGV[8]
+
+if tonumber(status) ~= 0 and tonumber(uid) ~= tonumber(userId) then return nil end
+
 local v = redis.call('hget', key, 'version')
 
 if not v then return -2 end

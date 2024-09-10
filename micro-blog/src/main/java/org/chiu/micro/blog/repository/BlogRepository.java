@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author mingchiuli
@@ -41,8 +40,6 @@ public interface BlogRepository extends JpaRepository<BlogEntity, Long> {
 
     @Query(value = "SELECT blog.id from BlogEntity blog")
     List<Long> findIds(Pageable pageRequest);
-
-    Optional<BlogEntity> findByIdAndUserId(Long id, Long userId);
 
     @Query(value = "SELECT blog.userId from BlogEntity blog where blog.id = ?1")
     Long findUserIdById(Long id);

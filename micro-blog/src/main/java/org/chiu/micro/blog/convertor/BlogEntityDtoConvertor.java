@@ -15,6 +15,7 @@ public class BlogEntityDtoConvertor {
                 .content(blogEntity.getContent())
                 .status(blogEntity.getStatus())
                 .link(blogEntity.getLink())
+                .userId(blogEntity.getUserId())
                 .readCount(blogEntity.getReadCount())
                 .updated(blogEntity.getUpdated())
                 .created(blogEntity.getCreated())

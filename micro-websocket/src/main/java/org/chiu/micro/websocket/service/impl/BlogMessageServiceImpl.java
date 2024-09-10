@@ -3,14 +3,11 @@ package org.chiu.micro.websocket.service.impl;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 
-import org.chiu.micro.websocket.dto.BlogEntityDto;
 import org.chiu.micro.websocket.dto.StompMessageDto;
 import org.chiu.micro.websocket.key.KeyFactory;
 import org.chiu.micro.websocket.lang.MessageEnum;
 import org.chiu.micro.websocket.req.BlogEditPushActionReq;
-import org.chiu.micro.websocket.rpc.wrapper.BlogHttpServiceWrapper;
 import org.chiu.micro.websocket.service.BlogMessageService;
-import org.chiu.micro.websocket.utils.AuthUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -30,8 +27,6 @@ import java.util.stream.Stream;
 public class BlogMessageServiceImpl implements BlogMessageService {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
-
-    private final BlogHttpServiceWrapper blogHttpServiceWrapper;
 
     private final StringRedisTemplate redisTemplate;
 
@@ -53,11 +48,6 @@ public class BlogMessageServiceImpl implements BlogMessageService {
     @Override
     public void pushAction(BlogEditPushActionReq req, Long userId) {
         Long blogId = req.getId();
-        if (blogId != null) {
-            BlogEntityDto blogEntityDto = blogHttpServiceWrapper.findById(blogId);
-            AuthUtils.checkEditAuth(blogEntityDto, userId);
-        }
-        
         String contentChange = req.getContentChange();
         Integer operateTypeCode = req.getOperateTypeCode();
         Integer version = req.getVersion();
@@ -75,7 +65,8 @@ public class BlogMessageServiceImpl implements BlogMessageService {
                 Objects.nonNull(indexStart) ? indexStart.toString() : null,
                 Objects.nonNull(indexEnd) ? indexEnd.toString() : null,
                 Objects.nonNull(field) ? field : null,
-                Objects.nonNull(paraNo) ? paraNo.toString() : null);
+                Objects.nonNull(paraNo) ? paraNo.toString() : null,
+                userId);
 
         if (enumSet.contains(execute)) {
             var dto = StompMessageDto.builder()

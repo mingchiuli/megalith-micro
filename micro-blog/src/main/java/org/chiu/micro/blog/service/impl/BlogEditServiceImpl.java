@@ -158,7 +158,7 @@ public class BlogEditServiceImpl implements BlogEditService {
             paragraphListString = "[]";
             sensitiveContentList = new ArrayList<>();
         } else {
-            BlogEntity userBlogEntity = blogRepository.findByIdAndUserId(id, userId)
+            BlogEntity userBlogEntity = blogRepository.findById(id)
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
             
             blog = BlogEntityDtoConvertor.convert(userBlogEntity);
