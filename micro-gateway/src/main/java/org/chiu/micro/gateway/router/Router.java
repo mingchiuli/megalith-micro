@@ -63,6 +63,7 @@ public class Router {
                         .build());
 
         if (Boolean.FALSE.equals(authorityRoute.getAuth())) {
+            log.info("auth:{}", authorityRoute);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.getWriter().write(
