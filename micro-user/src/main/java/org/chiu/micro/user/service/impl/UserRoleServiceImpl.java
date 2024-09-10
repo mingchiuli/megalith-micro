@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.chiu.micro.user.exception.CommitException;
 import org.chiu.micro.user.exception.MissException;
+import org.chiu.micro.user.lang.StatusEnum;
 import org.chiu.micro.user.lang.UserOperateEnum;
 import org.chiu.micro.user.page.PageAdapter;
 import org.chiu.micro.user.code.CodeFactory;
@@ -142,9 +143,11 @@ public class UserRoleServiceImpl implements UserRoleService {
     @Override
     public List<String> findRoleCodesByUserId(Long userId) {
         List<Long> roleIds = userRoleRepository.findByUserId(userId).stream()
-                .map(UserRoleEntity::getRoleId).toList();
+                .map(UserRoleEntity::getRoleId)
+                .toList();
 
         return roleRepository.findAllById(roleIds).stream()
+                .filter(item -> StatusEnum.NORMAL.getCode().equals(item.getStatus()))
                 .map(RoleEntity::getCode)
                 .toList();
     }

@@ -18,6 +18,7 @@ import static org.chiu.micro.auth.lang.Const.*;
 import static org.chiu.micro.auth.lang.ExceptionMessage.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Collections;
@@ -35,9 +36,9 @@ public class SecurityAuthenticationUtils {
     private final StringRedisTemplate redisTemplate;
 
     private List<String> getRawRoleCodes(List<String> roles) {
-        List<String> rawRoles = new ArrayList<>();
-        roles.forEach(role -> rawRoles.add(role.substring(ROLE_PREFIX.getInfo().length())));
-        return rawRoles;
+        return roles.stream()
+                .map(role -> role.substring(ROLE_PREFIX.getInfo().length()))
+                .toList();
     }
 
     private List<String> getAuthorities(Long userId, List<String> rawRoles) throws AuthException {
@@ -99,12 +100,13 @@ public class SecurityAuthenticationUtils {
         List<String> roles = claims.getRoles();
         List<String> rawRoles = getRawRoleCodes(roles);
 
-        rawRoles.forEach(role -> authorities.addAll(authWrapper.getAuthoritiesByRoleCode(role)));
-
-        authorities.addAll(authorities.stream()
+        List<String> authList = rawRoles.stream()
+                .map(authWrapper::getAuthoritiesByRoleCode)
+                .flatMap(Collection::stream)
                 .distinct()
-                .toList());
+                .toList();
 
+        authorities.addAll(authList);
         return authorities;
     }
 
