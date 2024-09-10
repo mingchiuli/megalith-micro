@@ -66,7 +66,7 @@ public class BlogMessageServiceImpl implements BlogMessageService {
                 Objects.nonNull(indexEnd) ? indexEnd.toString() : null,
                 Objects.nonNull(field) ? field : null,
                 Objects.nonNull(paraNo) ? paraNo.toString() : null,
-                userId);
+                userId.toString());
 
         if (enumSet.contains(execute)) {
             var dto = StompMessageDto.builder()
