@@ -73,11 +73,12 @@ public class BlogEditServiceImpl implements BlogEditService {
     @Override
     public void pushAll(BlogEditPushAllReq blog, Long userId) {
         Long id = blog.getId();
-
-        BlogEntity blogEntity = blogRepository.findById(id)
+        if (id != null) {
+            BlogEntity blogEntity = blogRepository.findById(id)
                 .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-        AuthUtils.checkEditAuth(blogEntity, userId);
-
+            AuthUtils.checkEditAuth(blogEntity, userId);
+        }
+        
         String redisKey = Objects.isNull(id) ?
                 TEMP_EDIT_BLOG.getInfo() + userId :
                 TEMP_EDIT_BLOG.getInfo() + userId + ":" + id;
@@ -108,11 +109,12 @@ public class BlogEditServiceImpl implements BlogEditService {
     @Override
     @SneakyThrows
     public BlogEditVo findEdit(Long id, Long userId) {
-
-        BlogEntity blogEntity = blogRepository.findById(id)
+        if (id != null) {
+            BlogEntity blogEntity = blogRepository.findById(id)
                 .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-        AuthUtils.checkEditAuth(blogEntity, userId);
-
+            AuthUtils.checkEditAuth(blogEntity, userId);
+        }
+        
         String redisKey = KeyFactory.createBlogEditRedisKey(userId, id);
         Map<String, String> entries = redisTemplate.<String, String>opsForHash()
                 .entries(redisKey);
