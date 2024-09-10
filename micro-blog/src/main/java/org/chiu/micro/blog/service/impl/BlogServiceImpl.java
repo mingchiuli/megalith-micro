@@ -10,11 +10,11 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import org.chiu.micro.blog.exception.MissException;
-import org.chiu.micro.blog.lang.StatusEnum;
 import org.chiu.micro.blog.page.PageAdapter;
 import org.chiu.micro.blog.constant.BlogOperateEnum;
 import org.chiu.micro.blog.constant.BlogOperateMessage;
 import org.chiu.micro.blog.repository.BlogSensitiveContentRepository;
+import org.chiu.micro.blog.utils.AuthUtils;
 import org.chiu.micro.blog.utils.JsonUtils;
 import org.chiu.micro.blog.utils.OssSignUtils;
 import org.chiu.micro.blog.convertor.BlogDeleteVoConvertor;
@@ -251,7 +251,7 @@ public class BlogServiceImpl implements BlogService {
             blogEntity = blogRepository.findById(blogId)
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
 
-            Assert.isTrue(Objects.equals(StatusEnum.NORMAL.getCode(), blogEntity.getStatus()) || Objects.equals(blogEntity.getUserId(), userId), EDIT_NO_AUTH.getMsg());
+            AuthUtils.checkEditAuth(blogEntity, userId);
         } else {
             blogEntity = BlogEntity.builder()
                     .userId(userId)

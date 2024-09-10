@@ -22,6 +22,7 @@ import org.chiu.micro.blog.vo.BlogEditVo;
 import org.chiu.micro.blog.vo.BlogSensitiveContentVo;
 import org.chiu.micro.blog.service.BlogEditService;
 import org.chiu.micro.blog.service.BlogSensitiveService;
+import org.chiu.micro.blog.utils.AuthUtils;
 import org.chiu.micro.blog.utils.JsonUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -72,6 +73,11 @@ public class BlogEditServiceImpl implements BlogEditService {
     @Override
     public void pushAll(BlogEditPushAllReq blog, Long userId) {
         Long id = blog.getId();
+
+        BlogEntity blogEntity = blogRepository.findById(id)
+                .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+        AuthUtils.checkEditAuth(blogEntity, userId);
+
         String redisKey = Objects.isNull(id) ?
                 TEMP_EDIT_BLOG.getInfo() + userId :
                 TEMP_EDIT_BLOG.getInfo() + userId + ":" + id;
@@ -102,6 +108,10 @@ public class BlogEditServiceImpl implements BlogEditService {
     @Override
     @SneakyThrows
     public BlogEditVo findEdit(Long id, Long userId) {
+
+        BlogEntity blogEntity = blogRepository.findById(id)
+                .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+        AuthUtils.checkEditAuth(blogEntity, userId);
 
         String redisKey = KeyFactory.createBlogEditRedisKey(userId, id);
         Map<String, String> entries = redisTemplate.<String, String>opsForHash()
@@ -148,10 +158,10 @@ public class BlogEditServiceImpl implements BlogEditService {
             paragraphListString = "[]";
             sensitiveContentList = new ArrayList<>();
         } else {
-            BlogEntity blogEntity = blogRepository.findByIdAndUserId(id, userId)
+            BlogEntity userBlogEntity = blogRepository.findByIdAndUserId(id, userId)
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
             
-            blog = BlogEntityDtoConvertor.convert(blogEntity);
+            blog = BlogEntityDtoConvertor.convert(userBlogEntity);
             List<String> paragraphList = List.of(blog.getContent().split(PARAGRAPH_SPLITTER.getInfo()));
             paragraphListString = jsonUtils.writeValueAsString(paragraphList);
             BlogSensitiveContentVo blogSensitiveContentVo = blogSensitiveService.findByBlogId(id);
