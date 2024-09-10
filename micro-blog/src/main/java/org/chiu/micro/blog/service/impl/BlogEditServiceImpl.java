@@ -79,9 +79,7 @@ public class BlogEditServiceImpl implements BlogEditService {
             AuthUtils.checkEditAuth(blogEntity, userId);
         }
         
-        String redisKey = Objects.isNull(id) ?
-                TEMP_EDIT_BLOG.getInfo() + userId :
-                TEMP_EDIT_BLOG.getInfo() + userId + ":" + id;
+        String redisKey = KeyFactory.createBlogEditRedisKey(userId, id);
         boolean exist = redisTemplate.hasKey(redisKey);
         if (!exist) {
             return;
