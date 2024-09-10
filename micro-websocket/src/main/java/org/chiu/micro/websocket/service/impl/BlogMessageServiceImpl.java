@@ -53,9 +53,11 @@ public class BlogMessageServiceImpl implements BlogMessageService {
     @Override
     public void pushAction(BlogEditPushActionReq req, Long userId) {
         Long blogId = req.getId();
-        BlogEntityDto blogEntityDto = blogHttpServiceWrapper.findById(blogId);
-        AuthUtils.checkEditAuth(blogEntityDto, userId);
-
+        if (blogId != null) {
+            BlogEntityDto blogEntityDto = blogHttpServiceWrapper.findById(blogId);
+            AuthUtils.checkEditAuth(blogEntityDto, userId);
+        }
+        
         String contentChange = req.getContentChange();
         Integer operateTypeCode = req.getOperateTypeCode();
         Integer version = req.getVersion();
