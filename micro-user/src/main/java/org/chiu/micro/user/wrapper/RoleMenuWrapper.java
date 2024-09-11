@@ -22,7 +22,6 @@ public class RoleMenuWrapper {
     @Transactional
     public void saveMenu(Long roleId, List<RoleMenuEntity> roleMenuEntities) {
         roleMenuRepository.deleteByRoleId(roleId);
-        roleMenuRepository.flush();
         roleMenuRepository.saveAll(roleMenuEntities);
     }
 

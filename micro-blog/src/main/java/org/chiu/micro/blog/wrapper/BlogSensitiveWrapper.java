@@ -25,7 +25,6 @@ public class BlogSensitiveWrapper {
 
         if (!existedSensitiveIds.isEmpty()) {
             blogSensitiveContentRepository.deleteAllById(existedSensitiveIds);
-            blogSensitiveContentRepository.flush();
         }
         if (!blogSensitiveContentEntityList.isEmpty()) {
             blogSensitiveContentRepository.saveAll(blogSensitiveContentEntityList);

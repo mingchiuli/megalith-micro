@@ -91,16 +91,14 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         BeanUtils.copyProperties(userEntityReq, userEntity);
 
-        Long userId = userEntity.getId();
         List<UserRoleEntity> userRoleEntities = roleRepository.findByCodeIn(roles).stream()
                 .map(role -> UserRoleEntity.builder()
-                        .userId(userId)
                         .roleId(role.getId())
                         .build())
                 .toList();
 
         userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
-        var userIndexMessage = new UserIndexMessage(userId, userOperateEnum);
+        var userIndexMessage = new UserIndexMessage(userEntity.getId(), userOperateEnum);
         applicationContext.publishEvent(new UserOperateEvent(this, userIndexMessage));
     }
 

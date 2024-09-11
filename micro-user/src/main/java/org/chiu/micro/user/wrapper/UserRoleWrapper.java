@@ -25,8 +25,8 @@ public class UserRoleWrapper {
     @Transactional
     public void saveOrUpdate(UserEntity userEntity, List<UserRoleEntity> userRoleEntities) {
         userRoleRepository.deleteByUserId(userEntity.getId());
-        userRoleRepository.flush();
         userRepository.save(userEntity);
+        userRoleEntities.forEach(userRole -> userRole.setUserId(userEntity.getId()));
         userRoleRepository.saveAll(userRoleEntities);
     }
 
