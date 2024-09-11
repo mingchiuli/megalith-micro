@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotEmpty;
 import org.chiu.micro.user.valid.ListValue;
 import org.chiu.micro.user.valid.Phone;
 import org.chiu.micro.user.valid.Username;
+import org.hibernate.validator.constraints.URL;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -22,7 +24,7 @@ public class UserEntityReq {
     @NotBlank
     private String nickname;
 
-    @NotBlank
+    @URL
     private String avatar;
 
     private String password;
