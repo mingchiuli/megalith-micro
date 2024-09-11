@@ -19,6 +19,7 @@ public class RoleAuthorityWrapper {
     @Transactional
     public void saveAuthority(Long roleId, List<RoleAuthorityEntity> roleAuthorityEntities) {
         roleAuthorityRepository.deleteByRoleId(roleId);
+        roleAuthorityRepository.flush();
         roleAuthorityRepository.saveAll(roleAuthorityEntities);
     }
 }
