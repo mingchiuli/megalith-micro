@@ -257,6 +257,9 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                                             .weight(1.0))
                                     .scoreMode(FunctionScoreMode.Sum)
                                     .boostMode(FunctionBoostMode.Multiply)));
+        } else {
+            nativeQueryBuilder.withQuery(query -> query
+                    .bool(boolQuery));
         }
 
         nativeQueryBuilder
