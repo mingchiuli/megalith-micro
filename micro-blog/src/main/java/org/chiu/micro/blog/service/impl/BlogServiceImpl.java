@@ -50,7 +50,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -190,7 +190,10 @@ public class BlogServiceImpl implements BlogService {
         String originalFilename = Optional.ofNullable(file.getOriginalFilename())
                 .orElseGet(() -> UUID.randomUUID().toString())
                 .replace(" ", "");
-        Assert.notNull(imageBytes, UPLOAD_MISS.getMsg());
+        if (imageBytes.length == 0) {
+            throw new MissException(UPLOAD_MISS.getMsg());
+        }
+
         var sseEmitter = new SseEmitter();
         taskExecutor.execute(() -> {
             String uuid = UUID.randomUUID().toString();
