@@ -509,7 +509,8 @@ const healthCheck = async () => {
   if (client.webSocket?.readyState !== StompSocketState.OPEN) {
     transColor.value = OperaColor.FAILED
     readOnly.value = true
-    const token = await checkAccessToken()
+    const accessToken = localStorage.getItem('accessToken')!
+    const token = await checkAccessToken(accessToken)
     client.connectHeaders = { "Authorization": token, "Type": "EDIT" }
     reconnecting = true
   }
