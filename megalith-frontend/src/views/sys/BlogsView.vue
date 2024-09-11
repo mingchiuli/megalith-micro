@@ -226,7 +226,7 @@ const handleCurrentChange = async (val: number) => {
           <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_CHECK)" @click="handleCheck(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_CHECK) }}</el-button>
         </template>
 
-        <template v-if="scope.row.owner && checkButtonAuth(ButtonAuth.SYS_BLOG_EDIT)">
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_EDIT)">
           <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_EDIT) }}</el-button>
         </template>
 
