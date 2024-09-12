@@ -43,7 +43,7 @@ public class AuthProvider {
     }
 
     @PostMapping("/route")
-    public Result<AuthorityRouteVo> route(@RequestBody AuthorityRouteReq req) {
+    public Result<AuthorityRouteVo> route(@RequestBody AuthorityRouteReq req) throws AuthException {
         return Result.success(() -> authService.route(req));
     }
 }
