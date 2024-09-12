@@ -13,10 +13,8 @@ http.interceptors.request.use(async config => {
   const url = config.url
   if (url !== '/token/refresh' && loginStateStore().login) {
     const accessToken = localStorage.getItem('accessToken')
-    if (accessToken) {
-      const token = await checkAccessToken(accessToken)
-      config.headers.Authorization = token
-    }
+    const token = await checkAccessToken(accessToken!)
+    config.headers.Authorization = token
   }
   return config
 })
