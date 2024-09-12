@@ -9,16 +9,13 @@ const http = axios.create({
   timeout: 10000
 })
 
-let refreshing = false
-
 http.interceptors.request.use(async config => {
-  if (config.url !== '/token/refresh' && loginStateStore().login) {
+  const url = config.url
+  if (url !== '/token/refresh' && url !== '/auth/menu/nav' && loginStateStore().login) {
     let accessToken = localStorage.getItem('accessToken')
-    if (accessToken && !refreshing) {
-      refreshing = true
+    if (accessToken) {
       const token = await checkAccessToken(accessToken)
       accessToken = token
-      refreshing = false
     }
     config.headers.Authorization = accessToken
   }
