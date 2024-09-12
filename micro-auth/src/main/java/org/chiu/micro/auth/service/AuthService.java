@@ -14,6 +14,6 @@ public interface AuthService {
 
     List<AuthorityVo> getSystemAuthority(List<String> serviceHost);
 
-    AuthorityRouteVo route(AuthorityRouteReq req, String token);
+    AuthorityRouteVo route(AuthorityRouteReq req);
 
 }
