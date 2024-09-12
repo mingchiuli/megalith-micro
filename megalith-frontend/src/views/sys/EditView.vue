@@ -504,7 +504,6 @@ onUnmounted(() => {
 })
 
 let reconnecting = false
-let lock = false
 const healthCheck = async () => {
   if (client.webSocket?.readyState !== StompSocketState.OPEN) {
     transColor.value = OperaColor.FAILED
@@ -515,22 +514,17 @@ const healthCheck = async () => {
     reconnecting = true
   }
 
-  if (!lock && reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
-    lock = true
-    try {
-      if (netErrorEdited.value) {
-        await pushAllData()
-      } else {
-        await pullAllData()
-      }
-
-      readOnly.value = false
-      transColor.value = OperaColor.SUCCESS
-      reconnecting = false
-      netErrorEdited.value = false
-    } finally {
-      lock = false
+  if (reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
+    if (netErrorEdited.value) {
+      await pushAllData()
+    } else {
+      await pullAllData()
     }
+
+    readOnly.value = false
+    transColor.value = OperaColor.SUCCESS
+    reconnecting = false
+    netErrorEdited.value = false
   }
 
   healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 2000)
