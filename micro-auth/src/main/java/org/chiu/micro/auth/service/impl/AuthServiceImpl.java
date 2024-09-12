@@ -15,6 +15,8 @@ import org.chiu.micro.auth.vo.AuthorityRouteVo;
 import org.chiu.micro.auth.vo.AuthorityVo;
 import org.chiu.micro.auth.vo.MenusAndButtonsVo;
 import org.chiu.micro.auth.wrapper.AuthWrapper;
+import org.chiu.micro.auth.exception.AuthException;
+
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -56,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthorityRouteVo route(AuthorityRouteReq req) {
+    public AuthorityRouteVo route(AuthorityRouteReq req) throws AuthException {
         String token = req.getToken();
         List<String> authorities = securityAuthenticationUtils.getAuthAuthority(token);
         List<AuthorityDto> systemAuthorities = authWrapper.getAllSystemAuthorities();
