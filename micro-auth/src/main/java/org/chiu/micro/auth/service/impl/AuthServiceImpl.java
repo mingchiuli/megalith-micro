@@ -56,7 +56,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthorityRouteVo route(AuthorityRouteReq req, String token) {
+    public AuthorityRouteVo route(AuthorityRouteReq req) {
+        String token = req.getToken();
         List<String> authorities = securityAuthenticationUtils.getAuthAuthority(token);
         List<AuthorityDto> systemAuthorities = authWrapper.getAllSystemAuthorities();
         for (AuthorityDto dto : systemAuthorities) {
