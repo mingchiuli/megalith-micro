@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ExceptionMessage {
 
-    NO_FOUND(1, "没有找到路由"),
+    NO_FOUND(1, "重新登录"),
     
     DATA_NOT_FOUND(2, "数据异常");
 
