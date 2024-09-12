@@ -45,7 +45,7 @@ public class AuthProvider {
     }
 
     @PostMapping("/route")
-    public Result<AuthorityRouteVo> route(@RequestBody AuthorityRouteReq req, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) {
-        return Result.success(() -> authService.route(req, token));
+    public Result<AuthorityRouteVo> route(@RequestBody AuthorityRouteReq req) {
+        return Result.success(() -> authService.route(req));
     }
 }
