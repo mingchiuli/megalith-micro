@@ -1,7 +1,6 @@
 package org.chiu.micro.auth.utils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import org.chiu.micro.auth.dto.AuthDto;
@@ -80,8 +79,7 @@ public class SecurityAuthenticationUtils {
                 .build();
     }
 
-    @SneakyThrows
-    public List<String> getAuthAuthority(String token) {
+    public List<String> getAuthAuthority(String token) throws AuthException {
         List<String> authorities = new ArrayList<>();
         List<AuthorityDto> allAuthorities = authWrapper.getAllSystemAuthorities();
         List<String> whiteList = allAuthorities.stream()
