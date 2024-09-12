@@ -27,24 +27,28 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(value = BadCredentialsException.class)
     public Result<Void> handler(BadCredentialsException e) {
+        log.error("-------------------error", e);
         return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(value = AuthException.class)
     public Result<Void> handler(AuthException e) {
+        log.error("-------------------error", e);
         return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = BaseException.class)
     public Result<Void> handler(BaseException e){
+        log.error("-------------------error", e);
         return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     public Result<Void> handler(MethodArgumentNotValidException e) {
+        log.error("-------------------error", e);
         return Result.fail(e.getBindingResult().getAllErrors().stream()
                 .findFirst()
                 .<String>map(MessageSourceResolvable::getDefaultMessage).orElse(""));
@@ -53,18 +57,21 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = IllegalArgumentException.class)
     public Result<Void> handler(IllegalArgumentException e) {
+        log.error("-------------------error", e);
         return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(value = AccessDeniedException.class)
     public Result<Void> handler(AccessDeniedException e){
+        log.error("-------------------error", e);
         return Result.fail(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = RuntimeException.class)
     public Result<Void> handler(RuntimeException e) {
+        log.error("-------------------error", e);
         return Result.fail(e.getMessage());
     }
 
