@@ -1,7 +1,7 @@
 .gradle
 */bin
 */build
-*/.factorypath
-*/.project
-*/.settings
-*/.classpath
+*/factorypath
+*/project
+*/settings
+*/classpath
