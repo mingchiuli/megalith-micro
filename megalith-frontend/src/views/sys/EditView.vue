@@ -527,7 +527,7 @@ const healthCheck = async () => {
       reconnecting = false
       netErrorEdited.value = false
     }
-  } finally {
+  } catch(_e) { /* empty */ } finally {
     healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 2000)
   }
 }
