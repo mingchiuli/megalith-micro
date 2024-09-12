@@ -158,10 +158,6 @@ const preCheck = (n: string | undefined, o: string | undefined): boolean => {
     return false
   }
 
-  if (reconnecting) {
-    return false
-  }
-
   if (pulling) {
     return false
   }
@@ -170,6 +166,10 @@ const preCheck = (n: string | undefined, o: string | undefined): boolean => {
     if (!netErrorEdited.value) {
       netErrorEdited.value = true
     }
+    return false
+  }
+
+  if (reconnecting) {
     return false
   }
 
