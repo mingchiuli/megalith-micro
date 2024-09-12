@@ -12,5 +12,5 @@ import org.springframework.web.service.annotation.PostExchange;
 public interface AuthHttpService {
 
     @PostExchange("/auth/route")
-    Result<AuthorityRouteDto> getAuthorityRoute(@RequestBody AuthorityRouteReq req, @RequestHeader(value = HttpHeaders.AUTHORIZATION, defaultValue = "") String token);
+    Result<AuthorityRouteDto> getAuthorityRoute(@RequestBody AuthorityRouteReq req);
 }
