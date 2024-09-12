@@ -5,10 +5,8 @@ import org.chiu.micro.gateway.exception.MissException;
 import org.chiu.micro.gateway.lang.Result;
 import org.chiu.micro.gateway.req.AuthorityRouteReq;
 import org.chiu.micro.gateway.rpc.AuthHttpService;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
