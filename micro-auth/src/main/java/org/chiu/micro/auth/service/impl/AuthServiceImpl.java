@@ -68,12 +68,17 @@ public class AuthServiceImpl implements AuthService {
                             .servicePort(dto.getServicePort())
                             .build();
                 }
-
+                System.out.println("1");
+                System.out.println(token);
+                System.out.println(req.toString());
                 return AuthorityRouteVo.builder()
                         .auth(false)
                         .build();
             }
         }
+        System.out.println("2");
+        System.out.println(token);
+        System.out.println(req.toString());
         return AuthorityRouteVo.builder()
                 .auth(false)
                 .build();
