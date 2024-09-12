@@ -159,6 +159,7 @@ public class Router {
         } else {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         }
+        
         byte[] data = responseEntity.getBody();
         response.setContentLength(data == null ? 0 : data.length);
         response.setStatus(responseEntity.getStatusCode().value());
