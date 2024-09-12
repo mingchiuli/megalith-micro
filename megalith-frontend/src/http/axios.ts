@@ -11,14 +11,14 @@ const http = axios.create({
 
 http.interceptors.request.use(async config => {
   const url = config.url
+  let accessToken = localStorage.getItem('accessToken')
   if (url !== '/token/refresh' && url !== '/auth/menu/nav' && loginStateStore().login) {
-    let accessToken = localStorage.getItem('accessToken')
     if (accessToken) {
       const token = await checkAccessToken(accessToken)
       accessToken = token
     }
-    config.headers.Authorization = accessToken
   }
+  config.headers.Authorization = accessToken
   return config
 })
 
