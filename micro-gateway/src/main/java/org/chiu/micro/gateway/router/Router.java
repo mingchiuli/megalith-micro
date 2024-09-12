@@ -56,10 +56,13 @@ public class Router {
 
         String method = request.getMethod();
         String requestURI = request.getRequestURI();
+        String authorization = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
+
         AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(
                 AuthorityRouteReq.builder()
                         .routeMapping(requestURI)
                         .method(method)
+                        .token(authorization)
                         .build());
 
         if (Boolean.FALSE.equals(authorityRoute.getAuth())) {
@@ -73,7 +76,6 @@ public class Router {
 
         String serviceHost = authorityRoute.getServiceHost();
         Integer servicePort = authorityRoute.getServicePort();
-        String authorization = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
 
         String url = "http://" + serviceHost + ":" + servicePort + requestURI;
 
