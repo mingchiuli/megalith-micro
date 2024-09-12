@@ -505,29 +505,31 @@ onUnmounted(() => {
 
 let reconnecting = false
 const healthCheck = async () => {
-  if (client.webSocket?.readyState !== StompSocketState.OPEN) {
-    transColor.value = OperaColor.FAILED
-    readOnly.value = true
-    const accessToken = localStorage.getItem('accessToken')!
-    const token = await checkAccessToken(accessToken)
-    client.connectHeaders = { "Authorization": token, "Type": "EDIT" }
-    reconnecting = true
-  }
-
-  if (reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
-    if (netErrorEdited.value) {
-      await pushAllData()
-    } else {
-      await pullAllData()
+  try {
+    if (client.webSocket?.readyState !== StompSocketState.OPEN) {
+      transColor.value = OperaColor.FAILED
+      readOnly.value = true
+      const accessToken = localStorage.getItem('accessToken')!
+      const token = await checkAccessToken(accessToken)
+      client.connectHeaders = { "Authorization": token, "Type": "EDIT" }
+      reconnecting = true
     }
 
-    readOnly.value = false
-    transColor.value = OperaColor.SUCCESS
-    reconnecting = false
-    netErrorEdited.value = false
-  }
+    if (reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
+      if (netErrorEdited.value) {
+        await pushAllData()
+      } else {
+        await pullAllData()
+      }
 
-  healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 2000)
+      readOnly.value = false
+      transColor.value = OperaColor.SUCCESS
+      reconnecting = false
+      netErrorEdited.value = false
+    }
+  } finally {
+    healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 2000)
+  }
 }
 
 const init = async () => {
