@@ -301,7 +301,7 @@ public class BlogServiceImpl implements BlogService {
         BlogSearchDto dto = searchHttpServiceWrapper.searchBlogs(currentPage, size, keywords);
         List<Long> ids = dto.getIds();
         List<BlogEntity> items = blogRepository.findAllById(ids).stream()
-                .sorted(Comparator.comparing(BlogEntity::getCreated).reversed())
+                .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
                 .toList();
 
         List<String> res = redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),
