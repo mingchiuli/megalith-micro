@@ -32,10 +32,10 @@ public class RoleEntityVoConvertor {
     public static PageAdapter<RoleEntityVo> convert(Page<RoleEntity> page, List<RoleMenuEntity> roleMenus, List<RoleAuthorityEntity> roleAuthorities) {
         
         Map<Long, LocalDateTime> roleMenusDate = roleMenus.stream()
-                .collect(Collectors.toMap(RoleMenuEntity::getRoleId, RoleMenuEntity::getUpdated));
+                .collect(Collectors.toMap(RoleMenuEntity::getRoleId, RoleMenuEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
         
         Map<Long, LocalDateTime> roleAuthoritiesDate = roleAuthorities.stream()
-                .collect(Collectors.toMap(RoleAuthorityEntity::getRoleId, RoleAuthorityEntity::getUpdated));
+                .collect(Collectors.toMap(RoleAuthorityEntity::getRoleId, RoleAuthorityEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
         
         Map<Long, LocalDateTime> roleDate = page.get()
                 .collect(Collectors.toMap(RoleEntity::getId, RoleEntity::getUpdated));
