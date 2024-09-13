@@ -34,10 +34,10 @@ http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<an
 }, (error: AxiosError<any, any>) => {
   ElNotification.error({
     title: error.code,
-    message: error.response?.data.msg ? error.response?.data.msg : error.message,
+    message: error.response!.data.msg ? error.response!.data.msg : error.message,
     showClose: true,
   })
-  if (error.response?.status === 401) {
+  if (error.response!.status === 401) {
     clearLoginState()
     router.push({
       name: 'login'
