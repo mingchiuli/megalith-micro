@@ -58,8 +58,7 @@ public class Router {
         String requestURI = request.getRequestURI();
         String authorization = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
 
-        AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(
-                AuthorityRouteReq.builder()
+        AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(AuthorityRouteReq.builder()
                         .routeMapping(requestURI)
                         .method(method)
                         .token(authorization)
@@ -139,15 +138,6 @@ public class Router {
         }
 
         if (response.getStatus() != HttpStatus.OK.value()) {
-            return;
-        }
-
-        if (responseEntity == null || responseEntity.getBody() == null) {
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.getWriter().write(
-                    objectMapper.writeValueAsString(
-                            Result.fail(ExceptionMessage.DATA_NOT_FOUND.getMsg())));
             return;
         }
 
