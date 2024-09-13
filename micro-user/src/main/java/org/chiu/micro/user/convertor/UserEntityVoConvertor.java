@@ -8,7 +8,6 @@ import org.chiu.micro.user.entity.UserRoleEntity;
 
 import org.springframework.data.domain.Page;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,11 +35,9 @@ public class UserEntityVoConvertor {
     }
 
     public static PageAdapter<UserEntityVo> convert(Page<UserEntity> page, List<UserRoleEntity> userRoleEntities, List<RoleEntity> roleEntities) {
-        
-        Map<Long, List<UserRoleEntity>> idUserRoleMap = userRoleEntities.stream()
-                .collect(Collectors.groupingBy(UserRoleEntity::getUserId));
-        
-        Map<Long, List<String>> userIdRoleMap = idUserRoleMap.entrySet().stream()
+                
+        Map<Long, List<String>> userIdRoleMap = userRoleEntities.stream()
+                .collect(Collectors.groupingBy(UserRoleEntity::getUserId)).entrySet().stream()
                 .map(entry -> {
                     List<Long> roleIds = entry.getValue().stream()
                             .map(UserRoleEntity::getRoleId)
@@ -53,17 +50,8 @@ public class UserEntityVoConvertor {
                 })
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         
-        Map<Long, LocalDateTime> idDateMap = idUserRoleMap.entrySet().stream()
-                .map(entry -> {
-                    var date = entry.getValue().stream()
-                            .sorted(Comparator.comparing(UserRoleEntity::getUpdated).reversed())
-                            .findFirst()
-                            .get()
-                            .getUpdated();
-                    return Map.entry(entry.getKey(), date);
-                })
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        
+        Map<Long, LocalDateTime> idDateMap = userRoleEntities.stream()
+                .collect(Collectors.toMap(UserRoleEntity::getUserId, UserRoleEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
         
         List<UserEntityVo> content = page.getContent().stream()
                 .map(user -> UserEntityVo.builder()
