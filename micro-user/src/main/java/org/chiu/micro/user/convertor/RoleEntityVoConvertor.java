@@ -1,11 +1,18 @@
 package org.chiu.micro.user.convertor;
 
 import org.chiu.micro.user.page.PageAdapter;
+import org.chiu.micro.user.entity.RoleAuthorityEntity;
 import org.chiu.micro.user.entity.RoleEntity;
+import org.chiu.micro.user.entity.RoleMenuEntity;
 import org.chiu.micro.user.vo.RoleEntityVo;
 import org.springframework.data.domain.Page;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RoleEntityVoConvertor {
 
@@ -22,14 +29,28 @@ public class RoleEntityVoConvertor {
                 .build();
     }
 
-    public static PageAdapter<RoleEntityVo> convert(Page<RoleEntity> page) {
+    public static PageAdapter<RoleEntityVo> convert(Page<RoleEntity> page, List<RoleMenuEntity> roleMenus, List<RoleAuthorityEntity> roleAuthorities) {
+        
+        Map<Long, LocalDateTime> roleMenusDate = roleMenus.stream()
+                .collect(Collectors.toMap(RoleMenuEntity::getRoleId, RoleMenuEntity::getUpdated));
+        
+        Map<Long, LocalDateTime> roleAuthoritiesDate = roleAuthorities.stream()
+                .collect(Collectors.toMap(RoleAuthorityEntity::getRoleId, RoleAuthorityEntity::getUpdated));
+        
+        Map<Long, LocalDateTime> roleDate = page.get()
+                .collect(Collectors.toMap(RoleEntity::getId, RoleEntity::getUpdated));
+        
+        Map<Long, LocalDateTime> mergedMap = Stream.of(roleMenusDate, roleAuthoritiesDate, roleDate)
+                .flatMap(map -> map.entrySet().stream())
+                .collect(HashMap::new, (m, e) -> m.merge(e.getKey(), e.getValue(), (v1, v2) -> v1.isAfter(v2) ? v1 : v2), HashMap::putAll);
+        
         List<RoleEntityVo> content = page.getContent().stream()
                 .map(role -> RoleEntityVo.builder()
                         .code(role.getCode())
                         .name(role.getName())
                         .remark(role.getRemark())
                         .status(role.getStatus())
-                        .updated(role.getUpdated())
+                        .updated(mergedMap.get(role.getId()))
                         .created(role.getCreated())
                         .id(role.getId())
                         .build())

@@ -33,7 +33,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.chiu.micro.user.lang.Const.*;
 import static org.chiu.micro.user.lang.ExceptionMessage.*;
@@ -165,26 +164,18 @@ public class UserRoleServiceImpl implements UserRoleService {
                 size,
                 Sort.by("created").ascending());
         Page<UserEntity> page = userRepository.findAll(pageRequest);
+        
         List<Long> userIds = page.get()
                 .map(UserEntity::getId)
                 .toList();
         List<UserRoleEntity> userRoleEntities = userRoleRepository.findByUserIdIn(userIds);
+        
         List<Long> roleIds = userRoleEntities.stream()
                 .map(UserRoleEntity::getRoleId)
                 .toList();
-        Map<Long, String> idCodeMap = roleRepository.findAllById(roleIds).stream()
-                .collect(Collectors.toMap(RoleEntity::getId, RoleEntity::getCode));
+        List<RoleEntity> roleEntities = roleRepository.findAllById(roleIds);
 
-        Map<Long, List<String>> userIdRoleMap = new HashMap<>();
-
-        userRoleEntities.forEach(item -> {
-            Long id = item.getUserId();
-            userIdRoleMap.putIfAbsent(id, new ArrayList<>());
-            List<String> roles = userIdRoleMap.get(id);
-            roles.add(idCodeMap.get(item.getRoleId()));
-        });
-
-        return UserEntityVoConvertor.convert(page, userIdRoleMap);
+        return UserEntityVoConvertor.convert(page, userRoleEntities, roleEntities);
     }
 
     @Override
