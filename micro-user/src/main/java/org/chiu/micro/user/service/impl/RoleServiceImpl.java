@@ -6,8 +6,12 @@ import lombok.SneakyThrows;
 import org.chiu.micro.user.constant.AuthMenuIndexMessage;
 import org.chiu.micro.user.convertor.RoleEntityRpcVoConvertor;
 import org.chiu.micro.user.convertor.RoleEntityVoConvertor;
+import org.chiu.micro.user.entity.RoleAuthorityEntity;
 import org.chiu.micro.user.entity.RoleEntity;
+import org.chiu.micro.user.entity.RoleMenuEntity;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
+import org.chiu.micro.user.repository.RoleAuthorityRepository;
+import org.chiu.micro.user.repository.RoleMenuRepository;
 import org.chiu.micro.user.repository.RoleRepository;
 import org.chiu.micro.user.service.RoleService;
 import org.chiu.micro.user.req.RoleEntityReq;
@@ -42,6 +46,10 @@ import static org.chiu.micro.user.lang.ExceptionMessage.ROLE_NOT_EXIST;
 public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
+    
+    private final RoleMenuRepository roleMenuRepository;
+    
+    private final RoleAuthorityRepository roleAuthorityRepository;
 
     private final ObjectMapper objectMapper;
 
@@ -64,7 +72,12 @@ public class RoleServiceImpl implements RoleService {
                 Sort.by("created").ascending());
         Page<RoleEntity> page = roleRepository.findAll(pageRequest);
 
-        return RoleEntityVoConvertor.convert(page);
+        List<Long> ids = page.get().map(RoleEntity::getId).toList();
+        
+        List<RoleMenuEntity> roleMenus = roleMenuRepository.findByRoleIdIn(ids);
+        List<RoleAuthorityEntity> roleAuthorities = roleAuthorityRepository.findByRoleIdIn(ids);
+        
+        return RoleEntityVoConvertor.convert(page, roleMenus, roleAuthorities);
     }
 
     @Override

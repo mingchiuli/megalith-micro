@@ -137,7 +137,7 @@ public class Router {
                     .toEntity(byte[].class);
         }
 
-        if (response.getStatus() != HttpStatus.OK.value()) {
+        if (response.getStatus() != HttpStatus.OK.value() || responseEntity == null) {
             return;
         }
 
