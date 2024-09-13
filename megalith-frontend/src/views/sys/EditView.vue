@@ -146,7 +146,7 @@ const clearPushActionForm = () => {
 }
 
 const preCheck = (n: string | undefined, o: string | undefined): boolean => {
-  if (o === undefined) {
+  if (o === undefined || n === undefined) {
     return false
   }
 
@@ -234,32 +234,32 @@ watch(() => form.content, (n, o) => {
   if (!preCheck(n, o)) return
   commonPreDeal(FieldType.PARA, FieldName.CONTENT)
 
-  const nArr = n?.split(ParaInfo.PARA_SPLIT)
-  const oArr = o?.split(ParaInfo.PARA_SPLIT)
+  const nArr = n!.split(ParaInfo.PARA_SPLIT)
+  const oArr = o!.split(ParaInfo.PARA_SPLIT)
 
   //本段内操作
-  if (nArr?.length === oArr?.length) {
-    for (let i = 0; i < nArr?.length!; i++) {
+  if (nArr.length === oArr.length) {
+    for (let i = 0; i < nArr.length; i++) {
       //理论上一个动作改不了很多段
-      if (nArr![i] !== oArr![i]) {
+      if (nArr[i] !== oArr[i]) {
         pushActionForm.paraNo = i + 1
-        deal(nArr![i], oArr![i])
+        deal(nArr[i], oArr[i])
         recheckSensitive(pushActionForm, form)
       }
     }
     return
   }
   //向后新增段
-  const nLen = nArr?.length!
-  const oLen = oArr?.length!
-  if (nLen - 1 === oLen && nArr![oLen - 1] + '\n' === oArr![oLen - 1] && nArr![oLen] === '') {
+  const nLen = nArr.length
+  const oLen = oArr.length
+  if (nLen - 1 === oLen && nArr[oLen - 1] + '\n' === oArr[oLen - 1] && nArr[oLen] === '') {
     //每段必须相同，否则推全量
     for (let i = 0; i < oLen; i++) {
-      if (i !== oLen - 1 && nArr![i] !== oArr![i]) {
+      if (i !== oLen - 1 && nArr[i] !== oArr[i]) {
         pushAllData()
         return
       }
-      if (i === oLen - 1 && nArr![i] + '\n' !== oArr![i]) {
+      if (i === oLen - 1 && nArr[i] + '\n' !== oArr[i]) {
         pushAllData()
         return
       }
@@ -271,13 +271,13 @@ watch(() => form.content, (n, o) => {
   }
 
   //向前减少段
-  if (nLen + 1 === oLen && nArr![nLen - 1] === oArr![nLen - 1] + '\n' && oArr![nLen] === '') {
+  if (nLen + 1 === oLen && nArr[nLen - 1] === oArr[nLen - 1] + '\n' && oArr[nLen] === '') {
     for (let i = 0; i < nLen; i++) {
-      if (i !== nLen - 1 && nArr![i] !== oArr![i]) {
+      if (i !== nLen - 1 && nArr[i] !== oArr[i]) {
         pushAllData()
         return
       }
-      if (i === nLen - 1 && nArr![i] !== oArr![i] + '\n') {
+      if (i === nLen - 1 && nArr[i] !== oArr[i] + '\n') {
         pushAllData()
         return
       }
