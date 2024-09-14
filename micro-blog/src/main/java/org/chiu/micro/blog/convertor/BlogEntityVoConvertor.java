@@ -1,18 +1,29 @@
 package org.chiu.micro.blog.convertor;
 
+import org.chiu.micro.blog.dto.BlogSearchDto;
 import org.chiu.micro.blog.entity.BlogEntity;
+import org.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import org.chiu.micro.blog.vo.BlogEntityVo;
 import org.chiu.micro.blog.page.PageAdapter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class BlogEntityVoConvertor {
 
     private BlogEntityVoConvertor() {
     }
 
-    public static PageAdapter<BlogEntityVo> convert(List<BlogEntity> items, Map<Long, Integer> readMap, Long operateUserId, Integer currentPage, Integer size, Long total) {
+    public static PageAdapter<BlogEntityVo> convert(List<BlogEntity> items, Map<Long, Integer> readMap, Long operateUserId, List<BlogSensitiveContentEntity> blogSensitiveContentEntities, BlogSearchDto dto) {
+        
+        Integer size = dto.getSize();
+        Integer currentPage = dto.getCurrentPage();
+        Long total = dto.getTotal();
+        
+        Map<Long, LocalDateTime> idDateMap = blogSensitiveContentEntities.stream()
+                .collect(Collectors.toMap(BlogSensitiveContentEntity::getBlogId, BlogSensitiveContentEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
 
         List<BlogEntityVo> entities = items.stream()
                 .map(blogEntity -> BlogEntityVo.builder()
@@ -24,7 +35,7 @@ public class BlogEntityVoConvertor {
                         .status(blogEntity.getStatus())
                         .link(blogEntity.getLink())
                         .created(blogEntity.getCreated())
-                        .updated(blogEntity.getUpdated())
+                        .updated(blogEntity.getUpdated().isAfter(idDateMap.get(blogEntity.getId())) ? blogEntity.getUpdated() : idDateMap.get(blogEntity.getId()))
                         .content(blogEntity.getContent())
                         .owner(blogEntity.getUserId().equals(operateUserId))
                         .build())
