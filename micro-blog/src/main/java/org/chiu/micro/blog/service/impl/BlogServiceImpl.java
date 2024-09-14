@@ -303,6 +303,8 @@ public class BlogServiceImpl implements BlogService {
         List<BlogEntity> items = blogRepository.findAllById(ids).stream()
                 .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
                 .toList();
+        
+        List<BlogSensitiveContentEntity> blogSensitiveContentEntities = blogSensitiveContentRepository.findByBlogIdIn(ids);
 
         List<String> res = redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),
                 Collections.singletonList(HOT_READ.getInfo()),
@@ -315,7 +317,7 @@ public class BlogServiceImpl implements BlogService {
             readMap.put(Long.valueOf(res.get(i)), Integer.valueOf(res.get(i + 1)));
         }
 
-        return BlogEntityVoConvertor.convert(items, readMap, userId, currentPage, size, dto.getTotal());
+        return BlogEntityVoConvertor.convert(items, readMap, userId, blogSensitiveContentEntities, dto);
     }
 
     @Override
