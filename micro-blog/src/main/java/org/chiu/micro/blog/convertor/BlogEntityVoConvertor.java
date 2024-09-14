@@ -28,7 +28,7 @@ public class BlogEntityVoConvertor {
                 .collect(Collectors.toMap(BlogEntity::getId, BlogEntity::getUpdated));
         
         Map<Long, LocalDateTime> blogSensitiveDate = blogSensitiveContentEntities.stream()
-                .collect(Collectors.toMap(BlogSensitiveContentEntity::getUserId, BlogSensitiveContentEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
+                .collect(Collectors.toMap(BlogSensitiveContentEntity::getBlogId, BlogSensitiveContentEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
 
         Map<Long, LocalDateTime> mergedMap = Stream.of(blogSensitiveDate, blogDate)
                 .flatMap(map -> map.entrySet().stream())
