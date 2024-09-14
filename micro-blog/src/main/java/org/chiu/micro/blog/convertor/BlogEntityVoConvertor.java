@@ -9,6 +9,7 @@ import org.chiu.micro.blog.page.PageAdapter;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 public class BlogEntityVoConvertor {
