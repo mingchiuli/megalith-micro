@@ -35,7 +35,7 @@ public class BlogEntityVoConvertor {
                         .status(blogEntity.getStatus())
                         .link(blogEntity.getLink())
                         .created(blogEntity.getCreated())
-                        .updated(blogEntity.getUpdated().isAfter(idDateMap.get(blogEntity.getId())) ? blogEntity.getUpdated() : idDateMap.get(blogEntity.getId()))
+                        .updated(blogEntity.getUpdated().isAfter(idDateMap.getOrDefault(blogEntity.getId(), blogEntity.getUpdated())) ? blogEntity.getUpdated() : idDateMap.getOrDefault(blogEntity.getId(), blogEntity.getUpdated()))
                         .content(blogEntity.getContent())
                         .owner(blogEntity.getUserId().equals(operateUserId))
                         .build())
