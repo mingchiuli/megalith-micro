@@ -22,8 +22,15 @@ public class BlogEntityVoConvertor {
         Integer currentPage = dto.getCurrentPage();
         Long total = dto.getTotal();
         
-        Map<Long, LocalDateTime> idDateMap = blogSensitiveContentEntities.stream()
-                .collect(Collectors.toMap(BlogSensitiveContentEntity::getBlogId, BlogSensitiveContentEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
+        Map<Long, LocalDateTime> blogDate = items
+                .collect(Collectors.toMap(BlogEntity::getId, BlogEntity::getUpdated));
+        
+        Map<Long, LocalDateTime> blogSensitiveDate = userRoleEntities.stream()
+                .collect(Collectors.toMap(BlogSensitiveContentEntity::getUserId, BlogSensitiveContentEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
+
+        Map<Long, LocalDateTime> mergedMap = Stream.of(blogSensitiveDate, blogDate)
+                .flatMap(map -> map.entrySet().stream())
+                .collect(HashMap::new, (m, e) -> m.merge(e.getKey(), e.getValue(), (v1, v2) -> v1.isAfter(v2) ? v1 : v2), HashMap::putAll);
 
         List<BlogEntityVo> entities = items.stream()
                 .map(blogEntity -> BlogEntityVo.builder()
@@ -35,7 +42,7 @@ public class BlogEntityVoConvertor {
                         .status(blogEntity.getStatus())
                         .link(blogEntity.getLink())
                         .created(blogEntity.getCreated())
-                        .updated(blogEntity.getUpdated().isAfter(idDateMap.getOrDefault(blogEntity.getId(), blogEntity.getUpdated())) ? blogEntity.getUpdated() : idDateMap.getOrDefault(blogEntity.getId(), blogEntity.getUpdated()))
+                        .updated(mergedMap.get(blogEntity.getId()))
                         .content(blogEntity.getContent())
                         .owner(blogEntity.getUserId().equals(operateUserId))
                         .build())
