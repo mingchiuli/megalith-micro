@@ -57,7 +57,7 @@ public class UserEntityVoConvertor {
                 .map(user -> UserEntityVo.builder()
                         .email(user.getEmail())
                         .phone(user.getPhone())
-                        .updated(user.getUpdated().isAfter(idDateMap.get(user.getId())) ? user.getUpdated() : idDateMap.get(user.getId()))
+                        .updated(user.getUpdated().isAfter(idDateMap.getOrDefault(user.getId(), user.getUpdated())) ? user.getUpdated() : idDateMap.getOrDefault(user.getId(), user.getUpdated()))
                         .id(user.getId())
                         .nickname(user.getNickname())
                         .status(user.getStatus())
