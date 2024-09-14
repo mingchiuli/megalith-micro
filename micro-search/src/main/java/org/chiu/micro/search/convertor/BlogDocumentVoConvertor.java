@@ -16,21 +16,18 @@ public class BlogDocumentVoConvertor {
         long totalPage = totalHits % blogPageSize == 0 ? totalHits / blogPageSize : totalHits / blogPageSize + 1;
 
         List<BlogDocumentVo> vos = search.getSearchHits().stream()
-                .map(hit -> {
-                    BlogDocument document = hit.getContent();
-                    return BlogDocumentVo.builder()
-                            .id(document.getId())
-                            .userId(document.getUserId())
-                            .status(document.getStatus())
-                            .title(document.getTitle())
-                            .description(document.getDescription())
-                            .content(document.getContent())
-                            .link(document.getLink())
-                            .created(document.getCreated().toLocalDateTime())
-                            .score(hit.getScore())
-                            .highlight(hit.getHighlightFields())
-                            .build();
-                })
+                .map(hit -> BlogDocumentVo.builder()
+                        .id(hit.getContent().getId())
+                        .userId(hit.getContent().getUserId())
+                        .status(hit.getContent().getStatus())
+                        .title(hit.getContent().getTitle())
+                        .description(hit.getContent().getDescription())
+                        .content(hit.getContent().getContent())
+                        .link(hit.getContent().getLink())
+                        .created(hit.getContent().getCreated().toLocalDateTime())
+                        .score(hit.getScore())
+                        .highlight(hit.getHighlightFields())
+                        .build())
                 .toList();
 
         return PageAdapter.<BlogDocumentVo>builder()
