@@ -24,7 +24,7 @@ public class BlogEntityVoConvertor {
         Integer currentPage = dto.getCurrentPage();
         Long total = dto.getTotal();
         
-        Map<Long, LocalDateTime> blogDate = items
+        Map<Long, LocalDateTime> blogDate = items.stream()
                 .collect(Collectors.toMap(BlogEntity::getId, BlogEntity::getUpdated));
         
         Map<Long, LocalDateTime> blogSensitiveDate = userRoleEntities.stream()
