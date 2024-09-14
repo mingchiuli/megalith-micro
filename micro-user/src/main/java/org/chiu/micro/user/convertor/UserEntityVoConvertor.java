@@ -49,15 +49,22 @@ public class UserEntityVoConvertor {
                     return Map.entry(entry.getKey(), roleCodes);
                 })
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        Map<Long, LocalDateTime> userDate = page.get()
+                .collect(Collectors.toMap(UserEntity::getId, UserEntity::getUpdated));
         
-        Map<Long, LocalDateTime> idDateMap = userRoleEntities.stream()
+        Map<Long, LocalDateTime> userRoleDate = userRoleEntities.stream()
                 .collect(Collectors.toMap(UserRoleEntity::getUserId, UserRoleEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
+
+        Map<Long, LocalDateTime> mergedMap = Stream.of(userRoleDate, userDate)
+                .flatMap(map -> map.entrySet().stream())
+                .collect(HashMap::new, (m, e) -> m.merge(e.getKey(), e.getValue(), (v1, v2) -> v1.isAfter(v2) ? v1 : v2), HashMap::putAll);
         
         List<UserEntityVo> content = page.getContent().stream()
                 .map(user -> UserEntityVo.builder()
                         .email(user.getEmail())
                         .phone(user.getPhone())
-                        .updated(user.getUpdated().isAfter(idDateMap.getOrDefault(user.getId(), user.getUpdated())) ? user.getUpdated() : idDateMap.getOrDefault(user.getId(), user.getUpdated()))
+                        .updated(mergedMap.get(user.getId()))
                         .id(user.getId())
                         .nickname(user.getNickname())
                         .status(user.getStatus())
