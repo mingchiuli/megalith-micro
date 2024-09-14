@@ -380,15 +380,10 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public void deleteBatch(List<Long> ids, Long userId, List<String> roles) {
-        List<BlogEntity> blogList = new ArrayList<>();
-        ids.forEach(id -> {
-            BlogEntity blogEntity = blogRepository.findById(id)
-                    .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-            if (!Objects.equals(blogEntity.getUserId(), userId) && !roles.contains(highestRole)) {
-                throw new MissException(DELETE_NO_AUTH.getMsg());
-            }
-            blogList.add(blogEntity);
-        });
+        
+        List<BlogEntity> blogList = blogRepository.findAllById(ids).stream()
+                .filter(blogEntity -> Objects.equals(blogEntity.getUserId(), userId) || roles.contains(highestRole))
+                .toList();
 
         List<Long> sensitiveIds = blogSensitiveContentRepository.findByBlogIdIn(ids).stream()
                 .map(BlogSensitiveContentEntity::getId)
