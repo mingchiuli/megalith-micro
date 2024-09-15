@@ -19,7 +19,8 @@ public class BlogHotReadVoConvertor {
 
     public static List<BlogHotReadVo> convert(List<BlogEntityDto> blogs, Set<ZSetOperations.TypedTuple<String>> set) {
     
-        Map<Long, String> idTitleMap = blogs.stream().collect(Collectors.toMap(BlogEntityDto::getId, BlogEntityDto::getTitle));
+        Map<Long, String> idTitleMap = blogs.stream()
+                .collect(Collectors.toMap(BlogEntityDto::getId, BlogEntityDto::getTitle));
 
         List<Long> ids = blogs.stream()
                 .filter(item -> !HIDE.getCode().equals(item.getStatus()))
@@ -31,7 +32,7 @@ public class BlogHotReadVoConvertor {
                 .map(item -> BlogHotReadVo.builder()
                         .id(Long.valueOf(item.getValue()))
                         .readCount(Optional.ofNullable(item.getScore()).orElse(0d).longValue())
-                        .title(idTitleMap.get(Long.valueOf(item.getValue())))
+                        .title(idTitleMap.getOrDefault(Long.valueOf(item.getValue()), "未知标题"))
                         .build())
                 .toList();
     }
