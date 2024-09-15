@@ -3,7 +3,6 @@ package org.chiu.micro.gateway.router;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,21 +18,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.chiu.micro.gateway.dto.AuthorityRouteDto;
 import org.chiu.micro.gateway.lang.ExceptionMessage;
 import org.chiu.micro.gateway.lang.Result;
 import org.chiu.micro.gateway.req.AuthorityRouteReq;
 import org.chiu.micro.gateway.rpc.wrapper.AuthHttpServiceWrapper;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -87,10 +84,8 @@ public class Router {
             MediaType contenType;
             if (request instanceof MultipartHttpServletRequest req) {
                 // upload / login request
-                Map<String, MultipartFile> fileMap = req.getFileMap();
-                MultiValueMap<String, Resource> parts = new LinkedMultiValueMap<>();
-                fileMap.entrySet().forEach(entry -> parts.add(entry.getKey(), entry.getValue().getResource()));
-                body = parts;
+                body = req.getFileMap().entrySet().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getResource()));
                 contenType = MediaType.MULTIPART_FORM_DATA;
             } else {
                 body = request.getInputStream().readAllBytes();
@@ -98,11 +93,7 @@ public class Router {
             }
             responseEntity = restClient
                     .post()
-                    .uri(url, uriBuilder -> {
-                        parameterMap.entrySet()
-                                .forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
-                        return uriBuilder.build();
-                    })
+                    .uri(url, uriBuilder -> uriBuilder.build(parameterMap))
                     .contentType(contenType)
                     .body(body)
                     .header(HttpHeaders.AUTHORIZATION, authorization)
@@ -120,11 +111,7 @@ public class Router {
         if (HttpMethod.GET.equals(httpMethod)) {
             responseEntity = restClient
                     .get()
-                    .uri(url, uriBuilder -> {
-                        parameterMap.entrySet()
-                                .forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
-                        return uriBuilder.build();
-                    })
+                    .uri(url, uriBuilder -> uriBuilder.build(parameterMap))
                     .header(HttpHeaders.AUTHORIZATION, authorization)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, resp) -> {
