@@ -23,6 +23,6 @@ public class BlogSensitiveContentVoConvertor {
                             .toList())
                     .build();
         }
-        return BlogSensitiveContentVo.builder().sensitiveContent(new ArrayList<>()).build();
+        return BlogSensitiveContentVo.builder().sensitiveContent(Collections.emptyList()).build();
     }
 }
