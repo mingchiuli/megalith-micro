@@ -372,6 +372,7 @@ export interface OpreateStatusParam {
   fieldType: FieldType
   transColor: Ref<string>
   blogId: string | undefined
+  readOnly: Ref<boolean>
 }
 
 export interface EditForm {

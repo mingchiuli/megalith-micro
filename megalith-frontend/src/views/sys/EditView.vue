@@ -53,7 +53,8 @@ const opreateStatus: OpreateStatusParam = {
   reconnecting: false,
   fieldType: FieldType.NON_PARA,
   transColor: ref(OperaColor.FAILED),
-  blogId: blogId
+  blogId: blogId,
+  readOnly: ref(false)
 }
 
 const form: EditForm = reactive({
@@ -117,11 +118,9 @@ const descRef = useTemplateRef<InstanceType<typeof ElInput>>('desc')
 
 
 //中文输入法的问题
-const readOnly = ref(false)
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
-const transColor = ref(OperaColor.FAILED)
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 
@@ -315,8 +314,8 @@ let reconnecting = false
 const healthCheck = async () => {
   try {
     if (client.webSocket?.readyState !== StompSocketState.OPEN) {
-      transColor.value = OperaColor.FAILED
-      readOnly.value = true
+      opreateStatus.transColor.value = OperaColor.FAILED
+      opreateStatus.readOnly.value = true
       const accessToken = localStorage.getItem('accessToken')!
       const token = await checkAccessToken(accessToken)
       client.connectHeaders = { "Authorization": token, "Type": "EDIT" }
@@ -330,8 +329,8 @@ const healthCheck = async () => {
         await pullAllData(opreateStatus, form)
       }
 
-      readOnly.value = false
-      transColor.value = OperaColor.SUCCESS
+      opreateStatus.readOnly.value = false
+      opreateStatus.transColor.value = OperaColor.SUCCESS
       reconnecting = false
       opreateStatus.netErrorEdited.value = false
     }
@@ -342,7 +341,7 @@ const healthCheck = async () => {
 
 const init = async () => {
   if (client.webSocket?.readyState === StompSocketState.OPEN) {
-    transColor.value = OperaColor.SUCCESS
+    opreateStatus.transColor.value = OperaColor.SUCCESS
     await loadEditContent(form, opreateStatus)
     await healthCheck()
     return
@@ -363,16 +362,16 @@ const init = async () => {
     <el-form :model="form" :rules="formRules" ref="form">
       <el-form-item class="title" prop="title">
         <el-input ref="title" @select="handleTitleSelect" v-model="form.title" placeholder="标题" maxlength="20"
-          :disabled="readOnly" />
+          :disabled="opreateStatus.readOnly.value" />
       </el-form-item>
 
       <el-form-item class="desc" prop="description">
         <el-input ref="desc" @select="handleDescSelect" autosize type="textarea" v-model="form.description"
-          placeholder="摘要" maxlength="60" :disabled="readOnly" />
+          placeholder="摘要" maxlength="60" :disabled="opreateStatus.readOnly.value" />
       </el-form-item>
 
       <el-form-item class="status" prop="status">
-        <el-radio-group v-model="form.status" :disabled="readOnly">
+        <el-radio-group v-model="form.status" :disabled="opreateStatus.readOnly.value">
           <el-radio :value=Status.NORMAL>公开</el-radio>
           <el-radio :value=Status.BLOCK>隐藏</el-radio>
           <el-radio :value=Status.SENSITIVE_FILTER>打码</el-radio>
@@ -393,7 +392,7 @@ const init = async () => {
 
       <el-form-item class="cover" label="封面">
         <el-upload v-model:file-list="fileList" action="#" list-type="picture-card" :before-upload="beforeUpload"
-          :limit="1" :http-request="upload" :on-remove="handleRemove" :disabled="readOnly"
+          :limit="1" :http-request="upload" :on-remove="handleRemove" :disabled="opreateStatus.readOnly.value"
           :on-preview="handlePictureCardPreview">
           <el-icon>
             <Plus />
@@ -411,12 +410,12 @@ const init = async () => {
 
       <el-form-item class="content" prop="content">
         <CustomEditorItem v-model:content="form.content" @composing="dealComposing" @sensitive="dealSensitive"
-          :trans-color="transColor" :form-status="form.status" />
+          :trans-color="opreateStatus.transColor.value" :form-status="form.status" />
       </el-form-item>
 
       <div class="submit-button">
         <el-button :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)" v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)"
-          @click="submitForm(formRef!)" :disabled="readOnly">{{ getButtonTitle(ButtonAuth.SYS_EDIT_COMMIT)
+          @click="submitForm(formRef!)" :disabled="opreateStatus.readOnly.value">{{ getButtonTitle(ButtonAuth.SYS_EDIT_COMMIT)
           }}</el-button>
       </div>
     </el-form>
