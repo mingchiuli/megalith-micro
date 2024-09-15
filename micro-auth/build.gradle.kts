@@ -38,8 +38,8 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 		"BP_NATIVE_IMAGE_BUILD_ARGUMENTS" to
 			"""
 				-march=compatibility
-				--gc=G1
-				-R:MaxHeapSize=512m
+				--gc=serial
+				-R:MaxHeapSize=128m
 				-O3
 			""",
 		"BP_HEALTH_CHECKER_ENABLED" to "true"
