@@ -45,7 +45,15 @@ public enum Const {
     
     GATEWAY_SERVICE("micro-gateway"),
     
-    WHITELIST("whitelist");
+    WHITELIST("whitelist"),
+    
+    DAY_VISIT("{visit_record}_day"),
+
+    WEEK_VISIT("{visit_record}_week"),
+
+    MONTH_VISIT("{visit_record}_month"),
+
+    YEAR_VISIT("{visit_record}_year");
 
     private final String info;
 

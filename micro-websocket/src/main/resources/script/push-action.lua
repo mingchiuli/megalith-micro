@@ -106,98 +106,125 @@ local content = ''
 
 if operateTypeCode == -1 then
     return redis.call('hset', key, 'status', contentChange, 'version', version)
-elseif operateTypeCode == 0 then
+end
+
+if operateTypeCode == 0 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == field) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, field, content .. contentChange, 'version', version)
-elseif operateTypeCode == 1 then
+end
+
+if operateTypeCode == 1 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == field) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, field, subStringUTF8(content, 1, indexStart), 'version', version)
-elseif operateTypeCode == 2 then
+end
+
+if operateTypeCode == 2 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == field) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, field, contentChange .. content, 'version', version)
-elseif operateTypeCode == 3 then
+end
+
+if operateTypeCode == 3 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == field) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, field, subStringUTF8(content, indexStart + 1, subStringGetTotalIndex(content)), 'version', version)
-elseif operateTypeCode == 4 then
+end
+
+if operateTypeCode == 4 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == field) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, field, subStringUTF8(content, 1, indexStart) .. contentChange .. subStringUTF8(content, indexEnd + 1, subStringGetTotalIndex(content)), 'version', version)
-elseif operateTypeCode == 5 then
+end
+
+if operateTypeCode == 5 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == field) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, field, '', 'version', version)
-elseif operateTypeCode == 6 then
+end
+if operateTypeCode == 6 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == ('para::' .. paraNo)) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, 'para::' .. paraNo, content .. contentChange, 'version', version)
-elseif operateTypeCode == 7 then
+end
+
+if operateTypeCode == 7 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == ('para::' .. paraNo)) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, 'para::' .. paraNo, subStringUTF8(content, 1, indexStart), 'version', version)
-elseif operateTypeCode == 8 then
+end
+
+if operateTypeCode == 8 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == ('para::' .. paraNo)) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, 'para::' .. paraNo, contentChange .. content, 'version', version)
-elseif operateTypeCode == 9 then
+end
+
+if operateTypeCode == 9 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == ('para::' .. paraNo)) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, 'para::' .. paraNo, subStringUTF8(content, indexStart + 1, subStringGetTotalIndex(content)), 'version', version)
-elseif operateTypeCode == 10 then
+end
+
+if operateTypeCode == 10 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == ('para::' .. paraNo)) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, 'para::' .. paraNo, subStringUTF8(content, 1, indexStart) .. contentChange .. subStringUTF8(content, indexEnd + 1, subStringGetTotalIndex(content)), 'version', version)
-elseif operateTypeCode == 11 then
+end
+
+if operateTypeCode == 11 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == ('para::' .. paraNo)) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, 'para::' .. paraNo, '', 'version', version)
-elseif operateTypeCode == 12 then
+end
+
+if operateTypeCode == 12 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == ('para::' .. (paraNo - 1))) then
             content = allPairs[i + 1]
         end
     end
     return redis.call('hset', key, 'para::' .. (paraNo - 1), string.sub(content, 1, string.len(content) - 1), 'para::' .. paraNo, '', 'version', version)
-elseif operateTypeCode == 13 then
+end
+
+if operateTypeCode == 13 then
     for i = 1, #allPairs, 2 do
         if (allPairs[i] == ('para::' .. (paraNo - 1))) then
             content = allPairs[i + 1]
@@ -205,6 +232,8 @@ elseif operateTypeCode == 13 then
     end
     redis.call('hdel', key, 'para::' .. paraNo)
     return redis.call('hset', key, 'para::' .. (paraNo - 1), content .. '\n', 'version', version)
-elseif operateTypeCode == 14 then
+end
+
+if operateTypeCode == 14 then
     return redis.call('hset', key, 'sensitiveContentList', contentChange, 'version', version)
 end
