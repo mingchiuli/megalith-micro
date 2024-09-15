@@ -93,7 +93,11 @@ public class Router {
             }
             responseEntity = restClient
                     .post()
-                    .uri(url, uriBuilder -> uriBuilder.build(parameterMap))
+                    .uri(url, uriBuilder -> {
+                        parameterMap.entrySet()
+                                .forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
+                        return uriBuilder.build();
+                    })
                     .contentType(contenType)
                     .body(body)
                     .header(HttpHeaders.AUTHORIZATION, authorization)
@@ -111,7 +115,11 @@ public class Router {
         if (HttpMethod.GET.equals(httpMethod)) {
             responseEntity = restClient
                     .get()
-                    .uri(url, uriBuilder -> uriBuilder.build(parameterMap))
+                    .uri(url, uriBuilder -> {
+                        parameterMap.entrySet()
+                                .forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
+                        return uriBuilder.build();
+                    })
                     .header(HttpHeaders.AUTHORIZATION, authorization)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, resp) -> {
