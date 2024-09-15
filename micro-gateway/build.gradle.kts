@@ -30,7 +30,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 		"BP_NATIVE_IMAGE_BUILD_ARGUMENTS" to
 			"""
 				-march=compatibility
-				--gc=serial
+				--gc=G1
 				-R:MaxHeapSize=128m
 				-O3
 			""",
