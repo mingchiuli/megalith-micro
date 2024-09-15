@@ -81,26 +81,20 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public PageAdapter<BlogDescriptionVo> findPage(Integer currentPage, Integer year) {
         PageAdapter<BlogDescriptionDto> dtoPageAdapter = blogWrapper.findPage(currentPage, year);
-        List<BlogDescriptionDto> descList = dtoPageAdapter.getContent();
-        List<BlogDescriptionDto> descSensitiveList = new ArrayList<>();
-
-        for (BlogDescriptionDto desc : descList) {
-            Integer status = desc.getStatus();
-            Long blogId = desc.getId();
-            if (!StatusEnum.SENSITIVE_FILTER.getCode().equals(status)) {
-                descSensitiveList.add(desc);
-                continue;
-            }
-
-            BlogSensitiveContentDto sensitiveContentDto = blogSensitiveWrapper.findSensitiveByBlogId(blogId);
-            List<SensitiveContent> words = sensitiveContentDto.getSensitiveContent();
-            if (words.isEmpty()) {
-                descSensitiveList.add(desc);
-            } else {
-                BlogDescriptionDto blogDescriptionDto = SensitiveUtils.deal(words, desc);
-                descSensitiveList.add(blogDescriptionDto);
-            }
-        }
+        List<BlogDescriptionDto> descList = dtoPageAdapter.getContent();        
+        
+        List<BlogDescriptionDto> descSensitiveList = descList.stream()
+                .map(desc -> {
+                    if (!StatusEnum.SENSITIVE_FILTER.getCode().equals(desc.getStatus())) {
+                        return desc;
+                    }
+                    List<SensitiveContent> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.getId()).getSensitiveContent();
+                    if (words.isEmpty()) {
+                        return desc;
+                    }
+                    return SensitiveUtils.deal(words, desc);
+                })
+                .toList();
 
         dtoPageAdapter.setContent(descSensitiveList);
         return BlogDescriptionVoConvertor.convert(dtoPageAdapter);
