@@ -5,7 +5,7 @@ import type { ElTree, FormInstance, FormRules } from 'element-plus'
 import { Status, ButtonAuth } from '@/type/entity'
 import { reactive, ref, toRefs, useTemplateRef } from 'vue'
 import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
-import { displayState } from '@/position/position'
+import { displayState } from '@/utils/position'
 
 const { moreItems, fixSelection, fix } = displayState()
 const dialogVisible = ref(false)

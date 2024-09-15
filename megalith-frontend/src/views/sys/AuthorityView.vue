@@ -5,7 +5,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref, useTemplateRef } from 'vue'
 import { Status, ButtonAuth } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
-import { displayState } from '@/position/position'
+import { displayState } from '@/utils/position'
 
 const { fixSelection, fix } = displayState()
 const multipleSelection = ref<AuthoritySys[]>([])

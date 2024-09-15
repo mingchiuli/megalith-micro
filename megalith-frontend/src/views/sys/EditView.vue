@@ -1,17 +1,19 @@
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, onUnmounted, reactive, ref, watch, useTemplateRef } from 'vue'
+import { computed, defineAsyncComponent, onUnmounted, reactive, ref, useTemplateRef } from 'vue'
 import { type TagProps, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput, type UploadUserFile } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
-import { SubscribeType, type BlogEdit, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldName, FieldType, OperaColor, OperateTypeCode, ParaInfo, Status, ButtonAuth, ActionType, SensitiveType, type SensitiveExhibit, Colors } from '@/type/entity'
+import { SubscribeType, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldType, OperaColor, Status, ButtonAuth, SensitiveType, type SensitiveExhibit, Colors, type OpreateStatusParam } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
 import { Client, StompSocketState, type StompSubscription } from '@stomp/stompjs'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle, dealAction, recheckSensitive, getJWTStruct } from '@/utils/tools'
+import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle, getJWTStruct } from '@/utils/tools'
+import { watchInput } from '@/utils/edit'
+import { pushAllData, pullAllData, loadEditContent } from '@/utils/editUtils'
 
 const route = useRoute()
-const blogId = route.query.id
+const blogId = route.query.id as string | undefined
 const userId = getJWTStruct().sub
 
 let client = new Client({
@@ -32,16 +34,52 @@ const connect = async () => {
       const body: SubscribeItem = JSON.parse(res.body)
 
       if (body.type === SubscribeType.PULL_ALL) {
-        await pullAllData()
+        await pullAllData(opreateStatus, form)
       }
 
       if (body.type === SubscribeType.PUSH_ALL) {
-        await pushAllData()
+        await pushAllData(opreateStatus, form)
       }
     })
   }
   client.activate()
 }
+
+const opreateStatus: OpreateStatusParam = {
+  composing: false,
+  netErrorEdited: ref(false),
+  pulling: false,
+  client: client,
+  reconnecting: false,
+  fieldType: FieldType.NON_PARA,
+  transColor: ref(OperaColor.FAILED),
+  blogId: blogId
+}
+
+const form: EditForm = reactive({
+  id: undefined,
+  userId: undefined,
+  title: undefined,
+  description: undefined,
+  content: undefined,
+  status: undefined,
+  link: undefined,
+  version: undefined,
+  sensitiveContentList: []
+})
+
+const pushActionForm: PushActionForm = {
+  id: undefined,
+  contentChange: undefined,
+  operateTypeCode: undefined,
+  version: undefined,
+  indexStart: undefined,
+  indexEnd: undefined,
+  field: undefined,
+  paraNo: undefined,
+}
+
+watchInput(form, pushActionForm, opreateStatus)
 
 type SensitiveTagsItem = {
   element: SensitiveExhibit
@@ -77,241 +115,11 @@ const fileList = computed(() => {
 const titleRef = useTemplateRef<InstanceType<typeof ElInput>>('title')
 const descRef = useTemplateRef<InstanceType<typeof ElInput>>('desc')
 
-const form: EditForm = reactive({
-  id: undefined,
-  userId: undefined,
-  title: undefined,
-  description: undefined,
-  content: undefined,
-  status: undefined,
-  link: undefined,
-  version: undefined,
-  sensitiveContentList: []
-})
-
-const pushActionForm: PushActionForm = {
-  id: undefined,
-  contentChange: undefined,
-  operateTypeCode: undefined,
-  version: undefined,
-  indexStart: undefined,
-  indexEnd: undefined,
-  field: undefined,
-  paraNo: undefined,
-}
 
 //中文输入法的问题
-let composing = false
-let fieldType: FieldType
 const readOnly = ref(false)
-const netErrorEdited = ref(false)
-let pulling = false
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
-
-const pullAllData = async () => {
-  pulling = true
-  try {
-    await loadEditContent()
-  } finally {
-    pulling = false
-  }
-}
-
-const pushAllData = async () => {
-  await POST<null>('/sys/blog/edit/push/all', form)
-  if (transColor.value !== OperaColor.WARNING) {
-    transColor.value = OperaColor.WARNING
-  }
-}
-
-const pushActionData = (pushActionForm: PushActionForm) => {
-  client.publish({
-    destination: '/app/edit/ws/push/action',
-    body: JSON.stringify(pushActionForm)
-  })
-  if (transColor.value !== OperaColor.SUCCESS) {
-    transColor.value = OperaColor.SUCCESS
-  }
-}
-
-const clearPushActionForm = () => {
-  pushActionForm.contentChange = undefined
-  pushActionForm.indexEnd = undefined
-  pushActionForm.indexStart = undefined
-  pushActionForm.operateTypeCode = undefined
-  pushActionForm.version = undefined
-  pushActionForm.field = undefined
-  pushActionForm.paraNo = undefined
-}
-
-const preCheck = (n: string | undefined, o: string | undefined): boolean => {
-  if (o === undefined || n === undefined) {
-    return false
-  }
-
-  if (n === o) {
-    return false
-  }
-
-  if (composing) {
-    return false
-  }
-
-  if (pulling) {
-    return false
-  }
-
-  if (client.webSocket?.readyState !== StompSocketState.OPEN) {
-    if (!netErrorEdited.value) {
-      netErrorEdited.value = true
-    }
-    return false
-  }
-
-  if (reconnecting) {
-    return false
-  }
-
-  return true
-}
-
-const loadEditContent = async () => {
-  let data
-  if (!blogId) {
-    data = await GET<BlogEdit>('/sys/blog/edit/pull/echo')
-  } else {
-    data = await GET<BlogEdit>(`/sys/blog/edit/pull/echo?blogId=${blogId}`)
-  }
-  form.title = data.title
-  form.description = data.description
-  form.content = data.content
-  form.link = data.link
-  form.status = data.status
-  form.id = data.id
-  form.userId = data.userId
-  form.sensitiveContentList = data.sensitiveContentList
-  form.version = data.version
-}
-
-watch(() => form.description, (n, o) => {
-  if (!preCheck(n, o)) return
-  commonPreDeal(FieldType.NON_PARA, FieldName.DESCRIPTION)
-  deal(n, o)
-  recheckSensitive(pushActionForm, form)
-})
-
-watch(() => form.status, (n, o) => {
-  if (!client.connected || (!n && !o) || composing) return
-  commonPreDeal(FieldType.NON_PARA, FieldName.STATUS)
-  pushActionForm.operateTypeCode = OperateTypeCode.STATUS
-  pushActionForm.contentChange = String(form.status)
-  pushActionData(pushActionForm)
-})
-
-watch(() => form.sensitiveContentList, (n, o) => {
-  if (!client.connected || (o.length === 0 && n.length === 0) || composing) return
-  commonPreDeal(FieldType.NON_PARA, FieldName.SENSITIVE_CONTENT_LIST)
-  pushActionForm.operateTypeCode = OperateTypeCode.SENSITIVE_CONTENT_LIST
-  pushActionForm.contentChange = JSON.stringify(form.sensitiveContentList)
-  pushActionData(pushActionForm)
-}, { deep: true })
-
-watch(() => form.link, (n, o) => {
-  if (!preCheck(n, o)) return
-  commonPreDeal(FieldType.NON_PARA, FieldName.LINK)
-  deal(n, o)
-})
-
-watch(() => form.title, (n, o) => {
-  if (!preCheck(n, o)) return
-  commonPreDeal(FieldType.NON_PARA, FieldName.TITLE)
-  deal(n, o)
-  recheckSensitive(pushActionForm, form)
-})
-
-watch(() => form.content, (n, o) => {
-  if (!preCheck(n, o)) return
-  commonPreDeal(FieldType.PARA, FieldName.CONTENT)
-
-  const nArr = n!.split(ParaInfo.PARA_SPLIT)
-  const oArr = o!.split(ParaInfo.PARA_SPLIT)
-
-  //本段内操作
-  if (nArr.length === oArr.length) {
-    for (let i = 0; i < nArr.length; i++) {
-      //理论上一个动作改不了很多段
-      if (nArr[i] !== oArr[i]) {
-        pushActionForm.paraNo = i + 1
-        deal(nArr[i], oArr[i])
-        recheckSensitive(pushActionForm, form)
-      }
-    }
-    return
-  }
-  //向后新增段
-  const nLen = nArr.length
-  const oLen = oArr.length
-  if (nLen - 1 === oLen && nArr[oLen - 1] + '\n' === oArr[oLen - 1] && nArr[oLen] === '') {
-    //每段必须相同，否则推全量
-    for (let i = 0; i < oLen; i++) {
-      if (i !== oLen - 1 && nArr[i] !== oArr[i]) {
-        pushAllData()
-        return
-      }
-      if (i === oLen - 1 && nArr[i] + '\n' !== oArr[i]) {
-        pushAllData()
-        return
-      }
-    }
-    pushActionForm.paraNo = nLen
-    pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_APPEND
-    pushActionData(pushActionForm)
-    return
-  }
-
-  //向前减少段
-  if (nLen + 1 === oLen && nArr[nLen - 1] === oArr[nLen - 1] + '\n' && oArr[nLen] === '') {
-    for (let i = 0; i < nLen; i++) {
-      if (i !== nLen - 1 && nArr[i] !== oArr[i]) {
-        pushAllData()
-        return
-      }
-      if (i === nLen - 1 && nArr[i] !== oArr[i] + '\n') {
-        pushAllData()
-        return
-      }
-    }
-    pushActionForm.paraNo = oLen
-    pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_SUBTRACT
-    pushActionData(pushActionForm)
-    return
-  }
-
-  //推全量
-  pushAllData()
-})
-
-
-const commonPreDeal = (fieldTypeParam: FieldType, opreateField: FieldName) => {
-  clearPushActionForm()
-  pushActionForm.field = opreateField
-  pushActionForm.id = form.id
-  pushActionForm.version = ++form.version!
-  fieldType = fieldTypeParam
-}
-
-const deal = (n: string | undefined, o: string | undefined) => {
-  const type = dealAction(n, o, pushActionForm, fieldType)
-  if (ActionType.PUSH_ACTION === type) {
-    pushActionData(pushActionForm)
-    return
-  }
-
-  if (ActionType.PULL_ALL === type) {
-    pushAllData()
-  }
-}
 
 const transColor = ref(OperaColor.FAILED)
 const dialogVisible = ref(false)
@@ -377,7 +185,7 @@ const handleTagClose = (tag: SensitiveTagsItem) => {
   form.sensitiveContentList = form.sensitiveContentList.filter(item => item.type !== sensitiveItem.type || (item.startIndex !== sensitiveItem.startIndex && item.type === sensitiveItem.type))
 }
 
-const dealComposing = (payload: boolean) => composing = payload
+const dealComposing = (payload: boolean) => opreateStatus.composing = payload
 
 const dealSensitive = (payload: SensitiveTrans) => {
   let flag = true
@@ -516,16 +324,16 @@ const healthCheck = async () => {
     }
 
     if (reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
-      if (netErrorEdited.value) {
-        await pushAllData()
+      if (opreateStatus.netErrorEdited.value) {
+        await pushAllData(opreateStatus, form)
       } else {
-        await pullAllData()
+        await pullAllData(opreateStatus, form)
       }
 
       readOnly.value = false
       transColor.value = OperaColor.SUCCESS
       reconnecting = false
-      netErrorEdited.value = false
+      opreateStatus.netErrorEdited.value = false
     }
   } catch(_e) { /* empty */ } finally {
     healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 2000)
@@ -535,7 +343,7 @@ const healthCheck = async () => {
 const init = async () => {
   if (client.webSocket?.readyState === StompSocketState.OPEN) {
     transColor.value = OperaColor.SUCCESS
-    await loadEditContent()
+    await loadEditContent(form, opreateStatus)
     await healthCheck()
     return
   }

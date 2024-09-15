@@ -5,7 +5,7 @@ import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entit
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
 import { render, checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
-import { displayState } from '@/position/position'
+import { displayState } from '@/utils/position'
 
 const { fixSelection, fix, moreItems } = displayState()
 const input = ref('')

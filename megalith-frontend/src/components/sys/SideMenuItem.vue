@@ -3,7 +3,7 @@ import { shallowRef } from 'vue'
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import { menuStore, tabStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
-import { displayState } from '@/position/position'
+import { displayState } from '@/utils/position'
 
 const { expand } = displayState()
 const { menuList } = storeToRefs(menuStore())

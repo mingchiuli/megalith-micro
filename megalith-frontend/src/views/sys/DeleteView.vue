@@ -4,7 +4,7 @@ import type { BlogDelSys, PageAdapter } from '@/type/entity'
 import { Status, ButtonAuth } from '@/type/entity'
 import { reactive, ref, toRefs } from 'vue'
 import { checkButtonAuth, getButtonType, render, getButtonTitle } from '@/utils/tools'
-import { displayState } from '@/position/position'
+import { displayState } from '@/utils/position'
 
 const { moreItems, fix } = displayState()
 const loading = ref(false)

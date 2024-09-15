@@ -1,3 +1,6 @@
+import type { Client } from "@stomp/stompjs"
+import { type Ref } from "vue"
+
 export interface Visitor {
   dayVisit: number
   weekVisit: number
@@ -358,6 +361,17 @@ export interface PushActionForm {
   indexEnd?: number
   field?: FieldName
   paraNo?: number
+}
+
+export interface OpreateStatusParam {
+  composing: boolean
+  netErrorEdited: Ref<boolean>
+  pulling: boolean
+  client: Client
+  reconnecting: boolean
+  fieldType: FieldType
+  transColor: Ref<string>
+  blogId: string | undefined
 }
 
 export interface EditForm {
