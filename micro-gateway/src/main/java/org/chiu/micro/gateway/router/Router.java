@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -44,13 +46,14 @@ public class Router {
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
 
     private final ObjectMapper objectMapper;
-
+    
     @RequestMapping(value = "/**", method = { RequestMethod.GET, RequestMethod.POST })
     @SneakyThrows
     public void dispatch(HttpServletRequest request, HttpServletResponse response) {
 
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
+        String ipAddress = getIpAddr(request);
         String method = request.getMethod();
         String requestURI = request.getRequestURI();
         String authorization = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
@@ -59,6 +62,7 @@ public class Router {
                         .routeMapping(requestURI)
                         .method(method)
                         .token(authorization)
+                        .ipAddr(ipAddress)
                         .build());
 
         if (Boolean.FALSE.equals(authorityRoute.getAuth())) {
@@ -153,6 +157,34 @@ public class Router {
         outputStream.write(data);
         outputStream.flush();
         outputStream.close();
+    }
+    
+    private String getIpAddr(HttpServletRequest request) {
+        // nginx代理获取的真实用户ip
+        String ip = request.getHeader("X-Real-IP");
+        if (!StringUtils.hasLength(ip) || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Forwarded-For");
+        }
+        if (!StringUtils.hasLength(ip) || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (!StringUtils.hasLength(ip) || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (!StringUtils.hasLength(ip) || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        /*
+          对于通过多个代理的情况， 第一个IP为客户端真实IP,多个IP按照','分割 "***.***.***.***".length() =
+          15
+         */
+        if (Objects.nonNull(ip) && ip.length() > 15) {
+            int idx = ip.indexOf(",");
+            if (idx > 0) {
+                ip = ip.substring(0, idx);
+            }
+        }
+        return ip;
     }
 
 }

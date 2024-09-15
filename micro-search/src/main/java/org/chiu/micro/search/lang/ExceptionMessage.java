@@ -7,8 +7,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ExceptionMessage {
 
-   
-
     NO_FOUND(1, "没有找到内容");
 
     private final Integer code;

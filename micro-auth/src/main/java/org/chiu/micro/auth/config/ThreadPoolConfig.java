@@ -1,5 +1,8 @@
 package org.chiu.micro.auth.config;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -17,6 +20,11 @@ public class ThreadPoolConfig {
         SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
         executor.setVirtualThreads(true);
         return executor;
+    }
+    
+    @Bean("commonExecutor")
+    ExecutorService executorService() {
+        return Executors.newVirtualThreadPerTaskExecutor();
     }
 
 }

@@ -16,13 +16,24 @@ import org.chiu.micro.auth.vo.AuthorityVo;
 import org.chiu.micro.auth.vo.MenusAndButtonsVo;
 import org.chiu.micro.auth.wrapper.AuthWrapper;
 import org.chiu.micro.auth.exception.AuthException;
-
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+
+import static org.chiu.micro.auth.lang.Const.*;
 
 
 @Service
@@ -34,6 +45,22 @@ public class AuthServiceImpl implements AuthService {
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 
     private final SecurityAuthenticationUtils securityAuthenticationUtils;
+    
+    private final StringRedisTemplate redisTemplate;
+    
+    @Qualifier("commonExecutor")
+    private final ExecutorService taskExecutor;
+
+    private final ResourceLoader resourceLoader;
+
+    private String script;
+    
+    @PostConstruct
+    @SneakyThrows
+    private void init() {
+        Resource resource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/statistics.lua");
+        script = resource.getContentAsString(StandardCharsets.UTF_8);
+    }
 
     @Override
     public MenusAndButtonsVo getCurrentUserNav(List<String> roles) {
@@ -59,6 +86,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthorityRouteVo route(AuthorityRouteReq req) {
+        //record ip
+        taskExecutor.execute(() -> redisTemplate.execute(RedisScript.of(script), List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()), req.getIpAddr()));
+        
         String token = req.getToken();
         List<String> authorities;
         try {
