@@ -324,8 +324,7 @@ public class BlogServiceImpl implements BlogService {
     @SuppressWarnings("unchecked")
     public PageAdapter<BlogDeleteVo> findDeletedBlogs(Integer currentPage, Integer size, Long userId) {
 
-        List<BlogEntity> deletedBlogs = Optional
-                .ofNullable(redisTemplate.opsForList().range(QUERY_DELETED.getInfo() + userId, 0, -1))
+        List<BlogEntity> deletedBlogs = Optional.ofNullable(redisTemplate.opsForList().range(QUERY_DELETED.getInfo() + userId, 0, -1))
                 .orElseGet(ArrayList::new).stream()
                 .map(blogStr -> jsonUtils.readValue(blogStr, BlogEntity.class))
                 .toList();
@@ -380,26 +379,23 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public void deleteBatch(List<Long> ids, Long userId, List<String> roles) {
-        
-        List<BlogEntity> blogList = blogRepository.findAllById(ids).stream()
-                .filter(blogEntity -> Objects.equals(blogEntity.getUserId(), userId) || roles.contains(highestRole))
-                .toList();
 
         List<Long> sensitiveIds = blogSensitiveContentRepository.findByBlogIdIn(ids).stream()
                 .map(BlogSensitiveContentEntity::getId)
                 .toList();
         blogSensitiveWrapper.deleteByIds(ids, sensitiveIds);
 
-        blogList.forEach(blogEntity -> {
-            blogEntity.setUpdated(LocalDateTime.now());
-            redisTemplate.execute(RedisScript.of(blogDeleteScript),
-                    Collections.singletonList(QUERY_DELETED.getInfo() + userId),
-                    jsonUtils.writeValueAsString(blogEntity), A_WEEK.getInfo());
+        blogRepository.findAllById(ids).stream()
+                .filter(blogEntity -> Objects.equals(blogEntity.getUserId(), userId) || roles.contains(highestRole))
+                .forEach(blogEntity -> {
+                    blogEntity.setUpdated(LocalDateTime.now());
+                    redisTemplate.execute(RedisScript.of(blogDeleteScript),
+                            Collections.singletonList(QUERY_DELETED.getInfo() + userId),
+                            jsonUtils.writeValueAsString(blogEntity), A_WEEK.getInfo());
 
-            var blogSearchIndexMessage = new BlogOperateMessage(blogEntity.getId(), BlogOperateEnum.REMOVE, blogEntity.getCreated().getYear());
-            applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
-        });
-
+                    var blogSearchIndexMessage = new BlogOperateMessage(blogEntity.getId(), BlogOperateEnum.REMOVE, blogEntity.getCreated().getYear());
+                    applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
+                });
     }
 
     @Override

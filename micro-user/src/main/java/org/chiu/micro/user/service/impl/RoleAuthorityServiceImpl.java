@@ -81,14 +81,11 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
 
     @Override
     public List<RoleAuthorityVo> getAuthoritiesInfo(Long roleId) {
-        List<AuthorityEntity> allAuthorityEntities = authorityRepository.findByStatus(NORMAL.getCode());
-        List<RoleAuthorityEntity> authorityEntities = roleAuthorityRepository.findByRoleId(roleId);
-
-        List<Long> ids = authorityEntities.stream()
+        List<Long> ids = roleAuthorityRepository.findByRoleId(roleId).stream()
                 .map(RoleAuthorityEntity::getAuthorityId)
                 .toList();
 
-        return allAuthorityEntities.stream()
+        return authorityRepository.findByStatus(NORMAL.getCode()).stream()
                 .filter(item -> !item.getCode().startsWith(Const.WHITELIST.getInfo()))
                 .map(item -> RoleAuthorityVo.builder()
                         .authorityId(item.getId())
