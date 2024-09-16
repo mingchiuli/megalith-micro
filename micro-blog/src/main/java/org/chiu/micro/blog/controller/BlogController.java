@@ -43,16 +43,14 @@ public class BlogController {
 
 
     @PostMapping("/save")
-    public Result<Void> saveOrUpdate(@RequestBody @BlogSaveValue BlogEntityReq blog,
-                                     HttpServletRequest request) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
+    public Result<Void> saveOrUpdate(@RequestBody @BlogSaveValue BlogEntityReq blog) {
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogService.saveOrUpdate(blog, authDto.getUserId()));
     }
 
     @PostMapping("/delete")
-    public Result<Void> deleteBlogs(@RequestBody @NotEmpty List<Long> ids,
-                                    HttpServletRequest request) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
+    public Result<Void> deleteBlogs(@RequestBody @NotEmpty List<Long> ids) {
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogService.deleteBatch(ids, authDto.getUserId(), authDto.getRoles()));
     }
 
@@ -73,7 +71,7 @@ public class BlogController {
     @GetMapping("/deleted")
     public Result<PageAdapter<BlogDeleteVo>> getDeletedBlogs(@RequestParam Integer currentPage,
                                                              @RequestParam Integer size) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader();
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogService.findDeletedBlogs(currentPage, size, authDto.getUserId()));
     }
 
