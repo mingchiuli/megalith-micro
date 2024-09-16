@@ -19,10 +19,12 @@ public class HttpInterceptor implements ClientHttpRequestInterceptor {
 
 	@Override
 	public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-        HttpServletRequest req = ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
-        String token = Optional.ofNullable(req.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
 	
-		request.getHeaders().add(HttpHeaders.AUTHORIZATION, token);
+	    try {
+            HttpServletRequest req = ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
+            String token = Optional.ofNullable(req.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
+            request.getHeaders().add(HttpHeaders.AUTHORIZATION, token);
+		} catch(IllegalStateException _e) {}
 		
 		return execution.execute(request, body);
 	}
