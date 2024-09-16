@@ -38,17 +38,10 @@ public class BlogController {
     @GetMapping("/info/{blogId}")
     @Bloom(handler = DetailHandler.class)
     public Result<BlogExhibitVo> getBlogDetail(@PathVariable Long blogId) {
-        Long userId;
-        List<String> roles;
-        if (StringUtils.hasLength(token)) {
-            AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-            userId = authDto.getUserId();
-            roles = authDto.getRoles();
-        } else {
-            userId = 0L;
-            roles = Collections.emptyList();
-        }
         
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
+        Long userId = authDto.getUserId();
+        List<String> roles = authDto.getRoles();
         return Result.success(() -> blogService.getBlogDetail(roles, blogId, userId));
     }
 
@@ -76,17 +69,10 @@ public class BlogController {
     @GetMapping("/status/{blogId}")
     @Bloom(handler = DetailHandler.class)
     public Result<Integer> getBlogStatus(@PathVariable Long blogId) {
-        Long userId;
-        List<String> roles;
-    
-        if (StringUtils.hasLength(token)) {
-            AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-            userId = authDto.getUserId();
-            roles = authDto.getRoles();
-        } else {
-            userId = 0L;
-            roles = Collections.emptyList();
-        }
+        
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
+        Long userId = authDto.getUserId();
+        List<String> roles = authDto.getRoles();
         return Result.success(() -> blogService.getBlogStatus(roles, blogId, userId));
     }
 
