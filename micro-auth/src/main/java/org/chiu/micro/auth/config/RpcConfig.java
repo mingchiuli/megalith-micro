@@ -22,6 +22,8 @@ import java.net.http.HttpClient;
 public class RpcConfig {
 
     private final HttpClient httpClient;
+    
+    private final HttpInterceptor httpInterceptor;
 
     @Value("${blog.sms.base-url}")
     private String baseUrl;
@@ -57,6 +59,7 @@ public class RpcConfig {
         RestClient client = RestClient.builder()
                 .baseUrl("http://micro-user:8081/inner")
                 .requestFactory(requestFactory)
+                .requestInterceptor(httpInterceptor)
                 .build();
 
         RestClientAdapter restClientAdapter = RestClientAdapter.create(client);

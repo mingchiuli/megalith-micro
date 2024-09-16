@@ -10,15 +10,16 @@ import org.chiu.micro.auth.service.AuthService;
 import org.chiu.micro.auth.utils.SecurityAuthenticationUtils;
 import org.chiu.micro.auth.vo.AuthorityRouteVo;
 import org.chiu.micro.auth.vo.AuthorityVo;
+import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
 
 
 @RestController
@@ -31,8 +32,8 @@ public class AuthProvider {
 
     private final AuthService authService;
 
-    @GetMapping("/{token}")
-    public Result<AuthDto> findById(@PathVariable String token) throws AuthException {
+    @GetMapping
+    public Result<AuthDto> findById(@RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) throws AuthException {
         AuthDto authDto = securityAuthenticationUtils.getAuthDto(token);
         return Result.success(authDto);
     }
@@ -43,7 +44,7 @@ public class AuthProvider {
     }
 
     @PostMapping("/route")
-    public Result<AuthorityRouteVo> route(@RequestBody AuthorityRouteReq req) {
-        return Result.success(() -> authService.route(req));
+    public Result<AuthorityRouteVo> route(@RequestBody AuthorityRouteReq req, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) {
+        return Result.success(() -> authService.route(req, token));
     }
 }

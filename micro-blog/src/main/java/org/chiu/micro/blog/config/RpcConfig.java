@@ -24,6 +24,8 @@ import java.net.http.HttpClient;
 public class RpcConfig {
 
     private final HttpClient httpClient;
+    
+    private final HttpInterceptor httpInterceptor;
 
     @Value("${blog.aliyun.oss.bucket-name}")
     private String bucketName;
@@ -61,6 +63,7 @@ public class RpcConfig {
         RestClient client = RestClient.builder()
                 .baseUrl("http://micro-user:8081/inner")
                 .requestFactory(requestFactory)
+                .requestInterceptor(httpInterceptor)
                 .build();
 
         RestClientAdapter restClientAdapter = RestClientAdapter.create(client);
@@ -78,6 +81,7 @@ public class RpcConfig {
         RestClient client = RestClient.builder()
                 .baseUrl("http://micro-auth:8081/inner")
                 .requestFactory(requestFactory)
+                .requestInterceptor(httpInterceptor)
                 .build();
 
         RestClientAdapter restClientAdapter = RestClientAdapter.create(client);
@@ -95,6 +99,7 @@ public class RpcConfig {
         RestClient client = RestClient.builder()
                 .baseUrl("http://micro-search:8081/inner")
                 .requestFactory(requestFactory)
+                .requestInterceptor(httpInterceptor)
                 .build();
 
         RestClientAdapter restClientAdapter = RestClientAdapter.create(client);

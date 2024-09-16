@@ -85,11 +85,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthorityRouteVo route(AuthorityRouteReq req) {
+    public AuthorityRouteVo route(AuthorityRouteReq req, String token) {
         //record ip
         taskExecutor.execute(() -> redisTemplate.execute(RedisScript.of(script), List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()), req.getIpAddr()));
         
-        String token = req.getToken();
         List<String> authorities;
         try {
             authorities = securityAuthenticationUtils.getAuthAuthority(token);

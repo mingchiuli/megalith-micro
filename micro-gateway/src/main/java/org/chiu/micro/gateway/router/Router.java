@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.chiu.micro.gateway.dto.AuthorityRouteDto;
@@ -56,12 +55,10 @@ public class Router {
         String ipAddress = getIpAddr(request);
         String method = request.getMethod();
         String requestURI = request.getRequestURI();
-        String authorization = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
 
         AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(AuthorityRouteReq.builder()
                         .routeMapping(requestURI)
                         .method(method)
-                        .token(authorization)
                         .ipAddr(ipAddress)
                         .build());
 
@@ -104,7 +101,6 @@ public class Router {
                     })
                     .contentType(contenType)
                     .body(body)
-                    .header(HttpHeaders.AUTHORIZATION, authorization)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, resp) -> {
                         HttpStatusCode statusCode = resp.getStatusCode();
@@ -124,7 +120,6 @@ public class Router {
                                 .forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
                         return uriBuilder.build();
                     })
-                    .header(HttpHeaders.AUTHORIZATION, authorization)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, resp) -> {
                         HttpStatusCode statusCode = resp.getStatusCode();
