@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -30,16 +29,14 @@ public class BlogEditController {
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
   
     @PostMapping("/push/all")
-    public Result<Void> pushSaveBlog(@RequestBody @PushAllValue BlogEditPushAllReq blog,
-                                     HttpServletRequest request) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
+    public Result<Void> pushSaveBlog(@RequestBody @PushAllValue BlogEditPushAllReq blog) {
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogEditService.pushAll(blog, authDto.getUserId()));
     }
 
     @GetMapping("/pull/echo")
-    public Result<BlogEditVo> getEchoDetail(@RequestParam(value = "blogId", required = false) Long id,
-                                            HttpServletRequest request) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
+    public Result<BlogEditVo> getEchoDetail(@RequestParam(value = "blogId", required = false) Long id) {
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogEditService.findEdit(id, authDto.getUserId()));
     }
 }
