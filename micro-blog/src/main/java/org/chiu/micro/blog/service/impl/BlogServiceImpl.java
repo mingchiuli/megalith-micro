@@ -296,9 +296,9 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @SuppressWarnings("all")
-    public PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, Long userId, String keywords, String token) {
+    public PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, Long userId, String keywords) {
 
-        BlogSearchDto dto = searchHttpServiceWrapper.searchBlogs(currentPage, size, keywords, token);
+        BlogSearchDto dto = searchHttpServiceWrapper.searchBlogs(currentPage, size, keywords);
         List<Long> ids = dto.getIds();
         List<BlogEntity> items = blogRepository.findAllById(ids).stream()
                 .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
