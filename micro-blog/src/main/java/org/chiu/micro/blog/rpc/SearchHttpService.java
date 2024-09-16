@@ -12,6 +12,6 @@ import org.springframework.web.service.annotation.GetExchange;
 public interface SearchHttpService {
 
     @GetExchange("/blog/search")
-    Result<BlogSearchDto> searchBlogs(@RequestParam(required = false) Integer currentPage, @RequestParam(required = false) Integer size, @RequestParam(required = false) String keywords, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
+    Result<BlogSearchDto> searchBlogs(@RequestParam(required = false) Integer currentPage, @RequestParam(required = false) Integer size, @RequestParam(required = false) String keywords);
 
 }
