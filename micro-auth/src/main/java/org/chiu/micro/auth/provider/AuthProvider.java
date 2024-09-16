@@ -33,7 +33,7 @@ public class AuthProvider {
     private final AuthService authService;
 
     @GetMapping
-    public Result<AuthDto> findById(@RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) throws AuthException {
+    public Result<AuthDto> findAuth(@RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) throws AuthException {
         AuthDto authDto = securityAuthenticationUtils.getAuthDto(token);
         return Result.success(authDto);
     }
