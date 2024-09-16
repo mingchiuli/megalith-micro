@@ -1,6 +1,5 @@
 package org.chiu.micro.blog.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.chiu.micro.blog.service.BlogService;
 import org.chiu.micro.blog.valid.BlogSaveValue;
@@ -17,7 +16,6 @@ import org.chiu.micro.blog.page.PageAdapter;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
