@@ -13,8 +13,10 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
+@Slf4j
 public class HttpInterceptor implements ClientHttpRequestInterceptor {
 
     @Override
@@ -23,8 +25,9 @@ public class HttpInterceptor implements ClientHttpRequestInterceptor {
             HttpServletRequest req = ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
             String token = Optional.ofNullable(req.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
             request.getHeaders().add(HttpHeaders.AUTHORIZATION, token);
-	    } catch(IllegalStateException _e) {}
-   
+	    } catch(IllegalStateException e) {			
+			log.error(e.getMessage());
+		}
         return execution.execute(request, body);
 	}
     

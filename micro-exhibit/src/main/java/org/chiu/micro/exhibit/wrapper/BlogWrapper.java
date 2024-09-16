@@ -16,12 +16,14 @@ import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
 import org.chiu.micro.exhibit.rpc.wrapper.UserhttpServiceWrapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 
 @Component
@@ -33,6 +35,8 @@ public class BlogWrapper {
     private final UserhttpServiceWrapper userHttpServiceWrapper;
 
     private final StringRedisTemplate redisTemplate;
+    
+    private final ExecutorService executorService;
 
     @Value("${blog.blog-page-size}")
     private int blogPageSize;
@@ -45,10 +49,13 @@ public class BlogWrapper {
         return BlogExhibitDtoConvertor.convert(blogEntity, user);
     }
 
-    @Async("commonExecutor")
     public void setReadCount(Long id) {
-        blogHttpServiceWrapper.setReadCount(id);
-        redisTemplate.opsForZSet().incrementScore(Const.HOT_READ.getInfo(), id.toString(), 1);
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        RequestContextHolder.setRequestAttributes(servletRequestAttributes, true);//设置子线程共享
+        executorService.execute(() -> {
+            blogHttpServiceWrapper.setReadCount(id);
+            redisTemplate.opsForZSet().incrementScore(Const.HOT_READ.getInfo(), id.toString(), 1);
+        });
     }
 
     @Cache(prefix = Const.BLOG_STATUS)
