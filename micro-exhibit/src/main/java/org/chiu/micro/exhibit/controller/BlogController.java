@@ -14,12 +14,9 @@ import org.chiu.micro.exhibit.vo.BlogExhibitVo;
 import org.chiu.micro.exhibit.vo.BlogHotReadVo;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.util.StringUtils;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Collections;
@@ -40,13 +37,11 @@ public class BlogController {
 
     @GetMapping("/info/{blogId}")
     @Bloom(handler = DetailHandler.class)
-    public Result<BlogExhibitVo> getBlogDetail(@PathVariable Long blogId,
-                                               HttpServletRequest request) {
+    public Result<BlogExhibitVo> getBlogDetail(@PathVariable Long blogId) {
         Long userId;
         List<String> roles;
-        String token = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasLength(token)) {
-            AuthDto authDto = authHttpServiceWrapper.getAuthentication(token);
+            AuthDto authDto = authHttpServiceWrapper.getAuthentication();
             userId = authDto.getUserId();
             roles = authDto.getRoles();
         } else {
@@ -80,13 +75,12 @@ public class BlogController {
 
     @GetMapping("/status/{blogId}")
     @Bloom(handler = DetailHandler.class)
-    public Result<Integer> getBlogStatus(@PathVariable Long blogId,
-                                         HttpServletRequest request) {
+    public Result<Integer> getBlogStatus(@PathVariable Long blogId) {
         Long userId;
         List<String> roles;
-        String token = request.getHeader(HttpHeaders.AUTHORIZATION);
+    
         if (StringUtils.hasLength(token)) {
-            AuthDto authDto = authHttpServiceWrapper.getAuthentication(token);
+            AuthDto authDto = authHttpServiceWrapper.getAuthentication();
             userId = authDto.getUserId();
             roles = authDto.getRoles();
         } else {
