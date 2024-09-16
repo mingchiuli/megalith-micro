@@ -6,7 +6,6 @@ import org.chiu.micro.search.lang.Result;
 import org.chiu.micro.search.rpc.wrapper.AuthHttpServiceWrapper;
 import org.chiu.micro.search.service.BlogSearchService;
 import org.chiu.micro.search.vo.BlogSearchVo;
-import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,9 +29,8 @@ public class SearchProvider {
     @GetMapping("/blog/search")
     public Result<BlogSearchVo> searchAllBlogs(@RequestParam(defaultValue = "1") Integer currentPage,
                                                @RequestParam(defaultValue = "5") Integer size,
-                                               @RequestParam @Size(min = 0, max = 20) String keywords,
-                                               HttpServletRequest request) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
+                                               @RequestParam @Size(min = 0, max = 20) String keywords) {
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogSearchService.searchBlogs(keywords, currentPage, size, authDto.getUserId(), authDto.getRoles()));
     }
 }
