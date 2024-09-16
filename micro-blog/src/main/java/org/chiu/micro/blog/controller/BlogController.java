@@ -57,40 +57,35 @@ public class BlogController {
     }
 
     @GetMapping("/lock/{blogId}")
-    public Result<String> setBlogToken(@PathVariable Long blogId,
-                                       HttpServletRequest request) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
+    public Result<String> setBlogToken(@PathVariable Long blogId) {
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogService.setBlogToken(blogId, authDto.getUserId()));
     }
 
     @GetMapping("/blogs")
     public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@RequestParam(defaultValue = "1") Integer currentPage,
                                                          @RequestParam(defaultValue = "5") Integer size,
-                                                         @RequestParam(required = false) String keywords,
-                                                         @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(token);
+                                                         @RequestParam(required = false) String keywords) {
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogService.findAllBlogs(currentPage, size, authDto.getUserId(), keywords, token));
     }
 
     @GetMapping("/deleted")
     public Result<PageAdapter<BlogDeleteVo>> getDeletedBlogs(@RequestParam Integer currentPage,
-                                                             @RequestParam Integer size,
-                                                             HttpServletRequest request) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
+                                                             @RequestParam Integer size) {
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader();
         return Result.success(() -> blogService.findDeletedBlogs(currentPage, size, authDto.getUserId()));
     }
 
     @GetMapping("/recover/{idx}")
-    public Result<Void> recoverDeletedBlog(@PathVariable Integer idx,
-                                           HttpServletRequest request) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
+    public Result<Void> recoverDeletedBlog(@PathVariable Integer idx) {
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogService.recoverDeletedBlog(idx, authDto.getUserId()));
     }
 
     @PostMapping(value = "/oss/upload")
-    public SseEmitter uploadOss(@RequestBody MultipartFile image,
-                                HttpServletRequest request) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
+    public SseEmitter uploadOss(@RequestBody MultipartFile image) {
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
         return blogService.uploadOss(image, authDto.getUserId());
     }
 
