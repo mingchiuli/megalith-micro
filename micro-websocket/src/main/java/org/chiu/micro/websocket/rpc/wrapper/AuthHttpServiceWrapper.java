@@ -19,8 +19,8 @@ public class AuthHttpServiceWrapper {
 
     private final AuthHttpService authHttpService;
 
-    public AuthDto getAuthentication(String token) {
-        Result<AuthDto> result = authHttpService.getAuthentication(token);
+    public AuthDto getAuthentication() {
+        Result<AuthDto> result = authHttpService.getAuthentication();
         if (result.getCode() != 200) {
             throw new MissException(result.getMsg());
         }
