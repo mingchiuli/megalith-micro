@@ -16,12 +16,11 @@ public interface BlogService {
 
     void saveOrUpdate(BlogEntityReq blog, Long userId);
 
-    PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, Long userId, String keywords);
+    PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, Long userId, String keywords, String token);
 
     void recoverDeletedBlog(Integer idx, Long userId);
 
     PageAdapter<BlogDeleteVo> findDeletedBlogs(Integer currentPage, Integer size, Long userId);
-
 
     void deleteBatch(List<Long> ids, Long userId, List<String> roles);
 

@@ -19,6 +19,8 @@ import java.net.http.HttpClient;
 public class RpcConfig {
 
     private final HttpClient httpClient;
+    
+    private final HttpInterceptor httpInterceptor;
 
     @Bean
     BlogHttpService blogHttpService() {
@@ -29,6 +31,7 @@ public class RpcConfig {
         RestClient client = RestClient.builder()
                 .baseUrl("http://micro-blog:8081/inner")
                 .requestFactory(requestFactory)
+                .requestInterceptor(httpInterceptor)
                 .build();
 
         RestClientAdapter restClientAdapter = RestClientAdapter.create(client);
@@ -46,6 +49,7 @@ public class RpcConfig {
         RestClient client = RestClient.builder()
                 .baseUrl("http://micro-auth:8081/inner")
                 .requestFactory(requestFactory)
+                .requestInterceptor(httpInterceptor)
                 .build();
 
         RestClientAdapter restClientAdapter = RestClientAdapter.create(client);

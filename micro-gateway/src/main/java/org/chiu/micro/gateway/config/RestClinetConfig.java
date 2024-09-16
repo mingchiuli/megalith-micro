@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 public class RestClinetConfig {
 
     private final HttpClient httpClient;
+    
+    private final HttpInterceptor httpInterceptor;
 
     @Bean
     RestClient restClient() {
@@ -24,6 +26,7 @@ public class RestClinetConfig {
 
         return RestClient.builder()
                 .requestFactory(requestFactory)
+                .requestInterceptor(httpInterceptor)
                 .build();
     }
 }

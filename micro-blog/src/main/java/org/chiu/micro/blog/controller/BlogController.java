@@ -67,9 +67,9 @@ public class BlogController {
     public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@RequestParam(defaultValue = "1") Integer currentPage,
                                                          @RequestParam(defaultValue = "5") Integer size,
                                                          @RequestParam(required = false) String keywords,
-                                                         HttpServletRequest request) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(request.getHeader(HttpHeaders.AUTHORIZATION));
-        return Result.success(() -> blogService.findAllBlogs(currentPage, size, authDto.getUserId(), keywords));
+                                                         @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) {
+        AuthDto authDto = authHttpServiceWrapper.getAuthentication(token);
+        return Result.success(() -> blogService.findAllBlogs(currentPage, size, authDto.getUserId(), keywords, token));
     }
 
     @GetMapping("/deleted")
