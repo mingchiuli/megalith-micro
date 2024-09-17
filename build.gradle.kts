@@ -12,7 +12,7 @@ subprojects {
 	plugins.apply("java")
 
 	java {
-		sourceCompatibility = JavaVersion.VERSION_21
+		sourceCompatibility = JavaVersion.VERSION_22
 	}
 
 	repositories {
