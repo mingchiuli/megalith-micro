@@ -22,4 +22,5 @@ public class BlogEditPushAllReq {
     private Integer version;
 
     private List<SensitiveContentReq> sensitiveContentList;
+    
 }
