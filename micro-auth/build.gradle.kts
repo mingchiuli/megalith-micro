@@ -41,6 +41,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				--gc=serial
 				-R:MaxHeapSize=128m
 				-O3
+				--initialize-at-build-time=org.redisson.misc.BiHashMap
 			""",
 		"BP_HEALTH_CHECKER_ENABLED" to "true"
 	)
