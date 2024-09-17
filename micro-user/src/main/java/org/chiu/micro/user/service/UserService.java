@@ -7,7 +7,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author mingchiuli
