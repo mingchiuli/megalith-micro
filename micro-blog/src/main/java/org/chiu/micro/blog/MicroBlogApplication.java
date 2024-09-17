@@ -17,7 +17,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class MicroBlogApplication {
 
 	public static void main(String[] args) {
-			SpringApplication.run(MicroBlogApplication.class, args);
+		SpringApplication.run(MicroBlogApplication.class, args);
 	}
 
 }
