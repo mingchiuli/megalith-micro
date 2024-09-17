@@ -19,8 +19,6 @@ public interface UserService {
 
     void changeUserStatusByUsername(String username, Integer status);
 
-    List<Long> findIdsByStatus(Integer status);
-
     String getRegisterPage(String username);
 
     SseEmitter imageUpload(String token, MultipartFile req);
