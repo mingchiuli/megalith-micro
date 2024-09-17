@@ -46,6 +46,7 @@ jobs:
           script: |
             docker pull mingchiuli/megalith-micro-websocket:latest
             docker stop $(docker ps | grep 'micro-websocket' | awk '{print $1}')
+            docker rm $(docker ps -a | grep 'micro-websocket' | awk '{print $1}')
             docker compose --compatibility up -d --no-recreate
             docker rmi $(docker images | grep 'none' | awk '{print $3}')
             docker restart $(docker ps | grep 'nginx' | awk '{print $1}')
