@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PostExchange;
+import java.lang.Void;
 
 public interface UserHttpService {
 
@@ -21,7 +22,7 @@ public interface UserHttpService {
     Result<List<RoleEntityDto>> findByRoleCodeInAndStatus(@RequestBody List<String> roles, @PathVariable Integer status);
 
     @PostExchange("/user/login/time/{username}")
-    void updateLoginTime(@PathVariable String username);
+    Result<Void> updateLoginTime(@PathVariable String username);
 
     @GetExchange("/user/email/{email}")
     Result<UserEntityDto> findByEmail(@PathVariable String email);
@@ -46,5 +47,8 @@ public interface UserHttpService {
 
     @PostExchange("/authority/list")
     Result<List<AuthorityDto>> getAuthorities(@RequestBody List<String> service);
+    
+    @GetExchange("/user/unlock")
+    Result<Void> unlock();
   
 }

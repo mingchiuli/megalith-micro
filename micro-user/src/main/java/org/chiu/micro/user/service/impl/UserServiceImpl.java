@@ -189,4 +189,9 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new MissException(USER_MISS.getMsg()));
         return UserEntityRpcVoConvertor.convert(userEntity);
     }
+
+	@Override
+	public void unlockUser() {
+		userRepository.unlockUser();
+	}
 }

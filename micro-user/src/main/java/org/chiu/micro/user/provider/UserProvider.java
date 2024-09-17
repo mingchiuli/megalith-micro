@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.time.LocalDateTime;
+import java.lang.Void;
 
 
 /**
@@ -53,7 +54,7 @@ public class UserProvider {
     }
 
     @PostMapping("/login/time/{username}")
-    void updateLoginTime(@PathVariable String username) {
+    public Result<Void> updateLoginTime(@PathVariable String username) {
         userService.updateLoginTime(username, LocalDateTime.now());
     }
 
@@ -75,5 +76,10 @@ public class UserProvider {
     @GetMapping("/login/query/{username}")
     Result<UserEntityRpcVo> findByUsernameOrEmailOrPhone(@PathVariable String username) {
         return Result.success(() -> userService.findByUsernameOrEmailOrPhone(username));
+    }
+    
+    @GetMapping("/unlock")
+    Result<Void> unlock() {
+        return Result.success(userService::unlockUser);
     }
 }

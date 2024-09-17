@@ -32,7 +32,17 @@ public class UserHttpServiceWrapper {
     }
 
     public void updateLoginTime(String username) {
-        userHttpService.updateLoginTime(username);
+        Result<Void> result = userHttpService.updateLoginTime(username);
+        if (result.getCode() != 200) {
+            throw new MissException(result.getMsg());
+        }
+    }
+    
+    public void unlock() {
+        Result<Void> result = userHttpService.unlock();
+        if (result.getCode() != 200) {
+            throw new MissException(result.getMsg());
+        }
     }
 
     public void findByEmail(String loginEmail) {

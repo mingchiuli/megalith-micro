@@ -17,7 +17,6 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.security:spring-security-crypto")
-	implementation("org.redisson:redisson:3.36.0")
 	runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -39,7 +38,6 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				--gc=serial
 				-R:MaxHeapSize=256m
 				-O3
-				--initialize-at-build-time=org.redisson.misc.BiHashMap
 			""",
 		"BP_HEALTH_CHECKER_ENABLED" to "true"
 	)

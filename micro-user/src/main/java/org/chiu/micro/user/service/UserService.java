@@ -38,4 +38,6 @@ public interface UserService {
     UserEntityRpcVo findByPhone(String phone);
 
     UserEntityRpcVo findByUsernameOrEmailOrPhone(String username);
+    
+    void unlockUser();
 }
