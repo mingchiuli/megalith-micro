@@ -46,7 +46,7 @@ public class Router {
 
     private final ObjectMapper objectMapper;
 
-    private static final String UNKONWN = "unknown";
+    private static final String UNKNOWN = "unknown";
     
     @RequestMapping(value = "/**", method = { RequestMethod.GET, RequestMethod.POST })
     @SneakyThrows
@@ -159,16 +159,16 @@ public class Router {
     private String getIpAddr(HttpServletRequest request) {
         // nginx代理获取的真实用户ip
         String ip = request.getHeader("X-Real-IP");
-        if (!StringUtils.hasLength(ip) || UNKONWN.equalsIgnoreCase(ip)) {
+        if (!StringUtils.hasLength(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
             ip = request.getHeader("X-Forwarded-For");
         }
-        if (!StringUtils.hasLength(ip) || UNKONWN.equalsIgnoreCase(ip)) {
+        if (!StringUtils.hasLength(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
         }
-        if (!StringUtils.hasLength(ip) || UNKONWN.equalsIgnoreCase(ip)) {
+        if (!StringUtils.hasLength(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
             ip = request.getHeader("WL-Proxy-Client-IP");
         }
-        if (!StringUtils.hasLength(ip) || UNKONWN.equalsIgnoreCase(ip)) {
+        if (!StringUtils.hasLength(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
         /*
