@@ -46,5 +46,6 @@ jobs:
           script: |
             docker pull mingchiuli/megalith-micro-exhibit:latest
             docker stop $(docker ps | grep 'micro-exhibit' | awk '{print $1}')
+            docker rm $(docker ps -a | grep 'micro-exhibit' | awk '{print $1}')
             docker compose --compatibility up -d --no-recreate
             docker rmi $(docker images | grep 'none' | awk '{print $3}')
