@@ -75,11 +75,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<Long> findIdsByStatus(Integer status) {
-        return userRepository.findByStatus(status);
-    }
-
-    @Override
     public String getRegisterPage(String username) {
         String token = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set(REGISTER_PREFIX.getInfo() + token, username, 1, TimeUnit.HOURS);
