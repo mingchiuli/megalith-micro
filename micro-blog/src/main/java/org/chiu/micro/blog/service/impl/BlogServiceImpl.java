@@ -49,6 +49,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
@@ -220,15 +221,14 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
+    @Async("commonExecutor")
     public void deleteOss(String url) {
-        taskExecutor.execute(() -> {
-            String objectName = url.replace(baseUrl + "/", "");
-            Map<String, String> headers = new HashMap<>();
-            String gmtDate = ossSignUtils.getGMTDate();
-            headers.put(HttpHeaders.DATE, gmtDate);
-            headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
-            ossHttpService.deleteOssObject(objectName, headers);
-        });
+        String objectName = url.replace(baseUrl + "/", "");
+        Map<String, String> headers = new HashMap<>();
+        String gmtDate = ossSignUtils.getGMTDate();
+        headers.put(HttpHeaders.DATE, gmtDate);
+        headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
+        ossHttpService.deleteOssObject(objectName, headers);
     }
 
     @Override
