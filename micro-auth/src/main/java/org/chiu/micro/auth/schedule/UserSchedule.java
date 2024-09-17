@@ -12,6 +12,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
+
 
 /**
  * @Author limingjiu
