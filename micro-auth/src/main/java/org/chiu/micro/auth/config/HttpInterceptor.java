@@ -24,7 +24,7 @@ public class HttpInterceptor implements ClientHttpRequestInterceptor {
             HttpServletRequest req = ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
             String token = Optional.ofNullable(req.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
             request.getHeaders().add(HttpHeaders.AUTHORIZATION, token);
-	    } catch(IllegalStateException _e) {}
+	    } catch(IllegalStateException e) {}
    
         return execution.execute(request, body);
 	}
