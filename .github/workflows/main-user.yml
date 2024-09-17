@@ -45,5 +45,6 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             docker pull mingchiuli/megalith-micro-user:latest
-            docker compose --compatibility up -d
+            docker stop $(docker ps | grep 'micro-user' | awk '{print $1}')
+            docker compose --compatibility up -d --no-recreate
             docker rmi $(docker images | grep 'none' | awk '{print $3}')
