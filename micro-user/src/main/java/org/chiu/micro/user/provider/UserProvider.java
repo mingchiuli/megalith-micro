@@ -55,7 +55,7 @@ public class UserProvider {
 
     @PostMapping("/login/time/{username}")
     public Result<Void> updateLoginTime(@PathVariable String username) {
-        userService.updateLoginTime(username, LocalDateTime.now());
+        return Result.success(() -> userService.updateLoginTime(username, LocalDateTime.now()));
     }
 
     @GetMapping("/email/{email}")
