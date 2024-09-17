@@ -16,7 +16,7 @@ jobs:
       - name: Prepare
         uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '23'      # See 'Options' section below for all supported versions
+          java-version: '22'      # See 'Options' section below for all supported versions
           distribution: 'graalvm' # See 'Options' section below for all available distributions
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Print Info
