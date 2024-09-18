@@ -38,9 +38,7 @@ public class BlogController {
     public Result<BlogExhibitVo> getBlogDetail(@PathVariable Long blogId) {
         
         AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        Long userId = authDto.getUserId();
-        List<String> roles = authDto.getRoles();
-        return Result.success(() -> blogService.getBlogDetail(roles, blogId, userId));
+        return Result.success(() -> blogService.getBlogDetail(authDto.getRoles(), blogId, authDto.getUserId()));
     }
 
     @GetMapping("/page/{currentPage}")
