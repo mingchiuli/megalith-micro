@@ -1,5 +1,6 @@
 package org.chiu.micro.exhibit.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.chiu.micro.exhibit.convertor.BlogDescriptionVoConvertor;
 import org.chiu.micro.exhibit.convertor.BlogExhibitVoConvertor;
 import org.chiu.micro.exhibit.convertor.BlogHotReadVoConvertor;
@@ -52,6 +53,7 @@ import static org.chiu.micro.exhibit.lang.ExceptionMessage.*;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BlogServiceImpl implements BlogService {
 
     private final BlogSensitiveWrapper blogSensitiveWrapper;
@@ -174,6 +176,10 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public List<BlogHotReadVo> getScoreBlogs() {
         Collection<ScoredEntry<String>> scoredEntries = redissonClient.<String>getScoredSortedSet(HOT_READ.getInfo()).entryRangeReversed(0, 4);
+
+        log.info("~~~{}", scoredEntries);
+        log.info("~~~{}", scoredEntries.toString());
+
 
         List<Long> ids = scoredEntries.stream()
                 .map(ScoredEntry::getValue)
