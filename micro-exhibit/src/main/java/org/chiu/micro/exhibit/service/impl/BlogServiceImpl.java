@@ -152,9 +152,9 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public List<Integer> searchYears() {
 
-        Integer count = redissonClient.getScript().eval(Mode.READ_ONLY, countYearsScript, ReturnType.INTEGER, List.of(BLOOM_FILTER_YEARS.getInfo()));
+        Long count = redissonClient.getScript().eval(Mode.READ_ONLY, countYearsScript, ReturnType.INTEGER, List.of(BLOOM_FILTER_YEARS.getInfo()));
         int start = 2021;
-        int end = Math.max(start + count - 1, start);
+        int end = (int) Math.max(start + count - 1, start);
         var years = new ArrayList<Integer>(end - start + 1);
         for (int year = start; year <= end; year++) {
             years.add(year);
