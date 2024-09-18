@@ -2,6 +2,7 @@ package org.chiu.micro.exhibit.config;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
+import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.config.Config;
 import org.redisson.config.SingleServerConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,7 @@ public class RedissonClientConfig {
     @Bean
     RedissonClient redisson() {
         Config config = new Config();
+        config.setCodec(new JsonJacksonCodec());
         SingleServerConfig singleServerConfig = config.useSingleServer();
         singleServerConfig.setAddress("redis://" + host + ":" + port);
         singleServerConfig.setPassword(password);
