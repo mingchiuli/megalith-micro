@@ -1,7 +1,7 @@
 package org.chiu.micro.exhibit.schedule.task;
 
 import org.chiu.micro.exhibit.service.BlogService;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.redisson.api.RedissonClient;
 
 import static org.chiu.micro.exhibit.lang.Const.BLOOM_FILTER_PAGE;
 
@@ -10,13 +10,13 @@ import static org.chiu.micro.exhibit.lang.Const.BLOOM_FILTER_PAGE;
  * @create 2023-06-24 5:32 pm
  */
 public record BlogsRunnable(
-                            StringRedisTemplate redisTemplate,
+                            RedissonClient redissonClient,
                             BlogService blogService,
                             Integer pageNo) implements Runnable {
 
     @Override
     public void run() {
-        redisTemplate.opsForValue().setBit(BLOOM_FILTER_PAGE.getInfo(), pageNo, true);
+        redissonClient.getBitSet(BLOOM_FILTER_PAGE.getInfo()).set(pageNo, true);
         blogService.findPage(pageNo, Integer.MIN_VALUE);
     }
 }

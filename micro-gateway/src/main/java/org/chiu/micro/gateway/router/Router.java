@@ -97,8 +97,7 @@ public class Router {
             responseEntity = restClient
                     .post()
                     .uri(url, uriBuilder -> {
-                        parameterMap.entrySet()
-                                .forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
+                        parameterMap.forEach((key, value) -> uriBuilder.queryParam(key, List.of(value)));
                         return uriBuilder.build();
                     })
                     .contentType(contenType)
@@ -118,8 +117,7 @@ public class Router {
             responseEntity = restClient
                     .get()
                     .uri(url, uriBuilder -> {
-                        parameterMap.entrySet()
-                                .forEach(entry -> uriBuilder.queryParam(entry.getKey(), List.of(entry.getValue())));
+                        parameterMap.forEach((key, value) -> uriBuilder.queryParam(key, List.of(value)));
                         return uriBuilder.build();
                     })
                     .retrieve()
@@ -151,7 +149,7 @@ public class Router {
         response.setStatus(responseEntity.getStatusCode().value());
 
         var outputStream = response.getOutputStream();
-        outputStream.write(data);
+        outputStream.write(data == null ? "".getBytes() : data);
         outputStream.flush();
         outputStream.close();
     }
