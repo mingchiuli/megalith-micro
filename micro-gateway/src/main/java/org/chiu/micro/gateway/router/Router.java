@@ -1,5 +1,8 @@
 package org.chiu.micro.gateway.router;
 
+import org.springframework.core.io.Resource;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 
@@ -14,11 +17,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import org.chiu.micro.gateway.dto.AuthorityRouteDto;
 import org.chiu.micro.gateway.lang.ExceptionMessage;
@@ -87,8 +86,9 @@ public class Router {
             MediaType contentType;
             if (request instanceof MultipartHttpServletRequest req) {
                 // upload / login request
-                body = req.getFileMap().entrySet().stream()
-                        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getResource()));
+                MultiValueMap<String, Resource> map = new LinkedMultiValueMap<>();
+                req.getFileMap().forEach((key, value) -> map.add(key, value.getResource()));
+                body = map;
                 contentType = MediaType.MULTIPART_FORM_DATA;
             } else {
                 body = request.getInputStream().readAllBytes();
