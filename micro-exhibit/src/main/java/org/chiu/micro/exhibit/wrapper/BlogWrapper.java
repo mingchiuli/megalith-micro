@@ -14,8 +14,8 @@ import org.chiu.micro.exhibit.lang.StatusEnum;
 import org.chiu.micro.exhibit.page.PageAdapter;
 import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
 import org.chiu.micro.exhibit.rpc.wrapper.UserhttpServiceWrapper;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -34,9 +34,9 @@ public class BlogWrapper {
 
     private final UserhttpServiceWrapper userHttpServiceWrapper;
 
-    private final StringRedisTemplate redisTemplate;
-    
     private final ExecutorService executorService;
+
+    private final RedissonClient redissonClient;
 
     @Value("${blog.blog-page-size}")
     private int blogPageSize;
@@ -54,7 +54,7 @@ public class BlogWrapper {
         RequestContextHolder.setRequestAttributes(servletRequestAttributes, true);//设置子线程共享
         executorService.execute(() -> {
             blogHttpServiceWrapper.setReadCount(id);
-            redisTemplate.opsForZSet().incrementScore(Const.HOT_READ.getInfo(), id.toString(), 1);
+            redissonClient.getScoredSortedSet(Const.HOT_READ.getInfo()).add(1, id.toString());
         });
     }
 

@@ -15,6 +15,9 @@ import org.chiu.micro.exhibit.vo.BlogHotReadVo;
 import org.chiu.micro.exhibit.vo.VisitStatisticsVo;
 import org.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
 import org.chiu.micro.exhibit.wrapper.BlogWrapper;
+import org.redisson.api.RScript.Mode;
+import org.redisson.api.RScript.ReturnType;
+import org.redisson.api.RedissonClient;
 import org.chiu.micro.exhibit.lang.StatusEnum;
 import org.chiu.micro.exhibit.service.BlogService;
 import org.chiu.micro.exhibit.utils.SensitiveUtils;
@@ -25,12 +28,11 @@ import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
+import org.redisson.client.protocol.ScoredEntry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
-import org.springframework.data.redis.core.script.RedisScript;
+
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
@@ -56,7 +58,7 @@ public class BlogServiceImpl implements BlogService {
 
     private final BlogHttpServiceWrapper blogHttpServiceWrapper;
 
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
 
     private final BlogWrapper blogWrapper;
 
@@ -103,8 +105,8 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public Boolean checkToken(Long blogId, String token) {
         token = token.trim();
-        String password = redisTemplate.opsForValue().get(READ_TOKEN.getInfo() + blogId);
-        if (StringUtils.hasLength(token) && StringUtils.hasLength(password)) {
+        Object password = redissonClient.getBucket(READ_TOKEN.getInfo() + blogId).get();
+        if (StringUtils.hasLength(token) && password != null) {
             return Objects.equals(password, token);
         }
         return false;
@@ -143,19 +145,16 @@ public class BlogServiceImpl implements BlogService {
         
         blogWrapper.setReadCount(blogId);
         BlogExhibitDto blogExhibitDto = blogWrapper.findById(blogId);
-        redisTemplate.delete(READ_TOKEN.getInfo() + blogId);
+        redissonClient.getBucket(READ_TOKEN.getInfo() + blogId).delete();
         return BlogExhibitVoConvertor.convert(blogExhibitDto);
     }
 
     @Override
     public List<Integer> searchYears() {
-        Long count = Optional
-                .ofNullable(
-                        redisTemplate.execute(RedisScript.of(countYearsScript, Long.class),
-                                List.of(BLOOM_FILTER_YEARS.getInfo())))
-                .orElse(0L);
+
+        Integer count = redissonClient.getScript().eval(Mode.READ_ONLY, countYearsScript, ReturnType.INTEGER, List.of(BLOOM_FILTER_YEARS.getInfo()));
         int start = 2021;
-        int end = Math.max(start + count.intValue() - 1, start);
+        int end = Math.max(start + count - 1, start);
         var years = new ArrayList<Integer>(end - start + 1);
         for (int year = start; year <= end; year++) {
             years.add(year);
@@ -167,27 +166,23 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public VisitStatisticsVo getVisitStatistics() {
-        List<Long> list = Optional.ofNullable(redisTemplate.execute(RedisScript.of(visitScript,List.class),
-                        List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo())))
-                .orElseGet(ArrayList::new);
-
+        List<Long> list = redissonClient.getScript().eval(Mode.READ_ONLY, visitScript, ReturnType.MULTI, List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()));
         return VisitStatisticsVoConvertor.convert(list);
     }
 
     @Override
     public List<BlogHotReadVo> getScoreBlogs() {
-        Set<ZSetOperations.TypedTuple<String>> set = redisTemplate.opsForZSet()
-                .reverseRangeWithScores(HOT_READ.getInfo(), 0, 4);
+        Collection<ScoredEntry<String>> scoredEntries = redissonClient.<String>getScoredSortedSet(HOT_READ.getInfo()).entryRangeReversed(0, 4);
 
-        List<Long> ids = Optional.ofNullable(set).orElseGet(LinkedHashSet::new).stream()
-                .map(item -> Long.valueOf(Optional.ofNullable(item.getValue()).orElse("0")))
+        List<Long> ids = scoredEntries.stream()
+                .map(ScoredEntry::getValue)
+                .map(Long::valueOf)
                 .toList();
 
         List<BlogEntityDto> blogs = blogHttpServiceWrapper.findAllById(ids);
 
-        return BlogHotReadVoConvertor.convert(blogs, set);
+        return BlogHotReadVoConvertor.convert(blogs, scoredEntries);
     }
 
     @Override

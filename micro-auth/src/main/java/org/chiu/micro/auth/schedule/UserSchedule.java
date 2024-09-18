@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -23,9 +23,7 @@ import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
 @RequiredArgsConstructor
 public class UserSchedule {
 
-    private final RedissonClient redisson;
-
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
     
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 
@@ -39,16 +37,16 @@ public class UserSchedule {
     @Scheduled(cron = "0 0 0/1 * * ?")
     public void configureTask() {
 
-        RLock rLock = redisson.getLock(MANAGER_CACHE_KEY);
+        RLock rLock = redissonClient.getLock(MANAGER_CACHE_KEY);
         if (Boolean.FALSE.equals(rLock.tryLock())) {
             return;
         }
 
         try {
-            Boolean executed = redisTemplate.hasKey(CACHE_FINISH_FLAG);
+            Boolean executed = redissonClient.getBucket(CACHE_FINISH_FLAG).isExists();
             if (Boolean.FALSE.equals(executed)) {
                 exec();
-                redisTemplate.opsForValue().set(CACHE_FINISH_FLAG, "flag", 60, TimeUnit.SECONDS);
+                redissonClient.getBucket(CACHE_FINISH_FLAG).set("flag", Duration.ofSeconds(60));
             }
         } finally {
             rLock.unlock();

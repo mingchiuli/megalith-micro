@@ -15,12 +15,14 @@ import org.chiu.micro.auth.vo.AuthorityRouteVo;
 import org.chiu.micro.auth.vo.AuthorityVo;
 import org.chiu.micro.auth.vo.MenusAndButtonsVo;
 import org.chiu.micro.auth.wrapper.AuthWrapper;
+import org.redisson.api.RScript.Mode;
+import org.redisson.api.RScript.ReturnType;
+import org.redisson.api.RedissonClient;
 import org.chiu.micro.auth.exception.AuthException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
+
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -46,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final SecurityAuthenticationUtils securityAuthenticationUtils;
     
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
     
     @Qualifier("commonExecutor")
     private final ExecutorService taskExecutor;
@@ -87,7 +89,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthorityRouteVo route(AuthorityRouteReq req, String token) {
         //record ip
-        taskExecutor.execute(() -> redisTemplate.execute(RedisScript.of(script), List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()), req.getIpAddr()));
+        
+        taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.INTEGER, List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()), req.getIpAddr()));
         
         List<String> authorities;
         try {

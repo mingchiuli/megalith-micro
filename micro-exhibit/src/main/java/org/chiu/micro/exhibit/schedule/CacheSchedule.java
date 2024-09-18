@@ -11,10 +11,10 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.*;
@@ -36,7 +36,7 @@ public class CacheSchedule {
 
     private final BlogWrapper blogWrapper;
 
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
 
     private final RedissonClient redisson;
 
@@ -58,10 +58,10 @@ public class CacheSchedule {
         }
 
         try {
-            Boolean executed = redisTemplate.hasKey(CACHE_FINISH_FLAG);
+            Boolean executed = redissonClient.getBucket(CACHE_FINISH_FLAG).isExists();
             if (Boolean.FALSE.equals(executed)) {
                 exec();
-                redisTemplate.opsForValue().set(CACHE_FINISH_FLAG, "flag", 60, TimeUnit.SECONDS);
+                redissonClient.getBucket(CACHE_FINISH_FLAG).set("flag", Duration.ofSeconds(60));
             }
         } finally {
             rLock.unlock();
@@ -93,7 +93,7 @@ public class CacheSchedule {
             int pageSize = 20;
             int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
             for (int i = 1; i <= totalPage; i++) {
-                var runnable = new BlogRunnable(blogService, blogWrapper, blogSensitiveWrapper, redisTemplate, i, pageSize);
+                var runnable = new BlogRunnable(blogService, blogWrapper, blogSensitiveWrapper, redissonClient, i, pageSize);
                 taskExecutor.execute(runnable);
             }
         }, taskExecutor);
@@ -105,7 +105,7 @@ public class CacheSchedule {
                     total / blogPageSize :
                     total / blogPageSize + 1);
             for (int i = 1; i <= totalPage; i++) {
-                var runnable = new BlogsRunnable(redisTemplate, blogService, i);
+                var runnable = new BlogsRunnable(redissonClient, blogService, i);
                 taskExecutor.execute(runnable);
             }
         }, taskExecutor);
@@ -123,7 +123,7 @@ public class CacheSchedule {
                                                 countByYear / blogPageSize + 1);
 
                     for (int no = 1; no <= totalPage; no++) {
-                        redisTemplate.opsForValue().setBit(BLOOM_FILTER_YEAR_PAGE.getInfo() + year, no, true);
+                        redissonClient.getBitSet(BLOOM_FILTER_YEAR_PAGE.getInfo() + year).set(no, true);
                         blogService.findPage(no, year);
                     }
                 });
@@ -134,7 +134,7 @@ public class CacheSchedule {
 
     private void yearExec(List<Integer> years) {
         CompletableFuture.runAsync(() -> years.forEach(year -> {
-            redisTemplate.opsForValue().setBit(BLOOM_FILTER_YEARS.getInfo(), year, true);
+            redissonClient.getBitSet(BLOOM_FILTER_YEARS.getInfo()).set(year, true);
             blogService.getCountByYear(year);
         }), taskExecutor);
     }
@@ -149,16 +149,16 @@ public class CacheSchedule {
             int dayOfYear = now.getDayOfYear();
 
             if (hourOfDay == 0) {
-                redisTemplate.delete(DAY_VISIT.getInfo());
+                redissonClient.getBucket(DAY_VISIT.getInfo()).delete();
                 if (dayOfWeek == 1) {
-                    redisTemplate.delete(WEEK_VISIT.getInfo());
-                    redisTemplate.unlink(HOT_READ.getInfo());
+                    redissonClient.getBucket(WEEK_VISIT.getInfo()).delete();
+                    redissonClient.getBucket(HOT_READ.getInfo()).unlink();
                 }
                 if (dayOfMonth == 1) {
-                    redisTemplate.delete(MONTH_VISIT.getInfo());
+                    redissonClient.getBucket(MONTH_VISIT.getInfo()).delete();
                 }
                 if (dayOfYear == 1) {
-                    redisTemplate.delete(YEAR_VISIT.getInfo());
+                    redissonClient.getBucket(YEAR_VISIT.getInfo()).delete();
                 }
             }
         }, taskExecutor);

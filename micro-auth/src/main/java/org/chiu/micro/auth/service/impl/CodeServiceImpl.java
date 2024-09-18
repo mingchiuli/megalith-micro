@@ -11,8 +11,8 @@ import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
 import org.chiu.micro.auth.service.CodeService;
 import org.chiu.micro.auth.utils.CodeFactory;
 import org.chiu.micro.auth.utils.SmsUtils;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -36,7 +36,7 @@ public class CodeServiceImpl implements CodeService {
 
     private final JavaMailSender javaMailSender;
 
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
 
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 
@@ -54,7 +54,7 @@ public class CodeServiceImpl implements CodeService {
     public void createEmailCode(String loginEmail) {
         userHttpServiceWrapper.findByEmail(loginEmail);
         String key = Const.EMAIL_KEY.getInfo() + loginEmail;
-        boolean res = Boolean.FALSE.equals(redisTemplate.hasKey(key));
+        boolean res = Boolean.FALSE.equals(redissonClient.getBucket(key).isExists());
         if (!res) {
             throw new CodeException(CODE_EXISTED);
         }
@@ -75,7 +75,7 @@ public class CodeServiceImpl implements CodeService {
     public void createSMSCode(String loginSMS) {
         userHttpServiceWrapper.findByPhone(loginSMS);
         String key = Const.PHONE_KEY.getInfo() + loginSMS;
-        boolean res = Boolean.FALSE.equals(redisTemplate.hasKey(key));
+        boolean res = Boolean.FALSE.equals(redissonClient.getBucket(key).isExists());
         if (!res) {
             throw new CodeException(CODE_EXISTED);
         }

@@ -4,7 +4,7 @@ import org.chiu.micro.exhibit.lang.StatusEnum;
 import org.chiu.micro.exhibit.service.BlogService;
 import org.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
 import org.chiu.micro.exhibit.wrapper.BlogWrapper;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.redisson.api.RedissonClient;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +19,7 @@ public record BlogRunnable (
         BlogService blogService,
         BlogWrapper blogWrapper,
         BlogSensitiveWrapper blogSensitiveWrapper,
-        StringRedisTemplate redisTemplate,
+        RedissonClient redissonClient,
         Integer pageNo, Integer pageSize) implements Runnable {
 
     @Override
@@ -27,7 +27,7 @@ public record BlogRunnable (
         List<Long> idList = blogService.findIds(pageNo, pageSize);
         Optional.ofNullable(idList).ifPresent(ids ->
                 ids.forEach(id -> {
-                    redisTemplate.opsForValue().setBit(BLOOM_FILTER_BLOG.getInfo(), id, true);
+                    redissonClient.getBitSet(BLOOM_FILTER_BLOG.getInfo()).set(id, true);
                     Integer status = blogWrapper.findStatusById(id);
                     blogWrapper.findById(id);
                     if (StatusEnum.SENSITIVE_FILTER.getCode().equals(status)) {
