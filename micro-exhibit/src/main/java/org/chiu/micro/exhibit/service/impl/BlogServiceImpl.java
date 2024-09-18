@@ -177,10 +177,6 @@ public class BlogServiceImpl implements BlogService {
     public List<BlogHotReadVo> getScoreBlogs() {
         Collection<ScoredEntry<String>> scoredEntries = redissonClient.<String>getScoredSortedSet(HOT_READ.getInfo()).entryRangeReversed(0, 4);
 
-        log.info("~~~{}", scoredEntries);
-        log.info("~~~{}", scoredEntries.toString());
-
-
         List<Long> ids = scoredEntries.stream()
                 .map(ScoredEntry::getValue)
                 .map(Long::valueOf)
