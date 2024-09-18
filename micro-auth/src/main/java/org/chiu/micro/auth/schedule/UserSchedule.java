@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
 
@@ -55,9 +54,7 @@ public class UserSchedule {
 
     private void exec() {
         // unlock user
-        CompletableFuture.runAsync(() -> {
-            userHttpServiceWrapper.unlock();    
-        }, taskExecutor);
+        CompletableFuture.runAsync(userHttpServiceWrapper::unlock, taskExecutor);
     }
 
 }
