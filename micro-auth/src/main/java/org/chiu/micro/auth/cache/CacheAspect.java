@@ -115,7 +115,7 @@ public class CacheAspect {
             Object proceed = pjp.proceed();
 
             Cache annotation = method.getAnnotation(Cache.class);
-            redissonClient.getBucket(cacheKey).set(objectMapper.writeValueAsString(proceed), Duration.ofSeconds(annotation.expire()));
+            redissonClient.getBucket(cacheKey).set(objectMapper.writeValueAsString(proceed), Duration.ofMinutes(annotation.expire()));
             localCache.put(cacheKey, proceed);
             return proceed;
         } finally {
