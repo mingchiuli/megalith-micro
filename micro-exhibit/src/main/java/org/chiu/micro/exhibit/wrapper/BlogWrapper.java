@@ -54,7 +54,7 @@ public class BlogWrapper {
         RequestContextHolder.setRequestAttributes(servletRequestAttributes, true);//设置子线程共享
         executorService.execute(() -> {
             blogHttpServiceWrapper.setReadCount(id);
-            redissonClient.getScoredSortedSet(Const.HOT_READ.getInfo()).addScore(id.toString(), 1);
+            redissonClient.<String>getScoredSortedSet(Const.HOT_READ.getInfo()).addScore(id.toString(), 1);
         });
     }
 
