@@ -22,7 +22,7 @@ public class ESHighlightBuilderUtils {
 
     private static final String RED = "<b style='color:red'>";
 
-    private static final String BLABEL = "</b>";
+    private static final String BABEL = "</b>";
 
 
     public static final HighlightQuery blogHighlightQueryOrigin = new HighlightQuery(
@@ -30,7 +30,7 @@ public class ESHighlightBuilderUtils {
                     new HighlightParameters
                             .HighlightParametersBuilder()
                             .withPreTags(RED)
-                            .withPostTags(BLABEL)
+                            .withPostTags(BABEL)
                             .build(),
                     List.of(new HighlightField(TITLE),
                             new HighlightField(DESCRIPTION),
@@ -42,7 +42,7 @@ public class ESHighlightBuilderUtils {
                     new HighlightParameters
                             .HighlightParametersBuilder()
                             .withPreTags(RED)
-                            .withPostTags(BLABEL)
+                            .withPostTags(BABEL)
                             //为0则全部内容都显示
                             .withNumberOfFragments(1)
                             .withFragmentSize(5)
@@ -57,7 +57,7 @@ public class ESHighlightBuilderUtils {
                     new HighlightParameters
                             .HighlightParametersBuilder()
                             .withPreTags(RED)
-                            .withPostTags(BLABEL)
+                            .withPostTags(BABEL)
                             .build(),
                     List.of(new HighlightField(TITLE),
                             new HighlightField(DESCRIPTION))

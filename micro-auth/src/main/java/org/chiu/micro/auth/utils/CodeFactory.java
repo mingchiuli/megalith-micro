@@ -4,10 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import org.chiu.micro.auth.exception.CodeException;
+import org.redisson.api.RScript;
+import org.redisson.api.RedissonClient;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
+
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
@@ -51,7 +52,7 @@ public class CodeFactory {
 
     private final Random random = new Random();
 
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
 
     public String create(String type) {
         if (SMS_CODE.getInfo().equals(type)) {
@@ -94,8 +95,6 @@ public class CodeFactory {
     }
 
     public void save(Object code, String prefix) {
-        RedisScript<Void> lua = RedisScript.of(script);
-        redisTemplate.execute(lua, Collections.singletonList(prefix),
-                "code", code.toString(), "try_count", "0", "120");
+        redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.VALUE, Collections.singletonList(prefix),  "code", code.toString(), "try_count", "0", "120");
     }
 }

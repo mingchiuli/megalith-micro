@@ -69,9 +69,7 @@ public class BlogController {
     public Result<Integer> getBlogStatus(@PathVariable Long blogId) {
         
         AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        Long userId = authDto.getUserId();
-        List<String> roles = authDto.getRoles();
-        return Result.success(() -> blogService.getBlogStatus(roles, blogId, userId));
+        return Result.success(() -> blogService.getBlogStatus(authDto.getRoles(), blogId, authDto.getUserId()));
     }
 
     @GetMapping("/years")

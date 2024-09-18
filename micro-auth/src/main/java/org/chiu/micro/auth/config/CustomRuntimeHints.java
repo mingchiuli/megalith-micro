@@ -21,7 +21,7 @@ import static org.springframework.util.ReflectionUtils.*;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
-    @SuppressWarnings("null")
+    @SuppressWarnings("all")
     @SneakyThrows
     @Override// Register method for reflection
     public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {

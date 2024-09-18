@@ -14,12 +14,12 @@ import org.chiu.micro.auth.utils.ClassUtils;
 import org.redisson.api.*;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class CacheAspect {
 
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
 
     private final CacheKeyGenerator cacheKeyGenerator;
 
@@ -85,7 +85,7 @@ public class CacheAspect {
         String remoteCacheStr;
         // 防止redis挂了以后db也访问不了
         try {
-            remoteCacheStr = redisTemplate.opsForValue().get(cacheKey);
+            remoteCacheStr = redissonClient.<String>getBucket(cacheKey).get();
         } catch (NestedRuntimeException e) {
             return pjp.proceed();
         }
@@ -106,7 +106,7 @@ public class CacheAspect {
 
         try {
             // 双重检查
-            String r = redisTemplate.opsForValue().get(cacheKey);
+            String r = redissonClient.<String>getBucket(cacheKey).get();
 
             if (StringUtils.hasLength(r)) {
                 return objectMapper.readValue(r, javaType);
@@ -115,8 +115,7 @@ public class CacheAspect {
             Object proceed = pjp.proceed();
 
             Cache annotation = method.getAnnotation(Cache.class);
-            redisTemplate.opsForValue().set(cacheKey, objectMapper.writeValueAsString(proceed), annotation.expire(),
-                    TimeUnit.MINUTES);
+            redissonClient.getBucket(cacheKey).set(objectMapper.writeValueAsString(proceed), Duration.ofSeconds(annotation.expire()));
             localCache.put(cacheKey, proceed);
             return proceed;
         } finally {

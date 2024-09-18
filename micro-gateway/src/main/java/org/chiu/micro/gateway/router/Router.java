@@ -84,15 +84,15 @@ public class Router {
 
         if (HttpMethod.POST.equals(httpMethod)) {
             Object body;
-            MediaType contenType;
+            MediaType contentType;
             if (request instanceof MultipartHttpServletRequest req) {
                 // upload / login request
                 body = req.getFileMap().entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getResource()));
-                contenType = MediaType.MULTIPART_FORM_DATA;
+                contentType = MediaType.MULTIPART_FORM_DATA;
             } else {
                 body = request.getInputStream().readAllBytes();
-                contenType = MediaType.APPLICATION_JSON;
+                contentType = MediaType.APPLICATION_JSON;
             }
             responseEntity = restClient
                     .post()
@@ -100,10 +100,10 @@ public class Router {
                         parameterMap.forEach((key, value) -> uriBuilder.queryParam(key, List.of(value)));
                         return uriBuilder.build();
                     })
-                    .contentType(contenType)
+                    .contentType(contentType)
                     .body(body)
                     .retrieve()
-                    .onStatus(HttpStatusCode::isError, (req, resp) -> {
+                    .onStatus(HttpStatusCode::isError, (_, resp) -> {
                         HttpStatusCode statusCode = resp.getStatusCode();
                         byte[] respBody = resp.getBody().readAllBytes();
                         response.setStatus(statusCode.value());
@@ -121,7 +121,7 @@ public class Router {
                         return uriBuilder.build();
                     })
                     .retrieve()
-                    .onStatus(HttpStatusCode::isError, (req, resp) -> {
+                    .onStatus(HttpStatusCode::isError, (_, resp) -> {
                         HttpStatusCode statusCode = resp.getStatusCode();
                         byte[] respBody = resp.getBody().readAllBytes();
                         response.setStatus(statusCode.value());

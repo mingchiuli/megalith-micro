@@ -10,7 +10,7 @@ import org.chiu.micro.auth.lang.Const;
 import org.chiu.micro.auth.token.Claims;
 import org.chiu.micro.auth.token.TokenUtils;
 import org.chiu.micro.auth.wrapper.AuthWrapper;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 import static org.chiu.micro.auth.lang.Const.*;
@@ -32,7 +32,7 @@ public class SecurityAuthenticationUtils {
 
     private final TokenUtils<Claims> tokenUtils;
 
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
 
     private List<String> getRawRoleCodes(List<String> roles) {
         return roles.stream()
@@ -41,7 +41,7 @@ public class SecurityAuthenticationUtils {
     }
 
     private List<String> getAuthorities(Long userId, List<String> rawRoles) throws AuthException {
-        boolean mark = redisTemplate.hasKey(BLOCK_USER.getInfo() + userId);
+        boolean mark = redissonClient.getBucket(BLOCK_USER.getInfo() + userId).isExists();
 
         if (mark) {
             throw new AuthException(RE_LOGIN.getMsg());
@@ -55,7 +55,7 @@ public class SecurityAuthenticationUtils {
     }
 
     public AuthDto getAuthDto(String token) throws AuthException {
-        Long userId;
+        long userId;
         List<String> rawRoles;
         List<String> authorities;
 
@@ -66,7 +66,7 @@ public class SecurityAuthenticationUtils {
         } else {
             String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
             Claims claims = tokenUtils.getVerifierByToken(jwt);
-            userId = Long.valueOf(claims.getUserId());
+            userId = Long.parseLong(claims.getUserId());
             List<String> roles = claims.getRoles();
             rawRoles = getRawRoleCodes(roles);
             authorities = getAuthorities(userId, rawRoles);
@@ -80,14 +80,13 @@ public class SecurityAuthenticationUtils {
     }
 
     public List<String> getAuthAuthority(String token) throws AuthException {
-        List<String> authorities = new ArrayList<>();
         List<AuthorityDto> allAuthorities = authWrapper.getAllSystemAuthorities();
         List<String> whiteList = allAuthorities.stream()
-                .filter(authority -> authority.getCode().startsWith(Const.WHITELIST.getInfo()))
                 .map(AuthorityDto::getCode)
+                .filter(code -> code.startsWith(Const.WHITELIST.getInfo()))
                 .toList();
 
-        authorities.addAll(whiteList);
+        List<String> authorities = new ArrayList<>(whiteList);
 
         if (!StringUtils.hasLength(token)) {
             return authorities;
@@ -128,9 +127,7 @@ public class SecurityAuthenticationUtils {
         if (routePattern.endsWith("/*")) {
             String prefix = routePattern.replace("/*", "");
 
-            if (routeMapping.startsWith(prefix) && routeMapping.lastIndexOf("/", prefix.length()) == routeMapping.indexOf("/", prefix.length())) {
-                return true;
-            }
+            return routeMapping.startsWith(prefix) && routeMapping.lastIndexOf("/", prefix.length()) == routeMapping.indexOf("/", prefix.length());
         }
 
         return false;

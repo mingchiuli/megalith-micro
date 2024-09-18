@@ -34,7 +34,7 @@ public class BlogMessageServiceImpl implements BlogMessageService {
 
     private String pushActionScript;
 
-    private Set<Long> enumSet = Stream.of(MessageEnum.values())
+    private final Set<Long> enumSet = Stream.of(MessageEnum.values())
                 .map(MessageEnum::getCode)
                 .collect(Collectors.toSet());
 
@@ -58,7 +58,7 @@ public class BlogMessageServiceImpl implements BlogMessageService {
 
         String redisKey = KeyFactory.createBlogEditRedisKey(userId, blogId);
 
-        Long execute = redisTemplate.execute(RedisScript.of(pushActionScript, Long.class), Collections.singletonList(redisKey),
+        Long execute = Optional.ofNullable(redisTemplate.execute(RedisScript.of(pushActionScript, Long.class), Collections.singletonList(redisKey),
                 contentChange,
                 operateTypeCode.toString(),
                 version.toString(),
@@ -66,7 +66,7 @@ public class BlogMessageServiceImpl implements BlogMessageService {
                 Objects.nonNull(indexEnd) ? indexEnd.toString() : null,
                 Objects.nonNull(field) ? field : null,
                 Objects.nonNull(paraNo) ? paraNo.toString() : null,
-                userId.toString());
+                userId.toString())).orElse(0L);
 
         if (enumSet.contains(execute)) {
             var dto = StompMessageDto.builder()

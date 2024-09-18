@@ -1,4 +1,4 @@
-package org.chiu.micro.user.config;
+package org.chiu.micro.exhibit.config;
 
 import java.net.http.HttpClient;
 import java.util.concurrent.Executors;
@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class HttpClinet {
+public class HttpClientConfig {
 
     @Bean
     HttpClient httpClient() {

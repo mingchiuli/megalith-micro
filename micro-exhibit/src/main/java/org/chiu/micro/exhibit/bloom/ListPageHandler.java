@@ -3,7 +3,7 @@ package org.chiu.micro.exhibit.bloom;
 import org.chiu.micro.exhibit.exception.MissException;
 import org.chiu.micro.exhibit.lang.Const;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -14,7 +14,7 @@ import static org.chiu.micro.exhibit.lang.ExceptionMessage.NO_FOUND;
 @RequiredArgsConstructor
 public class ListPageHandler extends BloomHandler {
 
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
 
     @Override
     public void handle(Object[] args) {
@@ -22,12 +22,12 @@ public class ListPageHandler extends BloomHandler {
         Integer year = (Integer) args[1];
 
         if (Objects.equals(year, Integer.MIN_VALUE)) {
-            Boolean bit = redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_PAGE.getInfo(), currentPage);
+            Boolean bit = redissonClient.getBitSet(Const.BLOOM_FILTER_PAGE.getInfo()).get(currentPage);
             if (Boolean.FALSE.equals(bit)) {
                 throw new MissException(NO_FOUND.getMsg() + currentPage + " page");
             }
         } else {
-            Boolean bit = redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_YEAR_PAGE.getInfo() + year, currentPage);
+            Boolean bit = redissonClient.getBitSet(Const.BLOOM_FILTER_YEAR_PAGE.getInfo() + year).get(currentPage);
             if (Boolean.FALSE.equals(bit)) {
                 throw new MissException("Not found " + year + " year " + currentPage + " page");
             }
