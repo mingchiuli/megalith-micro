@@ -13,8 +13,8 @@ import org.chiu.micro.auth.token.Claims;
 import org.chiu.micro.auth.token.TokenUtils;
 import org.chiu.micro.auth.user.LoginUser;
 import org.chiu.micro.auth.vo.LoginSuccessVo;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -39,7 +39,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
 		private final UserHttpServiceWrapper userHttpServiceWrapper;
 
-		private final StringRedisTemplate redisTemplate;
+		private final RedissonClient redissonClient;
 
 		@Value("${blog.jwt.access-token-expire}")
 		private long accessExpire;
@@ -56,7 +56,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 			Long userId = user.getUserId();
 
 			List<String> keys = List.of(PASSWORD_KEY.getInfo() + username, BLOCK_USER.getInfo() + userId);
-			redisTemplate.delete(keys);
+			redissonClient.getKeys().delete(keys.toArray(new String[0]));
 
 			userHttpServiceWrapper.updateLoginTime(username);
 			// 生成jwt

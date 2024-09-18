@@ -8,9 +8,9 @@ import org.chiu.micro.exhibit.constant.BlogOperateEnum;
 import org.chiu.micro.exhibit.constant.BlogOperateMessage;
 import org.chiu.micro.exhibit.dto.BlogEntityDto;
 import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
+import org.redisson.api.RedissonClient;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -22,16 +22,16 @@ public abstract sealed class BlogCacheEvictHandler permits
         DeleteBlogCacheEvictHandler,
         UpdateBlogCacheEvictHandler {
 
-    protected final StringRedisTemplate redisTemplate;
+    protected final RedissonClient redissonClient;
 
     protected final BlogHttpServiceWrapper blogHttpServiceWrapper;
 
     protected final RabbitTemplate rabbitTemplate;
 
-    protected BlogCacheEvictHandler(StringRedisTemplate redisTemplate,
+    protected BlogCacheEvictHandler(RedissonClient redissonClient,
                                     BlogHttpServiceWrapper blogHttpServiceWrapper,
                                     RabbitTemplate rabbitTemplate) {
-        this.redisTemplate = redisTemplate;
+        this.redissonClient = redissonClient;
         this.blogHttpServiceWrapper = blogHttpServiceWrapper;
         this.rabbitTemplate = rabbitTemplate;
     }

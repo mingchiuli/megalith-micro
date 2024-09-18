@@ -9,10 +9,10 @@ import org.chiu.micro.auth.config.CacheUserEvictRabbitConfig;
 import org.chiu.micro.auth.constant.UserAuthMenuOperateMessage;
 import org.chiu.micro.auth.lang.AuthMenuOperateEnum;
 import org.chiu.micro.auth.wrapper.AuthWrapper;
+import org.redisson.api.RedissonClient;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -31,7 +31,7 @@ public class UserRedisCacheEvictMessageListener {
 
     private final CacheKeyGenerator cacheKeyGenerator;
 
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
 
     private final RabbitTemplate rabbitTemplate;
 
@@ -58,7 +58,7 @@ public class UserRedisCacheEvictMessageListener {
             keys.add(cacheKeyGenerator.generateKey(getAllSystemAuthoritiesMethod));
         }
 
-        redisTemplate.delete(keys);
+        redissonClient.getKeys().delete(keys.toArray(new String[0]));
         rabbitTemplate.convertAndSend(CacheUserEvictRabbitConfig.CACHE_EVICT_FANOUT_EXCHANGE, "", keys);
     }
 }

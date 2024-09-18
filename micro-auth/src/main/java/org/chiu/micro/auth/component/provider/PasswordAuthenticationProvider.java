@@ -3,11 +3,11 @@ package org.chiu.micro.auth.component.provider;
 import org.chiu.micro.auth.lang.Const;
 import org.chiu.micro.auth.lang.StatusEnum;
 import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
+import org.redisson.api.RScript;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,7 +23,6 @@ import lombok.SneakyThrows;
 import static org.chiu.micro.auth.lang.ExceptionMessage.*;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -37,7 +36,7 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
 
     private final ResourceLoader resourceLoader;
 
@@ -57,13 +56,13 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
     }
 
     public PasswordAuthenticationProvider(PasswordEncoder passwordEncoder,
-                                          StringRedisTemplate redisTemplate,
+                                          RedissonClient redissonClient,
                                           UserDetailsService userDetailsService,
                                           UserHttpServiceWrapper userHttpServiceWrapper,
                                           ResourceLoader resourceLoader) {
         super(userDetailsService, userHttpServiceWrapper);
         this.passwordEncoder = passwordEncoder;
-        this.redisTemplate = redisTemplate;
+        this.redissonClient = redissonClient;
         this.resourceLoader = resourceLoader;
     }
 
@@ -89,7 +88,7 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
 
     private void passwordNotMatchProcess(String username) {
         String prefix = Const.PASSWORD_KEY.getInfo() + username;
-        List<String> loginFailureTimeStampRecords = Optional.ofNullable(redisTemplate.opsForList().range(prefix, 0, -1)).orElseGet(ArrayList::new);
+        List<String> loginFailureTimeStampRecords = redissonClient.<String>getList(prefix).range(0, -1);
         int len = loginFailureTimeStampRecords.size();
         int l = 0;
 
@@ -107,8 +106,6 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
             userHttpServiceWrapper.changeUserStatusByUsername(username, StatusEnum.HIDE.getCode());
         }
 
-        redisTemplate.execute(RedisScript.of(script),
-                Collections.singletonList(prefix),
-                String.valueOf(l), "-1", String.valueOf(System.currentTimeMillis()), String.valueOf(intervalTime / 1000));
+        redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.VALUE, Collections.singletonList(prefix), String.valueOf(l), "-1", String.valueOf(System.currentTimeMillis()), String.valueOf(intervalTime / 1000));
     }
 }

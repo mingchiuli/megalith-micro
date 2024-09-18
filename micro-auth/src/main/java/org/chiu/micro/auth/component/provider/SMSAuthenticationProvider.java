@@ -3,12 +3,12 @@ package org.chiu.micro.auth.component.provider;
 import org.chiu.micro.auth.component.token.SMSAuthenticationToken;
 import org.chiu.micro.auth.lang.Const;
 import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
+import org.redisson.api.RScript;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
+
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,7 +33,7 @@ import java.util.Objects;
 @Component
 public final class SMSAuthenticationProvider extends ProviderBase {
 
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
 
     @Value("${blog.email-try-count}")
     private int maxTryNum;
@@ -51,11 +51,11 @@ public final class SMSAuthenticationProvider extends ProviderBase {
     }
 
     public SMSAuthenticationProvider(UserDetailsService userDetailsService,
-                                     StringRedisTemplate redisTemplate,
+                                     RedissonClient redissonClient,
                                      UserHttpServiceWrapper userHttpServiceWrapper,
                                      ResourceLoader resourceLoader) {
         super(userDetailsService, userHttpServiceWrapper);
-        this.redisTemplate = redisTemplate;
+        this.redissonClient = redissonClient;
         this.resourceLoader = resourceLoader;
     }
 
@@ -67,28 +67,26 @@ public final class SMSAuthenticationProvider extends ProviderBase {
     @Override
     protected void authProcess(UserDetails user, Authentication authentication) {
         String prefix = Const.PHONE_KEY.getInfo() + user.getUsername();
-        HashOperations<String, String, String> hashOperations = redisTemplate.opsForHash();
-        Map<String, String> entries = hashOperations.entries(prefix);
+        Map<String, String> entries = redissonClient.<String, String>getMap(prefix).readAllMap();
 
         if (!entries.isEmpty()) {
             String code = entries.get("code");
             String tryCount = entries.get("try_count");
 
             if (Integer.parseInt(tryCount) >= maxTryNum) {
-                redisTemplate.delete(prefix);
+                redissonClient.getBucket(prefix).delete();
                 throw new BadCredentialsException(SMS_TRY_MAX.getMsg());
             }
 
             if (!Objects.equals(code, authentication.getCredentials().toString())) {
-                Long ttl = redisTemplate.execute(RedisScript.of(script, Long.class),
-                        Collections.singletonList(prefix), "try_count");
+                Long ttl = redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.INTEGER, Collections.singletonList(prefix), "try_count");
                 if (Long.valueOf(0).equals(ttl)) {
                     throw new BadCredentialsException(SMS_EXPIRED.getMsg());
                 }
                 throw new BadCredentialsException(SMS_MISMATCH.getMsg());
             }
 
-            redisTemplate.delete(prefix);
+            redissonClient.getBucket(prefix).delete();
             return;
         }
 

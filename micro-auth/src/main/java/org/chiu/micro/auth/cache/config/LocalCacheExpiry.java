@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class LocalCacheExpiry implements Expiry<String, Object> {
 
-    private Random random = new Random();
+    private final Random random = new Random();
 
     @Override
     public long expireAfterCreate(String key, Object value, long currentTime) {

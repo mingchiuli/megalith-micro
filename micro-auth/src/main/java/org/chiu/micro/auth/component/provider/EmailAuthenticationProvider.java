@@ -3,12 +3,12 @@ package org.chiu.micro.auth.component.provider;
 import org.chiu.micro.auth.component.token.EmailAuthenticationToken;
 import org.chiu.micro.auth.lang.Const;
 import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
+import org.redisson.api.RScript;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
+
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,7 +23,9 @@ import static org.chiu.micro.auth.lang.ExceptionMessage.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author mingchiuli
@@ -33,7 +35,7 @@ import java.util.Objects;
 @Component
 public final class EmailAuthenticationProvider extends ProviderBase {
 
-    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
 
     @Value("${blog.email-try-count}")
     private int maxTryNum;
@@ -49,12 +51,12 @@ public final class EmailAuthenticationProvider extends ProviderBase {
         script = resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
-    public EmailAuthenticationProvider(StringRedisTemplate redisTemplate,
+    public EmailAuthenticationProvider(RedissonClient redissonClient,
                                        UserDetailsService userDetailsService,
                                        UserHttpServiceWrapper userHttpServiceWrapper,
                                        ResourceLoader resourceLoader) {
         super(userDetailsService, userHttpServiceWrapper);
-        this.redisTemplate = redisTemplate;
+        this.redissonClient = redissonClient;
         this.resourceLoader = resourceLoader;
     }
 
@@ -67,21 +69,20 @@ public final class EmailAuthenticationProvider extends ProviderBase {
     public void authProcess(UserDetails user, Authentication authentication) {
         //username is login email
         String prefix = Const.EMAIL_KEY.getInfo() + user.getUsername();
-        HashOperations<String, String, String> hashOperations = redisTemplate.opsForHash();
-        var entries = hashOperations.entries(prefix);
+        Map<String, String> entries = redissonClient.<String, String>getMap(prefix).readAllMap();
+
 
         if (!entries.isEmpty()) {
             String code = entries.get("code");
             String tryCount = entries.get("try_count");
 
             if (Integer.parseInt(tryCount) >= maxTryNum) {
-                redisTemplate.delete(prefix);
+                redissonClient.getBucket(prefix).delete();
                 throw new BadCredentialsException(CODE_TRY_MAX.getMsg());
             }
 
             if (Boolean.FALSE.equals(code.equalsIgnoreCase(authentication.getCredentials().toString()))) {
-                Long ttl = redisTemplate.execute(RedisScript.of(script, Long.class),
-                        Collections.singletonList(prefix), "try_count");
+                Long ttl = redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.INTEGER, Collections.singletonList(prefix), "try_count");
 
                 if (Objects.equals(0L, ttl)) {
                     throw new BadCredentialsException(CODE_EXPIRED.getMsg());
@@ -89,7 +90,7 @@ public final class EmailAuthenticationProvider extends ProviderBase {
                 throw new BadCredentialsException(CODE_MISMATCH.getMsg());
             }
 
-            redisTemplate.delete(prefix);
+            redissonClient.getKeys().delete(prefix);
             return;
         }
 

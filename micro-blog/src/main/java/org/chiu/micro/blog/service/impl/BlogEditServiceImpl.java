@@ -84,7 +84,7 @@ public class BlogEditServiceImpl implements BlogEditService {
         }
         
         String redisKey = KeyFactory.createBlogEditRedisKey(originUserId, id);
-        boolean exist = redisTemplate.hasKey(redisKey);
+        boolean exist = Boolean.TRUE.equals(redisTemplate.hasKey(redisKey));
         if (!exist) {
             return;
         }

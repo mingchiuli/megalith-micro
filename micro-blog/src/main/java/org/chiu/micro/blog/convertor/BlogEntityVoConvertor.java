@@ -50,7 +50,7 @@ public class BlogEntityVoConvertor {
                         .build())
                 .toList();
 
-        long anchor = (currentPage - 1) * size + items.size();
+        long anchor = (long) (currentPage - 1) * size + items.size();
         return PageAdapter.<BlogEntityVo>builder()
                 .content(entities)
                 .last(anchor >= total)
@@ -59,7 +59,7 @@ public class BlogEntityVoConvertor {
                 .totalPages((int) (total % size == 0 ? total / size : total / size + 1))
                 .pageSize(size)
                 .totalElements(total)
-                .empty(items.size() == 0)
+                .empty(items.isEmpty())
                 .build();
     }
 }

@@ -9,8 +9,8 @@ import org.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
 import org.chiu.micro.exhibit.key.KeyFactory;
 import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
+import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -27,11 +27,11 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
     private final CacheKeyGenerator cacheKeyGenerator;
 
 
-    public UpdateBlogCacheEvictHandler(StringRedisTemplate redisTemplate,
+    public UpdateBlogCacheEvictHandler(RedissonClient redissonClient,
                                        BlogHttpServiceWrapper blogHttpServiceWrapper,
                                        CacheKeyGenerator cacheKeyGenerator,
                                        RabbitTemplate rabbitTemplate) {
-        super(redisTemplate, blogHttpServiceWrapper, rabbitTemplate);
+        super(redissonClient, blogHttpServiceWrapper, rabbitTemplate);
         this.cacheKeyGenerator = cacheKeyGenerator;
     }
 
@@ -75,7 +75,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         //暂存区
         keys.add(blogEditKey);
         //内容状态信息
-        redisTemplate.delete(keys);
+        redissonClient.getKeys().delete(keys.toArray(new String[0]));
         if (NORMAL.getCode().equals(status)) {
             keys.remove(READ_TOKEN.getInfo() + id);
         }

@@ -8,9 +8,9 @@ import org.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
 import org.chiu.micro.exhibit.key.KeyFactory;
 import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
+import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -29,11 +29,11 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
     @Value("${blog.blog-page-size}")
     private int blogPageSize;
 
-    public DeleteBlogCacheEvictHandler(StringRedisTemplate redisTemplate,
+    public DeleteBlogCacheEvictHandler(RedissonClient redissonClient,
                                        BlogHttpServiceWrapper blogHttpServiceWrapper,
                                        CacheKeyGenerator cacheKeyGenerator,
                                        RabbitTemplate rabbitTemplate) {
-        super(redisTemplate, blogHttpServiceWrapper, rabbitTemplate);
+        super(redissonClient, blogHttpServiceWrapper, rabbitTemplate);
         this.cacheKeyGenerator = cacheKeyGenerator;
     }
 
@@ -78,7 +78,7 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
         //暂存区
         keys.add(blogEditKey);
         //内容状态信息
-        redisTemplate.delete(keys);
+        redissonClient.getKeys().delete(keys.toArray(new String[0]));
         keys.remove(BLOOM_FILTER_YEAR_PAGE.getInfo() + year);
         keys.remove(BLOOM_FILTER_PAGE.getInfo());
         keys.remove(BLOOM_FILTER_YEARS.getInfo());
@@ -86,25 +86,25 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
         keys.remove(READ_TOKEN.getInfo() + id);
 
         //设置getBlogDetail的bloom
-        redisTemplate.opsForValue().setBit(BLOOM_FILTER_BLOG.getInfo(), id, false);
+        redissonClient.getBitSet(BLOOM_FILTER_BLOG.getInfo()).set(id, false);
         //重置该年份的页面bloom
         int totalPageByPeriod = (int) (countYear % blogPageSize == 0 ? countYear / blogPageSize : countYear / blogPageSize + 1);
         for (int i = 1; i <= totalPageByPeriod; i++) {
-            redisTemplate.opsForValue().setBit(BLOOM_FILTER_YEAR_PAGE.getInfo() + year, i, true);
+            redissonClient.getBitSet(BLOOM_FILTER_YEAR_PAGE.getInfo() + year).set(i, true);
         }
 
         //listPage的bloom
         int totalPage = (int) (count % blogPageSize == 0 ? count / blogPageSize : count / blogPageSize + 1);
         for (int i = 1; i <= totalPage; i++) {
-            redisTemplate.opsForValue().setBit(BLOOM_FILTER_PAGE.getInfo(), i, true);
+            redissonClient.getBitSet(BLOOM_FILTER_PAGE.getInfo()).set(i, true);
         }
 
         //getCountByYear的bloom
         List<Integer> years = blogHttpServiceWrapper.getYears();
-        years.forEach(y -> redisTemplate.opsForValue().setBit(BLOOM_FILTER_YEARS.getInfo(), y, true));
+        years.forEach(y -> redissonClient.getBitSet(BLOOM_FILTER_YEARS.getInfo()).set(y, true));
 
         //删除最近热度
-        redisTemplate.opsForZSet().remove(HOT_READ.getInfo(), id.toString());
+        redissonClient.getScoredSortedSet(HOT_READ.getInfo()).remove(id.toString());
 
         return keys;
     }

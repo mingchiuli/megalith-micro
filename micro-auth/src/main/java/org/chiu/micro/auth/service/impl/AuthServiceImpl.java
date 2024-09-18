@@ -90,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthorityRouteVo route(AuthorityRouteReq req, String token) {
         //record ip
         
-        taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.INTEGER, List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()), req.getIpAddr()));
+        taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()), req.getIpAddr()));
         
         List<String> authorities;
         try {

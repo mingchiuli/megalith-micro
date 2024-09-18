@@ -13,9 +13,7 @@ public enum ExceptionMessage {
 
     USER_MISS(4, "用户没有找到"),
 
-    EDIT_NO_AUTH(5, "必须编辑自己的文章"),
-
-    DELETE_NO_AUTH(6, "必须删除自己的文章");
+    EDIT_NO_AUTH(5, "必须编辑自己的文章");
 
     private final Integer code;
 
