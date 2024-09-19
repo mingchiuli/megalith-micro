@@ -48,5 +48,5 @@ jobs:
             docker stop $(docker ps | grep 'micro-gateway' | awk '{print $1}')
             docker rm $(docker ps -a | grep 'micro-gateway' | awk '{print $1}')
             docker compose --compatibility up -d --no-recreate
-            docker rmi $(docker images | grep 'none' | awk '{print $3}')
+            docker rmi $(docker images | grep 'micro-gateway' | grep 'none' | awk '{print $3}')
             docker restart $(docker ps | grep 'nginx' | awk '{print $1}')
