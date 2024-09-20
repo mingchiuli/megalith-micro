@@ -33,7 +33,6 @@ const loginType = () => {
       radioEmail.value = false
       break;
   }
-  loginInfo.username = ''
   loginInfo.password = ''
 }
 
