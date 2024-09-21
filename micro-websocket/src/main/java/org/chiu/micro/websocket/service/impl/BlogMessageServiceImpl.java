@@ -58,7 +58,7 @@ public class BlogMessageServiceImpl implements BlogMessageService {
 
         String redisKey = KeyFactory.createBlogEditRedisKey(userId, blogId);
 
-        Long execute = Optional.ofNullable(redisTemplate.execute(RedisScript.of(pushActionScript, Long.class), Collections.singletonList(redisKey),
+        Long execute = redisTemplate.execute(RedisScript.of(pushActionScript, Long.class), Collections.singletonList(redisKey),
                 contentChange,
                 operateTypeCode.toString(),
                 version.toString(),
@@ -66,9 +66,9 @@ public class BlogMessageServiceImpl implements BlogMessageService {
                 Objects.nonNull(indexEnd) ? indexEnd.toString() : null,
                 Objects.nonNull(field) ? field : null,
                 Objects.nonNull(paraNo) ? paraNo.toString() : null,
-                userId.toString())).orElse(MessageEnum.PUSH_ALL.getCode());
+                userId.toString());
 
-        if (enumSet.contains(execute)) {
+        if (execute != null && enumSet.contains(execute)) {
             var dto = StompMessageDto.builder()
                 .blogId(blogId)
                 .userId(userId)

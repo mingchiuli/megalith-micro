@@ -324,8 +324,10 @@ public class BlogServiceImpl implements BlogService {
     @SuppressWarnings("unchecked")
     public PageAdapter<BlogDeleteVo> findDeletedBlogs(Integer currentPage, Integer size, Long userId) {
 
-        List<BlogEntity> deletedBlogs = Optional.ofNullable(redisTemplate.opsForList().range(QUERY_DELETED.getInfo() + userId, 0, -1))
-                .orElseGet(ArrayList::new).stream()
+        List<String> deletedBlogsStr = redisTemplate.opsForList().range(QUERY_DELETED.getInfo() + userId, 0, -1);
+        List<BlogEntity> deletedBlogs = Optional.ofNullable(deletedBlogsStr)
+                .orElseGet(Collections::emptyList)
+                .stream()
                 .map(blogStr -> jsonUtils.readValue(blogStr, BlogEntity.class))
                 .toList();
 
@@ -340,12 +342,11 @@ public class BlogServiceImpl implements BlogService {
 
         int start = (currentPage - 1) * size;
 
-        List<String> resp = Optional.ofNullable(
-                redisTemplate.execute(RedisScript.of(listDeleteScript, List.class),
-                        Collections.singletonList(QUERY_DELETED.getInfo() + userId),
-                        String.valueOf(l), "-1", String.valueOf(size - 1), String.valueOf(start)))
-                .orElseGet(ArrayList::new);
+        List<String> resp = redisTemplate.execute(RedisScript.of(listDeleteScript, List.class),
+                Collections.singletonList(QUERY_DELETED.getInfo() + userId),
+                String.valueOf(l), "-1", String.valueOf(size - 1), String.valueOf(start));
 
+        resp = Optional.ofNullable(resp).orElseGet(Collections::emptyList);
         List<String> respList = resp.subList(0, resp.size() - 1);
         Long total = Long.valueOf(resp.getLast());
 
@@ -359,11 +360,9 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public void recoverDeletedBlog(Integer idx, Long userId) {
 
-        String str = Optional.ofNullable(
-                redisTemplate.execute(RedisScript.of(recoverDeleteScript, String.class),
-                        Collections.singletonList(QUERY_DELETED.getInfo() + userId),
-                        String.valueOf(idx)))
-                .orElse("");
+        String str = redisTemplate.execute(RedisScript.of(recoverDeleteScript, String.class),
+                Collections.singletonList(QUERY_DELETED.getInfo() + userId),
+                String.valueOf(idx));
 
         if (!StringUtils.hasLength(str)) {
             return;

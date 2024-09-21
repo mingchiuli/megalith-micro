@@ -10,7 +10,6 @@ import org.chiu.micro.exhibit.dto.BlogExhibitDto;
 import org.chiu.micro.exhibit.dto.UserEntityDto;
 import org.chiu.micro.exhibit.cache.config.Cache;
 import org.chiu.micro.exhibit.lang.Const;
-import org.chiu.micro.exhibit.lang.StatusEnum;
 import org.chiu.micro.exhibit.page.PageAdapter;
 import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
 import org.chiu.micro.exhibit.rpc.wrapper.UserhttpServiceWrapper;
@@ -22,7 +21,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 
@@ -60,9 +58,7 @@ public class BlogWrapper {
 
     @Cache(prefix = Const.BLOG_STATUS)
     public Integer findStatusById(Long blogId) {
-        Integer status = blogHttpServiceWrapper.findStatusById(blogId);
-        status = Optional.ofNullable(status).orElse(StatusEnum.NORMAL.getCode());
-        return status;
+        return blogHttpServiceWrapper.findStatusById(blogId);
     }
 
     @Cache(prefix = Const.HOT_BLOGS)
