@@ -43,15 +43,13 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
     @Override
     public List<String> getAuthoritiesByRoleCodes(String roleCode) {
         
-        Optional<RoleEntity> roleEntityOptional = roleRepository.findByCodeAndStatus(roleCode, NORMAL.getCode());
+        Optional<RoleEntity> roleEntity = roleRepository.findByCodeAndStatus(roleCode, NORMAL.getCode());
 
-        if (roleEntityOptional.isEmpty()) {
+        if (roleEntity.isEmpty()) {
             return Collections.emptyList();
         }
 
-        RoleEntity roleEntity = roleEntityOptional.get();
-
-        List<Long> authorityIds = roleAuthorityRepository.findByRoleId(roleEntity.getId()).stream()
+        List<Long> authorityIds = roleAuthorityRepository.findByRoleId(roleEntity.get().getId()).stream()
                 .map(RoleAuthorityEntity::getAuthorityId)
                 .toList();
 

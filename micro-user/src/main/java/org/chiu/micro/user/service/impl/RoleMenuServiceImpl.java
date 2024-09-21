@@ -148,18 +148,16 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
     private MenusAndButtonsDto getCurrentRoleNav(String role) {
 
-        Optional<RoleEntity> roleEntityOptional = roleRepository.findByCodeAndStatus(role, NORMAL.getCode());
+        Optional<RoleEntity> roleEntity = roleRepository.findByCodeAndStatus(role, NORMAL.getCode());
 
-        if (roleEntityOptional.isEmpty()) {
+        if (roleEntity.isEmpty()) {
             return MenusAndButtonsDto.builder()
                     .menus(Collections.emptyList())
                     .buttons(Collections.emptyList())
                     .build();
         }
 
-        RoleEntity roleEntity = roleEntityOptional.get();
-
-        List<Long> menuIds = roleMenuRepository.findMenuIdsByRoleId(roleEntity.getId());
+        List<Long> menuIds = roleMenuRepository.findMenuIdsByRoleId(roleEntity.get().getId());
 
         List<MenuEntity> allKindsInfo = menuRepository.findAllById(menuIds);
 
