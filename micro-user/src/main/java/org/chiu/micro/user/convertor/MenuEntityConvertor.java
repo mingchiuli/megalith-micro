@@ -10,16 +10,16 @@ public class MenuEntityConvertor {
 
     public static MenuEntity convert(MenuEntityReq menu) {
         return MenuEntity.builder()
-                .menuId(menu.getMenuId())
-                .parentId(menu.getParentId())
-                .icon(menu.getIcon())
-                .url(menu.getUrl())
-                .title(menu.getTitle())
-                .name(menu.getName())
-                .component(menu.getComponent())
-                .type(menu.getType())
-                .orderNum(menu.getOrderNum())
-                .status(menu.getStatus())
+                .menuId(menu.menuId())
+                .parentId(menu.parentId())
+                .icon(menu.icon())
+                .url(menu.url())
+                .title(menu.title())
+                .name(menu.name())
+                .component(menu.component())
+                .type(menu.type())
+                .orderNum(menu.orderNum())
+                .status(menu.status())
                 .build();
     }
 }

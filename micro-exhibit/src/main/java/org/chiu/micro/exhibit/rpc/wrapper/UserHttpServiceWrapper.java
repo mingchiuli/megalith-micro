@@ -8,19 +8,19 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-public class UserhttpServiceWrapper {
+public class UserHttpServiceWrapper {
 
     private final UserHttpService userHttpService;
 
-    public UserhttpServiceWrapper(UserHttpService userHttpService) {
+    public UserHttpServiceWrapper(UserHttpService userHttpService) {
         this.userHttpService = userHttpService;
     }
 
     public UserEntityDto findById(Long userId) {
         Result<UserEntityDto> result = userHttpService.findById(userId);
-        if (result.getCode() != 200) {
-            throw new MissException(result.getMsg());
+        if (result.code() != 200) {
+            throw new MissException(result.msg());
         }
-        return result.getData();
+        return result.data();
     }
 }

@@ -88,7 +88,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public void saveOrUpdate(RoleEntityReq roleReq) {
 
-        Long id = roleReq.getId();
+        Long id = roleReq.id();
         RoleEntity roleEntity;
 
         if (Objects.nonNull(id)) {

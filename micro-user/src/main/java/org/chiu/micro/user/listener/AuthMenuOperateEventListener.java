@@ -25,8 +25,8 @@ public class AuthMenuOperateEventListener {
     public void process(AuthMenuOperateEvent event) {
 
         AuthMenuIndexMessage authMenuIndexMessage = event.getAuthMenuIndexMessage();
-        List<String> roles = authMenuIndexMessage.getRoles();
-        Integer type = authMenuIndexMessage.getType();
+        List<String> roles = authMenuIndexMessage.roles();
+        Integer type = authMenuIndexMessage.type();
         var data = UserAuthMenuOperateMessage.builder()
                 .roles(roles)
                 .type(type)

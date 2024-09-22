@@ -76,8 +76,8 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     @Override
     public void saveOrUpdate(UserEntityReq userEntityReq) {
-        Long id = userEntityReq.getId();
-        List<String> roles = userEntityReq.getRoles();
+        Long id = userEntityReq.id();
+        List<String> roles = userEntityReq.roles();
         UserEntity userEntity;
         UserOperateEnum userOperateEnum;
 
@@ -85,18 +85,16 @@ public class UserRoleServiceImpl implements UserRoleService {
             userEntity = userRepository.findById(id)
                     .orElseThrow(() -> new MissException(USER_NOT_EXIST));
 
-            String password = userEntityReq.getPassword();
+            String password = userEntityReq.password();
             if (StringUtils.hasLength(password)) {
-                userEntityReq.setPassword(passwordEncoder.encode(password));
+                userEntityReq = new UserEntityReq(userEntityReq.id(), userEntityReq.username(), userEntityReq.nickname(), userEntityReq.avatar(), passwordEncoder.encode(password), userEntityReq.email(), userEntityReq.phone(), userEntityReq.status(), userEntityReq.roles());
             } else {
-                userEntityReq.setPassword(userEntity.getPassword());
+                userEntityReq = new UserEntityReq(userEntityReq.id(), userEntityReq.username(), userEntityReq.nickname(), userEntityReq.avatar(), userEntity.getPassword(), userEntityReq.email(), userEntityReq.phone(), userEntityReq.status(), userEntityReq.roles());
             }
             userOperateEnum = UserOperateEnum.UPDATE;
         } else {
             userEntity = new UserEntity();
-            userEntityReq.setPassword(
-                    passwordEncoder.encode(Optional.ofNullable(userEntityReq.getPassword())
-                            .orElseThrow(() -> new CommitException(PASSWORD_REQUIRED))));
+            userEntityReq = new UserEntityReq(null, userEntityReq.username(), userEntityReq.nickname(), userEntityReq.avatar(), passwordEncoder.encode(Optional.ofNullable(userEntityReq.password()).orElseThrow(() -> new CommitException(PASSWORD_REQUIRED))), userEntityReq.email(), userEntityReq.phone(), userEntityReq.status(), userEntityReq.roles());
             userOperateEnum = UserOperateEnum.CREATE;
         }
 
@@ -119,32 +117,32 @@ public class UserRoleServiceImpl implements UserRoleService {
         if (Objects.isNull(exist) || Boolean.FALSE.equals(exist)) {
             throw new MissException(NO_AUTH.getMsg());
         }
-        String password = userEntityRegisterReq.getPassword();
-        String confirmPassword = userEntityRegisterReq.getConfirmPassword();
+        String password = userEntityRegisterReq.password();
+        String confirmPassword = userEntityRegisterReq.confirmPassword();
         if (!Objects.equals(confirmPassword, password)) {
             throw new MissException(PASSWORD_DIFF.getMsg());
         }
 
-        String phone = userEntityRegisterReq.getPhone();
+        String phone = userEntityRegisterReq.phone();
         if (!StringUtils.hasLength(phone)) {
             String fakePhone = codeFactory.createPhone();
-            userEntityRegisterReq.setPhone(fakePhone);
+            userEntityRegisterReq = new UserEntityRegisterReq(userEntityRegisterReq.id(), userEntityRegisterReq.username(), userEntityRegisterReq.nickname(), userEntityRegisterReq.avatar(), userEntityRegisterReq.password(), userEntityRegisterReq.confirmPassword(), userEntityRegisterReq.email(), fakePhone);
         }
 
-        String username = userEntityRegisterReq.getUsername();
+        String username = userEntityRegisterReq.username();
         String usernameCopy = redisTemplate.opsForValue().get(REGISTER_PREFIX.getInfo() + token);
         if (StringUtils.hasLength(usernameCopy) && !Objects.equals(usernameCopy, username)) {
             throw new MissException(NO_AUTH.getMsg());
         }
 
-        UserEntityReq userEntityReq = new UserEntityReq();
+        UserEntityReq userEntityReq;
 
-        userRepository.findByUsernameAndStatus(username, NORMAL.getCode())
-                .ifPresent(entity -> userEntityRegisterReq.setId(entity.getId()));
-
-        BeanUtils.copyProperties(userEntityRegisterReq, userEntityReq);
-        userEntityReq.setRoles(Collections.singletonList(USER.getInfo()));
-        userEntityReq.setStatus(NORMAL.getCode());
+        Optional<UserEntity> userEntity = userRepository.findByUsernameAndStatus(username, NORMAL.getCode());
+        if (userEntity.isEmpty()) {
+            userEntityReq = new UserEntityReq(null, userEntityRegisterReq.username(), userEntityRegisterReq.nickname(), userEntityRegisterReq.avatar(), userEntityRegisterReq.password(), userEntityRegisterReq.email(), userEntityRegisterReq.phone(), NORMAL.getCode(), Collections.singletonList(USER.getInfo()));
+        } else {
+            userEntityReq = new UserEntityReq(userEntity.get().getId(), userEntityRegisterReq.username(), userEntityRegisterReq.nickname(), userEntityRegisterReq.avatar(), userEntityRegisterReq.password(), userEntityRegisterReq.email(), userEntityRegisterReq.phone(), NORMAL.getCode(), Collections.singletonList(USER.getInfo()));
+        }
         saveOrUpdate(userEntityReq);
         redisTemplate.delete(REGISTER_PREFIX.getInfo() + token);
     }

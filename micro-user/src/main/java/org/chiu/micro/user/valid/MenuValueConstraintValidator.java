@@ -19,31 +19,31 @@ public class MenuValueConstraintValidator implements ConstraintValidator<MenuVal
 
     @Override
     public boolean isValid(MenuEntityReq menu, ConstraintValidatorContext context) {
-        if (Objects.isNull(menu.getParentId())) {
+        if (Objects.isNull(menu.parentId())) {
             return false;
         }
 
-        if (!StringUtils.hasLength(menu.getTitle())) {
+        if (!StringUtils.hasLength(menu.title())) {
             return false;
         }
 
-        if (Objects.isNull(menu.getOrderNum())) {
+        if (Objects.isNull(menu.orderNum())) {
             return false;
         }
 
-        if (Objects.isNull(menu.getType())) {
+        if (Objects.isNull(menu.type())) {
             return false;
         }
 
-        if (!StatusEnum.NORMAL.getCode().equals(menu.getStatus()) && !StatusEnum.HIDE.getCode().equals(menu.getStatus())) {
+        if (!StatusEnum.NORMAL.getCode().equals(menu.status()) && !StatusEnum.HIDE.getCode().equals(menu.status())) {
             return false;
         }
 
         MenuRepository menuRepository = SpringUtils.getBean(MenuRepository.class);
 
-        Integer type = menu.getType();
+        Integer type = menu.type();
         TypeEnum typeEnum = TypeEnum.getInstance(type);
-        Long parentId = menu.getParentId();
+        Long parentId = menu.parentId();
         TypeEnum parentTypeEnum;
         if (!Long.valueOf(0).equals(parentId)) {
             MenuEntity parentMenu = menuRepository.findById(parentId)

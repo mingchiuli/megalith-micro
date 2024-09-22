@@ -63,7 +63,7 @@ public class AuthorityServiceImpl implements AuthorityService {
     @Override
     public void saveOrUpdate(AuthorityEntityReq req) {
 
-        Long id = req.getId();
+        Long id = req.id();
         AuthorityEntity authorityEntity;
 
         if (Objects.nonNull(id)) {

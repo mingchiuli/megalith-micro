@@ -42,23 +42,18 @@ public class MenuDisplayVoConvertor {
         //2.组装父子的树形结构
         //2.1 找到所有一级分类
         return menus.stream()
-                .filter(menu -> menu.getParentId() == 0)
-                .map(menu -> {
-                    menu.setChildren(getChildren(menu, menus));
-                    return menu;
-                })
-                .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.getOrderNum()) ? 0 : menu.getOrderNum()))
+                .filter(menu -> menu.parentId() == 0)
+                .map(menu -> new MenuDisplayVo(menu.menuId(), 0L, menu.title(), menu.name(), menu.url(), menu.component(), menu.type(), menu.icon(), menu.orderNum(), menu.status(), menu.created(), menu.updated(), getChildren(menu, menus)))
+                .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.orderNum()) ? 0 : menu.orderNum()))
                 .toList();
     }
 
     private static List<MenuDisplayVo> getChildren(MenuDisplayVo root, List<MenuDisplayVo> all) {
         return all.stream()
-                .filter(menu -> Objects.equals(menu.getParentId(), root.getMenuId()))
-                .map(menu -> {
-                    menu.setChildren(getChildren(menu, all));
-                    return menu;
-                })
-                .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.getOrderNum()) ? 0 : menu.getOrderNum()))
+                .filter(menu -> Objects.equals(menu.parentId(), root.menuId()))
+                .map(menu -> new MenuDisplayVo(menu.menuId(), 0L, menu.title(), menu.name(), menu.url(), menu.component(), menu.type(), menu.icon(), menu.orderNum(), menu.status(), menu.created(), menu.updated(), getChildren(menu, all)))
+
+                .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.orderNum()) ? 0 : menu.orderNum()))
                 .toList();
     }
 }
