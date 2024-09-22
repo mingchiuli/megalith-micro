@@ -18,9 +18,9 @@ public class UserHttpServiceWrapper {
 
     public UserEntityDto findById(Long userId) {
         Result<UserEntityDto> result = userHttpService.findById(userId);
-        if (result.getCode() != 200) {
-            throw new MissException(result.getMsg());
+        if (result.code() != 200) {
+            throw new MissException(result.msg());
         }
-        return result.getData();
+        return result.data();
     }
 }

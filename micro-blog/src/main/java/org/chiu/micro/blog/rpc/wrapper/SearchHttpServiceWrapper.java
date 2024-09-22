@@ -18,10 +18,10 @@ public class SearchHttpServiceWrapper {
 
     public BlogSearchDto searchBlogs(Integer currentPage, Integer size, String keywords) {
         Result<BlogSearchDto> result = searchHttpService.searchBlogs(currentPage, size, keywords);
-        if (result.getCode() != 200) {
-            throw new MissException(result.getMsg());
+        if (result.code() != 200) {
+            throw new MissException(result.msg());
         }
-        return result.getData();
+        return result.data();
     }
 
 }
