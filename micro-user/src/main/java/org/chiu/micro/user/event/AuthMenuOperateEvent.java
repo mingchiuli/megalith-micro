@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationEvent;
 
 public class AuthMenuOperateEvent extends ApplicationEvent {
 
-    private AuthMenuIndexMessage authMenuIndexMessage;
+    private final AuthMenuIndexMessage authMenuIndexMessage;
 
     public AuthMenuOperateEvent(Object source, AuthMenuIndexMessage authMenuIndexMessage) {
         super(source);
@@ -18,7 +18,4 @@ public class AuthMenuOperateEvent extends ApplicationEvent {
         return this.authMenuIndexMessage;
     }
 
-    public void setAuthMenuIndexMessage(AuthMenuIndexMessage authMenuIndexMessage) {
-        this.authMenuIndexMessage = authMenuIndexMessage;
-    }
 }

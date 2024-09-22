@@ -5,7 +5,7 @@ import org.springframework.context.ApplicationEvent;
 
 public class UserOperateEvent extends ApplicationEvent {
 
-    private UserIndexMessage userIndexMessage;
+    private final UserIndexMessage userIndexMessage;
 
     public UserOperateEvent(Object source, UserIndexMessage userIndexMessage) {
         super(source);
@@ -16,7 +16,4 @@ public class UserOperateEvent extends ApplicationEvent {
         return this.userIndexMessage;
     }
 
-    public void setUserIndexMessage(UserIndexMessage userIndexMessage) {
-        this.userIndexMessage = userIndexMessage;
-    }
 }
