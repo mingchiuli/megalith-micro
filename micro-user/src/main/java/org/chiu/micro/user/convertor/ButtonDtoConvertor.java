@@ -19,7 +19,7 @@ public class ButtonDtoConvertor {
     public static List<ButtonDto> convert(List<ButtonDto> buttons, Boolean statusCheck) {
         Stream<ButtonDto> buttonStream = buttons.stream();
         if (Boolean.TRUE.equals(statusCheck)) {
-            buttonStream = buttonStream.filter(menu -> StatusEnum.NORMAL.getCode().equals(menu.getStatus()));
+            buttonStream = buttonStream.filter(menu -> StatusEnum.NORMAL.getCode().equals(menu.status()));
         }
 
         return buttonStream.toList();

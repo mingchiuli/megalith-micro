@@ -10,7 +10,7 @@ import org.chiu.micro.exhibit.dto.UserEntityDto;
 import org.chiu.micro.exhibit.lang.Const;
 import org.chiu.micro.exhibit.page.PageAdapter;
 import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
-import org.chiu.micro.exhibit.rpc.wrapper.UserhttpServiceWrapper;
+import org.chiu.micro.exhibit.rpc.wrapper.UserHttpServiceWrapper;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -27,7 +27,7 @@ public class BlogWrapper {
 
     private final BlogHttpServiceWrapper blogHttpServiceWrapper;
 
-    private final UserhttpServiceWrapper userHttpServiceWrapper;
+    private final UserHttpServiceWrapper userHttpServiceWrapper;
 
     private final ExecutorService executorService;
 
@@ -36,7 +36,7 @@ public class BlogWrapper {
     @Value("${blog.blog-page-size}")
     private int blogPageSize;
 
-    public BlogWrapper(BlogHttpServiceWrapper blogHttpServiceWrapper, UserhttpServiceWrapper userHttpServiceWrapper, ExecutorService executorService, RedissonClient redissonClient) {
+    public BlogWrapper(BlogHttpServiceWrapper blogHttpServiceWrapper, UserHttpServiceWrapper userHttpServiceWrapper, ExecutorService executorService, RedissonClient redissonClient) {
         this.blogHttpServiceWrapper = blogHttpServiceWrapper;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.executorService = executorService;

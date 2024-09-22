@@ -30,8 +30,8 @@ public class UserOperateEventListener {
     @Async("commonExecutor")
     public void process(UserOperateEvent event) {
         UserIndexMessage userIndexMessage = event.getUserIndexMessage();
-        Long userId = userIndexMessage.getUserId();
-        UserOperateEnum userOperateEnum = userIndexMessage.getUserOperateEnum();
+        Long userId = userIndexMessage.userId();
+        UserOperateEnum userOperateEnum = userIndexMessage.userOperateEnum();
 
         if (UserOperateEnum.UPDATE.equals(userOperateEnum)) {
             redisTemplate.opsForValue().set(BLOCK_USER.getInfo() + userId, "", accessExpire, TimeUnit.SECONDS);

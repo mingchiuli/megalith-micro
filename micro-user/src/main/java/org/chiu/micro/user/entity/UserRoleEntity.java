@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * @Author limingjiu
@@ -93,51 +94,22 @@ public class UserRoleEntity {
         this.updated = updated;
     }
 
-    public boolean equals(final Object o) {
-        if (o == this) return true;
-        if (!(o instanceof UserRoleEntity)) return false;
-        final UserRoleEntity other = (UserRoleEntity) o;
-        if (!other.canEqual((Object) this)) return false;
-        final Object this$id = this.getId();
-        final Object other$id = other.getId();
-        if (this$id == null ? other$id != null : !this$id.equals(other$id)) return false;
-        final Object this$userId = this.getUserId();
-        final Object other$userId = other.getUserId();
-        if (this$userId == null ? other$userId != null : !this$userId.equals(other$userId)) return false;
-        final Object this$roleId = this.getRoleId();
-        final Object other$roleId = other.getRoleId();
-        if (this$roleId == null ? other$roleId != null : !this$roleId.equals(other$roleId)) return false;
-        final Object this$created = this.getCreated();
-        final Object other$created = other.getCreated();
-        if (this$created == null ? other$created != null : !this$created.equals(other$created)) return false;
-        final Object this$updated = this.getUpdated();
-        final Object other$updated = other.getUpdated();
-        if (this$updated == null ? other$updated != null : !this$updated.equals(other$updated)) return false;
-        return true;
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserRoleEntity that)) return false;
+
+        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(roleId, that.roleId) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated);
     }
 
-    protected boolean canEqual(final Object other) {
-        return other instanceof UserRoleEntity;
-    }
-
+    @Override
     public int hashCode() {
-        final int PRIME = 59;
-        int result = 1;
-        final Object $id = this.getId();
-        result = result * PRIME + ($id == null ? 43 : $id.hashCode());
-        final Object $userId = this.getUserId();
-        result = result * PRIME + ($userId == null ? 43 : $userId.hashCode());
-        final Object $roleId = this.getRoleId();
-        result = result * PRIME + ($roleId == null ? 43 : $roleId.hashCode());
-        final Object $created = this.getCreated();
-        result = result * PRIME + ($created == null ? 43 : $created.hashCode());
-        final Object $updated = this.getUpdated();
-        result = result * PRIME + ($updated == null ? 43 : $updated.hashCode());
+        int result = Objects.hashCode(id);
+        result = 31 * result + Objects.hashCode(userId);
+        result = 31 * result + Objects.hashCode(roleId);
+        result = 31 * result + Objects.hashCode(created);
+        result = 31 * result + Objects.hashCode(updated);
         return result;
-    }
-
-    public String toString() {
-        return "UserRoleEntity(id=" + this.getId() + ", userId=" + this.getUserId() + ", roleId=" + this.getRoleId() + ", created=" + this.getCreated() + ", updated=" + this.getUpdated() + ")";
     }
 
     public static class UserRoleEntityBuilder {
@@ -176,11 +148,7 @@ public class UserRoleEntity {
         }
 
         public UserRoleEntity build() {
-            return new UserRoleEntity(this.id, this.userId, this.roleId, this.created, this.updated);
-        }
-
-        public String toString() {
-            return "UserRoleEntity.UserRoleEntityBuilder(id=" + this.id + ", userId=" + this.userId + ", roleId=" + this.roleId + ", created=" + this.created + ", updated=" + this.updated + ")";
+            return new UserRoleEntity(id, userId, roleId, created, updated);
         }
     }
 }

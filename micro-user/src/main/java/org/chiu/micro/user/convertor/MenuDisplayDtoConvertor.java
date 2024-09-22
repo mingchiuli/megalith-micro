@@ -17,21 +17,21 @@ public class MenuDisplayDtoConvertor {
     public static List<MenuDisplayDto> convert(List<MenuDto> menus, boolean statusCheck) {
         Stream<MenuDto> menuStream = menus.stream();
         if (Boolean.TRUE.equals(statusCheck)) {
-            menuStream = menuStream.filter(menu -> StatusEnum.NORMAL.getCode().equals(menu.getStatus()));
+            menuStream = menuStream.filter(menu -> StatusEnum.NORMAL.getCode().equals(menu.status()));
         }
 
         return menuStream
                 .map(menu -> MenuDisplayDto.builder()
-                        .menuId(menu.getMenuId())
-                        .parentId(menu.getParentId())
-                        .icon(menu.getIcon())
-                        .url(menu.getUrl())
-                        .title(menu.getTitle())
-                        .name(menu.getName())
-                        .component(menu.getComponent())
-                        .type(menu.getType())
-                        .orderNum(menu.getOrderNum())
-                        .status(menu.getStatus())
+                        .menuId(menu.menuId())
+                        .parentId(menu.parentId())
+                        .icon(menu.icon())
+                        .url(menu.url())
+                        .title(menu.title())
+                        .name(menu.name())
+                        .component(menu.component())
+                        .type(menu.type())
+                        .orderNum(menu.orderNum())
+                        .status(menu.status())
                         .build())
                 .toList();
     }
@@ -40,23 +40,17 @@ public class MenuDisplayDtoConvertor {
         //2.组装父子的树形结构
         //2.1 找到所有一级分类
         return menus.stream()
-                .filter(menu -> menu.getParentId() == 0)
-                .map(menu -> {
-                    menu.setChildren(getChildren(menu, menus));
-                    return menu;
-                })
-                .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.getOrderNum()) ? 0 : menu.getOrderNum()))
+                .filter(menu -> menu.parentId() == 0)
+                .map(menu -> new MenuDisplayDto(menu.menuId(), 0L, menu.title(), menu.name(), menu.url(), menu.component(), menu.type(), menu.icon(), menu.orderNum(), menu.status(), menu.created(), menu.updated(), getChildren(menu, menus)))
+                .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.orderNum()) ? 0 : menu.orderNum()))
                 .toList();
     }
 
     private static List<MenuDisplayDto> getChildren(MenuDisplayDto root, List<MenuDisplayDto> all) {
         return all.stream()
-                .filter(menu -> Objects.equals(menu.getParentId(), root.getMenuId()))
-                .map(menu -> {
-                    menu.setChildren(getChildren(menu, all));
-                    return menu;
-                })
-                .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.getOrderNum()) ? 0 : menu.getOrderNum()))
+                .filter(menu -> Objects.equals(menu.parentId(), root.menuId()))
+                .map(menu -> new MenuDisplayDto(menu.menuId(), 0L, menu.title(), menu.name(), menu.url(), menu.component(), menu.type(), menu.icon(), menu.orderNum(), menu.status(), menu.created(), menu.updated(), getChildren(menu, all)))
+                .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.orderNum()) ? 0 : menu.orderNum()))
                 .toList();
     }
 }

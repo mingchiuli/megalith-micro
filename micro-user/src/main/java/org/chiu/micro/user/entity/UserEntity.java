@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * @author mingchiuli
@@ -172,81 +173,28 @@ public class UserEntity {
         this.lastLogin = lastLogin;
     }
 
-    public boolean equals(final Object o) {
-        if (o == this) return true;
-        if (!(o instanceof UserEntity)) return false;
-        final UserEntity other = (UserEntity) o;
-        if (!other.canEqual((Object) this)) return false;
-        final Object this$id = this.getId();
-        final Object other$id = other.getId();
-        if (this$id == null ? other$id != null : !this$id.equals(other$id)) return false;
-        final Object this$username = this.getUsername();
-        final Object other$username = other.getUsername();
-        if (this$username == null ? other$username != null : !this$username.equals(other$username)) return false;
-        final Object this$nickname = this.getNickname();
-        final Object other$nickname = other.getNickname();
-        if (this$nickname == null ? other$nickname != null : !this$nickname.equals(other$nickname)) return false;
-        final Object this$avatar = this.getAvatar();
-        final Object other$avatar = other.getAvatar();
-        if (this$avatar == null ? other$avatar != null : !this$avatar.equals(other$avatar)) return false;
-        final Object this$email = this.getEmail();
-        final Object other$email = other.getEmail();
-        if (this$email == null ? other$email != null : !this$email.equals(other$email)) return false;
-        final Object this$phone = this.getPhone();
-        final Object other$phone = other.getPhone();
-        if (this$phone == null ? other$phone != null : !this$phone.equals(other$phone)) return false;
-        final Object this$password = this.getPassword();
-        final Object other$password = other.getPassword();
-        if (this$password == null ? other$password != null : !this$password.equals(other$password)) return false;
-        final Object this$status = this.getStatus();
-        final Object other$status = other.getStatus();
-        if (this$status == null ? other$status != null : !this$status.equals(other$status)) return false;
-        final Object this$created = this.getCreated();
-        final Object other$created = other.getCreated();
-        if (this$created == null ? other$created != null : !this$created.equals(other$created)) return false;
-        final Object this$updated = this.getUpdated();
-        final Object other$updated = other.getUpdated();
-        if (this$updated == null ? other$updated != null : !this$updated.equals(other$updated)) return false;
-        final Object this$lastLogin = this.getLastLogin();
-        final Object other$lastLogin = other.getLastLogin();
-        if (this$lastLogin == null ? other$lastLogin != null : !this$lastLogin.equals(other$lastLogin)) return false;
-        return true;
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserEntity that)) return false;
+
+        return Objects.equals(id, that.id) && Objects.equals(username, that.username) && Objects.equals(nickname, that.nickname) && Objects.equals(avatar, that.avatar) && Objects.equals(email, that.email) && Objects.equals(phone, that.phone) && Objects.equals(password, that.password) && Objects.equals(status, that.status) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated) && Objects.equals(lastLogin, that.lastLogin);
     }
 
-    protected boolean canEqual(final Object other) {
-        return other instanceof UserEntity;
-    }
-
+    @Override
     public int hashCode() {
-        final int PRIME = 59;
-        int result = 1;
-        final Object $id = this.getId();
-        result = result * PRIME + ($id == null ? 43 : $id.hashCode());
-        final Object $username = this.getUsername();
-        result = result * PRIME + ($username == null ? 43 : $username.hashCode());
-        final Object $nickname = this.getNickname();
-        result = result * PRIME + ($nickname == null ? 43 : $nickname.hashCode());
-        final Object $avatar = this.getAvatar();
-        result = result * PRIME + ($avatar == null ? 43 : $avatar.hashCode());
-        final Object $email = this.getEmail();
-        result = result * PRIME + ($email == null ? 43 : $email.hashCode());
-        final Object $phone = this.getPhone();
-        result = result * PRIME + ($phone == null ? 43 : $phone.hashCode());
-        final Object $password = this.getPassword();
-        result = result * PRIME + ($password == null ? 43 : $password.hashCode());
-        final Object $status = this.getStatus();
-        result = result * PRIME + ($status == null ? 43 : $status.hashCode());
-        final Object $created = this.getCreated();
-        result = result * PRIME + ($created == null ? 43 : $created.hashCode());
-        final Object $updated = this.getUpdated();
-        result = result * PRIME + ($updated == null ? 43 : $updated.hashCode());
-        final Object $lastLogin = this.getLastLogin();
-        result = result * PRIME + ($lastLogin == null ? 43 : $lastLogin.hashCode());
+        int result = Objects.hashCode(id);
+        result = 31 * result + Objects.hashCode(username);
+        result = 31 * result + Objects.hashCode(nickname);
+        result = 31 * result + Objects.hashCode(avatar);
+        result = 31 * result + Objects.hashCode(email);
+        result = 31 * result + Objects.hashCode(phone);
+        result = 31 * result + Objects.hashCode(password);
+        result = 31 * result + Objects.hashCode(status);
+        result = 31 * result + Objects.hashCode(created);
+        result = 31 * result + Objects.hashCode(updated);
+        result = 31 * result + Objects.hashCode(lastLogin);
         return result;
-    }
-
-    public String toString() {
-        return "UserEntity(id=" + this.getId() + ", username=" + this.getUsername() + ", nickname=" + this.getNickname() + ", avatar=" + this.getAvatar() + ", email=" + this.getEmail() + ", phone=" + this.getPhone() + ", password=" + this.getPassword() + ", status=" + this.getStatus() + ", created=" + this.getCreated() + ", updated=" + this.getUpdated() + ", lastLogin=" + this.getLastLogin() + ")";
     }
 
     public static class UserEntityBuilder {
@@ -321,11 +269,7 @@ public class UserEntity {
         }
 
         public UserEntity build() {
-            return new UserEntity(this.id, this.username, this.nickname, this.avatar, this.email, this.phone, this.password, this.status, this.created, this.updated, this.lastLogin);
-        }
-
-        public String toString() {
-            return "UserEntity.UserEntityBuilder(id=" + this.id + ", username=" + this.username + ", nickname=" + this.nickname + ", avatar=" + this.avatar + ", email=" + this.email + ", phone=" + this.phone + ", password=" + this.password + ", status=" + this.status + ", created=" + this.created + ", updated=" + this.updated + ", lastLogin=" + this.lastLogin + ")";
+            return new UserEntity(id, username, nickname, avatar, email, phone, password, status, created, updated, lastLogin);
         }
     }
 }

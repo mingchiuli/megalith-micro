@@ -58,17 +58,17 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     private List<RoleMenuVo> setCheckMenusInfo(List<MenuDisplayVo> menusInfo, List<Long> menuIdsByRole, List<RoleMenuVo> parentChildren) {
         menusInfo.forEach(item -> {
             RoleMenuVo.RoleMenuVoBuilder builder = RoleMenuVo.builder()
-                    .title(item.getTitle())
-                    .menuId(item.getMenuId());
+                    .title(item.title())
+                    .menuId(item.menuId());
 
-            if (menuIdsByRole.contains(item.getMenuId())) {
+            if (menuIdsByRole.contains(item.menuId())) {
                 builder.check(true);
             }
 
-            if (!item.getChildren().isEmpty()) {
+            if (!item.children().isEmpty()) {
                 List<RoleMenuVo> children = new ArrayList<>();
                 builder.children(children);
-                setCheckMenusInfo(item.getChildren(), menuIdsByRole, children);
+                setCheckMenusInfo(item.children(), menuIdsByRole, children);
             }
             parentChildren.add(builder.build());
         });
@@ -80,8 +80,8 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     public MenusAndButtonsVo getCurrentUserNav(String role) {
 
         MenusAndButtonsDto menusAndButtonsDto = getCurrentRoleNav(role);
-        List<MenuDto> menus = menusAndButtonsDto.getMenus();
-        List<ButtonDto> buttons = menusAndButtonsDto.getButtons();
+        List<MenuDto> menus = menusAndButtonsDto.menus();
+        List<ButtonDto> buttons = menusAndButtonsDto.buttons();
 
         List<MenuDisplayDto> menuEntities = MenuDisplayDtoConvertor.convert(menus, true);
         List<MenuDisplayDto> displayDtos = MenuDisplayDtoConvertor.buildTreeMenu(menuEntities);

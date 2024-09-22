@@ -17,9 +17,9 @@ public class BlogHttpServiceWrapper {
 
     public BlogEntityDto findById(Long blogId) {
         Result<BlogEntityDto> result = blogHttpService.findById(blogId);
-        if (result.getCode() != 200) {
-            throw new MissException(result.getMsg());
+        if (result.code() != 200) {
+            throw new MissException(result.msg());
         }
-        return result.getData();
+        return result.data();
     }
 }
