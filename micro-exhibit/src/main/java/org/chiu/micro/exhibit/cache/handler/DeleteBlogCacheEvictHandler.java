@@ -47,8 +47,8 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
     @Override
     public Set<String> redisProcess(BlogEntityDto blogEntity) {
-        Long id = blogEntity.getId();
-        int year = blogEntity.getCreated().getYear();
+        Long id = blogEntity.id();
+        int year = blogEntity.created().getYear();
         HashSet<String> keys = new HashSet<>();
 
         //博客对象本身缓存
@@ -92,7 +92,7 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
         keys.add(READ_TOKEN.getInfo() + id);
 
-        String blogEditKey = KeyFactory.createBlogEditRedisKey(blogEntity.getUserId(), id);
+        String blogEditKey = KeyFactory.createBlogEditRedisKey(blogEntity.userId(), id);
         //删除该年份的页面bloom，listPage的bloom，getCountByYear的bloom，后面逻辑重建
         keys.add(BLOOM_FILTER_YEAR_PAGE.getInfo() + year);
         keys.add(BLOOM_FILTER_PAGE.getInfo());

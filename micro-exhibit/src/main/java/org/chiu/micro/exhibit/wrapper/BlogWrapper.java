@@ -47,7 +47,7 @@ public class BlogWrapper {
     public BlogExhibitDto findById(Long id) {
         BlogEntityDto blogEntity = blogHttpServiceWrapper.findById(id);
 
-        UserEntityDto user = userHttpServiceWrapper.findById(blogEntity.getUserId());
+        UserEntityDto user = userHttpServiceWrapper.findById(blogEntity.userId());
         return BlogExhibitDtoConvertor.convert(blogEntity, user);
     }
 

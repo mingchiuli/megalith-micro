@@ -12,25 +12,25 @@ public class BlogDescriptionVoConvertor {
     }
 
     public static PageAdapter<BlogDescriptionVo> convert(PageAdapter<BlogDescriptionDto> page) {
-        List<BlogDescriptionVo> vos = page.getContent().stream()
+        List<BlogDescriptionVo> vos = page.content().stream()
                 .map(dto -> BlogDescriptionVo.builder()
-                        .id(dto.getId())
-                        .description(dto.getDescription())
-                        .title(dto.getTitle())
-                        .created(dto.getCreated())
-                        .link(dto.getLink())
+                        .id(dto.id())
+                        .description(dto.description())
+                        .title(dto.title())
+                        .created(dto.created())
+                        .link(dto.link())
                         .build())
                 .toList();
 
         return PageAdapter.<BlogDescriptionVo>builder()
                 .content(vos)
-                .first(page.isFirst())
-                .last(page.isLast())
-                .empty(page.isEmpty())
-                .pageNumber(page.getPageNumber())
-                .pageSize(page.getPageSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
+                .first(page.first())
+                .last(page.last())
+                .empty(page.empty())
+                .pageNumber(page.pageNumber())
+                .pageSize(page.pageSize())
+                .totalElements(page.totalElements())
+                .totalPages(page.totalPages())
                 .build();
     }
 }

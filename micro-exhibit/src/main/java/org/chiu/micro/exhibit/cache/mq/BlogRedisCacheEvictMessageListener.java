@@ -30,7 +30,7 @@ public class BlogRedisCacheEvictMessageListener {
             executor = "mqExecutor")
     public void handler(BlogOperateMessage message, Channel channel, Message msg) {
         for (BlogCacheEvictHandler handler : blogCacheEvictHandlers) {
-            if (handler.supports(message.getTypeEnum())) {
+            if (handler.supports(message.typeEnum())) {
                 handler.handle(message, channel, msg);
                 break;
             }

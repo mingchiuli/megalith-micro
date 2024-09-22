@@ -40,7 +40,7 @@ public class BlogController {
     public Result<BlogExhibitVo> getBlogDetail(@PathVariable Long blogId) {
 
         AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogService.getBlogDetail(authDto.getRoles(), blogId, authDto.getUserId()));
+        return Result.success(() -> blogService.getBlogDetail(authDto.roles(), blogId, authDto.userId()));
     }
 
     @GetMapping("/page/{currentPage}")
@@ -68,7 +68,7 @@ public class BlogController {
     @Bloom(handler = DetailHandler.class)
     public Result<Integer> getBlogStatus(@PathVariable Long blogId) {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogService.getBlogStatus(authDto.getRoles(), blogId, authDto.getUserId()));
+        return Result.success(() -> blogService.getBlogStatus(authDto.roles(), blogId, authDto.userId()));
     }
 
     @GetMapping("/years")

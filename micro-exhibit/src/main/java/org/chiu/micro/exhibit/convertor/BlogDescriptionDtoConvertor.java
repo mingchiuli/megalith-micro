@@ -17,38 +17,38 @@ public class BlogDescriptionDtoConvertor {
 
     public static PageAdapter<BlogDescriptionDto> convert(PageAdapter<BlogEntityDto> page) {
 
-        List<BlogDescriptionDto> dtos = page.getContent().stream()
+        List<BlogDescriptionDto> dtos = page.content().stream()
                 .map(item -> BlogDescriptionDto.builder()
-                        .id(item.getId())
-                        .description(item.getDescription())
-                        .title(item.getTitle())
-                        .status(item.getStatus())
-                        .created(item.getCreated())
-                        .link(item.getLink())
+                        .id(item.id())
+                        .description(item.description())
+                        .title(item.title())
+                        .status(item.status())
+                        .created(item.created())
+                        .link(item.link())
                         .build())
                 .toList();
 
         return PageAdapter.<BlogDescriptionDto>builder()
                 .content(dtos)
-                .empty(page.isEmpty())
-                .totalElements(page.getTotalElements())
-                .pageNumber(page.getPageNumber())
-                .pageSize(page.getPageSize())
-                .first(page.isFirst())
-                .last(page.isLast())
-                .empty(page.isEmpty())
-                .totalPages(page.getTotalPages())
+                .empty(page.empty())
+                .totalElements(page.totalElements())
+                .pageNumber(page.pageNumber())
+                .pageSize(page.pageSize())
+                .first(page.first())
+                .last(page.last())
+                .empty(page.empty())
+                .totalPages(page.totalPages())
                 .build();
     }
 
     public static BlogDescriptionDto convert(BlogDescriptionDto content) {
         return BlogDescriptionDto.builder()
-                .id(content.getId())
-                .status(content.getStatus())
-                .link(content.getLink())
-                .created(content.getCreated())
-                .title(content.getTitle())
-                .description(content.getDescription())
+                .id(content.id())
+                .status(content.status())
+                .link(content.link())
+                .created(content.created())
+                .title(content.title())
+                .description(content.description())
                 .build();
     }
 

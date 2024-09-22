@@ -15,40 +15,40 @@ public class SensitiveUtils {
 
     public static BlogExhibitDto deal(List<SensitiveContent> sensitiveWords, BlogExhibitDto blog) {
         List<SensitiveContent> titleSensitiveList = sensitiveWords.stream()
-                .filter(item -> SensitiveTypeEnum.TITLE.getCode().equals(item.getType()))
+                .filter(item -> SensitiveTypeEnum.TITLE.getCode().equals(item.type()))
                 .toList();
 
         List<SensitiveContent> descSensitiveList = sensitiveWords.stream()
-                .filter(item -> SensitiveTypeEnum.DESCRIPTION.getCode().equals(item.getType()))
+                .filter(item -> SensitiveTypeEnum.DESCRIPTION.getCode().equals(item.type()))
                 .toList();
 
         List<SensitiveContent> contentSensitiveList = sensitiveWords.stream()
-                .filter(item -> SensitiveTypeEnum.CONTENT.getCode().equals(item.getType()))
+                .filter(item -> SensitiveTypeEnum.CONTENT.getCode().equals(item.type()))
                 .toList();
 
-        String title = blog.getTitle();
-        String description = blog.getDescription();
-        String content = blog.getContent();
+        String title = blog.title();
+        String description = blog.description();
+        String content = blog.content();
 
         for (SensitiveContent item : titleSensitiveList) {
-            Integer startIndex = item.getStartIndex();
-            Integer endIndex = item.getEndIndex();
+            Integer startIndex = item.startIndex();
+            Integer endIndex = item.endIndex();
             title = title.substring(0, startIndex) +
                     getStar(endIndex - startIndex) +
                     title.substring(endIndex);
         }
 
         for (SensitiveContent item : descSensitiveList) {
-            Integer startIndex = item.getStartIndex();
-            Integer endIndex = item.getEndIndex();
+            Integer startIndex = item.startIndex();
+            Integer endIndex = item.endIndex();
             description = description.substring(0, startIndex) +
                     getStar(endIndex - startIndex) +
                     description.substring(endIndex);
         }
 
         for (SensitiveContent item : contentSensitiveList) {
-            Integer startIndex = item.getStartIndex();
-            Integer endIndex = item.getEndIndex();
+            Integer startIndex = item.startIndex();
+            Integer endIndex = item.endIndex();
             content = content.substring(0, startIndex) +
                     getStar(endIndex - startIndex) +
                     content.substring(endIndex);
@@ -59,27 +59,27 @@ public class SensitiveUtils {
 
     public static BlogDescriptionDto deal(List<SensitiveContent> sensitiveWords, BlogDescriptionDto blog) {
         List<SensitiveContent> titleSensitiveList = sensitiveWords.stream()
-                .filter(item -> SensitiveTypeEnum.TITLE.getCode().equals(item.getType()))
+                .filter(item -> SensitiveTypeEnum.TITLE.getCode().equals(item.type()))
                 .toList();
 
         List<SensitiveContent> descSensitiveList = sensitiveWords.stream()
-                .filter(item -> SensitiveTypeEnum.DESCRIPTION.getCode().equals(item.getType()))
+                .filter(item -> SensitiveTypeEnum.DESCRIPTION.getCode().equals(item.type()))
                 .toList();
 
-        String title = blog.getTitle();
-        String description = blog.getDescription();
+        String title = blog.title();
+        String description = blog.description();
 
         for (SensitiveContent item : titleSensitiveList) {
-            Integer startIndex = item.getStartIndex();
-            Integer endIndex = item.getEndIndex();
+            Integer startIndex = item.startIndex();
+            Integer endIndex = item.endIndex();
             title = title.substring(0, startIndex) +
                     getStar(endIndex - startIndex) +
                     title.substring(endIndex);
         }
 
         for (SensitiveContent item : descSensitiveList) {
-            Integer startIndex = item.getStartIndex();
-            Integer endIndex = item.getEndIndex();
+            Integer startIndex = item.startIndex();
+            Integer endIndex = item.endIndex();
             description = description.substring(0, startIndex) +
                     getStar(endIndex - startIndex) +
                     description.substring(endIndex);

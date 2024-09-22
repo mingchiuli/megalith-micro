@@ -46,10 +46,10 @@ public abstract sealed class BlogCacheEvictHandler permits
     public void handle(BlogOperateMessage message, Channel channel, Message msg) {
         long deliveryTag = msg.getMessageProperties().getDeliveryTag();
         try {
-            Long blogId = message.getBlogId();
-            Integer year = message.getYear();
+            Long blogId = message.blogId();
+            Integer year = message.year();
             BlogEntityDto blogEntity;
-            if (Objects.equals(message.getTypeEnum(), BlogOperateEnum.REMOVE)) {
+            if (Objects.equals(message.typeEnum(), BlogOperateEnum.REMOVE)) {
                 blogEntity = BlogEntityDto.builder()
                         .id(blogId)
                         .created(LocalDateTime.of(year, 1, 1, 0, 0, 0))

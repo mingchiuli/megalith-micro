@@ -85,14 +85,14 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public PageAdapter<BlogDescriptionVo> findPage(Integer currentPage, Integer year) {
         PageAdapter<BlogDescriptionDto> dtoPageAdapter = blogWrapper.findPage(currentPage, year);
-        List<BlogDescriptionDto> descList = dtoPageAdapter.getContent();
+        List<BlogDescriptionDto> descList = dtoPageAdapter.content();
 
         List<BlogDescriptionDto> descSensitiveList = descList.stream()
                 .map(desc -> {
-                    if (!StatusEnum.SENSITIVE_FILTER.getCode().equals(desc.getStatus())) {
+                    if (!StatusEnum.SENSITIVE_FILTER.getCode().equals(desc.status())) {
                         return desc;
                     }
-                    List<SensitiveContent> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.getId()).getSensitiveContent();
+                    List<SensitiveContent> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContent();
                     if (words.isEmpty()) {
                         return desc;
                     }
@@ -100,7 +100,8 @@ public class BlogServiceImpl implements BlogService {
                 })
                 .toList();
 
-        dtoPageAdapter.setContent(descSensitiveList);
+        dtoPageAdapter = new PageAdapter<>(descSensitiveList, dtoPageAdapter.totalElements(), dtoPageAdapter.pageNumber(), dtoPageAdapter.pageSize(), dtoPageAdapter.first(), dtoPageAdapter.last(), dtoPageAdapter.empty(), dtoPageAdapter.totalPages());
+
         return BlogDescriptionVoConvertor.convert(dtoPageAdapter);
     }
 
@@ -132,7 +133,7 @@ public class BlogServiceImpl implements BlogService {
 
         BlogEntityDto blog = blogHttpServiceWrapper.findById(blogId);
 
-        Long id = blog.getUserId();
+        Long id = blog.userId();
         return Objects.equals(id, userId) ?
                 StatusEnum.NORMAL.getCode() :
                 StatusEnum.HIDE.getCode();
@@ -195,15 +196,15 @@ public class BlogServiceImpl implements BlogService {
 
         if (StatusEnum.HIDE.getCode().equals(status) &&
                 !roles.contains(highestRole) &&
-                !Objects.equals(userId, blogExhibitDto.getUserId())) {
+                !Objects.equals(userId, blogExhibitDto.userId())) {
             throw new MissException(AUTH_EXCEPTION.getMsg());
         }
 
         if (StatusEnum.SENSITIVE_FILTER.getCode().equals(status) &&
                 !roles.contains(highestRole) &&
-                !Objects.equals(userId, blogExhibitDto.getUserId())) {
+                !Objects.equals(userId, blogExhibitDto.userId())) {
             BlogSensitiveContentDto sensitiveContentDto = blogSensitiveWrapper.findSensitiveByBlogId(id);
-            List<SensitiveContent> words = sensitiveContentDto.getSensitiveContent();
+            List<SensitiveContent> words = sensitiveContentDto.sensitiveContent();
             if (!words.isEmpty()) {
                 blogExhibitDto = SensitiveUtils.deal(words, blogExhibitDto);
             }
