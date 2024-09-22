@@ -30,6 +30,6 @@ public final class RemoveBlogIndexHandler extends BlogIndexSupport {
 
     @Override
     protected void elasticSearchProcess(BlogEntityDto blog) {
-        elasticsearchTemplate.delete(blog.getId().toString(), BlogDocument.class);
+        elasticsearchTemplate.delete(blog.id().toString(), BlogDocument.class);
     }
 }

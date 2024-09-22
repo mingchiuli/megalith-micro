@@ -12,14 +12,14 @@ public class BlogEditVoConvertor {
 
     public static BlogEditVo convert(BlogEntityDto blog, Integer version, List<SensitiveContentVo> sensitiveContentList) {
         return BlogEditVo.builder()
-                .userId(blog.getUserId())
-                .id(blog.getId())
-                .title(blog.getTitle())
-                .description(blog.getDescription())
-                .content(blog.getContent())
-                .link(blog.getLink())
+                .userId(blog.userId())
+                .id(blog.id())
+                .title(blog.title())
+                .description(blog.description())
+                .content(blog.content())
+                .link(blog.link())
                 .version(version)
-                .status(blog.getStatus())
+                .status(blog.status())
                 .sensitiveContentList(sensitiveContentList)
                 .build();
     }
