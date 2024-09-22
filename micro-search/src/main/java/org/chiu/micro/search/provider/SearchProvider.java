@@ -32,6 +32,6 @@ public class SearchProvider {
                                                @RequestParam(defaultValue = "5") Integer size,
                                                @RequestParam @Size(min = 0, max = 20) String keywords) {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogSearchService.searchBlogs(keywords, currentPage, size, authDto.getUserId(), authDto.getRoles()));
+        return Result.success(() -> blogSearchService.searchBlogs(keywords, currentPage, size, authDto.userId(), authDto.roles()));
     }
 }

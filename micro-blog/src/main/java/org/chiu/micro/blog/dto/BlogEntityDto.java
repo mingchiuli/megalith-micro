@@ -3,126 +3,31 @@ package org.chiu.micro.blog.dto;
 import java.time.LocalDateTime;
 
 
-public class BlogEntityDto {
+public record BlogEntityDto(
 
-    private Long id;
+        Long id,
 
-    private Long userId;
+        Long userId,
 
-    private String title;
+        String title,
 
-    private String description;
+        String description,
 
-    private String content;
+        String content,
 
-    private LocalDateTime created;
+        LocalDateTime created,
 
-    private LocalDateTime updated;
+        LocalDateTime updated,
 
-    private Integer status;
+        Integer status,
 
-    private String link;
+        String link,
 
-    private Long readCount;
-
-    BlogEntityDto(Long id, Long userId, String title, String description, String content, LocalDateTime created, LocalDateTime updated, Integer status, String link, Long readCount) {
-        this.id = id;
-        this.userId = userId;
-        this.title = title;
-        this.description = description;
-        this.content = content;
-        this.created = created;
-        this.updated = updated;
-        this.status = status;
-        this.link = link;
-        this.readCount = readCount;
-    }
+        Long readCount) {
 
     public static BlogEntityDtoBuilder builder() {
         return new BlogEntityDtoBuilder();
     }
-
-    public Long getId() {
-        return this.id;
-    }
-
-    public Long getUserId() {
-        return this.userId;
-    }
-
-    public String getTitle() {
-        return this.title;
-    }
-
-    public String getDescription() {
-        return this.description;
-    }
-
-    public String getContent() {
-        return this.content;
-    }
-
-    public LocalDateTime getCreated() {
-        return this.created;
-    }
-
-    public LocalDateTime getUpdated() {
-        return this.updated;
-    }
-
-    public Integer getStatus() {
-        return this.status;
-    }
-
-    public String getLink() {
-        return this.link;
-    }
-
-    public Long getReadCount() {
-        return this.readCount;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public void setCreated(LocalDateTime created) {
-        this.created = created;
-    }
-
-    public void setUpdated(LocalDateTime updated) {
-        this.updated = updated;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public void setLink(String link) {
-        this.link = link;
-    }
-
-    public void setReadCount(Long readCount) {
-        this.readCount = readCount;
-    }
-
-
 
     public static class BlogEntityDtoBuilder {
         private Long id;

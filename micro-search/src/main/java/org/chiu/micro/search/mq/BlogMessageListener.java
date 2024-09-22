@@ -30,7 +30,7 @@ public class BlogMessageListener {
             executor = "mqExecutor")
     public void handler(BlogOperateMessage message, Channel channel, Message msg) {
         for (BlogIndexSupport handler : elasticsearchHandlers) {
-            if (handler.supports(message.getTypeEnum())) {
+            if (handler.supports(message.typeEnum())) {
                 handler.handle(message, channel, msg);
                 break;
             }

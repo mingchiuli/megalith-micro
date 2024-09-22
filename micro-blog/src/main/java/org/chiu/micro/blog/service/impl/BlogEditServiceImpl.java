@@ -148,7 +148,8 @@ public class BlogEditServiceImpl implements BlogEditService {
                     content.append(PARAGRAPH_SPLITTER.getInfo());
                 }
             }
-            blog.setContent(content.toString());
+
+            blog = new BlogEntityDto(blog.id(), blog.userId(), blog.title(), blog.description(), content.toString(), null, null, blog.status(), blog.link(), blog.readCount());
         } else if (Objects.isNull(id)) {
             // 新文章
             blog = BlogEntityDto.builder()
@@ -166,7 +167,7 @@ public class BlogEditServiceImpl implements BlogEditService {
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
 
             blog = BlogEntityDtoConvertor.convert(userBlogEntity);
-            List<String> paragraphList = List.of(blog.getContent().split(PARAGRAPH_SPLITTER.getInfo()));
+            List<String> paragraphList = List.of(blog.content().split(PARAGRAPH_SPLITTER.getInfo()));
             paragraphListString = jsonUtils.writeValueAsString(paragraphList);
             BlogSensitiveContentVo blogSensitiveContentVo = blogSensitiveService.findByBlogId(id);
             sensitiveContentList = blogSensitiveContentVo.sensitiveContent();
@@ -177,8 +178,8 @@ public class BlogEditServiceImpl implements BlogEditService {
                     Collections.singletonList(redisKey),
                     paragraphListString, ID.getMsg(), USER_ID.getMsg(), TITLE.getMsg(), DESCRIPTION.getMsg(),
                     STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
-                    Objects.isNull(blog.getId()) ? "" : blog.getId().toString(), originUserId.toString(), blog.getTitle(),
-                    blog.getDescription(), blog.getStatus().toString(), blog.getLink(), Integer.toString(version), jsonUtils.writeValueAsString(sensitiveContentList),
+                    Objects.isNull(blog.id()) ? "" : blog.id().toString(), originUserId.toString(), blog.title(),
+                    blog.description(), blog.status().toString(), blog.link(), Integer.toString(version), jsonUtils.writeValueAsString(sensitiveContentList),
                     A_WEEK.getInfo());
         }
 

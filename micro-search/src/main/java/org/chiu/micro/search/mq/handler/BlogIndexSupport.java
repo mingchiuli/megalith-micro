@@ -32,11 +32,10 @@ public abstract sealed class BlogIndexSupport permits
     public void handle(BlogOperateMessage message, Channel channel, Message msg) {
         long deliveryTag = msg.getMessageProperties().getDeliveryTag();
         try {
-            Long blogId = message.getBlogId();
+            Long blogId = message.blogId();
             BlogEntityDto blogEntity;
-            if (Objects.equals(message.getTypeEnum(), BlogOperateEnum.REMOVE)) {
-                blogEntity = new BlogEntityDto();
-                blogEntity.setId(blogId);
+            if (Objects.equals(message.typeEnum(), BlogOperateEnum.REMOVE)) {
+                blogEntity = new BlogEntityDto(blogId, null, null, null, null, null, null, null, null, null);
             } else {
                 blogEntity = blogHttpServiceWrapper.findById(blogId);
             }
