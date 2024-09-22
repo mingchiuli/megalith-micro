@@ -31,8 +31,8 @@ public class WebSocketSecurityConfig {
     AuthorizationManager<Message<?>> authorizationManager(MessageMatcherDelegatingAuthorizationManager.Builder messages) {
 
         List<AuthorityDto> authorities = authHttpServiceWrapper.getSystemAuthorities().stream()
-                .filter(item -> Const.WS.getInfo().equals(item.getPrototype()))
-                .filter(item -> !item.getCode().startsWith(Const.WHITELIST.getInfo()))
+                .filter(item -> Const.WS.getInfo().equals(item.prototype()))
+                .filter(item -> !item.code().startsWith(Const.WHITELIST.getInfo()))
                 .toList();
 
         var builder = messages
@@ -40,8 +40,8 @@ public class WebSocketSecurityConfig {
                 .permitAll();
 
         authorities.forEach(authority -> builder
-                .simpDestMatchers(authority.getRoutePattern())
-                .hasAuthority(authority.getCode()));
+                .simpDestMatchers(authority.routePattern())
+                .hasAuthority(authority.code()));
 
         return builder
                 .anyMessage()

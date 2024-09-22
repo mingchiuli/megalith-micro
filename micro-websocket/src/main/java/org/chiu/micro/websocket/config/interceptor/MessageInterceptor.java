@@ -42,7 +42,7 @@ public class MessageInterceptor implements ChannelInterceptor {
             }
 
             AuthDto authDto = authHttpServiceWrapper.getAuthentication(token);
-            PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(authDto.getUserId(), null, AuthorityUtils.createAuthorityList(authDto.getAuthorities()));
+            PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(authDto.userId(), null, AuthorityUtils.createAuthorityList(authDto.authorities()));
             accessor.setUser(authentication);
         }
         return message;

@@ -22,18 +22,18 @@ public class AuthHttpServiceWrapper {
 
     public AuthDto getAuthentication(String token) {
         Result<AuthDto> result = authHttpService.getAuthentication(token);
-        if (result.getCode() != 200) {
-            throw new MissException(result.getMsg());
+        if (result.code() != 200) {
+            throw new MissException(result.msg());
         }
-        return result.getData();
+        return result.data();
     }
 
     public List<AuthorityDto> getSystemAuthorities() {
         Result<List<AuthorityDto>> result = authHttpService.getSystemAuthorities(Collections.singletonList(Const.WEBSOCKET_SERVICE.getInfo()));
-        if (result.getCode() != 200) {
-            throw new MissException(result.getMsg());
+        if (result.code() != 200) {
+            throw new MissException(result.msg());
         }
-        return result.getData();
+        return result.data();
     }
 
 }
