@@ -2,7 +2,8 @@ package org.chiu.micro.websocket.config;
 
 
 import org.chiu.micro.websocket.dto.StompMessageDto;
-import org.springframework.aot.hint.*;
+import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 

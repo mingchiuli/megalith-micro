@@ -1,12 +1,14 @@
 package org.chiu.micro.user.utils;
 
-import lombok.SneakyThrows;
+import org.chiu.micro.user.exception.MissException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -27,11 +29,15 @@ public class OssSignUtils {
 
     private static final String ALGORITHM = "HmacSHA1";
 
-    @SneakyThrows
     private byte[] hmacSha1(String data, String accessKeySecret) {
-        Mac mac = Mac.getInstance(ALGORITHM);
-        SecretKeySpec keySpec = new SecretKeySpec(accessKeySecret.getBytes(), ALGORITHM);
-        mac.init(keySpec);
+        Mac mac;
+        try {
+            mac = Mac.getInstance(ALGORITHM);
+            SecretKeySpec keySpec = new SecretKeySpec(accessKeySecret.getBytes(), ALGORITHM);
+            mac.init(keySpec);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new MissException(e.getMessage());
+        }
         return mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
     }
 

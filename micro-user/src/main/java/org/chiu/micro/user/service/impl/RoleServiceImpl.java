@@ -1,8 +1,7 @@
 package org.chiu.micro.user.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
-
 import org.chiu.micro.user.constant.AuthMenuIndexMessage;
 import org.chiu.micro.user.convertor.RoleEntityRpcVoConvertor;
 import org.chiu.micro.user.convertor.RoleEntityVoConvertor;
@@ -10,17 +9,15 @@ import org.chiu.micro.user.entity.RoleAuthorityEntity;
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.entity.RoleMenuEntity;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
-import org.chiu.micro.user.repository.RoleAuthorityRepository;
-import org.chiu.micro.user.repository.RoleMenuRepository;
-import org.chiu.micro.user.repository.RoleRepository;
-import org.chiu.micro.user.service.RoleService;
-import org.chiu.micro.user.req.RoleEntityReq;
 import org.chiu.micro.user.exception.MissException;
 import org.chiu.micro.user.lang.AuthMenuOperateEnum;
 import org.chiu.micro.user.lang.StatusEnum;
 import org.chiu.micro.user.page.PageAdapter;
-import lombok.RequiredArgsConstructor;
-
+import org.chiu.micro.user.repository.RoleAuthorityRepository;
+import org.chiu.micro.user.repository.RoleMenuRepository;
+import org.chiu.micro.user.repository.RoleRepository;
+import org.chiu.micro.user.req.RoleEntityReq;
+import org.chiu.micro.user.service.RoleService;
 import org.chiu.micro.user.vo.RoleEntityRpcVo;
 import org.chiu.micro.user.vo.RoleEntityVo;
 import org.chiu.micro.user.wrapper.RoleMenuAuthorityWrapper;
@@ -31,9 +28,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Collections;
 
 import static org.chiu.micro.user.lang.ExceptionMessage.ROLE_NOT_EXIST;
 
@@ -42,13 +39,12 @@ import static org.chiu.micro.user.lang.ExceptionMessage.ROLE_NOT_EXIST;
  * @create 2022-12-04 2:26 am
  */
 @Service
-@RequiredArgsConstructor
 public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
-    
+
     private final RoleMenuRepository roleMenuRepository;
-    
+
     private final RoleAuthorityRepository roleAuthorityRepository;
 
     private final ObjectMapper objectMapper;
@@ -56,6 +52,15 @@ public class RoleServiceImpl implements RoleService {
     private final RoleMenuAuthorityWrapper roleMenuAuthorityWrapper;
 
     private final ApplicationContext applicationContext;
+
+    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, RoleAuthorityRepository roleAuthorityRepository, ObjectMapper objectMapper, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper, ApplicationContext applicationContext) {
+        this.roleRepository = roleRepository;
+        this.roleMenuRepository = roleMenuRepository;
+        this.roleAuthorityRepository = roleAuthorityRepository;
+        this.objectMapper = objectMapper;
+        this.roleMenuAuthorityWrapper = roleMenuAuthorityWrapper;
+        this.applicationContext = applicationContext;
+    }
 
     @Override
     public RoleEntityVo info(Long id) {
@@ -73,10 +78,10 @@ public class RoleServiceImpl implements RoleService {
         Page<RoleEntity> page = roleRepository.findAll(pageRequest);
 
         List<Long> ids = page.get().map(RoleEntity::getId).toList();
-        
+
         List<RoleMenuEntity> roleMenus = roleMenuRepository.findByRoleIdIn(ids);
         List<RoleAuthorityEntity> roleAuthorities = roleAuthorityRepository.findByRoleIdIn(ids);
-        
+
         return RoleEntityVoConvertor.convert(page, roleMenus, roleAuthorities);
     }
 
@@ -111,14 +116,17 @@ public class RoleServiceImpl implements RoleService {
                 .toList();
 
         var authMenuIndexMessage = new AuthMenuIndexMessage(roles, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
-        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));        
+        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
     }
 
-    @SneakyThrows
     @Override
     public byte[] download() {
         List<RoleEntity> roles = roleRepository.findAll();
-        return objectMapper.writeValueAsBytes(roles);
+        try {
+            return objectMapper.writeValueAsBytes(roles);
+        } catch (JsonProcessingException e) {
+            throw new MissException(e.getMessage());
+        }
     }
 
     @Override

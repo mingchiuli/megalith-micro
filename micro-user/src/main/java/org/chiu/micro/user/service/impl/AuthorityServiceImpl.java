@@ -1,14 +1,14 @@
 package org.chiu.micro.user.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import org.chiu.micro.user.constant.AuthMenuIndexMessage;
+import org.chiu.micro.user.convertor.AuthorityVoConvertor;
+import org.chiu.micro.user.entity.AuthorityEntity;
+import org.chiu.micro.user.event.AuthMenuOperateEvent;
 import org.chiu.micro.user.exception.MissException;
 import org.chiu.micro.user.lang.AuthMenuOperateEnum;
 import org.chiu.micro.user.lang.StatusEnum;
-import org.chiu.micro.user.entity.AuthorityEntity;
-import org.chiu.micro.user.event.AuthMenuOperateEvent;
 import org.chiu.micro.user.repository.AuthorityRepository;
 import org.chiu.micro.user.repository.RoleRepository;
 import org.chiu.micro.user.req.AuthorityEntityReq;
@@ -17,8 +17,6 @@ import org.chiu.micro.user.vo.AuthorityVo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-import org.chiu.micro.user.constant.AuthMenuIndexMessage;
-import org.chiu.micro.user.convertor.AuthorityVoConvertor;
 
 import java.util.List;
 import java.util.Objects;
@@ -26,7 +24,6 @@ import java.util.Objects;
 import static org.chiu.micro.user.lang.ExceptionMessage.NO_FOUND;
 
 @Service
-@RequiredArgsConstructor
 public class AuthorityServiceImpl implements AuthorityService {
 
     private final AuthorityRepository authorityRepository;
@@ -36,6 +33,13 @@ public class AuthorityServiceImpl implements AuthorityService {
     private final RoleRepository roleRepository;
 
     private final ApplicationContext applicationContext;
+
+    public AuthorityServiceImpl(AuthorityRepository authorityRepository, ObjectMapper objectMapper, RoleRepository roleRepository, ApplicationContext applicationContext) {
+        this.authorityRepository = authorityRepository;
+        this.objectMapper = objectMapper;
+        this.roleRepository = roleRepository;
+        this.applicationContext = applicationContext;
+    }
 
     @Override
     public List<AuthorityVo> findAllByService(List<String> service) {
@@ -88,10 +92,13 @@ public class AuthorityServiceImpl implements AuthorityService {
         applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
     }
 
-    @SneakyThrows
     @Override
     public byte[] download() {
         List<AuthorityEntity> authorities = authorityRepository.findAll();
-        return objectMapper.writeValueAsBytes(authorities);
+        try {
+            return objectMapper.writeValueAsBytes(authorities);
+        } catch (JsonProcessingException e) {
+            throw new MissException(e.getMessage());
+        }
     }
 }

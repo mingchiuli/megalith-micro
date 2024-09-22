@@ -1,10 +1,6 @@
 package org.chiu.micro.websocket.config;
 
 
-import lombok.RequiredArgsConstructor;
-
-import java.util.List;
-
 import org.chiu.micro.websocket.dto.AuthorityDto;
 import org.chiu.micro.websocket.lang.Const;
 import org.chiu.micro.websocket.rpc.wrapper.AuthHttpServiceWrapper;
@@ -16,12 +12,17 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
+import java.util.List;
+
 
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
+
+    public SecurityConfig(AuthHttpServiceWrapper authHttpServiceWrapper) {
+        this.authHttpServiceWrapper = authHttpServiceWrapper;
+    }
 
     @Bean
     SecurityFilterChain configure(HttpSecurity http) throws Exception {

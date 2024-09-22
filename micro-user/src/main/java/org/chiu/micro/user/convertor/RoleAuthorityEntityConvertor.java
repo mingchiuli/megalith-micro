@@ -6,7 +6,8 @@ import java.util.List;
 
 public class RoleAuthorityEntityConvertor {
 
-    private RoleAuthorityEntityConvertor() {}
+    private RoleAuthorityEntityConvertor() {
+    }
 
     public static List<RoleAuthorityEntity> convert(Long roleId, List<Long> authorityIds) {
         return authorityIds.stream()

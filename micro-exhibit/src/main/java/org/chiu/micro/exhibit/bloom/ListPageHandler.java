@@ -2,7 +2,6 @@ package org.chiu.micro.exhibit.bloom;
 
 import org.chiu.micro.exhibit.exception.MissException;
 import org.chiu.micro.exhibit.lang.Const;
-import lombok.RequiredArgsConstructor;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
@@ -11,10 +10,13 @@ import java.util.Objects;
 import static org.chiu.micro.exhibit.lang.ExceptionMessage.NO_FOUND;
 
 @Component
-@RequiredArgsConstructor
 public class ListPageHandler extends BloomHandler {
 
     private final RedissonClient redissonClient;
+
+    public ListPageHandler(RedissonClient redissonClient) {
+        this.redissonClient = redissonClient;
+    }
 
     @Override
     public void handle(Object[] args) {

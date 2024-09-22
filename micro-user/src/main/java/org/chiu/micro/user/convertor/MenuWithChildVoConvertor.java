@@ -1,9 +1,9 @@
 package org.chiu.micro.user.convertor;
 
-import java.util.List;
-
 import org.chiu.micro.user.dto.MenuWithChildDto;
 import org.chiu.micro.user.vo.MenuWithChildVo;
+
+import java.util.List;
 
 public class MenuWithChildVoConvertor {
 

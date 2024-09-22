@@ -1,27 +1,29 @@
 package org.chiu.micro.exhibit.cache.handler;
 
 import com.rabbitmq.client.Channel;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.chiu.micro.exhibit.config.CacheBlogEvictRabbitConfig;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
 import org.chiu.micro.exhibit.constant.BlogOperateMessage;
 import org.chiu.micro.exhibit.dto.BlogEntityDto;
+import org.chiu.micro.exhibit.exception.MissException;
 import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
 import org.redisson.api.RedissonClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
 
-@Slf4j
 public abstract sealed class BlogCacheEvictHandler permits
         CreateBlogCacheEvictHandler,
         DeleteBlogCacheEvictHandler,
         UpdateBlogCacheEvictHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(BlogCacheEvictHandler.class);
     protected final RedissonClient redissonClient;
 
     protected final BlogHttpServiceWrapper blogHttpServiceWrapper;
@@ -41,7 +43,6 @@ public abstract sealed class BlogCacheEvictHandler permits
     protected abstract Set<String> redisProcess(BlogEntityDto blog);
 
 
-    @SneakyThrows
     public void handle(BlogOperateMessage message, Channel channel, Message msg) {
         long deliveryTag = msg.getMessageProperties().getDeliveryTag();
         try {
@@ -64,7 +65,11 @@ public abstract sealed class BlogCacheEvictHandler permits
             channel.basicAck(deliveryTag, false);
         } catch (Exception e) {
             log.error("consume failure", e);
-            channel.basicNack(deliveryTag, false, true);
+            try {
+                channel.basicNack(deliveryTag, false, true);
+            } catch (IOException ex) {
+                throw new MissException(ex.getMessage());
+            }
         }
     }
 }

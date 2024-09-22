@@ -9,16 +9,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.RequiredArgsConstructor;
-
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/inner/menu")
 @Validated
 public class MenuProvider {
 
     private final RoleMenuService roleMenuService;
-  
+
+    public MenuProvider(RoleMenuService roleMenuService) {
+        this.roleMenuService = roleMenuService;
+    }
+
     @GetMapping("/nav/{role}")
     public Result<MenusAndButtonsVo> nav(@PathVariable String role) {
         return Result.success(() -> roleMenuService.getCurrentUserNav(role));

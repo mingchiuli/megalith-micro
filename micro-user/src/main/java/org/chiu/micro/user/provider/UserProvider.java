@@ -1,9 +1,5 @@
 package org.chiu.micro.user.provider;
 
-import org.springframework.web.bind.annotation.RestController;
-
-import lombok.RequiredArgsConstructor;
-
 import org.chiu.micro.user.lang.Result;
 import org.chiu.micro.user.service.RoleService;
 import org.chiu.micro.user.service.UserRoleService;
@@ -11,15 +7,10 @@ import org.chiu.micro.user.service.UserService;
 import org.chiu.micro.user.vo.RoleEntityRpcVo;
 import org.chiu.micro.user.vo.UserEntityRpcVo;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.time.LocalDateTime;
-import java.lang.Void;
+import java.util.List;
 
 
 /**
@@ -27,7 +18,6 @@ import java.lang.Void;
  */
 @RestController
 @RequestMapping(value = "/inner/user")
-@RequiredArgsConstructor
 @Validated
 public class UserProvider {
 
@@ -36,6 +26,12 @@ public class UserProvider {
     private final RoleService roleService;
 
     private final UserRoleService userRoleService;
+
+    public UserProvider(UserService userService, RoleService roleService, UserRoleService userRoleService) {
+        this.userService = userService;
+        this.roleService = roleService;
+        this.userRoleService = userRoleService;
+    }
 
 
     @GetMapping("/{userId}")
@@ -77,7 +73,7 @@ public class UserProvider {
     Result<UserEntityRpcVo> findByUsernameOrEmailOrPhone(@PathVariable String username) {
         return Result.success(() -> userService.findByUsernameOrEmailOrPhone(username));
     }
-    
+
     @GetMapping("/unlock")
     Result<Void> unlock() {
         return Result.success(userService::unlockUser);

@@ -1,24 +1,18 @@
 package org.chiu.micro.user.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.SneakyThrows;
-import org.chiu.micro.user.http.OssHttpService;
-import org.chiu.micro.user.utils.OssSignUtils;
-import org.chiu.micro.user.vo.UserEntityRpcVo;
 import org.chiu.micro.user.convertor.UserEntityRpcVoConvertor;
 import org.chiu.micro.user.entity.UserEntity;
 import org.chiu.micro.user.exception.MissException;
+import org.chiu.micro.user.http.OssHttpService;
 import org.chiu.micro.user.repository.UserRepository;
 import org.chiu.micro.user.service.UserService;
-
-import lombok.RequiredArgsConstructor;
-
+import org.chiu.micro.user.utils.OssSignUtils;
+import org.chiu.micro.user.vo.UserEntityRpcVo;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -29,13 +23,14 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import static org.chiu.micro.user.lang.Const.*;
+import static org.chiu.micro.user.lang.Const.REGISTER_PREFIX;
 import static org.chiu.micro.user.lang.ExceptionMessage.*;
 
 /**
@@ -43,7 +38,6 @@ import static org.chiu.micro.user.lang.ExceptionMessage.*;
  * @create 2022-12-04 4:55 pm
  */
 @Service
-@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -65,6 +59,15 @@ public class UserServiceImpl implements UserService {
     @Value("${blog.register.page-prefix}")
     private String pagePrefix;
 
+    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, OssSignUtils ossSignUtils, ObjectMapper objectMapper, ExecutorService taskExecutor) {
+        this.userRepository = userRepository;
+        this.redisTemplate = redisTemplate;
+        this.ossHttpService = ossHttpService;
+        this.ossSignUtils = ossSignUtils;
+        this.objectMapper = objectMapper;
+        this.taskExecutor = taskExecutor;
+    }
+
     @Override
     public void updateLoginTime(String username, LocalDateTime time) {
         userRepository.updateLoginTime(username, time);
@@ -85,19 +88,23 @@ public class UserServiceImpl implements UserService {
         return pagePrefix + token;
     }
 
-    @SneakyThrows
     @Override
     public SseEmitter imageUpload(String token, MultipartFile file) {
         Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX.getInfo() + token);
         if (Objects.isNull(exist) || Boolean.FALSE.equals(exist)) {
             throw new MissException(NO_AUTH.getMsg());
         }
-        byte[] imageBytes = file.getBytes();
+        byte[] imageBytes;
+        try {
+            imageBytes = file.getBytes();
+        } catch (IOException e) {
+            throw new MissException(e.getMessage());
+        }
         if (imageBytes.length == 0) {
             throw new MissException(UPLOAD_MISS.getMsg());
         }
         var sseEmitter = new SseEmitter();
-        
+
         taskExecutor.execute(() -> {
             String uuid = UUID.randomUUID().toString();
             String originalFilename = file.getOriginalFilename();
@@ -110,13 +117,13 @@ public class UserServiceImpl implements UserService {
             String gmtDate = ossSignUtils.getGMTDate();
             headers.put(HttpHeaders.DATE, gmtDate);
             headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.PUT.name(), "image/jpg"));
-            headers.put(HttpHeaders.CACHE_CONTROL,  "no-cache");
+            headers.put(HttpHeaders.CACHE_CONTROL, "no-cache");
             headers.put(HttpHeaders.CONTENT_TYPE, "image/jpg");
             ossHttpService.putOssObject(objectName, imageBytes, headers);
             try {
                 sseEmitter.send(baseUrl + "/" + objectName, MediaType.TEXT_PLAIN);
                 sseEmitter.complete();
-            } catch(IOException e) {
+            } catch (IOException e) {
                 sseEmitter.completeWithError(e);
             }
         });
@@ -145,17 +152,20 @@ public class UserServiceImpl implements UserService {
         return redisTemplate.hasKey(REGISTER_PREFIX.getInfo() + token);
     }
 
-    @SneakyThrows
     @Override
     public void download(HttpServletResponse response) {
         List<UserEntity> users = userRepository.findAll();
-        byte[] data = objectMapper.writeValueAsBytes(users);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        ServletOutputStream outputStream = response.getOutputStream();
-        outputStream.write(data);
-        outputStream.flush();
-        outputStream.close();
+        try {
+            byte[] data = objectMapper.writeValueAsBytes(users);
+            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            ServletOutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+            outputStream.flush();
+            outputStream.close();
+        } catch (IOException e) {
+            throw new MissException(e.getMessage());
+        }
     }
 
     @Override
@@ -181,14 +191,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserEntityRpcVo findByUsernameOrEmailOrPhone(String username) {
-        UserEntity userEntity =  userRepository.findByUsernameOrEmailOrPhone(username, username, username)
+        UserEntity userEntity = userRepository.findByUsernameOrEmailOrPhone(username, username, username)
                 .orElseThrow(() -> new MissException(USER_MISS.getMsg()));
         return UserEntityRpcVoConvertor.convert(userEntity);
     }
 
-	@Override
+    @Override
     @Async("commonExecutor")
-	public void unlockUser() {
-		userRepository.unlockUser();
-	}
+    public void unlockUser() {
+        userRepository.unlockUser();
+    }
 }

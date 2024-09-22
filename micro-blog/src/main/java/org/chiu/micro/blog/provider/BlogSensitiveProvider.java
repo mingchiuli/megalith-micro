@@ -10,15 +10,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.RequiredArgsConstructor;
-
 @RestController
 @RequestMapping(value = "/inner")
-@RequiredArgsConstructor
 @Validated
 public class BlogSensitiveProvider {
 
     private final BlogSensitiveService blogSensitiveService;
+
+    public BlogSensitiveProvider(BlogSensitiveService blogSensitiveService) {
+        this.blogSensitiveService = blogSensitiveService;
+    }
 
     @GetMapping("/blog/sensitive/{blogId}")
     public Result<BlogSensitiveContentVo> findById(@PathVariable Long blogId) {

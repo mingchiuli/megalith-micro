@@ -1,7 +1,5 @@
 package org.chiu.micro.auth.rpc.wrapper;
 
-import java.util.List;
-
 import org.chiu.micro.auth.dto.AuthorityDto;
 import org.chiu.micro.auth.dto.MenusAndButtonsRpcDto;
 import org.chiu.micro.auth.dto.RoleEntityDto;
@@ -11,13 +9,16 @@ import org.chiu.micro.auth.lang.Result;
 import org.chiu.micro.auth.rpc.UserHttpService;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 public class UserHttpServiceWrapper {
 
     private final UserHttpService userHttpService;
+
+    public UserHttpServiceWrapper(UserHttpService userHttpService) {
+        this.userHttpService = userHttpService;
+    }
 
     public void changeUserStatusByUsername(String username, Integer status) {
         userHttpService.changeUserStatusByUsername(username, status);
@@ -37,7 +38,7 @@ public class UserHttpServiceWrapper {
             throw new MissException(result.getMsg());
         }
     }
-    
+
     public void unlock() {
         Result<Void> result = userHttpService.unlock();
         if (result.getCode() != 200) {

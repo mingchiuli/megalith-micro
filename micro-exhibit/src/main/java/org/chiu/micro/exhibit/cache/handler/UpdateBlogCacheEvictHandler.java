@@ -1,15 +1,15 @@
 package org.chiu.micro.exhibit.cache.handler;
 
-import lombok.SneakyThrows;
-
-import org.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
-import org.chiu.micro.exhibit.wrapper.BlogWrapper;
-import org.chiu.micro.exhibit.dto.BlogEntityDto;
 import org.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
+import org.chiu.micro.exhibit.dto.BlogEntityDto;
 import org.chiu.micro.exhibit.key.KeyFactory;
 import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
+import org.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
+import org.chiu.micro.exhibit.wrapper.BlogWrapper;
 import org.redisson.api.RedissonClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +24,7 @@ import static org.chiu.micro.exhibit.lang.StatusEnum.NORMAL;
 public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
 
+    private static final Logger log = LoggerFactory.getLogger(UpdateBlogCacheEvictHandler.class);
     private final CacheKeyGenerator cacheKeyGenerator;
 
 
@@ -40,7 +41,6 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         return BlogOperateEnum.UPDATE.equals(blogOperateEnum);
     }
 
-    @SneakyThrows
     @Override
     public Set<String> redisProcess(BlogEntityDto blogEntity) {
         Long id = blogEntity.getId();
@@ -56,16 +56,31 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         Set<String> keys = cacheKeyGenerator.generateBlogKey(countAfter, countYearAfter, year);
 
         //博客对象本身缓存
-        Method findByIdAndVisibleMethod = BlogWrapper.class.getMethod("findById", Long.class);
-        String findByIdAndVisible = cacheKeyGenerator.generateKey(findByIdAndVisibleMethod, id);
-        Method statusMethod = BlogWrapper.class.getMethod("findStatusById", Long.class);
-        String statusKey = cacheKeyGenerator.generateKey(statusMethod, id);
-        Method sensitiveMethod = BlogSensitiveWrapper.class.getMethod("findSensitiveByBlogId", Long.class);
-        String sensitive = cacheKeyGenerator.generateKey(sensitiveMethod, id);
+        try {
+            Method findByIdAndVisibleMethod = BlogWrapper.class.getMethod("findById", Long.class);
+            String findByIdAndVisible = cacheKeyGenerator.generateKey(findByIdAndVisibleMethod, id);
+            keys.add(findByIdAndVisible);
+        } catch (NoSuchMethodException e) {
+            log.error(e.getMessage());
+        }
 
-        keys.add(findByIdAndVisible);
-        keys.add(statusKey);
-        keys.add(sensitive);
+
+        try {
+            Method statusMethod = BlogWrapper.class.getMethod("findStatusById", Long.class);
+            String statusKey = cacheKeyGenerator.generateKey(statusMethod, id);
+            keys.add(statusKey);
+        } catch (NoSuchMethodException e) {
+            log.error(e.getMessage());
+        }
+
+        try {
+            Method sensitiveMethod = BlogSensitiveWrapper.class.getMethod("findSensitiveByBlogId", Long.class);
+            String sensitive = cacheKeyGenerator.generateKey(sensitiveMethod, id);
+            keys.add(sensitive);
+        } catch (NoSuchMethodException e) {
+            log.error(e.getMessage());
+        }
+
 
         if (NORMAL.getCode().equals(status)) {
             keys.add(READ_TOKEN.getInfo() + id);

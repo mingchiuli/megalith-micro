@@ -1,20 +1,22 @@
 package org.chiu.micro.exhibit.cache.handler;
 
-import lombok.SneakyThrows;
-import org.chiu.micro.exhibit.dto.BlogEntityDto;
-import org.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
-import org.chiu.micro.exhibit.wrapper.BlogWrapper;
 import org.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
+import org.chiu.micro.exhibit.dto.BlogEntityDto;
 import org.chiu.micro.exhibit.key.KeyFactory;
 import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
+import org.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
+import org.chiu.micro.exhibit.wrapper.BlogWrapper;
 import org.redisson.api.RedissonClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -24,6 +26,7 @@ import static org.chiu.micro.exhibit.lang.Const.*;
 public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
 
+    private static final Logger log = LoggerFactory.getLogger(DeleteBlogCacheEvictHandler.class);
     private final CacheKeyGenerator cacheKeyGenerator;
 
     @Value("${blog.blog-page-size}")
@@ -42,33 +45,52 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
         return BlogOperateEnum.REMOVE.equals(blogOperateEnum);
     }
 
-    @SneakyThrows
     @Override
     public Set<String> redisProcess(BlogEntityDto blogEntity) {
         Long id = blogEntity.getId();
         int year = blogEntity.getCreated().getYear();
+        HashSet<String> keys = new HashSet<>();
 
         //博客对象本身缓存
-        Method findByIdMethod = BlogWrapper.class.getMethod("findById", Long.class);
-        String findById = cacheKeyGenerator.generateKey(findByIdMethod, id);
-        Method getCountByYearMethod = BlogWrapper.class.getMethod("getCountByYear", Integer.class);
-        String getCountByYear = cacheKeyGenerator.generateKey(getCountByYearMethod, year);
-        Method statusMethod = BlogWrapper.class.getMethod("findStatusById", Long.class);
-        String status = cacheKeyGenerator.generateKey(statusMethod, id);
-        Method sensitiveMethod = BlogSensitiveWrapper.class.getMethod("findSensitiveByBlogId", Long.class);
-        String sensitive = cacheKeyGenerator.generateKey(sensitiveMethod, id);
+        try {
+            Method findByIdMethod = findByIdMethod = BlogWrapper.class.getMethod("findById", Long.class);
+            String findById = cacheKeyGenerator.generateKey(findByIdMethod, id);
+            keys.add(findById);
+        } catch (NoSuchMethodException e) {
+            log.error(e.getMessage());
+        }
+        ;
+        try {
+            Method getCountByYearMethod  = BlogWrapper.class.getMethod("getCountByYear", Integer.class);
+            String getCountByYear = cacheKeyGenerator.generateKey(getCountByYearMethod, year);
+            keys.add(getCountByYear);
+        } catch (NoSuchMethodException e) {
+            log.error(e.getMessage());
+        }
+
+        try {
+            Method statusMethod = BlogWrapper.class.getMethod("findStatusById", Long.class);
+            String status = cacheKeyGenerator.generateKey(statusMethod, id);
+            keys.add(status);
+        } catch (NoSuchMethodException e) {
+            log.error(e.getMessage());
+        }
+
+        try {
+            Method sensitiveMethod = BlogSensitiveWrapper.class.getMethod("findSensitiveByBlogId", Long.class);
+            String sensitive = cacheKeyGenerator.generateKey(sensitiveMethod, id);
+            keys.add(sensitive);
+        } catch (NoSuchMethodException e) {
+            log.error(e.getMessage());
+        }
         //删掉所有摘要缓存
         var start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
         var end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
         long count = blogHttpServiceWrapper.count();
         long countYear = blogHttpServiceWrapper.countByCreatedBetween(start, end);
-        Set<String> keys = cacheKeyGenerator.generateHotBlogsKeys(year, count, countYear);
+        keys.addAll(cacheKeyGenerator.generateHotBlogsKeys(year, count, countYear));
 
         keys.add(READ_TOKEN.getInfo() + id);
-        keys.add(findById);
-        keys.add(getCountByYear);
-        keys.add(status);
-        keys.add(sensitive);
 
         String blogEditKey = KeyFactory.createBlogEditRedisKey(blogEntity.getUserId(), id);
         //删除该年份的页面bloom，listPage的bloom，getCountByYear的bloom，后面逻辑重建

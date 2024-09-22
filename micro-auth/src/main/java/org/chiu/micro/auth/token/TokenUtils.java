@@ -1,8 +1,8 @@
 package org.chiu.micro.auth.token;
 
-import java.util.List;
-
 import org.chiu.micro.auth.exception.AuthException;
+
+import java.util.List;
 
 public interface TokenUtils<T> {
 

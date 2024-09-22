@@ -1,34 +1,32 @@
 package org.chiu.micro.auth.controller;
 
-import java.util.List;
-
+import jakarta.servlet.http.HttpServletRequest;
 import org.chiu.micro.auth.dto.AuthDto;
 import org.chiu.micro.auth.exception.AuthException;
 import org.chiu.micro.auth.lang.Result;
 import org.chiu.micro.auth.service.AuthService;
-import org.chiu.micro.auth.utils.SecurityAuthenticationUtils;
 import org.chiu.micro.auth.vo.MenusAndButtonsVo;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping(value = "/auth")
 public class AuthController {
 
-    private final AuthService authMenuService;
+    private final AuthService authService;
 
-    private final SecurityAuthenticationUtils securityAuthenticationUtils;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @GetMapping("/menu/nav")
     public Result<MenusAndButtonsVo> nav(HttpServletRequest request) throws AuthException {
-        AuthDto authDto = securityAuthenticationUtils.getAuthDto(request.getHeader(HttpHeaders.AUTHORIZATION));
+        AuthDto authDto = authService.getAuthDto(request.getHeader(HttpHeaders.AUTHORIZATION));
         List<String> roles = authDto.getRoles();
-        return Result.success(() -> authMenuService.getCurrentUserNav(roles));
+        return Result.success(() -> authService.getCurrentUserNav(roles));
     }
 }

@@ -1,11 +1,11 @@
-package org.chiu.micro.blog.utils;
+package org.chiu.micro.auth.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.chiu.micro.blog.exception.MissException;
+import org.chiu.micro.auth.exception.MissException;
 import org.springframework.stereotype.Component;
-
 
 
 @Component
@@ -40,6 +40,14 @@ public class JsonUtils {
     public <T>T readValue(String str, TypeReference<T> type) {
         try {
             return objectMapper.readValue(str, type);
+        } catch (JsonProcessingException e) {
+            throw new MissException(e.getMessage());
+        }
+    }
+
+    public Object readValue(String remoteCacheStr, JavaType javaType) {
+        try {
+            return objectMapper.readValue(remoteCacheStr, javaType);
         } catch (JsonProcessingException e) {
             throw new MissException(e.getMessage());
         }

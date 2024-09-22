@@ -1,10 +1,6 @@
 package org.chiu.micro.user.lang;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
 public enum TypeEnum {
 
     CATALOGUE(0, "分类"),
@@ -17,6 +13,11 @@ public enum TypeEnum {
 
     private final String description;
 
+    TypeEnum(Integer code, String description) {
+        this.code = code;
+        this.description = description;
+    }
+
 
     public static TypeEnum getInstance(Integer code) {
         for (TypeEnum value : TypeEnum.values()) {
@@ -25,5 +26,13 @@ public enum TypeEnum {
             }
         }
         throw new IllegalArgumentException();
+    }
+
+    public Integer getCode() {
+        return this.code;
+    }
+
+    public String getDescription() {
+        return this.description;
     }
 }

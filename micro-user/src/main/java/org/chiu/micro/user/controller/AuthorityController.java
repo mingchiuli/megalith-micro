@@ -2,8 +2,6 @@ package org.chiu.micro.user.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
-import lombok.RequiredArgsConstructor;
-
 import org.chiu.micro.user.lang.Result;
 import org.chiu.micro.user.req.AuthorityEntityReq;
 import org.chiu.micro.user.service.AuthorityService;
@@ -15,11 +13,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/sys/authority")
-@RequiredArgsConstructor
 @Validated
 public class AuthorityController {
 
     private final AuthorityService authorityService;
+
+    public AuthorityController(AuthorityService authorityService) {
+        this.authorityService = authorityService;
+    }
 
     @GetMapping("/list")
     public Result<List<AuthorityVo>> list() {

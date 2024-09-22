@@ -1,10 +1,6 @@
 package org.chiu.micro.exhibit.lang;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
 public enum StatusEnum {
 
     NORMAL(0, "正常状态"),
@@ -16,4 +12,17 @@ public enum StatusEnum {
     private final Integer code;
 
     private final String description;
+
+    StatusEnum(Integer code, String description) {
+        this.code = code;
+        this.description = description;
+    }
+
+    public Integer getCode() {
+        return this.code;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
 }

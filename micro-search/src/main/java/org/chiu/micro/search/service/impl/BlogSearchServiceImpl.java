@@ -1,20 +1,18 @@
 package org.chiu.micro.search.service.impl;
 
 import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.query_dsl.*;
-
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
+import co.elastic.clients.elasticsearch._types.query_dsl.FunctionScoreMode;
 import co.elastic.clients.json.JsonData;
-
-import org.chiu.micro.search.lang.StatusEnum;
-import org.chiu.micro.search.page.PageAdapter;
 import org.chiu.micro.search.convertor.BlogDocumentVoConvertor;
 import org.chiu.micro.search.document.BlogDocument;
+import org.chiu.micro.search.lang.StatusEnum;
+import org.chiu.micro.search.page.PageAdapter;
 import org.chiu.micro.search.service.BlogSearchService;
 import org.chiu.micro.search.utils.ESHighlightBuilderUtils;
 import org.chiu.micro.search.vo.BlogDocumentVo;
 import org.chiu.micro.search.vo.BlogSearchVo;
-
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
@@ -35,7 +33,6 @@ import static org.chiu.micro.search.lang.FieldEnum.*;
  * @create 2022-11-30 9:00 pm
  */
 @Service
-@RequiredArgsConstructor
 public class BlogSearchServiceImpl implements BlogSearchService {
 
     private final ElasticsearchTemplate elasticsearchTemplate;
@@ -46,9 +43,13 @@ public class BlogSearchServiceImpl implements BlogSearchService {
     @Value("${blog.highest-role}")
     private String highestRole;
 
+    public BlogSearchServiceImpl(ElasticsearchTemplate elasticsearchTemplate) {
+        this.elasticsearchTemplate = elasticsearchTemplate;
+    }
+
     @Override
     public PageAdapter<BlogDocumentVo> selectBlogsByES(Integer currentPage, String keywords, Boolean allInfo,
-            String year) {
+                                                       String year) {
 
         var matchQuery = NativeQuery.builder()
                 .withQuery(query -> query
@@ -266,15 +267,15 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                 .withPageable(PageRequest.of(currentPage - 1, size))
                 .withSort(search
                         ? sort -> sort
-                                .score(score -> score
-                                        .order(SortOrder.Desc))
+                        .score(score -> score
+                                .order(SortOrder.Desc))
                         : sort -> sort
-                                .field(field -> field
-                                        .field(CREATED.getField())
-                                        .order(SortOrder.Desc)))
+                        .field(field -> field
+                                .field(CREATED.getField())
+                                .order(SortOrder.Desc)))
                 .build();
 
-        
+
         SearchHits<BlogDocument> searchResp = elasticsearchTemplate.search(nativeQueryBuilder.build(), BlogDocument.class);
 
         List<Long> ids = searchResp.getSearchHits().stream()
@@ -288,7 +289,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                 .size(size)
                 .total(searchResp.getTotalHits())
                 .build();
-                
+
     }
 
 }

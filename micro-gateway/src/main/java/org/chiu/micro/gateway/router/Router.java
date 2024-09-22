@@ -1,44 +1,37 @@
 package org.chiu.micro.gateway.router;
 
-import org.springframework.core.io.Resource;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClient;
-
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
 import org.chiu.micro.gateway.dto.AuthorityRouteDto;
 import org.chiu.micro.gateway.lang.ExceptionMessage;
 import org.chiu.micro.gateway.lang.Result;
 import org.chiu.micro.gateway.req.AuthorityRouteReq;
 import org.chiu.micro.gateway.rpc.wrapper.AuthHttpServiceWrapper;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
+import org.springframework.http.*;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @RestController
-@RequiredArgsConstructor
-@Slf4j
 public class Router {
 
+    private static final Logger log = LoggerFactory.getLogger(Router.class);
     private final RestClient restClient;
 
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
@@ -46,10 +39,15 @@ public class Router {
     private final ObjectMapper objectMapper;
 
     private static final String UNKNOWN = "unknown";
-    
-    @RequestMapping(value = "/**", method = { RequestMethod.GET, RequestMethod.POST })
-    @SneakyThrows
-    public void dispatch(HttpServletRequest request, HttpServletResponse response) {
+
+    public Router(RestClient restClient, AuthHttpServiceWrapper authHttpServiceWrapper, ObjectMapper objectMapper) {
+        this.restClient = restClient;
+        this.authHttpServiceWrapper = authHttpServiceWrapper;
+        this.objectMapper = objectMapper;
+    }
+
+    @RequestMapping(value = "/**", method = {RequestMethod.GET, RequestMethod.POST})
+    public void dispatch(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
@@ -58,10 +56,10 @@ public class Router {
         String requestURI = request.getRequestURI();
 
         AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(AuthorityRouteReq.builder()
-                        .routeMapping(requestURI)
-                        .method(method)
-                        .ipAddr(ipAddress)
-                        .build());
+                .routeMapping(requestURI)
+                .method(method)
+                .ipAddr(ipAddress)
+                .build());
 
         if (Boolean.FALSE.equals(authorityRoute.getAuth())) {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -143,7 +141,7 @@ public class Router {
         } else {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         }
-        
+
         byte[] data = responseEntity.getBody();
         response.setContentLength(data == null ? 0 : data.length);
         response.setStatus(responseEntity.getStatusCode().value());
@@ -153,7 +151,7 @@ public class Router {
         outputStream.flush();
         outputStream.close();
     }
-    
+
     private String getIpAddr(HttpServletRequest request) {
         // nginx代理获取的真实用户ip
         String ip = request.getHeader("X-Real-IP");

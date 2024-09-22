@@ -1,10 +1,6 @@
 package org.chiu.micro.websocket.lang;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
 public enum PushActionEnum {
 
     STATUS(-1, "Status操作"),
@@ -36,12 +32,17 @@ public enum PushActionEnum {
     PARA_SPLIT_APPEND(12, "增加一段"),
 
     PARA_SPLIT_SUBTRACT(13, "减少一段"),
-    
+
     SENSITIVE_CONTENT_LIST(14, "敏感词操作");
 
     private final Integer code;
 
     private final String description;
+
+    PushActionEnum(Integer code, String description) {
+        this.code = code;
+        this.description = description;
+    }
 
     public static PushActionEnum getInstance(Integer code) {
         for (PushActionEnum value : PushActionEnum.values()) {
@@ -50,5 +51,13 @@ public enum PushActionEnum {
             }
         }
         throw new IllegalArgumentException();
+    }
+
+    public Integer getCode() {
+        return this.code;
+    }
+
+    public String getDescription() {
+        return this.description;
     }
 }

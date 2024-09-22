@@ -1,33 +1,29 @@
 package org.chiu.micro.blog.provider;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import org.chiu.micro.blog.lang.Result;
 import org.chiu.micro.blog.page.PageAdapter;
 import org.chiu.micro.blog.service.BlogService;
 import org.chiu.micro.blog.vo.BlogEntityRpcVo;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * BlogProvider
  */
 @RestController
 @RequestMapping(value = "/inner")
-@RequiredArgsConstructor
 @Validated
 public class BlogProvider {
 
     private final BlogService blogService;
+
+    public BlogProvider(BlogService blogService) {
+        this.blogService = blogService;
+    }
 
     @GetMapping("/blog/{blogId}")
     public Result<BlogEntityRpcVo> findById(@PathVariable Long blogId) {
@@ -87,7 +83,7 @@ public class BlogProvider {
 
     @GetMapping("/blog/count/{start}/{end}")
     public Result<Long> countByCreatedBetween(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
-                                              @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")  LocalDateTime end) {
+                                              @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end) {
         return Result.success(() -> blogService.countByCreatedBetween(start, end));
     }
 

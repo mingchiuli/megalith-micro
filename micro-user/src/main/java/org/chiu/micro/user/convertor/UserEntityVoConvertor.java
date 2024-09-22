@@ -1,20 +1,18 @@
 package org.chiu.micro.user.convertor;
 
-import org.chiu.micro.user.page.PageAdapter;
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.entity.UserEntity;
-import org.chiu.micro.user.vo.UserEntityVo;
 import org.chiu.micro.user.entity.UserRoleEntity;
-
+import org.chiu.micro.user.page.PageAdapter;
+import org.chiu.micro.user.vo.UserEntityVo;
 import org.springframework.data.domain.Page;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.time.LocalDateTime;
-
 
 
 public class UserEntityVoConvertor {
@@ -38,7 +36,7 @@ public class UserEntityVoConvertor {
     }
 
     public static PageAdapter<UserEntityVo> convert(Page<UserEntity> page, List<UserRoleEntity> userRoleEntities, List<RoleEntity> roleEntities) {
-                
+
         Map<Long, List<String>> userIdRoleMap = userRoleEntities.stream()
                 .collect(Collectors.groupingBy(UserRoleEntity::getUserId)).entrySet().stream()
                 .map(entry -> {
@@ -55,14 +53,14 @@ public class UserEntityVoConvertor {
 
         Map<Long, LocalDateTime> userDate = page.get()
                 .collect(Collectors.toMap(UserEntity::getId, UserEntity::getUpdated));
-        
+
         Map<Long, LocalDateTime> userRoleDate = userRoleEntities.stream()
                 .collect(Collectors.toMap(UserRoleEntity::getUserId, UserRoleEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
 
         Map<Long, LocalDateTime> mergedMap = Stream.of(userRoleDate, userDate)
                 .flatMap(map -> map.entrySet().stream())
                 .collect(HashMap::new, (m, e) -> m.merge(e.getKey(), e.getValue(), (v1, v2) -> v1.isAfter(v2) ? v1 : v2), HashMap::putAll);
-        
+
         List<UserEntityVo> content = page.getContent().stream()
                 .map(user -> UserEntityVo.builder()
                         .email(user.getEmail())

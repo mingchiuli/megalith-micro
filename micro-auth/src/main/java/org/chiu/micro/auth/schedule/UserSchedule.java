@@ -1,6 +1,6 @@
 package org.chiu.micro.auth.schedule;
 
-import lombok.RequiredArgsConstructor;
+import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -11,19 +11,16 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
-
 
 /**
  * @Author limingjiu
  * @Date 2024/4/24 18:51
  **/
 @Component
-@RequiredArgsConstructor
 public class UserSchedule {
 
     private final RedissonClient redissonClient;
-    
+
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 
     @Qualifier("commonExecutor")
@@ -32,6 +29,12 @@ public class UserSchedule {
     private static final String CACHE_FINISH_FLAG = "cache_manager_finish_flag";
 
     private static final String MANAGER_CACHE_KEY = "managerCacheKey";
+
+    public UserSchedule(RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+        this.redissonClient = redissonClient;
+        this.userHttpServiceWrapper = userHttpServiceWrapper;
+        this.taskExecutor = taskExecutor;
+    }
 
     @Scheduled(cron = "0 0 0/1 * * ?")
     public void configureTask() {

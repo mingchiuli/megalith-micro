@@ -1,33 +1,35 @@
 package org.chiu.micro.user.controller;
 
-import org.chiu.micro.user.req.UserEntityRegisterReq;
-import org.chiu.micro.user.service.UserRoleService;
-import org.chiu.micro.user.service.UserService;
-import org.chiu.micro.user.req.UserEntityReq;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import org.chiu.micro.user.lang.Result;
 import org.chiu.micro.user.page.PageAdapter;
-import lombok.RequiredArgsConstructor;
+import org.chiu.micro.user.req.UserEntityRegisterReq;
+import org.chiu.micro.user.req.UserEntityReq;
+import org.chiu.micro.user.service.UserRoleService;
+import org.chiu.micro.user.service.UserService;
 import org.chiu.micro.user.vo.UserEntityVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-
 import java.util.List;
 
 @RestController
 @RequestMapping(value = "/sys/user")
-@RequiredArgsConstructor
 @Validated
 public class UserController {
 
     private final UserService userService;
 
     private final UserRoleService userRoleService;
+
+    public UserController(UserService userService, UserRoleService userRoleService) {
+        this.userService = userService;
+        this.userRoleService = userRoleService;
+    }
 
     @GetMapping("/auth/register/page")
     public Result<String> getRegisterPage(@RequestParam String username) {

@@ -1,9 +1,8 @@
 package org.chiu.micro.auth.cache;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
@@ -11,7 +10,10 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.chiu.micro.auth.cache.config.CacheKeyGenerator;
 import org.chiu.micro.auth.utils.ClassUtils;
-import org.redisson.api.*;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -27,15 +29,15 @@ import java.util.concurrent.TimeUnit;
  * 统一缓存处理
  *
  * @author mingchiuli
- *         order: 多个切面执行顺序，越小越先执行
+ * order: 多个切面执行顺序，越小越先执行
  * @create 2021-12-01 7:48 AM
  */
 @Aspect
 @Component
 @Order(2)
-@RequiredArgsConstructor
 public class CacheAspect {
 
+    private static final Logger log = LoggerFactory.getLogger(CacheAspect.class);
     private final RedissonClient redissonClient;
 
     private final CacheKeyGenerator cacheKeyGenerator;
@@ -46,15 +48,22 @@ public class CacheAspect {
 
     private final com.github.benmanes.caffeine.cache.Cache<String, Object> localCache;
 
+    public CacheAspect(RedissonClient redissonClient, ObjectMapper objectMapper, CacheKeyGenerator cacheKeyGenerator, RedissonClient redisson, com.github.benmanes.caffeine.cache.Cache<String, Object> localCache) {
+        this.redissonClient = redissonClient;
+        this.cacheKeyGenerator = cacheKeyGenerator;
+        this.redisson = redisson;
+        this.localCache = localCache;
+        this.objectMapper = objectMapper;
+    }
+
     @Pointcut("@annotation(org.chiu.micro.auth.cache.Cache)")
     public void pt() {
     }
 
     private static final String LOCK = "authLock:";
 
-    @SneakyThrows
     @Around("pt()")
-    public Object around(ProceedingJoinPoint pjp) {
+    public Object around(ProceedingJoinPoint pjp) throws Throwable {
         Signature signature = pjp.getSignature();
         // 类名
         // 调用的方法名
@@ -91,16 +100,27 @@ public class CacheAspect {
         }
 
         if (StringUtils.hasLength(remoteCacheStr)) {
-            Object remoteCacheObj = objectMapper.readValue(remoteCacheStr, javaType);
-            localCache.put(cacheKey, remoteCacheObj);
-            return remoteCacheObj;
+            Object remoteCacheObj;
+            try {
+                remoteCacheObj = objectMapper.readValue(remoteCacheStr, javaType);
+                localCache.put(cacheKey, remoteCacheObj);
+                return remoteCacheObj;
+            } catch (JsonProcessingException e) {
+                log.error(e.getMessage());
+                return pjp.proceed();
+            }
         }
 
         String lock = LOCK + cacheKey;
         // 已经线程安全
         RLock rLock = redisson.getLock(lock);
 
-        if (Boolean.FALSE.equals(rLock.tryLock(5000, TimeUnit.MILLISECONDS))) {
+        try {
+            boolean b = rLock.tryLock(5000, TimeUnit.MILLISECONDS);
+            if (Boolean.FALSE.equals(b)) {
+                return pjp.proceed();
+            }
+        } catch (InterruptedException e) {
             return pjp.proceed();
         }
 
@@ -109,13 +129,21 @@ public class CacheAspect {
             String r = redissonClient.<String>getBucket(cacheKey).get();
 
             if (StringUtils.hasLength(r)) {
-                return objectMapper.readValue(r, javaType);
+                try {
+                    return objectMapper.readValue(r, javaType);
+                } catch (JsonProcessingException e) {
+                    return pjp.proceed();
+                }
             }
             // 执行目标方法
             Object proceed = pjp.proceed();
 
             Cache annotation = method.getAnnotation(Cache.class);
-            redissonClient.getBucket(cacheKey).set(objectMapper.writeValueAsString(proceed), Duration.ofMinutes(annotation.expire()));
+            try {
+                redissonClient.getBucket(cacheKey).set(objectMapper.writeValueAsString(proceed), Duration.ofMinutes(annotation.expire()));
+            } catch (JsonProcessingException e) {
+                return proceed;
+            }
             localCache.put(cacheKey, proceed);
             return proceed;
         } finally {

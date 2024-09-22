@@ -1,9 +1,8 @@
 package org.chiu.micro.auth.config;
 
 
-import lombok.RequiredArgsConstructor;
-
-import org.chiu.micro.auth.component.*;
+import org.chiu.micro.auth.component.LoginFailureHandler;
+import org.chiu.micro.auth.component.LoginSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,14 +14,19 @@ import org.springframework.security.web.SecurityFilterChain;
 
 
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
-    
+
     private final LoginFailureHandler loginFailureHandler;
 
     private final LoginSuccessHandler loginSuccessHandler;
 
     private final AuthenticationManager authenticationManager;
+
+    public SecurityConfig(LoginFailureHandler loginFailureHandler, LoginSuccessHandler loginSuccessHandler, AuthenticationManager authenticationManager) {
+        this.loginFailureHandler = loginFailureHandler;
+        this.loginSuccessHandler = loginSuccessHandler;
+        this.authenticationManager = authenticationManager;
+    }
 
     @Bean
     SecurityFilterChain configure(HttpSecurity http) throws Exception {

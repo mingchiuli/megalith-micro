@@ -1,10 +1,7 @@
 package org.chiu.micro.blog.lang;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
+
 public enum MessageActionFieldEnum {
 
     TITLE("title"),
@@ -22,8 +19,16 @@ public enum MessageActionFieldEnum {
     ID("id"),
 
     VERSION("version"),
-    
+
     SENSITIVE_CONTENT_LIST("sensitiveContentList");
-    
+
     private final String msg;
+
+    MessageActionFieldEnum(String msg) {
+        this.msg = msg;
+    }
+
+    public String getMsg() {
+        return this.msg;
+    }
 }

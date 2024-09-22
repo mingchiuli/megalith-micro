@@ -5,17 +5,19 @@ import org.chiu.micro.gateway.exception.MissException;
 import org.chiu.micro.gateway.lang.Result;
 import org.chiu.micro.gateway.req.AuthorityRouteReq;
 import org.chiu.micro.gateway.rpc.AuthHttpService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class AuthHttpServiceWrapper {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthHttpServiceWrapper.class);
     private final AuthHttpService authHttpService;
+
+    public AuthHttpServiceWrapper(AuthHttpService authHttpService) {
+        this.authHttpService = authHttpService;
+    }
 
     public AuthorityRouteDto getAuthorityRoute(AuthorityRouteReq req) {
         Result<AuthorityRouteDto> result = authHttpService.getAuthorityRoute(req);

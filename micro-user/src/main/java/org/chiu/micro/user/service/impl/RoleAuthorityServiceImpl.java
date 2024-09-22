@@ -1,7 +1,5 @@
 package org.chiu.micro.user.service.impl;
 
-import lombok.RequiredArgsConstructor;
-
 import org.chiu.micro.user.constant.AuthMenuIndexMessage;
 import org.chiu.micro.user.convertor.RoleAuthorityEntityConvertor;
 import org.chiu.micro.user.entity.AuthorityEntity;
@@ -27,7 +25,6 @@ import java.util.Optional;
 import static org.chiu.micro.user.lang.StatusEnum.NORMAL;
 
 @Service
-@RequiredArgsConstructor
 public class RoleAuthorityServiceImpl implements RoleAuthorityService {
 
     private final RoleAuthorityWrapper roleAuthorityWrapper;
@@ -40,9 +37,17 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
 
     private final ApplicationContext applicationContext;
 
+    public RoleAuthorityServiceImpl(RoleAuthorityWrapper roleAuthorityWrapper, RoleAuthorityRepository roleAuthorityRepository, AuthorityRepository authorityRepository, RoleRepository roleRepository, ApplicationContext applicationContext) {
+        this.roleAuthorityWrapper = roleAuthorityWrapper;
+        this.roleAuthorityRepository = roleAuthorityRepository;
+        this.authorityRepository = authorityRepository;
+        this.roleRepository = roleRepository;
+        this.applicationContext = applicationContext;
+    }
+
     @Override
     public List<String> getAuthoritiesByRoleCodes(String roleCode) {
-        
+
         Optional<RoleEntity> roleEntity = roleRepository.findByCodeAndStatus(roleCode, NORMAL.getCode());
 
         if (roleEntity.isEmpty()) {

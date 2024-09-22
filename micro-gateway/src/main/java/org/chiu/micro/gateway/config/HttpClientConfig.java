@@ -1,10 +1,10 @@
 package org.chiu.micro.gateway.config;
 
-import java.net.http.HttpClient;
-import java.util.concurrent.Executors;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.net.http.HttpClient;
+import java.util.concurrent.Executors;
 
 @Configuration
 public class HttpClientConfig {

@@ -1,10 +1,8 @@
 package org.chiu.micro.auth.exception;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.chiu.micro.auth.lang.Result;
-import java.lang.Void;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -15,14 +13,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 
-
 /**
  * @author mingchiuli
  * @create 2021-10-27 9:29 PM
  */
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(value = BadCredentialsException.class)
@@ -40,7 +38,7 @@ public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = BaseException.class)
-    public Result<Void> handler(BaseException e){
+    public Result<Void> handler(BaseException e) {
         log.error("-------------------error", e);
         return Result.fail(e.getMessage());
     }
@@ -63,7 +61,7 @@ public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(value = AccessDeniedException.class)
-    public Result<Void> handler(AccessDeniedException e){
+    public Result<Void> handler(AccessDeniedException e) {
         log.error("-------------------error", e);
         return Result.fail(e.getMessage());
     }

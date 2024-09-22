@@ -18,10 +18,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
 import jakarta.annotation.PostConstruct;
-import lombok.SneakyThrows;
 
 import static org.chiu.micro.auth.lang.ExceptionMessage.*;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -49,8 +49,7 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
     private String script;
 
     @PostConstruct
-    @SneakyThrows
-    private void init() {
+    private void init() throws IOException {
         Resource resource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/password.lua");
         script = resource.getContentAsString(StandardCharsets.UTF_8);
     }

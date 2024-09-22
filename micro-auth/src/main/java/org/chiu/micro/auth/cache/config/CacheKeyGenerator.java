@@ -1,10 +1,7 @@
 package org.chiu.micro.auth.cache.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-
 import org.chiu.micro.auth.cache.Cache;
+import org.chiu.micro.auth.utils.JsonUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -16,12 +13,14 @@ import java.util.Objects;
  * @create 2023-04-02 11:12 pm
  */
 @Component
-@RequiredArgsConstructor
 public class CacheKeyGenerator {
 
-    private final ObjectMapper objectMapper;
+    private final JsonUtils jsonUtils;
 
-    @SneakyThrows
+    public CacheKeyGenerator(JsonUtils jsonUtils) {
+        this.jsonUtils = jsonUtils;
+    }
+
     public String generateKey(Method method, Object... args) {
 
         Class<?> declaringType = method.getDeclaringClass();
@@ -34,7 +33,7 @@ public class CacheKeyGenerator {
                 if (arg instanceof String) {
                     params.append(arg);
                 } else {
-                    params.append(objectMapper.writeValueAsString(arg));
+                    params.append(jsonUtils.writeValueAsString(arg));
                 }
             }
         }

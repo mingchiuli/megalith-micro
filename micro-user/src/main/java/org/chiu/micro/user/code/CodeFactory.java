@@ -1,6 +1,5 @@
 package org.chiu.micro.user.code;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Random;
@@ -10,15 +9,17 @@ import java.util.Random;
  * @create 2023-03-05 1:04 am
  */
 @Component
-@RequiredArgsConstructor
 public class CodeFactory {
 
     private final Random random = new Random();
 
 
     private static final char[] sms = {
-        '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
+            '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
     };
+
+    public CodeFactory() {
+    }
 
     public String createPhone() {
         var builder = new StringBuilder();

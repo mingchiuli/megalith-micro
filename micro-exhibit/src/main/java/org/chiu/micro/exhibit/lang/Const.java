@@ -1,18 +1,14 @@
 package org.chiu.micro.exhibit.lang;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 /**
  * @author mingchiuli
  * @create 2021-12-14 11:58 AM
  */
-@Getter
-@AllArgsConstructor
 public enum Const {
 
     TEMP_EDIT_BLOG("temp_edit_blog:"),
-    
+
     DAY_VISIT("{visit_record}_day"),
 
     WEEK_VISIT("{visit_record}_week"),
@@ -38,8 +34,15 @@ public enum Const {
     BLOOM_FILTER_YEARS("bloom_filter_years"),
 
     HOT_READ("hot_read");
-        
+
     private final String info;
 
+    private Const(String info) {
+        this.info = info;
+    }
+
+    public String getInfo() {
+        return this.info;
+    }
 }
 

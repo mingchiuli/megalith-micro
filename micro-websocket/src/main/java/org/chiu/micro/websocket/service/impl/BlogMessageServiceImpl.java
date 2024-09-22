@@ -1,8 +1,6 @@
 package org.chiu.micro.websocket.service.impl;
 
 import jakarta.annotation.PostConstruct;
-import lombok.SneakyThrows;
-
 import org.chiu.micro.websocket.dto.StompMessageDto;
 import org.chiu.micro.websocket.key.KeyFactory;
 import org.chiu.micro.websocket.lang.MessageEnum;
@@ -15,15 +13,16 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
-import lombok.RequiredArgsConstructor;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-@RequiredArgsConstructor
 public class BlogMessageServiceImpl implements BlogMessageService {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
@@ -35,12 +34,17 @@ public class BlogMessageServiceImpl implements BlogMessageService {
     private String pushActionScript;
 
     private final Set<Long> enumSet = Stream.of(MessageEnum.values())
-                .map(MessageEnum::getCode)
-                .collect(Collectors.toSet());
+            .map(MessageEnum::getCode)
+            .collect(Collectors.toSet());
+
+    public BlogMessageServiceImpl(SimpMessagingTemplate simpMessagingTemplate, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader) {
+        this.simpMessagingTemplate = simpMessagingTemplate;
+        this.redisTemplate = redisTemplate;
+        this.resourceLoader = resourceLoader;
+    }
 
     @PostConstruct
-    @SneakyThrows
-    private void init() {
+    private void init() throws IOException {
         Resource pushActionResource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/push-action.lua");
         pushActionScript = pushActionResource.getContentAsString(StandardCharsets.UTF_8);
     }
@@ -70,11 +74,11 @@ public class BlogMessageServiceImpl implements BlogMessageService {
 
         if (execute != null && enumSet.contains(execute)) {
             var dto = StompMessageDto.builder()
-                .blogId(blogId)
-                .userId(userId)
-                .version(version)
-                .type(execute.intValue())
-                .build();
+                    .blogId(blogId)
+                    .userId(userId)
+                    .version(version)
+                    .type(execute.intValue())
+                    .build();
 
             String subscriptionKey = KeyFactory.createSubscriptionKey(userId, blogId);
             simpMessagingTemplate.convertAndSend("/edits" + subscriptionKey, dto);

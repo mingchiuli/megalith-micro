@@ -1,10 +1,6 @@
 package org.chiu.micro.auth.lang;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
 public enum ExceptionMessage {
 
     NO_FOUND(1, "没有找到内容"),
@@ -42,9 +38,21 @@ public enum ExceptionMessage {
     ACCOUNT_LOCKED(34, "账户被锁"),
 
     RE_LOGIN(35, "重新登录");
-    
+
     private final Integer code;
 
     private final String msg;
 
+    ExceptionMessage(Integer code, String msg) {
+        this.code = code;
+        this.msg = msg;
+    }
+
+    public Integer getCode() {
+        return this.code;
+    }
+
+    public String getMsg() {
+        return this.msg;
+    }
 }

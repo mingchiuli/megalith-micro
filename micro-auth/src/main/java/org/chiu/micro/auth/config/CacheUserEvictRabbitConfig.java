@@ -1,7 +1,5 @@
 package org.chiu.micro.auth.config;
 
-import lombok.RequiredArgsConstructor;
-
 import org.chiu.micro.auth.cache.mq.CacheEvictMessageListener;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -16,7 +14,6 @@ import org.springframework.core.task.TaskExecutor;
 import java.util.UUID;
 
 @Configuration
-@RequiredArgsConstructor
 public class CacheUserEvictRabbitConfig {
 
     private String cacheEvictQueue = "cache.user.evict.queue.";
@@ -27,6 +24,11 @@ public class CacheUserEvictRabbitConfig {
 
     @Qualifier("mqExecutor")
     private final TaskExecutor executor;
+
+    public CacheUserEvictRabbitConfig(Jackson2JsonMessageConverter jsonMessageConverter, @Qualifier("mqExecutor") TaskExecutor executor) {
+        this.jsonMessageConverter = jsonMessageConverter;
+        this.executor = executor;
+    }
 
     @Bean("cacheEvictQueue")
     Queue evictQueue() {

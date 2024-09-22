@@ -1,9 +1,9 @@
 package org.chiu.micro.user.convertor;
 
-import java.util.List;
-
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.vo.RoleEntityRpcVo;
+
+import java.util.List;
 
 public class RoleEntityRpcVoConvertor {
 

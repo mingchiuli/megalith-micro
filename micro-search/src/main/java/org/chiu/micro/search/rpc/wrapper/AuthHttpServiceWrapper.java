@@ -6,13 +6,14 @@ import org.chiu.micro.search.lang.Result;
 import org.chiu.micro.search.rpc.AuthHttpService;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
-
 @Component
-@RequiredArgsConstructor
 public class AuthHttpServiceWrapper {
 
     private final AuthHttpService authHttpService;
+
+    public AuthHttpServiceWrapper(AuthHttpService authHttpService) {
+        this.authHttpService = authHttpService;
+    }
 
     public AuthDto getAuthentication() {
         Result<AuthDto> result = authHttpService.getAuthentication();

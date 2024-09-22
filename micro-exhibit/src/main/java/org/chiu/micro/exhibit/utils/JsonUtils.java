@@ -1,9 +1,10 @@
-package org.chiu.micro.blog.utils;
+package org.chiu.micro.exhibit.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.chiu.micro.blog.exception.MissException;
+
+import org.chiu.micro.exhibit.exception.MissException;
 import org.springframework.stereotype.Component;
 
 

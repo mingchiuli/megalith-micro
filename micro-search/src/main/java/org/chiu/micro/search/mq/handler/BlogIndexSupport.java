@@ -1,26 +1,24 @@
 package org.chiu.micro.search.mq.handler;
 
 
-import org.chiu.micro.search.dto.BlogEntityDto;
-import org.chiu.micro.search.rpc.wrapper.BlogHttpServiceWrapper;
-
-import java.util.Objects;
-
+import com.rabbitmq.client.Channel;
 import org.chiu.micro.search.constant.BlogOperateEnum;
 import org.chiu.micro.search.constant.BlogOperateMessage;
-
-import com.rabbitmq.client.Channel;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
+import org.chiu.micro.search.dto.BlogEntityDto;
+import org.chiu.micro.search.rpc.wrapper.BlogHttpServiceWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 
-@Slf4j
+import java.io.IOException;
+import java.util.Objects;
+
 public abstract sealed class BlogIndexSupport permits
         CreateBlogIndexHandler,
         RemoveBlogIndexHandler,
         UpdateBlogIndexHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(BlogIndexSupport.class);
     protected final BlogHttpServiceWrapper blogHttpServiceWrapper;
 
     protected BlogIndexSupport(BlogHttpServiceWrapper blogHttpServiceWrapper) {
@@ -28,9 +26,9 @@ public abstract sealed class BlogIndexSupport permits
     }
 
     public abstract boolean supports(BlogOperateEnum blogOperateEnum);
+
     protected abstract void elasticSearchProcess(BlogEntityDto blog);
 
-    @SneakyThrows
     public void handle(BlogOperateMessage message, Channel channel, Message msg) {
         long deliveryTag = msg.getMessageProperties().getDeliveryTag();
         try {
@@ -49,7 +47,11 @@ public abstract sealed class BlogIndexSupport permits
             channel.basicAck(deliveryTag, false);
         } catch (Exception e) {
             log.error("consume failure", e);
-            channel.basicNack(deliveryTag, false, true);
+            try {
+                channel.basicNack(deliveryTag, false, true);
+            } catch (IOException ex) {
+                log.error(ex.getMessage());
+            }
         }
     }
 

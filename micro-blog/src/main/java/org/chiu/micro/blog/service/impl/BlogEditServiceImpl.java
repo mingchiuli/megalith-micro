@@ -1,12 +1,7 @@
 package org.chiu.micro.blog.service.impl;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import jakarta.annotation.PostConstruct;
 import org.chiu.micro.blog.convertor.BlogEditVoConvertor;
 import org.chiu.micro.blog.convertor.BlogEntityConvertor;
 import org.chiu.micro.blog.convertor.BlogEntityDtoConvertor;
@@ -17,13 +12,13 @@ import org.chiu.micro.blog.key.KeyFactory;
 import org.chiu.micro.blog.lang.StatusEnum;
 import org.chiu.micro.blog.repository.BlogRepository;
 import org.chiu.micro.blog.req.BlogEditPushAllReq;
-import org.chiu.micro.blog.vo.SensitiveContentVo;
-import org.chiu.micro.blog.vo.BlogEditVo;
-import org.chiu.micro.blog.vo.BlogSensitiveContentVo;
 import org.chiu.micro.blog.service.BlogEditService;
 import org.chiu.micro.blog.service.BlogSensitiveService;
 import org.chiu.micro.blog.utils.AuthUtils;
 import org.chiu.micro.blog.utils.JsonUtils;
+import org.chiu.micro.blog.vo.BlogEditVo;
+import org.chiu.micro.blog.vo.BlogSensitiveContentVo;
+import org.chiu.micro.blog.vo.SensitiveContentVo;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -32,22 +27,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-
-import static org.chiu.micro.blog.lang.MessageActionFieldEnum.*;
 import static org.chiu.micro.blog.lang.Const.*;
-import static org.chiu.micro.blog.lang.ExceptionMessage.*;
+import static org.chiu.micro.blog.lang.ExceptionMessage.NO_FOUND;
+import static org.chiu.micro.blog.lang.MessageActionFieldEnum.*;
 
 @Service
-@RequiredArgsConstructor
 public class BlogEditServiceImpl implements BlogEditService {
-
-    private final ObjectMapper objectMapper;
 
     private final StringRedisTemplate redisTemplate;
 
@@ -61,28 +50,36 @@ public class BlogEditServiceImpl implements BlogEditService {
 
     private final BlogRepository blogRepository;
 
-    private final TypeReference<List<SensitiveContentVo>> type = new TypeReference<>() {};
+    private final TypeReference<List<SensitiveContentVo>> type = new TypeReference<>() {
+    };
+
+    public BlogEditServiceImpl(StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, JsonUtils jsonUtils, BlogSensitiveService blogSensitiveService, BlogRepository blogRepository) {
+        this.redisTemplate = redisTemplate;
+        this.resourceLoader = resourceLoader;
+        this.jsonUtils = jsonUtils;
+        this.blogSensitiveService = blogSensitiveService;
+        this.blogRepository = blogRepository;
+    }
 
     @PostConstruct
-    @SneakyThrows
-    private void init() {
+    private void init() throws IOException {
         Resource pushAllResource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/push-all.lua");
         pushAllScript = pushAllResource.getContentAsString(StandardCharsets.UTF_8);
     }
-  
+
     @Override
     public void pushAll(BlogEditPushAllReq blog, Long userId) {
         Long id = blog.getId();
-        Long originUserId = null;
+        Long originUserId;
         if (id != null) {
             BlogEntity blogEntity = blogRepository.findById(id)
-                .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+                    .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
             AuthUtils.checkEditAuth(blogEntity, userId);
             originUserId = blogEntity.getUserId();
         } else {
             originUserId = userId;
         }
-        
+
         String redisKey = KeyFactory.createBlogEditRedisKey(originUserId, id);
         boolean exist = Boolean.TRUE.equals(redisTemplate.hasKey(redisKey));
         if (!exist) {
@@ -109,18 +106,17 @@ public class BlogEditServiceImpl implements BlogEditService {
     }
 
     @Override
-    @SneakyThrows
     public BlogEditVo findEdit(Long id, Long userId) {
         Long originUserId = null;
         if (id != null) {
             BlogEntity blogEntity = blogRepository.findById(id)
-                .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+                    .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
             AuthUtils.checkEditAuth(blogEntity, userId);
             originUserId = blogEntity.getUserId();
         } else {
             originUserId = userId;
         }
-        
+
         String redisKey = KeyFactory.createBlogEditRedisKey(originUserId, id);
         Map<String, String> entries = redisTemplate.<String, String>opsForHash()
                 .entries(redisKey);
@@ -131,7 +127,7 @@ public class BlogEditServiceImpl implements BlogEditService {
         String paragraphListString = null;
         if (!entries.isEmpty()) {
             blog = BlogEntityConvertor.convert(entries);
-            sensitiveContentList = objectMapper.readValue(entries.get(SENSITIVE_CONTENT_LIST.getMsg()), type);
+            sensitiveContentList = jsonUtils.readValue(entries.get(SENSITIVE_CONTENT_LIST.getMsg()), type);
             version = Integer.parseInt(entries.get(VERSION.getMsg()));
 
             entries.remove(SENSITIVE_CONTENT_LIST.getMsg());
@@ -168,7 +164,7 @@ public class BlogEditServiceImpl implements BlogEditService {
         } else {
             BlogEntity userBlogEntity = blogRepository.findById(id)
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-            
+
             blog = BlogEntityDtoConvertor.convert(userBlogEntity);
             List<String> paragraphList = List.of(blog.getContent().split(PARAGRAPH_SPLITTER.getInfo()));
             paragraphListString = jsonUtils.writeValueAsString(paragraphList);
@@ -180,9 +176,9 @@ public class BlogEditServiceImpl implements BlogEditService {
             redisTemplate.execute(RedisScript.of(pushAllScript),
                     Collections.singletonList(redisKey),
                     paragraphListString, ID.getMsg(), USER_ID.getMsg(), TITLE.getMsg(), DESCRIPTION.getMsg(),
-                            STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
+                    STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
                     Objects.isNull(blog.getId()) ? "" : blog.getId().toString(), originUserId.toString(), blog.getTitle(),
-                            blog.getDescription(), blog.getStatus().toString(), blog.getLink(), Integer.toString(version), jsonUtils.writeValueAsString(sensitiveContentList),
+                    blog.getDescription(), blog.getStatus().toString(), blog.getLink(), Integer.toString(version), jsonUtils.writeValueAsString(sensitiveContentList),
                     A_WEEK.getInfo());
         }
 
