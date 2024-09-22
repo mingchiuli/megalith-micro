@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @DynamicUpdate
@@ -114,62 +115,25 @@ public class BlogSensitiveContentEntity {
         this.updated = updated;
     }
 
-    public boolean equals(final Object o) {
-        if (o == this) return true;
-        if (!(o instanceof BlogSensitiveContentEntity)) return false;
-        final BlogSensitiveContentEntity other = (BlogSensitiveContentEntity) o;
-        if (!other.canEqual((Object) this)) return false;
-        final Object this$id = this.getId();
-        final Object other$id = other.getId();
-        if (this$id == null ? other$id != null : !this$id.equals(other$id)) return false;
-        final Object this$blogId = this.getBlogId();
-        final Object other$blogId = other.getBlogId();
-        if (this$blogId == null ? other$blogId != null : !this$blogId.equals(other$blogId)) return false;
-        final Object this$startIndex = this.getStartIndex();
-        final Object other$startIndex = other.getStartIndex();
-        if (this$startIndex == null ? other$startIndex != null : !this$startIndex.equals(other$startIndex))
-            return false;
-        final Object this$endIndex = this.getEndIndex();
-        final Object other$endIndex = other.getEndIndex();
-        if (this$endIndex == null ? other$endIndex != null : !this$endIndex.equals(other$endIndex)) return false;
-        final Object this$type = this.getType();
-        final Object other$type = other.getType();
-        if (this$type == null ? other$type != null : !this$type.equals(other$type)) return false;
-        final Object this$created = this.getCreated();
-        final Object other$created = other.getCreated();
-        if (this$created == null ? other$created != null : !this$created.equals(other$created)) return false;
-        final Object this$updated = this.getUpdated();
-        final Object other$updated = other.getUpdated();
-        if (this$updated == null ? other$updated != null : !this$updated.equals(other$updated)) return false;
-        return true;
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BlogSensitiveContentEntity that)) return false;
+
+        return Objects.equals(id, that.id) && Objects.equals(blogId, that.blogId) && Objects.equals(startIndex, that.startIndex) && Objects.equals(endIndex, that.endIndex) && Objects.equals(type, that.type) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated);
     }
 
-    protected boolean canEqual(final Object other) {
-        return other instanceof BlogSensitiveContentEntity;
-    }
-
+    @Override
     public int hashCode() {
-        final int PRIME = 59;
-        int result = 1;
-        final Object $id = this.getId();
-        result = result * PRIME + ($id == null ? 43 : $id.hashCode());
-        final Object $blogId = this.getBlogId();
-        result = result * PRIME + ($blogId == null ? 43 : $blogId.hashCode());
-        final Object $startIndex = this.getStartIndex();
-        result = result * PRIME + ($startIndex == null ? 43 : $startIndex.hashCode());
-        final Object $endIndex = this.getEndIndex();
-        result = result * PRIME + ($endIndex == null ? 43 : $endIndex.hashCode());
-        final Object $type = this.getType();
-        result = result * PRIME + ($type == null ? 43 : $type.hashCode());
-        final Object $created = this.getCreated();
-        result = result * PRIME + ($created == null ? 43 : $created.hashCode());
-        final Object $updated = this.getUpdated();
-        result = result * PRIME + ($updated == null ? 43 : $updated.hashCode());
+        int result = Objects.hashCode(id);
+        result = 31 * result + Objects.hashCode(blogId);
+        result = 31 * result + Objects.hashCode(startIndex);
+        result = 31 * result + Objects.hashCode(endIndex);
+        result = 31 * result + Objects.hashCode(type);
+        result = 31 * result + Objects.hashCode(created);
+        result = 31 * result + Objects.hashCode(updated);
         return result;
-    }
-
-    public String toString() {
-        return "BlogSensitiveContentEntity(id=" + this.getId() + ", blogId=" + this.getBlogId() + ", startIndex=" + this.getStartIndex() + ", endIndex=" + this.getEndIndex() + ", type=" + this.getType() + ", created=" + this.getCreated() + ", updated=" + this.getUpdated() + ")";
     }
 
     public static class BlogSensitiveContentEntityBuilder {

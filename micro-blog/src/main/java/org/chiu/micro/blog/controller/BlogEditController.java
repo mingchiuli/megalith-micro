@@ -28,12 +28,12 @@ public class BlogEditController {
     @PostMapping("/push/all")
     public Result<Void> pushSaveBlog(@RequestBody @PushAllValue BlogEditPushAllReq blog) throws AuthException {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogEditService.pushAll(blog, authDto.getUserId()));
+        return Result.success(() -> blogEditService.pushAll(blog, authDto.userId()));
     }
 
     @GetMapping("/pull/echo")
     public Result<BlogEditVo> getEchoDetail(@RequestParam(value = "blogId", required = false) Long id) throws AuthException {
         AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogEditService.findEdit(id, authDto.getUserId()));
+        return Result.success(() -> blogEditService.findEdit(id, authDto.userId()));
     }
 }

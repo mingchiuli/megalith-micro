@@ -20,9 +20,9 @@ public class BlogEntityVoConvertor {
 
     public static PageAdapter<BlogEntityVo> convert(List<BlogEntity> items, Map<Long, Integer> readMap, Long operateUserId, List<BlogSensitiveContentEntity> blogSensitiveContentEntities, BlogSearchDto dto) {
         
-        Integer size = dto.getSize();
-        Integer currentPage = dto.getCurrentPage();
-        Long total = dto.getTotal();
+        Integer size = dto.size();
+        Integer currentPage = dto.currentPage();
+        Long total = dto.total();
         
         Map<Long, LocalDateTime> blogDate = items.stream()
                 .collect(Collectors.toMap(BlogEntity::getId, BlogEntity::getUpdated));

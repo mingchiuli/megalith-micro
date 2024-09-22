@@ -23,6 +23,11 @@ public record PageAdapter<T> (
 
         int totalPages) {
 
+    public static  <T> PageAdapterBuilder<T> builder() {
+        return new PageAdapterBuilder<>();
+    }
+
+
     public static class PageAdapterBuilder<T> {
         private List<T> content;
         private long totalElements;
@@ -75,7 +80,7 @@ public record PageAdapter<T> (
         }
 
         public PageAdapter<T> build() {
-            return new PageAdapter<T>(this.content, this.totalElements, this.pageNumber, this.pageSize, this.first, this.last, this.empty, this.totalPages);
+            return new PageAdapter<>(this.content, this.totalElements, this.pageNumber, this.pageSize, this.first, this.last, this.empty, this.totalPages);
         }
 
     }
