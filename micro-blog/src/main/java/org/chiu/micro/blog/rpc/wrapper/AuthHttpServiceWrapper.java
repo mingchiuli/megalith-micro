@@ -17,10 +17,10 @@ public class AuthHttpServiceWrapper {
 
     public AuthDto getAuthentication() throws AuthException {
         Result<AuthDto> result = authHttpService.getAuthentication();
-        if (result.getCode() != 200) {
-            throw new AuthException(result.getMsg());
+        if (result.code() != 200) {
+            throw new AuthException(result.msg());
         }
-        return result.getData();
+        return result.data();
     }
 
 }

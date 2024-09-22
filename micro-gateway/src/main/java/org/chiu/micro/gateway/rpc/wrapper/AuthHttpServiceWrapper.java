@@ -21,10 +21,10 @@ public class AuthHttpServiceWrapper {
 
     public AuthorityRouteDto getAuthorityRoute(AuthorityRouteReq req) {
         Result<AuthorityRouteDto> result = authHttpService.getAuthorityRoute(req);
-        if (result.getCode() != 200) {
-            throw new MissException(result.getMsg());
+        if (result.code() != 200) {
+            throw new MissException(result.msg());
         }
-        return result.getData();
+        return result.data();
     }
 
 }

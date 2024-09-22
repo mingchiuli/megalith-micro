@@ -61,7 +61,7 @@ public class Router {
                 .ipAddr(ipAddress)
                 .build());
 
-        if (Boolean.FALSE.equals(authorityRoute.getAuth())) {
+        if (Boolean.FALSE.equals(authorityRoute.auth())) {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.getWriter().write(
@@ -70,8 +70,8 @@ public class Router {
             return;
         }
 
-        String serviceHost = authorityRoute.getServiceHost();
-        Integer servicePort = authorityRoute.getServicePort();
+        String serviceHost = authorityRoute.serviceHost();
+        Integer servicePort = authorityRoute.servicePort();
 
         String url = "http://" + serviceHost + ":" + servicePort + requestURI;
 
