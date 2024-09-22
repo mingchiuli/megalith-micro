@@ -69,7 +69,7 @@ public class BlogEditServiceImpl implements BlogEditService {
 
     @Override
     public void pushAll(BlogEditPushAllReq blog, Long userId) {
-        Long id = blog.getId();
+        Long id = blog.id();
         Long originUserId;
         if (id != null) {
             BlogEntity blogEntity = blogRepository.findById(id)
@@ -86,7 +86,7 @@ public class BlogEditServiceImpl implements BlogEditService {
             return;
         }
 
-        String content = blog.getContent();
+        String content = blog.content();
 
         String[] splits = content.split(PARAGRAPH_SPLITTER.getInfo());
         List<String> paragraphList = new ArrayList<>(splits.length + 2);
@@ -100,8 +100,8 @@ public class BlogEditServiceImpl implements BlogEditService {
                 Collections.singletonList(redisKey),
                 paragraphListString, ID.getMsg(), USER_ID.getMsg(), TITLE.getMsg(), DESCRIPTION.getMsg(),
                 STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
-                Objects.isNull(blog.getId()) ? "" : blog.getId().toString(), originUserId.toString(), blog.getTitle(),
-                blog.getDescription(), blog.getStatus().toString(), blog.getLink(), blog.getVersion().toString(), jsonUtils.writeValueAsString(blog.getSensitiveContentList()),
+                Objects.isNull(blog.id()) ? "" : blog.id().toString(), originUserId.toString(), blog.title(),
+                blog.description(), blog.status().toString(), blog.link(), blog.version().toString(), jsonUtils.writeValueAsString(blog.sensitiveContentList()),
                 A_WEEK.getInfo());
     }
 
@@ -169,7 +169,7 @@ public class BlogEditServiceImpl implements BlogEditService {
             List<String> paragraphList = List.of(blog.getContent().split(PARAGRAPH_SPLITTER.getInfo()));
             paragraphListString = jsonUtils.writeValueAsString(paragraphList);
             BlogSensitiveContentVo blogSensitiveContentVo = blogSensitiveService.findByBlogId(id);
-            sensitiveContentList = blogSensitiveContentVo.getSensitiveContent();
+            sensitiveContentList = blogSensitiveContentVo.sensitiveContent();
         }
 
         if (StringUtils.hasLength(paragraphListString)) {

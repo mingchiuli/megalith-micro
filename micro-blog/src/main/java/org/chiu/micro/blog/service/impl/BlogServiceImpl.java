@@ -214,7 +214,7 @@ public class BlogServiceImpl implements BlogService {
             String uuid = UUID.randomUUID().toString();
 
             UserEntityDto user = userHttpServiceWrapper.findById(userId);
-            String objectName = user.getNickname() + "/" + uuid + "-" + originalFilename;
+            String objectName = user.nickname() + "/" + uuid + "-" + originalFilename;
 
             Map<String, String> headers = new HashMap<>();
             String gmtDate = ossSignUtils.getGMTDate();
@@ -263,7 +263,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public void saveOrUpdate(BlogEntityReq blog, Long userId) {
-        Long blogId = blog.getId();
+        Long blogId = blog.id();
         BlogEntity blogEntity;
 
         if (Objects.nonNull(blogId)) {
@@ -280,13 +280,13 @@ public class BlogServiceImpl implements BlogService {
 
         BeanUtils.copyProperties(blog, blogEntity);
 
-        List<BlogSensitiveContentEntity> blogSensitiveContentEntityList = blog.getSensitiveContentList().stream()
+        List<BlogSensitiveContentEntity> blogSensitiveContentEntityList = blog.sensitiveContentList().stream()
                 .distinct()
                 .map(item -> BlogSensitiveContentEntity.builder()
-                        .blogId(blog.getId())
-                        .endIndex(item.getEndIndex())
-                        .startIndex(item.getStartIndex())
-                        .type(item.getType())
+                        .blogId(blog.id())
+                        .endIndex(item.endIndex())
+                        .startIndex(item.startIndex())
+                        .type(item.type())
                         .build())
                 .toList();
 
@@ -316,7 +316,7 @@ public class BlogServiceImpl implements BlogService {
     public PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, Long userId, String keywords) {
 
         BlogSearchDto dto = searchHttpServiceWrapper.searchBlogs(currentPage, size, keywords);
-        List<Long> ids = dto.getIds();
+        List<Long> ids = dto.ids();
         List<BlogEntity> items = blogRepository.findAllById(ids).stream()
                 .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
                 .toList();

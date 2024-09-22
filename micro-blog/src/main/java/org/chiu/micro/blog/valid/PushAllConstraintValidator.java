@@ -25,23 +25,23 @@ public class PushAllConstraintValidator implements ConstraintValidator<PushAllVa
     @Override
     public boolean isValid(BlogEditPushAllReq blog, ConstraintValidatorContext context) {
 
-        if (Objects.isNull(blog.getTitle())) {
+        if (Objects.isNull(blog.title())) {
             return false;
         }
 
-        if (Objects.isNull(blog.getDescription())) {
+        if (Objects.isNull(blog.description())) {
             return false;
         }
 
-        if (Objects.isNull(blog.getContent())) {
+        if (Objects.isNull(blog.content())) {
             return false;
         }
 
-        if (Objects.isNull(blog.getVersion())) {
+        if (Objects.isNull(blog.version())) {
             return false;
         }
 
-        Integer status = blog.getStatus();
+        Integer status = blog.status();
 
         Set<Integer> statusSet = Arrays.stream(StatusEnum.values())
                 .map(StatusEnum::getCode)
@@ -51,7 +51,7 @@ public class PushAllConstraintValidator implements ConstraintValidator<PushAllVa
             return false;
         }
 
-        String link = blog.getLink();
+        String link = blog.link();
 
         if (Objects.isNull(link)) {
             return false;
@@ -61,21 +61,21 @@ public class PushAllConstraintValidator implements ConstraintValidator<PushAllVa
             return false;
         }
 
-        List<SensitiveContentReq> sensitiveContentList = blog.getSensitiveContentList();
+        List<SensitiveContentReq> sensitiveContentList = blog.sensitiveContentList();
 
         Set<Integer> sensitiveSet = Arrays.stream(SensitiveTypeEnum.values())
                 .map(SensitiveTypeEnum::getCode)
                 .collect(Collectors.toSet());
         for (var sensitive : sensitiveContentList) {
-            if (Objects.isNull(sensitive.getStartIndex())) {
+            if (Objects.isNull(sensitive.startIndex())) {
                 return false;
             }
 
-            if (Objects.isNull(sensitive.getEndIndex())) {
+            if (Objects.isNull(sensitive.endIndex())) {
                 return false;
             }
 
-            if (!sensitiveSet.contains(sensitive.getType())) {
+            if (!sensitiveSet.contains(sensitive.type())) {
                 return false;
             }
         }

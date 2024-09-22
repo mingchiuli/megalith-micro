@@ -25,19 +25,19 @@ public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSave
     @Override
     public boolean isValid(BlogEntityReq blog, ConstraintValidatorContext context) {
 
-        if (!StringUtils.hasLength(blog.getTitle())) {
+        if (!StringUtils.hasLength(blog.title())) {
             return false;
         }
 
-        if (!StringUtils.hasLength(blog.getDescription())) {
+        if (!StringUtils.hasLength(blog.description())) {
             return false;
         }
 
-        if (!StringUtils.hasLength(blog.getContent())) {
+        if (!StringUtils.hasLength(blog.content())) {
             return false;
         }
 
-        Integer status = blog.getStatus();
+        Integer status = blog.status();
 
         Set<Integer> statusSet = Arrays.stream(StatusEnum.values())
                 .map(StatusEnum::getCode)
@@ -47,7 +47,7 @@ public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSave
             return false;
         }
 
-        String link = blog.getLink();
+        String link = blog.link();
 
         if (Objects.isNull(link)) {
             return false;
@@ -57,21 +57,21 @@ public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSave
             return false;
         }
 
-        List<SensitiveContentReq> sensitiveContentList = blog.getSensitiveContentList();
+        List<SensitiveContentReq> sensitiveContentList = blog.sensitiveContentList();
 
         Set<Integer> sensitiveSet = Arrays.stream(SensitiveTypeEnum.values())
                 .map(SensitiveTypeEnum::getCode)
                 .collect(Collectors.toSet());
         for (var sensitive : sensitiveContentList) {
-            if (Objects.isNull(sensitive.getStartIndex())) {
+            if (Objects.isNull(sensitive.startIndex())) {
                 return false;
             }
 
-            if (Objects.isNull(sensitive.getEndIndex())) {
+            if (Objects.isNull(sensitive.endIndex())) {
                 return false;
             }
 
-            if (!sensitiveSet.contains(sensitive.getType())) {
+            if (!sensitiveSet.contains(sensitive.type())) {
                 return false;
             }
         }
