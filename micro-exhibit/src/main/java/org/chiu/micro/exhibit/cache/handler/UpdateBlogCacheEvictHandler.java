@@ -43,16 +43,16 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
     @Override
     public Set<String> redisProcess(BlogEntityDto blogEntity) {
-        Long id = blogEntity.getId();
-        int year = blogEntity.getCreated().getYear();
-        Integer status = blogEntity.getStatus();
+        Long id = blogEntity.id();
+        int year = blogEntity.created().getYear();
+        Integer status = blogEntity.status();
 
         //不分年份的页数
         LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
         LocalDateTime end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
 
-        long countAfter = blogHttpServiceWrapper.countByCreatedGreaterThanEqual(blogEntity.getCreated());
-        long countYearAfter = blogHttpServiceWrapper.getPageCountYear(blogEntity.getCreated(), start, end);
+        long countAfter = blogHttpServiceWrapper.countByCreatedGreaterThanEqual(blogEntity.created());
+        long countYearAfter = blogHttpServiceWrapper.getPageCountYear(blogEntity.created(), start, end);
         Set<String> keys = cacheKeyGenerator.generateBlogKey(countAfter, countYearAfter, year);
 
         //博客对象本身缓存
@@ -86,7 +86,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
             keys.add(READ_TOKEN.getInfo() + id);
         }
 
-        String blogEditKey = KeyFactory.createBlogEditRedisKey(blogEntity.getUserId(), id);
+        String blogEditKey = KeyFactory.createBlogEditRedisKey(blogEntity.userId(), id);
         //暂存区
         keys.add(blogEditKey);
         //内容状态信息

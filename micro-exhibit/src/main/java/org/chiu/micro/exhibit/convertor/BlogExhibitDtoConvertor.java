@@ -11,15 +11,15 @@ public class BlogExhibitDtoConvertor {
 
     public static BlogExhibitDto convert(BlogEntityDto blogEntity, UserEntityDto user) {
         return BlogExhibitDto.builder()
-                .userId(blogEntity.getUserId())
-                .title(blogEntity.getTitle())
-                .description(blogEntity.getDescription())
-                .content(blogEntity.getContent())
-                .readCount(blogEntity.getReadCount())
-                .nickname(user.getNickname())
-                .avatar(user.getAvatar())
-                .created(blogEntity.getCreated())
-                .readCount(blogEntity.getReadCount())
+                .userId(blogEntity.userId())
+                .title(blogEntity.title())
+                .description(blogEntity.description())
+                .content(blogEntity.content())
+                .readCount(blogEntity.readCount())
+                .nickname(user.nickname())
+                .avatar(user.avatar())
+                .created(blogEntity.created())
+                .readCount(blogEntity.readCount())
                 .build();
     }
 
@@ -28,22 +28,22 @@ public class BlogExhibitDtoConvertor {
                 .content(content)
                 .description(description)
                 .title(title)
-                .avatar(blog.getAvatar())
-                .created(blog.getCreated())
-                .nickname(blog.getNickname())
-                .readCount(blog.getReadCount())
-                .userId(blog.getUserId())
+                .avatar(blog.avatar())
+                .created(blog.created())
+                .nickname(blog.nickname())
+                .readCount(blog.readCount())
+                .userId(blog.userId())
                 .build();
     }
 
     public static BlogDescriptionDto convert(BlogDescriptionDto blog, String title, String description) {
         return BlogDescriptionDto.builder()
                 .description(description)
-                .id(blog.getId())
-                .link(blog.getLink())
-                .status(blog.getStatus())
+                .id(blog.id())
+                .link(blog.link())
+                .status(blog.status())
                 .title(title)
-                .created(blog.getCreated())
+                .created(blog.created())
                 .build();
     }
 }

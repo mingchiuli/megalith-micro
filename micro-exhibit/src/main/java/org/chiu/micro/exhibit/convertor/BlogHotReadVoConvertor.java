@@ -16,11 +16,11 @@ public class BlogHotReadVoConvertor {
     public static List<BlogHotReadVo> convert(List<BlogEntityDto> blogs, Collection<ScoredEntry<String>> scoredEntries) {
     
         Map<Long, String> idTitleMap = blogs.stream()
-                .collect(Collectors.toMap(BlogEntityDto::getId, BlogEntityDto::getTitle));
+                .collect(Collectors.toMap(BlogEntityDto::id, BlogEntityDto::title));
 
         List<Long> ids = blogs.stream()
-                .filter(item -> !HIDE.getCode().equals(item.getStatus()))
-                .map(BlogEntityDto::getId)
+                .filter(item -> !HIDE.getCode().equals(item.status()))
+                .map(BlogEntityDto::id)
                 .toList();
 
         return scoredEntries.stream()

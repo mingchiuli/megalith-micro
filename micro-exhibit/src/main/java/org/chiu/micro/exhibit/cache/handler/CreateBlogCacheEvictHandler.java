@@ -38,15 +38,15 @@ public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
     @Override
     public Set<String> redisProcess(BlogEntityDto blogEntity) {
-        Long id = blogEntity.getId();
-        int year = blogEntity.getCreated().getYear();
+        Long id = blogEntity.id();
+        int year = blogEntity.created().getYear();
         //删除listPageByYear、listPage、getCountByYear所有缓存，该年份的页面bloom，编辑暂存区数据
         var start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
         var end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
         long count = blogHttpServiceWrapper.count();
         long countYear = blogHttpServiceWrapper.countByCreatedBetween(start, end);
         Set<String> keys = cacheKeyGenerator.generateHotBlogsKeys(year, count, countYear);
-        String blogEditKey = KeyFactory.createBlogEditRedisKey(blogEntity.getUserId(), null);
+        String blogEditKey = KeyFactory.createBlogEditRedisKey(blogEntity.userId(), null);
         keys.add(blogEditKey);
         redissonClient.getKeys().delete(keys.toArray(new String[0]));
         keys.remove(blogEditKey);

@@ -9,14 +9,14 @@ public class BlogExhibitVoConvertor {
 
     public static BlogExhibitVo convert(BlogExhibitDto dto) {
         return BlogExhibitVo.builder()
-                .title(dto.getTitle())
-                .description(dto.getDescription())
-                .content(dto.getContent())
-                .readCount(dto.getReadCount())
-                .nickname(dto.getNickname())
-                .avatar(dto.getAvatar())
-                .created(dto.getCreated())
-                .readCount(dto.getReadCount())
+                .title(dto.title())
+                .description(dto.description())
+                .content(dto.content())
+                .readCount(dto.readCount())
+                .nickname(dto.nickname())
+                .avatar(dto.avatar())
+                .created(dto.created())
+                .readCount(dto.readCount())
                 .build();
     }
 }
