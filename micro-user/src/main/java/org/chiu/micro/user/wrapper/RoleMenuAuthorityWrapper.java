@@ -1,6 +1,5 @@
 package org.chiu.micro.user.wrapper;
 
-import lombok.RequiredArgsConstructor;
 import org.chiu.micro.user.repository.RoleAuthorityRepository;
 import org.chiu.micro.user.repository.RoleMenuRepository;
 import org.chiu.micro.user.repository.RoleRepository;
@@ -10,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 public class RoleMenuAuthorityWrapper {
 
     private final RoleRepository roleRepository;
@@ -18,6 +16,12 @@ public class RoleMenuAuthorityWrapper {
     private final RoleAuthorityRepository roleAuthorityRepository;
 
     private final RoleMenuRepository roleMenuRepository;
+
+    public RoleMenuAuthorityWrapper(RoleRepository roleRepository, RoleAuthorityRepository roleAuthorityRepository, RoleMenuRepository roleMenuRepository) {
+        this.roleRepository = roleRepository;
+        this.roleAuthorityRepository = roleAuthorityRepository;
+        this.roleMenuRepository = roleMenuRepository;
+    }
 
     @Transactional
     public void delete(List<Long> ids) {

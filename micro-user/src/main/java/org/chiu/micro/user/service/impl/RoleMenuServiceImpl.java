@@ -1,32 +1,21 @@
 package org.chiu.micro.user.service.impl;
 
-import org.chiu.micro.user.exception.CommitException;
-import org.chiu.micro.user.lang.AuthMenuOperateEnum;
 import org.chiu.micro.user.constant.AuthMenuIndexMessage;
-import org.chiu.micro.user.convertor.ButtonDtoConvertor;
-import org.chiu.micro.user.convertor.MenuDisplayDtoConvertor;
-import org.chiu.micro.user.convertor.MenuDisplayVoConvertor;
-import org.chiu.micro.user.convertor.MenuDtoConvertor;
-import org.chiu.micro.user.convertor.MenuWithChildDtoConvertor;
-import org.chiu.micro.user.convertor.MenusWithChildAndButtonsVoConvertor;
-import org.chiu.micro.user.convertor.RoleMenuEntityConvertor;
-import org.chiu.micro.user.dto.ButtonDto;
-import org.chiu.micro.user.dto.MenuDisplayDto;
-import org.chiu.micro.user.dto.MenuDto;
-import org.chiu.micro.user.dto.MenuWithChildDto;
-import org.chiu.micro.user.dto.MenusAndButtonsDto;
-import org.chiu.micro.user.dto.MenusWithChildAndButtonsDto;
+import org.chiu.micro.user.convertor.*;
+import org.chiu.micro.user.dto.*;
 import org.chiu.micro.user.entity.MenuEntity;
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.entity.RoleMenuEntity;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
+import org.chiu.micro.user.exception.CommitException;
+import org.chiu.micro.user.lang.AuthMenuOperateEnum;
 import org.chiu.micro.user.repository.MenuRepository;
 import org.chiu.micro.user.repository.RoleMenuRepository;
 import org.chiu.micro.user.repository.RoleRepository;
 import org.chiu.micro.user.service.RoleMenuService;
-import org.chiu.micro.user.vo.*;
-
-import lombok.RequiredArgsConstructor;
+import org.chiu.micro.user.vo.MenuDisplayVo;
+import org.chiu.micro.user.vo.MenusAndButtonsVo;
+import org.chiu.micro.user.vo.RoleMenuVo;
 import org.chiu.micro.user.wrapper.RoleMenuWrapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -34,12 +23,10 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static org.chiu.micro.user.lang.ExceptionMessage.MENU_INVALID_OPERATE;
-import static org.chiu.micro.user.convertor.MenuDisplayVoConvertor.buildTreeMenu;
-
 import java.util.Optional;
 
+import static org.chiu.micro.user.convertor.MenuDisplayVoConvertor.buildTreeMenu;
+import static org.chiu.micro.user.lang.ExceptionMessage.MENU_INVALID_OPERATE;
 import static org.chiu.micro.user.lang.StatusEnum.NORMAL;
 import static org.chiu.micro.user.lang.TypeEnum.*;
 
@@ -48,7 +35,6 @@ import static org.chiu.micro.user.lang.TypeEnum.*;
  * @create 2022-12-04 2:26 am
  */
 @Service
-@RequiredArgsConstructor
 public class RoleMenuServiceImpl implements RoleMenuService {
 
     private final MenuRepository menuRepository;
@@ -60,6 +46,14 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     private final RoleRepository roleRepository;
 
     private final ApplicationContext applicationContext;
+
+    public RoleMenuServiceImpl(MenuRepository menuRepository, RoleMenuRepository roleMenuRepository, RoleMenuWrapper roleMenuWrapper, RoleRepository roleRepository, ApplicationContext applicationContext) {
+        this.menuRepository = menuRepository;
+        this.roleMenuRepository = roleMenuRepository;
+        this.roleMenuWrapper = roleMenuWrapper;
+        this.roleRepository = roleRepository;
+        this.applicationContext = applicationContext;
+    }
 
     private List<RoleMenuVo> setCheckMenusInfo(List<MenuDisplayVo> menusInfo, List<Long> menuIdsByRole, List<RoleMenuVo> parentChildren) {
         menusInfo.forEach(item -> {
@@ -84,7 +78,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
     @Override
     public MenusAndButtonsVo getCurrentUserNav(String role) {
-    
+
         MenusAndButtonsDto menusAndButtonsDto = getCurrentRoleNav(role);
         List<MenuDto> menus = menusAndButtonsDto.getMenus();
         List<ButtonDto> buttons = menusAndButtonsDto.getButtons();

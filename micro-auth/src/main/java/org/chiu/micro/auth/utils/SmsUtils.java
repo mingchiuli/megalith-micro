@@ -1,12 +1,14 @@
 package org.chiu.micro.auth.utils;
 
-import lombok.SneakyThrows;
+import org.chiu.micro.auth.exception.MissException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -26,10 +28,15 @@ public class SmsUtils {
     private static final String SIGNATURE_METHOD = "HMAC-SHA1";
 
 
-    @SneakyThrows
     private String sign(String accessSecret, String stringToSign) {
-        javax.crypto.Mac mac = Mac.getInstance(ALGORITHM);
-        mac.init(new javax.crypto.spec.SecretKeySpec(accessSecret.getBytes(StandardCharsets.UTF_8), ALGORITHM));
+        Mac mac;
+        try {
+            mac = Mac.getInstance(ALGORITHM);
+            mac.init(new javax.crypto.spec.SecretKeySpec(accessSecret.getBytes(StandardCharsets.UTF_8), ALGORITHM));
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new MissException(e.getMessage());
+        }
+
         byte[] signData = mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(signData);
     }

@@ -1,12 +1,5 @@
 package org.chiu.micro.user.service.impl;
 
-import lombok.RequiredArgsConstructor;
-
-import org.chiu.micro.user.exception.CommitException;
-import org.chiu.micro.user.exception.MissException;
-import org.chiu.micro.user.lang.StatusEnum;
-import org.chiu.micro.user.lang.UserOperateEnum;
-import org.chiu.micro.user.page.PageAdapter;
 import org.chiu.micro.user.code.CodeFactory;
 import org.chiu.micro.user.constant.UserIndexMessage;
 import org.chiu.micro.user.convertor.UserEntityVoConvertor;
@@ -14,6 +7,11 @@ import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.entity.UserEntity;
 import org.chiu.micro.user.entity.UserRoleEntity;
 import org.chiu.micro.user.event.UserOperateEvent;
+import org.chiu.micro.user.exception.CommitException;
+import org.chiu.micro.user.exception.MissException;
+import org.chiu.micro.user.lang.StatusEnum;
+import org.chiu.micro.user.lang.UserOperateEnum;
+import org.chiu.micro.user.page.PageAdapter;
 import org.chiu.micro.user.repository.RoleRepository;
 import org.chiu.micro.user.repository.UserRepository;
 import org.chiu.micro.user.repository.UserRoleRepository;
@@ -32,9 +30,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
-import static org.chiu.micro.user.lang.Const.*;
+import static org.chiu.micro.user.lang.Const.REGISTER_PREFIX;
+import static org.chiu.micro.user.lang.Const.USER;
 import static org.chiu.micro.user.lang.ExceptionMessage.*;
 import static org.chiu.micro.user.lang.StatusEnum.NORMAL;
 
@@ -43,7 +45,6 @@ import static org.chiu.micro.user.lang.StatusEnum.NORMAL;
  * @Date 2024/5/29 22:12
  **/
 @Service
-@RequiredArgsConstructor
 public class UserRoleServiceImpl implements UserRoleService {
 
     private final RoleRepository roleRepository;
@@ -61,6 +62,17 @@ public class UserRoleServiceImpl implements UserRoleService {
     private final ApplicationContext applicationContext;
 
     private final UserRoleRepository userRoleRepository;
+
+    public UserRoleServiceImpl(RoleRepository roleRepository, CodeFactory codeFactory, StringRedisTemplate redisTemplate, UserRoleWrapper userRoleWrapper, UserRepository userRepository, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, UserRoleRepository userRoleRepository) {
+        this.roleRepository = roleRepository;
+        this.codeFactory = codeFactory;
+        this.redisTemplate = redisTemplate;
+        this.userRoleWrapper = userRoleWrapper;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.applicationContext = applicationContext;
+        this.userRoleRepository = userRoleRepository;
+    }
 
     @Override
     public void saveOrUpdate(UserEntityReq userEntityReq) {
@@ -164,12 +176,12 @@ public class UserRoleServiceImpl implements UserRoleService {
                 size,
                 Sort.by("created").ascending());
         Page<UserEntity> page = userRepository.findAll(pageRequest);
-        
+
         List<Long> userIds = page.get()
                 .map(UserEntity::getId)
                 .toList();
         List<UserRoleEntity> userRoleEntities = userRoleRepository.findByUserIdIn(userIds);
-        
+
         List<Long> roleIds = userRoleEntities.stream()
                 .map(UserRoleEntity::getRoleId)
                 .toList();

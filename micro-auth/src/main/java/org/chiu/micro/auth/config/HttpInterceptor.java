@@ -1,8 +1,6 @@
 package org.chiu.micro.auth.config;
 
-import java.io.IOException;
-import java.util.Optional;
-
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
@@ -13,21 +11,23 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.Optional;
 
 @Configuration
 public class HttpInterceptor implements ClientHttpRequestInterceptor {
 
     @Override
-	public @NonNull ClientHttpResponse intercept(@NonNull HttpRequest request, @NonNull byte[] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
-	    try {
+    public @NonNull ClientHttpResponse intercept(@NonNull HttpRequest request, @NonNull byte[] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
+        try {
             HttpServletRequest req = ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
             String token = Optional.ofNullable(req.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
             request.getHeaders().add(HttpHeaders.AUTHORIZATION, token);
-	    } catch(IllegalStateException _) {}
-   
+        } catch (IllegalStateException _) {
+        }
+
         return execution.execute(request, body);
-	}
-    
-    
+    }
+
+
 }

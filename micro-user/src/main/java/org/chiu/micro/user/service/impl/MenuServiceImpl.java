@@ -1,22 +1,20 @@
 package org.chiu.micro.user.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
-
-import org.chiu.micro.user.lang.AuthMenuOperateEnum;
-import org.chiu.micro.user.lang.StatusEnum;
 import org.chiu.micro.user.constant.AuthMenuIndexMessage;
 import org.chiu.micro.user.convertor.MenuDisplayVoConvertor;
 import org.chiu.micro.user.convertor.MenuEntityConvertor;
 import org.chiu.micro.user.convertor.MenuEntityVoConvertor;
 import org.chiu.micro.user.entity.MenuEntity;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
+import org.chiu.micro.user.exception.MissException;
+import org.chiu.micro.user.lang.AuthMenuOperateEnum;
+import org.chiu.micro.user.lang.StatusEnum;
 import org.chiu.micro.user.repository.MenuRepository;
 import org.chiu.micro.user.repository.RoleRepository;
-import org.chiu.micro.user.service.MenuService;
 import org.chiu.micro.user.req.MenuEntityReq;
-import org.chiu.micro.user.exception.MissException;
-import lombok.RequiredArgsConstructor;
+import org.chiu.micro.user.service.MenuService;
 import org.chiu.micro.user.vo.MenuDisplayVo;
 import org.chiu.micro.user.vo.MenuEntityVo;
 import org.springframework.beans.BeanUtils;
@@ -24,17 +22,19 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
-import static org.chiu.micro.user.lang.ExceptionMessage.*;
 import static org.chiu.micro.user.convertor.MenuDisplayVoConvertor.buildTreeMenu;
+import static org.chiu.micro.user.lang.ExceptionMessage.MENU_NOT_EXIST;
+import static org.chiu.micro.user.lang.ExceptionMessage.NO_FOUND;
 
 /**
  * @author mingchiuli
  * @create 2022-12-04 2:25 am
  */
 @Service
-@RequiredArgsConstructor
 public class MenuServiceImpl implements MenuService {
 
     private final MenuRepository menuRepository;
@@ -44,6 +44,13 @@ public class MenuServiceImpl implements MenuService {
     private final RoleRepository roleRepository;
 
     private final ApplicationContext applicationContext;
+
+    public MenuServiceImpl(MenuRepository menuRepository, ObjectMapper objectMapper, RoleRepository roleRepository, ApplicationContext applicationContext) {
+        this.menuRepository = menuRepository;
+        this.objectMapper = objectMapper;
+        this.roleRepository = roleRepository;
+        this.applicationContext = applicationContext;
+    }
 
     @Override
     public MenuEntityVo findById(Long id) {
@@ -75,7 +82,7 @@ public class MenuServiceImpl implements MenuService {
         } else {
             menuRepository.save(menuEntity);
         }
-        
+
         // 全部按钮和菜单
         List<String> allRoleCodes = roleRepository.findAllCodes();
         var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.MENU.getType());
@@ -89,11 +96,14 @@ public class MenuServiceImpl implements MenuService {
         return buildTreeMenu(menuEntities);
     }
 
-    @SneakyThrows
     @Override
     public byte[] download() {
         List<MenuEntity> menus = menuRepository.findAll();
-        return objectMapper.writeValueAsBytes(menus);
+        try {
+            return objectMapper.writeValueAsBytes(menus);
+        } catch (JsonProcessingException e) {
+            throw new MissException(e.getMessage());
+        }
     }
 
     private void findTargetChildrenMenuId(Long menuId, List<MenuEntity> menuEntities) {

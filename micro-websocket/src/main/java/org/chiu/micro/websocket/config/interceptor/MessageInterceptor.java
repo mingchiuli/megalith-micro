@@ -1,8 +1,6 @@
 package org.chiu.micro.websocket.config.interceptor;
 
 
-import lombok.RequiredArgsConstructor;
-
 import org.chiu.micro.websocket.dto.AuthDto;
 import org.chiu.micro.websocket.rpc.wrapper.AuthHttpServiceWrapper;
 import org.springframework.lang.NonNull;
@@ -22,10 +20,13 @@ import org.springframework.util.StringUtils;
  * @create 2022-06-17 9:46 PM
  */
 @Component
-@RequiredArgsConstructor
 public class MessageInterceptor implements ChannelInterceptor {
 
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
+
+    public MessageInterceptor(AuthHttpServiceWrapper authHttpServiceWrapper) {
+        this.authHttpServiceWrapper = authHttpServiceWrapper;
+    }
 
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
@@ -39,7 +40,7 @@ public class MessageInterceptor implements ChannelInterceptor {
             if (!StringUtils.hasLength(token)) {
                 return message;
             }
-            
+
             AuthDto authDto = authHttpServiceWrapper.getAuthentication(token);
             PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(authDto.getUserId(), null, AuthorityUtils.createAuthorityList(authDto.getAuthorities()));
             accessor.setUser(authentication);

@@ -1,7 +1,5 @@
 package org.chiu.micro.websocket.config;
 
-import java.util.List;
-
 import org.chiu.micro.websocket.dto.AuthorityDto;
 import org.chiu.micro.websocket.lang.Const;
 import org.chiu.micro.websocket.rpc.wrapper.AuthHttpServiceWrapper;
@@ -12,7 +10,7 @@ import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 /**
  * 支持security注解@PreAuthorize
@@ -21,10 +19,13 @@ import lombok.RequiredArgsConstructor;
  * @create 2023-01-15 11:38 am
  */
 @Configuration
-@RequiredArgsConstructor
 public class WebSocketSecurityConfig {
 
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
+
+    public WebSocketSecurityConfig(AuthHttpServiceWrapper authHttpServiceWrapper) {
+        this.authHttpServiceWrapper = authHttpServiceWrapper;
+    }
 
     @Bean
     AuthorizationManager<Message<?>> authorizationManager(MessageMatcherDelegatingAuthorizationManager.Builder messages) {

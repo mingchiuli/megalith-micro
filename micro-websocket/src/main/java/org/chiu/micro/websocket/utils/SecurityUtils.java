@@ -12,7 +12,8 @@ import java.util.List;
 @Component
 public class SecurityUtils {
 
-    private SecurityUtils(){}
+    private SecurityUtils() {
+    }
 
     @SuppressWarnings("unchecked")
     public static List<String> getLoginRole() {

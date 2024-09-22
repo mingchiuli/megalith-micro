@@ -6,14 +6,15 @@ import org.chiu.micro.exhibit.lang.Result;
 import org.chiu.micro.exhibit.rpc.UserHttpService;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
-
 
 @Component
-@RequiredArgsConstructor
 public class UserhttpServiceWrapper {
 
     private final UserHttpService userHttpService;
+
+    public UserhttpServiceWrapper(UserHttpService userHttpService) {
+        this.userHttpService = userHttpService;
+    }
 
     public UserEntityDto findById(Long userId) {
         Result<UserEntityDto> result = userHttpService.findById(userId);

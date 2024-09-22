@@ -1,28 +1,33 @@
 package org.chiu.micro.blog.config;
 
-import lombok.SneakyThrows;
 import org.chiu.micro.blog.constant.BlogOperateMessage;
 import org.chiu.micro.blog.valid.BlogSaveConstraintValidator;
 import org.chiu.micro.blog.valid.ListValueConstraintValidator;
 import org.chiu.micro.blog.valid.PushAllConstraintValidator;
-import org.springframework.aot.hint.*;
+
+import org.springframework.aot.hint.ExecutableMode;
+import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.util.LinkedHashSet;
 
-
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
-    @SneakyThrows
     @Override// Register method for reflection
     public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {
         // Register method for reflection
-    
-        hints.reflection().registerConstructor(LinkedHashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
-        hints.reflection().registerConstructor(ListValueConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
-        hints.reflection().registerConstructor(BlogSaveConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
-        hints.reflection().registerConstructor(PushAllConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
+
+        try {
+            hints.reflection().registerConstructor(LinkedHashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
+            hints.reflection().registerConstructor(ListValueConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
+            hints.reflection().registerConstructor(BlogSaveConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
+            hints.reflection().registerConstructor(PushAllConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("application start fail");
+        }
+
 
         hints.serialization().registerType(BlogOperateMessage.class);
 

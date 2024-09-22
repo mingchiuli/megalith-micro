@@ -15,7 +15,7 @@ import static org.chiu.micro.exhibit.lang.Const.BLOOM_FILTER_BLOG;
  * @author mingchiuli
  * @create 2023-06-24 5:00 pm
  */
-public record BlogRunnable (
+public record BlogRunnable(
         BlogService blogService,
         BlogWrapper blogWrapper,
         BlogSensitiveWrapper blogSensitiveWrapper,

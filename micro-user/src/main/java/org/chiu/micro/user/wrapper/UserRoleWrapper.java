@@ -1,6 +1,5 @@
 package org.chiu.micro.user.wrapper;
 
-import lombok.RequiredArgsConstructor;
 import org.chiu.micro.user.entity.UserEntity;
 import org.chiu.micro.user.entity.UserRoleEntity;
 import org.chiu.micro.user.repository.UserRepository;
@@ -15,12 +14,16 @@ import java.util.List;
  * @Date 2024/5/29 13:41
  **/
 @Component
-@RequiredArgsConstructor
 public class UserRoleWrapper {
 
     private final UserRepository userRepository;
 
     private final UserRoleRepository userRoleRepository;
+
+    public UserRoleWrapper(UserRepository userRepository, UserRoleRepository userRoleRepository) {
+        this.userRepository = userRepository;
+        this.userRoleRepository = userRoleRepository;
+    }
 
     @Transactional
     public void saveOrUpdate(UserEntity userEntity, List<UserRoleEntity> userRoleEntities) {

@@ -13,18 +13,15 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
-import lombok.RequiredArgsConstructor;
-
-import java.time.Duration;
 import java.net.http.HttpClient;
+import java.time.Duration;
 
 
 @Configuration
-@RequiredArgsConstructor
 public class RpcConfig {
 
     private final HttpClient httpClient;
-    
+
     private final HttpInterceptor httpInterceptor;
 
     @Value("${blog.aliyun.oss.bucket-name}")
@@ -35,6 +32,11 @@ public class RpcConfig {
 
     @Value("${blog.oss.base-url}")
     private String baseUrl;
+
+    public RpcConfig(HttpClient httpClient, HttpInterceptor httpInterceptor) {
+        this.httpClient = httpClient;
+        this.httpInterceptor = httpInterceptor;
+    }
 
     @Bean
     OssHttpService ossHttpService() {

@@ -7,20 +7,21 @@ import org.chiu.micro.blog.service.BlogSensitiveService;
 import org.chiu.micro.blog.vo.BlogSensitiveContentVo;
 import org.springframework.stereotype.Service;
 
-import lombok.AllArgsConstructor;
-
 import java.util.List;
 
 @Service
-@AllArgsConstructor
 public class BlogSensitiveServiceImpl implements BlogSensitiveService {
 
     private final BlogSensitiveContentRepository blogSensitiveContentRepository;
+
+    public BlogSensitiveServiceImpl(BlogSensitiveContentRepository blogSensitiveContentRepository) {
+        this.blogSensitiveContentRepository = blogSensitiveContentRepository;
+    }
 
     @Override
     public BlogSensitiveContentVo findByBlogId(Long blogId) {
         List<BlogSensitiveContentEntity> entities = blogSensitiveContentRepository.findByBlogId(blogId);
         return BlogSensitiveContentVoConvertor.convert(entities);
     }
-  
+
 }

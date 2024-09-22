@@ -1,15 +1,17 @@
 package org.chiu.micro.exhibit.service.impl;
 
-import lombok.extern.slf4j.Slf4j;
+import jakarta.annotation.PostConstruct;
 import org.chiu.micro.exhibit.convertor.BlogDescriptionVoConvertor;
 import org.chiu.micro.exhibit.convertor.BlogExhibitVoConvertor;
 import org.chiu.micro.exhibit.convertor.BlogHotReadVoConvertor;
 import org.chiu.micro.exhibit.convertor.VisitStatisticsVoConvertor;
-import org.chiu.micro.exhibit.dto.BlogDescriptionDto;
-import org.chiu.micro.exhibit.dto.BlogEntityDto;
-import org.chiu.micro.exhibit.dto.BlogExhibitDto;
-import org.chiu.micro.exhibit.dto.BlogSensitiveContentDto;
-import org.chiu.micro.exhibit.dto.SensitiveContent;
+import org.chiu.micro.exhibit.dto.*;
+import org.chiu.micro.exhibit.exception.MissException;
+import org.chiu.micro.exhibit.lang.StatusEnum;
+import org.chiu.micro.exhibit.page.PageAdapter;
+import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
+import org.chiu.micro.exhibit.service.BlogService;
+import org.chiu.micro.exhibit.utils.SensitiveUtils;
 import org.chiu.micro.exhibit.vo.BlogDescriptionVo;
 import org.chiu.micro.exhibit.vo.BlogExhibitVo;
 import org.chiu.micro.exhibit.vo.BlogHotReadVo;
@@ -19,32 +21,25 @@ import org.chiu.micro.exhibit.wrapper.BlogWrapper;
 import org.redisson.api.RScript.Mode;
 import org.redisson.api.RScript.ReturnType;
 import org.redisson.api.RedissonClient;
-import org.chiu.micro.exhibit.lang.StatusEnum;
-import org.chiu.micro.exhibit.service.BlogService;
-import org.chiu.micro.exhibit.utils.SensitiveUtils;
-import org.chiu.micro.exhibit.exception.MissException;
-import org.chiu.micro.exhibit.page.PageAdapter;
-import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
-
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-
 import org.redisson.client.protocol.ScoredEntry;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 
-import jakarta.annotation.PostConstruct;
-
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 import static org.chiu.micro.exhibit.lang.Const.*;
-import static org.chiu.micro.exhibit.lang.ExceptionMessage.*;
+import static org.chiu.micro.exhibit.lang.ExceptionMessage.AUTH_EXCEPTION;
+import static org.chiu.micro.exhibit.lang.ExceptionMessage.TOKEN_INVALID;
 
 
 /**
@@ -52,8 +47,6 @@ import static org.chiu.micro.exhibit.lang.ExceptionMessage.*;
  * @create 2022-11-27 2:10 pm
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class BlogServiceImpl implements BlogService {
 
     private final BlogSensitiveWrapper blogSensitiveWrapper;
@@ -73,9 +66,16 @@ public class BlogServiceImpl implements BlogService {
     @Value("${blog.highest-role}")
     private String highestRole;
 
+    public BlogServiceImpl(BlogSensitiveWrapper blogSensitiveWrapper, BlogHttpServiceWrapper blogHttpServiceWrapper, RedissonClient redissonClient, BlogWrapper blogWrapper, ResourceLoader resourceLoader) {
+        this.blogSensitiveWrapper = blogSensitiveWrapper;
+        this.blogHttpServiceWrapper = blogHttpServiceWrapper;
+        this.redissonClient = redissonClient;
+        this.blogWrapper = blogWrapper;
+        this.resourceLoader = resourceLoader;
+    }
+
     @PostConstruct
-    @SneakyThrows
-    private void init() {
+    private void init() throws IOException {
         Resource visitResource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/visit.lua");
         Resource countYearsResource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/count-years.lua");
         visitScript = visitResource.getContentAsString(StandardCharsets.UTF_8);
@@ -85,8 +85,8 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public PageAdapter<BlogDescriptionVo> findPage(Integer currentPage, Integer year) {
         PageAdapter<BlogDescriptionDto> dtoPageAdapter = blogWrapper.findPage(currentPage, year);
-        List<BlogDescriptionDto> descList = dtoPageAdapter.getContent();        
-        
+        List<BlogDescriptionDto> descList = dtoPageAdapter.getContent();
+
         List<BlogDescriptionDto> descSensitiveList = descList.stream()
                 .map(desc -> {
                     if (!StatusEnum.SENSITIVE_FILTER.getCode().equals(desc.getStatus())) {
@@ -144,7 +144,7 @@ public class BlogServiceImpl implements BlogService {
         if (!valid) {
             throw new MissException(TOKEN_INVALID.getMsg());
         }
-        
+
         blogWrapper.setReadCount(blogId);
         BlogExhibitDto blogExhibitDto = blogWrapper.findById(blogId);
         redissonClient.getBucket(READ_TOKEN.getInfo() + blogId).delete();

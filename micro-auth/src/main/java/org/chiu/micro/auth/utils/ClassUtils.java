@@ -1,16 +1,17 @@
 package org.chiu.micro.auth.utils;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 public class ClassUtils {
 
-    private ClassUtils() {}
+    private ClassUtils() {
+    }
 
     public static Class<?>[] findClassArray(Object[] args) {
         var classes = new Class[args.length];

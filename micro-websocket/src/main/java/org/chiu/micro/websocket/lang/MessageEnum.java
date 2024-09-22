@@ -1,10 +1,6 @@
 package org.chiu.micro.websocket.lang;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
 public enum MessageEnum {
 
     PUSH_ALL(-1L, "推"),
@@ -14,4 +10,17 @@ public enum MessageEnum {
     private final Long code;
 
     private final String description;
+
+    MessageEnum(Long code, String description) {
+        this.code = code;
+        this.description = description;
+    }
+
+    public Long getCode() {
+        return this.code;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
 }

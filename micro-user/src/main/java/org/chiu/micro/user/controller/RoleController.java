@@ -1,20 +1,18 @@
 package org.chiu.micro.user.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import org.chiu.micro.user.lang.Result;
+import org.chiu.micro.user.page.PageAdapter;
+import org.chiu.micro.user.req.RoleEntityReq;
 import org.chiu.micro.user.service.RoleAuthorityService;
 import org.chiu.micro.user.service.RoleMenuService;
 import org.chiu.micro.user.service.RoleService;
-import org.chiu.micro.user.req.RoleEntityReq;
-import org.chiu.micro.user.lang.Result;
-import org.chiu.micro.user.page.PageAdapter;
-import lombok.RequiredArgsConstructor;
 import org.chiu.micro.user.vo.RoleAuthorityVo;
-import org.chiu.micro.user.vo.RoleMenuVo;
 import org.chiu.micro.user.vo.RoleEntityVo;
+import org.chiu.micro.user.vo.RoleMenuVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
 
@@ -24,7 +22,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/sys/role")
-@RequiredArgsConstructor
 @Validated
 public class RoleController {
 
@@ -33,6 +30,12 @@ public class RoleController {
     private final RoleMenuService roleMenuService;
 
     private final RoleAuthorityService roleAuthorityService;
+
+    public RoleController(RoleService roleService, RoleMenuService roleMenuService, RoleAuthorityService roleAuthorityService) {
+        this.roleService = roleService;
+        this.roleMenuService = roleMenuService;
+        this.roleAuthorityService = roleAuthorityService;
+    }
 
     @GetMapping("/info/{id}")
     public Result<RoleEntityVo> info(@PathVariable Long id) {

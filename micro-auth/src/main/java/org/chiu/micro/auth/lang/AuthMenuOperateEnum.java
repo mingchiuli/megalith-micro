@@ -4,22 +4,22 @@ import static org.chiu.micro.auth.lang.ExceptionMessage.*;
 
 import org.chiu.micro.auth.exception.MissException;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@Getter
-@AllArgsConstructor
 public enum AuthMenuOperateEnum {
-    
+
     AUTH(1, "权限"),
 
     MENU(2, "菜单或按钮"),
-    
+
     AUTH_AND_MENU(3, "权限和菜单");
 
     private final Integer type;
 
     private final String description;
+
+    private AuthMenuOperateEnum(Integer type, String description) {
+        this.type = type;
+        this.description = description;
+    }
 
     public static AuthMenuOperateEnum of(Integer type) {
         for (AuthMenuOperateEnum operateEnum : values()) {
@@ -29,5 +29,13 @@ public enum AuthMenuOperateEnum {
         }
 
         throw new MissException(NO_FOUND);
+    }
+
+    public Integer getType() {
+        return this.type;
+    }
+
+    public String getDescription() {
+        return this.description;
     }
 }

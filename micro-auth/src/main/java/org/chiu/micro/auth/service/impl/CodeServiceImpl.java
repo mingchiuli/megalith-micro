@@ -1,15 +1,12 @@
 package org.chiu.micro.auth.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
-import lombok.RequiredArgsConstructor;
-
 import org.chiu.micro.auth.exception.CodeException;
 import org.chiu.micro.auth.lang.Const;
 import org.chiu.micro.auth.rpc.SmsHttpService;
 import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
 import org.chiu.micro.auth.service.CodeService;
 import org.chiu.micro.auth.utils.CodeFactory;
+import org.chiu.micro.auth.utils.JsonUtils;
 import org.chiu.micro.auth.utils.SmsUtils;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,11 +14,11 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import static org.chiu.micro.auth.lang.Const.*;
-import static org.chiu.micro.auth.lang.ExceptionMessage.*;
-
 import java.util.Collections;
 import java.util.Map;
+
+import static org.chiu.micro.auth.lang.Const.SMS_CODE;
+import static org.chiu.micro.auth.lang.ExceptionMessage.CODE_EXISTED;
 
 
 /**
@@ -29,7 +26,6 @@ import java.util.Map;
  * @create 2022-11-27 8:28 pm
  */
 @Service
-@RequiredArgsConstructor
 public class CodeServiceImpl implements CodeService {
 
     private final CodeFactory codeFactory;
@@ -44,10 +40,20 @@ public class CodeServiceImpl implements CodeService {
 
     private final SmsUtils smsUtils;
 
-    private final ObjectMapper objectMapper;
+    private final JsonUtils jsonUtils;
 
     @Value("${spring.mail.properties.from}")
     private String from;
+
+    public CodeServiceImpl( JsonUtils jsonUtils, CodeFactory codeFactory, JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, SmsUtils smsUtils) {
+        this.codeFactory = codeFactory;
+        this.javaMailSender = javaMailSender;
+        this.redissonClient = redissonClient;
+        this.userHttpServiceWrapper = userHttpServiceWrapper;
+        this.smsHttpService = smsHttpService;
+        this.smsUtils = smsUtils;
+        this.jsonUtils = jsonUtils;
+    }
 
 
     @Override
@@ -70,7 +76,6 @@ public class CodeServiceImpl implements CodeService {
     }
 
 
-    @SneakyThrows
     @Override
     public void createSMSCode(String loginSMS) {
         userHttpServiceWrapper.findByPhone(loginSMS);
@@ -79,10 +84,10 @@ public class CodeServiceImpl implements CodeService {
         if (!res) {
             throw new CodeException(CODE_EXISTED);
         }
-        
+
         Object code = codeFactory.create(SMS_CODE.getInfo());
         Map<String, Object> codeMap = Collections.singletonMap("code", code);
-        String signature = smsUtils.getSignature(loginSMS, objectMapper.writeValueAsString(codeMap));
+        String signature = smsUtils.getSignature(loginSMS, jsonUtils.writeValueAsString(codeMap));
         smsHttpService.sendSms("?Signature=" + signature);
         codeFactory.save(code, key);
     }

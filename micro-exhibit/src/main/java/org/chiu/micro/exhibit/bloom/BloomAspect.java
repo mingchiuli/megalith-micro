@@ -1,20 +1,19 @@
 package org.chiu.micro.exhibit.bloom;
 
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.chiu.micro.exhibit.utils.ClassUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.List;
 
 /**
  * @author mingchiuli
@@ -22,19 +21,22 @@ import java.util.*;
  */
 @Aspect
 @Component
-@Slf4j
 @Order(1)
-@RequiredArgsConstructor
 public class BloomAspect {
 
+    private static final Logger log = LoggerFactory.getLogger(BloomAspect.class);
     private final List<BloomHandler> bloomHandlers;
 
-    @Pointcut("@annotation(org.chiu.micro.exhibit.bloom.Bloom)")
-    public void pt() {}
+    public BloomAspect(List<BloomHandler> bloomHandlers) {
+        this.bloomHandlers = bloomHandlers;
+    }
 
-    @SneakyThrows
+    @Pointcut("@annotation(org.chiu.micro.exhibit.bloom.Bloom)")
+    public void pt() {
+    }
+
     @Before("pt()")
-    public void before(JoinPoint jp) {
+    public void before(JoinPoint jp) throws NoSuchMethodException {
         Signature signature = jp.getSignature();
         //方法名
         String methodName = signature.getName();

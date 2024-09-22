@@ -1,8 +1,5 @@
 package org.chiu.micro.websocket.rpc.wrapper;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.chiu.micro.websocket.dto.AuthDto;
 import org.chiu.micro.websocket.dto.AuthorityDto;
 import org.chiu.micro.websocket.exception.MissException;
@@ -11,13 +8,17 @@ import org.chiu.micro.websocket.lang.Result;
 import org.chiu.micro.websocket.rpc.AuthHttpService;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Collections;
+import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 public class AuthHttpServiceWrapper {
 
     private final AuthHttpService authHttpService;
+
+    public AuthHttpServiceWrapper(AuthHttpService authHttpService) {
+        this.authHttpService = authHttpService;
+    }
 
     public AuthDto getAuthentication(String token) {
         Result<AuthDto> result = authHttpService.getAuthentication(token);

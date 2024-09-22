@@ -5,7 +5,8 @@ import org.chiu.micro.user.vo.MenuEntityVo;
 
 public class MenuEntityVoConvertor {
 
-    private MenuEntityVoConvertor() {}
+    private MenuEntityVoConvertor() {
+    }
 
     public static MenuEntityVo convert(MenuEntity menuEntity) {
         return MenuEntityVo.builder()

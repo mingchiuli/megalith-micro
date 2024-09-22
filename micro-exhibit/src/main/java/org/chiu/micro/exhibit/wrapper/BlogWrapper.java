@@ -1,14 +1,12 @@
 package org.chiu.micro.exhibit.wrapper;
 
-import lombok.RequiredArgsConstructor;
-
+import org.chiu.micro.exhibit.cache.config.Cache;
 import org.chiu.micro.exhibit.convertor.BlogDescriptionDtoConvertor;
 import org.chiu.micro.exhibit.convertor.BlogExhibitDtoConvertor;
 import org.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import org.chiu.micro.exhibit.dto.BlogEntityDto;
 import org.chiu.micro.exhibit.dto.BlogExhibitDto;
 import org.chiu.micro.exhibit.dto.UserEntityDto;
-import org.chiu.micro.exhibit.cache.config.Cache;
 import org.chiu.micro.exhibit.lang.Const;
 import org.chiu.micro.exhibit.page.PageAdapter;
 import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
@@ -25,7 +23,6 @@ import java.util.concurrent.ExecutorService;
 
 
 @Component
-@RequiredArgsConstructor
 public class BlogWrapper {
 
     private final BlogHttpServiceWrapper blogHttpServiceWrapper;
@@ -38,6 +35,13 @@ public class BlogWrapper {
 
     @Value("${blog.blog-page-size}")
     private int blogPageSize;
+
+    public BlogWrapper(BlogHttpServiceWrapper blogHttpServiceWrapper, UserhttpServiceWrapper userHttpServiceWrapper, ExecutorService executorService, RedissonClient redissonClient) {
+        this.blogHttpServiceWrapper = blogHttpServiceWrapper;
+        this.userHttpServiceWrapper = userHttpServiceWrapper;
+        this.executorService = executorService;
+        this.redissonClient = redissonClient;
+    }
 
     @Cache(prefix = Const.HOT_BLOG)
     public BlogExhibitDto findById(Long id) {

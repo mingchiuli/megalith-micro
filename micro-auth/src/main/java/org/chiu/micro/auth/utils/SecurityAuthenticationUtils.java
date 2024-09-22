@@ -1,9 +1,5 @@
 package org.chiu.micro.auth.utils;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.chiu.micro.auth.dto.AuthDto;
 import org.chiu.micro.auth.dto.AuthorityDto;
 import org.chiu.micro.auth.exception.AuthException;
 import org.chiu.micro.auth.lang.Const;
@@ -12,20 +8,14 @@ import org.chiu.micro.auth.token.TokenUtils;
 import org.chiu.micro.auth.wrapper.AuthWrapper;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
-
-import static org.chiu.micro.auth.lang.Const.*;
-import static org.chiu.micro.auth.lang.ExceptionMessage.*;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Collections;
 import org.springframework.util.StringUtils;
 
+import java.util.*;
+
+import static org.chiu.micro.auth.lang.Const.*;
+import static org.chiu.micro.auth.lang.ExceptionMessage.RE_LOGIN;
+
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class SecurityAuthenticationUtils {
 
     private final AuthWrapper authWrapper;
@@ -34,13 +24,19 @@ public class SecurityAuthenticationUtils {
 
     private final RedissonClient redissonClient;
 
-    private List<String> getRawRoleCodes(List<String> roles) {
+    public SecurityAuthenticationUtils(AuthWrapper authWrapper, TokenUtils<Claims> tokenUtils, RedissonClient redissonClient) {
+        this.authWrapper = authWrapper;
+        this.tokenUtils = tokenUtils;
+        this.redissonClient = redissonClient;
+    }
+
+    public List<String> getRawRoleCodes(List<String> roles) {
         return roles.stream()
                 .map(role -> role.substring(ROLE_PREFIX.getInfo().length()))
                 .toList();
     }
 
-    private List<String> getAuthorities(Long userId, List<String> rawRoles) throws AuthException {
+    public List<String> getAuthorities(Long userId, List<String> rawRoles) throws AuthException {
         boolean mark = redissonClient.getBucket(BLOCK_USER.getInfo() + userId).isExists();
 
         if (mark) {
@@ -52,31 +48,6 @@ public class SecurityAuthenticationUtils {
         return authorities.stream()
                 .distinct()
                 .toList();
-    }
-
-    public AuthDto getAuthDto(String token) throws AuthException {
-        long userId;
-        List<String> rawRoles;
-        List<String> authorities;
-
-        if (!StringUtils.hasLength(token)) {
-            userId = 0L;
-            rawRoles = Collections.emptyList();
-            authorities = Collections.emptyList();
-        } else {
-            String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
-            Claims claims = tokenUtils.getVerifierByToken(jwt);
-            userId = Long.parseLong(claims.getUserId());
-            List<String> roles = claims.getRoles();
-            rawRoles = getRawRoleCodes(roles);
-            authorities = getAuthorities(userId, rawRoles);
-        }
-
-        return AuthDto.builder()
-                .userId(userId)
-                .roles(rawRoles)
-                .authorities(authorities)
-                .build();
     }
 
     public List<String> getAuthAuthority(String token) throws AuthException {
@@ -133,4 +104,7 @@ public class SecurityAuthenticationUtils {
         return false;
     }
 
+    public Claims getVerifierByToken(String jwt) throws AuthException {
+        return tokenUtils.getVerifierByToken(jwt);
+    }
 }

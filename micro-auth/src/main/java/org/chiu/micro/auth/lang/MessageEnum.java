@@ -1,10 +1,6 @@
 package org.chiu.micro.auth.lang;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
 public enum MessageEnum {
 
     PUSH_ALL(-1, "推"),
@@ -14,4 +10,17 @@ public enum MessageEnum {
     private final Integer code;
 
     private final String description;
+
+    MessageEnum(Integer code, String description) {
+        this.code = code;
+        this.description = description;
+    }
+
+    public Integer getCode() {
+        return this.code;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
 }

@@ -10,9 +10,9 @@ import static org.chiu.micro.exhibit.lang.Const.BLOOM_FILTER_PAGE;
  * @create 2023-06-24 5:32 pm
  */
 public record BlogsRunnable(
-                            RedissonClient redissonClient,
-                            BlogService blogService,
-                            Integer pageNo) implements Runnable {
+        RedissonClient redissonClient,
+        BlogService blogService,
+        Integer pageNo) implements Runnable {
 
     @Override
     public void run() {

@@ -1,10 +1,6 @@
 package org.chiu.micro.exhibit.rpc.wrapper;
 
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-
 import org.chiu.micro.exhibit.dto.BlogEntityDto;
 import org.chiu.micro.exhibit.dto.BlogSensitiveContentDto;
 import org.chiu.micro.exhibit.exception.MissException;
@@ -13,16 +9,21 @@ import org.chiu.micro.exhibit.page.PageAdapter;
 import org.chiu.micro.exhibit.rpc.BlogHttpService;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * BlogHttpServiceWrapper
  */
 @Component
-@RequiredArgsConstructor
 public class BlogHttpServiceWrapper {
 
     private final BlogHttpService blogHttpService;
+
+    public BlogHttpServiceWrapper(BlogHttpService blogHttpService) {
+        this.blogHttpService = blogHttpService;
+    }
 
     public BlogEntityDto findById(Long blogId, Integer year) {
         Result<BlogEntityDto> result = blogHttpService.findById(blogId);

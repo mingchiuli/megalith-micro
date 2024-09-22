@@ -2,19 +2,18 @@ package org.chiu.micro.exhibit.cache.handler;
 
 import org.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
+import org.chiu.micro.exhibit.dto.BlogEntityDto;
 import org.chiu.micro.exhibit.key.KeyFactory;
+import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
-import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
 import org.springframework.stereotype.Component;
-import org.chiu.micro.exhibit.dto.BlogEntityDto;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 
 import static org.chiu.micro.exhibit.lang.Const.*;
-import static org.chiu.micro.exhibit.lang.Const.BLOOM_FILTER_YEARS;
 
 @Component
 public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {

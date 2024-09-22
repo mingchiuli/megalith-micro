@@ -1,6 +1,5 @@
 package org.chiu.micro.exhibit.config;
 
-import lombok.RequiredArgsConstructor;
 import org.chiu.micro.exhibit.cache.mq.CacheBlogEvictMessageListener;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -15,7 +14,6 @@ import org.springframework.core.task.TaskExecutor;
 import java.util.UUID;
 
 @Configuration
-@RequiredArgsConstructor
 public class CacheBlogEvictRabbitConfig {
 
     private String evictNodeMark;
@@ -28,6 +26,11 @@ public class CacheBlogEvictRabbitConfig {
 
     @Qualifier("mqExecutor")
     private final TaskExecutor executor;
+
+    public CacheBlogEvictRabbitConfig(Jackson2JsonMessageConverter jsonMessageConverter, @Qualifier("mqExecutor") TaskExecutor executor) {
+        this.jsonMessageConverter = jsonMessageConverter;
+        this.executor = executor;
+    }
 
     @Bean("cacheBlogEvictFanoutQueue")
     Queue evictQueue() {

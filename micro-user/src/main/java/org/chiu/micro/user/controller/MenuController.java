@@ -1,11 +1,9 @@
 package org.chiu.micro.user.controller;
 
 
-import org.chiu.micro.user.service.MenuService;
-import org.chiu.micro.user.req.MenuEntityReq;
 import org.chiu.micro.user.lang.Result;
-
-import lombok.RequiredArgsConstructor;
+import org.chiu.micro.user.req.MenuEntityReq;
+import org.chiu.micro.user.service.MenuService;
 import org.chiu.micro.user.service.RoleMenuService;
 import org.chiu.micro.user.valid.MenuValue;
 import org.chiu.micro.user.vo.MenuDisplayVo;
@@ -22,13 +20,17 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/sys/menu")
-@RequiredArgsConstructor
 @Validated
 public class MenuController {
 
     private final MenuService menuService;
 
     private final RoleMenuService roleMenuService;
+
+    public MenuController(MenuService menuService, RoleMenuService roleMenuService) {
+        this.menuService = menuService;
+        this.roleMenuService = roleMenuService;
+    }
 
     @GetMapping("/info/{id}")
     public Result<MenuEntityVo> info(@PathVariable Long id) {

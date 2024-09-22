@@ -1,7 +1,5 @@
 package org.chiu.micro.user.listener;
 
-import lombok.RequiredArgsConstructor;
-
 import org.chiu.micro.user.constant.UserIndexMessage;
 import org.chiu.micro.user.event.UserOperateEvent;
 import org.chiu.micro.user.lang.UserOperateEnum;
@@ -17,13 +15,16 @@ import static org.chiu.micro.user.lang.Const.BLOCK_USER;
 
 
 @Component
-@RequiredArgsConstructor
 public class UserOperateEventListener {
 
     private final StringRedisTemplate redisTemplate;
 
     @Value("${blog.jwt.access-token-expire}")
     private long accessExpire;
+
+    public UserOperateEventListener(StringRedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @EventListener
     @Async("commonExecutor")

@@ -1,7 +1,5 @@
 package org.chiu.micro.auth.service.impl;
 
-import lombok.RequiredArgsConstructor;
-
 import org.chiu.micro.auth.convertor.UserInfoVoConvertor;
 import org.chiu.micro.auth.dto.UserEntityDto;
 import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
@@ -12,18 +10,17 @@ import org.chiu.micro.auth.vo.UserInfoVo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import static org.chiu.micro.auth.lang.Const.*;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static org.chiu.micro.auth.lang.Const.TOKEN_PREFIX;
 
 /**
  * @author mingchiuli
  * @create 2023-03-30 4:29 am
  */
 @Service
-@RequiredArgsConstructor
 public class TokenServiceImpl implements TokenService {
 
     private final TokenUtils<Claims> tokenUtils;
@@ -32,6 +29,11 @@ public class TokenServiceImpl implements TokenService {
 
     @Value("${blog.jwt.access-token-expire}")
     private long expire;
+
+    public TokenServiceImpl(TokenUtils<Claims> tokenUtils, UserHttpServiceWrapper userHttpServiceWrapper) {
+        this.tokenUtils = tokenUtils;
+        this.userHttpServiceWrapper = userHttpServiceWrapper;
+    }
 
     @Override
     public Map<String, String> refreshToken(Long userId) {

@@ -1,6 +1,8 @@
 package org.chiu.micro.exhibit.exception;
 
-import lombok.extern.slf4j.Slf4j;
+import org.chiu.micro.exhibit.lang.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -9,22 +11,20 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
-import java.lang.Void;
-
-import org.chiu.micro.exhibit.lang.Result;
 
 
 /**
  * @author mingchiuli
  * @create 2021-10-27 9:29 PM
  */
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = BaseException.class)
-    public Result<Void> handler(BaseException e){
+    public Result<Void> handler(BaseException e) {
         log.error("diy exception------------", e);
         return Result.fail(e.getMessage());
     }

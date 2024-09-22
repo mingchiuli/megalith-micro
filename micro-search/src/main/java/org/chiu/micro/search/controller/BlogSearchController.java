@@ -1,15 +1,15 @@
 package org.chiu.micro.search.controller;
 
+import jakarta.validation.constraints.Size;
 import org.chiu.micro.search.lang.Result;
 import org.chiu.micro.search.page.PageAdapter;
 import org.chiu.micro.search.service.BlogSearchService;
 import org.chiu.micro.search.vo.BlogDocumentVo;
-
-import jakarta.validation.constraints.Size;
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 
 /**
@@ -18,11 +18,14 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping(value = "/search")
-@RequiredArgsConstructor
 @Validated
 public class BlogSearchController {
 
     private final BlogSearchService blogSearchService;
+
+    public BlogSearchController(BlogSearchService blogSearchService) {
+        this.blogSearchService = blogSearchService;
+    }
 
     @GetMapping("/public/blog")
     public Result<PageAdapter<BlogDocumentVo>> searchBlogs(@RequestParam(defaultValue = "-1") Integer currentPage,

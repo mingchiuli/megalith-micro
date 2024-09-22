@@ -1,7 +1,5 @@
 package org.chiu.micro.user.wrapper;
 
-import lombok.RequiredArgsConstructor;
-
 import org.chiu.micro.user.entity.RoleMenuEntity;
 import org.chiu.micro.user.repository.MenuRepository;
 import org.chiu.micro.user.repository.RoleMenuRepository;
@@ -12,12 +10,16 @@ import java.util.List;
 
 
 @Component
-@RequiredArgsConstructor
 public class RoleMenuWrapper {
 
     private final RoleMenuRepository roleMenuRepository;
 
     private final MenuRepository menuRepository;
+
+    public RoleMenuWrapper(RoleMenuRepository roleMenuRepository, MenuRepository menuRepository) {
+        this.roleMenuRepository = roleMenuRepository;
+        this.menuRepository = menuRepository;
+    }
 
     @Transactional
     public void saveMenu(Long roleId, List<RoleMenuEntity> roleMenuEntities) {

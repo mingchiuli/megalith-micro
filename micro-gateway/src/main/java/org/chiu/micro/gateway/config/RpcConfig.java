@@ -1,7 +1,5 @@
 package org.chiu.micro.gateway.config;
 
-import java.time.Duration;
-
 import org.chiu.micro.gateway.rpc.AuthHttpService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,18 +8,21 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
-import lombok.RequiredArgsConstructor;
-
 import java.net.http.HttpClient;
+import java.time.Duration;
 
 
 @Configuration
-@RequiredArgsConstructor
 public class RpcConfig {
 
     private final HttpClient httpClient;
-    
+
     private final HttpInterceptor httpInterceptor;
+
+    public RpcConfig(HttpClient httpClient, HttpInterceptor httpInterceptor) {
+        this.httpClient = httpClient;
+        this.httpInterceptor = httpInterceptor;
+    }
 
     @Bean
     AuthHttpService authHttpService() {
@@ -40,5 +41,5 @@ public class RpcConfig {
                 .build();
         return factory.createClient(AuthHttpService.class);
     }
-    
+
 }

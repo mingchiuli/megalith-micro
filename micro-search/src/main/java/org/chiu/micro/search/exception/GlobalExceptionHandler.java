@@ -1,9 +1,8 @@
 package org.chiu.micro.search.exception;
 
-import java.util.stream.Collectors;
-import java.lang.Void;
-
-import lombok.extern.slf4j.Slf4j;
+import org.chiu.micro.search.lang.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,15 +10,16 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import org.chiu.micro.search.lang.Result;
+import java.util.stream.Collectors;
 
 /**
  * @author mingchiuli
  * @create 2021-10-27 9:29 PM
  */
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = MethodArgumentNotValidException.class)

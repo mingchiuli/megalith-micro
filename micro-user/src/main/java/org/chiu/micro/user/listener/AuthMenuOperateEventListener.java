@@ -1,7 +1,5 @@
 package org.chiu.micro.user.listener;
 
-import java.util.List;
-
 import org.chiu.micro.user.config.UserAuthMenuChangeRabbitConfig;
 import org.chiu.micro.user.constant.AuthMenuIndexMessage;
 import org.chiu.micro.user.constant.UserAuthMenuOperateMessage;
@@ -11,13 +9,16 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 public class AuthMenuOperateEventListener {
 
     private final RabbitTemplate rabbitTemplate;
+
+    public AuthMenuOperateEventListener(RabbitTemplate rabbitTemplate) {
+        this.rabbitTemplate = rabbitTemplate;
+    }
 
     @EventListener
     @Async("commonExecutor")

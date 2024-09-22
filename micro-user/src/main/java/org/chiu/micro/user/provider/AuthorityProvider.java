@@ -1,32 +1,28 @@
 package org.chiu.micro.user.provider;
 
-import java.util.List;
-
 import org.chiu.micro.user.lang.Result;
 import org.chiu.micro.user.service.AuthorityService;
-import org.chiu.micro.user.vo.AuthorityVo;
 import org.chiu.micro.user.service.RoleAuthorityService;
-
+import org.chiu.micro.user.vo.AuthorityVo;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import java.util.List;
 
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/inner/authority")
 @Validated
 public class AuthorityProvider {
 
     private final AuthorityService authorityService;
-    
+
     private final RoleAuthorityService roleAuthorityService;
+
+    public AuthorityProvider(AuthorityService authorityService, RoleAuthorityService roleAuthorityService) {
+        this.authorityService = authorityService;
+        this.roleAuthorityService = roleAuthorityService;
+    }
 
     @PostMapping("/list")
     public Result<List<AuthorityVo>> list(@RequestBody List<String> service) {

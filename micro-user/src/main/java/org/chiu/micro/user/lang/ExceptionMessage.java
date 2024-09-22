@@ -1,10 +1,6 @@
 package org.chiu.micro.user.lang;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
 public enum ExceptionMessage {
 
     NO_AUTH(0, "没有权限"),
@@ -43,4 +39,16 @@ public enum ExceptionMessage {
 
     private final String msg;
 
+    ExceptionMessage(Integer code, String msg) {
+        this.code = code;
+        this.msg = msg;
+    }
+
+    public Integer getCode() {
+        return this.code;
+    }
+
+    public String getMsg() {
+        return this.msg;
+    }
 }

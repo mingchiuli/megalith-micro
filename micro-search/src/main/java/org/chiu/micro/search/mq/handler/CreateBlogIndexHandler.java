@@ -1,10 +1,9 @@
 package org.chiu.micro.search.mq.handler;
 
-import org.chiu.micro.search.dto.BlogEntityDto;
-import org.chiu.micro.search.rpc.wrapper.BlogHttpServiceWrapper;
 import org.chiu.micro.search.constant.BlogOperateEnum;
 import org.chiu.micro.search.document.BlogDocument;
-
+import org.chiu.micro.search.dto.BlogEntityDto;
+import org.chiu.micro.search.rpc.wrapper.BlogHttpServiceWrapper;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.stereotype.Component;
 

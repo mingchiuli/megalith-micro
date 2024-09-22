@@ -1,8 +1,8 @@
 package org.chiu.micro.user.convertor;
 
-import org.chiu.micro.user.lang.StatusEnum;
 import org.chiu.micro.user.dto.MenuDisplayDto;
 import org.chiu.micro.user.dto.MenuDto;
+import org.chiu.micro.user.lang.StatusEnum;
 
 import java.util.Comparator;
 import java.util.List;
@@ -11,7 +11,8 @@ import java.util.stream.Stream;
 
 public class MenuDisplayDtoConvertor {
 
-    private MenuDisplayDtoConvertor() {}
+    private MenuDisplayDtoConvertor() {
+    }
 
     public static List<MenuDisplayDto> convert(List<MenuDto> menus, boolean statusCheck) {
         Stream<MenuDto> menuStream = menus.stream();
@@ -40,7 +41,7 @@ public class MenuDisplayDtoConvertor {
         //2.1 找到所有一级分类
         return menus.stream()
                 .filter(menu -> menu.getParentId() == 0)
-                .map(menu-> {
+                .map(menu -> {
                     menu.setChildren(getChildren(menu, menus));
                     return menu;
                 })

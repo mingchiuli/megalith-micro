@@ -1,12 +1,10 @@
 package org.chiu.micro.exhibit.schedule;
 
+import org.chiu.micro.exhibit.schedule.task.BlogRunnable;
+import org.chiu.micro.exhibit.schedule.task.BlogsRunnable;
 import org.chiu.micro.exhibit.service.BlogService;
 import org.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
 import org.chiu.micro.exhibit.wrapper.BlogWrapper;
-import org.chiu.micro.exhibit.schedule.task.BlogRunnable;
-import org.chiu.micro.exhibit.schedule.task.BlogsRunnable;
-import lombok.RequiredArgsConstructor;
-
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,7 +15,8 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 import static org.chiu.micro.exhibit.lang.Const.*;
 
@@ -26,7 +25,6 @@ import static org.chiu.micro.exhibit.lang.Const.*;
  * @create 2022-11-29 10:52 pm
  */
 @Component
-@RequiredArgsConstructor
 public class CacheSchedule {
 
     @Qualifier("commonExecutor")
@@ -48,6 +46,15 @@ public class CacheSchedule {
     private static final String CACHE_FINISH_FLAG = "cache_finish_flag";
 
     private static final String CACHE_KEY = "cacheKey";
+
+    public CacheSchedule(@Qualifier("commonExecutor") ExecutorService taskExecutor, BlogService blogService, BlogWrapper blogWrapper, RedissonClient redissonClient, RedissonClient redisson, BlogSensitiveWrapper blogSensitiveWrapper) {
+        this.taskExecutor = taskExecutor;
+        this.blogService = blogService;
+        this.blogWrapper = blogWrapper;
+        this.redissonClient = redissonClient;
+        this.redisson = redisson;
+        this.blogSensitiveWrapper = blogSensitiveWrapper;
+    }
 
     @Scheduled(cron = "0 0 0/1 * * ?")
     public void configureTask() {
@@ -88,7 +95,7 @@ public class CacheSchedule {
     }
 
     private void blogRunnableExec(Long total) {
-         // getBlogDetail和getBlogStatus接口 分别考虑缓存和bloom
+        // getBlogDetail和getBlogStatus接口 分别考虑缓存和bloom
         CompletableFuture.runAsync(() -> {
             int pageSize = 20;
             int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
@@ -113,14 +120,14 @@ public class CacheSchedule {
 
     private void listExec(List<Integer> years) {
         CompletableFuture.runAsync(() -> {
-            
+
             for (Integer year : years) {
                 // 当前年份的总页数
                 taskExecutor.execute(() -> {
                     long countByYear = blogService.getCountByYear(year);
                     int totalPage = (int) (countByYear % blogPageSize == 0 ?
-                                                countByYear / blogPageSize :
-                                                countByYear / blogPageSize + 1);
+                            countByYear / blogPageSize :
+                            countByYear / blogPageSize + 1);
 
                     for (int no = 1; no <= totalPage; no++) {
                         redissonClient.getBitSet(BLOOM_FILTER_YEAR_PAGE.getInfo() + year).set(no, true);

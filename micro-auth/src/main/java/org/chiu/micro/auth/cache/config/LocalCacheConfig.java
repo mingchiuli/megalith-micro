@@ -1,14 +1,13 @@
 package org.chiu.micro.auth.cache.config;
 
 import com.github.benmanes.caffeine.cache.Cache;
-
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import com.github.benmanes.caffeine.cache.Caffeine;
 
 @Configuration
 public class LocalCacheConfig {
-    
+
     @Bean
     Cache<String, Object> caffeineCache() {
         return Caffeine.newBuilder()

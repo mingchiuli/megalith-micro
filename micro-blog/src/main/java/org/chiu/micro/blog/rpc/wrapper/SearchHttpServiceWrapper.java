@@ -7,13 +7,14 @@ import org.chiu.micro.blog.lang.Result;
 import org.chiu.micro.blog.rpc.SearchHttpService;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
-
 @Component
-@RequiredArgsConstructor
 public class SearchHttpServiceWrapper {
 
     private final SearchHttpService searchHttpService;
+
+    public SearchHttpServiceWrapper(SearchHttpService searchHttpService) {
+        this.searchHttpService = searchHttpService;
+    }
 
     public BlogSearchDto searchBlogs(Integer currentPage, Integer size, String keywords) {
         Result<BlogSearchDto> result = searchHttpService.searchBlogs(currentPage, size, keywords);
@@ -22,5 +23,5 @@ public class SearchHttpServiceWrapper {
         }
         return result.getData();
     }
-    
+
 }

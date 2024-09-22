@@ -1,8 +1,8 @@
 package org.chiu.micro.user.config;
 
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Configuration;
@@ -15,13 +15,17 @@ import org.springframework.retry.support.RetryTemplate;
  * @create 2022-12-23 12:32 pm
  */
 @Configuration
-@RequiredArgsConstructor
-@Slf4j
 public class RabbitTemplateConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(RabbitTemplateConfig.class);
     private final RabbitTemplate rabbitTemplate;
 
     private final Jackson2JsonMessageConverter jsonMessageConverter;
+
+    public RabbitTemplateConfig(RabbitTemplate rabbitTemplate, Jackson2JsonMessageConverter jsonMessageConverter) {
+        this.rabbitTemplate = rabbitTemplate;
+        this.jsonMessageConverter = jsonMessageConverter;
+    }
 
     @PostConstruct
     public void initRabbitTemplate() {

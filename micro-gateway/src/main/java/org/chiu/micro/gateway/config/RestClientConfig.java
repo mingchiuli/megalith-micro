@@ -1,22 +1,24 @@
 package org.chiu.micro.gateway.config;
 
-import java.net.http.HttpClient;
-import java.time.Duration;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
-import lombok.RequiredArgsConstructor;
+import java.net.http.HttpClient;
+import java.time.Duration;
 
 @Configuration
-@RequiredArgsConstructor
-public class RestClinetConfig {
+public class RestClientConfig {
 
     private final HttpClient httpClient;
-    
+
     private final HttpInterceptor httpInterceptor;
+
+    public RestClientConfig(HttpClient httpClient, HttpInterceptor httpInterceptor) {
+        this.httpClient = httpClient;
+        this.httpInterceptor = httpInterceptor;
+    }
 
     @Bean
     RestClient restClient() {

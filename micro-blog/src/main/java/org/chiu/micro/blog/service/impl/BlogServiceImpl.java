@@ -1,40 +1,36 @@
 package org.chiu.micro.blog.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
-import org.chiu.micro.blog.exception.MissException;
-import org.chiu.micro.blog.page.PageAdapter;
 import org.chiu.micro.blog.constant.BlogOperateEnum;
 import org.chiu.micro.blog.constant.BlogOperateMessage;
-import org.chiu.micro.blog.repository.BlogSensitiveContentRepository;
-import org.chiu.micro.blog.utils.AuthUtils;
-import org.chiu.micro.blog.utils.JsonUtils;
-import org.chiu.micro.blog.utils.OssSignUtils;
 import org.chiu.micro.blog.convertor.BlogDeleteVoConvertor;
 import org.chiu.micro.blog.convertor.BlogEntityRpcVoConvertor;
 import org.chiu.micro.blog.convertor.BlogEntityVoConvertor;
-import org.chiu.micro.blog.entity.BlogEntity;
-import org.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import org.chiu.micro.blog.dto.BlogSearchDto;
 import org.chiu.micro.blog.dto.UserEntityDto;
+import org.chiu.micro.blog.entity.BlogEntity;
+import org.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import org.chiu.micro.blog.event.BlogOperateEvent;
+import org.chiu.micro.blog.exception.MissException;
+import org.chiu.micro.blog.page.PageAdapter;
 import org.chiu.micro.blog.repository.BlogRepository;
+import org.chiu.micro.blog.repository.BlogSensitiveContentRepository;
 import org.chiu.micro.blog.req.BlogEntityReq;
 import org.chiu.micro.blog.rpc.OssHttpService;
 import org.chiu.micro.blog.rpc.wrapper.SearchHttpServiceWrapper;
 import org.chiu.micro.blog.rpc.wrapper.UserHttpServiceWrapper;
 import org.chiu.micro.blog.service.BlogService;
+import org.chiu.micro.blog.utils.AuthUtils;
+import org.chiu.micro.blog.utils.JsonUtils;
+import org.chiu.micro.blog.utils.OssSignUtils;
 import org.chiu.micro.blog.vo.BlogDeleteVo;
 import org.chiu.micro.blog.vo.BlogEntityRpcVo;
 import org.chiu.micro.blog.vo.BlogEntityVo;
 import org.chiu.micro.blog.wrapper.BlogSensitiveWrapper;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,20 +54,17 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static org.chiu.micro.blog.lang.Const.*;
-import static org.chiu.micro.blog.lang.StatusEnum.*;
 import static org.chiu.micro.blog.lang.ExceptionMessage.*;
+import static org.chiu.micro.blog.lang.StatusEnum.HIDE;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class BlogServiceImpl implements BlogService {
 
     private final JsonUtils jsonUtils;
@@ -98,14 +91,14 @@ public class BlogServiceImpl implements BlogService {
 
     private final SearchHttpServiceWrapper searchHttpServiceWrapper;
 
+    private final ExecutorService taskExecutor;
+
     @Value("${blog.highest-role}")
     private String highestRole;
 
     @Value("${blog.read.page-prefix}")
     private String readPrefix;
 
-    @Qualifier("commonExecutor")
-    private final ExecutorService taskExecutor;
 
     @Value("${blog.oss.base-url}")
     private String baseUrl;
@@ -118,9 +111,24 @@ public class BlogServiceImpl implements BlogService {
 
     private String recoverDeleteScript;
 
+    public BlogServiceImpl(JsonUtils jsonUtils, UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, OssSignUtils ossSignUtils, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ObjectMapper objectMapper, ResourceLoader resourceLoader, BlogSensitiveWrapper blogSensitiveWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+        this.jsonUtils = jsonUtils;
+        this.userHttpServiceWrapper = userHttpServiceWrapper;
+        this.ossHttpService = ossHttpService;
+        this.ossSignUtils = ossSignUtils;
+        this.applicationContext = applicationContext;
+        this.blogRepository = blogRepository;
+        this.redisTemplate = redisTemplate;
+        this.objectMapper = objectMapper;
+        this.resourceLoader = resourceLoader;
+        this.blogSensitiveWrapper = blogSensitiveWrapper;
+        this.blogSensitiveContentRepository = blogSensitiveContentRepository;
+        this.searchHttpServiceWrapper = searchHttpServiceWrapper;
+        this.taskExecutor = taskExecutor;
+    }
+
     @PostConstruct
-    @SneakyThrows
-    private void init() {
+    private void init() throws IOException {
         Resource hotBlogsResource = resourceLoader
                 .getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/hot-blogs.lua");
         hotBlogsScript = hotBlogsResource.getContentAsString(StandardCharsets.UTF_8);
@@ -135,58 +143,65 @@ public class BlogServiceImpl implements BlogService {
         recoverDeleteScript = recoverDeleteResource.getContentAsString(StandardCharsets.UTF_8);
     }
 
-    @SneakyThrows
     @Override
     public void download(HttpServletResponse response) {
-        ServletOutputStream outputStream = response.getOutputStream();
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        try (ServletOutputStream outputStream = response.getOutputStream()) {
+            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
-        Set<BlogEntity> items = Collections.newSetFromMap(new ConcurrentHashMap<>());
-        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
-        long total = blogRepository.count();
-        int pageSize = 20;
-        int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
+            Set<BlogEntity> items = Collections.newSetFromMap(new ConcurrentHashMap<>());
+            List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+            long total = blogRepository.count();
+            int pageSize = 20;
+            int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
 
-        for (int i = 1; i <= totalPage; i++) {
-            PageRequest pageRequest = PageRequest.of(i, pageSize);
-            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
-                Page<BlogEntity> page = blogRepository.findAll(pageRequest);
-                items.addAll(page.getContent());
-            }, taskExecutor);
-            completableFutures.add(completableFuture);
+            for (int i = 1; i <= totalPage; i++) {
+                PageRequest pageRequest = PageRequest.of(i, pageSize);
+                CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
+                    Page<BlogEntity> page = blogRepository.findAll(pageRequest);
+                    items.addAll(page.getContent());
+                }, taskExecutor);
+                completableFutures.add(completableFuture);
+            }
+
+            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).get(1000, TimeUnit.MILLISECONDS);
+            BlogEntity[] blogs = items.toArray(new BlogEntity[0]);
+            int len = blogs.length;
+
+            for (int i = 0; i < len; i++) {
+                if (i == 0) {
+                    // [
+                    outputStream.write(new byte[]{91});
+                }
+
+                byte[] bytes = objectMapper.writeValueAsBytes(blogs[i]);
+                outputStream.write(bytes);
+                if (i != len - 1) {
+                    // ,
+                    outputStream.write(new byte[]{44});
+                }
+
+                if (i == len - 1) {
+                    // ]
+                    outputStream.write(new byte[]{93});
+                }
+            }
+            outputStream.flush();
+        } catch (IOException e) {
+            throw new MissException(e.getMessage());
+        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+            throw new RuntimeException(e);
         }
-
-        CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).get(1000, TimeUnit.MILLISECONDS);
-        BlogEntity[] blogs = items.toArray(new BlogEntity[0]);
-        int len = blogs.length;
-
-        for (int i = 0; i < len; i++) {
-            if (i == 0) {
-                // [
-                outputStream.write(new byte[] { 91 });
-            }
-
-            byte[] bytes = objectMapper.writeValueAsBytes(blogs[i]);
-            outputStream.write(bytes);
-            if (i != len - 1) {
-                // ,
-                outputStream.write(new byte[] { 44 });
-            }
-
-            if (i == len - 1) {
-                // ]
-                outputStream.write(new byte[] { 93 });
-            }
-        }
-        outputStream.flush();
-        outputStream.close();
     }
 
-    @SneakyThrows
     @Override
     public SseEmitter uploadOss(MultipartFile file, Long userId) {
-        byte[] imageBytes = file.getBytes();
+        byte[] imageBytes;
+        try {
+            imageBytes = file.getBytes();
+        } catch (IOException e) {
+            throw new MissException(e.getMessage());
+        }
         String originalFilename = Optional.ofNullable(file.getOriginalFilename())
                 .orElseGet(() -> UUID.randomUUID().toString())
                 .replace(" ", "");
@@ -197,14 +212,15 @@ public class BlogServiceImpl implements BlogService {
         var sseEmitter = new SseEmitter();
         taskExecutor.execute(() -> {
             String uuid = UUID.randomUUID().toString();
-            
+
             UserEntityDto user = userHttpServiceWrapper.findById(userId);
             String objectName = user.getNickname() + "/" + uuid + "-" + originalFilename;
-    
+
             Map<String, String> headers = new HashMap<>();
             String gmtDate = ossSignUtils.getGMTDate();
             headers.put(HttpHeaders.DATE, gmtDate);
             headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.PUT.name(), "image/jpg"));
+
             headers.put(HttpHeaders.CACHE_CONTROL, "no-cache");
             headers.put(HttpHeaders.CONTENT_TYPE, "image/jpg");
             ossHttpService.putOssObject(objectName, imageBytes, headers);
@@ -213,7 +229,7 @@ public class BlogServiceImpl implements BlogService {
             try {
                 sseEmitter.send(baseUrl + "/" + objectName, MediaType.TEXT_PLAIN);
                 sseEmitter.complete();
-            } catch(IOException e) {
+            } catch (IOException e) {
                 sseEmitter.completeWithError(e);
             }
         });
@@ -222,12 +238,13 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @Async("commonExecutor")
-    public void deleteOss(String url) {
+    public void deleteOss(String url){
         String objectName = url.replace(baseUrl + "/", "");
         Map<String, String> headers = new HashMap<>();
         String gmtDate = ossSignUtils.getGMTDate();
         headers.put(HttpHeaders.DATE, gmtDate);
         headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
+
         ossHttpService.deleteOssObject(objectName, headers);
     }
 
@@ -303,7 +320,7 @@ public class BlogServiceImpl implements BlogService {
         List<BlogEntity> items = blogRepository.findAllById(ids).stream()
                 .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
                 .toList();
-        
+
         List<BlogSensitiveContentEntity> blogSensitiveContentEntities = blogSensitiveContentRepository.findByBlogIdIn(ids);
 
         List<String> res = redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),

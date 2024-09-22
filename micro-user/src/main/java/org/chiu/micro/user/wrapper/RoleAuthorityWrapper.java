@@ -1,7 +1,5 @@
 package org.chiu.micro.user.wrapper;
 
-import lombok.RequiredArgsConstructor;
-
 import org.chiu.micro.user.entity.RoleAuthorityEntity;
 import org.chiu.micro.user.repository.RoleAuthorityRepository;
 import org.springframework.stereotype.Component;
@@ -11,10 +9,13 @@ import java.util.List;
 
 
 @Component
-@RequiredArgsConstructor
 public class RoleAuthorityWrapper {
 
     private final RoleAuthorityRepository roleAuthorityRepository;
+
+    public RoleAuthorityWrapper(RoleAuthorityRepository roleAuthorityRepository) {
+        this.roleAuthorityRepository = roleAuthorityRepository;
+    }
 
     @Transactional
     public void saveAuthority(Long roleId, List<RoleAuthorityEntity> roleAuthorityEntities) {

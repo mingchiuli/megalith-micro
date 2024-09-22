@@ -5,7 +5,8 @@ import org.chiu.micro.user.vo.UserEntityRpcVo;
 
 public class UserEntityRpcVoConvertor {
 
-    private UserEntityRpcVoConvertor(){}
+    private UserEntityRpcVoConvertor() {
+    }
 
     public static UserEntityRpcVo convert(UserEntity user) {
         return UserEntityRpcVo.builder()

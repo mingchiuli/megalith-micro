@@ -1,9 +1,9 @@
 package org.chiu.micro.user.convertor;
 
-import org.chiu.micro.user.page.PageAdapter;
 import org.chiu.micro.user.entity.RoleAuthorityEntity;
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.entity.RoleMenuEntity;
+import org.chiu.micro.user.page.PageAdapter;
 import org.chiu.micro.user.vo.RoleEntityVo;
 import org.springframework.data.domain.Page;
 
@@ -30,20 +30,20 @@ public class RoleEntityVoConvertor {
     }
 
     public static PageAdapter<RoleEntityVo> convert(Page<RoleEntity> page, List<RoleMenuEntity> roleMenus, List<RoleAuthorityEntity> roleAuthorities) {
-        
+
         Map<Long, LocalDateTime> roleMenusDate = roleMenus.stream()
                 .collect(Collectors.toMap(RoleMenuEntity::getRoleId, RoleMenuEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
-        
+
         Map<Long, LocalDateTime> roleAuthoritiesDate = roleAuthorities.stream()
                 .collect(Collectors.toMap(RoleAuthorityEntity::getRoleId, RoleAuthorityEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
-        
+
         Map<Long, LocalDateTime> roleDate = page.get()
                 .collect(Collectors.toMap(RoleEntity::getId, RoleEntity::getUpdated));
-        
+
         Map<Long, LocalDateTime> mergedMap = Stream.of(roleMenusDate, roleAuthoritiesDate, roleDate)
                 .flatMap(map -> map.entrySet().stream())
                 .collect(HashMap::new, (m, e) -> m.merge(e.getKey(), e.getValue(), (v1, v2) -> v1.isAfter(v2) ? v1 : v2), HashMap::putAll);
-        
+
         List<RoleEntityVo> content = page.getContent().stream()
                 .map(role -> RoleEntityVo.builder()
                         .code(role.getCode())

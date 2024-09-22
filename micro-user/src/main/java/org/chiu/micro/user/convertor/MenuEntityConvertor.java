@@ -5,7 +5,8 @@ import org.chiu.micro.user.req.MenuEntityReq;
 
 public class MenuEntityConvertor {
 
-    private MenuEntityConvertor() {}
+    private MenuEntityConvertor() {
+    }
 
     public static MenuEntity convert(MenuEntityReq menu) {
         return MenuEntity.builder()

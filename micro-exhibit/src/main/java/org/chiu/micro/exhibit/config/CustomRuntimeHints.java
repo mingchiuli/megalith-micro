@@ -1,30 +1,37 @@
 package org.chiu.micro.exhibit.config;
 
-import lombok.SneakyThrows;
 import org.chiu.micro.exhibit.cache.mq.CacheBlogEvictMessageListener;
 import org.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import org.chiu.micro.exhibit.dto.BlogExhibitDto;
 import org.chiu.micro.exhibit.dto.BlogSensitiveContentDto;
+import org.chiu.micro.exhibit.exception.MissException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.*;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import org.springframework.util.ReflectionUtils;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.springframework.util.ReflectionUtils;
-
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
-    
+
+    private static final Logger log = LoggerFactory.getLogger(CustomRuntimeHints.class);
+
     @SuppressWarnings("all")
-    @SneakyThrows
     @Override// Register method for reflection
     public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {
         // Register method for reflection
         hints.reflection().registerMethod(ReflectionUtils.findMethod(CacheBlogEvictMessageListener.class, "handleMessage", Set.class), ExecutableMode.INVOKE);
 
-        hints.reflection().registerConstructor(LinkedHashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
-    
+        try {
+            hints.reflection().registerConstructor(LinkedHashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
+        } catch (NoSuchMethodException e) {
+            log.error("application start fail");
+            throw new MissException(e.getMessage());
+        }
+
         hints.serialization().registerType(BlogExhibitDto.class);
         hints.serialization().registerType(BlogDescriptionDto.class);
         hints.serialization().registerType(BlogSensitiveContentDto.class);
