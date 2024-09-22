@@ -69,15 +69,14 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public MenusAndButtonsVo getCurrentUserNav(List<String> roles) {
-        var dto = new MenusAndButtonsDto();
         List<MenuWithChildDto> menus = new ArrayList<>();
         List<ButtonDto> buttons = new ArrayList<>();
-        dto.setMenus(menus);
-        dto.setButtons(buttons);
+        var dto = new MenusAndButtonsDto(buttons, menus);
+
         roles.forEach(role -> {
             MenusAndButtonsDto partDto = authWrapper.getCurrentUserNav(role);
-            menus.addAll(partDto.getMenus());
-            buttons.addAll(partDto.getButtons());
+            menus.addAll(partDto.menus());
+            buttons.addAll(partDto.buttons());
         });
 
         return MenusAndButtonsVoConvertor.convert(dto);
@@ -93,7 +92,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthorityRouteVo route(AuthorityRouteReq req, String token) {
         //record ip
 
-        taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()), req.getIpAddr()));
+        taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()), req.ipAddr()));
 
         List<String> authorities;
         try {
@@ -106,12 +105,12 @@ public class AuthServiceImpl implements AuthService {
 
         List<AuthorityDto> systemAuthorities = authWrapper.getAllSystemAuthorities();
         for (AuthorityDto dto : systemAuthorities) {
-            if (securityAuthenticationUtils.routeMatch(dto.getRoutePattern(), dto.getMethodType(), req.getRouteMapping(), req.getMethod())) {
-                if (authorities.contains(dto.getCode())) {
+            if (securityAuthenticationUtils.routeMatch(dto.routePattern(), dto.methodType(), req.routeMapping(), req.method())) {
+                if (authorities.contains(dto.code())) {
                     return AuthorityRouteVo.builder()
                             .auth(true)
-                            .serviceHost(dto.getServiceHost())
-                            .servicePort(dto.getServicePort())
+                            .serviceHost(dto.serviceHost())
+                            .servicePort(dto.servicePort())
                             .build();
                 }
                 return AuthorityRouteVo.builder()

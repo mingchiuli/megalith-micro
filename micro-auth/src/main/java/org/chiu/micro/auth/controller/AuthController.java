@@ -26,7 +26,7 @@ public class AuthController {
     @GetMapping("/menu/nav")
     public Result<MenusAndButtonsVo> nav(HttpServletRequest request) throws AuthException {
         AuthDto authDto = authService.getAuthDto(request.getHeader(HttpHeaders.AUTHORIZATION));
-        List<String> roles = authDto.getRoles();
+        List<String> roles = authDto.roles();
         return Result.success(() -> authService.getCurrentUserNav(roles));
     }
 }

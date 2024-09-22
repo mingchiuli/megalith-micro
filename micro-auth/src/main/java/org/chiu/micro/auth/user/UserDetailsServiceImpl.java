@@ -26,16 +26,16 @@ public final class UserDetailsServiceImpl implements UserDetailsService {
 
 		UserEntityDto user = userHttpServiceWrapper.findByUsernameOrEmailOrPhone(username);
 
-		Long userId = user.getId();
+		Long userId = user.id();
 		List<String> roleCodes = userHttpServiceWrapper.findRoleCodesByUserId(userId);
 
 		//通过User去自动比较用户名和密码
 		return new LoginUser(username,
-				user.getPassword(),
+				user.password(),
 				true,
 				true,
 				true,
-				user.getStatus() == 0,
+				user.status() == 0,
 				AuthorityUtils.createAuthorityList(roleCodes),
 				userId);
 	}

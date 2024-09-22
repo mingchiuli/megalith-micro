@@ -48,8 +48,8 @@ public class UserRedisCacheEvictMessageListener {
             messageConverter = "jsonMessageConverter",
             executor = "mqExecutor")
     public void handler(UserAuthMenuOperateMessage message, Channel channel, Message msg) {
-        AuthMenuOperateEnum operateEnum = AuthMenuOperateEnum.of(message.getType());
-        List<String> roles = message.getRoles();
+        AuthMenuOperateEnum operateEnum = AuthMenuOperateEnum.of(message.type());
+        List<String> roles = message.roles();
         Set<String> keys = new HashSet<>();
         if (AuthMenuOperateEnum.MENU.equals(operateEnum) || AuthMenuOperateEnum.AUTH_AND_MENU.equals(operateEnum)) {
             Method method;

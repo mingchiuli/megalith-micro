@@ -53,7 +53,7 @@ public class SecurityAuthenticationUtils {
     public List<String> getAuthAuthority(String token) throws AuthException {
         List<AuthorityDto> allAuthorities = authWrapper.getAllSystemAuthorities();
         List<String> whiteList = allAuthorities.stream()
-                .map(AuthorityDto::getCode)
+                .map(AuthorityDto::code)
                 .filter(code -> code.startsWith(Const.WHITELIST.getInfo()))
                 .toList();
 
