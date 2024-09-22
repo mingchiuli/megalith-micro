@@ -51,7 +51,6 @@ export const watchInput = (form: EditForm, pushActionForm: PushActionForm, oprea
     //本段内操作
     if (nArr.length === oArr.length) {
       for (let i = 0; i < nArr.length; i++) {
-        //理论上一个动作改不了很多段
         if (nArr[i] !== oArr[i]) {
           pushActionForm.paraNo = i + 1
           deal(nArr[i], oArr[i], opreateStatus, pushActionForm, form)
