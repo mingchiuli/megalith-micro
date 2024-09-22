@@ -28,9 +28,9 @@ public class SecurityConfig {
     SecurityFilterChain configure(HttpSecurity http) throws Exception {
 
         List<String> whitelist = authHttpServiceWrapper.getSystemAuthorities().stream()
-                .filter(item -> Const.HTTP.getInfo().equals(item.getPrototype()))
-                .filter(item -> item.getCode().startsWith(Const.WHITELIST.getInfo()))
-                .map(AuthorityDto::getRoutePattern)
+                .filter(item -> Const.HTTP.getInfo().equals(item.prototype()))
+                .filter(item -> item.code().startsWith(Const.WHITELIST.getInfo()))
+                .map(AuthorityDto::routePattern)
                 .toList();
 
         return http

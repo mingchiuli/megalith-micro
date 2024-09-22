@@ -51,14 +51,14 @@ public class BlogMessageServiceImpl implements BlogMessageService {
 
     @Override
     public void pushAction(BlogEditPushActionReq req, Long userId) {
-        Long blogId = req.getId();
-        String contentChange = req.getContentChange();
-        Integer operateTypeCode = req.getOperateTypeCode();
-        Integer version = req.getVersion();
-        Integer indexStart = req.getIndexStart();
-        Integer indexEnd = req.getIndexEnd();
-        String field = req.getField();
-        Integer paraNo = req.getParaNo();
+        Long blogId = req.id();
+        String contentChange = req.contentChange();
+        Integer operateTypeCode = req.operateTypeCode();
+        Integer version = req.version();
+        Integer indexStart = req.indexStart();
+        Integer indexEnd = req.indexEnd();
+        String field = req.field();
+        Integer paraNo = req.paraNo();
 
         String redisKey = KeyFactory.createBlogEditRedisKey(userId, blogId);
 
