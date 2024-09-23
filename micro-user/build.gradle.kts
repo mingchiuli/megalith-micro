@@ -30,6 +30,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				--gc=serial
 				-R:MaxHeapSize=256m
 				-O3
+				--java-options="-Xmx6G"
 			""",
 		"BP_HEALTH_CHECKER_ENABLED" to "true"
 	)
