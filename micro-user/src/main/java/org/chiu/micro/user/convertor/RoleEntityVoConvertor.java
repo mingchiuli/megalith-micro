@@ -4,7 +4,6 @@ import org.chiu.micro.user.entity.RoleAuthorityEntity;
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.entity.RoleMenuEntity;
 import org.chiu.micro.user.page.PageAdapter;
-import org.chiu.micro.user.req.RoleEntityReq;
 import org.chiu.micro.user.vo.RoleEntityVo;
 import org.springframework.data.domain.Page;
 
@@ -79,13 +78,5 @@ public class RoleEntityVoConvertor {
                         .name(item.getName())
                         .build())
                 .toList();
-    }
-
-    public static void convert(RoleEntityReq roleReq, RoleEntity roleEntity) {
-        roleEntity.setId(roleReq.id());
-        roleEntity.setCode(roleReq.code());
-        roleEntity.setName(roleReq.name());
-        roleEntity.setStatus(roleReq.status());
-        roleEntity.setRemark(roleReq.remark());
     }
 }

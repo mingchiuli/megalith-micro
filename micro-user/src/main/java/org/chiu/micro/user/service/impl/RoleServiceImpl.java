@@ -3,6 +3,7 @@ package org.chiu.micro.user.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.chiu.micro.user.constant.AuthMenuIndexMessage;
+import org.chiu.micro.user.convertor.RoleEntityConvertor;
 import org.chiu.micro.user.convertor.RoleEntityRpcVoConvertor;
 import org.chiu.micro.user.convertor.RoleEntityVoConvertor;
 import org.chiu.micro.user.entity.RoleAuthorityEntity;
@@ -97,7 +98,7 @@ public class RoleServiceImpl implements RoleService {
             roleEntity = new RoleEntity();
         }
 
-        RoleEntityVoConvertor.convert(roleReq, roleEntity);
+        RoleEntityConvertor.convert(roleReq, roleEntity);
 
         roleRepository.save(roleEntity);
         //权限和按钮
