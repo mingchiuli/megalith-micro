@@ -2,6 +2,7 @@ package org.chiu.micro.user.service.impl;
 
 import org.chiu.micro.user.code.CodeFactory;
 import org.chiu.micro.user.constant.UserIndexMessage;
+import org.chiu.micro.user.convertor.UserEntityConvertor;
 import org.chiu.micro.user.convertor.UserEntityVoConvertor;
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.entity.UserEntity;
@@ -20,7 +21,6 @@ import org.chiu.micro.user.req.UserEntityReq;
 import org.chiu.micro.user.service.UserRoleService;
 import org.chiu.micro.user.vo.UserEntityVo;
 import org.chiu.micro.user.wrapper.UserRoleWrapper;
-import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -87,18 +87,18 @@ public class UserRoleServiceImpl implements UserRoleService {
 
             String password = userEntityReq.password();
             if (StringUtils.hasLength(password)) {
-                userEntityReq = new UserEntityReq(userEntityReq.id(), userEntityReq.username(), userEntityReq.nickname(), userEntityReq.avatar(), passwordEncoder.encode(password), userEntityReq.email(), userEntityReq.phone(), userEntityReq.status(), userEntityReq.roles());
+                userEntityReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(password));
             } else {
-                userEntityReq = new UserEntityReq(userEntityReq.id(), userEntityReq.username(), userEntityReq.nickname(), userEntityReq.avatar(), userEntity.getPassword(), userEntityReq.email(), userEntityReq.phone(), userEntityReq.status(), userEntityReq.roles());
+                userEntityReq = new UserEntityReq(userEntityReq, userEntity.getPassword());
             }
             userOperateEnum = UserOperateEnum.UPDATE;
         } else {
             userEntity = new UserEntity();
-            userEntityReq = new UserEntityReq(null, userEntityReq.username(), userEntityReq.nickname(), userEntityReq.avatar(), passwordEncoder.encode(Optional.ofNullable(userEntityReq.password()).orElseThrow(() -> new CommitException(PASSWORD_REQUIRED))), userEntityReq.email(), userEntityReq.phone(), userEntityReq.status(), userEntityReq.roles());
+            userEntityReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(Optional.ofNullable(userEntityReq.password()).orElseThrow(() -> new CommitException(PASSWORD_REQUIRED))));
             userOperateEnum = UserOperateEnum.CREATE;
         }
 
-        BeanUtils.copyProperties(userEntityReq, userEntity);
+        UserEntityConvertor.convert(userEntityReq, userEntity);
 
         List<UserRoleEntity> userRoleEntities = roleRepository.findByCodeIn(roles).stream()
                 .map(role -> UserRoleEntity.builder()
@@ -139,9 +139,9 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         Optional<UserEntity> userEntity = userRepository.findByUsernameAndStatus(username, NORMAL.getCode());
         if (userEntity.isEmpty()) {
-            userEntityReq = new UserEntityReq(null, userEntityRegisterReq.username(), userEntityRegisterReq.nickname(), userEntityRegisterReq.avatar(), userEntityRegisterReq.password(), userEntityRegisterReq.email(), userEntityRegisterReq.phone(), NORMAL.getCode(), Collections.singletonList(USER.getInfo()));
+            userEntityReq = new UserEntityReq(userEntityRegisterReq, null, NORMAL.getCode(), Collections.singletonList(USER.getInfo()));
         } else {
-            userEntityReq = new UserEntityReq(userEntity.get().getId(), userEntityRegisterReq.username(), userEntityRegisterReq.nickname(), userEntityRegisterReq.avatar(), userEntityRegisterReq.password(), userEntityRegisterReq.email(), userEntityRegisterReq.phone(), NORMAL.getCode(), Collections.singletonList(USER.getInfo()));
+            userEntityReq = new UserEntityReq(userEntityRegisterReq, userEntity.get().getId(),  NORMAL.getCode(), Collections.singletonList(USER.getInfo()));
         }
         saveOrUpdate(userEntityReq);
         redisTemplate.delete(REGISTER_PREFIX.getInfo() + token);

@@ -3,6 +3,7 @@ package org.chiu.micro.user.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.chiu.micro.user.constant.AuthMenuIndexMessage;
+import org.chiu.micro.user.convertor.AuthorityEntityConvertor;
 import org.chiu.micro.user.convertor.AuthorityVoConvertor;
 import org.chiu.micro.user.entity.AuthorityEntity;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
@@ -14,7 +15,6 @@ import org.chiu.micro.user.repository.RoleRepository;
 import org.chiu.micro.user.req.AuthorityEntityReq;
 import org.chiu.micro.user.service.AuthorityService;
 import org.chiu.micro.user.vo.AuthorityVo;
-import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
@@ -73,7 +73,7 @@ public class AuthorityServiceImpl implements AuthorityService {
             authorityEntity = new AuthorityEntity();
         }
 
-        BeanUtils.copyProperties(req, authorityEntity);
+        AuthorityEntityConvertor.convert(req, authorityEntity);
         authorityRepository.save(authorityEntity);
 
         //全部权限

@@ -29,8 +29,8 @@ public record AuthorityEntityReq(
         @NotBlank
         String serviceHost,
 
-        @NotBlank
-        String servicePort,
+        @NotNull
+        Integer servicePort,
 
         @NotNull
         Integer status) {

@@ -36,4 +36,12 @@ public record UserEntityReq(
 
         @NotEmpty
         List<String> roles) {
+
+        public UserEntityReq(UserEntityReq req, String password) {
+                this(req.id(), req.username(), req.nickname(), req.avatar(), password, req.email(), req.phone(), req.status(), req.roles());
+        }
+
+        public UserEntityReq(UserEntityRegisterReq req, Long id, Integer status, List<String> roles) {
+                this(id, req.username(), req.nickname(), req.avatar(), req.password(), req.email(), req.phone(), status, roles);
+        }
 }
