@@ -30,9 +30,9 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				--gc=serial
 				-R:MaxHeapSize=256m
 				-O3
-				--java-options="-Xmx6G"
 			""",
-		"BP_HEALTH_CHECKER_ENABLED" to "true"
+		"BP_HEALTH_CHECKER_ENABLED" to "true",
+		"JAVA_OPTS" to "-Xmx6G"
 	)
 	docker {
 		publish.set(true)
