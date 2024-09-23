@@ -48,7 +48,6 @@ jobs:
             docker stop $(docker ps | grep 'micro-websocket' | awk '{print $1}')
             docker rm $(docker ps -a | grep 'micro-websocket' | awk '{print $1}')
             docker compose --compatibility up -d --no-recreate
-            docker rmi $(docker images | grep 'micro-websocket' | grep 'none' | awk '{print $3}')
             code=$(docker images | grep 'micro-websocket' | grep 'none' | awk '{print $3}')
             if [ -n "$code" ]; then
               docker rmi $code
