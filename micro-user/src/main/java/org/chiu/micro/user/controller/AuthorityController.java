@@ -46,4 +46,5 @@ public class AuthorityController {
     public byte[] download() {
         return authorityService.download();
     }
+    
 }
