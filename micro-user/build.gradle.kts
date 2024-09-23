@@ -32,7 +32,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				-O3
 			""",
 		"BP_HEALTH_CHECKER_ENABLED" to "true",
-		"JAVA_OPTS" to "-Xmx6G"
+		"JAVA_TOOL_OPTIONS" to "-Xmx6G"
 	)
 	docker {
 		publish.set(true)
