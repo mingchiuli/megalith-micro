@@ -1,6 +1,8 @@
 package org.chiu.micro.blog.convertor;
 
 import org.chiu.micro.blog.dto.BlogEntityDto;
+import org.chiu.micro.blog.entity.BlogEntity;
+import org.chiu.micro.blog.req.BlogEntityReq;
 import org.springframework.util.StringUtils;
 
 import java.util.Map;
@@ -23,5 +25,14 @@ public class BlogEntityConvertor {
                 .status(Integer.valueOf(entries.get(STATUS.getMsg())))
                 .link(entries.get(LINK.getMsg()))
                 .build();
+    }
+
+    public static void convert(BlogEntityReq blog, BlogEntity blogEntity) {
+        blogEntity.setTitle(blog.title());
+        blogEntity.setDescription(blog.description());
+        blogEntity.setContent(blog.content());
+        blogEntity.setId(blog.id());
+        blogEntity.setStatus(blog.status());
+        blogEntity.setLink(blog.link());
     }
 }
