@@ -30,9 +30,9 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				--gc=serial
 				-R:MaxHeapSize=256m
 				-O3
+				-J-XX:MaxRAMPercentage=80.0
 			""",
 		"BP_HEALTH_CHECKER_ENABLED" to "true",
-		"JAVA_TOOL_OPTIONS" to "-Xmx12G -Xms12G"
 	)
 	docker {
 		publish.set(true)
