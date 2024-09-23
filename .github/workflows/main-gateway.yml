@@ -49,4 +49,7 @@ jobs:
             docker rm $(docker ps -a | grep 'micro-gateway' | awk '{print $1}')
             docker compose --compatibility up -d --no-recreate
             docker rmi $(docker images | grep 'micro-gateway' | grep 'none' | awk '{print $3}')
-            docker restart $(docker ps | grep 'nginx' | awk '{print $1}')
+            code=$(docker images | grep 'micro-gateway' | grep 'none' | awk '{print $3}')
+            if [ -n "$code" ]; then
+              docker rmi $code
+            fi

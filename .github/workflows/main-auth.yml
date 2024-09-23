@@ -48,4 +48,7 @@ jobs:
             docker stop $(docker ps | grep 'micro-auth' | awk '{print $1}')
             docker rm $(docker ps -a | grep 'micro-auth' | awk '{print $1}')
             docker compose --compatibility up -d --no-recreate
-            docker rmi $(docker images | grep 'micro-auth' | grep 'none' | awk '{print $3}')
+            code=$(docker images | grep 'micro-auth' | grep 'none' | awk '{print $3}')
+            if [ -n "$code" ]; then
+              docker rmi $code
+            fi
