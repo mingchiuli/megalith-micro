@@ -17,7 +17,6 @@ import org.chiu.micro.user.req.MenuEntityReq;
 import org.chiu.micro.user.service.MenuService;
 import org.chiu.micro.user.vo.MenuDisplayVo;
 import org.chiu.micro.user.vo.MenuEntityVo;
-import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
@@ -72,7 +71,7 @@ public class MenuServiceImpl implements MenuService {
             menuEntity = MenuEntityConvertor.convert(menu);
         }
 
-        BeanUtils.copyProperties(menu, menuEntity);
+        MenuEntityConvertor.convert(menu, menuEntity);
 
         if (StatusEnum.HIDE.getCode().equals(menu.status())) {
             List<MenuEntity> menuEntities = new ArrayList<>();

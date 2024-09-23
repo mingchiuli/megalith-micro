@@ -22,4 +22,17 @@ public class MenuEntityConvertor {
                 .status(menu.status())
                 .build();
     }
+
+    public static void convert(MenuEntityReq menu, MenuEntity menuEntity) {
+        menuEntity.setMenuId(menu.menuId());
+        menuEntity.setParentId(menu.parentId());
+        menuEntity.setTitle(menu.title());
+        menuEntity.setName(menu.name());
+        menuEntity.setUrl(menu.url());
+        menuEntity.setComponent(menu.component());
+        menuEntity.setIcon(menu.icon());
+        menuEntity.setOrderNum(menu.orderNum());
+        menuEntity.setType(menu.type());
+        menuEntity.setStatus(menu.status());
+    }
 }

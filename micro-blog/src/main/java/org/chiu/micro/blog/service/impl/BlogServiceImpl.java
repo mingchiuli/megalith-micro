@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.chiu.micro.blog.constant.BlogOperateEnum;
 import org.chiu.micro.blog.constant.BlogOperateMessage;
 import org.chiu.micro.blog.convertor.BlogDeleteVoConvertor;
+import org.chiu.micro.blog.convertor.BlogEntityConvertor;
 import org.chiu.micro.blog.convertor.BlogEntityRpcVoConvertor;
 import org.chiu.micro.blog.convertor.BlogEntityVoConvertor;
 import org.chiu.micro.blog.dto.BlogSearchDto;
@@ -31,7 +32,6 @@ import org.chiu.micro.blog.vo.BlogEntityRpcVo;
 import org.chiu.micro.blog.vo.BlogEntityVo;
 import org.chiu.micro.blog.wrapper.BlogSensitiveWrapper;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -277,7 +277,7 @@ public class BlogServiceImpl implements BlogService {
                     .build();
         }
 
-        BeanUtils.copyProperties(blog, blogEntity);
+        BlogEntityConvertor.convert(blog, blogEntity);
 
         List<BlogSensitiveContentEntity> blogSensitiveContentEntityList = blog.sensitiveContentList().stream()
                 .distinct()

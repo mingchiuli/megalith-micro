@@ -21,7 +21,6 @@ import org.chiu.micro.user.service.RoleService;
 import org.chiu.micro.user.vo.RoleEntityRpcVo;
 import org.chiu.micro.user.vo.RoleEntityVo;
 import org.chiu.micro.user.wrapper.RoleMenuAuthorityWrapper;
-import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -98,7 +97,8 @@ public class RoleServiceImpl implements RoleService {
             roleEntity = new RoleEntity();
         }
 
-        BeanUtils.copyProperties(roleReq, roleEntity);
+        RoleEntityVoConvertor.convert(roleReq, roleEntity);
+
         roleRepository.save(roleEntity);
         //权限和按钮
         var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(roleEntity.getCode()), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
