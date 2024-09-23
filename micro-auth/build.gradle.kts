@@ -33,6 +33,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				-R:MaxHeapSize=128m
 				-O3
 				--initialize-at-build-time=org.redisson.misc.BiHashMap
+				-J-XX:MaxRAMPercentage=80.0
 			""",
 		"BP_HEALTH_CHECKER_ENABLED" to "true"
 	)
