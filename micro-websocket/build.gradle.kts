@@ -10,7 +10,6 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
 	implementation("org.springframework.security:spring-security-messaging")
 	implementation("org.springframework.boot:spring-boot-starter-security")
-	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
