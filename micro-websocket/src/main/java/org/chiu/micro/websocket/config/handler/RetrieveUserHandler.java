@@ -5,7 +5,6 @@ import org.chiu.micro.websocket.dto.AuthDto;
 import org.chiu.micro.websocket.rpc.wrapper.AuthHttpServiceWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
