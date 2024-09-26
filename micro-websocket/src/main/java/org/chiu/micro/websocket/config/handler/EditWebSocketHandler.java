@@ -99,6 +99,7 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
                     .type(execute.intValue())
                     .build();
 
+            log.info("dto: {}", dto);
             TextMessage textMessage = new TextMessage(jsonUtils.writeValueAsString(dto));
             session.sendMessage(textMessage);
         }
