@@ -33,6 +33,8 @@ public class AuthHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
         Object token1 = attributes.get("token");
         log.info("beforeHandshake token1:{}", token1);
         log.info("beforeHandshake patch:{}", request.getURI().getPath());
+        log.info("beforeHandshake getQuery:{}", request.getURI().getQuery());
+
 
         String token = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         log.info("beforeHandshake:{}", token);
