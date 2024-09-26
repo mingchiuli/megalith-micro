@@ -361,7 +361,7 @@ const init = async () => {
   initTimeoutId = setTimeout(async () => init(), 100)
 }
 
-;(async () => {
+(async () => {
   connect()
   await init()
 })()
