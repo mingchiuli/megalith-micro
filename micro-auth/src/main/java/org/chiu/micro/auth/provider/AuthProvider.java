@@ -1,6 +1,7 @@
 package org.chiu.micro.auth.provider;
 
 import org.chiu.micro.auth.dto.AuthDto;
+import org.chiu.micro.auth.exception.AuthException;
 import org.chiu.micro.auth.lang.Result;
 import org.chiu.micro.auth.req.AuthorityRouteReq;
 import org.chiu.micro.auth.service.AuthService;
@@ -23,7 +24,7 @@ public class AuthProvider {
     }
 
     @GetMapping
-    public Result<AuthDto> findAuth(@RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) {
+    public Result<AuthDto> findAuth(@RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) throws AuthException {
         AuthDto authDto = authService.getAuthDto(token);
         return Result.success(authDto);
     }
