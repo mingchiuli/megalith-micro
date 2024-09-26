@@ -17,11 +17,8 @@ public class RpcConfig {
 
     private final HttpClient httpClient;
 
-    private final HttpInterceptor httpInterceptor;
-
-    public RpcConfig(HttpClient httpClient, HttpInterceptor httpInterceptor) {
+    public RpcConfig(HttpClient httpClient) {
         this.httpClient = httpClient;
-        this.httpInterceptor = httpInterceptor;
     }
 
     @Bean
@@ -33,7 +30,6 @@ public class RpcConfig {
         RestClient client = RestClient.builder()
                 .baseUrl("http://micro-auth:8081/inner")
                 .requestFactory(requestFactory)
-                .requestInterceptor(httpInterceptor)
                 .build();
 
         RestClientAdapter restClientAdapter = RestClientAdapter.create(client);
