@@ -31,14 +31,9 @@ public class RetrieveUserHandler extends DefaultHandshakeHandler {
     @Override
     protected Principal determineUser(@NonNull ServerHttpRequest request, @NonNull WebSocketHandler wsHandler, @NonNull Map<String, Object> attributes) {
 
-        String token = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        String token = request.getURI().getQuery().substring("token=".length());
 
-        Object token1 = attributes.get("token");
-        log.info("determineUser token1:{}", token1);
-        log.info("determineUser patch:{}", request.getURI().getPath());
-
-        log.info("determineUser:{}", token);
-
+        log.info("determineUser token1:{}", token);
 
         if (!StringUtils.hasLength(token)) {
             return null;
