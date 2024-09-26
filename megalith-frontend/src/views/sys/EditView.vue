@@ -44,19 +44,13 @@ const connect = () => {
   destory()
   socket = new WebSocket(`${import.meta.env.VITE_BASE_WS_URL}/edit/ws?token=${localStorage.getItem('accessToken')}`)
   opreateStatus.client = socket
-  socket.addEventListener('open', auth)
   socket.addEventListener('message', subscribe)
 }
 
 const destory = () => {
   if (!socket) return
-  socket.removeEventListener('open', auth)
   socket.removeEventListener('message', subscribe)
   socket.close()
-}
-
-const auth = (event: Event) => {
-  socket.send(`Authorization: ${localStorage.getItem('accessToken')}`)
 }
 
 const subscribe = async (event: MessageEvent<string>) => {
