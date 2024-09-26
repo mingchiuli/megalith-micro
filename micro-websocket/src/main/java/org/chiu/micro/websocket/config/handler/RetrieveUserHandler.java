@@ -3,8 +3,7 @@ package org.chiu.micro.websocket.config.handler;
 import org.chiu.micro.websocket.config.user.AuthUser;
 import org.chiu.micro.websocket.dto.AuthDto;
 import org.chiu.micro.websocket.rpc.wrapper.AuthHttpServiceWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -18,9 +17,6 @@ import java.util.Map;
 @Component
 public class RetrieveUserHandler extends DefaultHandshakeHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(RetrieveUserHandler.class);
-
-
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
 
     public RetrieveUserHandler(AuthHttpServiceWrapper authHttpServiceWrapper) {
@@ -31,8 +27,6 @@ public class RetrieveUserHandler extends DefaultHandshakeHandler {
     protected Principal determineUser(@NonNull ServerHttpRequest request, @NonNull WebSocketHandler wsHandler, @NonNull Map<String, Object> attributes) {
 
         String token = request.getURI().getQuery().substring("token=".length());
-
-        log.info("determineUser token1:{}", token);
 
         if (!StringUtils.hasLength(token)) {
             return null;

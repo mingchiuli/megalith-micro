@@ -37,23 +37,17 @@ public class AuthHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
             return false;
         }
 
-        log.info("beforeHandshake token:{}", token);
-
-
         if (!StringUtils.hasLength(token)) {
             return false;
         }
 
         String path = request.getURI().getPath();
-        log.info("beforeHandshake method:{}", request.getMethod().name());
-
         AuthorityRouteReq req = AuthorityRouteReq.builder()
                 .ipAddr(null)
                 .method(request.getMethod().name())
                 .routeMapping(path)
                 .build();
         AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(req, token);
-        log.info("beforeHandshake:{}", authorityRoute);
         return Boolean.TRUE.equals(authorityRoute.auth());
     }
 }
