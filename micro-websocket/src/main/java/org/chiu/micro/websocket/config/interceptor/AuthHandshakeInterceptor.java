@@ -6,7 +6,6 @@ import org.chiu.micro.websocket.req.AuthorityRouteReq;
 import org.chiu.micro.websocket.rpc.wrapper.AuthHttpServiceWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.lang.NonNull;
@@ -30,14 +29,14 @@ public class AuthHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
     @Override
     public boolean beforeHandshake(@NonNull ServerHttpRequest request, @NonNull ServerHttpResponse response, @NonNull WebSocketHandler wsHandler, @NonNull Map<String, Object> attributes) throws Exception {
         super.beforeHandshake(request, response, wsHandler, attributes);
-        Object token1 = attributes.get("token");
-        log.info("beforeHandshake token1:{}", token1);
-        log.info("beforeHandshake patch:{}", request.getURI().getPath());
-        log.info("beforeHandshake getQuery:{}", request.getURI().getQuery());
+        String query = request.getURI().getQuery();
+        String token;
 
-
-        String token = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        log.info("beforeHandshake:{}", token);
+        try {
+            token = query.substring("token=".length());
+        } catch (IndexOutOfBoundsException e) {
+            return false;
+        }
 
         if (!StringUtils.hasLength(token)) {
             return false;
