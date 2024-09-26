@@ -30,6 +30,10 @@ public class AuthHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
     @Override
     public boolean beforeHandshake(@NonNull ServerHttpRequest request, @NonNull ServerHttpResponse response, @NonNull WebSocketHandler wsHandler, @NonNull Map<String, Object> attributes) throws Exception {
         super.beforeHandshake(request, response, wsHandler, attributes);
+        Object token1 = attributes.get("token");
+        log.info("beforeHandshake token1:{}", token1);
+        log.info("beforeHandshake patch:{}", request.getURI().getPath());
+
         String token = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         log.info("beforeHandshake:{}", token);
 

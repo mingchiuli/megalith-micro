@@ -33,6 +33,10 @@ public class RetrieveUserHandler extends DefaultHandshakeHandler {
 
         String token = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
+        Object token1 = attributes.get("token");
+        log.info("determineUser token1:{}", token1);
+        log.info("determineUser patch:{}", request.getURI().getPath());
+
         log.info("determineUser:{}", token);
 
 
