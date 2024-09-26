@@ -19,5 +19,5 @@ public interface AuthHttpService {
 
 
     @PostExchange("/auth/route")
-    Result<AuthorityRouteDto> getAuthorityRoute(@RequestBody AuthorityRouteReq req);
+    Result<AuthorityRouteDto> getAuthorityRoute(@RequestBody AuthorityRouteReq req, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 }
