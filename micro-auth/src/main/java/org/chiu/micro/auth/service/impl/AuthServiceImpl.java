@@ -118,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthDto getAuthDto(String token) {
+    public AuthDto getAuthDto(String token) throws AuthException {
         long userId;
         List<String> rawRoles;
         List<String> authorities;
@@ -128,18 +128,12 @@ public class AuthServiceImpl implements AuthService {
             rawRoles = Collections.emptyList();
             authorities = Collections.emptyList();
         } else {
-            try {
-                String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
-                Claims claims = securityAuthenticationUtils.getVerifierByToken(jwt);
-                userId = Long.parseLong(claims.getUserId());
-                List<String> roles = claims.getRoles();
-                rawRoles = securityAuthenticationUtils.getRawRoleCodes(roles);
-                authorities = securityAuthenticationUtils.getAuthorities(userId, rawRoles);
-            } catch (AuthException e) {
-                userId = 0L;
-                rawRoles = Collections.emptyList();
-                authorities = Collections.emptyList();
-            }
+            String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
+            Claims claims = securityAuthenticationUtils.getVerifierByToken(jwt);
+            userId = Long.parseLong(claims.getUserId());
+            List<String> roles = claims.getRoles();
+            rawRoles = securityAuthenticationUtils.getRawRoleCodes(roles);
+            authorities = securityAuthenticationUtils.getAuthorities(userId, rawRoles);
         }
 
         return AuthDto.builder()
