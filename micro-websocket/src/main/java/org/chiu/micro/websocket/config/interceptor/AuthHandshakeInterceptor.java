@@ -1,7 +1,6 @@
 package org.chiu.micro.websocket.config.interceptor;
 
 import org.chiu.micro.websocket.dto.AuthorityRouteDto;
-import org.chiu.micro.websocket.lang.Const;
 import org.chiu.micro.websocket.req.AuthorityRouteReq;
 import org.chiu.micro.websocket.rpc.wrapper.AuthHttpServiceWrapper;
 import org.slf4j.Logger;
@@ -53,7 +52,7 @@ public class AuthHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
                 .method(request.getMethod().name())
                 .routeMapping(path)
                 .build();
-        AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(req);
+        AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(req, token);
         log.info("beforeHandshake:{}", authorityRoute);
         return Boolean.TRUE.equals(authorityRoute.auth());
     }

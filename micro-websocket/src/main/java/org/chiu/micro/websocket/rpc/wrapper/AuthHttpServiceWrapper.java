@@ -26,8 +26,8 @@ public class AuthHttpServiceWrapper {
         return result.data();
     }
 
-    public AuthorityRouteDto getAuthorityRoute(AuthorityRouteReq req) {
-        Result<AuthorityRouteDto> result = authHttpService.getAuthorityRoute(req);
+    public AuthorityRouteDto getAuthorityRoute(AuthorityRouteReq req, String token) {
+        Result<AuthorityRouteDto> result = authHttpService.getAuthorityRoute(req, token);
         if (result.code() != 200) {
             throw new MissException(result.msg());
         }

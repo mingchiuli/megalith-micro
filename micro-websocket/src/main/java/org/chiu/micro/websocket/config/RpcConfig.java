@@ -1,6 +1,5 @@
 package org.chiu.micro.websocket.config;
 
-import org.chiu.micro.websocket.config.interceptor.HttpInterceptor;
 import org.chiu.micro.websocket.rpc.AuthHttpService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
