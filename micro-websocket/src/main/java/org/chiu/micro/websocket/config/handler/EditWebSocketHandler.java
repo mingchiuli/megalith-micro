@@ -65,7 +65,7 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
         if (principal == null) {
             return;
         }
-        log.info("handleTextMessage:{}", principal.getName());
+
         Long userId = Long.valueOf(principal.getName());
         String payload = message.getPayload();
         BlogEditPushActionDto pushActionDto = jsonUtils.readValue(payload, BlogEditPushActionDto.class);
@@ -99,7 +99,6 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
                     .type(execute.intValue())
                     .build();
 
-            log.info("dto: {}", dto);
             TextMessage textMessage = new TextMessage(jsonUtils.writeValueAsString(dto));
             session.sendMessage(textMessage);
         }

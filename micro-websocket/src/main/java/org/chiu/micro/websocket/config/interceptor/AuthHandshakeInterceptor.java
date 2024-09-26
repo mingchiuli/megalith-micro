@@ -3,8 +3,7 @@ package org.chiu.micro.websocket.config.interceptor;
 import org.chiu.micro.websocket.dto.AuthorityRouteDto;
 import org.chiu.micro.websocket.req.AuthorityRouteReq;
 import org.chiu.micro.websocket.rpc.wrapper.AuthHttpServiceWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.lang.NonNull;
@@ -18,7 +17,6 @@ import java.util.Map;
 @Component
 public class AuthHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthHandshakeInterceptor.class);
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
 
     public AuthHandshakeInterceptor(AuthHttpServiceWrapper authHttpServiceWrapper) {
