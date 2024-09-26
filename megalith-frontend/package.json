@@ -13,7 +13,6 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@stomp/stompjs": "^7.0.0",
     "@types/markdown-it": "^14.1.2",
     "@vavt/v3-extension": "^1.3.0",
     "axios": "^1.7.7",
@@ -30,7 +29,6 @@
     "@rushstack/eslint-patch": "^1.10.4",
     "@tsconfig/node20": "^20.1.4",
     "@types/node": "^22.6.1",
-    "@types/sockjs-client": "^1.5.4",
     "@vitejs/plugin-vue": "^5.1.3",
     "@vue/tsconfig": "^0.5.1",
     "eslint": "^9.11.1",

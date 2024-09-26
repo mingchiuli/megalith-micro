@@ -1,4 +1,3 @@
-import type { Client } from "@stomp/stompjs"
 import { type Ref } from "vue"
 
 export interface Visitor {
@@ -367,8 +366,7 @@ export interface OpreateStatusParam {
   composing: boolean
   netErrorEdited: Ref<boolean>
   pulling: boolean
-  client: Client
-  reconnecting: boolean
+  client: WebSocket
   fieldType: FieldType
   transColor: Ref<string>
   blogId: string | undefined

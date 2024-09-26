@@ -1,56 +1,82 @@
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, onUnmounted, reactive, ref, useTemplateRef } from 'vue'
-import { type TagProps, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type FormRules, type FormInstance, ElInput, type UploadUserFile } from 'element-plus'
+import {
+  type TagProps,
+  type UploadFile,
+  type UploadProps,
+  type UploadRawFile,
+  type UploadRequestOptions,
+  type FormRules,
+  type FormInstance,
+  ElInput,
+  type UploadUserFile
+} from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
-import { SubscribeType, type EditForm, type PushActionForm, type SensitiveItem, type SensitiveTrans, type SubscribeItem, FieldType, OperaColor, Status, ButtonAuth, SensitiveType, type SensitiveExhibit, Colors, type OpreateStatusParam } from '@/type/entity'
+import {
+  SubscribeType,
+  type EditForm,
+  type PushActionForm,
+  type SensitiveItem,
+  type SensitiveTrans,
+  type SubscribeItem,
+  FieldType,
+  OperaColor,
+  Status,
+  ButtonAuth,
+  SensitiveType,
+  type SensitiveExhibit,
+  Colors,
+  type OpreateStatusParam
+} from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
-import { Client, StompSocketState, type StompSubscription } from '@stomp/stompjs'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle, getJWTStruct } from '@/utils/tools'
+import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 import { watchInput } from '@/utils/edit'
 import { pushAllData, pullAllData, loadEditContent } from '@/utils/editUtils'
 
 const route = useRoute()
 const blogId = route.query.id as string | undefined
-const userId = getJWTStruct().sub
 
-let client = new Client({
-  brokerURL: `${import.meta.env.VITE_BASE_WS_URL}/edit/ws`,
-  connectHeaders: { "Authorization": localStorage.getItem('accessToken')! },
-  reconnectDelay: 2000,
-  heartbeatIncoming: 2000,
-  heartbeatOutgoing: 2000,
-  connectionTimeout: 2000
-})
+let socket: WebSocket
+const connect = () => {
+  destory()
+  socket = new WebSocket(`${import.meta.env.VITE_BASE_WS_URL}/edit/ws`)
+  opreateStatus.client = socket
+  socket.addEventListener('open', auth)
+  socket.addEventListener('message', subscribe)
+}
 
-let subscribe: StompSubscription
+const destory = () => {
+  if (!socket) return
+  socket.removeEventListener('open', auth)
+  socket.removeEventListener('message', subscribe)
+  socket.close()
+}
 
-const connect = async () => {
-  const key = blogId ? `${blogId}` : `init/${userId}`
-  client.onConnect = _frame => {
-    subscribe = client.subscribe(`/edits/${key}`, async res => {
-      const body: SubscribeItem = JSON.parse(res.body)
+const auth = (event: Event) => {
+  socket.send(`Authorization: ${localStorage.getItem('accessToken')}`)
+}
 
-      if (body.type === SubscribeType.PULL_ALL) {
-        await pullAllData(opreateStatus, form)
-      }
+const subscribe = async (event: MessageEvent<string>) => {
+  // 处理接收到的消息
+  const body: SubscribeItem = JSON.parse(event.data)
 
-      if (body.type === SubscribeType.PUSH_ALL) {
-        await pushAllData(opreateStatus, form)
-      }
-    })
+  if (body.type === SubscribeType.PULL_ALL) {
+    await pullAllData(opreateStatus, form)
   }
-  client.activate()
+
+  if (body.type === SubscribeType.PUSH_ALL) {
+    await pushAllData(opreateStatus, form)
+  }
 }
 
 const opreateStatus: OpreateStatusParam = {
   composing: false,
   netErrorEdited: ref(false),
   pulling: false,
-  client: client,
-  reconnecting: false,
+  client: socket!,
   fieldType: FieldType.NON_PARA,
   transColor: ref(OperaColor.FAILED),
   blogId: blogId,
@@ -77,7 +103,7 @@ const pushActionForm: PushActionForm = {
   indexStart: undefined,
   indexEnd: undefined,
   field: undefined,
-  paraNo: undefined,
+  paraNo: undefined
 }
 
 watchInput(form, pushActionForm, opreateStatus)
@@ -89,7 +115,7 @@ type SensitiveTagsItem = {
 
 const sensitiveTags = computed(() => {
   const arr: SensitiveTagsItem[] = []
-  form.sensitiveContentList.forEach(item => {
+  form.sensitiveContentList.forEach((item) => {
     const str = getExhibitWords(item.type, form)
     const element: SensitiveExhibit = {
       content: str.substring(item.startIndex, item.endIndex),
@@ -116,7 +142,6 @@ const fileList = computed(() => {
 const titleRef = useTemplateRef<InstanceType<typeof ElInput>>('title')
 const descRef = useTemplateRef<InstanceType<typeof ElInput>>('desc')
 
-
 //中文输入法的问题
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
@@ -126,18 +151,10 @@ const dialogImageUrl = ref('')
 
 const formRef = useTemplateRef<FormInstance>('form')
 const formRules = reactive<FormRules<EditForm>>({
-  title: [
-    { required: true, message: '请输入标题', trigger: 'blur' }
-  ],
-  description: [
-    { required: true, message: '请输入描述', trigger: 'blur' }
-  ],
-  content: [
-    { required: true, message: '请输入内容', trigger: 'blur' }
-  ],
-  status: [
-    { required: true, message: '请选择状态', trigger: 'blur' }
-  ]
+  title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
+  description: [{ required: true, message: '请输入描述', trigger: 'blur' }],
+  content: [{ required: true, message: '请输入内容', trigger: 'blur' }],
+  status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
 })
 
 const upload = async (image: UploadRequestOptions) => {
@@ -164,11 +181,11 @@ const submitForm = async (ref: FormInstance) => {
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
-        type: 'success',
+        type: 'success'
       })
       blogsStore().pageNum = 1
       router.push({
-        name: "system-blogs"
+        name: 'system-blogs'
       })
     }
   })
@@ -181,15 +198,22 @@ const handlePictureCardPreview = (file: UploadFile) => {
 
 const handleTagClose = (tag: SensitiveTagsItem) => {
   const sensitiveItem = tag.element
-  form.sensitiveContentList = form.sensitiveContentList.filter(item => item.type !== sensitiveItem.type || (item.startIndex !== sensitiveItem.startIndex && item.type === sensitiveItem.type))
+  form.sensitiveContentList = form.sensitiveContentList.filter(
+    (item) =>
+      item.type !== sensitiveItem.type ||
+      (item.startIndex !== sensitiveItem.startIndex && item.type === sensitiveItem.type)
+  )
 }
 
-const dealComposing = (payload: boolean) => opreateStatus.composing = payload
+const dealComposing = (payload: boolean) => (opreateStatus.composing = payload)
 
 const dealSensitive = (payload: SensitiveTrans) => {
   let flag = true
-  form.sensitiveContentList.forEach(item => {
-    if ((item.endIndex === payload.endIndex || item.startIndex === payload.startIndex) && item.type === payload.type) {
+  form.sensitiveContentList.forEach((item) => {
+    if (
+      (item.endIndex === payload.endIndex || item.startIndex === payload.startIndex) &&
+      item.type === payload.type
+    ) {
       flag = false
     }
   })
@@ -204,7 +228,6 @@ const dealSensitive = (payload: SensitiveTrans) => {
 }
 
 const getSensitiveType = (type: SensitiveType) => {
-
   let typeProp: TagProps['type']
   if (SensitiveType.TITLE === type) {
     typeProp = 'success'
@@ -304,25 +327,18 @@ let initTimeoutId: NodeJS.Timeout
 onUnmounted(() => {
   clearTimeout(healthCheckTimeoutId)
   clearTimeout(initTimeoutId)
-  if (subscribe) {
-    subscribe.unsubscribe()
-  }
-  client.deactivate()
+  destory()
 })
 
-let reconnecting = false
 const healthCheck = async () => {
   try {
-    if (client.webSocket?.readyState !== StompSocketState.OPEN) {
+    if (socket.readyState !== WebSocket.OPEN) {
       opreateStatus.transColor.value = OperaColor.FAILED
       opreateStatus.readOnly.value = true
       const accessToken = localStorage.getItem('accessToken')!
-      const token = await checkAccessToken(accessToken)
-      client.connectHeaders = { "Authorization": token, "Type": "EDIT" }
-      reconnecting = true
-    }
+      await checkAccessToken(accessToken)
+      connect()
 
-    if (reconnecting && client.webSocket?.readyState === StompSocketState.OPEN) {
       if (opreateStatus.netErrorEdited.value) {
         await pushAllData(opreateStatus, form)
       } else {
@@ -331,16 +347,17 @@ const healthCheck = async () => {
 
       opreateStatus.readOnly.value = false
       opreateStatus.transColor.value = OperaColor.SUCCESS
-      reconnecting = false
       opreateStatus.netErrorEdited.value = false
     }
-  } catch(_e) { /* empty */ } finally {
+  } catch (_e) {
+    destory()
+  } finally {
     healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 2000)
   }
 }
 
 const init = async () => {
-  if (client.webSocket?.readyState === StompSocketState.OPEN) {
+  if (socket.readyState === WebSocket.OPEN) {
     opreateStatus.transColor.value = OperaColor.SUCCESS
     await loadEditContent(form, opreateStatus)
     await healthCheck()
@@ -350,38 +367,56 @@ const init = async () => {
   initTimeoutId = setTimeout(async () => init(), 100)
 }
 
-(async () => {
-  await connect()
+;(async () => {
+  connect()
   await init()
 })()
-
 </script>
 
 <template>
   <div class="father">
     <el-form :model="form" :rules="formRules" ref="form">
       <el-form-item class="title" prop="title">
-        <el-input ref="title" @select="handleTitleSelect" v-model="form.title" placeholder="标题" maxlength="20"
-          :disabled="opreateStatus.readOnly.value" />
+        <el-input
+          ref="title"
+          @select="handleTitleSelect"
+          v-model="form.title"
+          placeholder="标题"
+          maxlength="20"
+          :disabled="opreateStatus.readOnly.value"
+        />
       </el-form-item>
 
       <el-form-item class="desc" prop="description">
-        <el-input ref="desc" @select="handleDescSelect" autosize type="textarea" v-model="form.description"
-          placeholder="摘要" maxlength="60" :disabled="opreateStatus.readOnly.value" />
+        <el-input
+          ref="desc"
+          @select="handleDescSelect"
+          autosize
+          type="textarea"
+          v-model="form.description"
+          placeholder="摘要"
+          maxlength="60"
+          :disabled="opreateStatus.readOnly.value"
+        />
       </el-form-item>
 
       <el-form-item class="status" prop="status">
         <el-radio-group v-model="form.status" :disabled="opreateStatus.readOnly.value">
-          <el-radio :value=Status.NORMAL>公开</el-radio>
-          <el-radio :value=Status.BLOCK>隐藏</el-radio>
-          <el-radio :value=Status.SENSITIVE_FILTER>打码</el-radio>
+          <el-radio :value="Status.NORMAL">公开</el-radio>
+          <el-radio :value="Status.BLOCK">隐藏</el-radio>
+          <el-radio :value="Status.SENSITIVE_FILTER">打码</el-radio>
         </el-radio-group>
       </el-form-item>
 
       <el-form-item v-if="form.status === Status.SENSITIVE_FILTER">
-        <span style="margin-right: 10px;">打码</span>
-        <el-popover v-for="tag in sensitiveTags" :key="`${tag.element.type}-${tag.element.startIndex}`"
-          placement="top-start" trigger="hover" :content="`${tag.element.content}`">
+        <span style="margin-right: 10px">打码</span>
+        <el-popover
+          v-for="tag in sensitiveTags"
+          :key="`${tag.element.type}-${tag.element.startIndex}`"
+          placement="top-start"
+          trigger="hover"
+          :content="`${tag.element.content}`"
+        >
           <template #reference>
             <el-tag closable :type="tag.type" @close="handleTagClose(tag)">
               {{ tag.element.startIndex }}
@@ -391,16 +426,24 @@ const init = async () => {
       </el-form-item>
 
       <el-form-item class="cover" label="封面">
-        <el-upload v-model:file-list="fileList" action="#" list-type="picture-card" :before-upload="beforeUpload"
-          :limit="1" :http-request="upload" :on-remove="handleRemove" :disabled="opreateStatus.readOnly.value"
-          :on-preview="handlePictureCardPreview">
+        <el-upload
+          v-model:file-list="fileList"
+          action="#"
+          list-type="picture-card"
+          :before-upload="beforeUpload"
+          :limit="1"
+          :http-request="upload"
+          :on-remove="handleRemove"
+          :disabled="opreateStatus.readOnly.value"
+          :on-preview="handlePictureCardPreview"
+        >
           <el-icon>
             <Plus />
           </el-icon>
         </el-upload>
 
         <el-dialog v-model="dialogVisible">
-          <img style="width: 100%;" :src="dialogImageUrl" alt="" />
+          <img style="width: 100%" :src="dialogImageUrl" alt="" />
         </el-dialog>
       </el-form-item>
 
@@ -409,44 +452,52 @@ const init = async () => {
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <CustomEditorItem v-model:content="form.content" @composing="dealComposing" @sensitive="dealSensitive"
-          :trans-color="opreateStatus.transColor.value" :form-status="form.status" />
+        <CustomEditorItem
+          v-model:content="form.content"
+          @composing="dealComposing"
+          @sensitive="dealSensitive"
+          :trans-color="opreateStatus.transColor.value"
+          :form-status="form.status"
+        />
       </el-form-item>
 
       <div class="submit-button">
-        <el-button :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)" v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)"
-          @click="submitForm(formRef!)" :disabled="opreateStatus.readOnly.value">{{ getButtonTitle(ButtonAuth.SYS_EDIT_COMMIT)
-          }}</el-button>
+        <el-button
+          :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)"
+          v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)"
+          @click="submitForm(formRef!)"
+          :disabled="opreateStatus.readOnly.value"
+          >{{ getButtonTitle(ButtonAuth.SYS_EDIT_COMMIT) }}</el-button
+        >
       </div>
     </el-form>
-
   </div>
 </template>
 
 <style scoped>
 .father {
   max-width: 40rem;
-  margin: 0 auto
+  margin: 0 auto;
 }
 
 .title {
   margin-top: 5px;
-  width: 200px
+  width: 200px;
 }
 
 .desc {
   margin-top: 5px;
-  width: 300px
+  width: 300px;
 }
 
 .progress {
   margin-top: 5px;
-  width: 300px
+  width: 300px;
 }
 
 .status {
   margin-top: 5px;
-  width: 300px
+  width: 300px;
 }
 
 .el-tag {
@@ -456,17 +507,17 @@ const init = async () => {
 
 .el-upload__text {
   margin-top: 5px;
-  width: 290px
+  width: 290px;
 }
 
 .submit-button {
   margin: 10px auto;
-  text-align: center
+  text-align: center;
 }
 
 .content {
   max-width: 40rem;
-  margin: 5px auto
+  margin: 5px auto;
 }
 
 .el-progress {

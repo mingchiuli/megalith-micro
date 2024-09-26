@@ -9,10 +9,7 @@ export const pushAllData = async (opreateStatus: OpreateStatusParam, form: EditF
 }
 
 export const pushActionData = (pushActionForm: PushActionForm, opreateStatus: OpreateStatusParam) => {
-  opreateStatus.client.publish({
-    destination: '/app/edit/ws/push/action',
-    body: JSON.stringify(pushActionForm)
-  })
+  opreateStatus.client.send(JSON.stringify(pushActionForm))
   if (opreateStatus.transColor.value !== OperaColor.SUCCESS) {
     opreateStatus.transColor.value = OperaColor.SUCCESS
   }

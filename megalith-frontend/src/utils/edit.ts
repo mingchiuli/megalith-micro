@@ -1,5 +1,4 @@
 import { ActionType, FieldName, FieldType, OperateTypeCode, ParaInfo, type EditForm, type OpreateStatusParam, type PushActionForm } from "@/type/entity"
-import { StompSocketState } from "@stomp/stompjs"
 import { watch } from "vue"
 import { dealAction, pushActionData, pushAllData, recheckSensitive } from "./editUtils"
 
@@ -13,7 +12,7 @@ export const watchInput = (form: EditForm, pushActionForm: PushActionForm, oprea
   })
   
   watch(() => form.status, (n, o) => {
-    if (!opreateStatus.client.connected || (!n && !o) || opreateStatus.composing) return
+    if (!opreateStatus.client.OPEN || (!n && !o) || opreateStatus.composing) return
     commonPreDeal(FieldType.NON_PARA, FieldName.STATUS, form, pushActionForm, opreateStatus)
     pushActionForm.operateTypeCode = OperateTypeCode.STATUS
     pushActionForm.contentChange = String(form.status)
@@ -21,7 +20,7 @@ export const watchInput = (form: EditForm, pushActionForm: PushActionForm, oprea
   })
   
   watch(() => form.sensitiveContentList, (n, o) => {
-    if (!opreateStatus.client.connected || (o.length === 0 && n.length === 0) || opreateStatus.composing) return
+    if (!opreateStatus.client.OPEN || (o.length === 0 && n.length === 0) || opreateStatus.composing) return
     commonPreDeal(FieldType.NON_PARA, FieldName.SENSITIVE_CONTENT_LIST, form, pushActionForm, opreateStatus)
     pushActionForm.operateTypeCode = OperateTypeCode.SENSITIVE_CONTENT_LIST
     pushActionForm.contentChange = JSON.stringify(form.sensitiveContentList)
@@ -120,14 +119,10 @@ const preCheck = (n: string | undefined, o: string | undefined, opreateStatus: O
     return false
   }
 
-  if (opreateStatus.client.webSocket?.readyState !== StompSocketState.OPEN) {
+  if (opreateStatus.client.readyState !== WebSocket.OPEN) {
     if (!opreateStatus.netErrorEdited.value) {
       opreateStatus.netErrorEdited.value = true
     }
-    return false
-  }
-
-  if (opreateStatus.reconnecting) {
     return false
   }
 
