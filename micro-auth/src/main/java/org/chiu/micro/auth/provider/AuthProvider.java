@@ -5,12 +5,10 @@ import org.chiu.micro.auth.lang.Result;
 import org.chiu.micro.auth.req.AuthorityRouteReq;
 import org.chiu.micro.auth.service.AuthService;
 import org.chiu.micro.auth.vo.AuthorityRouteVo;
-import org.chiu.micro.auth.vo.AuthorityVo;
 import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 
 @RestController
@@ -28,11 +26,6 @@ public class AuthProvider {
     public Result<AuthDto> findAuth(@RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) {
         AuthDto authDto = authService.getAuthDto(token);
         return Result.success(authDto);
-    }
-
-    @PostMapping("/system")
-    public Result<List<AuthorityVo>> system(@RequestBody List<String> service) {
-        return Result.success(() -> authService.getSystemAuthority(service));
     }
 
     @PostMapping("/route")

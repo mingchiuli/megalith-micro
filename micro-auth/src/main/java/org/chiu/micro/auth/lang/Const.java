@@ -39,6 +39,8 @@ public enum Const {
 
     AUTH_SERVICE("micro-auth"),
 
+    WEBSOCKET_SERVICE("micro-websocket"),
+
     GATEWAY_SERVICE("micro-gateway"),
 
     WHITELIST("whitelist"),

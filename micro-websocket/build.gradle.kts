@@ -6,10 +6,7 @@ version = "latest"
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
-	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
-	implementation("org.springframework.security:spring-security-messaging")
-	implementation("org.springframework.boot:spring-boot-starter-security")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
@@ -25,7 +22,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				-march=compatibility
 				--gc=serial
 				-R:MaxHeapSize=128m
-				-O3
+				-Ob
 				-J-XX:MaxRAMPercentage=80.0
 			""",
 		"BP_HEALTH_CHECKER_ENABLED" to "true"

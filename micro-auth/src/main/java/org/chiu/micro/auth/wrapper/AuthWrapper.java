@@ -14,6 +14,8 @@ import java.util.List;
 @Component
 public class AuthWrapper {
 
+    private final List<String> services = List.of(Const.AUTH_SERVICE.getInfo(), Const.BLOG_SERVICE.getInfo(), Const.EXHIBIT_SERVICE.getInfo(), Const.USER_SERVICE.getInfo(), Const.SEARCH_SERVICE.getInfo(), Const.WEBSOCKET_SERVICE.getInfo());
+
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 
     public AuthWrapper(UserHttpServiceWrapper userHttpServiceWrapper) {
@@ -33,7 +35,7 @@ public class AuthWrapper {
 
     @Cache(prefix = Const.HOT_AUTHORITIES)
     public List<AuthorityDto> getAllSystemAuthorities() {
-        return userHttpServiceWrapper.getSystemAuthorities(List.of(Const.AUTH_SERVICE.getInfo(), Const.BLOG_SERVICE.getInfo(), Const.EXHIBIT_SERVICE.getInfo(), Const.USER_SERVICE.getInfo(), Const.SEARCH_SERVICE.getInfo()));
+        return userHttpServiceWrapper.getSystemAuthorities(services);
     }
 
 }
