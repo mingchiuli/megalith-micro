@@ -1,4 +1,4 @@
-import { type Ref } from "vue"
+import { type Ref } from 'vue'
 
 export interface Visitor {
   dayVisit: number
@@ -15,7 +15,7 @@ export interface BlogDesc {
   link: string
   content?: string
   score?: number
-  highlight?: SearchBlogsHighlightStruct,
+  highlight?: SearchBlogsHighlightStruct
   value?: string
 }
 
@@ -113,7 +113,6 @@ export interface BlogEdit {
   version: number
   sensitiveContentList: SensitiveItem[]
 }
-
 
 export interface BlogExhibit {
   title: string
@@ -279,7 +278,7 @@ export enum FieldName {
   STATUS = 'status',
   LINK = 'link',
   TITLE = 'title',
-  SENSITIVE_CONTENT_LIST = "sensitiveContentList"
+  SENSITIVE_CONTENT_LIST = 'sensitiveContentList'
 }
 
 export enum SensitiveType {
@@ -415,5 +414,5 @@ export const Colors = [
   { color: '#e6a23c', percentage: 40 },
   { color: '#5cb87a', percentage: 60 },
   { color: '#1989fa', percentage: 80 },
-  { color: '#6f7ad3', percentage: 100 },
+  { color: '#6f7ad3', percentage: 100 }
 ]

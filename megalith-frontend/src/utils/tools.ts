@@ -2,7 +2,15 @@ import http from '@/http/axios'
 import { DOWNLOAD_DATA, GET, POST } from '@/http/http'
 import router from '@/router'
 import { buttonStore, loginStateStore, menuStore, tabStore, authMarkStore } from '@/stores/store'
-import { type Data, type JWTStruct, type Menu, type RefreshStruct, type Tab, type Token, type UserInfo } from '@/type/entity'
+import {
+  type Data,
+  type JWTStruct,
+  type Menu,
+  type RefreshStruct,
+  type Tab,
+  type Token,
+  type UserInfo
+} from '@/type/entity'
 import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
@@ -22,7 +30,7 @@ export const clearLoginState = () => {
   localStorage.removeItem('accessToken')
   localStorage.removeItem('refreshToken')
   localStorage.removeItem('userinfo')
-  if(router.hasRoute('system')) {
+  if (router.hasRoute('system')) {
     router.removeRoute('system')
   }
   authMarkStore().auth = false
@@ -48,12 +56,12 @@ export const debounce = (fn: Function, interval = 100) => {
 
 export const getJWTStruct = (): JWTStruct => {
   const accessToken = localStorage.getItem('accessToken')!
-  const tokenArray = accessToken.split(".")
+  const tokenArray = accessToken.split('.')
   return JSON.parse(Base64.fromBase64(tokenArray[1]))
 }
 
 export const checkAccessToken = async (accessToken: string): Promise<string> => {
-  const tokenArray = accessToken.split(".")
+  const tokenArray = accessToken.split('.')
   const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
   const now = Math.floor(new Date().getTime() / 1000)
   //ten minutes
@@ -100,21 +108,27 @@ export const diff = (oldArr: any[], newArr: any[]) => {
 
 export const checkButtonAuth = (name: string) => {
   const { buttonList } = storeToRefs(buttonStore())
-  return buttonList.value
-    .map(item => item.name)
-    .includes(name)
+  return buttonList.value.map((item) => item.name).includes(name)
 }
 
-export const getButtonType = (name: string): "" | "default" | "success" | "warning" | "info" | "text" | "primary" | "danger" => {
+export const getButtonType = (
+  name: string
+): '' | 'default' | 'success' | 'warning' | 'info' | 'text' | 'primary' | 'danger' => {
   const { buttonList } = storeToRefs(buttonStore())
-  return buttonList.value
-    .filter(item => item.name == name)[0]?.icon as "" | "default" | "success" | "warning" | "info" | "text" | "primary" | "danger"
+  return buttonList.value.filter((item) => item.name == name)[0]?.icon as
+    | ''
+    | 'default'
+    | 'success'
+    | 'warning'
+    | 'info'
+    | 'text'
+    | 'primary'
+    | 'danger'
 }
 
 export const getButtonTitle = (name: string) => {
   const { buttonList } = storeToRefs(buttonStore())
-  return buttonList.value
-    .filter(item => item.name == name)[0]?.title
+  return buttonList.value.filter((item) => item.name == name)[0]?.title
 }
 
 export const submitLogin = async (username: string, password: string) => {
@@ -131,7 +145,12 @@ export const submitLogin = async (username: string, password: string) => {
   router.push('/backend')
 }
 
-export const downloadData = async (url: string, fileName: string, percentage: Ref<number>, percentageShow: Ref<boolean>) => {
+export const downloadData = async (
+  url: string,
+  fileName: string,
+  percentage: Ref<number>,
+  percentageShow: Ref<boolean>
+) => {
   const resp = await DOWNLOAD_DATA(url, percentage, percentageShow)
   const content = JSON.stringify(resp)
   const blob = new Blob([content], {
@@ -159,5 +178,3 @@ export const findMenuByPath = (menus: Menu[], path: string): Menu | Tab | undefi
     }
   }
 }
-
-

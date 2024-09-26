@@ -28,12 +28,11 @@ onMounted(() => {
   document.getElementById('disqus_thread')!.appendChild(disqus)
   document.getElementById('giscus_thread')!.appendChild(giscus)
 })
-
 </script>
 
 <template>
   <div id="comment-div">
-    <el-tabs :stretch=true v-model="activeName">
+    <el-tabs :stretch="true" v-model="activeName">
       <el-tab-pane label="Disqus" name="first">
         <div id="disqus_thread" style="width: inherit"></div>
       </el-tab-pane>
@@ -47,6 +46,6 @@ onMounted(() => {
 <style scoped>
 #comment-div {
   margin: auto;
-  width: 100%
+  width: 100%;
 }
 </style>

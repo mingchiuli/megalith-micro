@@ -11,10 +11,10 @@ const loading = ref(false)
 const multipleSelection = ref<BlogDelSys[]>([])
 const delBtlStatus = ref(false)
 const page: PageAdapter<BlogDelSys> = reactive({
-  "content": [],
-  "totalElements": 0,
-  "pageSize": moreItems.value ? 20 : 5,
-  "pageNumber": 1
+  content: [],
+  totalElements: 0,
+  pageSize: moreItems.value ? 20 : 5,
+  pageNumber: 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
@@ -25,7 +25,9 @@ const handleSelectionChange = (val: BlogDelSys[]) => {
 
 const queryDelBLogs = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogDelSys>>(`/sys/blog/deleted?currentPage=${pageNumber.value}&size=${pageSize.value}`)
+  const data = await GET<PageAdapter<BlogDelSys>>(
+    `/sys/blog/deleted?currentPage=${pageNumber.value}&size=${pageSize.value}`
+  )
   content.value = data.content
   totalElements.value = data.totalElements
   loading.value = false
@@ -49,45 +51,62 @@ const handleResume = async (row: BlogDelSys) => {
   ElNotification({
     title: '操作成功',
     message: '恢复成功',
-    type: 'success',
+    type: 'success'
   })
   await queryDelBLogs()
 }
 
-(async () => {
+;(async () => {
   await queryDelBLogs()
 })()
-
 </script>
 
 <template>
-  <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
-    v-loading="loading">
-
+  <el-table
+    :data="content"
+    style="width: 100%"
+    border
+    stripe
+    @selection-change="handleSelectionChange"
+    v-loading="loading"
+  >
     <el-table-column label="标题" align="center" prop="title" min-width="180" />
-    <el-table-column label="摘要" align="center" min-width="200" >
+    <el-table-column label="摘要" align="center" min-width="200">
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="top" width="auto">
           <template #default>
             <span> {{ scope.row.description }}</span>
           </template>
           <template #reference>
-            <span>{{ scope.row.description.length > 20 ? scope.row.description.substring(0, 20) + '...' :
-              scope.row.description }}</span>
+            <span>{{
+              scope.row.description.length > 20
+                ? scope.row.description.substring(0, 20) + '...'
+                : scope.row.description
+            }}</span>
           </template>
         </el-popover>
       </template>
     </el-table-column>
 
-    <el-table-column label="内容" align="center" min-width="200" >
+    <el-table-column label="内容" align="center" min-width="200">
       <template #default="scope">
-        <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000"
-          popper-style="height: 300px;overflow: auto;">
+        <el-popover
+          effect="light"
+          trigger="hover"
+          placement="bottom"
+          width="500px"
+          :show-after="1000"
+          popper-style="height: 300px;overflow: auto;"
+        >
           <template #default>
-            <span v-html=render(scope.row.content)></span>
+            <span v-html="render(scope.row.content)"></span>
           </template>
           <template #reference>
-            <span>{{ scope.row.content.length > 30 ? scope.row.content.substring(0, 30) + '...' : scope.row.content }}</span>
+            <span>{{
+              scope.row.content.length > 30
+                ? scope.row.content.substring(0, 30) + '...'
+                : scope.row.content
+            }}</span>
           </template>
         </el-popover>
       </template>
@@ -115,12 +134,11 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="阅读统计" align="center" min-width="180" >
+    <el-table-column label="阅读统计" align="center" min-width="180">
       <template #default="scope">
         <div>总阅读数: {{ scope.row.readCount }}</div>
       </template>
     </el-table-column>
-
 
     <el-table-column label="封面" align="center">
       <template #default="scope">
@@ -131,29 +149,44 @@ const handleResume = async (row: BlogDelSys) => {
     <el-table-column label="状态" align="center">
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">公开</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">隐藏</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.SENSITIVE_FILTER" type="warning">打码</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger"
+          >隐藏</el-tag
+        >
+        <el-tag size="small" v-else-if="scope.row.status === Status.SENSITIVE_FILTER" type="warning"
+          >打码</el-tag
+        >
       </template>
     </el-table-column>
 
     <el-table-column :fixed="fix" label="操作" min-width="120" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_DELETE_RESUME)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_DELETE_RESUME)" @click="handleResume(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_DELETE_RESUME) }}</el-button>
+          <el-button
+            size="small"
+            :type="getButtonType(ButtonAuth.SYS_DELETE_RESUME)"
+            @click="handleResume(scope.row)"
+            >{{ getButtonTitle(ButtonAuth.SYS_DELETE_RESUME) }}</el-button
+          >
         </template>
       </template>
     </el-table-column>
   </el-table>
 
-  <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-    layout="->, total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber"
-    :page-size="pageSize" :total="totalElements" />
+  <el-pagination
+    @size-change="handleSizeChange"
+    @current-change="handleCurrentChange"
+    layout="->, total, sizes, prev, pager, next, jumper"
+    :page-sizes="[5, 10, 20, 50]"
+    :current-page="pageNumber"
+    :page-size="pageSize"
+    :total="totalElements"
+  />
 </template>
 
 <style scoped>
 @import '@/assets/main.css';
 
 .el-pagination {
-  margin-top: 10px
+  margin-top: 10px;
 }
 </style>

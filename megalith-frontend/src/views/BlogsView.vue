@@ -15,11 +15,11 @@ const readTokenDialogVisible = ref(false)
 const blogId = ref(0)
 
 const page: PageAdapter<BlogDesc> = reactive({
-  "content": [],
-  "totalElements": 0,
-  "pageSize": 5,
+  content: [],
+  totalElements: 0,
+  pageSize: 5,
   //不用这个字段
-  "pageNumber": undefined
+  pageNumber: undefined
 })
 //用这个字段
 const { searchPageNum } = storeToRefs(blogsStore())
@@ -58,7 +58,7 @@ const queryBlogs = async (pageNo: number, year: string) => {
 }
 
 const statImg = (items: BlogDesc[]) => {
-  items.forEach(item => {
+  items.forEach((item) => {
     if (item.link) imgCount++
   })
 }
@@ -108,24 +108,44 @@ const to = async (id: number) => {
   }
 }
 
-const { content, totalElements, pageSize } = toRefs(page);
+const { content, totalElements, pageSize } = toRefs(page)
 
-(async () => {
+;(async () => {
   await getPage(keywords.value ? searchPageNum.value : pageNum.value)
 })()
 </script>
 
 <template>
   <div class="front">
-    <ReadTokenItem v-model:read-token-dialog-visible="readTokenDialogVisible" v-model:blog-id="blogId" />
+    <ReadTokenItem
+      v-model:read-token-dialog-visible="readTokenDialogVisible"
+      v-model:blog-id="blogId"
+    />
     <div class="search-father">
       <el-button class="search-button" @click="search" type="success">Search</el-button>
-      <SearchItem ref="search" @trans-search-data="fillSearchData" @refresh="refresh" v-model:keywords="keywords"
-        v-model:year="year" v-model:loading="loading" v-model:search-dialog-visible="searchDialogVisible" />
+      <SearchItem
+        ref="search"
+        @trans-search-data="fillSearchData"
+        @refresh="refresh"
+        v-model:keywords="keywords"
+        v-model:year="year"
+        v-model:loading="loading"
+        v-model:search-dialog-visible="searchDialogVisible"
+      />
     </div>
     <el-text size="large">共{{ page.totalElements }}篇</el-text>
-    <el-link type="success" size="large" class="door" v-if="login"
-      @click="router.push({ name: tabStore().editableTabsValue ? tabStore().editableTabsValue : 'system' })">进入后台</el-link>
+    <el-link
+      type="success"
+      size="large"
+      class="door"
+      v-if="login"
+      @click="
+        router.push({
+          name: tabStore().editableTabsValue ? tabStore().editableTabsValue : 'system'
+        })
+      "
+      >进入后台</el-link
+    >
     <br />
     <div class="description">
       <el-skeleton animated :loading="loading" :throttle="300">
@@ -134,28 +154,56 @@ const { content, totalElements, pageSize } = toRefs(page);
         </template>
       </el-skeleton>
       <el-timeline>
-        <el-timeline-item v-for="blog in content" v-bind:key="blog.id" :timestamp="blog.created" placement="top"
-          :color="'#0bbd87'" v-show="!loading">
+        <el-timeline-item
+          v-for="blog in content"
+          v-bind:key="blog.id"
+          :timestamp="blog.created"
+          placement="top"
+          :color="'#0bbd87'"
+          v-show="!loading"
+        >
           <el-card shadow="hover" @click="to(blog.id)">
-            <el-image v-if="blog.link" :key="blog.link" :src="blog.link" @load="loadImg" @error="loading = false"></el-image>
-            <p v-if="blog.score">{{ "Search Scores: " + blog.score }}</p>
+            <el-image
+              v-if="blog.link"
+              :key="blog.link"
+              :src="blog.link"
+              @load="loadImg"
+              @error="loading = false"
+            ></el-image>
+            <p v-if="blog.score">{{ 'Search Scores: ' + blog.score }}</p>
             <el-link class="title">{{ blog.title }}</el-link>
             <p v-if="!blog.highlight">{{ blog.description }}</p>
             <template v-if="blog.highlight?.title">
-              <p v-for="(title, key) in blog.highlight.title" v-bind:key="key" v-html="'标题: ' + title"></p>
+              <p
+                v-for="(title, key) in blog.highlight.title"
+                v-bind:key="key"
+                v-html="'标题: ' + title"
+              ></p>
             </template>
             <template v-if="blog.highlight?.description">
-              <p v-for="(description, key) in blog.highlight.description" v-bind:key="key"
-                v-html="'摘要: ' + description"></p>
+              <p
+                v-for="(description, key) in blog.highlight.description"
+                v-bind:key="key"
+                v-html="'摘要: ' + description"
+              ></p>
             </template>
             <template v-if="blog.highlight?.content">
-              <p v-for="(content, key) in blog.highlight.content" v-bind:key="key" v-html="'内容: ' + content"></p>
+              <p
+                v-for="(content, key) in blog.highlight.content"
+                v-bind:key="key"
+                v-html="'内容: ' + content"
+              ></p>
             </template>
           </el-card>
         </el-timeline-item>
       </el-timeline>
-      <el-pagination layout="prev, pager, next" :total="totalElements" :page-size="pageSize" @current-change="getPage"
-        :current-page="keywords ? searchPageNum : pageNum" />
+      <el-pagination
+        layout="prev, pager, next"
+        :total="totalElements"
+        :page-size="pageSize"
+        @current-change="getPage"
+        :current-page="keywords ? searchPageNum : pageNum"
+      />
     </div>
   </div>
 </template>
@@ -165,37 +213,37 @@ const { content, totalElements, pageSize } = toRefs(page);
 
 .door {
   width: fit-content;
-  margin-left: 5px
+  margin-left: 5px;
 }
 
 .search-father {
   margin-top: 20px;
   position: relative;
-  min-height: 10px
+  min-height: 10px;
 }
 
 .description {
-  margin: 0 auto
+  margin: 0 auto;
 }
 
 .el-timeline:deep(.el-timeline-item__wrapper) {
-  padding-left: 5%
+  padding-left: 5%;
 }
 
 .el-pagination {
   width: fit-content;
-  margin: 0 auto
+  margin: 0 auto;
 }
 
 .el-timeline {
-  padding: 0
+  padding: 0;
 }
 
 .title {
   font-size: medium;
   margin-top: 15px;
   display: block;
-  max-width: fit-content
+  max-width: fit-content;
 }
 
 .search-button {
@@ -203,7 +251,6 @@ const { content, totalElements, pageSize } = toRefs(page);
   right: 0;
   z-index: 1;
   top: 15px;
-  margin: 0
+  margin: 0;
 }
-
 </style>

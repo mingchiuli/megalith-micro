@@ -49,21 +49,11 @@ const form: Form = reactive({
 })
 
 const editFormRules = reactive<FormRules<Form>>({
-  parentId: [
-    { required: true, message: '请输入父ID', trigger: 'blur' }
-  ],
-  title: [
-    { required: true, message: '请输入标题', trigger: 'blur' }
-  ],
-  type: [
-    { required: true, message: '请选择类型', trigger: 'blur' }
-  ],
-  orderNum: [
-    { required: true, message: '请输入排序号', trigger: 'blur' }
-  ],
-  status: [
-    { required: true, message: '请选择状态', trigger: 'blur' }
-  ]
+  parentId: [{ required: true, message: '请输入父ID', trigger: 'blur' }],
+  title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
+  type: [{ required: true, message: '请选择类型', trigger: 'blur' }],
+  orderNum: [{ required: true, message: '请输入排序号', trigger: 'blur' }],
+  status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
 })
 
 const handleEdit = async (row: MenuSys) => {
@@ -86,7 +76,7 @@ const handleDelete = async (row: MenuSys) => {
   ElNotification({
     title: '操作成功',
     message: '删除成功',
-    type: 'success',
+    type: 'success'
   })
   await queryMenus()
 }
@@ -141,7 +131,7 @@ const submitForm = async (ref: FormInstance) => {
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
-        type: 'success',
+        type: 'success'
       })
       clearForm()
       dialogVisible.value = false
@@ -150,22 +140,28 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
-(async () => {
+;(async () => {
   await queryMenus()
 })()
-
 </script>
 
 <template>
   <el-form :inline="true" @submit.prevent class="button-form">
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_MENU_CREATE)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_MENU_CREATE)" size="large" @click="dialogVisible = true">{{
-        getButtonTitle(ButtonAuth.SYS_MENU_CREATE) }}</el-button>
+      <el-button
+        :type="getButtonType(ButtonAuth.SYS_MENU_CREATE)"
+        size="large"
+        @click="dialogVisible = true"
+        >{{ getButtonTitle(ButtonAuth.SYS_MENU_CREATE) }}</el-button
+      >
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_MENU_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DOWNLOAD)" size="large"
-        @click="download">{{ getButtonTitle(ButtonAuth.SYS_MENU_DOWNLOAD)
-        }}</el-button>
+      <el-button
+        :type="getButtonType(ButtonAuth.SYS_MENU_DOWNLOAD)"
+        size="large"
+        @click="download"
+        >{{ getButtonTitle(ButtonAuth.SYS_MENU_DOWNLOAD) }}</el-button
+      >
     </el-form-item>
     <el-form-item>
       <el-progress v-if="showPercentage" type="circle" :width="40" :percentage="uploadPercentage" />
@@ -173,15 +169,18 @@ const submitForm = async (ref: FormInstance) => {
   </el-form>
 
   <el-table v-loading="loading" :data="content" row-key="menuId" border stripe default-expand-all>
-
     <el-table-column prop="title" label="标题" sortable min-width="150" align="center" />
     <el-table-column prop="icon" label="图标" align="center" min-width="150" />
 
     <el-table-column prop="type" label="类型" align="center">
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.type === RoutesEnum.CATALOGUE">分类</el-tag>
-        <el-tag size="small" v-else-if="scope.row.type === RoutesEnum.MENU" type="success">菜单</el-tag>
-        <el-tag size="small" v-else-if="scope.row.type === RoutesEnum.BUTTON" type="info">按钮</el-tag>
+        <el-tag size="small" v-else-if="scope.row.type === RoutesEnum.MENU" type="success"
+          >菜单</el-tag
+        >
+        <el-tag size="small" v-else-if="scope.row.type === RoutesEnum.BUTTON" type="info"
+          >按钮</el-tag
+        >
       </template>
     </el-table-column>
 
@@ -213,35 +212,38 @@ const submitForm = async (ref: FormInstance) => {
     </el-table-column>
 
     <el-table-column prop="status" label="状态" align="center">
-
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">正常</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">禁用</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger"
+          >禁用</el-tag
+        >
       </template>
     </el-table-column>
     <el-table-column :fixed="fix" label="操作" align="center" min-width="180">
-
       <template #default="scope">
         <template v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_EDIT)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_MENU_EDIT)" @click="handleEdit(scope.row)">{{
-            getButtonTitle(ButtonAuth.SYS_MENU_EDIT) }}</el-button>
+          <el-button
+            size="small"
+            :type="getButtonType(ButtonAuth.SYS_MENU_EDIT)"
+            @click="handleEdit(scope.row)"
+            >{{ getButtonTitle(ButtonAuth.SYS_MENU_EDIT) }}</el-button
+          >
         </template>
 
         <template v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_DELETE)">
           <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
             <template #reference>
               <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DELETE)" size="small">{{
-                getButtonTitle(ButtonAuth.SYS_MENU_DELETE) }}</el-button>
+                getButtonTitle(ButtonAuth.SYS_MENU_DELETE)
+              }}</el-button>
             </template>
           </el-popconfirm>
         </template>
-
       </template>
     </el-table-column>
   </el-table>
 
   <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="handleClose">
-
     <el-form :model="form" :rules="editFormRules" ref="form" label-width="100px">
       <el-form-item label="祖先菜单" prop="parentId">
         <el-tree-select v-model="form.parentId" :props="props" :data="content" check-strictly />
@@ -268,16 +270,16 @@ const submitForm = async (ref: FormInstance) => {
 
       <el-form-item label="类型" prop="type" label-width="100px">
         <el-radio-group v-model="form.type">
-          <el-radio :value=RoutesEnum.CATALOGUE>分类</el-radio>
-          <el-radio :value=RoutesEnum.MENU>菜单</el-radio>
-          <el-radio :value=RoutesEnum.BUTTON>按钮</el-radio>
+          <el-radio :value="RoutesEnum.CATALOGUE">分类</el-radio>
+          <el-radio :value="RoutesEnum.MENU">菜单</el-radio>
+          <el-radio :value="RoutesEnum.BUTTON">按钮</el-radio>
         </el-radio-group>
       </el-form-item>
 
       <el-form-item label="状态" prop="status" label-width="100px">
         <el-radio-group v-model="form.status">
-          <el-radio :value=Status.NORMAL>正常</el-radio>
-          <el-radio :value=Status.BLOCK>禁用</el-radio>
+          <el-radio :value="Status.NORMAL">正常</el-radio>
+          <el-radio :value="Status.BLOCK">禁用</el-radio>
         </el-radio-group>
       </el-form-item>
 
@@ -289,7 +291,6 @@ const submitForm = async (ref: FormInstance) => {
         <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
       </el-form-item>
     </el-form>
-
   </el-dialog>
 </template>
 
@@ -297,6 +298,6 @@ const submitForm = async (ref: FormInstance) => {
 @import '@/assets/main.css';
 
 .button-form .el-form-item {
-  margin-right: 10px
+  margin-right: 10px;
 }
 </style>

@@ -18,10 +18,13 @@ const rollGap = 10
 const treeRef = useTemplateRef<InstanceType<typeof ElTree>>('tree')
 let labels: NodeListOf<HTMLElement>
 
-const handleNodeClick = (data: CatalogueLabel) => window.scrollTo({ top: data.dist - rollGap, behavior: 'instant' })
+const handleNodeClick = (data: CatalogueLabel) =>
+  window.scrollTo({ top: data.dist - rollGap, behavior: 'instant' })
 
 const render = async () => {
-  labels = document.querySelectorAll<HTMLElement>('#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6')
+  labels = document.querySelectorAll<HTMLElement>(
+    '#preview-only-preview h1, #preview-only-preview h2, #preview-only-preview h3, #preview-only-preview h4, #preview-only-preview h5, #preview-only-preview h6'
+  )
   if (labels.length === 0) {
     loadingCatalogue.value = false
     return
@@ -80,7 +83,7 @@ const getChildrenTotal = (children: CatalogueLabel[]): number => {
   }
 
   let count = 0
-  children.forEach(e => {
+  children.forEach((e) => {
     count++
     count += getChildrenTotal(e.children)
   })
@@ -174,7 +177,6 @@ const roll = async () => {
     treeRef.value?.setCurrentKey(undefined)
     history.replaceState(history.state, '', ' ')
   }
-
 }
 
 const throttle = debounce(roll)
@@ -199,8 +201,15 @@ defineExpose({
         <el-skeleton :rows="2" animated />
       </template>
       <template #default>
-        <el-tree :data="data" :props="defaultProps" accordion @node-click="handleNodeClick" ref="tree" node-key="id"
-          highlight-current />
+        <el-tree
+          :data="data"
+          :props="defaultProps"
+          accordion
+          @node-click="handleNodeClick"
+          ref="tree"
+          node-key="id"
+          highlight-current
+        />
       </template>
     </el-skeleton>
   </el-card>
@@ -212,14 +221,14 @@ defineExpose({
   min-height: 100px;
   width: v-bind(width + 'px');
   overflow-y: auto;
-  overflow-x: auto
+  overflow-x: auto;
 }
 
 .box:deep(.el-tree-node) {
-  overflow: auto
+  overflow: auto;
 }
 
 .el-card:deep(.el-card__body) {
-  padding: 5px
+  padding: 5px;
 }
 </style>

@@ -23,28 +23,19 @@ let menuTreeData = ref<MenuForm[]>([])
 let authorityData = ref<AuthorityForm[]>([])
 let roleId = ref<number>()
 
-
 const page: PageAdapter<RoleSys> = reactive({
-  "content": [],
-  "totalElements": 0,
-  "pageSize": moreItems.value ? 15 : 5,
-  "pageNumber": 1
+  content: [],
+  totalElements: 0,
+  pageSize: moreItems.value ? 15 : 5,
+  pageNumber: 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
 const formRules = reactive<FormRules<Form>>({
-  name: [
-    { required: true, message: '请输入名字', trigger: 'blur' }
-  ],
-  code: [
-    { required: true, message: '请输入唯一编码', trigger: 'blur' }
-  ],
-  remark: [
-    { required: true, message: '请输入描述', trigger: 'blur' }
-  ],
-  status: [
-    { required: true, message: '请选择状态', trigger: 'blur' }
-  ]
+  name: [{ required: true, message: '请输入名字', trigger: 'blur' }],
+  code: [{ required: true, message: '请输入唯一编码', trigger: 'blur' }],
+  remark: [{ required: true, message: '请输入描述', trigger: 'blur' }],
+  status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
 })
 type Form = {
   id?: number
@@ -86,21 +77,19 @@ const submitmenuFormHandle = async (ref: InstanceType<typeof ElTree>) => {
   ElNotification({
     title: '操作成功',
     message: '编辑成功',
-    type: 'success',
+    type: 'success'
   })
   menuTreeData.value = []
   menuDialogVisible.value = false
 }
 
 const submitAuthorityFormHandle = async () => {
-  const ids = authorityData.value
-    .filter(item => item.check)
-    .map(item => item.authorityId)
+  const ids = authorityData.value.filter((item) => item.check).map((item) => item.authorityId)
   await POST<null>(`/sys/role/authority/${roleId.value}`, ids)
   ElNotification({
     title: '操作成功',
     message: '编辑成功',
-    type: 'success',
+    type: 'success'
   })
   authorityData.value = []
   authorityDialogVisible.value = false
@@ -121,7 +110,7 @@ const submitForm = async (ref: FormInstance) => {
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
-        type: 'success',
+        type: 'success'
       })
       clearForm()
       dialogVisible.value = false
@@ -171,14 +160,14 @@ const handleAuthority = async (row: RoleSys) => {
 
 const delBatch = async () => {
   const args: number[] = []
-  multipleSelection.value.forEach(item => {
+  multipleSelection.value.forEach((item) => {
     args.push(item.id)
   })
   await POST<null>('/sys/role/delete', args)
   ElNotification({
     title: '操作成功',
     message: '批量删除成功',
-    type: 'success',
+    type: 'success'
   })
   multipleSelection.value.splice(0)
   await queryRoles()
@@ -186,7 +175,9 @@ const delBatch = async () => {
 
 const queryRoles = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<RoleSys>>(`/sys/role/roles?currentPage=${pageNumber.value}&size=${pageSize.value}`)
+  const data = await GET<PageAdapter<RoleSys>>(
+    `/sys/role/roles?currentPage=${pageNumber.value}&size=${pageSize.value}`
+  )
   content.value = data.content
   totalElements.value = data.totalElements
   loading.value = false
@@ -215,7 +206,7 @@ const getCheckKeys = (menuForms: MenuForm[]): Array<number> => {
 }
 
 const getKeysIds = (menuForms: MenuForm[], ids: Array<number>) => {
-  menuForms.forEach(item => {
+  menuForms.forEach((item) => {
     if (item.check) {
       ids.push(item.menuId)
     }
@@ -232,12 +223,12 @@ const handleDelete = async (row: RoleSys) => {
   ElNotification({
     title: '操作成功',
     message: '删除成功',
-    type: 'success',
+    type: 'success'
   })
   await queryRoles()
 }
 
-(async () => {
+;(async () => {
   await queryRoles()
 })()
 </script>
@@ -245,29 +236,46 @@ const handleDelete = async (row: RoleSys) => {
 <template>
   <el-form :inline="true" @submit.prevent class="button-form">
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_CREATE)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_CREATE)" size="large" @click="dialogVisible = true">{{
-        getButtonTitle(ButtonAuth.SYS_ROLE_CREATE) }}</el-button>
+      <el-button
+        :type="getButtonType(ButtonAuth.SYS_ROLE_CREATE)"
+        size="large"
+        @click="dialogVisible = true"
+        >{{ getButtonTitle(ButtonAuth.SYS_ROLE_CREATE) }}</el-button
+      >
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_BATCH_DEL)">
       <el-popconfirm title="确定批量删除?" @confirm="delBatch">
         <template #reference>
-          <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_BATCH_DEL)" size="large" :disabled="delBtlStatus">{{
-            getButtonTitle(ButtonAuth.SYS_ROLE_BATCH_DEL) }}</el-button>
+          <el-button
+            :type="getButtonType(ButtonAuth.SYS_ROLE_BATCH_DEL)"
+            size="large"
+            :disabled="delBtlStatus"
+            >{{ getButtonTitle(ButtonAuth.SYS_ROLE_BATCH_DEL) }}</el-button
+          >
         </template>
       </el-popconfirm>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_ROLE_DOWNLOAD)" size="large" @click="download">{{
-        getButtonTitle(ButtonAuth.SYS_ROLE_DOWNLOAD) }}</el-button>
+      <el-button
+        :type="getButtonType(ButtonAuth.SYS_ROLE_DOWNLOAD)"
+        size="large"
+        @click="download"
+        >{{ getButtonTitle(ButtonAuth.SYS_ROLE_DOWNLOAD) }}</el-button
+      >
     </el-form-item>
     <el-form-item>
       <el-progress v-if="showPercentage" type="circle" :width="40" :percentage="uploadPercentage" />
     </el-form-item>
   </el-form>
 
-  <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
-    v-loading="loading">
-
+  <el-table
+    :data="content"
+    style="width: 100%"
+    border
+    stripe
+    @selection-change="handleSelectionChange"
+    v-loading="loading"
+  >
     <el-table-column type="selection" :fixed="fixSelection" />
     <el-table-column label="名字" align="center" prop="name" />
     <el-table-column label="唯一编码" align="center" prop="code" min-width="120" />
@@ -277,7 +285,9 @@ const handleDelete = async (row: RoleSys) => {
     <el-table-column label="状态" align="center">
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">启用</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">禁用</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger"
+          >禁用</el-tag
+        >
       </template>
     </el-table-column>
 
@@ -306,36 +316,54 @@ const handleDelete = async (row: RoleSys) => {
     <el-table-column :fixed="fix" label="操作" min-width="350" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_EDIT)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_EDIT)" @click="handleEdit(scope.row)">{{
-            getButtonTitle(ButtonAuth.SYS_ROLE_EDIT) }}</el-button>
+          <el-button
+            size="small"
+            :type="getButtonType(ButtonAuth.SYS_ROLE_EDIT)"
+            @click="handleEdit(scope.row)"
+            >{{ getButtonTitle(ButtonAuth.SYS_ROLE_EDIT) }}</el-button
+          >
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_MENU_PERM)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_MENU_PERM)" @click="handleMenu(scope.row)">{{
-            getButtonTitle(ButtonAuth.SYS_ROLE_MENU_PERM) }}</el-button>
+          <el-button
+            size="small"
+            :type="getButtonType(ButtonAuth.SYS_ROLE_MENU_PERM)"
+            @click="handleMenu(scope.row)"
+            >{{ getButtonTitle(ButtonAuth.SYS_ROLE_MENU_PERM) }}</el-button
+          >
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)"
-            @click="handleAuthority(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_AUTHORITY_PERM) }}</el-button>
+          <el-button
+            size="small"
+            :type="getButtonType(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)"
+            @click="handleAuthority(scope.row)"
+            >{{ getButtonTitle(ButtonAuth.SYS_ROLE_AUTHORITY_PERM) }}</el-button
+          >
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_DELETE)">
           <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
             <template #reference>
               <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_DELETE)">{{
-                getButtonTitle(ButtonAuth.SYS_ROLE_DELETE) }}</el-button>
+                getButtonTitle(ButtonAuth.SYS_ROLE_DELETE)
+              }}</el-button>
             </template>
           </el-popconfirm>
         </template>
-
       </template>
     </el-table-column>
   </el-table>
 
-  <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-    layout="->, total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber"
-    :page-size="pageSize" :total="totalElements" />
+  <el-pagination
+    @size-change="handleSizeChange"
+    @current-change="handleCurrentChange"
+    layout="->, total, sizes, prev, pager, next, jumper"
+    :page-sizes="[5, 10, 20, 50]"
+    :current-page="pageNumber"
+    :page-size="pageSize"
+    :total="totalElements"
+  />
 
   <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="handleClose">
     <el-form :model="form" :rules="formRules" label-width="100px" ref="form">
@@ -353,8 +381,8 @@ const handleDelete = async (row: RoleSys) => {
 
       <el-form-item label="状态" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio :value=Status.NORMAL>启用</el-radio>
-          <el-radio :value=Status.BLOCK>禁用</el-radio>
+          <el-radio :value="Status.NORMAL">启用</el-radio>
+          <el-radio :value="Status.BLOCK">禁用</el-radio>
         </el-radio-group>
       </el-form-item>
 
@@ -364,19 +392,36 @@ const handleDelete = async (row: RoleSys) => {
     </el-form>
   </el-dialog>
 
-  <el-dialog title="菜单权限" v-model="menuDialogVisible" width="600px" :before-close="menuHandleClose">
+  <el-dialog
+    title="菜单权限"
+    v-model="menuDialogVisible"
+    width="600px"
+    :before-close="menuHandleClose"
+  >
     <el-form>
-      <el-tree :data="menuTreeData" show-checkbox :default-expand-all=true node-key="menuId" :props="defaultProps"
-        :default-checked-keys="getCheckKeys(menuTreeData)" ref="menuTree" :check-strictly="true" />
+      <el-tree
+        :data="menuTreeData"
+        show-checkbox
+        :default-expand-all="true"
+        node-key="menuId"
+        :props="defaultProps"
+        :default-checked-keys="getCheckKeys(menuTreeData)"
+        ref="menuTree"
+        :check-strictly="true"
+      />
       <el-form-item label-width="450px">
         <el-button type="primary" @click="submitmenuFormHandle(menuTreeRef!)">Submit</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
 
-  <el-dialog title="接口权限" v-model="authorityDialogVisible" width="600px" :before-close="authorityHandleClose">
+  <el-dialog
+    title="接口权限"
+    v-model="authorityDialogVisible"
+    width="600px"
+    :before-close="authorityHandleClose"
+  >
     <el-form>
-
       <span class="authority-display" v-for="item in authorityData" :key="item.authorityId">
         <el-checkbox v-model="item.check" :label="item.code" size="large" />
       </span>
@@ -392,11 +437,11 @@ const handleDelete = async (row: RoleSys) => {
 @import '@/assets/main.css';
 
 .button-form .el-form-item {
-  margin-right: 10px
+  margin-right: 10px;
 }
 
 .el-pagination {
-  margin-top: 10px
+  margin-top: 10px;
 }
 
 .authority-display {

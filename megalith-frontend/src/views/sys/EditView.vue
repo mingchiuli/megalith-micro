@@ -42,7 +42,9 @@ const blogId = route.query.id as string | undefined
 let socket: WebSocket
 const connect = () => {
   destory()
-  socket = new WebSocket(`${import.meta.env.VITE_BASE_WS_URL}/edit/ws?token=${localStorage.getItem('accessToken')}`)
+  socket = new WebSocket(
+    `${import.meta.env.VITE_BASE_WS_URL}/edit/ws?token=${localStorage.getItem('accessToken')}`
+  )
   opreateStatus.client = socket
   socket.addEventListener('message', subscribe)
 }
@@ -361,7 +363,7 @@ const init = async () => {
   initTimeoutId = setTimeout(async () => init(), 100)
 }
 
-(async () => {
+;(async () => {
   connect()
   await init()
 })()

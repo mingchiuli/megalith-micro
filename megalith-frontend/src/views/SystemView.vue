@@ -10,7 +10,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <el-container style="height: 100vh;">
+  <el-container style="height: 100vh">
     <el-aside width="200">
       <el-scrollbar>
         <SideMenuItem />
@@ -22,7 +22,9 @@ onUnmounted(() => {
         <HeaderTabsItem />
       </el-header>
       <el-main>
-        <el-text class="welcome" v-if="welcomeStateStore().welcomeBackend">欢迎来到管理系统</el-text>
+        <el-text class="welcome" v-if="welcomeStateStore().welcomeBackend"
+          >欢迎来到管理系统</el-text
+        >
         <div class="content">
           <router-view />
         </div>
@@ -36,11 +38,11 @@ onUnmounted(() => {
 
 <style scoped>
 .el-header {
-  --el-header-padding: 0
+  --el-header-padding: 0;
 }
 
 .el-footer {
-  --el-footer-height: 100
+  --el-footer-height: 100;
 }
 
 .welcome {
@@ -49,6 +51,6 @@ onUnmounted(() => {
   align-items: center;
   width: 100%;
   height: 100%;
-  font-size: xx-large
+  font-size: xx-large;
 }
 </style>

@@ -9,7 +9,7 @@ const http = axios.create({
   timeout: 10000
 })
 
-http.interceptors.request.use(async config => {
+http.interceptors.request.use(async (config) => {
   const url = config.url
   if (url !== '/token/refresh' && loginStateStore().login) {
     const accessToken = localStorage.getItem('accessToken')
@@ -19,31 +19,34 @@ http.interceptors.request.use(async config => {
   return config
 })
 
-http.interceptors.response.use((resp: AxiosResponse<Data<any>, any>): Promise<any> => {
-  const data = resp.data
-  if (resp.status === 200) {
-    return Promise.resolve(data)
-  } else {
+http.interceptors.response.use(
+  (resp: AxiosResponse<Data<any>, any>): Promise<any> => {
+    const data = resp.data
+    if (resp.status === 200) {
+      return Promise.resolve(data)
+    } else {
+      ElNotification.error({
+        title: 'request forbidden',
+        message: data.msg,
+        showClose: true
+      })
+      return Promise.reject(new Error(data.msg))
+    }
+  },
+  (error: AxiosError<any, any>) => {
     ElNotification.error({
-      title: 'request forbidden',
-      message: data.msg,
+      title: error.code,
+      message: error.response!.data.msg ? error.response!.data.msg : error.message,
       showClose: true
     })
-    return Promise.reject(new Error(data.msg))
+    if (error.response!.status === 401) {
+      clearLoginState()
+      router.push({
+        name: 'login'
+      })
+    }
+    return Promise.reject(error)
   }
-}, (error: AxiosError<any, any>) => {
-  ElNotification.error({
-    title: error.code,
-    message: error.response!.data.msg ? error.response!.data.msg : error.message,
-    showClose: true,
-  })
-  if (error.response!.status === 401) {
-    clearLoginState()
-    router.push({
-      name: 'login'
-    })
-  }
-  return Promise.reject(error)
-})
+)
 
 export default http

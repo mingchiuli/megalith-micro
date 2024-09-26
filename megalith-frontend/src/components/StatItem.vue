@@ -5,22 +5,21 @@ import { GET } from '@/http/http'
 import type { Visitor } from '@/type/entity'
 
 const blogStat = reactive<Visitor>({
-  "dayVisit": 0,
-  "weekVisit": 0,
-  "monthVisit": 0,
-  "yearVisit": 0
+  dayVisit: 0,
+  weekVisit: 0,
+  monthVisit: 0,
+  yearVisit: 0
 })
 
-const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat);
+const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat)
 
-(async () => {
+;(async () => {
   const data = await GET<Visitor>('/public/blog/stat')
   blogStat.dayVisit = data.dayVisit
   blogStat.weekVisit = data.weekVisit
   blogStat.monthVisit = data.monthVisit
   blogStat.yearVisit = data.yearVisit
 })()
-
 </script>
 
 <template>
@@ -37,6 +36,6 @@ const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat);
   margin: 0 auto;
   width: fit-content;
   margin-top: 1rem;
-  margin-bottom: 1rem
+  margin-bottom: 1rem;
 }
 </style>

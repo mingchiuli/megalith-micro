@@ -1,5 +1,17 @@
-import { GET, POST } from "@/http/http"
-import { ActionType, FieldName, FieldType, OperaColor, OperateTypeCode, SensitiveType, Status, type BlogEdit, type EditForm, type OpreateStatusParam, type PushActionForm } from "@/type/entity"
+import { GET, POST } from '@/http/http'
+import {
+  ActionType,
+  FieldName,
+  FieldType,
+  OperaColor,
+  OperateTypeCode,
+  SensitiveType,
+  Status,
+  type BlogEdit,
+  type EditForm,
+  type OpreateStatusParam,
+  type PushActionForm
+} from '@/type/entity'
 
 export const pushAllData = async (opreateStatus: OpreateStatusParam, form: EditForm) => {
   await POST<null>('/sys/blog/edit/push/all', form)
@@ -8,7 +20,10 @@ export const pushAllData = async (opreateStatus: OpreateStatusParam, form: EditF
   }
 }
 
-export const pushActionData = (pushActionForm: PushActionForm, opreateStatus: OpreateStatusParam) => {
+export const pushActionData = (
+  pushActionForm: PushActionForm,
+  opreateStatus: OpreateStatusParam
+) => {
   opreateStatus.client.send(JSON.stringify(pushActionForm))
   if (opreateStatus.transColor.value !== OperaColor.SUCCESS) {
     opreateStatus.transColor.value = OperaColor.SUCCESS
@@ -42,19 +57,27 @@ export const loadEditContent = async (form: EditForm, opreateStatus: OpreateStat
   form.version = data.version
 }
 
-
-export const dealAction = (n: string | undefined, o: string | undefined, pushActionForm: PushActionForm, fieldType: FieldType) : ActionType => {
+export const dealAction = (
+  n: string | undefined,
+  o: string | undefined,
+  pushActionForm: PushActionForm,
+  fieldType: FieldType
+): ActionType => {
   //全部删除
   const para = fieldType === FieldType.PARA
   if (!n) {
-    pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_REMOVE : OperateTypeCode.NON_PARA_REMOVE
+    pushActionForm.operateTypeCode = para
+      ? OperateTypeCode.PARA_REMOVE
+      : OperateTypeCode.NON_PARA_REMOVE
     return ActionType.PUSH_ACTION
   }
 
   //初始化新增
   if (!o) {
     pushActionForm.contentChange = n
-    pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_TAIL_APPEND : OperateTypeCode.NON_PARA_TAIL_APPEND
+    pushActionForm.operateTypeCode = para
+      ? OperateTypeCode.PARA_TAIL_APPEND
+      : OperateTypeCode.NON_PARA_TAIL_APPEND
     return ActionType.PUSH_ACTION
   }
 
@@ -74,11 +97,15 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
     //向末尾添加
     if (oLen < nLen) {
       pushActionForm.contentChange = n.substring(indexStart)
-      pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_TAIL_APPEND : OperateTypeCode.NON_PARA_TAIL_APPEND
+      pushActionForm.operateTypeCode = para
+        ? OperateTypeCode.PARA_TAIL_APPEND
+        : OperateTypeCode.NON_PARA_TAIL_APPEND
     } else {
       //从末尾删除
       pushActionForm.indexStart = nLen
-      pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_TAIL_SUBTRACT : OperateTypeCode.NON_PARA_TAIL_SUBTRACT
+      pushActionForm.operateTypeCode = para
+        ? OperateTypeCode.PARA_TAIL_SUBTRACT
+        : OperateTypeCode.NON_PARA_TAIL_SUBTRACT
     }
     return ActionType.PUSH_ACTION
   }
@@ -97,11 +124,15 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
     //从开头添加
     if (oLen < nLen) {
       pushActionForm.contentChange = n.substring(0, nLen - oLen)
-      pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_HEAD_APPEND : OperateTypeCode.NON_PARA_HEAD_APPEND
+      pushActionForm.operateTypeCode = para
+        ? OperateTypeCode.PARA_HEAD_APPEND
+        : OperateTypeCode.NON_PARA_HEAD_APPEND
     } else {
       //从开头删除
       pushActionForm.indexStart = oLen - nLen
-      pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_HEAD_SUBTRACT : OperateTypeCode.NON_PARA_HEAD_SUBTRACT
+      pushActionForm.operateTypeCode = para
+        ? OperateTypeCode.PARA_HEAD_SUBTRACT
+        : OperateTypeCode.NON_PARA_HEAD_SUBTRACT
     }
     return ActionType.PUSH_ACTION
   }
@@ -121,7 +152,9 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
       pushActionForm.indexEnd = indexStart + oIndexEnd - nIndexEnd
     }
     pushActionForm.contentChange = contentChange
-    pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_REPLACE : OperateTypeCode.NON_PARA_REPLACE
+    pushActionForm.operateTypeCode = para
+      ? OperateTypeCode.PARA_REPLACE
+      : OperateTypeCode.NON_PARA_REPLACE
     return ActionType.PUSH_ACTION
   }
 
@@ -139,7 +172,9 @@ export const dealAction = (n: string | undefined, o: string | undefined, pushAct
     }
 
     pushActionForm.contentChange = contentChange
-    pushActionForm.operateTypeCode = para ? OperateTypeCode.PARA_REPLACE : OperateTypeCode.NON_PARA_REPLACE
+    pushActionForm.operateTypeCode = para
+      ? OperateTypeCode.PARA_REPLACE
+      : OperateTypeCode.NON_PARA_REPLACE
     return ActionType.PUSH_ACTION
   }
   //全不满足直接推全量数据
@@ -158,24 +193,45 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm)
    * type 1
    */
 
-  if (field === FieldName.TITLE && (operateType === OperateTypeCode.NON_PARA_REMOVE || operateType === OperateTypeCode.NON_PARA_HEAD_APPEND || operateType === OperateTypeCode.NON_PARA_HEAD_SUBTRACT)) {
-    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.TITLE)
+  if (
+    field === FieldName.TITLE &&
+    (operateType === OperateTypeCode.NON_PARA_REMOVE ||
+      operateType === OperateTypeCode.NON_PARA_HEAD_APPEND ||
+      operateType === OperateTypeCode.NON_PARA_HEAD_SUBTRACT)
+  ) {
+    const sensitiveList = form.sensitiveContentList.filter(
+      (item) => item.type !== SensitiveType.TITLE
+    )
     if (len !== sensitiveList.length) {
       form.sensitiveContentList = sensitiveList
     }
     return
   }
 
-  if (field === FieldName.DESCRIPTION && (operateType === OperateTypeCode.NON_PARA_REMOVE || operateType === OperateTypeCode.NON_PARA_HEAD_APPEND || operateType === OperateTypeCode.NON_PARA_HEAD_SUBTRACT)) {
-    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.DESCRIPTION)
+  if (
+    field === FieldName.DESCRIPTION &&
+    (operateType === OperateTypeCode.NON_PARA_REMOVE ||
+      operateType === OperateTypeCode.NON_PARA_HEAD_APPEND ||
+      operateType === OperateTypeCode.NON_PARA_HEAD_SUBTRACT)
+  ) {
+    const sensitiveList = form.sensitiveContentList.filter(
+      (item) => item.type !== SensitiveType.DESCRIPTION
+    )
     if (len !== sensitiveList.length) {
       form.sensitiveContentList = sensitiveList
     }
     return
   }
 
-  if (field === FieldName.CONTENT && (operateType === OperateTypeCode.PARA_REMOVE || operateType === OperateTypeCode.PARA_HEAD_APPEND || operateType === OperateTypeCode.PARA_HEAD_SUBTRACT)) {
-    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.CONTENT)
+  if (
+    field === FieldName.CONTENT &&
+    (operateType === OperateTypeCode.PARA_REMOVE ||
+      operateType === OperateTypeCode.PARA_HEAD_APPEND ||
+      operateType === OperateTypeCode.PARA_HEAD_SUBTRACT)
+  ) {
+    const sensitiveList = form.sensitiveContentList.filter(
+      (item) => item.type !== SensitiveType.CONTENT
+    )
     if (len !== sensitiveList.length) {
       form.sensitiveContentList = sensitiveList
     }
@@ -186,24 +242,42 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm)
    * type 2
    */
 
-  if (field === FieldName.TITLE && (operateType === OperateTypeCode.NON_PARA_TAIL_SUBTRACT || operateType === OperateTypeCode.NON_PARA_REPLACE)){
-    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.TITLE || item.endIndex - 1 < indexStart)
+  if (
+    field === FieldName.TITLE &&
+    (operateType === OperateTypeCode.NON_PARA_TAIL_SUBTRACT ||
+      operateType === OperateTypeCode.NON_PARA_REPLACE)
+  ) {
+    const sensitiveList = form.sensitiveContentList.filter(
+      (item) => item.type !== SensitiveType.TITLE || item.endIndex - 1 < indexStart
+    )
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
     }
     return
   }
 
-  if (field === FieldName.DESCRIPTION && (operateType === OperateTypeCode.NON_PARA_TAIL_SUBTRACT || operateType === OperateTypeCode.NON_PARA_REPLACE)) {
-    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.DESCRIPTION || item.endIndex - 1 < indexStart)
+  if (
+    field === FieldName.DESCRIPTION &&
+    (operateType === OperateTypeCode.NON_PARA_TAIL_SUBTRACT ||
+      operateType === OperateTypeCode.NON_PARA_REPLACE)
+  ) {
+    const sensitiveList = form.sensitiveContentList.filter(
+      (item) => item.type !== SensitiveType.DESCRIPTION || item.endIndex - 1 < indexStart
+    )
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
     }
     return
   }
 
-  if (field === FieldName.CONTENT && (operateType === OperateTypeCode.PARA_TAIL_SUBTRACT || operateType ===  OperateTypeCode.PARA_REPLACE)) {
-    const sensitiveList = form.sensitiveContentList.filter(item => item.type !== SensitiveType.CONTENT || item.endIndex - 1 < indexStart)
+  if (
+    field === FieldName.CONTENT &&
+    (operateType === OperateTypeCode.PARA_TAIL_SUBTRACT ||
+      operateType === OperateTypeCode.PARA_REPLACE)
+  ) {
+    const sensitiveList = form.sensitiveContentList.filter(
+      (item) => item.type !== SensitiveType.CONTENT || item.endIndex - 1 < indexStart
+    )
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
     }

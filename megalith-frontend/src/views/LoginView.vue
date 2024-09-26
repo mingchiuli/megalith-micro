@@ -31,7 +31,7 @@ const loginType = () => {
     default:
       radioSMS.value = false
       radioEmail.value = false
-      break;
+      break
   }
   loginInfo.password = ''
 }
@@ -41,25 +41,27 @@ const sendCode = (via: string) => {
   if (!loginInfo.username) return
   smsButtonDisable.value = true
   mailButtonDisable.value = true
-  http.get(`/code/${via}?loginName=${loginInfo.username}`).then(_res => {
-    ElMessage.success('发送成功')
-    interval = setInterval(() => {
-      buttonText.value = `等待${buttonMiles.value}秒`
-      buttonMiles.value--
-      if (buttonMiles.value <= -1) {
-        clearInterval(interval)
-        buttonText.value = '发送验证码'
-        mailButtonDisable.value = false
-        smsButtonDisable.value = false
-        buttonMiles.value = 120
-      }
-    }, 1000)
-  }).catch(_e => {
-    mailButtonDisable.value = false
-    smsButtonDisable.value = false
-  })
+  http
+    .get(`/code/${via}?loginName=${loginInfo.username}`)
+    .then((_res) => {
+      ElMessage.success('发送成功')
+      interval = setInterval(() => {
+        buttonText.value = `等待${buttonMiles.value}秒`
+        buttonMiles.value--
+        if (buttonMiles.value <= -1) {
+          clearInterval(interval)
+          buttonText.value = '发送验证码'
+          mailButtonDisable.value = false
+          smsButtonDisable.value = false
+          buttonMiles.value = 120
+        }
+      }, 1000)
+    })
+    .catch((_e) => {
+      mailButtonDisable.value = false
+      smsButtonDisable.value = false
+    })
 }
-
 </script>
 
 <template>
@@ -74,20 +76,36 @@ const sendCode = (via: string) => {
         <el-input v-model="loginInfo.username" placeholder="Login Name" clearable />
       </div>
       <div>
-        <el-input v-model="loginInfo.password" type="text"
-          :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'" @keyup.enter="submitLogin(loginInfo.username, loginInfo.password)"
-          clearable :show-password="radioSelect === 'Password' ? true : false" />
+        <el-input
+          v-model="loginInfo.password"
+          type="text"
+          :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'"
+          @keyup.enter="submitLogin(loginInfo.username, loginInfo.password)"
+          clearable
+          :show-password="radioSelect === 'Password' ? true : false"
+        />
       </div>
       <div class="dialog-footer">
-        <el-button type="primary" @click="submitLogin(loginInfo.username, loginInfo.password)">登录</el-button>
-        <el-button type="primary" v-show="radioEmail" @click="sendCode('email')" :disabled="mailButtonDisable">{{
-      buttonText }}</el-button>
-        <el-button type="primary" v-show="radioSMS" @click="sendCode('sms')" :disabled="smsButtonDisable">{{ buttonText
-          }}</el-button>
+        <el-button type="primary" @click="submitLogin(loginInfo.username, loginInfo.password)"
+          >登录</el-button
+        >
+        <el-button
+          type="primary"
+          v-show="radioEmail"
+          @click="sendCode('email')"
+          :disabled="mailButtonDisable"
+          >{{ buttonText }}</el-button
+        >
+        <el-button
+          type="primary"
+          v-show="radioSMS"
+          @click="sendCode('sms')"
+          :disabled="smsButtonDisable"
+          >{{ buttonText }}</el-button
+        >
       </div>
     </div>
   </div>
-
 </template>
 
 <style scoped>
@@ -97,20 +115,20 @@ const sendCode = (via: string) => {
   width: 180px;
   margin-left: 50%;
   transform: translate(-50%);
-  margin-top: 10px
+  margin-top: 10px;
 }
 
 .dialog-footer {
   margin-left: 50%;
   width: max-content;
   margin-top: 20px;
-  transform: translate(-50%)
+  transform: translate(-50%);
 }
 
 .dialog-select {
   margin-top: 30px;
   margin-left: 50%;
   width: max-content;
-  transform: translate(-50%)
+  transform: translate(-50%);
 }
 </style>

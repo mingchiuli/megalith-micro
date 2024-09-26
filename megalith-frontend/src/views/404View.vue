@@ -14,11 +14,11 @@ const value = ref(new Date())
 @import '@/assets/front.css';
 
 .hint {
-  text-align: center
+  text-align: center;
 }
 
 .calendar {
   margin: 0 auto;
-  max-width: 600px
+  max-width: 600px;
 }
 </style>

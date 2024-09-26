@@ -1,7 +1,6 @@
-import { onMounted, onUnmounted, ref } from "vue"
+import { onMounted, onUnmounted, ref } from 'vue'
 
 export const displayState = () => {
-
   const fix = ref(document.body.clientWidth > 900 ? 'right' : false)
   const expand = ref(document.body.clientWidth > 900)
   const moreItems = ref(document.body.clientWidth > 2000)

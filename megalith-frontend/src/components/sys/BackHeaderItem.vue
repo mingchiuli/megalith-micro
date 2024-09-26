@@ -16,7 +16,8 @@ const logout = () => {
 </script>
 
 <template>
-  <el-text class="header-title" size="large">后台
+  <el-text class="header-title" size="large"
+    >后台
     <el-dropdown class="header-dropdown">
       <span class="el-dropdown-link">
         {{ nickname }}
@@ -35,13 +36,12 @@ const logout = () => {
   </el-text>
 </template>
 <style scoped>
-
 .header-title {
   text-align: center;
   line-height: 60px;
   background-color: #f6f6f6;
   display: inline-block;
-  width: 100%
+  width: 100%;
 }
 
 /* 用line-height对于图片时失效 */
@@ -49,12 +49,12 @@ const logout = () => {
   margin-top: 10px;
   height: 40px;
   position: absolute;
-  right: 10px
+  right: 10px;
 }
 
 .header-dropdown {
   line-height: 60px;
   position: absolute;
-  right: 60px
+  right: 60px;
 }
 </style>

@@ -16,23 +16,23 @@ const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
 const page: PageAdapter<BlogSys> = reactive({
-  "content": [],
-  "totalElements": 0,
-  "pageSize": moreItems.value ? 20 : 5,
-  "pageNumber": 1
+  content: [],
+  totalElements: 0,
+  pageSize: moreItems.value ? 20 : 5,
+  pageNumber: 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
 const delBatch = async () => {
   const args: number[] = []
-  multipleSelection.value.forEach(item => {
+  multipleSelection.value.forEach((item) => {
     args.push(item.id)
   })
   await POST<null>('/sys/blog/delete', args)
   ElNotification({
     title: '操作成功',
     message: '批量删除成功',
-    type: 'success',
+    type: 'success'
   })
   multipleSelection.value = []
   await searchBlogs()
@@ -45,7 +45,7 @@ const handleDelete = async (row: BlogSys) => {
   ElNotification({
     title: '操作成功',
     message: '删除成功',
-    type: 'success',
+    type: 'success'
   })
   await searchBlogs()
 }
@@ -64,7 +64,7 @@ const handlePassword = async (row: BlogSys) => {
   ElNotification({
     title: '操作成功',
     message: token,
-    type: 'success',
+    type: 'success'
   })
 }
 
@@ -98,7 +98,9 @@ const searchBlogsAction = () => {
 
 const searchBlogs = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogSys>>(`/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`)
+  const data = await GET<PageAdapter<BlogSys>>(
+    `/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`
+  )
   page.content = data.content
   page.totalElements = data.totalElements
   loading.value = false
@@ -110,13 +112,12 @@ const handleSizeChange = async (val: number) => {
   await searchBlogs()
 }
 
-
 const handleCurrentChange = async (val: number) => {
   pageNumber.value = val
   await searchBlogs()
 }
 
-(async () => {
+;(async () => {
   await searchBlogs()
 })()
 </script>
@@ -124,29 +125,58 @@ const handleCurrentChange = async (val: number) => {
 <template>
   <el-form :inline="true" @submit.prevent class="button-form">
     <el-form-item>
-      <el-input v-model="input" placeholder="Please input" clearable maxlength="20" size="large" class="search-input"
-        @clear="clearQueryBlogs" @keyup.enter="searchBlogsAction" />
+      <el-input
+        v-model="input"
+        placeholder="Please input"
+        clearable
+        maxlength="20"
+        size="large"
+        class="search-input"
+        @clear="clearQueryBlogs"
+        @keyup.enter="searchBlogsAction"
+      />
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_SEARCH)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_SEARCH)" size="large" @click="searchBlogsAction">{{ getButtonTitle(ButtonAuth.SYS_BLOG_SEARCH) }}</el-button>
+      <el-button
+        :type="getButtonType(ButtonAuth.SYS_BLOG_SEARCH)"
+        size="large"
+        @click="searchBlogsAction"
+        >{{ getButtonTitle(ButtonAuth.SYS_BLOG_SEARCH) }}</el-button
+      >
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_BATCH_DEL)">
       <el-popconfirm title="确定批量删除?" @confirm="delBatch">
         <template #reference>
-          <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_BATCH_DEL)" size="large" :disabled="delBtlStatus">{{ getButtonTitle(ButtonAuth.SYS_BLOG_BATCH_DEL) }}</el-button>
+          <el-button
+            :type="getButtonType(ButtonAuth.SYS_BLOG_BATCH_DEL)"
+            size="large"
+            :disabled="delBtlStatus"
+            >{{ getButtonTitle(ButtonAuth.SYS_BLOG_BATCH_DEL) }}</el-button
+          >
         </template>
       </el-popconfirm>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_BLOG_DOWNLOAD)" size="large" @click="download">{{ getButtonTitle(ButtonAuth.SYS_BLOG_DOWNLOAD) }}</el-button>
+      <el-button
+        :type="getButtonType(ButtonAuth.SYS_BLOG_DOWNLOAD)"
+        size="large"
+        @click="download"
+        >{{ getButtonTitle(ButtonAuth.SYS_BLOG_DOWNLOAD) }}</el-button
+      >
     </el-form-item>
     <el-form-item>
       <el-progress v-if="showPercentage" type="circle" :width="40" :percentage="uploadPercentage" />
     </el-form-item>
   </el-form>
 
-  <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
-    v-loading="loading">
+  <el-table
+    :data="content"
+    style="width: 100%"
+    border
+    stripe
+    @selection-change="handleSelectionChange"
+    v-loading="loading"
+  >
     <el-table-column type="selection" :fixed="fixSelection" />
 
     <el-table-column label="标题" align="center" prop="title" min-width="180" />
@@ -157,7 +187,11 @@ const handleCurrentChange = async (val: number) => {
             <span> {{ scope.row.description }}</span>
           </template>
           <template #reference>
-            <span>{{ scope.row.description.length > 20 ? scope.row.description.substring(0, 20) + '...' : scope.row.description }}</span>
+            <span>{{
+              scope.row.description.length > 20
+                ? scope.row.description.substring(0, 20) + '...'
+                : scope.row.description
+            }}</span>
           </template>
         </el-popover>
       </template>
@@ -165,13 +199,23 @@ const handleCurrentChange = async (val: number) => {
 
     <el-table-column label="内容" align="center" min-width="200">
       <template #default="scope">
-        <el-popover effect="light" trigger="hover" placement="bottom" width="500px" :show-after="1000"
-          popper-style="height: 300px;overflow: auto;">
+        <el-popover
+          effect="light"
+          trigger="hover"
+          placement="bottom"
+          width="500px"
+          :show-after="1000"
+          popper-style="height: 300px;overflow: auto;"
+        >
           <template #default>
-            <span v-html=render(scope.row.content) />
+            <span v-html="render(scope.row.content)" />
           </template>
           <template #reference>
-            <span>{{ scope.row.content.length > 30 ? scope.row.content.substring(0, 30) + '...' : scope.row.content }}</span>
+            <span>{{
+              scope.row.content.length > 30
+                ? scope.row.content.substring(0, 30) + '...'
+                : scope.row.content
+            }}</span>
           </template>
         </el-popover>
       </template>
@@ -215,54 +259,82 @@ const handleCurrentChange = async (val: number) => {
     <el-table-column label="状态" align="center">
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">公开</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">隐藏</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.SENSITIVE_FILTER" type="warning">打码</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger"
+          >隐藏</el-tag
+        >
+        <el-tag size="small" v-else-if="scope.row.status === Status.SENSITIVE_FILTER" type="warning"
+          >打码</el-tag
+        >
       </template>
     </el-table-column>
 
     <el-table-column :fixed="fix" label="操作" min-width="300" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_CHECK)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_CHECK)" @click="handleCheck(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_CHECK) }}</el-button>
+          <el-button
+            size="small"
+            :type="getButtonType(ButtonAuth.SYS_BLOG_CHECK)"
+            @click="handleCheck(scope.row)"
+            >{{ getButtonTitle(ButtonAuth.SYS_BLOG_CHECK) }}</el-button
+          >
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_EDIT)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_EDIT) }}</el-button>
+          <el-button
+            size="small"
+            :type="getButtonType(ButtonAuth.SYS_BLOG_EDIT)"
+            @click="handleEdit(scope.row)"
+            >{{ getButtonTitle(ButtonAuth.SYS_BLOG_EDIT) }}</el-button
+          >
         </template>
 
-        <template v-if="scope.row.status === Status.BLOCK && checkButtonAuth(ButtonAuth.SYS_BLOG_PASSWORD)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_PASSWORD)" @click="handlePassword(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_PASSWORD) }}</el-button>
+        <template
+          v-if="scope.row.status === Status.BLOCK && checkButtonAuth(ButtonAuth.SYS_BLOG_PASSWORD)"
+        >
+          <el-button
+            size="small"
+            :type="getButtonType(ButtonAuth.SYS_BLOG_PASSWORD)"
+            @click="handlePassword(scope.row)"
+            >{{ getButtonTitle(ButtonAuth.SYS_BLOG_PASSWORD) }}</el-button
+          >
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_DELETE)">
           <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
             <template #reference>
-              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_BLOG_DELETE) }}</el-button>
+              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_DELETE)">{{
+                getButtonTitle(ButtonAuth.SYS_BLOG_DELETE)
+              }}</el-button>
             </template>
           </el-popconfirm>
         </template>
-        
       </template>
     </el-table-column>
   </el-table>
 
-  <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-    layout="->, total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber"
-    :page-size="pageSize" :total="totalElements" />
+  <el-pagination
+    @size-change="handleSizeChange"
+    @current-change="handleCurrentChange"
+    layout="->, total, sizes, prev, pager, next, jumper"
+    :page-sizes="[5, 10, 20, 50]"
+    :current-page="pageNumber"
+    :page-size="pageSize"
+    :total="totalElements"
+  />
 </template>
 
 <style scoped>
 @import '@/assets/main.css';
 
 .search-input {
-  width: 200px
+  width: 200px;
 }
 
 .button-form .el-form-item {
-  margin-right: 10px
+  margin-right: 10px;
 }
 
 .el-pagination {
-  margin-top: 10px
+  margin-top: 10px;
 }
 </style>

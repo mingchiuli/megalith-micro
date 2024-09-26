@@ -1,7 +1,19 @@
-import { createRouter, createWebHistory, type RouteLocationNormalized, type RouteRecordRaw } from 'vue-router'
+import {
+  createRouter,
+  createWebHistory,
+  type RouteLocationNormalized,
+  type RouteRecordRaw
+} from 'vue-router'
 import { GET } from '@/http/http'
 import { type Menu, type MenusAndButtons, type Tab } from '@/type/entity'
-import { menuStore, loginStateStore, welcomeStateStore, buttonStore, tabStore, authMarkStore } from '@/stores/store'
+import {
+  menuStore,
+  loginStateStore,
+  welcomeStateStore,
+  buttonStore,
+  tabStore,
+  authMarkStore
+} from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import { diff, findMenuByPath } from '@/utils/tools'
 
@@ -86,7 +98,7 @@ router.beforeEach(async (to, _from) => {
       }
     } else {
       //正常路由切换diff
-      GET<MenusAndButtons>('/auth/menu/nav').then(resp => {
+      GET<MenusAndButtons>('/auth/menu/nav').then((resp) => {
         allKindsInfo = resp
         callBackRequireRoutes(allKindsInfo)
         dealSysTab(to, allKindsInfo)
@@ -100,7 +112,7 @@ const dealSysTab = (to: RouteLocationNormalized, allKindsInfo: MenusAndButtons) 
   if (to.path.startsWith('/sys')) {
     const menu = findMenuByPath(allKindsInfo.menus, to.path)
     if (menu) {
-      const tab: Tab = { "name": menu.name, "title": menu.title }
+      const tab: Tab = { name: menu.name, title: menu.title }
       tabStore().addTab(tab)
     }
   }
@@ -112,7 +124,7 @@ const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
   const difButton = diff(buttonList.value, buttons)
   if (difButton) {
     buttonList.value = []
-    buttons.forEach(button => buttonList.value.push(button))
+    buttons.forEach((button) => buttonList.value.push(button))
   }
 
   const systemRoute = {
@@ -133,14 +145,13 @@ const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
     if (router.hasRoute('system')) {
       router.removeRoute('system')
     }
-    menus
-      .forEach(menu => {
-        menuList.value.push(menu)
-        const route = buildRoute(menu, systemRoute)
-        if (route.path) {
-          systemRoute.children?.push(route)
-        }
-      })
+    menus.forEach((menu) => {
+      menuList.value.push(menu)
+      const route = buildRoute(menu, systemRoute)
+      if (route.path) {
+        systemRoute.children?.push(route)
+      }
+    })
 
     router.addRoute(systemRoute)
   }
@@ -150,7 +161,7 @@ const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
 const buildRoute = (menu: Menu, systemRoute: RouteRecordRaw): RouteRecordRaw => {
   const route = menuToRoute(menu)
 
-  menu.children?.forEach(childMenu => {
+  menu.children?.forEach((childMenu) => {
     const childRoute = buildRoute(childMenu, systemRoute)
     if (route.path) {
       route.children?.push(childRoute)

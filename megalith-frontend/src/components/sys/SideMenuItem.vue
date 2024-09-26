@@ -16,13 +16,16 @@ const reverseCollapse = () => {
     arrow.value = ArrowLeft
   }
 }
-
 </script>
 
 <template>
   <el-button class="collapse-button" circle :icon="arrow" @click="reverseCollapse"></el-button>
-  <el-menu :default-active="tabStore().editableTabsValue" class="el-menu-vertical" :collapse="!expand"
-    active-text-color="#ffd04b">
+  <el-menu
+    :default-active="tabStore().editableTabsValue"
+    class="el-menu-vertical"
+    :collapse="!expand"
+    active-text-color="#ffd04b"
+  >
     <InfiniteMenuItem v-for="item in menuList" v-bind:key="item.menuId" :item="item" />
   </el-menu>
 </template>

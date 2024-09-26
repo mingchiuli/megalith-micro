@@ -16,38 +16,22 @@ const roleList = ref<RoleSys[]>([])
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 const page: PageAdapter<UserSys> = reactive({
-  "content": [],
-  "totalElements": 0,
-  "pageSize": moreItems.value ? 20 : 5,
-  "pageNumber": 1
+  content: [],
+  totalElements: 0,
+  pageSize: moreItems.value ? 20 : 5,
+  pageNumber: 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
 const formRules = reactive<FormRules<Form>>({
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' }
-  ],
-  nickname: [
-    { required: true, message: '请输入昵称', trigger: 'blur' }
-  ],
-  password: [
-    { required: false, message: '请输入密码', trigger: 'blur' }
-  ],
-  avatar: [
-    { required: true, message: '请输入头像链接', trigger: 'blur' }
-  ],
-  email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' }
-  ],
-  phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' }
-  ],
-  roles: [
-    { required: true, message: '请选择角色', trigger: 'blur' }
-  ],
-  status: [
-    { required: true, message: '请选择状态', trigger: 'blur' }
-  ],
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+  password: [{ required: false, message: '请输入密码', trigger: 'blur' }],
+  avatar: [{ required: true, message: '请输入头像链接', trigger: 'blur' }],
+  email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
+  phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
+  roles: [{ required: true, message: '请选择角色', trigger: 'blur' }],
+  status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
 })
 const formRef = useTemplateRef<FormInstance>('form')
 type Form = {
@@ -73,21 +57,20 @@ const form: Form = reactive({
   roles: []
 })
 
-
 const download = async () => {
   await downloadData('/sys/user/download', 'users', uploadPercentage, showPercentage)
 }
 
 const delBatch = async () => {
   const args: number[] = []
-  multipleSelection.value.forEach(item => {
+  multipleSelection.value.forEach((item) => {
     args.push(item.id)
   })
   await POST<null>('/sys/user/delete', args)
   ElNotification({
     title: '操作成功',
     message: '批量删除成功',
-    type: 'success',
+    type: 'success'
   })
   multipleSelection.value = []
   await queryUsers()
@@ -100,7 +83,7 @@ const handleDelete = async (row: UserSys) => {
   ElNotification({
     title: '操作成功',
     message: '删除成功',
-    type: 'success',
+    type: 'success'
   })
   queryUsers()
 }
@@ -125,7 +108,9 @@ const handleSelectionChange = (val: UserSys[]) => {
 
 const queryUsers = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<UserSys>>(`/sys/user/page/${pageNumber.value}?size=${pageSize.value}`)
+  const data = await GET<PageAdapter<UserSys>>(
+    `/sys/user/page/${pageNumber.value}?size=${pageSize.value}`
+  )
   content.value = data.content
   totalElements.value = data.totalElements
   loading.value = false
@@ -143,7 +128,7 @@ const submitForm = async (ref: FormInstance) => {
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
-        type: 'success',
+        type: 'success'
       })
       clearForm()
       dialogVisible.value = false
@@ -166,7 +151,7 @@ const clearForm = () => {
 }
 
 const getRoleName = (item: string) => {
-  return roleList.value.filter(role => role.code === item)[0]?.name
+  return roleList.value.filter((role) => role.code === item)[0]?.name
 }
 
 const handleSizeChange = async (val: number) => {
@@ -185,11 +170,11 @@ const getRegisterLink = async (username: string) => {
   ElNotification({
     title: '操作成功',
     message: link,
-    type: 'success',
+    type: 'success'
   })
 }
 
-(async () => {
+;(async () => {
   await queryUsers()
   const roles = await GET<RoleSys[]>('/sys/role/valid/all')
   roleList.value = roles
@@ -199,28 +184,54 @@ const getRegisterLink = async (username: string) => {
 <template>
   <el-form :inline="true" @submit.prevent class="button-form">
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_USER_CREATE)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_USER_CREATE)" size="large" @click="dialogVisible = true">{{ getButtonTitle(ButtonAuth.SYS_USER_CREATE) }}</el-button>
+      <el-button
+        :type="getButtonType(ButtonAuth.SYS_USER_CREATE)"
+        size="large"
+        @click="dialogVisible = true"
+        >{{ getButtonTitle(ButtonAuth.SYS_USER_CREATE) }}</el-button
+      >
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_USER_BATCH_DEL)">
       <el-popconfirm title="确定批量删除?" @confirm="delBatch">
         <template #reference>
-          <el-button :type="getButtonType(ButtonAuth.SYS_USER_BATCH_DEL)" size="large" :disabled="delBtlStatus">{{ getButtonTitle(ButtonAuth.SYS_USER_BATCH_DEL) }}</el-button>
+          <el-button
+            :type="getButtonType(ButtonAuth.SYS_USER_BATCH_DEL)"
+            size="large"
+            :disabled="delBtlStatus"
+            >{{ getButtonTitle(ButtonAuth.SYS_USER_BATCH_DEL) }}</el-button
+          >
         </template>
       </el-popconfirm>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_USER_REGISTER)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_USER_REGISTER)" size="large" @click="getRegisterLink('')">{{ getButtonTitle(ButtonAuth.SYS_USER_REGISTER) }}</el-button>
+      <el-button
+        :type="getButtonType(ButtonAuth.SYS_USER_REGISTER)"
+        size="large"
+        @click="getRegisterLink('')"
+        >{{ getButtonTitle(ButtonAuth.SYS_USER_REGISTER) }}</el-button
+      >
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_USER_DOWNLOAD)">
-      <el-button :type="getButtonType(ButtonAuth.SYS_USER_DOWNLOAD)" size="large" @click="download">{{ getButtonTitle(ButtonAuth.SYS_USER_DOWNLOAD) }}</el-button>
+      <el-button
+        :type="getButtonType(ButtonAuth.SYS_USER_DOWNLOAD)"
+        size="large"
+        @click="download"
+        >{{ getButtonTitle(ButtonAuth.SYS_USER_DOWNLOAD) }}</el-button
+      >
     </el-form-item>
     <el-form-item>
       <el-progress v-if="showPercentage" type="circle" :width="40" :percentage="uploadPercentage" />
     </el-form-item>
   </el-form>
 
-  <el-table :data="content" style="width: 100%" border stripe @selection-change="handleSelectionChange"
-    v-loading="loading">
+  <el-table
+    :data="content"
+    style="width: 100%"
+    border
+    stripe
+    @selection-change="handleSelectionChange"
+    v-loading="loading"
+  >
     <el-table-column type="selection" :fixed="fixSelection" />
     <el-table-column label="用户名" align="center" prop="username" min-width="180" />
     <el-table-column label="昵称" align="center" prop="nickname" min-width="180" />
@@ -237,13 +248,17 @@ const getRegisterLink = async (username: string) => {
     <el-table-column label="状态" align="center">
       <template #default="scope">
         <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">启用</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">停用</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger"
+          >停用</el-tag
+        >
       </template>
     </el-table-column>
 
     <el-table-column label="角色" align="center">
       <template #default="scope">
-        <el-tag size="small" v-for="item in scope.row.roles" v-bind:key="item.code" type="info">{{ getRoleName(item) }}</el-tag>
+        <el-tag size="small" v-for="item in scope.row.roles" v-bind:key="item.code" type="info">{{
+          getRoleName(item)
+        }}</el-tag>
       </template>
     </el-table-column>
 
@@ -283,32 +298,48 @@ const getRegisterLink = async (username: string) => {
     <el-table-column :fixed="fix" label="操作" min-width="280" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_USER_EDIT)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_USER_EDIT)" @click="handleEdit(scope.row)">{{ getButtonTitle(ButtonAuth.SYS_USER_EDIT) }}</el-button>
+          <el-button
+            size="small"
+            :type="getButtonType(ButtonAuth.SYS_USER_EDIT)"
+            @click="handleEdit(scope.row)"
+            >{{ getButtonTitle(ButtonAuth.SYS_USER_EDIT) }}</el-button
+          >
         </template>
-        
+
         <template v-if="checkButtonAuth(ButtonAuth.SYS_USER_DELETE)">
           <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
             <template #reference>
-              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_USER_DELETE)">{{ getButtonTitle(ButtonAuth.SYS_USER_DELETE) }}</el-button>
+              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_USER_DELETE)">{{
+                getButtonTitle(ButtonAuth.SYS_USER_DELETE)
+              }}</el-button>
             </template>
           </el-popconfirm>
         </template>
-        
+
         <template v-if="checkButtonAuth(ButtonAuth.SYS_USER_MODIFY_REGISTER)">
-          <el-button size="small" :type="getButtonType(ButtonAuth.SYS_USER_MODIFY_REGISTER)" @click="getRegisterLink(scope.row.username)">{{ getButtonTitle(ButtonAuth.SYS_USER_MODIFY_REGISTER) }}</el-button>
+          <el-button
+            size="small"
+            :type="getButtonType(ButtonAuth.SYS_USER_MODIFY_REGISTER)"
+            @click="getRegisterLink(scope.row.username)"
+            >{{ getButtonTitle(ButtonAuth.SYS_USER_MODIFY_REGISTER) }}</el-button
+          >
         </template>
       </template>
     </el-table-column>
-
   </el-table>
 
-  <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-    layout="->, total, sizes, prev, pager, next, jumper" :page-sizes="[5, 10, 20, 50]" :current-page="pageNumber"
-    :page-size="pageSize" :total="totalElements" />
+  <el-pagination
+    @size-change="handleSizeChange"
+    @current-change="handleCurrentChange"
+    layout="->, total, sizes, prev, pager, next, jumper"
+    :page-sizes="[5, 10, 20, 50]"
+    :current-page="pageNumber"
+    :page-size="pageSize"
+    :total="totalElements"
+  />
 
   <el-dialog v-model="dialogVisible" title="新增/编辑" width="600px" :before-close="handleClose">
     <el-form :model="form" :rules="formRules" ref="form">
-
       <el-form-item label="用户名" label-width="100px" prop="username" class="username">
         <el-input v-model="form.username" maxlength="30" />
       </el-form-item>
@@ -335,15 +366,20 @@ const getRegisterLink = async (username: string) => {
 
       <el-form-item label="角色" label-width="100px" prop="role" class="role">
         <el-select multiple class="role-option" v-model="form.roles" placeholder="请选择">
-          <el-option v-for="item in roleList" :key="item.code" :label="item.name" :value="item.code">
+          <el-option
+            v-for="item in roleList"
+            :key="item.code"
+            :label="item.name"
+            :value="item.code"
+          >
           </el-option>
         </el-select>
       </el-form-item>
 
       <el-form-item label="状态" label-width="100px" prop="status" class="status">
         <el-radio-group v-model="form.status">
-          <el-radio :value=Status.NORMAL>启用</el-radio>
-          <el-radio :value=Status.BLOCK>禁用</el-radio>
+          <el-radio :value="Status.NORMAL">启用</el-radio>
+          <el-radio :value="Status.BLOCK">禁用</el-radio>
         </el-radio-group>
       </el-form-item>
 
@@ -351,47 +387,45 @@ const getRegisterLink = async (username: string) => {
         <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
       </el-form-item>
     </el-form>
-
   </el-dialog>
 </template>
 
 <style scoped>
 @import '@/assets/main.css';
 
-
 .role-option {
   width: 150px;
 }
 
 .button-form .el-form-item {
-  margin-right: 10px
+  margin-right: 10px;
 }
 
 .el-pagination {
-  margin-top: 10px
+  margin-top: 10px;
 }
 
 .username {
-  width: 300px
+  width: 300px;
 }
 
 .nickname {
-  width: 300px
+  width: 300px;
 }
 
 .password {
-  width: 400px
+  width: 400px;
 }
 
 .avatar {
-  width: 500px
+  width: 500px;
 }
 
 .email {
-  width: 400px
+  width: 400px;
 }
 
 .phone {
-  width: 400px
+  width: 400px;
 }
 </style>

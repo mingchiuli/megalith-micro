@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import type { Button, Menu, Tab } from '@/type/entity'
 import { ref } from 'vue'
 
-
 export const welcomeStateStore = defineStore('welcomeStateStore', () => {
   const welcomeBackend = ref(true)
   return { welcomeBackend }
@@ -32,7 +31,7 @@ export const tabStore = defineStore('tabStore', () => {
   const editableTabs = ref<Tab[]>([])
   const editableTabsValue = ref('')
   const addTab = (tab: Tab) => {
-    const index = editableTabs.value.findIndex(e => e.name === tab.name)
+    const index = editableTabs.value.findIndex((e) => e.name === tab.name)
     if (index === -1) {
       editableTabs.value.push({
         title: tab.title,

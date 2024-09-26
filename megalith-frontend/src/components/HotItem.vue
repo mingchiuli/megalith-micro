@@ -7,12 +7,13 @@ import router from '@/router'
 let hots = ref<Hot[]>()
 const loading = ref(false)
 
-const to = (id: number) => router.push({
-  name: 'blog',
-  params: {
-    id: id
-  }
-});
+const to = (id: number) =>
+  router.push({
+    name: 'blog',
+    params: {
+      id: id
+    }
+  })
 
 const load = async () => {
   loading.value = true
@@ -20,19 +21,19 @@ const load = async () => {
   loading.value = false
 }
 
-defineExpose(
-  { load }
-)
+defineExpose({ load })
 </script>
 
 <template>
-  <el-card shadow="never" class="hot-blogs" v-loading="loading" >
+  <el-card shadow="never" class="hot-blogs" v-loading="loading">
     <div class="title">
       <el-text>本周阅读排行</el-text>
     </div>
-    <div class="description" v-for="(hot, key) in hots" v-bind:key="key" >
-      <el-link @click="to(hot.id)">{{ hot.title ? hot.title : '匿名文章' }}: {{ hot.readCount }}</el-link>
-      <br/>
+    <div class="description" v-for="(hot, key) in hots" v-bind:key="key">
+      <el-link @click="to(hot.id)"
+        >{{ hot.title ? hot.title : '匿名文章' }}: {{ hot.readCount }}</el-link
+      >
+      <br />
     </div>
   </el-card>
 </template>
@@ -40,16 +41,16 @@ defineExpose(
 <style scoped>
 .hot-blogs {
   max-width: 250px;
-  margin-bottom: 20px
+  margin-bottom: 20px;
 }
 
 .title {
   text-align: center;
-  margin-bottom: 20px
+  margin-bottom: 20px;
 }
 
 .description {
   text-align: left;
-  margin-bottom: 10px
+  margin-bottom: 10px;
 }
 </style>

@@ -25,10 +25,37 @@ const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
 const toolbars: ToolbarNames[] = [
-  'revoke', 'next', 'bold', 1, 'underline', 'italic', '-',
-  'title', 'strikeThrough', 'sub', 'sup', 'quote', 'unorderedList', 'orderedList', 'task', '-',
-  'codeRow', 'code', 'link', 'image', 'table', 'mermaid', 'katex', '-',
-  0, 'pageFullscreen', 'fullscreen', 'preview', 'htmlPreview', 'catalog', 'github'
+  'revoke',
+  'next',
+  'bold',
+  1,
+  'underline',
+  'italic',
+  '-',
+  'title',
+  'strikeThrough',
+  'sub',
+  'sup',
+  'quote',
+  'unorderedList',
+  'orderedList',
+  'task',
+  '-',
+  'codeRow',
+  'code',
+  'link',
+  'image',
+  'table',
+  'mermaid',
+  'katex',
+  '-',
+  0,
+  'pageFullscreen',
+  'fullscreen',
+  'preview',
+  'htmlPreview',
+  'catalog',
+  'github'
 ]
 const footers: Footers[] = ['markdownTotal', 0, '=', 1, 'scrollSwitch']
 
@@ -40,8 +67,8 @@ onMounted(() => {
     compositionend: () => {
       emit('composing', false)
     }
-  });
-  document.getElementById("md-editor")!.onmouseup = () => {
+  })
+  document.getElementById('md-editor')!.onmouseup = () => {
     if (formStatus !== Status.SENSITIVE_FILTER) {
       return
     }
@@ -59,7 +86,6 @@ onMounted(() => {
     let idx = 0
     let label = text!.parentNode
     if (label!.nodeName !== 'DIV' || label!.childNodes.length !== 1) {
-
       //从span替换为div
       while (label!.nodeName !== 'DIV') {
         label = label!.parentNode
@@ -75,11 +101,11 @@ onMounted(() => {
         if (item !== text) {
           eleSiblings.push(item)
         } else {
-          break;
+          break
         }
       }
 
-      eleSiblings.forEach(item => {
+      eleSiblings.forEach((item) => {
         //同级别的span文本长度
         idx += item.textContent?.length!
       })
@@ -93,7 +119,7 @@ onMounted(() => {
       currentElement = currentElement.previousSibling
     }
 
-    previousSiblings.forEach(item => {
+    previousSiblings.forEach((item) => {
       //上移一行
       idx++
       if (item.textContent) {
@@ -115,7 +141,6 @@ onMounted(() => {
 
     emit('sensitive', sensitive)
   }
-
 })
 
 const onUploadImg = async (files: File[], callback: Function) => {
@@ -127,8 +152,16 @@ const onUploadImg = async (files: File[], callback: Function) => {
 </script>
 
 <template>
-  <md-editor id="md-editor" v-model="content" :preview="false" :toolbars="toolbars" :toolbarsExclude="['github']"
-    @on-upload-img="onUploadImg" :footers="footers" ref="editor">
+  <md-editor
+    id="md-editor"
+    v-model="content"
+    :preview="false"
+    :toolbars="toolbars"
+    :toolbarsExclude="['github']"
+    @on-upload-img="onUploadImg"
+    :footers="footers"
+    ref="editor"
+  >
     <template #defToolbars>
       <Export-PDF v-model="content" />
       <emoji>
@@ -136,7 +169,13 @@ const onUploadImg = async (files: File[], callback: Function) => {
       </emoji>
     </template>
     <template #defFooters>
-      <el-progress v-if="showPercentage" type="line" :percentage="uploadPercentage" :color="Colors" status="success" />
+      <el-progress
+        v-if="showPercentage"
+        type="line"
+        :percentage="uploadPercentage"
+        :color="Colors"
+        status="success"
+      />
       <span class="trans-radius" :style="{ 'background-color': transColor }" />
     </template>
   </md-editor>
@@ -144,18 +183,18 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 <style scoped>
 .md-editor:deep(.md-editor-footer) {
-  height: 40px
+  height: 40px;
 }
 
 .trans-radius {
   display: inline-flex;
   width: 10px;
   height: 10px;
-  border-radius: 50%
+  border-radius: 50%;
 }
 
 .el-progress {
   width: 100px;
-  display: inline-flex
+  display: inline-flex;
 }
 </style>

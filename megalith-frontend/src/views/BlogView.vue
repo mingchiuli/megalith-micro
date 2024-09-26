@@ -16,13 +16,13 @@ const catalogueWidth = ref(200)
 const right = ref(10)
 
 const blog = reactive<BlogExhibit>({
-  "title": '',
-  "description": '',
-  "content": '',
-  "avatar": '',
-  "readCount": 0,
-  "nickname": '',
-  "created": ''
+  title: '',
+  description: '',
+  content: '',
+  avatar: '',
+  readCount: 0,
+  nickname: '',
+  created: ''
 })
 
 const catalogueRef = useTemplateRef<InstanceType<typeof Catalogue>>('catalogue')
@@ -60,9 +60,9 @@ const computeWidth = () => {
 }
 
 onMounted(() => window.addEventListener('resize', computeWidth))
-onUnmounted(() => window.removeEventListener('resize', computeWidth));
+onUnmounted(() => window.removeEventListener('resize', computeWidth))
 
-(async () => {
+;(async () => {
   let data: BlogExhibit
   if (token) {
     data = await GET<BlogExhibit>(`/public/blog/secret/${blogId}?readToken=${token}`)
@@ -82,8 +82,13 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth));
 <template>
   <div class="father">
     <div class="affix">
-      <CatalogueItem v-if="loadingCatalogue" v-show="showCatalogue" ref="catalogue"
-        v-model:loading-catalogue="loadingCatalogue" :width="catalogueWidth" />
+      <CatalogueItem
+        v-if="loadingCatalogue"
+        v-show="showCatalogue"
+        ref="catalogue"
+        v-model:loading-catalogue="loadingCatalogue"
+        :width="catalogueWidth"
+      />
     </div>
   </div>
 
@@ -99,8 +104,12 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth));
       </template>
     </el-skeleton>
     <el-card shadow="never" class="content" v-show="!loading">
-      <md-preview editorId="preview-only" v-model="blog.content" :showCodeRowNumber="true"
-        @on-html-changed="renderCatalogue" />
+      <md-preview
+        editorId="preview-only"
+        v-model="blog.content"
+        :showCodeRowNumber="true"
+        @on-html-changed="renderCatalogue"
+      />
     </el-card>
     <DiscussItem />
   </div>
@@ -113,51 +122,51 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth));
   text-align: center;
   font-size: xx-large;
   margin-top: 30px;
-  margin-bottom: 20px
+  margin-bottom: 20px;
 }
 
 .exhibit-mavon-editor {
-  padding: 20px
+  padding: 20px;
 }
 
 .exhibit-avatar {
   margin: 0 auto;
-  display: block
+  display: block;
 }
 
 .exhibit-author {
   display: block;
   text-align: center;
-  margin-top: 5px
+  margin-top: 5px;
 }
 
 .exhibit-time {
   margin-top: 10px;
   display: block;
-  margin-left: 10px
+  margin-left: 10px;
 }
 
 .exhibit-read-count {
   display: block;
-  margin-left: 10px
+  margin-left: 10px;
 }
 
 .el-card:deep(.md-editor-preview-wrapper) {
-  padding: 20px 20px
+  padding: 20px 20px;
 }
 
 .content:deep(.el-card__body) {
-  padding: 0
+  padding: 0;
 }
 
 .affix {
   right: v-bind(right + 'px');
   position: fixed;
   margin-top: 30px;
-  display: block
+  display: block;
 }
 
 .father {
-  height: v-bind(affixHeight)
+  height: v-bind(affixHeight);
 }
 </style>

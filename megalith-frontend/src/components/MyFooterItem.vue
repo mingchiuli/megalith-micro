@@ -3,9 +3,9 @@ import { ref } from 'vue'
 import { GET } from '@/http/http'
 
 let start = ref(2021)
-let end = ref<number>();
+let end = ref<number>()
 
-(async () => {
+;(async () => {
   const years = await GET<number[]>('/public/blog/years')
   start.value = years[0]
   end.value = years[years.length - 1]
@@ -15,7 +15,9 @@ let end = ref<number>();
 <template>
   <div class="footer">
     <el-divider />
-    <el-link :underline="false" class="copyright" href="/">&copy; Powered by Docker {{ start }}-{{ end }} </el-link>
+    <el-link :underline="false" class="copyright" href="/"
+      >&copy; Powered by Docker {{ start }}-{{ end }}
+    </el-link>
   </div>
 </template>
 
@@ -23,10 +25,10 @@ let end = ref<number>();
 .footer {
   max-width: 15rem;
   margin: 0 auto;
-  text-align: center
+  text-align: center;
 }
 
 .el-link {
-  margin-bottom: 20px
+  margin-bottom: 20px;
 }
 </style>

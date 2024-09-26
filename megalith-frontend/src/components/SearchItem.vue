@@ -2,7 +2,11 @@
 import { GET } from '@/http/http'
 import router from '@/router'
 import type { BlogDesc, PageAdapter, SearchPage } from '@/type/entity'
-import type { AutocompleteFetchSuggestions, AutocompleteFetchSuggestionsCallback, ElAutocomplete } from 'element-plus'
+import type {
+  AutocompleteFetchSuggestions,
+  AutocompleteFetchSuggestionsCallback,
+  ElAutocomplete
+} from 'element-plus'
 import { onBeforeUnmount, ref, useTemplateRef } from 'vue'
 import { debounce } from '@/utils/tools'
 import { ElLoading } from 'element-plus'
@@ -22,9 +26,17 @@ let currentPage = 1
 const hotItemRef = useTemplateRef<InstanceType<typeof HotItem>>('hotItem')
 
 const yearDialogVisible = ref(false)
-const search = async (queryString: string, currentPage: number, allInfo: boolean, year: string, searchOrder: number | null): Promise<SearchPage<BlogDesc>> => {
+const search = async (
+  queryString: string,
+  currentPage: number,
+  allInfo: boolean,
+  year: string,
+  searchOrder: number | null
+): Promise<SearchPage<BlogDesc>> => {
   loading.value = true
-  const data = await GET<SearchPage<BlogDesc>>(`/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`)
+  const data = await GET<SearchPage<BlogDesc>>(
+    `/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`
+  )
   data.additional = searchOrder
   return Promise.resolve(data)
 }
@@ -36,10 +48,13 @@ let controller: AbortController
 const div = document.createElement('div')
 let loadingInstance: ReturnType<typeof ElLoading.service> | null
 
-const searchAbstractAsync: AutocompleteFetchSuggestions = (queryString: string, cb: AutocompleteFetchSuggestionsCallback) => {
+const searchAbstractAsync: AutocompleteFetchSuggestions = (
+  queryString: string,
+  cb: AutocompleteFetchSuggestionsCallback
+) => {
   if (queryString.length) {
     searchOrder++
-    search(queryString, currentPage, false, year.value!, searchOrder).then(page => {
+    search(queryString, currentPage, false, year.value!, searchOrder).then((page) => {
       if (page.additional !== searchOrder) {
         return
       }
@@ -66,7 +81,11 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (queryString: string, 
           controller = new AbortController()
           const { signal } = controller
           fin = false
-          suggestionEle!.addEventListener('scroll', debounce(() => load(suggestionEle!, cb)), { signal })
+          suggestionEle!.addEventListener(
+            'scroll',
+            debounce(() => load(suggestionEle!, cb)),
+            { signal }
+          )
         }
       }, 1000 * Math.random())
     })
@@ -81,7 +100,13 @@ const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
     lock = true
     e.append(div)
     loadingInstance = ElLoading.service({ target: div })
-    const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, year.value!, null)
+    const page: PageAdapter<BlogDesc> = await search(
+      keywords.value,
+      currentPage + 1,
+      false,
+      year.value!,
+      null
+    )
     if (page.content.length < page.pageSize) {
       page.content.forEach((blogsDesc: BlogDesc) => {
         blogsDesc.value = keywords.value
@@ -120,7 +145,13 @@ const handleSelect = (item: Record<string, any>) => {
 const searchAllInfo = async (queryString: string, currentPage = 1) => {
   searchDialogVisible.value = false
   if (queryString.length) {
-    const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, year.value!, null)
+    const page: PageAdapter<BlogDesc> = await search(
+      queryString,
+      currentPage,
+      true,
+      year.value!,
+      null
+    )
     if (page.content.length) {
       emit('transSearchData', page)
       return
@@ -167,32 +198,62 @@ onBeforeUnmount(() => {
   clearTimeout(timeout)
 })
 
-defineExpose(
-  { searchAllInfo }
-)
+defineExpose({ searchAllInfo })
 </script>
 
 <template>
-  <el-dialog v-model="searchDialogVisible" center close-on-press-escape fullscreen align-center
-    :before-close="searchBeforeClose" @open="openDialog">
+  <el-dialog
+    v-model="searchDialogVisible"
+    center
+    close-on-press-escape
+    fullscreen
+    align-center
+    :before-close="searchBeforeClose"
+    @open="openDialog"
+  >
     <template #default>
       <HotItem ref="hotItem" class="dialog-hot" />
       <div class="dialog-year" v-if="year!.length">年份：{{ year }}</div>
       <div class="dialog-autocomplete">
-        <el-autocomplete id="elc" v-model="keywords" :fetch-suggestions="searchAbstractAsync" placeholder="Please input"
-          placement="bottom" @select="handleSelect" :trigger-on-focus="false" popper-class="select-list" clearable
-          @keyup.enter="searchAllInfo(keywords!)" ref="refAutocomplete" @clear="clearSearch">
+        <el-autocomplete
+          id="elc"
+          v-model="keywords"
+          :fetch-suggestions="searchAbstractAsync"
+          placeholder="Please input"
+          placement="bottom"
+          @select="handleSelect"
+          :trigger-on-focus="false"
+          popper-class="select-list"
+          clearable
+          @keyup.enter="searchAllInfo(keywords!)"
+          ref="refAutocomplete"
+          @clear="clearSearch"
+        >
           <template #default="{ item }">
             <template v-if="item.highlight.title">
-              <div class="value" v-for="(title, key) in item.highlight.title" v-bind:key="key" v-html="'标题：' + title" />
+              <div
+                class="value"
+                v-for="(title, key) in item.highlight.title"
+                v-bind:key="key"
+                v-html="'标题：' + title"
+              />
             </template>
             <template v-if="item.highlight.description">
-              <div class="value" v-for="(description, key) in item.highlight.description" v-bind:key="key"
-                v-html="'摘要：' + description" />
+              <div
+                class="value"
+                v-for="(description, key) in item.highlight.description"
+                v-bind:key="key"
+                v-html="'摘要：' + description"
+              />
             </template>
             <template v-if="item.highlight.content">
-              <div id="scroll" class="value" v-for="(content, key) in item.highlight.content" v-bind:key="key"
-                v-html="'内容：' + content" />
+              <div
+                id="scroll"
+                class="value"
+                v-for="(content, key) in item.highlight.content"
+                v-bind:key="key"
+                v-html="'内容：' + content"
+              />
             </template>
           </template>
           <template #loading>
@@ -203,8 +264,11 @@ defineExpose(
         </el-autocomplete>
       </div>
 
-      <years-item v-model:year="year" v-model:yearDialogVisible="yearDialogVisible"
-        @close="yearsCloseEvent"></years-item>
+      <years-item
+        v-model:year="year"
+        v-model:yearDialogVisible="yearDialogVisible"
+        @close="yearsCloseEvent"
+      ></years-item>
     </template>
     <template #footer>
       <div class="dialog-footer">
@@ -218,23 +282,23 @@ defineExpose(
 <style scoped>
 .dialog-year {
   text-align: center;
-  margin-top: 5px
+  margin-top: 5px;
 }
 
 .dialog-autocomplete {
   margin: 30px auto 0 auto;
-  max-width: max-content
+  max-width: max-content;
 }
 
 .dialog-hot {
-  margin: 0 auto
+  margin: 0 auto;
 }
 
 .circular {
   display: inline;
   height: 30px;
   width: 30px;
-  animation: loading-rotate 2s linear infinite
+  animation: loading-rotate 2s linear infinite;
 }
 
 .path {
@@ -243,6 +307,6 @@ defineExpose(
   stroke-dashoffset: 0;
   stroke-width: 2;
   stroke: var(--el-color-primary);
-  stroke-linecap: round
+  stroke-linecap: round;
 }
 </style>

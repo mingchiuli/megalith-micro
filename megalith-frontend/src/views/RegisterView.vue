@@ -1,12 +1,19 @@
 <script lang="ts" setup>
 import { computed, reactive, ref, useTemplateRef } from 'vue'
-import { type FormInstance, type FormRules, type UploadFile, type UploadProps, type UploadRawFile, type UploadRequestOptions, type UploadUserFile } from 'element-plus'
+import {
+  type FormInstance,
+  type FormRules,
+  type UploadFile,
+  type UploadProps,
+  type UploadRawFile,
+  type UploadRequestOptions,
+  type UploadUserFile
+} from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import router from '@/router'
 import { useRoute } from 'vue-router'
 import { clearLoginState, submitLogin } from '@/utils/tools'
 import { Colors } from '@/type/entity'
-
 
 type Form = {
   id?: number
@@ -41,7 +48,7 @@ if (username) {
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
-GET<boolean>(`/sys/user/register/check?token=${token.value}`).then(res => {
+GET<boolean>(`/sys/user/register/check?token=${token.value}`).then((res) => {
   if (!res) {
     router.push('/blogs')
   }
@@ -70,30 +77,17 @@ const validatePassword = (_rule: any, value: string, callback: Function) => {
 }
 
 const formRules = reactive<FormRules<Form>>({
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' }
-  ],
-  nickname: [
-    { required: true, message: '请输入昵称', trigger: 'blur' }
-  ],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' }
-  ],
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   confirmPassword: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { validator: validatePassword, trigger: 'blur' }
   ],
-  avatar: [
-    { required: false, message: '请输入头像链接', trigger: 'blur' }
-  ],
-  email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' }
-  ],
-  phone: [
-    { required: false, message: '请输入手机号', trigger: 'blur' }
-  ]
+  avatar: [{ required: false, message: '请输入头像链接', trigger: 'blur' }],
+  email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
+  phone: [{ required: false, message: '请输入手机号', trigger: 'blur' }]
 })
-
 
 const formRef = useTemplateRef<FormInstance>('form')
 
@@ -105,7 +99,12 @@ const uploadFile = async (file: UploadRawFile) => {
   const formdata = new FormData()
   formdata.append('image', file)
   formdata.append('token', token.value as string)
-  const url = await UPLOAD('sys/user/register/image/upload', formdata, uploadPercentage, showPercentage)
+  const url = await UPLOAD(
+    'sys/user/register/image/upload',
+    formdata,
+    uploadPercentage,
+    showPercentage
+  )
   fileList.value.push({
     name: file.name,
     url: url
@@ -114,7 +113,7 @@ const uploadFile = async (file: UploadRawFile) => {
   ElNotification({
     title: '操作成功',
     message: '图片上传成功',
-    type: 'success',
+    type: 'success'
   })
 }
 
@@ -136,7 +135,7 @@ const submitForm = async (ref: FormInstance) => {
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
-        type: 'success',
+        type: 'success'
       })
       clearLoginState()
       await submitLogin(form.username, form.password)
@@ -154,16 +153,17 @@ const handleRemove = async (_file: UploadFile) => {
   await GET<null>(`/sys/user/register/image/delete?url=${form.avatar}&token=${token.value}`)
   form.avatar = ''
 }
-
 </script>
 
 <template>
   <div class="front">
-
     <el-form :model="form" :rules="formRules" ref="form" class="father">
-
       <el-form-item label="用户名" label-width="80" prop="username" class="username">
-        <el-input v-model="form.username" maxlength="30" :disabled="username !== undefined && username !== ''" />
+        <el-input
+          v-model="form.username"
+          maxlength="30"
+          :disabled="username !== undefined && username !== ''"
+        />
       </el-form-item>
 
       <el-form-item label="昵称" label-width="80" prop="nickname" class="nickname">
@@ -178,16 +178,24 @@ const handleRemove = async (_file: UploadFile) => {
       </el-form-item>
 
       <el-form-item class="avatar" label-width="40">
-        <span style="margin-right: 10px;">头像</span>
-        <el-upload v-model:file-list="fileList" action="#" list-type="picture-card" :before-upload="beforeUpload" :limit="1" :http-request="upload"
-          :on-remove="handleRemove" :on-preview="handlePictureCardPreview">
+        <span style="margin-right: 10px">头像</span>
+        <el-upload
+          v-model:file-list="fileList"
+          action="#"
+          list-type="picture-card"
+          :before-upload="beforeUpload"
+          :limit="1"
+          :http-request="upload"
+          :on-remove="handleRemove"
+          :on-preview="handlePictureCardPreview"
+        >
           <el-icon>
             <Plus />
           </el-icon>
         </el-upload>
 
         <el-dialog v-model="dialogVisible">
-          <img style="width: 100%;" :src="dialogImageUrl" alt="" />
+          <img style="width: 100%" :src="dialogImageUrl" alt="" />
         </el-dialog>
       </el-form-item>
 
@@ -213,35 +221,35 @@ const handleRemove = async (_file: UploadFile) => {
 <style scoped>
 .father {
   max-width: 30rem;
-  margin: 50px auto
+  margin: 50px auto;
 }
 
 .submit-button {
-  text-align: center
+  text-align: center;
 }
 
 .username {
-  width: 300px
+  width: 300px;
 }
 
 .nickname {
-  width: 300px
+  width: 300px;
 }
 
 .password {
-  width: 300px
+  width: 300px;
 }
 
 .email {
-  width: 300px
+  width: 300px;
 }
 
 .progress {
-  width: 300px
+  width: 300px;
 }
 
 .phone {
-  width: 300px
+  width: 300px;
 }
 
 .el-progress {
