@@ -6,6 +6,7 @@ import org.chiu.micro.websocket.config.interceptor.AuthHandshakeInterceptor;
 
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.web.socket.config.annotation.*;
 
 
@@ -31,10 +32,13 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        var scheduler = new SimpleAsyncTaskScheduler();
+        scheduler.setVirtualThreads(true);
         registry.addHandler(editWebSocketHandler, "/edit/ws")
                 .setHandshakeHandler(retrieveUserHandler)
                 .setAllowedOrigins("https://chiu.wiki")
                 .addInterceptors(authHandshakeInterceptor)
-                .withSockJS();
+                .withSockJS()
+                .setTaskScheduler(scheduler);
     }
 }
