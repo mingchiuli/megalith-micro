@@ -38,6 +38,9 @@ public class AuthHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
             return false;
         }
 
+        log.info("beforeHandshake token:{}", token);
+
+
         if (!StringUtils.hasLength(token)) {
             return false;
         }
