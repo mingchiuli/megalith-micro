@@ -58,7 +58,7 @@ const UPLOAD = async (
     })
     .then((resp: any) => {
       url = resp as string
-      url = url.substring('data:'.length).replaceAll('\n', '')
+      url = url.substring('data:'.length).replace(/\n/g, '')
     })
     .catch((e) => {
       return Promise.reject(new Error(e))
