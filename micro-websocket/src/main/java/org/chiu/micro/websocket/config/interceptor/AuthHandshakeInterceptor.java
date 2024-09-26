@@ -43,10 +43,11 @@ public class AuthHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
         }
 
         String path = request.getURI().getPath();
+        log.info("beforeHandshake method:{}", request.getMethod().name());
 
         AuthorityRouteReq req = AuthorityRouteReq.builder()
                 .ipAddr(null)
-                .method(Const.WS.getInfo())
+                .method(request.getMethod().name())
                 .routeMapping(path)
                 .build();
         AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(req);
