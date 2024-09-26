@@ -1,15 +1,13 @@
 package org.chiu.micro.websocket.rpc.wrapper;
 
 import org.chiu.micro.websocket.dto.AuthDto;
-import org.chiu.micro.websocket.dto.AuthorityDto;
+import org.chiu.micro.websocket.dto.AuthorityRouteDto;
 import org.chiu.micro.websocket.exception.MissException;
-import org.chiu.micro.websocket.lang.Const;
 import org.chiu.micro.websocket.lang.Result;
+import org.chiu.micro.websocket.req.AuthorityRouteReq;
 import org.chiu.micro.websocket.rpc.AuthHttpService;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
 
 @Component
 public class AuthHttpServiceWrapper {
@@ -28,8 +26,8 @@ public class AuthHttpServiceWrapper {
         return result.data();
     }
 
-    public List<AuthorityDto> getSystemAuthorities() {
-        Result<List<AuthorityDto>> result = authHttpService.getSystemAuthorities(Collections.singletonList(Const.WEBSOCKET_SERVICE.getInfo()));
+    public AuthorityRouteDto getAuthorityRoute(AuthorityRouteReq req) {
+        Result<AuthorityRouteDto> result = authHttpService.getAuthorityRoute(req);
         if (result.code() != 200) {
             throw new MissException(result.msg());
         }

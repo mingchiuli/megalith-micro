@@ -2,7 +2,6 @@ package org.chiu.micro.auth.service.impl;
 
 
 import jakarta.annotation.PostConstruct;
-import org.chiu.micro.auth.convertor.AuthorityVoConvertor;
 import org.chiu.micro.auth.convertor.MenusAndButtonsVoConvertor;
 import org.chiu.micro.auth.dto.*;
 import org.chiu.micro.auth.exception.AuthException;
@@ -12,7 +11,6 @@ import org.chiu.micro.auth.service.AuthService;
 import org.chiu.micro.auth.token.Claims;
 import org.chiu.micro.auth.utils.SecurityAuthenticationUtils;
 import org.chiu.micro.auth.vo.AuthorityRouteVo;
-import org.chiu.micro.auth.vo.AuthorityVo;
 import org.chiu.micro.auth.vo.MenusAndButtonsVo;
 import org.chiu.micro.auth.wrapper.AuthWrapper;
 import org.redisson.api.RScript.Mode;
@@ -83,16 +81,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public List<AuthorityVo> getSystemAuthority(List<String> serviceHost) {
-        List<AuthorityDto> systemAuthorities = userHttpServiceWrapper.getSystemAuthorities(serviceHost);
-        return AuthorityVoConvertor.convert(systemAuthorities);
-    }
-
-    @Override
     public AuthorityRouteVo route(AuthorityRouteReq req, String token) {
         //record ip
-
-        taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()), req.ipAddr()));
+        String ipAddr = req.ipAddr();
+        if (StringUtils.hasLength(ipAddr)) {
+            taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()), ipAddr));
+        }
 
         List<String> authorities;
         try {
