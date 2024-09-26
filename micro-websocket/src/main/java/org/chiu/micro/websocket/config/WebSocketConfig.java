@@ -36,7 +36,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
         scheduler.setVirtualThreads(true);
         registry.addHandler(editWebSocketHandler, "/edit/ws")
                 .setHandshakeHandler(retrieveUserHandler)
-                .setAllowedOrigins("https://chiu.wiki")
+                .setAllowedOrigins("http://chiu.wiki")
                 .addInterceptors(authHandshakeInterceptor)
                 .withSockJS()
                 .setTaskScheduler(scheduler);
