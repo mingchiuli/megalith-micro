@@ -10,6 +10,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Dependencies 🔧
         run: npm install
+      - name: ESlint
+        run: npx eslint --ext .js,.ts,.vue src
       - name: Build 🏭
         run: npm run build
       - name: Deploy 🚀
