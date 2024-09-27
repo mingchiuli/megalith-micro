@@ -11,7 +11,7 @@ jobs:
       - name: Install Dependencies 🔧
         run: npm install
       - name: ESlint
-        run: npx eslint --ext .js,.ts,.vue src
+        run: npx eslint -c .js,.ts,.vue src
       - name: Build 🏭
         run: npm run build
       - name: Deploy 🚀
