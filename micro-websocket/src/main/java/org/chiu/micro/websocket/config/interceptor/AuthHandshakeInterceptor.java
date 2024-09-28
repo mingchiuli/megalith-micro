@@ -39,11 +39,10 @@ public class AuthHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
             return false;
         }
 
-        String path = request.getURI().getPath();
         AuthorityRouteReq req = AuthorityRouteReq.builder()
                 .ipAddr(null)
                 .method(request.getMethod().name())
-                .routeMapping(path)
+                .routeMapping(request.getURI().getPath())
                 .build();
         AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(req, token);
         return Boolean.TRUE.equals(authorityRoute.auth());
