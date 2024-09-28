@@ -183,7 +183,8 @@ const submitForm = async (ref: FormInstance) => {
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
-        type: 'success'
+        type: 'success',
+        duration: 1000
       })
       blogsStore().pageNum = 1
       router.push({
