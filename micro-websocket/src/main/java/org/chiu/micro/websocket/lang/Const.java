@@ -9,15 +9,7 @@ package org.chiu.micro.websocket.lang;
 
 public enum Const {
 
-    TEMP_EDIT_BLOG("temp_edit_blog:"),
-
-    WEBSOCKET_SERVICE("micro-websocket"),
-
-    HTTP("http"),
-
-    WS("ws"),
-
-    WHITELIST("whitelist");
+    TEMP_EDIT_BLOG("temp_edit_blog:");
 
     private final String info;
 
