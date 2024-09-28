@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 import static org.chiu.micro.user.convertor.MenuDisplayVoConvertor.buildTreeMenu;
 import static org.chiu.micro.user.lang.ExceptionMessage.MENU_NOT_EXIST;
@@ -61,11 +61,11 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public void saveOrUpdate(MenuEntityReq menu) {
-        Long menuId = menu.menuId();
+        Optional<Long> menuId = menu.menuId();
         MenuEntity menuEntity;
 
-        if (Objects.nonNull(menuId)) {
-            menuEntity = menuRepository.findById(menuId)
+        if (menuId.isPresent()) {
+            menuEntity = menuRepository.findById(menuId.get())
                     .orElseThrow(() -> new MissException(NO_FOUND));
         } else {
             menuEntity = MenuEntityConvertor.convert(menu);
@@ -73,10 +73,10 @@ public class MenuServiceImpl implements MenuService {
 
         MenuEntityConvertor.convert(menu, menuEntity);
 
-        if (StatusEnum.HIDE.getCode().equals(menu.status())) {
+        if (StatusEnum.HIDE.getCode().equals(menu.status()) && menuId.isPresent()) {
             List<MenuEntity> menuEntities = new ArrayList<>();
             menuEntities.add(menuEntity);
-            findTargetChildrenMenuId(menuId, menuEntities);
+            findTargetChildrenMenuId(menuId.get(), menuEntities);
             menuRepository.saveAll(menuEntities);
         } else {
             menuRepository.save(menuEntity);

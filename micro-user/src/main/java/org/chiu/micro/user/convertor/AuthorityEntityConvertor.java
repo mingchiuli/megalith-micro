@@ -6,7 +6,7 @@ import org.chiu.micro.user.req.AuthorityEntityReq;
 public class AuthorityEntityConvertor {
 
     public static void convert(AuthorityEntityReq req, AuthorityEntity authorityEntity) {
-        authorityEntity.setId(req.id());
+        authorityEntity.setId(req.id().orElse(null));
         authorityEntity.setCode(req.code());
         authorityEntity.setName(req.name());
         authorityEntity.setRemark(req.remark());

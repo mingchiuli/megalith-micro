@@ -9,10 +9,11 @@ import org.chiu.micro.user.valid.Username;
 import org.hibernate.validator.constraints.URL;
 
 import java.util.List;
+import java.util.Optional;
 
 public record UserEntityReq(
 
-        Long id,
+        Optional<Long> id,
 
         @Username
         String username,
@@ -42,6 +43,6 @@ public record UserEntityReq(
         }
 
         public UserEntityReq(UserEntityRegisterReq req, Long id, Integer status, List<String> roles) {
-                this(id, req.username(), req.nickname(), req.avatar(), req.password(), req.email(), req.phone(), status, roles);
+                this(Optional.ofNullable(id), req.username(), req.nickname(), req.avatar(), req.password(), req.email(), req.phone(), status, roles);
         }
 }

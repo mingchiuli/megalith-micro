@@ -19,7 +19,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 import static org.chiu.micro.user.lang.ExceptionMessage.NO_FOUND;
 
@@ -63,11 +63,11 @@ public class AuthorityServiceImpl implements AuthorityService {
     @Override
     public void saveOrUpdate(AuthorityEntityReq req) {
 
-        Long id = req.id();
+        Optional<Long> id = req.id();
         AuthorityEntity authorityEntity;
 
-        if (Objects.nonNull(id)) {
-            authorityEntity = authorityRepository.findById(id)
+        if (id.isPresent()) {
+            authorityEntity = authorityRepository.findById(id.get())
                     .orElseThrow(() -> new MissException(NO_FOUND));
         } else {
             authorityEntity = new AuthorityEntity();
