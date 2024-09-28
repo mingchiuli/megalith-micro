@@ -228,6 +228,7 @@ defineExpose({ searchAllInfo })
           @keyup.enter="searchAllInfo(keywords!)"
           ref="refAutocomplete"
           @clear="clearSearch"
+          :fit-input-width="true"
         >
           <template #default="{ item }">
             <template v-if="item.highlight.title">
