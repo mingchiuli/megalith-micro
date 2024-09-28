@@ -262,11 +262,11 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public void saveOrUpdate(BlogEntityReq blog, Long userId) {
-        Long blogId = blog.id();
+        Optional<Long> blogId = blog.id();
         BlogEntity blogEntity;
 
-        if (Objects.nonNull(blogId)) {
-            blogEntity = blogRepository.findById(blogId)
+        if (blogId.isPresent()) {
+            blogEntity = blogRepository.findById(blogId.get())
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
 
             AuthUtils.checkEditAuth(blogEntity, userId);
@@ -282,31 +282,26 @@ public class BlogServiceImpl implements BlogService {
         List<BlogSensitiveContentEntity> blogSensitiveContentEntityList = blog.sensitiveContentList().stream()
                 .distinct()
                 .map(item -> BlogSensitiveContentEntity.builder()
-                        .blogId(blog.id())
                         .endIndex(item.endIndex())
                         .startIndex(item.startIndex())
                         .type(item.type())
                         .build())
                 .toList();
 
-        List<Long> existedSensitiveIds = blogSensitiveContentRepository.findByBlogId(blogId)
-                .stream()
-                .map(BlogSensitiveContentEntity::getId)
-                .toList();
+        List<Long> existedSensitiveIds = Collections.emptyList();
+        if (blogId.isPresent()) {
+            existedSensitiveIds = blogSensitiveContentRepository.findByBlogId(blogId.get())
+                    .stream()
+                    .map(BlogSensitiveContentEntity::getId)
+                    .toList();
+        }
 
         BlogEntity saved = blogSensitiveWrapper.saveOrUpdate(blogEntity, blogSensitiveContentEntityList, existedSensitiveIds);
 
         // 通知消息给mq,更新并删除缓存
         // 防止重复消费
-        BlogOperateEnum type;
-        if (Objects.nonNull(blogId)) {
-            type = BlogOperateEnum.UPDATE;
-        } else {
-            type = BlogOperateEnum.CREATE;
-            blogId = saved.getId();
-        }
-
-        var blogSearchIndexMessage = new BlogOperateMessage(blogId, type, blogEntity.getCreated().getYear());
+        BlogOperateEnum type = blogId.isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE;
+        var blogSearchIndexMessage = new BlogOperateMessage(saved.getId(), type, blogEntity.getCreated().getYear());
         applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
     }
 

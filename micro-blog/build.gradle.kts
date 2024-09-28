@@ -27,7 +27,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				-march=compatibility
 				--gc=serial
 				-R:MaxHeapSize=512m
-				-O3
+				-Ob
 				-J-XX:MaxRAMPercentage=80.0
 			""",
 		"BP_HEALTH_CHECKER_ENABLED" to "true"
