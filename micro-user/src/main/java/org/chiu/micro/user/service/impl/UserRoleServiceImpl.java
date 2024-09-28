@@ -114,7 +114,7 @@ public class UserRoleServiceImpl implements UserRoleService {
     @Override
     public void saveRegisterPage(String token, UserEntityRegisterReq userEntityRegisterReq) {
         Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX.getInfo() + token);
-        if (Objects.isNull(exist) || Boolean.FALSE.equals(exist)) {
+        if (Boolean.FALSE.equals(exist)) {
             throw new MissException(NO_AUTH.getMsg());
         }
         String password = userEntityRegisterReq.password();

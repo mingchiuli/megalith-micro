@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public SseEmitter imageUpload(String token, MultipartFile file) {
         Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX.getInfo() + token);
-        if (Objects.isNull(exist) || Boolean.FALSE.equals(exist)) {
+        if (Boolean.FALSE.equals(exist)) {
             throw new MissException(NO_AUTH.getMsg());
         }
         byte[] imageBytes;
@@ -134,7 +134,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void imageDelete(String token, String url) {
         Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX.getInfo() + token);
-        if (Objects.isNull(exist) || Boolean.FALSE.equals(exist)) {
+        if (Boolean.FALSE.equals(exist)) {
             throw new MissException(NO_AUTH.getMsg());
         }
         taskExecutor.execute(() -> {
