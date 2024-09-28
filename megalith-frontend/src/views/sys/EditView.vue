@@ -42,9 +42,15 @@ const blogId = route.query.id as string | undefined
 let socket: WebSocket
 const connect = () => {
   destory()
-  socket = new WebSocket(
-    `${import.meta.env.VITE_BASE_WS_URL}/edit/ws?token=${localStorage.getItem('accessToken')}`
-  )
+  try {
+    socket = new WebSocket(
+      `${import.meta.env.VITE_BASE_WS_URL}/edit/ws?token=${localStorage.getItem('accessToken')}`
+    )
+  } catch(_e) {
+    console.error('connect fail...')
+    return
+  }
+  
   opreateStatus.client = socket
   socket.addEventListener('message', subscribe)
 }
