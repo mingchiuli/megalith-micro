@@ -23,7 +23,7 @@ public enum Const {
 
     private final String info;
 
-    private Const(String info) {
+    Const(String info) {
         this.info = info;
     }
 
