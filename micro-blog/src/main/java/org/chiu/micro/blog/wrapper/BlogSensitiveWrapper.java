@@ -24,11 +24,13 @@ public class BlogSensitiveWrapper {
     @Transactional
     public BlogEntity saveOrUpdate(BlogEntity blog, List<BlogSensitiveContentEntity> blogSensitiveContentEntityList, List<Long> existedSensitiveIds) {
         BlogEntity savedBlogEntity = blogRepository.save(blog);
+        Long blogId = savedBlogEntity.getId();
 
         if (!existedSensitiveIds.isEmpty()) {
             blogSensitiveContentRepository.deleteAllById(existedSensitiveIds);
         }
         if (!blogSensitiveContentEntityList.isEmpty()) {
+            blogSensitiveContentEntityList.forEach(item -> item.setBlogId(blogId));
             blogSensitiveContentRepository.saveAll(blogSensitiveContentEntityList);
         }
         return savedBlogEntity;

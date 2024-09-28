@@ -31,7 +31,7 @@ public class BlogEntityConvertor {
         blogEntity.setTitle(blog.title());
         blogEntity.setDescription(blog.description());
         blogEntity.setContent(blog.content());
-        blogEntity.setId(blog.id());
+        blogEntity.setId(blog.id().orElse(null));
         blogEntity.setStatus(blog.status());
         blogEntity.setLink(blog.link());
     }

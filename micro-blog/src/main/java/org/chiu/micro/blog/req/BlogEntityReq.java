@@ -1,6 +1,7 @@
 package org.chiu.micro.blog.req;
 
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -9,7 +10,7 @@ import java.util.List;
  */
 public record BlogEntityReq(
 
-        Long id,
+        Optional<Long> id,
 
         String title,
 
