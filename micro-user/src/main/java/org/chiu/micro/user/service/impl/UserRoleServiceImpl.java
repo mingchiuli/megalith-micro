@@ -76,13 +76,13 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     @Override
     public void saveOrUpdate(UserEntityReq userEntityReq) {
-        Long id = userEntityReq.id();
+        Optional<Long> id = userEntityReq.id();
         List<String> roles = userEntityReq.roles();
         UserEntity userEntity;
         UserOperateEnum userOperateEnum;
 
-        if (Objects.nonNull(id)) {
-            userEntity = userRepository.findById(id)
+        if (id.isPresent()) {
+            userEntity = userRepository.findById(id.get())
                     .orElseThrow(() -> new MissException(USER_NOT_EXIST));
 
             String password = userEntityReq.password();

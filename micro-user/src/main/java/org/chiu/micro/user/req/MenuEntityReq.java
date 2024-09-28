@@ -1,12 +1,14 @@
 package org.chiu.micro.user.req;
 
+import java.util.Optional;
+
 /**
  * @author mingchiuli
  * @create 2022-12-04 6:23 pm
  */
 public record MenuEntityReq(
 
-        Long menuId,
+        Optional<Long> menuId,
 
         Long parentId,
 

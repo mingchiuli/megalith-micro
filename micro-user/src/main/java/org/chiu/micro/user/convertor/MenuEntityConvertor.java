@@ -3,6 +3,8 @@ package org.chiu.micro.user.convertor;
 import org.chiu.micro.user.entity.MenuEntity;
 import org.chiu.micro.user.req.MenuEntityReq;
 
+import java.util.Optional;
+
 public class MenuEntityConvertor {
 
     private MenuEntityConvertor() {
@@ -10,7 +12,7 @@ public class MenuEntityConvertor {
 
     public static MenuEntity convert(MenuEntityReq menu) {
         return MenuEntity.builder()
-                .menuId(menu.menuId())
+                .menuId(menu.menuId().orElse(null))
                 .parentId(menu.parentId())
                 .icon(menu.icon())
                 .url(menu.url())
@@ -24,7 +26,7 @@ public class MenuEntityConvertor {
     }
 
     public static void convert(MenuEntityReq menu, MenuEntity menuEntity) {
-        menuEntity.setMenuId(menu.menuId());
+        menuEntity.setMenuId(menu.menuId().orElse(null));
         menuEntity.setParentId(menu.parentId());
         menuEntity.setTitle(menu.title());
         menuEntity.setName(menu.name());

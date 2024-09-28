@@ -3,13 +3,15 @@ package org.chiu.micro.user.req;
 import jakarta.validation.constraints.NotBlank;
 import org.chiu.micro.user.valid.ListValue;
 
+import java.util.Optional;
+
 /**
  * @author mingchiuli
  * @create 2022-12-06 8:57 pm
  */
 public record RoleEntityReq(
 
-        Long id,
+        Optional<Long> id,
 
         @NotBlank
         String name,

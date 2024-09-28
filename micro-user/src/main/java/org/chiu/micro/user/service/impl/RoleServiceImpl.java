@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 import static org.chiu.micro.user.lang.ExceptionMessage.ROLE_NOT_EXIST;
 
@@ -88,11 +88,11 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public void saveOrUpdate(RoleEntityReq roleReq) {
 
-        Long id = roleReq.id();
+        Optional<Long> id = roleReq.id();
         RoleEntity roleEntity;
 
-        if (Objects.nonNull(id)) {
-            roleEntity = roleRepository.findById(id)
+        if (id.isPresent()) {
+            roleEntity = roleRepository.findById(id.get())
                     .orElseThrow(() -> new MissException(ROLE_NOT_EXIST));
         } else {
             roleEntity = new RoleEntity();

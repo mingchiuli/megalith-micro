@@ -68,7 +68,7 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
     public void saveAuthority(Long roleId, List<Long> authorityIds) {
         List<RoleAuthorityEntity> roleAuthorityEntities = RoleAuthorityEntityConvertor.convert(roleId, authorityIds);
         roleAuthorityWrapper.saveAuthority(roleId, new ArrayList<>(roleAuthorityEntities));
-        // 删除权限
+        // 删除权限缓存
         roleRepository.findById(roleId)
                 .map(RoleEntity::getCode)
                 .ifPresent(role -> {
