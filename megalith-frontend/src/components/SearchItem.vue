@@ -281,6 +281,11 @@ defineExpose({ searchAllInfo })
 </template>
 
 <style scoped>
+
+.value {
+  overflow-x: auto;
+}
+
 .dialog-year {
   text-align: center;
   margin-top: 5px;
