@@ -20,6 +20,7 @@ public class MenuDisplayDtoConvertor {
         }
 
         return menuStream
+                .distinct()
                 .map(menu -> MenuDisplayDto.builder()
                         .menuId(menu.menuId())
                         .parentId(menu.parentId())

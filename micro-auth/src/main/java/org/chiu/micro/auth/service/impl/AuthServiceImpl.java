@@ -9,7 +9,6 @@ import org.chiu.micro.auth.convertor.MenusAndButtonsVoConvertor;
 import org.chiu.micro.auth.dto.*;
 import org.chiu.micro.auth.exception.AuthException;
 import org.chiu.micro.auth.req.AuthorityRouteReq;
-import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
 import org.chiu.micro.auth.service.AuthService;
 import org.chiu.micro.auth.token.Claims;
 import org.chiu.micro.auth.utils.SecurityAuthenticationUtils;
@@ -41,8 +40,6 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthWrapper authWrapper;
 
-    private final UserHttpServiceWrapper userHttpServiceWrapper;
-
     private final SecurityAuthenticationUtils securityAuthenticationUtils;
 
     private final RedissonClient redissonClient;
@@ -53,9 +50,8 @@ public class AuthServiceImpl implements AuthService {
 
     private String script;
 
-    public AuthServiceImpl(AuthWrapper authWrapper, UserHttpServiceWrapper userHttpServiceWrapper, SecurityAuthenticationUtils securityAuthenticationUtils, RedissonClient redissonClient, @Qualifier("commonExecutor") ExecutorService taskExecutor, ResourceLoader resourceLoader) {
+    public AuthServiceImpl(AuthWrapper authWrapper, SecurityAuthenticationUtils securityAuthenticationUtils, RedissonClient redissonClient, @Qualifier("commonExecutor") ExecutorService taskExecutor, ResourceLoader resourceLoader) {
         this.authWrapper = authWrapper;
-        this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.securityAuthenticationUtils = securityAuthenticationUtils;
         this.redissonClient = redissonClient;
         this.taskExecutor = taskExecutor;
@@ -137,8 +133,8 @@ public class AuthServiceImpl implements AuthService {
         } else {
             String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
             Claims claims = securityAuthenticationUtils.getVerifierByToken(jwt);
-            userId = Long.parseLong(claims.getUserId());
-            List<String> roles = claims.getRoles();
+            userId = Long.parseLong(claims.userId());
+            List<String> roles = claims.roles();
             rawRoles = securityAuthenticationUtils.getRawRoleCodes(roles);
             authorities = securityAuthenticationUtils.getAuthorities(userId, rawRoles);
         }
