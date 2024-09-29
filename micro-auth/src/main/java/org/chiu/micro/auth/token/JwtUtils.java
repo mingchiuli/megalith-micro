@@ -28,11 +28,13 @@ public class JwtUtils implements TokenUtils<Claims> {
 
     private String secret;
 
-    private Algorithm algorithm;
-
     private JWSVerifier verifier;
 
     private JWSSigner signer;
+
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
 
     @PostConstruct
     public void init() throws JOSEException {
