@@ -15,6 +15,7 @@ public class AuthorityEntityConvertor {
         authorityEntity.setRoutePattern(req.routePattern());
         authorityEntity.setServiceHost(req.serviceHost());
         authorityEntity.setServicePort(req.servicePort());
+        authorityEntity.setType(req.type());
         authorityEntity.setStatus(req.status());
     }
 }

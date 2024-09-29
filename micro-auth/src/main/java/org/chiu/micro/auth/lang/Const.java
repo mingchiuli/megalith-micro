@@ -41,10 +41,6 @@ public enum Const {
 
     WEBSOCKET_SERVICE("micro-websocket"),
 
-    GATEWAY_SERVICE("micro-gateway"),
-
-    WHITELIST("whitelist"),
-
     DAY_VISIT("{visit_record}_day"),
 
     WEEK_VISIT("{visit_record}_week"),

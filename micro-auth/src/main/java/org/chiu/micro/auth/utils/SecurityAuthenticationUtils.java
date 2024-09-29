@@ -2,7 +2,7 @@ package org.chiu.micro.auth.utils;
 
 import org.chiu.micro.auth.dto.AuthorityDto;
 import org.chiu.micro.auth.exception.AuthException;
-import org.chiu.micro.auth.lang.Const;
+import org.chiu.micro.auth.lang.AuthStatusEnum;
 import org.chiu.micro.auth.token.Claims;
 import org.chiu.micro.auth.token.TokenUtils;
 import org.chiu.micro.auth.wrapper.AuthWrapper;
@@ -53,8 +53,8 @@ public class SecurityAuthenticationUtils {
     public List<String> getAuthAuthority(String token) throws AuthException {
         List<AuthorityDto> allAuthorities = authWrapper.getAllSystemAuthorities();
         List<String> whiteList = allAuthorities.stream()
+                .filter(item -> AuthStatusEnum.WHITE_LIST.getCode().equals(item.type()))
                 .map(AuthorityDto::code)
-                .filter(code -> code.startsWith(Const.WHITELIST.getInfo()))
                 .toList();
 
         List<String> authorities = new ArrayList<>(whiteList);

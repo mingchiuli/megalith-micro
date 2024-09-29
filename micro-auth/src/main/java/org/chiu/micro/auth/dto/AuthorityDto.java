@@ -21,5 +21,7 @@ public record AuthorityDto (
 
         Integer servicePort,
 
+        Integer type,
+
         Integer status) {
 }

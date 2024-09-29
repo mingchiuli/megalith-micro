@@ -23,6 +23,7 @@ public class AuthorityVoConvertor {
                         .routePattern(item.getRoutePattern())
                         .created(item.getCreated())
                         .updated(item.getUpdated())
+                        .type(item.getType())
                         .status(item.getStatus())
                         .remark(item.getRemark())
                         .build())
@@ -42,6 +43,7 @@ public class AuthorityVoConvertor {
                 .created(authorityEntity.getCreated())
                 .updated(authorityEntity.getUpdated())
                 .status(authorityEntity.getStatus())
+                .type(authorityEntity.getType())
                 .remark(authorityEntity.getRemark())
                 .build();
     }
