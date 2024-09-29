@@ -21,6 +21,8 @@ public class ButtonVoConvertor {
             buttonStream = buttonStream.filter(menu -> StatusEnum.NORMAL.getCode().equals(menu.status()));
         }
 
-        return buttonStream.toList();
+        return buttonStream
+                .distinct()
+                .toList();
     }
 }
