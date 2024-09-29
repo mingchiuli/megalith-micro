@@ -55,6 +55,7 @@ export interface AuthoritySys {
   created: string
   updated: string
   status: number
+  type: number
   prototype: string
   methodType: string
   routePattern: string
@@ -234,6 +235,11 @@ export enum Status {
   NORMAL = 0,
   BLOCK,
   SENSITIVE_FILTER
+}
+
+export enum AuthStatus {
+  WHITE_LIST = 0,
+  NEED_AUTH
 }
 
 export enum RoutesEnum {

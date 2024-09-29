@@ -3,7 +3,7 @@ import { GET, POST } from '@/http/http'
 import type { AuthoritySys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref, useTemplateRef } from 'vue'
-import { Status, ButtonAuth } from '@/type/entity'
+import { Status, ButtonAuth, AuthStatus } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
 
@@ -19,9 +19,10 @@ let content = reactive<AuthoritySys[]>([])
 
 const formRules = reactive<FormRules<Form>>({
   name: [{ required: true, message: '请输入名字', trigger: 'blur' }],
-  code: [{ required: true, message: '请输入权限编码(白名单需要以whitelist开头)', trigger: 'blur' }],
+  code: [{ required: true, message: '请输入权限编码', trigger: 'blur' }],
   remark: [{ required: true, message: '请输入描述', trigger: 'blur' }],
   status: [{ required: true, message: '请选择状态', trigger: 'blur' }],
+  type: [{ required: true, message: '请选择类型', trigger: 'blur' }],
   prototype: [{ required: true, message: '请输入协议:http/ws', trigger: 'blur' }],
   methodType: [{ required: true, message: '请输入方法类型', trigger: 'blur' }],
   routePattern: [{ required: true, message: '请输入路由匹配', trigger: 'blur' }],
@@ -35,6 +36,7 @@ type Form = {
   code: string
   remark: string
   status: number
+  type: number
   prototype: string
   methodType: string
   routePattern: string
@@ -48,6 +50,7 @@ const form: Form = reactive({
   code: '',
   remark: '',
   status: 0,
+  type: 0,
   prototype: '',
   methodType: '',
   routePattern: '',
@@ -93,6 +96,7 @@ const handleEdit = async (row: AuthoritySys) => {
   form.name = data.name
   form.remark = data.remark
   form.status = data.status
+  form.type = data.type
   form.prototype = data.prototype
   form.methodType = data.methodType
   form.serviceHost = data.serviceHost
@@ -139,6 +143,7 @@ const clearForm = () => {
   form.code = ''
   form.remark = ''
   form.status = 0
+  form.type = 0
   form.prototype = ''
   form.methodType = ''
   form.serviceHost = ''
@@ -211,6 +216,15 @@ const clearForm = () => {
         <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">启用</el-tag>
         <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger"
           >停用</el-tag
+        >
+      </template>
+    </el-table-column>
+    
+    <el-table-column label="类型" align="center">
+      <template #default="scope">
+        <el-tag size="small" v-if="scope.row.type === AuthStatus.WHITE_LIST" type="success">白名单</el-tag>
+        <el-tag size="small" v-else-if="scope.row.type === AuthStatus.NEED_AUTH" type="warning"
+          >需鉴权</el-tag
         >
       </template>
     </el-table-column>
@@ -299,6 +313,13 @@ const clearForm = () => {
         <el-radio-group v-model="form.status">
           <el-radio :value="Status.NORMAL">启用</el-radio>
           <el-radio :value="Status.BLOCK">禁用</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      
+      <el-form-item label="类型" label-width="100px" prop="status">
+        <el-radio-group v-model="form.type">
+          <el-radio :value="AuthStatus.WHITE_LIST">白名单</el-radio>
+          <el-radio :value="AuthStatus.NEED_AUTH">需鉴权</el-radio>
         </el-radio-group>
       </el-form-item>
 
