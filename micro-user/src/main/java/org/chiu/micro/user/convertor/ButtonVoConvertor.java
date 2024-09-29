@@ -1,33 +1,22 @@
 package org.chiu.micro.user.convertor;
 
-import org.chiu.micro.user.dto.ButtonDto;
 import org.chiu.micro.user.entity.MenuEntity;
-import org.chiu.micro.user.lang.StatusEnum;
+import org.chiu.micro.user.vo.ButtonVo;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * @Author limingjiu
  * @Date 2024/4/20 18:40
  **/
-public class ButtonDtoConvertor {
+public class ButtonVoConvertor {
 
-    private ButtonDtoConvertor() {
+    private ButtonVoConvertor() {
     }
 
-    public static List<ButtonDto> convert(List<ButtonDto> buttons, Boolean statusCheck) {
-        Stream<ButtonDto> buttonStream = buttons.stream();
-        if (Boolean.TRUE.equals(statusCheck)) {
-            buttonStream = buttonStream.filter(menu -> StatusEnum.NORMAL.getCode().equals(menu.status()));
-        }
-
-        return buttonStream.toList();
-    }
-
-    public static List<ButtonDto> convert(List<MenuEntity> buttons) {
+    public static List<ButtonVo> convert(List<MenuEntity> buttons) {
         return buttons.stream()
-                .map(item -> ButtonDto.builder()
+                .map(item -> ButtonVo.builder()
                         .menuId(item.getMenuId())
                         .name(item.getName())
                         .icon(item.getIcon())

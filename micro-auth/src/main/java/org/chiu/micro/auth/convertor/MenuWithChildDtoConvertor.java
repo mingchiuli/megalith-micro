@@ -1,30 +1,48 @@
 package org.chiu.micro.auth.convertor;
 
-import java.util.List;
 
+import org.chiu.micro.auth.dto.MenuDisplayDto;
 import org.chiu.micro.auth.dto.MenuWithChildDto;
-import org.chiu.micro.auth.dto.MenuWithChildRpcDto;
+
+import java.util.List;
 
 public class MenuWithChildDtoConvertor {
 
-	private MenuWithChildDtoConvertor() {
-	}
+    private MenuWithChildDtoConvertor() {
+    }
 
-	public static List<MenuWithChildDto> convert(List<MenuWithChildRpcDto> menuVos) {
-		return menuVos.stream()
-				.map(menu -> MenuWithChildDto.builder()
-						.menuId(menu.menuId())
-						.parentId(menu.parentId())
-						.icon(menu.icon())
-						.url(menu.url())
-						.title(menu.title())
-						.name(menu.name())
-						.component(menu.component())
-						.type(menu.type())
-						.orderNum(menu.orderNum())
-						.status(menu.status())
-						.children(convert(menu.children()))
-						.build())
-				.toList();
-	}
+    public static List<MenuWithChildDto> convert(List<MenuDisplayDto> displayDtos) {
+        return displayDtos.stream()
+                .map(item -> MenuWithChildDto.builder()
+                        .menuId(item.menuId())
+                        .icon(item.icon())
+                        .name(item.name())
+                        .title(item.title())
+                        .status(item.status())
+                        .component(item.component())
+                        .url(item.url())
+                        .parentId(item.parentId())
+                        .orderNum(item.orderNum())
+                        .type(item.type())
+                        .children(convert(item.children()))
+                        .build())
+                .toList();
+    }
+
+    public static MenuWithChildDto convert(MenuDisplayDto displayDto) {
+        return MenuWithChildDto.builder()
+                .menuId(displayDto.menuId())
+                .icon(displayDto.icon())
+                .name(displayDto.name())
+                .status(displayDto.status())
+                .title(displayDto.title())
+                .url(displayDto.url())
+                .parentId(displayDto.parentId())
+                .orderNum(displayDto.orderNum())
+                .type(displayDto.type())
+                .component(displayDto.component())
+                .children(convert(displayDto.children()))
+                .build();
+    }
+
 }

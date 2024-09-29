@@ -8,7 +8,7 @@ public record MenusAndButtonsDto(
 
         List<ButtonDto> buttons,
 
-        List<MenuWithChildDto> menus) implements Serializable {
+        List<MenuDto> menus) implements Serializable {
 
 
     public static MenusAndButtonsDtoBuilder builder() {
@@ -18,14 +18,14 @@ public record MenusAndButtonsDto(
     public static class MenusAndButtonsDtoBuilder {
 
         private List<ButtonDto> buttons;
-        private List<MenuWithChildDto> menus;
+        private List<MenuDto> menus;
 
         public MenusAndButtonsDtoBuilder buttons(List<ButtonDto> buttons) {
             this.buttons = buttons;
             return this;
         }
 
-        public MenusAndButtonsDtoBuilder menus(List<MenuWithChildDto> menus) {
+        public MenusAndButtonsDtoBuilder menus(List<MenuDto> menus) {
             this.menus = menus;
             return this;
         }

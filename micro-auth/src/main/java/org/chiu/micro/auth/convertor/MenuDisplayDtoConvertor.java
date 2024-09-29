@@ -1,8 +1,8 @@
-package org.chiu.micro.user.convertor;
+package org.chiu.micro.auth.convertor;
 
-import org.chiu.micro.user.dto.MenuDisplayDto;
-import org.chiu.micro.user.dto.MenuDto;
-import org.chiu.micro.user.lang.StatusEnum;
+import org.chiu.micro.auth.dto.MenuDisplayDto;
+import org.chiu.micro.auth.dto.MenuDto;
+import org.chiu.micro.auth.lang.StatusEnum;
 
 import java.util.Comparator;
 import java.util.List;
@@ -11,8 +11,7 @@ import java.util.stream.Stream;
 
 public class MenuDisplayDtoConvertor {
 
-    private MenuDisplayDtoConvertor() {
-    }
+    private MenuDisplayDtoConvertor() {}
 
     public static List<MenuDisplayDto> convert(List<MenuDto> menus, boolean statusCheck) {
         Stream<MenuDto> menuStream = menus.stream();

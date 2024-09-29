@@ -1,9 +1,7 @@
 package org.chiu.micro.auth.dto;
 
-import java.util.ArrayList;
-import java.util.List;
 
-public record MenuWithChildRpcDto(
+public record MenuRpcDto(
         Long menuId,
 
         Long parentId,
@@ -22,9 +20,7 @@ public record MenuWithChildRpcDto(
 
         Integer orderNum,
 
-        Integer status,
-
-        List<MenuWithChildRpcDto> children) {
+        Integer status) {
 
     public static class MenuWithChildRpcDtoBuilder {
         private Long menuId;
@@ -37,7 +33,6 @@ public record MenuWithChildRpcDto(
         private String icon;
         private Integer orderNum;
         private Integer status;
-        private List<MenuWithChildRpcDto> children = new ArrayList<>();
 
 
         public MenuWithChildRpcDtoBuilder menuId(Long menuId) {
@@ -90,13 +85,8 @@ public record MenuWithChildRpcDto(
             return this;
         }
 
-        public MenuWithChildRpcDtoBuilder children(List<MenuWithChildRpcDto> children) {
-            this.children = children;
-            return this;
-        }
-
-        public MenuWithChildRpcDto build() {
-            return new MenuWithChildRpcDto(this.menuId, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status, children);
+        public MenuRpcDto build() {
+            return new MenuRpcDto(this.menuId, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
         }
     }
 }

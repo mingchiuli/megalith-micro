@@ -1,4 +1,4 @@
-package org.chiu.micro.user.dto;
+package org.chiu.micro.auth.dto;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
