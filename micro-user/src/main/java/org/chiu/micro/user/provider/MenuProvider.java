@@ -22,6 +22,6 @@ public class MenuProvider {
 
     @GetMapping("/nav/{role}")
     public Result<MenusAndButtonsVo> nav(@PathVariable String role) {
-        return Result.success(() -> roleMenuService.getCurrentUserNav(role));
+        return Result.success(() -> roleMenuService.getCurrentRoleNav(role));
     }
 }

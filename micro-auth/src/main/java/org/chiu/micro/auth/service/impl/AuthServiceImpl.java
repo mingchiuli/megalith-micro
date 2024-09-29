@@ -2,6 +2,9 @@ package org.chiu.micro.auth.service.impl;
 
 
 import jakarta.annotation.PostConstruct;
+import org.chiu.micro.auth.convertor.ButtonVoConvertor;
+import org.chiu.micro.auth.convertor.MenuDisplayDtoConvertor;
+import org.chiu.micro.auth.convertor.MenuWithChildDtoConvertor;
 import org.chiu.micro.auth.convertor.MenusAndButtonsVoConvertor;
 import org.chiu.micro.auth.dto.*;
 import org.chiu.micro.auth.exception.AuthException;
@@ -67,9 +70,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public MenusAndButtonsVo getCurrentUserNav(List<String> roles) {
-        List<MenuWithChildDto> menus = new ArrayList<>();
+        List<MenuDto> menus = new ArrayList<>();
         List<ButtonDto> buttons = new ArrayList<>();
-        var dto = new MenusAndButtonsDto(buttons, menus);
 
         roles.forEach(role -> {
             MenusAndButtonsDto partDto = authWrapper.getCurrentUserNav(role);
@@ -77,7 +79,12 @@ public class AuthServiceImpl implements AuthService {
             buttons.addAll(partDto.buttons());
         });
 
-        return MenusAndButtonsVoConvertor.convert(dto);
+        List<MenuDisplayDto> menuEntities = MenuDisplayDtoConvertor.convert(menus, true);
+        List<MenuDisplayDto> displayDtos = MenuDisplayDtoConvertor.buildTreeMenu(menuEntities);
+        List<MenuWithChildDto> menuDtos = MenuWithChildDtoConvertor.convert(displayDtos);
+        List<ButtonDto> buttonDtos = ButtonVoConvertor.convert(buttons, true);
+
+        return MenusAndButtonsVoConvertor.convert(buttonDtos, menuDtos);
     }
 
     @Override

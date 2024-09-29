@@ -1,6 +1,7 @@
 package org.chiu.micro.auth.convertor;
 
-import org.chiu.micro.auth.dto.MenusAndButtonsDto;
+import org.chiu.micro.auth.dto.ButtonDto;
+import org.chiu.micro.auth.dto.MenuWithChildDto;
 import org.chiu.micro.auth.vo.ButtonVo;
 import org.chiu.micro.auth.vo.MenuWithChildVo;
 import org.chiu.micro.auth.vo.MenusAndButtonsVo;
@@ -12,9 +13,8 @@ public class MenusAndButtonsVoConvertor {
     private MenusAndButtonsVoConvertor() {
     }
 
-    public static MenusAndButtonsVo convert(MenusAndButtonsDto dto) {
-
-        List<ButtonVo> buttonVos = dto.buttons().stream()
+    public static MenusAndButtonsVo convert(List<ButtonDto> buttonDtos, List<MenuWithChildDto> menuDtos) {
+        List<ButtonVo> buttonVos = buttonDtos.stream()
                 .distinct()
                 .map(button -> ButtonVo.builder()
                         .menuId(button.menuId())
@@ -30,7 +30,7 @@ public class MenusAndButtonsVoConvertor {
                         .build())
                 .toList();
 
-        List<MenuWithChildVo> menuVos = dto.menus().stream()
+        List<MenuWithChildVo> menuVos = menuDtos.stream()
                 .distinct()
                 .map(menu -> MenuWithChildVo.builder()
                         .menuId(menu.menuId())
@@ -52,5 +52,4 @@ public class MenusAndButtonsVoConvertor {
                 .menus(menuVos)
                 .build();
     }
-
 }

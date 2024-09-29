@@ -1,9 +1,6 @@
 package org.chiu.micro.user.vo;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 
 public record MenuVo(
 
@@ -25,9 +22,7 @@ public record MenuVo(
 
         Integer orderNum,
 
-        Integer status,
-
-        List<MenuVo> children) {
+        Integer status) {
 
     public static MenuVoBuilder builder() {
         return new MenuVoBuilder();
@@ -44,7 +39,6 @@ public record MenuVo(
         private String icon;
         private Integer orderNum;
         private Integer status;
-        private List<MenuVo> children = new ArrayList<>();
 
         public MenuVoBuilder menuId(Long menuId) {
             this.menuId = menuId;
@@ -96,13 +90,8 @@ public record MenuVo(
             return this;
         }
 
-        public MenuVoBuilder children(List<MenuVo> children) {
-            this.children = children;
-            return this;
-        }
-
         public MenuVo build() {
-            return new MenuVo(menuId, parentId, title, name, url, component, type, icon, orderNum, status, children);
+            return new MenuVo(menuId, parentId, title, name, url, component, type, icon, orderNum, status);
         }
     }
 }

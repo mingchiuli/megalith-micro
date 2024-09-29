@@ -1,18 +1,18 @@
 package org.chiu.micro.user.convertor;
 
-import org.chiu.micro.user.dto.MenuDto;
 import org.chiu.micro.user.entity.MenuEntity;
+import org.chiu.micro.user.vo.MenuVo;
 
 import java.util.List;
 
-public class MenuDtoConvertor {
+public class MenuVoConvertor {
 
-    private MenuDtoConvertor() {
+    private MenuVoConvertor() {
     }
 
-    public static List<MenuDto> convert(List<MenuEntity> menus) {
+    public static List<MenuVo> convert(List<MenuEntity> menus) {
         return menus.stream()
-                .map(menu -> MenuDto.builder()
+                .map(menu -> MenuVo.builder()
                         .menuId(menu.getMenuId())
                         .parentId(menu.getParentId())
                         .icon(menu.getIcon())

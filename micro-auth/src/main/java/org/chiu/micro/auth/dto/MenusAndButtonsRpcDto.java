@@ -6,5 +6,5 @@ public record MenusAndButtonsRpcDto (
 
         List<ButtonRpcDto> buttons,
 
-        List<MenuWithChildRpcDto> menus) {
+        List<MenuRpcDto> menus) {
 }

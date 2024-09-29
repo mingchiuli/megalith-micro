@@ -1,9 +1,6 @@
 package org.chiu.micro.auth.convertor;
 
-import org.chiu.micro.auth.dto.ButtonDto;
-import org.chiu.micro.auth.dto.MenuWithChildDto;
-import org.chiu.micro.auth.dto.MenusAndButtonsDto;
-import org.chiu.micro.auth.dto.MenusAndButtonsRpcDto;
+import org.chiu.micro.auth.dto.*;
 
 import java.util.List;
 
@@ -30,9 +27,9 @@ public class MenusAndButtonsDtoConvertor {
                         .build())
                 .toList();
 
-        List<MenuWithChildDto> menuDtos = dto.menus().stream()
+        List<MenuDto> menuDtos = dto.menus().stream()
                 .distinct()
-                .map(menu -> MenuWithChildDto.builder()
+                .map(menu -> MenuDto.builder()
                         .menuId(menu.menuId())
                         .parentId(menu.parentId())
                         .icon(menu.icon())
@@ -43,7 +40,6 @@ public class MenusAndButtonsDtoConvertor {
                         .type(menu.type())
                         .orderNum(menu.orderNum())
                         .status(menu.status())
-                        .children(MenuWithChildDtoConvertor.convert(menu.children()))
                         .build())
                 .toList();
 
