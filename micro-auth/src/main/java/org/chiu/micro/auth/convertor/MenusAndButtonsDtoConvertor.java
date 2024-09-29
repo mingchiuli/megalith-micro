@@ -15,6 +15,7 @@ public class MenusAndButtonsDtoConvertor {
     public static MenusAndButtonsDto convert(MenusAndButtonsRpcDto dto) {
 
         List<ButtonDto> buttonDtos = dto.buttons().stream()
+                .distinct()
                 .map(button -> ButtonDto.builder()
                         .menuId(button.menuId())
                         .parentId(button.parentId())
@@ -30,6 +31,7 @@ public class MenusAndButtonsDtoConvertor {
                 .toList();
 
         List<MenuWithChildDto> menuDtos = dto.menus().stream()
+                .distinct()
                 .map(menu -> MenuWithChildDto.builder()
                         .menuId(menu.menuId())
                         .parentId(menu.parentId())
