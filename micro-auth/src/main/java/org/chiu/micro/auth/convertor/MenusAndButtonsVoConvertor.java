@@ -14,7 +14,8 @@ public class MenusAndButtonsVoConvertor {
 
     public static MenusAndButtonsVo convert(MenusAndButtonsDto dto) {
 
-        List<ButtonVo> buttonVos = dto.buttons().stream().distinct()
+        List<ButtonVo> buttonVos = dto.buttons().stream()
+                .distinct()
                 .map(button -> ButtonVo.builder()
                         .menuId(button.menuId())
                         .parentId(button.parentId())
@@ -29,7 +30,8 @@ public class MenusAndButtonsVoConvertor {
                         .build())
                 .toList();
 
-        List<MenuWithChildVo> menuVos = dto.menus().stream().distinct()
+        List<MenuWithChildVo> menuVos = dto.menus().stream()
+                .distinct()
                 .map(menu -> MenuWithChildVo.builder()
                         .menuId(menu.menuId())
                         .parentId(menu.parentId())
