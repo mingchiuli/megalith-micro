@@ -1,6 +1,5 @@
 package org.chiu.micro.exhibit.schedule.task;
 
-import org.chiu.micro.exhibit.lang.StatusEnum;
 import org.chiu.micro.exhibit.service.BlogService;
 import org.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
 import org.chiu.micro.exhibit.wrapper.BlogWrapper;
@@ -30,9 +29,7 @@ public record BlogRunnable(
                     redissonClient.getBitSet(BLOOM_FILTER_BLOG.getInfo()).set(id, true);
                     Integer status = blogWrapper.findStatusById(id);
                     blogWrapper.findById(id);
-                    if (StatusEnum.SENSITIVE_FILTER.getCode().equals(status)) {
-                        blogSensitiveWrapper.findSensitiveByBlogId(id);
-                    }
+                    blogSensitiveWrapper.findSensitiveByBlogId(id);
                 })
         );
     }
