@@ -7,7 +7,7 @@ import org.chiu.micro.user.entity.RoleAuthorityEntity;
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
 import org.chiu.micro.user.lang.AuthMenuOperateEnum;
-import org.chiu.micro.user.lang.Const;
+import org.chiu.micro.user.lang.AuthStatusEnum;
 import org.chiu.micro.user.repository.AuthorityRepository;
 import org.chiu.micro.user.repository.RoleAuthorityRepository;
 import org.chiu.micro.user.repository.RoleRepository;
@@ -85,7 +85,7 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
                 .toList();
 
         return authorityRepository.findByStatus(NORMAL.getCode()).stream()
-                .filter(item -> !item.getCode().startsWith(Const.WHITELIST.getInfo()))
+                .filter(item -> AuthStatusEnum.NEED_AUTH.getCode().equals(item.getType()))
                 .map(item -> RoleAuthorityVo.builder()
                         .authorityId(item.getId())
                         .code(item.getCode())
