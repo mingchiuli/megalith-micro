@@ -57,10 +57,13 @@ public class AuthorityEntity {
     @LastModifiedDate
     private LocalDateTime updated;
 
+    @Column(name = "type")
+    private Integer type;
+
     @Column(name = "status")
     private Integer status;
 
-    public AuthorityEntity(Long id, String name, String code, String remark, String prototype, String methodType, String routePattern, String serviceHost, Integer servicePort, LocalDateTime created, LocalDateTime updated, Integer status) {
+    public AuthorityEntity(Long id, String name, String code, String remark, String prototype, String methodType, String routePattern, String serviceHost, Integer servicePort, LocalDateTime created, LocalDateTime updated, Integer type, Integer status) {
         this.id = id;
         this.name = name;
         this.code = code;
@@ -72,6 +75,7 @@ public class AuthorityEntity {
         this.servicePort = servicePort;
         this.created = created;
         this.updated = updated;
+        this.type = type;
         this.status = status;
     }
 
@@ -126,6 +130,10 @@ public class AuthorityEntity {
         return this.updated;
     }
 
+    public Integer getType() {
+        return type;
+    }
+
     public Integer getStatus() {
         return this.status;
     }
@@ -174,6 +182,10 @@ public class AuthorityEntity {
         this.updated = updated;
     }
 
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
     public void setStatus(Integer status) {
         this.status = status;
     }
@@ -200,6 +212,7 @@ public class AuthorityEntity {
         result = 31 * result + Objects.hashCode(created);
         result = 31 * result + Objects.hashCode(updated);
         result = 31 * result + Objects.hashCode(status);
+        result = 31 * result + Objects.hashCode(type);
         return result;
     }
 
@@ -215,6 +228,7 @@ public class AuthorityEntity {
         private Integer servicePort;
         private LocalDateTime created;
         private LocalDateTime updated;
+        private Integer type;
         private Integer status;
 
 
@@ -273,13 +287,18 @@ public class AuthorityEntity {
             return this;
         }
 
+        public AuthorityEntityBuilder type(Integer type) {
+            this.type = type;
+            return this;
+        }
+
         public AuthorityEntityBuilder status(Integer status) {
             this.status = status;
             return this;
         }
 
         public AuthorityEntity build() {
-            return new AuthorityEntity(id, name, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, status);
+            return new AuthorityEntity(id, name, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
     }
 }

@@ -30,6 +30,8 @@ public record AuthorityVo(
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime updated,
 
+        Integer type,
+
         Integer status) {
 
 
@@ -49,6 +51,7 @@ public record AuthorityVo(
         private Integer servicePort;
         private LocalDateTime created;
         private LocalDateTime updated;
+        private Integer type;
         private Integer status;
 
         public AuthorityVoBuilder id(Long id) {
@@ -106,13 +109,18 @@ public record AuthorityVo(
             return this;
         }
 
+        public AuthorityVoBuilder type(Integer type) {
+            this.type = type;
+            return this;
+        }
+
         public AuthorityVoBuilder status(Integer status) {
             this.status = status;
             return this;
         }
 
         public AuthorityVo build() {
-            return new AuthorityVo(id, name, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, status);
+            return new AuthorityVo(id, name, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
     }
 }

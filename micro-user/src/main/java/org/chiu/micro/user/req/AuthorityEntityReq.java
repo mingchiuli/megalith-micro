@@ -35,5 +35,8 @@ public record AuthorityEntityReq(
         Integer servicePort,
 
         @NotNull
+        Integer type,
+
+        @NotNull
         Integer status) {
 }
