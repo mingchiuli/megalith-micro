@@ -65,7 +65,7 @@ public class SecurityAuthenticationUtils {
 
         String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
         Claims claims = tokenUtils.getVerifierByToken(jwt);
-        List<String> roles = claims.getRoles();
+        List<String> roles = claims.roles();
         List<String> rawRoles = getRawRoleCodes(roles);
 
         List<String> authList = rawRoles.stream()

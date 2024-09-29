@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.chiu.micro.user.convertor.MenuDisplayVoConvertor.buildTreeMenu;
 import static org.chiu.micro.user.lang.ExceptionMessage.MENU_INVALID_OPERATE;
 import static org.chiu.micro.user.lang.StatusEnum.NORMAL;
 import static org.chiu.micro.user.lang.TypeEnum.*;
@@ -103,7 +102,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         List<MenuEntity> menus = menuRepository.findAllById(menuIds);
         List<MenuDisplayVo> menuEntities = MenuDisplayVoConvertor.convert(menus, statusCheck);
         // 转树状结构
-        return buildTreeMenu(menuEntities);
+        return MenuDisplayVoConvertor.buildTreeMenu(menuEntities);
     }
 
     @Override

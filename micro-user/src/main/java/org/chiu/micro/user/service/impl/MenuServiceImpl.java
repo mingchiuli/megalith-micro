@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.chiu.micro.user.convertor.MenuDisplayVoConvertor.buildTreeMenu;
 import static org.chiu.micro.user.lang.ExceptionMessage.MENU_NOT_EXIST;
 import static org.chiu.micro.user.lang.ExceptionMessage.NO_FOUND;
 
@@ -92,7 +91,7 @@ public class MenuServiceImpl implements MenuService {
     public List<MenuDisplayVo> tree() {
         List<MenuEntity> menus = menuRepository.findAllByOrderByOrderNumDesc();
         List<MenuDisplayVo> menuEntities = MenuDisplayVoConvertor.convert(menus, false);
-        return buildTreeMenu(menuEntities);
+        return MenuDisplayVoConvertor.buildTreeMenu(menuEntities);
     }
 
     @Override
