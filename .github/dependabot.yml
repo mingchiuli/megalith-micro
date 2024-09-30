@@ -10,3 +10,5 @@ updates:
       - "**/*" # Location of package manifests
     schedule:
       interval: "daily"
+      time: "09:40"
+      timezone: "Asia/Shanghai"
