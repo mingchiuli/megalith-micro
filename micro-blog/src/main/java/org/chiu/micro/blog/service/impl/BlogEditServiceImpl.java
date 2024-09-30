@@ -107,7 +107,7 @@ public class BlogEditServiceImpl implements BlogEditService {
 
     @Override
     public BlogEditVo findEdit(Long id, Long userId) {
-        Long originUserId = null;
+        Long originUserId;
         if (id != null) {
             BlogEntity blogEntity = blogRepository.findById(id)
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));

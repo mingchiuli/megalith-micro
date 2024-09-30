@@ -1,5 +1,6 @@
 package org.chiu.micro.blog.page;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -25,6 +26,10 @@ public record PageAdapter<T> (
 
     public static <T> PageAdapterBuilder<T> builder() {
         return new PageAdapterBuilder<>();
+    }
+
+    public static <T> PageAdapter<T> emptyPage() {
+        return new PageAdapter<>(Collections.emptyList(), 0, 1, 1, true, true, true, 0);
     }
 
     public static class PageAdapterBuilder<T> {

@@ -306,22 +306,28 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    @SuppressWarnings("all")
+    @SuppressWarnings("unchecked")
     public PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, Long userId, String keywords) {
 
         BlogSearchDto dto = searchHttpServiceWrapper.searchBlogs(currentPage, size, keywords);
         List<Long> ids = dto.ids();
+        if (ids.isEmpty()) {
+            return PageAdapter.emptyPage();
+        }
+
         List<BlogEntity> items = blogRepository.findAllById(ids).stream()
                 .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
                 .toList();
 
         List<BlogSensitiveContentEntity> blogSensitiveContentEntities = blogSensitiveContentRepository.findByBlogIdIn(ids);
 
-        List<String> res = redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),
-                Collections.singletonList(HOT_READ.getInfo()),
-                jsonUtils.writeValueAsString(ids.stream()
-                        .map(String::valueOf)
-                        .toList()));
+        List<String> res = Optional.ofNullable(
+                        redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),
+                                Collections.singletonList(HOT_READ.getInfo()),
+                                jsonUtils.writeValueAsString(ids.stream()
+                                        .map(String::valueOf)
+                                        .toList())))
+                .orElseGet(Collections::emptyList);
 
         Map<Long, Integer> readMap = new HashMap<>();
         for (int i = 0; i < res.size(); i += 2) {
@@ -341,6 +347,10 @@ public class BlogServiceImpl implements BlogService {
                 .stream()
                 .map(blogStr -> jsonUtils.readValue(blogStr, BlogEntity.class))
                 .toList();
+
+        if (deletedBlogs.isEmpty()) {
+            return PageAdapter.emptyPage();
+        }
 
         int l = 0;
         for (BlogEntity blog : deletedBlogs) {
