@@ -13,7 +13,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.redisson:redisson:3.36.0")
 	implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
-	implementation("com.nimbusds:nimbus-jose-jwt:9.41.1")
+	implementation("com.nimbusds:nimbus-jose-jwt:9.41.2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
 }
