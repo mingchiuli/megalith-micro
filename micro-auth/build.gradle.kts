@@ -11,7 +11,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-amqp")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.redisson:redisson:3.36.0")
+	implementation("org.redisson:redisson:3.37.0")
 	implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 	implementation("com.nimbusds:nimbus-jose-jwt:9.41.2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -31,7 +31,6 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				--gc=serial
 				-R:MaxHeapSize=128m
 				-O3
-				--initialize-at-build-time=org.redisson.misc.BiHashMap
 				-J-XX:MaxRAMPercentage=80.0
 			""",
 		"BP_HEALTH_CHECKER_ENABLED" to "true"
