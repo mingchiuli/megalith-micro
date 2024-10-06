@@ -100,7 +100,7 @@ public class BlogServiceImpl implements BlogService {
                 })
                 .toList();
 
-        dtoPageAdapter = new PageAdapter<>(descSensitiveList, dtoPageAdapter.totalElements(), dtoPageAdapter.pageNumber(), dtoPageAdapter.pageSize(), dtoPageAdapter.first(), dtoPageAdapter.last(), dtoPageAdapter.empty(), dtoPageAdapter.totalPages());
+        dtoPageAdapter = new PageAdapter<>(descSensitiveList, dtoPageAdapter);
 
         return BlogDescriptionVoConvertor.convert(dtoPageAdapter);
     }

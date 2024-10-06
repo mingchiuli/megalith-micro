@@ -126,7 +126,7 @@ public class UserRoleServiceImpl implements UserRoleService {
         String phone = userEntityRegisterReq.phone();
         if (!StringUtils.hasLength(phone)) {
             String fakePhone = codeFactory.createPhone();
-            userEntityRegisterReq = new UserEntityRegisterReq(userEntityRegisterReq.id(), userEntityRegisterReq.username(), userEntityRegisterReq.nickname(), userEntityRegisterReq.avatar(), userEntityRegisterReq.password(), userEntityRegisterReq.confirmPassword(), userEntityRegisterReq.email(), fakePhone);
+            userEntityRegisterReq = new UserEntityRegisterReq(userEntityRegisterReq, fakePhone);
         }
 
         String username = userEntityRegisterReq.username();
