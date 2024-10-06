@@ -1,10 +1,11 @@
 package org.chiu.micro.blog.req;
 
 import java.util.List;
+import java.util.Optional;
 
 public record BlogEditPushAllReq(
 
-        Long id,
+        Optional<Long> id,
 
         String title,
 
