@@ -24,6 +24,11 @@ public record PageAdapter<T> (
 
         int totalPages) {
 
+
+    public PageAdapter(List<T> content, PageAdapter<T> pageAdapter) {
+        this(content, pageAdapter.totalElements(), pageAdapter.pageNumber(), pageAdapter.pageSize(), pageAdapter.first(), pageAdapter.last(), pageAdapter.empty(), pageAdapter.totalPages());
+    }
+
     public static <T> PageAdapterBuilder<T> builder() {
         return new PageAdapterBuilder<>();
     }
