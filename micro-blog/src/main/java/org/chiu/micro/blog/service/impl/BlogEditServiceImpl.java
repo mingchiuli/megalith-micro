@@ -69,10 +69,10 @@ public class BlogEditServiceImpl implements BlogEditService {
 
     @Override
     public void pushAll(BlogEditPushAllReq blog, Long userId) {
-        Long id = blog.id();
+        Optional<Long> id = blog.id();
         Long originUserId;
-        if (id != null) {
-            BlogEntity blogEntity = blogRepository.findById(id)
+        if (id.isPresent()) {
+            BlogEntity blogEntity = blogRepository.findById(id.get())
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
             AuthUtils.checkEditAuth(blogEntity, userId);
             originUserId = blogEntity.getUserId();
@@ -80,7 +80,7 @@ public class BlogEditServiceImpl implements BlogEditService {
             originUserId = userId;
         }
 
-        String redisKey = KeyFactory.createBlogEditRedisKey(originUserId, id);
+        String redisKey = KeyFactory.createBlogEditRedisKey(originUserId, id.orElse(null));
         boolean exist = Boolean.TRUE.equals(redisTemplate.hasKey(redisKey));
         if (!exist) {
             return;
