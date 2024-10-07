@@ -7,6 +7,7 @@ import org.chiu.micro.exhibit.dto.BlogEntityDto;
 import org.chiu.micro.exhibit.dto.BlogSensitiveContentDto;
 import org.chiu.micro.exhibit.lang.Result;
 import org.chiu.micro.exhibit.page.PageAdapter;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.GetExchange;
@@ -43,20 +44,20 @@ public interface BlogHttpService {
     @PostExchange("/blog/page/year/{pageNo}/{pageSize}/{start}/{end}")
     Result<PageAdapter<BlogEntityDto>> findPageByCreatedBetween(@PathVariable Integer pageNo,
                                                                 @PathVariable Integer pageSize,
-                                                                @PathVariable LocalDateTime start,
-                                                                @PathVariable LocalDateTime end);
+                                                                @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime start,
+                                                                @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime end);
 
     @GetExchange("/blog/count/{start}/{end}")
-    Result<Long> countByCreatedBetween(@PathVariable LocalDateTime start,
-                                       @PathVariable LocalDateTime end);
+    Result<Long> countByCreatedBetween(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime start,
+                                       @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime end);
 
     @GetExchange("/blog/page/count/year/{created}/{start}/{end}")
-    Result<Long> getPageCountYear(@PathVariable LocalDateTime created,
-                                  @PathVariable LocalDateTime start,
-                                  @PathVariable LocalDateTime end);
+    Result<Long> getPageCountYear(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime created,
+                                  @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime start,
+                                  @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime end);
 
     @GetExchange("/blog/count/until/{created}")
-    Result<Long> countByCreatedGreaterThanEqual(@PathVariable LocalDateTime created);
+    Result<Long> countByCreatedGreaterThanEqual(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime created);
 
     @GetExchange("/blog/sensitive/{blogId}")
     Result<BlogSensitiveContentDto> findSensitiveByBlogId(@PathVariable Long blogId);
