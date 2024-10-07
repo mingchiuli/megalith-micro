@@ -193,6 +193,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+  margin-right: 5px;
 }
 
 .el-progress {
