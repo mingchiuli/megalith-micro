@@ -100,7 +100,7 @@ public class BlogEditServiceImpl implements BlogEditService {
                 Collections.singletonList(redisKey),
                 paragraphListString, ID.getMsg(), USER_ID.getMsg(), TITLE.getMsg(), DESCRIPTION.getMsg(),
                 STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
-                Objects.isNull(blog.id()) ? "" : blog.id().toString(), originUserId.toString(), blog.title(),
+                id.map(Object::toString).orElse(""), originUserId.toString(), blog.title(),
                 blog.description(), blog.status().toString(), blog.link(), blog.version().toString(), jsonUtils.writeValueAsString(blog.sensitiveContentList()),
                 A_WEEK.getInfo());
     }
