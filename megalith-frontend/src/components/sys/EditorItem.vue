@@ -24,6 +24,8 @@ const editorRef = useTemplateRef<ExposeParam>('editor')
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
+const customHeight = ref(40)
+
 const toolbars: ToolbarNames[] = [
   'revoke',
   'next',
@@ -185,7 +187,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 <style scoped>
 .md-editor:deep(.md-editor-footer) {
-  height: 40px;
+  height: v-bind(customHeight + 'px');
 }
 
 .trans-radius {
@@ -203,5 +205,6 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 .custom-right-footer {
   align-items: center;
+  line-height: v-bind(customHeight + 'px');
 }
 </style>
