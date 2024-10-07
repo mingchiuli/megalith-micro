@@ -176,7 +176,9 @@ const onUploadImg = async (files: File[], callback: Function) => {
         :color="Colors"
         status="success"
       />
-      <span class="trans-radius" :style="{ 'background-color': transColor }" />
+      <div class="custom-right-footer">
+        <span class="trans-radius" :style="{ 'background-color': transColor }" />
+      </div>
     </template>
   </md-editor>
 </template>
@@ -196,5 +198,9 @@ const onUploadImg = async (files: File[], callback: Function) => {
 .el-progress {
   width: 100px;
   display: inline-flex;
+}
+
+.custom-right-footer {
+  align-items: center;
 }
 </style>
