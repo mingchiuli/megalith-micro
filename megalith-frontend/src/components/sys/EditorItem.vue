@@ -178,7 +178,9 @@ const onUploadImg = async (files: File[], callback: Function) => {
         :color="Colors"
         status="success"
       />
-      <span class="trans-radius" :style="{ 'background-color': transColor }" />
+      <span class="custom-bottom-items">
+        <span class="trans-radius" :style="{ 'background-color': transColor }" />
+      </span>
     </template>
   </md-editor>
 </template>
@@ -194,6 +196,10 @@ const onUploadImg = async (files: File[], callback: Function) => {
   height: 10px;
   border-radius: 50%;
   margin-right: 5px;
+}
+
+.custom-bottom-items {
+  align-items: center;
   line-height: v-bind(customHeight + 'px');
 }
 
