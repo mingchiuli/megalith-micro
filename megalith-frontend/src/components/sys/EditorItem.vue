@@ -199,7 +199,6 @@ const onUploadImg = async (files: File[], callback: Function) => {
 }
 
 .custom-bottom-items {
-  align-items: center;
   line-height: v-bind(customHeight + 'px');
 }
 
