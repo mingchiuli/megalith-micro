@@ -3,7 +3,7 @@ package org.chiu.micro.user.provider;
 import org.chiu.micro.user.lang.Result;
 import org.chiu.micro.user.service.AuthorityService;
 import org.chiu.micro.user.service.RoleAuthorityService;
-import org.chiu.micro.user.vo.AuthorityVo;
+import org.chiu.micro.user.vo.AuthorityRpcVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +25,7 @@ public class AuthorityProvider {
     }
 
     @PostMapping("/list")
-    public Result<List<AuthorityVo>> list(@RequestBody List<String> service) {
+    public Result<List<AuthorityRpcVo>> list(@RequestBody List<String> service) {
         return Result.success(() -> authorityService.findAllByService(service));
     }
 

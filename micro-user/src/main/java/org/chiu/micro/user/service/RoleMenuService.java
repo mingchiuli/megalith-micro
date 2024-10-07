@@ -1,7 +1,7 @@
 package org.chiu.micro.user.service;
 
 
-import org.chiu.micro.user.vo.MenusAndButtonsVo;
+import org.chiu.micro.user.vo.MenusAndButtonsRpcVo;
 import org.chiu.micro.user.vo.RoleMenuVo;
 
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.List;
  */
 public interface RoleMenuService {
 
-    MenusAndButtonsVo getCurrentRoleNav(String role) ;
+    MenusAndButtonsRpcVo getCurrentRoleNav(String role) ;
 
     List<RoleMenuVo> getMenusInfo(Long roleId);
 
