@@ -119,12 +119,12 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     }
 
     @Override
-    public MenusAndButtonsVo getCurrentRoleNav(String role) {
+    public MenusAndButtonsRpcVo getCurrentRoleNav(String role) {
 
         Optional<RoleEntity> roleEntity = roleRepository.findByCodeAndStatus(role, NORMAL.getCode());
 
         if (roleEntity.isEmpty()) {
-            return MenusAndButtonsVo.builder()
+            return MenusAndButtonsRpcVo.builder()
                     .menus(Collections.emptyList())
                     .buttons(Collections.emptyList())
                     .build();
@@ -147,7 +147,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         List<MenuVo> menuDtos = MenuVoConvertor.convert(menus);
         List<ButtonVo> buttonDtos = ButtonVoConvertor.convert(buttons);
 
-        return MenusAndButtonsVo.builder()
+        return MenusAndButtonsRpcVo.builder()
                 .buttons(buttonDtos)
                 .menus(menuDtos)
                 .build();

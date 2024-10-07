@@ -6,7 +6,7 @@ import java.util.List;
  * @Author limingjiu
  * @Date 2024/4/20 18:17
  **/
-public record MenusAndButtonsVo(
+public record MenusAndButtonsRpcVo(
 
         List<MenuVo> menus,
 
@@ -30,8 +30,8 @@ public record MenusAndButtonsVo(
             return this;
         }
 
-        public MenusAndButtonsVo build() {
-            return new MenusAndButtonsVo(menus, buttons);
+        public MenusAndButtonsRpcVo build() {
+            return new MenusAndButtonsRpcVo(menus, buttons);
         }
     }
 }
