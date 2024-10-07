@@ -208,7 +208,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
 }
 
 /* 处理el-form导致的样式冲突 */
-.md-editor-toolbar-wrapper {
+.md-editor:deep(.md-editor-toolbar-wrapper) {
   line-height: 0px;
 }
 </style>
