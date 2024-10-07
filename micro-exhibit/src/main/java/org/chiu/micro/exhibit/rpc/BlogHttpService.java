@@ -44,20 +44,20 @@ public interface BlogHttpService {
     @PostExchange("/blog/page/year/{pageNo}/{pageSize}/{start}/{end}")
     Result<PageAdapter<BlogEntityDto>> findPageByCreatedBetween(@PathVariable Integer pageNo,
                                                                 @PathVariable Integer pageSize,
-                                                                @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime start,
-                                                                @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime end);
+                                                                @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+                                                                @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end);
 
     @GetExchange("/blog/count/{start}/{end}")
-    Result<Long> countByCreatedBetween(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime start,
-                                       @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime end);
+    Result<Long> countByCreatedBetween(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+                                       @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end);
 
     @GetExchange("/blog/page/count/year/{created}/{start}/{end}")
-    Result<Long> getPageCountYear(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime created,
-                                  @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime start,
-                                  @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime end);
+    Result<Long> getPageCountYear(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime created,
+                                  @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+                                  @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end);
 
     @GetExchange("/blog/count/until/{created}")
-    Result<Long> countByCreatedGreaterThanEqual(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS") LocalDateTime created);
+    Result<Long> countByCreatedGreaterThanEqual(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime created);
 
     @GetExchange("/blog/sensitive/{blogId}")
     Result<BlogSensitiveContentDto> findSensitiveByBlogId(@PathVariable Long blogId);
