@@ -3,7 +3,7 @@ import { UPLOAD } from '@/http/http'
 import { MdEditor, type Footers, type ToolbarNames, type ExposeParam } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import '@vavt/v3-extension/lib/asset/ExportPDF.css'
-import { Emoji } from '@vavt/v3-extension'
+import { Emoji, ExportPDF } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { SensitiveType, Status, type SensitiveTrans, Colors } from '@/type/entity'
@@ -165,10 +165,8 @@ const onUploadImg = async (files: File[], callback: Function) => {
     ref="editor"
   >
     <template #defToolbars>
-      <Export-PDF v-model="content" />
-      <emoji>
-        <template #trigger> Emoji </template>
-      </emoji>
+      <ExportPDF v-model="content" />
+      <Emoji />
     </template>
     <template #defFooters>
       <el-progress
