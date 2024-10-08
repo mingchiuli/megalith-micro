@@ -178,9 +178,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
         :color="Colors"
         status="success"
       />
-      <span class="custom-bottom-items">
-        <span class="trans-radius" :style="{ 'background-color': transColor }" />
-      </span>
+      <span class="trans-radius" :style="{ 'background-color': transColor }" />
     </template>
   </md-editor>
 </template>
@@ -198,17 +196,8 @@ const onUploadImg = async (files: File[], callback: Function) => {
   margin-right: 5px;
 }
 
-.custom-bottom-items {
-  line-height: v-bind(customHeight + 'px');
-}
-
 .el-progress {
   width: 100px;
   display: inline-flex;
 }
-
-/* 处理el-form导致的样式冲突 */
-/* .md-editor:deep(.md-editor-toolbar-wrapper) {
-  line-height: 0px;
-} */
 </style>
