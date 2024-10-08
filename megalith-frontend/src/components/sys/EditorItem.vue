@@ -178,7 +178,10 @@ const onUploadImg = async (files: File[], callback: Function) => {
         :color="Colors"
         status="success"
       />
-      <span class="trans-radius" :style="{ 'background-color': transColor }" />
+      <span class="custom-bottom-items">
+        <span class="trans-radius" :style="{ 'background-color': transColor }" />
+      </span>
+
     </template>
   </md-editor>
 </template>
@@ -199,5 +202,9 @@ const onUploadImg = async (files: File[], callback: Function) => {
 .el-progress {
   width: 100px;
   display: inline-flex;
+}
+
+.custom-bottom-items {
+  line-height: v-bind(customHeight + 'px');
 }
 </style>
