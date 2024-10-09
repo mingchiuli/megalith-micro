@@ -30,6 +30,6 @@ public record UserEntityRegisterReq(
         String phone) {
 
         public UserEntityRegisterReq(UserEntityRegisterReq req, String phone) {
-                this(req.id(), req.username(), req.nickname(), req.avatar(), req.password(), req.confirmPassword(), req.email(), phone);
+                this(req.id, req.username, req.nickname, req.avatar, req.password, req.confirmPassword, req.email, phone);
         }
 }

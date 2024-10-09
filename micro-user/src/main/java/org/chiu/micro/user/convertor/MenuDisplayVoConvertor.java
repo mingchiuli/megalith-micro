@@ -43,7 +43,7 @@ public class MenuDisplayVoConvertor {
         //2.1 找到所有一级分类
         return menus.stream()
                 .filter(menu -> menu.parentId() == 0)
-                .map(menu -> new MenuDisplayVo(menu.menuId(), 0L, menu.title(), menu.name(), menu.url(), menu.component(), menu.type(), menu.icon(), menu.orderNum(), menu.status(), menu.created(), menu.updated(), getChildren(menu, menus)))
+                .map(menu -> new MenuDisplayVo(menu, 0L, getChildren(menu, menus)))
                 .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.orderNum()) ? 0 : menu.orderNum()))
                 .toList();
     }
@@ -51,7 +51,7 @@ public class MenuDisplayVoConvertor {
     private static List<MenuDisplayVo> getChildren(MenuDisplayVo root, List<MenuDisplayVo> all) {
         return all.stream()
                 .filter(menu -> Objects.equals(menu.parentId(), root.menuId()))
-                .map(menu -> new MenuDisplayVo(menu.menuId(), 0L, menu.title(), menu.name(), menu.url(), menu.component(), menu.type(), menu.icon(), menu.orderNum(), menu.status(), menu.created(), menu.updated(), getChildren(menu, all)))
+                .map(menu -> new MenuDisplayVo(menu, root.menuId(), getChildren(menu, all)))
 
                 .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.orderNum()) ? 0 : menu.orderNum()))
                 .toList();
