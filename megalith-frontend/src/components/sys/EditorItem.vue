@@ -155,7 +155,6 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 <template>
   <md-editor
-    id="md-editor"
     v-model="content"
     :preview="false"
     :toolbars="toolbars"
