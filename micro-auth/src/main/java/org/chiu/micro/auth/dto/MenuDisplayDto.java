@@ -32,6 +32,10 @@ public record MenuDisplayDto(
 
         List<MenuDisplayDto> children) {
 
+    public MenuDisplayDto(MenuDisplayDto dto, Long parentId, List<MenuDisplayDto> children) {
+        this(dto.menuId, parentId, dto.title, dto.name, dto.url, dto.component, dto.type, dto.icon, dto.orderNum, dto.status, dto.created, dto.updated, children);
+    }
+
     public static MenuDisplayDtoBuilder builder() {
         return new MenuDisplayDtoBuilder();
     }

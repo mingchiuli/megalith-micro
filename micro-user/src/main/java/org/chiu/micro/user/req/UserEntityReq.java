@@ -39,7 +39,7 @@ public record UserEntityReq(
         List<String> roles) {
 
         public UserEntityReq(UserEntityReq req, String password) {
-                this(req.id(), req.username(), req.nickname(), req.avatar(), password, req.email(), req.phone(), req.status(), req.roles());
+                this(req.id, req.username, req.nickname, req.avatar, password, req.email, req.phone, req.status, req.roles);
         }
 
         public UserEntityReq(UserEntityRegisterReq req, Long id, Integer status, List<String> roles) {

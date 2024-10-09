@@ -36,6 +36,10 @@ public record MenuDisplayVo(
 
         List<MenuDisplayVo> children) {
 
+    public MenuDisplayVo(MenuDisplayVo vo, Long parentId, List<MenuDisplayVo> children) {
+        this(vo.menuId, parentId, vo.title, vo.name, vo.url, vo.component, vo.type, vo.icon, vo.orderNum, vo.status, vo.created, vo.updated, children);
+    }
+
     public static MenuDisplayVoBuilder builder() {
         return new MenuDisplayVoBuilder();
     }
