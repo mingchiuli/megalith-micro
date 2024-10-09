@@ -116,7 +116,7 @@ export const watchInput = (
         }
         pushActionForm.paraNo = nLen
         pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_APPEND
-        pushActionData(pushActionForm, opreateStatus)
+        pushActionData(pushActionForm, opreateStatus, form)
         return
       }
 
