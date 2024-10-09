@@ -84,7 +84,7 @@ onMounted(() => {
 
     // 选中文本后要执行的操作
     //文本标签,外面套了一层span或div
-    let text = selection!.anchorNode
+    let text = selection!.focusNode
     let idx = 0
     let label = text!.parentNode
     if (label!.nodeName !== 'DIV' || label!.childNodes.length !== 1) {
