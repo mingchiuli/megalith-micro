@@ -14,6 +14,7 @@ import {
 } from '@/type/entity'
 
 export const pushAllData = async (opreateStatus: OpreateStatusParam, form: EditForm) => {
+  form.version++
   await POST<null>('/sys/blog/edit/push/all', form)
   if (opreateStatus.transColor.value !== OperaColor.WARNING) {
     opreateStatus.transColor.value = OperaColor.WARNING
@@ -22,8 +23,10 @@ export const pushAllData = async (opreateStatus: OpreateStatusParam, form: EditF
 
 export const pushActionData = (
   pushActionForm: PushActionForm,
-  opreateStatus: OpreateStatusParam
+  opreateStatus: OpreateStatusParam,
+  form: EditForm
 ) => {
+  pushActionForm.version = ++form.version
   opreateStatus.client.send(JSON.stringify(pushActionForm))
   if (opreateStatus.transColor.value !== OperaColor.SUCCESS) {
     opreateStatus.transColor.value = OperaColor.SUCCESS

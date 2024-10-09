@@ -386,7 +386,7 @@ export interface EditForm {
   content: string | undefined
   status: number | undefined
   link: string | undefined
-  version?: number
+  version: number
   sensitiveContentList: SensitiveItem[]
 }
 

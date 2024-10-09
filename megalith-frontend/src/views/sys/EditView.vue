@@ -87,7 +87,7 @@ const form: EditForm = reactive({
   content: undefined,
   status: undefined,
   link: undefined,
-  version: undefined,
+  version: 0,
   sensitiveContentList: []
 })
 

@@ -33,7 +33,7 @@ export const watchInput = (
       commonPreDeal(FieldType.NON_PARA, FieldName.STATUS, form, pushActionForm, opreateStatus)
       pushActionForm.operateTypeCode = OperateTypeCode.STATUS
       pushActionForm.contentChange = String(form.status)
-      pushActionData(pushActionForm, opreateStatus)
+      pushActionData(pushActionForm, opreateStatus, form)
     }
   )
 
@@ -55,7 +55,7 @@ export const watchInput = (
       )
       pushActionForm.operateTypeCode = OperateTypeCode.SENSITIVE_CONTENT_LIST
       pushActionForm.contentChange = JSON.stringify(form.sensitiveContentList)
-      pushActionData(pushActionForm, opreateStatus)
+      pushActionData(pushActionForm, opreateStatus, form)
     },
     { deep: true }
   )
@@ -185,8 +185,6 @@ const commonPreDeal = (
   clearPushActionForm(pushActionForm)
   pushActionForm.field = opreateField
   pushActionForm.id = form.id
-  pushActionForm.version = ++form.version!
-  console.log(form.version)
   opreateStatus.fieldType = fieldTypeParam
 }
 
@@ -196,7 +194,6 @@ const clearPushActionForm = (pushActionForm: PushActionForm) => {
   pushActionForm.indexStart = undefined
   pushActionForm.operateTypeCode = undefined
   pushActionForm.version = undefined
-  console.log('clear version')
   pushActionForm.field = undefined
   pushActionForm.paraNo = undefined
 }
@@ -210,7 +207,7 @@ const deal = (
 ) => {
   const type = dealAction(n, o, pushActionForm, opreateStatus.fieldType)
   if (ActionType.PUSH_ACTION === type) {
-    pushActionData(pushActionForm, opreateStatus)
+    pushActionData(pushActionForm, opreateStatus, form)
     return
   }
 
