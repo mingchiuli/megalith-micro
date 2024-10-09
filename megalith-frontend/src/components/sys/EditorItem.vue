@@ -129,11 +129,7 @@ onMounted(() => {
       }
     })
 
-    if (selection!.anchorOffset > selection!.focusOffset) {
-      idx += selection!.focusOffset
-    } else {
-      idx += selection!.anchorOffset
-    }
+    idx = idx + selection!.focusOffset - selectedText!.length
 
     const sensitive: SensitiveTrans = {
       startIndex: idx,
