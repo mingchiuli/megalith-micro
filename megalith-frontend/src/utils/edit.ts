@@ -186,6 +186,7 @@ const commonPreDeal = (
   pushActionForm.field = opreateField
   pushActionForm.id = form.id
   pushActionForm.version = ++form.version!
+  console.log(form.version)
   opreateStatus.fieldType = fieldTypeParam
 }
 
@@ -195,6 +196,7 @@ const clearPushActionForm = (pushActionForm: PushActionForm) => {
   pushActionForm.indexStart = undefined
   pushActionForm.operateTypeCode = undefined
   pushActionForm.version = undefined
+  console.log('clear version')
   pushActionForm.field = undefined
   pushActionForm.paraNo = undefined
 }
