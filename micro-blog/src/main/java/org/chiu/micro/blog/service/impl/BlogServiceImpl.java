@@ -299,10 +299,11 @@ public class BlogServiceImpl implements BlogService {
         BlogEntity saved = blogSensitiveWrapper.saveOrUpdate(blogEntity, blogSensitiveContentEntityList, existedSensitiveIds);
 
         // 通知消息给mq,更新并删除缓存
-        // 防止重复消费
-        BlogOperateEnum type = blogId.isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE;
-        var blogSearchIndexMessage = new BlogOperateMessage(saved.getId(), type, blogEntity.getCreated().getYear());
-        applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
+        taskExecutor.execute(() -> {
+            BlogOperateEnum type = blogId.isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE;
+            var blogSearchIndexMessage = new BlogOperateMessage(saved.getId(), type, blogEntity.getCreated().getYear());
+            applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
+        });
     }
 
     @Override
@@ -393,8 +394,10 @@ public class BlogServiceImpl implements BlogService {
         tempBlog.setStatus(HIDE.getCode());
         BlogEntity blog = blogRepository.save(tempBlog);
 
-        var blogSearchIndexMessage = new BlogOperateMessage(blog.getId(), BlogOperateEnum.CREATE, blog.getCreated().getYear());
-        applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
+        taskExecutor.execute(() -> {
+            var blogSearchIndexMessage = new BlogOperateMessage(blog.getId(), BlogOperateEnum.CREATE, blog.getCreated().getYear());
+            applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
+        });
     }
 
     @Override
@@ -405,7 +408,7 @@ public class BlogServiceImpl implements BlogService {
                 .toList();
         blogSensitiveWrapper.deleteByIds(ids, sensitiveIds);
 
-        blogRepository.findAllById(ids).stream()
+        taskExecutor.execute(() -> blogRepository.findAllById(ids).stream()
                 .filter(blogEntity -> Objects.equals(blogEntity.getUserId(), userId) || roles.contains(highestRole))
                 .forEach(blogEntity -> {
                     blogEntity.setUpdated(LocalDateTime.now());
@@ -415,7 +418,7 @@ public class BlogServiceImpl implements BlogService {
 
                     var blogSearchIndexMessage = new BlogOperateMessage(blogEntity.getId(), BlogOperateEnum.REMOVE, blogEntity.getCreated().getYear());
                     applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
-                });
+                }));
     }
 
     @Override

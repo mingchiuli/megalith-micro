@@ -17,6 +17,7 @@ import org.chiu.micro.user.req.MenuEntityReq;
 import org.chiu.micro.user.service.MenuService;
 import org.chiu.micro.user.vo.MenuDisplayVo;
 import org.chiu.micro.user.vo.MenuEntityVo;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 import static org.chiu.micro.user.lang.ExceptionMessage.MENU_NOT_EXIST;
 import static org.chiu.micro.user.lang.ExceptionMessage.NO_FOUND;
@@ -43,11 +45,14 @@ public class MenuServiceImpl implements MenuService {
 
     private final ApplicationContext applicationContext;
 
-    public MenuServiceImpl(MenuRepository menuRepository, ObjectMapper objectMapper, RoleRepository roleRepository, ApplicationContext applicationContext) {
+    private final ExecutorService taskExecutor;
+
+    public MenuServiceImpl(MenuRepository menuRepository, ObjectMapper objectMapper, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.menuRepository = menuRepository;
         this.objectMapper = objectMapper;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;
+        this.taskExecutor = taskExecutor;
     }
 
     @Override
@@ -81,10 +86,12 @@ public class MenuServiceImpl implements MenuService {
             menuRepository.save(menuEntity);
         }
 
-        // 全部按钮和菜单
-        List<String> allRoleCodes = roleRepository.findAllCodes();
-        var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.MENU.getType());
-        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+        taskExecutor.execute(() ->{
+            // 全部按钮和菜单
+            List<String> allRoleCodes = roleRepository.findAllCodes();
+            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.MENU.getType());
+            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+        });
     }
 
     @Override
