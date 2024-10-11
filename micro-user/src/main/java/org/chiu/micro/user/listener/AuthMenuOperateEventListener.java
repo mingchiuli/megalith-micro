@@ -6,7 +6,6 @@ import org.chiu.micro.user.constant.UserAuthMenuOperateMessage;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -21,7 +20,6 @@ public class AuthMenuOperateEventListener {
     }
 
     @EventListener
-    @Async("commonExecutor")
     public void process(AuthMenuOperateEvent event) {
 
         AuthMenuIndexMessage authMenuIndexMessage = event.getAuthMenuIndexMessage();

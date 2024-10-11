@@ -17,7 +17,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -50,7 +49,6 @@ public class UserServiceImpl implements UserService {
 
     private final ObjectMapper objectMapper;
 
-    @Qualifier("commonExecutor")
     private final ExecutorService taskExecutor;
 
     @Value("${blog.oss.base-url}")
@@ -59,7 +57,7 @@ public class UserServiceImpl implements UserService {
     @Value("${blog.register.page-prefix}")
     private String pagePrefix;
 
-    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, OssSignUtils ossSignUtils, ObjectMapper objectMapper, ExecutorService taskExecutor) {
+    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, OssSignUtils ossSignUtils, ObjectMapper objectMapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
         this.ossHttpService = ossHttpService;
@@ -197,7 +195,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Async("commonExecutor")
     public void unlockUser() {
         userRepository.unlockUser();
     }

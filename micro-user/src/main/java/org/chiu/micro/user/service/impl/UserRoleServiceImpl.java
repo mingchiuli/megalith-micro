@@ -21,6 +21,7 @@ import org.chiu.micro.user.req.UserEntityReq;
 import org.chiu.micro.user.service.UserRoleService;
 import org.chiu.micro.user.vo.UserEntityVo;
 import org.chiu.micro.user.wrapper.UserRoleWrapper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 import static org.chiu.micro.user.lang.Const.REGISTER_PREFIX;
 import static org.chiu.micro.user.lang.Const.USER;
@@ -63,7 +65,10 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     private final UserRoleRepository userRoleRepository;
 
-    public UserRoleServiceImpl(RoleRepository roleRepository, CodeFactory codeFactory, StringRedisTemplate redisTemplate, UserRoleWrapper userRoleWrapper, UserRepository userRepository, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, UserRoleRepository userRoleRepository) {
+    private final ExecutorService taskExecutor;
+
+
+    public UserRoleServiceImpl(RoleRepository roleRepository, CodeFactory codeFactory, StringRedisTemplate redisTemplate, UserRoleWrapper userRoleWrapper, UserRepository userRepository, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, UserRoleRepository userRoleRepository, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.roleRepository = roleRepository;
         this.codeFactory = codeFactory;
         this.redisTemplate = redisTemplate;
@@ -72,6 +77,7 @@ public class UserRoleServiceImpl implements UserRoleService {
         this.passwordEncoder = passwordEncoder;
         this.applicationContext = applicationContext;
         this.userRoleRepository = userRoleRepository;
+        this.taskExecutor = taskExecutor;
     }
 
     @Override
@@ -94,7 +100,8 @@ public class UserRoleServiceImpl implements UserRoleService {
             userOperateEnum = UserOperateEnum.UPDATE;
         } else {
             userEntity = new UserEntity();
-            userEntityReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(Optional.ofNullable(userEntityReq.password()).orElseThrow(() -> new CommitException(PASSWORD_REQUIRED))));
+            userEntityReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(Optional.ofNullable(userEntityReq.password())
+                    .orElseThrow(() -> new CommitException(PASSWORD_REQUIRED))));
             userOperateEnum = UserOperateEnum.CREATE;
         }
 
@@ -107,8 +114,11 @@ public class UserRoleServiceImpl implements UserRoleService {
                 .toList();
 
         userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
-        var userIndexMessage = new UserIndexMessage(userEntity.getId(), userOperateEnum);
-        applicationContext.publishEvent(new UserOperateEvent(this, userIndexMessage));
+
+        taskExecutor.execute(() -> {
+            var userIndexMessage = new UserIndexMessage(userEntity.getId(), userOperateEnum);
+            applicationContext.publishEvent(new UserOperateEvent(this, userIndexMessage));
+        });
     }
 
     @Override
