@@ -164,13 +164,13 @@ const onUploadImg = async (files: File[], callback: Function) => {
       <Emoji />
     </template>
     <template #defFooters>
-      <NormalFooterToolbar>
-        <el-progress
+       <el-progress
           v-if="showPercentage"
           type="line"
           :percentage="uploadPercentage"
           :color="Colors"
           status="success" />
+      <NormalFooterToolbar>
         <span class="trans-radius" :style="{ 'background-color': transColor }" />
       </NormalFooterToolbar>
 
