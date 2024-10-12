@@ -2,7 +2,7 @@ package org.chiu.micro.websocket.dto;
 
 import java.io.Serializable;
 
-public record StompMessageDto(
+public record MessageDto(
 
         Integer version,
 
@@ -43,8 +43,8 @@ public record StompMessageDto(
             return this;
         }
 
-        public StompMessageDto build() {
-            return new StompMessageDto(version, userId, blogId, type);
+        public MessageDto build() {
+            return new MessageDto(version, userId, blogId, type);
         }
     }
 }

@@ -14,7 +14,6 @@ public class AuthorityVoConvertor {
         return authorityEntities.stream()
                 .map(item -> AuthorityVo.builder()
                         .id(item.getId())
-                        .name(item.getName())
                         .code(item.getCode())
                         .prototype(item.getPrototype())
                         .methodType(item.getMethodType())
@@ -33,7 +32,6 @@ public class AuthorityVoConvertor {
     public static AuthorityVo convert(AuthorityEntity authorityEntity) {
         return AuthorityVo.builder()
                 .id(authorityEntity.getId())
-                .name(authorityEntity.getName())
                 .code(authorityEntity.getCode())
                 .prototype(authorityEntity.getPrototype())
                 .methodType(authorityEntity.getMethodType())

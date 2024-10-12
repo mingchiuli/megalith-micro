@@ -11,7 +11,6 @@ public class AuthorityRpcVoConvertor {
         return authorityEntities.stream()
                 .map(item -> AuthorityRpcVo.builder()
                         .id(item.getId())
-                        .name(item.getName())
                         .code(item.getCode())
                         .prototype(item.getPrototype())
                         .methodType(item.getMethodType())

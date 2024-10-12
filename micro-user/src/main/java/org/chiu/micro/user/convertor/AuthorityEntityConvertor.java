@@ -8,7 +8,6 @@ public class AuthorityEntityConvertor {
     public static void convert(AuthorityEntityReq req, AuthorityEntity authorityEntity) {
         authorityEntity.setId(req.id().orElse(null));
         authorityEntity.setCode(req.code());
-        authorityEntity.setName(req.name());
         authorityEntity.setRemark(req.remark());
         authorityEntity.setPrototype(req.prototype());
         authorityEntity.setMethodType(req.methodType());

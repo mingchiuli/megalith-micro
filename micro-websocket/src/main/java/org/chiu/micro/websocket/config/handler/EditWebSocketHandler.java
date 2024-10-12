@@ -2,7 +2,7 @@ package org.chiu.micro.websocket.config.handler;
 
 import jakarta.annotation.PostConstruct;
 import org.chiu.micro.websocket.dto.BlogEditPushActionDto;
-import org.chiu.micro.websocket.dto.StompMessageDto;
+import org.chiu.micro.websocket.dto.MessageDto;
 import org.chiu.micro.websocket.key.KeyFactory;
 import org.chiu.micro.websocket.lang.MessageEnum;
 import org.chiu.micro.websocket.utils.JsonUtils;
@@ -92,7 +92,7 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
                 userId.toString());
 
         if (execute != null && enumSet.contains(execute)) {
-            var dto = StompMessageDto.builder()
+            var dto = MessageDto.builder()
                     .blogId(blogId)
                     .userId(userId)
                     .version(version)
