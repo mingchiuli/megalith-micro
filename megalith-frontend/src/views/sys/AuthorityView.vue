@@ -18,7 +18,6 @@ const showPercentage = ref(false)
 let content = reactive<AuthoritySys[]>([])
 
 const formRules = reactive<FormRules<Form>>({
-  name: [{ required: true, message: '请输入名字', trigger: 'blur' }],
   code: [{ required: true, message: '请输入权限编码', trigger: 'blur' }],
   remark: [{ required: true, message: '请输入描述', trigger: 'blur' }],
   status: [{ required: true, message: '请选择状态', trigger: 'blur' }],
@@ -32,7 +31,6 @@ const formRules = reactive<FormRules<Form>>({
 const formRef = useTemplateRef<FormInstance>('form')
 type Form = {
   id?: number
-  name: string
   code: string
   remark: string
   status: number
@@ -46,7 +44,6 @@ type Form = {
 
 const form: Form = reactive({
   id: undefined,
-  name: '',
   code: '',
   remark: '',
   status: 0,
@@ -93,7 +90,6 @@ const handleEdit = async (row: AuthoritySys) => {
   const data = await GET<AuthoritySys>(`/sys/authority/info/${row.id}`)
   form.code = data.code
   form.id = data.id
-  form.name = data.name
   form.remark = data.remark
   form.status = data.status
   form.type = data.type
@@ -139,7 +135,6 @@ const submitForm = async (ref: FormInstance) => {
 
 const clearForm = () => {
   form.id = undefined
-  form.name = ''
   form.code = ''
   form.remark = ''
   form.status = 0
@@ -200,7 +195,6 @@ const clearForm = () => {
     v-loading="loading"
   >
     <el-table-column type="selection" :fixed="fixSelection" />
-    <el-table-column label="接口名字" align="center" prop="name" min-width="300" />
     <el-table-column label="权限编码" align="center" prop="code" min-width="300" />
 
     <el-table-column label="协议" align="center" prop="prototype" min-width="130" />
@@ -277,10 +271,7 @@ const clearForm = () => {
 
   <el-dialog v-model="dialogVisible" title="新增/编辑" width="600px" :before-close="handleClose">
     <el-form :model="form" :rules="formRules" ref="form">
-      <el-form-item label="接口名字" label-width="100px" prop="name">
-        <el-input v-model="form.name" maxlength="50" />
-      </el-form-item>
-
+    
       <el-form-item label="权限编码" label-width="100px" prop="code">
         <el-input v-model="form.code" maxlength="50" />
       </el-form-item>

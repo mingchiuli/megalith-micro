@@ -49,7 +49,6 @@ export interface BlogDelSys {
 
 export interface AuthoritySys {
   id: number
-  name: string
   code: string
   remark: string
   created: string
