@@ -24,7 +24,6 @@ const editorRef = useTemplateRef<ExposeParam>('editor')
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
-const customHeight = ref(40)
 
 const toolbars: ToolbarNames[] = [
   'revoke',
@@ -165,14 +164,13 @@ const onUploadImg = async (files: File[], callback: Function) => {
       <Emoji />
     </template>
     <template #defFooters>
-      <el-progress
-        v-if="showPercentage"
-        type="line"
-        :percentage="uploadPercentage"
-        :color="Colors"
-        status="success"
-      />
       <NormalFooterToolbar>
+        <el-progress
+          v-if="showPercentage"
+          type="line"
+          :percentage="uploadPercentage"
+          :color="Colors"
+          status="success" />
         <span class="trans-radius" :style="{ 'background-color': transColor }" />
       </NormalFooterToolbar>
 
@@ -182,7 +180,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
 
 <style scoped>
 .md-editor:deep(.md-editor-footer) {
-  height: v-bind(customHeight + 'px');
+  height: 40px;
 }
 
 .trans-radius {
