@@ -5,8 +5,6 @@ public record AuthorityDto (
 
         Long id,
 
-        String name,
-
         String code,
 
         String remark,
