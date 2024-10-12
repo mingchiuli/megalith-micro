@@ -25,9 +25,6 @@ public class AuthorityEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
-    private String name;
-
     @Column(name = "code")
     private String code;
 
@@ -63,9 +60,8 @@ public class AuthorityEntity {
     @Column(name = "status")
     private Integer status;
 
-    public AuthorityEntity(Long id, String name, String code, String remark, String prototype, String methodType, String routePattern, String serviceHost, Integer servicePort, LocalDateTime created, LocalDateTime updated, Integer type, Integer status) {
+    public AuthorityEntity(Long id, String code, String remark, String prototype, String methodType, String routePattern, String serviceHost, Integer servicePort, LocalDateTime created, LocalDateTime updated, Integer type, Integer status) {
         this.id = id;
-        this.name = name;
         this.code = code;
         this.remark = remark;
         this.prototype = prototype;
@@ -88,10 +84,6 @@ public class AuthorityEntity {
 
     public Long getId() {
         return this.id;
-    }
-
-    public String getName() {
-        return this.name;
     }
 
     public String getCode() {
@@ -140,10 +132,6 @@ public class AuthorityEntity {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public void setCode(String code) {
@@ -195,13 +183,12 @@ public class AuthorityEntity {
         if (this == o) return true;
         if (!(o instanceof AuthorityEntity that)) return false;
 
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(code, that.code) && Objects.equals(remark, that.remark) && Objects.equals(prototype, that.prototype) && Objects.equals(methodType, that.methodType) && Objects.equals(routePattern, that.routePattern) && Objects.equals(serviceHost, that.serviceHost) && Objects.equals(servicePort, that.servicePort) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated) && Objects.equals(status, that.status);
+        return Objects.equals(id, that.id) && Objects.equals(code, that.code) && Objects.equals(remark, that.remark) && Objects.equals(prototype, that.prototype) && Objects.equals(methodType, that.methodType) && Objects.equals(routePattern, that.routePattern) && Objects.equals(serviceHost, that.serviceHost) && Objects.equals(servicePort, that.servicePort) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated) && Objects.equals(status, that.status);
     }
 
     @Override
     public int hashCode() {
         int result = Objects.hashCode(id);
-        result = 31 * result + Objects.hashCode(name);
         result = 31 * result + Objects.hashCode(code);
         result = 31 * result + Objects.hashCode(remark);
         result = 31 * result + Objects.hashCode(prototype);
@@ -218,7 +205,6 @@ public class AuthorityEntity {
 
     public static class AuthorityEntityBuilder {
         private Long id;
-        private String name;
         private String code;
         private String remark;
         private String prototype;
@@ -234,11 +220,6 @@ public class AuthorityEntity {
 
         public AuthorityEntityBuilder id(Long id) {
             this.id = id;
-            return this;
-        }
-
-        public AuthorityEntityBuilder name(String name) {
-            this.name = name;
             return this;
         }
 
@@ -298,7 +279,7 @@ public class AuthorityEntity {
         }
 
         public AuthorityEntity build() {
-            return new AuthorityEntity(id, name, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
+            return new AuthorityEntity(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
     }
 }

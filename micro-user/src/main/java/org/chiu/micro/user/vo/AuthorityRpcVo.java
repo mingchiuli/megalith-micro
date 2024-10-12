@@ -5,8 +5,6 @@ public record AuthorityRpcVo(
 
         Long id,
 
-        String name,
-
         String code,
 
         String remark,
@@ -32,7 +30,6 @@ public record AuthorityRpcVo(
 
     public static class AuthorityRpcVoBuilder {
         private Long id;
-        private String name;
         private String code;
         private String remark;
         private String prototype;
@@ -45,11 +42,6 @@ public record AuthorityRpcVo(
 
         public AuthorityRpcVoBuilder id(Long id) {
             this.id = id;
-            return this;
-        }
-
-        public AuthorityRpcVoBuilder name(String name) {
-            this.name = name;
             return this;
         }
 
@@ -99,7 +91,7 @@ public record AuthorityRpcVo(
         }
 
         public AuthorityRpcVo build() {
-            return new AuthorityRpcVo(id, name, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, type, status);
+            return new AuthorityRpcVo(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, type, status);
         }
     }
 }
