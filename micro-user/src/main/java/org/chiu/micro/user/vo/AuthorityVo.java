@@ -8,8 +8,6 @@ public record AuthorityVo(
 
         Long id,
 
-        String name,
-
         String code,
 
         String remark,
@@ -41,7 +39,6 @@ public record AuthorityVo(
 
     public static class AuthorityVoBuilder {
         private Long id;
-        private String name;
         private String code;
         private String remark;
         private String prototype;
@@ -56,11 +53,6 @@ public record AuthorityVo(
 
         public AuthorityVoBuilder id(Long id) {
             this.id = id;
-            return this;
-        }
-
-        public AuthorityVoBuilder name(String name) {
-            this.name = name;
             return this;
         }
 
@@ -120,7 +112,7 @@ public record AuthorityVo(
         }
 
         public AuthorityVo build() {
-            return new AuthorityVo(id, name, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
+            return new AuthorityVo(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
     }
 }
