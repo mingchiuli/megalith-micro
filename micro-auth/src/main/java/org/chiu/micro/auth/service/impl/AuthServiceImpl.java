@@ -75,10 +75,10 @@ public class AuthServiceImpl implements AuthService {
             buttons.addAll(partDto.buttons());
         });
 
-        List<MenuDisplayDto> menuEntities = MenuDisplayDtoConvertor.convert(menus, true);
+        List<MenuDisplayDto> menuEntities = MenuDisplayDtoConvertor.convert(menus);
         List<MenuDisplayDto> displayDtos = MenuDisplayDtoConvertor.buildTreeMenu(menuEntities);
         List<MenuWithChildDto> menuDtos = MenuWithChildDtoConvertor.convert(displayDtos);
-        List<ButtonDto> buttonDtos = ButtonVoConvertor.convert(buttons, true);
+        List<ButtonDto> buttonDtos = ButtonVoConvertor.convert(buttons);
 
         return MenusAndButtonsVoConvertor.convert(buttonDtos, menuDtos);
     }

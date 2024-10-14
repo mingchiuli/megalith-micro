@@ -7,19 +7,15 @@ import org.chiu.micro.auth.lang.StatusEnum;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 public class MenuDisplayDtoConvertor {
 
     private MenuDisplayDtoConvertor() {}
 
-    public static List<MenuDisplayDto> convert(List<MenuDto> menus, boolean statusCheck) {
-        Stream<MenuDto> menuStream = menus.stream();
-        if (Boolean.TRUE.equals(statusCheck)) {
-            menuStream = menuStream.filter(menu -> StatusEnum.NORMAL.getCode().equals(menu.status()));
-        }
+    public static List<MenuDisplayDto> convert(List<MenuDto> menus) {
 
-        return menuStream
+        return menus.stream()
+                .filter(menu -> StatusEnum.NORMAL.getCode().equals(menu.status()))
                 .distinct()
                 .map(menu -> MenuDisplayDto.builder()
                         .menuId(menu.menuId())
