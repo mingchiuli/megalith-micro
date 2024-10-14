@@ -97,7 +97,7 @@ public class MenuServiceImpl implements MenuService {
     @Override
     public List<MenuDisplayVo> tree() {
         List<MenuEntity> menus = menuRepository.findAllByOrderByOrderNumDesc();
-        List<MenuDisplayVo> menuEntities = MenuDisplayVoConvertor.convert(menus, false);
+        List<MenuDisplayVo> menuEntities = MenuDisplayVoConvertor.convert(menus);
         return MenuDisplayVoConvertor.buildTreeMenu(menuEntities);
     }
 
