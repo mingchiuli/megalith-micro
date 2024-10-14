@@ -349,7 +349,7 @@ const healthCheck = async () => {
   } catch (_e) {
     destory()
   } finally {
-    healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 2000)
+    healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 500)
   }
 }
 
