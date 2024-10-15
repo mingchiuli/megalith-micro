@@ -17,13 +17,11 @@ import org.chiu.micro.user.req.AuthorityEntityReq;
 import org.chiu.micro.user.service.AuthorityService;
 import org.chiu.micro.user.vo.AuthorityRpcVo;
 import org.chiu.micro.user.vo.AuthorityVo;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 
 import static org.chiu.micro.user.lang.ExceptionMessage.NO_FOUND;
 
@@ -38,14 +36,11 @@ public class AuthorityServiceImpl implements AuthorityService {
 
     private final ApplicationContext applicationContext;
 
-    private final ExecutorService taskExecutor;
-
-    public AuthorityServiceImpl(AuthorityRepository authorityRepository, ObjectMapper objectMapper, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public AuthorityServiceImpl(AuthorityRepository authorityRepository, ObjectMapper objectMapper, RoleRepository roleRepository, ApplicationContext applicationContext) {
         this.authorityRepository = authorityRepository;
         this.objectMapper = objectMapper;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;
-        this.taskExecutor = taskExecutor;
     }
 
     @Override
@@ -84,11 +79,9 @@ public class AuthorityServiceImpl implements AuthorityService {
         authorityRepository.save(authorityEntity);
 
         //全部权限
-        taskExecutor.execute(() -> {
-            List<String> allRoleCodes = roleRepository.findAllCodes();
-            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.AUTH.getType());
-            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-        });
+        List<String> allRoleCodes = roleRepository.findAllCodes();
+        var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.AUTH.getType());
+        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
     }
 
     @Override
@@ -96,11 +89,9 @@ public class AuthorityServiceImpl implements AuthorityService {
 
         authorityRepository.deleteAllById(ids);
         //全部权限
-        taskExecutor.execute(() -> {
-            List<String> allRoleCodes = roleRepository.findAllCodes();
-            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.AUTH.getType());
-            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-        });
+        List<String> allRoleCodes = roleRepository.findAllCodes();
+        var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.AUTH.getType());
+        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
     }
 
     @Override
