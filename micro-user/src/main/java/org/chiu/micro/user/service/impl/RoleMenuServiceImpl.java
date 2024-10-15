@@ -14,7 +14,6 @@ import org.chiu.micro.user.repository.RoleRepository;
 import org.chiu.micro.user.service.RoleMenuService;
 import org.chiu.micro.user.vo.*;
 import org.chiu.micro.user.wrapper.RoleMenuWrapper;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 
 import static org.chiu.micro.user.lang.ExceptionMessage.MENU_INVALID_OPERATE;
 import static org.chiu.micro.user.lang.StatusEnum.NORMAL;
@@ -45,16 +43,13 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
     private final ApplicationContext applicationContext;
 
-    private final ExecutorService taskExecutor;
 
-
-    public RoleMenuServiceImpl(MenuRepository menuRepository, RoleMenuRepository roleMenuRepository, RoleMenuWrapper roleMenuWrapper, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public RoleMenuServiceImpl(MenuRepository menuRepository, RoleMenuRepository roleMenuRepository, RoleMenuWrapper roleMenuWrapper, RoleRepository roleRepository, ApplicationContext applicationContext) {
         this.menuRepository = menuRepository;
         this.roleMenuRepository = roleMenuRepository;
         this.roleMenuWrapper = roleMenuWrapper;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;
-        this.taskExecutor = taskExecutor;
     }
 
     private List<RoleMenuVo> setCheckMenusInfo(List<MenuDisplayVo> menusInfo, List<Long> menuIdsByRole, List<RoleMenuVo> parentChildren) {
@@ -94,15 +89,13 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         List<RoleMenuEntity> roleMenuEntities = RoleMenuEntityConvertor.convert(roleId, menuIds);
 
         roleMenuWrapper.saveMenu(roleId, new ArrayList<>(roleMenuEntities));
-        taskExecutor.execute(() -> {
-            // 按钮
-            roleRepository.findById(roleId)
-                    .map(RoleEntity::getCode)
-                    .ifPresent(role -> {
-                        var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(role), AuthMenuOperateEnum.MENU.getType());
-                        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-                    });
-        });
+        // 按钮
+        roleRepository.findById(roleId)
+                .map(RoleEntity::getCode)
+                .ifPresent(role -> {
+                    var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(role), AuthMenuOperateEnum.MENU.getType());
+                    applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+                });
     }
 
     @Override
@@ -112,12 +105,10 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             throw new CommitException(MENU_INVALID_OPERATE);
         }
         roleMenuWrapper.deleteMenu(id);
-        taskExecutor.execute(() -> {
-            //全部按钮
-            List<String> allRoleCodes = roleRepository.findAllCodes();
-            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.MENU.getType());
-            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-        });
+        //全部按钮
+        List<String> allRoleCodes = roleRepository.findAllCodes();
+        var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.MENU.getType());
+        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
     }
 
     @Override

@@ -104,8 +104,6 @@ public class BlogServiceImpl implements BlogService {
 
     private String hotBlogsScript;
 
-    private String blogDeleteScript;
-
     private String listDeleteScript;
 
     private String recoverDeleteScript;
@@ -131,9 +129,6 @@ public class BlogServiceImpl implements BlogService {
         Resource hotBlogsResource = resourceLoader
                 .getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/hot-blogs.lua");
         hotBlogsScript = hotBlogsResource.getContentAsString(StandardCharsets.UTF_8);
-        Resource blogDeleteResource = resourceLoader
-                .getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/blog-delete.lua");
-        blogDeleteScript = blogDeleteResource.getContentAsString(StandardCharsets.UTF_8);
         Resource listDeleteResource = resourceLoader
                 .getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/list-delete.lua");
         listDeleteScript = listDeleteResource.getContentAsString(StandardCharsets.UTF_8);
@@ -299,11 +294,9 @@ public class BlogServiceImpl implements BlogService {
         BlogEntity saved = blogSensitiveWrapper.saveOrUpdate(blogEntity, blogSensitiveContentEntityList, existedSensitiveIds);
 
         // 通知消息给mq,更新并删除缓存
-        taskExecutor.execute(() -> {
-            BlogOperateEnum type = blogId.isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE;
-            var blogSearchIndexMessage = new BlogOperateMessage(saved.getId(), type, blogEntity.getCreated().getYear());
-            applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
-        });
+        BlogOperateEnum type = blogId.isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE;
+        var blogSearchIndexMessage = new BlogOperateMessage(saved.getId(), type, blogEntity.getCreated().getYear());
+        applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
     }
 
     @Override
@@ -394,31 +387,30 @@ public class BlogServiceImpl implements BlogService {
         tempBlog.setStatus(HIDE.getCode());
         BlogEntity blog = blogRepository.save(tempBlog);
 
-        taskExecutor.execute(() -> {
-            var blogSearchIndexMessage = new BlogOperateMessage(blog.getId(), BlogOperateEnum.CREATE, blog.getCreated().getYear());
-            applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
-        });
+        var blogSearchIndexMessage = new BlogOperateMessage(blog.getId(), BlogOperateEnum.CREATE, blog.getCreated().getYear());
+        applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
     }
 
     @Override
     public void deleteBatch(List<Long> ids, Long userId, List<String> roles) {
+
+        List<BlogEntity> entities = blogRepository.findAllById(ids).stream()
+                .filter(blogEntity -> Objects.equals(blogEntity.getUserId(), userId) || roles.contains(highestRole))
+                .toList();
+
+        ids = entities.stream()
+                .map(BlogEntity::getId)
+                .toList();
 
         List<Long> sensitiveIds = blogSensitiveContentRepository.findByBlogIdIn(ids).stream()
                 .map(BlogSensitiveContentEntity::getId)
                 .toList();
         blogSensitiveWrapper.deleteByIds(ids, sensitiveIds);
 
-        taskExecutor.execute(() -> blogRepository.findAllById(ids).stream()
-                .filter(blogEntity -> Objects.equals(blogEntity.getUserId(), userId) || roles.contains(highestRole))
-                .forEach(blogEntity -> {
-                    blogEntity.setUpdated(LocalDateTime.now());
-                    redisTemplate.execute(RedisScript.of(blogDeleteScript),
-                            Collections.singletonList(QUERY_DELETED.getInfo() + userId),
-                            jsonUtils.writeValueAsString(blogEntity), A_WEEK.getInfo());
-
-                    var blogSearchIndexMessage = new BlogOperateMessage(blogEntity.getId(), BlogOperateEnum.REMOVE, blogEntity.getCreated().getYear());
-                    applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
-                }));
+        entities.forEach(entity -> {
+            var blogSearchIndexMessage = new BlogOperateMessage(entity.getId(), BlogOperateEnum.REMOVE, entity.getCreated().getYear());
+            applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
+        });
     }
 
     @Override

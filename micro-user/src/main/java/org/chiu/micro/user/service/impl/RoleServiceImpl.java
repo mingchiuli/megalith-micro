@@ -22,7 +22,6 @@ import org.chiu.micro.user.service.RoleService;
 import org.chiu.micro.user.vo.RoleEntityRpcVo;
 import org.chiu.micro.user.vo.RoleEntityVo;
 import org.chiu.micro.user.wrapper.RoleMenuAuthorityWrapper;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +31,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 
 import static org.chiu.micro.user.lang.ExceptionMessage.ROLE_NOT_EXIST;
 
@@ -55,16 +53,13 @@ public class RoleServiceImpl implements RoleService {
 
     private final ApplicationContext applicationContext;
 
-    private final ExecutorService taskExecutor;
-
-    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, RoleAuthorityRepository roleAuthorityRepository, ObjectMapper objectMapper, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, RoleAuthorityRepository roleAuthorityRepository, ObjectMapper objectMapper, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper, ApplicationContext applicationContext) {
         this.roleRepository = roleRepository;
         this.roleMenuRepository = roleMenuRepository;
         this.roleAuthorityRepository = roleAuthorityRepository;
         this.objectMapper = objectMapper;
         this.roleMenuAuthorityWrapper = roleMenuAuthorityWrapper;
         this.applicationContext = applicationContext;
-        this.taskExecutor = taskExecutor;
     }
 
     @Override
@@ -106,28 +101,24 @@ public class RoleServiceImpl implements RoleService {
         RoleEntityConvertor.convert(roleReq, roleEntity);
 
         roleRepository.save(roleEntity);
-        taskExecutor.execute(() -> {
-            //权限和按钮
-            var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(roleEntity.getCode()), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
-            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-        });
+        //权限和按钮
+        var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(roleEntity.getCode()), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
+        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
     }
 
     @Override
     public void delete(List<Long> ids) {
         roleMenuAuthorityWrapper.delete(ids);
 
-        taskExecutor.execute(() -> {
-            //多个角色删除
-            var roles = roleRepository.findAllById(ids)
-                    .stream()
-                    .map(RoleEntity::getCode)
-                    .distinct()
-                    .toList();
+        //多个角色删除
+        var roles = roleRepository.findAllById(ids)
+                .stream()
+                .map(RoleEntity::getCode)
+                .distinct()
+                .toList();
 
-            var authMenuIndexMessage = new AuthMenuIndexMessage(roles, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
-            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-        });
+        var authMenuIndexMessage = new AuthMenuIndexMessage(roles, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
+        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
     }
 
     @Override
