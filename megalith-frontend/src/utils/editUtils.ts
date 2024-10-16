@@ -34,12 +34,7 @@ export const pushActionData = (
 }
 
 export const pullAllData = async (opreateStatus: OpreateStatusParam, form: EditForm) => {
-  opreateStatus.pulling = true
-  try {
-    await loadEditContent(form, opreateStatus)
-  } finally {
-    opreateStatus.pulling = false
-  }
+  await loadEditContent(form, opreateStatus)
 }
 
 export const loadEditContent = async (form: EditForm, opreateStatus: OpreateStatusParam) => {

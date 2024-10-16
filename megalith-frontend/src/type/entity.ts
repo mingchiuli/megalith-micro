@@ -369,7 +369,6 @@ export interface PushActionForm {
 export interface OpreateStatusParam {
   composing: boolean
   netErrorEdited: Ref<boolean>
-  pulling: boolean
   client: WebSocket
   fieldType: FieldType
   transColor: Ref<string>
