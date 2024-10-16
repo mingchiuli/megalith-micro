@@ -71,7 +71,6 @@ const subscribe = async (event: MessageEvent<string>) => {
 const opreateStatus: OpreateStatusParam = {
   composing: false,
   netErrorEdited: ref(false),
-  pulling: false,
   client: socket!,
   fieldType: FieldType.NON_PARA,
   transColor: ref(OperaColor.FAILED),
