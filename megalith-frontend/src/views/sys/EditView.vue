@@ -345,6 +345,7 @@ const healthCheck = async () => {
       opreateStatus.readOnly.value = false
       opreateStatus.transColor.value = OperaColor.SUCCESS
       opreateStatus.netErrorEdited.value = false
+      console.log(`status change 111${opreateStatus.netErrorEdited.value}`)
     }
   } catch (_e) {
     destory()

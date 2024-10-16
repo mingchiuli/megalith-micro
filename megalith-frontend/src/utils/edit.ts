@@ -168,6 +168,7 @@ const preCheck = (
   if (opreateStatus.client.readyState !== WebSocket.OPEN) {
     if (!opreateStatus.netErrorEdited.value) {
       opreateStatus.netErrorEdited.value = true
+      console.log(`status change${opreateStatus.netErrorEdited.value}`)
     }
     return false
   }
