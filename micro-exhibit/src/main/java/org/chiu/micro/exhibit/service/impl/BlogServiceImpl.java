@@ -98,8 +98,7 @@ public class BlogServiceImpl implements BlogService {
                     if (!StatusEnum.SENSITIVE_FILTER.getCode().equals(desc.status())) {
                         return desc;
                     }
-                    List<SensitiveContentDto> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContentDto();
-                    log.info("info:{}, desc:{}", words, desc);
+                    List<SensitiveContentDto> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContent();
                     if (words.isEmpty()) {
                         return desc;
                     }
@@ -211,7 +210,7 @@ public class BlogServiceImpl implements BlogService {
                 !roles.contains(highestRole) &&
                 !Objects.equals(userId, blogExhibitDto.userId())) {
             BlogSensitiveContentRpcDto sensitiveContentDto = blogSensitiveWrapper.findSensitiveByBlogId(id);
-            List<SensitiveContentDto> words = sensitiveContentDto.sensitiveContentDto();
+            List<SensitiveContentDto> words = sensitiveContentDto.sensitiveContent();
             if (!words.isEmpty()) {
                 blogExhibitDto = SensitiveUtils.deal(words, blogExhibitDto);
             }
