@@ -2,7 +2,7 @@ package org.chiu.micro.common.dto;
 
 import java.io.Serializable;
 
-public record SensitiveContentDto(
+public record SensitiveContentRpcDto(
 
         Integer startIndex,
 
@@ -35,8 +35,8 @@ public record SensitiveContentDto(
             return this;
         }
 
-        public SensitiveContentDto build() {
-            return new SensitiveContentDto(startIndex, endIndex, type);
+        public SensitiveContentRpcDto build() {
+            return new SensitiveContentRpcDto(startIndex, endIndex, type);
         }
     }
 }

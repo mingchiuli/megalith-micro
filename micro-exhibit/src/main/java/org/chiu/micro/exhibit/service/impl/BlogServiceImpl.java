@@ -3,7 +3,7 @@ package org.chiu.micro.exhibit.service.impl;
 import jakarta.annotation.PostConstruct;
 import org.chiu.micro.common.dto.BlogEntityRpcDto;
 import org.chiu.micro.common.dto.BlogSensitiveContentRpcDto;
-import org.chiu.micro.common.dto.SensitiveContentDto;
+import org.chiu.micro.common.dto.SensitiveContentRpcDto;
 import org.chiu.micro.common.exception.MissException;
 import org.chiu.micro.common.lang.StatusEnum;
 import org.chiu.micro.common.page.PageAdapter;
@@ -98,7 +98,7 @@ public class BlogServiceImpl implements BlogService {
                     if (!StatusEnum.SENSITIVE_FILTER.getCode().equals(desc.status())) {
                         return desc;
                     }
-                    List<SensitiveContentDto> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContent();
+                    List<SensitiveContentRpcDto> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContent();
                     if (words.isEmpty()) {
                         return desc;
                     }
@@ -210,7 +210,7 @@ public class BlogServiceImpl implements BlogService {
                 !roles.contains(highestRole) &&
                 !Objects.equals(userId, blogExhibitDto.userId())) {
             BlogSensitiveContentRpcDto sensitiveContentDto = blogSensitiveWrapper.findSensitiveByBlogId(id);
-            List<SensitiveContentDto> words = sensitiveContentDto.sensitiveContent();
+            List<SensitiveContentRpcDto> words = sensitiveContentDto.sensitiveContent();
             if (!words.isEmpty()) {
                 blogExhibitDto = SensitiveUtils.deal(words, blogExhibitDto);
             }

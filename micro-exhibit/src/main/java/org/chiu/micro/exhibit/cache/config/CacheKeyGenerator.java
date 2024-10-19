@@ -1,18 +1,15 @@
 package org.chiu.micro.exhibit.cache.config;
 
-import org.chiu.micro.common.utils.JsonUtils;
+import org.chiu.micro.common.cache.config.CommonCacheKeyGenerator;
 import org.chiu.micro.exhibit.wrapper.BlogWrapper;
-import org.chiu.micro.common.cache.Cache;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -23,44 +20,16 @@ import java.util.Set;
 public class CacheKeyGenerator {
 
     private static final Logger log = LoggerFactory.getLogger(CacheKeyGenerator.class);
-    private final JsonUtils jsonUtils;
+
+    private final CommonCacheKeyGenerator commonCacheKeyGenerator;
 
     @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
     private static final String FIND_PAGE = "findPage";
 
-    public CacheKeyGenerator(JsonUtils jsonUtils) {
-        this.jsonUtils = jsonUtils;
-    }
-
-    public String generateKey(Method method, Object... args) {
-
-        Class<?> declaringType = method.getDeclaringClass();
-        String methodName = method.getName();
-
-        var params = new StringBuilder();
-        for (Object arg : args) {
-            if (Objects.nonNull(arg)) {
-                params.append("::");
-                if (arg instanceof String) {
-                    params.append(arg);
-                } else {
-                    params.append(jsonUtils.writeValueAsString(arg));
-                }
-            }
-        }
-
-        String className = declaringType.getSimpleName();
-        var annotation = method.getAnnotation(Cache.class);
-        String prefix = null;
-        if (Objects.nonNull(annotation)) {
-            prefix = annotation.prefix().getInfo();
-        }
-
-        return StringUtils.hasLength(prefix) ?
-                prefix + "::" + className + "::" + methodName + params :
-                className + "::" + methodName + params;
+    public CacheKeyGenerator(CommonCacheKeyGenerator commonCacheKeyGenerator) {
+        this.commonCacheKeyGenerator = commonCacheKeyGenerator;
     }
 
     public Set<String> generateHotBlogsKeys(Integer year, Long count, Long countYear) {
@@ -72,7 +41,7 @@ public class CacheKeyGenerator {
             Method method;
             try {
                 method = BlogWrapper.class.getMethod(FIND_PAGE, Integer.class, Integer.class);
-                String key = generateKey(method, i, Integer.MIN_VALUE);
+                String key = commonCacheKeyGenerator.generateKey(method, i, Integer.MIN_VALUE);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
                 log.error("some exception happen...", e);
@@ -83,7 +52,7 @@ public class CacheKeyGenerator {
             Method method;
             try {
                 method = BlogWrapper.class.getMethod(FIND_PAGE, Integer.class, Integer.class);
-                String key = generateKey(method, i, year);
+                String key = commonCacheKeyGenerator.generateKey(method, i, year);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
                 log.error("some exception happen...", e);
@@ -101,7 +70,7 @@ public class CacheKeyGenerator {
             Method method;
             try {
                 method = BlogWrapper.class.getMethod(FIND_PAGE, Integer.class, Integer.class);
-                String key = generateKey(method, i, Integer.MIN_VALUE);
+                String key = commonCacheKeyGenerator.generateKey(method, i, Integer.MIN_VALUE);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
                 log.error("some exception happen...", e);
@@ -112,7 +81,7 @@ public class CacheKeyGenerator {
             Method method;
             try {
                 method = BlogWrapper.class.getMethod(FIND_PAGE, Integer.class, Integer.class);
-                String key = generateKey(method, i, year);
+                String key = commonCacheKeyGenerator.generateKey(method, i, year);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
                 log.error("some exception happen...", e);
