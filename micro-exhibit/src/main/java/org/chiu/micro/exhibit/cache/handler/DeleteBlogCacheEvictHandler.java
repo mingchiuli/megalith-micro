@@ -1,7 +1,7 @@
 package org.chiu.micro.exhibit.cache.handler;
 
 import org.chiu.micro.common.dto.BlogEntityRpcDto;
-import org.chiu.micro.common.utils.KeyFactory;
+import org.chiu.micro.common.utils.KeyUtils;
 import org.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
 import org.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
@@ -93,7 +93,7 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
         keys.add(READ_TOKEN.getInfo() + id);
 
-        String blogEditKey = KeyFactory.createBlogEditRedisKey(blogEntity.userId(), id);
+        String blogEditKey = KeyUtils.createBlogEditRedisKey(blogEntity.userId(), id);
         //删除该年份的页面bloom，listPage的bloom，getCountByYear的bloom，后面逻辑重建
         keys.add(BLOOM_FILTER_YEAR_PAGE.getInfo() + year);
         keys.add(BLOOM_FILTER_PAGE.getInfo());

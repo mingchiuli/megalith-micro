@@ -2,7 +2,7 @@ package org.chiu.micro.websocket.config.handler;
 
 import jakarta.annotation.PostConstruct;
 import org.chiu.micro.common.utils.JsonUtils;
-import org.chiu.micro.common.utils.KeyFactory;
+import org.chiu.micro.common.utils.KeyUtils;
 import org.chiu.micro.websocket.dto.BlogEditPushActionDto;
 import org.chiu.micro.websocket.dto.MessageDto;
 import org.chiu.micro.websocket.lang.MessageEnum;
@@ -79,7 +79,7 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
         String field = pushActionDto.field();
         Integer paraNo = pushActionDto.paraNo();
 
-        String redisKey = KeyFactory.createBlogEditRedisKey(userId, blogId);
+        String redisKey = KeyUtils.createBlogEditRedisKey(userId, blogId);
 
         Long execute = redisTemplate.execute(RedisScript.of(pushActionScript, Long.class), Collections.singletonList(redisKey),
                 contentChange,

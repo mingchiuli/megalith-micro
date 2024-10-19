@@ -1,7 +1,7 @@
 package org.chiu.micro.exhibit.cache.handler;
 
 import org.chiu.micro.common.dto.BlogEntityRpcDto;
-import org.chiu.micro.common.utils.KeyFactory;
+import org.chiu.micro.common.utils.KeyUtils;
 import org.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
 import org.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
@@ -46,7 +46,7 @@ public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         long count = blogHttpServiceWrapper.count();
         long countYear = blogHttpServiceWrapper.countByCreatedBetween(start, end);
         Set<String> keys = cacheKeyGenerator.generateHotBlogsKeys(year, count, countYear);
-        String blogEditKey = KeyFactory.createBlogEditRedisKey(blogEntity.userId(), null);
+        String blogEditKey = KeyUtils.createBlogEditRedisKey(blogEntity.userId(), null);
         keys.add(blogEditKey);
         redissonClient.getKeys().delete(keys.toArray(new String[0]));
         keys.remove(blogEditKey);

@@ -1,7 +1,7 @@
 package org.chiu.micro.exhibit.cache.handler;
 
 import org.chiu.micro.common.dto.BlogEntityRpcDto;
-import org.chiu.micro.common.utils.KeyFactory;
+import org.chiu.micro.common.utils.KeyUtils;
 import org.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
 import org.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
@@ -86,7 +86,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
             keys.add(READ_TOKEN.getInfo() + id);
         }
 
-        String blogEditKey = KeyFactory.createBlogEditRedisKey(blogEntity.userId(), id);
+        String blogEditKey = KeyUtils.createBlogEditRedisKey(blogEntity.userId(), id);
         //暂存区
         keys.add(blogEditKey);
         //内容状态信息

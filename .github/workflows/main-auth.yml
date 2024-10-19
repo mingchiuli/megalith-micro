@@ -6,6 +6,7 @@ on:
     paths:
       - 'micro-auth/**'
       - 'build.gradle.kts'
+      - 'micro-common/**'
 jobs:
   build:
     name: Build

@@ -18,7 +18,7 @@ import org.chiu.micro.blog.vo.SensitiveContentVo;
 import org.chiu.micro.common.exception.MissException;
 import org.chiu.micro.common.lang.StatusEnum;
 import org.chiu.micro.common.utils.JsonUtils;
-import org.chiu.micro.common.utils.KeyFactory;
+import org.chiu.micro.common.utils.KeyUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -80,7 +80,7 @@ public class BlogEditServiceImpl implements BlogEditService {
             originUserId = userId;
         }
 
-        String redisKey = KeyFactory.createBlogEditRedisKey(originUserId, id.orElse(null));
+        String redisKey = KeyUtils.createBlogEditRedisKey(originUserId, id.orElse(null));
         boolean exist = Boolean.TRUE.equals(redisTemplate.hasKey(redisKey));
         if (!exist) {
             return;
@@ -117,7 +117,7 @@ public class BlogEditServiceImpl implements BlogEditService {
             originUserId = userId;
         }
 
-        String redisKey = KeyFactory.createBlogEditRedisKey(originUserId, id);
+        String redisKey = KeyUtils.createBlogEditRedisKey(originUserId, id);
         Map<String, String> entries = redisTemplate.<String, String>opsForHash()
                 .entries(redisKey);
 

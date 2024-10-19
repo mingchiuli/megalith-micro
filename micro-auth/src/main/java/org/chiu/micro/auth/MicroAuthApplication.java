@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(proxyBeanMethods = false)
+@SpringBootApplication(proxyBeanMethods = false, scanBasePackages = {"org.chiu.micro.auth.**", "org.chiu.micro.common.**"})
 @ImportRuntimeHints({ CustomRuntimeHints.class })
 @EnableScheduling
 public class MicroAuthApplication {

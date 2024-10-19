@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 
-@SpringBootApplication(proxyBeanMethods = false)
+@SpringBootApplication(proxyBeanMethods = false, scanBasePackages = {"org.chiu.micro.exhibit.**", "org.chiu.micro.common.**"})
 @EnableScheduling
 @ImportRuntimeHints({ CustomRuntimeHints.class })
 public class MicroExhibitApplication {
