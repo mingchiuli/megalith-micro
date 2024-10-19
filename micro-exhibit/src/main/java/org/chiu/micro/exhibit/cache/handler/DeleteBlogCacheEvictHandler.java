@@ -60,7 +60,7 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
         }
-        ;
+
         try {
             Method getCountByYearMethod  = BlogWrapper.class.getMethod("getCountByYear", Integer.class);
             String getCountByYear = cacheKeyGenerator.generateKey(getCountByYearMethod, year);
