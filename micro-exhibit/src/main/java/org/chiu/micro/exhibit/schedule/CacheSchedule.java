@@ -40,7 +40,7 @@ public class CacheSchedule {
 
     private final BlogSensitiveWrapper blogSensitiveWrapper;
 
-    @Value("${blog.blog-page-size}")
+    @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
     private static final String CACHE_FINISH_FLAG = "cache_finish_flag";

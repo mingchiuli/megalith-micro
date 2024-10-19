@@ -33,7 +33,7 @@ public class BlogWrapper {
 
     private final RedissonClient redissonClient;
 
-    @Value("${blog.blog-page-size}")
+    @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
     public BlogWrapper(BlogHttpServiceWrapper blogHttpServiceWrapper, UserHttpServiceWrapper userHttpServiceWrapper, ExecutorService executorService, RedissonClient redissonClient) {
