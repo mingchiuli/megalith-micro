@@ -14,7 +14,7 @@ dependencies {
 	implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 	implementation("org.redisson:redisson:3.37.0")
 	implementation("com.nimbusds:nimbus-jose-jwt:9.41.2")
-	implementation(project(":micro-common"))
+	implementation(project(":common"))
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
 }

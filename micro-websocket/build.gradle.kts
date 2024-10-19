@@ -7,7 +7,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
-	implementation(project(":micro-common"))
+	implementation(project(":common"))
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

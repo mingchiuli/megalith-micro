@@ -6,7 +6,7 @@ on:
     paths:
       - 'micro-gateway/**'
       - 'build.gradle.kts'
-      - 'micro-common/**'
+      - 'common/**'
 jobs:
   build:
     name: Build
