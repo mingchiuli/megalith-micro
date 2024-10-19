@@ -9,7 +9,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 
-import org.chiu.micro.common.cache.config.CacheKeyGenerator;
+import org.chiu.micro.common.cache.config.CommonCacheKeyGenerator;
 import org.chiu.micro.common.utils.ClassUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -44,7 +44,7 @@ public class CacheAspect {
 
     private final RedissonClient redissonClient;
 
-    private final CacheKeyGenerator cacheKeyGenerator;
+    private final CommonCacheKeyGenerator commonCacheKeyGenerator;
 
     private final ObjectMapper objectMapper;
 
@@ -52,9 +52,9 @@ public class CacheAspect {
 
     private final com.github.benmanes.caffeine.cache.Cache<String, Object> localCache;
 
-    public CacheAspect(RedissonClient redissonClient, ObjectMapper objectMapper, CacheKeyGenerator cacheKeyGenerator, RedissonClient redisson, com.github.benmanes.caffeine.cache.Cache<String, Object> localCache) {
+    public CacheAspect(RedissonClient redissonClient, ObjectMapper objectMapper, CommonCacheKeyGenerator commonCacheKeyGenerator, RedissonClient redisson, com.github.benmanes.caffeine.cache.Cache<String, Object> localCache) {
         this.redissonClient = redissonClient;
-        this.cacheKeyGenerator = cacheKeyGenerator;
+        this.commonCacheKeyGenerator = commonCacheKeyGenerator;
         this.redisson = redisson;
         this.localCache = localCache;
         this.objectMapper = objectMapper;
@@ -82,7 +82,7 @@ public class CacheAspect {
 
         JavaType javaType = objectMapper.getTypeFactory().constructType(genericReturnType);
 
-        String cacheKey = cacheKeyGenerator.generateKey(method, args);
+        String cacheKey = commonCacheKeyGenerator.generateKey(method, args);
 
         Object cacheValue = localCache.getIfPresent(cacheKey);
         if (Objects.nonNull(cacheValue)) {

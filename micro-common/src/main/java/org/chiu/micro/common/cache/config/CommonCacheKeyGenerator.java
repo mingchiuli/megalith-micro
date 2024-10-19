@@ -14,11 +14,11 @@ import java.util.Objects;
  * @create 2023-04-02 11:12 pm
  */
 @Component
-public class CacheKeyGenerator {
+public class CommonCacheKeyGenerator {
 
     private final JsonUtils jsonUtils;
 
-    public CacheKeyGenerator(JsonUtils jsonUtils) {
+    public CommonCacheKeyGenerator(JsonUtils jsonUtils) {
         this.jsonUtils = jsonUtils;
     }
 
