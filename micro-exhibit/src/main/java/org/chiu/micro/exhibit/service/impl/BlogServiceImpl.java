@@ -66,7 +66,7 @@ public class BlogServiceImpl implements BlogService {
 
     private String countYearsScript;
 
-    @Value("${blog.highest-role}")
+    @Value("${megalith.blog.highest-role}")
     private String highestRole;
 
     public BlogServiceImpl(BlogSensitiveWrapper blogSensitiveWrapper, BlogHttpServiceWrapper blogHttpServiceWrapper, RedissonClient redissonClient, BlogWrapper blogWrapper, ResourceLoader resourceLoader) {
