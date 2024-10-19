@@ -17,7 +17,7 @@ public enum AuthMenuOperateEnum {
 
     private final String description;
 
-    private AuthMenuOperateEnum(Integer type, String description) {
+    AuthMenuOperateEnum(Integer type, String description) {
         this.type = type;
         this.description = description;
     }
