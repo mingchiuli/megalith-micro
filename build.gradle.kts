@@ -33,4 +33,5 @@ dependencies {
 	implementation(project(":micro-exhibit"))
 	implementation(project(":micro-websocket"))
 	implementation(project(":micro-search"))
+	implementation(project(":micro-common"))
 }

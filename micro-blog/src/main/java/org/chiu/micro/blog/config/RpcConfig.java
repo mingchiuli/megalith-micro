@@ -1,9 +1,9 @@
 package org.chiu.micro.blog.config;
 
-import org.chiu.micro.blog.rpc.AuthHttpService;
-import org.chiu.micro.blog.rpc.OssHttpService;
-import org.chiu.micro.blog.rpc.SearchHttpService;
-import org.chiu.micro.blog.rpc.UserHttpService;
+import org.chiu.micro.common.rpc.AuthHttpService;
+import org.chiu.micro.common.rpc.OssHttpService;
+import org.chiu.micro.common.rpc.SearchHttpService;
+import org.chiu.micro.common.rpc.UserHttpService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,13 +24,13 @@ public class RpcConfig {
 
     private final HttpInterceptor httpInterceptor;
 
-    @Value("${blog.aliyun.oss.bucket-name}")
+    @Value("${megalith.blog.aliyun.oss.bucket-name}")
     private String bucketName;
 
-    @Value("${blog.oss.endpoint}")
+    @Value("${megalith.blog.oss.endpoint}")
     private String ep;
 
-    @Value("${blog.oss.base-url}")
+    @Value("${megalith.blog.oss.base-url}")
     private String baseUrl;
 
     public RpcConfig(HttpClient httpClient, HttpInterceptor httpInterceptor) {

@@ -1,12 +1,12 @@
 package org.chiu.micro.blog.utils;
 
 import org.chiu.micro.blog.entity.BlogEntity;
-import org.chiu.micro.blog.exception.MissException;
-import org.chiu.micro.blog.lang.StatusEnum;
+import org.chiu.micro.common.exception.MissException;
+import org.chiu.micro.common.lang.StatusEnum;
 
 import java.util.Objects;
 
-import static org.chiu.micro.blog.lang.ExceptionMessage.EDIT_NO_AUTH;
+import static org.chiu.micro.common.lang.ExceptionMessage.EDIT_NO_AUTH;
 
 
 public class AuthUtils {

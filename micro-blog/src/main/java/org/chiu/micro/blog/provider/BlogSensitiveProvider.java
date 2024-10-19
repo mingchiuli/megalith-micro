@@ -1,9 +1,9 @@
 package org.chiu.micro.blog.provider;
 
 
-import org.chiu.micro.blog.lang.Result;
 import org.chiu.micro.blog.service.BlogSensitiveService;
 import org.chiu.micro.blog.vo.BlogSensitiveContentVo;
+import org.chiu.micro.common.lang.Result;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

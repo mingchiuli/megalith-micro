@@ -1,15 +1,15 @@
 package org.chiu.micro.exhibit.convertor;
 
+import org.chiu.micro.common.dto.BlogEntityRpcDto;
+import org.chiu.micro.common.dto.UserEntityRpcDto;
 import org.chiu.micro.exhibit.dto.BlogDescriptionDto;
-import org.chiu.micro.exhibit.dto.BlogEntityDto;
 import org.chiu.micro.exhibit.dto.BlogExhibitDto;
-import org.chiu.micro.exhibit.dto.UserEntityDto;
 
 public class BlogExhibitDtoConvertor {
 
     private BlogExhibitDtoConvertor() {}
 
-    public static BlogExhibitDto convert(BlogEntityDto blogEntity, UserEntityDto user) {
+    public static BlogExhibitDto convert(BlogEntityRpcDto blogEntity, UserEntityRpcDto user) {
         return BlogExhibitDto.builder()
                 .userId(blogEntity.userId())
                 .title(blogEntity.title())

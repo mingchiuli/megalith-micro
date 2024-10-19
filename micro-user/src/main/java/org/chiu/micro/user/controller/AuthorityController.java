@@ -2,7 +2,7 @@ package org.chiu.micro.user.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
-import org.chiu.micro.user.lang.Result;
+import org.chiu.micro.common.lang.Result;
 import org.chiu.micro.user.req.AuthorityEntityReq;
 import org.chiu.micro.user.service.AuthorityService;
 import org.chiu.micro.user.vo.AuthorityVo;

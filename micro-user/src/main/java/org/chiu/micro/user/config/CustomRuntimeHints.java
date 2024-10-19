@@ -1,7 +1,7 @@
 package org.chiu.micro.user.config;
 
+import org.chiu.micro.common.exception.MissException;
 import org.chiu.micro.user.constant.UserAuthMenuOperateMessage;
-import org.chiu.micro.user.exception.MissException;
 import org.chiu.micro.user.valid.ListValueConstraintValidator;
 import org.chiu.micro.user.valid.MenuValueConstraintValidator;
 import org.chiu.micro.user.valid.PhoneConstraintValidator;

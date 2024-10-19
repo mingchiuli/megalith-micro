@@ -1,5 +1,9 @@
 package org.chiu.micro.user.service.impl;
 
+import org.chiu.micro.common.exception.CommitException;
+import org.chiu.micro.common.exception.MissException;
+import org.chiu.micro.common.lang.StatusEnum;
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.user.code.CodeFactory;
 import org.chiu.micro.user.constant.UserIndexMessage;
 import org.chiu.micro.user.convertor.UserEntityConvertor;
@@ -8,11 +12,7 @@ import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.entity.UserEntity;
 import org.chiu.micro.user.entity.UserRoleEntity;
 import org.chiu.micro.user.event.UserOperateEvent;
-import org.chiu.micro.user.exception.CommitException;
-import org.chiu.micro.user.exception.MissException;
-import org.chiu.micro.user.lang.StatusEnum;
 import org.chiu.micro.user.lang.UserOperateEnum;
-import org.chiu.micro.user.page.PageAdapter;
 import org.chiu.micro.user.repository.RoleRepository;
 import org.chiu.micro.user.repository.UserRepository;
 import org.chiu.micro.user.repository.UserRoleRepository;
@@ -35,10 +35,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.chiu.micro.user.lang.Const.REGISTER_PREFIX;
-import static org.chiu.micro.user.lang.Const.USER;
-import static org.chiu.micro.user.lang.ExceptionMessage.*;
-import static org.chiu.micro.user.lang.StatusEnum.NORMAL;
+import static org.chiu.micro.common.lang.Const.REGISTER_PREFIX;
+import static org.chiu.micro.common.lang.Const.USER;
+import static org.chiu.micro.common.lang.ExceptionMessage.*;
+import static org.chiu.micro.common.lang.StatusEnum.NORMAL;
 
 /**
  * @Author limingjiu

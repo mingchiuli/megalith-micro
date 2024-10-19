@@ -1,6 +1,6 @@
 package org.chiu.micro.user.config;
 
-import org.chiu.micro.user.http.OssHttpService;
+import org.chiu.micro.common.rpc.OssHttpService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,13 +17,13 @@ import java.time.Duration;
 @Configuration
 public class RpcHttpConfig {
 
-    @Value("${blog.aliyun.oss.bucket-name}")
+    @Value("${megalith.blog.aliyun.oss.bucket-name}")
     private String bucketName;
 
-    @Value("${blog.oss.endpoint}")
+    @Value("${megalith.blog.oss.endpoint}")
     private String ep;
 
-    @Value("${blog.oss.base-url}")
+    @Value("${megalith.blog.oss.base-url}")
     private String baseUrl;
 
     private final HttpClient httpClient;

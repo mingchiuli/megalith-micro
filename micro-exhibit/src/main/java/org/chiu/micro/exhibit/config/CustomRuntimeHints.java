@@ -1,10 +1,10 @@
 package org.chiu.micro.exhibit.config;
 
-import org.chiu.micro.exhibit.cache.mq.CacheBlogEvictMessageListener;
+import org.chiu.micro.common.dto.BlogSensitiveContentRpcDto;
+import org.chiu.micro.common.exception.MissException;
+import org.chiu.micro.exhibit.cache.cache.local.CacheBlogEvictMessageListener;
 import org.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import org.chiu.micro.exhibit.dto.BlogExhibitDto;
-import org.chiu.micro.exhibit.dto.BlogSensitiveContentDto;
-import org.chiu.micro.exhibit.exception.MissException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.*;
@@ -34,7 +34,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
         hints.serialization().registerType(BlogExhibitDto.class);
         hints.serialization().registerType(BlogDescriptionDto.class);
-        hints.serialization().registerType(BlogSensitiveContentDto.class);
+        hints.serialization().registerType(BlogSensitiveContentRpcDto.class);
 
         hints.reflection().registerType(
                 TypeReference.of("com.github.benmanes.caffeine.cache.SSMSA"),

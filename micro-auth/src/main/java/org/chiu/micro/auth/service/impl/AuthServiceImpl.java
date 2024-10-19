@@ -7,7 +7,6 @@ import org.chiu.micro.auth.convertor.MenuDisplayDtoConvertor;
 import org.chiu.micro.auth.convertor.MenuWithChildDtoConvertor;
 import org.chiu.micro.auth.convertor.MenusAndButtonsVoConvertor;
 import org.chiu.micro.auth.dto.*;
-import org.chiu.micro.auth.exception.AuthException;
 import org.chiu.micro.auth.req.AuthorityRouteReq;
 import org.chiu.micro.auth.service.AuthService;
 import org.chiu.micro.auth.token.Claims;
@@ -15,6 +14,8 @@ import org.chiu.micro.auth.utils.SecurityAuthenticationUtils;
 import org.chiu.micro.auth.vo.AuthorityRouteVo;
 import org.chiu.micro.auth.vo.MenusAndButtonsVo;
 import org.chiu.micro.auth.wrapper.AuthWrapper;
+import org.chiu.micro.common.dto.AuthorityRpcDto;
+import org.chiu.micro.common.exception.AuthException;
 import org.redisson.api.RScript.Mode;
 import org.redisson.api.RScript.ReturnType;
 import org.redisson.api.RedissonClient;
@@ -32,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-import static org.chiu.micro.auth.lang.Const.*;
+import static org.chiu.micro.common.lang.Const.*;
 
 
 @Service
@@ -100,8 +101,8 @@ public class AuthServiceImpl implements AuthService {
                     .build();
         }
 
-        List<AuthorityDto> systemAuthorities = authWrapper.getAllSystemAuthorities();
-        for (AuthorityDto dto : systemAuthorities) {
+        List<AuthorityRpcDto> systemAuthorities = authWrapper.getAllSystemAuthorities();
+        for (AuthorityRpcDto dto : systemAuthorities) {
             if (securityAuthenticationUtils.routeMatch(dto.routePattern(), dto.methodType(), req.routeMapping(), req.method())) {
                 if (authorities.contains(dto.code())) {
                     return AuthorityRouteVo.builder()

@@ -1,8 +1,8 @@
 package org.chiu.micro.auth.user;
 
-import org.chiu.micro.auth.dto.UserEntityDto;
-import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
+import org.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 
+import org.chiu.micro.common.dto.UserEntityRpcDto;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,7 +24,7 @@ public final class UserDetailsServiceImpl implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-		UserEntityDto user = userHttpServiceWrapper.findByUsernameOrEmailOrPhone(username);
+		UserEntityRpcDto user = userHttpServiceWrapper.findByUsernameOrEmailOrPhone(username);
 
 		Long userId = user.id();
 		List<String> roleCodes = userHttpServiceWrapper.findRoleCodesByUserId(userId);

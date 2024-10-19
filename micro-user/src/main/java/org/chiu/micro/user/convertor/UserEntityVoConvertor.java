@@ -1,9 +1,9 @@
 package org.chiu.micro.user.convertor;
 
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.entity.UserEntity;
 import org.chiu.micro.user.entity.UserRoleEntity;
-import org.chiu.micro.user.page.PageAdapter;
 import org.chiu.micro.user.vo.UserEntityVo;
 import org.springframework.data.domain.Page;
 

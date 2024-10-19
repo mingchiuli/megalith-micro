@@ -1,6 +1,7 @@
 package org.chiu.micro.user.exception;
 
-import org.chiu.micro.user.lang.Result;
+import org.chiu.micro.common.exception.BaseException;
+import org.chiu.micro.common.lang.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

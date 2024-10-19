@@ -1,6 +1,7 @@
 package org.chiu.micro.auth.convertor;
 
 import org.chiu.micro.auth.dto.*;
+import org.chiu.micro.common.dto.MenusAndButtonsRpcDto;
 
 import java.util.List;
 

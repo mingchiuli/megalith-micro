@@ -1,6 +1,6 @@
 package org.chiu.micro.websocket.exception;
 
-import org.chiu.micro.websocket.lang.Result;
+import org.chiu.micro.common.lang.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

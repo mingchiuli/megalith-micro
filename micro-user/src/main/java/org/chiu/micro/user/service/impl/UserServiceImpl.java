@@ -3,10 +3,10 @@ package org.chiu.micro.user.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
+import org.chiu.micro.common.exception.MissException;
+import org.chiu.micro.common.rpc.OssHttpService;
 import org.chiu.micro.user.convertor.UserEntityRpcVoConvertor;
 import org.chiu.micro.user.entity.UserEntity;
-import org.chiu.micro.user.exception.MissException;
-import org.chiu.micro.user.http.OssHttpService;
 import org.chiu.micro.user.repository.UserRepository;
 import org.chiu.micro.user.service.UserService;
 import org.chiu.micro.user.utils.OssSignUtils;
@@ -29,8 +29,8 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static org.chiu.micro.user.lang.Const.REGISTER_PREFIX;
-import static org.chiu.micro.user.lang.ExceptionMessage.*;
+import static org.chiu.micro.common.lang.Const.REGISTER_PREFIX;
+import static org.chiu.micro.common.lang.ExceptionMessage.*;
 
 /**
  * @author mingchiuli
@@ -51,10 +51,10 @@ public class UserServiceImpl implements UserService {
 
     private final ExecutorService taskExecutor;
 
-    @Value("${blog.oss.base-url}")
+    @Value("${megalith.blog.oss.base-url}")
     private String baseUrl;
 
-    @Value("${blog.register.page-prefix}")
+    @Value("${megalith.blog.register.page-prefix}")
     private String pagePrefix;
 
     public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, OssSignUtils ossSignUtils, ObjectMapper objectMapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {

@@ -1,7 +1,7 @@
 package org.chiu.micro.auth.convertor;
 
 import org.chiu.micro.auth.dto.ButtonDto;
-import org.chiu.micro.auth.lang.StatusEnum;
+import org.chiu.micro.common.lang.StatusEnum;
 
 import java.util.List;
 

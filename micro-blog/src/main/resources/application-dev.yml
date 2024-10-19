@@ -17,15 +17,16 @@ spring:
       password: 123456
       host: 127.0.0.1
 
-blog:
-  register:
-    page-prefix: http://127.0.0.1:1919/register/
-  read:
-    page-prefix: http://127.0.0.1:1919/blog/
-  jwt:
-    secret: ti8n3439n439t43ld9nv9343ddfer09hti8n3439n439t43ld9nv9343ddfer09ti8n3439n439t43ld9nv9343ddfer09fti8n3439n439t43ld9nv9343ddfer09f
-  aliyun:
-    oss:
-      bucket-name: blog
-    access-key-id: accessKeyId
-    access-key-secret: accessKeySecret
+megalith:
+  blog:
+    register:
+      page-prefix: http://127.0.0.1:1919/register/
+    read:
+      page-prefix: http://127.0.0.1:1919/blog/
+    jwt:
+      secret: ti8n3439n439t43ld9nv9343ddfer09hti8n3439n439t43ld9nv9343ddfer09ti8n3439n439t43ld9nv9343ddfer09fti8n3439n439t43ld9nv9343ddfer09f
+    aliyun:
+      oss:
+        bucket-name: blog
+      access-key-id: accessKeyId
+      access-key-secret: accessKeySecret

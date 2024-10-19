@@ -3,11 +3,12 @@ package org.chiu.micro.gateway.router;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.chiu.micro.gateway.dto.AuthorityRouteDto;
-import org.chiu.micro.gateway.lang.ExceptionMessage;
-import org.chiu.micro.gateway.lang.Result;
-import org.chiu.micro.gateway.req.AuthorityRouteReq;
-import org.chiu.micro.gateway.rpc.wrapper.AuthHttpServiceWrapper;
+import org.chiu.micro.common.dto.AuthorityRouteRpcDto;
+import org.chiu.micro.common.lang.ExceptionMessage;
+import org.chiu.micro.common.lang.Result;
+
+import org.chiu.micro.common.req.AuthorityRouteReq;
+import org.chiu.micro.gateway.rpc.AuthHttpServiceWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -55,7 +56,7 @@ public class Router {
         String method = request.getMethod();
         String requestURI = request.getRequestURI();
 
-        AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(AuthorityRouteReq.builder()
+        AuthorityRouteRpcDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(AuthorityRouteReq.builder()
                 .routeMapping(requestURI)
                 .method(method)
                 .ipAddr(ipAddress)
@@ -66,7 +67,7 @@ public class Router {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.getWriter().write(
                     objectMapper.writeValueAsString(
-                            Result.fail(ExceptionMessage.NO_FOUND.getMsg())));
+                            Result.fail(ExceptionMessage.RE_LOGIN.getMsg())));
             return;
         }
 

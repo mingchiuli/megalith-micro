@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class MicroAuthApplication {
 
 	public static void main(String[] args) {
-				SpringApplication.run(MicroAuthApplication.class, args);
-		}
+		SpringApplication.run(MicroAuthApplication.class, args);
+	}
 
 }

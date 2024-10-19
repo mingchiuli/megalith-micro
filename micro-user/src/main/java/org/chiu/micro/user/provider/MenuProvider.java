@@ -1,6 +1,6 @@
 package org.chiu.micro.user.provider;
 
-import org.chiu.micro.user.lang.Result;
+import org.chiu.micro.common.lang.Result;
 import org.chiu.micro.user.service.RoleMenuService;
 import org.chiu.micro.user.vo.MenusAndButtonsRpcVo;
 import org.springframework.validation.annotation.Validated;

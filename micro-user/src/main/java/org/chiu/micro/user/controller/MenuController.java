@@ -1,7 +1,7 @@
 package org.chiu.micro.user.controller;
 
 
-import org.chiu.micro.user.lang.Result;
+import org.chiu.micro.common.lang.Result;
 import org.chiu.micro.user.req.MenuEntityReq;
 import org.chiu.micro.user.service.MenuService;
 import org.chiu.micro.user.service.RoleMenuService;

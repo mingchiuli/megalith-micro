@@ -35,11 +35,12 @@ server:
   port: 8081
   max-http-request-header-size: 10MB
 
-blog:
-  jwt:
-    access-token-expire: 21600
-    refresh-token-expire: 604800
-  highest-role: admin
-  oss:
-    base-url: https://${blog.aliyun.oss.bucket-name}.${blog.oss.endpoint}
-    endpoint: oss-cn-hangzhou.aliyuncs.com
+megalith:
+  blog:
+    jwt:
+      access-token-expire: 21600
+      refresh-token-expire: 604800
+    highest-role: admin
+    oss:
+      base-url: https://${blog.aliyun.oss.bucket-name}.${blog.oss.endpoint}
+      endpoint: oss-cn-hangzhou.aliyuncs.com

@@ -8,7 +8,7 @@ import org.redisson.api.RedissonClient;
 import java.util.List;
 import java.util.Optional;
 
-import static org.chiu.micro.exhibit.lang.Const.BLOOM_FILTER_BLOG;
+import static org.chiu.micro.common.lang.Const.BLOOM_FILTER_BLOG;
 
 /**
  * @author mingchiuli
@@ -27,7 +27,7 @@ public record BlogRunnable(
         Optional.ofNullable(idList).ifPresent(ids ->
                 ids.forEach(id -> {
                     redissonClient.getBitSet(BLOOM_FILTER_BLOG.getInfo()).set(id, true);
-                    Integer status = blogWrapper.findStatusById(id);
+                    blogWrapper.findStatusById(id);
                     blogWrapper.findById(id);
                     blogSensitiveWrapper.findSensitiveByBlogId(id);
                 })

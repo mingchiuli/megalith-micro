@@ -1,13 +1,13 @@
 package org.chiu.micro.blog.controller;
 
-import org.chiu.micro.blog.dto.AuthDto;
-import org.chiu.micro.blog.exception.AuthException;
-import org.chiu.micro.blog.lang.Result;
 import org.chiu.micro.blog.req.BlogEditPushAllReq;
-import org.chiu.micro.blog.rpc.wrapper.AuthHttpServiceWrapper;
+import org.chiu.micro.blog.rpc.AuthHttpServiceWrapper;
 import org.chiu.micro.blog.service.BlogEditService;
 import org.chiu.micro.blog.valid.PushAllValue;
 import org.chiu.micro.blog.vo.BlogEditVo;
+import org.chiu.micro.common.dto.AuthRpcDto;
+import org.chiu.micro.common.exception.AuthException;
+import org.chiu.micro.common.lang.Result;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,13 +27,13 @@ public class BlogEditController {
 
     @PostMapping("/push/all")
     public Result<Void> pushSaveBlog(@RequestBody @PushAllValue BlogEditPushAllReq blog) throws AuthException {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
+        AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogEditService.pushAll(blog, authDto.userId()));
     }
 
     @GetMapping("/pull/echo")
     public Result<BlogEditVo> getEchoDetail(@RequestParam(value = "blogId", required = false) Long id) throws AuthException {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
+        AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogEditService.findEdit(id, authDto.userId()));
     }
 }

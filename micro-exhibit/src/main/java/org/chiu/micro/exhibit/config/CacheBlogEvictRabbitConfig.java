@@ -1,6 +1,6 @@
 package org.chiu.micro.exhibit.config;
 
-import org.chiu.micro.exhibit.cache.mq.CacheBlogEvictMessageListener;
+import org.chiu.micro.exhibit.cache.cache.local.CacheBlogEvictMessageListener;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;

@@ -3,16 +3,16 @@ package org.chiu.micro.blog.controller;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import org.chiu.micro.blog.dto.AuthDto;
-import org.chiu.micro.blog.exception.AuthException;
-import org.chiu.micro.blog.lang.Result;
-import org.chiu.micro.blog.page.PageAdapter;
 import org.chiu.micro.blog.req.BlogEntityReq;
-import org.chiu.micro.blog.rpc.wrapper.AuthHttpServiceWrapper;
+import org.chiu.micro.blog.rpc.AuthHttpServiceWrapper;
 import org.chiu.micro.blog.service.BlogService;
 import org.chiu.micro.blog.valid.BlogSaveValue;
 import org.chiu.micro.blog.vo.BlogDeleteVo;
 import org.chiu.micro.blog.vo.BlogEntityVo;
+import org.chiu.micro.common.dto.AuthRpcDto;
+import org.chiu.micro.common.exception.AuthException;
+import org.chiu.micro.common.lang.Result;
+import org.chiu.micro.common.page.PageAdapter;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,47 +42,47 @@ public class BlogController {
 
     @PostMapping("/save")
     public Result<Void> saveOrUpdate(@RequestBody @BlogSaveValue BlogEntityReq blog) throws AuthException {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogService.saveOrUpdate(blog, authDto.userId()));
+        AuthRpcDto AuthRpcDto = authHttpServiceWrapper.getAuthentication();
+        return Result.success(() -> blogService.saveOrUpdate(blog, AuthRpcDto.userId()));
     }
 
     @PostMapping("/delete")
     public Result<Void> deleteBlogs(@RequestBody @NotEmpty List<Long> ids) throws AuthException {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogService.deleteBatch(ids, authDto.userId(), authDto.roles()));
+        AuthRpcDto AuthRpcDto = authHttpServiceWrapper.getAuthentication();
+        return Result.success(() -> blogService.deleteBatch(ids, AuthRpcDto.userId(), AuthRpcDto.roles()));
     }
 
     @GetMapping("/lock/{blogId}")
     public Result<String> setBlogToken(@PathVariable Long blogId) throws AuthException {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogService.setBlogToken(blogId, authDto.userId()));
+        AuthRpcDto AuthRpcDto = authHttpServiceWrapper.getAuthentication();
+        return Result.success(() -> blogService.setBlogToken(blogId, AuthRpcDto.userId()));
     }
 
     @GetMapping("/blogs")
     public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@RequestParam(defaultValue = "1") Integer currentPage,
                                                          @RequestParam(defaultValue = "5") Integer size,
                                                          @RequestParam(required = false) String keywords) throws AuthException {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogService.findAllBlogs(currentPage, size, authDto.userId(), keywords));
+        AuthRpcDto AuthRpcDto = authHttpServiceWrapper.getAuthentication();
+        return Result.success(() -> blogService.findAllBlogs(currentPage, size, AuthRpcDto.userId(), keywords));
     }
 
     @GetMapping("/deleted")
     public Result<PageAdapter<BlogDeleteVo>> getDeletedBlogs(@RequestParam Integer currentPage,
                                                              @RequestParam Integer size) throws AuthException {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogService.findDeletedBlogs(currentPage, size, authDto.userId()));
+        AuthRpcDto AuthRpcDto = authHttpServiceWrapper.getAuthentication();
+        return Result.success(() -> blogService.findDeletedBlogs(currentPage, size, AuthRpcDto.userId()));
     }
 
     @GetMapping("/recover/{idx}")
     public Result<Void> recoverDeletedBlog(@PathVariable Integer idx) throws AuthException {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogService.recoverDeletedBlog(idx, authDto.userId()));
+        AuthRpcDto AuthRpcDto = authHttpServiceWrapper.getAuthentication();
+        return Result.success(() -> blogService.recoverDeletedBlog(idx, AuthRpcDto.userId()));
     }
 
     @PostMapping(value = "/oss/upload")
     public SseEmitter uploadOss(@RequestBody MultipartFile image) throws AuthException {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
-        return blogService.uploadOss(image, authDto.userId());
+        AuthRpcDto AuthRpcDto = authHttpServiceWrapper.getAuthentication();
+        return blogService.uploadOss(image, AuthRpcDto.userId());
     }
 
     @GetMapping("/oss/delete")

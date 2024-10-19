@@ -1,10 +1,10 @@
 package org.chiu.micro.blog.convertor;
 
-import org.chiu.micro.blog.dto.BlogSearchDto;
 import org.chiu.micro.blog.entity.BlogEntity;
 import org.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import org.chiu.micro.blog.vo.BlogEntityVo;
-import org.chiu.micro.blog.page.PageAdapter;
+import org.chiu.micro.common.dto.BlogSearchRpcDto;
+import org.chiu.micro.common.page.PageAdapter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,7 +18,7 @@ public class BlogEntityVoConvertor {
     private BlogEntityVoConvertor() {
     }
 
-    public static PageAdapter<BlogEntityVo> convert(List<BlogEntity> items, Map<Long, Integer> readMap, Long operateUserId, List<BlogSensitiveContentEntity> blogSensitiveContentEntities, BlogSearchDto dto) {
+    public static PageAdapter<BlogEntityVo> convert(List<BlogEntity> items, Map<Long, Integer> readMap, Long operateUserId, List<BlogSensitiveContentEntity> blogSensitiveContentEntities, BlogSearchRpcDto dto) {
         
         Integer size = dto.size();
         Integer currentPage = dto.currentPage();

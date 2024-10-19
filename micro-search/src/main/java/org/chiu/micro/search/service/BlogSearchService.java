@@ -4,7 +4,7 @@ package org.chiu.micro.search.service;
 
 import java.util.List;
 
-import org.chiu.micro.search.page.PageAdapter;
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.search.vo.BlogDocumentVo;
 import org.chiu.micro.search.vo.BlogSearchVo;
 

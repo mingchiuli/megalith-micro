@@ -1,6 +1,6 @@
 package org.chiu.micro.user.service;
 
-import org.chiu.micro.user.page.PageAdapter;
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.user.req.UserEntityRegisterReq;
 import org.chiu.micro.user.req.UserEntityReq;
 import org.chiu.micro.user.vo.UserEntityVo;

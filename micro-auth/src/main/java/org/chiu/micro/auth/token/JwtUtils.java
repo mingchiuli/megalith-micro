@@ -6,8 +6,8 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.annotation.PostConstruct;
-import org.chiu.micro.auth.exception.AuthException;
-import org.chiu.micro.auth.exception.MissException;
+import org.chiu.micro.common.exception.AuthException;
+import org.chiu.micro.common.exception.MissException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -15,15 +15,15 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
-import static org.chiu.micro.auth.lang.Const.ROLE_PREFIX;
-import static org.chiu.micro.auth.lang.ExceptionMessage.AUTH_EXCEPTION;
-import static org.chiu.micro.auth.lang.ExceptionMessage.TOKEN_INVALID;
+import static org.chiu.micro.common.lang.Const.ROLE_PREFIX;
+import static org.chiu.micro.common.lang.ExceptionMessage.AUTH_EXCEPTION;
+import static org.chiu.micro.common.lang.ExceptionMessage.TOKEN_INVALID;
 
 /**
  * jwt工具类
  */
 @Component
-@ConfigurationProperties(prefix = "blog.jwt")
+@ConfigurationProperties(prefix = "megalith.blog.jwt")
 public class JwtUtils implements TokenUtils<Claims> {
 
     private String secret;

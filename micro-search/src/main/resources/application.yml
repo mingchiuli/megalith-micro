@@ -17,6 +17,7 @@ server:
   port: 8081
   max-http-request-header-size: 10MB
 
-blog:
-  highest-role: admin
-  blog-page-size: 5
+megalith:
+  blog:
+    highest-role: admin
+    blog-page-size: 5

@@ -1,8 +1,8 @@
 package org.chiu.micro.exhibit.config;
 
-import org.chiu.micro.exhibit.rpc.AuthHttpService;
-import org.chiu.micro.exhibit.rpc.BlogHttpService;
-import org.chiu.micro.exhibit.rpc.UserHttpService;
+import org.chiu.micro.common.rpc.AuthHttpService;
+import org.chiu.micro.common.rpc.BlogHttpService;
+import org.chiu.micro.common.rpc.UserHttpService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.JdkClientHttpRequestFactory;

@@ -3,7 +3,8 @@ package org.chiu.micro.exhibit.schedule.task;
 import org.chiu.micro.exhibit.service.BlogService;
 import org.redisson.api.RedissonClient;
 
-import static org.chiu.micro.exhibit.lang.Const.BLOOM_FILTER_PAGE;
+import static org.chiu.micro.common.lang.Const.BLOOM_FILTER_PAGE;
+
 
 /**
  * @author mingchiuli

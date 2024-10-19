@@ -1,7 +1,7 @@
 package org.chiu.micro.auth.config;
 
-import org.chiu.micro.auth.rpc.SmsHttpService;
-import org.chiu.micro.auth.rpc.UserHttpService;
+import org.chiu.micro.common.rpc.SmsHttpService;
+import org.chiu.micro.common.rpc.UserHttpService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +22,7 @@ public class RpcConfig {
 
     private final HttpInterceptor httpInterceptor;
 
-    @Value("${blog.sms.base-url}")
+    @Value("${megalith.blog.sms.base-url}")
     private String baseUrl;
 
     public RpcConfig(HttpClient httpClient, HttpInterceptor httpInterceptor) {

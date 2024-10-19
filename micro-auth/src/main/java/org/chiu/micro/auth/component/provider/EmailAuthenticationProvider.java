@@ -1,8 +1,8 @@
 package org.chiu.micro.auth.component.provider;
 
 import org.chiu.micro.auth.component.token.EmailAuthenticationToken;
-import org.chiu.micro.auth.lang.Const;
-import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
+import org.chiu.micro.auth.rpc.UserHttpServiceWrapper;
+import org.chiu.micro.common.lang.Const;
 import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,13 +18,13 @@ import org.springframework.util.ResourceUtils;
 
 import jakarta.annotation.PostConstruct;
 
-import static org.chiu.micro.auth.lang.ExceptionMessage.*;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+
+import static org.chiu.micro.common.lang.ExceptionMessage.*;
 
 /**
  * @author mingchiuli
@@ -36,7 +36,7 @@ public final class EmailAuthenticationProvider extends ProviderBase {
 
     private final RedissonClient redissonClient;
 
-    @Value("${blog.email-try-count}")
+    @Value("${megalith.blog.email-try-count}")
     private int maxTryNum;
 
     private final ResourceLoader resourceLoader;

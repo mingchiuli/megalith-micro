@@ -2,18 +2,19 @@ package org.chiu.micro.user.valid;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import org.chiu.micro.user.exception.MissException;
-import org.chiu.micro.user.lang.StatusEnum;
+import org.chiu.micro.common.exception.MissException;
+import org.chiu.micro.common.lang.StatusEnum;
+import org.chiu.micro.common.lang.TypeEnum;
 import org.chiu.micro.user.utils.SpringUtils;
 import org.chiu.micro.user.entity.MenuEntity;
-import org.chiu.micro.user.lang.TypeEnum;
 import org.chiu.micro.user.repository.MenuRepository;
 import org.chiu.micro.user.req.MenuEntityReq;
 import org.springframework.util.StringUtils;
 
 import java.util.Objects;
 
-import static org.chiu.micro.user.lang.ExceptionMessage.*;
+import static org.chiu.micro.common.lang.ExceptionMessage.*;
+
 
 public class MenuValueConstraintValidator implements ConstraintValidator<MenuValue, MenuEntityReq> {
 

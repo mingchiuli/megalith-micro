@@ -1,8 +1,8 @@
 package org.chiu.micro.exhibit.convertor;
 
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import org.chiu.micro.exhibit.vo.BlogDescriptionVo;
-import org.chiu.micro.exhibit.page.PageAdapter;
 
 import java.util.List;
 

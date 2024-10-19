@@ -2,6 +2,10 @@ package org.chiu.micro.user.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.chiu.micro.common.exception.MissException;
+import org.chiu.micro.common.lang.AuthMenuOperateEnum;
+import org.chiu.micro.common.lang.StatusEnum;
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.user.constant.AuthMenuIndexMessage;
 import org.chiu.micro.user.convertor.RoleEntityConvertor;
 import org.chiu.micro.user.convertor.RoleEntityRpcVoConvertor;
@@ -10,10 +14,6 @@ import org.chiu.micro.user.entity.RoleAuthorityEntity;
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.entity.RoleMenuEntity;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
-import org.chiu.micro.user.exception.MissException;
-import org.chiu.micro.user.lang.AuthMenuOperateEnum;
-import org.chiu.micro.user.lang.StatusEnum;
-import org.chiu.micro.user.page.PageAdapter;
 import org.chiu.micro.user.repository.RoleAuthorityRepository;
 import org.chiu.micro.user.repository.RoleMenuRepository;
 import org.chiu.micro.user.repository.RoleRepository;
@@ -32,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.chiu.micro.user.lang.ExceptionMessage.ROLE_NOT_EXIST;
+import static org.chiu.micro.common.lang.ExceptionMessage.ROLE_NOT_EXIST;
 
 /**
  * @author mingchiuli

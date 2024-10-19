@@ -2,9 +2,9 @@ package org.chiu.micro.exhibit.convertor;
 
 import java.util.List;
 
+import org.chiu.micro.common.dto.BlogEntityRpcDto;
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.exhibit.dto.BlogDescriptionDto;
-import org.chiu.micro.exhibit.dto.BlogEntityDto;
-import org.chiu.micro.exhibit.page.PageAdapter;
 
 /**
  * @Author limingjiu
@@ -15,7 +15,7 @@ public class BlogDescriptionDtoConvertor {
     private BlogDescriptionDtoConvertor() {
     }
 
-    public static PageAdapter<BlogDescriptionDto> convert(PageAdapter<BlogEntityDto> page) {
+    public static PageAdapter<BlogDescriptionDto> convert(PageAdapter<BlogEntityRpcDto> page) {
 
         List<BlogDescriptionDto> dtos = page.content().stream()
                 .map(item -> BlogDescriptionDto.builder()

@@ -1,13 +1,13 @@
 package org.chiu.micro.user.service.impl;
 
+import org.chiu.micro.common.exception.CommitException;
+import org.chiu.micro.common.lang.AuthMenuOperateEnum;
 import org.chiu.micro.user.constant.AuthMenuIndexMessage;
 import org.chiu.micro.user.convertor.*;
 import org.chiu.micro.user.entity.MenuEntity;
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.entity.RoleMenuEntity;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
-import org.chiu.micro.user.exception.CommitException;
-import org.chiu.micro.user.lang.AuthMenuOperateEnum;
 import org.chiu.micro.user.repository.MenuRepository;
 import org.chiu.micro.user.repository.RoleMenuRepository;
 import org.chiu.micro.user.repository.RoleRepository;
@@ -22,9 +22,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.chiu.micro.user.lang.ExceptionMessage.MENU_INVALID_OPERATE;
-import static org.chiu.micro.user.lang.StatusEnum.NORMAL;
-import static org.chiu.micro.user.lang.TypeEnum.*;
+import static org.chiu.micro.common.lang.ExceptionMessage.MENU_INVALID_OPERATE;
+import static org.chiu.micro.common.lang.StatusEnum.NORMAL;
+import static org.chiu.micro.common.lang.TypeEnum.*;
 
 /**
  * @author mingchiuli

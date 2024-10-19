@@ -1,10 +1,10 @@
 package org.chiu.micro.exhibit.cache.handler;
 
+import org.chiu.micro.common.dto.BlogEntityRpcDto;
+import org.chiu.micro.common.utils.KeyFactory;
 import org.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
-import org.chiu.micro.exhibit.dto.BlogEntityDto;
-import org.chiu.micro.exhibit.key.KeyFactory;
-import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
+import org.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import org.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
 import org.chiu.micro.exhibit.wrapper.BlogWrapper;
 import org.redisson.api.RedissonClient;
@@ -17,8 +17,8 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-import static org.chiu.micro.exhibit.lang.Const.READ_TOKEN;
-import static org.chiu.micro.exhibit.lang.StatusEnum.NORMAL;
+import static org.chiu.micro.common.lang.Const.READ_TOKEN;
+import static org.chiu.micro.common.lang.StatusEnum.NORMAL;
 
 @Component
 public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
@@ -42,7 +42,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
     }
 
     @Override
-    public Set<String> redisProcess(BlogEntityDto blogEntity) {
+    public Set<String> redisProcess(BlogEntityRpcDto blogEntity) {
         Long id = blogEntity.id();
         int year = blogEntity.created().getYear();
         Integer status = blogEntity.status();

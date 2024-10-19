@@ -1,6 +1,6 @@
 package org.chiu.micro.search.exception;
 
-import org.chiu.micro.search.lang.Result;
+import org.chiu.micro.common.lang.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

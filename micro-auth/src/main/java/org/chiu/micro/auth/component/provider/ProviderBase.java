@@ -1,7 +1,7 @@
 package org.chiu.micro.auth.component.provider;
 
-import org.chiu.micro.auth.dto.RoleEntityDto;
-import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
+import org.chiu.micro.auth.rpc.UserHttpServiceWrapper;
+import org.chiu.micro.common.dto.RoleEntityRpcDto;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
@@ -10,10 +10,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-import static org.chiu.micro.auth.lang.ExceptionMessage.*;
-import static org.chiu.micro.auth.lang.StatusEnum.*;
-
 import java.util.List;
+
+import static org.chiu.micro.common.lang.ExceptionMessage.ACCOUNT_LOCKED;
+import static org.chiu.micro.common.lang.ExceptionMessage.ROLE_DISABLED;
+import static org.chiu.micro.common.lang.StatusEnum.NORMAL;
+
 
 /**
  * @author mingchiuli
@@ -42,7 +44,7 @@ public abstract sealed class ProviderBase extends DaoAuthenticationProvider perm
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        List<RoleEntityDto> roleEntities = userHttpServiceWrapper.findByRoleCodeInAndStatus(roles, NORMAL.getCode());
+        List<RoleEntityRpcDto> roleEntities = userHttpServiceWrapper.findByRoleCodeInAndStatus(roles, NORMAL.getCode());
         if (roleEntities.isEmpty()) {
             throw new BadCredentialsException(ROLE_DISABLED.getMsg());
         }

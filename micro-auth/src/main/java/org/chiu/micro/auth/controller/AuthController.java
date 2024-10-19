@@ -2,10 +2,10 @@ package org.chiu.micro.auth.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.chiu.micro.auth.dto.AuthDto;
-import org.chiu.micro.auth.exception.AuthException;
-import org.chiu.micro.auth.lang.Result;
 import org.chiu.micro.auth.service.AuthService;
 import org.chiu.micro.auth.vo.MenusAndButtonsVo;
+import org.chiu.micro.common.exception.AuthException;
+import org.chiu.micro.common.lang.Result;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

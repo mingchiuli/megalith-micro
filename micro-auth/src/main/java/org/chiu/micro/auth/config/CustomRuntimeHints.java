@@ -1,12 +1,12 @@
 package org.chiu.micro.auth.config;
 
-import org.chiu.micro.auth.cache.mq.CacheEvictMessageListener;
+import org.chiu.micro.auth.cache.local.CacheEvictMessageListener;
 import org.chiu.micro.auth.dto.ButtonDto;
 import org.chiu.micro.auth.dto.MenuWithChildDto;
 import org.chiu.micro.auth.dto.MenusAndButtonsDto;
-import org.chiu.micro.auth.exception.MissException;
 import org.chiu.micro.auth.vo.LoginSuccessVo;
 import org.chiu.micro.auth.vo.UserInfoVo;
+import org.chiu.micro.common.exception.MissException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.*;
