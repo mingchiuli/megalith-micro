@@ -42,5 +42,5 @@ megalith:
       refresh-token-expire: 604800
     highest-role: admin
     oss:
-      base-url: https://${blog.aliyun.oss.bucket-name}.${blog.oss.endpoint}
+      base-url: https://${megalith.blog.aliyun.oss.bucket-name}.${megalith.blog.oss.endpoint}
       endpoint: oss-cn-hangzhou.aliyuncs.com
