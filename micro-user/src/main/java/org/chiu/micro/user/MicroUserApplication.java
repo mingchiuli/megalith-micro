@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-@SpringBootApplication(proxyBeanMethods = false)
+@SpringBootApplication(proxyBeanMethods = false, scanBasePackages = {"org.chiu.micro.user.**", "org.chiu.micro.common.**"})
 @EnableJpaAuditing
 @ImportRuntimeHints({ CustomRuntimeHints.class })
 @EnableAsync
