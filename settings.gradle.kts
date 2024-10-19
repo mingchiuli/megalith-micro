@@ -8,4 +8,4 @@ include(
     "micro-search",
     "micro-websocket",
     "micro-exhibit",
-    "micro-common")
+    "common")

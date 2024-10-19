@@ -5,7 +5,7 @@ version = "latest"
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
-	implementation(project(":micro-common"))
+	implementation(project(":common"))
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
