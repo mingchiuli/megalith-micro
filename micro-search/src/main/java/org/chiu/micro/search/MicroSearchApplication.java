@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class MicroSearchApplication {
 
 	public static void main(String[] args) {
-				SpringApplication.run(MicroSearchApplication.class, args);
-		}
+		SpringApplication.run(MicroSearchApplication.class, args);
+	}
 
 }

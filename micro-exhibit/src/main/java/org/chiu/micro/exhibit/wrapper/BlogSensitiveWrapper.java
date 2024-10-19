@@ -1,11 +1,11 @@
 package org.chiu.micro.exhibit.wrapper;
 
-import org.chiu.micro.exhibit.cache.config.Cache;
-import org.chiu.micro.exhibit.dto.BlogSensitiveContentDto;
-import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
+import org.chiu.micro.common.cache.Cache;
+import org.chiu.micro.common.dto.BlogSensitiveContentRpcDto;
+import org.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import org.springframework.stereotype.Component;
 
-import static org.chiu.micro.exhibit.lang.Const.HOT_BLOG;
+import static org.chiu.micro.common.lang.Const.HOT_BLOG;
 
 @Component
 public class BlogSensitiveWrapper {
@@ -17,7 +17,7 @@ public class BlogSensitiveWrapper {
     }
 
     @Cache(prefix = HOT_BLOG)
-    public BlogSensitiveContentDto findSensitiveByBlogId(Long blogId) {
+    public BlogSensitiveContentRpcDto findSensitiveByBlogId(Long blogId) {
         return blogHttpServiceWrapper.findSensitiveByBlogId(blogId);
     }
 }

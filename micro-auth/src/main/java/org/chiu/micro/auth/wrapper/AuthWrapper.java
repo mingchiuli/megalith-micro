@@ -1,12 +1,11 @@
 package org.chiu.micro.auth.wrapper;
 
-import org.chiu.micro.auth.cache.Cache;
 import org.chiu.micro.auth.convertor.MenusAndButtonsDtoConvertor;
-import org.chiu.micro.auth.dto.AuthorityDto;
 import org.chiu.micro.auth.dto.MenusAndButtonsDto;
-import org.chiu.micro.auth.dto.MenusAndButtonsRpcDto;
-import org.chiu.micro.auth.lang.Const;
-import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
+import org.chiu.micro.auth.rpc.UserHttpServiceWrapper;
+import org.chiu.micro.common.dto.AuthorityRpcDto;
+import org.chiu.micro.common.dto.MenusAndButtonsRpcDto;
+import org.chiu.micro.common.lang.Const;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -22,19 +21,16 @@ public class AuthWrapper {
         this.userHttpServiceWrapper = userHttpServiceWrapper;
     }
 
-    @Cache(prefix = Const.HOT_MENUS_AND_BUTTONS)
     public MenusAndButtonsDto getCurrentUserNav(String rawRole) {
         MenusAndButtonsRpcDto dto = userHttpServiceWrapper.getCurrentUserNav(rawRole);
         return MenusAndButtonsDtoConvertor.convert(dto);
     }
 
-    @Cache(prefix = Const.HOT_AUTHORITIES)
     public List<String> getAuthoritiesByRoleCode(String rawRole) {
         return userHttpServiceWrapper.getAuthoritiesByRoleCode(rawRole);
     }
 
-    @Cache(prefix = Const.HOT_AUTHORITIES)
-    public List<AuthorityDto> getAllSystemAuthorities() {
+    public List<AuthorityRpcDto> getAllSystemAuthorities() {
         return userHttpServiceWrapper.getSystemAuthorities(services);
     }
 

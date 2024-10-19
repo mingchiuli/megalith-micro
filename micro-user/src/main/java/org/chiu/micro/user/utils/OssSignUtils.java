@@ -1,6 +1,6 @@
 package org.chiu.micro.user.utils;
 
-import org.chiu.micro.user.exception.MissException;
+import org.chiu.micro.common.exception.MissException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -18,13 +18,13 @@ import java.util.Locale;
 @Component
 public class OssSignUtils {
 
-    @Value("${blog.aliyun.access-key-id}")
+    @Value("${megalith.blog.aliyun.access-key-id}")
     private String accessKeyId;
 
-    @Value("${blog.aliyun.access-key-secret}")
+    @Value("${megalith.blog.aliyun.access-key-secret}")
     private String accessKeySecret;
 
-    @Value("${blog.aliyun.oss.bucket-name}")
+    @Value("${megalith.blog.aliyun.oss.bucket-name}")
     private String bucketName;
 
     private static final String ALGORITHM = "HmacSHA1";

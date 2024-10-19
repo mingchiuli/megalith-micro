@@ -2,15 +2,15 @@ package org.chiu.micro.user.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.chiu.micro.common.exception.MissException;
+import org.chiu.micro.common.lang.AuthMenuOperateEnum;
+import org.chiu.micro.common.lang.StatusEnum;
 import org.chiu.micro.user.constant.AuthMenuIndexMessage;
 import org.chiu.micro.user.convertor.AuthorityEntityConvertor;
 import org.chiu.micro.user.convertor.AuthorityRpcVoConvertor;
 import org.chiu.micro.user.convertor.AuthorityVoConvertor;
 import org.chiu.micro.user.entity.AuthorityEntity;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
-import org.chiu.micro.user.exception.MissException;
-import org.chiu.micro.user.lang.AuthMenuOperateEnum;
-import org.chiu.micro.user.lang.StatusEnum;
 import org.chiu.micro.user.repository.AuthorityRepository;
 import org.chiu.micro.user.repository.RoleRepository;
 import org.chiu.micro.user.req.AuthorityEntityReq;
@@ -23,7 +23,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-import static org.chiu.micro.user.lang.ExceptionMessage.NO_FOUND;
+import static org.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
+
 
 @Service
 public class AuthorityServiceImpl implements AuthorityService {

@@ -1,26 +1,27 @@
 package org.chiu.micro.exhibit.convertor;
 
+import org.chiu.micro.common.dto.BlogEntityRpcDto;
 import org.chiu.micro.exhibit.vo.BlogHotReadVo;
-import org.chiu.micro.exhibit.dto.BlogEntityDto;
 import org.redisson.client.protocol.ScoredEntry;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.chiu.micro.exhibit.lang.StatusEnum.HIDE;
+import static org.chiu.micro.common.lang.StatusEnum.HIDE;
+
 
 public class BlogHotReadVoConvertor {
 
     private BlogHotReadVoConvertor() {}
 
-    public static List<BlogHotReadVo> convert(List<BlogEntityDto> blogs, Collection<ScoredEntry<String>> scoredEntries) {
+    public static List<BlogHotReadVo> convert(List<BlogEntityRpcDto> blogs, Collection<ScoredEntry<String>> scoredEntries) {
     
         Map<Long, String> idTitleMap = blogs.stream()
-                .collect(Collectors.toMap(BlogEntityDto::id, BlogEntityDto::title));
+                .collect(Collectors.toMap(BlogEntityRpcDto::id, BlogEntityRpcDto::title));
 
         List<Long> ids = blogs.stream()
                 .filter(item -> !HIDE.getCode().equals(item.status()))
-                .map(BlogEntityDto::id)
+                .map(BlogEntityRpcDto::id)
                 .toList();
 
         return scoredEntries.stream()

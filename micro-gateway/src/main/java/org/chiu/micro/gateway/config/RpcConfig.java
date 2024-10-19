@@ -1,6 +1,6 @@
 package org.chiu.micro.gateway.config;
 
-import org.chiu.micro.gateway.rpc.AuthHttpService;
+import org.chiu.micro.common.rpc.AuthHttpService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.JdkClientHttpRequestFactory;

@@ -1,13 +1,13 @@
 package org.chiu.micro.user.service.impl;
 
+import org.chiu.micro.common.lang.AuthMenuOperateEnum;
+import org.chiu.micro.common.lang.AuthStatusEnum;
 import org.chiu.micro.user.constant.AuthMenuIndexMessage;
 import org.chiu.micro.user.convertor.RoleAuthorityEntityConvertor;
 import org.chiu.micro.user.entity.AuthorityEntity;
 import org.chiu.micro.user.entity.RoleAuthorityEntity;
 import org.chiu.micro.user.entity.RoleEntity;
 import org.chiu.micro.user.event.AuthMenuOperateEvent;
-import org.chiu.micro.user.lang.AuthMenuOperateEnum;
-import org.chiu.micro.user.lang.AuthStatusEnum;
 import org.chiu.micro.user.repository.AuthorityRepository;
 import org.chiu.micro.user.repository.RoleAuthorityRepository;
 import org.chiu.micro.user.repository.RoleRepository;
@@ -22,7 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.chiu.micro.user.lang.StatusEnum.NORMAL;
+import static org.chiu.micro.common.lang.StatusEnum.NORMAL;
+
 
 @Service
 public class RoleAuthorityServiceImpl implements RoleAuthorityService {

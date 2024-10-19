@@ -1,13 +1,13 @@
 package org.chiu.micro.exhibit.bloom;
 
-import org.chiu.micro.exhibit.exception.MissException;
-import org.chiu.micro.exhibit.lang.Const;
+import org.chiu.micro.common.exception.MissException;
+import org.chiu.micro.common.lang.Const;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-import static org.chiu.micro.exhibit.lang.ExceptionMessage.NO_FOUND;
+import static org.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 
 @Component
 public class ListPageHandler extends BloomHandler {

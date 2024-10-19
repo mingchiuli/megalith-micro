@@ -3,8 +3,8 @@ package org.chiu.micro.blog.convertor;
 import java.util.List;
 
 import org.chiu.micro.blog.entity.BlogEntity;
-import org.chiu.micro.blog.page.PageAdapter;
 import org.chiu.micro.blog.vo.BlogEntityRpcVo;
+import org.chiu.micro.common.page.PageAdapter;
 import org.springframework.data.domain.Page;
 
 public class BlogEntityRpcVoConvertor {

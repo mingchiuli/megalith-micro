@@ -2,10 +2,10 @@ package org.chiu.micro.auth.service;
 
 
 import org.chiu.micro.auth.dto.AuthDto;
-import org.chiu.micro.auth.exception.AuthException;
 import org.chiu.micro.auth.req.AuthorityRouteReq;
 import org.chiu.micro.auth.vo.AuthorityRouteVo;
 import org.chiu.micro.auth.vo.MenusAndButtonsVo;
+import org.chiu.micro.common.exception.AuthException;
 
 import java.util.List;
 

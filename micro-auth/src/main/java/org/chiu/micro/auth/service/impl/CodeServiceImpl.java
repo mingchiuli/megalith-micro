@@ -1,13 +1,13 @@
 package org.chiu.micro.auth.service.impl;
 
-import org.chiu.micro.auth.exception.CodeException;
-import org.chiu.micro.auth.lang.Const;
-import org.chiu.micro.auth.rpc.SmsHttpService;
-import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
+import org.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import org.chiu.micro.auth.service.CodeService;
 import org.chiu.micro.auth.utils.CodeFactory;
-import org.chiu.micro.auth.utils.JsonUtils;
 import org.chiu.micro.auth.utils.SmsUtils;
+import org.chiu.micro.common.exception.CodeException;
+import org.chiu.micro.common.lang.Const;
+import org.chiu.micro.common.rpc.SmsHttpService;
+import org.chiu.micro.common.utils.JsonUtils;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -17,8 +17,8 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.chiu.micro.auth.lang.Const.SMS_CODE;
-import static org.chiu.micro.auth.lang.ExceptionMessage.CODE_EXISTED;
+import static org.chiu.micro.common.lang.Const.SMS_CODE;
+import static org.chiu.micro.common.lang.ExceptionMessage.CODE_EXISTED;
 
 
 /**

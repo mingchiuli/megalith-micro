@@ -1,8 +1,8 @@
 package org.chiu.micro.websocket.config.interceptor;
 
-import org.chiu.micro.websocket.dto.AuthorityRouteDto;
-import org.chiu.micro.websocket.req.AuthorityRouteReq;
-import org.chiu.micro.websocket.rpc.wrapper.AuthHttpServiceWrapper;
+import org.chiu.micro.common.dto.AuthorityRouteRpcDto;
+import org.chiu.micro.common.req.AuthorityRouteReq;
+import org.chiu.micro.websocket.rpc.AuthHttpServiceWrapper;
 
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -44,7 +44,7 @@ public class AuthHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
                 .method(request.getMethod().name())
                 .routeMapping(request.getURI().getPath())
                 .build();
-        AuthorityRouteDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(req, token);
+        AuthorityRouteRpcDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(req, token);
         return Boolean.TRUE.equals(authorityRoute.auth());
     }
 }

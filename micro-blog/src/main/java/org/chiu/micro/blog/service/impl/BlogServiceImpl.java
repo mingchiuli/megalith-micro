@@ -10,28 +10,28 @@ import org.chiu.micro.blog.convertor.BlogDeleteVoConvertor;
 import org.chiu.micro.blog.convertor.BlogEntityConvertor;
 import org.chiu.micro.blog.convertor.BlogEntityRpcVoConvertor;
 import org.chiu.micro.blog.convertor.BlogEntityVoConvertor;
-import org.chiu.micro.blog.dto.BlogSearchDto;
-import org.chiu.micro.blog.dto.UserEntityDto;
 import org.chiu.micro.blog.entity.BlogEntity;
 import org.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import org.chiu.micro.blog.event.BlogOperateEvent;
-import org.chiu.micro.blog.exception.MissException;
-import org.chiu.micro.blog.page.PageAdapter;
 import org.chiu.micro.blog.repository.BlogRepository;
 import org.chiu.micro.blog.repository.BlogSensitiveContentRepository;
 import org.chiu.micro.blog.req.BlogEntityReq;
-import org.chiu.micro.blog.rpc.OssHttpService;
-import org.chiu.micro.blog.rpc.wrapper.SearchHttpServiceWrapper;
-import org.chiu.micro.blog.rpc.wrapper.UserHttpServiceWrapper;
+import org.chiu.micro.blog.rpc.SearchHttpServiceWrapper;
+import org.chiu.micro.blog.rpc.UserHttpServiceWrapper;
 import org.chiu.micro.blog.service.BlogService;
 import org.chiu.micro.blog.utils.AuthUtils;
-import org.chiu.micro.blog.utils.JsonUtils;
 import org.chiu.micro.blog.utils.OssSignUtils;
 import org.chiu.micro.blog.vo.BlogDeleteVo;
 import org.chiu.micro.blog.vo.BlogEntityRpcVo;
 import org.chiu.micro.blog.vo.BlogEntityVo;
 import org.chiu.micro.blog.wrapper.BlogSensitiveWrapper;
 
+import org.chiu.micro.common.dto.BlogSearchRpcDto;
+import org.chiu.micro.common.dto.UserEntityRpcDto;
+import org.chiu.micro.common.exception.MissException;
+import org.chiu.micro.common.page.PageAdapter;
+import org.chiu.micro.common.rpc.OssHttpService;
+import org.chiu.micro.common.utils.JsonUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -59,9 +59,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static org.chiu.micro.blog.lang.Const.*;
-import static org.chiu.micro.blog.lang.ExceptionMessage.*;
-import static org.chiu.micro.blog.lang.StatusEnum.HIDE;
+import static org.chiu.micro.common.lang.Const.*;
+import static org.chiu.micro.common.lang.ExceptionMessage.*;
+import static org.chiu.micro.common.lang.StatusEnum.HIDE;
 
 @Service
 public class BlogServiceImpl implements BlogService {
@@ -92,14 +92,14 @@ public class BlogServiceImpl implements BlogService {
 
     private final ExecutorService taskExecutor;
 
-    @Value("${blog.highest-role}")
+    @Value("${megalith.blog.highest-role}")
     private String highestRole;
 
-    @Value("${blog.read.page-prefix}")
+    @Value("${megalith.blog.read.page-prefix}")
     private String readPrefix;
 
 
-    @Value("${blog.oss.base-url}")
+    @Value("${megalith.blog.oss.base-url}")
     private String baseUrl;
 
     private String hotBlogsScript;
@@ -207,7 +207,7 @@ public class BlogServiceImpl implements BlogService {
         taskExecutor.execute(() -> {
             String uuid = UUID.randomUUID().toString();
 
-            UserEntityDto user = userHttpServiceWrapper.findById(userId);
+            UserEntityRpcDto user = userHttpServiceWrapper.findById(userId);
             String objectName = user.nickname() + "/" + uuid + "-" + originalFilename;
 
             Map<String, String> headers = new HashMap<>();
@@ -303,7 +303,7 @@ public class BlogServiceImpl implements BlogService {
     @SuppressWarnings("unchecked")
     public PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, Long userId, String keywords) {
 
-        BlogSearchDto dto = searchHttpServiceWrapper.searchBlogs(currentPage, size, keywords);
+        BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(currentPage, size, keywords);
         List<Long> ids = dto.ids();
         if (ids.isEmpty()) {
             return PageAdapter.emptyPage();

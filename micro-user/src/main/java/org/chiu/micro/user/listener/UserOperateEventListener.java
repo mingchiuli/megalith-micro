@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.chiu.micro.user.lang.Const.BLOCK_USER;
+import static org.chiu.micro.common.lang.Const.BLOCK_USER;
 
 
 @Component
@@ -19,7 +19,7 @@ public class UserOperateEventListener {
 
     private final StringRedisTemplate redisTemplate;
 
-    @Value("${blog.jwt.access-token-expire}")
+    @Value("${megalith.blog.jwt.access-token-expire}")
     private long accessExpire;
 
     public UserOperateEventListener(StringRedisTemplate redisTemplate) {

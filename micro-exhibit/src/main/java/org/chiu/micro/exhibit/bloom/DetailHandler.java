@@ -1,11 +1,11 @@
 package org.chiu.micro.exhibit.bloom;
 
-import org.chiu.micro.exhibit.exception.MissException;
+import org.chiu.micro.common.exception.MissException;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
-import static org.chiu.micro.exhibit.lang.Const.BLOOM_FILTER_BLOG;
-import static org.chiu.micro.exhibit.lang.ExceptionMessage.NO_FOUND;
+import static org.chiu.micro.common.lang.Const.BLOOM_FILTER_BLOG;
+import static org.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 
 @Component
 public class DetailHandler extends BloomHandler {

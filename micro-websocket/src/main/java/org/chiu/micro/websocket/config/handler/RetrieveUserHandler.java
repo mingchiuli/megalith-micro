@@ -1,8 +1,8 @@
 package org.chiu.micro.websocket.config.handler;
 
+import org.chiu.micro.common.dto.AuthRpcDto;
 import org.chiu.micro.websocket.config.user.AuthUser;
-import org.chiu.micro.websocket.dto.AuthDto;
-import org.chiu.micro.websocket.rpc.wrapper.AuthHttpServiceWrapper;
+import org.chiu.micro.websocket.rpc.AuthHttpServiceWrapper;
 
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.lang.NonNull;
@@ -32,7 +32,7 @@ public class RetrieveUserHandler extends DefaultHandshakeHandler {
             return null;
         }
 
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication(token);
+        AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication(token);
 
         AuthUser user = new AuthUser();
         user.setName(authDto.userId().toString());

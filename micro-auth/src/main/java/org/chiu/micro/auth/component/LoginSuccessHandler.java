@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.chiu.micro.auth.lang.Result;
-import org.chiu.micro.auth.rpc.wrapper.UserHttpServiceWrapper;
+import org.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import org.chiu.micro.auth.token.Claims;
 import org.chiu.micro.auth.token.TokenUtils;
 import org.chiu.micro.auth.user.LoginUser;
 import org.chiu.micro.auth.vo.LoginSuccessVo;
+import org.chiu.micro.common.lang.Result;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
-import static org.chiu.micro.auth.lang.Const.*;
+import static org.chiu.micro.common.lang.Const.*;
 
 
 @Component
@@ -37,10 +37,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final RedissonClient redissonClient;
 
-    @Value("${blog.jwt.access-token-expire}")
+    @Value("${megalith.blog.jwt.access-token-expire}")
     private long accessExpire;
 
-    @Value("${blog.jwt.refresh-token-expire}")
+    @Value("${megalith.blog.jwt.refresh-token-expire}")
     private long refreshExpire;
 
     public LoginSuccessHandler(ObjectMapper objectMapper, TokenUtils<Claims> tokenUtils, UserHttpServiceWrapper userHttpServiceWrapper, RedissonClient redissonClient) {

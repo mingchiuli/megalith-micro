@@ -5,10 +5,10 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionScoreMode;
 import co.elastic.clients.json.JsonData;
+import org.chiu.micro.common.lang.StatusEnum;
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.search.convertor.BlogDocumentVoConvertor;
 import org.chiu.micro.search.document.BlogDocument;
-import org.chiu.micro.search.lang.StatusEnum;
-import org.chiu.micro.search.page.PageAdapter;
 import org.chiu.micro.search.service.BlogSearchService;
 import org.chiu.micro.search.utils.ESHighlightBuilderUtils;
 import org.chiu.micro.search.vo.BlogDocumentVo;
@@ -37,10 +37,10 @@ public class BlogSearchServiceImpl implements BlogSearchService {
 
     private final ElasticsearchTemplate elasticsearchTemplate;
 
-    @Value("${blog.blog-page-size}")
+    @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
-    @Value("${blog.highest-role}")
+    @Value("${megalith.blog.highest-role}")
     private String highestRole;
 
     public BlogSearchServiceImpl(ElasticsearchTemplate elasticsearchTemplate) {

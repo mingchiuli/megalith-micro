@@ -1,9 +1,9 @@
 package org.chiu.micro.blog.provider;
 
-import org.chiu.micro.blog.lang.Result;
-import org.chiu.micro.blog.page.PageAdapter;
 import org.chiu.micro.blog.service.BlogService;
 import org.chiu.micro.blog.vo.BlogEntityRpcVo;
+import org.chiu.micro.common.lang.Result;
+import org.chiu.micro.common.page.PageAdapter;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;

@@ -1,10 +1,10 @@
 package org.chiu.micro.exhibit.cache.handler;
 
+import org.chiu.micro.common.dto.BlogEntityRpcDto;
+import org.chiu.micro.common.utils.KeyFactory;
 import org.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
-import org.chiu.micro.exhibit.dto.BlogEntityDto;
-import org.chiu.micro.exhibit.key.KeyFactory;
-import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
+import org.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import org.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
 import org.chiu.micro.exhibit.wrapper.BlogWrapper;
 import org.redisson.api.RedissonClient;
@@ -20,7 +20,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.chiu.micro.exhibit.lang.Const.*;
+import static org.chiu.micro.common.lang.Const.*;
+
 
 @Component
 public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
@@ -29,7 +30,7 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
     private static final Logger log = LoggerFactory.getLogger(DeleteBlogCacheEvictHandler.class);
     private final CacheKeyGenerator cacheKeyGenerator;
 
-    @Value("${blog.blog-page-size}")
+    @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
     public DeleteBlogCacheEvictHandler(RedissonClient redissonClient,
@@ -46,7 +47,7 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
     }
 
     @Override
-    public Set<String> redisProcess(BlogEntityDto blogEntity) {
+    public Set<String> redisProcess(BlogEntityRpcDto blogEntity) {
         Long id = blogEntity.id();
         int year = blogEntity.created().getYear();
         HashSet<String> keys = new HashSet<>();

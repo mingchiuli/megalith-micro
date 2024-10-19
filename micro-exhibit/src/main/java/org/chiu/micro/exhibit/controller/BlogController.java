@@ -1,12 +1,12 @@
 package org.chiu.micro.exhibit.controller;
 
+import org.chiu.micro.common.dto.AuthRpcDto;
+import org.chiu.micro.common.lang.Result;
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.exhibit.bloom.Bloom;
 import org.chiu.micro.exhibit.bloom.DetailHandler;
 import org.chiu.micro.exhibit.bloom.ListPageHandler;
-import org.chiu.micro.exhibit.dto.AuthDto;
-import org.chiu.micro.exhibit.lang.Result;
-import org.chiu.micro.exhibit.page.PageAdapter;
-import org.chiu.micro.exhibit.rpc.wrapper.AuthHttpServiceWrapper;
+import org.chiu.micro.exhibit.rpc.AuthHttpServiceWrapper;
 import org.chiu.micro.exhibit.service.BlogService;
 import org.chiu.micro.exhibit.vo.BlogDescriptionVo;
 import org.chiu.micro.exhibit.vo.BlogExhibitVo;
@@ -39,7 +39,7 @@ public class BlogController {
     @Bloom(handler = DetailHandler.class)
     public Result<BlogExhibitVo> getBlogDetail(@PathVariable Long blogId) {
 
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
+        AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogService.getBlogDetail(authDto.roles(), blogId, authDto.userId()));
     }
 
@@ -67,7 +67,7 @@ public class BlogController {
     @GetMapping("/status/{blogId}")
     @Bloom(handler = DetailHandler.class)
     public Result<Integer> getBlogStatus(@PathVariable Long blogId) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
+        AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogService.getBlogStatus(authDto.roles(), blogId, authDto.userId()));
     }
 

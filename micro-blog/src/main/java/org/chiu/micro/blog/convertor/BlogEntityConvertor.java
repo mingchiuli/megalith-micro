@@ -7,7 +7,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Map;
 
-import static org.chiu.micro.blog.lang.MessageActionFieldEnum.*;
+import static org.chiu.micro.common.lang.MessageActionFieldEnum.*;
 
 public class BlogEntityConvertor {
 

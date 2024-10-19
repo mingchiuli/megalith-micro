@@ -2,10 +2,10 @@ package org.chiu.micro.search.mq.handler;
 
 
 import com.rabbitmq.client.Channel;
+import org.chiu.micro.common.dto.BlogEntityRpcDto;
 import org.chiu.micro.search.constant.BlogOperateEnum;
 import org.chiu.micro.search.constant.BlogOperateMessage;
-import org.chiu.micro.search.dto.BlogEntityDto;
-import org.chiu.micro.search.rpc.wrapper.BlogHttpServiceWrapper;
+import org.chiu.micro.search.rpc.BlogHttpServiceWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -27,15 +27,15 @@ public abstract sealed class BlogIndexSupport permits
 
     public abstract boolean supports(BlogOperateEnum blogOperateEnum);
 
-    protected abstract void elasticSearchProcess(BlogEntityDto blog);
+    protected abstract void elasticSearchProcess(BlogEntityRpcDto blog);
 
     public void handle(BlogOperateMessage message, Channel channel, Message msg) {
         long deliveryTag = msg.getMessageProperties().getDeliveryTag();
         try {
             Long blogId = message.blogId();
-            BlogEntityDto blogEntity;
+            BlogEntityRpcDto blogEntity;
             if (Objects.equals(message.typeEnum(), BlogOperateEnum.REMOVE)) {
-                blogEntity = new BlogEntityDto(blogId, null, null, null, null, null, null, null, null, null);
+                blogEntity = new BlogEntityRpcDto(blogId, null, null, null, null, null, null, null, null, null);
             } else {
                 blogEntity = blogHttpServiceWrapper.findById(blogId);
             }

@@ -1,7 +1,9 @@
 package org.chiu.micro.exhibit.cache.config;
 
-import org.chiu.micro.exhibit.utils.JsonUtils;
+import org.chiu.micro.common.utils.JsonUtils;
 import org.chiu.micro.exhibit.wrapper.BlogWrapper;
+import org.chiu.micro.common.cache.Cache;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +25,7 @@ public class CacheKeyGenerator {
     private static final Logger log = LoggerFactory.getLogger(CacheKeyGenerator.class);
     private final JsonUtils jsonUtils;
 
-    @Value("${blog.blog-page-size}")
+    @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
     private static final String FIND_PAGE = "findPage";

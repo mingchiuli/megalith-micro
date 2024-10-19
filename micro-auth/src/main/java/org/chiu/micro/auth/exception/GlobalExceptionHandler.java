@@ -1,6 +1,8 @@
 package org.chiu.micro.auth.exception;
 
-import org.chiu.micro.auth.lang.Result;
+import org.chiu.micro.common.exception.AuthException;
+import org.chiu.micro.common.exception.BaseException;
+import org.chiu.micro.common.lang.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSourceResolvable;

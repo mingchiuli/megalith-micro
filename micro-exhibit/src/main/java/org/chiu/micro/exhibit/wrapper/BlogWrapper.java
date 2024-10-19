@@ -1,16 +1,16 @@
 package org.chiu.micro.exhibit.wrapper;
 
-import org.chiu.micro.exhibit.cache.config.Cache;
+import org.chiu.micro.common.cache.Cache;
+import org.chiu.micro.common.dto.BlogEntityRpcDto;
+import org.chiu.micro.common.dto.UserEntityRpcDto;
+import org.chiu.micro.common.lang.Const;
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.exhibit.convertor.BlogDescriptionDtoConvertor;
 import org.chiu.micro.exhibit.convertor.BlogExhibitDtoConvertor;
 import org.chiu.micro.exhibit.dto.BlogDescriptionDto;
-import org.chiu.micro.exhibit.dto.BlogEntityDto;
 import org.chiu.micro.exhibit.dto.BlogExhibitDto;
-import org.chiu.micro.exhibit.dto.UserEntityDto;
-import org.chiu.micro.exhibit.lang.Const;
-import org.chiu.micro.exhibit.page.PageAdapter;
-import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
-import org.chiu.micro.exhibit.rpc.wrapper.UserHttpServiceWrapper;
+import org.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
+import org.chiu.micro.exhibit.rpc.UserHttpServiceWrapper;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -45,9 +45,9 @@ public class BlogWrapper {
 
     @Cache(prefix = Const.HOT_BLOG)
     public BlogExhibitDto findById(Long id) {
-        BlogEntityDto blogEntity = blogHttpServiceWrapper.findById(id);
+        BlogEntityRpcDto blogEntity = blogHttpServiceWrapper.findById(id);
 
-        UserEntityDto user = userHttpServiceWrapper.findById(blogEntity.userId());
+        UserEntityRpcDto user = userHttpServiceWrapper.findById(blogEntity.userId());
         return BlogExhibitDtoConvertor.convert(blogEntity, user);
     }
 
@@ -67,7 +67,7 @@ public class BlogWrapper {
 
     @Cache(prefix = Const.HOT_BLOGS)
     public PageAdapter<BlogDescriptionDto> findPage(Integer currentPage, Integer year) {
-        PageAdapter<BlogEntityDto> page = Objects.equals(year, Integer.MIN_VALUE) ?
+        PageAdapter<BlogEntityRpcDto> page = Objects.equals(year, Integer.MIN_VALUE) ?
                 blogHttpServiceWrapper.findPage(currentPage, blogPageSize) :
                 blogHttpServiceWrapper.findPageByCreatedBetween(currentPage, blogPageSize,
                         LocalDateTime.of(year, 1, 1, 0, 0, 0),

@@ -1,6 +1,6 @@
 package org.chiu.micro.search.convertor;
 
-import org.chiu.micro.search.page.PageAdapter;
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.search.document.BlogDocument;
 import org.chiu.micro.search.vo.BlogDocumentVo;
 import org.springframework.data.elasticsearch.core.SearchHits;

@@ -1,8 +1,8 @@
 package org.chiu.micro.auth.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.chiu.micro.auth.lang.Result;
 import org.chiu.micro.auth.service.CodeService;
+import org.chiu.micro.common.lang.Result;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

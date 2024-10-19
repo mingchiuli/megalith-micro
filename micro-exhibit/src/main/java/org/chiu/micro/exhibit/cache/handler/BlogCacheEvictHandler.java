@@ -1,12 +1,12 @@
 package org.chiu.micro.exhibit.cache.handler;
 
 import com.rabbitmq.client.Channel;
+import org.chiu.micro.common.dto.BlogEntityRpcDto;
+import org.chiu.micro.common.exception.MissException;
 import org.chiu.micro.exhibit.config.CacheBlogEvictRabbitConfig;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
 import org.chiu.micro.exhibit.constant.BlogOperateMessage;
-import org.chiu.micro.exhibit.dto.BlogEntityDto;
-import org.chiu.micro.exhibit.exception.MissException;
-import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
+import org.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ public abstract sealed class BlogCacheEvictHandler permits
 
     public abstract boolean supports(BlogOperateEnum blogOperateEnum);
 
-    protected abstract Set<String> redisProcess(BlogEntityDto blog);
+    protected abstract Set<String> redisProcess(BlogEntityRpcDto blog);
 
 
     public void handle(BlogOperateMessage message, Channel channel, Message msg) {
@@ -48,9 +48,9 @@ public abstract sealed class BlogCacheEvictHandler permits
         try {
             Long blogId = message.blogId();
             Integer year = message.year();
-            BlogEntityDto blogEntity;
+            BlogEntityRpcDto blogEntity;
             if (Objects.equals(message.typeEnum(), BlogOperateEnum.REMOVE)) {
-                blogEntity = BlogEntityDto.builder()
+                blogEntity = BlogEntityRpcDto.builder()
                         .id(blogId)
                         .created(LocalDateTime.of(year, 1, 1, 0, 0, 0))
                         .build();

@@ -1,15 +1,18 @@
 package org.chiu.micro.exhibit.service.impl;
 
 import jakarta.annotation.PostConstruct;
+import org.chiu.micro.common.dto.BlogEntityRpcDto;
+import org.chiu.micro.common.dto.BlogSensitiveContentRpcDto;
+import org.chiu.micro.common.dto.SensitiveContentDto;
+import org.chiu.micro.common.exception.MissException;
+import org.chiu.micro.common.lang.StatusEnum;
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.exhibit.convertor.BlogDescriptionVoConvertor;
 import org.chiu.micro.exhibit.convertor.BlogExhibitVoConvertor;
 import org.chiu.micro.exhibit.convertor.BlogHotReadVoConvertor;
 import org.chiu.micro.exhibit.convertor.VisitStatisticsVoConvertor;
 import org.chiu.micro.exhibit.dto.*;
-import org.chiu.micro.exhibit.exception.MissException;
-import org.chiu.micro.exhibit.lang.StatusEnum;
-import org.chiu.micro.exhibit.page.PageAdapter;
-import org.chiu.micro.exhibit.rpc.wrapper.BlogHttpServiceWrapper;
+import org.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import org.chiu.micro.exhibit.service.BlogService;
 import org.chiu.micro.exhibit.utils.SensitiveUtils;
 import org.chiu.micro.exhibit.vo.BlogDescriptionVo;
@@ -37,9 +40,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import static org.chiu.micro.exhibit.lang.Const.*;
-import static org.chiu.micro.exhibit.lang.ExceptionMessage.AUTH_EXCEPTION;
-import static org.chiu.micro.exhibit.lang.ExceptionMessage.TOKEN_INVALID;
+import static org.chiu.micro.common.lang.Const.*;
+import static org.chiu.micro.common.lang.ExceptionMessage.AUTH_EXCEPTION;
+import static org.chiu.micro.common.lang.ExceptionMessage.TOKEN_INVALID;
 
 
 /**
@@ -92,7 +95,7 @@ public class BlogServiceImpl implements BlogService {
                     if (!StatusEnum.SENSITIVE_FILTER.getCode().equals(desc.status())) {
                         return desc;
                     }
-                    List<SensitiveContent> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContent();
+                    List<SensitiveContentDto> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContentDto();
                     if (words.isEmpty()) {
                         return desc;
                     }
@@ -131,7 +134,7 @@ public class BlogServiceImpl implements BlogService {
             return StatusEnum.NORMAL.getCode();
         }
 
-        BlogEntityDto blog = blogHttpServiceWrapper.findById(blogId);
+        BlogEntityRpcDto blog = blogHttpServiceWrapper.findById(blogId);
 
         Long id = blog.userId();
         return Objects.equals(id, userId) ?
@@ -183,7 +186,7 @@ public class BlogServiceImpl implements BlogService {
                 .map(Long::valueOf)
                 .toList();
 
-        List<BlogEntityDto> blogs = blogHttpServiceWrapper.findAllById(ids);
+        List<BlogEntityRpcDto> blogs = blogHttpServiceWrapper.findAllById(ids);
 
         return BlogHotReadVoConvertor.convert(blogs, scoredEntries);
     }
@@ -203,8 +206,8 @@ public class BlogServiceImpl implements BlogService {
         if (StatusEnum.SENSITIVE_FILTER.getCode().equals(status) &&
                 !roles.contains(highestRole) &&
                 !Objects.equals(userId, blogExhibitDto.userId())) {
-            BlogSensitiveContentDto sensitiveContentDto = blogSensitiveWrapper.findSensitiveByBlogId(id);
-            List<SensitiveContent> words = sensitiveContentDto.sensitiveContent();
+            BlogSensitiveContentRpcDto sensitiveContentDto = blogSensitiveWrapper.findSensitiveByBlogId(id);
+            List<SensitiveContentDto> words = sensitiveContentDto.sensitiveContentDto();
             if (!words.isEmpty()) {
                 blogExhibitDto = SensitiveUtils.deal(words, blogExhibitDto);
             }

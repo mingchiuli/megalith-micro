@@ -1,8 +1,8 @@
 package org.chiu.micro.search.controller;
 
 import jakarta.validation.constraints.Size;
-import org.chiu.micro.search.lang.Result;
-import org.chiu.micro.search.page.PageAdapter;
+import org.chiu.micro.common.lang.Result;
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.search.service.BlogSearchService;
 import org.chiu.micro.search.vo.BlogDocumentVo;
 import org.springframework.validation.annotation.Validated;

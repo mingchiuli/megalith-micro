@@ -1,7 +1,7 @@
 package org.chiu.micro.user.convertor;
 
+import org.chiu.micro.common.lang.StatusEnum;
 import org.chiu.micro.user.entity.MenuEntity;
-import org.chiu.micro.user.lang.StatusEnum;
 import org.chiu.micro.user.vo.MenuDisplayVo;
 
 import java.util.Comparator;

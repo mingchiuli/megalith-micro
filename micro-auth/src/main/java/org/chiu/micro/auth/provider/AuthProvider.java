@@ -1,11 +1,11 @@
 package org.chiu.micro.auth.provider;
 
 import org.chiu.micro.auth.dto.AuthDto;
-import org.chiu.micro.auth.exception.AuthException;
-import org.chiu.micro.auth.lang.Result;
 import org.chiu.micro.auth.req.AuthorityRouteReq;
 import org.chiu.micro.auth.service.AuthService;
 import org.chiu.micro.auth.vo.AuthorityRouteVo;
+import org.chiu.micro.common.exception.AuthException;
+import org.chiu.micro.common.lang.Result;
 import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;

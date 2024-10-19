@@ -186,9 +186,5 @@ public class BlogSensitiveContentEntity {
         public BlogSensitiveContentEntity build() {
             return new BlogSensitiveContentEntity(this.id, this.blogId, this.startIndex, this.endIndex, this.type, this.created, this.updated);
         }
-
-        public String toString() {
-            return "BlogSensitiveContentEntity.BlogSensitiveContentEntityBuilder(id=" + this.id + ", blogId=" + this.blogId + ", startIndex=" + this.startIndex + ", endIndex=" + this.endIndex + ", type=" + this.type + ", created=" + this.created + ", updated=" + this.updated + ")";
-        }
     }
 }

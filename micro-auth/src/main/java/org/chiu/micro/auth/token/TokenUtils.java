@@ -1,6 +1,6 @@
 package org.chiu.micro.auth.token;
 
-import org.chiu.micro.auth.exception.AuthException;
+import org.chiu.micro.common.exception.AuthException;
 
 import java.util.List;
 

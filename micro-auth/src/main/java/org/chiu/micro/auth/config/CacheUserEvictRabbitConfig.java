@@ -1,6 +1,6 @@
 package org.chiu.micro.auth.config;
 
-import org.chiu.micro.auth.cache.mq.CacheEvictMessageListener;
+import org.chiu.micro.auth.cache.local.CacheEvictMessageListener;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;

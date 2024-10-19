@@ -2,10 +2,10 @@ package org.chiu.micro.exhibit.utils;
 
 import java.util.List;
 
+import org.chiu.micro.common.dto.SensitiveContentDto;
 import org.chiu.micro.exhibit.convertor.BlogExhibitDtoConvertor;
 import org.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import org.chiu.micro.exhibit.dto.BlogExhibitDto;
-import org.chiu.micro.exhibit.dto.SensitiveContent;
 import org.chiu.micro.exhibit.lang.SensitiveTypeEnum;
 
 public class SensitiveUtils {
@@ -13,16 +13,16 @@ public class SensitiveUtils {
     private SensitiveUtils() {
     }
 
-    public static BlogExhibitDto deal(List<SensitiveContent> sensitiveWords, BlogExhibitDto blog) {
-        List<SensitiveContent> titleSensitiveList = sensitiveWords.stream()
+    public static BlogExhibitDto deal(List<SensitiveContentDto> sensitiveWords, BlogExhibitDto blog) {
+        List<SensitiveContentDto> titleSensitiveList = sensitiveWords.stream()
                 .filter(item -> SensitiveTypeEnum.TITLE.getCode().equals(item.type()))
                 .toList();
 
-        List<SensitiveContent> descSensitiveList = sensitiveWords.stream()
+        List<SensitiveContentDto> descSensitiveList = sensitiveWords.stream()
                 .filter(item -> SensitiveTypeEnum.DESCRIPTION.getCode().equals(item.type()))
                 .toList();
 
-        List<SensitiveContent> contentSensitiveList = sensitiveWords.stream()
+        List<SensitiveContentDto> contentSensitiveList = sensitiveWords.stream()
                 .filter(item -> SensitiveTypeEnum.CONTENT.getCode().equals(item.type()))
                 .toList();
 
@@ -30,7 +30,7 @@ public class SensitiveUtils {
         String description = blog.description();
         String content = blog.content();
 
-        for (SensitiveContent item : titleSensitiveList) {
+        for (SensitiveContentDto item : titleSensitiveList) {
             Integer startIndex = item.startIndex();
             Integer endIndex = item.endIndex();
             title = title.substring(0, startIndex) +
@@ -38,7 +38,7 @@ public class SensitiveUtils {
                     title.substring(endIndex);
         }
 
-        for (SensitiveContent item : descSensitiveList) {
+        for (SensitiveContentDto item : descSensitiveList) {
             Integer startIndex = item.startIndex();
             Integer endIndex = item.endIndex();
             description = description.substring(0, startIndex) +
@@ -46,7 +46,7 @@ public class SensitiveUtils {
                     description.substring(endIndex);
         }
 
-        for (SensitiveContent item : contentSensitiveList) {
+        for (SensitiveContentDto item : contentSensitiveList) {
             Integer startIndex = item.startIndex();
             Integer endIndex = item.endIndex();
             content = content.substring(0, startIndex) +
@@ -57,19 +57,19 @@ public class SensitiveUtils {
         return BlogExhibitDtoConvertor.convert(blog, title, description, content);
     }
 
-    public static BlogDescriptionDto deal(List<SensitiveContent> sensitiveWords, BlogDescriptionDto blog) {
-        List<SensitiveContent> titleSensitiveList = sensitiveWords.stream()
+    public static BlogDescriptionDto deal(List<SensitiveContentDto> sensitiveWords, BlogDescriptionDto blog) {
+        List<SensitiveContentDto> titleSensitiveList = sensitiveWords.stream()
                 .filter(item -> SensitiveTypeEnum.TITLE.getCode().equals(item.type()))
                 .toList();
 
-        List<SensitiveContent> descSensitiveList = sensitiveWords.stream()
+        List<SensitiveContentDto> descSensitiveList = sensitiveWords.stream()
                 .filter(item -> SensitiveTypeEnum.DESCRIPTION.getCode().equals(item.type()))
                 .toList();
 
         String title = blog.title();
         String description = blog.description();
 
-        for (SensitiveContent item : titleSensitiveList) {
+        for (SensitiveContentDto item : titleSensitiveList) {
             Integer startIndex = item.startIndex();
             Integer endIndex = item.endIndex();
             title = title.substring(0, startIndex) +
@@ -77,7 +77,7 @@ public class SensitiveUtils {
                     title.substring(endIndex);
         }
 
-        for (SensitiveContent item : descSensitiveList) {
+        for (SensitiveContentDto item : descSensitiveList) {
             Integer startIndex = item.startIndex();
             Integer endIndex = item.endIndex();
             description = description.substring(0, startIndex) +

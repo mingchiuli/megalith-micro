@@ -6,7 +6,7 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
-import static org.chiu.micro.auth.lang.ExceptionMessage.*;
+import static org.chiu.micro.common.lang.ExceptionMessage.INVALID_LOGIN_OPERATE;
 
 import java.util.List;
 

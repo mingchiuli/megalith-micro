@@ -2,8 +2,8 @@ package org.chiu.micro.user.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
-import org.chiu.micro.user.lang.Result;
-import org.chiu.micro.user.page.PageAdapter;
+import org.chiu.micro.common.lang.Result;
+import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.user.req.RoleEntityReq;
 import org.chiu.micro.user.service.RoleAuthorityService;
 import org.chiu.micro.user.service.RoleMenuService;

@@ -1,7 +1,8 @@
 package org.chiu.micro.auth.cache.config;
 
-import org.chiu.micro.auth.cache.Cache;
-import org.chiu.micro.auth.utils.JsonUtils;
+
+import org.chiu.micro.common.cache.Cache;
+import org.chiu.micro.common.utils.JsonUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 

@@ -26,12 +26,15 @@ server:
   port: 8081
   max-http-request-header-size: 10MB
 
-blog:
-  email-try-count: 3
-  password-error-intervalTime: 900000
-  jwt:
-    access-token-expire: 3600
-    refresh-token-expire: 604800
-  highest-role: admin
-  sms:
-    base-url: https://dysmsapi.aliyuncs.com
+megalith:
+  cache:
+    enable: true
+  blog:
+    email-try-count: 3
+    password-error-intervalTime: 900000
+    jwt:
+      access-token-expire: 3600
+      refresh-token-expire: 604800
+    highest-role: admin
+    sms:
+      base-url: https://dysmsapi.aliyuncs.com

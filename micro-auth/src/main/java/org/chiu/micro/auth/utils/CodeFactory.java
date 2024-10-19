@@ -1,7 +1,7 @@
 package org.chiu.micro.auth.utils;
 
 import jakarta.annotation.PostConstruct;
-import org.chiu.micro.auth.exception.CodeException;
+import org.chiu.micro.common.exception.CodeException;
 import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
 import org.springframework.core.io.Resource;
@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Random;
 
-import static org.chiu.micro.auth.lang.Const.*;
+import static org.chiu.micro.common.lang.Const.*;
 
 /**
  * @author mingchiuli

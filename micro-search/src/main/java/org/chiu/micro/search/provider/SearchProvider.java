@@ -2,9 +2,9 @@ package org.chiu.micro.search.provider;
 
 
 import jakarta.validation.constraints.Size;
-import org.chiu.micro.search.dto.AuthDto;
-import org.chiu.micro.search.lang.Result;
-import org.chiu.micro.search.rpc.wrapper.AuthHttpServiceWrapper;
+import org.chiu.micro.common.dto.AuthRpcDto;
+import org.chiu.micro.common.lang.Result;
+import org.chiu.micro.search.rpc.AuthHttpServiceWrapper;
 import org.chiu.micro.search.service.BlogSearchService;
 import org.chiu.micro.search.vo.BlogSearchVo;
 import org.springframework.validation.annotation.Validated;
@@ -31,7 +31,7 @@ public class SearchProvider {
     public Result<BlogSearchVo> searchAllBlogs(@RequestParam(defaultValue = "1") Integer currentPage,
                                                @RequestParam(defaultValue = "5") Integer size,
                                                @RequestParam @Size(min = 0, max = 20) String keywords) {
-        AuthDto authDto = authHttpServiceWrapper.getAuthentication();
+        AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogSearchService.searchBlogs(keywords, currentPage, size, authDto.userId(), authDto.roles()));
     }
 }

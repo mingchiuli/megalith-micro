@@ -3,10 +3,10 @@ package org.chiu.micro.blog.valid;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-import org.chiu.micro.blog.lang.SensitiveTypeEnum;
-import org.chiu.micro.blog.lang.StatusEnum;
 import org.chiu.micro.blog.req.BlogEditPushAllReq;
 import org.chiu.micro.blog.req.SensitiveContentReq;
+import org.chiu.micro.common.lang.SensitiveTypeEnum;
+import org.chiu.micro.common.lang.StatusEnum;
 import org.springframework.util.StringUtils;
 
 import java.util.List;

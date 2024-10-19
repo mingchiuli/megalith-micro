@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-import static org.chiu.micro.exhibit.lang.Const.*;
+import static org.chiu.micro.common.lang.Const.*;
 
 /**
  * @author mingchiuli
