@@ -7,7 +7,7 @@ public record BlogSensitiveContentRpcDto(
 
         Long blogId,
 
-        List<SensitiveContentDto> sensitiveContentDto) implements Serializable {
+        List<SensitiveContentDto> sensitiveContent) implements Serializable {
 
     public static BlogSensitiveContentDtoBuilder builder() {
         return new BlogSensitiveContentDtoBuilder();
