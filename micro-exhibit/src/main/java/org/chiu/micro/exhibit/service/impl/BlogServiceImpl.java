@@ -26,6 +26,8 @@ import org.redisson.api.RScript.ReturnType;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.protocol.ScoredEntry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -52,6 +54,7 @@ import static org.chiu.micro.common.lang.ExceptionMessage.TOKEN_INVALID;
 @Service
 public class BlogServiceImpl implements BlogService {
 
+    private static final Logger log = LoggerFactory.getLogger(BlogServiceImpl.class);
     private final BlogSensitiveWrapper blogSensitiveWrapper;
 
     private final BlogHttpServiceWrapper blogHttpServiceWrapper;
@@ -96,6 +99,7 @@ public class BlogServiceImpl implements BlogService {
                         return desc;
                     }
                     List<SensitiveContentDto> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContentDto();
+                    log.info("info:{}, desc:{}", words, desc);
                     if (words.isEmpty()) {
                         return desc;
                     }
