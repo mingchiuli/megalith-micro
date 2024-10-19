@@ -54,7 +54,7 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
         //博客对象本身缓存
         try {
-            Method findByIdMethod = findByIdMethod = BlogWrapper.class.getMethod("findById", Long.class);
+            Method findByIdMethod = BlogWrapper.class.getMethod("findById", Long.class);
             String findById = cacheKeyGenerator.generateKey(findByIdMethod, id);
             keys.add(findById);
         } catch (NoSuchMethodException e) {
