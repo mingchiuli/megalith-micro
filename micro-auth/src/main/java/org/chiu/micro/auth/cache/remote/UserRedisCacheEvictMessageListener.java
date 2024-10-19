@@ -4,9 +4,9 @@ import com.rabbitmq.client.Channel;
 import org.chiu.micro.auth.config.CacheUserEvictRabbitConfig;
 import org.chiu.micro.auth.constant.UserAuthMenuOperateMessage;
 import org.chiu.micro.auth.wrapper.AuthWrapper;
+import org.chiu.micro.common.cache.config.CommonCacheKeyGenerator;
 import org.chiu.micro.common.lang.AuthMenuOperateEnum;
 import org.redisson.api.RedissonClient;
-import org.chiu.micro.auth.cache.config.CacheKeyGenerator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ public class UserRedisCacheEvictMessageListener {
 
     private static final Logger log = LoggerFactory.getLogger(UserRedisCacheEvictMessageListener.class);
 
-    private final CacheKeyGenerator cacheKeyGenerator;
+    private final CommonCacheKeyGenerator commonCacheKeyGenerator;
 
     private final RedissonClient redissonClient;
 
@@ -39,8 +39,8 @@ public class UserRedisCacheEvictMessageListener {
     private static final String QUEUE = "user.auth.menu.change.queue.auth";
 
 
-    public UserRedisCacheEvictMessageListener(CacheKeyGenerator cacheKeyGenerator, RedissonClient redissonClient, RabbitTemplate rabbitTemplate) {
-        this.cacheKeyGenerator = cacheKeyGenerator;
+    public UserRedisCacheEvictMessageListener(CommonCacheKeyGenerator commonCacheKeyGenerator, RedissonClient redissonClient, RabbitTemplate rabbitTemplate) {
+        this.commonCacheKeyGenerator = commonCacheKeyGenerator;
         this.redissonClient = redissonClient;
         this.rabbitTemplate = rabbitTemplate;
     }
@@ -58,7 +58,7 @@ public class UserRedisCacheEvictMessageListener {
             try {
                 method = AuthWrapper.class.getMethod("getCurrentUserNav", String.class);
                 for (String role : roles) {
-                    keys.add(cacheKeyGenerator.generateKey(method, role));
+                    keys.add(commonCacheKeyGenerator.generateKey(method, role));
                 }
             } catch (NoSuchMethodException e) {
                 log.error("some error", e);
@@ -71,7 +71,7 @@ public class UserRedisCacheEvictMessageListener {
             try {
                 getAuthoritiesByRoleCodeMethod = AuthWrapper.class.getMethod("getAuthoritiesByRoleCode", String.class);
                 for (String role : roles) {
-                    keys.add(cacheKeyGenerator.generateKey(getAuthoritiesByRoleCodeMethod, role));
+                    keys.add(commonCacheKeyGenerator.generateKey(getAuthoritiesByRoleCodeMethod, role));
                 }
             } catch (NoSuchMethodException e) {
                 log.error("some error", e);
@@ -80,7 +80,7 @@ public class UserRedisCacheEvictMessageListener {
             Method getAllSystemAuthoritiesMethod;
             try {
                 getAllSystemAuthoritiesMethod = AuthWrapper.class.getMethod("getAllSystemAuthorities");
-                keys.add(cacheKeyGenerator.generateKey(getAllSystemAuthoritiesMethod));
+                keys.add(commonCacheKeyGenerator.generateKey(getAllSystemAuthoritiesMethod));
             } catch (NoSuchMethodException e) {
                 log.error("some error", e);
             }

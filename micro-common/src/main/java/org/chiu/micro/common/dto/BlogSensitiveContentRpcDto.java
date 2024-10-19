@@ -7,7 +7,7 @@ public record BlogSensitiveContentRpcDto(
 
         Long blogId,
 
-        List<SensitiveContentDto> sensitiveContent) implements Serializable {
+        List<SensitiveContentRpcDto> sensitiveContent) implements Serializable {
 
     public static BlogSensitiveContentDtoBuilder builder() {
         return new BlogSensitiveContentDtoBuilder();
@@ -15,20 +15,20 @@ public record BlogSensitiveContentRpcDto(
 
     public static class BlogSensitiveContentDtoBuilder {
         private Long blogId;
-        private List<SensitiveContentDto> sensitiveContentDto;
+        private List<SensitiveContentRpcDto> sensitiveContentRpcDto;
 
         public BlogSensitiveContentDtoBuilder blogId(Long blogId) {
             this.blogId = blogId;
             return this;
         }
 
-        public BlogSensitiveContentDtoBuilder sensitiveContent(List<SensitiveContentDto> sensitiveContentDto) {
-            this.sensitiveContentDto = sensitiveContentDto;
+        public BlogSensitiveContentDtoBuilder sensitiveContent(List<SensitiveContentRpcDto> sensitiveContentRpcDto) {
+            this.sensitiveContentRpcDto = sensitiveContentRpcDto;
             return this;
         }
 
         public BlogSensitiveContentRpcDto build() {
-            return new BlogSensitiveContentRpcDto(blogId, sensitiveContentDto);
+            return new BlogSensitiveContentRpcDto(blogId, sensitiveContentRpcDto);
         }
     }
 }

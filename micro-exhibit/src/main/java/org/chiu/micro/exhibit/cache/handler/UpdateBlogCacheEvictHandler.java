@@ -1,5 +1,6 @@
 package org.chiu.micro.exhibit.cache.handler;
 
+import org.chiu.micro.common.cache.config.CommonCacheKeyGenerator;
 import org.chiu.micro.common.dto.BlogEntityRpcDto;
 import org.chiu.micro.common.utils.KeyUtils;
 import org.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
@@ -27,13 +28,17 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
     private static final Logger log = LoggerFactory.getLogger(UpdateBlogCacheEvictHandler.class);
     private final CacheKeyGenerator cacheKeyGenerator;
 
+    private final CommonCacheKeyGenerator commonCacheKeyGenerator;
+
 
     public UpdateBlogCacheEvictHandler(RedissonClient redissonClient,
                                        BlogHttpServiceWrapper blogHttpServiceWrapper,
                                        CacheKeyGenerator cacheKeyGenerator,
-                                       RabbitTemplate rabbitTemplate) {
+                                       RabbitTemplate rabbitTemplate,
+                                       CommonCacheKeyGenerator commonCacheKeyGenerator) {
         super(redissonClient, blogHttpServiceWrapper, rabbitTemplate);
         this.cacheKeyGenerator = cacheKeyGenerator;
+        this.commonCacheKeyGenerator = commonCacheKeyGenerator;
     }
 
     @Override
@@ -58,7 +63,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         //博客对象本身缓存
         try {
             Method findByIdAndVisibleMethod = BlogWrapper.class.getMethod("findById", Long.class);
-            String findByIdAndVisible = cacheKeyGenerator.generateKey(findByIdAndVisibleMethod, id);
+            String findByIdAndVisible = commonCacheKeyGenerator.generateKey(findByIdAndVisibleMethod, id);
             keys.add(findByIdAndVisible);
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
@@ -67,7 +72,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
         try {
             Method statusMethod = BlogWrapper.class.getMethod("findStatusById", Long.class);
-            String statusKey = cacheKeyGenerator.generateKey(statusMethod, id);
+            String statusKey = commonCacheKeyGenerator.generateKey(statusMethod, id);
             keys.add(statusKey);
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
@@ -75,7 +80,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
         try {
             Method sensitiveMethod = BlogSensitiveWrapper.class.getMethod("findSensitiveByBlogId", Long.class);
-            String sensitive = cacheKeyGenerator.generateKey(sensitiveMethod, id);
+            String sensitive = commonCacheKeyGenerator.generateKey(sensitiveMethod, id);
             keys.add(sensitive);
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
