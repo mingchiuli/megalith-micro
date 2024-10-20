@@ -14,12 +14,7 @@ import {
 } from '@/type/entity'
 
 export const pushAllData = async (operateStatus: OperateStatusParam, form: EditForm) => {
-  operateStatus.pushing = true
-  try {
-    await POST<null>('/sys/blog/edit/push/all', form)
-  } finally {
-    operateStatus.pushing = false
-  }
+  await POST<null>('/sys/blog/edit/push/all', form)
   if (operateStatus.transColor.value !== OperaColor.WARNING) {
     operateStatus.transColor.value = OperaColor.WARNING
   }

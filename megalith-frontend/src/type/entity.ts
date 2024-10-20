@@ -375,7 +375,6 @@ export interface OperateStatusParam {
   blogId: string | undefined
   readOnly: Ref<boolean>
   pulling: boolean
-  pushing: boolean
 }
 
 export interface EditForm {

@@ -157,7 +157,7 @@ const preCheck = (
     return false
   }
 
-  if (operateStatus.composing || operateStatus.pulling || operateStatus.pushing) {
+  if (operateStatus.composing || operateStatus.pulling) {
     return false
   }
 

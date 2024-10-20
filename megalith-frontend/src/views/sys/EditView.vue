@@ -76,7 +76,6 @@ const operateStatus: OperateStatusParam = {
   transColor: ref(OperaColor.FAILED),
   blogId: blogId,
   readOnly: ref(false),
-  pushing: false,
   pulling: false
 }
 
