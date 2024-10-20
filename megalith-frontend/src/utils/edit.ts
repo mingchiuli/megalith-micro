@@ -162,9 +162,6 @@ const preCheck = (
   }
 
   if (operateStatus.client.readyState !== WebSocket.OPEN) {
-    if (!operateStatus.netErrorEdited.value) {
-      operateStatus.netErrorEdited.value = true
-    }
     return false
   }
 
