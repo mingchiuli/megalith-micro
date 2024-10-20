@@ -366,7 +366,7 @@ export interface PushActionForm {
   paraNo?: number
 }
 
-export interface OpreateStatusParam {
+export interface OperateStatusParam {
   composing: boolean
   netErrorEdited: Ref<boolean>
   client: WebSocket
@@ -374,6 +374,8 @@ export interface OpreateStatusParam {
   transColor: Ref<string>
   blogId: string | undefined
   readOnly: Ref<boolean>
+  pulling: boolean
+  pushing: boolean
 }
 
 export interface EditForm {

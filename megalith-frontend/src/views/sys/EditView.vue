@@ -26,7 +26,7 @@ import {
   SensitiveType,
   type SensitiveExhibit,
   Colors,
-  type OpreateStatusParam
+  type OperateStatusParam
 } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
@@ -41,15 +41,15 @@ const blogId = route.query.id as string | undefined
 
 let socket: WebSocket
 const connect = () => {
-  destory()
+  destroy()
     socket = new WebSocket(
       `${import.meta.env.VITE_BASE_WS_URL}/edit/ws?token=${localStorage.getItem('accessToken')}`
     )
-  opreateStatus.client = socket
+  operateStatus.client = socket
   socket.addEventListener('message', subscribe)
 }
 
-const destory = () => {
+const destroy = () => {
   if (!socket) return
   socket.removeEventListener('message', subscribe)
   socket.close()
@@ -60,22 +60,24 @@ const subscribe = async (event: MessageEvent<string>) => {
   const body: SubscribeItem = JSON.parse(event.data)
 
   if (body.type === SubscribeType.PULL_ALL) {
-    await pullAllData(opreateStatus, form)
+    await pullAllData(operateStatus, form)
   }
 
   if (body.type === SubscribeType.PUSH_ALL) {
-    await pushAllData(opreateStatus, form)
+    await pushAllData(operateStatus, form)
   }
 }
 
-const opreateStatus: OpreateStatusParam = {
+const operateStatus: OperateStatusParam = {
   composing: false,
   netErrorEdited: ref(false),
   client: socket!,
   fieldType: FieldType.NON_PARA,
   transColor: ref(OperaColor.FAILED),
   blogId: blogId,
-  readOnly: ref(false)
+  readOnly: ref(false),
+  pushing: false,
+  pulling: false
 }
 
 const form: EditForm = reactive({
@@ -101,7 +103,7 @@ const pushActionForm: PushActionForm = {
   paraNo: undefined
 }
 
-watchInput(form, pushActionForm, opreateStatus)
+watchInput(form, pushActionForm, operateStatus)
 
 type SensitiveTagsItem = {
   element: SensitiveExhibit
@@ -201,7 +203,7 @@ const handleTagClose = (tag: SensitiveTagsItem) => {
   )
 }
 
-const dealComposing = (payload: boolean) => (opreateStatus.composing = payload)
+const dealComposing = (payload: boolean) => (operateStatus.composing = payload)
 
 const dealSensitive = (payload: SensitiveTrans) => {
   let flag = true
@@ -323,30 +325,30 @@ let initTimeoutId: NodeJS.Timeout
 onUnmounted(() => {
   clearTimeout(healthCheckTimeoutId)
   clearTimeout(initTimeoutId)
-  destory()
+  destroy()
 })
 
 const healthCheck = async () => {
   try {
     if (socket.readyState !== WebSocket.OPEN) {
-      opreateStatus.transColor.value = OperaColor.FAILED
-      opreateStatus.readOnly.value = true
+      operateStatus.transColor.value = OperaColor.FAILED
+      operateStatus.readOnly.value = true
       const accessToken = localStorage.getItem('accessToken')!
       await checkAccessToken(accessToken)
       connect()
 
-      if (opreateStatus.netErrorEdited.value) {
-        await pushAllData(opreateStatus, form)
+      if (operateStatus.netErrorEdited.value) {
+        await pushAllData(operateStatus, form)
       } else {
-        await pullAllData(opreateStatus, form)
+        await pullAllData(operateStatus, form)
       }
 
-      opreateStatus.readOnly.value = false
-      opreateStatus.transColor.value = OperaColor.SUCCESS
-      opreateStatus.netErrorEdited.value = false
+      operateStatus.readOnly.value = false
+      operateStatus.transColor.value = OperaColor.SUCCESS
+      operateStatus.netErrorEdited.value = false
     }
   } catch (_e) {
-    destory()
+    destroy()
   } finally {
     healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 2000)
   }
@@ -354,8 +356,8 @@ const healthCheck = async () => {
 
 const init = async () => {
   if (socket.readyState === WebSocket.OPEN) {
-    opreateStatus.transColor.value = OperaColor.SUCCESS
-    await loadEditContent(form, opreateStatus)
+    operateStatus.transColor.value = OperaColor.SUCCESS
+    await loadEditContent(form, operateStatus)
     await healthCheck()
     return
   }
@@ -379,7 +381,7 @@ const init = async () => {
           v-model="form.title"
           placeholder="标题"
           maxlength="20"
-          :disabled="opreateStatus.readOnly.value"
+          :disabled="operateStatus.readOnly.value"
         />
       </el-form-item>
 
@@ -392,12 +394,12 @@ const init = async () => {
           v-model="form.description"
           placeholder="摘要"
           maxlength="60"
-          :disabled="opreateStatus.readOnly.value"
+          :disabled="operateStatus.readOnly.value"
         />
       </el-form-item>
 
       <el-form-item class="status" prop="status">
-        <el-radio-group v-model="form.status" :disabled="opreateStatus.readOnly.value">
+        <el-radio-group v-model="form.status" :disabled="operateStatus.readOnly.value">
           <el-radio :value="Status.NORMAL">公开</el-radio>
           <el-radio :value="Status.BLOCK">隐藏</el-radio>
           <el-radio :value="Status.SENSITIVE_FILTER">打码</el-radio>
@@ -430,7 +432,7 @@ const init = async () => {
           :limit="1"
           :http-request="upload"
           :on-remove="handleRemove"
-          :disabled="opreateStatus.readOnly.value"
+          :disabled="operateStatus.readOnly.value"
           :on-preview="handlePictureCardPreview"
         >
           <el-icon>
@@ -452,7 +454,7 @@ const init = async () => {
           v-model:content="form.content"
           @composing="dealComposing"
           @sensitive="dealSensitive"
-          :trans-color="opreateStatus.transColor.value"
+          :trans-color="operateStatus.transColor.value"
           :form-status="form.status"
         />
       </el-form-item>
@@ -462,7 +464,7 @@ const init = async () => {
           :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)"
           v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)"
           @click="submitForm(formRef!)"
-          :disabled="opreateStatus.readOnly.value"
+          :disabled="operateStatus.readOnly.value"
           >{{ getButtonTitle(ButtonAuth.SYS_EDIT_COMMIT) }}</el-button
         >
       </div>

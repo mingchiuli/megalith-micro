@@ -9,40 +9,49 @@ import {
   Status,
   type BlogEdit,
   type EditForm,
-  type OpreateStatusParam,
+  type OperateStatusParam,
   type PushActionForm
 } from '@/type/entity'
 
-export const pushAllData = async (opreateStatus: OpreateStatusParam, form: EditForm) => {
-  form.version++
-  await POST<null>('/sys/blog/edit/push/all', form)
-  if (opreateStatus.transColor.value !== OperaColor.WARNING) {
-    opreateStatus.transColor.value = OperaColor.WARNING
+export const pushAllData = async (operateStatus: OperateStatusParam, form: EditForm) => {
+  operateStatus.pushing = true
+  try {
+    await POST<null>('/sys/blog/edit/push/all', form)
+  } finally {
+    operateStatus.pushing = false
+  }
+  if (operateStatus.transColor.value !== OperaColor.WARNING) {
+    operateStatus.transColor.value = OperaColor.WARNING
   }
 }
 
 export const pushActionData = (
   pushActionForm: PushActionForm,
-  opreateStatus: OpreateStatusParam,
+  operateStatus: OperateStatusParam,
   form: EditForm
 ) => {
   pushActionForm.version = ++form.version
-  opreateStatus.client.send(JSON.stringify(pushActionForm))
-  if (opreateStatus.transColor.value !== OperaColor.SUCCESS) {
-    opreateStatus.transColor.value = OperaColor.SUCCESS
+  operateStatus.client.send(JSON.stringify(pushActionForm))
+  if (operateStatus.transColor.value !== OperaColor.SUCCESS) {
+    operateStatus.transColor.value = OperaColor.SUCCESS
   }
 }
 
-export const pullAllData = async (opreateStatus: OpreateStatusParam, form: EditForm) => {
-  await loadEditContent(form, opreateStatus)
+export const pullAllData = async (operateStatus: OperateStatusParam, form: EditForm) => {
+  operateStatus.pulling = true
+  try {
+    await loadEditContent(form, operateStatus)
+  } finally {
+    operateStatus.pulling = false
+  }
 }
 
-export const loadEditContent = async (form: EditForm, opreateStatus: OpreateStatusParam) => {
+export const loadEditContent = async (form: EditForm, operateStatus: OperateStatusParam) => {
   let data
-  if (!opreateStatus.blogId) {
+  if (!operateStatus.blogId) {
     data = await GET<BlogEdit>('/sys/blog/edit/pull/echo')
   } else {
-    data = await GET<BlogEdit>(`/sys/blog/edit/pull/echo?blogId=${opreateStatus.blogId}`)
+    data = await GET<BlogEdit>(`/sys/blog/edit/pull/echo?blogId=${operateStatus.blogId}`)
   }
   form.title = data.title
   form.description = data.description

@@ -5,7 +5,7 @@ import {
   OperateTypeCode,
   ParaInfo,
   type EditForm,
-  type OpreateStatusParam,
+  type OperateStatusParam,
   type PushActionForm
 } from '@/type/entity'
 import { watch } from 'vue'
@@ -14,14 +14,14 @@ import { dealAction, pushActionData, pushAllData, recheckSensitive } from './edi
 export const watchInput = (
   form: EditForm,
   pushActionForm: PushActionForm,
-  opreateStatus: OpreateStatusParam
+  operateStatus: OperateStatusParam
 ) => {
   watch(
     () => form.description,
     (n, o) => {
-      if (!preCheck(n, o, opreateStatus)) return
-      commonPreDeal(FieldType.NON_PARA, FieldName.DESCRIPTION, form, pushActionForm, opreateStatus)
-      deal(n, o, opreateStatus, pushActionForm, form)
+      if (!preCheck(n, o, operateStatus)) return
+      commonPreDeal(FieldType.NON_PARA, FieldName.DESCRIPTION, form, pushActionForm, operateStatus)
+      deal(n, o, operateStatus, pushActionForm, form)
       recheckSensitive(pushActionForm, form)
     }
   )
@@ -29,11 +29,11 @@ export const watchInput = (
   watch(
     () => form.status,
     (n, o) => {
-      if (!opreateStatus.client.OPEN || (!n && !o) || opreateStatus.composing) return
-      commonPreDeal(FieldType.NON_PARA, FieldName.STATUS, form, pushActionForm, opreateStatus)
+      if (!operateStatus.client.OPEN || (!n && !o) || operateStatus.composing) return
+      commonPreDeal(FieldType.NON_PARA, FieldName.STATUS, form, pushActionForm, operateStatus)
       pushActionForm.operateTypeCode = OperateTypeCode.STATUS
       pushActionForm.contentChange = String(form.status)
-      pushActionData(pushActionForm, opreateStatus, form)
+      pushActionData(pushActionForm, operateStatus, form)
     }
   )
 
@@ -41,9 +41,9 @@ export const watchInput = (
     () => form.sensitiveContentList,
     (n, o) => {
       if (
-        !opreateStatus.client.OPEN ||
+        !operateStatus.client.OPEN ||
         (o.length === 0 && n.length === 0) ||
-        opreateStatus.composing
+        operateStatus.composing
       )
         return
       commonPreDeal(
@@ -51,11 +51,11 @@ export const watchInput = (
         FieldName.SENSITIVE_CONTENT_LIST,
         form,
         pushActionForm,
-        opreateStatus
+        operateStatus
       )
       pushActionForm.operateTypeCode = OperateTypeCode.SENSITIVE_CONTENT_LIST
       pushActionForm.contentChange = JSON.stringify(form.sensitiveContentList)
-      pushActionData(pushActionForm, opreateStatus, form)
+      pushActionData(pushActionForm, operateStatus, form)
     },
     { deep: true }
   )
@@ -63,18 +63,18 @@ export const watchInput = (
   watch(
     () => form.link,
     (n, o) => {
-      if (!preCheck(n, o, opreateStatus)) return
-      commonPreDeal(FieldType.NON_PARA, FieldName.LINK, form, pushActionForm, opreateStatus)
-      deal(n, o, opreateStatus, pushActionForm, form)
+      if (!preCheck(n, o, operateStatus)) return
+      commonPreDeal(FieldType.NON_PARA, FieldName.LINK, form, pushActionForm, operateStatus)
+      deal(n, o, operateStatus, pushActionForm, form)
     }
   )
 
   watch(
     () => form.title,
     (n, o) => {
-      if (!preCheck(n, o, opreateStatus)) return
-      commonPreDeal(FieldType.NON_PARA, FieldName.TITLE, form, pushActionForm, opreateStatus)
-      deal(n, o, opreateStatus, pushActionForm, form)
+      if (!preCheck(n, o, operateStatus)) return
+      commonPreDeal(FieldType.NON_PARA, FieldName.TITLE, form, pushActionForm, operateStatus)
+      deal(n, o, operateStatus, pushActionForm, form)
       recheckSensitive(pushActionForm, form)
     }
   )
@@ -82,8 +82,8 @@ export const watchInput = (
   watch(
     () => form.content,
     (n, o) => {
-      if (!preCheck(n, o, opreateStatus)) return
-      commonPreDeal(FieldType.PARA, FieldName.CONTENT, form, pushActionForm, opreateStatus)
+      if (!preCheck(n, o, operateStatus)) return
+      commonPreDeal(FieldType.PARA, FieldName.CONTENT, form, pushActionForm, operateStatus)
 
       const nArr = n!.split(ParaInfo.PARA_SPLIT)
       const oArr = o!.split(ParaInfo.PARA_SPLIT)
@@ -93,7 +93,7 @@ export const watchInput = (
         for (let i = 0; i < nArr.length; i++) {
           if (nArr[i] !== oArr[i]) {
             pushActionForm.paraNo = i + 1
-            deal(nArr[i], oArr[i], opreateStatus, pushActionForm, form)
+            deal(nArr[i], oArr[i], operateStatus, pushActionForm, form)
             recheckSensitive(pushActionForm, form)
           }
         }
@@ -106,17 +106,17 @@ export const watchInput = (
         //每段必须相同，否则推全量
         for (let i = 0; i < oLen; i++) {
           if (i !== oLen - 1 && nArr[i] !== oArr[i]) {
-            pushAllData(opreateStatus, form)
+            pushAllData(operateStatus, form)
             return
           }
           if (i === oLen - 1 && nArr[i] + '\n' !== oArr[i]) {
-            pushAllData(opreateStatus, form)
+            pushAllData(operateStatus, form)
             return
           }
         }
         pushActionForm.paraNo = nLen
         pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_APPEND
-        pushActionData(pushActionForm, opreateStatus, form)
+        pushActionData(pushActionForm, operateStatus, form)
         return
       }
 
@@ -124,22 +124,22 @@ export const watchInput = (
       if (nLen + 1 === oLen && nArr[nLen - 1] === oArr[nLen - 1] + '\n' && oArr[nLen] === '') {
         for (let i = 0; i < nLen; i++) {
           if (i !== nLen - 1 && nArr[i] !== oArr[i]) {
-            pushAllData(opreateStatus, form)
+            pushAllData(operateStatus, form)
             return
           }
           if (i === nLen - 1 && nArr[i] !== oArr[i] + '\n') {
-            pushAllData(opreateStatus, form)
+            pushAllData(operateStatus, form)
             return
           }
         }
         pushActionForm.paraNo = oLen
         pushActionForm.operateTypeCode = OperateTypeCode.PARA_SPLIT_SUBTRACT
-        pushActionData(pushActionForm, opreateStatus, form)
+        pushActionData(pushActionForm, operateStatus, form)
         return
       }
 
       //推全量
-      pushAllData(opreateStatus, form)
+      pushAllData(operateStatus, form)
     }
   )
 }
@@ -147,7 +147,7 @@ export const watchInput = (
 const preCheck = (
   n: string | undefined,
   o: string | undefined,
-  opreateStatus: OpreateStatusParam
+  operateStatus: OperateStatusParam
 ): boolean => {
   if (o === undefined || n === undefined) {
     return false
@@ -157,13 +157,13 @@ const preCheck = (
     return false
   }
 
-  if (opreateStatus.composing) {
+  if (operateStatus.composing || operateStatus.pulling || operateStatus.pushing) {
     return false
   }
 
-  if (opreateStatus.client.readyState !== WebSocket.OPEN) {
-    if (!opreateStatus.netErrorEdited.value) {
-      opreateStatus.netErrorEdited.value = true
+  if (operateStatus.client.readyState !== WebSocket.OPEN) {
+    if (!operateStatus.netErrorEdited.value) {
+      operateStatus.netErrorEdited.value = true
     }
     return false
   }
@@ -173,15 +173,15 @@ const preCheck = (
 
 const commonPreDeal = (
   fieldTypeParam: FieldType,
-  opreateField: FieldName,
+  OperateField: FieldName,
   form: EditForm,
   pushActionForm: PushActionForm,
-  opreateStatus: OpreateStatusParam
+  operateStatus: OperateStatusParam
 ) => {
   clearPushActionForm(pushActionForm)
-  pushActionForm.field = opreateField
+  pushActionForm.field = OperateField
   pushActionForm.id = form.id
-  opreateStatus.fieldType = fieldTypeParam
+  operateStatus.fieldType = fieldTypeParam
 }
 
 const clearPushActionForm = (pushActionForm: PushActionForm) => {
@@ -197,17 +197,17 @@ const clearPushActionForm = (pushActionForm: PushActionForm) => {
 const deal = (
   n: string | undefined,
   o: string | undefined,
-  opreateStatus: OpreateStatusParam,
+  operateStatus: OperateStatusParam,
   pushActionForm: PushActionForm,
   form: EditForm
 ) => {
-  const type = dealAction(n, o, pushActionForm, opreateStatus.fieldType)
+  const type = dealAction(n, o, pushActionForm, operateStatus.fieldType)
   if (ActionType.PUSH_ACTION === type) {
-    pushActionData(pushActionForm, opreateStatus, form)
+    pushActionData(pushActionForm, operateStatus, form)
     return
   }
 
   if (ActionType.PULL_ALL === type) {
-    pushAllData(opreateStatus, form)
+    pushAllData(operateStatus, form)
   }
 }
