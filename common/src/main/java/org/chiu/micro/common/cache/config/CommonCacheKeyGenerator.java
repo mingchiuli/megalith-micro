@@ -2,7 +2,9 @@ package org.chiu.micro.common.cache.config;
 
 
 import org.chiu.micro.common.cache.Cache;
+import org.chiu.micro.common.cache.CacheAspect;
 import org.chiu.micro.common.utils.JsonUtils;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -14,6 +16,7 @@ import java.util.Objects;
  * @create 2023-04-02 11:12 pm
  */
 @Component
+@ConditionalOnBean(CacheAspect.class)
 public class CommonCacheKeyGenerator {
 
     private final JsonUtils jsonUtils;
