@@ -70,7 +70,6 @@ const subscribe = async (event: MessageEvent<string>) => {
 
 const operateStatus: OperateStatusParam = {
   composing: false,
-  netErrorEdited: ref(false),
   client: socket!,
   fieldType: FieldType.NON_PARA,
   transColor: ref(OperaColor.FAILED),
@@ -336,15 +335,8 @@ const healthCheck = async () => {
       await checkAccessToken(accessToken)
       connect()
 
-      if (operateStatus.netErrorEdited.value) {
-        await pushAllData(operateStatus, form)
-      } else {
-        await pullAllData(operateStatus, form)
-      }
-
       operateStatus.readOnly.value = false
       operateStatus.transColor.value = OperaColor.SUCCESS
-      operateStatus.netErrorEdited.value = false
     }
   } catch (_e) {
     destroy()
