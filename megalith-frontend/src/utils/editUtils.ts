@@ -25,7 +25,6 @@ export const pushActionData = (
   operateStatus: OperateStatusParam,
   form: EditForm
 ) => {
-  pushActionForm.version = ++form.version
   operateStatus.client.send(JSON.stringify(pushActionForm))
   if (operateStatus.transColor.value !== OperaColor.SUCCESS) {
     operateStatus.transColor.value = OperaColor.SUCCESS
