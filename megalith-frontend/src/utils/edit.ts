@@ -161,10 +161,6 @@ const preCheck = (
     return false
   }
 
-  if (operateStatus.client.readyState !== WebSocket.OPEN) {
-    return false
-  }
-
   return true
 }
 
@@ -178,6 +174,7 @@ const commonPreDeal = (
   clearPushActionForm(pushActionForm)
   pushActionForm.field = OperateField
   pushActionForm.id = form.id
+  pushActionForm.version = ++form.version
   operateStatus.fieldType = fieldTypeParam
 }
 
