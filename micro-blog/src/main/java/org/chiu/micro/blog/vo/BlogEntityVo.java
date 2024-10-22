@@ -13,8 +13,6 @@ public record BlogEntityVo(
 
         String title,
 
-        Boolean owner,
-
         String description,
 
         String content,
@@ -42,7 +40,6 @@ public record BlogEntityVo(
     public static class BlogEntityVoBuilder {
         private Long id;
         private String title;
-        private Boolean owner;
         private String description;
         private String content;
         private String link;
@@ -59,11 +56,6 @@ public record BlogEntityVo(
 
         public BlogEntityVoBuilder title(String title) {
             this.title = title;
-            return this;
-        }
-
-        public BlogEntityVoBuilder owner(Boolean owner) {
-            this.owner = owner;
             return this;
         }
 
@@ -108,7 +100,7 @@ public record BlogEntityVo(
         }
 
         public BlogEntityVo build() {
-            return new BlogEntityVo(id, title, owner, description, content, link, readCount, recentReadCount, created, updated, status);
+            return new BlogEntityVo(id, title, description, content, link, readCount, recentReadCount, created, updated, status);
         }
 
     }
