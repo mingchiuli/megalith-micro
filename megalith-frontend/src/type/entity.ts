@@ -30,7 +30,6 @@ export interface BlogSys {
   recentReadCount?: number
   status: number
   link: string
-  owner: boolean
 }
 
 export interface BlogDelSys {
