@@ -301,7 +301,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, Long userId, String keywords) {
+    public PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, String keywords) {
 
         BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(currentPage, size, keywords);
         List<Long> ids = dto.ids();
@@ -329,7 +329,7 @@ public class BlogServiceImpl implements BlogService {
             readMap.put(Long.valueOf(res.get(i)), Integer.valueOf(res.get(i + 1)));
         }
 
-        return BlogEntityVoConvertor.convert(items, readMap, userId, blogSensitiveContentEntities, dto);
+        return BlogEntityVoConvertor.convert(items, readMap, blogSensitiveContentEntities, dto);
     }
 
     @Override

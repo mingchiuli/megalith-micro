@@ -18,7 +18,7 @@ public class BlogEntityVoConvertor {
     private BlogEntityVoConvertor() {
     }
 
-    public static PageAdapter<BlogEntityVo> convert(List<BlogEntity> items, Map<Long, Integer> readMap, Long operateUserId, List<BlogSensitiveContentEntity> blogSensitiveContentEntities, BlogSearchRpcDto dto) {
+    public static PageAdapter<BlogEntityVo> convert(List<BlogEntity> items, Map<Long, Integer> readMap, List<BlogSensitiveContentEntity> blogSensitiveContentEntities, BlogSearchRpcDto dto) {
         
         Integer size = dto.size();
         Integer currentPage = dto.currentPage();
