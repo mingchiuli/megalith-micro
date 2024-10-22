@@ -40,13 +40,12 @@ public class BlogEntityVoConvertor {
                         .title(blogEntity.getTitle())
                         .description(blogEntity.getDescription())
                         .readCount(blogEntity.getReadCount())
-                        .recentReadCount(readMap.get(blogEntity.getId()))
+                        .recentReadCount(readMap.getOrDefault(blogEntity.getId(), 0))
                         .status(blogEntity.getStatus())
                         .link(blogEntity.getLink())
                         .created(blogEntity.getCreated())
                         .updated(mergedMap.get(blogEntity.getId()))
                         .content(blogEntity.getContent())
-                        .owner(blogEntity.getUserId().equals(operateUserId))
                         .build())
                 .toList();
 

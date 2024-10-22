@@ -29,6 +29,7 @@ import org.chiu.micro.blog.wrapper.BlogSensitiveWrapper;
 import org.chiu.micro.common.dto.BlogSearchRpcDto;
 import org.chiu.micro.common.dto.UserEntityRpcDto;
 import org.chiu.micro.common.exception.MissException;
+import org.chiu.micro.common.lang.StatusEnum;
 import org.chiu.micro.common.page.PageAdapter;
 import org.chiu.micro.common.rpc.OssHttpService;
 import org.chiu.micro.common.utils.JsonUtils;
@@ -310,6 +311,7 @@ public class BlogServiceImpl implements BlogService {
         }
 
         List<BlogEntity> items = blogRepository.findAllById(ids).stream()
+                .filter(item -> !HIDE.getCode().equals(item.getStatus()))
                 .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
                 .toList();
 
