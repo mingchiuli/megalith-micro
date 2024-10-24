@@ -43,6 +43,7 @@ const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
 }
 
 const refresh = () => {
+  keywords.value = ''
   page.content = []
   page.totalElements = 0
   getPage(1)
@@ -146,6 +147,7 @@ const { content, totalElements, pageSize } = toRefs(page)
       "
       >进入后台</el-link
     >
+    <el-button v-if="keywords" link @click="refresh">返回</el-button>
     <br />
     <div class="description">
       <el-skeleton animated :loading="loading" :throttle="300">

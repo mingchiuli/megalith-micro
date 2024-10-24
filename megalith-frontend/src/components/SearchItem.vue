@@ -157,12 +157,10 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
       return
     }
   }
-  keywords.value = ''
   emit('refresh')
 }
 
 const searchBeforeClose = (close: Function) => {
-  keywords.value = ''
   year.value = ''
   if (controller) controller.abort()
   suggestionEle = null
@@ -213,7 +211,10 @@ defineExpose({ searchAllInfo })
   >
     <template #default>
       <HotItem ref="hotItem" class="dialog-hot" />
-      <div class="dialog-year" v-if="year!.length">年份：{{ year }}</div>
+      <div>
+        <el-text class="dialog-year" v-if="year!.length">年份：{{ year }}</el-text>
+        <el-button link @click="year = ''">清除</el-button>
+      </div>
       <div class="dialog-autocomplete">
         <el-autocomplete
           id="elc"
