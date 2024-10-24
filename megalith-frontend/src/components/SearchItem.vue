@@ -293,7 +293,7 @@ defineExpose({ searchAllInfo })
 }
 
 .dialog-autocomplete {
-  margin: 30px auto 0 auto;
+  margin: 10px auto 0 auto;
   max-width: max-content;
 }
 
