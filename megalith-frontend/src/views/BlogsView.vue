@@ -216,6 +216,7 @@ const { content, totalElements, pageSize } = toRefs(page)
 .door {
   width: fit-content;
   margin-left: 5px;
+  margin-right: 5px;
 }
 
 .search-father {
