@@ -211,9 +211,9 @@ defineExpose({ searchAllInfo })
   >
     <template #default>
       <HotItem ref="hotItem" class="dialog-hot" />
-      <div v-if="year!.length">
-        <el-text class="dialog-year">年份：{{ year }}</el-text>
-        <el-button link @click="year = ''">清除</el-button>
+      <div class="dialog-year" v-if="year!.length">
+        <el-text>年份：{{ year }}</el-text>
+        <el-text @click="year = ''">清除</el-text>
       </div>
       <div class="dialog-autocomplete">
         <el-autocomplete
