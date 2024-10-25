@@ -25,10 +25,6 @@ public class Const {
 
     public static final String BLOCK_USER = "block_user:";
 
-    public static final String HOT_AUTHORITIES = "hot_authorities";
-
-    public static final String HOT_MENUS_AND_BUTTONS = "hot_menus_and_buttons";
-
     public static final String USER_SERVICE = "micro-user";
 
     public static final String BLOG_SERVICE = "micro-blog";
