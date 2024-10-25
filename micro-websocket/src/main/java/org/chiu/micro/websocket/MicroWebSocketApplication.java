@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ImportRuntimeHints;
 
-@SpringBootApplication(proxyBeanMethods = false, scanBasePackages = {"org.chiu.micro.websocket.**", "org.chiu.micro.common.**"})
+@SpringBootApplication(proxyBeanMethods = false)
 @ImportRuntimeHints({ CustomRuntimeHints.class })
 public class MicroWebSocketApplication {
 
