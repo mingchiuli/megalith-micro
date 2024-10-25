@@ -1,4 +1,4 @@
-package org.chiu.micro.common.utils;
+package org.chiu.micro.exhibit.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
