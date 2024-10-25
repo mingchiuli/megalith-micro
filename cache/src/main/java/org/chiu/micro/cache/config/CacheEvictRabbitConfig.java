@@ -1,33 +1,39 @@
-package org.chiu.micro.auth.config;
+package org.chiu.micro.cache.config;
 
-import org.chiu.micro.auth.cache.local.CacheEvictMessageListener;
+import com.github.benmanes.caffeine.cache.Cache;
+import org.chiu.micro.cache.listener.CacheEvictMessageListener;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 
 import java.util.UUID;
 
-@Configuration
-public class CacheUserEvictRabbitConfig {
+@AutoConfiguration
+@ConditionalOnClass(ConnectionFactory.class)
+public class CacheEvictRabbitConfig {
 
-    private String cacheEvictQueue = "cache.user.evict.queue.";
+    @Value("${megalith.cache.queue-prefix}")
+    private String cacheEvictQueue;
 
-    public static final String CACHE_EVICT_FANOUT_EXCHANGE = "cache.user.evict.fanout.exchange";
+    @Value("${megalith.cache.fanout-exchange}")
+    public String CACHE_EVICT_FANOUT_EXCHANGE;
 
     private final Jackson2JsonMessageConverter jsonMessageConverter;
 
-    @Qualifier("mqExecutor")
-    private final TaskExecutor executor;
+    private final Cache<String, Object> localCache;
 
-    public CacheUserEvictRabbitConfig(Jackson2JsonMessageConverter jsonMessageConverter, @Qualifier("mqExecutor") TaskExecutor executor) {
+    public CacheEvictRabbitConfig(Jackson2JsonMessageConverter jsonMessageConverter, @Qualifier("caffeineCache") Cache<String, Object> localCache) {
         this.jsonMessageConverter = jsonMessageConverter;
-        this.executor = executor;
+        this.localCache = localCache;
     }
 
     @Bean("cacheEvictQueue")
@@ -51,7 +57,8 @@ public class CacheUserEvictRabbitConfig {
     }
 
     @Bean("cacheEvictMessageListenerAdapter")
-    MessageListenerAdapter coopMessageListener(CacheEvictMessageListener cacheEvictMessageListener) {
+    MessageListenerAdapter coopMessageListener() {
+        CacheEvictMessageListener cacheEvictMessageListener = new CacheEvictMessageListener(localCache);
         return new MessageListenerAdapter(cacheEvictMessageListener);
     }
 
@@ -67,7 +74,14 @@ public class CacheUserEvictRabbitConfig {
         container.setConnectionFactory(connectionFactory);
         container.setQueueNames(queue.getName());
         container.setMessageListener(listenerAdapter);
-        container.setTaskExecutor(executor);
+        container.setTaskExecutor(simpleAsyncTaskExecutor());
         return container;
+    }
+
+    @Bean("cacheExecutor")
+    TaskExecutor simpleAsyncTaskExecutor() {
+        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+        executor.setVirtualThreads(true);
+        return executor;
     }
 }

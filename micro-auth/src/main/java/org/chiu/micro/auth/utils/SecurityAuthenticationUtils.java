@@ -33,12 +33,12 @@ public class SecurityAuthenticationUtils {
 
     public List<String> getRawRoleCodes(List<String> roles) {
         return roles.stream()
-                .map(role -> role.substring(ROLE_PREFIX.getInfo().length()))
+                .map(role -> role.substring(ROLE_PREFIX.length()))
                 .toList();
     }
 
     public List<String> getAuthorities(Long userId, List<String> rawRoles) throws AuthException {
-        boolean mark = redissonClient.getBucket(BLOCK_USER.getInfo() + userId).isExists();
+        boolean mark = redissonClient.getBucket(BLOCK_USER + userId).isExists();
 
         if (mark) {
             throw new AuthException(RE_LOGIN.getMsg());
@@ -64,7 +64,7 @@ public class SecurityAuthenticationUtils {
             return authorities;
         }
 
-        String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
+        String jwt = token.substring(TOKEN_PREFIX.length());
         Claims claims = tokenUtils.getVerifierByToken(jwt);
         List<String> roles = claims.roles();
         List<String> rawRoles = getRawRoleCodes(roles);

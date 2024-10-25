@@ -1,6 +1,6 @@
 package org.chiu.micro.exhibit.wrapper;
 
-import org.chiu.micro.common.cache.Cache;
+import org.chiu.micro.cache.annotation.Cache;
 import org.chiu.micro.common.dto.BlogSensitiveContentRpcDto;
 import org.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import org.springframework.stereotype.Component;

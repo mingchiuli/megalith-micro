@@ -88,10 +88,10 @@ public class BlogEditServiceImpl implements BlogEditService {
 
         String content = blog.content();
 
-        String[] splits = content.split(PARAGRAPH_SPLITTER.getInfo());
+        String[] splits = content.split(PARAGRAPH_SPLITTER);
         List<String> paragraphList = new ArrayList<>(splits.length + 2);
         Collections.addAll(paragraphList, splits);
-        if (content.endsWith(PARAGRAPH_SPLITTER.getInfo())) {
+        if (content.endsWith(PARAGRAPH_SPLITTER)) {
             paragraphList.add("");
         }
         String paragraphListString = jsonUtils.writeValueAsString(paragraphList);
@@ -102,7 +102,7 @@ public class BlogEditServiceImpl implements BlogEditService {
                 STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
                 id.map(Object::toString).orElse(""), originUserId.toString(), blog.title(),
                 blog.description(), blog.status().toString(), blog.link(), blog.version().toString(), jsonUtils.writeValueAsString(blog.sensitiveContentList()),
-                A_WEEK.getInfo());
+                A_WEEK);
     }
 
     @Override
@@ -142,10 +142,10 @@ public class BlogEditServiceImpl implements BlogEditService {
             StringBuilder content = new StringBuilder();
 
             for (int i = 1; i <= entries.size(); i++) {
-                String idx = PARAGRAPH_PREFIX.getInfo() + i;
+                String idx = PARAGRAPH_PREFIX + i;
                 content.append(entries.get(idx));
                 if (i != entries.size()) {
-                    content.append(PARAGRAPH_SPLITTER.getInfo());
+                    content.append(PARAGRAPH_SPLITTER);
                 }
             }
 
@@ -167,7 +167,7 @@ public class BlogEditServiceImpl implements BlogEditService {
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
 
             blog = BlogEntityDtoConvertor.convert(userBlogEntity);
-            List<String> paragraphList = List.of(blog.content().split(PARAGRAPH_SPLITTER.getInfo()));
+            List<String> paragraphList = List.of(blog.content().split(PARAGRAPH_SPLITTER));
             paragraphListString = jsonUtils.writeValueAsString(paragraphList);
             BlogSensitiveContentVo blogSensitiveContentVo = blogSensitiveService.findByBlogId(id);
             sensitiveContentList = blogSensitiveContentVo.sensitiveContent();
@@ -180,7 +180,7 @@ public class BlogEditServiceImpl implements BlogEditService {
                     STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
                     Objects.isNull(blog.id()) ? "" : blog.id().toString(), originUserId.toString(), blog.title(),
                     blog.description(), blog.status().toString(), blog.link(), Integer.toString(version), jsonUtils.writeValueAsString(sensitiveContentList),
-                    A_WEEK.getInfo());
+                    A_WEEK);
         }
 
         return BlogEditVoConvertor.convert(blog, version, sensitiveContentList);

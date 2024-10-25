@@ -39,7 +39,7 @@ public class TokenServiceImpl implements TokenService {
     public Map<String, String> refreshToken(Long userId) {
         List<String> roles = userHttpServiceWrapper.findRoleCodesByUserId(userId);
         String accessToken = tokenUtils.generateToken(userId.toString(), roles, expire);
-        return Collections.singletonMap("accessToken", TOKEN_PREFIX.getInfo() + accessToken);
+        return Collections.singletonMap("accessToken", TOKEN_PREFIX + accessToken);
     }
 
     @Override

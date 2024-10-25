@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getRegisterPage(String username) {
         String token = UUID.randomUUID().toString();
-        redisTemplate.opsForValue().set(REGISTER_PREFIX.getInfo() + token, username, 1, TimeUnit.HOURS);
+        redisTemplate.opsForValue().set(REGISTER_PREFIX + token, username, 1, TimeUnit.HOURS);
         if (StringUtils.hasLength(username)) {
             return pagePrefix + token + "?username=" + username;
         }
@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public SseEmitter imageUpload(String token, MultipartFile file) {
-        Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX.getInfo() + token);
+        Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
         if (Boolean.FALSE.equals(exist)) {
             throw new MissException(NO_AUTH.getMsg());
         }
@@ -131,7 +131,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void imageDelete(String token, String url) {
-        Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX.getInfo() + token);
+        Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
         if (Boolean.FALSE.equals(exist)) {
             throw new MissException(NO_AUTH.getMsg());
         }
@@ -147,7 +147,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Boolean checkRegisterPage(String token) {
-        return redisTemplate.hasKey(REGISTER_PREFIX.getInfo() + token);
+        return redisTemplate.hasKey(REGISTER_PREFIX + token);
     }
 
     @Override

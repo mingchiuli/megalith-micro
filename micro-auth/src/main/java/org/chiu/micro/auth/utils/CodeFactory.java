@@ -54,11 +54,11 @@ public class CodeFactory {
     private final RedissonClient redissonClient;
 
     public String create(String type) {
-        if (SMS_CODE.getInfo().equals(type)) {
+        if (SMS_CODE.equals(type)) {
             return createSMS();
-        } else if (EMAIL_CODE.getInfo().equals(type)) {
+        } else if (EMAIL_CODE.equals(type)) {
             return createEmailCode();
-        } else if (PHONE_CODE.getInfo().equals(type)) {
+        } else if (PHONE_CODE.equals(type)) {
             return createPhone();
         }
         throw new CodeException("code type input error");

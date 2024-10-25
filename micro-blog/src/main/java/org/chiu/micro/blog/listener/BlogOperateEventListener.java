@@ -71,8 +71,8 @@ public class BlogOperateEventListener {
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
 
             redisTemplate.execute(RedisScript.of(blogDeleteScript),
-                    Collections.singletonList(QUERY_DELETED.getInfo() + messageBody.blogId()),
-                    jsonUtils.writeValueAsString(blogEntity), A_WEEK.getInfo());
+                    Collections.singletonList(QUERY_DELETED + messageBody.blogId()),
+                    jsonUtils.writeValueAsString(blogEntity), A_WEEK);
         }
 
         rabbitTemplate.convertAndSend(BlogChangeRabbitConfig.FANOUT_EXCHANGE, "", messageBody);

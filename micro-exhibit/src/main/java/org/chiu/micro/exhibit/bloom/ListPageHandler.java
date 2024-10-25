@@ -24,12 +24,12 @@ public class ListPageHandler extends BloomHandler {
         Integer year = (Integer) args[1];
 
         if (Objects.equals(year, Integer.MIN_VALUE)) {
-            Boolean bit = redissonClient.getBitSet(Const.BLOOM_FILTER_PAGE.getInfo()).get(currentPage);
+            Boolean bit = redissonClient.getBitSet(Const.BLOOM_FILTER_PAGE).get(currentPage);
             if (Boolean.FALSE.equals(bit)) {
                 throw new MissException(NO_FOUND.getMsg() + currentPage + " page");
             }
         } else {
-            Boolean bit = redissonClient.getBitSet(Const.BLOOM_FILTER_YEAR_PAGE.getInfo() + year).get(currentPage);
+            Boolean bit = redissonClient.getBitSet(Const.BLOOM_FILTER_YEAR_PAGE + year).get(currentPage);
             if (Boolean.FALSE.equals(bit)) {
                 throw new MissException("Not found " + year + " year " + currentPage + " page");
             }

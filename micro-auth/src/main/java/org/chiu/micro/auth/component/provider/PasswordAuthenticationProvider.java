@@ -87,7 +87,7 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
     }
 
     private void passwordNotMatchProcess(String username) {
-        String prefix = Const.PASSWORD_KEY.getInfo() + username;
+        String prefix = Const.PASSWORD_KEY + username;
         List<String> loginFailureTimeStampRecords = redissonClient.<String>getList(prefix).range(0, -1);
         int len = loginFailureTimeStampRecords.size();
         int l = 0;

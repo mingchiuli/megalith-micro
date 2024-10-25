@@ -1,9 +1,9 @@
 package org.chiu.micro.exhibit.cache.handler;
 
 import com.rabbitmq.client.Channel;
+import org.chiu.micro.cache.handler.CacheEvictHandler;
 import org.chiu.micro.common.dto.BlogEntityRpcDto;
 import org.chiu.micro.common.exception.MissException;
-import org.chiu.micro.exhibit.config.CacheBlogEvictRabbitConfig;
 import org.chiu.micro.exhibit.constant.BlogOperateEnum;
 import org.chiu.micro.exhibit.constant.BlogOperateMessage;
 import org.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
@@ -11,12 +11,10 @@ import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.Set;
 
 public abstract sealed class BlogCacheEvictHandler permits
         CreateBlogCacheEvictHandler,
@@ -28,19 +26,19 @@ public abstract sealed class BlogCacheEvictHandler permits
 
     protected final BlogHttpServiceWrapper blogHttpServiceWrapper;
 
-    protected final RabbitTemplate rabbitTemplate;
+    protected final CacheEvictHandler cacheEvictHandler;
 
     protected BlogCacheEvictHandler(RedissonClient redissonClient,
                                     BlogHttpServiceWrapper blogHttpServiceWrapper,
-                                    RabbitTemplate rabbitTemplate) {
+                                    CacheEvictHandler cacheEvictHandler) {
         this.redissonClient = redissonClient;
         this.blogHttpServiceWrapper = blogHttpServiceWrapper;
-        this.rabbitTemplate = rabbitTemplate;
+        this.cacheEvictHandler = cacheEvictHandler;
     }
 
     public abstract boolean supports(BlogOperateEnum blogOperateEnum);
 
-    protected abstract Set<String> redisProcess(BlogEntityRpcDto blog);
+    protected abstract void redisProcess(BlogEntityRpcDto blog);
 
 
     public void handle(BlogOperateMessage message, Channel channel, Message msg) {
@@ -57,8 +55,7 @@ public abstract sealed class BlogCacheEvictHandler permits
             } else {
                 blogEntity = blogHttpServiceWrapper.findById(blogId, year);
             }
-            Set<String> keys = redisProcess(blogEntity);
-            rabbitTemplate.convertAndSend(CacheBlogEvictRabbitConfig.CACHE_BLOG_EVICT_FANOUT_EXCHANGE, "", keys);
+            redisProcess(blogEntity);
 
             //手动签收消息
             //false代表不是批量签收模式

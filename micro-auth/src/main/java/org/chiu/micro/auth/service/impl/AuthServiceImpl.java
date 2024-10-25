@@ -89,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
         //record ip
         String ipAddr = req.ipAddr();
         if (StringUtils.hasLength(ipAddr)) {
-            taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()), ipAddr));
+            taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT), ipAddr));
         }
 
         List<String> authorities;
@@ -132,7 +132,7 @@ public class AuthServiceImpl implements AuthService {
             rawRoles = Collections.emptyList();
             authorities = Collections.emptyList();
         } else {
-            String jwt = token.substring(TOKEN_PREFIX.getInfo().length());
+            String jwt = token.substring(TOKEN_PREFIX.length());
             Claims claims = securityAuthenticationUtils.getVerifierByToken(jwt);
             userId = Long.parseLong(claims.userId());
             List<String> roles = claims.roles();

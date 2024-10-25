@@ -19,7 +19,7 @@ public class DetailHandler extends BloomHandler {
     @Override
     public void handle(Object[] args) {
         Long blogId = (Long) args[0];
-        Boolean bit = redissonClient.getBitSet(BLOOM_FILTER_BLOG.getInfo()).get(blogId);
+        Boolean bit = redissonClient.getBitSet(BLOOM_FILTER_BLOG).get(blogId);
         if (Boolean.FALSE.equals(bit)) {
             throw new MissException(NO_FOUND.getMsg() + blogId + " blog");
         }

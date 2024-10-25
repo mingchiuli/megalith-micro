@@ -1,6 +1,6 @@
 package org.chiu.micro.exhibit.wrapper;
 
-import org.chiu.micro.common.cache.Cache;
+import org.chiu.micro.cache.annotation.Cache;
 import org.chiu.micro.common.dto.BlogEntityRpcDto;
 import org.chiu.micro.common.dto.UserEntityRpcDto;
 import org.chiu.micro.common.lang.Const;
@@ -56,7 +56,7 @@ public class BlogWrapper {
         RequestContextHolder.setRequestAttributes(servletRequestAttributes, true);//设置子线程共享
         executorService.execute(() -> {
             blogHttpServiceWrapper.setReadCount(id);
-            redissonClient.<String>getScoredSortedSet(Const.HOT_READ.getInfo()).addScore(id.toString(), 1);
+            redissonClient.<String>getScoredSortedSet(Const.HOT_READ).addScore(id.toString(), 1);
         });
     }
 

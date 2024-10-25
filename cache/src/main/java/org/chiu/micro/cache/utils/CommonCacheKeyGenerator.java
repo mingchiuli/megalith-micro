@@ -1,11 +1,8 @@
-package org.chiu.micro.common.cache.config;
+package org.chiu.micro.cache.utils;
 
 
-import org.chiu.micro.common.cache.Cache;
-import org.chiu.micro.common.cache.CacheAspect;
-import org.chiu.micro.common.utils.JsonUtils;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.stereotype.Component;
+import org.chiu.micro.cache.annotation.Cache;
+
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
@@ -15,8 +12,6 @@ import java.util.Objects;
  * @author mingchiuli
  * @create 2023-04-02 11:12 pm
  */
-@Component
-@ConditionalOnBean(CacheAspect.class)
 public class CommonCacheKeyGenerator {
 
     private final JsonUtils jsonUtils;
@@ -46,7 +41,7 @@ public class CommonCacheKeyGenerator {
         var annotation = method.getAnnotation(Cache.class);
         String prefix = null;
         if (Objects.nonNull(annotation)) {
-            prefix = annotation.prefix().getInfo();
+            prefix = annotation.prefix();
         }
 
         return StringUtils.hasLength(prefix) ?

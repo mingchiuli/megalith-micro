@@ -17,7 +17,7 @@ public record BlogsRunnable(
 
     @Override
     public void run() {
-        redissonClient.getBitSet(BLOOM_FILTER_PAGE.getInfo()).set(pageNo, true);
+        redissonClient.getBitSet(BLOOM_FILTER_PAGE).set(pageNo, true);
         blogService.findPage(pageNo, Integer.MIN_VALUE);
     }
 }

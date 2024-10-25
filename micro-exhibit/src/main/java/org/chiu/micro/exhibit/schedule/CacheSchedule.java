@@ -130,7 +130,7 @@ public class CacheSchedule {
                             countByYear / blogPageSize + 1);
 
                     for (int no = 1; no <= totalPage; no++) {
-                        redissonClient.getBitSet(BLOOM_FILTER_YEAR_PAGE.getInfo() + year).set(no, true);
+                        redissonClient.getBitSet(BLOOM_FILTER_YEAR_PAGE + year).set(no, true);
                         blogService.findPage(no, year);
                     }
                 });
@@ -141,7 +141,7 @@ public class CacheSchedule {
 
     private void yearExec(List<Integer> years) {
         CompletableFuture.runAsync(() -> years.forEach(year -> {
-            redissonClient.getBitSet(BLOOM_FILTER_YEARS.getInfo()).set(year, true);
+            redissonClient.getBitSet(BLOOM_FILTER_YEARS).set(year, true);
             blogService.getCountByYear(year);
         }), taskExecutor);
     }
@@ -156,16 +156,16 @@ public class CacheSchedule {
             int dayOfYear = now.getDayOfYear();
 
             if (hourOfDay == 0) {
-                redissonClient.getBucket(DAY_VISIT.getInfo()).delete();
+                redissonClient.getBucket(DAY_VISIT).delete();
                 if (dayOfWeek == 1) {
-                    redissonClient.getBucket(WEEK_VISIT.getInfo()).delete();
-                    redissonClient.getBucket(HOT_READ.getInfo()).unlink();
+                    redissonClient.getBucket(WEEK_VISIT).delete();
+                    redissonClient.getBucket(HOT_READ).unlink();
                 }
                 if (dayOfMonth == 1) {
-                    redissonClient.getBucket(MONTH_VISIT.getInfo()).delete();
+                    redissonClient.getBucket(MONTH_VISIT).delete();
                 }
                 if (dayOfYear == 1) {
-                    redissonClient.getBucket(YEAR_VISIT.getInfo()).delete();
+                    redissonClient.getBucket(YEAR_VISIT).delete();
                 }
             }
         }, taskExecutor);

@@ -251,7 +251,7 @@ public class BlogServiceImpl implements BlogService {
         }
 
         String token = UUID.randomUUID().toString();
-        redisTemplate.opsForValue().set(READ_TOKEN.getInfo() + blogId, token, 24, TimeUnit.HOURS);
+        redisTemplate.opsForValue().set(READ_TOKEN + blogId, token, 24, TimeUnit.HOURS);
         return readPrefix + blogId + "?token=" + token;
     }
 
@@ -318,7 +318,7 @@ public class BlogServiceImpl implements BlogService {
 
         List<String> res = Optional.ofNullable(
                         redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),
-                                Collections.singletonList(HOT_READ.getInfo()),
+                                Collections.singletonList(HOT_READ),
                                 jsonUtils.writeValueAsString(ids.stream()
                                         .map(String::valueOf)
                                         .toList())))
@@ -336,7 +336,7 @@ public class BlogServiceImpl implements BlogService {
     @SuppressWarnings("unchecked")
     public PageAdapter<BlogDeleteVo> findDeletedBlogs(Integer currentPage, Integer size, Long userId) {
 
-        List<String> deletedBlogsStr = redisTemplate.opsForList().range(QUERY_DELETED.getInfo() + userId, 0, -1);
+        List<String> deletedBlogsStr = redisTemplate.opsForList().range(QUERY_DELETED + userId, 0, -1);
         List<BlogEntity> deletedBlogs = Optional.ofNullable(deletedBlogsStr)
                 .orElseGet(Collections::emptyList)
                 .stream()
@@ -359,7 +359,7 @@ public class BlogServiceImpl implements BlogService {
         int start = (currentPage - 1) * size;
 
         List<String> resp = redisTemplate.execute(RedisScript.of(listDeleteScript, List.class),
-                Collections.singletonList(QUERY_DELETED.getInfo() + userId),
+                Collections.singletonList(QUERY_DELETED + userId),
                 String.valueOf(l), "-1", String.valueOf(size - 1), String.valueOf(start));
 
         resp = Optional.ofNullable(resp).orElseGet(Collections::emptyList);
@@ -377,7 +377,7 @@ public class BlogServiceImpl implements BlogService {
     public void recoverDeletedBlog(Integer idx, Long userId) {
 
         String str = redisTemplate.execute(RedisScript.of(recoverDeleteScript, String.class),
-                Collections.singletonList(QUERY_DELETED.getInfo() + userId),
+                Collections.singletonList(QUERY_DELETED + userId),
                 String.valueOf(idx));
 
         if (!StringUtils.hasLength(str)) {
