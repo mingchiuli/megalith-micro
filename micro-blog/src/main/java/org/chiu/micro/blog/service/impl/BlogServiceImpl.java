@@ -66,8 +66,6 @@ import static org.chiu.micro.common.lang.StatusEnum.HIDE;
 @Service
 public class BlogServiceImpl implements BlogService {
 
-    private final JsonUtils jsonUtils;
-
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 
     private final OssHttpService ossHttpService;
@@ -108,8 +106,7 @@ public class BlogServiceImpl implements BlogService {
 
     private String recoverDeleteScript;
 
-    public BlogServiceImpl(JsonUtils jsonUtils, UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, OssSignUtils ossSignUtils, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ObjectMapper objectMapper, ResourceLoader resourceLoader, BlogSensitiveWrapper blogSensitiveWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
-        this.jsonUtils = jsonUtils;
+    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, OssSignUtils ossSignUtils, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ObjectMapper objectMapper, ResourceLoader resourceLoader, BlogSensitiveWrapper blogSensitiveWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.ossHttpService = ossHttpService;
         this.ossSignUtils = ossSignUtils;
@@ -319,7 +316,7 @@ public class BlogServiceImpl implements BlogService {
         List<String> res = Optional.ofNullable(
                         redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),
                                 Collections.singletonList(HOT_READ),
-                                jsonUtils.writeValueAsString(ids.stream()
+                                JsonUtils.writeValueAsString(ids.stream()
                                         .map(String::valueOf)
                                         .toList())))
                 .orElseGet(Collections::emptyList);
@@ -340,7 +337,7 @@ public class BlogServiceImpl implements BlogService {
         List<BlogEntity> deletedBlogs = Optional.ofNullable(deletedBlogsStr)
                 .orElseGet(Collections::emptyList)
                 .stream()
-                .map(blogStr -> jsonUtils.readValue(blogStr, BlogEntity.class))
+                .map(blogStr -> JsonUtils.readValue(blogStr, BlogEntity.class))
                 .toList();
 
         if (deletedBlogs.isEmpty()) {
@@ -367,7 +364,7 @@ public class BlogServiceImpl implements BlogService {
         Long total = Long.valueOf(resp.getLast());
 
         List<BlogEntity> list = respList.stream()
-                .map(str -> jsonUtils.readValue(str, BlogEntity.class))
+                .map(str -> JsonUtils.readValue(str, BlogEntity.class))
                 .toList();
 
         return BlogDeleteVoConvertor.convert(l, list, currentPage, size, total);
@@ -384,7 +381,7 @@ public class BlogServiceImpl implements BlogService {
             return;
         }
 
-        BlogEntity tempBlog = jsonUtils.readValue(str, BlogEntity.class);
+        BlogEntity tempBlog = JsonUtils.readValue(str, BlogEntity.class);
         tempBlog.setStatus(HIDE.getCode());
         BlogEntity blog = blogRepository.save(tempBlog);
 

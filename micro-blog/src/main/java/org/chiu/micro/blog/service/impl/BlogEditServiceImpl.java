@@ -44,8 +44,6 @@ public class BlogEditServiceImpl implements BlogEditService {
 
     private final ResourceLoader resourceLoader;
 
-    private final JsonUtils jsonUtils;
-
     private final BlogSensitiveService blogSensitiveService;
 
     private final BlogRepository blogRepository;
@@ -53,10 +51,9 @@ public class BlogEditServiceImpl implements BlogEditService {
     private final TypeReference<List<SensitiveContentVo>> type = new TypeReference<>() {
     };
 
-    public BlogEditServiceImpl(StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, JsonUtils jsonUtils, BlogSensitiveService blogSensitiveService, BlogRepository blogRepository) {
+    public BlogEditServiceImpl(StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogSensitiveService blogSensitiveService, BlogRepository blogRepository) {
         this.redisTemplate = redisTemplate;
         this.resourceLoader = resourceLoader;
-        this.jsonUtils = jsonUtils;
         this.blogSensitiveService = blogSensitiveService;
         this.blogRepository = blogRepository;
     }
@@ -94,14 +91,14 @@ public class BlogEditServiceImpl implements BlogEditService {
         if (content.endsWith(PARAGRAPH_SPLITTER)) {
             paragraphList.add("");
         }
-        String paragraphListString = jsonUtils.writeValueAsString(paragraphList);
+        String paragraphListString = JsonUtils.writeValueAsString(paragraphList);
 
         redisTemplate.execute(RedisScript.of(pushAllScript),
                 Collections.singletonList(redisKey),
                 paragraphListString, ID.getMsg(), USER_ID.getMsg(), TITLE.getMsg(), DESCRIPTION.getMsg(),
                 STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
                 id.map(Object::toString).orElse(""), originUserId.toString(), blog.title(),
-                blog.description(), blog.status().toString(), blog.link(), blog.version().toString(), jsonUtils.writeValueAsString(blog.sensitiveContentList()),
+                blog.description(), blog.status().toString(), blog.link(), blog.version().toString(), JsonUtils.writeValueAsString(blog.sensitiveContentList()),
                 A_WEEK);
     }
 
@@ -127,7 +124,7 @@ public class BlogEditServiceImpl implements BlogEditService {
         String paragraphListString = null;
         if (!entries.isEmpty()) {
             blog = BlogEntityConvertor.convert(entries);
-            sensitiveContentList = jsonUtils.readValue(entries.get(SENSITIVE_CONTENT_LIST.getMsg()), type);
+            sensitiveContentList = JsonUtils.readValue(entries.get(SENSITIVE_CONTENT_LIST.getMsg()), type);
             version = Integer.parseInt(entries.get(VERSION.getMsg()));
 
             entries.remove(SENSITIVE_CONTENT_LIST.getMsg());
@@ -168,7 +165,7 @@ public class BlogEditServiceImpl implements BlogEditService {
 
             blog = BlogEntityDtoConvertor.convert(userBlogEntity);
             List<String> paragraphList = List.of(blog.content().split(PARAGRAPH_SPLITTER));
-            paragraphListString = jsonUtils.writeValueAsString(paragraphList);
+            paragraphListString = JsonUtils.writeValueAsString(paragraphList);
             BlogSensitiveContentVo blogSensitiveContentVo = blogSensitiveService.findByBlogId(id);
             sensitiveContentList = blogSensitiveContentVo.sensitiveContent();
         }
@@ -179,7 +176,7 @@ public class BlogEditServiceImpl implements BlogEditService {
                     paragraphListString, ID.getMsg(), USER_ID.getMsg(), TITLE.getMsg(), DESCRIPTION.getMsg(),
                     STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
                     Objects.isNull(blog.id()) ? "" : blog.id().toString(), originUserId.toString(), blog.title(),
-                    blog.description(), blog.status().toString(), blog.link(), Integer.toString(version), jsonUtils.writeValueAsString(sensitiveContentList),
+                    blog.description(), blog.status().toString(), blog.link(), Integer.toString(version), JsonUtils.writeValueAsString(sensitiveContentList),
                     A_WEEK);
         }
 
