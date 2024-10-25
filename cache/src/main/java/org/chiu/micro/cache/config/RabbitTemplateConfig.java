@@ -46,8 +46,8 @@ public class RabbitTemplateConfig {
 
     @ConditionalOnMissingBean
     @Bean
-    RabbitTemplate rabbitTemplate() {
-        RabbitTemplate rabbitTemplate = new RabbitTemplate();
+    RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         //设置抵达broker服务器的回掉
         //当前消息的唯一关联数据、服务器对消息是否成功收到、失败的原因
         rabbitTemplate.setConfirmCallback((correlationData, ack, cause) ->
