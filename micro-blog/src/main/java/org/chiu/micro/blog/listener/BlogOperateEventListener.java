@@ -37,17 +37,14 @@ public class BlogOperateEventListener {
 
     private final ResourceLoader resourceLoader;
 
-    private final JsonUtils jsonUtils;
-
     private final BlogRepository blogRepository;
 
     private String blogDeleteScript;
 
-    public BlogOperateEventListener(RabbitTemplate rabbitTemplate, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, JsonUtils jsonUtils, BlogRepository blogRepository) {
+    public BlogOperateEventListener(RabbitTemplate rabbitTemplate, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogRepository blogRepository) {
         this.rabbitTemplate = rabbitTemplate;
         this.redisTemplate = redisTemplate;
         this.resourceLoader = resourceLoader;
-        this.jsonUtils = jsonUtils;
         this.blogRepository = blogRepository;
     }
 
@@ -72,7 +69,7 @@ public class BlogOperateEventListener {
 
             redisTemplate.execute(RedisScript.of(blogDeleteScript),
                     Collections.singletonList(QUERY_DELETED + messageBody.blogId()),
-                    jsonUtils.writeValueAsString(blogEntity), A_WEEK);
+                    JsonUtils.writeValueAsString(blogEntity), A_WEEK);
         }
 
         rabbitTemplate.convertAndSend(BlogChangeRabbitConfig.FANOUT_EXCHANGE, "", messageBody);

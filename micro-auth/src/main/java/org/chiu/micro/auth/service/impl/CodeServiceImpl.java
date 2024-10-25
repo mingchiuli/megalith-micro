@@ -40,19 +40,16 @@ public class CodeServiceImpl implements CodeService {
 
     private final SmsUtils smsUtils;
 
-    private final JsonUtils jsonUtils;
-
     @Value("${spring.mail.properties.from}")
     private String from;
 
-    public CodeServiceImpl( JsonUtils jsonUtils, CodeFactory codeFactory, JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, SmsUtils smsUtils) {
+    public CodeServiceImpl(CodeFactory codeFactory, JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, SmsUtils smsUtils) {
         this.codeFactory = codeFactory;
         this.javaMailSender = javaMailSender;
         this.redissonClient = redissonClient;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.smsHttpService = smsHttpService;
         this.smsUtils = smsUtils;
-        this.jsonUtils = jsonUtils;
     }
 
 
@@ -87,7 +84,7 @@ public class CodeServiceImpl implements CodeService {
 
         Object code = codeFactory.create(SMS_CODE);
         Map<String, Object> codeMap = Collections.singletonMap("code", code);
-        String signature = smsUtils.getSignature(loginSMS, jsonUtils.writeValueAsString(codeMap));
+        String signature = smsUtils.getSignature(loginSMS, JsonUtils.writeValueAsString(codeMap));
         smsHttpService.sendSms("?Signature=" + signature);
         codeFactory.save(code, key);
     }

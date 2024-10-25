@@ -34,8 +34,6 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
 
     private static final Logger log = LoggerFactory.getLogger(EditWebSocketHandler.class);
 
-    private final JsonUtils jsonUtils;
-
     private final StringRedisTemplate redisTemplate;
 
     private final ResourceLoader resourceLoader;
@@ -46,8 +44,7 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
             .map(MessageEnum::getCode)
             .collect(Collectors.toSet());
 
-    public EditWebSocketHandler(JsonUtils jsonUtils, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader) {
-        this.jsonUtils = jsonUtils;
+    public EditWebSocketHandler(StringRedisTemplate redisTemplate, ResourceLoader resourceLoader) {
         this.redisTemplate = redisTemplate;
         this.resourceLoader = resourceLoader;
     }
@@ -68,7 +65,7 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
 
         Long userId = Long.valueOf(principal.getName());
         String payload = message.getPayload();
-        BlogEditPushActionDto pushActionDto = jsonUtils.readValue(payload, BlogEditPushActionDto.class);
+        BlogEditPushActionDto pushActionDto = JsonUtils.readValue(payload, BlogEditPushActionDto.class);
 
         Long blogId = pushActionDto.id();
         String contentChange = pushActionDto.contentChange();
@@ -99,7 +96,7 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
                     .type(execute.intValue())
                     .build();
 
-            TextMessage textMessage = new TextMessage(jsonUtils.writeValueAsString(dto));
+            TextMessage textMessage = new TextMessage(JsonUtils.writeValueAsString(dto));
             session.sendMessage(textMessage);
         }
     }
