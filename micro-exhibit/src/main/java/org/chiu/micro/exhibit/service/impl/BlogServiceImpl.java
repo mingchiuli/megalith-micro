@@ -114,7 +114,7 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public Boolean checkToken(Long blogId, String token) {
         token = token.trim();
-        Object password = redissonClient.getBucket(READ_TOKEN.getInfo() + blogId).get();
+        Object password = redissonClient.getBucket(READ_TOKEN + blogId).get();
         if (StringUtils.hasLength(token) && password != null) {
             return Objects.equals(password, token);
         }
@@ -154,14 +154,14 @@ public class BlogServiceImpl implements BlogService {
 
         blogWrapper.setReadCount(blogId);
         BlogExhibitDto blogExhibitDto = blogWrapper.findById(blogId);
-        redissonClient.getBucket(READ_TOKEN.getInfo() + blogId).delete();
+        redissonClient.getBucket(READ_TOKEN + blogId).delete();
         return BlogExhibitVoConvertor.convert(blogExhibitDto);
     }
 
     @Override
     public List<Integer> searchYears() {
 
-        Long count = redissonClient.getScript().eval(Mode.READ_ONLY, countYearsScript, ReturnType.INTEGER, List.of(BLOOM_FILTER_YEARS.getInfo()));
+        Long count = redissonClient.getScript().eval(Mode.READ_ONLY, countYearsScript, ReturnType.INTEGER, List.of(BLOOM_FILTER_YEARS));
         int start = 2021;
         int end = (int) Math.max(start + count - 1, start);
         var years = new ArrayList<Integer>(end - start + 1);
@@ -176,13 +176,13 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public VisitStatisticsVo getVisitStatistics() {
-        List<Long> list = redissonClient.getScript().eval(Mode.READ_ONLY, visitScript, ReturnType.MULTI, List.of(DAY_VISIT.getInfo(), WEEK_VISIT.getInfo(), MONTH_VISIT.getInfo(), YEAR_VISIT.getInfo()));
+        List<Long> list = redissonClient.getScript().eval(Mode.READ_ONLY, visitScript, ReturnType.MULTI, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT));
         return VisitStatisticsVoConvertor.convert(list);
     }
 
     @Override
     public List<BlogHotReadVo> getScoreBlogs() {
-        Collection<ScoredEntry<String>> scoredEntries = redissonClient.<String>getScoredSortedSet(HOT_READ.getInfo()).entryRangeReversed(0, 4);
+        Collection<ScoredEntry<String>> scoredEntries = redissonClient.<String>getScoredSortedSet(HOT_READ).entryRangeReversed(0, 4);
 
         List<Long> ids = scoredEntries.stream()
                 .map(ScoredEntry::getValue)

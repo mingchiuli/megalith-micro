@@ -1,7 +1,4 @@
-package org.chiu.micro.common.cache;
-
-
-import org.chiu.micro.common.lang.Const;
+package org.chiu.micro.cache.annotation;
 
 import java.lang.annotation.*;
 
@@ -16,6 +13,6 @@ public @interface Cache {
 
     int expire() default 30;
 
-    Const prefix();
+    String prefix();
 
 }

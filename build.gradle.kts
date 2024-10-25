@@ -5,8 +5,13 @@ plugins {
 	id("org.graalvm.buildtools.native") version "0.10.3"
 }
 
+allprojects {
+	repositories {
+		mavenCentral()
+	}
+}
+
 subprojects {
-    
 	plugins.apply("org.springframework.boot")
 	plugins.apply("io.spring.dependency-management")
 	plugins.apply("org.graalvm.buildtools.native")
@@ -16,14 +21,13 @@ subprojects {
 		sourceCompatibility = JavaVersion.VERSION_23
 	}
 
-	repositories {
-		mavenCentral()
+	dependencies {
+		implementation("org.redisson:redisson:3.37.0")
+		implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
+		implementation("com.nimbusds:nimbus-jose-jwt:9.41.2")
 	}
 }
 
-repositories {
-	mavenCentral()
-}
 
 dependencies {
 	implementation(project(":micro-gateway"))
@@ -34,4 +38,5 @@ dependencies {
 	implementation(project(":micro-websocket"))
 	implementation(project(":micro-search"))
 	implementation(project(":common"))
+	implementation(project(":cache"))
 }

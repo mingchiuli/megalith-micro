@@ -8,4 +8,5 @@ include(
     "micro-search",
     "micro-websocket",
     "micro-exhibit",
-    "common")
+    "common",
+    "cache")

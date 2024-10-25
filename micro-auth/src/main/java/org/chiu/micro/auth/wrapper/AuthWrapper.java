@@ -13,7 +13,7 @@ import java.util.List;
 @Component
 public class AuthWrapper {
 
-    private final List<String> services = List.of(Const.AUTH_SERVICE.getInfo(), Const.BLOG_SERVICE.getInfo(), Const.EXHIBIT_SERVICE.getInfo(), Const.USER_SERVICE.getInfo(), Const.SEARCH_SERVICE.getInfo(), Const.WEBSOCKET_SERVICE.getInfo());
+    private final List<String> services = List.of(Const.AUTH_SERVICE, Const.BLOG_SERVICE, Const.EXHIBIT_SERVICE, Const.USER_SERVICE, Const.SEARCH_SERVICE, Const.WEBSOCKET_SERVICE);
 
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 

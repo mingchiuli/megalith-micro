@@ -50,7 +50,7 @@ public class JwtUtils implements TokenUtils<Claims> {
         var nowDate = new Date();
         // 过期时间
         roles = roles.stream()
-                .map(role -> ROLE_PREFIX.getInfo() + role)
+                .map(role -> ROLE_PREFIX + role)
                 .toList();
         var expireDate = new Date(nowDate.getTime() + expire * 1000);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()

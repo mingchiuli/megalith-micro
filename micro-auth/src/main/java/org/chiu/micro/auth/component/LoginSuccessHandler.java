@@ -58,7 +58,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         LoginUser user = (LoginUser) authentication.getPrincipal();
         Long userId = user.getUserId();
 
-        List<String> keys = List.of(PASSWORD_KEY.getInfo() + username, BLOCK_USER.getInfo() + userId);
+        List<String> keys = List.of(PASSWORD_KEY + username, BLOCK_USER + userId);
         redissonClient.getKeys().delete(keys.toArray(new String[0]));
 
         userHttpServiceWrapper.updateLoginTime(username);
@@ -77,8 +77,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
                 objectMapper.writeValueAsString(
                                 Result.success(
                                         LoginSuccessVo.builder()
-                                                .accessToken(TOKEN_PREFIX.getInfo() + accessToken)
-                                                .refreshToken(TOKEN_PREFIX.getInfo() + refreshToken)
+                                                .accessToken(TOKEN_PREFIX + accessToken)
+                                                .refreshToken(TOKEN_PREFIX + refreshToken)
                                                 .build())
                         )
                         .getBytes(StandardCharsets.UTF_8)

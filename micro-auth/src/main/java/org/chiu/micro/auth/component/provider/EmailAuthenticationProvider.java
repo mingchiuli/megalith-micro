@@ -66,7 +66,7 @@ public final class EmailAuthenticationProvider extends ProviderBase {
     @Override
     public void authProcess(UserDetails user, Authentication authentication) {
         //username is login email
-        String prefix = Const.EMAIL_KEY.getInfo() + user.getUsername();
+        String prefix = Const.EMAIL_KEY + user.getUsername();
         Map<String, String> entries = redissonClient.<String, String>getMap(prefix).readAllMap();
 
 

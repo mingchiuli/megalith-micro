@@ -28,7 +28,8 @@ server:
 
 megalith:
   cache:
-    enable: true
+    queue-prefix: cache.user.evict.queue.
+    fanout-exchange: cache.user.evict.fanout.exchange
   blog:
     email-try-count: 3
     password-error-intervalTime: 900000

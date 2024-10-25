@@ -10,8 +10,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation(project(":common"))
-	implementation("org.redisson:redisson:3.37.0")
-	implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
+	implementation(project(":cache"))
+	implementation("org.redisson:redisson")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.amqp:spring-rabbit-test")
 }

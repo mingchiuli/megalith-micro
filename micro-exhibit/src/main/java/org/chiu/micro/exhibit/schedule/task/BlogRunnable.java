@@ -26,7 +26,7 @@ public record BlogRunnable(
         List<Long> idList = blogService.findIds(pageNo, pageSize);
         Optional.ofNullable(idList).ifPresent(ids ->
                 ids.forEach(id -> {
-                    redissonClient.getBitSet(BLOOM_FILTER_BLOG.getInfo()).set(id, true);
+                    redissonClient.getBitSet(BLOOM_FILTER_BLOG).set(id, true);
                     blogWrapper.findStatusById(id);
                     blogWrapper.findById(id);
                     blogSensitiveWrapper.findSensitiveByBlogId(id);

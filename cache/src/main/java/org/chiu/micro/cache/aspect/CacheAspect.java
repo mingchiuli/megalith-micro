@@ -1,4 +1,4 @@
-package org.chiu.micro.common.cache;
+package org.chiu.micro.cache.aspect;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
@@ -8,17 +8,15 @@ import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-
-import org.chiu.micro.common.cache.config.CommonCacheKeyGenerator;
-import org.chiu.micro.common.utils.ClassUtils;
+import org.chiu.micro.cache.annotation.Cache;
+import org.chiu.micro.cache.utils.ClassUtils;
+import org.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
@@ -27,16 +25,7 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 统一缓存处理
- *
- * @author mingchiuli
- * order: 多个切面执行顺序，越小越先执行
- * @create 2021-12-01 7:48 AM
- */
 @Aspect
-@Component
-@ConditionalOnProperty(prefix = "megalith", name = "cache.enable", havingValue = "true")
 @Order(2)
 public class CacheAspect {
 
@@ -60,7 +49,7 @@ public class CacheAspect {
         this.objectMapper = objectMapper;
     }
 
-    @Pointcut("@annotation(org.chiu.micro.common.cache.Cache)")
+    @Pointcut("@annotation(org.chiu.micro.cache.annotation.Cache)")
     public void pt() {
     }
 
@@ -154,5 +143,4 @@ public class CacheAspect {
             rLock.unlock();
         }
     }
-
 }

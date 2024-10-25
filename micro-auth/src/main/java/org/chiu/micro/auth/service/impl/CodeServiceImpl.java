@@ -59,13 +59,13 @@ public class CodeServiceImpl implements CodeService {
     @Override
     public void createEmailCode(String loginEmail) {
         userHttpServiceWrapper.findByEmail(loginEmail);
-        String key = Const.EMAIL_KEY.getInfo() + loginEmail;
+        String key = Const.EMAIL_KEY + loginEmail;
         boolean res = Boolean.FALSE.equals(redissonClient.getBucket(key).isExists());
         if (!res) {
             throw new CodeException(CODE_EXISTED);
         }
 
-        Object code = codeFactory.create(Const.EMAIL_CODE.getInfo());
+        Object code = codeFactory.create(Const.EMAIL_CODE);
         var simpMsg = new SimpleMailMessage();
         simpMsg.setFrom(from);
         simpMsg.setTo(loginEmail);
@@ -79,13 +79,13 @@ public class CodeServiceImpl implements CodeService {
     @Override
     public void createSMSCode(String loginSMS) {
         userHttpServiceWrapper.findByPhone(loginSMS);
-        String key = Const.PHONE_KEY.getInfo() + loginSMS;
+        String key = Const.PHONE_KEY + loginSMS;
         boolean res = Boolean.FALSE.equals(redissonClient.getBucket(key).isExists());
         if (!res) {
             throw new CodeException(CODE_EXISTED);
         }
 
-        Object code = codeFactory.create(SMS_CODE.getInfo());
+        Object code = codeFactory.create(SMS_CODE);
         Map<String, Object> codeMap = Collections.singletonMap("code", code);
         String signature = smsUtils.getSignature(loginSMS, jsonUtils.writeValueAsString(codeMap));
         smsHttpService.sendSms("?Signature=" + signature);

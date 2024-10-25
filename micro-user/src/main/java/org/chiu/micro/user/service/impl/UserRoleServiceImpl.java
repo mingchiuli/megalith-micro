@@ -116,7 +116,7 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     @Override
     public void saveRegisterPage(String token, UserEntityRegisterReq userEntityRegisterReq) {
-        Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX.getInfo() + token);
+        Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
         if (Boolean.FALSE.equals(exist)) {
             throw new MissException(NO_AUTH.getMsg());
         }
@@ -133,7 +133,7 @@ public class UserRoleServiceImpl implements UserRoleService {
         }
 
         String username = userEntityRegisterReq.username();
-        String usernameCopy = redisTemplate.opsForValue().get(REGISTER_PREFIX.getInfo() + token);
+        String usernameCopy = redisTemplate.opsForValue().get(REGISTER_PREFIX + token);
         if (StringUtils.hasLength(usernameCopy) && !Objects.equals(usernameCopy, username)) {
             throw new MissException(NO_AUTH.getMsg());
         }
@@ -142,12 +142,12 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         Optional<UserEntity> userEntity = userRepository.findByUsernameAndStatus(username, NORMAL.getCode());
         if (userEntity.isEmpty()) {
-            userEntityReq = new UserEntityReq(userEntityRegisterReq, null, NORMAL.getCode(), Collections.singletonList(USER.getInfo()));
+            userEntityReq = new UserEntityReq(userEntityRegisterReq, null, NORMAL.getCode(), Collections.singletonList(USER));
         } else {
-            userEntityReq = new UserEntityReq(userEntityRegisterReq, userEntity.get().getId(),  NORMAL.getCode(), Collections.singletonList(USER.getInfo()));
+            userEntityReq = new UserEntityReq(userEntityRegisterReq, userEntity.get().getId(),  NORMAL.getCode(), Collections.singletonList(USER));
         }
         saveOrUpdate(userEntityReq);
-        redisTemplate.delete(REGISTER_PREFIX.getInfo() + token);
+        redisTemplate.delete(REGISTER_PREFIX + token);
     }
 
     @Override

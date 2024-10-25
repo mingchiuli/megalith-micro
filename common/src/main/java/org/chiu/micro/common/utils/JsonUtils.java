@@ -5,17 +5,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.chiu.micro.common.exception.MissException;
-import org.springframework.stereotype.Component;
 
-
-@Component
 public class JsonUtils {
 
-    private final ObjectMapper objectMapper;
-
-    public JsonUtils(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public <T> T readValue(String str, Class<T> clazz) {
         try {

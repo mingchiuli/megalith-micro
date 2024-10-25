@@ -1,18 +1,16 @@
-package org.chiu.micro.auth.cache.remote;
+package org.chiu.micro.auth.consumer;
 
 import com.rabbitmq.client.Channel;
-import org.chiu.micro.auth.config.CacheUserEvictRabbitConfig;
 import org.chiu.micro.auth.constant.UserAuthMenuOperateMessage;
 import org.chiu.micro.auth.wrapper.AuthWrapper;
-import org.chiu.micro.common.cache.config.CommonCacheKeyGenerator;
+import org.chiu.micro.cache.handler.CacheEvictHandler;
+import org.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import org.chiu.micro.common.lang.AuthMenuOperateEnum;
-import org.redisson.api.RedissonClient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -32,17 +30,14 @@ public class UserRedisCacheEvictMessageListener {
 
     private final CommonCacheKeyGenerator commonCacheKeyGenerator;
 
-    private final RedissonClient redissonClient;
-
-    private final RabbitTemplate rabbitTemplate;
+    private final CacheEvictHandler cacheEvictHandler;
 
     private static final String QUEUE = "user.auth.menu.change.queue.auth";
 
 
-    public UserRedisCacheEvictMessageListener(CommonCacheKeyGenerator commonCacheKeyGenerator, RedissonClient redissonClient, RabbitTemplate rabbitTemplate) {
+    public UserRedisCacheEvictMessageListener(CommonCacheKeyGenerator commonCacheKeyGenerator, CacheEvictHandler cacheEvictHandler) {
         this.commonCacheKeyGenerator = commonCacheKeyGenerator;
-        this.redissonClient = redissonClient;
-        this.rabbitTemplate = rabbitTemplate;
+        this.cacheEvictHandler = cacheEvictHandler;
     }
 
     @RabbitListener(queues = QUEUE,
@@ -86,7 +81,6 @@ public class UserRedisCacheEvictMessageListener {
             }
         }
 
-        redissonClient.getKeys().delete(keys.toArray(new String[0]));
-        rabbitTemplate.convertAndSend(CacheUserEvictRabbitConfig.CACHE_EVICT_FANOUT_EXCHANGE, "", keys);
+        cacheEvictHandler.evictCache(keys, keys);
     }
 }

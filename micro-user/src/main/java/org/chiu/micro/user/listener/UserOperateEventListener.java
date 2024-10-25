@@ -34,7 +34,7 @@ public class UserOperateEventListener {
         UserOperateEnum userOperateEnum = userIndexMessage.userOperateEnum();
 
         if (UserOperateEnum.UPDATE.equals(userOperateEnum)) {
-            redisTemplate.opsForValue().set(BLOCK_USER.getInfo() + userId, "", accessExpire, TimeUnit.SECONDS);
+            redisTemplate.opsForValue().set(BLOCK_USER + userId, "", accessExpire, TimeUnit.SECONDS);
         }
     }
 }

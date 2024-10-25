@@ -1,0 +1,21 @@
+package org.chiu.micro.cache.config;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
+import org.chiu.micro.cache.local.LocalCacheExpiryConfig;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.context.annotation.Bean;
+
+@AutoConfiguration
+public class LocalCacheConfig {
+
+    @Bean("caffeineCache")
+    Cache<String, Object> caffeineCache() {
+        return Caffeine.newBuilder()
+                .initialCapacity(512)// 初始大小
+                .maximumSize(12400)// 最大数量
+                .expireAfter(new LocalCacheExpiryConfig())//过期时间
+                .build();
+    }
+}

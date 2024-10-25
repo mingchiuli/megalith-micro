@@ -1,4 +1,4 @@
-package org.chiu.micro.exhibit.cache.cache.remote;
+package org.chiu.micro.exhibit.consumer;
 
 import com.rabbitmq.client.Channel;
 import org.chiu.micro.exhibit.cache.handler.BlogCacheEvictHandler;

@@ -1,6 +1,7 @@
 package org.chiu.micro.exhibit.cache.handler;
 
-import org.chiu.micro.common.cache.config.CommonCacheKeyGenerator;
+import org.chiu.micro.cache.handler.CacheEvictHandler;
+import org.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import org.chiu.micro.common.dto.BlogEntityRpcDto;
 import org.chiu.micro.common.utils.KeyUtils;
 import org.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
@@ -11,11 +12,11 @@ import org.chiu.micro.exhibit.wrapper.BlogWrapper;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.chiu.micro.common.lang.Const.READ_TOKEN;
@@ -34,9 +35,9 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
     public UpdateBlogCacheEvictHandler(RedissonClient redissonClient,
                                        BlogHttpServiceWrapper blogHttpServiceWrapper,
                                        CacheKeyGenerator cacheKeyGenerator,
-                                       RabbitTemplate rabbitTemplate,
+                                       CacheEvictHandler cacheEvictHandler,
                                        CommonCacheKeyGenerator commonCacheKeyGenerator) {
-        super(redissonClient, blogHttpServiceWrapper, rabbitTemplate);
+        super(redissonClient, blogHttpServiceWrapper, cacheEvictHandler);
         this.cacheKeyGenerator = cacheKeyGenerator;
         this.commonCacheKeyGenerator = commonCacheKeyGenerator;
     }
@@ -47,7 +48,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
     }
 
     @Override
-    public Set<String> redisProcess(BlogEntityRpcDto blogEntity) {
+    public void redisProcess(BlogEntityRpcDto blogEntity) {
         Long id = blogEntity.id();
         int year = blogEntity.created().getYear();
         Integer status = blogEntity.status();
@@ -88,7 +89,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
 
         if (NORMAL.getCode().equals(status)) {
-            keys.add(READ_TOKEN.getInfo() + id);
+            keys.add(READ_TOKEN + id);
         }
 
         String blogEditKey = KeyUtils.createBlogEditRedisKey(blogEntity.userId(), id);
@@ -96,11 +97,11 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         keys.add(blogEditKey);
         //内容状态信息
         redissonClient.getKeys().delete(keys.toArray(new String[0]));
+        Set<String> localKeys = new HashSet<>(keys);
         if (NORMAL.getCode().equals(status)) {
-            keys.remove(READ_TOKEN.getInfo() + id);
+            localKeys.remove(READ_TOKEN + id);
         }
-        keys.remove(blogEditKey);
-
-        return keys;
+        localKeys.remove(blogEditKey);
+        cacheEvictHandler.evictCache(keys, localKeys);
     }
 }

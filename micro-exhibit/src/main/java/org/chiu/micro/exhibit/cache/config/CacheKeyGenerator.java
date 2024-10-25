@@ -1,6 +1,6 @@
 package org.chiu.micro.exhibit.cache.config;
 
-import org.chiu.micro.common.cache.config.CommonCacheKeyGenerator;
+import org.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import org.chiu.micro.exhibit.wrapper.BlogWrapper;
 
 import org.slf4j.Logger;
