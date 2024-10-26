@@ -13,7 +13,11 @@ dependencies {
 	implementation("org.redisson:redisson")
 	implementation("com.nimbusds:nimbus-jose-jwt")
 	implementation(project(":common"))
-	implementation(project(":cache"))
+	implementation(project(":cache")) {
+		capabilities {
+			requireCapability("wiki.chiu:cache-rabbit-support")
+		}
+	}
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
 }
