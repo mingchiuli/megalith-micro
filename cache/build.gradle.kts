@@ -1,6 +1,13 @@
 
-group = "org.chiu"
-version = "latest"
+group = "wiki.chiu"
+version = "1.0"
+
+java {
+    registerFeature("rabbitMQSupport") {
+        usingSourceSet(sourceSets["main"])
+        capability("$group", "cache-rabbit-support", "$version")
+    }
+}
 
 dependencies {
     implementation("org.redisson:redisson")
@@ -10,6 +17,6 @@ dependencies {
     implementation("org.springframework:spring-context")
     implementation("org.springframework:spring-core")
     implementation("org.springframework:spring-web")
-    implementation("org.springframework.amqp:spring-rabbit")
+    "rabbitMQSupportImplementation"("org.springframework.amqp:spring-rabbit")
     implementation("org.springframework.boot:spring-boot-autoconfigure")
 }
