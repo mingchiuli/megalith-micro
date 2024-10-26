@@ -21,7 +21,7 @@ import org.springframework.retry.support.RetryTemplate;
  * @create 2022-12-23 12:32 pm
  */
 @AutoConfiguration
-@ConditionalOnClass(ConnectionFactory.class)
+@ConditionalOnClass(RabbitTemplate.class)
 public class RabbitTemplateConfig {
 
     private static final Logger log = LoggerFactory.getLogger(RabbitTemplateConfig.class);
