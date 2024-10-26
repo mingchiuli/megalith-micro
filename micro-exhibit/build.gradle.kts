@@ -11,6 +11,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation(project(":common"))
 	implementation(project(":cache"))
+	runtimeOnly(project(":cache")) {
+		capabilities {
+			requireCapability("wiki.chiu:cache-rabbit-support")
+		}
+	}
 	implementation("org.redisson:redisson")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.amqp:spring-rabbit-test")
