@@ -1,5 +1,5 @@
 
-group = "org.chiu"
+group = "wiki.chiu"
 version = "latest"
 
 dependencies {

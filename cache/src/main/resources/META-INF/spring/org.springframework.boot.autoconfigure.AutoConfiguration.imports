@@ -1,6 +1,6 @@
-org.chiu.micro.cache.config.CacheAspectConfig
-org.chiu.micro.cache.config.CacheEvictRabbitConfig
-org.chiu.micro.cache.config.LocalCacheConfig
-org.chiu.micro.cache.config.CacheConverterConfig
-org.chiu.micro.cache.config.CacheEvictHandlerConfig
-org.chiu.micro.cache.config.RabbitTemplateConfig
+wiki.chiu.micro.cache.config.CacheAspectConfig
+wiki.chiu.micro.cache.config.CacheEvictRabbitConfig
+wiki.chiu.micro.cache.config.LocalCacheConfig
+wiki.chiu.micro.cache.config.CacheConverterConfig
+wiki.chiu.micro.cache.config.CacheEvictHandlerConfig
+wiki.chiu.micro.cache.config.RabbitTemplateConfig

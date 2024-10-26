@@ -1,6 +1,6 @@
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
-group = "org.chiu"
+group = "wiki.chiu"
 version = "latest"
 
 dependencies {
