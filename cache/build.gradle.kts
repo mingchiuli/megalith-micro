@@ -21,12 +21,12 @@ dependencies {
     implementation("org.redisson:redisson")
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("org.aspectj:aspectjweaver")
+    sourceSets.named("rabbitmqSupport") {
+        implementation("org.springframework.amqp:spring-rabbit")
+    }
     compileOnly("jakarta.servlet:jakarta.servlet-api")
     compileOnly("org.springframework:spring-context")
     compileOnly("org.springframework:spring-core")
     compileOnly("org.springframework:spring-web")
-    sourceSets.named("rabbitmqSupport") {
-        implementation("org.springframework.amqp:spring-rabbit")
-    }
-    implementation("org.springframework.boot:spring-boot-autoconfigure")
+    compileOnly("org.springframework.boot:spring-boot-autoconfigure")
 }
