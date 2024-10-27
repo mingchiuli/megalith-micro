@@ -1,5 +1,4 @@
 
-group = "wiki.chiu"
 version = "1.0"
 
 sourceSets {
