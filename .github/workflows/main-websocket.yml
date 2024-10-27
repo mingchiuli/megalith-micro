@@ -46,9 +46,11 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             docker pull mingchiuli/megalith-micro-websocket:latest
-            docker stop $(docker ps | grep 'micro-websocket' | awk '{print $1}')
-            docker rm $(docker ps -a | grep 'micro-websocket' | awk '{print $1}')
-            docker compose build
+            ing=$(docker ps | grep 'micro-websocket' | awk '{print $1}')
+            if [ -n "$ing" ]; then
+              docker stop $ing
+              docker rm $ing
+            fi
             docker compose start micro-websocket
             old=$(docker images | grep 'micro-websocket' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
