@@ -8,10 +8,6 @@ import wiki.chiu.micro.common.lang.ExceptionMessage;
  */
 public class CommitException extends BaseException {
 
-    public CommitException(String message) {
-        super(message);
-    }
-
     public CommitException(ExceptionMessage exceptionMessage) {
         super(exceptionMessage);
     }
