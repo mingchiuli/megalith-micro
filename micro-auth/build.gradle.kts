@@ -15,7 +15,7 @@ dependencies {
 	implementation(project(":cache"))
 	runtimeOnly(project(":cache")) {
 		capabilities {
-			requireCapability("wiki.chiu:cache-rabbit-support")
+			requireCapability("$group:cache-rabbit-support")
 		}
 	}
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

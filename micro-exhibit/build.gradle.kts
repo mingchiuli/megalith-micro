@@ -12,7 +12,7 @@ dependencies {
 	implementation(project(":cache"))
 	runtimeOnly(project(":cache")) {
 		capabilities {
-			requireCapability("wiki.chiu:cache-rabbit-support")
+			requireCapability("$group:cache-rabbit-support")
 		}
 	}
 	implementation("org.redisson:redisson")
