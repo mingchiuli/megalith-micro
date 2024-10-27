@@ -20,11 +20,11 @@ java {
 dependencies {
     implementation("org.redisson:redisson")
     implementation("com.github.ben-manes.caffeine:caffeine")
-    implementation("org.apache.tomcat.embed:tomcat-embed-core")
     implementation("org.aspectj:aspectjweaver")
-    implementation("org.springframework:spring-context")
-    implementation("org.springframework:spring-core")
-    implementation("org.springframework:spring-web")
+    compileOnly("jakarta.servlet:jakarta.servlet-api")
+    compileOnly("org.springframework:spring-context")
+    compileOnly("org.springframework:spring-core")
+    compileOnly("org.springframework:spring-web")
     sourceSets.named("rabbitmqSupport") {
         implementation("org.springframework.amqp:spring-rabbit")
     }
