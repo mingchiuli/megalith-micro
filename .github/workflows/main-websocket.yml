@@ -46,10 +46,12 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             docker pull mingchiuli/megalith-micro-websocket:latest
-            container_id=$(docker ps --filter "name=micro-websocket" -q | awk '{print $1}' | head -n 1)
-            if [ -n "$container_id" ]; then
-              docker stop "$container_id"
-              docker rm "$container_id"
+            container_ids=$(docker ps --filter "name=micro-websocket" -q | awk '{print $1}')
+            if [ -n "$container_ids" ]; then
+              for container_id in $container_ids; do
+                docker stop "$container_id"
+                docker rm "$container_id"
+              done
             fi
             docker compose --compatibility up -d micro-websocket
             old=$(docker images | grep 'micro-websocket' | grep 'none' | awk '{print $3}')
