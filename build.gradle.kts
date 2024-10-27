@@ -5,14 +5,13 @@ plugins {
 	id("org.graalvm.buildtools.native") version "0.10.3"
 }
 
-allprojects {
+subprojects {
+
 	repositories {
 		mavenCentral()
 	}
 	group = "chiu.wiki"
-}
 
-subprojects {
 	plugins.apply("org.springframework.boot")
 	plugins.apply("io.spring.dependency-management")
 	plugins.apply("org.graalvm.buildtools.native")
