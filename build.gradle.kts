@@ -9,6 +9,7 @@ allprojects {
 	repositories {
 		mavenCentral()
 	}
+	group = "chiu.wiki"
 }
 
 subprojects {
