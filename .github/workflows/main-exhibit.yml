@@ -48,8 +48,9 @@ jobs:
             docker pull mingchiuli/megalith-micro-exhibit:latest
             docker stop $(docker ps | grep 'micro-exhibit' | awk '{print $1}')
             docker rm $(docker ps -a | grep 'micro-exhibit' | awk '{print $1}')
-            docker compose --compatibility up -d --no-recreate
-            code=$(docker images | grep 'micro-exhibit' | grep 'none' | awk '{print $3}')
-            if [ -n "$code" ]; then
-              docker rmi $code
+            docker compose build
+            docker compose start micro-exhibit
+            old=$(docker images | grep 'micro-exhibit' | grep 'none' | awk '{print $3}')
+            if [ -n "$old" ]; then
+              docker rmi $old
             fi
