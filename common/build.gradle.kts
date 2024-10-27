@@ -2,6 +2,6 @@
 version = "1.0.0"
 
 dependencies {
-    implementation("org.springframework:spring-web")
-    implementation("org.springframework:spring-context")
+    compileOnly("org.springframework:spring-web")
+    compileOnly("org.springframework:spring-context")
 }
