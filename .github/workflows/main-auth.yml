@@ -46,9 +46,11 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             docker pull mingchiuli/megalith-micro-auth:latest
-            docker stop $(docker ps | grep 'micro-auth' | awk '{print $1}')
-            docker rm $(docker ps -a | grep 'micro-auth' | awk '{print $1}')
-            docker compose build
+            ing=$(docker ps | grep 'micro-auth' | awk '{print $1}')
+            if [ -n "$ing" ]; then
+              docker stop $ing
+            docker rm $ing
+            fi
             docker compose start micro-auth
             old=$(docker images | grep 'micro-auth' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
