@@ -51,7 +51,7 @@ jobs:
               docker stop $ing
               docker rm $ing
             fi
-            docker compose start micro-exhibit
+            docker compose --compatibility up -d micro-exhibit
             old=$(docker images | grep 'micro-exhibit' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
               docker rmi $old
