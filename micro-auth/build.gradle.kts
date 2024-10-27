@@ -9,14 +9,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-amqp")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.redisson:redisson")
-	implementation("com.nimbusds:nimbus-jose-jwt")
+	implementation("org.redisson:redisson:${ext.get("redisson.version")}")
+	implementation("com.nimbusds:nimbus-jose-jwt:${ext.get("jwt.version")}")
 	implementation(project(":common"))
-	implementation(project(":cache"))
-	runtimeOnly(project(":cache")) {
-		capabilities {
-			requireCapability("$group:cache-rabbit-support")
-		}
+	implementation(project(":cache")) {
+		exclude("org.redisson", "redisson")
 	}
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")

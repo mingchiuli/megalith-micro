@@ -22,9 +22,10 @@ subprojects {
 	}
 
 	dependencies {
-		implementation("org.redisson:redisson:3.37.0")
-		implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
-		implementation("com.nimbusds:nimbus-jose-jwt:9.41.2")
+		ext {
+			set("redisson.version", "3.37.0")
+			set("jwt.version", "9.41.2")
+		}
 	}
 }
 
