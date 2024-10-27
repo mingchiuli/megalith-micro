@@ -51,7 +51,7 @@ jobs:
               docker stop $ing
               docker rm $ing
             fi
-            docker compose start micro-blog
+            docker compose --compatibility up -d micro-blog
             old=$(docker images | grep 'micro-blog' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
               docker rmi $old

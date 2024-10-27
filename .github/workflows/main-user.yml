@@ -51,7 +51,7 @@ jobs:
               docker stop $ing
               docker rm $ing
             fi
-            docker compose start micro-user
+            docker compose --compatibility up -d micro-user
             old=$(docker images | grep 'micro-user' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
               docker rmi $old
