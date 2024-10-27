@@ -9,13 +9,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation(project(":common"))
-	implementation(project(":cache"))
-	runtimeOnly(project(":cache")) {
-		capabilities {
-			requireCapability("$group:cache-rabbit-support")
-		}
+	implementation(project(":cache")) {
+		exclude("org.redisson", "redisson")
+		exclude("org.aspectj", "aspectjweaver")
 	}
-	implementation("org.redisson:redisson")
+	implementation("org.redisson:redisson:${ext.get("redisson.version")}")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.amqp:spring-rabbit-test")
 }

@@ -18,7 +18,7 @@ java {
 }
 
 dependencies {
-    implementation("org.redisson:redisson")
+    implementation("org.redisson:redisson:${ext.get("redisson.version")}")
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("org.aspectj:aspectjweaver")
     sourceSets.named("rabbitmqSupport") {
