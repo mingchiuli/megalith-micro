@@ -48,6 +48,10 @@ mavenPublishing {
     }
 }
 
+tasks.named("signMyLibraryPublication") {
+    dependsOn(tasks.named("jar"))
+}
+
 sourceSets {
     create("rabbitmqSupport") {
         java {
