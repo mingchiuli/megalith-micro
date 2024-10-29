@@ -48,8 +48,8 @@ mavenPublishing {
     }
 }
 
-tasks.named("signMyLibraryPublication") {
-    dependsOn(tasks.named("jar"))
+tasks.named("publishMavenPublicationToMavenCentralRepository") {
+    dependsOn(tasks.named("signMyLibraryPublication"))
 }
 
 sourceSets {
