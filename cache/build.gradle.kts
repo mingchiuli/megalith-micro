@@ -5,11 +5,13 @@ version = "1.0.1"
 
 plugins {
     id("com.vanniktech.maven.publish") version "0.30.0"
+    `java-library`
+    `maven-publish`
 }
 
 publishing {
     publications {
-        create("rabbitmqSupport", MavenPublication::class.java) {
+        create("myLibrary", MavenPublication::class.java) {
             from(components["java"])
         }
     }
