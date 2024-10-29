@@ -9,7 +9,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation(project(":common"))
-	implementation(project(":cache")) {
+	implementation("wiki.chiu.megalith:cache-spring-boot-starter:${ext.get("cache.version")}") {
 		exclude("org.redisson", "redisson")
 		exclude("org.aspectj", "aspectjweaver")
 	}
