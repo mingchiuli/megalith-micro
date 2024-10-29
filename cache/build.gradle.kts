@@ -9,7 +9,7 @@ plugins {
 
 publishing {
     publications {
-        create("megalithCache", MavenPublication::class.java) {
+        create("rabbitmqSupport", MavenPublication::class.java) {
             from(components["java"])
         }
     }
