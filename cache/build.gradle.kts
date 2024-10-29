@@ -1,6 +1,8 @@
 
 import com.vanniktech.maven.publish.SonatypeHost
 
+version = "1.0.0"
+
 plugins {
     id("com.vanniktech.maven.publish") version "0.30.0"
 }
@@ -37,8 +39,6 @@ mavenPublishing {
         }
     }
 }
-
-version = "1.0.0"
 
 sourceSets {
     create("rabbitmqSupport") {
