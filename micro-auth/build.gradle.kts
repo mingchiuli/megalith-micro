@@ -12,7 +12,7 @@ dependencies {
 	implementation("org.redisson:redisson:${ext.get("redisson.version")}")
 	implementation("com.nimbusds:nimbus-jose-jwt:${ext.get("jwt.version")}")
 	implementation(project(":common"))
-	implementation(project(":cache")) {
+	implementation("wiki.chiu.megalith:cache-spring-boot-starter:${ext.get("cache.version")}") {
 		exclude("org.redisson", "redisson")
 	}
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

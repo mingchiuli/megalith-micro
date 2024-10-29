@@ -29,6 +29,7 @@ subprojects {
 		ext {
 			set("redisson.version", "3.37.0")
 			set("jwt.version", "9.41.2")
+			set("cache.version", "1.0.0")
 		}
 	}
 }
