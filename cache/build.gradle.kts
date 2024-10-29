@@ -5,6 +5,8 @@ version = "1.0.1"
 
 plugins {
     id("com.vanniktech.maven.publish") version "0.30.0"
+    `maven-publish`
+    `java-library`
 }
 
 publishing {
@@ -48,7 +50,7 @@ mavenPublishing {
     }
 }
 
-tasks.named("publish") {
+tasks.named("publishAndReleaseToMavenCentral") {
     dependsOn(tasks.named("signMyLibraryPublication"))
 }
 
