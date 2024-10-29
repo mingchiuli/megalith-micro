@@ -14,7 +14,7 @@ subprojects {
 	repositories {
 		mavenCentral()
 	}
-	group = "chiu.wiki.megalith"
+	group = "wiki.chiu.megalith"
 
 	plugins.apply("org.springframework.boot")
 	plugins.apply("io.spring.dependency-management")
