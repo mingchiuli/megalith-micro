@@ -7,14 +7,6 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.30.0"
 }
 
-publishing {
-    publications {
-        create("myLibrary", MavenPublication::class.java) {
-            from(components["java"])
-        }
-    }
-}
-
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
@@ -48,10 +40,6 @@ mavenPublishing {
     }
 }
 
-tasks.named("publishAndReleaseToMavenCentral") {
-    dependsOn(tasks.named("signMyLibraryPublication"))
-}
-
 sourceSets {
     create("rabbitmqSupport") {
         java {
@@ -62,9 +50,12 @@ sourceSets {
 }
 
 java {
-    registerFeature("rabbitmqSupport") {
-        usingSourceSet(sourceSets["rabbitmqSupport"])
-        capability("$group", "cache-rabbit-support", "$version")
+    sourceSets {
+        val rabbitmqSupport by getting {
+            dependencies {
+                implementation("org.springframework.amqp:spring-rabbit")
+            }
+        }
     }
 }
 
@@ -72,9 +63,6 @@ dependencies {
     implementation("org.redisson:redisson:${ext.get("redisson.version")}")
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("org.aspectj:aspectjweaver")
-    sourceSets.named("rabbitmqSupport") {
-        implementation("org.springframework.amqp:spring-rabbit")
-    }
     compileOnly("jakarta.servlet:jakarta.servlet-api")
     compileOnly("org.springframework:spring-context")
     compileOnly("org.springframework:spring-core")
