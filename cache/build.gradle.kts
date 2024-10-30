@@ -50,9 +50,12 @@ sourceSets {
 }
 
 java {
-    registerFeature("rabbitmqSupport") {
-        usingSourceSet(sourceSets["rabbitmqSupport"])
-        capability("$group", "cache-rabbit-support", "$version")
+    sourceSets {
+        val rabbitmqSupport by getting {
+            dependencies {
+                implementation("org.springframework.amqp:spring-rabbit")
+            }
+        }
     }
 }
 
