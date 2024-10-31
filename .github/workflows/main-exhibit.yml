@@ -7,6 +7,7 @@ on:
       - 'micro-exhibit/**'
       - 'build.gradle.kts'
       - 'common/**'
+      - '.github/workflows/main-exhibit.yml'
 jobs:
   build:
     name: Build

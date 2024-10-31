@@ -7,6 +7,7 @@ on:
       - 'micro-search/**'
       - 'build.gradle.kts'
       - 'common/**'
+      - '.github/workflows/main-search.yml'
 jobs:
   build:
     name: Build
