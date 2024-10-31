@@ -10,9 +10,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.redisson:redisson:3.38.1")
-	implementation("com.nimbusds:nimbus-jose-jwt:9.41.2")
+	implementation("com.nimbusds:nimbus-jose-jwt:9.43")
 	implementation(project(":common"))
-	implementation("wiki.chiu.megalith:cache-spring-boot-starter:1.0.0")
+	implementation("wiki.chiu.megalith:cache-spring-boot-starter:1.0.2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
 }

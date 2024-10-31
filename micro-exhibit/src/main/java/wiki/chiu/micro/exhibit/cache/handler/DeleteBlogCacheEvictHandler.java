@@ -96,24 +96,17 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
         long count = blogHttpServiceWrapper.count();
         long countYear = blogHttpServiceWrapper.countByCreatedBetween(start, end);
         keys.addAll(cacheKeyGenerator.generateHotBlogsKeys(year, count, countYear));
+        cacheEvictHandler.evictCache(keys);
 
-        keys.add(READ_TOKEN + id);
-
-        String blogEditKey = KeyUtils.createBlogEditRedisKey(blogEntity.userId(), id);
+        HashSet<String> clearKeys = new HashSet<>();
+        clearKeys.add(READ_TOKEN + id);
         //删除该年份的页面bloom，listPage的bloom，getCountByYear的bloom，后面逻辑重建
-        keys.add(BLOOM_FILTER_YEAR_PAGE + year);
-        keys.add(BLOOM_FILTER_PAGE);
-        keys.add(BLOOM_FILTER_YEARS);
+        clearKeys.add(BLOOM_FILTER_YEAR_PAGE + year);
+        clearKeys.add(BLOOM_FILTER_PAGE);
+        clearKeys.add(BLOOM_FILTER_YEARS);
         //暂存区
-        keys.add(blogEditKey);
-        //内容状态信息
-        Set<String> localKeys = new HashSet<>(keys);
-        localKeys.remove(BLOOM_FILTER_YEAR_PAGE + year);
-        localKeys.remove(BLOOM_FILTER_PAGE);
-        localKeys.remove(BLOOM_FILTER_YEARS);
-        localKeys.remove(blogEditKey);
-        localKeys.remove(READ_TOKEN + id);
-        cacheEvictHandler.evictCache(keys, localKeys);
+        clearKeys.add(KeyUtils.createBlogEditRedisKey(blogEntity.userId(), id));
+        redissonClient.getKeys().delete(clearKeys.toArray(new String[0]));
 
         //设置getBlogDetail的bloom
         redissonClient.getBitSet(BLOOM_FILTER_BLOG).set(id, false);
