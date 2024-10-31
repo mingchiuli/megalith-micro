@@ -1,7 +1,7 @@
 package wiki.chiu.micro.cache.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Bean;
  * @since 2023-02-02 10:30 pm
  */
 @AutoConfiguration
+@ConditionalOnProperty(prefix = "megalith", name = "cache.topic", havingValue = "rabbit")
 public class JsonConverterConfig {
 
     private final ObjectMapper objectMapper;
@@ -21,7 +22,6 @@ public class JsonConverterConfig {
     }
 
     @Bean(name = "cacheMessageConverter")
-    @ConditionalOnClass(value = Jackson2JsonMessageConverter.class)
     Jackson2JsonMessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
