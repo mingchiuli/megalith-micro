@@ -24,6 +24,7 @@ server:
 
 megalith:
   cache:
+    topic: rabbit
     queue-prefix: cache.blog.evict.queue.
     fanout-exchange: cache.blog.evict.fanout.exchange
   blog:

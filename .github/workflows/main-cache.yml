@@ -6,6 +6,7 @@ on:
     paths:
       - 'cache/**'
       - 'build.gradle.kts'
+      - '.github/workflows/main-cache.yml'
 jobs:
   build:
     name: publish
@@ -26,3 +27,5 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
+      - name: Release
+        uses: softprops/action-gh-release@v2
