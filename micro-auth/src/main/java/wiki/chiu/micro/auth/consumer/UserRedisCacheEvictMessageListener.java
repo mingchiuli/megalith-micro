@@ -81,6 +81,6 @@ public class UserRedisCacheEvictMessageListener {
             }
         }
 
-        cacheEvictHandler.evictCache(keys, keys);
+        cacheEvictHandler.evictCache(keys);
     }
 }

@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
 
 import static wiki.chiu.micro.common.lang.Const.*;
@@ -47,11 +46,9 @@ public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         long count = blogHttpServiceWrapper.count();
         long countYear = blogHttpServiceWrapper.countByCreatedBetween(start, end);
         Set<String> keys = cacheKeyGenerator.generateHotBlogsKeys(year, count, countYear);
+        cacheEvictHandler.evictCache(keys);
         String blogEditKey = KeyUtils.createBlogEditRedisKey(blogEntity.userId(), null);
-        keys.add(blogEditKey);
-        Set<String> localKeys = new HashSet<>(keys);
-        localKeys.remove(blogEditKey);
-        cacheEvictHandler.evictCache(keys, localKeys);
+        redissonClient.getBucket(blogEditKey).delete();
 
         //重新构建该年份的页面bloom
         int totalPageByPeriod = (int) (countYear % blogPageSize == 0 ? countYear / blogPageSize : countYear / blogPageSize + 1);

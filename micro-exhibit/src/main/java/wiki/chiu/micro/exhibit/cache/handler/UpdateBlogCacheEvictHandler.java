@@ -87,21 +87,14 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
             log.error(e.getMessage());
         }
 
+        cacheEvictHandler.evictCache(keys);
 
+        var clearKeys = new HashSet<String>();
         if (NORMAL.getCode().equals(status)) {
-            keys.add(READ_TOKEN + id);
+            clearKeys.add(READ_TOKEN + id);
         }
-
-        String blogEditKey = KeyUtils.createBlogEditRedisKey(blogEntity.userId(), id);
         //暂存区
-        keys.add(blogEditKey);
-        //内容状态信息
-        redissonClient.getKeys().delete(keys.toArray(new String[0]));
-        Set<String> localKeys = new HashSet<>(keys);
-        if (NORMAL.getCode().equals(status)) {
-            localKeys.remove(READ_TOKEN + id);
-        }
-        localKeys.remove(blogEditKey);
-        cacheEvictHandler.evictCache(keys, localKeys);
+        clearKeys.add(KeyUtils.createBlogEditRedisKey(blogEntity.userId(), id));
+        redissonClient.getKeys().delete(clearKeys.toArray(new String[0]));
     }
 }
