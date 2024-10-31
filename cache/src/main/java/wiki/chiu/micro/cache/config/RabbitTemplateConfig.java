@@ -9,8 +9,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.retry.policy.CircuitBreakerRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
@@ -21,7 +21,7 @@ import org.springframework.retry.support.RetryTemplate;
  * @since 2022-12-23 12:32 pm
  */
 @AutoConfiguration
-@ConditionalOnClass(value = RabbitTemplate.class)
+@ConditionalOnProperty(prefix = "megalith", name = "cache.topic", havingValue = "rabbit")
 public class RabbitTemplateConfig {
 
     private static final Logger log = LoggerFactory.getLogger(RabbitTemplateConfig.class);

@@ -4,9 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import jakarta.annotation.PostConstruct;
 import org.redisson.api.RedissonClient;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.cache.handler.impl.RedisCacheEvictHandler;
@@ -14,7 +13,7 @@ import wiki.chiu.micro.cache.listener.RedisCacheEvictMessageListener;
 
 
 @AutoConfiguration
-@ConditionalOnMissingBean(value = ConnectionFactory.class)
+@ConditionalOnProperty(prefix = "megalith", name = "cache.topic", havingValue = "redis", matchIfMissing = true)
 public class CacheEvictRedisQueueConfig {
 
     private static final String CACHE_EVICT_TOPIC = "cacheRedisEvictTopic";
