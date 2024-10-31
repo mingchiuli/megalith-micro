@@ -14,7 +14,7 @@ import wiki.chiu.micro.cache.listener.RedisCacheEvictMessageListener;
 
 
 @AutoConfiguration
-@ConditionalOnMissingBean(ConnectionFactory.class)
+@ConditionalOnMissingBean(value = ConnectionFactory.class)
 public class CacheEvictRedisQueueConfig {
 
     private static final String CACHE_EVICT_TOPIC = "cacheRedisEvictTopic";
