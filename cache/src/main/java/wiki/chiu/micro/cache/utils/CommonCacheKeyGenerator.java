@@ -1,6 +1,8 @@
 package wiki.chiu.micro.cache.utils;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import wiki.chiu.micro.cache.annotation.Cache;
 
 import org.springframework.util.StringUtils;
@@ -14,10 +16,10 @@ import java.util.Objects;
  */
 public class CommonCacheKeyGenerator {
 
-    private final JsonUtils jsonUtils;
+    private final ObjectMapper objectMapper;
 
-    public CommonCacheKeyGenerator(JsonUtils jsonUtils) {
-        this.jsonUtils = jsonUtils;
+    public CommonCacheKeyGenerator(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
     public String generateKey(Method method, Object... args) {
@@ -32,7 +34,13 @@ public class CommonCacheKeyGenerator {
                 if (arg instanceof String) {
                     params.append(arg);
                 } else {
-                    params.append(jsonUtils.writeValueAsString(arg));
+                    String s;
+                    try {
+                        s = objectMapper.writeValueAsString(arg);
+                    } catch (JsonProcessingException e) {
+                        s = "";
+                    }
+                    params.append(s);
                 }
             }
         }

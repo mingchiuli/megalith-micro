@@ -9,11 +9,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation(project(":common"))
-	implementation("wiki.chiu.megalith:cache-spring-boot-starter:${ext.get("cache.version")}") {
-		exclude("org.redisson", "redisson")
-		exclude("org.aspectj", "aspectjweaver")
-	}
-	implementation("org.redisson:redisson:${ext.get("redisson.version")}")
+	implementation("wiki.chiu.megalith:cache-spring-boot-starter:1.0.0")
+	implementation("org.redisson:redisson:3.38.1")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.amqp:spring-rabbit-test")
 }
