@@ -1,6 +1,7 @@
 wiki.chiu.micro.cache.config.CacheAspectConfig
-wiki.chiu.micro.cache.config.CacheEvictRabbitConfig
+wiki.chiu.micro.cache.config.CacheEvictRabbitQueueConfig
+wiki.chiu.micro.cache.config.CacheEvictRedisQueueConfig
+wiki.chiu.micro.cache.config.JsonConverterConfig
 wiki.chiu.micro.cache.config.LocalCacheConfig
-wiki.chiu.micro.cache.config.CacheConverterConfig
-wiki.chiu.micro.cache.config.CacheEvictHandlerConfig
 wiki.chiu.micro.cache.config.RabbitTemplateConfig
+wiki.chiu.micro.cache.config.RedissonClientConfig

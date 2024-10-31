@@ -1,6 +1,6 @@
 package wiki.chiu.micro.cache.aot.hints;
 
-import wiki.chiu.micro.cache.listener.CacheEvictMessageListener;
+import wiki.chiu.micro.cache.listener.RabbitCacheEvictMessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.*;
@@ -20,7 +20,7 @@ class CacheRuntimeHints implements RuntimeHintsRegistrar {
     @Override// Register method for reflection
     public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {
         // Register method for reflection
-        hints.reflection().registerMethod(findMethod(CacheEvictMessageListener.class, "handleMessage", Set.class), ExecutableMode.INVOKE);
+        hints.reflection().registerMethod(findMethod(RabbitCacheEvictMessageListener.class, "handleMessage", Set.class), ExecutableMode.INVOKE);
 
         try {
             hints.reflection().registerConstructor(LinkedHashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);

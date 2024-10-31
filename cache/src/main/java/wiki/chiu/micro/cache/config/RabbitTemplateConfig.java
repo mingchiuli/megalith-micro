@@ -18,7 +18,7 @@ import org.springframework.retry.support.RetryTemplate;
 
 /**
  * @author mingchiuli
- * @create 2022-12-23 12:32 pm
+ * @since 2022-12-23 12:32 pm
  */
 @AutoConfiguration
 @ConditionalOnClass(RabbitTemplate.class)
@@ -76,7 +76,7 @@ public class RabbitTemplateConfig {
 
     @Bean
     @ConditionalOnMissingBean
-    public ConnectionFactory connectionFactory() {
+    ConnectionFactory connectionFactory() {
         CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory();
         cachingConnectionFactory.setAddresses(host);
         cachingConnectionFactory.setUsername(username);
