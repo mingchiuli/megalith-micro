@@ -27,8 +27,3 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
