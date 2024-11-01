@@ -49,7 +49,7 @@ public class CacheAspect {
         this.objectMapper = objectMapper;
     }
 
-    @Pointcut("@annotation(org.chiu.micro.cache.annotation.Cache)")
+    @Pointcut("@annotation(wiki.chiu.micro.cache.annotation.Cache)")
     public void pt() {
     }
 
