@@ -39,7 +39,7 @@ public class CacheEvictRabbitQueueConfig {
 
     private final RabbitTemplate rabbitTemplate;
 
-    public CacheEvictRabbitQueueConfig(Jackson2JsonMessageConverter jsonMessageConverter, @Qualifier("caffeineCache") Cache<String, Object> localCache, RedissonClient redissonClient, RabbitTemplate rabbitTemplate) {
+    public CacheEvictRabbitQueueConfig(@Qualifier("cacheMessageConverter") Jackson2JsonMessageConverter jsonMessageConverter, @Qualifier("caffeineCache") Cache<String, Object> localCache, RedissonClient redissonClient, RabbitTemplate rabbitTemplate) {
         this.jsonMessageConverter = jsonMessageConverter;
         this.localCache = localCache;
         this.redissonClient = redissonClient;
