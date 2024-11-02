@@ -1,5 +1,6 @@
 package wiki.chiu.micro.exhibit.wrapper;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
 import wiki.chiu.micro.common.dto.UserEntityRpcDto;
@@ -36,7 +37,7 @@ public class BlogWrapper {
     @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
-    public BlogWrapper(BlogHttpServiceWrapper blogHttpServiceWrapper, UserHttpServiceWrapper userHttpServiceWrapper, ExecutorService executorService, RedissonClient redissonClient) {
+    public BlogWrapper(BlogHttpServiceWrapper blogHttpServiceWrapper, UserHttpServiceWrapper userHttpServiceWrapper, ExecutorService executorService, @Qualifier("redisson") RedissonClient redissonClient) {
         this.blogHttpServiceWrapper = blogHttpServiceWrapper;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.executorService = executorService;

@@ -36,8 +36,6 @@ public class CacheSchedule {
 
     private final RedissonClient redissonClient;
 
-    private final RedissonClient redisson;
-
     private final BlogSensitiveWrapper blogSensitiveWrapper;
 
     @Value("${megalith.blog.blog-page-size}")
@@ -47,19 +45,18 @@ public class CacheSchedule {
 
     private static final String CACHE_KEY = "cacheKey";
 
-    public CacheSchedule(@Qualifier("commonExecutor") ExecutorService taskExecutor, BlogService blogService, BlogWrapper blogWrapper, RedissonClient redissonClient, RedissonClient redisson, BlogSensitiveWrapper blogSensitiveWrapper) {
+    public CacheSchedule(@Qualifier("commonExecutor") ExecutorService taskExecutor, BlogService blogService, BlogWrapper blogWrapper, @Qualifier("redisson") RedissonClient redissonClient, BlogSensitiveWrapper blogSensitiveWrapper) {
         this.taskExecutor = taskExecutor;
         this.blogService = blogService;
         this.blogWrapper = blogWrapper;
         this.redissonClient = redissonClient;
-        this.redisson = redisson;
         this.blogSensitiveWrapper = blogSensitiveWrapper;
     }
 
     @Scheduled(cron = "0 0 0/1 * * ?")
     public void configureTask() {
 
-        RLock rLock = redisson.getLock(CACHE_KEY);
+        RLock rLock = redissonClient.getLock(CACHE_KEY);
         if (Boolean.FALSE.equals(rLock.tryLock())) {
             return;
         }
