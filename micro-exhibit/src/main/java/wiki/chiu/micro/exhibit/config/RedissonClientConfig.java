@@ -23,7 +23,7 @@ public class RedissonClientConfig {
     private String password;
 
 
-    @Bean
+    @Bean("redisson")
     RedissonClient redisson() {
         Config config = new Config();
         config.setCodec(new StringCodec());

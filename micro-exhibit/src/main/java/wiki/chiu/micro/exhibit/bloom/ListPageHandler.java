@@ -1,5 +1,6 @@
 package wiki.chiu.micro.exhibit.bloom;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Const;
 import org.redisson.api.RedissonClient;
@@ -14,7 +15,7 @@ public class ListPageHandler extends BloomHandler {
 
     private final RedissonClient redissonClient;
 
-    public ListPageHandler(RedissonClient redissonClient) {
+    public ListPageHandler(@Qualifier("redisson") RedissonClient redissonClient) {
         this.redissonClient = redissonClient;
     }
 
