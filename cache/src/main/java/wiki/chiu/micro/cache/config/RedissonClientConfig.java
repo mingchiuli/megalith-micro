@@ -7,7 +7,6 @@ import org.redisson.config.Config;
 import org.redisson.config.SingleServerConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -24,9 +23,8 @@ public class RedissonClientConfig {
     private String password;
 
 
-    @Bean
-    @ConditionalOnMissingBean
-    RedissonClient redisson() {
+    @Bean("cacheRedissonClient")
+    RedissonClient cacheRedissonClient() {
         Config config = new Config();
         SingleServerConfig singleServerConfig = config.useSingleServer();
         config.setCodec(new StringCodec());

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import jakarta.annotation.PostConstruct;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +25,7 @@ public class CacheEvictRedisQueueConfig {
 
     private final ObjectMapper objectMapper;
 
-    public CacheEvictRedisQueueConfig(RedissonClient redissonClient, Cache<String, Object> localCache, ObjectMapper objectMapper) {
+    public CacheEvictRedisQueueConfig(@Qualifier("cacheRedissonClient") RedissonClient redissonClient, @Qualifier("caffeineCache") Cache<String, Object> localCache, ObjectMapper objectMapper) {
         this.redissonClient = redissonClient;
         this.localCache = localCache;
         this.objectMapper = objectMapper;
