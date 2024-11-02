@@ -1,5 +1,6 @@
 package wiki.chiu.micro.auth.component.provider;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.lang.StatusEnum;
@@ -56,7 +57,7 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
     }
 
     public PasswordAuthenticationProvider(PasswordEncoder passwordEncoder,
-                                          RedissonClient redissonClient,
+                                          @Qualifier("redisson") RedissonClient redissonClient,
                                           UserDetailsService userDetailsService,
                                           UserHttpServiceWrapper userHttpServiceWrapper,
                                           ResourceLoader resourceLoader) {

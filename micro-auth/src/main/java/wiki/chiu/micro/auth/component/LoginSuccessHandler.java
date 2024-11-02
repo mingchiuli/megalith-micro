@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.token.Claims;
 import wiki.chiu.micro.auth.token.TokenUtils;
@@ -43,7 +44,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     @Value("${megalith.blog.jwt.refresh-token-expire}")
     private long refreshExpire;
 
-    public LoginSuccessHandler(ObjectMapper objectMapper, TokenUtils<Claims> tokenUtils, UserHttpServiceWrapper userHttpServiceWrapper, RedissonClient redissonClient) {
+    public LoginSuccessHandler(ObjectMapper objectMapper, TokenUtils<Claims> tokenUtils, UserHttpServiceWrapper userHttpServiceWrapper, @Qualifier("redisson") RedissonClient redissonClient) {
         this.objectMapper = objectMapper;
         this.tokenUtils = tokenUtils;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
