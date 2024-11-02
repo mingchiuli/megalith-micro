@@ -23,7 +23,7 @@ public class RedissonClientConfig {
     private String password;
 
 
-    @Bean
+    @Bean("redisson")
     RedissonClient redisson() {
         Config config = new Config();
         SingleServerConfig singleServerConfig = config.useSingleServer();

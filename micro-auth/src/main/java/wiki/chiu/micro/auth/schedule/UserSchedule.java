@@ -30,7 +30,7 @@ public class UserSchedule {
 
     private static final String MANAGER_CACHE_KEY = "managerCacheKey";
 
-    public UserSchedule(RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public UserSchedule(@Qualifier("redisson") RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.redissonClient = redissonClient;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.taskExecutor = taskExecutor;
