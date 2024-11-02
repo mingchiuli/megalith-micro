@@ -1,5 +1,6 @@
 package wiki.chiu.micro.exhibit.cache.handler;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
@@ -31,8 +32,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
     private final CommonCacheKeyGenerator commonCacheKeyGenerator;
 
-
-    public UpdateBlogCacheEvictHandler(RedissonClient redissonClient,
+    public UpdateBlogCacheEvictHandler(@Qualifier("redisson") RedissonClient redissonClient,
                                        BlogHttpServiceWrapper blogHttpServiceWrapper,
                                        CacheKeyGenerator cacheKeyGenerator,
                                        CacheEvictHandler cacheEvictHandler,
