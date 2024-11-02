@@ -7,7 +7,7 @@ import org.springframework.aot.hint.*;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.springframework.util.ReflectionUtils.findMethod;
@@ -23,7 +23,7 @@ class CacheRuntimeHints implements RuntimeHintsRegistrar {
         hints.reflection().registerMethod(findMethod(RabbitCacheEvictMessageListener.class, "handleMessage", Set.class), ExecutableMode.INVOKE);
 
         try {
-            hints.reflection().registerConstructor(LinkedHashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
+            hints.reflection().registerConstructor(HashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
         } catch (NoSuchMethodException e) {
             log.error("application start fail");
             throw new RuntimeException(e.getMessage());
