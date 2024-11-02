@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 
 import java.util.Set;
@@ -15,7 +16,7 @@ public class RedisCacheEvictHandler extends CacheEvictHandler {
 
     private final String CACHE_EVICT_TOPIC;
 
-    public RedisCacheEvictHandler(RedissonClient redissonClient, ObjectMapper objectMapper, String CACHE_EVICT_TOPIC) {
+    public RedisCacheEvictHandler(@Qualifier("cacheRedissonClient") RedissonClient redissonClient, ObjectMapper objectMapper, String CACHE_EVICT_TOPIC) {
         super(redissonClient);
         this.objectMapper = objectMapper;
         this.CACHE_EVICT_TOPIC = CACHE_EVICT_TOPIC;

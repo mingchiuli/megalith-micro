@@ -37,14 +37,11 @@ public class CacheAspect {
 
     private final ObjectMapper objectMapper;
 
-    private final RedissonClient redisson;
-
     private final com.github.benmanes.caffeine.cache.Cache<String, Object> localCache;
 
-    public CacheAspect(RedissonClient redissonClient, ObjectMapper objectMapper, CommonCacheKeyGenerator commonCacheKeyGenerator, RedissonClient redisson, com.github.benmanes.caffeine.cache.Cache<String, Object> localCache) {
+    public CacheAspect(RedissonClient redissonClient, ObjectMapper objectMapper, CommonCacheKeyGenerator commonCacheKeyGenerator, com.github.benmanes.caffeine.cache.Cache<String, Object> localCache) {
         this.redissonClient = redissonClient;
         this.commonCacheKeyGenerator = commonCacheKeyGenerator;
-        this.redisson = redisson;
         this.localCache = localCache;
         this.objectMapper = objectMapper;
     }
@@ -106,7 +103,7 @@ public class CacheAspect {
 
         String lock = LOCK + cacheKey;
         // 已经线程安全
-        RLock rLock = redisson.getLock(lock);
+        RLock rLock = redissonClient.getLock(lock);
 
         try {
             boolean b = rLock.tryLock(5000, TimeUnit.MILLISECONDS);

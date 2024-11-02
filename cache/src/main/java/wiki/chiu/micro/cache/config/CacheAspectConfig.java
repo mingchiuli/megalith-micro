@@ -4,6 +4,7 @@ package wiki.chiu.micro.cache.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.cache.aspect.CacheAspect;
 import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 
@@ -29,20 +30,17 @@ public class CacheAspectConfig {
 
     private final ObjectMapper objectMapper;
 
-    private final RedissonClient redisson;
-
     private final com.github.benmanes.caffeine.cache.Cache<String, Object> localCache;
 
-    public CacheAspectConfig(RedissonClient redissonClient, CommonCacheKeyGenerator commonCacheKeyGenerator, ObjectMapper objectMapper, RedissonClient redisson, Cache<String, Object> localCache) {
+    public CacheAspectConfig(@Qualifier("cacheRedissonClient") RedissonClient redissonClient, CommonCacheKeyGenerator commonCacheKeyGenerator, ObjectMapper objectMapper, Cache<String, Object> localCache) {
         this.redissonClient = redissonClient;
         this.commonCacheKeyGenerator = commonCacheKeyGenerator;
         this.objectMapper = objectMapper;
-        this.redisson = redisson;
         this.localCache = localCache;
     }
 
     @Bean
     CacheAspect cacheAspect() {
-        return new CacheAspect(redissonClient, objectMapper, commonCacheKeyGenerator, redisson, localCache);
+        return new CacheAspect(redissonClient, objectMapper, commonCacheKeyGenerator, localCache);
     }
 }
