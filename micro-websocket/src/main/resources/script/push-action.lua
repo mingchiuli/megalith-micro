@@ -1,9 +1,8 @@
-local version
-if ARGV[3] then
-    version = tonumber(ARGV[3])
-end
-
 local key = KEYS[1]
+
+local exist = redis.call('exists', key)
+
+if exist == 0 then return -2 end
 
 local status = redis.call('hget', key, 'status')
 local uid = redis.call('hget', key, 'userId')
@@ -12,8 +11,11 @@ local userId = ARGV[8]
 if tonumber(status) ~= 0 and tonumber(uid) ~= tonumber(userId) then return nil end
 
 local v = redis.call('hget', key, 'version')
+local version
+if ARGV[3] then
+    version = tonumber(ARGV[3])
+end
 
-if not v then return -2 end
 if tonumber(v) + 1 < version then return -1 end
 if tonumber(v) + 1 > version then return -2 end
 
