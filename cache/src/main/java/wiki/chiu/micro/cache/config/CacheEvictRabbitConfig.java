@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "megalith", name = "cache.topic", havingValue = "rabbit")
-public class CacheEvictRabbitQueueConfig {
+public class CacheEvictRabbitConfig {
 
     @Value("${megalith.cache.queue-prefix}")
     private String cacheEvictQueue;
@@ -39,7 +39,7 @@ public class CacheEvictRabbitQueueConfig {
 
     private final RabbitTemplate rabbitTemplate;
 
-    public CacheEvictRabbitQueueConfig(@Qualifier("cacheMessageConverter") Jackson2JsonMessageConverter jsonMessageConverter, @Qualifier("caffeineCache") Cache<String, Object> localCache, @Qualifier("cacheRedissonClient") RedissonClient redissonClient, @Qualifier("cacheRabbitTemplate") RabbitTemplate rabbitTemplate) {
+    public CacheEvictRabbitConfig(@Qualifier("cacheMessageConverter") Jackson2JsonMessageConverter jsonMessageConverter, @Qualifier("caffeineCache") Cache<String, Object> localCache, @Qualifier("cacheRedissonClient") RedissonClient redissonClient, @Qualifier("cacheRabbitTemplate") RabbitTemplate rabbitTemplate) {
         this.jsonMessageConverter = jsonMessageConverter;
         this.localCache = localCache;
         this.redissonClient = redissonClient;

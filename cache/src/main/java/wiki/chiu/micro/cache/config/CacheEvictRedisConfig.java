@@ -15,7 +15,7 @@ import wiki.chiu.micro.cache.listener.RedisCacheEvictMessageListener;
 
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "megalith", name = "cache.topic", havingValue = "redis", matchIfMissing = true)
-public class CacheEvictRedisQueueConfig {
+public class CacheEvictRedisConfig {
 
     private static final String CACHE_EVICT_TOPIC = "cacheRedisEvictTopic";
 
@@ -25,7 +25,7 @@ public class CacheEvictRedisQueueConfig {
 
     private final ObjectMapper objectMapper;
 
-    public CacheEvictRedisQueueConfig(@Qualifier("cacheRedissonClient") RedissonClient redissonClient, @Qualifier("caffeineCache") Cache<String, Object> localCache, ObjectMapper objectMapper) {
+    public CacheEvictRedisConfig(@Qualifier("cacheRedissonClient") RedissonClient redissonClient, @Qualifier("caffeineCache") Cache<String, Object> localCache, ObjectMapper objectMapper) {
         this.redissonClient = redissonClient;
         this.localCache = localCache;
         this.objectMapper = objectMapper;
