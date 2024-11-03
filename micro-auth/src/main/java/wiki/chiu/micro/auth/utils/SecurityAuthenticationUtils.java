@@ -1,6 +1,5 @@
 package wiki.chiu.micro.auth.utils;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.auth.token.Claims;
 import wiki.chiu.micro.auth.token.TokenUtils;
 import wiki.chiu.micro.auth.wrapper.AuthWrapper;
@@ -26,7 +25,7 @@ public class SecurityAuthenticationUtils {
 
     private final RedissonClient redissonClient;
 
-    public SecurityAuthenticationUtils(AuthWrapper authWrapper, TokenUtils<Claims> tokenUtils, @Qualifier("redisson") RedissonClient redissonClient) {
+    public SecurityAuthenticationUtils(AuthWrapper authWrapper, TokenUtils<Claims> tokenUtils, RedissonClient redissonClient) {
         this.authWrapper = authWrapper;
         this.tokenUtils = tokenUtils;
         this.redissonClient = redissonClient;
