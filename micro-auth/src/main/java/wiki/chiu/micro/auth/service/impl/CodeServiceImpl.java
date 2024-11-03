@@ -1,6 +1,5 @@
 package wiki.chiu.micro.auth.service.impl;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.service.CodeService;
 import wiki.chiu.micro.auth.utils.CodeFactory;
@@ -44,7 +43,7 @@ public class CodeServiceImpl implements CodeService {
     @Value("${spring.mail.properties.from}")
     private String from;
 
-    public CodeServiceImpl(CodeFactory codeFactory, JavaMailSender javaMailSender, @Qualifier("redisson") RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, SmsUtils smsUtils) {
+    public CodeServiceImpl(CodeFactory codeFactory, JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, SmsUtils smsUtils) {
         this.codeFactory = codeFactory;
         this.javaMailSender = javaMailSender;
         this.redissonClient = redissonClient;

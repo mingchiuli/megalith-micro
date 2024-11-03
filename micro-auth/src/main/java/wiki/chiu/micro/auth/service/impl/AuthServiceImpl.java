@@ -51,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
 
     private String script;
 
-    public AuthServiceImpl(AuthWrapper authWrapper, SecurityAuthenticationUtils securityAuthenticationUtils, @Qualifier("redisson") RedissonClient redissonClient, @Qualifier("commonExecutor") ExecutorService taskExecutor, ResourceLoader resourceLoader) {
+    public AuthServiceImpl(AuthWrapper authWrapper, SecurityAuthenticationUtils securityAuthenticationUtils, RedissonClient redissonClient, @Qualifier("commonExecutor") ExecutorService taskExecutor, ResourceLoader resourceLoader) {
         this.authWrapper = authWrapper;
         this.securityAuthenticationUtils = securityAuthenticationUtils;
         this.redissonClient = redissonClient;

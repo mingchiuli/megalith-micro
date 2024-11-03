@@ -1,6 +1,5 @@
 package wiki.chiu.micro.exhibit.cache.handler;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
 import wiki.chiu.micro.common.utils.KeyUtils;
@@ -24,7 +23,7 @@ public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
     @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
-    public CreateBlogCacheEvictHandler(@Qualifier("redisson") RedissonClient redissonClient,
+    public CreateBlogCacheEvictHandler(RedissonClient redissonClient,
                                        BlogHttpServiceWrapper blogHttpServiceWrapper,
                                        CacheKeyGenerator cacheKeyGenerator,
                                        CacheEvictHandler cacheEvictHandler) {

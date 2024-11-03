@@ -1,6 +1,5 @@
 package wiki.chiu.micro.exhibit.bloom;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.exception.MissException;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
@@ -13,7 +12,7 @@ public class DetailHandler extends BloomHandler {
 
     private final RedissonClient redissonClient;
 
-    public DetailHandler(@Qualifier("redisson") RedissonClient redissonClient) {
+    public DetailHandler(RedissonClient redissonClient) {
         this.redissonClient = redissonClient;
     }
 
