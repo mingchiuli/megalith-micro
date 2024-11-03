@@ -1,6 +1,5 @@
 package wiki.chiu.micro.auth.component.provider;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.auth.component.token.SMSAuthenticationToken;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.common.lang.Const;
@@ -51,7 +50,7 @@ public final class SMSAuthenticationProvider extends ProviderBase {
     }
 
     public SMSAuthenticationProvider(UserDetailsService userDetailsService,
-                                     @Qualifier("redisson") RedissonClient redissonClient,
+                                     RedissonClient redissonClient,
                                      UserHttpServiceWrapper userHttpServiceWrapper,
                                      ResourceLoader resourceLoader) {
         super(userDetailsService, userHttpServiceWrapper);

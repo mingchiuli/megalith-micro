@@ -1,6 +1,5 @@
 package wiki.chiu.micro.auth.component.provider;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.auth.component.token.EmailAuthenticationToken;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.common.lang.Const;
@@ -50,7 +49,7 @@ public final class EmailAuthenticationProvider extends ProviderBase {
         script = resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
-    public EmailAuthenticationProvider(@Qualifier("redisson") RedissonClient redissonClient,
+    public EmailAuthenticationProvider(RedissonClient redissonClient,
                                        UserDetailsService userDetailsService,
                                        UserHttpServiceWrapper userHttpServiceWrapper,
                                        ResourceLoader resourceLoader) {

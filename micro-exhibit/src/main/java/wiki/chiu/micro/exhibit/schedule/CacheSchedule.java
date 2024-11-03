@@ -45,7 +45,7 @@ public class CacheSchedule {
 
     private static final String CACHE_KEY = "cacheKey";
 
-    public CacheSchedule(@Qualifier("commonExecutor") ExecutorService taskExecutor, BlogService blogService, BlogWrapper blogWrapper, @Qualifier("redisson") RedissonClient redissonClient, BlogSensitiveWrapper blogSensitiveWrapper) {
+    public CacheSchedule(@Qualifier("commonExecutor") ExecutorService taskExecutor, BlogService blogService, BlogWrapper blogWrapper, RedissonClient redissonClient, BlogSensitiveWrapper blogSensitiveWrapper) {
         this.taskExecutor = taskExecutor;
         this.blogService = blogService;
         this.blogWrapper = blogWrapper;

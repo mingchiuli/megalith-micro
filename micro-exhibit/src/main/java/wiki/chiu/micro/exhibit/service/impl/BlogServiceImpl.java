@@ -1,7 +1,6 @@
 package wiki.chiu.micro.exhibit.service.impl;
 
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
 import wiki.chiu.micro.common.dto.BlogSensitiveContentRpcDto;
 import wiki.chiu.micro.common.dto.SensitiveContentRpcDto;
@@ -73,7 +72,7 @@ public class BlogServiceImpl implements BlogService {
     @Value("${megalith.blog.highest-role}")
     private String highestRole;
 
-    public BlogServiceImpl(BlogSensitiveWrapper blogSensitiveWrapper, BlogHttpServiceWrapper blogHttpServiceWrapper, @Qualifier("redisson") RedissonClient redissonClient, BlogWrapper blogWrapper, ResourceLoader resourceLoader) {
+    public BlogServiceImpl(BlogSensitiveWrapper blogSensitiveWrapper, BlogHttpServiceWrapper blogHttpServiceWrapper, RedissonClient redissonClient, BlogWrapper blogWrapper, ResourceLoader resourceLoader) {
         this.blogSensitiveWrapper = blogSensitiveWrapper;
         this.blogHttpServiceWrapper = blogHttpServiceWrapper;
         this.redissonClient = redissonClient;
