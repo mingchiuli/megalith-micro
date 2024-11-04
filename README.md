@@ -42,3 +42,13 @@ public String evict() {
     cacheEvictHandler.evictCache(set);
 }
 ```
+
+It can be updated to a stable queue(optional):
+
+```yml
+megalith:
+  cache:
+    topic: rabbit
+    queue-prefix: cache.user.evict.queue.
+    fanout-exchange: cache.user.evict.fanout.exchange
+```
