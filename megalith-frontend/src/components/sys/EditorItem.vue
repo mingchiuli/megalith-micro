@@ -24,7 +24,6 @@ const editorRef = useTemplateRef<ExposeParam>('editor')
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
-
 const toolbars: ToolbarNames[] = [
   'revoke',
   'next',
