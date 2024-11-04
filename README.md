@@ -1,7 +1,44 @@
 # megalith-micro
 
-own blog...
+own blog...(A spring application with graalvm aot)
 
-a spring application with graalvm aot
+A Simple Cache Library both local and remote cache
 
-7 Java micro-services deployed on a 3 core cpu and 2G memory virtual mechine
+```xml
+<dependency>
+    <groupId>wiki.chiu.megalith</groupId>
+    <artifactId>cache-spring-boot-starter</artifactId>
+    <version>1.3.0</version>
+</dependency>
+```
+
+or
+
+```kotlin
+implementation("wiki.chiu.megalith:cache-spring-boot-starter:1.3.0")
+```
+
+use:
+
+```java
+
+@Autowired
+private CacheEvictHandler cacheEvictHandler;
+
+//use cache:
+@GetMapping("/test")
+@Cache(prefix = "12121212")
+public String test() {
+    HashSet<String> hashSet = new HashSet<>();
+    hashSet.add("123");
+    return "adCustomRuntimeHintsadwdawdawdawda";
+}
+
+//evict cache:
+@GetMapping("/evict")
+public String evict() {
+    HashSet<String> set = new HashSet<>();
+    set.add("adCustomRuntimeHintsadwdawdawdawda");
+    cacheEvictHandler.evictCache(set);
+}
+```
