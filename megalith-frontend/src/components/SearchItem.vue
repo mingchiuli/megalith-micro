@@ -211,9 +211,9 @@ defineExpose({ searchAllInfo })
   >
     <template #default>
       <HotItem ref="hotItem" class="dialog-hot" />
-      <div>
-        <el-text class="dialog-year" v-if="year!.length">年份：{{ year }}</el-text>
-        <el-button link @click="year = ''">清除</el-button>
+      <div class="dialog-year" v-if="year!.length">
+        <div>年份：{{ year }}</div>
+        <el-button link type="warning" @click="year = ''">清除</el-button>
       </div>
       <div class="dialog-autocomplete">
         <el-autocomplete
@@ -289,11 +289,11 @@ defineExpose({ searchAllInfo })
 
 .dialog-year {
   text-align: center;
-  margin-top: 5px;
+  margin-top: 10px;
 }
 
 .dialog-autocomplete {
-  margin: 30px auto 0 auto;
+  margin: 10px auto 0 auto;
   max-width: max-content;
 }
 

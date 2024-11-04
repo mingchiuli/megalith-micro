@@ -147,7 +147,7 @@ const { content, totalElements, pageSize } = toRefs(page)
       "
       >进入后台</el-link
     >
-    <el-button v-if="keywords" link @click="refresh">返回</el-button>
+    <el-link type="warning" v-if="keywords" link @click="refresh">返回</el-link>
     <br />
     <div class="description">
       <el-skeleton animated :loading="loading" :throttle="300">
@@ -216,6 +216,7 @@ const { content, totalElements, pageSize } = toRefs(page)
 .door {
   width: fit-content;
   margin-left: 5px;
+  margin-right: 5px;
 }
 
 .search-father {
