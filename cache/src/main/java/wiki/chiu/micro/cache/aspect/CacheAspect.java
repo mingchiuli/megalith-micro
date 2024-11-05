@@ -33,15 +33,12 @@ public class CacheAspect {
 
     private final RedissonClient redissonClient;
 
-    private final CommonCacheKeyGenerator commonCacheKeyGenerator;
-
     private final ObjectMapper objectMapper;
 
     private final com.github.benmanes.caffeine.cache.Cache<String, Object> localCache;
 
-    public CacheAspect(RedissonClient redissonClient, ObjectMapper objectMapper, CommonCacheKeyGenerator commonCacheKeyGenerator, com.github.benmanes.caffeine.cache.Cache<String, Object> localCache) {
+    public CacheAspect(RedissonClient redissonClient, ObjectMapper objectMapper, com.github.benmanes.caffeine.cache.Cache<String, Object> localCache) {
         this.redissonClient = redissonClient;
-        this.commonCacheKeyGenerator = commonCacheKeyGenerator;
         this.localCache = localCache;
         this.objectMapper = objectMapper;
     }
@@ -68,7 +65,7 @@ public class CacheAspect {
 
         JavaType javaType = objectMapper.getTypeFactory().constructType(genericReturnType);
 
-        String cacheKey = commonCacheKeyGenerator.generateKey(method, args);
+        String cacheKey = CommonCacheKeyGenerator.generateKey(method, args);
 
         Object cacheValue = localCache.getIfPresent(cacheKey);
         if (Objects.nonNull(cacheValue)) {

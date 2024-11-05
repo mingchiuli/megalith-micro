@@ -7,7 +7,6 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -26,12 +25,6 @@ import org.springframework.retry.support.RetryTemplate;
 public class RabbitTemplateConfig {
 
     private static final Logger log = LoggerFactory.getLogger(RabbitTemplateConfig.class);
-
-    private final Jackson2JsonMessageConverter cacheMessageConverter;
-
-    public RabbitTemplateConfig(@Qualifier("cacheMessageConverter") Jackson2JsonMessageConverter cacheMessageConverter) {
-        this.cacheMessageConverter = cacheMessageConverter;
-    }
 
     @Value("${spring.rabbitmq.username}")
     private String username;
@@ -57,7 +50,7 @@ public class RabbitTemplateConfig {
         //只要消息没有投递给指定的队列，就触发这个失败回调
         rabbitTemplate.setReturnsCallback(returned -> log.info("message not come to queue {}", returned));
 
-        rabbitTemplate.setMessageConverter(cacheMessageConverter);
+        rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
 
         var retryPolicy = new CircuitBreakerRetryPolicy(
                 new SimpleRetryPolicy(10)
