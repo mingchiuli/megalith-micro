@@ -31,15 +31,19 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
     private final CacheKeyGenerator cacheKeyGenerator;
 
+    private final CommonCacheKeyGenerator commonCacheKeyGenerator;
+
     @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
     public DeleteBlogCacheEvictHandler(RedissonClient redissonClient,
                                        BlogHttpServiceWrapper blogHttpServiceWrapper,
                                        CacheKeyGenerator cacheKeyGenerator,
-                                       CacheEvictHandler cacheEvictHandler) {
+                                       CacheEvictHandler cacheEvictHandler,
+                                       CommonCacheKeyGenerator commonCacheKeyGenerator) {
         super(redissonClient, blogHttpServiceWrapper, cacheEvictHandler);
         this.cacheKeyGenerator = cacheKeyGenerator;
+        this.commonCacheKeyGenerator = commonCacheKeyGenerator;
     }
 
     @Override
@@ -56,7 +60,7 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
         //博客对象本身缓存
         try {
             Method findByIdMethod = BlogWrapper.class.getMethod("findById", Long.class);
-            String findById = CommonCacheKeyGenerator.generateKey(findByIdMethod, id);
+            String findById = commonCacheKeyGenerator.generateKey(findByIdMethod, id);
             keys.add(findById);
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
@@ -64,7 +68,7 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
         try {
             Method getCountByYearMethod  = BlogWrapper.class.getMethod("getCountByYear", Integer.class);
-            String getCountByYear = CommonCacheKeyGenerator.generateKey(getCountByYearMethod, year);
+            String getCountByYear = commonCacheKeyGenerator.generateKey(getCountByYearMethod, year);
             keys.add(getCountByYear);
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
@@ -72,7 +76,7 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
         try {
             Method statusMethod = BlogWrapper.class.getMethod("findStatusById", Long.class);
-            String status = CommonCacheKeyGenerator.generateKey(statusMethod, id);
+            String status = commonCacheKeyGenerator.generateKey(statusMethod, id);
             keys.add(status);
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
@@ -80,7 +84,7 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
         try {
             Method sensitiveMethod = BlogSensitiveWrapper.class.getMethod("findSensitiveByBlogId", Long.class);
-            String sensitive = CommonCacheKeyGenerator.generateKey(sensitiveMethod, id);
+            String sensitive = commonCacheKeyGenerator.generateKey(sensitiveMethod, id);
             keys.add(sensitive);
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
