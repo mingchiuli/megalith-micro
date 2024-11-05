@@ -8,14 +8,14 @@ A Simple Cache Library both local and remote cache
 <dependency>
     <groupId>wiki.chiu.megalith</groupId>
     <artifactId>cache-spring-boot-starter</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 
 or
 
 ```kotlin
-implementation("wiki.chiu.megalith:cache-spring-boot-starter:1.3.0")
+implementation("wiki.chiu.megalith:cache-spring-boot-starter:1.4.0")
 ```
 
 use:
@@ -29,8 +29,6 @@ private CacheEvictHandler cacheEvictHandler;
 @GetMapping("/test")
 @Cache(prefix = "12121212")
 public String test() {
-    HashSet<String> hashSet = new HashSet<>();
-    hashSet.add("123");
     return "adCustomRuntimeHintsadwdawdawdawda";
 }
 

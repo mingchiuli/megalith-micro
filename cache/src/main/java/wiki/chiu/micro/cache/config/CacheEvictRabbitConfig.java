@@ -31,16 +31,13 @@ public class CacheEvictRabbitConfig {
     @Value("${megalith.cache.fanout-exchange}")
     public String CACHE_EVICT_FANOUT_EXCHANGE;
 
-    private final Jackson2JsonMessageConverter jsonMessageConverter;
-
     private final Cache<String, Object> localCache;
 
     private final RedissonClient redissonClient;
 
     private final RabbitTemplate rabbitTemplate;
 
-    public CacheEvictRabbitConfig(@Qualifier("cacheMessageConverter") Jackson2JsonMessageConverter jsonMessageConverter, @Qualifier("caffeineCache") Cache<String, Object> localCache, @Qualifier("cacheRedissonClient") RedissonClient redissonClient, @Qualifier("cacheRabbitTemplate") RabbitTemplate rabbitTemplate) {
-        this.jsonMessageConverter = jsonMessageConverter;
+    public CacheEvictRabbitConfig(@Qualifier("caffeineCache") Cache<String, Object> localCache, @Qualifier("cacheRedissonClient") RedissonClient redissonClient, @Qualifier("cacheRabbitTemplate") RabbitTemplate rabbitTemplate) {
         this.localCache = localCache;
         this.redissonClient = redissonClient;
         this.rabbitTemplate = rabbitTemplate;
@@ -79,7 +76,7 @@ public class CacheEvictRabbitConfig {
         var container = new SimpleMessageListenerContainer();
         //框架处理了
         listenerAdapter.containerAckMode(AcknowledgeMode.MANUAL);
-        listenerAdapter.setMessageConverter(jsonMessageConverter);
+        listenerAdapter.setMessageConverter(new Jackson2JsonMessageConverter());
         container.setConcurrency("5");
         container.setConnectionFactory(connectionFactory);
         container.setQueueNames(queue.getName());
@@ -88,7 +85,6 @@ public class CacheEvictRabbitConfig {
         return container;
     }
 
-    @Bean("cacheExecutor")
     TaskExecutor simpleAsyncTaskExecutor() {
         SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
         executor.setVirtualThreads(true);
