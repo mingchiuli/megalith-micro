@@ -29,16 +29,12 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
     private static final Logger log = LoggerFactory.getLogger(UpdateBlogCacheEvictHandler.class);
     private final CacheKeyGenerator cacheKeyGenerator;
 
-    private final CommonCacheKeyGenerator commonCacheKeyGenerator;
-
     public UpdateBlogCacheEvictHandler(RedissonClient redissonClient,
                                        BlogHttpServiceWrapper blogHttpServiceWrapper,
                                        CacheKeyGenerator cacheKeyGenerator,
-                                       CacheEvictHandler cacheEvictHandler,
-                                       CommonCacheKeyGenerator commonCacheKeyGenerator) {
+                                       CacheEvictHandler cacheEvictHandler) {
         super(redissonClient, blogHttpServiceWrapper, cacheEvictHandler);
         this.cacheKeyGenerator = cacheKeyGenerator;
-        this.commonCacheKeyGenerator = commonCacheKeyGenerator;
     }
 
     @Override
@@ -63,7 +59,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         //博客对象本身缓存
         try {
             Method findByIdAndVisibleMethod = BlogWrapper.class.getMethod("findById", Long.class);
-            String findByIdAndVisible = commonCacheKeyGenerator.generateKey(findByIdAndVisibleMethod, id);
+            String findByIdAndVisible = CommonCacheKeyGenerator.generateKey(findByIdAndVisibleMethod, id);
             keys.add(findByIdAndVisible);
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
@@ -72,7 +68,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
         try {
             Method statusMethod = BlogWrapper.class.getMethod("findStatusById", Long.class);
-            String statusKey = commonCacheKeyGenerator.generateKey(statusMethod, id);
+            String statusKey = CommonCacheKeyGenerator.generateKey(statusMethod, id);
             keys.add(statusKey);
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
@@ -80,7 +76,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
         try {
             Method sensitiveMethod = BlogSensitiveWrapper.class.getMethod("findSensitiveByBlogId", Long.class);
-            String sensitive = commonCacheKeyGenerator.generateKey(sensitiveMethod, id);
+            String sensitive = CommonCacheKeyGenerator.generateKey(sensitiveMethod, id);
             keys.add(sensitive);
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
