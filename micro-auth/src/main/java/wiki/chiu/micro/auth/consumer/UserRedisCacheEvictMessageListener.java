@@ -28,15 +28,12 @@ public class UserRedisCacheEvictMessageListener {
 
     private static final Logger log = LoggerFactory.getLogger(UserRedisCacheEvictMessageListener.class);
 
-    private final CommonCacheKeyGenerator commonCacheKeyGenerator;
-
     private final CacheEvictHandler cacheEvictHandler;
 
     private static final String QUEUE = "user.auth.menu.change.queue.auth";
 
 
-    public UserRedisCacheEvictMessageListener(CommonCacheKeyGenerator commonCacheKeyGenerator, CacheEvictHandler cacheEvictHandler) {
-        this.commonCacheKeyGenerator = commonCacheKeyGenerator;
+    public UserRedisCacheEvictMessageListener(CacheEvictHandler cacheEvictHandler) {
         this.cacheEvictHandler = cacheEvictHandler;
     }
 
@@ -53,7 +50,7 @@ public class UserRedisCacheEvictMessageListener {
             try {
                 method = AuthWrapper.class.getMethod("getCurrentUserNav", String.class);
                 for (String role : roles) {
-                    keys.add(commonCacheKeyGenerator.generateKey(method, role));
+                    keys.add(CommonCacheKeyGenerator.generateKey(method, role));
                 }
             } catch (NoSuchMethodException e) {
                 log.error("some error", e);
@@ -66,7 +63,7 @@ public class UserRedisCacheEvictMessageListener {
             try {
                 getAuthoritiesByRoleCodeMethod = AuthWrapper.class.getMethod("getAuthoritiesByRoleCode", String.class);
                 for (String role : roles) {
-                    keys.add(commonCacheKeyGenerator.generateKey(getAuthoritiesByRoleCodeMethod, role));
+                    keys.add(CommonCacheKeyGenerator.generateKey(getAuthoritiesByRoleCodeMethod, role));
                 }
             } catch (NoSuchMethodException e) {
                 log.error("some error", e);
@@ -75,7 +72,7 @@ public class UserRedisCacheEvictMessageListener {
             Method getAllSystemAuthoritiesMethod;
             try {
                 getAllSystemAuthoritiesMethod = AuthWrapper.class.getMethod("getAllSystemAuthorities");
-                keys.add(commonCacheKeyGenerator.generateKey(getAllSystemAuthoritiesMethod));
+                keys.add(CommonCacheKeyGenerator.generateKey(getAllSystemAuthoritiesMethod));
             } catch (NoSuchMethodException e) {
                 log.error("some error", e);
             }
