@@ -16,9 +16,13 @@ import java.util.Objects;
  */
 public class CommonCacheKeyGenerator {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
-    public static String generateKey(Method method, Object... args) {
+    public CommonCacheKeyGenerator(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    public String generateKey(Method method, Object... args) {
 
         Class<?> declaringType = method.getDeclaringClass();
         String methodName = method.getName();
