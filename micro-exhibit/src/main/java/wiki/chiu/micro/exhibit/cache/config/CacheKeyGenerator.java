@@ -21,6 +21,12 @@ public class CacheKeyGenerator {
 
     private static final Logger log = LoggerFactory.getLogger(CacheKeyGenerator.class);
 
+    private final CommonCacheKeyGenerator commonCacheKeyGenerator;
+
+    public CacheKeyGenerator(CommonCacheKeyGenerator commonCacheKeyGenerator) {
+        this.commonCacheKeyGenerator = commonCacheKeyGenerator;
+    }
+
     @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
@@ -35,7 +41,7 @@ public class CacheKeyGenerator {
             Method method;
             try {
                 method = BlogWrapper.class.getMethod(FIND_PAGE, Integer.class, Integer.class);
-                String key = CommonCacheKeyGenerator.generateKey(method, i, Integer.MIN_VALUE);
+                String key = commonCacheKeyGenerator.generateKey(method, i, Integer.MIN_VALUE);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
                 log.error("some exception happen...", e);
@@ -46,7 +52,7 @@ public class CacheKeyGenerator {
             Method method;
             try {
                 method = BlogWrapper.class.getMethod(FIND_PAGE, Integer.class, Integer.class);
-                String key = CommonCacheKeyGenerator.generateKey(method, i, year);
+                String key = commonCacheKeyGenerator.generateKey(method, i, year);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
                 log.error("some exception happen...", e);
@@ -64,7 +70,7 @@ public class CacheKeyGenerator {
             Method method;
             try {
                 method = BlogWrapper.class.getMethod(FIND_PAGE, Integer.class, Integer.class);
-                String key = CommonCacheKeyGenerator.generateKey(method, i, Integer.MIN_VALUE);
+                String key = commonCacheKeyGenerator.generateKey(method, i, Integer.MIN_VALUE);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
                 log.error("some exception happen...", e);
@@ -75,7 +81,7 @@ public class CacheKeyGenerator {
             Method method;
             try {
                 method = BlogWrapper.class.getMethod(FIND_PAGE, Integer.class, Integer.class);
-                String key = CommonCacheKeyGenerator.generateKey(method, i, year);
+                String key = commonCacheKeyGenerator.generateKey(method, i, year);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
                 log.error("some exception happen...", e);

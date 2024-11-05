@@ -1,6 +1,7 @@
 package wiki.chiu.micro.exhibit.cache.handler;
 
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
+import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
 import wiki.chiu.micro.common.utils.KeyUtils;
 import wiki.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
