@@ -21,7 +21,7 @@ jobs:
           java-version: '23'
       - uses: gradle/actions/setup-gradle@v4
       - name: Publish
-        run: ./gradlew publishAndReleaseToMavenCentral
+        run: ./gradlew :micro-cache:publishAndReleaseToMavenCentral
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
