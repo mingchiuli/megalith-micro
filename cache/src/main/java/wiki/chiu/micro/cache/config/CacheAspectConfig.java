@@ -30,7 +30,7 @@ public class CacheAspectConfig {
 
     private final com.github.benmanes.caffeine.cache.Cache<String, Object> localCache;
 
-    public CacheAspectConfig(@Qualifier("cacheRedissonClient") RedissonClient redissonClient, ObjectMapper objectMapper, Cache<String, Object> localCache, CommonCacheKeyGenerator commonCacheKeyGenerator) {
+    public CacheAspectConfig(@Qualifier("cacheRedissonClient") RedissonClient redissonClient, ObjectMapper objectMapper, Cache<String, Object> localCache) {
         this.redissonClient = redissonClient;
         this.objectMapper = objectMapper;
         this.localCache = localCache;
