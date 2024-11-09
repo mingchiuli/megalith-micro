@@ -163,55 +163,8 @@ public class BlogSearchServiceImpl implements BlogSearchService {
     @Override
     public BlogSearchVo searchBlogs(String keywords, Integer currentPage, Integer size, Long userId, List<String> roles) {
 
-        var boolQryBuilder = new BoolQuery.Builder();
         boolean search = StringUtils.hasText(keywords);
-        if (search) {
-            boolQryBuilder
-                    .should(should -> should
-                            .match(match -> match
-                                    .field(TITLE.getField())
-                                    .fuzziness("auto")
-                                    .query(keywords)))
-                    .should(should -> should
-                            .matchPhrase(matchPhrase -> matchPhrase
-                                    .field(TITLE.getField())
-                                    .query(keywords)))
-                    .should(should -> should
-                            .match(match -> match
-                                    .field(DESCRIPTION.getField())
-                                    .fuzziness("auto")
-                                    .query(keywords)))
-                    .should(should -> should
-                            .matchPhrase(matchPhrase -> matchPhrase
-                                    .field(DESCRIPTION.getField())
-                                    .query(keywords)))
-                    .should(should -> should
-                            .match(match -> match
-                                    .field(CONTENT.getField())
-                                    .fuzziness("auto")
-                                    .query(keywords)))
-                    .should(should -> should
-                            .matchPhrase(matchPhrase -> matchPhrase
-                                    .field(CONTENT.getField())
-                                    .query(keywords)))
-                    .minimumShouldMatch("1");
-        }
-
-        if (!roles.contains(highestRole)) {
-            var boolQry = BoolQuery.of(bool -> bool
-                    .should(should -> should
-                            .term(term -> term
-                                    .field(USERID.getField())
-                                    .value(userId)))
-                    .should(should -> should
-                            .term(term -> term
-                                    .field(STATUS.getField())
-                                    .value(StatusEnum.NORMAL.getCode())))
-                    .minimumShouldMatch("1"));
-            boolQryBuilder.filter(filter -> filter.bool(boolQry));
-        }
-
-        BoolQuery boolQuery = boolQryBuilder.build();
+        BoolQuery boolQuery = getSysBoolQuery(keywords, userId, roles);
 
         NativeQueryBuilder nativeQueryBuilder = NativeQuery.builder();
         if (search) {
@@ -290,6 +243,68 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                 .total(searchResp.getTotalHits())
                 .build();
 
+    }
+
+    @Override
+    public Long searchCount(String keywords, Long userId, List<String> roles) {
+        BoolQuery boolQuery = getSysBoolQuery(keywords, userId, roles);
+        NativeQuery nativeQuery = NativeQuery.builder()
+                .withQuery(query -> 
+                        query.bool(boolQuery))
+                .build();
+        return elasticsearchTemplate.count(nativeQuery, Long.class);
+    }
+
+    private BoolQuery getSysBoolQuery(String keywords, Long userId, List<String> roles) {
+        BoolQuery.Builder boolQryBuilder = new BoolQuery.Builder();
+
+        if (StringUtils.hasText(keywords)) {
+            boolQryBuilder
+                    .should(should -> should
+                            .match(match -> match
+                                    .field(TITLE.getField())
+                                    .fuzziness("auto")
+                                    .query(keywords)))
+                    .should(should -> should
+                            .matchPhrase(matchPhrase -> matchPhrase
+                                    .field(TITLE.getField())
+                                    .query(keywords)))
+                    .should(should -> should
+                            .match(match -> match
+                                    .field(DESCRIPTION.getField())
+                                    .fuzziness("auto")
+                                    .query(keywords)))
+                    .should(should -> should
+                            .matchPhrase(matchPhrase -> matchPhrase
+                                    .field(DESCRIPTION.getField())
+                                    .query(keywords)))
+                    .should(should -> should
+                            .match(match -> match
+                                    .field(CONTENT.getField())
+                                    .fuzziness("auto")
+                                    .query(keywords)))
+                    .should(should -> should
+                            .matchPhrase(matchPhrase -> matchPhrase
+                                    .field(CONTENT.getField())
+                                    .query(keywords)))
+                    .minimumShouldMatch("1");
+        }
+
+        if (!roles.contains(highestRole)) {
+            var boolQry = BoolQuery.of(bool -> bool
+                    .should(should -> should
+                            .term(term -> term
+                                    .field(USERID.getField())
+                                    .value(userId)))
+                    .should(should -> should
+                            .term(term -> term
+                                    .field(STATUS.getField())
+                                    .value(StatusEnum.NORMAL.getCode())))
+                    .minimumShouldMatch("1"));
+            boolQryBuilder.filter(filter -> filter.bool(boolQry));
+        }
+
+        return boolQryBuilder.build();
     }
 
 }

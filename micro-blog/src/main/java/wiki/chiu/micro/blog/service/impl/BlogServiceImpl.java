@@ -30,6 +30,7 @@ import wiki.chiu.micro.common.dto.BlogSearchRpcDto;
 import wiki.chiu.micro.common.dto.UserEntityRpcDto;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.req.BlogSearchReq;
 import wiki.chiu.micro.common.rpc.OssHttpService;
 import wiki.chiu.micro.common.utils.JsonUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -135,13 +136,34 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void download(HttpServletResponse response) {
-        try (ServletOutputStream outputStream = response.getOutputStream()) {
-            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+    public void download(HttpServletResponse response, String keywords) {
 
-            Set<BlogEntity> items = Collections.newSetFromMap(new ConcurrentHashMap<>());
-            List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+        BlogEntity[] blogs;
+        Set<BlogEntity> items = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+
+        if (StringUtils.hasLength(keywords)) {
+            Long total = searchHttpServiceWrapper.countBlogs(keywords);
+            int pageSize = 20;
+            int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
+
+            for (int i = 1; i <= totalPage; i++) {
+                BlogSearchReq req = BlogSearchReq.builder()
+                        .page(i)
+                        .pageSize(pageSize)
+                        .keywords(keywords)
+                        .build();
+                CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
+                    BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(req);
+                    List<Long> ids = dto.ids();
+                    List<BlogEntity> page = blogRepository.findAllById(ids).stream()
+                            .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
+                            .toList();
+                    items.addAll(page);
+                }, taskExecutor);
+                completableFutures.add(completableFuture);
+            }
+        } else {
             long total = blogRepository.count();
             int pageSize = 20;
             int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
@@ -154,11 +176,19 @@ public class BlogServiceImpl implements BlogService {
                 }, taskExecutor);
                 completableFutures.add(completableFuture);
             }
+        }
 
+        try {
             CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).get(1000, TimeUnit.MILLISECONDS);
-            BlogEntity[] blogs = items.toArray(new BlogEntity[0]);
-            int len = blogs.length;
+        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+        blogs = items.toArray(new BlogEntity[0]);
 
+        try (ServletOutputStream outputStream = response.getOutputStream()) {
+            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            int len = blogs.length;
             for (int i = 0; i < len; i++) {
                 if (i == 0) {
                     // [
@@ -167,7 +197,7 @@ public class BlogServiceImpl implements BlogService {
 
                 byte[] bytes = objectMapper.writeValueAsBytes(blogs[i]);
                 outputStream.write(bytes);
-                if (i != len - 1) {
+                if (i != blogs.length - 1) {
                     // ,
                     outputStream.write(new byte[]{44});
                 }
@@ -180,8 +210,6 @@ public class BlogServiceImpl implements BlogService {
             outputStream.flush();
         } catch (IOException e) {
             throw new MissException(e.getMessage());
-        } catch (ExecutionException | InterruptedException | TimeoutException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -300,7 +328,12 @@ public class BlogServiceImpl implements BlogService {
     @SuppressWarnings("unchecked")
     public PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, String keywords) {
 
-        BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(currentPage, size, keywords);
+        BlogSearchReq req = BlogSearchReq.builder()
+                .page(currentPage)
+                .pageSize(size)
+                .keywords(keywords)
+                .build();
+        BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(req);
         List<Long> ids = dto.ids();
         if (ids.isEmpty()) {
             return PageAdapter.emptyPage();
