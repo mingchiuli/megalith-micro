@@ -90,8 +90,8 @@ public class BlogController {
     }
 
     @GetMapping("/download")
-    public Result<Void> download(HttpServletResponse response) {
-        blogService.download(response);
+    public Result<Void> download(HttpServletResponse response, @RequestParam(required = false) String keywords) {
+        blogService.download(response, keywords);
         return Result.success();
     }
 

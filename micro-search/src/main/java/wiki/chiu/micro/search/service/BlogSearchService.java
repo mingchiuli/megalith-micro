@@ -17,4 +17,7 @@ public interface BlogSearchService {
     PageAdapter<BlogDocumentVo> selectBlogsByES(Integer currentPage, String keywords, Boolean allInfo, String year);
 
     BlogSearchVo searchBlogs(String keywords, Integer currentPage, Integer size, Long userId, List<String> roles);
+
+    Long searchCount(String keywords, Long userId, List<String> roles);
+
 }

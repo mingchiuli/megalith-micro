@@ -30,7 +30,7 @@ public interface BlogService {
 
     String setBlogToken(Long blogId, Long userId);
 
-    void download(HttpServletResponse response);
+    void download(HttpServletResponse response, String keywords);
 
     BlogEntityRpcVo findById(Long blogId);
 

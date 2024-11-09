@@ -34,4 +34,10 @@ public class SearchProvider {
         AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogSearchService.searchBlogs(keywords, currentPage, size, authDto.userId(), authDto.roles()));
     }
+
+    @GetMapping("/blog/count")
+    public Result<Long> searchCount(@RequestParam @Size(max = 20) String keywords) {
+        AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
+        return Result.success(() -> blogSearchService.searchCount(keywords, authDto.userId(), authDto.roles()));
+    }
 }
