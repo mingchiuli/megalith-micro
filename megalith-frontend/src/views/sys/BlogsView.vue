@@ -69,7 +69,7 @@ const handlePassword = async (row: BlogSys) => {
 }
 
 const download = async () => {
-  await downloadData('/sys/blog/download', 'blogs', uploadPercentage, showPercentage)
+  await downloadData(`/sys/blog/download?keywords=${input.value}`, 'blogs', uploadPercentage, showPercentage)
 }
 
 const handleCheck = (row: BlogSys) => {
