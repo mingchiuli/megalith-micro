@@ -252,7 +252,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                 .withQuery(query -> 
                         query.bool(boolQuery))
                 .build();
-        return elasticsearchTemplate.count(nativeQuery, Long.class);
+        return elasticsearchTemplate.count(nativeQuery, BlogDocument.class);
     }
 
     private BoolQuery getSysBoolQuery(String keywords, Long userId, List<String> roles) {
