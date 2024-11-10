@@ -76,10 +76,4 @@ public class BlogWrapper {
         return BlogDescriptionDtoConvertor.convert(page);
     }
 
-    @Cache(prefix = Const.HOT_BLOG)
-    public Long getCountByYear(Integer year) {
-        return blogHttpServiceWrapper.countByCreatedBetween(LocalDateTime.of(year, 1, 1, 0, 0, 0),
-                LocalDateTime.of(year, 12, 31, 23, 59, 59));
-    }
-
 }

@@ -42,8 +42,6 @@ public interface BlogService {
 
     Long count();
 
-    List<Long> findIds(Integer pageNo, Integer pageSize);
-
     void setReadCount(Long blogId);
 
     Integer findStatusById(Long blogId);

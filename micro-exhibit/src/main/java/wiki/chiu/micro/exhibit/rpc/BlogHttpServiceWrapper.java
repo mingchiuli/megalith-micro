@@ -73,14 +73,6 @@ public class BlogHttpServiceWrapper {
         return result.data();
     }
 
-    public List<Long> findIds(Integer pageNo, Integer pageSize) {
-        Result<List<Long>> result = blogHttpService.findIds(pageNo, pageSize);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
-    }
-
     public void setReadCount(Long id) {
         blogHttpService.setReadCount(id);
     }

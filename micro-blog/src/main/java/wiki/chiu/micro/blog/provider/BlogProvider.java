@@ -51,12 +51,6 @@ public class BlogProvider {
         return Result.success(blogService::count);
     }
 
-    @GetMapping("/blog/ids/{pageNo}/{pageSize}")
-    public Result<List<Long>> findIds(@PathVariable Integer pageNo,
-                                      @PathVariable Integer pageSize) {
-        return Result.success(() -> blogService.findIds(pageNo, pageSize));
-    }
-
     @PostMapping("/blog/{blogId}")
     public Result<Void> setReadCount(@PathVariable Long blogId) {
         return Result.success(() -> blogService.setReadCount(blogId));

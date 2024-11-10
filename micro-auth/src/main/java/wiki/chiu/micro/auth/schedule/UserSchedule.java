@@ -26,38 +26,37 @@ public class UserSchedule {
     @Qualifier("commonExecutor")
     private final ExecutorService taskExecutor;
 
-    private static final String CACHE_FINISH_FLAG = "cache_manager_finish_flag";
-
-    private static final String MANAGER_CACHE_KEY = "managerCacheKey";
-
     public UserSchedule(RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.redissonClient = redissonClient;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.taskExecutor = taskExecutor;
     }
 
-    @Scheduled(cron = "0 0 0/1 * * ?")
-    public void configureTask() {
 
-        RLock rLock = redissonClient.getLock(MANAGER_CACHE_KEY);
+    private void buildExecutor(Runnable task, String key, String finishKey) {
+
+        RLock rLock = redissonClient.getLock(key);
         if (Boolean.FALSE.equals(rLock.tryLock())) {
             return;
         }
 
         try {
-            Boolean executed = redissonClient.getBucket(CACHE_FINISH_FLAG).isExists();
+            Boolean executed = redissonClient.getBucket(finishKey).isExists();
             if (Boolean.FALSE.equals(executed)) {
-                exec();
-                redissonClient.getBucket(CACHE_FINISH_FLAG).set("flag", Duration.ofSeconds(60));
+                CompletableFuture.runAsync(task, taskExecutor);
+                redissonClient.getBucket(finishKey).set("flag", Duration.ofSeconds(10));
             }
         } finally {
             rLock.unlock();
         }
     }
 
-    private void exec() {
+    @Scheduled(cron = "0 0/1 * * * ?")
+    public void unlockUser() {
         // unlock user
-        CompletableFuture.runAsync(userHttpServiceWrapper::unlock, taskExecutor);
+        String unlockUserExecutor = "unlockUserExecutor";
+        String unlockUserExecutorFlag = "unlockUserExecutorFlag";
+        buildExecutor(userHttpServiceWrapper::unlock, unlockUserExecutor, unlockUserExecutorFlag);
     }
 
 }

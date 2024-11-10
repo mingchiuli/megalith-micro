@@ -219,25 +219,4 @@ public class BlogServiceImpl implements BlogService {
         blogWrapper.setReadCount(id);
         return BlogExhibitVoConvertor.convert(blogExhibitDto);
     }
-
-    @Override
-    public List<Integer> getYears() {
-        return blogHttpServiceWrapper.getYears();
-    }
-
-
-    @Override
-    public Long count() {
-        return blogHttpServiceWrapper.count();
-    }
-
-    @Override
-    public Long getCountByYear(Integer year) {
-        return blogWrapper.getCountByYear(year);
-    }
-
-    @Override
-    public List<Long> findIds(Integer pageNo, Integer pageSize) {
-        return blogHttpServiceWrapper.findIds(pageNo, pageSize);
-    }
 }
