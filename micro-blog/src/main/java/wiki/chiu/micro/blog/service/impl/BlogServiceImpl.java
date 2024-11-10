@@ -461,13 +461,6 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public List<Long> findIds(Integer pageNo, Integer pageSize) {
-        var pageRequest = PageRequest.of(pageNo - 1,
-                pageSize);
-        return blogRepository.findIds(pageRequest);
-    }
-
-    @Override
     public void setReadCount(Long blogId) {
         blogRepository.setReadCount(blogId);
     }

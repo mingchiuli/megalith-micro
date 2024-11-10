@@ -30,12 +30,4 @@ public interface BlogService {
 
     BlogExhibitVo getBlogDetail(List<String> roles, Long id, Long userId);
 
-    Long getCountByYear(Integer year);
-
-    Long count();
-
-    List<Integer> getYears();
-
-    List<Long> findIds(Integer pageNo, Integer pageSize);
-
 }

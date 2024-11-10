@@ -38,9 +38,6 @@ public interface BlogRepository extends JpaRepository<BlogEntity, Long> {
     @Query(value = "SELECT DISTINCT(Year(blog.created)) from BlogEntity blog")
     List<Integer> getYears();
 
-    @Query(value = "SELECT blog.id from BlogEntity blog")
-    List<Long> findIds(Pageable pageRequest);
-
     @Query(value = "SELECT blog.userId from BlogEntity blog where blog.id = ?1")
     Long findUserIdById(Long id);
 
