@@ -30,12 +30,6 @@ public class BlogProvider {
         return Result.success(() -> blogService.findById(blogId));
     }
 
-    @GetMapping("/blog/{blogId}/{userId}")
-    public Result<BlogEntityRpcVo> findByIdAndUserId(@PathVariable Long blogId,
-                                                     @PathVariable Long userId) {
-        return Result.success(() -> blogService.findByIdAndUserId(blogId, userId));
-    }
-
     @PostMapping("/blog/batch")
     public Result<List<BlogEntityRpcVo>> findAllById(@RequestBody List<Long> ids) {
         return Result.success(() -> blogService.findAllById(ids));

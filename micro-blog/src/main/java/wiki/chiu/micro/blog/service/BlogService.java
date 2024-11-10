@@ -34,8 +34,6 @@ public interface BlogService {
 
     BlogEntityRpcVo findById(Long blogId);
 
-    BlogEntityRpcVo findByIdAndUserId(Long blogId, Long userId);
-
     List<BlogEntityRpcVo> findAllById(List<Long> ids);
 
     List<Integer> getYears();

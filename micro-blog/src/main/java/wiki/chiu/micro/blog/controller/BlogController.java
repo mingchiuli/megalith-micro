@@ -39,7 +39,6 @@ public class BlogController {
         this.authHttpServiceWrapper = authHttpServiceWrapper;
     }
 
-
     @PostMapping("/save")
     public Result<Void> saveOrUpdate(@RequestBody @BlogSaveValue BlogEntityReq blog) throws AuthException {
         AuthRpcDto AuthRpcDto = authHttpServiceWrapper.getAuthentication();

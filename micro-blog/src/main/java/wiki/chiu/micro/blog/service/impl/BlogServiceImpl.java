@@ -435,16 +435,6 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public BlogEntityRpcVo findByIdAndUserId(Long blogId, Long userId) {
-        BlogEntity blogEntity = blogRepository.findById(blogId)
-                .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-        if (!Objects.equals(userId, blogEntity.getUserId())) {
-            throw new MissException(NO_FOUND.getMsg());
-        }
-        return BlogEntityRpcVoConvertor.convert(blogEntity);
-    }
-
-    @Override
     public List<BlogEntityRpcVo> findAllById(List<Long> ids) {
         List<BlogEntity> blogEntities = blogRepository.findAllById(ids);
         return BlogEntityRpcVoConvertor.convert(blogEntities);
