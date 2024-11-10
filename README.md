@@ -8,14 +8,14 @@ A Simple Cache Library both local and remote cache
 <dependency>
     <groupId>wiki.chiu.megalith</groupId>
     <artifactId>cache-spring-boot-starter</artifactId>
-    <version>1.7.0</version>
+    <version>1.7.1</version>
 </dependency>
 ```
 
 or
 
 ```kotlin
-implementation("wiki.chiu.megalith:cache-spring-boot-starter:1.7.0")
+implementation("wiki.chiu.megalith:cache-spring-boot-starter:1.7.1")
 ```
 
 use:
@@ -41,12 +41,11 @@ public String evict() {
 }
 ```
 
-It can be updated to a stable queue(optional):
+It can be upgraded to a stable queue(optional):
 
 ```yml
 megalith:
   cache:
-    topic: rabbit
     queue-prefix: cache.user.evict.queue.
     fanout-exchange: cache.user.evict.fanout.exchange
 ```
