@@ -142,40 +142,25 @@ public class BlogServiceImpl implements BlogService {
         Set<BlogEntity> items = Collections.newSetFromMap(new ConcurrentHashMap<>());
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 
-        if (StringUtils.hasLength(keywords)) {
-            Long total = searchHttpServiceWrapper.countBlogs(keywords);
-            int pageSize = 20;
-            int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
+        Long total = searchHttpServiceWrapper.countBlogs(keywords);
+        int pageSize = 20;
+        int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
 
-            for (int i = 1; i <= totalPage; i++) {
-                BlogSearchReq req = BlogSearchReq.builder()
-                        .page(i)
-                        .pageSize(pageSize)
-                        .keywords(keywords)
-                        .build();
-                CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
-                    BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(req);
-                    List<Long> ids = dto.ids();
-                    List<BlogEntity> page = blogRepository.findAllById(ids).stream()
-                            .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
-                            .toList();
-                    items.addAll(page);
-                }, taskExecutor);
-                completableFutures.add(completableFuture);
-            }
-        } else {
-            long total = blogRepository.count();
-            int pageSize = 20;
-            int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
-
-            for (int i = 1; i <= totalPage; i++) {
-                PageRequest pageRequest = PageRequest.of(i, pageSize);
-                CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
-                    Page<BlogEntity> page = blogRepository.findAll(pageRequest);
-                    items.addAll(page.getContent());
-                }, taskExecutor);
-                completableFutures.add(completableFuture);
-            }
+        for (int i = 1; i <= totalPage; i++) {
+            BlogSearchReq req = BlogSearchReq.builder()
+                    .page(i)
+                    .pageSize(pageSize)
+                    .keywords(keywords)
+                    .build();
+            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
+                BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(req);
+                List<Long> ids = dto.ids();
+                List<BlogEntity> page = blogRepository.findAllById(ids).stream()
+                        .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
+                        .toList();
+                items.addAll(page);
+            }, taskExecutor);
+            completableFutures.add(completableFuture);
         }
 
         try {
