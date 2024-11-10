@@ -1,7 +1,5 @@
 package wiki.chiu.micro.exhibit.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import wiki.chiu.micro.common.dto.AuthRpcDto;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -28,7 +26,6 @@ import java.util.List;
 @Validated
 public class BlogController {
 
-    private static final Logger log = LoggerFactory.getLogger(BlogController.class);
     private final BlogService blogService;
 
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
@@ -50,7 +47,6 @@ public class BlogController {
     @Bloom(handler = ListPageHandler.class)
     public Result<PageAdapter<BlogDescriptionVo>> getPage(@PathVariable Integer currentPage,
                                                           @RequestParam(required = false, defaultValue = "-2147483648") Integer year) {
-        log.info("调用了");
         return Result.success(() -> blogService.findPage(currentPage, year));
     }
 
