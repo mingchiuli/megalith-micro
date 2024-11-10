@@ -3,7 +3,7 @@ package wiki.chiu.micro.cache.config;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.cache.handler.impl.RabbitCacheEvictHandler;
 import wiki.chiu.micro.cache.listener.RabbitCacheEvictMessageListener;
@@ -22,7 +22,7 @@ import org.springframework.core.task.TaskExecutor;
 import java.util.UUID;
 
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "megalith", name = "cache.topic", havingValue = "rabbit")
+@ConditionalOnClass(ConnectionFactory.class)
 public class CacheEvictRabbitConfig {
 
     @Value("${megalith.cache.queue-prefix}")
