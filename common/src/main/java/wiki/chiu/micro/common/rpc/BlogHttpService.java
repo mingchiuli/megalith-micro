@@ -35,7 +35,7 @@ public interface BlogHttpService {
 
     @PostExchange("/blog/page/{pageNo}/{pageSize}")
     Result<PageAdapter<BlogEntityRpcDto>> findPage(@PathVariable Integer pageNo,
-                                                @PathVariable Integer pageSize);
+                                                   @PathVariable Integer pageSize);
 
     @PostExchange("/blog/page/year/{pageNo}/{pageSize}/{start}/{end}")
     Result<PageAdapter<BlogEntityRpcDto>> findPageByCreatedBetween(@PathVariable Integer pageNo,
