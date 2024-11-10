@@ -138,7 +138,6 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public void download(HttpServletResponse response, String keywords) {
 
-        BlogEntity[] blogs;
         Set<BlogEntity> items = Collections.newSetFromMap(new ConcurrentHashMap<>());
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 
@@ -168,7 +167,7 @@ public class BlogServiceImpl implements BlogService {
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
             throw new RuntimeException(e.getMessage());
         }
-        blogs = items.toArray(new BlogEntity[0]);
+        BlogEntity[] blogs = items.toArray(new BlogEntity[0]);
 
         try (ServletOutputStream outputStream = response.getOutputStream()) {
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
