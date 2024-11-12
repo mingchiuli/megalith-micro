@@ -42,9 +42,9 @@ const blogId = route.query.id as string | undefined
 let socket: WebSocket
 const connect = () => {
   destroy()
-    socket = new WebSocket(
-      `${import.meta.env.VITE_BASE_WS_URL}/edit/ws?token=${localStorage.getItem('accessToken')}`
-    )
+  socket = new WebSocket(
+    `${import.meta.env.VITE_BASE_WS_URL}/edit/ws?token=${localStorage.getItem('accessToken')}`
+  )
   operateStatus.client = socket
   socket.addEventListener('message', subscribe)
 }

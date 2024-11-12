@@ -1,6 +1,12 @@
 <script lang="ts" setup>
 import { UPLOAD } from '@/http/http'
-import { MdEditor, type Footers, type ToolbarNames, type ExposeParam, NormalFooterToolbar } from 'md-editor-v3'
+import {
+  MdEditor,
+  type Footers,
+  type ToolbarNames,
+  type ExposeParam,
+  NormalFooterToolbar
+} from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import '@vavt/v3-extension/lib/asset/ExportPDF.css'
 import { Emoji, ExportPDF } from '@vavt/v3-extension'
@@ -163,16 +169,16 @@ const onUploadImg = async (files: File[], callback: Function) => {
       <Emoji />
     </template>
     <template #defFooters>
-       <el-progress
-          v-if="showPercentage"
-          type="line"
-          :percentage="uploadPercentage"
-          :color="Colors"
-          status="success" />
+      <el-progress
+        v-if="showPercentage"
+        type="line"
+        :percentage="uploadPercentage"
+        :color="Colors"
+        status="success"
+      />
       <NormalFooterToolbar>
         <span class="trans-radius" :style="{ 'background-color': transColor }" />
       </NormalFooterToolbar>
-
     </template>
   </md-editor>
 </template>

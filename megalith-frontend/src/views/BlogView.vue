@@ -61,7 +61,6 @@ const computeWidth = () => {
 
 onMounted(() => window.addEventListener('resize', computeWidth))
 onUnmounted(() => window.removeEventListener('resize', computeWidth))
-
 ;(async () => {
   let data: BlogExhibit
   if (token) {

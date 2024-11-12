@@ -282,7 +282,6 @@ defineExpose({ searchAllInfo })
 </template>
 
 <style scoped>
-
 .value {
   overflow-x: auto;
 }

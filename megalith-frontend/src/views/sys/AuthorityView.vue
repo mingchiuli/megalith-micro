@@ -213,10 +213,12 @@ const clearForm = () => {
         >
       </template>
     </el-table-column>
-    
+
     <el-table-column label="类型" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.type === AuthStatus.WHITE_LIST" type="success">白名单</el-tag>
+        <el-tag size="small" v-if="scope.row.type === AuthStatus.WHITE_LIST" type="success"
+          >白名单</el-tag
+        >
         <el-tag size="small" v-else-if="scope.row.type === AuthStatus.NEED_AUTH" type="warning"
           >需鉴权</el-tag
         >
@@ -271,7 +273,6 @@ const clearForm = () => {
 
   <el-dialog v-model="dialogVisible" title="新增/编辑" width="600px" :before-close="handleClose">
     <el-form :model="form" :rules="formRules" ref="form">
-    
       <el-form-item label="权限编码" label-width="100px" prop="code">
         <el-input v-model="form.code" maxlength="50" />
       </el-form-item>
@@ -306,7 +307,7 @@ const clearForm = () => {
           <el-radio :value="Status.BLOCK">禁用</el-radio>
         </el-radio-group>
       </el-form-item>
-      
+
       <el-form-item label="类型" label-width="100px" prop="status">
         <el-radio-group v-model="form.type">
           <el-radio :value="AuthStatus.WHITE_LIST">白名单</el-radio>
