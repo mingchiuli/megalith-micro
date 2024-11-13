@@ -104,7 +104,7 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth))
     </el-skeleton>
     <el-card shadow="never" class="content" v-show="!loading">
       <md-preview
-        editorId="preview-only"
+        id="preview-only"
         v-model="blog.content"
         :showCodeRowNumber="true"
         @on-html-changed="renderCatalogue"
