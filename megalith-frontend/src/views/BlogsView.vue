@@ -217,6 +217,7 @@ const { content, totalElements, pageSize } = toRefs(page)
   width: fit-content;
   margin-left: 5px;
   margin-right: 5px;
+  margin-bottom: 5px;
 }
 
 .search-father {
