@@ -1,6 +1,7 @@
 package wiki.chiu.micro.blog.config;
 
 import wiki.chiu.micro.blog.constant.BlogOperateMessage;
+import wiki.chiu.micro.blog.dto.BlogDownloadDto;
 import wiki.chiu.micro.blog.valid.BlogSaveConstraintValidator;
 import wiki.chiu.micro.blog.valid.ListValueConstraintValidator;
 import wiki.chiu.micro.blog.valid.PushAllConstraintValidator;
@@ -30,6 +31,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
 
         hints.serialization().registerType(BlogOperateMessage.class);
+        hints.serialization().registerType(BlogDownloadDto.class);
 
         // Register resources
         hints.resources().registerPattern("ValidationMessages.properties");
