@@ -41,7 +41,7 @@ public String evict() {
 }
 ```
 
-It can be upgraded to a stable queue(optional):
+It can be upgraded to a stable queue(if you used rabbitmq):
 
 ```yml
 megalith:
