@@ -80,38 +80,41 @@ onMounted(() => {
     }
 
     const selection = document.getSelection()
-    const selectedText = selection!.toString() // 获取选中的文本
+    if (!selection) {
+      return
+    }
+    const selectedText = selection.toString() // 获取选中的文本
 
     if (!selectedText) {
       return
     }
-    if (selection!.anchorOffset > selection!.focusOffset) {
+    if (selection.anchorOffset > selection.focusOffset) {
       //only support left to right select
       return
     }
-    if (selection!.anchorNode.textContent != selection!.focusNode.textContent) {
+    if (selection.anchorNode?.textContent != selection.focusNode?.textContent) {
       //dont support more paragraph select
       return
     }
 
     // 选中文本后要执行的操作
     //文本标签,外面套了一层span或div
-    let text = selection!.focusNode
+    let text = selection.focusNode!
     let idx = 0
-    let label = text!.parentNode
-    if (label!.nodeName !== 'DIV' || label!.childNodes.length !== 1) {
+    let label = text.parentNode!
+    if (label.nodeName !== 'DIV' || label.childNodes.length !== 1) {
       //从span替换为div
-      while (label!.nodeName !== 'DIV') {
-        label = label!.parentNode
+      while (label.nodeName !== 'DIV') {
+        label = label.parentNode!
       }
 
-      if (text!.parentNode!.nodeName === 'SPAN') {
-        text = text!.parentNode!
+      if (text.parentNode!.nodeName === 'SPAN') {
+        text = text.parentNode!
       }
       const eleSiblings: Node[] = []
 
-      for (let i = 0; i < label!.childNodes?.length!; i++) {
-        const item = label!.childNodes[i]!
+      for (let i = 0; i < label.childNodes?.length!; i++) {
+        const item = label.childNodes[i]!
         if (item !== text) {
           eleSiblings.push(item)
         } else {
@@ -121,12 +124,12 @@ onMounted(() => {
 
       eleSiblings.forEach((item) => {
         //同级别的span文本长度
-        idx += item.textContent?.length!
+        idx += item.textContent!.length
       })
     }
 
     const previousSiblings = []
-    let currentElement = label!.previousSibling
+    let currentElement = label.previousSibling
 
     while (currentElement) {
       previousSiblings.push(currentElement)
@@ -141,7 +144,7 @@ onMounted(() => {
       }
     })
 
-    idx = idx + selection!.focusOffset - selectedText!.length
+    idx = idx + selection.focusOffset - selectedText.length
 
     const sensitive: SensitiveTrans = {
       startIndex: idx,
