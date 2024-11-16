@@ -2,7 +2,6 @@ package wiki.chiu.micro.blog.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import wiki.chiu.micro.blog.constant.BlogOperateEnum;
 import wiki.chiu.micro.blog.constant.BlogOperateMessage;
@@ -10,6 +9,7 @@ import wiki.chiu.micro.blog.convertor.BlogDeleteVoConvertor;
 import wiki.chiu.micro.blog.convertor.BlogEntityConvertor;
 import wiki.chiu.micro.blog.convertor.BlogEntityRpcVoConvertor;
 import wiki.chiu.micro.blog.convertor.BlogEntityVoConvertor;
+import wiki.chiu.micro.blog.dto.BlogDownloadDto;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import wiki.chiu.micro.blog.event.BlogOperateEvent;
@@ -138,7 +138,8 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public void download(HttpServletResponse response, String keywords) {
 
-        Set<BlogEntity> items = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        Set<BlogEntity> blogs = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        Set<BlogSensitiveContentEntity> blogSensitives = Collections.newSetFromMap(new ConcurrentHashMap<>());
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 
         Long total = searchHttpServiceWrapper.countBlogs(keywords);
@@ -146,18 +147,20 @@ public class BlogServiceImpl implements BlogService {
         int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
 
         for (int i = 1; i <= totalPage; i++) {
-            BlogSearchReq req = BlogSearchReq.builder()
+            var req = BlogSearchReq.builder()
                     .page(i)
                     .pageSize(pageSize)
                     .keywords(keywords)
                     .build();
-            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
+            var completableFuture = CompletableFuture.runAsync(() -> {
                 BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(req);
                 List<Long> ids = dto.ids();
+                List<BlogSensitiveContentEntity> sensitiveContentEntities = blogSensitiveContentRepository.findByBlogIdIn(ids);
+                blogSensitives.addAll(sensitiveContentEntities);
                 List<BlogEntity> page = blogRepository.findAllById(ids).stream()
                         .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
                         .toList();
-                items.addAll(page);
+                blogs.addAll(page);
             }, taskExecutor);
             completableFutures.add(completableFuture);
         }
@@ -167,33 +170,19 @@ public class BlogServiceImpl implements BlogService {
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
             throw new RuntimeException(e.getMessage());
         }
-        BlogEntity[] blogs = items.toArray(new BlogEntity[0]);
 
-        try (ServletOutputStream outputStream = response.getOutputStream()) {
+        try (var outputStream = response.getOutputStream()) {
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-            int len = blogs.length;
-            for (int i = 0; i < len; i++) {
-                if (i == 0) {
-                    // [
-                    outputStream.write(new byte[]{91});
-                }
-
-                byte[] bytes = objectMapper.writeValueAsBytes(blogs[i]);
-                outputStream.write(bytes);
-                if (i != blogs.length - 1) {
-                    // ,
-                    outputStream.write(new byte[]{44});
-                }
-
-                if (i == len - 1) {
-                    // ]
-                    outputStream.write(new byte[]{93});
-                }
-            }
+            var downloadDto = BlogDownloadDto.builder()
+                    .blogs(new ArrayList<>(blogs))
+                    .blogSensitiveContents(new ArrayList<>(blogSensitives))
+                    .build();
+            byte[] bytes = objectMapper.writeValueAsBytes(downloadDto);
+            outputStream.write(bytes);
             outputStream.flush();
         } catch (IOException e) {
-            throw new MissException(e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
@@ -312,7 +301,7 @@ public class BlogServiceImpl implements BlogService {
     @SuppressWarnings("unchecked")
     public PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, String keywords) {
 
-        BlogSearchReq req = BlogSearchReq.builder()
+        var req = BlogSearchReq.builder()
                 .page(currentPage)
                 .pageSize(size)
                 .keywords(keywords)
@@ -329,13 +318,11 @@ public class BlogServiceImpl implements BlogService {
 
         List<BlogSensitiveContentEntity> blogSensitiveContentEntities = blogSensitiveContentRepository.findByBlogIdIn(ids);
 
-        List<String> res = Optional.ofNullable(
-                        redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),
-                                Collections.singletonList(HOT_READ),
-                                JsonUtils.writeValueAsString(ids.stream()
-                                        .map(String::valueOf)
-                                        .toList())))
-                .orElseGet(Collections::emptyList);
+        List<String> res = redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),
+                Collections.singletonList(HOT_READ),
+                JsonUtils.writeValueAsString(ids.stream()
+                        .map(String::valueOf)
+                        .toList()));
 
         Map<Long, Integer> readMap = new HashMap<>();
         for (int i = 0; i < res.size(); i += 2) {
@@ -375,7 +362,6 @@ public class BlogServiceImpl implements BlogService {
                 Collections.singletonList(QUERY_DELETED + userId),
                 String.valueOf(l), "-1", String.valueOf(size - 1), String.valueOf(start));
 
-        resp = Optional.ofNullable(resp).orElseGet(Collections::emptyList);
         List<String> respList = resp.subList(0, resp.size() - 1);
         Long total = Long.valueOf(resp.getLast());
 
