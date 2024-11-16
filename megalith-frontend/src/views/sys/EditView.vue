@@ -271,7 +271,7 @@ const handleTitleSelect = () => {
     return
   }
 
-  const title = titleRef.value?.input!
+  const title = titleRef.value!.input!
   let start = title.selectionStart!
   let end = title.selectionEnd!
 
@@ -296,7 +296,7 @@ const handleDescSelect = () => {
   if (form.status !== Status.SENSITIVE_FILTER) {
     return
   }
-  const desc = descRef.value?.textarea!
+  const desc = descRef.value!.textarea!
 
   let start = desc.selectionStart!
   let end = desc.selectionEnd!
