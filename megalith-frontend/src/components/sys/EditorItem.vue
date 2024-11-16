@@ -89,6 +89,10 @@ onMounted(() => {
       //only support left to right select
       return
     }
+    if (selection!.anchorNode.textContent != selection!.focusNode.textContent) {
+      //dont support more paragraph select
+      return
+    }
 
     // 选中文本后要执行的操作
     //文本标签,外面套了一层span或div
