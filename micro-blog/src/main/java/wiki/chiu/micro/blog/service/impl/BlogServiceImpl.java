@@ -3,6 +3,8 @@ package wiki.chiu.micro.blog.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import wiki.chiu.micro.blog.constant.BlogOperateEnum;
 import wiki.chiu.micro.blog.constant.BlogOperateMessage;
 import wiki.chiu.micro.blog.convertor.BlogDeleteVoConvertor;
@@ -152,6 +154,9 @@ public class BlogServiceImpl implements BlogService {
                     .pageSize(pageSize)
                     .keywords(keywords)
                     .build();
+
+            ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            RequestContextHolder.setRequestAttributes(servletRequestAttributes, true);//请求头设置子线程共享
             var completableFuture = CompletableFuture.runAsync(() -> {
                 BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(req);
                 List<Long> ids = dto.ids();
