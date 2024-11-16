@@ -10,7 +10,7 @@ public record BlogDownloadDto(
 
         List<BlogEntity> blogs,
 
-        List<BlogSensitiveContentEntity> blogSensitiveContentEntities) implements Serializable {
+        List<BlogSensitiveContentEntity> blogSensitiveContents) implements Serializable {
 
     public static BlogDownloadDto.BlogEntityDownloadDtoBuilder builder() {
         return new BlogDownloadDto.BlogEntityDownloadDtoBuilder();
