@@ -14,8 +14,6 @@ import wiki.chiu.micro.exhibit.rpc.UserHttpServiceWrapper;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -52,8 +50,6 @@ public class BlogWrapper {
     }
 
     public void setReadCount(Long id) {
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        RequestContextHolder.setRequestAttributes(servletRequestAttributes, true);//设置子线程共享
         executorService.execute(() -> {
             blogHttpServiceWrapper.setReadCount(id);
             redissonClient.<String>getScoredSortedSet(Const.HOT_READ).addScore(id.toString(), 1);
