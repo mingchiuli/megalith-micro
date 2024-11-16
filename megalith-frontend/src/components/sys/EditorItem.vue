@@ -85,6 +85,10 @@ onMounted(() => {
     if (!selectedText) {
       return
     }
+    if (selection!.anchorOffset > selection!.focusOffset) {
+      //only support left to right select
+      return
+    }
 
     // 选中文本后要执行的操作
     //文本标签,外面套了一层span或div
