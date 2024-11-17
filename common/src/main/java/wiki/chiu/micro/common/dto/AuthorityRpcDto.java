@@ -1,6 +1,8 @@
 package wiki.chiu.micro.common.dto;
 
 
+import java.io.Serializable;
+
 public record AuthorityRpcDto(
 
         Long id,
@@ -21,5 +23,5 @@ public record AuthorityRpcDto(
 
         Integer type,
 
-        Integer status) {
+        Integer status) implements Serializable {
 }

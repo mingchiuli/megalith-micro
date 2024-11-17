@@ -22,6 +22,7 @@ public class AuthWrapper {
         this.userHttpServiceWrapper = userHttpServiceWrapper;
     }
 
+    @Cache(prefix = Const.ROLE_AUTHORITY)
     public MenusAndButtonsDto getCurrentUserNav(String rawRole) {
         MenusAndButtonsRpcDto dto = userHttpServiceWrapper.getCurrentUserNav(rawRole);
         return MenusAndButtonsDtoConvertor.convert(dto);
