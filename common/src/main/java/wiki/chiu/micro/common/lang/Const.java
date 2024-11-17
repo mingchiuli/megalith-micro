@@ -76,5 +76,10 @@ public class Const {
     public static final String REGISTER_PREFIX = "register_prefix:";
 
     public static final String USER = "user";
+
+    public static final String ALL_SERVICE = "all_service";
+
+    public static final String ROLE_AUTHORITY = "role_authority";
+
 }
 

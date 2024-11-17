@@ -3,6 +3,7 @@ package wiki.chiu.micro.auth.wrapper;
 import wiki.chiu.micro.auth.convertor.MenusAndButtonsDtoConvertor;
 import wiki.chiu.micro.auth.dto.MenusAndButtonsDto;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
+import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.common.dto.AuthorityRpcDto;
 import wiki.chiu.micro.common.dto.MenusAndButtonsRpcDto;
 import wiki.chiu.micro.common.lang.Const;
@@ -26,10 +27,12 @@ public class AuthWrapper {
         return MenusAndButtonsDtoConvertor.convert(dto);
     }
 
+    @Cache(prefix = Const.ROLE_AUTHORITY)
     public List<String> getAuthoritiesByRoleCode(String rawRole) {
         return userHttpServiceWrapper.getAuthoritiesByRoleCode(rawRole);
     }
 
+    @Cache(prefix = Const.ALL_SERVICE)
     public List<AuthorityRpcDto> getAllSystemAuthorities() {
         return userHttpServiceWrapper.getSystemAuthorities(services);
     }
