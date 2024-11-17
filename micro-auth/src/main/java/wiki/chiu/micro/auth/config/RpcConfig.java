@@ -59,7 +59,7 @@ public class RpcConfig {
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
-                .baseUrl("http://micro-user:8081/inner")
+                .baseUrl("http://micro-user:8086/inner")
                 .requestFactory(requestFactory)
                 .requestInterceptor(httpInterceptor)
                 .build();
