@@ -1,6 +1,5 @@
 package wiki.chiu.micro.auth.dto;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +25,7 @@ public record MenuWithChildDto(
 
         Integer status,
 
-        List<MenuWithChildDto> children) implements Serializable {
+        List<MenuWithChildDto> children) {
 
 
     public static MenuWithChildDtoBuilder builder() {
