@@ -9,7 +9,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-amqp")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.redisson:redisson:3.38.1")
+	implementation("org.redisson:redisson:3.39.0")
 	implementation("com.nimbusds:nimbus-jose-jwt:9.47")
 	implementation(project(":common"))
 	implementation("wiki.chiu.megalith:cache-spring-boot-starter:1.7.1")
