@@ -1,5 +1,6 @@
 package wiki.chiu.micro.exhibit.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.BlogHttpService;
 import wiki.chiu.micro.common.rpc.UserHttpService;
@@ -25,6 +26,15 @@ public class RpcConfig {
         this.httpInterceptor = httpInterceptor;
     }
 
+    @Value("${megalith.blog.user-url}")
+    private String userUrl;
+
+    @Value("${megalith.blog.auth-url}")
+    private String authUrl;
+
+    @Value("${megalith.blog.blog-url}")
+    private String blogUrl;
+
     @Bean
     BlogHttpService blogHttpService() {
 
@@ -32,7 +42,7 @@ public class RpcConfig {
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
-                .baseUrl("http://micro-blog:8082/inner")
+                .baseUrl(blogUrl)
                 .requestFactory(requestFactory)
                 .requestInterceptor(httpInterceptor)
                 .build();
@@ -51,7 +61,7 @@ public class RpcConfig {
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
-                .baseUrl("http://micro-user:8086/inner")
+                .baseUrl(userUrl)
                 .requestFactory(requestFactory)
                 .requestInterceptor(httpInterceptor)
                 .build();
@@ -69,7 +79,7 @@ public class RpcConfig {
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
-                .baseUrl("http://micro-auth:8081/inner")
+                .baseUrl(authUrl)
                 .requestFactory(requestFactory)
                 .requestInterceptor(httpInterceptor)
                 .build();

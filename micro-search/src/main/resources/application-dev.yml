@@ -8,3 +8,9 @@ spring:
     password: guest
     host: 127.0.0.1
     port: 5672
+
+
+megalith:
+  blog:
+    auth-url: http://127.0.0.1:8081/inner
+    blog-url: http://127.0.0.1:8082/inner

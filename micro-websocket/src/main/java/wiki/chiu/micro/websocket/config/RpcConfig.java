@@ -1,5 +1,6 @@
 package wiki.chiu.micro.websocket.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,9 @@ public class RpcConfig {
         this.httpClient = httpClient;
     }
 
+    @Value("${megalith.blog.auth-url}")
+    private String authUrl;
+
     @Bean
     AuthHttpService authHttpService() {
 
@@ -28,7 +32,7 @@ public class RpcConfig {
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
-                .baseUrl("http://micro-auth:8081/inner")
+                .baseUrl(authUrl)
                 .requestFactory(requestFactory)
                 .build();
 
