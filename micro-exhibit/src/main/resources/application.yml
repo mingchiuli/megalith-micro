@@ -19,7 +19,7 @@ spring:
     default-property-inclusion: NON_NULL
     time-zone: GMT+8
 server:
-  port: 8081
+  port: 8083
   max-http-request-header-size: 10MB
 
 megalith:
