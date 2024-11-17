@@ -9,3 +9,9 @@ spring:
       port: 6379
       password: 123456
       host: 127.0.0.1
+
+megalith:
+  blog:
+    auth-url: http://127.0.0.1:8081/inner
+    blog-url: http://127.0.0.1:8082/inner
+    user-url: http://127.0.0.1:8086/inner

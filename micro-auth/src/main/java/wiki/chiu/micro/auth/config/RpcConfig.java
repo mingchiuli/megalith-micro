@@ -25,6 +25,9 @@ public class RpcConfig {
     @Value("${megalith.blog.sms.base-url}")
     private String baseUrl;
 
+    @Value("${megalith.blog.user-url}")
+    private String userUrl;
+
     public RpcConfig(HttpClient httpClient, HttpInterceptor httpInterceptor) {
         this.httpClient = httpClient;
         this.httpInterceptor = httpInterceptor;
@@ -59,7 +62,7 @@ public class RpcConfig {
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
-                .baseUrl("http://micro-user:8086/inner")
+                .baseUrl(userUrl)
                 .requestFactory(requestFactory)
                 .requestInterceptor(httpInterceptor)
                 .build();

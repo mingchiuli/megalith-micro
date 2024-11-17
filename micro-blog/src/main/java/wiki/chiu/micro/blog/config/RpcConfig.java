@@ -33,6 +33,15 @@ public class RpcConfig {
     @Value("${megalith.blog.oss.base-url}")
     private String baseUrl;
 
+    @Value("${megalith.blog.user-url}")
+    private String userUrl;
+
+    @Value("${megalith.blog.auth-url}")
+    private String authUrl;
+
+    @Value("${megalith.blog.search-url}")
+    private String searchUrl;
+
     public RpcConfig(HttpClient httpClient, HttpInterceptor httpInterceptor) {
         this.httpClient = httpClient;
         this.httpInterceptor = httpInterceptor;
@@ -63,7 +72,7 @@ public class RpcConfig {
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
-                .baseUrl("http://micro-user:8086/inner")
+                .baseUrl(userUrl)
                 .requestFactory(requestFactory)
                 .requestInterceptor(httpInterceptor)
                 .build();
@@ -81,7 +90,7 @@ public class RpcConfig {
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
-                .baseUrl("http://micro-auth:8081/inner")
+                .baseUrl(authUrl)
                 .requestFactory(requestFactory)
                 .requestInterceptor(httpInterceptor)
                 .build();
@@ -99,7 +108,7 @@ public class RpcConfig {
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
         RestClient client = RestClient.builder()
-                .baseUrl("http://micro-search:8085/inner")
+                .baseUrl(searchUrl)
                 .requestFactory(requestFactory)
                 .requestInterceptor(httpInterceptor)
                 .build();
