@@ -22,7 +22,6 @@ import org.springframework.util.StringUtils;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.time.Duration;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Aspect
@@ -70,74 +69,77 @@ public class CacheAspect {
 
         String cacheKey = commonCacheKeyGenerator.generateKey(method, args);
 
-        Object cacheValue = localCache.getIfPresent(cacheKey);
-        if (Objects.nonNull(cacheValue)) {
-            return cacheValue;
-        }
-
         Object localCacheObj = localCache.getIfPresent(cacheKey);
 
-        if (Objects.nonNull(localCacheObj)) {
+        if (localCacheObj != null) {
             return localCacheObj;
         }
 
-        String remoteCacheStr;
-        // 防止redis挂了以后db也访问不了
-        try {
-            remoteCacheStr = redissonClient.<String>getBucket(cacheKey).get();
-        } catch (NestedRuntimeException e) {
-            return pjp.proceed();
-        }
+        synchronized (cacheKey.intern()) {
 
-        if (StringUtils.hasLength(remoteCacheStr)) {
-            Object remoteCacheObj;
+            localCacheObj = localCache.getIfPresent(cacheKey);
+            if (localCacheObj != null) {
+                return localCacheObj;
+            }
+
+            String remoteCacheStr;
+            // 防止redis挂了以后db也访问不了
             try {
-                remoteCacheObj = objectMapper.readValue(remoteCacheStr, javaType);
-                localCache.put(cacheKey, remoteCacheObj);
-                return remoteCacheObj;
-            } catch (JsonProcessingException e) {
-                log.error(e.getMessage());
+                remoteCacheStr = redissonClient.<String>getBucket(cacheKey).get();
+            } catch (NestedRuntimeException e) {
                 return pjp.proceed();
             }
-        }
 
-        String lock = LOCK + cacheKey;
-        // 已经线程安全
-        RLock rLock = redissonClient.getLock(lock);
-
-        try {
-            boolean b = rLock.tryLock(5000, TimeUnit.MILLISECONDS);
-            if (Boolean.FALSE.equals(b)) {
-                return pjp.proceed();
-            }
-        } catch (InterruptedException e) {
-            return pjp.proceed();
-        }
-
-        try {
-            // 双重检查
-            String r = redissonClient.<String>getBucket(cacheKey).get();
-
-            if (StringUtils.hasLength(r)) {
+            if (StringUtils.hasLength(remoteCacheStr)) {
+                Object remoteCacheObj;
                 try {
-                    return objectMapper.readValue(r, javaType);
+                    remoteCacheObj = objectMapper.readValue(remoteCacheStr, javaType);
+                    localCache.put(cacheKey, remoteCacheObj);
+                    return remoteCacheObj;
                 } catch (JsonProcessingException e) {
+                    log.error(e.getMessage());
                     return pjp.proceed();
                 }
             }
-            // 执行目标方法
-            Object proceed = pjp.proceed();
 
-            Cache annotation = method.getAnnotation(Cache.class);
+            String lock = LOCK + cacheKey;
+            // 已经线程安全
+            RLock rLock = redissonClient.getLock(lock);
+
             try {
-                redissonClient.getBucket(cacheKey).set(objectMapper.writeValueAsString(proceed), Duration.ofMinutes(annotation.expire()));
-            } catch (JsonProcessingException e) {
-                return proceed;
+                boolean b = rLock.tryLock(5000, TimeUnit.MILLISECONDS);
+                if (Boolean.FALSE.equals(b)) {
+                    return pjp.proceed();
+                }
+            } catch (InterruptedException e) {
+                return pjp.proceed();
             }
-            localCache.put(cacheKey, proceed);
-            return proceed;
-        } finally {
-            rLock.unlock();
+
+            try {
+                // 双重检查
+                String r = redissonClient.<String>getBucket(cacheKey).get();
+
+                if (StringUtils.hasLength(r)) {
+                    try {
+                        return objectMapper.readValue(r, javaType);
+                    } catch (JsonProcessingException e) {
+                        return pjp.proceed();
+                    }
+                }
+                // 执行目标方法
+                Object proceed = pjp.proceed();
+
+                Cache annotation = method.getAnnotation(Cache.class);
+                try {
+                    redissonClient.getBucket(cacheKey).set(objectMapper.writeValueAsString(proceed), Duration.ofMinutes(annotation.expire()));
+                } catch (JsonProcessingException e) {
+                    return proceed;
+                }
+                localCache.put(cacheKey, proceed);
+                return proceed;
+            } finally {
+                rLock.unlock();
+            }
         }
     }
 }
