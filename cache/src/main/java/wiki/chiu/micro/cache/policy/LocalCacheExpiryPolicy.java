@@ -1,4 +1,4 @@
-package wiki.chiu.micro.cache.local;
+package wiki.chiu.micro.cache.policy;
 
 import com.github.benmanes.caffeine.cache.Expiry;
 import org.checkerframework.checker.index.qual.NonNegative;
@@ -6,7 +6,7 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-public class LocalCacheExpiry implements Expiry<String, Object> {
+public class LocalCacheExpiryPolicy implements Expiry<String, Object> {
 
     private final Random random = new Random();
 
