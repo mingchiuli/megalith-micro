@@ -11,9 +11,6 @@ public record AuthorityEntityReq(
         Optional<Long> id,
 
         @NotBlank
-        String name,
-
-        @NotBlank
         String code,
 
         @NotBlank
