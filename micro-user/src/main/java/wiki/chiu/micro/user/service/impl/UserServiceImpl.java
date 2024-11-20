@@ -1,17 +1,18 @@
 package wiki.chiu.micro.user.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.rpc.OssHttpService;
+import wiki.chiu.micro.common.utils.SQLUtils;
 import wiki.chiu.micro.user.convertor.UserEntityRpcVoConvertor;
 import wiki.chiu.micro.user.entity.UserEntity;
 import wiki.chiu.micro.user.repository.UserRepository;
 import wiki.chiu.micro.user.service.UserService;
 import wiki.chiu.micro.user.utils.OssSignUtils;
 import wiki.chiu.micro.user.vo.UserEntityRpcVo;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
@@ -47,7 +48,6 @@ public class UserServiceImpl implements UserService {
 
     private final OssSignUtils ossSignUtils;
 
-    private final ObjectMapper objectMapper;
 
     private final ExecutorService taskExecutor;
 
@@ -57,12 +57,11 @@ public class UserServiceImpl implements UserService {
     @Value("${megalith.blog.register.page-prefix}")
     private String pagePrefix;
 
-    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, OssSignUtils ossSignUtils, ObjectMapper objectMapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, OssSignUtils ossSignUtils, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
         this.ossHttpService = ossHttpService;
         this.ossSignUtils = ossSignUtils;
-        this.objectMapper = objectMapper;
         this.taskExecutor = taskExecutor;
     }
 
@@ -152,9 +151,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void download(HttpServletResponse response) {
-        List<UserEntity> users = userRepository.findAll();
+        List<UserEntity> userEntities = userRepository.findAll();
+        String users = SQLUtils.entityToInsertSQL(userEntities, Const.USER_TABLE);
         try {
-            byte[] data = objectMapper.writeValueAsBytes(users);
+            byte[] data = users.getBytes();
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
             ServletOutputStream outputStream = response.getOutputStream();

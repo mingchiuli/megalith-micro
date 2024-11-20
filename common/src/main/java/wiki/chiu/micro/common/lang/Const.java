@@ -81,5 +81,23 @@ public class Const {
 
     public static final String ROLE_AUTHORITY = "role_authority";
 
+    public static final String BLOG_TABLE = "m_blog";
+
+    public static final String BLOG_SENSITIVE_TABLE = "m_blog_sensitive_content";
+
+    public static final String AUTHORITY_TABLE = "m_authority";
+
+    public static final String ROLE_AUTHORITY_TABLE = "m_role_authority";
+
+    public static final String MENU_TABLE = "m_menu";
+
+    public static final String ROLE_MENU_TABLE = "m_role_menu";
+
+    public static final String ROLE_TABLE = "m_role";
+
+    public static final String USER_TABLE = "m_user";
+
+    public static final String USER_ROLE_TABLE = "m_user_role";
+
 }
 
