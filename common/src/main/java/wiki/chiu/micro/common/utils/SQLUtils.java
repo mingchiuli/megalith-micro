@@ -1,5 +1,7 @@
 package wiki.chiu.micro.common.utils;
 
+import org.springframework.util.CollectionUtils;
+
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
@@ -9,7 +11,10 @@ public class SQLUtils {
 
     private static final List<Class<? extends Number>> numberClassSet = List.of(Long.class, Integer.class);
 
-        public static <E> String entityToInsertSQL(List<E> entities, String tableName) {
+    public static <E> String entityToInsertSQL(List<E> entities, String tableName) {
+        if (CollectionUtils.isEmpty(entities)) {
+            return "";
+        }
         E first = entities.getFirst();
         StringBuilder prefix = new StringBuilder();
         prefix
