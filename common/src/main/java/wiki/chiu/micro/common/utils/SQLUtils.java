@@ -18,7 +18,7 @@ public class SQLUtils {
                 .append(" (");
 
         String fields = Arrays.stream(first.getClass().getDeclaredFields())
-                .map(item -> "'" + toUnderscoreCase(item.getName()) + "'")
+                .map(item -> toUnderscoreCase(item.getName()))
                 .collect(Collectors.joining(","));
 
         prefix
