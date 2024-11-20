@@ -11,7 +11,6 @@ import wiki.chiu.micro.blog.convertor.BlogDeleteVoConvertor;
 import wiki.chiu.micro.blog.convertor.BlogEntityConvertor;
 import wiki.chiu.micro.blog.convertor.BlogEntityRpcVoConvertor;
 import wiki.chiu.micro.blog.convertor.BlogEntityVoConvertor;
-import wiki.chiu.micro.blog.dto.BlogDownloadDto;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import wiki.chiu.micro.blog.event.BlogOperateEvent;
@@ -31,6 +30,7 @@ import wiki.chiu.micro.blog.wrapper.BlogSensitiveWrapper;
 import wiki.chiu.micro.common.dto.BlogSearchRpcDto;
 import wiki.chiu.micro.common.dto.UserEntityRpcDto;
 import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.req.BlogSearchReq;
 import wiki.chiu.micro.common.rpc.OssHttpService;
@@ -54,6 +54,7 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import wiki.chiu.micro.common.utils.SQLUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -179,11 +180,11 @@ public class BlogServiceImpl implements BlogService {
         try (var outputStream = response.getOutputStream()) {
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-            var downloadDto = BlogDownloadDto.builder()
-                    .blogs(new ArrayList<>(blogs))
-                    .blogSensitiveContents(new ArrayList<>(blogSensitives))
-                    .build();
-            byte[] bytes = objectMapper.writeValueAsBytes(downloadDto);
+
+            String blog = SQLUtils.entityToInsertSQL(new ArrayList<>(blogs), Const.BLOG_TABLE);
+            String blogSensitive = SQLUtils.entityToInsertSQL(new ArrayList<>(blogSensitives), BLOG_SENSITIVE_TABLE);
+
+            byte[] bytes = (blog + "\n" + blogSensitive).getBytes();
             outputStream.write(bytes);
             outputStream.flush();
         } catch (IOException e) {

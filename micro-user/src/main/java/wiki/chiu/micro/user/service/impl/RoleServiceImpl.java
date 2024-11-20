@@ -1,11 +1,11 @@
 package wiki.chiu.micro.user.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
+import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.utils.SQLUtils;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
 import wiki.chiu.micro.user.convertor.RoleEntityConvertor;
 import wiki.chiu.micro.user.convertor.RoleEntityRpcVoConvertor;
@@ -13,10 +13,9 @@ import wiki.chiu.micro.user.convertor.RoleEntityVoConvertor;
 import wiki.chiu.micro.user.entity.RoleAuthorityEntity;
 import wiki.chiu.micro.user.entity.RoleEntity;
 import wiki.chiu.micro.user.entity.RoleMenuEntity;
+import wiki.chiu.micro.user.entity.UserRoleEntity;
 import wiki.chiu.micro.user.event.AuthMenuOperateEvent;
-import wiki.chiu.micro.user.repository.RoleAuthorityRepository;
-import wiki.chiu.micro.user.repository.RoleMenuRepository;
-import wiki.chiu.micro.user.repository.RoleRepository;
+import wiki.chiu.micro.user.repository.*;
 import wiki.chiu.micro.user.req.RoleEntityReq;
 import wiki.chiu.micro.user.service.RoleService;
 import wiki.chiu.micro.user.vo.RoleEntityRpcVo;
@@ -47,17 +46,17 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleAuthorityRepository roleAuthorityRepository;
 
-    private final ObjectMapper objectMapper;
+    private final UserRoleRepository userRoleRepository;
 
     private final RoleMenuAuthorityWrapper roleMenuAuthorityWrapper;
 
     private final ApplicationContext applicationContext;
 
-    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, RoleAuthorityRepository roleAuthorityRepository, ObjectMapper objectMapper, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper, ApplicationContext applicationContext) {
+    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, RoleAuthorityRepository roleAuthorityRepository, UserRoleRepository userRoleRepository, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper, ApplicationContext applicationContext) {
         this.roleRepository = roleRepository;
         this.roleMenuRepository = roleMenuRepository;
         this.roleAuthorityRepository = roleAuthorityRepository;
-        this.objectMapper = objectMapper;
+        this.userRoleRepository = userRoleRepository;
         this.roleMenuAuthorityWrapper = roleMenuAuthorityWrapper;
         this.applicationContext = applicationContext;
     }
@@ -123,12 +122,12 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public byte[] download() {
-        List<RoleEntity> roles = roleRepository.findAll();
-        try {
-            return objectMapper.writeValueAsBytes(roles);
-        } catch (JsonProcessingException e) {
-            throw new MissException(e.getMessage());
-        }
+        List<RoleEntity> roleEntities = roleRepository.findAll();
+        List<UserRoleEntity> userRoleEntities = userRoleRepository.findAll();
+        String roles = SQLUtils.entityToInsertSQL(roleEntities, Const.ROLE_TABLE);
+        String userRoles = SQLUtils.entityToInsertSQL(userRoleEntities, Const.USER_ROLE_TABLE);
+
+        return (roles + "\n" + userRoles).getBytes();
     }
 
     @Override

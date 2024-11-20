@@ -5,6 +5,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import wiki.chiu.micro.common.lang.Const;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -12,7 +13,7 @@ import java.util.Objects;
 @Entity
 @DynamicUpdate
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "m_blog_sensitive_content",
+@Table(name = Const.BLOG_SENSITIVE_TABLE,
         indexes = {
                 @Index(columnList = "blog_id")})
 public class BlogSensitiveContentEntity {

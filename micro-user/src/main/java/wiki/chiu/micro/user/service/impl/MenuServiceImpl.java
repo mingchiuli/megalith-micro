@@ -1,17 +1,19 @@
 package wiki.chiu.micro.user.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
+import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.utils.SQLUtils;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
 import wiki.chiu.micro.user.convertor.MenuDisplayVoConvertor;
 import wiki.chiu.micro.user.convertor.MenuEntityConvertor;
 import wiki.chiu.micro.user.convertor.MenuEntityVoConvertor;
 import wiki.chiu.micro.user.entity.MenuEntity;
+import wiki.chiu.micro.user.entity.RoleMenuEntity;
 import wiki.chiu.micro.user.event.AuthMenuOperateEvent;
 import wiki.chiu.micro.user.repository.MenuRepository;
+import wiki.chiu.micro.user.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.req.MenuEntityReq;
 import wiki.chiu.micro.user.service.MenuService;
@@ -38,17 +40,17 @@ public class MenuServiceImpl implements MenuService {
 
     private final MenuRepository menuRepository;
 
-    private final ObjectMapper objectMapper;
-
     private final RoleRepository roleRepository;
 
     private final ApplicationContext applicationContext;
 
-    public MenuServiceImpl(MenuRepository menuRepository, ObjectMapper objectMapper, RoleRepository roleRepository, ApplicationContext applicationContext) {
+    private final RoleMenuRepository roleMenuRepository;
+
+    public MenuServiceImpl(MenuRepository menuRepository, RoleRepository roleRepository, ApplicationContext applicationContext, RoleMenuRepository roleMenuRepository) {
         this.menuRepository = menuRepository;
-        this.objectMapper = objectMapper;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;
+        this.roleMenuRepository = roleMenuRepository;
     }
 
     @Override
@@ -97,12 +99,12 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public byte[] download() {
-        List<MenuEntity> menus = menuRepository.findAll();
-        try {
-            return objectMapper.writeValueAsBytes(menus);
-        } catch (JsonProcessingException e) {
-            throw new MissException(e.getMessage());
-        }
+        List<MenuEntity> menuEntities = menuRepository.findAll();
+        List<RoleMenuEntity> roleMenuEntities = roleMenuRepository.findAll();
+        String menus = SQLUtils.entityToInsertSQL(menuEntities, Const.MENU_TABLE);
+        String roleMenus = SQLUtils.entityToInsertSQL(roleMenuEntities, Const.ROLE_MENU_TABLE);
+
+        return (menus + "\n" + roleMenus).getBytes();
     }
 
     private void findTargetChildrenMenuId(Long menuId, List<MenuEntity> menuEntities) {
