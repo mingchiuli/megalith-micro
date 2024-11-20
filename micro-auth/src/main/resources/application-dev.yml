@@ -4,6 +4,11 @@ spring:
       port: 6379
       password: 123456
       host: 127.0.0.1
+  rabbitmq:
+    username: guest
+    password: guest
+    host: 127.0.0.1
+    port: 5672
   mail:
     username: dinglei@163.com #登陆账号
     password: dinglei #登陆密码（或授权码）
