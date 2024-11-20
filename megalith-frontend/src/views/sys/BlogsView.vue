@@ -4,7 +4,7 @@ import { GET, POST } from '@/http/http'
 import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
-import { render, checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
+import { render, checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
 
 const { fixSelection, fix, moreItems } = displayState()
@@ -69,7 +69,7 @@ const handlePassword = async (row: BlogSys) => {
 }
 
 const download = async () => {
-  await downloadData(
+  await downloadSQLData(
     `/sys/blog/download?keywords=${input.value}`,
     'blogs',
     uploadPercentage,

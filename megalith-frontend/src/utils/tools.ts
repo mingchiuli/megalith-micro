@@ -145,19 +145,18 @@ export const submitLogin = async (username: string, password: string) => {
   router.push('/backend')
 }
 
-export const downloadData = async (
+export const downloadSQLData = async (
   url: string,
   fileName: string,
   percentage: Ref<number>,
   percentageShow: Ref<boolean>
 ) => {
   const resp = await DOWNLOAD_DATA(url, percentage, percentageShow)
-  const content = JSON.stringify(resp)
-  const blob = new Blob([content], {
-    type: 'application/json'
+  const blob = new Blob([String(resp)], {
+    type: 'text/plain'
   })
   const aDom = document.createElement('a')
-  aDom.download = fileName
+  aDom.download = fileName + '.sql'
   aDom.style.display = 'none'
   aDom.href = URL.createObjectURL(blob)
   document.body.appendChild(aDom)

@@ -4,7 +4,7 @@ import type { PageAdapter, RoleSys, UserSys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref, toRefs, useTemplateRef } from 'vue'
 import { Status, ButtonAuth } from '@/type/entity'
-import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
+import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
 
 const { moreItems, fixSelection, fix } = displayState()
@@ -58,7 +58,7 @@ const form: Form = reactive({
 })
 
 const download = async () => {
-  await downloadData('/sys/user/download', 'users', uploadPercentage, showPercentage)
+  await downloadSQLData('/sys/user/download', 'users', uploadPercentage, showPercentage)
 }
 
 const delBatch = async () => {

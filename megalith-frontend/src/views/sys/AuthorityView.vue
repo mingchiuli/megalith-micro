@@ -4,7 +4,7 @@ import type { AuthoritySys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref, useTemplateRef } from 'vue'
 import { Status, ButtonAuth, AuthStatus } from '@/type/entity'
-import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
+import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
 
 const { fixSelection, fix } = displayState()
@@ -71,7 +71,7 @@ const delBatch = async () => {
 }
 
 const download = async () => {
-  await downloadData('/sys/authority/download', 'authorities', uploadPercentage, showPercentage)
+  await downloadSQLData('/sys/authority/download', 'authorities', uploadPercentage, showPercentage)
 }
 
 const handleDelete = async (row: AuthoritySys) => {

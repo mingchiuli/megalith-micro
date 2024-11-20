@@ -4,7 +4,7 @@ import type { MenuSys } from '@/type/entity'
 import { type FormInstance, type FormRules } from 'element-plus'
 import { reactive, ref, useTemplateRef } from 'vue'
 import { Status, RoutesEnum, ButtonAuth } from '@/type/entity'
-import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
+import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
 
 const { fix } = displayState()
@@ -87,7 +87,7 @@ const handleClose = () => {
 }
 
 const download = async () => {
-  await downloadData('/sys/menu/download', 'menus', uploadPercentage, showPercentage)
+  await downloadSQLData('/sys/menu/download', 'menus', uploadPercentage, showPercentage)
 }
 
 const clearForm = () => {

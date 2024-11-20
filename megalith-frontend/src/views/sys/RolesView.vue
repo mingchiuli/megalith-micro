@@ -4,7 +4,7 @@ import type { PageAdapter, RoleSys } from '@/type/entity'
 import type { ElTree, FormInstance, FormRules } from 'element-plus'
 import { Status, ButtonAuth } from '@/type/entity'
 import { reactive, ref, toRefs, useTemplateRef } from 'vue'
-import { checkButtonAuth, getButtonType, downloadData, getButtonTitle } from '@/utils/tools'
+import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
 
 const { moreItems, fixSelection, fix } = displayState()
@@ -66,7 +66,7 @@ type AuthorityForm = {
 }
 
 const download = async () => {
-  await downloadData('/sys/role/download', 'roles', uploadPercentage, showPercentage)
+  await downloadSQLData('/sys/role/download', 'roles', uploadPercentage, showPercentage)
 }
 
 const submitmenuFormHandle = async (ref: InstanceType<typeof ElTree>) => {
