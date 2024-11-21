@@ -2,6 +2,7 @@ package wiki.chiu.micro.user.req;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import wiki.chiu.micro.user.valid.Phone;
 import wiki.chiu.micro.user.valid.Username;
 
@@ -15,6 +16,7 @@ public record UserEntityRegisterReq(
         @NotBlank
         String nickname,
 
+        @NotNull
         String avatar,
 
         @NotBlank

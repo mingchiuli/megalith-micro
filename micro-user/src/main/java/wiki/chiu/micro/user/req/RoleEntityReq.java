@@ -1,6 +1,7 @@
 package wiki.chiu.micro.user.req;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import wiki.chiu.micro.user.valid.ListValue;
 
 import java.util.Optional;
@@ -19,6 +20,7 @@ public record RoleEntityReq(
         @NotBlank
         String code,
 
+        @NotNull
         String remark,
 
         @ListValue(values = {0, 1})

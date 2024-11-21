@@ -101,10 +101,10 @@ public class MenuServiceImpl implements MenuService {
     public byte[] download() {
         List<MenuEntity> menuEntities = menuRepository.findAll();
         List<RoleMenuEntity> roleMenuEntities = roleMenuRepository.findAll();
-        String menus = SQLUtils.entityToInsertSQL(menuEntities, Const.MENU_TABLE);
-        String roleMenus = SQLUtils.entityToInsertSQL(roleMenuEntities, Const.ROLE_MENU_TABLE);
-
-        return (menus + "\n" + roleMenus).getBytes();
+        return SQLUtils.compose(
+                SQLUtils.entityToInsertSQL(menuEntities, Const.MENU_TABLE),
+                SQLUtils.entityToInsertSQL(roleMenuEntities, Const.ROLE_MENU_TABLE))
+                .getBytes();
     }
 
     private void findTargetChildrenMenuId(Long menuId, List<MenuEntity> menuEntities) {
