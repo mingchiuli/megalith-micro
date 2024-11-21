@@ -124,10 +124,11 @@ public class RoleServiceImpl implements RoleService {
     public byte[] download() {
         List<RoleEntity> roleEntities = roleRepository.findAll();
         List<UserRoleEntity> userRoleEntities = userRoleRepository.findAll();
-        String roles = SQLUtils.entityToInsertSQL(roleEntities, Const.ROLE_TABLE);
-        String userRoles = SQLUtils.entityToInsertSQL(userRoleEntities, Const.USER_ROLE_TABLE);
 
-        return (roles + "\n" + userRoles).getBytes();
+        return SQLUtils.compose(
+                SQLUtils.entityToInsertSQL(roleEntities, Const.ROLE_TABLE),
+                SQLUtils.entityToInsertSQL(userRoleEntities, Const.USER_ROLE_TABLE))
+                .getBytes();
     }
 
     @Override

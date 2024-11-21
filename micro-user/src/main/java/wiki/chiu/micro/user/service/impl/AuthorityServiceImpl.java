@@ -102,9 +102,9 @@ public class AuthorityServiceImpl implements AuthorityService {
         List<AuthorityEntity> authorityEntities = authorityRepository.findAll();
         List<RoleAuthorityEntity> roleAuthorityEntities = roleAuthorityRepository.findAll();
 
-        String authorities = SQLUtils.entityToInsertSQL(authorityEntities, Const.AUTHORITY_TABLE);
-        String roleAuthorities = SQLUtils.entityToInsertSQL(roleAuthorityEntities, Const.ROLE_AUTHORITY_TABLE);
-
-        return (authorities + "\n" + roleAuthorities).getBytes();
+        return SQLUtils.compose(
+                SQLUtils.entityToInsertSQL(authorityEntities, Const.AUTHORITY_TABLE),
+                SQLUtils.entityToInsertSQL(roleAuthorityEntities, Const.ROLE_AUTHORITY_TABLE))
+                .getBytes();
     }
 }

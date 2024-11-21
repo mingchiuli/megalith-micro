@@ -40,6 +40,10 @@ public class SQLUtils {
                 .collect(Collectors.joining("\n"));
     }
 
+    public static String compose(String... sqlList) {
+        return String.join("\n", sqlList);
+    }
+
     private static String getFieldValue(Field field, Object item) {
         try {
             field.setAccessible(true);
