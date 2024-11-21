@@ -47,7 +47,8 @@ public class SQLUtils {
     private static String getFieldValue(Field field, Object item) {
         try {
             field.setAccessible(true);
-            return field.get(item).toString();
+            //null
+            return String.valueOf(field.get(item));
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
