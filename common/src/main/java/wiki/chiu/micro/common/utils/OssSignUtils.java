@@ -12,24 +12,14 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Locale;
-import java.util.Optional;
 
 public class OssSignUtils {
 
-    private static final String accessKeyId = Optional.ofNullable(System.getenv("megalith.blog.aliyun.access-key-id"))
-            .orElse("");
-
-    private static final String accessKeySecret = Optional.ofNullable(System.getenv("megalith.blog.aliyun.access-key-secret"))
-            .orElse("");
-
-    private static final String bucketName = Optional.ofNullable(System.getenv("megalith.blog.aliyun.oss.bucket-name"))
-            .orElse("");
-
-    private static byte[] hmacSha1(String data) {
+    private static byte[] hmacSha1(String data, String accessKeySecret) {
         Mac mac;
         try {
             mac = Mac.getInstance("HmacSHA1");
-            SecretKeySpec keySpec = new SecretKeySpec(OssSignUtils.accessKeySecret.getBytes(), "HmacSHA1");
+            SecretKeySpec keySpec = new SecretKeySpec(accessKeySecret.getBytes(), "HmacSHA1");
             mac.init(keySpec);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new MissException(e.getMessage());
@@ -52,10 +42,10 @@ public class OssSignUtils {
                 canonicalizedResource;
     }
 
-    public static String getAuthorization(String objectName, String method, String contentType) {
+    public static String getAuthorization(String objectName, String method, String contentType, String accessKeyId, String accessKeySecret, String bucketName) {
         String date = getGMTDate();
         String signData = buildSignData(date, "/" + bucketName + "/" + objectName, method, contentType);
-        byte[] bytes = hmacSha1(signData);
+        byte[] bytes = hmacSha1(signData, accessKeySecret);
         String signature = Base64.getEncoder().encodeToString(bytes);
         return "OSS " + accessKeyId + ":" + signature;
     }
