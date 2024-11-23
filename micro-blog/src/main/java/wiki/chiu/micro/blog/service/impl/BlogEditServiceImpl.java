@@ -11,7 +11,7 @@ import wiki.chiu.micro.blog.repository.BlogRepository;
 import wiki.chiu.micro.blog.req.BlogEditPushAllReq;
 import wiki.chiu.micro.blog.service.BlogEditService;
 import wiki.chiu.micro.blog.service.BlogSensitiveService;
-import wiki.chiu.micro.blog.utils.EditAuthUtils;
+import wiki.chiu.micro.common.utils.EditAuthUtils;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.blog.vo.BlogSensitiveContentVo;
 import wiki.chiu.micro.blog.vo.SensitiveContentVo;

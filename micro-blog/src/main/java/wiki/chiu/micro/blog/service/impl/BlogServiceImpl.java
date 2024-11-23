@@ -19,7 +19,7 @@ import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.rpc.SearchHttpServiceWrapper;
 import wiki.chiu.micro.blog.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.blog.service.BlogService;
-import wiki.chiu.micro.blog.utils.EditAuthUtils;
+import wiki.chiu.micro.common.utils.EditAuthUtils;
 import wiki.chiu.micro.common.utils.OssSignUtils;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
 import wiki.chiu.micro.blog.vo.BlogEntityRpcVo;
