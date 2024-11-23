@@ -1,4 +1,4 @@
-package wiki.chiu.micro.exhibit.utils;
+package wiki.chiu.micro.common.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

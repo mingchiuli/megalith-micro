@@ -20,8 +20,8 @@ import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.rpc.SearchHttpServiceWrapper;
 import wiki.chiu.micro.blog.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.blog.service.BlogService;
-import wiki.chiu.micro.blog.utils.AuthUtils;
-import wiki.chiu.micro.blog.utils.OssSignUtils;
+import wiki.chiu.micro.blog.utils.EditAuthUtils;
+import wiki.chiu.micro.common.utils.OssSignUtils;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
 import wiki.chiu.micro.blog.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
@@ -268,7 +268,7 @@ public class BlogServiceImpl implements BlogService {
             blogEntity = blogRepository.findById(blogId.get())
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
 
-            AuthUtils.checkEditAuth(blogEntity, userId);
+            EditAuthUtils.checkEditAuth(blogEntity, userId);
         } else {
             blogEntity = BlogEntity.builder()
                     .userId(userId)
