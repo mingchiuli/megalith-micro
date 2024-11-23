@@ -1,11 +1,11 @@
 package wiki.chiu.micro.user.valid;
 
+import jakarta.annotation.Resource;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.lang.TypeEnum;
-import wiki.chiu.micro.user.utils.SpringUtils;
 import wiki.chiu.micro.user.entity.MenuEntity;
 import wiki.chiu.micro.user.repository.MenuRepository;
 import wiki.chiu.micro.user.req.MenuEntityReq;
@@ -15,8 +15,10 @@ import java.util.Objects;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
 
-
 public class MenuValueConstraintValidator implements ConstraintValidator<MenuValue, MenuEntityReq> {
+
+    @Resource
+    private MenuRepository menuRepository;
 
     @Override
     public boolean isValid(MenuEntityReq menu, ConstraintValidatorContext context) {
@@ -39,8 +41,6 @@ public class MenuValueConstraintValidator implements ConstraintValidator<MenuVal
         if (!StatusEnum.NORMAL.getCode().equals(menu.status()) && !StatusEnum.HIDE.getCode().equals(menu.status())) {
             return false;
         }
-
-        MenuRepository menuRepository = SpringUtils.getBean(MenuRepository.class);
 
         Integer type = menu.type();
         TypeEnum typeEnum = TypeEnum.getInstance(type);
