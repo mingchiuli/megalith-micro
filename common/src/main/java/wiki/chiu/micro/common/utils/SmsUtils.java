@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import javax.crypto.spec.SecretKeySpec;
 
 public class SmsUtils {
 
@@ -22,7 +23,7 @@ public class SmsUtils {
         Mac mac;
         try {
             mac = Mac.getInstance(ALGORITHM);
-            mac.init(new javax.crypto.spec.SecretKeySpec(accessSecret.getBytes(StandardCharsets.UTF_8), ALGORITHM));
+            mac.init(new SecretKeySpec(accessSecret.getBytes(StandardCharsets.UTF_8), ALGORITHM));
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new MissException(e.getMessage());
         }
