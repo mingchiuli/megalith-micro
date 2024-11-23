@@ -17,10 +17,10 @@ import java.util.*;
 @Component
 public class SmsUtils {
 
-    @Value("${megalith.blog.aliyun.access-key-id}")
+    @Value("${megalith.blog.aliyun.access-key-id:}")
     private String accessKeyId;
 
-    @Value("${megalith.blog.aliyun.access-key-secret}")
+    @Value("${megalith.blog.aliyun.access-key-secret:}")
     private String accessKeySecret;
 
     private static final String ALGORITHM = "HmacSHA1";
