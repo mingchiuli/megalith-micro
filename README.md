@@ -27,21 +27,22 @@ private CacheEvictHandler cacheEvictHandler;
 
 //use cache:
 @GetMapping("/test")
-@Cache(prefix = "12121212")
+@Cache(prefix = "keyPrefix")
 public String test() {
-    return "adCustomRuntimeHintsadwdawdawdawda";
+    return "this is a value";
 }
 
 //evict cache:
 @GetMapping("/evict")
 public String evict() {
     HashSet<String> set = new HashSet<>();
-    set.add("adCustomRuntimeHintsadwdawdawdawda");
+    //add the generated keys
+    set.add("keyPrefix::XxxController::evict");
     cacheEvictHandler.evictCache(set);
 }
 ```
 
-It can be upgraded to a stable queue(if you used rabbitmq):
+It can be auto upgraded to a stable queue(if you used rabbitmq) via config and rabbitmq dependancies:
 
 ```yml
 megalith:
@@ -49,3 +50,5 @@ megalith:
     queue-prefix: cache.user.evict.queue.
     fanout-exchange: cache.user.evict.fanout.exchange
 ```
+
+
