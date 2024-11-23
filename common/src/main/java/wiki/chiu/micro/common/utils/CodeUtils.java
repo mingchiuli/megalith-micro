@@ -1,4 +1,4 @@
-package wiki.chiu.micro.user.code;
+package wiki.chiu.micro.common.utils;
 
 import org.springframework.stereotype.Component;
 
@@ -9,7 +9,7 @@ import java.util.Random;
  * @create 2023-03-05 1:04 am
  */
 @Component
-public class CodeFactory {
+public class CodeUtils {
 
     private final Random random = new Random();
 
@@ -18,7 +18,7 @@ public class CodeFactory {
             '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
     };
 
-    public CodeFactory() {
+    public CodeUtils() {
     }
 
     public String createPhone() {

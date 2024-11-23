@@ -1,4 +1,4 @@
-package wiki.chiu.micro.search.utils;
+package wiki.chiu.micro.common.utils;
 
 import org.springframework.data.elasticsearch.core.query.HighlightQuery;
 import org.springframework.data.elasticsearch.core.query.highlight.Highlight;

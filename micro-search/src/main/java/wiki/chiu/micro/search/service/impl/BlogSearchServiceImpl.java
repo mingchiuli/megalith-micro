@@ -10,7 +10,7 @@ import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.search.convertor.BlogDocumentVoConvertor;
 import wiki.chiu.micro.search.document.BlogDocument;
 import wiki.chiu.micro.search.service.BlogSearchService;
-import wiki.chiu.micro.search.utils.ESHighlightBuilderUtils;
+import wiki.chiu.micro.common.utils.ESHighlightBuilderUtils;
 import wiki.chiu.micro.search.vo.BlogDocumentVo;
 import wiki.chiu.micro.search.vo.BlogSearchVo;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Objects;
 
-import static wiki.chiu.micro.search.lang.FieldEnum.*;
+import static wiki.chiu.micro.common.lang.FieldEnum.*;
 
 /**
  * @author mingchiuli

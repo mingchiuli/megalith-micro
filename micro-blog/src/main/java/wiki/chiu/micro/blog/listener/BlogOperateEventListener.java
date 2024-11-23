@@ -2,7 +2,7 @@ package wiki.chiu.micro.blog.listener;
 
 import jakarta.annotation.PostConstruct;
 import wiki.chiu.micro.blog.config.BlogChangeRabbitConfig;
-import wiki.chiu.micro.blog.constant.BlogOperateEnum;
+import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.blog.constant.BlogOperateMessage;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.event.BlogOperateEvent;

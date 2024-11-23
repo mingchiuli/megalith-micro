@@ -21,7 +21,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface Username {
 
-    String message() default "{org.chiu.micro.user.valid.username.message}";
+    String message() default "{wiki.chiu.micro.user.valid.username.message}";
 
     Class<?>[] groups() default { };
 

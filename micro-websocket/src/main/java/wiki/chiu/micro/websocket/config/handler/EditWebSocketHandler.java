@@ -88,7 +88,7 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
                 Objects.nonNull(paraNo) ? paraNo.toString() : null,
                 userId.toString());
 
-        if (execute != null && enumSet.contains(execute)) {
+        if (enumSet.contains(execute)) {
             var dto = MessageDto.builder()
                     .blogId(blogId)
                     .userId(userId)

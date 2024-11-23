@@ -1,4 +1,4 @@
-package wiki.chiu.micro.search.lang;
+package wiki.chiu.micro.common.lang;
 
 public enum FieldEnum {
 

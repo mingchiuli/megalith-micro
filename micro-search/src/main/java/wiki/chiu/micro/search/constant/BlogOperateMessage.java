@@ -1,5 +1,7 @@
 package wiki.chiu.micro.search.constant;
 
+import wiki.chiu.micro.common.lang.BlogOperateEnum;
+
 import java.io.Serializable;
 
 /**

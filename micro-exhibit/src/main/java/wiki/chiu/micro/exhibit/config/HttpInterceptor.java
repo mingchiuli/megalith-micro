@@ -1,8 +1,6 @@
 package wiki.chiu.micro.exhibit.config;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
@@ -18,8 +16,6 @@ import java.util.Optional;
 
 @Configuration
 public class HttpInterceptor implements ClientHttpRequestInterceptor {
-
-    private static final Logger log = LoggerFactory.getLogger(HttpInterceptor.class);
 
     @Override
     public @NonNull ClientHttpResponse intercept(@NonNull HttpRequest request, @NonNull byte[] body, @NonNull ClientHttpRequestExecution execution) throws IOException {

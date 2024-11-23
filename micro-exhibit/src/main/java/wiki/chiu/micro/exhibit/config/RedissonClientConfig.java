@@ -26,7 +26,7 @@ public class RedissonClientConfig {
 
     @Bean
     @Primary
-    RedissonClient redisson() {
+    RedissonClient redissonClient() {
         Config config = new Config();
         config.setCodec(new StringCodec());
         SingleServerConfig singleServerConfig = config.useSingleServer();

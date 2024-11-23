@@ -2,9 +2,9 @@ package wiki.chiu.micro.exhibit.cache.handler;
 
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
+import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.common.utils.KeyUtils;
 import wiki.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
-import wiki.chiu.micro.exhibit.constant.BlogOperateEnum;
 import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
