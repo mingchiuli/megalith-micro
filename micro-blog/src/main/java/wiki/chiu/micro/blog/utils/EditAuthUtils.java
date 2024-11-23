@@ -9,9 +9,9 @@ import java.util.Objects;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.EDIT_NO_AUTH;
 
 
-public class AuthUtils {
+public class EditAuthUtils {
 
-    private AuthUtils() {
+    private EditAuthUtils() {
     }
 
     public static void checkEditAuth(BlogEntity blogEntity, Long userId) {

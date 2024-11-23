@@ -10,7 +10,7 @@ import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.search.convertor.BlogDocumentVoConvertor;
 import wiki.chiu.micro.search.document.BlogDocument;
 import wiki.chiu.micro.search.service.BlogSearchService;
-import wiki.chiu.micro.common.utils.ESHighlightBuilderUtils;
+import wiki.chiu.micro.search.utils.ESHighlightBuilderUtils;
 import wiki.chiu.micro.search.vo.BlogDocumentVo;
 import wiki.chiu.micro.search.vo.BlogSearchVo;
 import org.springframework.beans.factory.annotation.Value;

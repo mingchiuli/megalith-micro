@@ -1,4 +1,4 @@
-package wiki.chiu.micro.user.utils;
+package wiki.chiu.micro.common.utils;
 
 import wiki.chiu.micro.common.exception.MissException;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,13 +18,13 @@ import java.util.Locale;
 @Component
 public class OssSignUtils {
 
-    @Value("${megalith.blog.aliyun.access-key-id}")
+    @Value("${megalith.blog.aliyun.access-key-id:}")
     private String accessKeyId;
 
-    @Value("${megalith.blog.aliyun.access-key-secret}")
+    @Value("${megalith.blog.aliyun.access-key-secret:}")
     private String accessKeySecret;
 
-    @Value("${megalith.blog.aliyun.oss.bucket-name}")
+    @Value("${megalith.blog.aliyun.oss.bucket-name:}")
     private String bucketName;
 
     private static final String ALGORITHM = "HmacSHA1";

@@ -11,7 +11,7 @@ import wiki.chiu.micro.blog.repository.BlogRepository;
 import wiki.chiu.micro.blog.req.BlogEditPushAllReq;
 import wiki.chiu.micro.blog.service.BlogEditService;
 import wiki.chiu.micro.blog.service.BlogSensitiveService;
-import wiki.chiu.micro.blog.utils.AuthUtils;
+import wiki.chiu.micro.blog.utils.EditAuthUtils;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.blog.vo.BlogSensitiveContentVo;
 import wiki.chiu.micro.blog.vo.SensitiveContentVo;
@@ -71,7 +71,7 @@ public class BlogEditServiceImpl implements BlogEditService {
         if (id.isPresent()) {
             BlogEntity blogEntity = blogRepository.findById(id.get())
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-            AuthUtils.checkEditAuth(blogEntity, userId);
+            EditAuthUtils.checkEditAuth(blogEntity, userId);
             originUserId = blogEntity.getUserId();
         } else {
             originUserId = userId;
@@ -108,7 +108,7 @@ public class BlogEditServiceImpl implements BlogEditService {
         if (id != null) {
             BlogEntity blogEntity = blogRepository.findById(id)
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-            AuthUtils.checkEditAuth(blogEntity, userId);
+            EditAuthUtils.checkEditAuth(blogEntity, userId);
             originUserId = blogEntity.getUserId();
         } else {
             originUserId = userId;
