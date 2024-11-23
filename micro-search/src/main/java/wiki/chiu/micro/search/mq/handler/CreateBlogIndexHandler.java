@@ -1,7 +1,7 @@
 package wiki.chiu.micro.search.mq.handler;
 
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
-import wiki.chiu.micro.search.constant.BlogOperateEnum;
+import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.search.document.BlogDocument;
 import wiki.chiu.micro.search.rpc.BlogHttpServiceWrapper;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;

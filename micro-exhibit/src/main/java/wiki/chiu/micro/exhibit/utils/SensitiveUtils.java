@@ -3,10 +3,10 @@ package wiki.chiu.micro.exhibit.utils;
 import java.util.List;
 
 import wiki.chiu.micro.common.dto.SensitiveContentRpcDto;
+import wiki.chiu.micro.common.lang.SensitiveTypeEnum;
 import wiki.chiu.micro.exhibit.convertor.BlogExhibitDtoConvertor;
 import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
-import wiki.chiu.micro.exhibit.lang.SensitiveTypeEnum;
 
 public class SensitiveUtils {
 

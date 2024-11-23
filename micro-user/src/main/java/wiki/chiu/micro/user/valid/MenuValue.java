@@ -17,7 +17,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface MenuValue {
 
-    String message() default "{org.chiu.micro.user.valid.MenuValue.message}";
+    String message() default "{wiki.chiu.micro.user.valid.MenuValue.message}";
 
 
     Class<?>[] groups() default { };

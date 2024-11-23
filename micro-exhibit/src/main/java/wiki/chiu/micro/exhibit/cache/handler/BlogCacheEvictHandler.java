@@ -4,7 +4,7 @@ import com.rabbitmq.client.Channel;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.exhibit.constant.BlogOperateEnum;
+import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.exhibit.constant.BlogOperateMessage;
 import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import org.redisson.api.RedissonClient;

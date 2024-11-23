@@ -16,7 +16,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface PushAllValue {
 
-    String message() default "{org.chiu.micro.blog.valid.PushAll.message}";
+    String message() default "{wiki.chiu.micro.blog.valid.PushAll.message}";
 
 
     Class<?>[] groups() default { };

@@ -4,7 +4,7 @@ import wiki.chiu.micro.common.exception.CommitException;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.user.code.CodeFactory;
+import wiki.chiu.micro.common.utils.CodeUtils;
 import wiki.chiu.micro.user.constant.UserIndexMessage;
 import wiki.chiu.micro.user.convertor.UserEntityConvertor;
 import wiki.chiu.micro.user.convertor.UserEntityVoConvertor;
@@ -49,7 +49,7 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     private final RoleRepository roleRepository;
 
-    private final CodeFactory codeFactory;
+    private final CodeUtils codeUtils;
 
     private final StringRedisTemplate redisTemplate;
 
@@ -64,9 +64,9 @@ public class UserRoleServiceImpl implements UserRoleService {
     private final UserRoleRepository userRoleRepository;
 
 
-    public UserRoleServiceImpl(RoleRepository roleRepository, CodeFactory codeFactory, StringRedisTemplate redisTemplate, UserRoleWrapper userRoleWrapper, UserRepository userRepository, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, UserRoleRepository userRoleRepository) {
+    public UserRoleServiceImpl(RoleRepository roleRepository, CodeUtils codeUtils, StringRedisTemplate redisTemplate, UserRoleWrapper userRoleWrapper, UserRepository userRepository, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, UserRoleRepository userRoleRepository) {
         this.roleRepository = roleRepository;
-        this.codeFactory = codeFactory;
+        this.codeUtils = codeUtils;
         this.redisTemplate = redisTemplate;
         this.userRoleWrapper = userRoleWrapper;
         this.userRepository = userRepository;
@@ -128,7 +128,7 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         String phone = userEntityRegisterReq.phone();
         if (!StringUtils.hasLength(phone)) {
-            String fakePhone = codeFactory.createPhone();
+            String fakePhone = codeUtils.createPhone();
             userEntityRegisterReq = new UserEntityRegisterReq(userEntityRegisterReq, fakePhone);
         }
 

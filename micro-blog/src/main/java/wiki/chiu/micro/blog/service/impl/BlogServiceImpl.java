@@ -5,7 +5,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import wiki.chiu.micro.blog.constant.BlogOperateEnum;
+import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.blog.constant.BlogOperateMessage;
 import wiki.chiu.micro.blog.convertor.BlogDeleteVoConvertor;
 import wiki.chiu.micro.blog.convertor.BlogEntityConvertor;

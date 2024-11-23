@@ -21,7 +21,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface Phone {
 
-    String message() default "{org.chiu.micro.user.phone.message}";
+    String message() default "{wiki.chiu.micro.user.valid.phone.message}";
 
     Class<?>[] groups() default { };
 

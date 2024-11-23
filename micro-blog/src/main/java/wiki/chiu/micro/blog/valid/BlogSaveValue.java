@@ -17,7 +17,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface BlogSaveValue {
 
-    String message() default "{org.chiu.micro.blog.valid.BlogSave.message}";
+    String message() default "{wiki.chiu.micro.blog.valid.BlogSave.message}";
 
 
     Class<?>[] groups() default { };
