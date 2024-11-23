@@ -14,16 +14,9 @@ import java.util.*;
 
 public class SmsUtils {
 
-    private static final String accessKeyId = Optional.ofNullable(System.getenv("megalith.blog.aliyun.access-key-id"))
-            .orElse("");
-
-    private static final String accessKeySecret = Optional.ofNullable(System.getenv("megalith.blog.aliyun.access-key-secret"))
-            .orElse("");
-
     private static final String ALGORITHM = "HmacSHA1";
 
     private static final String SIGNATURE_METHOD = "HMAC-SHA1";
-
 
     private static String sign(String accessSecret, String stringToSign) {
         Mac mac;
@@ -45,7 +38,7 @@ public class SmsUtils {
                 .replace("%7E", "~");
     }
 
-    public static String getSignature(String phoneNumbers, String templateParam) {
+    public static String getSignature(String phoneNumbers, String templateParam, String accessKeyId, String accessKeySecret) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.UK);
         LocalDateTime now = LocalDateTime.now(ZoneId.of("GMT"));
         String timeStamp = dateTimeFormatter.format(now);

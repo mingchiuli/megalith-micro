@@ -95,9 +95,17 @@ public class BlogServiceImpl implements BlogService {
     @Value("${megalith.blog.read.page-prefix}")
     private String readPrefix;
 
-
     @Value("${megalith.blog.oss.base-url}")
     private String baseUrl;
+
+    @Value("${megalith.blog.aliyun.access-key-id}")
+    private String accessKeyId;
+
+    @Value("${megalith.blog.aliyun.access-key-secret}")
+    private String accessKeySecret;
+
+    @Value("${megalith.blog.aliyun.oss.bucket-name}")
+    private String bucketName;
 
     private String hotBlogsScript;
 
@@ -210,7 +218,7 @@ public class BlogServiceImpl implements BlogService {
             Map<String, String> headers = new HashMap<>();
             String gmtDate = OssSignUtils.getGMTDate();
             headers.put(HttpHeaders.DATE, gmtDate);
-            headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.PUT.name(), "image/jpg"));
+            headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.PUT.name(), "image/jpg", accessKeyId, accessKeySecret, bucketName));
 
             headers.put(HttpHeaders.CACHE_CONTROL, "no-cache");
             headers.put(HttpHeaders.CONTENT_TYPE, "image/jpg");
@@ -234,7 +242,7 @@ public class BlogServiceImpl implements BlogService {
         Map<String, String> headers = new HashMap<>();
         String gmtDate = OssSignUtils.getGMTDate();
         headers.put(HttpHeaders.DATE, gmtDate);
-        headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
+        headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), "", accessKeyId, accessKeySecret, bucketName));
 
         ossHttpService.deleteOssObject(objectName, headers);
     }

@@ -54,6 +54,15 @@ public class UserServiceImpl implements UserService {
     @Value("${megalith.blog.register.page-prefix}")
     private String pagePrefix;
 
+    @Value("${megalith.blog.aliyun.access-key-id}")
+    private String accessKeyId;
+
+    @Value("${megalith.blog.aliyun.access-key-secret}")
+    private String accessKeySecret;
+
+    @Value("${megalith.blog.aliyun.oss.bucket-name}")
+    private String bucketName;
+
     public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
@@ -109,7 +118,7 @@ public class UserServiceImpl implements UserService {
             Map<String, String> headers = new HashMap<>();
             String gmtDate = OssSignUtils.getGMTDate();
             headers.put(HttpHeaders.DATE, gmtDate);
-            headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.PUT.name(), "image/jpg"));
+            headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.PUT.name(), "image/jpg", accessKeyId, accessKeySecret, bucketName));
             headers.put(HttpHeaders.CACHE_CONTROL, "no-cache");
             headers.put(HttpHeaders.CONTENT_TYPE, "image/jpg");
             ossHttpService.putOssObject(objectName, imageBytes, headers);
@@ -135,7 +144,7 @@ public class UserServiceImpl implements UserService {
             Map<String, String> headers = new HashMap<>();
             String gmtDate = OssSignUtils.getGMTDate();
             headers.put(HttpHeaders.DATE, gmtDate);
-            headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
+            headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), "", accessKeyId, accessKeySecret, bucketName));
             ossHttpService.deleteOssObject(objectName, headers);
         });
     }

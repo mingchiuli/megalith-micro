@@ -48,6 +48,12 @@ public class CodeServiceImpl implements CodeService {
     @Value("${spring.mail.properties.from}")
     private String from;
 
+    @Value("${megalith.blog.aliyun.access-key-id}")
+    private String accessKeyId;
+
+    @Value("${megalith.blog.aliyun.access-key-secret}")
+    private String accessKeySecret;
+
     private String script;
 
     public CodeServiceImpl(JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, ResourceLoader resourceLoader) {
@@ -96,7 +102,7 @@ public class CodeServiceImpl implements CodeService {
 
         Object code = CodeUtils.create(SMS_CODE);
         Map<String, Object> codeMap = Collections.singletonMap("code", code);
-        String signature = SmsUtils.getSignature(loginSMS, JsonUtils.writeValueAsString(codeMap));
+        String signature = SmsUtils.getSignature(loginSMS, JsonUtils.writeValueAsString(codeMap), accessKeyId, accessKeySecret);
         smsHttpService.sendSms("?Signature=" + signature);
         redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.VALUE, Collections.singletonList(key), "code", code.toString(), "try_count", "0", "120");
     }
