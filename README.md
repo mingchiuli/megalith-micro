@@ -36,11 +36,13 @@ public String test() {
 @GetMapping("/evict")
 public String evict() {
     HashSet<String> set = new HashSet<>();
-    //add the generated keys
+    //some skip process about the generated keys which can be find in CommonCacheKeyGenerator::generateKey
     set.add("keyPrefix::XxxController::test");
     cacheEvictHandler.evictCache(set);
 }
 ```
+
+The rule of the generation of key can be find in class `CommonCacheKeyGenerator::generateKey`
 
 It can be auto upgraded to a stable queue(if you used rabbitmq) via config and rabbitmq dependancies:
 
