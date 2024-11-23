@@ -8,7 +8,7 @@ import org.springframework.util.ResourceUtils;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.service.CodeService;
 import wiki.chiu.micro.common.utils.CodeUtils;
-import wiki.chiu.micro.auth.utils.SmsUtils;
+import wiki.chiu.micro.common.utils.SmsUtils;
 import wiki.chiu.micro.common.exception.CodeException;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.rpc.SmsHttpService;
