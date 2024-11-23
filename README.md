@@ -2,7 +2,7 @@
 
 own blog...(A spring application with graalvm aot)
 
-A Simple Cache Library both local and remote cache
+A Simple Cache Library both local and redis remote cache
 
 ```xml
 <dependency>
