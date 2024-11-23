@@ -51,15 +51,4 @@ public class ESHighlightBuilderUtils {
                             new HighlightField(DESCRIPTION),
                             new HighlightField(CONTENT))),
             null);
-
-    public static final HighlightQuery websiteHighlightQuery = new HighlightQuery(
-            new Highlight(
-                    new HighlightParameters
-                            .HighlightParametersBuilder()
-                            .withPreTags(RED)
-                            .withPostTags(BABEL)
-                            .build(),
-                    List.of(new HighlightField(TITLE),
-                            new HighlightField(DESCRIPTION))
-            ), null);
 }
