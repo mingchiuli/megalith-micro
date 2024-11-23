@@ -1,6 +1,5 @@
 package wiki.chiu.micro.blog.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -74,15 +73,11 @@ public class BlogServiceImpl implements BlogService {
 
     private final OssHttpService ossHttpService;
 
-    private final OssSignUtils ossSignUtils;
-
     private final ApplicationContext applicationContext;
 
     private final BlogRepository blogRepository;
 
     private final StringRedisTemplate redisTemplate;
-
-    private final ObjectMapper objectMapper;
 
     private final ResourceLoader resourceLoader;
 
@@ -110,14 +105,12 @@ public class BlogServiceImpl implements BlogService {
 
     private String recoverDeleteScript;
 
-    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, OssSignUtils ossSignUtils, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ObjectMapper objectMapper, ResourceLoader resourceLoader, BlogSensitiveWrapper blogSensitiveWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogSensitiveWrapper blogSensitiveWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.ossHttpService = ossHttpService;
-        this.ossSignUtils = ossSignUtils;
         this.applicationContext = applicationContext;
         this.blogRepository = blogRepository;
         this.redisTemplate = redisTemplate;
-        this.objectMapper = objectMapper;
         this.resourceLoader = resourceLoader;
         this.blogSensitiveWrapper = blogSensitiveWrapper;
         this.blogSensitiveContentRepository = blogSensitiveContentRepository;
@@ -215,9 +208,9 @@ public class BlogServiceImpl implements BlogService {
             String objectName = user.nickname() + "/" + uuid + "-" + originalFilename;
 
             Map<String, String> headers = new HashMap<>();
-            String gmtDate = ossSignUtils.getGMTDate();
+            String gmtDate = OssSignUtils.getGMTDate();
             headers.put(HttpHeaders.DATE, gmtDate);
-            headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.PUT.name(), "image/jpg"));
+            headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.PUT.name(), "image/jpg"));
 
             headers.put(HttpHeaders.CACHE_CONTROL, "no-cache");
             headers.put(HttpHeaders.CONTENT_TYPE, "image/jpg");
@@ -239,9 +232,9 @@ public class BlogServiceImpl implements BlogService {
     public void deleteOss(String url){
         String objectName = url.replace(baseUrl + "/", "");
         Map<String, String> headers = new HashMap<>();
-        String gmtDate = ossSignUtils.getGMTDate();
+        String gmtDate = OssSignUtils.getGMTDate();
         headers.put(HttpHeaders.DATE, gmtDate);
-        headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
+        headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
 
         ossHttpService.deleteOssObject(objectName, headers);
     }

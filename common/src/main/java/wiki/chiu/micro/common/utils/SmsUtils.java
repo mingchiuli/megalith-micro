@@ -1,8 +1,6 @@
 package wiki.chiu.micro.common.utils;
 
 import wiki.chiu.micro.common.exception.MissException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
 import java.net.URLEncoder;
@@ -14,21 +12,20 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-@Component
 public class SmsUtils {
 
-    @Value("${megalith.blog.aliyun.access-key-id:}")
-    private String accessKeyId;
+    private static final String accessKeyId = Optional.ofNullable(System.getenv("megalith.blog.aliyun.access-key-id"))
+            .orElse("");
 
-    @Value("${megalith.blog.aliyun.access-key-secret:}")
-    private String accessKeySecret;
+    private static final String accessKeySecret = Optional.ofNullable(System.getenv("megalith.blog.aliyun.access-key-secret"))
+            .orElse("");
 
     private static final String ALGORITHM = "HmacSHA1";
 
     private static final String SIGNATURE_METHOD = "HMAC-SHA1";
 
 
-    private String sign(String accessSecret, String stringToSign) {
+    private static String sign(String accessSecret, String stringToSign) {
         Mac mac;
         try {
             mac = Mac.getInstance(ALGORITHM);
@@ -41,14 +38,14 @@ public class SmsUtils {
         return Base64.getEncoder().encodeToString(signData);
     }
 
-    private String specialUrlEncode(String value) {
+    private static String specialUrlEncode(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8)
                 .replace("+", "%20")
                 .replace("*", "%2A")
                 .replace("%7E", "~");
     }
 
-    public String getSignature(String phoneNumbers, String templateParam) {
+    public static String getSignature(String phoneNumbers, String templateParam) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.UK);
         LocalDateTime now = LocalDateTime.now(ZoneId.of("GMT"));
         String timeStamp = dateTimeFormatter.format(now);
