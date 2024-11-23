@@ -37,7 +37,7 @@ public String test() {
 public String evict() {
     HashSet<String> set = new HashSet<>();
     //add the generated keys
-    set.add("keyPrefix::XxxController::evict");
+    set.add("keyPrefix::XxxController::test");
     cacheEvictHandler.evictCache(set);
 }
 ```
