@@ -49,8 +49,6 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     private final RoleRepository roleRepository;
 
-    private final CodeUtils codeUtils;
-
     private final StringRedisTemplate redisTemplate;
 
     private final UserRoleWrapper userRoleWrapper;
@@ -64,9 +62,8 @@ public class UserRoleServiceImpl implements UserRoleService {
     private final UserRoleRepository userRoleRepository;
 
 
-    public UserRoleServiceImpl(RoleRepository roleRepository, CodeUtils codeUtils, StringRedisTemplate redisTemplate, UserRoleWrapper userRoleWrapper, UserRepository userRepository, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, UserRoleRepository userRoleRepository) {
+    public UserRoleServiceImpl(RoleRepository roleRepository, StringRedisTemplate redisTemplate, UserRoleWrapper userRoleWrapper, UserRepository userRepository, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, UserRoleRepository userRoleRepository) {
         this.roleRepository = roleRepository;
-        this.codeUtils = codeUtils;
         this.redisTemplate = redisTemplate;
         this.userRoleWrapper = userRoleWrapper;
         this.userRepository = userRepository;
@@ -128,7 +125,7 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         String phone = userEntityRegisterReq.phone();
         if (!StringUtils.hasLength(phone)) {
-            String fakePhone = codeUtils.createPhone();
+            String fakePhone = CodeUtils.createPhone();
             userEntityRegisterReq = new UserEntityRegisterReq(userEntityRegisterReq, fakePhone);
         }
 

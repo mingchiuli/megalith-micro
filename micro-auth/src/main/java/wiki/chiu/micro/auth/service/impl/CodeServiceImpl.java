@@ -1,8 +1,13 @@
 package wiki.chiu.micro.auth.service.impl;
 
+import jakarta.annotation.PostConstruct;
+import org.redisson.api.RScript;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.util.ResourceUtils;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.service.CodeService;
-import wiki.chiu.micro.auth.utils.CodeFactory;
+import wiki.chiu.micro.common.utils.CodeUtils;
 import wiki.chiu.micro.auth.utils.SmsUtils;
 import wiki.chiu.micro.common.exception.CodeException;
 import wiki.chiu.micro.common.lang.Const;
@@ -14,6 +19,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
@@ -28,8 +35,6 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.CODE_EXISTED;
 @Service
 public class CodeServiceImpl implements CodeService {
 
-    private final CodeFactory codeFactory;
-
     private final JavaMailSender javaMailSender;
 
     private final RedissonClient redissonClient;
@@ -38,18 +43,28 @@ public class CodeServiceImpl implements CodeService {
 
     private final SmsHttpService smsHttpService;
 
+    private final ResourceLoader resourceLoader;
+
     private final SmsUtils smsUtils;
 
     @Value("${spring.mail.properties.from}")
     private String from;
 
-    public CodeServiceImpl(CodeFactory codeFactory, JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, SmsUtils smsUtils) {
-        this.codeFactory = codeFactory;
+    private String script;
+
+    public CodeServiceImpl(JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, ResourceLoader resourceLoader, SmsUtils smsUtils) {
         this.javaMailSender = javaMailSender;
         this.redissonClient = redissonClient;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.smsHttpService = smsHttpService;
+        this.resourceLoader = resourceLoader;
         this.smsUtils = smsUtils;
+    }
+
+    @PostConstruct
+    private void init() throws IOException {
+        Resource resource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/save-code.lua");
+        script = resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
 
@@ -62,14 +77,14 @@ public class CodeServiceImpl implements CodeService {
             throw new CodeException(CODE_EXISTED);
         }
 
-        Object code = codeFactory.create(Const.EMAIL_CODE);
+        Object code = CodeUtils.create(Const.EMAIL_CODE);
         var simpMsg = new SimpleMailMessage();
         simpMsg.setFrom(from);
         simpMsg.setTo(loginEmail);
         simpMsg.setSubject("login code");
         simpMsg.setText(code.toString());
         javaMailSender.send(simpMsg);
-        codeFactory.save(code, key);
+        redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.VALUE, Collections.singletonList(key), "code", code.toString(), "try_count", "0", "120");
     }
 
 
@@ -82,10 +97,10 @@ public class CodeServiceImpl implements CodeService {
             throw new CodeException(CODE_EXISTED);
         }
 
-        Object code = codeFactory.create(SMS_CODE);
+        Object code = CodeUtils.create(SMS_CODE);
         Map<String, Object> codeMap = Collections.singletonMap("code", code);
         String signature = smsUtils.getSignature(loginSMS, JsonUtils.writeValueAsString(codeMap));
         smsHttpService.sendSms("?Signature=" + signature);
-        codeFactory.save(code, key);
+        redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.VALUE, Collections.singletonList(key), "code", code.toString(), "try_count", "0", "120");
     }
 }
