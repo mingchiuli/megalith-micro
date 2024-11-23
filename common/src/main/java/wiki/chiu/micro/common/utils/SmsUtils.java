@@ -1,4 +1,4 @@
-package wiki.chiu.micro.auth.utils;
+package wiki.chiu.micro.common.utils;
 
 import wiki.chiu.micro.common.exception.MissException;
 import org.springframework.beans.factory.annotation.Value;
