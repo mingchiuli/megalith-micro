@@ -46,9 +46,6 @@ public class UserServiceImpl implements UserService {
 
     private final OssHttpService ossHttpService;
 
-    private final OssSignUtils ossSignUtils;
-
-
     private final ExecutorService taskExecutor;
 
     @Value("${megalith.blog.oss.base-url}")
@@ -57,11 +54,10 @@ public class UserServiceImpl implements UserService {
     @Value("${megalith.blog.register.page-prefix}")
     private String pagePrefix;
 
-    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, OssSignUtils ossSignUtils, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
         this.ossHttpService = ossHttpService;
-        this.ossSignUtils = ossSignUtils;
         this.taskExecutor = taskExecutor;
     }
 
@@ -111,9 +107,9 @@ public class UserServiceImpl implements UserService {
             String objectName = "avatar/" + uuid + "-" + originalFilename;
 
             Map<String, String> headers = new HashMap<>();
-            String gmtDate = ossSignUtils.getGMTDate();
+            String gmtDate = OssSignUtils.getGMTDate();
             headers.put(HttpHeaders.DATE, gmtDate);
-            headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.PUT.name(), "image/jpg"));
+            headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.PUT.name(), "image/jpg"));
             headers.put(HttpHeaders.CACHE_CONTROL, "no-cache");
             headers.put(HttpHeaders.CONTENT_TYPE, "image/jpg");
             ossHttpService.putOssObject(objectName, imageBytes, headers);
@@ -137,9 +133,9 @@ public class UserServiceImpl implements UserService {
         taskExecutor.execute(() -> {
             String objectName = url.replace(baseUrl + "/", "");
             Map<String, String> headers = new HashMap<>();
-            String gmtDate = ossSignUtils.getGMTDate();
+            String gmtDate = OssSignUtils.getGMTDate();
             headers.put(HttpHeaders.DATE, gmtDate);
-            headers.put(HttpHeaders.AUTHORIZATION, ossSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
+            headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), ""));
             ossHttpService.deleteOssObject(objectName, headers);
         });
     }

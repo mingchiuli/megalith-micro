@@ -8,7 +8,6 @@ import org.springframework.util.ResourceUtils;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.service.CodeService;
 import wiki.chiu.micro.common.utils.CodeUtils;
-import wiki.chiu.micro.common.utils.SmsUtils;
 import wiki.chiu.micro.common.exception.CodeException;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.rpc.SmsHttpService;
@@ -18,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import wiki.chiu.micro.common.utils.SmsUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -45,20 +45,17 @@ public class CodeServiceImpl implements CodeService {
 
     private final ResourceLoader resourceLoader;
 
-    private final SmsUtils smsUtils;
-
     @Value("${spring.mail.properties.from}")
     private String from;
 
     private String script;
 
-    public CodeServiceImpl(JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, ResourceLoader resourceLoader, SmsUtils smsUtils) {
+    public CodeServiceImpl(JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, ResourceLoader resourceLoader) {
         this.javaMailSender = javaMailSender;
         this.redissonClient = redissonClient;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.smsHttpService = smsHttpService;
         this.resourceLoader = resourceLoader;
-        this.smsUtils = smsUtils;
     }
 
     @PostConstruct
@@ -99,7 +96,7 @@ public class CodeServiceImpl implements CodeService {
 
         Object code = CodeUtils.create(SMS_CODE);
         Map<String, Object> codeMap = Collections.singletonMap("code", code);
-        String signature = smsUtils.getSignature(loginSMS, JsonUtils.writeValueAsString(codeMap));
+        String signature = SmsUtils.getSignature(loginSMS, JsonUtils.writeValueAsString(codeMap));
         smsHttpService.sendSms("?Signature=" + signature);
         redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.VALUE, Collections.singletonList(key), "code", code.toString(), "try_count", "0", "120");
     }

@@ -1,8 +1,6 @@
 package wiki.chiu.micro.common.utils;
 
 import wiki.chiu.micro.common.exception.MissException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -14,26 +12,24 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Locale;
+import java.util.Optional;
 
-@Component
 public class OssSignUtils {
 
-    @Value("${megalith.blog.aliyun.access-key-id:}")
-    private String accessKeyId;
+    private static final String accessKeyId = Optional.ofNullable(System.getenv("megalith.blog.aliyun.access-key-id"))
+            .orElse("");
 
-    @Value("${megalith.blog.aliyun.access-key-secret:}")
-    private String accessKeySecret;
+    private static final String accessKeySecret = Optional.ofNullable(System.getenv("megalith.blog.aliyun.access-key-secret"))
+            .orElse("");
 
-    @Value("${megalith.blog.aliyun.oss.bucket-name:}")
-    private String bucketName;
+    private static final String bucketName = Optional.ofNullable(System.getenv("megalith.blog.aliyun.oss.bucket-name"))
+            .orElse("");
 
-    private static final String ALGORITHM = "HmacSHA1";
-
-    private byte[] hmacSha1(String data, String accessKeySecret) {
+    private static byte[] hmacSha1(String data) {
         Mac mac;
         try {
-            mac = Mac.getInstance(ALGORITHM);
-            SecretKeySpec keySpec = new SecretKeySpec(accessKeySecret.getBytes(), ALGORITHM);
+            mac = Mac.getInstance("HmacSHA1");
+            SecretKeySpec keySpec = new SecretKeySpec(OssSignUtils.accessKeySecret.getBytes(), "HmacSHA1");
             mac.init(keySpec);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new MissException(e.getMessage());
@@ -41,13 +37,13 @@ public class OssSignUtils {
         return mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String getGMTDate() {
+    public static String getGMTDate() {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.UK);
         LocalDateTime now = LocalDateTime.now(ZoneId.of("GMT"));
         return dateTimeFormatter.format(now);
     }
 
-    private String buildSignData(String date, String canonicalizedResource, String methodName, String contentType) {
+    private static String buildSignData(String date, String canonicalizedResource, String methodName, String contentType) {
         //https://help.aliyun.com/zh/oss/developer-reference/include-signatures-in-the-authorization-header?spm=a2c4g.11186623.0.0.54e828efd3PoE6
         return methodName + "\n" +
                 "\n" +
@@ -56,10 +52,10 @@ public class OssSignUtils {
                 canonicalizedResource;
     }
 
-    public String getAuthorization(String objectName, String method, String contentType) {
+    public static String getAuthorization(String objectName, String method, String contentType) {
         String date = getGMTDate();
         String signData = buildSignData(date, "/" + bucketName + "/" + objectName, method, contentType);
-        byte[] bytes = hmacSha1(signData, accessKeySecret);
+        byte[] bytes = hmacSha1(signData);
         String signature = Base64.getEncoder().encodeToString(bytes);
         return "OSS " + accessKeyId + ":" + signature;
     }
