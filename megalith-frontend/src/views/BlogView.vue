@@ -148,6 +148,7 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth))
 .exhibit-read-count {
   display: block;
   margin-left: 10px;
+  margin-bottom: 5px;
 }
 
 .el-card:deep(.md-editor-preview-wrapper) {
