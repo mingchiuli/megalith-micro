@@ -135,7 +135,9 @@ public class CacheAspect {
 
                 if (StringUtils.hasLength(r)) {
                     try {
-                        return objectMapper.readValue(r, javaType);
+                        Object value = objectMapper.readValue(r, javaType);
+                        localCache.put(cacheKey, value);
+                        return value;
                     } catch (JsonProcessingException e) {
                         return pjp.proceed();
                     }
