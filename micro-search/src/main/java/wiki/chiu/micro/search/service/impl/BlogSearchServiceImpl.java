@@ -152,7 +152,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                                         .scriptScore(scriptScore -> scriptScore
                                                 .script(script -> script
                                                         .inline(inline -> inline
-                                                                .source("def c = doc['readCount'].value;return _score * Math.log(c);")
+                                                                .source("def c = doc['readCount'].value;return Math.log(c);")
                                                                 .lang(ScriptLanguage.Painless)))))
                                 .scoreMode(FunctionScoreMode.Sum)
                                 .boostMode(FunctionBoostMode.Multiply)))
