@@ -54,8 +54,7 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (
   queryString: string,
   cb: AutocompleteFetchSuggestionsCallback
 ) => {
-  // if (queryString.length) {
-  console.log('search' + queryString)
+  if (queryString.trim().length) {
     searchOrder++
     search(queryString, currentPage, false, year.value!, searchOrder).then((page) => {
       if (page.additional !== searchOrder) {
@@ -92,7 +91,7 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (
         }
       }, 1000 * Math.random())
     })
-  // }
+  }
 }
 
 let lock = false
