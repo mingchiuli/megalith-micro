@@ -188,10 +188,11 @@ const openDialog = () => {
 }
 
 const clearSearch = () => {
-  console.log('clear search')
+  console.log('clear search1' + keywords.value)
   searchOrder = 1
   currentPage = 1
   keywords.value = ''
+  console.log('clear search2' + keywords.value)
   if (controller) controller.abort()
   suggestionEle = null
 }
