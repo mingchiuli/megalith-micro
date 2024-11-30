@@ -163,11 +163,13 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
 const searchBeforeClose = (close: Function) => {
   year.value = ''
   keywords.value = ''
+  console.log('searchBeforeClose1' + keywords.value)
   if (controller) controller.abort()
   suggestionEle = null
   suggestionList.value = []
+  console.log('searchBeforeClose2' + keywords.value)
   emit('refresh')
-  console.log('searchBeforeClose' + keywords.value)
+  console.log('searchBeforeClose3' + keywords.value)
   close()
 }
 
