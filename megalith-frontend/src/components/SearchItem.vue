@@ -167,6 +167,7 @@ const searchBeforeClose = (close: Function) => {
   suggestionEle = null
   suggestionList.value = []
   emit('refresh')
+  console.log('searchBeforeClose' + keywords.value)
   close()
 }
 
@@ -185,6 +186,7 @@ const openDialog = () => {
 }
 
 const clearSearch = () => {
+  console.log('clear search')
   searchOrder = 1
   currentPage = 1
   keywords.value = ''
