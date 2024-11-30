@@ -4,6 +4,7 @@ package wiki.chiu.micro.search.provider;
 import jakarta.annotation.Resource;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.web.bind.annotation.*;
 import wiki.chiu.micro.common.dto.AuthRpcDto;
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
@@ -81,6 +82,7 @@ public class SearchProvider {
             } catch (Exception e) {
 
             }
+            elasticsearchTemplate.indexOps(IndexCoordinates.of("blog_index_v2")).delete();
         }
     }
 }
