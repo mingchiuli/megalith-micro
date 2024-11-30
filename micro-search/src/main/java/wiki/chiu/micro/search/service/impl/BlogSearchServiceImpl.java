@@ -6,6 +6,8 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionScoreMode;
 import co.elastic.clients.json.JsonData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
@@ -40,6 +42,7 @@ import static wiki.chiu.micro.common.lang.FieldEnum.*;
 @Service
 public class BlogSearchServiceImpl implements BlogSearchService {
 
+    private static final Logger log = LoggerFactory.getLogger(BlogSearchServiceImpl.class);
     private final ElasticsearchTemplate elasticsearchTemplate;
 
     @Value("${megalith.blog.blog-page-size}")
@@ -166,9 +169,14 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                         ? ESHighlightBuilderUtils.blogHighlightQueryOrigin
                         : ESHighlightBuilderUtils.blogHighlightQuerySimple)
                 .build();
-        SearchHits<BlogDocument> search = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
+        try {
+            SearchHits<BlogDocument> search = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
+            return BlogDocumentVoConvertor.convert(search, blogPageSize, currentPage);
+        } catch (Exception e) {
+            log.error("ex", e);
+        }
+        return null;
 
-        return BlogDocumentVoConvertor.convert(search, blogPageSize, currentPage);
     }
 
     @Override
