@@ -40,7 +40,6 @@ public class AuthHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
         }
 
         AuthorityRouteReq req = AuthorityRouteReq.builder()
-                .ipAddr(null)
                 .method(request.getMethod().name())
                 .routeMapping(request.getURI().getPath())
                 .build();
