@@ -61,7 +61,7 @@ public class SearchProvider {
     private final ElasticsearchTemplate elasticsearchTemplate;
 
     @GetMapping("/test")
-    private void test() {
+    public void test() {
         for (long i = 1; i < 400; i++) {
             try {
                 BlogEntityRpcDto blog = blogHttpServiceWrapper.findById(i);
