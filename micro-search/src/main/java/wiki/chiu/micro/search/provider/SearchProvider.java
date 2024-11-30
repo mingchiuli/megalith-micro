@@ -1,7 +1,6 @@
 package wiki.chiu.micro.search.provider;
 
 
-import jakarta.annotation.Resource;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
@@ -54,10 +53,8 @@ public class SearchProvider {
         return Result.success(() -> blogSearchService.addReadCount(id));
     }
 
-    @Resource
     private final BlogHttpServiceWrapper blogHttpServiceWrapper;
 
-    @Resource
     private final ElasticsearchTemplate elasticsearchTemplate;
 
     @GetMapping("/test")
