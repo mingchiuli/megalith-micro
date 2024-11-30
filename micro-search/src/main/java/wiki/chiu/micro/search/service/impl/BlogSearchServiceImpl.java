@@ -1,14 +1,19 @@
 package wiki.chiu.micro.search.service.impl;
 
+import co.elastic.clients.elasticsearch._types.ScriptLanguage;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionScoreMode;
 import co.elastic.clients.json.JsonData;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.ScriptType;
+import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.search.convertor.BlogDocumentVoConvertor;
 import wiki.chiu.micro.search.document.BlogDocument;
+import wiki.chiu.micro.search.lang.IndexConst;
 import wiki.chiu.micro.search.service.BlogSearchService;
 import wiki.chiu.micro.search.utils.ESHighlightBuilderUtils;
 import wiki.chiu.micro.search.vo.BlogDocumentVo;
@@ -143,6 +148,12 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                                                         .scale(JsonData.of("1095d"))
                                                         .offset(JsonData.of("90d"))
                                                         .decay(0.5))))
+                                .functions(function -> function
+                                        .scriptScore(scriptScore -> scriptScore
+                                                .script(script -> script
+                                                        .inline(inline -> inline
+                                                                .source("def c = doc['readCount'].value;return _score * Math.log(c);")
+                                                                .lang(ScriptLanguage.Painless)))))
                                 .scoreMode(FunctionScoreMode.Sum)
                                 .boostMode(FunctionBoostMode.Multiply)))
                 .withSort(sort -> sort
@@ -253,6 +264,16 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                         query.bool(boolQuery))
                 .build();
         return elasticsearchTemplate.count(nativeQuery, BlogDocument.class);
+    }
+
+    @Override
+    public void addReadCount(Long id) {
+        UpdateQuery updateQuery = UpdateQuery.builder(id.toString())
+                .withScript("ctx._source.readCount += 1;")
+                .withLang(ScriptLanguage.Painless.jsonValue())
+                .withScriptType(ScriptType.INLINE)
+                .build();
+        elasticsearchTemplate.update(updateQuery, IndexCoordinates.of(IndexConst.indexName));
     }
 
     private BoolQuery getSysBoolQuery(String keywords, Long userId, List<String> roles) {

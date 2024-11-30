@@ -3,6 +3,7 @@ package wiki.chiu.micro.common.rpc;
 
 
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.PostExchange;
 import wiki.chiu.micro.common.dto.BlogSearchRpcDto;
 import wiki.chiu.micro.common.lang.Result;
 import org.springframework.web.service.annotation.GetExchange;
@@ -14,4 +15,7 @@ public interface SearchHttpService {
 
     @GetExchange("/blog/count")
     Result<Long> countBlogs(@RequestParam(required = false) String keywords);
+
+    @PostExchange("/blog/read")
+    Result<Void> addReadCount(@RequestParam Long id);
 }
