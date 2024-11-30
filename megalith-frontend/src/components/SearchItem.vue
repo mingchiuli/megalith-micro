@@ -166,6 +166,7 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
 const searchBeforeClose = (close: Function) => {
   year.value = ''
   keywords.value = ''
+  refAutocompleteRef.value!.suggestions = []
   if (controller) controller.abort()
   suggestionEle = null
   suggestionList.value = []
