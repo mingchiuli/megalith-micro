@@ -132,7 +132,6 @@ const { content, totalElements, pageSize } = toRefs(page)
         ref="search"
         @trans-search-data="fillSearchData"
         @refresh="refresh"
-        v-model:keywords="keywords"
         v-model:year="year"
         v-model:loading="loading"
         v-model:search-dialog-visible="searchDialogVisible"

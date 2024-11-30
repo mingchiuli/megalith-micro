@@ -11,6 +11,8 @@ import { onBeforeUnmount, ref, useTemplateRef } from 'vue'
 import { debounce } from '@/utils/tools'
 import { ElLoading } from 'element-plus'
 import type HotItem from '@/components/HotItem.vue'
+import { storeToRefs } from 'pinia'
+import { blogsStore } from '@/stores/store'
 
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
@@ -18,7 +20,7 @@ const emit = defineEmits<{
 }>()
 
 const year = defineModel<string>('year')
-const keywords = defineModel<string>('keywords')
+const { keywords } = storeToRefs(blogsStore())
 const loading = defineModel<boolean>('loading')
 const searchDialogVisible = defineModel<boolean>('searchDialogVisible')
 let suggestionList = ref<BlogDesc[]>([])
