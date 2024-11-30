@@ -102,6 +102,7 @@ const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
     lock = true
     e.append(div)
     loadingInstance = ElLoading.service({ target: div })
+    console.log('search ' + keywords.value)
     const page: PageAdapter<BlogDesc> = await search(
       keywords.value,
       currentPage + 1,
