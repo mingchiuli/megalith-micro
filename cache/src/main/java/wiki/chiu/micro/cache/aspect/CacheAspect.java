@@ -8,6 +8,7 @@ import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.redisson.api.RBucket;
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.cache.utils.ClassUtils;
 import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
@@ -98,9 +99,10 @@ public class CacheAspect {
             }
 
             String remoteCacheStr;
+            RBucket<String> bucket = redissonClient.getBucket(cacheKey);
             // 防止redis挂了以后db也访问不了
             try {
-                remoteCacheStr = redissonClient.<String>getBucket(cacheKey).get();
+                remoteCacheStr = bucket.get();
             } catch (NestedRuntimeException e) {
                 return pjp.proceed();
             }
@@ -131,7 +133,7 @@ public class CacheAspect {
 
             try {
                 // 双重检查
-                String r = redissonClient.<String>getBucket(cacheKey).get();
+                String r = bucket.get();
 
                 if (StringUtils.hasLength(r)) {
                     try {
@@ -147,7 +149,7 @@ public class CacheAspect {
 
                 Cache annotation = method.getAnnotation(Cache.class);
                 try {
-                    redissonClient.getBucket(cacheKey).set(objectMapper.writeValueAsString(proceed), Duration.ofMinutes(annotation.expire()));
+                    bucket.set(objectMapper.writeValueAsString(proceed), Duration.ofMinutes(annotation.expire()));
                 } catch (JsonProcessingException e) {
                     return proceed;
                 }
