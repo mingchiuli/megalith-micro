@@ -162,6 +162,7 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
 
 const searchBeforeClose = (close: Function) => {
   year.value = ''
+  keywords.value = ''
   if (controller) controller.abort()
   suggestionEle = null
   suggestionList.value = []

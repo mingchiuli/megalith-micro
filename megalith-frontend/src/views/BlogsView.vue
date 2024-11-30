@@ -42,8 +42,12 @@ const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
   }
 }
 
-const refresh = () => {
+const clearSearch = () => {
   keywords.value = ''
+  refresh()
+}
+
+const refresh = () => {
   page.content = []
   page.totalElements = 0
   getPage(1)
@@ -147,7 +151,7 @@ const { content, totalElements, pageSize } = toRefs(page)
       "
       >进入后台</el-link
     >
-    <el-link class="door" type="warning" v-if="keywords" link @click="refresh">返回</el-link>
+    <el-link class="door" type="warning" v-if="keywords" link @click="clearSearch">返回</el-link>
     <br />
     <div class="description">
       <el-skeleton animated :loading="loading" :throttle="300">
