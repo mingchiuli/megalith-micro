@@ -20,4 +20,6 @@ public interface BlogSearchService {
 
     Long searchCount(String keywords, Long userId, List<String> roles);
 
+    void addReadCount(Long id);
+
 }

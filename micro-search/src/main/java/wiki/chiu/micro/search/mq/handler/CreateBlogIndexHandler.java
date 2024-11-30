@@ -35,6 +35,7 @@ public final class CreateBlogIndexHandler extends BlogIndexSupport {
                 .title(blog.title())
                 .description(blog.description())
                 .content(blog.content())
+                .readCount(blog.readCount())
                 .status(blog.status())
                 .link(blog.link())
                 .created(ZonedDateTime.of(blog.created(), ZoneId.of("Asia/Shanghai")))

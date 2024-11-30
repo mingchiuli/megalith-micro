@@ -1,17 +1,22 @@
 package wiki.chiu.micro.search.provider;
 
 
+import jakarta.annotation.Resource;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
+import org.springframework.web.bind.annotation.*;
 import wiki.chiu.micro.common.dto.AuthRpcDto;
+import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
 import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.search.document.BlogDocument;
 import wiki.chiu.micro.search.rpc.AuthHttpServiceWrapper;
+import wiki.chiu.micro.search.rpc.BlogHttpServiceWrapper;
 import wiki.chiu.micro.search.service.BlogSearchService;
 import wiki.chiu.micro.search.vo.BlogSearchVo;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @RestController
 @Validated
@@ -22,9 +27,11 @@ public class SearchProvider {
 
     private final BlogSearchService blogSearchService;
 
-    public SearchProvider(AuthHttpServiceWrapper authHttpServiceWrapper, BlogSearchService blogSearchService) {
+    public SearchProvider(AuthHttpServiceWrapper authHttpServiceWrapper, BlogSearchService blogSearchService, BlogHttpServiceWrapper blogHttpServiceWrapper, ElasticsearchTemplate elasticsearchTemplate) {
         this.authHttpServiceWrapper = authHttpServiceWrapper;
         this.blogSearchService = blogSearchService;
+        this.blogHttpServiceWrapper = blogHttpServiceWrapper;
+        this.elasticsearchTemplate = elasticsearchTemplate;
     }
 
     @GetMapping("/blog/search")
@@ -39,5 +46,41 @@ public class SearchProvider {
     public Result<Long> searchCount(@RequestParam @Size(max = 20) String keywords) {
         AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogSearchService.searchCount(keywords, authDto.userId(), authDto.roles()));
+    }
+
+    @PostMapping("/blog/read")
+    public Result<Void> readCount(@RequestParam Long id) {
+        return Result.success(() -> blogSearchService.addReadCount(id));
+    }
+
+    @Resource
+    private final BlogHttpServiceWrapper blogHttpServiceWrapper;
+
+    @Resource
+    private final ElasticsearchTemplate elasticsearchTemplate;
+
+    @GetMapping("/test")
+    private void test() {
+        for (long i = 1; i < 400; i++) {
+            try {
+                BlogEntityRpcDto blog = blogHttpServiceWrapper.findById(i);
+                var blogDocument = BlogDocument.builder()
+                        .id(blog.id())
+                        .userId(blog.userId())
+                        .title(blog.title())
+                        .description(blog.description())
+                        .content(blog.content())
+                        .readCount(blog.readCount())
+                        .status(blog.status())
+                        .link(blog.link())
+                        .created(ZonedDateTime.of(blog.created(), ZoneId.of("Asia/Shanghai")))
+                        .updated(ZonedDateTime.of(blog.updated(), ZoneId.of("Asia/Shanghai")))
+                        .build();
+
+                elasticsearchTemplate.save(blogDocument);
+            } catch (Exception e) {
+
+            }
+        }
     }
 }

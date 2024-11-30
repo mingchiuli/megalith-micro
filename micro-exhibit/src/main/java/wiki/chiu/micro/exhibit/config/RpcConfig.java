@@ -3,6 +3,7 @@ package wiki.chiu.micro.exhibit.config;
 import org.springframework.beans.factory.annotation.Value;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.BlogHttpService;
+import wiki.chiu.micro.common.rpc.SearchHttpService;
 import wiki.chiu.micro.common.rpc.UserHttpService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +35,9 @@ public class RpcConfig {
 
     @Value("${megalith.blog.blog-url}")
     private String blogUrl;
+
+    @Value("${megalith.blog.search-url}")
+    private String searchUrl;
 
     @Bean
     BlogHttpService blogHttpService() {
@@ -88,5 +92,23 @@ public class RpcConfig {
         HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(restClientAdapter)
                 .build();
         return factory.createClient(AuthHttpService.class);
+    }
+
+    @Bean
+    SearchHttpService searchHttpService() {
+
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(Duration.ofSeconds(10));
+
+        RestClient client = RestClient.builder()
+                .baseUrl(searchUrl)
+                .requestFactory(requestFactory)
+                .requestInterceptor(httpInterceptor)
+                .build();
+
+        RestClientAdapter restClientAdapter = RestClientAdapter.create(client);
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(restClientAdapter)
+                .build();
+        return factory.createClient(SearchHttpService.class);
     }
 }

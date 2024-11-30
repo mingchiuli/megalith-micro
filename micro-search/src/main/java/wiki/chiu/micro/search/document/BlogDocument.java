@@ -5,6 +5,7 @@ import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import wiki.chiu.micro.search.lang.IndexConst;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -13,7 +14,7 @@ import java.util.Objects;
  * @author mingchiuli
  * @create 2022-11-30 8:55 pm
  */
-@Document(indexName = "blog_index_v2")
+@Document(indexName = IndexConst.indexName)
 public class BlogDocument {
 
     @Id
@@ -24,6 +25,9 @@ public class BlogDocument {
 
     @Field(type = FieldType.Byte)
     private Integer status;
+
+    @Field(type = FieldType.Long)
+    private Long readCount;
 
     @Field(type = FieldType.Text, searchAnalyzer = "ik_smart", analyzer = "ik_max_word")
     private String title;
@@ -43,10 +47,11 @@ public class BlogDocument {
     @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
     private ZonedDateTime updated;
 
-    BlogDocument(Long id, Long userId, Integer status, String title, String description, String content, String link, ZonedDateTime created, ZonedDateTime updated) {
+    BlogDocument(Long id, Long userId, Integer status, Long readCount, String title, String description, String content, String link, ZonedDateTime created, ZonedDateTime updated) {
         this.id = id;
         this.userId = userId;
         this.status = status;
+        this.readCount = readCount;
         this.title = title;
         this.description = description;
         this.content = content;
@@ -85,6 +90,14 @@ public class BlogDocument {
 
     public String getLink() {
         return this.link;
+    }
+
+    public Long getReadCount() {
+        return readCount;
+    }
+
+    public void setReadCount(Long readCount) {
+        this.readCount = readCount;
     }
 
     public ZonedDateTime getCreated() {
@@ -136,7 +149,7 @@ public class BlogDocument {
         if (this == o) return true;
         if (!(o instanceof BlogDocument that)) return false;
 
-        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(status, that.status) && Objects.equals(title, that.title) && Objects.equals(description, that.description) && Objects.equals(content, that.content) && Objects.equals(link, that.link) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated);
+        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(status, that.status) && Objects.equals(readCount, that.readCount) && Objects.equals(title, that.title) && Objects.equals(description, that.description) && Objects.equals(content, that.content) && Objects.equals(link, that.link) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated);
     }
 
     @Override
@@ -144,6 +157,7 @@ public class BlogDocument {
         int result = Objects.hashCode(id);
         result = 31 * result + Objects.hashCode(userId);
         result = 31 * result + Objects.hashCode(status);
+        result = 31 * result + Objects.hashCode(readCount);
         result = 31 * result + Objects.hashCode(title);
         result = 31 * result + Objects.hashCode(description);
         result = 31 * result + Objects.hashCode(content);
@@ -157,6 +171,7 @@ public class BlogDocument {
         private Long id;
         private Long userId;
         private Integer status;
+        private Long readCount;
         private String title;
         private String description;
         private String content;
@@ -176,6 +191,11 @@ public class BlogDocument {
 
         public BlogDocumentBuilder status(Integer status) {
             this.status = status;
+            return this;
+        }
+
+        public BlogDocumentBuilder readCount(Long readCount) {
+            this.readCount = readCount;
             return this;
         }
 
@@ -210,7 +230,7 @@ public class BlogDocument {
         }
 
         public BlogDocument build() {
-            return new BlogDocument(id, userId, status, title, description, content, link, created, updated);
+            return new BlogDocument(id, userId, status, readCount, title, description, content, link, created, updated);
         }
     }
 }

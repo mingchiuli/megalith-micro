@@ -10,6 +10,7 @@ import wiki.chiu.micro.exhibit.convertor.BlogExhibitDtoConvertor;
 import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
 import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
+import wiki.chiu.micro.exhibit.rpc.SearchHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.rpc.UserHttpServiceWrapper;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,8 @@ public class BlogWrapper {
 
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 
+    private final SearchHttpServiceWrapper searchHttpServiceWrapper;
+
     private final ExecutorService executorService;
 
     private final RedissonClient redissonClient;
@@ -34,9 +37,10 @@ public class BlogWrapper {
     @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
-    public BlogWrapper(BlogHttpServiceWrapper blogHttpServiceWrapper, UserHttpServiceWrapper userHttpServiceWrapper, ExecutorService executorService, RedissonClient redissonClient) {
+    public BlogWrapper(BlogHttpServiceWrapper blogHttpServiceWrapper, UserHttpServiceWrapper userHttpServiceWrapper, SearchHttpServiceWrapper searchHttpServiceWrapper, ExecutorService executorService, RedissonClient redissonClient) {
         this.blogHttpServiceWrapper = blogHttpServiceWrapper;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
+        this.searchHttpServiceWrapper = searchHttpServiceWrapper;
         this.executorService = executorService;
         this.redissonClient = redissonClient;
     }
@@ -53,6 +57,7 @@ public class BlogWrapper {
         executorService.execute(() -> {
             blogHttpServiceWrapper.setReadCount(id);
             redissonClient.<String>getScoredSortedSet(Const.HOT_READ).addScore(id.toString(), 1);
+            searchHttpServiceWrapper.addReadCount(id);
         });
     }
 

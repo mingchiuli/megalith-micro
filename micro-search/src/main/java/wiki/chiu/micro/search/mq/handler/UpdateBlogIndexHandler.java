@@ -37,6 +37,7 @@ public final class UpdateBlogIndexHandler extends BlogIndexSupport {
                 .id(blog.id())
                 .userId(blog.userId())
                 .title(blog.title())
+                .readCount(blog.readCount())
                 .description(blog.description()).content(blog.content())
                 .status(blog.status())
                 .link(blog.link())
