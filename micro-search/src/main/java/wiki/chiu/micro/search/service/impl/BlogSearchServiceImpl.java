@@ -6,8 +6,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionScoreMode;
 import co.elastic.clients.json.JsonData;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
@@ -24,7 +23,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
-import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.stereotype.Service;
@@ -42,7 +40,6 @@ import static wiki.chiu.micro.common.lang.FieldEnum.*;
 @Service
 public class BlogSearchServiceImpl implements BlogSearchService {
 
-    private static final Logger log = LoggerFactory.getLogger(BlogSearchServiceImpl.class);
     private final ElasticsearchTemplate elasticsearchTemplate;
 
     @Value("${megalith.blog.blog-page-size}")
@@ -180,7 +177,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
         boolean search = StringUtils.hasText(keywords);
         BoolQuery boolQuery = getSysBoolQuery(keywords, userId, roles);
 
-        NativeQueryBuilder nativeQueryBuilder = NativeQuery.builder();
+        var nativeQueryBuilder = NativeQuery.builder();
         if (search) {
             nativeQueryBuilder
                     .withQuery(query -> query
@@ -261,8 +258,8 @@ public class BlogSearchServiceImpl implements BlogSearchService {
 
     @Override
     public Long searchCount(String keywords, Long userId, List<String> roles) {
-        BoolQuery boolQuery = getSysBoolQuery(keywords, userId, roles);
-        NativeQuery nativeQuery = NativeQuery.builder()
+        var boolQuery = getSysBoolQuery(keywords, userId, roles);
+        var nativeQuery = NativeQuery.builder()
                 .withQuery(query -> 
                         query.bool(boolQuery))
                 .build();
@@ -271,7 +268,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
 
     @Override
     public void addReadCount(Long id) {
-        UpdateQuery updateQuery = UpdateQuery.builder(id.toString())
+        var updateQuery = UpdateQuery.builder(id.toString())
                 .withScript("ctx._source.readCount += 1;")
                 .withLang(ScriptLanguage.Painless.jsonValue())
                 .withScriptType(ScriptType.INLINE)
