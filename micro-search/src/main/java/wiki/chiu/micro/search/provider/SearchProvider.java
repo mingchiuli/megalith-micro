@@ -82,7 +82,7 @@ public class SearchProvider {
             } catch (Exception e) {
 
             }
-            elasticsearchTemplate.indexOps(IndexCoordinates.of("blog_index_v2")).delete();
         }
+        elasticsearchTemplate.indexOps(IndexCoordinates.of("blog_index_v2")).delete();
     }
 }
