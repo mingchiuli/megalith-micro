@@ -155,7 +155,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                                         .scriptScore(scriptScore -> scriptScore
                                                 .script(script -> script
                                                         .inline(inline -> inline
-                                                                .source("def c = doc['readCount'].value;return Math.log(c + 0.1);")
+                                                                .source("def c = doc['readCount'].value;return Math.log(c + 3);")
                                                                 .lang(ScriptLanguage.Painless)))))
                                 .scoreMode(FunctionScoreMode.Sum)
                                 .boostMode(FunctionBoostMode.Multiply)))
@@ -169,14 +169,9 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                         ? ESHighlightBuilderUtils.blogHighlightQueryOrigin
                         : ESHighlightBuilderUtils.blogHighlightQuerySimple)
                 .build();
-        try {
-            SearchHits<BlogDocument> search = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
-            return BlogDocumentVoConvertor.convert(search, blogPageSize, currentPage);
-        } catch (Exception e) {
-            log.error("ex", e);
-        }
-        return null;
 
+        SearchHits<BlogDocument> search = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
+        return BlogDocumentVoConvertor.convert(search, blogPageSize, currentPage);
     }
 
     @Override
