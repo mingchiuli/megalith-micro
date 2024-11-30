@@ -36,7 +36,6 @@ const search = async (
   searchOrder: number | null
 ): Promise<SearchPage<BlogDesc>> => {
   loading.value = true
-  console.log('search ' + keywords.value)
   const data = await GET<SearchPage<BlogDesc>>(
     `/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`
   )
@@ -55,7 +54,8 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (
   queryString: string,
   cb: AutocompleteFetchSuggestionsCallback
 ) => {
-  if (queryString.length) {
+  // if (queryString.length) {
+  console.log('search' + queryString)
     searchOrder++
     search(queryString, currentPage, false, year.value!, searchOrder).then((page) => {
       if (page.additional !== searchOrder) {
@@ -92,7 +92,7 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (
         }
       }, 1000 * Math.random())
     })
-  }
+  // }
 }
 
 let lock = false
@@ -166,13 +166,10 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
 const searchBeforeClose = (close: Function) => {
   year.value = ''
   keywords.value = ''
-  console.log('searchBeforeClose1' + keywords.value)
   if (controller) controller.abort()
   suggestionEle = null
   suggestionList.value = []
-  console.log('searchBeforeClose2' + keywords.value)
   emit('refresh')
-  console.log('searchBeforeClose3' + keywords.value)
   close()
 }
 
@@ -191,11 +188,9 @@ const openDialog = () => {
 }
 
 const clearSearch = () => {
-  console.log('clear search1' + keywords.value)
   searchOrder = 1
   currentPage = 1
   keywords.value = ''
-  console.log('clear search2' + keywords.value)
   if (controller) controller.abort()
   suggestionEle = null
 }
