@@ -2,6 +2,8 @@ package wiki.chiu.micro.search.provider;
 
 
 import jakarta.validation.constraints.Size;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,7 @@ import java.time.ZonedDateTime;
 @RequestMapping(value = "/inner")
 public class SearchProvider {
 
+    private static final Logger log = LoggerFactory.getLogger(SearchProvider.class);
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
 
     private final BlogSearchService blogSearchService;
@@ -77,7 +80,7 @@ public class SearchProvider {
 
                 elasticsearchTemplate.save(blogDocument);
             } catch (Exception e) {
-
+                log.error("",e);
             }
         }
         elasticsearchTemplate.indexOps(IndexCoordinates.of("blog_index_v2")).delete();
