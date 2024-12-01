@@ -200,7 +200,7 @@ const clearDatePicker = async () => {
     <el-form-item>
       <el-date-picker
         v-model="dateTimeScope"
-        value-format="YYYY-MM-DD HH:mm:ss"
+        value-format="YYYY-MM-DDTHH:mm:ss"
         size="large"
         type="datetimerange"
         @clear="clearDatePicker"
