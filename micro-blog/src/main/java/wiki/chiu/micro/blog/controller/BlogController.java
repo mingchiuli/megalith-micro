@@ -1,9 +1,12 @@
 package wiki.chiu.micro.blog.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
+import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.rpc.AuthHttpServiceWrapper;
 import wiki.chiu.micro.blog.service.BlogService;
 import wiki.chiu.micro.blog.valid.BlogSaveValue;
@@ -57,11 +60,9 @@ public class BlogController {
         return Result.success(() -> blogService.setBlogToken(blogId, AuthRpcDto.userId()));
     }
 
-    @GetMapping("/blogs")
-    public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@RequestParam(defaultValue = "1") Integer currentPage,
-                                                         @RequestParam(defaultValue = "5") Integer size,
-                                                         @RequestParam(required = false) String keywords) {
-        return Result.success(() -> blogService.findAllBlogs(currentPage, size, keywords));
+    @PostMapping("/blogs")
+    public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@RequestBody @Valid BlogQueryReq req) {
+        return Result.success(() -> blogService.findAllBlogs(req));
     }
 
     @GetMapping("/deleted")
@@ -88,9 +89,9 @@ public class BlogController {
         return Result.success(() -> blogService.deleteOss(url));
     }
 
-    @GetMapping("/download")
-    public void download(HttpServletResponse response, @RequestParam(required = false) String keywords) {
-        blogService.download(response, keywords);
+    @PostMapping("/download")
+    public void download(HttpServletResponse response, @RequestBody @Valid BlogDownloadReq req) {
+        blogService.download(response, req);
     }
 
 }

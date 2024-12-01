@@ -28,7 +28,7 @@ public class BlogSearchController {
     }
 
     @GetMapping("/public/blog")
-    public Result<PageAdapter<BlogDocumentVo>> searchBlogs(@RequestParam(defaultValue = "-1") Integer currentPage,
+    public Result<PageAdapter<BlogDocumentVo>> searchBlogs(@RequestParam Integer currentPage,
                                                            @RequestParam Boolean allInfo,
                                                            @RequestParam(required = false) String year,
                                                            @RequestParam @Size(min = 1, max = 20) String keywords) {

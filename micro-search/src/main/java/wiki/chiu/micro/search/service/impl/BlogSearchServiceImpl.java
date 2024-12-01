@@ -12,6 +12,8 @@ import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
+import wiki.chiu.micro.common.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.convertor.BlogDocumentVoConvertor;
 import wiki.chiu.micro.search.document.BlogDocument;
 import wiki.chiu.micro.search.lang.IndexConst;
@@ -28,6 +30,8 @@ import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
@@ -159,9 +163,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                 .withSort(sort -> sort
                         .score(score -> score
                                 .order(SortOrder.Desc)))
-                .withPageable(Objects.equals(currentPage, -1)
-                        ? PageRequest.of(0, 10)
-                        : PageRequest.of(currentPage - 1, blogPageSize))
+                .withPageable(PageRequest.of(currentPage - 1, blogPageSize))
                 .withHighlightQuery(Boolean.TRUE.equals(allInfo)
                         ? ESHighlightBuilderUtils.blogHighlightQueryOrigin
                         : ESHighlightBuilderUtils.blogHighlightQuerySimple)
@@ -172,10 +174,16 @@ public class BlogSearchServiceImpl implements BlogSearchService {
     }
 
     @Override
-    public BlogSearchVo searchBlogs(String keywords, Integer currentPage, Integer size, Long userId, List<String> roles) {
+    public BlogSearchVo searchBlogs(BlogSysSearchReq req, Long userId, List<String> roles) {
+
+        String keywords = req.keywords();
+        Integer size = req.pageSize();
+        Integer currentPage = req.page();
+        LocalDateTime createEnd = req.createEnd();
+        LocalDateTime createStart = req.createStart();
 
         boolean search = StringUtils.hasText(keywords);
-        BoolQuery boolQuery = getSysBoolQuery(keywords, userId, roles);
+        BoolQuery boolQuery = getSysBoolQuery(keywords, createStart, createEnd, userId, roles);
 
         var nativeQueryBuilder = NativeQuery.builder();
         if (search) {
@@ -257,8 +265,8 @@ public class BlogSearchServiceImpl implements BlogSearchService {
     }
 
     @Override
-    public Long searchCount(String keywords, Long userId, List<String> roles) {
-        var boolQuery = getSysBoolQuery(keywords, userId, roles);
+    public Long searchCount(BlogSysCountSearchReq req, Long userId, List<String> roles) {
+        var boolQuery = getSysBoolQuery(req.keywords(), req.createStart(), req.createEnd(), userId, roles);
         var nativeQuery = NativeQuery.builder()
                 .withQuery(query -> 
                         query.bool(boolQuery))
@@ -276,7 +284,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
         elasticsearchTemplate.update(updateQuery, IndexCoordinates.of(IndexConst.indexName));
     }
 
-    private BoolQuery getSysBoolQuery(String keywords, Long userId, List<String> roles) {
+    private BoolQuery getSysBoolQuery(String keywords, LocalDateTime createStart, LocalDateTime createEnd, Long userId, List<String> roles) {
         BoolQuery.Builder boolQryBuilder = new BoolQuery.Builder();
 
         if (StringUtils.hasText(keywords)) {
@@ -308,7 +316,16 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                             .matchPhrase(matchPhrase -> matchPhrase
                                     .field(CONTENT.getField())
                                     .query(keywords)))
-                    .minimumShouldMatch("1");
+                    .minimumShouldMatch("1")
+                    .filter(filter -> filter
+                            .range(range -> range
+                                    .field(CREATED.getField())
+                                    .from(createStart != null
+                                            ? createStart.format(DateTimeFormatter.ISO_DATE_TIME)
+                                            : null)
+                                    .to(createEnd != null
+                                            ? createEnd.format(DateTimeFormatter.ISO_DATE_TIME)
+                                            : null)));
         }
 
         if (!roles.contains(highestRole)) {

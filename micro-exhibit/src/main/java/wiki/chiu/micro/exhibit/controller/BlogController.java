@@ -46,7 +46,7 @@ public class BlogController {
     @GetMapping("/page/{currentPage}")
     @Bloom(handler = ListPageHandler.class)
     public Result<PageAdapter<BlogDescriptionVo>> getPage(@PathVariable Integer currentPage,
-                                                          @RequestParam(required = false, defaultValue = "-2147483648") Integer year) {
+                                                          @RequestParam(required = false) Integer year) {
         return Result.success(() -> blogService.findPage(currentPage, year));
     }
 

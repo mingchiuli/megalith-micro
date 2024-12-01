@@ -1,7 +1,6 @@
 package wiki.chiu.micro.auth.provider;
 
 import wiki.chiu.micro.auth.dto.AuthDto;
-import wiki.chiu.micro.auth.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.auth.vo.AuthorityRouteVo;
 import wiki.chiu.micro.common.exception.AuthException;
@@ -9,7 +8,7 @@ import wiki.chiu.micro.common.lang.Result;
 import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
+import wiki.chiu.micro.common.req.AuthorityRouteReq;
 
 
 @RestController

@@ -7,7 +7,6 @@ import wiki.chiu.micro.auth.convertor.MenuDisplayDtoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuWithChildDtoConvertor;
 import wiki.chiu.micro.auth.convertor.MenusAndButtonsVoConvertor;
 import wiki.chiu.micro.auth.dto.*;
-import wiki.chiu.micro.auth.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.auth.token.Claims;
 import wiki.chiu.micro.auth.token.TokenUtils;
@@ -25,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import wiki.chiu.micro.common.lang.AuthStatusEnum;
+import wiki.chiu.micro.common.req.AuthorityRouteReq;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

@@ -1,10 +1,10 @@
 package wiki.chiu.micro.search.service;
 
-
-
 import java.util.List;
 
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
+import wiki.chiu.micro.common.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.vo.BlogDocumentVo;
 import wiki.chiu.micro.search.vo.BlogSearchVo;
 
@@ -16,9 +16,9 @@ public interface BlogSearchService {
 
     PageAdapter<BlogDocumentVo> selectBlogsByES(Integer currentPage, String keywords, Boolean allInfo, String year);
 
-    BlogSearchVo searchBlogs(String keywords, Integer currentPage, Integer size, Long userId, List<String> roles);
+    BlogSearchVo searchBlogs(BlogSysSearchReq req, Long userId, List<String> roles);
 
-    Long searchCount(String keywords, Long userId, List<String> roles);
+    Long searchCount(BlogSysCountSearchReq req, Long userId, List<String> roles);
 
     void addReadCount(Long id);
 

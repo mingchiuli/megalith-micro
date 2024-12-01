@@ -1,7 +1,9 @@
 package wiki.chiu.micro.blog.service;
 
 import jakarta.servlet.http.HttpServletResponse;
+import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
+import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
 import wiki.chiu.micro.blog.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
@@ -16,7 +18,7 @@ public interface BlogService {
 
     void saveOrUpdate(BlogEntityReq blog, Long userId);
 
-    PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, String keywords);
+    PageAdapter<BlogEntityVo> findAllBlogs(BlogQueryReq req);
 
     void recoverDeletedBlog(Integer idx, Long userId);
 
@@ -30,7 +32,7 @@ public interface BlogService {
 
     String setBlogToken(Long blogId, Long userId);
 
-    void download(HttpServletResponse response, String keywords);
+    void download(HttpServletResponse response, BlogDownloadReq req);
 
     BlogEntityRpcVo findById(Long blogId);
 
