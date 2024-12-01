@@ -4,13 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.redisson.api.RBucket;
 import wiki.chiu.micro.cache.annotation.Cache;
-import wiki.chiu.micro.cache.utils.ClassUtils;
 import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -54,21 +53,17 @@ public class CacheAspect {
     public void pt() {
     }
 
-    private static final String LOCK = "authLock:";
-
+    private static final String LOCK = "megalithRemoteLock:";
 
     @Around("pt()")
     public Object around(ProceedingJoinPoint pjp) throws Throwable {
-        Signature signature = pjp.getSignature();
+        MethodSignature signature = (MethodSignature) pjp.getSignature();
         // 类名
         // 调用的方法名
-        String methodName = signature.getName();
-        Class<?> declaringType = signature.getDeclaringType();
         Object[] args = pjp.getArgs();
-        Class<?>[] parameterTypes = ClassUtils.findClassArray(args);
 
         // 参数
-        Method method = declaringType.getMethod(methodName, parameterTypes);
+        Method method = signature.getMethod();
         Type genericReturnType = method.getGenericReturnType();
 
         JavaType javaType = objectMapper.getTypeFactory().constructType(genericReturnType);
