@@ -196,7 +196,7 @@ const handleCurrentChange = async (val: number) => {
     <el-form-item>
       <el-date-picker
         v-model="dateTimeScope"
-        value-format="yyyy-MM-dd HH:mm:ss"
+        value-format="YYYY-MM-DD HH:mm:ss"
         type="datetimerange"
         range-separator="To"
         start-placeholder="Start date"
