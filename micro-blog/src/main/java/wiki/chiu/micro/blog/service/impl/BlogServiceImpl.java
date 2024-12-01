@@ -154,7 +154,6 @@ public class BlogServiceImpl implements BlogService {
                 .createStart(createStart)
                 .build();
         Long total = searchHttpServiceWrapper.countBlogs(blogSysCountSearchReq);
-        log.info("aaaaa:{}", total);
         int pageSize = 20;
         int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
 
@@ -163,6 +162,8 @@ public class BlogServiceImpl implements BlogService {
                     .page(i)
                     .pageSize(pageSize)
                     .keywords(keywords)
+                    .createStart(createStart)
+                    .createEnd(createEnd)
                     .build();
 
             ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
