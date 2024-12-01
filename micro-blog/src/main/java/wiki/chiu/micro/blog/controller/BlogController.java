@@ -94,8 +94,8 @@ public class BlogController {
     @GetMapping("/download")
     public void download(HttpServletResponse response,
                          @RequestParam @Size(max = 20) String keywords,
-                         @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime createStart,
-                         @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime createEnd) {
+                         @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") LocalDateTime createStart,
+                         @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") LocalDateTime createEnd) {
         blogService.download(response, keywords, createStart, createEnd);
     }
 
