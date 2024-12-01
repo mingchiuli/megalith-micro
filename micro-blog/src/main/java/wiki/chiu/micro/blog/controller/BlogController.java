@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import wiki.chiu.micro.blog.req.BlogDownloadReq;
+import jakarta.validation.constraints.Size;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.rpc.AuthHttpServiceWrapper;
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -89,9 +90,12 @@ public class BlogController {
         return Result.success(() -> blogService.deleteOss(url));
     }
 
-    @PostMapping("/download")
-    public void download(HttpServletResponse response, @RequestBody @Valid BlogDownloadReq req) {
-        blogService.download(response, req);
+    @GetMapping("/download")
+    public void download(HttpServletResponse response,
+                         @RequestParam @Size(max = 20) String keywords,
+                         @RequestParam LocalDateTime createStart,
+                         @RequestParam LocalDateTime createEnd) {
+        blogService.download(response, keywords, createStart, createEnd);
     }
 
 }
