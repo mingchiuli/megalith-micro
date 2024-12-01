@@ -68,7 +68,7 @@ public class BlogWrapper {
 
     @Cache(prefix = Const.HOT_BLOGS)
     public PageAdapter<BlogDescriptionDto> findPage(Integer currentPage, Integer year) {
-        PageAdapter<BlogEntityRpcDto> page = Objects.equals(year, Integer.MIN_VALUE) ?
+        PageAdapter<BlogEntityRpcDto> page = year == null ?
                 blogHttpServiceWrapper.findPage(currentPage, blogPageSize) :
                 blogHttpServiceWrapper.findPageByCreatedBetween(currentPage, blogPageSize,
                         LocalDateTime.of(year, 1, 1, 0, 0, 0),

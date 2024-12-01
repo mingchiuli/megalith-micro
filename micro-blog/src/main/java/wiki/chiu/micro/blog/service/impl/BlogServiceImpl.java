@@ -4,13 +4,12 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import wiki.chiu.micro.blog.convertor.*;
+import wiki.chiu.micro.blog.req.BlogDownloadReq;
+import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.utils.EditAuthUtils;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.blog.constant.BlogOperateMessage;
-import wiki.chiu.micro.blog.convertor.BlogDeleteVoConvertor;
-import wiki.chiu.micro.blog.convertor.BlogEntityConvertor;
-import wiki.chiu.micro.blog.convertor.BlogEntityRpcVoConvertor;
-import wiki.chiu.micro.blog.convertor.BlogEntityVoConvertor;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import wiki.chiu.micro.blog.event.BlogOperateEvent;
@@ -20,6 +19,8 @@ import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.rpc.SearchHttpServiceWrapper;
 import wiki.chiu.micro.blog.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.blog.service.BlogService;
+import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
+import wiki.chiu.micro.common.req.BlogSysSearchReq;
 import wiki.chiu.micro.common.utils.OssSignUtils;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
 import wiki.chiu.micro.blog.vo.BlogEntityRpcVo;
@@ -31,7 +32,6 @@ import wiki.chiu.micro.common.dto.UserEntityRpcDto;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.req.BlogSearchReq;
 import wiki.chiu.micro.common.rpc.OssHttpService;
 import wiki.chiu.micro.common.utils.JsonUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -140,18 +140,20 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void download(HttpServletResponse response, String keywords) {
+    public void download(HttpServletResponse response, BlogDownloadReq blogDownloadReq) {
 
         Set<BlogEntity> blogs = Collections.newSetFromMap(new ConcurrentHashMap<>());
         Set<BlogSensitiveContentEntity> blogSensitives = Collections.newSetFromMap(new ConcurrentHashMap<>());
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 
-        Long total = searchHttpServiceWrapper.countBlogs(keywords);
+        BlogSysCountSearchReq blogSysCountSearchReq = BlogSysCountSearchReqConvertor.convert(blogDownloadReq);
+        Long total = searchHttpServiceWrapper.countBlogs(blogSysCountSearchReq);
         int pageSize = 20;
         int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
 
+        String keywords = blogDownloadReq.keywords();
         for (int i = 1; i <= totalPage; i++) {
-            var req = BlogSearchReq.builder()
+            BlogSysSearchReq req = BlogSysSearchReq.builder()
                     .page(i)
                     .pageSize(pageSize)
                     .keywords(keywords)
@@ -185,7 +187,7 @@ public class BlogServiceImpl implements BlogService {
             String blog = SQLUtils.entityToInsertSQL(new ArrayList<>(blogs), Const.BLOG_TABLE);
             String blogSensitive = SQLUtils.entityToInsertSQL(new ArrayList<>(blogSensitives), BLOG_SENSITIVE_TABLE);
 
-            byte[] bytes = (blog + "\n" + blogSensitive).getBytes();
+            byte[] bytes = SQLUtils.compose(blog, blogSensitive).getBytes();
             outputStream.write(bytes);
             outputStream.flush();
         } catch (IOException e) {
@@ -306,13 +308,9 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public PageAdapter<BlogEntityVo> findAllBlogs(Integer currentPage, Integer size, String keywords) {
+    public PageAdapter<BlogEntityVo> findAllBlogs(BlogQueryReq blogQueryReq) {
 
-        var req = BlogSearchReq.builder()
-                .page(currentPage)
-                .pageSize(size)
-                .keywords(keywords)
-                .build();
+        BlogSysSearchReq req = BlogSysSearchReqConvertor.convert(blogQueryReq);
         BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(req);
         List<Long> ids = dto.ids();
         if (ids.isEmpty()) {

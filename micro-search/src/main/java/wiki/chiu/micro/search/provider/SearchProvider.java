@@ -1,10 +1,11 @@
 package wiki.chiu.micro.search.provider;
 
 
-import jakarta.validation.constraints.Size;
 import org.springframework.web.bind.annotation.*;
 import wiki.chiu.micro.common.dto.AuthRpcDto;
 import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
+import wiki.chiu.micro.common.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.rpc.AuthHttpServiceWrapper;
 import wiki.chiu.micro.search.service.BlogSearchService;
 import wiki.chiu.micro.search.vo.BlogSearchVo;
@@ -26,18 +27,16 @@ public class SearchProvider {
         this.blogSearchService = blogSearchService;
     }
 
-    @GetMapping("/blog/search")
-    public Result<BlogSearchVo> searchAllBlogs(@RequestParam(defaultValue = "1") Integer currentPage,
-                                               @RequestParam(defaultValue = "5") Integer size,
-                                               @RequestParam @Size(max = 20) String keywords) {
+    @PostMapping("/blog/search")
+    public Result<BlogSearchVo> searchAllBlogs(@RequestBody BlogSysSearchReq req) {
         AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogSearchService.searchBlogs(keywords, currentPage, size, authDto.userId(), authDto.roles()));
+        return Result.success(() -> blogSearchService.searchBlogs(req, authDto.userId(), authDto.roles()));
     }
 
-    @GetMapping("/blog/count")
-    public Result<Long> searchCount(@RequestParam @Size(max = 20) String keywords) {
+    @PostMapping("/blog/count")
+    public Result<Long> searchCount(@RequestBody BlogSysCountSearchReq req) {
         AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogSearchService.searchCount(keywords, authDto.userId(), authDto.roles()));
+        return Result.success(() -> blogSearchService.searchCount(req, authDto.userId(), authDto.roles()));
     }
 
     @PostMapping("/blog/read")
