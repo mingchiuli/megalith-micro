@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import wiki.chiu.micro.blog.convertor.*;
-import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.utils.EditAuthUtils;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
@@ -140,18 +139,21 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void download(HttpServletResponse response, BlogDownloadReq blogDownloadReq) {
+    public void download(HttpServletResponse response, String keywords, LocalDateTime createStart, LocalDateTime createEnd) {
 
         Set<BlogEntity> blogs = Collections.newSetFromMap(new ConcurrentHashMap<>());
         Set<BlogSensitiveContentEntity> blogSensitives = Collections.newSetFromMap(new ConcurrentHashMap<>());
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 
-        BlogSysCountSearchReq blogSysCountSearchReq = BlogSysCountSearchReqConvertor.convert(blogDownloadReq);
+        BlogSysCountSearchReq blogSysCountSearchReq = BlogSysCountSearchReq.builder()
+                .keywords(keywords)
+                .createEnd(createEnd)
+                .createStart(createStart)
+                .build();
         Long total = searchHttpServiceWrapper.countBlogs(blogSysCountSearchReq);
         int pageSize = 20;
         int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
 
-        String keywords = blogDownloadReq.keywords();
         for (int i = 1; i <= totalPage; i++) {
             BlogSysSearchReq req = BlogSysSearchReq.builder()
                     .page(i)
