@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import org.springframework.format.annotation.DateTimeFormat;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.rpc.AuthHttpServiceWrapper;
@@ -93,8 +94,8 @@ public class BlogController {
     @GetMapping("/download")
     public void download(HttpServletResponse response,
                          @RequestParam @Size(max = 20) String keywords,
-                         @RequestParam LocalDateTime createStart,
-                         @RequestParam LocalDateTime createEnd) {
+                         @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime createStart,
+                         @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime createEnd) {
         blogService.download(response, keywords, createStart, createEnd);
     }
 
