@@ -19,7 +19,7 @@ const page: PageAdapter<BlogDesc> = reactive({
   totalElements: 0,
   pageSize: 5,
   //不用这个字段
-  pageNumber: undefined
+  pageNumber: 0
 })
 //用这个字段
 const { searchPageNum } = storeToRefs(blogsStore())

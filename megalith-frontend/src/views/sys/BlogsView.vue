@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive, ref, toRefs } from 'vue'
 import { GET, POST } from '@/http/http'
-import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
+import { Status, type BlogSys, type PageAdapter, ButtonAuth, type BlogSysQuery } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
 import { render, checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
@@ -14,6 +14,7 @@ const delBtlStatus = ref(true)
 const loading = ref(false)
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
+const dateTimeScope = ref('')
 
 const page: PageAdapter<BlogSys> = reactive({
   content: [],
@@ -22,6 +23,14 @@ const page: PageAdapter<BlogSys> = reactive({
   pageNumber: 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
+
+const blogSysQuery: BlogSysQuery = {
+  currentPage: pageNumber.value,
+  size: pageSize.value,
+  keywords: input.value,
+  createStart: dateTimeScope.value[0],
+  createEnd: dateTimeScope.value[1]
+}
 
 const delBatch = async () => {
   const args: number[] = []
@@ -70,7 +79,7 @@ const handlePassword = async (row: BlogSys) => {
 
 const download = async () => {
   await downloadSQLData(
-    `/sys/blog/download?keywords=${input.value}`,
+    `/sys/blog/download?keywords=${input.value}&createStart=${dateTimeScope.value[0]}&createEnd=${dateTimeScope.value[1]}`,
     'blogs',
     uploadPercentage,
     showPercentage
@@ -103,9 +112,8 @@ const searchBlogsAction = () => {
 
 const searchBlogs = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogSys>>(
-    `/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}`
-  )
+  console.log(blogSysQuery)
+  const data = await POST<PageAdapter<BlogSys>>('/sys/blog/blogs', blogSysQuery)
   page.content = data.content
   page.totalElements = data.totalElements
   loading.value = false
@@ -171,6 +179,17 @@ const handleCurrentChange = async (val: number) => {
     </el-form-item>
     <el-form-item>
       <el-progress v-if="showPercentage" type="circle" :width="40" :percentage="uploadPercentage" />
+    </el-form-item>
+
+    <el-form-item>
+      <el-date-picker
+      v-model="dateTimeScope"
+      value-format="yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+      type="datetimerange"
+      range-separator="To"
+      start-placeholder="Start date"
+      end-placeholder="End date"
+    />
     </el-form-item>
   </el-form>
 

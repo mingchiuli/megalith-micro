@@ -32,6 +32,15 @@ export interface BlogSys {
   link: string
 }
 
+export interface BlogSysQuery {
+  currentPage: number,
+  size: number,
+  keywords: string,
+  createStart: string,
+  createEnd: string
+}
+
+
 export interface BlogDelSys {
   id: number
   idx: number
@@ -217,7 +226,7 @@ export interface PageAdapter<T> {
   content: T[]
   pageSize: number
   totalElements: number
-  pageNumber: number | undefined
+  pageNumber: number
 }
 
 export interface SearchPage<T> extends PageAdapter<T> {
