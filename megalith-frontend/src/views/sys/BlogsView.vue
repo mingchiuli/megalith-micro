@@ -165,6 +165,18 @@ const clearDatePicker = async () => {
         @keyup.enter="searchBlogsAction"
       />
     </el-form-item>
+    <el-form-item>
+      <el-date-picker
+        v-model="dateTimeScope"
+        value-format="YYYY-MM-DDTHH:mm:ss"
+        size="large"
+        type="datetimerange"
+        @clear="clearDatePicker"
+        range-separator="To"
+        start-placeholder="Start date"
+        end-placeholder="End date"
+      />
+    </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_SEARCH)">
       <el-button
         :type="getButtonType(ButtonAuth.SYS_BLOG_SEARCH)"
@@ -195,19 +207,6 @@ const clearDatePicker = async () => {
     </el-form-item>
     <el-form-item>
       <el-progress v-if="showPercentage" type="circle" :width="40" :percentage="uploadPercentage" />
-    </el-form-item>
-
-    <el-form-item>
-      <el-date-picker
-        v-model="dateTimeScope"
-        value-format="YYYY-MM-DDTHH:mm:ss"
-        size="large"
-        type="datetimerange"
-        @clear="clearDatePicker"
-        range-separator="To"
-        start-placeholder="Start date"
-        end-placeholder="End date"
-      />
     </el-form-item>
   </el-form>
 
