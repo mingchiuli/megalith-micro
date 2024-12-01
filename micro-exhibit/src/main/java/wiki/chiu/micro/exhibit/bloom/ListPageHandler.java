@@ -5,8 +5,6 @@ import wiki.chiu.micro.common.lang.Const;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-
 import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 
 @Component
@@ -23,7 +21,7 @@ public class ListPageHandler extends BloomHandler {
         Integer currentPage = (Integer) args[0];
         Integer year = (Integer) args[1];
 
-        if (Objects.equals(year, Integer.MIN_VALUE)) {
+        if (year == null) {
             Boolean bit = redissonClient.getBitSet(Const.BLOOM_FILTER_PAGE).get(currentPage);
             if (Boolean.FALSE.equals(bit)) {
                 throw new MissException(NO_FOUND.getMsg() + currentPage + " page");

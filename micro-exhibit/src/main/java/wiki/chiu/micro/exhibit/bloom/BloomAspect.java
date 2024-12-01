@@ -1,11 +1,10 @@
 package wiki.chiu.micro.exhibit.bloom;
 
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
-import wiki.chiu.micro.common.utils.ClassUtils;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.NestedRuntimeException;
@@ -36,16 +35,10 @@ public class BloomAspect {
     }
 
     @Before("pt()")
-    public void before(JoinPoint jp) throws NoSuchMethodException {
-        Signature signature = jp.getSignature();
-        //方法名
-        String methodName = signature.getName();
-        //参数
+    public void before(JoinPoint jp) {
+        MethodSignature signature = (MethodSignature) jp.getSignature();
+        Method method = signature.getMethod();
         Object[] args = jp.getArgs();
-        Class<?>[] classes = ClassUtils.findClassArray(args);
-
-        Class<?> declaringType = signature.getDeclaringType();
-        Method method = declaringType.getMethod(methodName, classes);
         Bloom bloom = method.getAnnotation(Bloom.class);
         Class<? extends BloomHandler> handler0 = bloom.handler();
 
