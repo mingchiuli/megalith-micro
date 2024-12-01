@@ -33,13 +33,12 @@ export interface BlogSys {
 }
 
 export interface BlogSysQuery {
-  currentPage: number,
-  size: number,
-  keywords: string,
-  createStart: string,
+  currentPage: number
+  size: number
+  keywords: string
+  createStart: string
   createEnd: string
 }
-
 
 export interface BlogDelSys {
   id: number

@@ -1,10 +1,22 @@
 <script lang="ts" setup>
 import { reactive, ref, toRefs } from 'vue'
 import { GET, POST } from '@/http/http'
-import { Status, type BlogSys, type PageAdapter, ButtonAuth, type BlogSysQuery } from '@/type/entity'
+import {
+  Status,
+  type BlogSys,
+  type PageAdapter,
+  ButtonAuth,
+  type BlogSysQuery
+} from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
-import { render, checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
+import {
+  render,
+  checkButtonAuth,
+  getButtonType,
+  downloadSQLData,
+  getButtonTitle
+} from '@/utils/tools'
 import { displayState } from '@/utils/position'
 
 const { fixSelection, fix, moreItems } = displayState()
@@ -23,14 +35,6 @@ const page: PageAdapter<BlogSys> = reactive({
   pageNumber: 1
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
-
-const blogSysQuery: BlogSysQuery = {
-  currentPage: pageNumber.value,
-  size: pageSize.value,
-  keywords: input.value,
-  createStart: dateTimeScope.value[0],
-  createEnd: dateTimeScope.value[1]
-}
 
 const delBatch = async () => {
   const args: number[] = []
@@ -112,7 +116,15 @@ const searchBlogsAction = () => {
 
 const searchBlogs = async () => {
   loading.value = true
+  const blogSysQuery: BlogSysQuery = {
+    currentPage: pageNumber.value,
+    size: pageSize.value,
+    keywords: input.value,
+    createStart: dateTimeScope.value[0],
+    createEnd: dateTimeScope.value[1]
+  }
   console.log(blogSysQuery)
+
   const data = await POST<PageAdapter<BlogSys>>('/sys/blog/blogs', blogSysQuery)
   page.content = data.content
   page.totalElements = data.totalElements
@@ -183,13 +195,13 @@ const handleCurrentChange = async (val: number) => {
 
     <el-form-item>
       <el-date-picker
-      v-model="dateTimeScope"
-      value-format="yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
-      type="datetimerange"
-      range-separator="To"
-      start-placeholder="Start date"
-      end-placeholder="End date"
-    />
+        v-model="dateTimeScope"
+        value-format="yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+        type="datetimerange"
+        range-separator="To"
+        start-placeholder="Start date"
+        end-placeholder="End date"
+      />
     </el-form-item>
   </el-form>
 
