@@ -141,7 +141,9 @@ const handleCurrentChange = async (val: number) => {
   await searchBlogs()
 }
 
-const clearDatePicker = async () => {
+const clearDatePicker = async (a: any) => {
+  console.log("a")
+  console.log(a)
   dateTimeScope.value = ["", ""]
   await searchBlogs()
 }
