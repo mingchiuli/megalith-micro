@@ -320,10 +320,10 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                             .range(range -> range
                                     .field(CREATED.getField())
                                     .from(createStart != null
-                                            ? createStart.format(DateTimeFormatter.ISO_DATE_TIME)
+                                            ? createStart.format(DateTimeFormatter.ISO_DATE_TIME) + "+08:00"
                                             : null)
                                     .to(createEnd != null
-                                            ? createEnd.format(DateTimeFormatter.ISO_DATE_TIME)
+                                            ? createEnd.format(DateTimeFormatter.ISO_DATE_TIME) + "+08:00"
                                             : null)));
         }
 
