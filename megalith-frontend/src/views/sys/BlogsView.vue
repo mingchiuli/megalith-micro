@@ -141,6 +141,12 @@ const handleCurrentChange = async (val: number) => {
   await searchBlogs()
 }
 
+const clearDatePicker = (func: Function) => {
+  func()
+  console.log(func)
+  dateTimeScope.value = ["", ""]
+}
+
 ;(async () => {
   await searchBlogs()
 })()
@@ -198,6 +204,7 @@ const handleCurrentChange = async (val: number) => {
         value-format="YYYY-MM-DD HH:mm:ss"
         size="large"
         type="datetimerange"
+        @clear="clearDatePicker"
         range-separator="To"
         start-placeholder="Start date"
         end-placeholder="End date"
