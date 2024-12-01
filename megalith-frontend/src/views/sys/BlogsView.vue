@@ -26,7 +26,7 @@ const delBtlStatus = ref(true)
 const loading = ref(false)
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
-const dateTimeScope = ref('')
+const dateTimeScope = ref(['', ''])
 
 const page: PageAdapter<BlogSys> = reactive({
   content: [],
