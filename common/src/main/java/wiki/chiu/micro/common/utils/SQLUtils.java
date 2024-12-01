@@ -33,7 +33,7 @@ public class SQLUtils {
         return entities.stream()
                 .map(item -> {
                     String fieldValues = Arrays.stream(item.getClass().getDeclaredFields())
-                            .map(field -> numberClassSet.contains(field.getType()) ? getFieldValue(field, item) :  "'" + getFieldValue(field, item) + "'")
+                            .map(field -> numberClassSet.contains(field.getType()) ? getNumFieldValue(field, item) :  "'" + getFieldValue(field, item) + "'")
                             .collect(Collectors.joining(","));
                     return prefix + fieldValues + ");";
                 })
@@ -44,11 +44,22 @@ public class SQLUtils {
         return String.join("\n", sqlList);
     }
 
-    private static String getFieldValue(Field field, Object item) {
+    private static String getNumFieldValue(Field field, Object item) {
         try {
             field.setAccessible(true);
             //null
             return String.valueOf(field.get(item));
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String getFieldValue(Field field, Object item) {
+        try {
+            field.setAccessible(true);
+            //null
+            String rawValue = String.valueOf(field.get(item));
+            return rawValue.replaceAll("'", "\\\\'");
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
