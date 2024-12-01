@@ -31,6 +31,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -54,6 +56,9 @@ public class BlogSearchServiceImpl implements BlogSearchService {
     public BlogSearchServiceImpl(ElasticsearchTemplate elasticsearchTemplate) {
         this.elasticsearchTemplate = elasticsearchTemplate;
     }
+
+    private static final DateTimeFormatter FORMATTER =  DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    private static final ZoneId ZONE_ID = ZoneId.of("Asia/Shanghai");
 
     @Override
     public PageAdapter<BlogDocumentVo> selectBlogsByES(Integer currentPage, String keywords, Boolean allInfo,
@@ -286,6 +291,17 @@ public class BlogSearchServiceImpl implements BlogSearchService {
     private BoolQuery getSysBoolQuery(String keywords, LocalDateTime createStart, LocalDateTime createEnd, Long userId, List<String> roles) {
         BoolQuery.Builder boolQryBuilder = new BoolQuery.Builder();
 
+        boolQryBuilder
+                .filter(filter -> filter
+                        .range(range -> range
+                                .field(CREATED.getField())
+                                .from(createStart != null
+                                        ? ZonedDateTime.of(createStart, ZONE_ID).format(FORMATTER)
+                                        : null)
+                                .to(createEnd != null
+                                        ? ZonedDateTime.of(createEnd, ZONE_ID).format(FORMATTER)
+                                        : null)));
+
         if (StringUtils.hasText(keywords)) {
             boolQryBuilder
                     .should(should -> should
@@ -315,16 +331,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                             .matchPhrase(matchPhrase -> matchPhrase
                                     .field(CONTENT.getField())
                                     .query(keywords)))
-                    .minimumShouldMatch("1")
-                    .filter(filter -> filter
-                            .range(range -> range
-                                    .field(CREATED.getField())
-                                    .from(createStart != null
-                                            ? createStart.format(DateTimeFormatter.ISO_DATE_TIME) + "+08:00"
-                                            : null)
-                                    .to(createEnd != null
-                                            ? createEnd.format(DateTimeFormatter.ISO_DATE_TIME) + "+08:00"
-                                            : null)));
+                    .minimumShouldMatch("1");
         }
 
         if (!roles.contains(highestRole)) {
