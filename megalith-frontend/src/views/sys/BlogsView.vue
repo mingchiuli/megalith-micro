@@ -123,7 +123,6 @@ const searchBlogs = async () => {
     createStart: dateTimeScope.value[0],
     createEnd: dateTimeScope.value[1]
   }
-  console.log(blogSysQuery)
 
   const data = await POST<PageAdapter<BlogSys>>('/sys/blog/blogs', blogSysQuery)
   page.content = data.content
@@ -197,6 +196,7 @@ const handleCurrentChange = async (val: number) => {
       <el-date-picker
         v-model="dateTimeScope"
         value-format="YYYY-MM-DD HH:mm:ss"
+        size="large"
         type="datetimerange"
         range-separator="To"
         start-placeholder="Start date"
