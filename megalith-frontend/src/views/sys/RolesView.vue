@@ -121,8 +121,8 @@ const submitForm = async (ref: FormInstance) => {
 }
 
 const handleClose = () => {
-  clearForm()
   dialogVisible.value = false
+  clearForm()
 }
 
 const authorityHandleClose = () => {

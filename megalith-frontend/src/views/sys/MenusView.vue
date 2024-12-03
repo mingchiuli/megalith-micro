@@ -82,8 +82,8 @@ const handleDelete = async (row: MenuSys) => {
 }
 
 const handleClose = () => {
-  clearForm()
   dialogVisible.value = false
+  clearForm()
 }
 
 const download = async () => {

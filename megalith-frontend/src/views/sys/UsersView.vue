@@ -117,8 +117,8 @@ const queryUsers = async () => {
 }
 
 const handleClose = () => {
-  clearForm()
   dialogVisible.value = false
+  clearForm()
 }
 
 const submitForm = async (ref: FormInstance) => {
