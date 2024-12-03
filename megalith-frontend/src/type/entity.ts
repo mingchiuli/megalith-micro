@@ -32,14 +32,6 @@ export interface BlogSys {
   link: string
 }
 
-export interface BlogSysQuery {
-  currentPage: number
-  size: number
-  keywords: string
-  createStart: string
-  createEnd: string
-}
-
 export interface BlogDelSys {
   id: number
   idx: number

@@ -5,8 +5,7 @@ import {
   Status,
   type BlogSys,
   type PageAdapter,
-  ButtonAuth,
-  type BlogSysQuery
+  ButtonAuth
 } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
@@ -116,15 +115,7 @@ const searchBlogsAction = () => {
 
 const searchBlogs = async () => {
   loading.value = true
-  const blogSysQuery: BlogSysQuery = {
-    currentPage: pageNumber.value,
-    size: pageSize.value,
-    keywords: input.value,
-    createStart: dateTimeScope.value[0],
-    createEnd: dateTimeScope.value[1]
-  }
-
-  const data = await POST<PageAdapter<BlogSys>>('/sys/blog/blogs', blogSysQuery)
+  const data = await GET<PageAdapter<BlogSys>>(`/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}&createStart=${dateTimeScope.value[0]}&createEnd=${dateTimeScope.value[1]}`)
   page.content = data.content
   page.totalElements = data.totalElements
   loading.value = false
