@@ -22,6 +22,15 @@ public class BlogDownloadConstraintValidator implements ConstraintValidator<Blog
 
         LocalDateTime end = query.createEnd();
         LocalDateTime start = query.createStart();
-        return !start.isAfter(end) && !start.isEqual(end);
+
+        if (start == null && end != null) {
+            return false;
+        }
+
+        if (start != null && end == null) {
+            return false;
+        }
+
+        return start == null || (!start.isEqual(end) && !start.isAfter(end));
     }
 }
