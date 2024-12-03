@@ -3,9 +3,7 @@ package wiki.chiu.micro.blog.config;
 import wiki.chiu.micro.blog.constant.BlogOperateMessage;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
-import wiki.chiu.micro.blog.valid.BlogSaveConstraintValidator;
-import wiki.chiu.micro.blog.valid.ListValueConstraintValidator;
-import wiki.chiu.micro.blog.valid.PushAllConstraintValidator;
+import wiki.chiu.micro.blog.valid.impl.*;
 
 import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.RuntimeHints;
@@ -26,6 +24,8 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
             hints.reflection().registerConstructor(ListValueConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
             hints.reflection().registerConstructor(BlogSaveConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
             hints.reflection().registerConstructor(PushAllConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
+            hints.reflection().registerConstructor(BlogQueryConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
+            hints.reflection().registerConstructor(BlogDownloadConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("application start fail");
         }

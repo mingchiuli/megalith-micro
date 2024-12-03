@@ -1,4 +1,4 @@
-package wiki.chiu.micro.user.valid;
+package wiki.chiu.micro.user.valid.impl;
 
 import jakarta.annotation.Resource;
 import jakarta.validation.ConstraintValidator;
@@ -10,6 +10,7 @@ import wiki.chiu.micro.user.entity.MenuEntity;
 import wiki.chiu.micro.user.repository.MenuRepository;
 import wiki.chiu.micro.user.req.MenuEntityReq;
 import org.springframework.util.StringUtils;
+import wiki.chiu.micro.user.valid.MenuValue;
 
 import java.util.Objects;
 

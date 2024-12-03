@@ -1,10 +1,11 @@
-package wiki.chiu.micro.blog.valid;
+package wiki.chiu.micro.blog.valid.impl;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-import wiki.chiu.micro.blog.req.BlogEditPushAllReq;
+import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.SensitiveContentReq;
+import wiki.chiu.micro.blog.valid.BlogSaveValue;
 import wiki.chiu.micro.common.lang.SensitiveTypeEnum;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import org.springframework.util.StringUtils;
@@ -18,26 +19,22 @@ import java.util.stream.Collectors;
 
 
 
-public class PushAllConstraintValidator implements ConstraintValidator<PushAllValue, BlogEditPushAllReq> {
+public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSaveValue, BlogEntityReq> {
 
     private static final Pattern pattern = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
 
     @Override
-    public boolean isValid(BlogEditPushAllReq blog, ConstraintValidatorContext context) {
+    public boolean isValid(BlogEntityReq blog, ConstraintValidatorContext context) {
 
-        if (Objects.isNull(blog.title())) {
+        if (!StringUtils.hasLength(blog.title())) {
             return false;
         }
 
-        if (Objects.isNull(blog.description())) {
+        if (!StringUtils.hasLength(blog.description())) {
             return false;
         }
 
-        if (Objects.isNull(blog.content())) {
-            return false;
-        }
-
-        if (Objects.isNull(blog.version())) {
+        if (!StringUtils.hasLength(blog.content())) {
             return false;
         }
 

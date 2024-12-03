@@ -2,6 +2,7 @@ package wiki.chiu.micro.blog.valid;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
+import wiki.chiu.micro.blog.valid.impl.BlogSaveConstraintValidator;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

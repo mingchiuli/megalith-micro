@@ -1,7 +1,8 @@
-package wiki.chiu.micro.user.valid;
+package wiki.chiu.micro.blog.valid.impl;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import wiki.chiu.micro.blog.valid.ListValue;
 
 import java.util.Arrays;
 import java.util.Set;
