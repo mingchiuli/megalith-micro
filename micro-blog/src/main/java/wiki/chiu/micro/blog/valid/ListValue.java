@@ -13,7 +13,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Documented
 @Constraint(validatedBy = {ListValueConstraintValidator.class})
-@Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE })
+@Target({ PARAMETER })
 @Retention(RUNTIME)
 public @interface ListValue {
     String message() default "{wiki.chiu.micro.blog.valid.ListValue.message}";
