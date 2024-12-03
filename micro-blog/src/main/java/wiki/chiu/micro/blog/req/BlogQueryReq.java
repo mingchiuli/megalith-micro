@@ -1,10 +1,11 @@
 package wiki.chiu.micro.blog.req;
 
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public record BlogQueryReq(
@@ -18,9 +19,9 @@ public record BlogQueryReq(
         @Size(max = 20)
         String keywords,
 
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime createStart,
 
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-        LocalDateTime createEnd) {
+        @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        LocalDateTime createEnd) implements Serializable {
 }
