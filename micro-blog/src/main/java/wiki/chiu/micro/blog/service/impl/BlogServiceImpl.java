@@ -182,9 +182,9 @@ public class BlogServiceImpl implements BlogService {
         }
 
         try {
-            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).get(2000, TimeUnit.MILLISECONDS);
+            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).get(1000, TimeUnit.MILLISECONDS);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException(e);
         }
 
         try (var outputStream = response.getOutputStream()) {
