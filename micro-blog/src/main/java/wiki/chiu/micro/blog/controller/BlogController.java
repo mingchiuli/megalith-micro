@@ -11,6 +11,8 @@ import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.rpc.AuthHttpServiceWrapper;
 import wiki.chiu.micro.blog.service.BlogService;
 import wiki.chiu.micro.blog.valid.BlogSaveValue;
+import wiki.chiu.micro.blog.valid.BlogSysDownload;
+import wiki.chiu.micro.blog.valid.BlogSysQuery;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
 import wiki.chiu.micro.common.dto.AuthRpcDto;
@@ -62,7 +64,7 @@ public class BlogController {
     }
 
     @GetMapping("/blogs")
-    public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@Valid BlogQueryReq req) {
+    public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@BlogSysQuery BlogQueryReq req) {
         return Result.success(() -> blogService.findAllBlogs(req));
     }
 
@@ -91,7 +93,7 @@ public class BlogController {
     }
 
     @GetMapping("/download")
-    public void download(HttpServletResponse response, @Valid BlogDownloadReq req) {
+    public void download(HttpServletResponse response, @BlogSysDownload BlogDownloadReq req) {
         blogService.download(response, req.keywords(), req.createStart(), req.createEnd());
     }
 

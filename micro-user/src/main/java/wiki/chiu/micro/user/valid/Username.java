@@ -2,6 +2,7 @@ package wiki.chiu.micro.user.valid;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
+import wiki.chiu.micro.user.valid.impl.UsernameConstraintValidator;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

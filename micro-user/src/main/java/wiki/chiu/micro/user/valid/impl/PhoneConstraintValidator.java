@@ -1,8 +1,11 @@
-package wiki.chiu.micro.user.valid;
+package wiki.chiu.micro.user.valid.impl;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.util.StringUtils;
+import wiki.chiu.micro.user.valid.Phone;
+
+import java.util.regex.Pattern;
 
 
 /**
@@ -11,11 +14,14 @@ import org.springframework.util.StringUtils;
  */
 public class PhoneConstraintValidator implements ConstraintValidator<Phone, String> {
 
+    private static final Pattern PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
+
+
     @Override
     public boolean isValid(String phone, ConstraintValidatorContext context) {
         if (Boolean.FALSE.equals(StringUtils.hasLength(phone))) {
             return true;
         }
-        return phone.matches("\\d+");
+        return PATTERN.matcher(phone).matches();
     }
 }
