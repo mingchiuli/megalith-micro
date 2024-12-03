@@ -4,8 +4,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
-import org.springframework.format.annotation.DateTimeFormat;
+
+import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.rpc.AuthHttpServiceWrapper;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -62,8 +61,8 @@ public class BlogController {
         return Result.success(() -> blogService.setBlogToken(blogId, AuthRpcDto.userId()));
     }
 
-    @PostMapping("/blogs")
-    public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@RequestBody @Valid BlogQueryReq req) {
+    @GetMapping("/blogs")
+    public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@Valid BlogQueryReq req) {
         return Result.success(() -> blogService.findAllBlogs(req));
     }
 
@@ -92,11 +91,8 @@ public class BlogController {
     }
 
     @GetMapping("/download")
-    public void download(HttpServletResponse response,
-                         @RequestParam @Size(max = 20) String keywords,
-                         @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") LocalDateTime createStart,
-                         @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") LocalDateTime createEnd) {
-        blogService.download(response, keywords, createStart, createEnd);
+    public void download(HttpServletResponse response, @Valid BlogDownloadReq req) {
+        blogService.download(response, req.keywords(), req.createStart(), req.createEnd());
     }
 
 }
