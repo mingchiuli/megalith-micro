@@ -1,13 +1,10 @@
 package wiki.chiu.micro.user.provider;
 
+import org.springframework.web.bind.annotation.*;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.user.service.RoleMenuService;
 import wiki.chiu.micro.user.vo.MenusAndButtonsRpcVo;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/inner/menu")
@@ -20,8 +17,8 @@ public class MenuProvider {
         this.roleMenuService = roleMenuService;
     }
 
-    @GetMapping("/nav/{role}")
-    public Result<MenusAndButtonsRpcVo> nav(@PathVariable String role) {
+    @GetMapping("/nav")
+    public Result<MenusAndButtonsRpcVo> nav(@RequestParam String role) {
         return Result.success(() -> roleMenuService.getCurrentRoleNav(role));
     }
 }

@@ -54,35 +54,35 @@ public class BlogProvider {
         return Result.success(() -> blogService.findStatusById(blogId));
     }
 
-    @PostMapping("/blog/page/{pageNo}/{pageSize}")
-    public Result<PageAdapter<BlogEntityRpcVo>> findPage(@PathVariable Integer pageNo,
-                                                         @PathVariable Integer pageSize) {
+    @PostMapping("/blog/page")
+    public Result<PageAdapter<BlogEntityRpcVo>> findPage(@RequestParam Integer pageNo,
+                                                         @RequestParam Integer pageSize) {
         return Result.success(() -> blogService.findPage(pageNo, pageSize));
     }
 
-    @PostMapping("/blog/page/year/{pageNo}/{pageSize}/{start}/{end}")
-    public Result<PageAdapter<BlogEntityRpcVo>> findPageByCreatedBetween(@PathVariable Integer pageNo,
-                                                                         @PathVariable Integer pageSize,
-                                                                         @PathVariable LocalDateTime start,
-                                                                         @PathVariable LocalDateTime end) {
+    @PostMapping("/blog/page/year")
+    public Result<PageAdapter<BlogEntityRpcVo>> findPageByCreatedBetween(@RequestParam Integer pageNo,
+                                                                         @RequestParam Integer pageSize,
+                                                                         @RequestParam LocalDateTime start,
+                                                                         @RequestParam LocalDateTime end) {
         return Result.success(() -> blogService.findPageByCreatedBetween(pageNo, pageSize, start, end));
     }
 
-    @GetMapping("/blog/count/{start}/{end}")
-    public Result<Long> countByCreatedBetween(@PathVariable LocalDateTime start,
-                                              @PathVariable LocalDateTime end) {
+    @GetMapping("/blog/count")
+    public Result<Long> countByCreatedBetween(@RequestParam LocalDateTime start,
+                                              @RequestParam LocalDateTime end) {
         return Result.success(() -> blogService.countByCreatedBetween(start, end));
     }
 
-    @GetMapping("/blog/page/count/year/{created}/{start}/{end}")
-    public Result<Long> getPageCountYear(@PathVariable LocalDateTime created,
-                                         @PathVariable LocalDateTime start,
-                                         @PathVariable LocalDateTime end) {
+    @GetMapping("/blog/page/count/year")
+    public Result<Long> getPageCountYear(@RequestParam LocalDateTime created,
+                                         @RequestParam LocalDateTime start,
+                                         @RequestParam LocalDateTime end) {
         return Result.success(() -> blogService.getPageCountYear(created, start, end));
     }
 
-    @GetMapping("/blog/count/until/{created}")
-    public Result<Long> countByCreatedGreaterThanEqual(@PathVariable LocalDateTime created) {
+    @GetMapping("/blog/count/until")
+    public Result<Long> countByCreatedGreaterThanEqual(@RequestParam LocalDateTime created) {
         return Result.success(() -> blogService.countByCreatedGreaterThanEqual(created));
     }
 }
