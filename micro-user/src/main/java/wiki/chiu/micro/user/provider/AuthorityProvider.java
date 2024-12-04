@@ -30,8 +30,8 @@ public class AuthorityProvider {
     }
 
     @GetMapping("/role")
-    Result<List<String>> getAuthoritiesByRoleCodes(@RequestParam String rawRoles) {
-        return Result.success(() -> roleAuthorityService.getAuthoritiesByRoleCodes(rawRoles));
+    Result<List<String>> getAuthoritiesByRoleCodes(@RequestParam String rawRole) {
+        return Result.success(() -> roleAuthorityService.getAuthoritiesByRoleCodes(rawRole));
     }
 
 }
