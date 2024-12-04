@@ -10,6 +10,7 @@ import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import wiki.chiu.micro.common.req.BlogSysSearchReq;
 
 import java.util.LinkedHashSet;
 
@@ -34,6 +35,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
         hints.serialization().registerType(BlogOperateMessage.class);
         hints.serialization().registerType(BlogQueryReq.class);
         hints.serialization().registerType(BlogDownloadReq.class);
+        hints.serialization().registerType(BlogSysSearchReq.class);
 
 
         // Register resources

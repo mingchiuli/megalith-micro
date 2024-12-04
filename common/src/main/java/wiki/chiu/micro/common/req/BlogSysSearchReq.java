@@ -2,6 +2,7 @@ package wiki.chiu.micro.common.req;
 
 
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public record BlogSysSearchReq(
@@ -14,7 +15,7 @@ public record BlogSysSearchReq(
 
         LocalDateTime createStart,
 
-        LocalDateTime createEnd) {
+        LocalDateTime createEnd) implements Serializable {
 
     public static BlogSysSearchReq.BlogSearchReqBuilder builder() {
         return new BlogSysSearchReq.BlogSearchReqBuilder();
