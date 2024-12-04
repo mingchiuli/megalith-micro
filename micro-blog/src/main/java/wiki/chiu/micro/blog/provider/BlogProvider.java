@@ -68,7 +68,7 @@ public class BlogProvider {
         return Result.success(() -> blogService.findPageByCreatedBetween(pageNo, pageSize, start, end));
     }
 
-    @GetMapping("/blog/count")
+    @GetMapping("/blog/count/year")
     public Result<Long> countByCreatedBetween(@RequestParam LocalDateTime start,
                                               @RequestParam LocalDateTime end) {
         return Result.success(() -> blogService.countByCreatedBetween(start, end));
