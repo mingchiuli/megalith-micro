@@ -43,7 +43,7 @@ public interface BlogHttpService {
                                                                    @RequestParam LocalDateTime start,
                                                                    @RequestParam LocalDateTime end);
 
-    @GetExchange("/blog/count")
+    @GetExchange("/blog/count/year")
     Result<Long> countByCreatedBetween(@RequestParam LocalDateTime start,
                                        @RequestParam LocalDateTime end);
 
