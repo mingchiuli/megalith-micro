@@ -10,7 +10,6 @@ import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
-import wiki.chiu.micro.common.req.BlogSysSearchReq;
 
 import java.util.LinkedHashSet;
 
@@ -31,19 +30,8 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
             throw new RuntimeException("application start fail");
         }
 
-
         hints.serialization().registerType(BlogOperateMessage.class);
         hints.serialization().registerType(BlogQueryReq.class);
         hints.serialization().registerType(BlogDownloadReq.class);
-        hints.serialization().registerType(BlogSysSearchReq.class);
-
-
-        // Register resources
-        hints.resources().registerPattern("ValidationMessages.properties");
-        hints.resources().registerPattern("script/blog-delete.lua");
-        hints.resources().registerPattern("script/hot-blogs.lua");
-        hints.resources().registerPattern("script/list-delete.lua");
-        hints.resources().registerPattern("script/recover-delete.lua");
-        hints.resources().registerPattern("script/push-all.lua");
     }
 }

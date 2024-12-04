@@ -29,8 +29,8 @@ public class AuthorityProvider {
         return Result.success(() -> authorityService.findAllByService(service));
     }
 
-    @GetMapping("/role/{rawRoles}")
-    Result<List<String>> getAuthoritiesByRoleCodes(@PathVariable String rawRoles) {
+    @GetMapping("/role")
+    Result<List<String>> getAuthoritiesByRoleCodes(@RequestParam String rawRoles) {
         return Result.success(() -> roleAuthorityService.getAuthoritiesByRoleCodes(rawRoles));
     }
 

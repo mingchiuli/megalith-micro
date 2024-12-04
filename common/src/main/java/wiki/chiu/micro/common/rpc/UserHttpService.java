@@ -1,6 +1,7 @@
 package wiki.chiu.micro.common.rpc;
 
 
+import org.springframework.web.bind.annotation.RequestParam;
 import wiki.chiu.micro.common.dto.AuthorityRpcDto;
 import wiki.chiu.micro.common.dto.MenusAndButtonsRpcDto;
 import wiki.chiu.micro.common.dto.RoleEntityRpcDto;
@@ -15,20 +16,20 @@ import java.util.List;
 
 public interface UserHttpService {
 
-    @GetExchange("/user/status/{username}/{status}")
-    void changeUserStatusByUsername(@PathVariable String username, @PathVariable Integer status);
+    @GetExchange("/user/status")
+    void changeUserStatusByUsername(@RequestParam String username, @RequestParam Integer status);
 
-    @PostExchange("/user/role/{status}")
-    Result<List<RoleEntityRpcDto>> findByRoleCodeInAndStatus(@RequestBody List<String> roles, @PathVariable Integer status);
+    @PostExchange("/user/role")
+    Result<List<RoleEntityRpcDto>> findByRoleCodeInAndStatus(@RequestBody List<String> roles, @RequestParam Integer status);
 
-    @PostExchange("/user/login/time/{username}")
-    Result<Void> updateLoginTime(@PathVariable String username);
+    @PostExchange("/user/login/time")
+    Result<Void> updateLoginTime(@RequestParam String username);
 
-    @GetExchange("/user/email/{email}")
-    Result<UserEntityRpcDto> findByEmail(@PathVariable String email);
+    @GetExchange("/user/email")
+    Result<UserEntityRpcDto> findByEmail(@RequestParam String email);
 
-    @GetExchange("/user/phone/{phone}")
-    Result<UserEntityRpcDto> findByPhone(@PathVariable String phone);
+    @GetExchange("/user/phone")
+    Result<UserEntityRpcDto> findByPhone(@RequestParam String phone);
 
     @GetExchange("/user/role/{userId}")
     Result<List<String>> findRoleCodesByUserId(@PathVariable Long userId);
@@ -36,14 +37,14 @@ public interface UserHttpService {
     @GetExchange("/user/{userId}")
     Result<UserEntityRpcDto> findById(@PathVariable Long userId);
 
-    @GetExchange("/user/login/query/{username}")
-    Result<UserEntityRpcDto> findByUsernameOrEmailOrPhone(@PathVariable String username);
+    @GetExchange("/user/login/query")
+    Result<UserEntityRpcDto> findByUsernameOrEmailOrPhone(@RequestParam String username);
 
-    @GetExchange("/authority/role/{rawRole}")
-    Result<List<String>> getAuthoritiesByRoleCode(@PathVariable String rawRole);
+    @GetExchange("/authority/role")
+    Result<List<String>> getAuthoritiesByRoleCode(@RequestParam String rawRole);
 
-    @GetExchange("/menu/nav/{role}")
-    Result<MenusAndButtonsRpcDto> getCurrentUserNav(@PathVariable String role);
+    @GetExchange("/menu/nav")
+    Result<MenusAndButtonsRpcDto> getCurrentUserNav(@RequestParam String role);
 
     @PostExchange("/authority/list")
     Result<List<AuthorityRpcDto>> getAuthorities(@RequestBody List<String> service);

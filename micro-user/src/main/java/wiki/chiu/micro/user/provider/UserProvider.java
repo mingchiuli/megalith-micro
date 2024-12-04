@@ -39,28 +39,28 @@ public class UserProvider {
         return Result.success(() -> userService.findById(userId));
     }
 
-    @GetMapping("/status/{username}/{status}")
-    public Result<Void> changeUserStatusByUsername(@PathVariable String username, @PathVariable Integer status) {
+    @GetMapping("/status")
+    public Result<Void> changeUserStatusByUsername(@RequestParam String username, @RequestParam Integer status) {
         return Result.success(() -> userService.changeUserStatusByUsername(username, status));
     }
 
-    @PostMapping("/role/{status}")
-    public Result<List<RoleEntityRpcVo>> findByRoleCodeInAndStatus(@RequestBody List<String> roles, @PathVariable Integer status) {
+    @PostMapping("/role")
+    public Result<List<RoleEntityRpcVo>> findByRoleCodeInAndStatus(@RequestBody List<String> roles, @RequestParam Integer status) {
         return Result.success(() -> roleService.findByRoleCodeInAndStatus(roles, status));
     }
 
-    @PostMapping("/login/time/{username}")
-    public Result<Void> updateLoginTime(@PathVariable String username) {
+    @PostMapping("/login/time")
+    public Result<Void> updateLoginTime(@RequestParam String username) {
         return Result.success(() -> userService.updateLoginTime(username, LocalDateTime.now()));
     }
 
-    @GetMapping("/email/{email}")
-    Result<UserEntityRpcVo> findByEmail(@PathVariable String email) {
+    @GetMapping("/email")
+    Result<UserEntityRpcVo> findByEmail(@RequestParam String email) {
         return Result.success(() -> userService.findByEmail(email));
     }
 
-    @GetMapping("/phone/{phone}")
-    Result<UserEntityRpcVo> findByPhone(@PathVariable String phone) {
+    @GetMapping("/phone")
+    Result<UserEntityRpcVo> findByPhone(@RequestParam String phone) {
         return Result.success(() -> userService.findByPhone(phone));
     }
 
@@ -69,8 +69,8 @@ public class UserProvider {
         return Result.success(() -> userRoleService.findRoleCodesByUserId(userId));
     }
 
-    @GetMapping("/login/query/{username}")
-    Result<UserEntityRpcVo> findByUsernameOrEmailOrPhone(@PathVariable String username) {
+    @GetMapping("/login/query")
+    Result<UserEntityRpcVo> findByUsernameOrEmailOrPhone(@RequestParam String username) {
         return Result.success(() -> userService.findByUsernameOrEmailOrPhone(username));
     }
 

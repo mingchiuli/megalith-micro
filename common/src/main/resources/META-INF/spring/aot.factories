@@ -1,0 +1,2 @@
+org.springframework.aot.hint.RuntimeHintsRegistrar=\
+wiki.chiu.micro.common.aot.hints.CacheRuntimeHints
