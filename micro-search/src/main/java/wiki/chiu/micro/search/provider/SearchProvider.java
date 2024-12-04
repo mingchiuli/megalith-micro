@@ -27,8 +27,8 @@ public class SearchProvider {
         this.blogSearchService = blogSearchService;
     }
 
-    @GetMapping("/blog/search")
-    public Result<BlogSearchVo> searchAllBlogs(BlogSysSearchReq req) {
+    @PostMapping("/blog/search")
+    public Result<BlogSearchVo> searchAllBlogs(@RequestBody BlogSysSearchReq req) {
         AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogSearchService.searchBlogs(req, authDto.userId(), authDto.roles()));
     }
