@@ -35,6 +35,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static wiki.chiu.micro.common.lang.FieldEnum.*;
@@ -304,9 +306,14 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                                         ? ZonedDateTime.of(createEnd, ZONE_ID).format(FORMATTER)
                                         : null)))
                 .filter(filter -> filter
-                        .term(term -> term
+                        .terms(terms -> terms
                                 .field(STATUS.getField())
-                                .value(status == null ? FieldValue.NULL : FieldValue.of(status))));
+                                .terms(termsValue -> termsValue
+                                        .value(status == null ?
+                                                Arrays.stream(StatusEnum.values())
+                                                        .map(item -> FieldValue.of(item.getCode()))
+                                                        .toList() :
+                                                Collections.singletonList(FieldValue.of(Long.valueOf(status)))))));
 
         if (StringUtils.hasText(keywords)) {
             boolQryBuilder
