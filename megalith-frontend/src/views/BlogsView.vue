@@ -257,5 +257,6 @@ const { content, totalElements, pageSize } = toRefs(page)
   position: absolute;
   right: 0;
   top: 15px;
+  z-index: 1;
 }
 </style>
