@@ -50,6 +50,10 @@ public class BlogSearchServiceImpl implements BlogSearchService {
 
     private final ElasticsearchTemplate elasticsearchTemplate;
 
+    private static final List<FieldValue> ALL_STATUS = Arrays.stream(StatusEnum.values())
+            .map(item -> FieldValue.of(item.getCode()))
+            .toList();
+
     @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
@@ -309,11 +313,9 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                         .terms(terms -> terms
                                 .field(STATUS.getField())
                                 .terms(termsValue -> termsValue
-                                        .value(status == null ?
-                                                Arrays.stream(StatusEnum.values())
-                                                        .map(item -> FieldValue.of(item.getCode()))
-                                                        .toList() :
-                                                Collections.singletonList(FieldValue.of(status.longValue()))))));
+                                        .value(status == null
+                                                ? ALL_STATUS
+                                                : Collections.singletonList(FieldValue.of(status.longValue()))))));
 
         if (StringUtils.hasText(keywords)) {
             boolQryBuilder
