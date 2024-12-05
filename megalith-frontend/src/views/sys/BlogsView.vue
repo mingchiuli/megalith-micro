@@ -119,6 +119,11 @@ const clearQueryBlogs = async () => {
   await searchBlogs()
 }
 
+const clearSelect = async () => {
+  status.value = ''
+  await searchBlogs()
+}
+
 const searchBlogsAction = () => {
   pageNumber.value = 1
   searchBlogs()
@@ -182,7 +187,14 @@ const clearDatePicker = async () => {
       />
     </el-form-item>
     <el-form-item>
-      <el-select v-model="status" clearable placeholder="状态" size="large" style="width: 100px">
+      <el-select
+        v-model="status"
+        clearable
+        placeholder="状态"
+        size="large"
+        @clear="clearSelect"
+        style="width: 100px"
+      >
         <el-option
           v-for="item in statusOptions"
           :key="item.value"
