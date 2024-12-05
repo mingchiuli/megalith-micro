@@ -313,7 +313,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                                                 Arrays.stream(StatusEnum.values())
                                                         .map(item -> FieldValue.of(item.getCode()))
                                                         .toList() :
-                                                Collections.singletonList(FieldValue.of(Long.valueOf(status)))))));
+                                                Collections.singletonList(FieldValue.of(status.longValue()))))));
 
         if (StringUtils.hasText(keywords)) {
             boolQryBuilder
