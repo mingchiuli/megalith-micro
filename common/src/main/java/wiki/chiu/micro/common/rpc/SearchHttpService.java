@@ -2,7 +2,6 @@ package wiki.chiu.micro.common.rpc;
 
 
 
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.PostExchange;
@@ -13,7 +12,7 @@ import wiki.chiu.micro.common.req.BlogSysSearchReq;
 
 public interface SearchHttpService {
 
-    @PostMapping("/blog/search")
+    @PostExchange("/blog/search")
     Result<BlogSearchRpcDto> searchBlogs(@RequestBody BlogSysSearchReq req);
 
     @PostExchange("/blog/count")
