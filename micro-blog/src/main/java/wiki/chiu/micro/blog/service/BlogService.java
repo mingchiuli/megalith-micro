@@ -1,6 +1,7 @@
 package wiki.chiu.micro.blog.service;
 
 import jakarta.servlet.http.HttpServletResponse;
+import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
@@ -53,5 +54,5 @@ public interface BlogService {
 
     Long countByCreatedGreaterThanEqual(LocalDateTime created);
 
-    void download(HttpServletResponse response, String keywords, LocalDateTime createStart, LocalDateTime createEnd);
+    void download(HttpServletResponse response, BlogDownloadReq req);
 }

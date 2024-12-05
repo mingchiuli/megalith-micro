@@ -6,11 +6,19 @@ import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.util.StringUtils;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.valid.BlogSysQuery;
+import wiki.chiu.micro.common.lang.StatusEnum;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 public class BlogQueryConstraintValidator implements ConstraintValidator<BlogSysQuery, BlogQueryReq> {
+
+    private static final Set<Integer> statusSet = Arrays.stream(StatusEnum.values())
+            .map(StatusEnum::getCode)
+            .collect(Collectors.toSet());
 
     @Override
     public boolean isValid(BlogQueryReq query, ConstraintValidatorContext context) {
@@ -20,6 +28,11 @@ public class BlogQueryConstraintValidator implements ConstraintValidator<BlogSys
         }
 
         if (query.currentPage() == null) {
+            return false;
+        }
+
+        Integer status = query.status();
+        if (status != null && !statusSet.contains(status)) {
             return false;
         }
 

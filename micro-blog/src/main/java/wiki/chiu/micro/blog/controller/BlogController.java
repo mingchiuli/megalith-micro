@@ -93,7 +93,7 @@ public class BlogController {
 
     @GetMapping("/download")
     public void download(HttpServletResponse response, @BlogSysDownload BlogDownloadReq req) {
-        blogService.download(response, req.keywords(), req.createStart(), req.createEnd());
+        blogService.download(response, req);
     }
 
 }

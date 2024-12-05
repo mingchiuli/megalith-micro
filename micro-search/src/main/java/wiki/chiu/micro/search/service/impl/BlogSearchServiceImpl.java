@@ -185,9 +185,10 @@ public class BlogSearchServiceImpl implements BlogSearchService {
         Integer currentPage = req.page();
         LocalDateTime createEnd = req.createEnd();
         LocalDateTime createStart = req.createStart();
+        Integer status = req.status();
 
         boolean search = StringUtils.hasText(keywords);
-        BoolQuery boolQuery = getSysBoolQuery(keywords, createStart, createEnd, userId, roles);
+        BoolQuery boolQuery = getSysBoolQuery(keywords, status, createStart, createEnd, userId, roles);
 
         var nativeQueryBuilder = NativeQuery.builder();
         if (search) {
@@ -270,7 +271,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
 
     @Override
     public Long searchCount(BlogSysCountSearchReq req, Long userId, List<String> roles) {
-        var boolQuery = getSysBoolQuery(req.keywords(), req.createStart(), req.createEnd(), userId, roles);
+        var boolQuery = getSysBoolQuery(req.keywords(), req.status(), req.createStart(), req.createEnd(), userId, roles);
         var nativeQuery = NativeQuery.builder()
                 .withQuery(query -> 
                         query.bool(boolQuery))
@@ -288,7 +289,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
         elasticsearchTemplate.update(updateQuery, IndexCoordinates.of(IndexConst.indexName));
     }
 
-    private BoolQuery getSysBoolQuery(String keywords, LocalDateTime createStart, LocalDateTime createEnd, Long userId, List<String> roles) {
+    private BoolQuery getSysBoolQuery(String keywords, Integer status, LocalDateTime createStart, LocalDateTime createEnd, Long userId, List<String> roles) {
         BoolQuery.Builder boolQryBuilder = new BoolQuery.Builder();
 
         boolQryBuilder
@@ -300,7 +301,11 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                                         : null)
                                 .to(createEnd != null
                                         ? ZonedDateTime.of(createEnd, ZONE_ID).format(FORMATTER)
-                                        : null)));
+                                        : null)))
+                .filter(filter -> filter
+                        .term(term -> term
+                                .field(STATUS.getField())
+                                .value(status)));
 
         if (StringUtils.hasText(keywords)) {
             boolQryBuilder
