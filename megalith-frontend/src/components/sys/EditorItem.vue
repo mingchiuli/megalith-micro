@@ -113,7 +113,7 @@ onMounted(() => {
       }
       const eleSiblings: Node[] = []
 
-      for (let i = 0; i < label.childNodes?.length!; i++) {
+      for (let i = 0; i < label.childNodes?.length; i++) {
         const item = label.childNodes[i]!
         if (item !== text) {
           eleSiblings.push(item)

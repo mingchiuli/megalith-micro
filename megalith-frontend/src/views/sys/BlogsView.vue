@@ -1,12 +1,7 @@
 <script lang="ts" setup>
 import { reactive, ref, toRefs } from 'vue'
 import { GET, POST } from '@/http/http'
-import {
-  Status,
-  type BlogSys,
-  type PageAdapter,
-  ButtonAuth
-} from '@/type/entity'
+import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
 import {
@@ -17,6 +12,7 @@ import {
   getButtonTitle
 } from '@/utils/tools'
 import { displayState } from '@/utils/position'
+import { stat } from 'fs'
 
 const { fixSelection, fix, moreItems } = displayState()
 const input = ref('')
@@ -26,6 +22,21 @@ const loading = ref(false)
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 const dateTimeScope = ref(['', ''])
+const status = ref<string | number>('')
+const statusOptions = [
+  {
+    value: 0,
+    label: '公开'
+  },
+  {
+    value: 1,
+    label: '隐藏'
+  },
+  {
+    value: 2,
+    label: '打码'
+  }
+]
 
 const page: PageAdapter<BlogSys> = reactive({
   content: [],
@@ -115,7 +126,9 @@ const searchBlogsAction = () => {
 
 const searchBlogs = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogSys>>(`/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}&createStart=${dateTimeScope.value[0]}&createEnd=${dateTimeScope.value[1]}`)
+  const data = await GET<PageAdapter<BlogSys>>(
+    `/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}&createStart=${dateTimeScope.value[0]}&createEnd=${dateTimeScope.value[1]}&status=${status.value}`
+  )
   page.content = data.content
   page.totalElements = data.totalElements
   loading.value = false
@@ -133,7 +146,7 @@ const handleCurrentChange = async (val: number) => {
 }
 
 const clearDatePicker = async () => {
-  dateTimeScope.value = ["", ""]
+  dateTimeScope.value = ['', '']
   await searchBlogs()
 }
 
@@ -167,6 +180,16 @@ const clearDatePicker = async () => {
         start-placeholder="Start date"
         end-placeholder="End date"
       />
+    </el-form-item>
+    <el-form-item>
+      <el-select v-model="status" clearable placeholder="状态" size="large" style="width: 100px">
+        <el-option
+          v-for="item in statusOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_SEARCH)">
       <el-button
