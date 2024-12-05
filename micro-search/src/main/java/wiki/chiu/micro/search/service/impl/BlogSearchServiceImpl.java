@@ -1,5 +1,6 @@
 package wiki.chiu.micro.search.service.impl;
 
+import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.ScriptLanguage;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
@@ -305,7 +306,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                 .filter(filter -> filter
                         .term(term -> term
                                 .field(STATUS.getField())
-                                .value(status)));
+                                .value(status == null ? FieldValue.NULL : FieldValue.of(status))));
 
         if (StringUtils.hasText(keywords)) {
             boolQryBuilder
