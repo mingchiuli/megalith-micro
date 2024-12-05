@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import wiki.chiu.micro.blog.convertor.*;
+import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.utils.EditAuthUtils;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
@@ -142,29 +143,19 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void download(HttpServletResponse response, String keywords, LocalDateTime createStart, LocalDateTime createEnd) {
+    public void download(HttpServletResponse response, BlogDownloadReq downloadReq) {
 
         Set<BlogEntity> blogs = Collections.newSetFromMap(new ConcurrentHashMap<>());
         Set<BlogSensitiveContentEntity> blogSensitives = Collections.newSetFromMap(new ConcurrentHashMap<>());
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+        BlogSysCountSearchReq blogSysCountSearchReq = BlogSysCountSearchReqConvertor.convert(downloadReq);
 
-        BlogSysCountSearchReq blogSysCountSearchReq = BlogSysCountSearchReq.builder()
-                .keywords(keywords)
-                .createEnd(createEnd)
-                .createStart(createStart)
-                .build();
         Long total = searchHttpServiceWrapper.countBlogs(blogSysCountSearchReq);
         int pageSize = 20;
         int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
 
         for (int i = 1; i <= totalPage; i++) {
-            BlogSysSearchReq req = BlogSysSearchReq.builder()
-                    .page(i)
-                    .pageSize(pageSize)
-                    .keywords(keywords)
-                    .createStart(createStart)
-                    .createEnd(createEnd)
-                    .build();
+            BlogSysSearchReq req = BlogSysSearchReqConvertor.convert(downloadReq, i, pageSize);
 
             ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             RequestContextHolder.setRequestAttributes(servletRequestAttributes, true);//请求头设置子线程共享

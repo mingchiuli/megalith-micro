@@ -13,6 +13,8 @@ public record BlogSysSearchReq(
 
         String keywords,
 
+        Integer status,
+
         LocalDateTime createStart,
 
         LocalDateTime createEnd) implements Serializable {
@@ -25,6 +27,7 @@ public record BlogSysSearchReq(
         private Integer page;
         private Integer pageSize;
         private String keywords;
+        private Integer status;
         private LocalDateTime createStart;
         private LocalDateTime createEnd;
 
@@ -43,6 +46,11 @@ public record BlogSysSearchReq(
             return this;
         }
 
+        public BlogSysSearchReq.BlogSearchReqBuilder status(Integer status) {
+            this.status = status;
+            return this;
+        }
+
         public BlogSysSearchReq.BlogSearchReqBuilder createStart(LocalDateTime createStart) {
             this.createStart = createStart;
             return this;
@@ -54,7 +62,7 @@ public record BlogSysSearchReq(
         }
 
         public BlogSysSearchReq build() {
-            return new BlogSysSearchReq(page, pageSize, keywords, createStart, createEnd);
+            return new BlogSysSearchReq(page, pageSize, keywords, status, createStart, createEnd);
         }
     }
 }

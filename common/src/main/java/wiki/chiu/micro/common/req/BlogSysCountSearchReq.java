@@ -8,6 +8,8 @@ public record BlogSysCountSearchReq(
 
         String keywords,
 
+        Integer status,
+
         LocalDateTime createStart,
 
         LocalDateTime createEnd) {
@@ -20,12 +22,19 @@ public record BlogSysCountSearchReq(
 
         private String keywords;
 
+        private Integer status;
+
         private LocalDateTime createStart;
 
         private LocalDateTime createEnd;
 
         public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder keywords(String keywords) {
             this.keywords = keywords;
+            return this;
+        }
+
+        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder status(Integer status) {
+            this.status = status;
             return this;
         }
 
@@ -40,7 +49,7 @@ public record BlogSysCountSearchReq(
         }
 
         public BlogSysCountSearchReq build() {
-            return new BlogSysCountSearchReq(keywords, createStart, createEnd);
+            return new BlogSysCountSearchReq(keywords, status, createStart, createEnd);
         }
     }
 }

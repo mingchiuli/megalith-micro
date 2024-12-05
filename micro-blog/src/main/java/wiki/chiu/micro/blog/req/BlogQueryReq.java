@@ -14,6 +14,8 @@ public record BlogQueryReq(
 
         String keywords,
 
+        Integer status,
+
         @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime createStart,
 
