@@ -56,6 +56,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
         LocalDateTime end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
 
+        //保守处理，前面的全删
         long countAfter = blogHttpServiceWrapper.countByCreatedGreaterThanEqual(blogEntity.created());
         long countYearAfter = blogHttpServiceWrapper.getPageCountYear(blogEntity.created(), start, end);
         Set<String> keys = cacheKeyGenerator.generateBlogKey(countAfter, countYearAfter, year);
