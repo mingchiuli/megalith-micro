@@ -52,7 +52,7 @@ public interface BlogHttpService {
                                   @RequestParam LocalDateTime start,
                                   @RequestParam LocalDateTime end);
 
-    @GetExchange("/blog/count/until/{created}")
+    @GetExchange("/blog/count/until")
     Result<Long> countByCreatedGreaterThanEqual(@RequestParam LocalDateTime created);
 
     @GetExchange("/blog/sensitive/{blogId}")
