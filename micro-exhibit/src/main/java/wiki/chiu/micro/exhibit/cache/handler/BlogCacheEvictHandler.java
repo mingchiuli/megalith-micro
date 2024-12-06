@@ -44,6 +44,7 @@ public abstract sealed class BlogCacheEvictHandler permits
     public void handle(BlogOperateMessage message, Channel channel, Message msg) {
         long deliveryTag = msg.getMessageProperties().getDeliveryTag();
         try {
+            log.info("msg:{}", message);
             Long blogId = message.blogId();
             Integer year = message.year();
             BlogEntityRpcDto blogEntity;
