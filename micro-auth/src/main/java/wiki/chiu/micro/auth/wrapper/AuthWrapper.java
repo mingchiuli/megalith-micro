@@ -8,14 +8,18 @@ import wiki.chiu.micro.common.dto.AuthorityRpcDto;
 import wiki.chiu.micro.common.dto.MenusAndButtonsRpcDto;
 import wiki.chiu.micro.common.lang.Const;
 import org.springframework.stereotype.Component;
+import wiki.chiu.micro.common.lang.ServiceHostEnum;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 @Component
 public class AuthWrapper {
 
-    private final List<String> services = List.of(Const.AUTH_SERVICE, Const.BLOG_SERVICE, Const.EXHIBIT_SERVICE, Const.USER_SERVICE, Const.SEARCH_SERVICE, Const.WEBSOCKET_SERVICE);
+    private final List<String> services = Arrays.stream(ServiceHostEnum.values())
+            .map(ServiceHostEnum::getServiceHost)
+            .toList();
 
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 
