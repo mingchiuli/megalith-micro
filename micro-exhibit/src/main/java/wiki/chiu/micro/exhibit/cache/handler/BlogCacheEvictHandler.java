@@ -55,6 +55,7 @@ public abstract sealed class BlogCacheEvictHandler permits
             } else {
                 blogEntity = blogHttpServiceWrapper.findById(blogId, year);
             }
+            log.info("msg:{}", message);
             redisProcess(blogEntity);
 
             //手动签收消息

@@ -30,8 +30,6 @@ public class CacheKeyGenerator {
     @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
-    private static final String FIND_PAGE = "findPage";
-
     public Set<String> generateHotBlogsKeys(Integer year, Long count, Long countYear) {
         Set<String> keys = new HashSet<>();
         long pageNo = count % blogPageSize == 0 ? count / blogPageSize : count / blogPageSize + 1;
@@ -40,7 +38,7 @@ public class CacheKeyGenerator {
         for (long i = 1; i <= pageNo; i++) {
             Method method;
             try {
-                method = BlogWrapper.class.getMethod(FIND_PAGE, Integer.class, Integer.class);
+                method = BlogWrapper.class.getMethod("findPage", Integer.class, Integer.class);
                 String key = commonCacheKeyGenerator.generateKey(method, i, Integer.MIN_VALUE);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
@@ -51,7 +49,7 @@ public class CacheKeyGenerator {
         for (long i = 1; i <= pageYearNo; i++) {
             Method method;
             try {
-                method = BlogWrapper.class.getMethod(FIND_PAGE, Integer.class, Integer.class);
+                method = BlogWrapper.class.getMethod("findPage", Integer.class, Integer.class);
                 String key = commonCacheKeyGenerator.generateKey(method, i, year);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
@@ -69,7 +67,7 @@ public class CacheKeyGenerator {
         for (long i = 1; i <= pageBeforeNo; i++) {
             Method method;
             try {
-                method = BlogWrapper.class.getMethod(FIND_PAGE, Integer.class, Integer.class);
+                method = BlogWrapper.class.getMethod("findPage", Integer.class, Integer.class);
                 String key = commonCacheKeyGenerator.generateKey(method, i, Integer.MIN_VALUE);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
@@ -80,7 +78,7 @@ public class CacheKeyGenerator {
         for (long i = 1; i <= pageYearBeforeNo; i++) {
             Method method;
             try {
-                method = BlogWrapper.class.getMethod(FIND_PAGE, Integer.class, Integer.class);
+                method = BlogWrapper.class.getMethod("findPage", Integer.class, Integer.class);
                 String key = commonCacheKeyGenerator.generateKey(method, i, year);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
