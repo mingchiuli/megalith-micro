@@ -329,12 +329,12 @@ onUnmounted(() => {
 const healthCheck = async () => {
   try {
     if (socket.readyState !== WebSocket.OPEN) {
-      operateStatus.transColor.value = OperaColor.FAILED
       operateStatus.readOnly.value = true
+      operateStatus.transColor.value = OperaColor.FAILED
       const accessToken = localStorage.getItem('accessToken')!
       await checkAccessToken(accessToken)
       connect()
-
+    } else {
       operateStatus.readOnly.value = false
       operateStatus.transColor.value = OperaColor.SUCCESS
     }
