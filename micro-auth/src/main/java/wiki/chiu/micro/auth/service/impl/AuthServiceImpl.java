@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 import static wiki.chiu.micro.common.lang.Const.*;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.RE_LOGIN;
@@ -91,7 +92,7 @@ public class AuthServiceImpl implements AuthService {
             taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT), ipAddr));
         }
 
-        List<String> authorities;
+        Set<String> authorities;
         try {
             authorities = getAuthAuthority(token);
         } catch (AuthException e) {
@@ -172,14 +173,13 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
-    private List<String> getAuthAuthority(String token) throws AuthException {
+    private Set<String> getAuthAuthority(String token) throws AuthException {
         List<AuthorityRpcDto> allAuthorities = authWrapper.getAllSystemAuthorities();
-        List<String> whiteList = allAuthorities.stream()
+
+        Set<String> authorities = allAuthorities.stream()
                 .filter(item -> AuthStatusEnum.WHITE_LIST.getCode().equals(item.type()))
                 .map(AuthorityRpcDto::code)
-                .toList();
-
-        List<String> authorities = new ArrayList<>(whiteList);
+                .collect(Collectors.toSet());
 
         if (!StringUtils.hasLength(token)) {
             return authorities;
@@ -191,11 +191,10 @@ public class AuthServiceImpl implements AuthService {
 
         List<String> rawRoles = getRawRoleCodes(roles);
 
-        List<String> authList = rawRoles.stream()
+        Set<String> authList = rawRoles.stream()
                 .map(authWrapper::getAuthoritiesByRoleCode)
                 .flatMap(Collection::stream)
-                .distinct()
-                .toList();
+                .collect(Collectors.toSet());
 
         authorities.addAll(authList);
         return authorities;

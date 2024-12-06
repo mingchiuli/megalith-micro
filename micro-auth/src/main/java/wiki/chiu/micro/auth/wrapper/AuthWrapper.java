@@ -10,6 +10,7 @@ import wiki.chiu.micro.common.lang.Const;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class AuthWrapper {
@@ -29,7 +30,7 @@ public class AuthWrapper {
     }
 
     @Cache(prefix = Const.ROLE_AUTHORITY)
-    public List<String> getAuthoritiesByRoleCode(String rawRole) {
+    public Set<String> getAuthoritiesByRoleCode(String rawRole) {
         return userHttpServiceWrapper.getAuthoritiesByRoleCode(rawRole);
     }
 

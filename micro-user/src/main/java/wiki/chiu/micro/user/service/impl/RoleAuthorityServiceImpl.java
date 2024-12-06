@@ -17,10 +17,8 @@ import wiki.chiu.micro.user.wrapper.RoleAuthorityWrapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
 
@@ -48,12 +46,12 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
     }
 
     @Override
-    public List<String> getAuthoritiesByRoleCodes(String roleCode) {
+    public Set<String> getAuthoritiesByRoleCodes(String roleCode) {
 
         Optional<RoleEntity> roleEntity = roleRepository.findByCodeAndStatus(roleCode, NORMAL.getCode());
 
         if (roleEntity.isEmpty()) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
 
         List<Long> authorityIds = roleAuthorityRepository.findByRoleId(roleEntity.get().getId()).stream()
@@ -63,7 +61,7 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
         return authorityRepository.findAllById(authorityIds).stream()
                 .filter(item -> NORMAL.getCode().equals(item.getStatus()))
                 .map(AuthorityEntity::getCode)
-                .toList();
+                .collect(Collectors.toSet());
     }
 
     @Override
