@@ -25,18 +25,6 @@ public class Const {
 
     public static final String BLOCK_USER = "block_user:";
 
-    public static final String USER_SERVICE = "micro-user";
-
-    public static final String BLOG_SERVICE = "micro-blog";
-
-    public static final String SEARCH_SERVICE = "micro-search";
-
-    public static final String EXHIBIT_SERVICE = "micro-exhibit";
-
-    public static final String AUTH_SERVICE = "micro-auth";
-
-    public static final String WEBSOCKET_SERVICE = "micro-websocket";
-
     public static final String DAY_VISIT = "{visit_record}_day";
 
     public static final String WEEK_VISIT = "{visit_record}_week";
