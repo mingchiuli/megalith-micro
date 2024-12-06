@@ -41,7 +41,7 @@
     "typescript-eslint": "^8.17.0",
     "unplugin-element-plus": "^0.8.0",
     "unplugin-vue-components": "^0.27.5",
-    "vite": "^6.0.1",
+    "vite": "^6.0.3",
     "vue-tsc": "^2.1.10"
   }
 }
