@@ -39,7 +39,7 @@ public class CacheKeyGenerator {
             Method method;
             try {
                 method = BlogWrapper.class.getMethod("findPage", Integer.class, Integer.class);
-                String key = commonCacheKeyGenerator.generateKey(method, i, Integer.MIN_VALUE);
+                String key = commonCacheKeyGenerator.generateKey(method, i, null);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
                 log.error("some exception happen...", e);
@@ -68,7 +68,7 @@ public class CacheKeyGenerator {
             Method method;
             try {
                 method = BlogWrapper.class.getMethod("findPage", Integer.class, Integer.class);
-                String key = commonCacheKeyGenerator.generateKey(method, i, Integer.MIN_VALUE);
+                String key = commonCacheKeyGenerator.generateKey(method, i, null);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
                 log.error("some exception happen...", e);

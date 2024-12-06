@@ -61,7 +61,6 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         long countYearAfter = blogHttpServiceWrapper.getPageCountYear(blogEntity.created(), start, end);
         Set<String> keys = cacheKeyGenerator.generateBlogKey(countAfter, countYearAfter, year);
 
-        log.info("keys:{}", keys);
         //博客对象本身缓存
         try {
             Method findByIdAndVisibleMethod = BlogWrapper.class.getMethod("findById", Long.class);
