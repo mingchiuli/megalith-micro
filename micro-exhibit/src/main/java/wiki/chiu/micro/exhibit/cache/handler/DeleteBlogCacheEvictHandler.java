@@ -87,6 +87,7 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
         long count = blogHttpServiceWrapper.count();
         long countYear = blogHttpServiceWrapper.countByCreatedBetween(start, end);
         keys.addAll(cacheKeyGenerator.generateHotBlogsKeys(year, count, countYear));
+        log.info("keys:{}", keys);
         cacheEvictHandler.evictCache(keys);
 
         HashSet<String> clearKeys = new HashSet<>();
