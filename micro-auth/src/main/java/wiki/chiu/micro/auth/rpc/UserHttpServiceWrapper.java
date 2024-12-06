@@ -10,6 +10,7 @@ import wiki.chiu.micro.common.rpc.UserHttpService;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class UserHttpServiceWrapper {
@@ -84,8 +85,8 @@ public class UserHttpServiceWrapper {
         return result.data();
     }
 
-    public List<String> getAuthoritiesByRoleCode(String rawRole) {
-        Result<List<String>> result = userHttpService.getAuthoritiesByRoleCode(rawRole);
+    public Set<String> getAuthoritiesByRoleCode(String rawRole) {
+        Result<Set<String>> result = userHttpService.getAuthoritiesByRoleCode(rawRole);
         if (result.code() != 200) {
             throw new MissException(result.msg());
         }

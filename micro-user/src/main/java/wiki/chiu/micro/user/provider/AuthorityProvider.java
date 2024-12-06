@@ -8,6 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 
 @RestController
@@ -30,7 +31,7 @@ public class AuthorityProvider {
     }
 
     @GetMapping("/role")
-    Result<List<String>> getAuthoritiesByRoleCodes(@RequestParam String rawRole) {
+    Result<Set<String>> getAuthoritiesByRoleCodes(@RequestParam String rawRole) {
         return Result.success(() -> roleAuthorityService.getAuthoritiesByRoleCodes(rawRole));
     }
 

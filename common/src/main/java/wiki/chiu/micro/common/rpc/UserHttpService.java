@@ -13,6 +13,7 @@ import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
 import java.util.List;
+import java.util.Set;
 
 public interface UserHttpService {
 
@@ -41,7 +42,7 @@ public interface UserHttpService {
     Result<UserEntityRpcDto> findByUsernameOrEmailOrPhone(@RequestParam String username);
 
     @GetExchange("/authority/role")
-    Result<List<String>> getAuthoritiesByRoleCode(@RequestParam String rawRole);
+    Result<Set<String>> getAuthoritiesByRoleCode(@RequestParam String rawRole);
 
     @GetExchange("/menu/nav")
     Result<MenusAndButtonsRpcDto> getCurrentUserNav(@RequestParam String role);

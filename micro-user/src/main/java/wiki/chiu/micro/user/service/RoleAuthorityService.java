@@ -4,10 +4,11 @@ package wiki.chiu.micro.user.service;
 import wiki.chiu.micro.user.vo.RoleAuthorityVo;
 
 import java.util.List;
+import java.util.Set;
 
 public interface RoleAuthorityService {
 
-    List<String> getAuthoritiesByRoleCodes(String roleCode);
+    Set<String> getAuthoritiesByRoleCodes(String roleCode);
 
     List<RoleAuthorityVo> getAuthoritiesInfo(Long roleId);
 
