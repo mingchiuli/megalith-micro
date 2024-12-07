@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import wiki.chiu.micro.blog.convertor.BlogEditVoConvertor;
-import wiki.chiu.micro.blog.convertor.BlogEntityConvertor;
 import wiki.chiu.micro.blog.convertor.BlogEntityDtoConvertor;
 import wiki.chiu.micro.blog.dto.BlogEntityDto;
 import wiki.chiu.micro.blog.entity.BlogEntity;
@@ -127,7 +126,7 @@ public class BlogEditServiceImpl implements BlogEditService {
         int version = -1;
         String paragraphListString = null;
         if (!entries.isEmpty()) {
-            blog = BlogEntityConvertor.convert(entries);
+            blog = BlogEntityDtoConvertor.convert(entries);
             sensitiveContentList = JsonUtils.readValue(objectMapper, entries.get(SENSITIVE_CONTENT_LIST.getMsg()), type);
             version = Integer.parseInt(entries.get(VERSION.getMsg()));
 
