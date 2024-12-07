@@ -1,5 +1,6 @@
 package wiki.chiu.micro.blog.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -92,6 +93,8 @@ public class BlogServiceImpl implements BlogService {
 
     private final ExecutorService taskExecutor;
 
+    private final ObjectMapper objectMapper;
+
     @Value("${megalith.blog.highest-role}")
     private String highestRole;
 
@@ -118,7 +121,7 @@ public class BlogServiceImpl implements BlogService {
 
     private String blogDeleteScript;
 
-    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogSensitiveWrapper blogSensitiveWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogSensitiveWrapper blogSensitiveWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, ExecutorService taskExecutor, ObjectMapper objectMapper) {
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.ossHttpService = ossHttpService;
         this.applicationContext = applicationContext;
@@ -129,6 +132,7 @@ public class BlogServiceImpl implements BlogService {
         this.blogSensitiveContentRepository = blogSensitiveContentRepository;
         this.searchHttpServiceWrapper = searchHttpServiceWrapper;
         this.taskExecutor = taskExecutor;
+        this.objectMapper = objectMapper;
     }
 
     @PostConstruct
@@ -328,7 +332,7 @@ public class BlogServiceImpl implements BlogService {
 
         List<String> res = redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),
                 Collections.singletonList(HOT_READ),
-                JsonUtils.writeValueAsString(ids.stream()
+                JsonUtils.writeValueAsString(objectMapper, ids.stream()
                         .map(String::valueOf)
                         .toList()));
 
@@ -348,7 +352,7 @@ public class BlogServiceImpl implements BlogService {
         List<BlogEntity> deletedBlogs = Optional.ofNullable(deletedBlogsStr)
                 .orElseGet(Collections::emptyList)
                 .stream()
-                .map(blogStr -> JsonUtils.readValue(blogStr, BlogEntity.class))
+                .map(blogStr -> JsonUtils.readValue(objectMapper, blogStr, BlogEntity.class))
                 .toList();
 
         if (deletedBlogs.isEmpty()) {
@@ -374,7 +378,7 @@ public class BlogServiceImpl implements BlogService {
         Long total = Long.valueOf(resp.getLast());
 
         List<BlogEntity> list = respList.stream()
-                .map(str -> JsonUtils.readValue(str, BlogEntity.class))
+                .map(str -> JsonUtils.readValue(objectMapper, str, BlogEntity.class))
                 .toList();
 
         return BlogDeleteVoConvertor.convert(l, list, currentPage, size, total);
@@ -391,7 +395,7 @@ public class BlogServiceImpl implements BlogService {
             return;
         }
 
-        BlogEntity tempBlog = JsonUtils.readValue(str, BlogEntity.class);
+        BlogEntity tempBlog = JsonUtils.readValue(objectMapper, str, BlogEntity.class);
         tempBlog.setStatus(HIDE.getCode());
         BlogEntity blog = blogRepository.save(tempBlog);
 
@@ -419,7 +423,7 @@ public class BlogServiceImpl implements BlogService {
                 entities.forEach(entity -> {
                     redisTemplate.execute(RedisScript.of(blogDeleteScript),
                             Collections.singletonList(QUERY_DELETED + entity.getId()),
-                            JsonUtils.writeValueAsString(entity), A_WEEK);
+                            JsonUtils.writeValueAsString(objectMapper, entity), A_WEEK);
 
                     var blogSearchIndexMessage = new BlogOperateMessage(entity.getId(), BlogOperateEnum.REMOVE, entity.getCreated().getYear());
                     applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));

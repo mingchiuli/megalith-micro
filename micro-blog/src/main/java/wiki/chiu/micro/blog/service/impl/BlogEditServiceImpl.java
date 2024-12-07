@@ -1,6 +1,7 @@
 package wiki.chiu.micro.blog.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import wiki.chiu.micro.blog.convertor.BlogEditVoConvertor;
 import wiki.chiu.micro.blog.convertor.BlogEntityConvertor;
@@ -48,14 +49,17 @@ public class BlogEditServiceImpl implements BlogEditService {
 
     private final BlogRepository blogRepository;
 
+    private final ObjectMapper objectMapper;
+
     private final TypeReference<List<SensitiveContentVo>> type = new TypeReference<>() {
     };
 
-    public BlogEditServiceImpl(StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogSensitiveService blogSensitiveService, BlogRepository blogRepository) {
+    public BlogEditServiceImpl(StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogSensitiveService blogSensitiveService, BlogRepository blogRepository, ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
         this.resourceLoader = resourceLoader;
         this.blogSensitiveService = blogSensitiveService;
         this.blogRepository = blogRepository;
+        this.objectMapper = objectMapper;
     }
 
     @PostConstruct
@@ -91,14 +95,14 @@ public class BlogEditServiceImpl implements BlogEditService {
         if (content.endsWith(PARAGRAPH_SPLITTER)) {
             paragraphList.add("");
         }
-        String paragraphListString = JsonUtils.writeValueAsString(paragraphList);
+        String paragraphListString = JsonUtils.writeValueAsString(objectMapper, paragraphList);
 
         redisTemplate.execute(RedisScript.of(pushAllScript),
                 Collections.singletonList(redisKey),
                 paragraphListString, ID.getMsg(), USER_ID.getMsg(), TITLE.getMsg(), DESCRIPTION.getMsg(),
                 STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
                 id.map(Object::toString).orElse(""), originUserId.toString(), blog.title(),
-                blog.description(), blog.status().toString(), blog.link(), blog.version().toString(), JsonUtils.writeValueAsString(blog.sensitiveContentList()),
+                blog.description(), blog.status().toString(), blog.link(), blog.version().toString(), JsonUtils.writeValueAsString(objectMapper, blog.sensitiveContentList()),
                 A_WEEK);
     }
 
@@ -124,7 +128,7 @@ public class BlogEditServiceImpl implements BlogEditService {
         String paragraphListString = null;
         if (!entries.isEmpty()) {
             blog = BlogEntityConvertor.convert(entries);
-            sensitiveContentList = JsonUtils.readValue(entries.get(SENSITIVE_CONTENT_LIST.getMsg()), type);
+            sensitiveContentList = JsonUtils.readValue(objectMapper, entries.get(SENSITIVE_CONTENT_LIST.getMsg()), type);
             version = Integer.parseInt(entries.get(VERSION.getMsg()));
 
             entries.remove(SENSITIVE_CONTENT_LIST.getMsg());
@@ -165,7 +169,7 @@ public class BlogEditServiceImpl implements BlogEditService {
 
             blog = BlogEntityDtoConvertor.convert(userBlogEntity);
             List<String> paragraphList = List.of(blog.content().split(PARAGRAPH_SPLITTER));
-            paragraphListString = JsonUtils.writeValueAsString(paragraphList);
+            paragraphListString = JsonUtils.writeValueAsString(objectMapper, paragraphList);
             BlogSensitiveContentVo blogSensitiveContentVo = blogSensitiveService.findByBlogId(id);
             sensitiveContentList = blogSensitiveContentVo.sensitiveContent();
         }
@@ -176,7 +180,7 @@ public class BlogEditServiceImpl implements BlogEditService {
                     paragraphListString, ID.getMsg(), USER_ID.getMsg(), TITLE.getMsg(), DESCRIPTION.getMsg(),
                     STATUS.getMsg(), LINK.getMsg(), VERSION.getMsg(), SENSITIVE_CONTENT_LIST.getMsg(),
                     Objects.isNull(blog.id()) ? "" : blog.id().toString(), originUserId.toString(), blog.title(),
-                    blog.description(), blog.status().toString(), blog.link(), Integer.toString(version), JsonUtils.writeValueAsString(sensitiveContentList),
+                    blog.description(), blog.status().toString(), blog.link(), Integer.toString(version), JsonUtils.writeValueAsString(objectMapper, sensitiveContentList),
                     A_WEEK);
         }
 

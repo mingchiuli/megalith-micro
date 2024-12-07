@@ -1,5 +1,6 @@
 package wiki.chiu.micro.websocket.config.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import wiki.chiu.micro.common.utils.JsonUtils;
 import wiki.chiu.micro.common.utils.KeyUtils;
@@ -38,15 +39,18 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
 
     private final ResourceLoader resourceLoader;
 
+    private final ObjectMapper objectMapper;
+
     private String pushActionScript;
 
     private final Set<Long> enumSet = Stream.of(MessageEnum.values())
             .map(MessageEnum::getCode)
             .collect(Collectors.toSet());
 
-    public EditWebSocketHandler(StringRedisTemplate redisTemplate, ResourceLoader resourceLoader) {
+    public EditWebSocketHandler(StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
         this.resourceLoader = resourceLoader;
+        this.objectMapper = objectMapper;
     }
 
     @PostConstruct
@@ -65,7 +69,7 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
 
         Long userId = Long.valueOf(principal.getName());
         String payload = message.getPayload();
-        BlogEditPushActionDto pushActionDto = JsonUtils.readValue(payload, BlogEditPushActionDto.class);
+        BlogEditPushActionDto pushActionDto = JsonUtils.readValue(objectMapper, payload, BlogEditPushActionDto.class);
 
         Long blogId = pushActionDto.id();
         String contentChange = pushActionDto.contentChange();
@@ -96,7 +100,7 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
                     .type(execute.intValue())
                     .build();
 
-            TextMessage textMessage = new TextMessage(JsonUtils.writeValueAsString(dto));
+            TextMessage textMessage = new TextMessage(JsonUtils.writeValueAsString(objectMapper, dto));
             session.sendMessage(textMessage);
         }
     }

@@ -1,5 +1,6 @@
 package wiki.chiu.micro.auth.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.redisson.api.RScript;
 import org.springframework.core.io.Resource;
@@ -45,6 +46,8 @@ public class CodeServiceImpl implements CodeService {
 
     private final ResourceLoader resourceLoader;
 
+    private final ObjectMapper objectMapper;
+
     @Value("${spring.mail.properties.from}")
     private String from;
 
@@ -56,12 +59,13 @@ public class CodeServiceImpl implements CodeService {
 
     private String script;
 
-    public CodeServiceImpl(JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, ResourceLoader resourceLoader) {
+    public CodeServiceImpl(JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, ResourceLoader resourceLoader, ObjectMapper objectMapper) {
         this.javaMailSender = javaMailSender;
         this.redissonClient = redissonClient;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.smsHttpService = smsHttpService;
         this.resourceLoader = resourceLoader;
+        this.objectMapper = objectMapper;
     }
 
     @PostConstruct
@@ -102,7 +106,7 @@ public class CodeServiceImpl implements CodeService {
 
         Object code = CodeUtils.create(SMS_CODE);
         Map<String, Object> codeMap = Collections.singletonMap("code", code);
-        String signature = SmsUtils.getSignature(loginSMS, JsonUtils.writeValueAsString(codeMap), accessKeyId, accessKeySecret);
+        String signature = SmsUtils.getSignature(loginSMS, JsonUtils.writeValueAsString(objectMapper, codeMap), accessKeyId, accessKeySecret);
         smsHttpService.sendSms("?Signature=" + signature);
         redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.VALUE, Collections.singletonList(key), "code", code.toString(), "try_count", "0", "120");
     }
