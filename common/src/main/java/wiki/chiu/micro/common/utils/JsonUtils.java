@@ -8,9 +8,7 @@ import wiki.chiu.micro.common.exception.MissException;
 
 public class JsonUtils {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    public static  <T> T readValue(String str, Class<T> clazz) {
+    public static  <T> T readValue(ObjectMapper objectMapper, String str, Class<T> clazz) {
         try {
             return objectMapper.readValue(str, clazz);
         } catch (JsonProcessingException e) {
@@ -18,11 +16,11 @@ public class JsonUtils {
         }
     }
 
-    public static <T> T convertValue(Object obj, Class<T> clazz) {
+    public static <T> T convertValue(ObjectMapper objectMapper, Object obj, Class<T> clazz) {
         return objectMapper.convertValue(obj, clazz);
     }
 
-    public static String writeValueAsString(Object obj) {
+    public static String writeValueAsString(ObjectMapper objectMapper, Object obj) {
         try {
             return objectMapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
@@ -30,7 +28,7 @@ public class JsonUtils {
         }
     }
 
-    public static  <T>T readValue(String str, TypeReference<T> type) {
+    public static  <T>T readValue(ObjectMapper objectMapper, String str, TypeReference<T> type) {
         try {
             return objectMapper.readValue(str, type);
         } catch (JsonProcessingException e) {
@@ -38,7 +36,7 @@ public class JsonUtils {
         }
     }
 
-    public static Object readValue(String remoteCacheStr, JavaType javaType) {
+    public static Object readValue(ObjectMapper objectMapper, String remoteCacheStr, JavaType javaType) {
         try {
             return objectMapper.readValue(remoteCacheStr, javaType);
         } catch (JsonProcessingException e) {
