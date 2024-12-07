@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import wiki.chiu.micro.blog.convertor.*;
+import wiki.chiu.micro.blog.dto.BlogDeleteDto;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.utils.EditAuthUtils;
@@ -378,7 +379,8 @@ public class BlogServiceImpl implements BlogService {
         Long total = Long.valueOf(resp.getLast());
 
         List<BlogEntity> list = respList.stream()
-                .map(str -> JsonUtils.readValue(objectMapper, str, BlogEntity.class))
+                .map(str -> JsonUtils.readValue(objectMapper, str, BlogDeleteDto.class))
+                .map(BlogEntityConvertor::convert)
                 .toList();
 
         return BlogDeleteVoConvertor.convert(l, list, currentPage, size, total);
@@ -395,7 +397,8 @@ public class BlogServiceImpl implements BlogService {
             return;
         }
 
-        BlogEntity tempBlog = JsonUtils.readValue(objectMapper, str, BlogEntity.class);
+        BlogDeleteDto delBlog = JsonUtils.readValue(objectMapper, str, BlogDeleteDto.class);
+        BlogEntity tempBlog = BlogEntityConvertor.convert(delBlog);
         tempBlog.setStatus(HIDE.getCode());
         BlogEntity blog = blogRepository.save(tempBlog);
 
@@ -423,7 +426,7 @@ public class BlogServiceImpl implements BlogService {
                 entities.forEach(entity -> {
                     redisTemplate.execute(RedisScript.of(blogDeleteScript),
                             Collections.singletonList(QUERY_DELETED + entity.getId()),
-                            JsonUtils.writeValueAsString(objectMapper, entity), A_WEEK);
+                            JsonUtils.writeValueAsString(objectMapper, BlogDeleteDtoConvertor.convert(entity)), A_WEEK);
 
                     var blogSearchIndexMessage = new BlogOperateMessage(entity.getId(), BlogOperateEnum.REMOVE, entity.getCreated().getYear());
                     applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
