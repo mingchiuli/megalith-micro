@@ -248,7 +248,7 @@ const { content, totalElements, pageSize } = toRefs(page)
 
 .title {
   font-size: medium;
-  margin-top: 10px;
+  margin-top: 15px;
   display: block;
   max-width: fit-content;
 }
