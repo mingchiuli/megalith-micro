@@ -122,7 +122,7 @@ public class BlogServiceImpl implements BlogService {
 
     private String blogDeleteScript;
 
-    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogSensitiveWrapper blogSensitiveWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("taskExecutor") ExecutorService taskExecutor, ObjectMapper objectMapper) {
+    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogSensitiveWrapper blogSensitiveWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor, ObjectMapper objectMapper) {
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.ossHttpService = ossHttpService;
         this.applicationContext = applicationContext;
