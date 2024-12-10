@@ -28,17 +28,12 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
     @Override
     public boolean isValid(UserEntityRegisterReq req, ConstraintValidatorContext context) {
         String token = req.token();
-        if (StringUtils.hasLength(token)) {
+        if (!StringUtils.hasLength(token)) {
             return false;
         }
 
         String nickname = req.nickname();
         if (!StringUtils.hasLength(nickname)) {
-            return false;
-        }
-
-        String phone = req.phone();
-        if (!PHONE_PATTERN.matcher(phone).matches()) {
             return false;
         }
 
