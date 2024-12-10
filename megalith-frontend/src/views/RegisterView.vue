@@ -24,6 +24,7 @@ type Form = {
   avatar: string
   email: string
   phone?: string
+  token: string
 }
 
 const form: Form = reactive({
@@ -34,12 +35,15 @@ const form: Form = reactive({
   confirmPassword: '',
   avatar: '',
   email: '',
-  phone: ''
+  phone: '',
+  token: ''
 })
 
 const route = useRoute()
-const token = ref<string | string[]>()
-token.value = route.params.token
+const t = route.params.token as string
+if (t) {
+  form.token = t
+}
 const username = route.query.username as string
 if (username) {
   form.username = username
@@ -48,7 +52,7 @@ if (username) {
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
-GET<boolean>(`/sys/user/register/check?token=${token.value}`).then((res) => {
+GET<boolean>(`/sys/user/register/check?token=${t}`).then(res => {
   if (!res) {
     router.push('/blogs')
   }
@@ -98,7 +102,7 @@ const upload = async (image: UploadRequestOptions) => {
 const uploadFile = async (file: UploadRawFile) => {
   const formdata = new FormData()
   formdata.append('image', file)
-  formdata.append('token', token.value as string)
+  formdata.append('token', t)
   const url = await UPLOAD(
     'sys/user/register/image/upload',
     formdata,
@@ -131,7 +135,7 @@ const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid, _fields) => {
     if (valid) {
-      await POST<null>(`/sys/user/register/save?token=${token.value}`, form)
+      await POST<null>('/sys/user/register/save', form)
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
@@ -150,7 +154,7 @@ const handlePictureCardPreview = (file: UploadFile) => {
 
 const handleRemove = async (_file: UploadFile) => {
   if (form.avatar) return
-  await GET<null>(`/sys/user/register/image/delete?url=${form.avatar}&token=${token.value}`)
+  await GET<null>(`/sys/user/register/image/delete?url=${form.avatar}&token=${t}`)
   form.avatar = ''
 }
 </script>
