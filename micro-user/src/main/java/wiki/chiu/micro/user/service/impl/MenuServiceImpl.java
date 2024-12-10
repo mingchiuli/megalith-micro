@@ -1,5 +1,6 @@
 package wiki.chiu.micro.user.service.impl;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.Const;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_NOT_EXIST;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
@@ -46,11 +48,14 @@ public class MenuServiceImpl implements MenuService {
 
     private final RoleMenuRepository roleMenuRepository;
 
-    public MenuServiceImpl(MenuRepository menuRepository, RoleRepository roleRepository, ApplicationContext applicationContext, RoleMenuRepository roleMenuRepository) {
+    private final ExecutorService taskExecutor;
+
+    public MenuServiceImpl(MenuRepository menuRepository, RoleRepository roleRepository, ApplicationContext applicationContext, RoleMenuRepository roleMenuRepository, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.menuRepository = menuRepository;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;
         this.roleMenuRepository = roleMenuRepository;
+        this.taskExecutor = taskExecutor;
     }
 
     @Override
@@ -84,10 +89,12 @@ public class MenuServiceImpl implements MenuService {
             menuRepository.save(menuEntity);
         }
 
-        // 全部按钮和菜单
-        List<String> allRoleCodes = roleRepository.findAllCodes();
-        var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.MENU.getType());
-        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+        taskExecutor.execute(() -> {
+            // 全部按钮和菜单
+            List<String> allRoleCodes = roleRepository.findAllCodes();
+            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.MENU.getType());
+            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+        });
     }
 
     @Override

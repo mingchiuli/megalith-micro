@@ -21,7 +21,15 @@ import java.util.stream.Collectors;
 
 public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSaveValue, BlogEntityReq> {
 
-    private static final Pattern pattern = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+    private static final Pattern URL_PATTERN = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+
+    private static final Set<Integer> STATUS_SET = Arrays.stream(StatusEnum.values())
+            .map(StatusEnum::getCode)
+            .collect(Collectors.toSet());
+
+    private static final Set<Integer> SENSITIVE_SET = Arrays.stream(SensitiveTypeEnum.values())
+            .map(SensitiveTypeEnum::getCode)
+            .collect(Collectors.toSet());
 
     @Override
     public boolean isValid(BlogEntityReq blog, ConstraintValidatorContext context) {
@@ -39,12 +47,8 @@ public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSave
         }
 
         Integer status = blog.status();
-
-        Set<Integer> statusSet = Arrays.stream(StatusEnum.values())
-                .map(StatusEnum::getCode)
-                .collect(Collectors.toSet());
         
-        if (!statusSet.contains(status)) {
+        if (!STATUS_SET.contains(status)) {
             return false;
         }
 
@@ -54,15 +58,13 @@ public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSave
             return false;
         }
 
-        if (StringUtils.hasLength(link) && !pattern.matcher(link).matches()) {
+        if (StringUtils.hasLength(link) && !URL_PATTERN.matcher(link).matches()) {
             return false;
         }
 
         List<SensitiveContentReq> sensitiveContentList = blog.sensitiveContentList();
 
-        Set<Integer> sensitiveSet = Arrays.stream(SensitiveTypeEnum.values())
-                .map(SensitiveTypeEnum::getCode)
-                .collect(Collectors.toSet());
+
         for (var sensitive : sensitiveContentList) {
             if (Objects.isNull(sensitive.startIndex())) {
                 return false;
@@ -72,7 +74,7 @@ public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSave
                 return false;
             }
 
-            if (!sensitiveSet.contains(sensitive.type())) {
+            if (!SENSITIVE_SET.contains(sensitive.type())) {
                 return false;
             }
         }

@@ -7,7 +7,6 @@ import wiki.chiu.micro.blog.event.BlogOperateEvent;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 
@@ -24,7 +23,6 @@ public class BlogOperateEventListener {
     }
 
     @EventListener
-    @Async("commonExecutor")
     public void process(BlogOperateEvent event) {
         BlogOperateMessage messageBody = event.getBlogOperateMessage();
         rabbitTemplate.convertAndSend(BlogChangeRabbitConfig.FANOUT_EXCHANGE, "", messageBody);

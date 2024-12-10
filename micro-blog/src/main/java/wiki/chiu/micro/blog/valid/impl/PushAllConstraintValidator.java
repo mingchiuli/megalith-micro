@@ -21,7 +21,11 @@ import java.util.stream.Collectors;
 
 public class PushAllConstraintValidator implements ConstraintValidator<PushAllValue, BlogEditPushAllReq> {
 
-    private static final Pattern pattern = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+    private static final Pattern URL_PATTERN = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+
+    private static final Set<Integer> SENSITIVE_SET = Arrays.stream(SensitiveTypeEnum.values())
+            .map(SensitiveTypeEnum::getCode)
+            .collect(Collectors.toSet());
 
     @Override
     public boolean isValid(BlogEditPushAllReq blog, ConstraintValidatorContext context) {
@@ -58,15 +62,13 @@ public class PushAllConstraintValidator implements ConstraintValidator<PushAllVa
             return false;
         }
 
-        if (StringUtils.hasLength(link) && !pattern.matcher(link).matches()) {
+        if (StringUtils.hasLength(link) && !URL_PATTERN.matcher(link).matches()) {
             return false;
         }
 
         List<SensitiveContentReq> sensitiveContentList = blog.sensitiveContentList();
 
-        Set<Integer> sensitiveSet = Arrays.stream(SensitiveTypeEnum.values())
-                .map(SensitiveTypeEnum::getCode)
-                .collect(Collectors.toSet());
+
         for (var sensitive : sensitiveContentList) {
             if (Objects.isNull(sensitive.startIndex())) {
                 return false;
@@ -76,7 +78,7 @@ public class PushAllConstraintValidator implements ConstraintValidator<PushAllVa
                 return false;
             }
 
-            if (!sensitiveSet.contains(sensitive.type())) {
+            if (!SENSITIVE_SET.contains(sensitive.type())) {
                 return false;
             }
         }

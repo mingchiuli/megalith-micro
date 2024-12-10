@@ -1,5 +1,6 @@
 package wiki.chiu.micro.user.service.impl;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.exception.CommitException;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.StatusEnum;
@@ -34,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.Const.REGISTER_PREFIX;
 import static wiki.chiu.micro.common.lang.Const.USER;
@@ -61,8 +63,9 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     private final UserRoleRepository userRoleRepository;
 
+    private final ExecutorService taskExecutor;
 
-    public UserRoleServiceImpl(RoleRepository roleRepository, StringRedisTemplate redisTemplate, UserRoleWrapper userRoleWrapper, UserRepository userRepository, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, UserRoleRepository userRoleRepository) {
+    public UserRoleServiceImpl(RoleRepository roleRepository, StringRedisTemplate redisTemplate, UserRoleWrapper userRoleWrapper, UserRepository userRepository, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, UserRoleRepository userRoleRepository, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.roleRepository = roleRepository;
         this.redisTemplate = redisTemplate;
         this.userRoleWrapper = userRoleWrapper;
@@ -70,6 +73,7 @@ public class UserRoleServiceImpl implements UserRoleService {
         this.passwordEncoder = passwordEncoder;
         this.applicationContext = applicationContext;
         this.userRoleRepository = userRoleRepository;
+        this.taskExecutor = taskExecutor;
     }
 
     @Override
@@ -107,8 +111,10 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
 
-        var userIndexMessage = new UserIndexMessage(userEntity.getId(), userOperateEnum);
-        applicationContext.publishEvent(new UserOperateEvent(this, userIndexMessage));
+        taskExecutor.execute(() -> {
+            var userIndexMessage = new UserIndexMessage(userEntity.getId(), userOperateEnum);
+            applicationContext.publishEvent(new UserOperateEvent(this, userIndexMessage));
+        });
     }
 
     @Override

@@ -1,5 +1,6 @@
 package wiki.chiu.micro.user.service.impl;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.AuthStatusEnum;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
@@ -18,6 +19,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
@@ -36,13 +38,15 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
 
     private final ApplicationContext applicationContext;
 
+    private final ExecutorService taskExecutor;
 
-    public RoleAuthorityServiceImpl(RoleAuthorityWrapper roleAuthorityWrapper, RoleAuthorityRepository roleAuthorityRepository, AuthorityRepository authorityRepository, RoleRepository roleRepository, ApplicationContext applicationContext) {
+    public RoleAuthorityServiceImpl(RoleAuthorityWrapper roleAuthorityWrapper, RoleAuthorityRepository roleAuthorityRepository, AuthorityRepository authorityRepository, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.roleAuthorityWrapper = roleAuthorityWrapper;
         this.roleAuthorityRepository = roleAuthorityRepository;
         this.authorityRepository = authorityRepository;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;
+        this.taskExecutor = taskExecutor;
     }
 
     @Override
@@ -69,13 +73,13 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
         List<RoleAuthorityEntity> roleAuthorityEntities = RoleAuthorityEntityConvertor.convert(roleId, authorityIds);
         roleAuthorityWrapper.saveAuthority(roleId, new ArrayList<>(roleAuthorityEntities));
         // 删除权限缓存
-        roleRepository.findById(roleId)
+        taskExecutor.execute(() -> roleRepository.findById(roleId)
                 .map(RoleEntity::getCode)
                 .ifPresent(role -> {
                     var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(role),
                             AuthMenuOperateEnum.AUTH.getType());
                     applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-                });
+                }));
     }
 
     @Override

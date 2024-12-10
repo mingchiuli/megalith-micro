@@ -1,5 +1,6 @@
 package wiki.chiu.micro.user.service.impl;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.Const;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.ROLE_NOT_EXIST;
 
@@ -52,13 +54,16 @@ public class RoleServiceImpl implements RoleService {
 
     private final ApplicationContext applicationContext;
 
-    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, RoleAuthorityRepository roleAuthorityRepository, UserRoleRepository userRoleRepository, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper, ApplicationContext applicationContext) {
+    private final ExecutorService taskExecutor;
+
+    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, RoleAuthorityRepository roleAuthorityRepository, UserRoleRepository userRoleRepository, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.roleRepository = roleRepository;
         this.roleMenuRepository = roleMenuRepository;
         this.roleAuthorityRepository = roleAuthorityRepository;
         this.userRoleRepository = userRoleRepository;
         this.roleMenuAuthorityWrapper = roleMenuAuthorityWrapper;
         this.applicationContext = applicationContext;
+        this.taskExecutor = taskExecutor;
     }
 
     @Override
@@ -101,8 +106,10 @@ public class RoleServiceImpl implements RoleService {
 
         roleRepository.save(roleEntity);
         //权限和按钮
-        var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(roleEntity.getCode()), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
-        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+        taskExecutor.execute(() -> {
+            var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(roleEntity.getCode()), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
+            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+        });
     }
 
     @Override
@@ -110,14 +117,16 @@ public class RoleServiceImpl implements RoleService {
         roleMenuAuthorityWrapper.delete(ids);
 
         //多个角色删除
-        var roles = roleRepository.findAllById(ids)
-                .stream()
-                .map(RoleEntity::getCode)
-                .distinct()
-                .toList();
+        taskExecutor.execute(() -> {
+            var roles = roleRepository.findAllById(ids)
+                    .stream()
+                    .map(RoleEntity::getCode)
+                    .distinct()
+                    .toList();
 
-        var authMenuIndexMessage = new AuthMenuIndexMessage(roles, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
-        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+            var authMenuIndexMessage = new AuthMenuIndexMessage(roles, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
+            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+        });
     }
 
     @Override
