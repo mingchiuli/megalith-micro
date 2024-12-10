@@ -1,5 +1,6 @@
 package wiki.chiu.micro.user.service.impl;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.exception.CommitException;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_INVALID_OPERATE;
 import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
@@ -46,13 +48,15 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
     private final ApplicationContext applicationContext;
 
+    private final ExecutorService taskExecutor;
 
-    public RoleMenuServiceImpl(MenuRepository menuRepository, RoleMenuRepository roleMenuRepository, RoleMenuWrapper roleMenuWrapper, RoleRepository roleRepository, ApplicationContext applicationContext) {
+    public RoleMenuServiceImpl(MenuRepository menuRepository, RoleMenuRepository roleMenuRepository, RoleMenuWrapper roleMenuWrapper, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.menuRepository = menuRepository;
         this.roleMenuRepository = roleMenuRepository;
         this.roleMenuWrapper = roleMenuWrapper;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;
+        this.taskExecutor = taskExecutor;
     }
 
     private List<RoleMenuVo> setCheckMenusInfo(List<MenuDisplayVo> menusInfo, List<Long> menuIdsByRole, List<RoleMenuVo> parentChildren) {
@@ -93,12 +97,12 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
         roleMenuWrapper.saveMenu(roleId, new ArrayList<>(roleMenuEntities));
         // 按钮
-        roleRepository.findById(roleId)
+        taskExecutor.execute(() -> roleRepository.findById(roleId)
                 .map(RoleEntity::getCode)
                 .ifPresent(role -> {
                     var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(role), AuthMenuOperateEnum.MENU.getType());
                     applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-                });
+                }));
     }
 
     @Override
@@ -109,9 +113,11 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         }
         roleMenuWrapper.deleteMenu(id);
         //全部按钮
-        List<String> allRoleCodes = roleRepository.findAllCodes();
-        var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.MENU.getType());
-        applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+        taskExecutor.execute(() -> {
+            List<String> allRoleCodes = roleRepository.findAllCodes();
+            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.MENU.getType());
+            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+        });
     }
 
     @Override

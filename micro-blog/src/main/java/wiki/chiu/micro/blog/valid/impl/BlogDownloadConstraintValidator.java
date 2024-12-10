@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class BlogDownloadConstraintValidator implements ConstraintValidator<BlogSysDownload, BlogDownloadReq> {
 
-    private static final Set<Integer> statusSet = Arrays.stream(StatusEnum.values())
+    private static final Set<Integer> STATUS_SET = Arrays.stream(StatusEnum.values())
             .map(StatusEnum::getCode)
             .collect(Collectors.toSet());
 
@@ -29,7 +29,7 @@ public class BlogDownloadConstraintValidator implements ConstraintValidator<Blog
         }
 
         Integer status = query.status();
-        if (status != null && !statusSet.contains(status)) {
+        if (status != null && !STATUS_SET.contains(status)) {
             return false;
         }
 

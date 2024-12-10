@@ -51,7 +51,6 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
@@ -246,7 +245,6 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    @Async("commonExecutor")
     public void deleteOss(String url){
         String objectName = url.replace(baseUrl + "/", "");
         Map<String, String> headers = new HashMap<>();
@@ -254,7 +252,7 @@ public class BlogServiceImpl implements BlogService {
         headers.put(HttpHeaders.DATE, gmtDate);
         headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), "", accessKeyId, accessKeySecret, bucketName));
 
-        ossHttpService.deleteOssObject(objectName, headers);
+        taskExecutor.execute(() -> ossHttpService.deleteOssObject(objectName, headers));
     }
 
     @Override
@@ -309,9 +307,11 @@ public class BlogServiceImpl implements BlogService {
         BlogEntity saved = blogSensitiveWrapper.saveOrUpdate(blogEntity, blogSensitiveContentEntityList, existedSensitiveIds);
 
         // 通知消息给mq,更新并删除缓存
-        BlogOperateEnum type = blogId.isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE;
-        var blogSearchIndexMessage = new BlogOperateMessage(saved.getId(), type, blogEntity.getCreated().getYear());
-        applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
+        taskExecutor.execute(() -> {
+            BlogOperateEnum type = blogId.isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE;
+            var blogSearchIndexMessage = new BlogOperateMessage(saved.getId(), type, blogEntity.getCreated().getYear());
+            applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
+        });
     }
 
     @Override
@@ -378,12 +378,12 @@ public class BlogServiceImpl implements BlogService {
         List<String> respList = resp.subList(0, resp.size() - 1);
         Long total = Long.valueOf(resp.getLast());
 
-        List<BlogEntity> list = respList.stream()
+        List<BlogEntity> blogEntities = respList.stream()
                 .map(str -> JsonUtils.readValue(objectMapper, str, BlogDeleteDto.class))
                 .map(BlogEntityConvertor::convert)
                 .toList();
 
-        return BlogDeleteVoConvertor.convert(l, list, currentPage, size, total);
+        return BlogDeleteVoConvertor.convert(l, blogEntities, currentPage, size, total);
     }
 
     @Override
@@ -402,8 +402,10 @@ public class BlogServiceImpl implements BlogService {
         tempBlog.setStatus(HIDE.getCode());
         BlogEntity blog = blogRepository.save(tempBlog);
 
-        var blogSearchIndexMessage = new BlogOperateMessage(blog.getId(), BlogOperateEnum.CREATE, blog.getCreated().getYear());
-        applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
+        taskExecutor.execute(() -> {
+            var blogSearchIndexMessage = new BlogOperateMessage(blog.getId(), BlogOperateEnum.CREATE, blog.getCreated().getYear());
+            applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
+        });
     }
 
     @Override
@@ -413,14 +415,14 @@ public class BlogServiceImpl implements BlogService {
                 .filter(blogEntity -> Objects.equals(blogEntity.getUserId(), userId) || roles.contains(highestRole))
                 .toList();
 
-        ids = entities.stream()
+        List<Long> idList = entities.stream()
                 .map(BlogEntity::getId)
                 .toList();
 
-        List<Long> sensitiveIds = blogSensitiveContentRepository.findByBlogIdIn(ids).stream()
+        List<Long> sensitiveIds = blogSensitiveContentRepository.findByBlogIdIn(idList).stream()
                 .map(BlogSensitiveContentEntity::getId)
                 .toList();
-        blogSensitiveWrapper.deleteByIds(ids, sensitiveIds);
+        blogSensitiveWrapper.deleteByIds(idList, sensitiveIds);
 
         taskExecutor.execute(() ->
                 entities.forEach(entity -> {

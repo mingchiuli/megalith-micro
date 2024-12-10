@@ -6,7 +6,6 @@ import wiki.chiu.micro.user.lang.UserOperateEnum;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
@@ -27,7 +26,6 @@ public class UserOperateEventListener {
     }
 
     @EventListener
-    @Async("commonExecutor")
     public void process(UserOperateEvent event) {
         UserIndexMessage userIndexMessage = event.getUserIndexMessage();
         Long userId = userIndexMessage.userId();
