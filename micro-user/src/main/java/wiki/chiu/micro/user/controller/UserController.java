@@ -9,6 +9,7 @@ import wiki.chiu.micro.user.req.UserEntityRegisterReq;
 import wiki.chiu.micro.user.req.UserEntityReq;
 import wiki.chiu.micro.user.service.UserRoleService;
 import wiki.chiu.micro.user.service.UserService;
+import wiki.chiu.micro.user.valid.RegisterSave;
 import wiki.chiu.micro.user.vo.UserEntityVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -43,9 +44,8 @@ public class UserController {
 
 
     @PostMapping("/register/save")
-    public Result<Void> saveRegisterPage(@RequestParam String token,
-                                         @RequestBody @Valid UserEntityRegisterReq userEntityRegisterReq) {
-        return Result.success(() -> userRoleService.saveRegisterPage(token, userEntityRegisterReq));
+    public Result<Void> saveRegisterPage(@RequestBody @RegisterSave UserEntityRegisterReq req) {
+        return Result.success(() -> userRoleService.saveRegisterPage(req));
     }
 
     @PostMapping("/register/image/upload")
