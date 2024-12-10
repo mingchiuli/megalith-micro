@@ -33,7 +33,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
@@ -118,39 +117,24 @@ public class UserRoleServiceImpl implements UserRoleService {
     }
 
     @Override
-    public void saveRegisterPage(String token, UserEntityRegisterReq userEntityRegisterReq) {
-        Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
-        if (Boolean.FALSE.equals(exist)) {
-            throw new MissException(NO_AUTH.getMsg());
-        }
-        String password = userEntityRegisterReq.password();
-        String confirmPassword = userEntityRegisterReq.confirmPassword();
-        if (!Objects.equals(confirmPassword, password)) {
-            throw new MissException(PASSWORD_DIFF.getMsg());
-        }
+    public void saveRegisterPage(UserEntityRegisterReq req) {
+        String phone = req.phone();
 
-        String phone = userEntityRegisterReq.phone();
         if (!StringUtils.hasLength(phone)) {
             String fakePhone = CodeUtils.createPhone();
-            userEntityRegisterReq = new UserEntityRegisterReq(userEntityRegisterReq, fakePhone);
-        }
-
-        String username = userEntityRegisterReq.username();
-        String usernameCopy = redisTemplate.opsForValue().get(REGISTER_PREFIX + token);
-        if (StringUtils.hasLength(usernameCopy) && !Objects.equals(usernameCopy, username)) {
-            throw new MissException(NO_AUTH.getMsg());
+            req = new UserEntityRegisterReq(req, fakePhone);
         }
 
         UserEntityReq userEntityReq;
 
-        Optional<UserEntity> userEntity = userRepository.findByUsernameAndStatus(username, NORMAL.getCode());
+        Optional<UserEntity> userEntity = userRepository.findByUsernameAndStatus(req.username(), NORMAL.getCode());
         if (userEntity.isEmpty()) {
-            userEntityReq = new UserEntityReq(userEntityRegisterReq, null, NORMAL.getCode(), Collections.singletonList(USER));
+            userEntityReq = new UserEntityReq(req, null, NORMAL.getCode(), Collections.singletonList(USER));
         } else {
-            userEntityReq = new UserEntityReq(userEntityRegisterReq, userEntity.get().getId(),  NORMAL.getCode(), Collections.singletonList(USER));
+            userEntityReq = new UserEntityReq(req, userEntity.get().getId(),  NORMAL.getCode(), Collections.singletonList(USER));
         }
         saveOrUpdate(userEntityReq);
-        redisTemplate.delete(REGISTER_PREFIX + token);
+        redisTemplate.delete(REGISTER_PREFIX + req.token());
     }
 
     @Override

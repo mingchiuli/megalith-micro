@@ -15,7 +15,7 @@ public interface UserRoleService {
 
     void saveOrUpdate(UserEntityReq userEntityReq);
 
-    void saveRegisterPage(String token, UserEntityRegisterReq userEntityRegisterReq);
+    void saveRegisterPage(UserEntityRegisterReq req);
 
     List<String> findRoleCodesByUserId(Long userId);
 
