@@ -2,10 +2,7 @@ package wiki.chiu.micro.user.config;
 
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.user.constant.UserAuthMenuOperateMessage;
-import wiki.chiu.micro.user.valid.impl.ListValueConstraintValidator;
-import wiki.chiu.micro.user.valid.impl.MenuValueConstraintValidator;
-import wiki.chiu.micro.user.valid.impl.PhoneConstraintValidator;
-import wiki.chiu.micro.user.valid.impl.UsernameConstraintValidator;
+import wiki.chiu.micro.user.valid.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.ExecutableMode;
@@ -31,6 +28,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
             hints.reflection().registerConstructor(PhoneConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
             hints.reflection().registerConstructor(UsernameConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
             hints.reflection().registerConstructor(MenuValueConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
+            hints.reflection().registerConstructor(RegisterSaveConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
             throw new MissException(e.getMessage());
