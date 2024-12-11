@@ -16,7 +16,6 @@ import { clearLoginState, submitLogin } from '@/utils/tools'
 import { Colors } from '@/type/entity'
 
 type Form = {
-  id?: number
   username: string
   nickname: string
   password: string
@@ -28,7 +27,6 @@ type Form = {
 }
 
 const form: Form = reactive({
-  id: undefined,
   username: '',
   nickname: '',
   password: '',
