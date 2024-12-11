@@ -1,4 +1,4 @@
-package wiki.chiu.micro.user.utils;
+package wiki.chiu.micro.user.component;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -16,14 +16,14 @@ import java.util.Map;
  * @create 2021-12-22 12:58 AM
  */
 
-@Component(value = "springUtils")
-public class SpringUtils implements ApplicationContextAware {
+@Component(value = "springBeans")
+public class SpringBeans implements ApplicationContextAware {
 
     private static ApplicationContext applicationContext;
 
     @Override
     public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
-        SpringUtils.applicationContext = applicationContext;
+        SpringBeans.applicationContext = applicationContext;
     }
 
     public static <T> T getBean(Class<T> clazz){

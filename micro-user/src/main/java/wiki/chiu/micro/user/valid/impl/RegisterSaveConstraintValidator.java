@@ -5,7 +5,7 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
-import wiki.chiu.micro.user.utils.SpringUtils;
+import wiki.chiu.micro.user.component.SpringBeans;
 import wiki.chiu.micro.user.req.UserEntityRegisterReq;
 import wiki.chiu.micro.user.valid.RegisterSave;
 
@@ -44,7 +44,7 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
             return false;
         }
 
-        StringRedisTemplate redisTemplate = SpringUtils.getBean(StringRedisTemplate.class);
+        StringRedisTemplate redisTemplate = SpringBeans.getBean(StringRedisTemplate.class);
 
         Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
 
