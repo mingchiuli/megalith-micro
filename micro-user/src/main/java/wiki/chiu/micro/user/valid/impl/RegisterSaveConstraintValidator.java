@@ -1,11 +1,11 @@
 package wiki.chiu.micro.user.valid.impl;
 
-import jakarta.annotation.Resource;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
+import wiki.chiu.micro.common.utils.SpringUtils;
 import wiki.chiu.micro.user.req.UserEntityRegisterReq;
 import wiki.chiu.micro.user.valid.RegisterSave;
 
@@ -16,9 +16,6 @@ import static wiki.chiu.micro.common.lang.Const.REGISTER_PREFIX;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
 
 public class RegisterSaveConstraintValidator implements ConstraintValidator<RegisterSave, UserEntityRegisterReq> {
-
-    @Resource(name = "stringRedisTemplate")
-    private StringRedisTemplate redisTemplate;
 
     private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
 
@@ -46,6 +43,8 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
         if (PHONE_PATTERN.matcher(username).matches() || EMAIL_PATTERN.matcher(username).matches()) {
             return false;
         }
+
+        StringRedisTemplate redisTemplate = SpringUtils.getBean(StringRedisTemplate.class);
 
         Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
 
