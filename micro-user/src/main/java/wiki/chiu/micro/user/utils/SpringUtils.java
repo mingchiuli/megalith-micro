@@ -1,4 +1,4 @@
-package wiki.chiu.micro.common.utils;
+package wiki.chiu.micro.user.utils;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
