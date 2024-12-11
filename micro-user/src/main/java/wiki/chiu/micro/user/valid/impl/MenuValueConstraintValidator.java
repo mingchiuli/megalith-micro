@@ -5,7 +5,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.lang.TypeEnum;
-import wiki.chiu.micro.common.utils.SpringUtils;
+import wiki.chiu.micro.user.utils.SpringUtils;
 import wiki.chiu.micro.user.entity.MenuEntity;
 import wiki.chiu.micro.user.repository.MenuRepository;
 import wiki.chiu.micro.user.req.MenuEntityReq;
