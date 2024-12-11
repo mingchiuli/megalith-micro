@@ -43,7 +43,7 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
         }
 
         String username = req.username();
-        if (!PHONE_PATTERN.matcher(username).matches() && !EMAIL_PATTERN.matcher(username).matches()) {
+        if (PHONE_PATTERN.matcher(username).matches() || EMAIL_PATTERN.matcher(username).matches()) {
             return false;
         }
 
