@@ -24,11 +24,6 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
         try {
             hints.reflection().registerConstructor(LinkedHashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
-            hints.reflection().registerConstructor(ListValueConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
-            hints.reflection().registerConstructor(PhoneConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
-            hints.reflection().registerConstructor(UsernameConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
-            hints.reflection().registerConstructor(MenuValueConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
-            hints.reflection().registerConstructor(RegisterSaveConstraintValidator.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
         } catch (NoSuchMethodException e) {
             log.error(e.getMessage());
             throw new MissException(e.getMessage());
