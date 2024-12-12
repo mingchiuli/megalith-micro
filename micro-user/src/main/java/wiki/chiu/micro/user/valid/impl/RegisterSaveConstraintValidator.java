@@ -5,7 +5,6 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
-import wiki.chiu.micro.user.component.SpringBeans;
 import wiki.chiu.micro.user.req.UserEntityRegisterReq;
 import wiki.chiu.micro.user.valid.RegisterSave;
 
@@ -21,6 +20,11 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z]{2,}$");
 
+    private final StringRedisTemplate redisTemplate;
+
+    public RegisterSaveConstraintValidator(StringRedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Override
     public boolean isValid(UserEntityRegisterReq req, ConstraintValidatorContext context) {
@@ -43,8 +47,6 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
         if (PHONE_PATTERN.matcher(username).matches() || EMAIL_PATTERN.matcher(username).matches()) {
             return false;
         }
-
-        StringRedisTemplate redisTemplate = SpringBeans.getBean(StringRedisTemplate.class);
 
         Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
 
