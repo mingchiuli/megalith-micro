@@ -5,7 +5,6 @@ import jakarta.validation.ConstraintValidatorContext;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.lang.TypeEnum;
-import wiki.chiu.micro.user.component.SpringBeans;
 import wiki.chiu.micro.user.entity.MenuEntity;
 import wiki.chiu.micro.user.repository.MenuRepository;
 import wiki.chiu.micro.user.req.MenuEntityReq;
@@ -17,6 +16,12 @@ import java.util.Objects;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
 
 public class MenuValueConstraintValidator implements ConstraintValidator<MenuValue, MenuEntityReq> {
+
+    private final MenuRepository menuRepository;
+
+    public MenuValueConstraintValidator(MenuRepository menuRepository) {
+        this.menuRepository = menuRepository;
+    }
 
     @Override
     public boolean isValid(MenuEntityReq menu, ConstraintValidatorContext context) {
@@ -45,7 +50,6 @@ public class MenuValueConstraintValidator implements ConstraintValidator<MenuVal
         Long parentId = menu.parentId();
         TypeEnum parentTypeEnum;
         if (!Long.valueOf(0).equals(parentId)) {
-            MenuRepository menuRepository = SpringBeans.getBean(MenuRepository.class);
             MenuEntity parentMenu = menuRepository.findById(parentId)
                     .orElseThrow(() -> new MissException(NO_FOUND.toString()));
             parentTypeEnum = TypeEnum.getInstance(parentMenu.getType());
