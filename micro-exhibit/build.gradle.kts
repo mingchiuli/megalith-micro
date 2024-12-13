@@ -10,7 +10,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation(project(":common"))
 	implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.3.5-FINAL-Z-1")
-	implementation("org.redisson:redisson:3.40.1")
+	implementation("org.redisson:redisson:3.40.2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.amqp:spring-rabbit-test")
 }
