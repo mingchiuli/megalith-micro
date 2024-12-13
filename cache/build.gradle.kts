@@ -41,7 +41,7 @@ mavenPublishing {
 }
 
 dependencies {
-    implementation("org.redisson:redisson:3.40.1")
+    implementation("org.redisson:redisson:3.40.2")
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("org.aspectj:aspectjweaver")
     compileOnly("org.springframework.amqp:spring-rabbit")
