@@ -2,7 +2,7 @@ package wiki.chiu.micro.cache.handler;
 
 import org.redisson.api.RedissonClient;
 
-import java.util.Set;
+import java.util.HashSet;
 
 public abstract class CacheEvictHandler {
 
@@ -12,6 +12,6 @@ public abstract class CacheEvictHandler {
         this.redissonClient = redissonClient;
     }
 
-    public abstract void evictCache(Set<String> keys);
+    public abstract void evictCache(HashSet<String> keys);
 
 }

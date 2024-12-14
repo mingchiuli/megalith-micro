@@ -7,7 +7,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 
-import java.util.Set;
+import java.util.HashSet;
 
 
 public class RedisCacheEvictHandler extends CacheEvictHandler {
@@ -23,7 +23,7 @@ public class RedisCacheEvictHandler extends CacheEvictHandler {
     }
 
     @Override
-    public void evictCache(Set<String> keys) {
+    public void evictCache(HashSet<String> keys) {
         redissonClient.getKeys().delete(keys.toArray(new String[0]));
         try {
             String value = objectMapper.writeValueAsString(keys);
