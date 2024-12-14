@@ -42,6 +42,8 @@ public class CommonCacheKeyGenerator {
                     }
                     params.append(s);
                 }
+            } else {
+                params.append("::null");
             }
         }
 

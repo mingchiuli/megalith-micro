@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 
 
-import java.util.Set;
+import java.util.HashSet;
 
 public class RabbitCacheEvictHandler extends CacheEvictHandler {
 
@@ -21,7 +21,7 @@ public class RabbitCacheEvictHandler extends CacheEvictHandler {
     }
 
     @Override
-    public void evictCache(Set<String> keys) {
+    public void evictCache(HashSet<String> keys) {
         redissonClient.getKeys().delete(keys.toArray(new String[0]));
         rabbitTemplate.convertAndSend(CACHE_EVICT_FANOUT_EXCHANGE, "", keys);
     }
