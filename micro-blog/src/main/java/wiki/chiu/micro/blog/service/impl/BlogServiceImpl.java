@@ -427,7 +427,7 @@ public class BlogServiceImpl implements BlogService {
         taskExecutor.execute(() ->
                 entities.forEach(entity -> {
                     redisTemplate.execute(RedisScript.of(blogDeleteScript),
-                            Collections.singletonList(QUERY_DELETED + entity.getId()),
+                            Collections.singletonList(QUERY_DELETED + userId),
                             JsonUtils.writeValueAsString(objectMapper, BlogDeleteDtoConvertor.convert(entity)), A_WEEK);
 
                     var blogSearchIndexMessage = new BlogOperateMessage(entity.getId(), BlogOperateEnum.REMOVE, entity.getCreated().getYear());
