@@ -5,6 +5,7 @@ import wiki.chiu.micro.auth.component.token.SMSAuthenticationToken;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import wiki.chiu.micro.common.lang.Const;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.INVALID_LOGIN_OPERATE;
 
@@ -32,9 +33,9 @@ public class CustomProviderManager extends ProviderManager {
     private Authentication getAuthGrantTypeToken(Authentication authentication) {
         String username = authentication.getName();
 
-        if (username.contains("@")) {
+        if (Const.EMAIL_PATTERN.matcher(username).matches()) {
             return new EmailAuthenticationToken(username, authentication.getCredentials());
-        } else if (username.matches("\\d+")) {
+        } else if (Const.PHONE_PATTERN.matcher(username).matches()) {
             return new SMSAuthenticationToken(username, authentication.getCredentials());
         } else {
             return authentication;

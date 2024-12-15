@@ -1,6 +1,8 @@
 package wiki.chiu.micro.common.lang;
 
 
+import java.util.regex.Pattern;
+
 /**
  * @author mingchiuli
  * @create 2021-12-14 11:58 AM
@@ -86,6 +88,12 @@ public class Const {
     public static final String USER_TABLE = "m_user";
 
     public static final String USER_ROLE_TABLE = "m_user_role";
+
+    public static final Pattern URL_PATTERN = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+
+    public static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
+
+    public static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z]{2,}$");
 
 }
 
