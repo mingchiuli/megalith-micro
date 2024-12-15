@@ -9,8 +9,12 @@ import co.elastic.clients.elasticsearch._types.query_dsl.FunctionScoreMode;
 import co.elastic.clients.json.JsonData;
 
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.HighlightQuery;
 import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
+import org.springframework.data.elasticsearch.core.query.highlight.Highlight;
+import org.springframework.data.elasticsearch.core.query.highlight.HighlightField;
+import org.springframework.data.elasticsearch.core.query.highlight.HighlightParameters;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
@@ -19,7 +23,6 @@ import wiki.chiu.micro.search.convertor.BlogDocumentVoConvertor;
 import wiki.chiu.micro.search.document.BlogDocument;
 import wiki.chiu.micro.search.lang.IndexConst;
 import wiki.chiu.micro.search.service.BlogSearchService;
-import wiki.chiu.micro.search.utils.ESHighlightBuilderUtils;
 import wiki.chiu.micro.search.vo.BlogDocumentVo;
 import wiki.chiu.micro.search.vo.BlogSearchVo;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,6 +62,10 @@ public class BlogSearchServiceImpl implements BlogSearchService {
 
     @Value("${megalith.blog.highest-role}")
     private String highestRole;
+
+    private static final String RED = "<b style='color:red'>";
+
+    private static final String BABEL = "</b>";
 
     public BlogSearchServiceImpl(ElasticsearchTemplate elasticsearchTemplate) {
         this.elasticsearchTemplate = elasticsearchTemplate;
@@ -176,8 +183,31 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                                 .order(SortOrder.Desc)))
                 .withPageable(PageRequest.of(currentPage - 1, blogPageSize))
                 .withHighlightQuery(Boolean.TRUE.equals(allInfo)
-                        ? ESHighlightBuilderUtils.blogHighlightQueryOrigin
-                        : ESHighlightBuilderUtils.blogHighlightQuerySimple)
+                        ? new HighlightQuery(
+                                new Highlight(
+                                        new HighlightParameters
+                                                .HighlightParametersBuilder()
+                                                .withPreTags(RED)
+                                                .withPostTags(BABEL)
+                                                .build(),
+                                        List.of(new HighlightField(TITLE.getField()),
+                                                new HighlightField(DESCRIPTION.getField()),
+                                                new HighlightField(CONTENT.getField()))),
+                        null)
+                        : new HighlightQuery(
+                                new Highlight(
+                                        new HighlightParameters
+                                                .HighlightParametersBuilder()
+                                                .withPreTags(RED)
+                                                .withPostTags(BABEL)
+                                                //为0则全部内容都显示
+                                                .withNumberOfFragments(1)
+                                                .withFragmentSize(5)
+                                                .build(),
+                                        List.of(new HighlightField(TITLE.getField()),
+                                                new HighlightField(DESCRIPTION.getField()),
+                                                new HighlightField(CONTENT.getField()))),
+                        null))
                 .build();
 
         SearchHits<BlogDocument> search = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
