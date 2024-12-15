@@ -30,7 +30,7 @@ public class CommonCacheKeyGenerator {
         var params = new StringBuilder();
         for (Object arg : args) {
             if (Objects.nonNull(arg)) {
-                params.append("::");
+                params.append(":");
                 if (arg instanceof String) {
                     params.append(arg);
                 } else {
@@ -43,7 +43,7 @@ public class CommonCacheKeyGenerator {
                     params.append(s);
                 }
             } else {
-                params.append("::null");
+                params.append(":null");
             }
         }
 
@@ -55,7 +55,7 @@ public class CommonCacheKeyGenerator {
         }
 
         return StringUtils.hasLength(prefix) ?
-                prefix + "::" + className + "::" + methodName + params :
-                className + "::" + methodName + params;
+                prefix + ":" + className + ":" + methodName + params :
+                className + ":" + methodName + params;
     }
 }
