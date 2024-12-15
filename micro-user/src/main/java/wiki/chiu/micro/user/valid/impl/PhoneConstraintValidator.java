@@ -6,7 +6,6 @@ import org.springframework.util.StringUtils;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.user.valid.Phone;
 
-import java.util.regex.Pattern;
 
 
 /**
