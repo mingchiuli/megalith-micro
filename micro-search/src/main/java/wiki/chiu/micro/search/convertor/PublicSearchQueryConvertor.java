@@ -131,29 +131,29 @@ public class PublicSearchQueryConvertor {
                 .withPageable(PageRequest.of(currentPage - 1, blogPageSize))
                 .withHighlightQuery(Boolean.TRUE.equals(allInfo)
                         ? new HighlightQuery(
-                        new Highlight(
-                                new HighlightParameters
-                                        .HighlightParametersBuilder()
-                                        .withPreTags(RED)
-                                        .withPostTags(BABEL)
-                                        .build(),
-                                List.of(new HighlightField(TITLE.getField()),
-                                        new HighlightField(DESCRIPTION.getField()),
-                                        new HighlightField(CONTENT.getField()))),
+                                new Highlight(
+                                        new HighlightParameters
+                                                .HighlightParametersBuilder()
+                                                .withPreTags(RED)
+                                                .withPostTags(BABEL)
+                                                .build(),
+                                        List.of(new HighlightField(TITLE.getField()),
+                                                new HighlightField(DESCRIPTION.getField()),
+                                                new HighlightField(CONTENT.getField()))),
                         null)
                         : new HighlightQuery(
-                        new Highlight(
-                                new HighlightParameters
-                                        .HighlightParametersBuilder()
-                                        .withPreTags(RED)
-                                        .withPostTags(BABEL)
-                                        //为0则全部内容都显示
-                                        .withNumberOfFragments(1)
-                                        .withFragmentSize(5)
-                                        .build(),
-                                List.of(new HighlightField(TITLE.getField()),
-                                        new HighlightField(DESCRIPTION.getField()),
-                                        new HighlightField(CONTENT.getField()))),
+                                new Highlight(
+                                        new HighlightParameters
+                                                .HighlightParametersBuilder()
+                                                .withPreTags(RED)
+                                                .withPostTags(BABEL)
+                                                //为0则全部内容都显示
+                                                .withNumberOfFragments(1)
+                                                .withFragmentSize(5)
+                                                .build(),
+                                        List.of(new HighlightField(TITLE.getField()),
+                                                new HighlightField(DESCRIPTION.getField()),
+                                                new HighlightField(CONTENT.getField()))),
                         null))
                 .build();
     }
