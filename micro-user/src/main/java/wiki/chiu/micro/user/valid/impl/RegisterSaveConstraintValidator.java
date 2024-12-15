@@ -5,20 +5,16 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
+import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.user.req.UserEntityRegisterReq;
 import wiki.chiu.micro.user.valid.RegisterSave;
 
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 import static wiki.chiu.micro.common.lang.Const.REGISTER_PREFIX;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
 
 public class RegisterSaveConstraintValidator implements ConstraintValidator<RegisterSave, UserEntityRegisterReq> {
-
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
-
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z]{2,}$");
 
     private final StringRedisTemplate redisTemplate;
 
@@ -39,12 +35,12 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
         }
 
         String email = req.email();
-        if (!EMAIL_PATTERN.matcher(email).matches()) {
+        if (!Const.EMAIL_PATTERN.matcher(email).matches()) {
             return false;
         }
 
         String username = req.username();
-        if (PHONE_PATTERN.matcher(username).matches() || EMAIL_PATTERN.matcher(username).matches()) {
+        if (Const.PHONE_PATTERN.matcher(username).matches() || Const.EMAIL_PATTERN.matcher(username).matches()) {
             return false;
         }
 

@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.SensitiveContentReq;
 import wiki.chiu.micro.blog.valid.BlogSaveValue;
+import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.lang.SensitiveTypeEnum;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import org.springframework.util.StringUtils;
@@ -13,15 +14,12 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Set;
 import java.util.Objects;
-import java.util.regex.Pattern;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 
 
 public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSaveValue, BlogEntityReq> {
-
-    private static final Pattern URL_PATTERN = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
 
     private static final Set<Integer> STATUS_SET = Arrays.stream(StatusEnum.values())
             .map(StatusEnum::getCode)
@@ -58,7 +56,7 @@ public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSave
             return false;
         }
 
-        if (StringUtils.hasLength(link) && !URL_PATTERN.matcher(link).matches()) {
+        if (StringUtils.hasLength(link) && !Const.URL_PATTERN.matcher(link).matches()) {
             return false;
         }
 
