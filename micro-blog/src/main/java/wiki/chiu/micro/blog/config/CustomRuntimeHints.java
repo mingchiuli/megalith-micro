@@ -23,5 +23,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
         hints.serialization().registerType(BlogDeleteDto.class);
 
+        hints.resources().registerPattern("ValidationMessages.properties");
+
     }
 }
