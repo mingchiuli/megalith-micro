@@ -95,5 +95,17 @@ public class Const {
 
     public static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z]{2,}$");
 
+    public static final String ES_QUEUE = "blog.change.queue.es";
+
+    public static final String CACHE_QUEUE = "blog.change.queue.cache";
+
+    public static final String BLOG_CHANGE_FANOUT_EXCHANGE = "blog.change.fanout.exchange";
+
+    public static final String USER_QUEUE = "user.auth.menu.change.queue.auth";
+
+    public static final String USER_CHANGE_FANOUT_EXCHANGE = "user.auth.menu.change.fanout.exchange";
+
+
+
 }
 

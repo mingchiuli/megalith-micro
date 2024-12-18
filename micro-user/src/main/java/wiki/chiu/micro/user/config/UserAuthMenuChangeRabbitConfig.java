@@ -7,6 +7,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import wiki.chiu.micro.common.lang.Const;
 
 /**
  * @author mingchiuli
@@ -15,19 +16,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class UserAuthMenuChangeRabbitConfig {
 
-    public static final String QUEUE = "user.auth.menu.change.queue.auth";
 
-    public static final String FANOUT_EXCHANGE = "user.auth.menu.change.fanout.exchange";
 
     @Bean("authQueue")
     Queue authQueue() {
-        return new Queue(QUEUE, true, false, false);
+        return new Queue(Const.USER_QUEUE, true, false, false);
     }
 
     //ES交换机
     @Bean("fanoutExchange")
     FanoutExchange exchange() {
-        return new FanoutExchange(FANOUT_EXCHANGE, true, false);
+        return new FanoutExchange(Const.USER_CHANGE_FANOUT_EXCHANGE, true, false);
     }
 
     //绑定ES队列和ES交换机

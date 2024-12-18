@@ -1,6 +1,7 @@
 package wiki.chiu.micro.search.mq;
 
 import com.rabbitmq.client.Channel;
+import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.search.constant.BlogOperateMessage;
 import wiki.chiu.micro.search.mq.handler.BlogIndexSupport;
 import org.springframework.amqp.core.Message;
@@ -18,13 +19,11 @@ public class BlogMessageListener {
 
     private final List<BlogIndexSupport> elasticsearchHandlers;
 
-    private static final String ES_QUEUE = "blog.change.queue.es";
-
     public BlogMessageListener(List<BlogIndexSupport> elasticsearchHandlers) {
         this.elasticsearchHandlers = elasticsearchHandlers;
     }
 
-    @RabbitListener(queues = ES_QUEUE,
+    @RabbitListener(queues = Const.ES_QUEUE,
             concurrency = "10",
             messageConverter = "jsonMessageConverter",
             executor = "mqExecutor")

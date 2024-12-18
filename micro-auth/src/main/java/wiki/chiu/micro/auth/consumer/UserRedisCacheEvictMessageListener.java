@@ -12,11 +12,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+import wiki.chiu.micro.common.lang.Const;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -32,8 +32,6 @@ public class UserRedisCacheEvictMessageListener {
 
     private final CommonCacheKeyGenerator commonCacheKeyGenerator;
 
-    private static final String QUEUE = "user.auth.menu.change.queue.auth";
-
 
     public UserRedisCacheEvictMessageListener(CacheEvictHandler cacheEvictHandler,
                                               CommonCacheKeyGenerator commonCacheKeyGenerator) {
@@ -41,14 +39,14 @@ public class UserRedisCacheEvictMessageListener {
         this.commonCacheKeyGenerator = commonCacheKeyGenerator;
     }
 
-    @RabbitListener(queues = QUEUE,
+    @RabbitListener(queues = Const.USER_QUEUE,
             concurrency = "10",
             messageConverter = "jsonMessageConverter",
             executor = "mqExecutor")
     public void handler(UserAuthMenuOperateMessage message, Channel channel, Message msg) {
         AuthMenuOperateEnum operateEnum = AuthMenuOperateEnum.of(message.type());
         List<String> roles = message.roles();
-        Set<String> keys = new HashSet<>();
+        HashSet<String> keys = new HashSet<>();
         if (AuthMenuOperateEnum.MENU.equals(operateEnum) || AuthMenuOperateEnum.AUTH_AND_MENU.equals(operateEnum)) {
             Method method;
             try {

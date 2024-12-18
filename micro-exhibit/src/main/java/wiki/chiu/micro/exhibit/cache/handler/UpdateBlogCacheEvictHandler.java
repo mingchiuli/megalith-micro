@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Set;
 
 import static wiki.chiu.micro.common.lang.Const.READ_TOKEN;
 import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
@@ -59,7 +58,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         //保守处理，前面的全删
         long countAfter = blogHttpServiceWrapper.countByCreatedGreaterThanEqual(blogEntity.created());
         long countYearAfter = blogHttpServiceWrapper.getPageCountYear(blogEntity.created(), start, end);
-        Set<String> keys = cacheKeyGenerator.generateBlogKey(countAfter, countYearAfter, year);
+        HashSet<String> keys = cacheKeyGenerator.generateBlogKey(countAfter, countYearAfter, year);
 
         //博客对象本身缓存
         try {

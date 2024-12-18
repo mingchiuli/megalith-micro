@@ -1,6 +1,7 @@
 package wiki.chiu.micro.exhibit.consumer;
 
 import com.rabbitmq.client.Channel;
+import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.exhibit.cache.handler.BlogCacheEvictHandler;
 import wiki.chiu.micro.exhibit.constant.BlogOperateMessage;
 import org.springframework.amqp.core.Message;
@@ -8,6 +9,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+
 
 /**
  * @author mingchiuli
@@ -18,13 +20,11 @@ public class BlogRedisCacheEvictMessageListener {
 
     private final List<BlogCacheEvictHandler> blogCacheEvictHandlers;
 
-    public static final String CACHE_QUEUE = "blog.change.queue.cache";
-
     public BlogRedisCacheEvictMessageListener(List<BlogCacheEvictHandler> blogCacheEvictHandlers) {
         this.blogCacheEvictHandlers = blogCacheEvictHandlers;
     }
 
-    @RabbitListener(queues = CACHE_QUEUE,
+    @RabbitListener(queues = Const.CACHE_QUEUE,
             concurrency = "10",
             messageConverter = "jsonMessageConverter",
             executor = "mqExecutor")
