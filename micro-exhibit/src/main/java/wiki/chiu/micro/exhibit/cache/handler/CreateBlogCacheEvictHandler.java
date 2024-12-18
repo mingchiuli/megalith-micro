@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.HashSet;
 
 import static wiki.chiu.micro.common.lang.Const.*;
 
@@ -45,7 +45,7 @@ public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         var end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
         long count = blogHttpServiceWrapper.count();
         long countYear = blogHttpServiceWrapper.countByCreatedBetween(start, end);
-        Set<String> keys = cacheKeyGenerator.generateHotBlogsKeys(year, count, countYear);
+        HashSet<String> keys = cacheKeyGenerator.generateHotBlogsKeys(year, count, countYear);
         cacheEvictHandler.evictCache(keys);
         String blogEditKey = KeyUtils.createBlogEditRedisKey(blogEntity.userId(), null);
         redissonClient.getBucket(blogEditKey).delete();

@@ -7,6 +7,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import wiki.chiu.micro.common.lang.Const;
 
 /**
  * @author mingchiuli
@@ -15,26 +16,21 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class BlogChangeRabbitConfig {
 
-    public static final String ES_QUEUE = "blog.change.queue.es";
-
-    public static final String CACHE_QUEUE = "blog.change.queue.cache";
-
-    public static final String FANOUT_EXCHANGE = "blog.change.fanout.exchange";
 
     @Bean("esQueue")
     Queue esQueue() {
-        return new Queue(ES_QUEUE, true, false, false);
+        return new Queue(Const.ES_QUEUE, true, false, false);
     }
 
     @Bean("cacheQueue")
     Queue cahceQueue() {
-        return new Queue(CACHE_QUEUE, true, false, false);
+        return new Queue(Const.CACHE_QUEUE, true, false, false);
     }
 
     //ES交换机
     @Bean("fanoutExchange")
     FanoutExchange exchange() {
-        return new FanoutExchange(FANOUT_EXCHANGE, true, false);
+        return new FanoutExchange(Const.BLOG_CHANGE_FANOUT_EXCHANGE, true, false);
     }
 
     //绑定ES队列和ES交换机

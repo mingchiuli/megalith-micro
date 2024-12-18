@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author mingchiuli
@@ -30,8 +29,8 @@ public class CacheKeyGenerator {
     @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
-    public Set<String> generateHotBlogsKeys(Integer year, Long count, Long countYear) {
-        Set<String> keys = new HashSet<>();
+    public HashSet<String> generateHotBlogsKeys(Integer year, Long count, Long countYear) {
+        HashSet<String> keys = new HashSet<>();
         long pageNo = count % blogPageSize == 0 ? count / blogPageSize : count / blogPageSize + 1;
         long pageYearNo = countYear % blogPageSize == 0 ? countYear / blogPageSize : countYear / blogPageSize + 1;
 
@@ -59,8 +58,8 @@ public class CacheKeyGenerator {
         return keys;
     }
 
-    public Set<String> generateBlogKey(long countAfter, long countYearAfter, Integer year) {
-        Set<String> keys = new HashSet<>();
+    public HashSet<String> generateBlogKey(long countAfter, long countYearAfter, Integer year) {
+        HashSet<String> keys = new HashSet<>();
         long pageBeforeNo = countAfter / blogPageSize + 1;
         long pageYearBeforeNo = countYearAfter / blogPageSize + 1;
 
