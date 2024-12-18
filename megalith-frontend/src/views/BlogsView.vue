@@ -226,7 +226,6 @@ const { content, totalElements, pageSize } = toRefs(page)
 .search-father {
   margin-top: 20px;
   position: relative;
-  min-height: 10px;
 }
 
 .description {
@@ -256,7 +255,7 @@ const { content, totalElements, pageSize } = toRefs(page)
 .search-button {
   position: absolute;
   right: 0;
-  top: 10px;
+  top: 5px;
   z-index: 1;
 }
 </style>
