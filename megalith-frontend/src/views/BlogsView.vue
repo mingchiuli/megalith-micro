@@ -127,7 +127,7 @@ const { content, totalElements, pageSize } = toRefs(page)
       v-model:blog-id="blogId"
     />
     <div class="search-father">
-      <el-button class="search-button" @click="search" type="success">Search</el-button>
+      <el-button class="search-button" :loading="loading" @click="search" type="success">Search</el-button>
       <SearchItem
         ref="search"
         @trans-search-data="fillSearchData"
