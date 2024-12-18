@@ -8,19 +8,22 @@ A Simple Cache Library both local and redis remote cache
 <dependency>
     <groupId>wiki.chiu.megalith</groupId>
     <artifactId>cache-spring-boot-starter</artifactId>
-    <version>3.3.5</version>
+    <version>3.3.6</version>
 </dependency>
 ```
 
 or
 
 ```kotlin
-implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.3.5")
+implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.3.6")
 ```
 
 use:
 
 ```java
+
+import java.lang.reflect.Method;
+import java.util.HashSet;
 
 @Autowired
 private CacheEvictHandler cacheEvictHandler;
@@ -35,16 +38,15 @@ public String test() {
 //evict cache:
 @GetMapping("/evict")
 public String evict() {
-    HashSet<String> set = new HashSet<>();
-    //some skip process about the generated keys which can be find in CommonCacheKeyGenerator::generateKey
-    set.add("keyPrefix::XxxController::test");
-    cacheEvictHandler.evictCache(set);
+    Method method = MyClass.class.getMethod("test");
+    HashSet<String> keys = CommonCacheKeyGenerator.generateKey(method);
+    cacheEvictHandler.evictCache(keys);
 }
 ```
 
 The rule of the generation of key can be find in class `CommonCacheKeyGenerator::generateKey`
 
-It can be auto upgraded to a stable queue(if you used rabbitmq) via config and rabbitmq dependancies:
+It can be auto upgraded to a stable queue(if you used rabbitmq) via config and rabbitmq dependencies:
 
 ```yml
 megalith:
