@@ -8,7 +8,7 @@ import wiki.chiu.micro.blog.req.SensitiveContentReq;
 import wiki.chiu.micro.blog.valid.BlogSaveValue;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.lang.SensitiveTypeEnum;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
 
 public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSaveValue, BlogEntityReq> {
 
-    private static final Set<Integer> STATUS_SET = Arrays.stream(StatusEnum.values())
-            .map(StatusEnum::getCode)
+    private static final Set<Integer> STATUS_SET = Arrays.stream(BlogStatusEnum.values())
+            .map(BlogStatusEnum::getCode)
             .collect(Collectors.toSet());
 
     private static final Set<Integer> SENSITIVE_SET = Arrays.stream(SensitiveTypeEnum.values())

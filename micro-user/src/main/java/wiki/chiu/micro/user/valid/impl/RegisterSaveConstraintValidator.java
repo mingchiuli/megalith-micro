@@ -6,10 +6,14 @@ import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
 import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.user.entity.UserEntity;
+import wiki.chiu.micro.user.repository.UserRepository;
 import wiki.chiu.micro.user.req.UserEntityRegisterReq;
 import wiki.chiu.micro.user.valid.RegisterSave;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static wiki.chiu.micro.common.lang.Const.REGISTER_PREFIX;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
@@ -18,8 +22,11 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
 
     private final StringRedisTemplate redisTemplate;
 
-    public RegisterSaveConstraintValidator(StringRedisTemplate redisTemplate) {
+    private final UserRepository userRepository;
+
+    public RegisterSaveConstraintValidator(StringRedisTemplate redisTemplate, UserRepository userRepository) {
         this.redisTemplate = redisTemplate;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -40,8 +47,15 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
         }
 
         String username = req.username();
-        if (Const.PHONE_PATTERN.matcher(username).matches() || Const.EMAIL_PATTERN.matcher(username).matches()) {
+        if (StringUtils.hasLength(username) || Const.PHONE_PATTERN.matcher(username).matches() || Const.EMAIL_PATTERN.matcher(username).matches()) {
             return false;
+        }
+
+        Optional<UserEntity> userEntityOptional = userRepository.findByUsername(username);
+        if (userEntityOptional.isPresent()) {
+            if (StatusEnum.HIDE.getCode().equals(userEntityOptional.get().getStatus())) {
+                return false;
+            }
         }
 
         Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
