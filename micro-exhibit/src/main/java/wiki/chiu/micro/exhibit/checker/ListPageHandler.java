@@ -1,5 +1,6 @@
-package wiki.chiu.micro.exhibit.bloom;
+package wiki.chiu.micro.exhibit.checker;
 
+import wiki.chiu.micro.cache.handler.CheckerHandler;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Const;
 import org.redisson.api.RedissonClient;
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Component;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 
 @Component
-public class ListPageHandler extends BloomHandler {
+public class ListPageHandler extends CheckerHandler {
 
     private final RedissonClient redissonClient;
 
