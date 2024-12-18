@@ -256,7 +256,7 @@ const { content, totalElements, pageSize } = toRefs(page)
 .search-button {
   position: absolute;
   right: 0;
-  top: 15px;
+  top: 10px;
   z-index: 1;
 }
 </style>
