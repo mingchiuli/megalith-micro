@@ -1,5 +1,7 @@
-package wiki.chiu.micro.exhibit.bloom;
+package wiki.chiu.micro.cache.annotation;
 
+
+import wiki.chiu.micro.cache.handler.CheckerHandler;
 
 import java.lang.annotation.*;
 
@@ -10,6 +12,6 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface Bloom {
-    Class<? extends BloomHandler> handler();
+public @interface Checker {
+    Class<? extends CheckerHandler> handler();
 }
