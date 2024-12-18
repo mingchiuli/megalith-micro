@@ -9,7 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 
 import org.springframework.util.StringUtils;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.lang.BlogStatusEnum;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -27,7 +27,7 @@ public class PrivateSearchQueryConvertor {
     private static final DateTimeFormatter FORMATTER =  DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
     private static final ZoneId ZONE_ID = ZoneId.of("Asia/Shanghai");
 
-    private static final List<FieldValue> ALL_STATUS = Arrays.stream(StatusEnum.values())
+    private static final List<FieldValue> ALL_STATUS = Arrays.stream(BlogStatusEnum.values())
             .map(item -> FieldValue.of(item.getCode()))
             .toList();
 
@@ -175,7 +175,7 @@ public class PrivateSearchQueryConvertor {
                     .should(should -> should
                             .term(term -> term
                                     .field(STATUS.getField())
-                                    .value(StatusEnum.NORMAL.getCode())))
+                                    .value(BlogStatusEnum.NORMAL.getCode())))
                     .minimumShouldMatch("1"));
             boolQryBuilder.filter(filter -> filter.bool(boolQry));
         }

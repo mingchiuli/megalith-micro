@@ -8,7 +8,7 @@ import wiki.chiu.micro.blog.req.SensitiveContentReq;
 import wiki.chiu.micro.blog.valid.PushAllValue;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.lang.SensitiveTypeEnum;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -46,8 +46,8 @@ public class PushAllConstraintValidator implements ConstraintValidator<PushAllVa
 
         Integer status = blog.status();
 
-        Set<Integer> statusSet = Arrays.stream(StatusEnum.values())
-                .map(StatusEnum::getCode)
+        Set<Integer> statusSet = Arrays.stream(BlogStatusEnum.values())
+                .map(BlogStatusEnum::getCode)
                 .collect(Collectors.toSet());
         
         if (!statusSet.contains(status)) {

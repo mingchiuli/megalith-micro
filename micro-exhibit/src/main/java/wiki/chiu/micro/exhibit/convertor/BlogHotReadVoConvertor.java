@@ -7,7 +7,7 @@ import org.redisson.client.protocol.ScoredEntry;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static wiki.chiu.micro.common.lang.StatusEnum.HIDE;
+import static wiki.chiu.micro.common.lang.BlogStatusEnum.HIDE;
 
 
 public class BlogHotReadVoConvertor {

@@ -12,7 +12,7 @@ import org.springframework.data.elasticsearch.core.query.highlight.Highlight;
 import org.springframework.data.elasticsearch.core.query.highlight.HighlightField;
 import org.springframework.data.elasticsearch.core.query.highlight.HighlightParameters;
 import org.springframework.util.StringUtils;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.lang.BlogStatusEnum;
 
 import java.util.List;
 
@@ -72,7 +72,7 @@ public class PublicSearchQueryConvertor {
                                                 .filter(filter -> filter
                                                         .term(termQry -> termQry
                                                                 .field(STATUS.getField())
-                                                                .value(StatusEnum.NORMAL.getCode())))))
+                                                                .value(BlogStatusEnum.NORMAL.getCode())))))
                                 .functions(function -> function
                                         .filter(filter -> filter
                                                 .match(match -> match

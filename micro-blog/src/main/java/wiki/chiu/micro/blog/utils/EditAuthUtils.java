@@ -2,7 +2,7 @@ package wiki.chiu.micro.blog.utils;
 
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.lang.BlogStatusEnum;
 
 import java.util.Objects;
 
@@ -16,7 +16,7 @@ public class EditAuthUtils {
 
     public static void checkEditAuth(BlogEntity blogEntity, Long userId) {
 
-        if (!Objects.equals(StatusEnum.NORMAL.getCode(), blogEntity.getStatus()) && !Objects.equals(blogEntity.getUserId(), userId)) {
+        if (!Objects.equals(BlogStatusEnum.NORMAL.getCode(), blogEntity.getStatus()) && !Objects.equals(blogEntity.getUserId(), userId)) {
             throw new MissException(EDIT_NO_AUTH.getMsg());
         }
     }

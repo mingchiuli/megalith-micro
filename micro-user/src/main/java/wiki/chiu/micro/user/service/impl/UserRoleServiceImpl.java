@@ -125,7 +125,7 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         UserEntityReq userEntityReq;
 
-        Optional<UserEntity> userEntity = userRepository.findByUsernameAndStatus(req.username(), NORMAL.getCode());
+        Optional<UserEntity> userEntity = userRepository.findByUsername(req.username());
         List<String> roles = List.of(USER, REFRESH);
         if (userEntity.isEmpty()) {
             userEntityReq = new UserEntityReq(req, null, NORMAL.getCode(), roles);

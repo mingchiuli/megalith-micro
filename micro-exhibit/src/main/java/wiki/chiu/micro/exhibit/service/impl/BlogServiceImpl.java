@@ -5,7 +5,7 @@ import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
 import wiki.chiu.micro.common.dto.BlogSensitiveContentRpcDto;
 import wiki.chiu.micro.common.dto.SensitiveContentRpcDto;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.convertor.BlogDescriptionVoConvertor;
 import wiki.chiu.micro.exhibit.convertor.BlogExhibitVoConvertor;
@@ -95,7 +95,7 @@ public class BlogServiceImpl implements BlogService {
 
         List<BlogDescriptionDto> descSensitiveList = descList.stream()
                 .map(desc -> {
-                    if (!StatusEnum.SENSITIVE_FILTER.getCode().equals(desc.status())) {
+                    if (!BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(desc.status())) {
                         return desc;
                     }
                     List<SensitiveContentRpcDto> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContent();
@@ -125,24 +125,24 @@ public class BlogServiceImpl implements BlogService {
     public Integer getBlogStatus(List<String> roles, Long blogId, Long userId) {
         Integer status = blogWrapper.findStatusById(blogId);
 
-        if (StatusEnum.NORMAL.getCode().equals(status) || StatusEnum.SENSITIVE_FILTER.getCode().equals(status)) {
+        if (BlogStatusEnum.NORMAL.getCode().equals(status) || BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(status)) {
             return status;
         }
 
         if (roles.isEmpty()) {
-            return StatusEnum.HIDE.getCode();
+            return BlogStatusEnum.HIDE.getCode();
         }
 
         if (roles.contains(highestRole)) {
-            return StatusEnum.NORMAL.getCode();
+            return BlogStatusEnum.NORMAL.getCode();
         }
 
         BlogEntityRpcDto blog = blogHttpServiceWrapper.findById(blogId);
 
         Long id = blog.userId();
         return Objects.equals(id, userId) ?
-                StatusEnum.NORMAL.getCode() :
-                StatusEnum.HIDE.getCode();
+                BlogStatusEnum.NORMAL.getCode() :
+                BlogStatusEnum.HIDE.getCode();
     }
 
     @Override
@@ -200,13 +200,13 @@ public class BlogServiceImpl implements BlogService {
         BlogExhibitDto blogExhibitDto = blogWrapper.findById(id);
         Integer status = blogWrapper.findStatusById(id);
 
-        if (StatusEnum.HIDE.getCode().equals(status) &&
+        if (BlogStatusEnum.HIDE.getCode().equals(status) &&
                 !roles.contains(highestRole) &&
                 !Objects.equals(userId, blogExhibitDto.userId())) {
             throw new MissException(AUTH_EXCEPTION.getMsg());
         }
 
-        if (StatusEnum.SENSITIVE_FILTER.getCode().equals(status) &&
+        if (BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(status) &&
                 !roles.contains(highestRole) &&
                 !Objects.equals(userId, blogExhibitDto.userId())) {
             BlogSensitiveContentRpcDto sensitiveContentDto = blogSensitiveWrapper.findSensitiveByBlogId(id);

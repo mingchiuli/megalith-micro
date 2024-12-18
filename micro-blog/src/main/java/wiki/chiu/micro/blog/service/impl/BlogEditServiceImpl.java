@@ -16,7 +16,7 @@ import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.blog.vo.BlogSensitiveContentVo;
 import wiki.chiu.micro.blog.vo.SensitiveContentVo;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import wiki.chiu.micro.common.utils.JsonUtils;
 import wiki.chiu.micro.common.utils.KeyUtils;
 import org.springframework.core.io.Resource;
@@ -153,7 +153,7 @@ public class BlogEditServiceImpl implements BlogEditService {
         } else if (Objects.isNull(id)) {
             // 新文章
             blog = BlogEntityDto.builder()
-                    .status(StatusEnum.NORMAL.getCode())
+                    .status(BlogStatusEnum.NORMAL.getCode())
                     .userId(originUserId)
                     .content("")
                     .description("")

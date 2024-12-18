@@ -6,7 +6,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.util.StringUtils;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.valid.BlogSysQuery;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.lang.BlogStatusEnum;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
 
 public class BlogQueryConstraintValidator implements ConstraintValidator<BlogSysQuery, BlogQueryReq> {
 
-    private static final Set<Integer> STATUS_SET = Arrays.stream(StatusEnum.values())
-            .map(StatusEnum::getCode)
+    private static final Set<Integer> STATUS_SET = Arrays.stream(BlogStatusEnum.values())
+            .map(BlogStatusEnum::getCode)
             .collect(Collectors.toSet());
 
     @Override

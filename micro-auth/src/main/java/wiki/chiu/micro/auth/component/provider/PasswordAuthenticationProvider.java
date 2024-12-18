@@ -2,7 +2,6 @@ package wiki.chiu.micro.auth.component.provider;
 
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.common.lang.StatusEnum;
 import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
 import jakarta.annotation.PostConstruct;
+import wiki.chiu.micro.common.lang.StatusEnum;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

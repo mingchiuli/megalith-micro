@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 
 import static wiki.chiu.micro.common.lang.Const.READ_TOKEN;
-import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
+import static wiki.chiu.micro.common.lang.BlogStatusEnum.NORMAL;
 
 @Component
 public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
