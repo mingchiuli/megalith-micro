@@ -31,13 +31,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
-import static wiki.chiu.micro.common.lang.Const.REGISTER_PREFIX;
-import static wiki.chiu.micro.common.lang.Const.USER;
+import static wiki.chiu.micro.common.lang.Const.*;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
 import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
 
@@ -128,10 +126,11 @@ public class UserRoleServiceImpl implements UserRoleService {
         UserEntityReq userEntityReq;
 
         Optional<UserEntity> userEntity = userRepository.findByUsernameAndStatus(req.username(), NORMAL.getCode());
+        List<String> roles = List.of(USER, REFRESH);
         if (userEntity.isEmpty()) {
-            userEntityReq = new UserEntityReq(req, null, NORMAL.getCode(), Collections.singletonList(USER));
+            userEntityReq = new UserEntityReq(req, null, NORMAL.getCode(), roles);
         } else {
-            userEntityReq = new UserEntityReq(req, userEntity.get().getId(),  NORMAL.getCode(), Collections.singletonList(USER));
+            userEntityReq = new UserEntityReq(req, userEntity.get().getId(),  NORMAL.getCode(), roles);
         }
         saveOrUpdate(userEntityReq);
         redisTemplate.delete(REGISTER_PREFIX + req.token());
