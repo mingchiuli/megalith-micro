@@ -1,6 +1,5 @@
 package wiki.chiu.micro.blog.listener;
 
-import wiki.chiu.micro.blog.config.BlogChangeRabbitConfig;
 import wiki.chiu.micro.blog.constant.BlogOperateMessage;
 import wiki.chiu.micro.blog.event.BlogOperateEvent;
 
@@ -8,6 +7,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+import wiki.chiu.micro.common.lang.Const;
 
 
 @Component
@@ -25,6 +25,6 @@ public class BlogOperateEventListener {
     @EventListener
     public void process(BlogOperateEvent event) {
         BlogOperateMessage messageBody = event.getBlogOperateMessage();
-        rabbitTemplate.convertAndSend(BlogChangeRabbitConfig.FANOUT_EXCHANGE, "", messageBody);
+        rabbitTemplate.convertAndSend(Const.BLOG_CHANGE_FANOUT_EXCHANGE, "", messageBody);
     }
 }

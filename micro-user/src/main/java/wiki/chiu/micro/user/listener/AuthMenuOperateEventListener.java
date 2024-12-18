@@ -1,6 +1,6 @@
 package wiki.chiu.micro.user.listener;
 
-import wiki.chiu.micro.user.config.UserAuthMenuChangeRabbitConfig;
+import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
 import wiki.chiu.micro.user.constant.UserAuthMenuOperateMessage;
 import wiki.chiu.micro.user.event.AuthMenuOperateEvent;
@@ -29,7 +29,7 @@ public class AuthMenuOperateEventListener {
                 .roles(roles)
                 .type(type)
                 .build();
-        rabbitTemplate.convertAndSend(UserAuthMenuChangeRabbitConfig.FANOUT_EXCHANGE, "", data);
+        rabbitTemplate.convertAndSend(Const.USER_CHANGE_FANOUT_EXCHANGE, "", data);
     }
 
 }
