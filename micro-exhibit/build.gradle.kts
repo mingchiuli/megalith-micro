@@ -5,11 +5,10 @@ version = "latest"
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-amqp")
-	implementation("org.springframework.boot:spring-boot-starter-aop")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation(project(":common"))
-	implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.3.5-FINAL-Z-1")
+	implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.3.5-FINAL-Z-2")
 	implementation("org.redisson:redisson:3.40.2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.amqp:spring-rabbit-test")

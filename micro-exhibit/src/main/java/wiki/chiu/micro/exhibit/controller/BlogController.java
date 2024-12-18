@@ -1,11 +1,11 @@
 package wiki.chiu.micro.exhibit.controller;
 
+import wiki.chiu.micro.cache.annotation.Checker;
 import wiki.chiu.micro.common.dto.AuthRpcDto;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.exhibit.bloom.Bloom;
-import wiki.chiu.micro.exhibit.bloom.DetailHandler;
-import wiki.chiu.micro.exhibit.bloom.ListPageHandler;
+import wiki.chiu.micro.exhibit.checker.DetailHandler;
+import wiki.chiu.micro.exhibit.checker.ListPageHandler;
 import wiki.chiu.micro.exhibit.rpc.AuthHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.service.BlogService;
 import wiki.chiu.micro.exhibit.vo.BlogDescriptionVo;
@@ -36,7 +36,7 @@ public class BlogController {
     }
 
     @GetMapping("/info/{blogId}")
-    @Bloom(handler = DetailHandler.class)
+    @Checker(handler = DetailHandler.class)
     public Result<BlogExhibitVo> getBlogDetail(@PathVariable Long blogId) {
 
         AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
@@ -44,28 +44,28 @@ public class BlogController {
     }
 
     @GetMapping("/page/{currentPage}")
-    @Bloom(handler = ListPageHandler.class)
+    @Checker(handler = ListPageHandler.class)
     public Result<PageAdapter<BlogDescriptionVo>> getPage(@PathVariable Integer currentPage,
                                                           @RequestParam(required = false) Integer year) {
         return Result.success(() -> blogService.findPage(currentPage, year));
     }
 
     @GetMapping("/secret/{blogId}")
-    @Bloom(handler = DetailHandler.class)
+    @Checker(handler = DetailHandler.class)
     public Result<BlogExhibitVo> getLockedBlog(@PathVariable Long blogId,
                                                @RequestParam(value = "readToken") String token) {
         return Result.success(blogService.getLockedBlog(blogId, token));
     }
 
     @GetMapping("/token/{blogId}")
-    @Bloom(handler = DetailHandler.class)
+    @Checker(handler = DetailHandler.class)
     public Result<Boolean> checkReadToken(@PathVariable Long blogId,
                                           @RequestParam(value = "readToken") String token) {
         return Result.success(() -> blogService.checkToken(blogId, token));
     }
 
     @GetMapping("/status/{blogId}")
-    @Bloom(handler = DetailHandler.class)
+    @Checker(handler = DetailHandler.class)
     public Result<Integer> getBlogStatus(@PathVariable Long blogId) {
         AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
         return Result.success(() -> blogService.getBlogStatus(authDto.roles(), blogId, authDto.userId()));
