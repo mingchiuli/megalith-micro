@@ -5,7 +5,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 
-class CacheRuntimeHints implements RuntimeHintsRegistrar {
+class CommonRuntimeHints implements RuntimeHintsRegistrar {
 
     @Override// Register method for reflection
     public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {
