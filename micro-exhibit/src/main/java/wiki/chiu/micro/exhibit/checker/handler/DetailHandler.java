@@ -1,4 +1,4 @@
-package wiki.chiu.micro.exhibit.checker;
+package wiki.chiu.micro.exhibit.checker.handler;
 
 import wiki.chiu.micro.cache.handler.CheckerHandler;
 import wiki.chiu.micro.common.exception.MissException;
