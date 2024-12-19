@@ -1,4 +1,4 @@
-package wiki.chiu.micro.exhibit.cache.handler;
+package wiki.chiu.micro.exhibit.consumer.cache.handler;
 
 import com.rabbitmq.client.Channel;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;

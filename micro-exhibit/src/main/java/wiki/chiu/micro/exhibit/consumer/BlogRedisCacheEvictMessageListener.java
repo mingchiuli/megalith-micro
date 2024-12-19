@@ -2,7 +2,7 @@ package wiki.chiu.micro.exhibit.consumer;
 
 import com.rabbitmq.client.Channel;
 import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.exhibit.cache.handler.BlogCacheEvictHandler;
+import wiki.chiu.micro.exhibit.consumer.cache.handler.BlogCacheEvictHandler;
 import wiki.chiu.micro.exhibit.constant.BlogOperateMessage;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

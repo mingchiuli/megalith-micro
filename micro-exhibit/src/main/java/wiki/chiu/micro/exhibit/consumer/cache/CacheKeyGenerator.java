@@ -1,4 +1,4 @@
-package wiki.chiu.micro.exhibit.cache.config;
+package wiki.chiu.micro.exhibit.consumer.cache;
 
 import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import wiki.chiu.micro.exhibit.wrapper.BlogWrapper;
