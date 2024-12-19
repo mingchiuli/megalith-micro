@@ -2,9 +2,9 @@ package wiki.chiu.micro.search.convertor;
 
 import co.elastic.clients.elasticsearch._types.ScriptLanguage;
 import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.Time;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionScoreMode;
-import co.elastic.clients.json.JsonData;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.query.HighlightQuery;
@@ -62,13 +62,14 @@ public class PublicSearchQueryConvertor {
                                                 .minimumShouldMatch("1")
                                                 .filter(filter -> filter
                                                         .range(range -> range
-                                                                .field(CREATED.getField())
-                                                                .from(StringUtils.hasLength(year)
-                                                                        ? year + "-01-01T00:00:00.000+08:00"
-                                                                        : null)
-                                                                .to(StringUtils.hasLength(year)
-                                                                        ? year + "-12-31T23:59:59.999+08:00"
-                                                                        : null)))
+                                                                .term(term -> term
+                                                                        .field(CREATED.getField())
+                                                                        .from(StringUtils.hasLength(year)
+                                                                                ? year + "-01-01T00:00:00.000+08:00"
+                                                                                : null)
+                                                                        .to(StringUtils.hasLength(year)
+                                                                                ? year + "-12-31T23:59:59.999+08:00"
+                                                                                : null))))
                                                 .filter(filter -> filter
                                                         .term(termQry -> termQry
                                                                 .field(STATUS.getField())
@@ -111,18 +112,20 @@ public class PublicSearchQueryConvertor {
                                         .weight(2.0))
                                 .functions(function -> function
                                         .gauss(gauss -> gauss
-                                                .field(UPDATED.getField())
-                                                .placement(placement -> placement
-                                                        .origin(JsonData.of("now/d"))
-                                                        .scale(JsonData.of("1095d"))
-                                                        .offset(JsonData.of("90d"))
-                                                        .decay(0.5))))
+                                                .date(date -> date
+                                                        .field(UPDATED.getField())
+                                                        .placement(placement -> placement
+                                                                .origin("now/d")
+                                                                .scale(Time.of(time -> time
+                                                                        .time("1095d")))
+                                                                .offset(Time.of(time -> time
+                                                                        .time("90d")))
+                                                                .decay(0.5)))))
                                 .functions(function -> function
                                         .scriptScore(scriptScore -> scriptScore
                                                 .script(script -> script
-                                                        .inline(inline -> inline
-                                                                .source("def c = doc['readCount'].value;return Math.log(c + 3);")
-                                                                .lang(ScriptLanguage.Painless)))))
+                                                        .source("def c = doc['readCount'].value;return Math.log(c + 3);")
+                                                        .lang(ScriptLanguage.Painless))))
                                 .scoreMode(FunctionScoreMode.Sum)
                                 .boostMode(FunctionBoostMode.Multiply)))
                 .withSort(sort -> sort

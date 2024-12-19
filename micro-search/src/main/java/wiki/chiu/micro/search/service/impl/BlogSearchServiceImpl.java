@@ -8,6 +8,7 @@ import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.common.req.BlogSysSearchReq;
+import wiki.chiu.micro.search.convertor.BlogSearchVoConvertor;
 import wiki.chiu.micro.search.convertor.PrivateSearchQueryConvertor;
 import wiki.chiu.micro.search.convertor.PublicSearchQueryConvertor;
 import wiki.chiu.micro.search.convertor.BlogDocumentVoConvertor;
@@ -19,7 +20,6 @@ import wiki.chiu.micro.search.vo.BlogSearchVo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
-import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.stereotype.Service;
 
@@ -62,18 +62,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
         NativeQuery matchQuery = PrivateSearchQueryConvertor.searchConvert(req.keywords(), req.status(), req.createStart(), req.createEnd(), userId, roles, highestRole, currentPage, size);
         SearchHits<BlogDocument> searchResp = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
 
-        List<Long> ids = searchResp.getSearchHits().stream()
-                .map(SearchHit::getContent)
-                .map(BlogDocument::getId)
-                .toList();
-
-        return BlogSearchVo.builder()
-                .ids(ids)
-                .currentPage(currentPage)
-                .size(size)
-                .total(searchResp.getTotalHits())
-                .build();
-
+        return BlogSearchVoConvertor.convert(searchResp, currentPage, size);
     }
 
     @Override
