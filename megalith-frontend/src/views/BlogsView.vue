@@ -8,7 +8,7 @@ import { storeToRefs } from 'pinia'
 import Search from '@/components/SearchItem.vue'
 import { Status } from '@/type/entity'
 
-const loading = ref(true)
+const loading = ref(false)
 const searchDialogVisible = ref(false)
 const searchRef = useTemplateRef<InstanceType<typeof Search>>('search')
 const readTokenDialogVisible = ref(false)
