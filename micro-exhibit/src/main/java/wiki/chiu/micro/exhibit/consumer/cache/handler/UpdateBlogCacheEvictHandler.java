@@ -1,11 +1,11 @@
-package wiki.chiu.micro.exhibit.cache.handler;
+package wiki.chiu.micro.exhibit.consumer.cache.handler;
 
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.common.utils.KeyUtils;
-import wiki.chiu.micro.exhibit.cache.config.CacheKeyGenerator;
+import wiki.chiu.micro.exhibit.consumer.cache.CacheKeyGenerator;
 import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
 import wiki.chiu.micro.exhibit.wrapper.BlogWrapper;
