@@ -29,7 +29,7 @@ const toGithub = () => (window.location.href = 'https://github.com/mingchiuli')
   </div>
 </template>
 
-<style>
+<style scoped>
 @import '@/assets/front.css';
 
 .into-avatar {
