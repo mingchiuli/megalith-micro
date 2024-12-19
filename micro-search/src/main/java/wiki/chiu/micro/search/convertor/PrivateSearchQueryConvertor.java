@@ -120,6 +120,7 @@ public class PrivateSearchQueryConvertor {
                 .filter(filter -> filter
                         .range(range -> range
                                 .term(term -> term
+                                        .field(CREATED.getField())
                                         .from(createStart != null
                                                 ? ZonedDateTime.of(createStart, ZONE_ID).format(FORMATTER)
                                                 : null)
