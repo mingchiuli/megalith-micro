@@ -8,14 +8,14 @@ A Simple Cache Library both local and redis remote cache
 <dependency>
     <groupId>wiki.chiu.megalith</groupId>
     <artifactId>cache-spring-boot-starter</artifactId>
-    <version>3.3.6</version>
+    <version>3.4.1</version>
 </dependency>
 ```
 
 or
 
 ```kotlin
-implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.3.6")
+implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.4.1")
 ```
 
 use:
