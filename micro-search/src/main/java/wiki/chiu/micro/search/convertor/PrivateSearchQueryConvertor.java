@@ -119,13 +119,13 @@ public class PrivateSearchQueryConvertor {
         boolQryBuilder
                 .filter(filter -> filter
                         .range(range -> range
-                                .field(CREATED.getField())
-                                .from(createStart != null
-                                        ? ZonedDateTime.of(createStart, ZONE_ID).format(FORMATTER)
-                                        : null)
-                                .to(createEnd != null
-                                        ? ZonedDateTime.of(createEnd, ZONE_ID).format(FORMATTER)
-                                        : null)))
+                                .term(term -> term
+                                        .from(createStart != null
+                                                ? ZonedDateTime.of(createStart, ZONE_ID).format(FORMATTER)
+                                                : null)
+                                        .to(createEnd != null
+                                                ? ZonedDateTime.of(createEnd, ZONE_ID).format(FORMATTER)
+                                                : null))))
                 .filter(filter -> filter
                         .terms(terms -> terms
                                 .field(STATUS.getField())
