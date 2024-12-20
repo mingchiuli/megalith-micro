@@ -111,5 +111,7 @@ public class Const {
 
     public static final String TRY_COUNT_KEY = "try_count";
 
+    public static final int SUCCESS_CODE = 200;
+
 }
 
