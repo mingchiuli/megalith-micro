@@ -1,10 +1,10 @@
 package wiki.chiu.micro.search.rpc;
 
 import wiki.chiu.micro.common.dto.AuthRpcDto;
+import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import org.springframework.stereotype.Component;
 
-import static wiki.chiu.micro.common.lang.Result.handleResult;
 
 @Component
 public class AuthHttpServiceWrapper {
@@ -16,7 +16,7 @@ public class AuthHttpServiceWrapper {
     }
 
     public AuthRpcDto getAuthentication() {
-        return handleResult(authHttpService::getAuthentication);
+        return Result.handleResult(authHttpService::getAuthentication);
     }
 
 }

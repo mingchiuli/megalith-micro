@@ -1,5 +1,6 @@
 package wiki.chiu.micro.auth.config;
 
+import wiki.chiu.micro.common.interceptor.HttpInterceptor;
 import wiki.chiu.micro.common.rpc.SmsHttpService;
 import wiki.chiu.micro.common.rpc.UserHttpService;
 import org.springframework.beans.factory.annotation.Value;

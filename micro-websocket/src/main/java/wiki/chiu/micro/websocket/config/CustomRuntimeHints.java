@@ -16,7 +16,5 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
         // Register resources
         hints.serialization().registerType(MessageDto.class);
         hints.serialization().registerType(BlogEditPushActionDto.class);
-
-        hints.resources().registerPattern("script/push-action.lua");
     }
 }
