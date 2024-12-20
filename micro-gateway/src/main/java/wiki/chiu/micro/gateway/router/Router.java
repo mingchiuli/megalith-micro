@@ -3,6 +3,7 @@ package wiki.chiu.micro.gateway.router;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.client.ClientHttpResponse;
 import wiki.chiu.micro.common.dto.AuthorityRouteRpcDto;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.lang.Result;
@@ -33,13 +34,15 @@ import java.util.Objects;
 public class Router {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
-    private final RestClient restClient;
-
-    private final AuthHttpServiceWrapper authHttpServiceWrapper;
-
-    private final ObjectMapper objectMapper;
-
     private static final String UNKNOWN = "unknown";
+    private static final String AUTH_HEADER = "X-Real-IP";
+    private static final String FORWARDED_HEADER = "X-Forwarded-For";
+    private static final String PROXY_CLIENT_IP = "Proxy-Client-IP";
+    private static final String WL_PROXY_CLIENT_IP = "WL-Proxy-Client-IP";
+
+    private final RestClient restClient;
+    private final AuthHttpServiceWrapper authHttpServiceWrapper;
+    private final ObjectMapper objectMapper;
 
     public Router(RestClient restClient, AuthHttpServiceWrapper authHttpServiceWrapper, ObjectMapper objectMapper) {
         this.restClient = restClient;
@@ -49,7 +52,6 @@ public class Router {
 
     @RequestMapping(value = "/**", method = {RequestMethod.GET, RequestMethod.POST})
     public void dispatch(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         String ipAddress = getIpAddr(request);
@@ -63,77 +65,111 @@ public class Router {
                 .build());
 
         if (Boolean.FALSE.equals(authorityRoute.auth())) {
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.getWriter().write(
-                    objectMapper.writeValueAsString(
-                            Result.fail(ExceptionMessage.RE_LOGIN.getMsg())));
+            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ExceptionMessage.RE_LOGIN.getMsg());
             return;
         }
 
-        String serviceHost = authorityRoute.serviceHost();
-        Integer servicePort = authorityRoute.servicePort();
-
-        String url = "http://" + serviceHost + ":" + servicePort + requestURI;
-
+        String url = buildUrl(authorityRoute, requestURI);
         HttpMethod httpMethod = HttpMethod.valueOf(method);
         Map<String, String[]> parameterMap = request.getParameterMap();
-        ResponseEntity<byte[]> responseEntity = null;
 
-        if (HttpMethod.POST.equals(httpMethod)) {
-            Object body;
-            MediaType contentType;
-            if (request instanceof MultipartHttpServletRequest req) {
-                // upload / login request
-                MultiValueMap<String, Resource> map = new LinkedMultiValueMap<>();
-                req.getFileMap().forEach((key, value) -> map.add(key, value.getResource()));
-                body = map;
-                contentType = MediaType.MULTIPART_FORM_DATA;
-            } else {
-                body = request.getInputStream().readAllBytes();
-                contentType = MediaType.APPLICATION_JSON;
-            }
-            responseEntity = restClient
-                    .post()
-                    .uri(url, uriBuilder -> {
-                        parameterMap.forEach((key, value) -> uriBuilder.queryParam(key, List.of(value)));
-                        return uriBuilder.build();
-                    })
-                    .contentType(contentType)
-                    .body(body)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, (_, resp) -> {
-                        HttpStatusCode statusCode = resp.getStatusCode();
-                        byte[] respBody = resp.getBody().readAllBytes();
-                        response.setStatus(statusCode.value());
-                        response.getOutputStream().write(respBody);
-                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    })
-                    .toEntity(byte[].class);
-        }
-
-        if (HttpMethod.GET.equals(httpMethod)) {
-            responseEntity = restClient
-                    .get()
-                    .uri(url, uriBuilder -> {
-                        parameterMap.forEach((key, value) -> uriBuilder.queryParam(key, List.of(value)));
-                        return uriBuilder.build();
-                    })
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, (_, resp) -> {
-                        HttpStatusCode statusCode = resp.getStatusCode();
-                        byte[] respBody = resp.getBody().readAllBytes();
-                        response.setStatus(statusCode.value());
-                        response.getOutputStream().write(respBody);
-                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    })
-                    .toEntity(byte[].class);
-        }
+        ResponseEntity<byte[]> responseEntity = handleRequest(request, url, httpMethod, parameterMap, response);
 
         if (response.getStatus() != HttpStatus.OK.value() || responseEntity == null) {
             return;
         }
 
+        handleResponse(response, responseEntity);
+    }
+
+    private String getIpAddr(HttpServletRequest request) {
+        String ip = request.getHeader(AUTH_HEADER);
+        if (!StringUtils.hasLength(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
+            ip = request.getHeader(FORWARDED_HEADER);
+        }
+        if (!StringUtils.hasLength(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
+            ip = request.getHeader(PROXY_CLIENT_IP);
+        }
+        if (!StringUtils.hasLength(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
+            ip = request.getHeader(WL_PROXY_CLIENT_IP);
+        }
+        if (!StringUtils.hasLength(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        if (Objects.nonNull(ip) && ip.length() > 15) {
+            int idx = ip.indexOf(",");
+            if (idx > 0) {
+                ip = ip.substring(0, idx);
+            }
+        }
+        return ip;
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, HttpStatus status, String message) throws IOException {
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setStatus(status.value());
+        response.getWriter().write(objectMapper.writeValueAsString(Result.fail(message)));
+    }
+
+    private String buildUrl(AuthorityRouteRpcDto authorityRoute, String requestURI) {
+        return "http://" + authorityRoute.serviceHost() + ":" + authorityRoute.servicePort() + requestURI;
+    }
+
+    private ResponseEntity<byte[]> handleRequest(HttpServletRequest request, String url, HttpMethod httpMethod, Map<String, String[]> parameterMap, HttpServletResponse response) throws IOException {
+        if (HttpMethod.POST.equals(httpMethod)) {
+            return handlePostRequest(request, url, parameterMap, response);
+        } else if (HttpMethod.GET.equals(httpMethod)) {
+            return handleGetRequest(url, parameterMap, response);
+        }
+        return null;
+    }
+
+    private ResponseEntity<byte[]> handlePostRequest(HttpServletRequest request, String url, Map<String, String[]> parameterMap, HttpServletResponse response) throws IOException {
+        Object body;
+        MediaType contentType;
+        if (request instanceof MultipartHttpServletRequest req) {
+            MultiValueMap<String, Resource> map = new LinkedMultiValueMap<>();
+            req.getFileMap().forEach((key, value) -> map.add(key, value.getResource()));
+            body = map;
+            contentType = MediaType.MULTIPART_FORM_DATA;
+        } else {
+            body = request.getInputStream().readAllBytes();
+            contentType = MediaType.APPLICATION_JSON;
+        }
+        return restClient
+                .post()
+                .uri(url, uriBuilder -> {
+                    parameterMap.forEach((key, value) -> uriBuilder.queryParam(key, List.of(value)));
+                    return uriBuilder.build();
+                })
+                .contentType(contentType)
+                .body(body)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (_, resp) -> handleErrorResponse(response, resp))
+                .toEntity(byte[].class);
+    }
+
+    private ResponseEntity<byte[]> handleGetRequest(String url, Map<String, String[]> parameterMap, HttpServletResponse response) {
+        return restClient
+                .get()
+                .uri(url, uriBuilder -> {
+                    parameterMap.forEach((key, value) -> uriBuilder.queryParam(key, List.of(value)));
+                    return uriBuilder.build();
+                })
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (_, resp) -> handleErrorResponse(response, resp))
+                .toEntity(byte[].class);
+    }
+
+    private void handleErrorResponse(HttpServletResponse response, ClientHttpResponse resp) throws IOException {
+        HttpStatusCode statusCode = resp.getStatusCode();
+        byte[] respBody = resp.getBody().readAllBytes();
+        response.setStatus(statusCode.value());
+        response.getOutputStream().write(respBody);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+    }
+
+    private void handleResponse(HttpServletResponse response, ResponseEntity<byte[]> responseEntity) throws IOException {
         HttpHeaders respHeaders = responseEntity.getHeaders();
         List<String> contentTypes = respHeaders.getOrDefault(HttpHeaders.CONTENT_TYPE, Collections.emptyList());
 
@@ -152,33 +188,4 @@ public class Router {
         outputStream.flush();
         outputStream.close();
     }
-
-    private String getIpAddr(HttpServletRequest request) {
-        // nginx代理获取的真实用户ip
-        String ip = request.getHeader("X-Real-IP");
-        if (!StringUtils.hasLength(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
-            ip = request.getHeader("X-Forwarded-For");
-        }
-        if (!StringUtils.hasLength(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (!StringUtils.hasLength(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (!StringUtils.hasLength(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        /*
-          对于通过多个代理的情况， 第一个IP为客户端真实IP,多个IP按照','分割 "***.***.***.***".length() =
-          15
-         */
-        if (Objects.nonNull(ip) && ip.length() > 15) {
-            int idx = ip.indexOf(",");
-            if (idx > 0) {
-                ip = ip.substring(0, idx);
-            }
-        }
-        return ip;
-    }
-
 }
