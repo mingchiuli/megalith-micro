@@ -1,6 +1,10 @@
 package wiki.chiu.micro.common.lang;
 
+import wiki.chiu.micro.common.exception.MissException;
+
 import java.util.function.Supplier;
+
+import static wiki.chiu.micro.common.lang.Const.SUCCESS_CODE;
 
 
 /**
@@ -60,5 +64,13 @@ public record Result<T>(
     public static <T> Result<T> fail(Integer code, String msg, Runnable runnable) {
         runnable.run();
         return fail(code, msg);
+    }
+
+    public static  <T> T handleResult(Supplier<Result<T>> func) {
+        Result<T> result = func.get();
+        if (result.code() != SUCCESS_CODE) {
+            throw new MissException(result.msg());
+        }
+        return result.data();
     }
 }
