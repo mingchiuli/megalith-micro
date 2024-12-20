@@ -3,6 +3,7 @@ package wiki.chiu.micro.user.service.impl;
 import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.exception.CommitException;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
+import wiki.chiu.micro.common.lang.TypeEnum;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
 import wiki.chiu.micro.user.convertor.ButtonVoConvertor;
 import wiki.chiu.micro.user.convertor.MenuDisplayVoConvertor;
@@ -21,10 +22,7 @@ import wiki.chiu.micro.user.wrapper.RoleMenuWrapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_INVALID_OPERATE;
@@ -122,7 +120,6 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
     @Override
     public MenusAndButtonsRpcVo getCurrentRoleNav(String role) {
-
         Optional<RoleEntity> roleEntity = roleRepository.findByCodeAndStatus(role, NORMAL.getCode());
 
         if (roleEntity.isEmpty()) {
@@ -133,18 +130,10 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         }
 
         List<Long> menuIds = roleMenuRepository.findMenuIdsByRoleId(roleEntity.get().getId());
-
         List<MenuEntity> allKindsInfo = menuRepository.findAllById(menuIds);
 
-        List<MenuEntity> menus = allKindsInfo
-                .stream()
-                .filter(menu -> CATALOGUE.getCode().equals(menu.getType()) || MENU.getCode().equals(menu.getType()))
-                .toList();
-
-        List<MenuEntity> buttons = allKindsInfo
-                .stream()
-                .filter(menu -> BUTTON.getCode().equals(menu.getType()))
-                .toList();
+        List<MenuEntity> menus = filterMenuEntities(allKindsInfo, CATALOGUE, MENU);
+        List<MenuEntity> buttons = filterMenuEntities(allKindsInfo, BUTTON);
 
         List<MenuVo> menuDtos = MenuVoConvertor.convert(menus);
         List<ButtonVo> buttonDtos = ButtonVoConvertor.convert(buttons);
@@ -154,4 +143,14 @@ public class RoleMenuServiceImpl implements RoleMenuService {
                 .menus(menuDtos)
                 .build();
     }
+
+    private List<MenuEntity> filterMenuEntities(List<MenuEntity> entities, TypeEnum... types) {
+        List<Integer> typeCodes = Arrays.stream(types)
+                .map(TypeEnum::getCode)
+                .toList();
+        return entities.stream()
+                .filter(entity -> typeCodes.contains(entity.getType()))
+                .toList();
+    }
+
 }

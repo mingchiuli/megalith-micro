@@ -94,16 +94,7 @@ public class BlogServiceImpl implements BlogService {
         List<BlogDescriptionDto> descList = dtoPageAdapter.content();
 
         List<BlogDescriptionDto> descSensitiveList = descList.stream()
-                .map(desc -> {
-                    if (!BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(desc.status())) {
-                        return desc;
-                    }
-                    List<SensitiveContentRpcDto> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContent();
-                    if (words.isEmpty()) {
-                        return desc;
-                    }
-                    return SensitiveUtils.deal(words, desc);
-                })
+                .map(this::processSensitiveContent)
                 .toList();
 
         dtoPageAdapter = new PageAdapter<>(descSensitiveList, dtoPageAdapter);
@@ -111,21 +102,30 @@ public class BlogServiceImpl implements BlogService {
         return BlogDescriptionVoConvertor.convert(dtoPageAdapter);
     }
 
+    private BlogDescriptionDto processSensitiveContent(BlogDescriptionDto desc) {
+        if (!BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(desc.status())) {
+            return desc;
+        }
+        List<SensitiveContentRpcDto> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContent();
+        if (words.isEmpty()) {
+            return desc;
+        }
+        return SensitiveUtils.deal(words, desc);
+    }
+
+
     @Override
     public Boolean checkToken(Long blogId, String token) {
         token = token.trim();
         Object password = redissonClient.getBucket(READ_TOKEN + blogId).get();
-        if (StringUtils.hasLength(token) && password != null) {
-            return Objects.equals(password, token);
-        }
-        return false;
+        return StringUtils.hasLength(token) && Objects.equals(password, token);
     }
 
     @Override
     public Integer getBlogStatus(List<String> roles, Long blogId, Long userId) {
         Integer status = blogWrapper.findStatusById(blogId);
 
-        if (BlogStatusEnum.NORMAL.getCode().equals(status) || BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(status)) {
+        if (isNormalOrSensitive(status)) {
             return status;
         }
 
@@ -138,11 +138,11 @@ public class BlogServiceImpl implements BlogService {
         }
 
         BlogEntityRpcDto blog = blogHttpServiceWrapper.findById(blogId);
+        return Objects.equals(blog.userId(), userId) ? BlogStatusEnum.NORMAL.getCode() : BlogStatusEnum.HIDE.getCode();
+    }
 
-        Long id = blog.userId();
-        return Objects.equals(id, userId) ?
-                BlogStatusEnum.NORMAL.getCode() :
-                BlogStatusEnum.HIDE.getCode();
+    private boolean isNormalOrSensitive(Integer status) {
+        return BlogStatusEnum.NORMAL.getCode().equals(status) || BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(status);
     }
 
     @Override
@@ -160,8 +160,11 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public List<Integer> searchYears() {
-
         Long count = redissonClient.getScript().eval(Mode.READ_ONLY, countYearsScript, ReturnType.INTEGER, List.of(BLOOM_FILTER_YEARS));
+        return generateYearsList(count);
+    }
+
+    private List<Integer> generateYearsList(Long count) {
         int start = 2021;
         int end = (int) Math.max(start + count - 1, start);
         var years = new ArrayList<Integer>(end - start + 1);

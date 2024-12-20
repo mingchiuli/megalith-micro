@@ -51,14 +51,14 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
 
     @Override
     public Set<String> getAuthoritiesByRoleCodes(String roleCode) {
+        return roleRepository.findByCodeAndStatus(roleCode, NORMAL.getCode())
+                .map(role -> getAuthorityCodes(role.getId()))
+                .orElse(Collections.emptySet());
+    }
 
-        Optional<RoleEntity> roleEntity = roleRepository.findByCodeAndStatus(roleCode, NORMAL.getCode());
 
-        if (roleEntity.isEmpty()) {
-            return Collections.emptySet();
-        }
-
-        List<Long> authorityIds = roleAuthorityRepository.findByRoleId(roleEntity.get().getId()).stream()
+    private Set<String> getAuthorityCodes(Long roleId) {
+        List<Long> authorityIds = roleAuthorityRepository.findByRoleId(roleId).stream()
                 .map(RoleAuthorityEntity::getAuthorityId)
                 .toList();
 
@@ -73,11 +73,14 @@ public class RoleAuthorityServiceImpl implements RoleAuthorityService {
         List<RoleAuthorityEntity> roleAuthorityEntities = RoleAuthorityEntityConvertor.convert(roleId, authorityIds);
         roleAuthorityWrapper.saveAuthority(roleId, new ArrayList<>(roleAuthorityEntities));
         // 删除权限缓存
+        executeDelRoleAuthTask(roleId, AuthMenuOperateEnum.AUTH.getType());
+    }
+
+    private void executeDelRoleAuthTask(Long roleId, Integer type) {
         taskExecutor.execute(() -> roleRepository.findById(roleId)
                 .map(RoleEntity::getCode)
                 .ifPresent(role -> {
-                    var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(role),
-                            AuthMenuOperateEnum.AUTH.getType());
+                    var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(role), type);
                     applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
                 }));
     }

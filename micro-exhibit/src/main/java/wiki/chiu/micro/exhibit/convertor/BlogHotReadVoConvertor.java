@@ -14,23 +14,39 @@ public class BlogHotReadVoConvertor {
 
     private BlogHotReadVoConvertor() {}
 
-    public static List<BlogHotReadVo> convert(List<BlogEntityRpcDto> blogs, Collection<ScoredEntry<String>> scoredEntries) {
-    
-        Map<Long, String> idTitleMap = blogs.stream()
-                .collect(Collectors.toMap(BlogEntityRpcDto::id, BlogEntityRpcDto::title));
+    private static final String UNKNOWN_TITLE = "未知标题";
 
-        List<Long> ids = blogs.stream()
-                .filter(item -> !HIDE.getCode().equals(item.status()))
-                .map(BlogEntityRpcDto::id)
-                .toList();
+    public static List<BlogHotReadVo> convert(List<BlogEntityRpcDto> blogs, Collection<ScoredEntry<String>> scoredEntries) {
+        Map<Long, String> idTitleMap = createIdTitleMap(blogs);
+        List<Long> ids = filterVisibleBlogIds(blogs);
 
         return scoredEntries.stream()
                 .filter(item -> ids.contains(Long.valueOf(item.getValue())))
-                .map(item -> BlogHotReadVo.builder()
-                        .id(Long.valueOf(item.getValue()))
-                        .readCount(Optional.ofNullable(item.getScore()).orElse(0d).longValue())
-                        .title(idTitleMap.getOrDefault(Long.valueOf(item.getValue()), "未知标题"))
-                        .build())
+                .map(item -> createBlogHotReadVo(item, idTitleMap))
                 .toList();
+    }
+
+    private static Map<Long, String> createIdTitleMap(List<BlogEntityRpcDto> blogs) {
+        return blogs.stream()
+                .collect(Collectors.toMap(BlogEntityRpcDto::id, BlogEntityRpcDto::title));
+    }
+
+    private static List<Long> filterVisibleBlogIds(List<BlogEntityRpcDto> blogs) {
+        return blogs.stream()
+                .filter(item -> !HIDE.getCode().equals(item.status()))
+                .map(BlogEntityRpcDto::id)
+                .toList();
+    }
+
+    private static BlogHotReadVo createBlogHotReadVo(ScoredEntry<String> item, Map<Long, String> idTitleMap) {
+        Long id = Long.valueOf(item.getValue());
+        Long readCount = Optional.ofNullable(item.getScore()).orElse(0d).longValue();
+        String title = idTitleMap.getOrDefault(id, UNKNOWN_TITLE);
+
+        return BlogHotReadVo.builder()
+                .id(id)
+                .readCount(readCount)
+                .title(title)
+                .build();
     }
 }

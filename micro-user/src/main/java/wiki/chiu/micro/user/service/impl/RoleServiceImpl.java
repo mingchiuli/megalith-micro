@@ -92,39 +92,29 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public void saveOrUpdate(RoleEntityReq roleReq) {
 
-        Optional<Long> id = roleReq.id();
-        RoleEntity roleEntity;
-
-        if (id.isPresent()) {
-            roleEntity = roleRepository.findById(id.get())
-                    .orElseThrow(() -> new MissException(ROLE_NOT_EXIST));
-        } else {
-            roleEntity = new RoleEntity();
-        }
-
+        RoleEntity roleEntity = roleReq.id()
+                .flatMap(roleRepository::findById)
+                .orElseGet(RoleEntity::new);
         RoleEntityConvertor.convert(roleReq, roleEntity);
-
         roleRepository.save(roleEntity);
-        //权限和按钮
-        taskExecutor.execute(() -> {
-            var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(roleEntity.getCode()), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
-            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-        });
+        executeDelRolesAuthTask(Collections.singletonList(roleEntity.getCode()), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
     }
 
     @Override
     public void delete(List<Long> ids) {
         roleMenuAuthorityWrapper.delete(ids);
+        List<String> roles = roleRepository.findAllById(ids).stream()
+                .map(RoleEntity::getCode)
+                .distinct()
+                .toList();
 
         //多个角色删除
-        taskExecutor.execute(() -> {
-            var roles = roleRepository.findAllById(ids)
-                    .stream()
-                    .map(RoleEntity::getCode)
-                    .distinct()
-                    .toList();
+        executeDelRolesAuthTask(roles, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
+    }
 
-            var authMenuIndexMessage = new AuthMenuIndexMessage(roles, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
+    private void executeDelRolesAuthTask(List<String> roles, Integer type) {
+        taskExecutor.execute(() -> {
+            var authMenuIndexMessage = new AuthMenuIndexMessage(roles, type);
             applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
         });
     }

@@ -1,5 +1,7 @@
 package wiki.chiu.micro.user.config;
 
+import wiki.chiu.micro.common.interceptor.HttpInterceptor;
+import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.OssHttpService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +17,7 @@ import java.time.Duration;
 
 
 @Configuration
-public class RpcHttpConfig {
+public class RpcConfig {
 
     @Value("${megalith.blog.aliyun.oss.bucket-name}")
     private String bucketName;
@@ -26,10 +28,16 @@ public class RpcHttpConfig {
     @Value("${megalith.blog.oss.base-url}")
     private String baseUrl;
 
+    @Value("${megalith.blog.auth-url}")
+    private String authUrl;
+
     private final HttpClient httpClient;
 
-    public RpcHttpConfig(HttpClient httpClient) {
+    private final HttpInterceptor httpInterceptor;
+
+    public RpcConfig(HttpClient httpClient, HttpInterceptor httpInterceptor) {
         this.httpClient = httpClient;
+        this.httpInterceptor = httpInterceptor;
     }
 
     @Bean
@@ -48,5 +56,23 @@ public class RpcHttpConfig {
         HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(restClientAdapter)
                 .build();
         return factory.createClient(OssHttpService.class);
+    }
+
+    @Bean
+    AuthHttpService authHttpService() {
+
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(Duration.ofSeconds(10));
+
+        RestClient client = RestClient.builder()
+                .baseUrl(authUrl)
+                .requestFactory(requestFactory)
+                .requestInterceptor(httpInterceptor)
+                .build();
+
+        RestClientAdapter restClientAdapter = RestClientAdapter.create(client);
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(restClientAdapter)
+                .build();
+        return factory.createClient(AuthHttpService.class);
     }
 }

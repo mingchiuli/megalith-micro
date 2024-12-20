@@ -73,6 +73,9 @@ import static wiki.chiu.micro.common.lang.BlogStatusEnum.HIDE;
 public class BlogServiceImpl implements BlogService {
 
     private static final Logger log = LoggerFactory.getLogger(BlogServiceImpl.class);
+
+    private static final String IMAGE_JPG = "image/jpg";
+
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 
     private final OssHttpService ossHttpService;
@@ -153,7 +156,6 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public void download(HttpServletResponse response, BlogDownloadReq downloadReq) {
-
         Set<BlogEntity> blogs = Collections.newSetFromMap(new ConcurrentHashMap<>());
         Set<BlogSensitiveContentEntity> blogSensitives = Collections.newSetFromMap(new ConcurrentHashMap<>());
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
@@ -165,28 +167,34 @@ public class BlogServiceImpl implements BlogService {
 
         for (int i = 1; i <= totalPage; i++) {
             BlogSysSearchReq req = BlogSysSearchReqConvertor.convert(downloadReq, i, pageSize);
-
             ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-            RequestContextHolder.setRequestAttributes(servletRequestAttributes, true);//请求头设置子线程共享
-            var completableFuture = CompletableFuture.runAsync(() -> {
-                BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(req);
-                List<Long> ids = dto.ids();
-                List<BlogSensitiveContentEntity> sensitiveContentEntities = blogSensitiveContentRepository.findByBlogIdIn(ids);
-                blogSensitives.addAll(sensitiveContentEntities);
-                List<BlogEntity> page = blogRepository.findAllById(ids).stream()
-                        .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
-                        .toList();
-                blogs.addAll(page);
-            }, taskExecutor);
-            completableFutures.add(completableFuture);
+            RequestContextHolder.setRequestAttributes(servletRequestAttributes, true);
+            completableFutures.add(fetchBlogsAsync(req, blogs, blogSensitives));
         }
 
+        waitForFutures(completableFutures);
+
+        writeResponse(response, blogs, blogSensitives);
+    }
+
+    private CompletableFuture<Void> fetchBlogsAsync(BlogSysSearchReq req, Set<BlogEntity> blogs, Set<BlogSensitiveContentEntity> blogSensitives) {
+        return CompletableFuture.runAsync(() -> {
+            BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(req);
+            List<Long> ids = dto.ids();
+            blogSensitives.addAll(blogSensitiveContentRepository.findByBlogIdIn(ids));
+            blogs.addAll(blogRepository.findAllById(ids).stream().sorted(Comparator.comparing(ids::indexOf)).toList());
+        }, taskExecutor);
+    }
+
+    private void waitForFutures(List<CompletableFuture<Void>> futures) {
         try {
-            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).get(1000, TimeUnit.MILLISECONDS);
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get(1000, TimeUnit.MILLISECONDS);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    private void writeResponse(HttpServletResponse response, Set<BlogEntity> blogs, Set<BlogSensitiveContentEntity> blogSensitives) {
         try (var outputStream = response.getOutputStream()) {
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
@@ -204,87 +212,86 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public SseEmitter uploadOss(MultipartFile file, Long userId) {
-        byte[] imageBytes;
-        try {
-            imageBytes = file.getBytes();
-        } catch (IOException e) {
-            throw new MissException(e.getMessage());
-        }
-        String originalFilename = Optional.ofNullable(file.getOriginalFilename())
-                .orElseGet(() -> UUID.randomUUID().toString())
-                .replace(" ", "");
-        if (imageBytes.length == 0) {
-            throw new MissException(UPLOAD_MISS.getMsg());
-        }
+        byte[] imageBytes = getImageBytes(file);
+        String objectName = getObjectName(file, userId);
 
-        var sseEmitter = new SseEmitter();
-        taskExecutor.execute(() -> {
-            String uuid = UUID.randomUUID().toString();
-
-            UserEntityRpcDto user = userHttpServiceWrapper.findById(userId);
-            String objectName = user.nickname() + "/" + uuid + "-" + originalFilename;
-
-            Map<String, String> headers = new HashMap<>();
-            String gmtDate = OssSignUtils.getGMTDate();
-            headers.put(HttpHeaders.DATE, gmtDate);
-            headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.PUT.name(), "image/jpg", accessKeyId, accessKeySecret, bucketName));
-
-            headers.put(HttpHeaders.CACHE_CONTROL, "no-cache");
-            headers.put(HttpHeaders.CONTENT_TYPE, "image/jpg");
-            ossHttpService.putOssObject(objectName, imageBytes, headers);
-            // https://bloglmc.oss-cn-hangzhou.aliyuncs.com/admin/42166d224f4a20a45eca28b691529822730ed0ee.jpeg
-
-            try {
-                sseEmitter.send(baseUrl + "/" + objectName, MediaType.TEXT_PLAIN);
-                sseEmitter.complete();
-            } catch (IOException e) {
-                sseEmitter.completeWithError(e);
-            }
-        });
+        SseEmitter sseEmitter = new SseEmitter();
+        taskExecutor.execute(() -> uploadImageToOss(imageBytes, objectName, sseEmitter));
         return sseEmitter;
     }
 
-    @Override
-    public void deleteOss(String url){
-        String objectName = url.replace(baseUrl + "/", "");
+    private byte[] getImageBytes(MultipartFile file) {
+        try {
+            byte[] imageBytes = file.getBytes();
+            if (imageBytes.length == 0) {
+                throw new MissException(UPLOAD_MISS.getMsg());
+            }
+            return imageBytes;
+        } catch (IOException e) {
+            throw new MissException(e.getMessage());
+        }
+    }
+
+    private String getObjectName(MultipartFile file, Long userId) {
+        String originalFilename = Optional.ofNullable(file.getOriginalFilename())
+                .orElseGet(() -> UUID.randomUUID().toString()
+                .replace(" ", ""));
+        String uuid = UUID.randomUUID().toString();
+        UserEntityRpcDto user = userHttpServiceWrapper.findById(userId);
+        return user.nickname() + "/" + uuid + "-" + originalFilename;
+    }
+
+    private void uploadImageToOss(byte[] imageBytes, String objectName, SseEmitter sseEmitter) {
+        Map<String, String> headers = getOssHeaders(objectName, HttpMethod.PUT.name(), IMAGE_JPG);
+        ossHttpService.putOssObject(objectName, imageBytes, headers);
+        sendSseEmitter(sseEmitter, baseUrl + "/" + objectName);
+    }
+
+    private Map<String, String> getOssHeaders(String objectName, String method, String contentType) {
         Map<String, String> headers = new HashMap<>();
         String gmtDate = OssSignUtils.getGMTDate();
         headers.put(HttpHeaders.DATE, gmtDate);
-        headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), "", accessKeyId, accessKeySecret, bucketName));
+        headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, method, contentType, accessKeyId, accessKeySecret, bucketName));
+        headers.put(HttpHeaders.CACHE_CONTROL, "no-cache");
+        headers.put(HttpHeaders.CONTENT_TYPE, contentType);
+        return headers;
+    }
 
+    private void sendSseEmitter(SseEmitter sseEmitter, String url) {
+        try {
+            sseEmitter.send(url, MediaType.TEXT_PLAIN);
+            sseEmitter.complete();
+        } catch (IOException e) {
+            sseEmitter.completeWithError(e);
+        }
+    }
+
+    @Override
+    public void deleteOss(String url) {
+        String objectName = url.replace(baseUrl + "/", "");
+        Map<String, String> headers = getOssHeaders(objectName, HttpMethod.DELETE.name(), "");
         taskExecutor.execute(() -> ossHttpService.deleteOssObject(objectName, headers));
     }
 
     @Override
     public String setBlogToken(Long blogId, Long userId) {
-        Long dbUserId = blogRepository.findUserIdById(blogId);
-
-        if (!Objects.equals(userId, dbUserId)) {
-            throw new MissException(USER_MISS.getMsg());
-        }
-
+        validateUser(blogId, userId);
         String token = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set(READ_TOKEN + blogId, token, 24, TimeUnit.HOURS);
         return readPrefix + blogId + "?token=" + token;
     }
 
+
+    private void validateUser(Long blogId, Long userId) {
+        Long dbUserId = blogRepository.findUserIdById(blogId);
+        if (!Objects.equals(userId, dbUserId)) {
+            throw new MissException(USER_MISS.getMsg());
+        }
+    }
+
     @Override
     public void saveOrUpdate(BlogEntityReq blog, Long userId) {
-        Optional<Long> blogId = blog.id();
-        BlogEntity blogEntity;
-
-        if (blogId.isPresent()) {
-            blogEntity = blogRepository.findById(blogId.get())
-                    .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-
-            EditAuthUtils.checkEditAuth(blogEntity, userId);
-        } else {
-            blogEntity = BlogEntity.builder()
-                    .userId(userId)
-                    .readCount(0L)
-                    .build();
-        }
-
+        BlogEntity blogEntity = getBlogEntity(blog, userId);
         BlogEntityConvertor.convert(blog, blogEntity);
 
         List<BlogSensitiveContentEntity> blogSensitiveContentEntityList = blog.sensitiveContentList().stream()
@@ -296,22 +303,29 @@ public class BlogServiceImpl implements BlogService {
                         .build())
                 .toList();
 
-        List<Long> existedSensitiveIds = Collections.emptyList();
-        if (blogId.isPresent()) {
-            existedSensitiveIds = blogSensitiveContentRepository.findByBlogId(blogId.get())
-                    .stream()
-                    .map(BlogSensitiveContentEntity::getId)
-                    .toList();
-        }
+        List<Long> existedSensitiveIds = blog.id().isPresent() ? blogSensitiveContentRepository.findByBlogId(blog.id().get()).stream().map(BlogSensitiveContentEntity::getId).toList() : Collections.emptyList();
 
         BlogEntity saved = blogSensitiveWrapper.saveOrUpdate(blogEntity, blogSensitiveContentEntityList, existedSensitiveIds);
 
-        // 通知消息给mq,更新并删除缓存
-        taskExecutor.execute(() -> {
-            BlogOperateEnum type = blogId.isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE;
-            var blogSearchIndexMessage = new BlogOperateMessage(saved.getId(), type, blogEntity.getCreated().getYear());
-            applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
-        });
+        taskExecutor.execute(() -> notifyBlogOperation(blog.id().isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE, saved));
+    }
+
+    private BlogEntity getBlogEntity(BlogEntityReq blog, Long userId) {
+        return blog.id()
+                .map(blogId -> {
+                    BlogEntity blogEntity = blogRepository.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+                    EditAuthUtils.checkEditAuth(blogEntity, userId);
+                    return blogEntity;
+                })
+                .orElseGet(() -> BlogEntity.builder()
+                        .userId(userId)
+                        .readCount(0L)
+                        .build());
+    }
+
+    private void notifyBlogOperation(BlogOperateEnum type, BlogEntity blogEntity) {
+        var blogSearchIndexMessage = new BlogOperateMessage(blogEntity.getId(), type, blogEntity.getCreated().getYear());
+        applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
     }
 
     @Override
@@ -360,14 +374,9 @@ public class BlogServiceImpl implements BlogService {
             return PageAdapter.emptyPage();
         }
 
-        int l = 0;
-        for (BlogEntity blog : deletedBlogs) {
-            if (LocalDateTime.now().minusDays(7).isAfter(blog.getUpdated())) {
-                l++;
-            } else {
-                break;
-            }
-        }
+        int l = (int) deletedBlogs.stream()
+                .filter(blog -> LocalDateTime.now().minusDays(7).isAfter(blog.getUpdated()))
+                .count();
 
         int start = (currentPage - 1) * size;
 
@@ -402,10 +411,7 @@ public class BlogServiceImpl implements BlogService {
         tempBlog.setStatus(HIDE.getCode());
         BlogEntity blog = blogRepository.save(tempBlog);
 
-        taskExecutor.execute(() -> {
-            var blogSearchIndexMessage = new BlogOperateMessage(blog.getId(), BlogOperateEnum.CREATE, blog.getCreated().getYear());
-            applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
-        });
+        taskExecutor.execute(() -> notifyBlogOperation(BlogOperateEnum.CREATE, blog));
     }
 
     @Override
@@ -430,8 +436,7 @@ public class BlogServiceImpl implements BlogService {
                             Collections.singletonList(QUERY_DELETED + userId),
                             JsonUtils.writeValueAsString(objectMapper, BlogDeleteDtoConvertor.convert(entity)), A_WEEK);
 
-                    var blogSearchIndexMessage = new BlogOperateMessage(entity.getId(), BlogOperateEnum.REMOVE, entity.getCreated().getYear());
-                    applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
+                    notifyBlogOperation(BlogOperateEnum.REMOVE, entity);
                 }));
     }
 

@@ -2,6 +2,7 @@ package wiki.chiu.micro.exhibit.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import wiki.chiu.micro.common.interceptor.HttpInterceptor;
 
 import java.net.http.HttpClient;
 import java.util.concurrent.Executors;
@@ -14,5 +15,10 @@ public class HttpClientConfig {
         return HttpClient.newBuilder()
                 .executor(Executors.newVirtualThreadPerTaskExecutor())  // Configure to use virtual threads
                 .build();
+    }
+
+    @Bean
+    HttpInterceptor httpInterceptor() {
+        return new HttpInterceptor();
     }
 }

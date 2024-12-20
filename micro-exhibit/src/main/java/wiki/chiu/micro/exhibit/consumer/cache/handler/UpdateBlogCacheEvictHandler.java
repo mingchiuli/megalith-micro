@@ -50,6 +50,7 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         Long id = blogEntity.id();
         int year = blogEntity.created().getYear();
         Integer status = blogEntity.status();
+        Long userId = blogEntity.userId();
 
         //不分年份的页数
         LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
@@ -58,6 +59,11 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         //保守处理，前面的全删
         long countAfter = blogHttpServiceWrapper.countByCreatedGreaterThanEqual(blogEntity.created());
         long countYearAfter = blogHttpServiceWrapper.getPageCountYear(blogEntity.created(), start, end);
+        evictCaches(id, year, countAfter, countYearAfter);
+        clearKeys(id, status, userId);
+    }
+
+    private void evictCaches(Long id, int year, long countAfter, long countYearAfter) {
         HashSet<String> keys = cacheKeyGenerator.generateBlogKey(countAfter, countYearAfter, year);
 
         //博客对象本身缓存
@@ -87,13 +93,15 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         }
 
         cacheEvictHandler.evictCache(keys);
+    }
 
+    private void clearKeys(Long id, Integer status, Long userId) {
         var clearKeys = new HashSet<String>();
         if (NORMAL.getCode().equals(status)) {
             clearKeys.add(READ_TOKEN + id);
         }
         //暂存区
-        clearKeys.add(KeyUtils.createBlogEditRedisKey(blogEntity.userId(), id));
+        clearKeys.add(KeyUtils.createBlogEditRedisKey(userId, id));
         redissonClient.getKeys().delete(clearKeys.toArray(new String[0]));
     }
 }

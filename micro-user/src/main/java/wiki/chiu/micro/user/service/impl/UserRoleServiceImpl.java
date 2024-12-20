@@ -75,14 +75,11 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     @Override
     public void saveOrUpdate(UserEntityReq userEntityReq) {
-        Optional<Long> id = userEntityReq.id();
-        List<String> roles = userEntityReq.roles();
-        UserEntity userEntity;
-        UserOperateEnum userOperateEnum;
 
-        if (id.isPresent()) {
-            userEntity = userRepository.findById(id.get())
-                    .orElseThrow(() -> new MissException(USER_NOT_EXIST));
+        UserEntity userEntity = getUserEntity(userEntityReq);
+
+        UserOperateEnum userOperateEnum;
+        if (userEntityReq.id().isPresent()) {
 
             String password = userEntityReq.password();
             if (StringUtils.hasLength(password)) {
@@ -92,7 +89,6 @@ public class UserRoleServiceImpl implements UserRoleService {
             }
             userOperateEnum = UserOperateEnum.UPDATE;
         } else {
-            userEntity = new UserEntity();
             userEntityReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(Optional.ofNullable(userEntityReq.password())
                     .orElseThrow(() -> new CommitException(PASSWORD_REQUIRED))));
             userOperateEnum = UserOperateEnum.CREATE;
@@ -100,7 +96,7 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         UserEntityConvertor.convert(userEntityReq, userEntity);
 
-        List<UserRoleEntity> userRoleEntities = roleRepository.findByCodeIn(roles).stream()
+        List<UserRoleEntity> userRoleEntities = roleRepository.findByCodeIn(userEntityReq.roles()).stream()
                 .map(role -> UserRoleEntity.builder()
                         .roleId(role.getId())
                         .build())
@@ -108,10 +104,7 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
 
-        taskExecutor.execute(() -> {
-            var userIndexMessage = new UserIndexMessage(userEntity.getId(), userOperateEnum);
-            applicationContext.publishEvent(new UserOperateEvent(this, userIndexMessage));
-        });
+        executeTask(userEntity.getId(), userOperateEnum);
     }
 
     @Override
@@ -123,15 +116,7 @@ public class UserRoleServiceImpl implements UserRoleService {
             req = new UserEntityRegisterReq(req, fakePhone);
         }
 
-        UserEntityReq userEntityReq;
-
-        Optional<UserEntity> userEntity = userRepository.findByUsername(req.username());
-        List<String> roles = List.of(USER, REFRESH);
-        if (userEntity.isEmpty()) {
-            userEntityReq = new UserEntityReq(req, null, NORMAL.getCode(), roles);
-        } else {
-            userEntityReq = new UserEntityReq(req, userEntity.get().getId(),  NORMAL.getCode(), roles);
-        }
+        UserEntityReq userEntityReq = getUserEntityReq(req);
         saveOrUpdate(userEntityReq);
         redisTemplate.delete(REGISTER_PREFIX + req.token());
     }
@@ -180,5 +165,25 @@ public class UserRoleServiceImpl implements UserRoleService {
     @Override
     public void deleteUsers(List<Long> ids) {
         userRoleWrapper.deleteUsers(ids);
+    }
+
+    private UserEntity getUserEntity(UserEntityReq userEntityReq) {
+        return userEntityReq.id()
+                .flatMap(userRepository::findById)
+                .orElseGet(UserEntity::new);
+    }
+
+    private UserEntityReq getUserEntityReq(UserEntityRegisterReq req) {
+        List<String> roles = List.of(USER, REFRESH);
+        return userRepository.findByUsername(req.username())
+                .map(entity -> new UserEntityReq(req, entity.getId(), NORMAL.getCode(), roles))
+                .orElseGet(() -> new UserEntityReq(req, null, NORMAL.getCode(), roles));
+    }
+
+    private void executeTask(Long userId, UserOperateEnum userOperateEnum) {
+        taskExecutor.execute(() -> {
+            var userIndexMessage = new UserIndexMessage(userId, userOperateEnum);
+            applicationContext.publishEvent(new UserOperateEvent(this, userIndexMessage));
+        });
     }
 }

@@ -1,12 +1,11 @@
 package wiki.chiu.micro.exhibit.controller;
 
 import wiki.chiu.micro.cache.annotation.Checker;
-import wiki.chiu.micro.common.dto.AuthRpcDto;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.resolver.AuthInfo;
 import wiki.chiu.micro.exhibit.checker.handler.DetailHandler;
 import wiki.chiu.micro.exhibit.checker.handler.ListPageHandler;
-import wiki.chiu.micro.exhibit.rpc.AuthHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.service.BlogService;
 import wiki.chiu.micro.exhibit.vo.BlogDescriptionVo;
 import wiki.chiu.micro.exhibit.vo.BlogExhibitVo;
@@ -28,19 +27,14 @@ public class BlogController {
 
     private final BlogService blogService;
 
-    private final AuthHttpServiceWrapper authHttpServiceWrapper;
-
-    public BlogController(BlogService blogService, AuthHttpServiceWrapper authHttpServiceWrapper) {
+    public BlogController(BlogService blogService) {
         this.blogService = blogService;
-        this.authHttpServiceWrapper = authHttpServiceWrapper;
     }
 
     @GetMapping("/info/{blogId}")
     @Checker(handler = DetailHandler.class)
-    public Result<BlogExhibitVo> getBlogDetail(@PathVariable Long blogId) {
-
-        AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogService.getBlogDetail(authDto.roles(), blogId, authDto.userId()));
+    public Result<BlogExhibitVo> getBlogDetail(@PathVariable Long blogId, AuthInfo authInfo) {
+        return Result.success(() -> blogService.getBlogDetail(authInfo.roles(), blogId, authInfo.userId()));
     }
 
     @GetMapping("/page/{currentPage}")
@@ -66,9 +60,8 @@ public class BlogController {
 
     @GetMapping("/status/{blogId}")
     @Checker(handler = DetailHandler.class)
-    public Result<Integer> getBlogStatus(@PathVariable Long blogId) {
-        AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication();
-        return Result.success(() -> blogService.getBlogStatus(authDto.roles(), blogId, authDto.userId()));
+    public Result<Integer> getBlogStatus(@PathVariable Long blogId, AuthInfo authInfo) {
+        return Result.success(() -> blogService.getBlogStatus(authInfo.roles(), blogId, authInfo.userId()));
     }
 
     @GetMapping("/years")
