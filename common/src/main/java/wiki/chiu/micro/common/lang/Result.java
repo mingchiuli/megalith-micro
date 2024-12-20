@@ -66,7 +66,7 @@ public record Result<T>(
         return fail(code, msg);
     }
 
-    public static  <T> T handleResult(Supplier<Result<T>> func) {
+    public static <T> T handleResult(Supplier<Result<T>> func) {
         Result<T> result = func.get();
         if (result.code() != SUCCESS_CODE) {
             throw new MissException(result.msg());

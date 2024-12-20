@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Collections;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,48 +61,50 @@ public class EditWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) throws IOException {
-        Principal principal = session.getPrincipal();
+        Optional.ofNullable(session.getPrincipal())
+                .ifPresent(principal -> processMessage(session, message, principal));
+    }
 
-        if (principal == null) {
-            return;
+    private void processMessage(WebSocketSession session, TextMessage message, Principal principal) {
+        try {
+            Long userId = Long.valueOf(principal.getName());
+            BlogEditPushActionDto pushActionDto = JsonUtils.readValue(objectMapper, message.getPayload(), BlogEditPushActionDto.class);
+
+            String redisKey = KeyUtils.createBlogEditRedisKey(userId, pushActionDto.id());
+            Long execute = redisTemplate.execute(RedisScript.of(pushActionScript, Long.class), Collections.singletonList(redisKey),
+                    pushActionDto.contentChange(),
+                    pushActionDto.operateTypeCode().toString(),
+                    pushActionDto.version().toString(),
+                    Optional.ofNullable(pushActionDto.indexStart())
+                            .map(Object::toString)
+                            .orElse(null),
+                    Optional.ofNullable(pushActionDto.indexEnd())
+                            .map(Object::toString)
+                            .orElse(null),
+                    pushActionDto.field(),
+                    Optional.ofNullable(pushActionDto.paraNo())
+                            .map(Object::toString)
+                            .orElse(null),
+                    userId.toString());
+
+            if (enumSet.contains(execute)) {
+                sendMessage(session, pushActionDto.id(), userId, pushActionDto.version(), execute.intValue());
+            }
+        } catch (Exception e) {
+            log.error("Error processing WebSocket message", e);
         }
+    }
 
-        Long userId = Long.valueOf(principal.getName());
-        String payload = message.getPayload();
-        BlogEditPushActionDto pushActionDto = JsonUtils.readValue(objectMapper, payload, BlogEditPushActionDto.class);
+    private void sendMessage(WebSocketSession session, Long blogId, Long userId, Integer version, int type) throws IOException {
+        MessageDto dto = MessageDto.builder()
+                .blogId(blogId)
+                .userId(userId)
+                .version(version)
+                .type(type)
+                .build();
 
-        Long blogId = pushActionDto.id();
-        String contentChange = pushActionDto.contentChange();
-        Integer operateTypeCode = pushActionDto.operateTypeCode();
-        Integer version = pushActionDto.version();
-        Integer indexStart = pushActionDto.indexStart();
-        Integer indexEnd = pushActionDto.indexEnd();
-        String field = pushActionDto.field();
-        Integer paraNo = pushActionDto.paraNo();
-
-        String redisKey = KeyUtils.createBlogEditRedisKey(userId, blogId);
-
-        Long execute = redisTemplate.execute(RedisScript.of(pushActionScript, Long.class), Collections.singletonList(redisKey),
-                contentChange,
-                operateTypeCode.toString(),
-                version.toString(),
-                Objects.nonNull(indexStart) ? indexStart.toString() : null,
-                Objects.nonNull(indexEnd) ? indexEnd.toString() : null,
-                Objects.nonNull(field) ? field : null,
-                Objects.nonNull(paraNo) ? paraNo.toString() : null,
-                userId.toString());
-
-        if (enumSet.contains(execute)) {
-            var dto = MessageDto.builder()
-                    .blogId(blogId)
-                    .userId(userId)
-                    .version(version)
-                    .type(execute.intValue())
-                    .build();
-
-            TextMessage textMessage = new TextMessage(JsonUtils.writeValueAsString(objectMapper, dto));
-            session.sendMessage(textMessage);
-        }
+        TextMessage textMessage = new TextMessage(JsonUtils.writeValueAsString(objectMapper, dto));
+        session.sendMessage(textMessage);
     }
 
 
