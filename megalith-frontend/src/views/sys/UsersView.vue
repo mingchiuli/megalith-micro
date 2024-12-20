@@ -151,7 +151,7 @@ const clearForm = () => {
 }
 
 const getRoleName = (item: string) => {
-  return roleList.value.filter((role) => role.code === item)[0]?.name
+  return roleList.value.find((role) => role.code === item)?.name
 }
 
 const handleSizeChange = async (val: number) => {
