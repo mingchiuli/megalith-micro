@@ -69,26 +69,28 @@ public final class SMSAuthenticationProvider extends ProviderBase {
         Map<String, String> entries = redissonClient.<String, String>getMap(prefix).readAllMap();
 
         if (!entries.isEmpty()) {
-            String code = entries.get("code");
-            String tryCount = entries.get("try_count");
-
-            if (Integer.parseInt(tryCount) >= maxTryNum) {
-                redissonClient.getBucket(prefix).delete();
-                throw new BadCredentialsException(SMS_TRY_MAX.getMsg());
-            }
-
-            if (!Objects.equals(code, authentication.getCredentials().toString())) {
-                Long ttl = redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.INTEGER, Collections.singletonList(prefix), "try_count");
-                if (Long.valueOf(0).equals(ttl)) {
-                    throw new BadCredentialsException(SMS_EXPIRED.getMsg());
-                }
-                throw new BadCredentialsException(SMS_MISMATCH.getMsg());
-            }
-
+            validateCode(entries, authentication.getCredentials().toString(), prefix);
             redissonClient.getBucket(prefix).delete();
-            return;
+        } else {
+            throw new BadCredentialsException(SMS_NOT_EXIST.getMsg());
+        }
+    }
+
+    private void validateCode(Map<String, String> entries, String credentials, String prefix) {
+        String code = entries.get(Const.CODE_KEY);
+        String tryCount = entries.get(Const.TRY_COUNT_KEY);
+
+        if (Integer.parseInt(tryCount) >= maxTryNum) {
+            redissonClient.getBucket(prefix).delete();
+            throw new BadCredentialsException(SMS_TRY_MAX.getMsg());
         }
 
-        throw new BadCredentialsException(SMS_NOT_EXIST.getMsg());
+        if (!Objects.equals(code, credentials)) {
+            Long ttl = redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.INTEGER, Collections.singletonList(prefix), Const.TRY_COUNT_KEY);
+            if (Long.valueOf(0).equals(ttl)) {
+                throw new BadCredentialsException(SMS_EXPIRED.getMsg());
+            }
+            throw new BadCredentialsException(SMS_MISMATCH.getMsg());
+        }
     }
 }

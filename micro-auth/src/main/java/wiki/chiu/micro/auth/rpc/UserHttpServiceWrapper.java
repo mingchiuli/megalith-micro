@@ -15,6 +15,8 @@ import java.util.Set;
 @Component
 public class UserHttpServiceWrapper {
 
+    private static final int SUCCESS_CODE = 200;
+
     private final UserHttpService userHttpService;
 
     public UserHttpServiceWrapper(UserHttpService userHttpService) {
@@ -26,84 +28,51 @@ public class UserHttpServiceWrapper {
     }
 
     public List<RoleEntityRpcDto> findByRoleCodeInAndStatus(List<String> roles, Integer status) {
-        Result<List<RoleEntityRpcDto>> result = userHttpService.findByRoleCodeInAndStatus(roles, status);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return handleResult(userHttpService.findByRoleCodeInAndStatus(roles, status));
     }
 
     public void updateLoginTime(String username) {
-        Result<Void> result = userHttpService.updateLoginTime(username);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
+        handleResult(userHttpService.updateLoginTime(username));
     }
 
     public void unlock() {
-        Result<Void> result = userHttpService.unlock();
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
+        handleResult(userHttpService.unlock());
     }
 
     public void findByEmail(String loginEmail) {
-        Result<UserEntityRpcDto> result = userHttpService.findByEmail(loginEmail);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
+        handleResult(userHttpService.findByEmail(loginEmail));
     }
 
     public void findByPhone(String loginSMS) {
-        Result<UserEntityRpcDto> result = userHttpService.findByPhone(loginSMS);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
+        handleResult(userHttpService.findByPhone(loginSMS));
     }
 
     public List<String> findRoleCodesByUserId(Long userId) {
-        Result<List<String>> result = userHttpService.findRoleCodesByUserId(userId);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return handleResult(userHttpService.findRoleCodesByUserId(userId));
     }
 
     public UserEntityRpcDto findById(Long userId) {
-        Result<UserEntityRpcDto> result = userHttpService.findById(userId);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return handleResult(userHttpService.findById(userId));
     }
 
     public UserEntityRpcDto findByUsernameOrEmailOrPhone(String username) {
-        Result<UserEntityRpcDto> result = userHttpService.findByUsernameOrEmailOrPhone(username);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return handleResult(userHttpService.findByUsernameOrEmailOrPhone(username));
     }
 
     public Set<String> getAuthoritiesByRoleCode(String rawRole) {
-        Result<Set<String>> result = userHttpService.getAuthoritiesByRoleCode(rawRole);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return handleResult(userHttpService.getAuthoritiesByRoleCode(rawRole));
     }
 
     public MenusAndButtonsRpcDto getCurrentUserNav(String rawRole) {
-        Result<MenusAndButtonsRpcDto> result = userHttpService.getCurrentUserNav(rawRole);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return handleResult(userHttpService.getCurrentUserNav(rawRole));
     }
 
     public List<AuthorityRpcDto> getSystemAuthorities(List<String> serviceHost) {
-        Result<List<AuthorityRpcDto>> result = userHttpService.getAuthorities(serviceHost);
-        if (result.code() != 200) {
+        return handleResult(userHttpService.getAuthorities(serviceHost));
+    }
+
+    private <T> T handleResult(Result<T> result) {
+        if (result.code() != SUCCESS_CODE) {
             throw new MissException(result.msg());
         }
         return result.data();

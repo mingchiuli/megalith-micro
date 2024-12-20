@@ -107,7 +107,9 @@ public class Const {
 
     public static final String USER_CHANGE_FANOUT_EXCHANGE = "user.auth.menu.change.fanout.exchange";
 
+    public static final String CODE_KEY = "code";
 
+    public static final String TRY_COUNT_KEY = "try_count";
 
 }
 

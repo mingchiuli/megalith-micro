@@ -65,34 +65,33 @@ public final class EmailAuthenticationProvider extends ProviderBase {
 
     @Override
     public void authProcess(UserDetails user, Authentication authentication) {
-        //username is login email
         String prefix = Const.EMAIL_KEY + user.getUsername();
         Map<String, String> entries = redissonClient.<String, String>getMap(prefix).readAllMap();
 
-
         if (!entries.isEmpty()) {
-            String code = entries.get("code");
-            String tryCount = entries.get("try_count");
-
-            if (Integer.parseInt(tryCount) >= maxTryNum) {
-                redissonClient.getBucket(prefix).delete();
-                throw new BadCredentialsException(CODE_TRY_MAX.getMsg());
-            }
-
-            if (Boolean.FALSE.equals(code.equalsIgnoreCase(authentication.getCredentials().toString()))) {
-                Long ttl = redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.INTEGER, Collections.singletonList(prefix), "try_count");
-
-                if (Objects.equals(0L, ttl)) {
-                    throw new BadCredentialsException(CODE_EXPIRED.getMsg());
-                }
-                throw new BadCredentialsException(CODE_MISMATCH.getMsg());
-            }
-
+            validateCode(entries, authentication.getCredentials().toString(), prefix);
             redissonClient.getKeys().delete(prefix);
-            return;
+        } else {
+            throw new BadCredentialsException(CODE_NOT_EXIST.getMsg());
+        }
+    }
+
+    private void validateCode(Map<String, String> entries, String credentials, String prefix) {
+        String code = entries.get(Const.CODE_KEY);
+        String tryCount = entries.get(Const.TRY_COUNT_KEY);
+
+        if (Integer.parseInt(tryCount) >= maxTryNum) {
+            redissonClient.getBucket(prefix).delete();
+            throw new BadCredentialsException(CODE_TRY_MAX.getMsg());
         }
 
-        throw new BadCredentialsException(CODE_NOT_EXIST.getMsg());
+        if (!code.equalsIgnoreCase(credentials)) {
+            Long ttl = redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.INTEGER, Collections.singletonList(prefix), Const.TRY_COUNT_KEY);
 
+            if (Objects.equals(0L, ttl)) {
+                throw new BadCredentialsException(CODE_EXPIRED.getMsg());
+            }
+            throw new BadCredentialsException(CODE_MISMATCH.getMsg());
+        }
     }
 }

@@ -1,9 +1,5 @@
 package wiki.chiu.micro.auth.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * @author mingchiuli
@@ -13,5 +9,5 @@ public interface CodeService {
 
     void createEmailCode(String loginName);
 
-    void createSMSCode(String loginSMS) throws JsonProcessingException, NoSuchAlgorithmException, InvalidKeyException;
+    void createSMSCode(String loginSMS);
 }
