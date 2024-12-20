@@ -40,6 +40,8 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
 @Service
 public class UserServiceImpl implements UserService {
 
+    private static final String IMAGE_JPG = "image/jpg";
+
     private final UserRepository userRepository;
 
     private final StringRedisTemplate redisTemplate;
@@ -84,50 +86,20 @@ public class UserServiceImpl implements UserService {
     public String getRegisterPage(String username) {
         String token = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set(REGISTER_PREFIX + token, username, 1, TimeUnit.HOURS);
-        if (StringUtils.hasLength(username)) {
-            return pagePrefix + token + "?username=" + username;
-        }
-        return pagePrefix + token;
+        return StringUtils.hasLength(username) ? pagePrefix + token + "?username=" + username : pagePrefix + token;
     }
 
     @Override
     public SseEmitter imageUpload(String token, MultipartFile file) {
-        Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
-        if (Boolean.FALSE.equals(exist)) {
-            throw new MissException(NO_AUTH.getMsg());
-        }
-        byte[] imageBytes;
-        try {
-            imageBytes = file.getBytes();
-        } catch (IOException e) {
-            throw new MissException(e.getMessage());
-        }
-        if (imageBytes.length == 0) {
-            throw new MissException(UPLOAD_MISS.getMsg());
-        }
-        var sseEmitter = new SseEmitter();
+        validateToken(token);
+        byte[] imageBytes = getImageBytes(file);
+        SseEmitter sseEmitter = new SseEmitter();
 
         taskExecutor.execute(() -> {
-            String uuid = UUID.randomUUID().toString();
-            String originalFilename = file.getOriginalFilename();
-            originalFilename = Optional.ofNullable(originalFilename)
-                    .orElseGet(() -> UUID.randomUUID().toString())
-                    .replace(" ", "");
-            String objectName = "avatar/" + uuid + "-" + originalFilename;
-
-            Map<String, String> headers = new HashMap<>();
-            String gmtDate = OssSignUtils.getGMTDate();
-            headers.put(HttpHeaders.DATE, gmtDate);
-            headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.PUT.name(), "image/jpg", accessKeyId, accessKeySecret, bucketName));
-            headers.put(HttpHeaders.CACHE_CONTROL, "no-cache");
-            headers.put(HttpHeaders.CONTENT_TYPE, "image/jpg");
+            String objectName = getObjectName(file);
+            Map<String, String> headers = getHeaders(objectName, HttpMethod.PUT.name(), IMAGE_JPG);
             ossHttpService.putOssObject(objectName, imageBytes, headers);
-            try {
-                sseEmitter.send(baseUrl + "/" + objectName, MediaType.TEXT_PLAIN);
-                sseEmitter.complete();
-            } catch (IOException e) {
-                sseEmitter.completeWithError(e);
-            }
+            sendSseEmitter(sseEmitter, baseUrl + "/" + objectName);
         });
 
         return sseEmitter;
@@ -135,16 +107,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void imageDelete(String token, String url) {
-        Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
-        if (Boolean.FALSE.equals(exist)) {
-            throw new MissException(NO_AUTH.getMsg());
-        }
+        validateToken(token);
         taskExecutor.execute(() -> {
             String objectName = url.replace(baseUrl + "/", "");
-            Map<String, String> headers = new HashMap<>();
-            String gmtDate = OssSignUtils.getGMTDate();
-            headers.put(HttpHeaders.DATE, gmtDate);
-            headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, HttpMethod.DELETE.name(), "", accessKeyId, accessKeySecret, bucketName));
+            Map<String, String> headers = getHeaders(objectName, HttpMethod.DELETE.name(), "");
             ossHttpService.deleteOssObject(objectName, headers);
         });
     }
@@ -158,17 +124,7 @@ public class UserServiceImpl implements UserService {
     public void download(HttpServletResponse response) {
         List<UserEntity> userEntities = userRepository.findAll();
         String users = SQLUtils.entityToInsertSQL(userEntities, Const.USER_TABLE);
-        try {
-            byte[] data = users.getBytes();
-            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-            ServletOutputStream outputStream = response.getOutputStream();
-            outputStream.write(data);
-            outputStream.flush();
-            outputStream.close();
-        } catch (IOException e) {
-            throw new MissException(e.getMessage());
-        }
+        writeResponse(response, users);
     }
 
     @Override
@@ -202,5 +158,65 @@ public class UserServiceImpl implements UserService {
     @Override
     public void unlockUser() {
         userRepository.unlockUser();
+    }
+
+    private void validateToken(String token) {
+        Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
+        if (Boolean.FALSE.equals(exist)) {
+            throw new MissException(NO_AUTH.getMsg());
+        }
+    }
+
+    private byte[] getImageBytes(MultipartFile file) {
+        try {
+            byte[] imageBytes = file.getBytes();
+            if (imageBytes.length == 0) {
+                throw new MissException(UPLOAD_MISS.getMsg());
+            }
+            return imageBytes;
+        } catch (IOException e) {
+            throw new MissException(e.getMessage());
+        }
+    }
+
+    private String getObjectName(MultipartFile file) {
+        String uuid = UUID.randomUUID().toString();
+        String originalFilename = Optional.ofNullable(file.getOriginalFilename())
+                .orElseGet(() -> UUID.randomUUID().toString())
+                .replace(" ", "");
+        return "avatar/" + uuid + "-" + originalFilename;
+    }
+
+    private Map<String, String> getHeaders(String objectName, String method, String contentType) {
+        Map<String, String> headers = new HashMap<>();
+        String gmtDate = OssSignUtils.getGMTDate();
+        headers.put(HttpHeaders.DATE, gmtDate);
+        headers.put(HttpHeaders.AUTHORIZATION, OssSignUtils.getAuthorization(objectName, method, contentType, accessKeyId, accessKeySecret, bucketName));
+        headers.put(HttpHeaders.CACHE_CONTROL, "no-cache");
+        headers.put(HttpHeaders.CONTENT_TYPE, contentType);
+        return headers;
+    }
+
+    private void sendSseEmitter(SseEmitter sseEmitter, String url) {
+        try {
+            sseEmitter.send(url, MediaType.TEXT_PLAIN);
+            sseEmitter.complete();
+        } catch (IOException e) {
+            sseEmitter.completeWithError(e);
+        }
+    }
+
+    private void writeResponse(HttpServletResponse response, String data) {
+        try {
+            byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
+            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            ServletOutputStream outputStream = response.getOutputStream();
+            outputStream.write(bytes);
+            outputStream.flush();
+            outputStream.close();
+        } catch (IOException e) {
+            throw new MissException(e.getMessage());
+        }
     }
 }

@@ -44,29 +44,33 @@ public abstract sealed class BlogCacheEvictHandler permits
     public void handle(BlogOperateMessage message, Channel channel, Message msg) {
         long deliveryTag = msg.getMessageProperties().getDeliveryTag();
         try {
-            Long blogId = message.blogId();
-            Integer year = message.year();
-            BlogEntityRpcDto blogEntity;
-            if (Objects.equals(message.typeEnum(), BlogOperateEnum.REMOVE)) {
-                blogEntity = BlogEntityRpcDto.builder()
-                        .id(blogId)
-                        .created(LocalDateTime.of(year, 1, 1, 0, 0, 0))
-                        .build();
-            } else {
-                blogEntity = blogHttpServiceWrapper.findById(blogId, year);
-            }
+            BlogEntityRpcDto blogEntity = getBlogEntity(message);
             redisProcess(blogEntity);
-
-            //手动签收消息
-            //false代表不是批量签收模式
             channel.basicAck(deliveryTag, false);
         } catch (Exception e) {
             log.error("consume failure", e);
-            try {
-                channel.basicNack(deliveryTag, false, true);
-            } catch (IOException ex) {
-                throw new MissException(ex.getMessage());
-            }
+            handleNack(channel, deliveryTag, e);
+        }
+    }
+
+    private BlogEntityRpcDto getBlogEntity(BlogOperateMessage message) {
+        Long blogId = message.blogId();
+        Integer year = message.year();
+        if (Objects.equals(message.typeEnum(), BlogOperateEnum.REMOVE)) {
+            return BlogEntityRpcDto.builder()
+                    .id(blogId)
+                    .created(LocalDateTime.of(year, 1, 1, 0, 0, 0))
+                    .build();
+        } else {
+            return blogHttpServiceWrapper.findById(blogId);
+        }
+    }
+
+    private void handleNack(Channel channel, long deliveryTag, Exception e) {
+        try {
+            channel.basicNack(deliveryTag, false, true);
+        } catch (IOException ex) {
+            throw new MissException(ex.getMessage());
         }
     }
 }

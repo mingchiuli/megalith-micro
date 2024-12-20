@@ -1,6 +1,7 @@
 package wiki.chiu.micro.search.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import wiki.chiu.micro.common.interceptor.HttpInterceptor;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.BlogHttpService;
 import org.springframework.context.annotation.Bean;

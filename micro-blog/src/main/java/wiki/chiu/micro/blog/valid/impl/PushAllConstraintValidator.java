@@ -25,6 +25,11 @@ public class PushAllConstraintValidator implements ConstraintValidator<PushAllVa
             .map(SensitiveTypeEnum::getCode)
             .collect(Collectors.toSet());
 
+    private static final Set<Integer> STATUS_SET = Arrays.stream(BlogStatusEnum.values())
+            .map(BlogStatusEnum::getCode)
+            .collect(Collectors.toSet());
+
+
     @Override
     public boolean isValid(BlogEditPushAllReq blog, ConstraintValidatorContext context) {
 
@@ -46,11 +51,8 @@ public class PushAllConstraintValidator implements ConstraintValidator<PushAllVa
 
         Integer status = blog.status();
 
-        Set<Integer> statusSet = Arrays.stream(BlogStatusEnum.values())
-                .map(BlogStatusEnum::getCode)
-                .collect(Collectors.toSet());
-        
-        if (!statusSet.contains(status)) {
+
+        if (!STATUS_SET.contains(status)) {
             return false;
         }
 

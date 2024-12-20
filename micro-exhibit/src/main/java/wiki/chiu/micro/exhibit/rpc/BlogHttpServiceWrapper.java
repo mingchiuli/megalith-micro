@@ -3,7 +3,6 @@ package wiki.chiu.micro.exhibit.rpc;
 
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
 import wiki.chiu.micro.common.dto.BlogSensitiveContentRpcDto;
-import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.rpc.BlogHttpService;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * BlogHttpServiceWrapper
@@ -25,52 +23,23 @@ public class BlogHttpServiceWrapper {
         this.blogHttpService = blogHttpService;
     }
 
-    public BlogEntityRpcDto findById(Long blogId, Integer year) {
-        Result<BlogEntityRpcDto> result = blogHttpService.findById(blogId);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-
-        BlogEntityRpcDto data = result.data();
-        if (Objects.isNull(data)) {
-            return BlogEntityRpcDto.builder()
-                    .id(blogId)
-                    .created(LocalDateTime.of(year, 1, 1, 1, 1, 1))
-                    .build();
-        }
-        return data;
-    }
-
     public BlogEntityRpcDto findById(Long blogId) {
-        Result<BlogEntityRpcDto> result = blogHttpService.findById(blogId);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return Result.handleResult(() -> blogHttpService.findById(blogId));
     }
 
     public List<BlogEntityRpcDto> findAllById(List<Long> ids) {
-        Result<List<BlogEntityRpcDto>> result = blogHttpService.findAllById(ids);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return Result.handleResult(() -> blogHttpService.findAllById(ids));
+
     }
 
     public List<Integer> getYears() {
-        Result<List<Integer>> result = blogHttpService.getYears();
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return Result.handleResult(blogHttpService::getYears);
+
     }
 
     public Long count() {
-        Result<Long> result = blogHttpService.count();
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return Result.handleResult(blogHttpService::count);
+
     }
 
     public void setReadCount(Long id) {
@@ -78,59 +47,38 @@ public class BlogHttpServiceWrapper {
     }
 
     public Integer findStatusById(Long blogId) {
-        Result<Integer> result = blogHttpService.findStatusById(blogId);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return Result.handleResult(() -> blogHttpService.findStatusById(blogId));
+
     }
 
     public PageAdapter<BlogEntityRpcDto> findPage(Integer pageNo, Integer pageSize) {
-        Result<PageAdapter<BlogEntityRpcDto>> result = blogHttpService.findPage(pageNo, pageSize);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return Result.handleResult(() -> blogHttpService.findPage(pageNo, pageSize));
+
     }
 
     public PageAdapter<BlogEntityRpcDto> findPageByCreatedBetween(Integer pageNo, Integer pageSize, LocalDateTime start, LocalDateTime end) {
-        Result<PageAdapter<BlogEntityRpcDto>> result = blogHttpService.findPageByCreatedBetween(pageNo, pageSize, start, end);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return Result.handleResult(() -> blogHttpService.findPageByCreatedBetween(pageNo, pageSize, start, end));
+
     }
 
     public Long countByCreatedBetween(LocalDateTime start, LocalDateTime end) {
-        Result<Long> result = blogHttpService.countByCreatedBetween(start, end);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return Result.handleResult(() -> blogHttpService.countByCreatedBetween(start, end));
+
     }
 
     public long countByCreatedGreaterThanEqual(LocalDateTime created) {
-        Result<Long> result = blogHttpService.countByCreatedGreaterThanEqual(created);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return Result.handleResult(() -> blogHttpService.countByCreatedGreaterThanEqual(created));
+
     }
 
     public long getPageCountYear(LocalDateTime created, LocalDateTime start, LocalDateTime end) {
-        Result<Long> result = blogHttpService.getPageCountYear(created, start, end);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return Result.handleResult(() -> blogHttpService.getPageCountYear(created, start, end));
+
     }
 
     public BlogSensitiveContentRpcDto findSensitiveByBlogId(Long blogId) {
-        Result<BlogSensitiveContentRpcDto> result = blogHttpService.findSensitiveByBlogId(blogId);
-        if (result.code() != 200) {
-            throw new MissException(result.msg());
-        }
-        return result.data();
+        return Result.handleResult(() -> blogHttpService.findSensitiveByBlogId(blogId));
+
     }
 
 }

@@ -70,40 +70,22 @@ public class AuthorityServiceImpl implements AuthorityService {
         return AuthorityVoConvertor.convert(authorityEntity);
     }
 
+
     @Override
     public void saveOrUpdate(AuthorityEntityReq req) {
-
-        Optional<Long> id = req.id();
-        AuthorityEntity authorityEntity;
-
-        if (id.isPresent()) {
-            authorityEntity = authorityRepository.findById(id.get())
-                    .orElseThrow(() -> new MissException(NO_FOUND));
-        } else {
-            authorityEntity = new AuthorityEntity();
-        }
+        AuthorityEntity authorityEntity = req.id()
+                .flatMap(authorityRepository::findById)
+                .orElseGet(AuthorityEntity::new);
 
         AuthorityEntityConvertor.convert(req, authorityEntity);
         authorityRepository.save(authorityEntity);
-
-        //全部权限
-        taskExecutor.execute(() -> {
-            List<String> allRoleCodes = roleRepository.findAllCodes();
-            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.AUTH.getType());
-            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-        });
+        executeDelAllRoleAuthTask();
     }
 
     @Override
     public void deleteAuthorities(List<Long> ids) {
-
         authorityRepository.deleteAllById(ids);
-        //全部权限
-        taskExecutor.execute(() -> {
-            List<String> allRoleCodes = roleRepository.findAllCodes();
-            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.AUTH.getType());
-            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-        });
+        executeDelAllRoleAuthTask();
     }
 
     @Override
@@ -115,5 +97,13 @@ public class AuthorityServiceImpl implements AuthorityService {
                 SQLUtils.entityToInsertSQL(authorityEntities, Const.AUTHORITY_TABLE),
                 SQLUtils.entityToInsertSQL(roleAuthorityEntities, Const.ROLE_AUTHORITY_TABLE))
                 .getBytes();
+    }
+
+    private void executeDelAllRoleAuthTask() {
+        taskExecutor.execute(() -> {
+            List<String> allRoleCodes = roleRepository.findAllCodes();
+            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.AUTH.getType());
+            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+        });
     }
 }

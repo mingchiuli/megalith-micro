@@ -26,11 +26,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_NOT_EXIST;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 
 
 /**
@@ -39,6 +37,8 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
  */
 @Service
 public class MenuServiceImpl implements MenuService {
+
+    private static final Integer HIDE_STATUS = StatusEnum.HIDE.getCode();
 
     private final MenuRepository menuRepository;
 
@@ -66,33 +66,30 @@ public class MenuServiceImpl implements MenuService {
         return MenuEntityVoConvertor.convert(menuEntity);
     }
 
+
     @Override
     public void saveOrUpdate(MenuEntityReq menu) {
-        Optional<Long> menuId = menu.menuId();
-        MenuEntity menuEntity;
-
-        if (menuId.isPresent()) {
-            menuEntity = menuRepository.findById(menuId.get())
-                    .orElseThrow(() -> new MissException(NO_FOUND));
-        } else {
-            menuEntity = MenuEntityConvertor.convert(menu);
-        }
-
+        MenuEntity menuEntity = menu.menuId()
+                .flatMap(menuRepository::findById)
+                .orElseGet(MenuEntity::new);
         MenuEntityConvertor.convert(menu, menuEntity);
 
-        if (StatusEnum.HIDE.getCode().equals(menu.status()) && menuId.isPresent()) {
+        if (HIDE_STATUS.equals(menu.status()) && menu.menuId().isPresent()) {
             List<MenuEntity> menuEntities = new ArrayList<>();
             menuEntities.add(menuEntity);
-            findTargetChildrenMenuId(menuId.get(), menuEntities);
+            findTargetChildrenMenuId(menu.menuId().get(), menuEntities);
             menuRepository.saveAll(menuEntities);
         } else {
             menuRepository.save(menuEntity);
         }
 
+        executeDelAllRoleMenuTask(AuthMenuOperateEnum.MENU.getType());
+    }
+
+    private void executeDelAllRoleMenuTask(Integer type) {
         taskExecutor.execute(() -> {
-            // 全部按钮和菜单
             List<String> allRoleCodes = roleRepository.findAllCodes();
-            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.MENU.getType());
+            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, type);
             applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
         });
     }
