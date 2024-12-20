@@ -2,11 +2,11 @@ package wiki.chiu.micro.websocket.rpc;
 
 import wiki.chiu.micro.common.dto.AuthRpcDto;
 import wiki.chiu.micro.common.dto.AuthorityRouteRpcDto;
+import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.req.AuthorityRouteReq;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import org.springframework.stereotype.Component;
 
-import static wiki.chiu.micro.common.lang.Result.handleResult;
 
 
 @Component
@@ -19,11 +19,11 @@ public class AuthHttpServiceWrapper {
     }
 
     public AuthRpcDto getAuthentication(String token) {
-        return handleResult(() -> authHttpService.getAuthentication(token));
+        return Result.handleResult(() -> authHttpService.getAuthentication(token));
     }
 
     public AuthorityRouteRpcDto getAuthorityRoute(AuthorityRouteReq req, String token) {
-        return handleResult(() -> authHttpService.getAuthorityRoute(req, token));
+        return Result.handleResult(() -> authHttpService.getAuthorityRoute(req, token));
     }
 
 

@@ -1,10 +1,10 @@
 package wiki.chiu.micro.search.rpc;
 
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
+import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.rpc.BlogHttpService;
 import org.springframework.stereotype.Component;
 
-import static wiki.chiu.micro.common.lang.Result.handleResult;
 
 @Component
 public class BlogHttpServiceWrapper {
@@ -16,6 +16,6 @@ public class BlogHttpServiceWrapper {
     }
 
     public BlogEntityRpcDto findById(Long blogId) {
-        return handleResult(() -> blogHttpService.findById(blogId));
+        return Result.handleResult(() -> blogHttpService.findById(blogId));
     }
 }

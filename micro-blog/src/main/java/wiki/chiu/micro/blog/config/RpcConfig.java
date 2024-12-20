@@ -1,5 +1,6 @@
 package wiki.chiu.micro.blog.config;
 
+import wiki.chiu.micro.common.interceptor.HttpInterceptor;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.OssHttpService;
 import wiki.chiu.micro.common.rpc.SearchHttpService;
