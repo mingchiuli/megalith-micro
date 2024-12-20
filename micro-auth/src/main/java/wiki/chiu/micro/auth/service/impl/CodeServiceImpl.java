@@ -77,37 +77,56 @@ public class CodeServiceImpl implements CodeService {
 
     @Override
     public void createEmailCode(String loginEmail) {
-        userHttpServiceWrapper.findByEmail(loginEmail);
+        validateUserEmail(loginEmail);
         String key = Const.EMAIL_KEY + loginEmail;
-        boolean res = Boolean.FALSE.equals(redissonClient.getBucket(key).isExists());
-        if (!res) {
-            throw new CodeException(CODE_EXISTED);
-        }
+        checkCodeExistence(key);
 
         Object code = CodeUtils.create(Const.EMAIL_CODE);
-        var simpMsg = new SimpleMailMessage();
-        simpMsg.setFrom(from);
-        simpMsg.setTo(loginEmail);
-        simpMsg.setSubject("login code");
-        simpMsg.setText(code.toString());
-        javaMailSender.send(simpMsg);
-        redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.VALUE, Collections.singletonList(key), "code", code.toString(), "try_count", "0", "120");
+        sendEmail(loginEmail, code.toString());
+        saveCodeToRedis(key, code.toString());
     }
-
 
     @Override
     public void createSMSCode(String loginSMS) {
-        userHttpServiceWrapper.findByPhone(loginSMS);
+        validateUserPhone(loginSMS);
         String key = Const.PHONE_KEY + loginSMS;
-        boolean res = Boolean.FALSE.equals(redissonClient.getBucket(key).isExists());
-        if (!res) {
-            throw new CodeException(CODE_EXISTED);
-        }
+        checkCodeExistence(key);
 
         Object code = CodeUtils.create(SMS_CODE);
+        sendSms(loginSMS, code);
+        saveCodeToRedis(key, code.toString());
+    }
+
+    private void validateUserEmail(String email) {
+        userHttpServiceWrapper.findByEmail(email);
+    }
+
+    private void validateUserPhone(String phone) {
+        userHttpServiceWrapper.findByPhone(phone);
+    }
+
+    private void checkCodeExistence(String key) {
+        if (Boolean.TRUE.equals(redissonClient.getBucket(key).isExists())) {
+            throw new CodeException(CODE_EXISTED);
+        }
+    }
+
+    private void sendEmail(String to, String code) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(to);
+        message.setSubject("Login Code");
+        message.setText(code);
+        javaMailSender.send(message);
+    }
+
+    private void sendSms(String phone, Object code) {
         Map<String, Object> codeMap = Collections.singletonMap("code", code);
-        String signature = SmsUtils.getSignature(loginSMS, JsonUtils.writeValueAsString(objectMapper, codeMap), accessKeyId, accessKeySecret);
+        String signature = SmsUtils.getSignature(phone, JsonUtils.writeValueAsString(objectMapper, codeMap), accessKeyId, accessKeySecret);
         smsHttpService.sendSms("?Signature=" + signature);
-        redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.VALUE, Collections.singletonList(key), "code", code.toString(), "try_count", "0", "120");
+    }
+
+    private void saveCodeToRedis(String key, String code) {
+        redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.VALUE, Collections.singletonList(key), "code", code, "try_count", "0", "120");
     }
 }

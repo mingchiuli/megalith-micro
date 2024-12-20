@@ -38,7 +38,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public Map<String, String> refreshToken(Long userId) {
         List<String> roles = userHttpServiceWrapper.findRoleCodesByUserId(userId);
-        String accessToken = tokenUtils.generateToken(userId.toString(), roles, expire);
+        String accessToken = generateAccessToken(userId, roles);
         return Collections.singletonMap("accessToken", TOKEN_PREFIX + accessToken);
     }
 
@@ -46,5 +46,9 @@ public class TokenServiceImpl implements TokenService {
     public UserInfoVo userinfo(Long userId) {
         UserEntityRpcDto userEntity = userHttpServiceWrapper.findById(userId);
         return UserInfoVoConvertor.convert(userEntity);
+    }
+
+    private String generateAccessToken(Long userId, List<String> roles) {
+        return tokenUtils.generateToken(userId.toString(), roles, expire);
     }
 }

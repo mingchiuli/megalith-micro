@@ -70,27 +70,26 @@ public class AuthServiceImpl implements AuthService {
         List<MenuDto> menus = new ArrayList<>();
         List<ButtonDto> buttons = new ArrayList<>();
 
-        roles.forEach(role -> {
-            MenusAndButtonsDto partDto = authWrapper.getCurrentUserNav(role);
-            menus.addAll(partDto.menus());
-            buttons.addAll(partDto.buttons());
-        });
+        roles.stream()
+                .map(authWrapper::getCurrentUserNav)
+                .forEach(partDto -> {
+                    menus.addAll(partDto.menus());
+                    buttons.addAll(partDto.buttons());
+                });
 
-        List<MenuDisplayDto> menuEntities = MenuDisplayDtoConvertor.convert(menus);
-        List<MenuDisplayDto> displayDtos = MenuDisplayDtoConvertor.buildTreeMenu(menuEntities);
-        List<MenuWithChildDto> menuDtos = MenuWithChildDtoConvertor.convert(displayDtos);
-        List<ButtonDto> buttonDtos = ButtonVoConvertor.convert(buttons);
-
-        return MenusAndButtonsVoConvertor.convert(buttonDtos, menuDtos);
+        return MenusAndButtonsVoConvertor.convert(
+                ButtonVoConvertor.convert(buttons),
+                MenuWithChildDtoConvertor.convert(
+                        MenuDisplayDtoConvertor.buildTreeMenu(
+                                MenuDisplayDtoConvertor.convert(menus)
+                        )
+                )
+        );
     }
 
     @Override
     public AuthorityRouteVo route(AuthorityRouteReq req, String token) {
-        //record ip
-        String ipAddr = req.ipAddr();
-        if (StringUtils.hasLength(ipAddr)) {
-            taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT), ipAddr));
-        }
+        recordIp(req.ipAddr());
 
         Set<String> authorities;
         try {
@@ -121,6 +120,12 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
+    private void recordIp(String ipAddr) {
+        if (StringUtils.hasLength(ipAddr)) {
+            taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT), ipAddr));
+        }
+    }
+
     private boolean routeMatch(String routePattern, String targetMethod, String routeMapping, String method) {
         if (!Objects.equals(targetMethod, method)) {
             return false;
@@ -133,9 +138,7 @@ public class AuthServiceImpl implements AuthService {
         if (routePattern.endsWith("/**")) {
             String prefix = routePattern.replace("/**", "");
 
-            if (routeMapping.startsWith(prefix)) {
-                return true;
-            }
+            return routeMapping.startsWith(prefix);
         }
 
         if (routePattern.endsWith("/*")) {
@@ -149,22 +152,18 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthDto getAuthDto(String token) throws AuthException {
-        long userId;
-        List<String> rawRoles;
-        List<String> authorities;
-
         if (!StringUtils.hasLength(token)) {
-            userId = 0L;
-            rawRoles = Collections.emptyList();
-            authorities = Collections.emptyList();
-        } else {
-            String jwt = token.substring(TOKEN_PREFIX.length());
-            Claims claims = tokenUtils.getVerifierByToken(jwt);
-            userId = Long.parseLong(claims.userId());
-            List<String> roles = claims.roles();
-            rawRoles = getRawRoleCodes(roles);
-            authorities = getAuthorities(userId, rawRoles);
+            return AuthDto.builder()
+                    .userId(0L)
+                    .roles(Collections.emptyList())
+                    .authorities(Collections.emptyList())
+                    .build();
         }
+
+        Claims claims = tokenUtils.getVerifierByToken(token.substring(TOKEN_PREFIX.length()));
+        long userId = Long.parseLong(claims.userId());
+        List<String> rawRoles = getRawRoleCodes(claims.roles());
+        List<String> authorities = getAuthorities(userId, rawRoles);
 
         return AuthDto.builder()
                 .userId(userId)
@@ -207,15 +206,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private List<String> getAuthorities(Long userId, List<String> rawRoles) throws AuthException {
-        boolean mark = redissonClient.getBucket(BLOCK_USER + userId).isExists();
-
-        if (mark) {
+        if (redissonClient.getBucket(BLOCK_USER + userId).isExists()) {
             throw new AuthException(RE_LOGIN.getMsg());
         }
 
-        List<String> authorities = new ArrayList<>();
-        rawRoles.forEach(role -> authorities.addAll(authWrapper.getAuthoritiesByRoleCode(role)));
-        return authorities.stream()
+        return rawRoles.stream()
+                .map(authWrapper::getAuthoritiesByRoleCode)
+                .flatMap(Collection::stream)
                 .distinct()
                 .toList();
     }

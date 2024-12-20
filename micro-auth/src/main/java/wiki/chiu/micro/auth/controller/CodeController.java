@@ -1,6 +1,5 @@
 package wiki.chiu.micro.auth.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import wiki.chiu.micro.auth.service.CodeService;
 import wiki.chiu.micro.common.lang.Result;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,8 +7,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * @author mingchiuli
@@ -31,8 +28,7 @@ public class CodeController {
     }
 
     @GetMapping("/sms")
-    public Result<Void> createSmsCode(@RequestParam(value = "loginName") String loginSMS) throws NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
-        codeService.createSMSCode(loginSMS);
-        return Result.success();
+    public Result<Void> createSmsCode(@RequestParam(value = "loginName") String loginSMS) {
+        return Result.success(() -> codeService.createSMSCode(loginSMS));
     }
 }

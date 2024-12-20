@@ -73,20 +73,17 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
 
     @Override
     public void authProcess(UserDetails user, Authentication authentication) {
-
         Optional.ofNullable(authentication.getCredentials()).ifPresentOrElse(credentials -> {
             String presentedPassword = credentials.toString();
             if (!passwordEncoder.matches(presentedPassword, user.getPassword())) {
-                String username = user.getUsername();
-                passwordNotMatchProcess(username);
-                throw new BadCredentialsException(PASSWORD_MISMATCH.getMsg());
+                handlePasswordMismatch(user.getUsername());
             }
         }, () -> {
             throw new BadCredentialsException(PASSWORD_MISS.getMsg());
         });
     }
 
-    private void passwordNotMatchProcess(String username) {
+    private void handlePasswordMismatch(String username) {
         String prefix = Const.PASSWORD_KEY + username;
         List<String> loginFailureTimeStampRecords = redissonClient.<String>getList(prefix).range(0, -1);
         int len = loginFailureTimeStampRecords.size();
@@ -107,5 +104,6 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
         }
 
         redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.VALUE, Collections.singletonList(prefix), String.valueOf(l), "-1", String.valueOf(System.currentTimeMillis()), String.valueOf(intervalTime / 1000));
+        throw new BadCredentialsException(PASSWORD_MISMATCH.getMsg());
     }
 }

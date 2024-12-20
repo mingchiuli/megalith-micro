@@ -17,6 +17,7 @@ import wiki.chiu.micro.common.lang.Const;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -47,6 +48,16 @@ public class UserRedisCacheEvictMessageListener {
         AuthMenuOperateEnum operateEnum = AuthMenuOperateEnum.of(message.type());
         List<String> roles = message.roles();
         HashSet<String> keys = new HashSet<>();
+
+        keys.addAll(getMenusAndButtonsKeys(roles, operateEnum));
+
+        keys.addAll(getAuthKeys(roles, operateEnum));
+
+        cacheEvictHandler.evictCache(keys);
+    }
+
+    private Set<String> getMenusAndButtonsKeys(List<String> roles, AuthMenuOperateEnum operateEnum) {
+        Set<String> keys = new HashSet<>();
         if (AuthMenuOperateEnum.MENU.equals(operateEnum) || AuthMenuOperateEnum.AUTH_AND_MENU.equals(operateEnum)) {
             Method method;
             try {
@@ -57,9 +68,12 @@ public class UserRedisCacheEvictMessageListener {
             } catch (NoSuchMethodException e) {
                 log.error("some error", e);
             }
-
         }
+        return keys;
+    }
 
+    private Set<String> getAuthKeys(List<String> roles, AuthMenuOperateEnum operateEnum) {
+        Set<String> keys = new HashSet<>();
         if (AuthMenuOperateEnum.AUTH.equals(operateEnum) || AuthMenuOperateEnum.AUTH_AND_MENU.equals(operateEnum)) {
             Method getAuthoritiesByRoleCodeMethod;
             try {
@@ -79,7 +93,6 @@ public class UserRedisCacheEvictMessageListener {
                 log.error("some error", e);
             }
         }
-
-        cacheEvictHandler.evictCache(keys);
+        return keys;
     }
 }
