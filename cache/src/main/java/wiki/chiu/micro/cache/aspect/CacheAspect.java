@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Aspect
@@ -31,14 +32,13 @@ public class CacheAspect {
 
     private static final Logger log = LoggerFactory.getLogger(CacheAspect.class);
 
+    private static final String LOCK = "megalithRemoteLock:";
+    private static final long LOCK_TIMEOUT = 5000;
+
     private final RedissonClient redissonClient;
-
     private final ObjectMapper objectMapper;
-
     private final CommonCacheKeyGenerator commonCacheKeyGenerator;
-
     private final com.github.benmanes.caffeine.cache.Cache<String, Object> localCache;
-
     private final com.github.benmanes.caffeine.cache.Cache<String, ReentrantLock> localLockMap;
 
     public CacheAspect(RedissonClient redissonClient, ObjectMapper objectMapper, CommonCacheKeyGenerator commonCacheKeyGenerator, com.github.benmanes.caffeine.cache.Cache<String, Object> localCache, com.github.benmanes.caffeine.cache.Cache<String, ReentrantLock> localLockMap) {
@@ -53,108 +53,97 @@ public class CacheAspect {
     public void pt() {
     }
 
-    private static final String LOCK = "megalithRemoteLock:";
-
     @Around("pt()")
     public Object around(ProceedingJoinPoint pjp) throws Throwable {
         MethodSignature signature = (MethodSignature) pjp.getSignature();
-        // 类名
-        // 调用的方法名
-        Object[] args = pjp.getArgs();
-
-        // 参数
         Method method = signature.getMethod();
+        Object[] args = pjp.getArgs();
         Type genericReturnType = method.getGenericReturnType();
-
         JavaType javaType = objectMapper.getTypeFactory().constructType(genericReturnType);
-
         String cacheKey = commonCacheKeyGenerator.generateKey(method, args);
 
-        Object localCacheObj = localCache.getIfPresent(cacheKey);
-
+        Object localCacheObj = getLocalCache(cacheKey);
         if (localCacheObj != null) {
             return localCacheObj;
         }
 
         ReentrantLock localLock = localLockMap.get(cacheKey, _ -> new ReentrantLock());
-
-        try {
-            boolean b = localLock.tryLock(5000, TimeUnit.MILLISECONDS);
-            if (Boolean.FALSE.equals(b)) {
-                return pjp.proceed();
-            }
-        } catch (InterruptedException e) {
+        if (!tryLock(localLock)) {
             return pjp.proceed();
         }
 
         try {
-            localCacheObj = localCache.getIfPresent(cacheKey);
+            localCacheObj = getLocalCache(cacheKey);
             if (localCacheObj != null) {
                 return localCacheObj;
             }
 
-            String remoteCacheStr;
-            RBucket<String> bucket = redissonClient.getBucket(cacheKey);
-            // 防止redis挂了以后db也访问不了
-            try {
-                remoteCacheStr = bucket.get();
-            } catch (NestedRuntimeException e) {
-                return pjp.proceed();
-            }
-
+            String remoteCacheStr = getRemoteCache(cacheKey);
             if (StringUtils.hasLength(remoteCacheStr)) {
-                try {
-                    Object remoteCacheObj = objectMapper.readValue(remoteCacheStr, javaType);
-                    localCache.put(cacheKey, remoteCacheObj);
-                    return remoteCacheObj;
-                } catch (JsonProcessingException e) {
-                    log.error(e.getMessage());
-                    return pjp.proceed();
-                }
+                return parseRemoteCache(remoteCacheStr, javaType, cacheKey);
             }
 
-            String lock = LOCK + cacheKey;
-            // 已经线程安全
-            RLock remoteLock = redissonClient.getLock(lock);
-
-            try {
-                boolean b = remoteLock.tryLock(5000, TimeUnit.MILLISECONDS);
-                if (Boolean.FALSE.equals(b)) {
-                    return pjp.proceed();
-                }
-            } catch (InterruptedException e) {
-                return pjp.proceed();
-            }
-
-            try {
-                // 双重检查
-                String r = bucket.get();
-
-                if (StringUtils.hasLength(r)) {
-                    try {
-                        Object value = objectMapper.readValue(r, javaType);
-                        localCache.put(cacheKey, value);
-                        return value;
-                    } catch (JsonProcessingException e) {
-                        return pjp.proceed();
-                    }
-                }
-                // 执行目标方法
-                Object proceed = pjp.proceed();
-
-                Cache annotation = method.getAnnotation(Cache.class);
-                try {
-                    bucket.set(objectMapper.writeValueAsString(proceed), Duration.ofMinutes(annotation.expire()));
-                } catch (JsonProcessingException e) {
-                    return proceed;
-                }
-                localCache.put(cacheKey, proceed);
-                return proceed;
-            } finally {
-                remoteLock.unlock();
-            }
+            return handleCacheMiss(pjp, method, cacheKey);
         } finally {
             localLock.unlock();
+        }
+    }
+
+    private Object getLocalCache(String cacheKey) {
+        return localCache.getIfPresent(cacheKey);
+    }
+
+    private boolean tryLock(Lock lock) {
+        try {
+            return lock.tryLock(LOCK_TIMEOUT, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            return false;
+        }
+    }
+
+    private String getRemoteCache(String cacheKey) {
+        RBucket<String> bucket = redissonClient.getBucket(cacheKey);
+        try {
+            return bucket.get();
+        } catch (NestedRuntimeException e) {
+            return "";
+        }
+    }
+
+    private Object parseRemoteCache(String remoteCacheStr, JavaType javaType, String cacheKey) throws JsonProcessingException {
+        Object remoteCacheObj = objectMapper.readValue(remoteCacheStr, javaType);
+        localCache.put(cacheKey, remoteCacheObj);
+        return remoteCacheObj;
+    }
+
+    private Object handleCacheMiss(ProceedingJoinPoint pjp, Method method, String cacheKey) throws Throwable {
+        RLock remoteLock = redissonClient.getLock(LOCK + cacheKey);
+        if (!tryLock(remoteLock)) {
+            return pjp.proceed();
+        }
+
+        try {
+            String remoteCacheStr = getRemoteCache(cacheKey);
+            if (StringUtils.hasLength(remoteCacheStr)) {
+                return parseRemoteCache(remoteCacheStr, objectMapper.getTypeFactory().constructType(method.getGenericReturnType()), cacheKey);
+            }
+
+            Object proceed = pjp.proceed();
+            Cache annotation = method.getAnnotation(Cache.class);
+            cacheResult(cacheKey, proceed, annotation.expire());
+            return proceed;
+        } finally {
+            remoteLock.unlock();
+        }
+    }
+
+    private void cacheResult(String cacheKey, Object result, int expireMinutes) {
+        try {
+            String resultStr = objectMapper.writeValueAsString(result);
+            redissonClient.getBucket(cacheKey).set(resultStr, Duration.ofMinutes(expireMinutes));
+            localCache.put(cacheKey, result);
+        } catch (JsonProcessingException e) {
+            log.error("Error caching result", e);
         }
     }
 }

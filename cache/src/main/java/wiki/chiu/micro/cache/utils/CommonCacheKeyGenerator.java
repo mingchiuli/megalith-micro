@@ -16,6 +16,10 @@ import java.util.Objects;
  */
 public class CommonCacheKeyGenerator {
 
+    private static final String NULL_PARAM = ":null";
+    private static final String PARAM_SEPARATOR = ":";
+    private static final String EMPTY_STRING = "";
+
     private final ObjectMapper objectMapper;
 
     public CommonCacheKeyGenerator(ObjectMapper objectMapper) {
@@ -23,39 +27,39 @@ public class CommonCacheKeyGenerator {
     }
 
     public String generateKey(Method method, Object... args) {
-
-        Class<?> declaringType = method.getDeclaringClass();
+        String className = method.getDeclaringClass().getSimpleName();
         String methodName = method.getName();
-
-        var params = new StringBuilder();
-        for (Object arg : args) {
-            if (Objects.nonNull(arg)) {
-                params.append(":");
-                if (arg instanceof String) {
-                    params.append(arg);
-                } else {
-                    String s;
-                    try {
-                        s = objectMapper.writeValueAsString(arg);
-                    } catch (JsonProcessingException e) {
-                        s = "";
-                    }
-                    params.append(s);
-                }
-            } else {
-                params.append(":null");
-            }
-        }
-
-        String className = declaringType.getSimpleName();
-        var annotation = method.getAnnotation(Cache.class);
-        String prefix = null;
-        if (Objects.nonNull(annotation)) {
-            prefix = annotation.prefix();
-        }
+        String params = buildParams(args);
+        String prefix = getPrefix(method);
 
         return StringUtils.hasLength(prefix) ?
-                prefix + ":" + className + ":" + methodName + params :
-                className + ":" + methodName + params;
+                prefix + PARAM_SEPARATOR + className + PARAM_SEPARATOR + methodName + params :
+                className + PARAM_SEPARATOR + methodName + params;
+    }
+
+    private String buildParams(Object... args) {
+        StringBuilder params = new StringBuilder();
+        for (Object arg : args) {
+            params.append(PARAM_SEPARATOR);
+            if (Objects.nonNull(arg)) {
+                params.append(arg instanceof String ? arg : convertToString(arg));
+            } else {
+                params.append(NULL_PARAM);
+            }
+        }
+        return params.toString();
+    }
+
+    private String convertToString(Object arg) {
+        try {
+            return objectMapper.writeValueAsString(arg);
+        } catch (JsonProcessingException e) {
+            return EMPTY_STRING;
+        }
+    }
+
+    private String getPrefix(Method method) {
+        Cache annotation = method.getAnnotation(Cache.class);
+        return Objects.nonNull(annotation) ? annotation.prefix() : null;
     }
 }
