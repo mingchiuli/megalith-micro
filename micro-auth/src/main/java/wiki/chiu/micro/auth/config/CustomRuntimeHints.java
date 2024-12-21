@@ -16,9 +16,10 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
     public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {
         // Register method for reflection
 
-        hints.serialization().registerType(LoginSuccessVo.class);
-        hints.serialization().registerType(UserInfoVo.class);
-        hints.serialization().registerType(MenusAndButtonsDto.class);
-        hints.serialization().registerType(AuthorityRpcDto.class);
+        hints.serialization()
+                .registerType(LoginSuccessVo.class)
+                .registerType(UserInfoVo.class)
+                .registerType(MenusAndButtonsDto.class)
+                .registerType(AuthorityRpcDto.class);
     }
 }
