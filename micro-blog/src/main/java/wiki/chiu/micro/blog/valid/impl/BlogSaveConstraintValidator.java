@@ -7,76 +7,55 @@ import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.SensitiveContentReq;
 import wiki.chiu.micro.blog.valid.BlogSaveValue;
 import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.common.lang.SensitiveTypeEnum;
-import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
-import java.util.Set;
 import java.util.Objects;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 
 
 public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSaveValue, BlogEntityReq> {
 
-    private static final Set<Integer> STATUS_SET = Arrays.stream(BlogStatusEnum.values())
-            .map(BlogStatusEnum::getCode)
-            .collect(Collectors.toSet());
 
-    private static final Set<Integer> SENSITIVE_SET = Arrays.stream(SensitiveTypeEnum.values())
-            .map(SensitiveTypeEnum::getCode)
-            .collect(Collectors.toSet());
 
     @Override
     public boolean isValid(BlogEntityReq blog, ConstraintValidatorContext context) {
+        return isValidTitle(blog.title()) &&
+                isValidDescription(blog.description()) &&
+                isValidContent(blog.content()) &&
+                isValidStatus(blog.status()) &&
+                isValidLink(blog.link()) &&
+                isValidSensitiveContentList(blog.sensitiveContentList());
+    }
 
-        if (!StringUtils.hasLength(blog.title())) {
-            return false;
-        }
+    private boolean isValidTitle(String title) {
+        return StringUtils.hasLength(title);
+    }
 
-        if (!StringUtils.hasLength(blog.description())) {
-            return false;
-        }
+    private boolean isValidDescription(String description) {
+        return StringUtils.hasLength(description);
+    }
 
-        if (!StringUtils.hasLength(blog.content())) {
-            return false;
-        }
+    private boolean isValidContent(String content) {
+        return StringUtils.hasLength(content);
+    }
 
-        Integer status = blog.status();
-        
-        if (!STATUS_SET.contains(status)) {
-            return false;
-        }
+    private boolean isValidStatus(Integer status) {
+        return Const.BLOG_STATUS_SET.contains(status);
+    }
 
-        String link = blog.link();
+    private boolean isValidLink(String link) {
+        return link != null && (!StringUtils.hasLength(link) || Const.URL_PATTERN.matcher(link).matches());
+    }
 
-        if (Objects.isNull(link)) {
-            return false;
-        }
-
-        if (StringUtils.hasLength(link) && !Const.URL_PATTERN.matcher(link).matches()) {
-            return false;
-        }
-
-        List<SensitiveContentReq> sensitiveContentList = blog.sensitiveContentList();
-
-
+    private boolean isValidSensitiveContentList(List<SensitiveContentReq> sensitiveContentList) {
         for (var sensitive : sensitiveContentList) {
-            if (Objects.isNull(sensitive.startIndex())) {
-                return false;
-            }
-
-            if (Objects.isNull(sensitive.endIndex())) {
-                return false;
-            }
-
-            if (!SENSITIVE_SET.contains(sensitive.type())) {
+            if (Objects.isNull(sensitive.startIndex()) ||
+                    Objects.isNull(sensitive.endIndex()) ||
+                    !Const.SENSITIVE_SET.contains(sensitive.type())) {
                 return false;
             }
         }
-
         return true;
     }
 }

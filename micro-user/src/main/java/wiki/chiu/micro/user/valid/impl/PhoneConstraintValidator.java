@@ -17,7 +17,7 @@ public class PhoneConstraintValidator implements ConstraintValidator<Phone, Stri
 
     @Override
     public boolean isValid(String phone, ConstraintValidatorContext context) {
-        if (Boolean.FALSE.equals(StringUtils.hasLength(phone))) {
+        if (!StringUtils.hasLength(phone)) {
             return true;
         }
         return Const.PHONE_PATTERN.matcher(phone).matches();

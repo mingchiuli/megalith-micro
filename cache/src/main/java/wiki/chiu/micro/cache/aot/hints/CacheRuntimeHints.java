@@ -20,17 +20,14 @@ class CacheRuntimeHints implements RuntimeHintsRegistrar {
     @Override// Register method for reflection
     public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {
         // Register method for reflection
-        hints.reflection().registerMethod(findMethod(RabbitCacheEvictMessageListener.class, "handleMessage", Set.class), ExecutableMode.INVOKE);
-
         try {
-            hints.reflection().registerConstructor(HashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
+            hints.reflection()
+                    .registerMethod(findMethod(RabbitCacheEvictMessageListener.class, "handleMessage", Set.class), ExecutableMode.INVOKE)
+                    .registerType(TypeReference.of("com.github.benmanes.caffeine.cache.SSMSA"), MemberCategory.PUBLIC_FIELDS, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS)
+                    .registerConstructor(HashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
         } catch (NoSuchMethodException e) {
             log.error("application start fail");
             throw new RuntimeException(e.getMessage());
         }
-
-        hints.reflection().registerType(
-                TypeReference.of("com.github.benmanes.caffeine.cache.SSMSA"),
-                MemberCategory.PUBLIC_FIELDS, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS);
     }
 }
