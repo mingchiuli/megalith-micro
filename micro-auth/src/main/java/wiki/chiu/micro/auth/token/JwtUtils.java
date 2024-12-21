@@ -6,6 +6,8 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wiki.chiu.micro.common.exception.AuthException;
 import wiki.chiu.micro.common.exception.MissException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -26,6 +28,7 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.TOKEN_INVALID;
 @ConfigurationProperties(prefix = "megalith.blog.jwt")
 public class JwtUtils implements TokenUtils<Claims> {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtUtils.class);
     private String secret;
 
     private JWSVerifier verifier;
@@ -74,6 +77,7 @@ public class JwtUtils implements TokenUtils<Claims> {
     @SuppressWarnings("unchecked")
     public Claims getVerifierByToken(String token) throws AuthException {
         try {
+            log.error("token:{}", token);
             SignedJWT signedJWT = SignedJWT.parse(token);
             if (!signedJWT.verify(verifier)) {
                 throw new AuthException(AUTH_EXCEPTION.getMsg());
