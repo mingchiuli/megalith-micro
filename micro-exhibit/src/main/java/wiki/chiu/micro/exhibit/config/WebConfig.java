@@ -3,7 +3,7 @@ package wiki.chiu.micro.exhibit.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import wiki.chiu.micro.common.user.AuthArgumentResolver;
+import wiki.chiu.micro.common.rpc.config.AuthArgumentResolver;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 
 import java.util.List;

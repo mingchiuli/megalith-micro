@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
-import wiki.chiu.micro.common.rpc.config.HttpInterceptor;
+import wiki.chiu.micro.common.rpc.config.AuthHttpInterceptor;
 import wiki.chiu.micro.common.rpc.config.RpcClientFactory;
 
 import java.net.http.HttpClient;
@@ -27,8 +27,8 @@ public class HttpClientConfig {
     }
 
     @Bean
-    HttpInterceptor interceptor() {
-        return new HttpInterceptor();
+    AuthHttpInterceptor interceptor() {
+        return new AuthHttpInterceptor();
     }
 
     @Bean

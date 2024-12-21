@@ -77,7 +77,6 @@ public class JwtUtils implements TokenUtils<Claims> {
     @SuppressWarnings("unchecked")
     public Claims getVerifierByToken(String token) throws AuthException {
         try {
-            log.error("token:{}", token);
             SignedJWT signedJWT = SignedJWT.parse(token);
             if (!signedJWT.verify(verifier)) {
                 throw new AuthException(AUTH_EXCEPTION.getMsg());

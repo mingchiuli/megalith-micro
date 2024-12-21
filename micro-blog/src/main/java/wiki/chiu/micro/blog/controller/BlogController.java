@@ -20,7 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import wiki.chiu.micro.common.user.AuthInfo;
+import wiki.chiu.micro.common.rpc.config.AuthInfo;
 
 import java.util.List;
 

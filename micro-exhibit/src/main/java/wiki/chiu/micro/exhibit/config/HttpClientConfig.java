@@ -8,7 +8,7 @@ import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.BlogHttpService;
 import wiki.chiu.micro.common.rpc.SearchHttpService;
 import wiki.chiu.micro.common.rpc.UserHttpService;
-import wiki.chiu.micro.common.rpc.config.HttpInterceptor;
+import wiki.chiu.micro.common.rpc.config.AuthHttpInterceptor;
 import wiki.chiu.micro.common.rpc.config.RpcClientFactory;
 
 import java.net.http.HttpClient;
@@ -37,8 +37,8 @@ public class HttpClientConfig {
     }
 
     @Bean
-    HttpInterceptor httpInterceptor() {
-        return new HttpInterceptor();
+    AuthHttpInterceptor httpInterceptor() {
+        return new AuthHttpInterceptor();
     }
 
     @Bean

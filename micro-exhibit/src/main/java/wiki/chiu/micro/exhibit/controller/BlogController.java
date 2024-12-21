@@ -3,7 +3,7 @@ package wiki.chiu.micro.exhibit.controller;
 import wiki.chiu.micro.cache.annotation.Checker;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.user.AuthInfo;
+import wiki.chiu.micro.common.rpc.config.AuthInfo;
 import wiki.chiu.micro.exhibit.checker.handler.DetailHandler;
 import wiki.chiu.micro.exhibit.checker.handler.ListPageHandler;
 import wiki.chiu.micro.exhibit.service.BlogService;
