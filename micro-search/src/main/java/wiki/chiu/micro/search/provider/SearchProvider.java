@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.common.req.BlogSysSearchReq;
-import wiki.chiu.micro.common.resolver.AuthInfo;
+import wiki.chiu.micro.common.user.AuthInfo;
 import wiki.chiu.micro.search.service.BlogSearchService;
 import wiki.chiu.micro.search.vo.BlogSearchVo;
 import org.springframework.validation.annotation.Validated;

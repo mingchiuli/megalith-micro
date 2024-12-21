@@ -1,4 +1,4 @@
-package wiki.chiu.micro.common.resolver;
+package wiki.chiu.micro.common.user;
 
 import java.util.List;
 

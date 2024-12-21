@@ -1,4 +1,4 @@
-package wiki.chiu.micro.common.resolver;
+package wiki.chiu.micro.common.user;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
@@ -31,7 +31,6 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
     public Object resolveArgument(@NonNull MethodParameter parameter, ModelAndViewContainer mavContainer, @NonNull NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         String token = Optional.ofNullable(webRequest.getHeader(HttpHeaders.AUTHORIZATION))
                 .orElse("");
-        System.out.println("token:" + token);
         AuthRpcDto authRpcDto = Result.handleResult(() -> authHttpService.getAuthentication(token));
         return AuthInfo.builder()
                 .userId(authRpcDto.userId())

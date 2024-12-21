@@ -1,7 +1,6 @@
-package wiki.chiu.micro.gateway.config;
+package wiki.chiu.micro.common.rpc.config;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
@@ -14,7 +13,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.io.IOException;
 import java.util.Optional;
 
-@Configuration
 public class HttpInterceptor implements ClientHttpRequestInterceptor {
 
     @Override
@@ -28,4 +26,6 @@ public class HttpInterceptor implements ClientHttpRequestInterceptor {
 
         return execution.execute(request, body);
     }
+
+
 }

@@ -7,82 +7,59 @@ import wiki.chiu.micro.blog.req.BlogEditPushAllReq;
 import wiki.chiu.micro.blog.req.SensitiveContentReq;
 import wiki.chiu.micro.blog.valid.PushAllValue;
 import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.common.lang.SensitiveTypeEnum;
-import wiki.chiu.micro.common.lang.BlogStatusEnum;
+
 import org.springframework.util.StringUtils;
 
 import java.util.List;
-import java.util.Set;
 import java.util.Objects;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 
 
 public class PushAllConstraintValidator implements ConstraintValidator<PushAllValue, BlogEditPushAllReq> {
 
-    private static final Set<Integer> SENSITIVE_SET = Arrays.stream(SensitiveTypeEnum.values())
-            .map(SensitiveTypeEnum::getCode)
-            .collect(Collectors.toSet());
-
-    private static final Set<Integer> STATUS_SET = Arrays.stream(BlogStatusEnum.values())
-            .map(BlogStatusEnum::getCode)
-            .collect(Collectors.toSet());
-
 
     @Override
     public boolean isValid(BlogEditPushAllReq blog, ConstraintValidatorContext context) {
+        return isValidTitle(blog.title()) &&
+                isValidDescription(blog.description()) &&
+                isValidContent(blog.content()) &&
+                isValidVersion(blog.version()) &&
+                isValidStatus(blog.status()) &&
+                isValidLink(blog.link()) &&
+                isValidSensitiveContentList(blog.sensitiveContentList());
+    }
 
-        if (Objects.isNull(blog.title())) {
-            return false;
-        }
+    private boolean isValidTitle(String title) {
+        return Objects.nonNull(title);
+    }
 
-        if (Objects.isNull(blog.description())) {
-            return false;
-        }
+    private boolean isValidDescription(String description) {
+        return Objects.nonNull(description);
+    }
 
-        if (Objects.isNull(blog.content())) {
-            return false;
-        }
+    private boolean isValidContent(String content) {
+        return Objects.nonNull(content);
+    }
 
-        if (Objects.isNull(blog.version())) {
-            return false;
-        }
+    private boolean isValidVersion(Integer version) {
+        return Objects.nonNull(version);
+    }
 
-        Integer status = blog.status();
+    private boolean isValidStatus(Integer status) {
+        return Const.BLOG_STATUS_SET.contains(status);
+    }
 
+    private boolean isValidLink(String link) {
+        return link != null && (!StringUtils.hasLength(link) || Const.URL_PATTERN.matcher(link).matches());
+    }
 
-        if (!STATUS_SET.contains(status)) {
-            return false;
-        }
-
-        String link = blog.link();
-
-        if (Objects.isNull(link)) {
-            return false;
-        }
-
-        if (StringUtils.hasLength(link) && !Const.URL_PATTERN.matcher(link).matches()) {
-            return false;
-        }
-
-        List<SensitiveContentReq> sensitiveContentList = blog.sensitiveContentList();
-
-
+    private boolean isValidSensitiveContentList(List<SensitiveContentReq> sensitiveContentList) {
         for (var sensitive : sensitiveContentList) {
-            if (Objects.isNull(sensitive.startIndex())) {
-                return false;
-            }
-
-            if (Objects.isNull(sensitive.endIndex())) {
-                return false;
-            }
-
-            if (!SENSITIVE_SET.contains(sensitive.type())) {
+            if (Objects.isNull(sensitive.startIndex()) ||
+                    Objects.isNull(sensitive.endIndex()) ||
+                    !Const.SENSITIVE_SET.contains(sensitive.type())) {
                 return false;
             }
         }
-
         return true;
     }
 }

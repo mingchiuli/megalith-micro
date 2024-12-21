@@ -1,14 +1,25 @@
 package wiki.chiu.micro.auth.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import wiki.chiu.micro.common.interceptor.HttpInterceptor;
+import org.springframework.web.util.DefaultUriBuilderFactory;
+import wiki.chiu.micro.common.rpc.SmsHttpService;
+import wiki.chiu.micro.common.rpc.UserHttpService;
+import wiki.chiu.micro.common.rpc.config.HttpInterceptor;
+import wiki.chiu.micro.common.rpc.config.RpcClientFactory;
 
 import java.net.http.HttpClient;
 import java.util.concurrent.Executors;
 
 @Configuration
 public class HttpClientConfig {
+
+    @Value("${megalith.blog.sms.base-url}")
+    private String baseUrl;
+
+    @Value("${megalith.blog.user-url}")
+    private String userUrl;
 
     @Bean
     HttpClient httpClient() {
@@ -20,5 +31,15 @@ public class HttpClientConfig {
     @Bean
     HttpInterceptor httpInterceptor() {
         return new HttpInterceptor();
+    }
+
+    @Bean
+    SmsHttpService smsHttpService() {
+        return RpcClientFactory.createHttpService(SmsHttpService.class, baseUrl, httpClient(), null, DefaultUriBuilderFactory.EncodingMode.NONE, null);
+    }
+
+    @Bean
+    UserHttpService userHttpService() {
+        return RpcClientFactory.createHttpService(UserHttpService.class, userUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null);
     }
 }

@@ -10,7 +10,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import wiki.chiu.micro.auth.dto.AuthDto;
 import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.common.exception.AuthException;
-import wiki.chiu.micro.common.resolver.AuthInfo;
+import wiki.chiu.micro.common.user.AuthInfo;
 
 import java.util.Optional;
 

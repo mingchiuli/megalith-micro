@@ -6,52 +6,46 @@ import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.util.StringUtils;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.valid.BlogSysQuery;
-import wiki.chiu.micro.common.lang.BlogStatusEnum;
+import wiki.chiu.micro.common.lang.Const;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
+
 
 
 public class BlogQueryConstraintValidator implements ConstraintValidator<BlogSysQuery, BlogQueryReq> {
 
-    private static final Set<Integer> STATUS_SET = Arrays.stream(BlogStatusEnum.values())
-            .map(BlogStatusEnum::getCode)
-            .collect(Collectors.toSet());
-
     @Override
     public boolean isValid(BlogQueryReq query, ConstraintValidatorContext context) {
+        return isValidSize(query.size()) &&
+                isValidCurrentPage(query.currentPage()) &&
+                isValidStatus(query.status()) &&
+                isValidKeywords(query.keywords()) &&
+                isValidDateRange(query.createStart(), query.createEnd());
+    }
 
-        if (query.size() == null) {
-            return false;
-        }
+    private boolean isValidSize(Integer size) {
+        return size != null;
+    }
 
-        if (query.currentPage() == null) {
-            return false;
-        }
+    private boolean isValidCurrentPage(Integer currentPage) {
+        return currentPage != null;
+    }
 
-        Integer status = query.status();
-        if (status != null && !STATUS_SET.contains(status)) {
-            return false;
-        }
+    private boolean isValidStatus(Integer status) {
+        return status == null || Const.BLOG_STATUS_SET.contains(status);
+    }
 
-        String keywords = query.keywords();
-        if (StringUtils.hasLength(keywords) && keywords.length() > 20) {
-            return false;
-        }
+    private boolean isValidKeywords(String keywords) {
+        return !StringUtils.hasLength(keywords) || keywords.length() <= 20;
+    }
 
-        LocalDateTime end = query.createEnd();
-        LocalDateTime start = query.createStart();
-
+    private boolean isValidDateRange(LocalDateTime start, LocalDateTime end) {
         if (start == null && end != null) {
             return false;
         }
-
         if (start != null && end == null) {
             return false;
         }
-
         return start == null || (!start.isEqual(end) && !start.isAfter(end));
     }
 }

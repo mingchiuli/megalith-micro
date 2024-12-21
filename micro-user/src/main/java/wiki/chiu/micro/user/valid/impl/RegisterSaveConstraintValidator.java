@@ -31,54 +31,67 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
 
     @Override
     public boolean isValid(UserEntityRegisterReq req, ConstraintValidatorContext context) {
-        String token = req.token();
+        if (!isValidToken(req.token(), context) || !isValidNickname(req.nickname()) || !isValidEmail(req.email()) || !isValidUsername(req.username(), context)) {
+            return false;
+        }
+
+        if (!isPasswordConfirmed(req.password(), req.confirmPassword(), context)) {
+            return false;
+        }
+
+        return isUsernameAuthorized(req.token(), req.username(), context);
+    }
+
+    private boolean isValidToken(String token, ConstraintValidatorContext context) {
         if (!StringUtils.hasLength(token)) {
             return false;
         }
 
-        String nickname = req.nickname();
-        if (!StringUtils.hasLength(nickname)) {
+        Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
+        if (Boolean.FALSE.equals(exist)) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(NO_AUTH.getMsg()).addConstraintViolation();
             return false;
         }
+        return true;
+    }
 
-        String email = req.email();
-        if (!Const.EMAIL_PATTERN.matcher(email).matches()) {
-            return false;
-        }
+    private boolean isValidNickname(String nickname) {
+        return StringUtils.hasLength(nickname);
+    }
 
-        String username = req.username();
-        if (StringUtils.hasLength(username) || Const.PHONE_PATTERN.matcher(username).matches() || Const.EMAIL_PATTERN.matcher(username).matches()) {
+    private boolean isValidEmail(String email) {
+        return Const.EMAIL_PATTERN.matcher(email).matches();
+    }
+
+    private boolean isValidUsername(String username, ConstraintValidatorContext context) {
+        if (!StringUtils.hasLength(username) || Const.PHONE_PATTERN.matcher(username).matches() || Const.EMAIL_PATTERN.matcher(username).matches()) {
             return false;
         }
 
         Optional<UserEntity> userEntityOptional = userRepository.findByUsername(username);
-        if (userEntityOptional.isPresent()) {
-            if (StatusEnum.HIDE.getCode().equals(userEntityOptional.get().getStatus())) {
-                return false;
-            }
-        }
-
-        Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
-
-        context.disableDefaultConstraintViolation();
-
-        if (Boolean.FALSE.equals(exist)) {
-            context.buildConstraintViolationWithTemplate(NO_AUTH.getMsg()).addConstraintViolation();
+        if (userEntityOptional.isPresent() && StatusEnum.HIDE.getCode().equals(userEntityOptional.get().getStatus())) {
             return false;
         }
-        String password = req.password();
-        String confirmPassword = req.confirmPassword();
+        return true;
+    }
+
+    private boolean isPasswordConfirmed(String password, String confirmPassword, ConstraintValidatorContext context) {
         if (!Objects.equals(confirmPassword, password)) {
+            context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(PASSWORD_DIFF.getMsg()).addConstraintViolation();
             return false;
         }
+        return true;
+    }
 
+    private boolean isUsernameAuthorized(String token, String username, ConstraintValidatorContext context) {
         String usernameCopy = redisTemplate.opsForValue().get(REGISTER_PREFIX + token);
         if (StringUtils.hasLength(usernameCopy) && !Objects.equals(usernameCopy, username)) {
+            context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(NO_AUTH.getMsg()).addConstraintViolation();
             return false;
         }
-
         return true;
     }
 }
