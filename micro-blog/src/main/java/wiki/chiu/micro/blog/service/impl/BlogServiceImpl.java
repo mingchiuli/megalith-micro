@@ -67,7 +67,6 @@ import java.util.concurrent.*;
 
 import static wiki.chiu.micro.common.lang.Const.*;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
-import static wiki.chiu.micro.common.lang.BlogStatusEnum.HIDE;
 
 @Service
 public class BlogServiceImpl implements BlogService {
