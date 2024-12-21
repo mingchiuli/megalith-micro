@@ -413,6 +413,7 @@ public class BlogServiceImpl implements BlogService {
         BlogDeleteDto delBlog = JsonUtils.readValue(objectMapper, str, BlogDeleteDto.class);
         BlogEntity tempBlog = BlogEntityConvertor.convert(delBlog);
         tempBlog.setStatus(HIDE.getCode());
+        log.info("blog:{}", tempBlog);
         BlogEntity blog = blogRepository.save(tempBlog);
 
         taskExecutor.execute(() -> notifyBlogOperation(BlogOperateEnum.CREATE, blog));
