@@ -17,11 +17,11 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
     public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {
         // Register method for reflection
 
-        hints.serialization().registerType(BlogOperateMessage.class);
-        hints.serialization().registerType(BlogQueryReq.class);
-        hints.serialization().registerType(BlogDownloadReq.class);
-
-        hints.serialization().registerType(BlogDeleteDto.class);
+        hints.serialization()
+                .registerType(BlogOperateMessage.class)
+                .registerType(BlogQueryReq.class)
+                .registerType(BlogDownloadReq.class)
+                .registerType(BlogDeleteDto.class);
 
         hints.resources().registerPattern("ValidationMessages.properties");
 
