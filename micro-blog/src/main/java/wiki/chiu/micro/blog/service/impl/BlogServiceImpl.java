@@ -30,7 +30,7 @@ import wiki.chiu.micro.common.utils.OssSignUtils;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
 import wiki.chiu.micro.blog.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
-import wiki.chiu.micro.blog.wrapper.BlogSensitiveWrapper;
+import wiki.chiu.micro.blog.wrapper.BlogWrapper;
 
 import wiki.chiu.micro.common.dto.BlogSearchRpcDto;
 import wiki.chiu.micro.common.dto.UserEntityRpcDto;
@@ -88,7 +88,7 @@ public class BlogServiceImpl implements BlogService {
 
     private final ResourceLoader resourceLoader;
 
-    private final BlogSensitiveWrapper blogSensitiveWrapper;
+    private final BlogWrapper blogWrapper;
 
     private final BlogSensitiveContentRepository blogSensitiveContentRepository;
 
@@ -124,14 +124,14 @@ public class BlogServiceImpl implements BlogService {
 
     private String blogDeleteScript;
 
-    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogSensitiveWrapper blogSensitiveWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor, ObjectMapper objectMapper) {
+    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogWrapper blogWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor, ObjectMapper objectMapper) {
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.ossHttpService = ossHttpService;
         this.applicationContext = applicationContext;
         this.blogRepository = blogRepository;
         this.redisTemplate = redisTemplate;
         this.resourceLoader = resourceLoader;
-        this.blogSensitiveWrapper = blogSensitiveWrapper;
+        this.blogWrapper = blogWrapper;
         this.blogSensitiveContentRepository = blogSensitiveContentRepository;
         this.searchHttpServiceWrapper = searchHttpServiceWrapper;
         this.taskExecutor = taskExecutor;
@@ -309,7 +309,7 @@ public class BlogServiceImpl implements BlogService {
                         .toList())
                 .orElse(Collections.emptyList());
 
-        BlogEntity saved = blogSensitiveWrapper.saveOrUpdate(blogEntity, blogSensitiveContentEntityList, existedSensitiveIds);
+        BlogEntity saved = blogWrapper.saveOrUpdate(blogEntity, blogSensitiveContentEntityList, existedSensitiveIds);
 
         taskExecutor.execute(() -> notifyBlogOperation(blog.id().isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE, saved));
     }
@@ -411,9 +411,7 @@ public class BlogServiceImpl implements BlogService {
         }
 
         BlogDeleteDto delBlog = JsonUtils.readValue(objectMapper, str, BlogDeleteDto.class);
-        BlogEntity tempBlog = BlogEntityConvertor.convert(delBlog);
-        tempBlog.setStatus(HIDE.getCode());
-        log.info("blog:{}", tempBlog);
+        BlogEntity tempBlog = BlogEntityConvertor.convertRecover(delBlog);
         BlogEntity blog = blogRepository.save(tempBlog);
 
         taskExecutor.execute(() -> notifyBlogOperation(BlogOperateEnum.CREATE, blog));
@@ -433,7 +431,7 @@ public class BlogServiceImpl implements BlogService {
         List<Long> sensitiveIds = blogSensitiveContentRepository.findByBlogIdIn(idList).stream()
                 .map(BlogSensitiveContentEntity::getId)
                 .toList();
-        blogSensitiveWrapper.deleteByIds(idList, sensitiveIds);
+        blogWrapper.deleteByIds(idList, sensitiveIds);
 
         taskExecutor.execute(() ->
                 entities.forEach(entity -> {
