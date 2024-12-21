@@ -303,7 +303,11 @@ public class BlogServiceImpl implements BlogService {
                         .build())
                 .toList();
 
-        List<Long> existedSensitiveIds = blog.id().isPresent() ? blogSensitiveContentRepository.findByBlogId(blog.id().get()).stream().map(BlogSensitiveContentEntity::getId).toList() : Collections.emptyList();
+        List<Long> existedSensitiveIds = blog.id()
+                .map(blogId -> blogSensitiveContentRepository.findByBlogId(blogId).stream()
+                        .map(BlogSensitiveContentEntity::getId)
+                        .toList())
+                .orElse(Collections.emptyList());
 
         BlogEntity saved = blogSensitiveWrapper.saveOrUpdate(blogEntity, blogSensitiveContentEntityList, existedSensitiveIds);
 
