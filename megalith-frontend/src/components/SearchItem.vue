@@ -116,7 +116,7 @@ const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
       })
       cb(suggestionList.value)
       loadingInstance.close()
-      controller.abort()
+      controller?.abort()
       if (e.lastChild === div) e.removeChild(div)
       lock = false
       fin = true

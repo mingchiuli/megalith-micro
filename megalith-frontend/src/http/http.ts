@@ -1,5 +1,6 @@
 import http from '@/http/axios'
 import type { Data } from '@/type/entity'
+import type { AxiosProgressEvent } from 'axios'
 import { type Ref } from 'vue'
 
 const GET = async <T>(url: string): Promise<T> => {
@@ -10,7 +11,7 @@ const POST = async <T>(url: string, params: any): Promise<T> => {
   return Promise.resolve((await http.post<never, Data<T>>(url, params)).data)
 }
 
-const handleProgress = (percentage: Ref<number>, percentageShow: Ref<boolean>, progressEvent: ProgressEvent) => {
+const handleProgress = (percentage: Ref<number>, percentageShow: Ref<boolean>, progressEvent: AxiosProgressEvent) => {
   const { loaded, total } = progressEvent
   percentage.value = Math.floor((loaded * 100) / total!)
 }

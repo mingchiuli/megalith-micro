@@ -3,6 +3,7 @@ import type { UserInfo } from '@/type/entity'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { clearLoginState } from '@/utils/tools'
 import router from '@/router'
+import { ref } from 'vue';
 
 const info = localStorage.getItem('userinfo')
 let user: UserInfo | null = null
