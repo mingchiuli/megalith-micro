@@ -13,14 +13,14 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.io.IOException;
 import java.util.Optional;
 
-public class HttpInterceptor implements ClientHttpRequestInterceptor {
+public class AuthHttpInterceptor implements ClientHttpRequestInterceptor {
 
     @Override
     public @NonNull ClientHttpResponse intercept(@NonNull HttpRequest request, @NonNull byte[] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
         try {
             HttpServletRequest req = ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
             String token = Optional.ofNullable(req.getHeader(HttpHeaders.AUTHORIZATION)).orElse("");
-            request.getHeaders().add(HttpHeaders.AUTHORIZATION, token);
+            request.getHeaders().addIfAbsent(HttpHeaders.AUTHORIZATION, token);
         } catch (IllegalStateException _) {
         }
 

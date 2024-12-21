@@ -1,4 +1,4 @@
-package wiki.chiu.micro.common.user;
+package wiki.chiu.micro.common.rpc.config;
 
 import java.util.List;
 

@@ -6,7 +6,7 @@ import wiki.chiu.micro.common.lang.Result;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import wiki.chiu.micro.common.user.AuthInfo;
+import wiki.chiu.micro.common.rpc.config.AuthInfo;
 
 
 @RestController
