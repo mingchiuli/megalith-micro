@@ -70,10 +70,7 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
         }
 
         Optional<UserEntity> userEntityOptional = userRepository.findByUsername(username);
-        if (userEntityOptional.isPresent() && StatusEnum.HIDE.getCode().equals(userEntityOptional.get().getStatus())) {
-            return false;
-        }
-        return true;
+        return userEntityOptional.isEmpty() || !StatusEnum.HIDE.getCode().equals(userEntityOptional.get().getStatus());
     }
 
     private boolean isPasswordConfirmed(String password, String confirmPassword, ConstraintValidatorContext context) {
