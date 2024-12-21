@@ -31,7 +31,7 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
 
     @Override
     public boolean isValid(UserEntityRegisterReq req, ConstraintValidatorContext context) {
-        if (!isValidToken(req.token(), context) || !isValidNickname(req.nickname()) || !isValidEmail(req.email()) || !isValidUsername(req.username(), context)) {
+        if (!isValidToken(req.token(), context) || !isValidNickname(req.nickname()) || !isValidEmail(req.email()) || !isValidUsername(req.username())) {
             return false;
         }
 
@@ -64,7 +64,7 @@ public class RegisterSaveConstraintValidator implements ConstraintValidator<Regi
         return Const.EMAIL_PATTERN.matcher(email).matches();
     }
 
-    private boolean isValidUsername(String username, ConstraintValidatorContext context) {
+    private boolean isValidUsername(String username) {
         if (!StringUtils.hasLength(username) || Const.PHONE_PATTERN.matcher(username).matches() || Const.EMAIL_PATTERN.matcher(username).matches()) {
             return false;
         }
