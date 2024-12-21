@@ -5,9 +5,13 @@ import { clearLoginState } from '@/utils/tools'
 import router from '@/router'
 
 const info = localStorage.getItem('userinfo')
-const user: UserInfo = JSON.parse(info!)
-const avatar = user.avatar
-const nickname = user.nickname
+let user: UserInfo | null = null
+if (info) {
+  user = JSON.parse(info)
+}
+
+const avatar = ref(user?.avatar || '')
+const nickname = ref(user?.nickname || '')
 
 const logout = () => {
   clearLoginState()

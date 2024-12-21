@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 
 const activeName = ref('first')
 
-onMounted(() => {
+const createGiscusScript = (): HTMLScriptElement => {
   const giscus = document.createElement('script')
   giscus.type = 'text/javascript'
   giscus.async = true
@@ -20,13 +20,22 @@ onMounted(() => {
   giscus.setAttribute('data-lang', 'zh-CN')
   giscus.crossOrigin = 'anonymous'
   giscus.src = 'https://giscus.app/client.js'
+  return giscus
+}
 
+const createDisqusScript = (): HTMLScriptElement => {
   const disqus = document.createElement('script')
   disqus.src = 'https://chiu-1.disqus.com/embed.js'
   disqus.setAttribute('data-timestamp', new Date().toString())
+  return disqus
+}
 
-  document.getElementById('disqus_thread')!.appendChild(disqus)
-  document.getElementById('giscus_thread')!.appendChild(giscus)
+onMounted(() => {
+  const giscus = createGiscusScript()
+  const disqus = createDisqusScript()
+
+  document.getElementById('disqus-thread')!.appendChild(disqus)
+  document.getElementById('giscus-thread')!.appendChild(giscus)
 })
 </script>
 
@@ -34,10 +43,10 @@ onMounted(() => {
   <div id="comment-div">
     <el-tabs :stretch="true" v-model="activeName">
       <el-tab-pane label="Disqus" name="first">
-        <div id="disqus_thread" style="width: inherit"></div>
+        <div id="disqus-thread" style="width: inherit"></div>
       </el-tab-pane>
       <el-tab-pane label="Giscus" name="second">
-        <div id="giscus_thread" style="width: inherit"></div>
+        <div id="giscus-thread" style="width: inherit"></div>
       </el-tab-pane>
     </el-tabs>
   </div>

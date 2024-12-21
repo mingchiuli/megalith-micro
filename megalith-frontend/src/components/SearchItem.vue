@@ -45,10 +45,10 @@ const search = async (
 
 let searchOrder = 1
 let timeout: NodeJS.Timeout
-let suggestionEle: HTMLElement | null
-let controller: AbortController
+let suggestionEle: HTMLElement | null = null
+let controller: AbortController | null = null
 const div = document.createElement('div')
-let loadingInstance: ReturnType<typeof ElLoading.service> | null
+let loadingInstance: ReturnType<typeof ElLoading.service> | null = null
 
 const searchAbstractAsync: AutocompleteFetchSuggestions = (
   queryString: string,
@@ -279,7 +279,7 @@ defineExpose({ searchAllInfo })
     <template #footer>
       <div class="dialog-footer">
         <el-button type="primary" @click="searchAllInfo(keywords!)">Confirm</el-button>
-        <el-button type="primary" @click="yearDialogVisible = true">Archieve</el-button>
+        <el-button type="primary" @click="yearDialogVisible = true">Archive</el-button>
       </div>
     </template>
   </el-dialog>

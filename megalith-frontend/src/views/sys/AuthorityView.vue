@@ -88,16 +88,7 @@ const handleDelete = async (row: AuthoritySys) => {
 
 const handleEdit = async (row: AuthoritySys) => {
   const data = await GET<AuthoritySys>(`/sys/authority/info/${row.id}`)
-  form.code = data.code
-  form.id = data.id
-  form.remark = data.remark
-  form.status = data.status
-  form.type = data.type
-  form.prototype = data.prototype
-  form.methodType = data.methodType
-  form.serviceHost = data.serviceHost
-  form.servicePort = data.servicePort
-  form.routePattern = data.routePattern
+  Object.assign(form, data)
   dialogVisible.value = true
 }
 

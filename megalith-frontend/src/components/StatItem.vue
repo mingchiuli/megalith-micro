@@ -23,7 +23,7 @@ const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat)
 </script>
 
 <template>
-  <el-breadcrumb separator="/" class="vistor-stat">
+  <el-breadcrumb separator="/" class="visitor-stat">
     <el-breadcrumb-item>Day {{ dayVisit }}</el-breadcrumb-item>
     <el-breadcrumb-item>Week {{ weekVisit }}</el-breadcrumb-item>
     <el-breadcrumb-item>Month {{ monthVisit }}</el-breadcrumb-item>
@@ -32,7 +32,7 @@ const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat)
 </template>
 
 <style scoped>
-.vistor-stat {
+.visitor-stat {
   margin: 0 auto;
   width: fit-content;
   margin-top: 1rem;

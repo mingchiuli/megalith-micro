@@ -2,10 +2,11 @@
 import { pageStore, welcomeStateStore } from '@/stores/store'
 import { onUnmounted } from 'vue'
 
-pageStore().front = false
+const page = pageStore()
+page.front = false
 
 onUnmounted(() => {
-  pageStore().front = true
+  page.front = true
 })
 </script>
 

@@ -27,9 +27,7 @@ const md = new MarkdownIt({
 })
 
 export const clearLoginState = () => {
-  localStorage.removeItem('accessToken')
-  localStorage.removeItem('refreshToken')
-  localStorage.removeItem('userinfo')
+  removeLocalStorageItems(['accessToken', 'refreshToken', 'userinfo'])
   if (router.hasRoute('system')) {
     router.removeRoute('system')
   }
@@ -38,6 +36,14 @@ export const clearLoginState = () => {
   menuStore().menuList = []
   tabStore().editableTabs = []
   tabStore().editableTabsValue = ''
+}
+
+const removeLocalStorageItems = (items: string[]) => {
+  items.forEach(item => localStorage.removeItem(item))
+}
+
+const getLocalStorageItem = (key: string): string | null => {
+  return localStorage.getItem(key)
 }
 
 export const render = (content: string): string => {
@@ -66,12 +72,12 @@ export const checkAccessToken = async (accessToken: string): Promise<string> => 
   const now = Math.floor(new Date().getTime() / 1000)
   //ten minutes
   if (jwt.exp - now < 600) {
-    const refreshToken = localStorage.getItem('refreshToken')
+    const refreshToken = getLocalStorageItem('refreshToken')
     const data = await http.get<never, Data<RefreshStruct>>('/token/refresh', {
       headers: { Authorization: refreshToken }
     })
     const token = data.data.accessToken
-    localStorage.setItem('accessToken', token)
+    setLocalStorageItem('accessToken', token)
     return token
   }
   return accessToken
@@ -115,7 +121,7 @@ export const getButtonType = (
   name: string
 ): '' | 'default' | 'success' | 'warning' | 'info' | 'text' | 'primary' | 'danger' => {
   const { buttonList } = storeToRefs(buttonStore())
-  return buttonList.value.filter((item) => item.name == name)[0]?.icon as
+  return buttonList.value.find((item) => item.name == name)?.icon as
     | ''
     | 'default'
     | 'success'
@@ -128,7 +134,7 @@ export const getButtonType = (
 
 export const getButtonTitle = (name: string) => {
   const { buttonList } = storeToRefs(buttonStore())
-  return buttonList.value.filter((item) => item.name == name)[0]?.title
+  return buttonList.value.find((item) => item.name == name)?.title
 }
 
 export const submitLogin = async (username: string, password: string) => {
@@ -137,12 +143,16 @@ export const submitLogin = async (username: string, password: string) => {
   form.append('username', username)
   form.append('password', password)
   const token = await POST<Token>('/login', form)
-  localStorage.setItem('accessToken', token.accessToken)
-  localStorage.setItem('refreshToken', token.refreshToken)
+  setLocalStorageItem('accessToken', token.accessToken)
+  setLocalStorageItem('refreshToken', token.refreshToken)
   loginStateStore().login = true
   const info = await GET<UserInfo>('/token/userinfo')
-  localStorage.setItem('userinfo', JSON.stringify(info))
+  setLocalStorageItem('userinfo', JSON.stringify(info))
   router.push('/backend')
+}
+
+const setLocalStorageItem = (key: string, value: string) => {
+  localStorage.setItem(key, value)
 }
 
 export const downloadSQLData = async (

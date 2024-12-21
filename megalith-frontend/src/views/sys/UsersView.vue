@@ -90,14 +90,7 @@ const handleDelete = async (row: UserSys) => {
 
 const handleEdit = async (row: UserSys) => {
   const data = await GET<UserSys>(`/sys/user/info/${row.id}`)
-  form.id = data.id
-  form.username = data.username
-  form.nickname = data.nickname
-  form.phone = data.phone
-  form.email = data.email
-  form.roles = data.roles
-  form.status = data.status
-  form.avatar = data.avatar
+  Object.assign(form, data)
   dialogVisible.value = true
 }
 

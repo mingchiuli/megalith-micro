@@ -58,16 +58,7 @@ const editFormRules = reactive<FormRules<Form>>({
 
 const handleEdit = async (row: MenuSys) => {
   const data = await GET<MenuSys>(`/sys/menu/info/${row.menuId}`)
-  form.menuId = data.menuId
-  form.parentId = data.parentId
-  form.title = data.title
-  form.name = data.name
-  form.url = data.url
-  form.component = data.component
-  form.status = data.status
-  form.type = data.type
-  form.icon = data.icon
-  form.orderNum = data.orderNum
+  Object.assign(form, data)
   dialogVisible.value = true
 }
 

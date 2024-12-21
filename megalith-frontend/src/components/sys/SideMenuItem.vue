@@ -8,13 +8,9 @@ import { displayState } from '@/utils/position'
 const { expand } = displayState()
 const { menuList } = storeToRefs(menuStore())
 let arrow = shallowRef(expand.value ? ArrowLeft : ArrowRight)
-const reverseCollapse = () => {
+const reverseCollapse = (): void => {
   expand.value = !expand.value
-  if (!expand.value) {
-    arrow.value = ArrowRight
-  } else {
-    arrow.value = ArrowLeft
-  }
+  arrow.value = expand.value ? ArrowLeft : ArrowRight
 }
 </script>
 

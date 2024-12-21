@@ -10,6 +10,11 @@ const POST = async <T>(url: string, params: any): Promise<T> => {
   return Promise.resolve((await http.post<never, Data<T>>(url, params)).data)
 }
 
+const handleProgress = (percentage: Ref<number>, percentageShow: Ref<boolean>, progressEvent: ProgressEvent) => {
+  const { loaded, total } = progressEvent
+  percentage.value = Math.floor((loaded * 100) / total!)
+}
+
 const DOWNLOAD_DATA = async (
   url: string,
   percentage: Ref<number>,
@@ -20,10 +25,7 @@ const DOWNLOAD_DATA = async (
   percentage.value = 0
   await http
     .get(url, {
-      onDownloadProgress: (progressEvent) => {
-        const { loaded, total } = progressEvent
-        percentage.value = Math.floor((loaded * 100) / total!)
-      }
+      onDownloadProgress: (progressEvent) => handleProgress(percentage, percentageShow, progressEvent)
     })
     .then((res) => {
       data = res
@@ -51,10 +53,7 @@ const UPLOAD = async (
   let url = ''
   await http
     .post(dest, formData, {
-      onUploadProgress: (progressEvent) => {
-        const { loaded, total } = progressEvent
-        percentage.value = Math.ceil((loaded * 100) / total!)
-      }
+      onUploadProgress: (progressEvent) => handleProgress(percentage, percentageShow, progressEvent)
     })
     .then((resp: any) => {
       url = resp as string

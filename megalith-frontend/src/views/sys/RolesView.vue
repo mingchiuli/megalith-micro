@@ -137,11 +137,7 @@ const menuHandleClose = () => {
 
 const handleEdit = async (row: RoleSys) => {
   const data = await GET<RoleSys>(`/sys/role/info/${row.id}`)
-  form.id = data.id
-  form.name = data.name
-  form.code = data.code
-  form.remark = data.remark
-  form.status = data.status
+  Object.assign(form, data)
   dialogVisible.value = true
 }
 

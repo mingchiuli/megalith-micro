@@ -9,7 +9,7 @@ const http = axios.create({
   timeout: 10000
 })
 
-http.interceptors.request.use(async (config) => {
+const requestInterceptor = async (config: any) => {
   const url = config.url
   if (url !== '/token/refresh' && loginStateStore().login) {
     const accessToken = localStorage.getItem('accessToken')
@@ -17,36 +17,38 @@ http.interceptors.request.use(async (config) => {
     config.headers.Authorization = token
   }
   return config
-})
+}
 
-http.interceptors.response.use(
-  (resp: AxiosResponse<Data<any>, any>): Promise<any> => {
-    const data = resp.data
-    if (resp.status === 200) {
-      return Promise.resolve(data)
-    } else {
-      ElNotification.error({
-        title: 'request forbidden',
-        message: data.msg,
-        showClose: true
-      })
-      return Promise.reject(new Error(data.msg))
-    }
-  },
-  (error: AxiosError<any, any>) => {
+const responseInterceptor = (resp: AxiosResponse<Data<any>, any>): Promise<any> => {
+  const data = resp.data
+  if (resp.status === 200) {
+    return Promise.resolve(data)
+  } else {
     ElNotification.error({
-      title: error.code,
-      message: error.response!.data.msg ? error.response!.data.msg : error.message,
+      title: 'request forbidden',
+      message: data.msg,
       showClose: true
     })
-    if (error.response!.status === 401) {
-      clearLoginState()
-      router.push({
-        name: 'login'
-      })
-    }
-    return Promise.reject(error)
+    return Promise.reject(new Error(data.msg))
   }
-)
+}
+
+const errorInterceptor = (error: AxiosError<any, any>) => {
+  ElNotification.error({
+    title: error.code,
+    message: error.response!.data.msg ? error.response!.data.msg : error.message,
+    showClose: true
+  })
+  if (error.response!.status === 401) {
+    clearLoginState()
+    router.push({
+      name: 'login'
+    })
+  }
+  return Promise.reject(error)
+}
+
+http.interceptors.request.use(requestInterceptor)
+http.interceptors.response.use(responseInterceptor, errorInterceptor)
 
 export default http

@@ -41,12 +41,7 @@ export const pullAllData = async (operateStatus: OperateStatusParam, form: EditF
 }
 
 export const loadEditContent = async (form: EditForm, operateStatus: OperateStatusParam) => {
-  let data
-  if (!operateStatus.blogId) {
-    data = await GET<BlogEdit>('/sys/blog/edit/pull/echo')
-  } else {
-    data = await GET<BlogEdit>(`/sys/blog/edit/pull/echo?blogId=${operateStatus.blogId}`)
-  }
+  const data = await GET<BlogEdit>(`/sys/blog/edit/pull/echo${operateStatus.blogId ? `?blogId=${operateStatus.blogId}` : ''}`)
   form.title = data.title
   form.description = data.description
   form.content = data.content
