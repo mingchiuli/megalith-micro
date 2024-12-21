@@ -10,13 +10,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Component
-public class BlogSensitiveWrapper {
+public class BlogWrapper {
 
     private final BlogRepository blogRepository;
 
     private final BlogSensitiveContentRepository blogSensitiveContentRepository;
 
-    public BlogSensitiveWrapper(BlogRepository blogRepository, BlogSensitiveContentRepository blogSensitiveContentRepository) {
+    public BlogWrapper(BlogRepository blogRepository, BlogSensitiveContentRepository blogSensitiveContentRepository) {
         this.blogRepository = blogRepository;
         this.blogSensitiveContentRepository = blogSensitiveContentRepository;
     }

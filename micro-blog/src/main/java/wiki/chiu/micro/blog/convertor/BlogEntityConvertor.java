@@ -4,6 +4,8 @@ import wiki.chiu.micro.blog.dto.BlogDeleteDto;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 
+import static wiki.chiu.micro.common.lang.BlogStatusEnum.HIDE;
+
 public class BlogEntityConvertor {
 
     private BlogEntityConvertor() {}
@@ -22,6 +24,19 @@ public class BlogEntityConvertor {
                .created(blogDeleteDto.created())
                .build();
    }
+
+    public static BlogEntity convertRecover(BlogDeleteDto blogDeleteDto) {
+        return BlogEntity.builder()
+                .title(blogDeleteDto.title())
+                .status(HIDE.getCode())
+                .description(blogDeleteDto.description())
+                .content(blogDeleteDto.content())
+                .status(blogDeleteDto.status())
+                .link(blogDeleteDto.link())
+                .userId(blogDeleteDto.userId())
+                .readCount(blogDeleteDto.readCount())
+                .build();
+    }
 
     public static void convert(BlogEntityReq blog, BlogEntity blogEntity) {
         blogEntity.setTitle(blog.title());
