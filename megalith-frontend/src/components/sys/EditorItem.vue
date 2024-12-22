@@ -136,6 +136,7 @@ const findAllOccurrences = (text: string, pattern: string) => {
       content: `${content.value!.substring(frontIdx, idx)}\u001f${text}\u001f${content.value!.substring(idx + text.length, behindIdx)}`
     })
   }
+  console.log(occurrences[0].content)
  
   return occurrences
 }
