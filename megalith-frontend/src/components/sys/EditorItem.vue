@@ -93,9 +93,11 @@ onMounted(() => {
     if (!selection || !content.value) {
       return
     }
-
-    selectSensitiveData.value = findAllOccurrences(content.value, selection)
-    showSensitiveListDialog.value = true
+    const items = findAllOccurrences(content.value, selection)
+    if (items) {
+      selectSensitiveData.value = items
+      showSensitiveListDialog.value = true
+    }
   }
 })
 
