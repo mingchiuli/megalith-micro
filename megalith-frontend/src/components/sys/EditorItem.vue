@@ -12,7 +12,7 @@ import '@vavt/v3-extension/lib/asset/ExportPDF.css'
 import { Emoji, ExportPDF } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
 import { onMounted, ref, useTemplateRef } from 'vue'
-import { SensitiveType, Status, type SensitiveTrans, Colors } from '@/type/entity'
+import { SensitiveType, Status, type SensitiveTrans, Colors, type SensitiveContentItem } from '@/type/entity'
 
 const emit = defineEmits<{
   composing: [payload: boolean]
@@ -29,6 +29,9 @@ const editorRef = useTemplateRef<ExposeParam>('editor')
 
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
+const showSensitiveListDialog = ref(false)
+
+const selectSensitiveData = ref<SensitiveContentItem[]>([])
 
 const toolbars: ToolbarNames[] = [
   'revoke',
@@ -79,82 +82,45 @@ onMounted(() => {
       return
     }
 
-    const selection = document.getSelection()
-    if (!selection) {
-      return
-    }
-    const selectedText = selection.toString() // 获取选中的文本
+    const selection = editorRef.value!.getSelectedText()
 
-    if (!selectedText) {
-      return
-    }
-    if (selection.anchorOffset > selection.focusOffset) {
-      //only support left to right select
-      return
-    }
-    if (selection.anchorNode?.textContent != selection.focusNode?.textContent) {
-      //dont support more paragraph select
+    if (!selection || !content.value) {
       return
     }
 
-    // 选中文本后要执行的操作
-    //文本标签,外面套了一层span或div
-    let text = selection.focusNode!
-    let idx = 0
-    let label = text.parentNode!
-    if (label.nodeName !== 'DIV' || label.childNodes.length !== 1) {
-      //从span替换为div
-      while (label.nodeName !== 'DIV') {
-        label = label.parentNode!
-      }
-
-      if (text.parentNode!.nodeName === 'SPAN') {
-        text = text.parentNode!
-      }
-      const eleSiblings: Node[] = []
-
-      for (let i = 0; i < label.childNodes?.length; i++) {
-        const item = label.childNodes[i]!
-        if (item !== text) {
-          eleSiblings.push(item)
-        } else {
-          break
-        }
-      }
-
-      eleSiblings.forEach((item) => {
-        //同级别的span文本长度
-        idx += item.textContent!.length
-      })
-    }
-
-    const previousSiblings = []
-    let currentElement = label.previousSibling
-
-    while (currentElement) {
-      previousSiblings.push(currentElement)
-      currentElement = currentElement.previousSibling
-    }
-
-    previousSiblings.forEach((item) => {
-      //上移一行
-      idx++
-      if (item.textContent) {
-        idx += item.textContent.length
-      }
-    })
-
-    idx = idx + selection.focusOffset - selectedText.length
-
-    const sensitive: SensitiveTrans = {
-      startIndex: idx,
-      endIndex: idx + selectedText.length,
-      type: SensitiveType.CONTENT
-    }
-
-    emit('sensitive', sensitive)
+    selectSensitiveData.value = findAllOccurrences(content.value, selection)
+    showSensitiveListDialog.value = true
   }
 })
+
+const selectWord = (row: SensitiveContentItem) => {
+  console.log(row)
+  const sensitive: SensitiveTrans = {
+    startIndex: row.startIndex,
+    endIndex: row.endIndex,
+    type: SensitiveType.CONTENT
+  }
+  emit('sensitive', sensitive)
+  selectSensitiveData.value = []
+  showSensitiveListDialog.value = false
+}
+
+const findAllOccurrences = (text: string, pattern: string) => {
+  const regex = new RegExp(pattern, 'g')
+  let match
+  const occurrences: SensitiveContentItem[] = []
+ 
+  while ((match = regex.exec(text))) {
+    occurrences.push({
+      startIndex: match.index,
+      endIndex: match.index + match[0].length,
+      type: SensitiveType.CONTENT,
+      content: match[0]
+    })
+  }
+ 
+  return occurrences
+}
 
 const onUploadImg = async (files: File[], callback: Function) => {
   const formdata = new FormData()
@@ -165,6 +131,15 @@ const onUploadImg = async (files: File[], callback: Function) => {
 </script>
 
 <template>
+  <el-dialog v-model="showSensitiveListDialog" title="Sensitive List" width="500">
+    <el-table :data="selectSensitiveData" @row-click="selectWord" border stripe>
+      <el-table-column property="startIndex" label="StartIndex" />
+      <el-table-column property="endIndex" label="EndIndex"  />
+      <el-table-column property="type" label="Type" />
+      <el-table-column property="content" label="Content" width="200"/>
+    </el-table>
+  </el-dialog>
+
   <md-editor
     v-model="content"
     :preview="false"
@@ -173,7 +148,6 @@ const onUploadImg = async (files: File[], callback: Function) => {
     @on-upload-img="onUploadImg"
     :footers="footers"
     ref="editor"
-    id="md-editor"
   >
     <template #defToolbars>
       <ExportPDF v-model="content" />

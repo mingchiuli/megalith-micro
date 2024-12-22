@@ -393,6 +393,10 @@ export interface SensitiveItem {
   type: SensitiveType
 }
 
+export interface SensitiveContentItem extends SensitiveItem {
+  content: string
+}
+
 export interface SensitiveExhibit {
   startIndex: number
   content: string
