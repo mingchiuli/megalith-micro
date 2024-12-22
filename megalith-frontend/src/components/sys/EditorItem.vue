@@ -106,6 +106,7 @@ const selectWord = (row: SensitiveContentItem) => {
 
 const handleClose = () => {
   selectSensitiveData.value = []
+  showSensitiveListDialog.value = false
 }
 
 const findAllOccurrences = (text: string, pattern: string) => {
@@ -132,7 +133,7 @@ const findAllOccurrences = (text: string, pattern: string) => {
     occurrences.push({
       startIndex: match.index,
       endIndex: match.index + text.length,
-      content: `${content.value!.substring(frontIdx, idx)}\u001f${text}\u001f${content.value!.substring(idx, behindIdx)}`
+      content: `${content.value!.substring(frontIdx, idx)}\u001f${text}\u001f${content.value!.substring(idx + text.length, behindIdx)}`
     })
   }
  
