@@ -12,7 +12,13 @@ import '@vavt/v3-extension/lib/asset/ExportPDF.css'
 import { Emoji, ExportPDF } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
 import { onMounted, ref, useTemplateRef } from 'vue'
-import { SensitiveType, Status, type SensitiveTrans, Colors, type SensitiveContentItem } from '@/type/entity'
+import {
+  SensitiveType,
+  Status,
+  type SensitiveTrans,
+  Colors,
+  type SensitiveContentItem
+} from '@/type/entity'
 
 const emit = defineEmits<{
   composing: [payload: boolean]
@@ -113,26 +119,15 @@ const findAllOccurrences = (text: string, pattern: string) => {
   const regex = new RegExp(pattern, 'g')
   let match
   const occurrences: SensitiveContentItem[] = []
- 
-  while ((match = regex.exec(text))) {
 
+  while ((match = regex.exec(text))) {
     const idx = match.index
-    let frontIdx
-    if (idx > 5) {
-      frontIdx = idx - 5
-    } else {
-      frontIdx = 0
-    }
-    let behindIdx
-    if (idx + match[0].length + 5 < content.value!.length) {
-      behindIdx = idx + match[0].length + 5
-    } else {
-      behindIdx = idx + match[0].length
-    }
+    const frontIdx = Math.max(0, idx - 5)
+    const behindIdx = Math.min(content.value!.length, idx + match[0].length + 5)
 
     occurrences.push({
-      startIndex: match.index,
-      endIndex: match.index + match[0].length,
+      startIndex: idx,
+      endIndex: idx + match[0].length,
       content: match[0],
       startContent: content.value!.substring(frontIdx, idx),
       endContent: content.value!.substring(idx + match[0].length, behindIdx)
@@ -150,9 +145,14 @@ const onUploadImg = async (files: File[], callback: Function) => {
 </script>
 
 <template>
-  <el-dialog v-model="showSensitiveListDialog" title="选择一个词汇" width="500" :before-close="handleClose">
+  <el-dialog
+    v-model="showSensitiveListDialog"
+    title="选择一个词汇"
+    width="500"
+    :before-close="handleClose"
+  >
     <el-table :data="selectSensitiveData" @row-click="selectWord" border stripe>
-      <el-table-column property="startIndex" label="开始位置" align="center"/>
+      <el-table-column property="startIndex" label="开始位置" align="center" />
       <el-table-column property="endIndex" label="结束位置" align="center" />
       <el-table-column property="content" label="内容" align="center" width="400">
         <template #default="scope">

@@ -11,7 +11,11 @@ const POST = async <T>(url: string, params: any): Promise<T> => {
   return Promise.resolve((await http.post<never, Data<T>>(url, params)).data)
 }
 
-const handleProgress = (percentage: Ref<number>, percentageShow: Ref<boolean>, progressEvent: AxiosProgressEvent) => {
+const handleProgress = (
+  percentage: Ref<number>,
+  percentageShow: Ref<boolean>,
+  progressEvent: AxiosProgressEvent
+) => {
   const { loaded, total } = progressEvent
   percentage.value = Math.floor((loaded * 100) / total!)
 }
@@ -26,7 +30,8 @@ const DOWNLOAD_DATA = async (
   percentage.value = 0
   await http
     .get(url, {
-      onDownloadProgress: (progressEvent) => handleProgress(percentage, percentageShow, progressEvent)
+      onDownloadProgress: (progressEvent) =>
+        handleProgress(percentage, percentageShow, progressEvent)
     })
     .then((res) => {
       data = res

@@ -50,7 +50,7 @@ if (username) {
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
-GET<boolean>(`/sys/user/register/check?token=${t}`).then(res => {
+GET<boolean>(`/sys/user/register/check?token=${t}`).then((res) => {
   if (!res) {
     router.push('/blogs')
   }

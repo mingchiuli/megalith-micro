@@ -39,7 +39,7 @@ export const clearLoginState = () => {
 }
 
 const removeLocalStorageItems = (items: string[]) => {
-  items.forEach(item => localStorage.removeItem(item))
+  items.forEach((item) => localStorage.removeItem(item))
 }
 
 const getLocalStorageItem = (key: string): string | null => {
