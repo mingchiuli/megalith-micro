@@ -160,9 +160,9 @@ const onUploadImg = async (files: File[], callback: Function) => {
     :before-close="handleClose"
   >
     <el-table :data="selectSensitiveData" @row-click="selectWord" border stripe>
-      <el-table-column property="startIndex" label="开始位置" align="center" />
-      <el-table-column property="endIndex" label="结束位置" align="center" />
-      <el-table-column property="content" label="内容" align="center" width="400">
+      <el-table-column property="startIndex" label="开始位置" align="center" width="100"/>
+      <el-table-column property="endIndex" label="结束位置" align="center" width="100"/>
+      <el-table-column property="content" label="内容" align="center">
         <template #default="scope">
           <el-text>
             {{ scope.row.startContent }}
