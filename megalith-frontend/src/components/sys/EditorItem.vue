@@ -157,7 +157,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
       <el-table-column property="content" label="内容" width="200">
         <template #default="scope">
           <el-text>
-            {{ scope.row.frontContent }}
+            {{ scope.row.startContent }}
             <el-text tag="mark" size="small">{{ scope.row.content }}</el-text>
             {{ scope.row.endContent }}
           </el-text>
