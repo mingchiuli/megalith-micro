@@ -104,16 +104,35 @@ const selectWord = (row: SensitiveContentItem) => {
   showSensitiveListDialog.value = false
 }
 
+const handleClose = () => {
+  selectSensitiveData.value = []
+}
+
 const findAllOccurrences = (text: string, pattern: string) => {
   const regex = new RegExp(pattern, 'g')
   let match
   const occurrences: SensitiveContentItem[] = []
  
   while ((match = regex.exec(text))) {
+
+    const idx = match.index
+    let frontIdx
+    if (idx > 5) {
+      frontIdx = idx - 5
+    } else {
+      frontIdx = 0
+    }
+    let behindIdx
+    if (idx + text.length + 5 < content.value!.length) {
+      behindIdx = idx + text.length + 5
+    } else {
+      behindIdx = idx + text.length
+    }
+
     occurrences.push({
       startIndex: match.index,
-      endIndex: match.index + match[0].length,
-      content: `<span style="color:red">${match[0]}</span>`
+      endIndex: match.index + text.length,
+      content: `${content.value!.substring(frontIdx, idx)}\u001f${text}\u001f${content.value!.substring(idx, behindIdx)}`
     })
   }
  
@@ -129,11 +148,19 @@ const onUploadImg = async (files: File[], callback: Function) => {
 </script>
 
 <template>
-  <el-dialog v-model="showSensitiveListDialog" title="选择一个词汇" width="500">
+  <el-dialog v-model="showSensitiveListDialog" title="选择一个词汇" width="500" :before-close="handleClose">
     <el-table :data="selectSensitiveData" @row-click="selectWord" border stripe>
       <el-table-column property="startIndex" label="开始位置" />
       <el-table-column property="endIndex" label="结束位置"  />
-      <el-table-column property="content" label="内容" width="200"/>
+      <el-table-column property="content" label="内容" width="200">
+        <template #default="scope">
+          <el-text>
+            {{ scope.row.content.split('\u001f')[0] }}
+            <el-text tag="mark" size="small">{{ scope.row.content.split('\u001f')[1] }}</el-text>
+            {{ scope.row.content.split('\u001f')[2] }}
+          </el-text>
+        </template>
+      </el-table-column>
     </el-table>
   </el-dialog>
 
