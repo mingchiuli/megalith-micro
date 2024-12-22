@@ -13,7 +13,6 @@ import { Emoji, ExportPDF } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { SensitiveType, Status, type SensitiveTrans, Colors, type SensitiveContentItem } from '@/type/entity'
-import { en } from 'element-plus/es/locale'
 
 const emit = defineEmits<{
   composing: [payload: boolean]
