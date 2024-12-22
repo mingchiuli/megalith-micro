@@ -124,18 +124,18 @@ const findAllOccurrences = (text: string, pattern: string) => {
       frontIdx = 0
     }
     let behindIdx
-    if (idx + text.length + 5 < content.value!.length) {
-      behindIdx = idx + text.length + 5
+    if (idx + match[0].length + 5 < content.value!.length) {
+      behindIdx = idx + match[0].length + 5
     } else {
-      behindIdx = idx + text.length
+      behindIdx = idx + match[0].length
     }
 
     occurrences.push({
       startIndex: match.index,
-      endIndex: match.index + text.length,
-      content: text,
+      endIndex: match.index + match[0].length,
+      content: match[0],
       startContent: content.value!.substring(frontIdx, idx),
-      endContent: content.value!.substring(idx + text.length, behindIdx)
+      endContent: content.value!.substring(idx + match[0].length, behindIdx)
     })
   }
   return occurrences
