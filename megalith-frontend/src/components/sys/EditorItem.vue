@@ -94,7 +94,6 @@ onMounted(() => {
 })
 
 const selectWord = (row: SensitiveContentItem) => {
-  console.log(row)
   const sensitive: SensitiveTrans = {
     startIndex: row.startIndex,
     endIndex: row.endIndex,
@@ -114,8 +113,7 @@ const findAllOccurrences = (text: string, pattern: string) => {
     occurrences.push({
       startIndex: match.index,
       endIndex: match.index + match[0].length,
-      type: SensitiveType.CONTENT,
-      content: match[0]
+      content: `<span style="color:red">${match[0]}</span>`
     })
   }
  
@@ -131,12 +129,11 @@ const onUploadImg = async (files: File[], callback: Function) => {
 </script>
 
 <template>
-  <el-dialog v-model="showSensitiveListDialog" title="Sensitive List" width="500">
+  <el-dialog v-model="showSensitiveListDialog" title="选择一个词汇" width="500">
     <el-table :data="selectSensitiveData" @row-click="selectWord" border stripe>
-      <el-table-column property="startIndex" label="StartIndex" />
-      <el-table-column property="endIndex" label="EndIndex"  />
-      <el-table-column property="type" label="Type" />
-      <el-table-column property="content" label="Content" width="200"/>
+      <el-table-column property="startIndex" label="开始位置" />
+      <el-table-column property="endIndex" label="结束位置"  />
+      <el-table-column property="content" label="内容" width="200"/>
     </el-table>
   </el-dialog>
 
