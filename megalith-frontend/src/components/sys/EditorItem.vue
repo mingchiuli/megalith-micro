@@ -152,9 +152,9 @@ const onUploadImg = async (files: File[], callback: Function) => {
 <template>
   <el-dialog v-model="showSensitiveListDialog" title="选择一个词汇" width="500" :before-close="handleClose">
     <el-table :data="selectSensitiveData" @row-click="selectWord" border stripe>
-      <el-table-column property="startIndex" label="开始位置" />
-      <el-table-column property="endIndex" label="结束位置"  />
-      <el-table-column property="content" label="内容" width="400">
+      <el-table-column property="startIndex" label="开始位置" align="center"/>
+      <el-table-column property="endIndex" label="结束位置" align="center" />
+      <el-table-column property="content" label="内容" align="center" width="400">
         <template #default="scope">
           <el-text>
             {{ scope.row.startContent }}
