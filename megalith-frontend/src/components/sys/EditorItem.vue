@@ -148,6 +148,7 @@ const onUploadImg = async (files: File[], callback: Function) => {
     @on-upload-img="onUploadImg"
     :footers="footers"
     ref="editor"
+    id="md-editor"
   >
     <template #defToolbars>
       <ExportPDF v-model="content" />
