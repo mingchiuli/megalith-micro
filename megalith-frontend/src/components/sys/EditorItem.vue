@@ -154,11 +154,11 @@ const onUploadImg = async (files: File[], callback: Function) => {
     <el-table :data="selectSensitiveData" @row-click="selectWord" border stripe>
       <el-table-column property="startIndex" label="开始位置" />
       <el-table-column property="endIndex" label="结束位置"  />
-      <el-table-column property="content" label="内容" width="200">
+      <el-table-column property="content" label="内容" width="400">
         <template #default="scope">
           <el-text>
             {{ scope.row.startContent }}
-            <el-text tag="mark" size="small">{{ scope.row.content }}</el-text>
+            <el-text tag="mark">{{ scope.row.content }}</el-text>
             {{ scope.row.endContent }}
           </el-text>
         </template>
