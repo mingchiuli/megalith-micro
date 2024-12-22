@@ -133,6 +133,12 @@ const findAllOccurrences = (text: string, pattern: string) => {
       endContent: content.value!.substring(idx + match[0].length, behindIdx)
     })
   }
+
+  if (occurrences.length === 1) {
+    selectWord(occurrences[0])
+    return
+  }
+
   return occurrences
 }
 
