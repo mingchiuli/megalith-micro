@@ -397,6 +397,8 @@ export interface SensitiveContentItem {
   startIndex: number
   endIndex: number
   content: string
+  startContent: string
+  endContent: string
 }
 
 export interface SensitiveExhibit {

@@ -13,6 +13,7 @@ import { Emoji, ExportPDF } from '@vavt/v3-extension'
 import '@vavt/v3-extension/lib/asset/Emoji.css'
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { SensitiveType, Status, type SensitiveTrans, Colors, type SensitiveContentItem } from '@/type/entity'
+import { en } from 'element-plus/es/locale'
 
 const emit = defineEmits<{
   composing: [payload: boolean]
@@ -133,11 +134,11 @@ const findAllOccurrences = (text: string, pattern: string) => {
     occurrences.push({
       startIndex: match.index,
       endIndex: match.index + text.length,
-      content: `${content.value!.substring(frontIdx, idx)}\u001f${text}\u001f${content.value!.substring(idx + text.length, behindIdx)}`
+      content: text,
+      startContent: content.value!.substring(frontIdx, idx),
+      endContent: content.value!.substring(idx + text.length, behindIdx)
     })
   }
-  console.log(occurrences[0].content)
- 
   return occurrences
 }
 
@@ -157,9 +158,9 @@ const onUploadImg = async (files: File[], callback: Function) => {
       <el-table-column property="content" label="内容" width="200">
         <template #default="scope">
           <el-text>
-            {{ scope.row.content.split('\u001f')[0] }}
-            <el-text tag="mark" size="small">{{ scope.row.content.split('\u001f')[1] }}</el-text>
-            {{ scope.row.content.split('\u001f')[2] }}
+            {{ scope.row.frontContent }}
+            <el-text tag="mark" size="small">{{ scope.row.content }}</el-text>
+            {{ scope.row.endContent }}
           </el-text>
         </template>
       </el-table-column>
