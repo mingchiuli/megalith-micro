@@ -7,6 +7,9 @@ spring:
       max-file-size: 5MB
       max-request-size: 5MB
       enabled: true
+  profiles:
+    default: dev
+    active: dev
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     default-property-inclusion: NON_NULL
