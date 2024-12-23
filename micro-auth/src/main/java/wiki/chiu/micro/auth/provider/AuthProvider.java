@@ -8,6 +8,7 @@ import wiki.chiu.micro.common.lang.Result;
 import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
 import wiki.chiu.micro.common.req.AuthorityRouteReq;
 
 
@@ -29,7 +30,12 @@ public class AuthProvider {
     }
 
     @PostMapping("/route")
-    public Result<AuthorityRouteVo> route(@RequestBody AuthorityRouteReq req, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) {
-        return Result.success(() -> authService.route(req, token));
+    public Result<AuthorityRouteVo> findRoute(@RequestBody AuthorityRouteReq req) {
+        return Result.success(() -> authService.findRoute(req));
+    }
+
+    @PostMapping("/route/check")
+    public Result<Boolean> routeCheck(@RequestBody AuthorityRouteCheckReq req, @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) {
+        return Result.success(() -> authService.routeCheck(req, token));
     }
 }

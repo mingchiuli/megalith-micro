@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.client.ClientHttpResponse;
 import wiki.chiu.micro.common.dto.AuthorityRouteRpcDto;
-import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.lang.Result;
 
 import wiki.chiu.micro.common.req.AuthorityRouteReq;
@@ -58,16 +57,12 @@ public class Router {
         String method = request.getMethod();
         String requestURI = request.getRequestURI();
 
-        AuthorityRouteRpcDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(AuthorityRouteReq.builder()
+        AuthorityRouteReq routeReq = AuthorityRouteReq.builder()
                 .routeMapping(requestURI)
                 .method(method)
                 .ipAddr(ipAddress)
-                .build());
-
-        if (Boolean.FALSE.equals(authorityRoute.auth())) {
-            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ExceptionMessage.RE_LOGIN.getMsg());
-            return;
-        }
+                .build();
+        AuthorityRouteRpcDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(routeReq);
 
         String url = buildUrl(authorityRoute, requestURI);
         HttpMethod httpMethod = HttpMethod.valueOf(method);

@@ -2,7 +2,6 @@ package wiki.chiu.micro.auth.vo;
 
 
 public record AuthorityRouteVo(
-        Boolean auth,
 
         String serviceHost,
 
@@ -13,14 +12,8 @@ public record AuthorityRouteVo(
     }
 
     public static class AuthorityRouteVoBuilder {
-        private Boolean auth;
         private String serviceHost;
         private Integer servicePort;
-
-        public AuthorityRouteVoBuilder auth(Boolean auth) {
-            this.auth = auth;
-            return this;
-        }
 
         public AuthorityRouteVoBuilder serviceHost(String serviceHost) {
             this.serviceHost = serviceHost;
@@ -33,7 +26,7 @@ public record AuthorityRouteVo(
         }
 
         public AuthorityRouteVo build() {
-            return new AuthorityRouteVo(auth, serviceHost, servicePort);
+            return new AuthorityRouteVo(serviceHost, servicePort);
         }
     }
 }

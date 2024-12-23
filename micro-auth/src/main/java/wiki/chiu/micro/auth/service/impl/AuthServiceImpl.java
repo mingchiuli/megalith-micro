@@ -23,7 +23,10 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
+import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthStatusEnum;
+import wiki.chiu.micro.common.lang.ExceptionMessage;
+import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
 import wiki.chiu.micro.common.req.AuthorityRouteReq;
 
 import java.io.IOException;
@@ -88,36 +91,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthorityRouteVo route(AuthorityRouteReq req, String token) {
+    public AuthorityRouteVo findRoute(AuthorityRouteReq req) {
         recordIp(req.ipAddr());
-
-        Set<String> authorities;
-        try {
-            authorities = getAuthAuthority(token);
-        } catch (AuthException e) {
-            return AuthorityRouteVo.builder()
-                    .auth(false)
-                    .build();
-        }
-
         List<AuthorityRpcDto> systemAuthorities = authWrapper.getAllSystemAuthorities();
         for (AuthorityRpcDto dto : systemAuthorities) {
             if (routeMatch(dto.routePattern(), dto.methodType(), req.routeMapping(), req.method())) {
-                if (authorities.contains(dto.code())) {
-                    return AuthorityRouteVo.builder()
-                            .auth(true)
-                            .serviceHost(dto.serviceHost())
-                            .servicePort(dto.servicePort())
-                            .build();
-                }
                 return AuthorityRouteVo.builder()
-                        .auth(false)
+                        .serviceHost(dto.serviceHost())
+                        .servicePort(dto.servicePort())
                         .build();
             }
         }
-        return AuthorityRouteVo.builder()
-                .auth(false)
-                .build();
+        throw new MissException(ExceptionMessage.NO_AUTH);
     }
 
     private void recordIp(String ipAddr) {
@@ -170,6 +155,24 @@ public class AuthServiceImpl implements AuthService {
                 .roles(rawRoles)
                 .authorities(authorities)
                 .build();
+    }
+
+    @Override
+    public Boolean routeCheck(AuthorityRouteCheckReq req, String token) {
+        Set<String> authorities;
+        try {
+            authorities = getAuthAuthority(token);
+        } catch (AuthException e) {
+            return false;
+        }
+
+        List<AuthorityRpcDto> systemAuthorities = authWrapper.getAllSystemAuthorities();
+        for (AuthorityRpcDto dto : systemAuthorities) {
+            if (routeMatch(dto.routePattern(), dto.methodType(), req.routeMapping(), req.method())) {
+                return authorities.contains(dto.code());
+            }
+        }
+        return false;
     }
 
     private Set<String> getAuthAuthority(String token) throws AuthException {
