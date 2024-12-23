@@ -490,8 +490,7 @@ const init = async () => {
 }
 
 .el-tag {
-  margin-right: 10px;
-  margin-bottom: 10px;
+  margin: 5px;
 }
 
 .el-upload__text {
