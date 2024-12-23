@@ -8,7 +8,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation(project(":common"))
-	implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.4.1-M1")
+	implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.4.1")
 	implementation("org.redisson:redisson:3.40.2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.amqp:spring-rabbit-test")
