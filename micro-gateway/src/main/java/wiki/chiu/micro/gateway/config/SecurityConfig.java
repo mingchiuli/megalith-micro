@@ -2,6 +2,8 @@ package wiki.chiu.micro.gateway.config;
 
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +22,7 @@ import java.util.Optional;
 @Configuration
 public class SecurityConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
 
     public SecurityConfig(AuthHttpServiceWrapper authHttpServiceWrapper) {
@@ -50,6 +53,7 @@ public class SecurityConfig {
                                             .method(method)
                                             .build();
                                     Boolean b = authHttpServiceWrapper.routeCheck(routeCheckReq, token);
+                                    log.info("auth:{}", b);
                                     return new AuthorizationDecision(b);
                                 }))
                 .build();
