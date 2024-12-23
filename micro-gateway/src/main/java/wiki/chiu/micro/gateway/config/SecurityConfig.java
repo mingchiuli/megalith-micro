@@ -53,7 +53,6 @@ public class SecurityConfig {
                                             .method(method)
                                             .build();
                                     Boolean b = authHttpServiceWrapper.routeCheck(routeCheckReq, token);
-                                    log.info("auth:{}", b);
                                     return new AuthorizationDecision(b);
                                 }))
                 .build();
