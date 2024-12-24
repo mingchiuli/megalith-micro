@@ -1,6 +1,9 @@
 package wiki.chiu.micro.common.lang;
 
 
+import java.util.Arrays;
+import java.util.List;
+
 public enum SensitiveTypeEnum {
 
     TITLE(1, "title"),
@@ -25,4 +28,8 @@ public enum SensitiveTypeEnum {
     public String getDescription() {
         return this.description;
     }
+
+    public static final List<Integer> SENSITIVE_TYPE_SET = Arrays.stream(SensitiveTypeEnum.values())
+            .map(SensitiveTypeEnum::getCode)
+            .toList();
 }

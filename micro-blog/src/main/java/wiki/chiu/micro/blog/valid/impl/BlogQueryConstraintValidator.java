@@ -6,7 +6,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.util.StringUtils;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.valid.BlogSysQuery;
-import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.lang.BlogStatusEnum;
 
 import java.time.LocalDateTime;
 
@@ -32,7 +32,7 @@ public class BlogQueryConstraintValidator implements ConstraintValidator<BlogSys
     }
 
     private boolean isValidStatus(Integer status) {
-        return status == null || Const.BLOG_STATUS_SET.contains(status);
+        return status == null || BlogStatusEnum.BLOG_STATUS_SET.contains(status);
     }
 
     private boolean isValidKeywords(String keywords) {
