@@ -57,24 +57,24 @@ public class Router {
         String method = request.getMethod();
         String requestURI = request.getRequestURI();
 
-        AuthorityRouteReq routeReq = AuthorityRouteReq.builder()
-                .routeMapping(requestURI)
-                .method(method)
-                .ipAddr(ipAddress)
-                .build();
-        AuthorityRouteRpcDto authorityRoute = authHttpServiceWrapper.getAuthorityRoute(routeReq);
-
+        AuthorityRouteRpcDto authorityRoute = fetchRoute(ipAddress, method, requestURI);
         String url = buildUrl(authorityRoute, requestURI);
-        HttpMethod httpMethod = HttpMethod.valueOf(method);
-        Map<String, String[]> parameterMap = request.getParameterMap();
-
-        ResponseEntity<byte[]> responseEntity = handleRequest(request, url, httpMethod, parameterMap, response);
+        ResponseEntity<byte[]> responseEntity = handleRequest(request, url, method, response);
 
         if (response.getStatus() != HttpStatus.OK.value() || responseEntity == null) {
             return;
         }
 
         handleResponse(response, responseEntity);
+    }
+
+    private AuthorityRouteRpcDto fetchRoute(String ipAddress, String method, String requestURI) {
+        AuthorityRouteReq routeReq = AuthorityRouteReq.builder()
+                .routeMapping(requestURI)
+                .method(method)
+                .ipAddr(ipAddress)
+                .build();
+        return authHttpServiceWrapper.getAuthorityRoute(routeReq);
     }
 
     private String getIpAddr(HttpServletRequest request) {
@@ -110,7 +110,9 @@ public class Router {
         return "http://" + authorityRoute.serviceHost() + ":" + authorityRoute.servicePort() + requestURI;
     }
 
-    private ResponseEntity<byte[]> handleRequest(HttpServletRequest request, String url, HttpMethod httpMethod, Map<String, String[]> parameterMap, HttpServletResponse response) throws IOException {
+    private ResponseEntity<byte[]> handleRequest(HttpServletRequest request, String url, String method, HttpServletResponse response) throws IOException {
+        Map<String, String[]> parameterMap = request.getParameterMap();
+        HttpMethod httpMethod = HttpMethod.valueOf(method);
         if (HttpMethod.POST.equals(httpMethod)) {
             return handlePostRequest(request, url, parameterMap, response);
         } else if (HttpMethod.GET.equals(httpMethod)) {
