@@ -1,6 +1,9 @@
 package wiki.chiu.micro.common.lang;
 
 
+import java.util.Arrays;
+import java.util.List;
+
 public enum BlogStatusEnum {
 
     NORMAL(0, "正常状态"),
@@ -25,4 +28,9 @@ public enum BlogStatusEnum {
     public String getDescription() {
         return this.description;
     }
+
+    public static final List<Integer> BLOG_STATUS_SET = Arrays.stream(BlogStatusEnum.values())
+            .map(BlogStatusEnum::getCode)
+            .toList();
+
 }

@@ -1,10 +1,6 @@
 package wiki.chiu.micro.common.lang;
 
-
-import java.util.Arrays;
-import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * @author mingchiuli
@@ -115,13 +111,5 @@ public class Const {
     public static final String TRY_COUNT_KEY = "try_count";
 
     public static final int SUCCESS_CODE = 200;
-
-    public static final Set<Integer> BLOG_STATUS_SET = Arrays.stream(BlogStatusEnum.values())
-            .map(BlogStatusEnum::getCode)
-            .collect(Collectors.toSet());
-
-    public static final Set<Integer> SENSITIVE_SET = Arrays.stream(SensitiveTypeEnum.values())
-            .map(SensitiveTypeEnum::getCode)
-            .collect(Collectors.toSet());
 }
 
