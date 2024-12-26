@@ -1,5 +1,7 @@
 package wiki.chiu.micro.auth.config;
 
+import wiki.chiu.micro.auth.dto.ButtonDto;
+import wiki.chiu.micro.auth.dto.MenuDto;
 import wiki.chiu.micro.auth.dto.MenusAndButtonsDto;
 import wiki.chiu.micro.auth.vo.LoginSuccessVo;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
@@ -20,6 +22,8 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 .registerType(LoginSuccessVo.class)
                 .registerType(UserInfoVo.class)
                 .registerType(MenusAndButtonsDto.class)
-                .registerType(AuthorityRpcDto.class);
+                .registerType(AuthorityRpcDto.class)
+                .registerType(MenuDto.class)
+                .registerType(ButtonDto.class);
     }
 }

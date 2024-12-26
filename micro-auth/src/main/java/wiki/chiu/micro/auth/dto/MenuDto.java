@@ -1,6 +1,8 @@
 
 package wiki.chiu.micro.auth.dto;
 
+import java.io.Serializable;
+
 public record MenuDto(
 
         Long menuId,
@@ -21,7 +23,7 @@ public record MenuDto(
 
         Integer orderNum,
 
-        Integer status) {
+        Integer status) implements Serializable {
 
     public static MenuDto.MenuWithChildRpcDtoBuilder builder() {
         return new MenuDto.MenuWithChildRpcDtoBuilder();
