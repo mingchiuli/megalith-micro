@@ -41,6 +41,8 @@ public class SecurityConfig {
                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
+                                .requestMatchers("/actuator/health")
+                                .permitAll()
                                 .anyRequest()
                                 .access((_, context) -> {
                                     HttpServletRequest request = context.getRequest();
