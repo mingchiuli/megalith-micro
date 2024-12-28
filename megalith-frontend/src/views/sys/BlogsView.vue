@@ -12,7 +12,6 @@ import {
   getButtonTitle
 } from '@/utils/tools'
 import { displayState } from '@/utils/position'
-import { stat } from 'fs'
 
 const { fixSelection, fix, moreItems } = displayState()
 const input = ref('')
