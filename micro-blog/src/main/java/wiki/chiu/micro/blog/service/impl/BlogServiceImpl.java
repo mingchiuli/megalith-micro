@@ -344,6 +344,7 @@ public class BlogServiceImpl implements BlogService {
 
         List<BlogEntity> items = blogRepository.findAllById(ids).stream()
                 .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
+                .filter(item -> req.status() == null || Objects.equals(item.getStatus(), req.status()))
                 .toList();
 
         List<BlogSensitiveContentEntity> blogSensitiveContentEntities = blogSensitiveContentRepository.findByBlogIdIn(ids);
