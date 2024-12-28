@@ -51,7 +51,8 @@ public class GlobalExceptionHandler {
         log.error("-------------------error", e);
         return Result.fail(e.getBindingResult().getAllErrors().stream()
                 .findFirst()
-                .<String>map(MessageSourceResolvable::getDefaultMessage).orElse(""));
+                .<String>map(MessageSourceResolvable::getDefaultMessage)
+                .orElse(""));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
