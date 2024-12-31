@@ -39,7 +39,7 @@ const errorInterceptor = (error: AxiosError<any, any>) => {
     message: error.response!.data.msg ? error.response!.data.msg : error.message,
     showClose: true
   })
-  if (error.response!.status === 401) {
+  if (error.response!.status === 403) {
     clearLoginState()
     router.push({
       name: 'login'
