@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
         return Result.fail(e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(value = AuthException.class)
     public Result<Void> handler(AuthException e) {
         log.error("-------------------error", e);
