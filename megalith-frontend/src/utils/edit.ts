@@ -97,7 +97,7 @@ export const watchInput = (
             deal(nArr[i], oArr[i], operateStatus, pushActionForm, form)
             recheckSensitive(pushActionForm, form, idxStart + pushActionForm.indexStart!)
           }
-          idxStart += nArr.length
+          idxStart += nArr[i].length
           idxStart += ParaInfo.PARA_SPLIT.length
         }
         return
