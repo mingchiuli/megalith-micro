@@ -277,9 +277,6 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm,
     const sensitiveList = form.sensitiveContentList.filter(
       (item) => item.type !== SensitiveType.CONTENT || item.endIndex - 1 < idxStart
     )
-    console.log(sensitiveList)
-    console.log(form.sensitiveContentList)
-    console.log(idxStart)
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
     }
