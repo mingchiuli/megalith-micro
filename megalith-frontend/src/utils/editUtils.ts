@@ -181,14 +181,13 @@ export const dealAction = (
   return ActionType.PUSH_ALL
 }
 
-export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm) => {
+export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm, idxStart: number) => {
   if (form.status !== Status.SENSITIVE_FILTER) {
     return
   }
   const field = pushActionForm.field
   const operateType = pushActionForm.operateTypeCode
   const len = form.sensitiveContentList.length
-  const indexStart = pushActionForm.indexStart!
   /**
    * type 1
    */
@@ -248,7 +247,7 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm)
       operateType === OperateTypeCode.NON_PARA_REPLACE)
   ) {
     const sensitiveList = form.sensitiveContentList.filter(
-      (item) => item.type !== SensitiveType.TITLE || item.endIndex - 1 < indexStart
+      (item) => item.type !== SensitiveType.TITLE || item.endIndex - 1 < idxStart
     )
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
@@ -262,7 +261,7 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm)
       operateType === OperateTypeCode.NON_PARA_REPLACE)
   ) {
     const sensitiveList = form.sensitiveContentList.filter(
-      (item) => item.type !== SensitiveType.DESCRIPTION || item.endIndex - 1 < indexStart
+      (item) => item.type !== SensitiveType.DESCRIPTION || item.endIndex - 1 < idxStart
     )
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
@@ -275,12 +274,9 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm)
     (operateType === OperateTypeCode.PARA_TAIL_SUBTRACT ||
       operateType === OperateTypeCode.PARA_REPLACE)
   ) {
-    console.log(form.sensitiveContentList)
-    console.log(indexStart)
     const sensitiveList = form.sensitiveContentList.filter(
-      (item) => item.type !== SensitiveType.CONTENT || item.endIndex - 1 < indexStart
+      (item) => item.type !== SensitiveType.CONTENT || item.endIndex - 1 < idxStart
     )
-    console.log(sensitiveList)
     if (sensitiveList.length !== len) {
       form.sensitiveContentList = sensitiveList
     }

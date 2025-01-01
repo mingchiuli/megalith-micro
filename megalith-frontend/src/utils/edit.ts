@@ -22,7 +22,7 @@ export const watchInput = (
       if (!preCheck(n, o, operateStatus)) return
       commonPreDeal(FieldType.NON_PARA, FieldName.DESCRIPTION, form, pushActionForm, operateStatus)
       deal(n, o, operateStatus, pushActionForm, form)
-      recheckSensitive(pushActionForm, form)
+      recheckSensitive(pushActionForm, form, pushActionForm.indexStart!)
     }
   )
 
@@ -75,7 +75,7 @@ export const watchInput = (
       if (!preCheck(n, o, operateStatus)) return
       commonPreDeal(FieldType.NON_PARA, FieldName.TITLE, form, pushActionForm, operateStatus)
       deal(n, o, operateStatus, pushActionForm, form)
-      recheckSensitive(pushActionForm, form)
+      recheckSensitive(pushActionForm, form, pushActionForm.indexStart!)
     }
   )
 
@@ -90,12 +90,14 @@ export const watchInput = (
 
       //本段内操作
       if (nArr.length === oArr.length) {
+        let idxStart = 0
         for (let i = 0; i < nArr.length; i++) {
           if (nArr[i] !== oArr[i]) {
             pushActionForm.paraNo = i + 1
             deal(nArr[i], oArr[i], operateStatus, pushActionForm, form)
-            recheckSensitive(pushActionForm, form)
+            recheckSensitive(pushActionForm, form, idxStart + pushActionForm.indexStart!)
           }
+          idxStart += nArr.length
         }
         return
       }
