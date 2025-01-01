@@ -275,6 +275,7 @@ export const recheckSensitive = (pushActionForm: PushActionForm, form: EditForm)
     (operateType === OperateTypeCode.PARA_TAIL_SUBTRACT ||
       operateType === OperateTypeCode.PARA_REPLACE)
   ) {
+    console.log(form.sensitiveContentList)
     const sensitiveList = form.sensitiveContentList.filter(
       (item) => item.type !== SensitiveType.CONTENT || item.endIndex - 1 < indexStart
     )
