@@ -78,7 +78,6 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         UserEntity dealUser = getUserEntity(userEntityReq);
 
-        UserOperateEnum userOperateEnum;
         UserEntityReq userReq;
         if (userEntityReq.id().isPresent()) {
 
@@ -88,11 +87,9 @@ public class UserRoleServiceImpl implements UserRoleService {
             } else {
                 userReq = new UserEntityReq(userEntityReq, dealUser.getPassword());
             }
-            userOperateEnum = UserOperateEnum.UPDATE;
         } else {
             userReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(Optional.ofNullable(userEntityReq.password())
                     .orElseThrow(() -> new CommitException(PASSWORD_REQUIRED))));
-            userOperateEnum = UserOperateEnum.CREATE;
         }
 
         UserEntity userEntity = UserEntityConvertor.convert(userReq, dealUser);
@@ -105,7 +102,7 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
 
-        executeTask(dealUser.getId(), userOperateEnum);
+        executeTask(dealUser.getId(), userEntityReq.id().isPresent() ? UserOperateEnum.UPDATE : UserOperateEnum.CREATE);
     }
 
     @Override
