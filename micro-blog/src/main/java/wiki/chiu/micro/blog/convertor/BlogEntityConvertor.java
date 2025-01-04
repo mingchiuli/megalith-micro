@@ -38,12 +38,20 @@ public class BlogEntityConvertor {
                 .build();
     }
 
-    public static void convert(BlogEntityReq blog, BlogEntity blogEntity) {
+    public static BlogEntity convert(BlogEntityReq blog, BlogEntity preDealBlog) {
+        BlogEntity blogEntity = new BlogEntity();
         blogEntity.setTitle(blog.title());
         blogEntity.setDescription(blog.description());
         blogEntity.setContent(blog.content());
         blogEntity.setId(blog.id().orElse(null));
         blogEntity.setStatus(blog.status());
         blogEntity.setLink(blog.link());
+
+        blogEntity.setUserId(preDealBlog.getUserId());
+        blogEntity.setReadCount(preDealBlog.getReadCount());
+        blogEntity.setCreated(preDealBlog.getCreated());
+        blogEntity.setUpdated(preDealBlog.getUpdated());
+
+        return blogEntity;
     }
 }
