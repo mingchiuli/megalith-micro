@@ -93,9 +93,8 @@ public class BlogServiceImpl implements BlogService {
                 .map(this::processSensitiveContent)
                 .toList();
 
-        dtoPageAdapter = new PageAdapter<>(descSensitiveList, dtoPageAdapter);
-
-        return BlogDescriptionVoConvertor.convert(dtoPageAdapter);
+        var pageAdapter = new PageAdapter<>(descSensitiveList, dtoPageAdapter);
+        return BlogDescriptionVoConvertor.convert(pageAdapter);
     }
 
     private BlogDescriptionDto processSensitiveContent(BlogDescriptionDto desc) {
@@ -196,26 +195,28 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public BlogExhibitVo getBlogDetail(List<String> roles, Long id, Long userId) {
 
-        BlogExhibitDto blogExhibitDto = blogWrapper.findById(id);
+        BlogExhibitDto rawBlog = blogWrapper.findById(id);
         Integer status = blogWrapper.findStatusById(id);
 
         if (BlogStatusEnum.HIDE.getCode().equals(status) &&
                 !roles.contains(highestRole) &&
-                !Objects.equals(userId, blogExhibitDto.userId())) {
+                !Objects.equals(userId, rawBlog.userId())) {
             throw new MissException(AUTH_EXCEPTION.getMsg());
         }
 
         if (BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(status) &&
                 !roles.contains(highestRole) &&
-                !Objects.equals(userId, blogExhibitDto.userId())) {
+                !Objects.equals(userId, rawBlog.userId())) {
             BlogSensitiveContentRpcDto sensitiveContentDto = blogSensitiveWrapper.findSensitiveByBlogId(id);
             List<SensitiveContentRpcDto> words = sensitiveContentDto.sensitiveContent();
             if (!words.isEmpty()) {
-                blogExhibitDto = SensitiveUtils.deal(words, blogExhibitDto);
+                BlogExhibitDto dealBlog = SensitiveUtils.deal(words, rawBlog);
+                blogWrapper.setReadCount(id);
+                return BlogExhibitVoConvertor.convert(dealBlog);
             }
         }
 
         blogWrapper.setReadCount(id);
-        return BlogExhibitVoConvertor.convert(blogExhibitDto);
+        return BlogExhibitVoConvertor.convert(rawBlog);
     }
 }
