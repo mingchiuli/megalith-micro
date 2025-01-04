@@ -79,22 +79,23 @@ public class UserRoleServiceImpl implements UserRoleService {
         UserEntity userEntity = getUserEntity(userEntityReq);
 
         UserOperateEnum userOperateEnum;
+        UserEntityReq userReq;
         if (userEntityReq.id().isPresent()) {
 
             String password = userEntityReq.password();
             if (StringUtils.hasLength(password)) {
-                userEntityReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(password));
+                userReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(password));
             } else {
-                userEntityReq = new UserEntityReq(userEntityReq, userEntity.getPassword());
+                userReq = new UserEntityReq(userEntityReq, userEntity.getPassword());
             }
             userOperateEnum = UserOperateEnum.UPDATE;
         } else {
-            userEntityReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(Optional.ofNullable(userEntityReq.password())
+            userReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(Optional.ofNullable(userEntityReq.password())
                     .orElseThrow(() -> new CommitException(PASSWORD_REQUIRED))));
             userOperateEnum = UserOperateEnum.CREATE;
         }
 
-        UserEntityConvertor.convert(userEntityReq, userEntity);
+        UserEntityConvertor.convert(userReq, userEntity);
 
         List<UserRoleEntity> userRoleEntities = roleRepository.findByCodeIn(userEntityReq.roles()).stream()
                 .map(role -> UserRoleEntity.builder()
@@ -111,12 +112,15 @@ public class UserRoleServiceImpl implements UserRoleService {
     public void saveRegisterPage(UserEntityRegisterReq req) {
         String phone = req.phone();
 
+        UserEntityRegisterReq dealReq;
         if (!StringUtils.hasLength(phone)) {
             String fakePhone = CodeUtils.createPhone();
-            req = new UserEntityRegisterReq(req, fakePhone);
+            dealReq = new UserEntityRegisterReq(req, fakePhone);
+        } else {
+            dealReq = req;
         }
 
-        UserEntityReq userEntityReq = getUserEntityReq(req);
+        UserEntityReq userEntityReq = getUserEntityReq(dealReq);
         saveOrUpdate(userEntityReq);
         redisTemplate.delete(REGISTER_PREFIX + req.token());
     }

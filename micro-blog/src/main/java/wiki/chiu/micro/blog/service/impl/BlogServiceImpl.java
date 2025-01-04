@@ -290,8 +290,8 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public void saveOrUpdate(BlogEntityReq blog, Long userId) {
-        BlogEntity blogEntity = getBlogEntity(blog, userId);
-        BlogEntityConvertor.convert(blog, blogEntity);
+        BlogEntity preDealBlog = getBlogEntity(blog, userId);
+        BlogEntity blogEntity = BlogEntityConvertor.convert(blog, preDealBlog);
 
         List<BlogSensitiveContentEntity> blogSensitiveContentEntityList = blog.sensitiveContentList().stream()
                 .distinct()
