@@ -316,7 +316,8 @@ public class BlogServiceImpl implements BlogService {
     private BlogEntity getBlogEntity(BlogEntityReq blog, Long userId) {
         return blog.id()
                 .map(blogId -> {
-                    BlogEntity blogEntity = blogRepository.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+                    BlogEntity blogEntity = blogRepository.findById(blogId)
+                            .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
                     EditAuthUtils.checkEditAuth(blogEntity, userId);
                     return blogEntity;
                 })
