@@ -143,13 +143,13 @@ public class BlogServiceImpl implements BlogService {
                 .getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/hot-blogs.lua");
         hotBlogsScript = hotBlogsResource.getContentAsString(StandardCharsets.UTF_8);
         Resource listDeleteResource = resourceLoader
-                .getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/list-delete.lua");
+                .getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/blog-list-delete.lua");
         listDeleteScript = listDeleteResource.getContentAsString(StandardCharsets.UTF_8);
         Resource recoverDeleteResource = resourceLoader
                 .getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/recover-delete.lua");
         recoverDeleteScript = recoverDeleteResource.getContentAsString(StandardCharsets.UTF_8);
         Resource blogDeleteResource = resourceLoader
-                .getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/blog-delete.lua");
+                .getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/rpush-expire.lua");
         blogDeleteScript = blogDeleteResource.getContentAsString(StandardCharsets.UTF_8);
     }
 

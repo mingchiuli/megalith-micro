@@ -70,7 +70,7 @@ public class CodeServiceImpl implements CodeService {
 
     @PostConstruct
     private void init() throws IOException {
-        Resource resource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/save-code.lua");
+        Resource resource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/hmset-expire.lua");
         script = resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
