@@ -64,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
 
     @PostConstruct
     private void init() throws IOException {
-        Resource resource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/statistics.lua");
+        Resource resource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/multi-pfadd.lua");
         script = resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
@@ -107,7 +107,7 @@ public class AuthServiceImpl implements AuthService {
 
     private void recordIp(String ipAddr) {
         if (StringUtils.hasLength(ipAddr)) {
-            taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT), ipAddr));
+            taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT), List.of(ipAddr, ipAddr, ipAddr, ipAddr)));
         }
     }
 

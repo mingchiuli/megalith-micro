@@ -67,8 +67,6 @@ public class BlogServiceImpl implements BlogService {
 
     private String visitScript;
 
-    private String countYearsScript;
-
     @Value("${megalith.blog.highest-role}")
     private String highestRole;
 
@@ -82,10 +80,8 @@ public class BlogServiceImpl implements BlogService {
 
     @PostConstruct
     private void init() throws IOException {
-        Resource visitResource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/visit.lua");
-        Resource countYearsResource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/count-years.lua");
+        Resource visitResource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/multi-pfcount.lua");
         visitScript = visitResource.getContentAsString(StandardCharsets.UTF_8);
-        countYearsScript = countYearsResource.getContentAsString(StandardCharsets.UTF_8);
     }
 
     @Override
@@ -160,7 +156,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public List<Integer> searchYears() {
-        Long count = redissonClient.getScript().eval(Mode.READ_ONLY, countYearsScript, ReturnType.INTEGER, List.of(BLOOM_FILTER_YEARS));
+        long count = redissonClient.getBitSet(BLOOM_FILTER_YEARS).cardinality();
         return generateYearsList(count);
     }
 

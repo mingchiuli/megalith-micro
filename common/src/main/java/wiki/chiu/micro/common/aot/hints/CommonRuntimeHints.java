@@ -12,18 +12,18 @@ class CommonRuntimeHints implements RuntimeHintsRegistrar {
         // Register method for reflection
 
         hints.resources()
-                .registerPattern("script/blog-delete.lua")
+                .registerPattern("script/rpush-expire.lua")
                 .registerPattern("script/count-years.lua")
                 .registerPattern("script/email-phone.lua")
                 .registerPattern("script/hot-blogs.lua")
-                .registerPattern("script/list-delete.lua")
+                .registerPattern("script/blog-list-delete.lua")
                 .registerPattern("script/password.lua")
                 .registerPattern("script/push-action.lua")
                 .registerPattern("script/push-all.lua")
                 .registerPattern("script/recover-delete.lua")
-                .registerPattern("script/save-code.lua")
-                .registerPattern("script/statistics.lua")
-                .registerPattern("script/visit.lua");
+                .registerPattern("script/hmset-expire.lua")
+                .registerPattern("script/multi-pfadd.lua")
+                .registerPattern("script/multi-pfcount.lua");
     }
 
 }
