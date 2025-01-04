@@ -176,9 +176,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private Set<String> getAuthAuthority(String token) throws AuthException {
-        List<AuthorityRpcDto> allAuthorities = authWrapper.getAllSystemAuthorities();
 
-        Set<String> authorities = allAuthorities.stream()
+        Set<String> authorities = authWrapper.getAllSystemAuthorities().stream()
                 .filter(item -> AuthStatusEnum.WHITE_LIST.getCode().equals(item.type()))
                 .map(AuthorityRpcDto::code)
                 .collect(Collectors.toSet());
@@ -187,8 +186,7 @@ public class AuthServiceImpl implements AuthService {
             return authorities;
         }
 
-        String jwt = token.substring(TOKEN_PREFIX.length());
-        Claims claims = tokenUtils.getVerifierByToken(jwt);
+        Claims claims = tokenUtils.getVerifierByToken(token.substring(TOKEN_PREFIX.length()));
         List<String> roles = claims.roles();
 
         List<String> rawRoles = getRawRoleCodes(roles);
