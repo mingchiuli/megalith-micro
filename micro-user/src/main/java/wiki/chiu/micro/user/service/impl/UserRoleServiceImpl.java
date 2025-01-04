@@ -76,7 +76,7 @@ public class UserRoleServiceImpl implements UserRoleService {
     @Override
     public void saveOrUpdate(UserEntityReq userEntityReq) {
 
-        UserEntity userEntity = getUserEntity(userEntityReq);
+        UserEntity dealUser = getUserEntity(userEntityReq);
 
         UserOperateEnum userOperateEnum;
         UserEntityReq userReq;
@@ -86,7 +86,7 @@ public class UserRoleServiceImpl implements UserRoleService {
             if (StringUtils.hasLength(password)) {
                 userReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(password));
             } else {
-                userReq = new UserEntityReq(userEntityReq, userEntity.getPassword());
+                userReq = new UserEntityReq(userEntityReq, dealUser.getPassword());
             }
             userOperateEnum = UserOperateEnum.UPDATE;
         } else {
@@ -95,7 +95,7 @@ public class UserRoleServiceImpl implements UserRoleService {
             userOperateEnum = UserOperateEnum.CREATE;
         }
 
-        UserEntityConvertor.convert(userReq, userEntity);
+        UserEntity userEntity = UserEntityConvertor.convert(userReq, dealUser);
 
         List<UserRoleEntity> userRoleEntities = roleRepository.findByCodeIn(userEntityReq.roles()).stream()
                 .map(role -> UserRoleEntity.builder()
@@ -105,7 +105,7 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
 
-        executeTask(userEntity.getId(), userOperateEnum);
+        executeTask(dealUser.getId(), userOperateEnum);
     }
 
     @Override

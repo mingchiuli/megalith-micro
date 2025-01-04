@@ -69,10 +69,10 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public void saveOrUpdate(MenuEntityReq menu) {
-        MenuEntity menuEntity = menu.menuId()
+        MenuEntity dealMenu = menu.menuId()
                 .flatMap(menuRepository::findById)
                 .orElseGet(MenuEntity::new);
-        MenuEntityConvertor.convert(menu, menuEntity);
+        MenuEntity menuEntity = MenuEntityConvertor.convert(menu, dealMenu);
 
         if (HIDE_STATUS.equals(menu.status()) && menu.menuId().isPresent()) {
             List<MenuEntity> menuEntities = new ArrayList<>();

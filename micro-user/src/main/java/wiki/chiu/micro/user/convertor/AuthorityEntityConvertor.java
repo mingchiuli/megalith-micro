@@ -5,7 +5,8 @@ import wiki.chiu.micro.user.req.AuthorityEntityReq;
 
 public class AuthorityEntityConvertor {
 
-    public static void convert(AuthorityEntityReq req, AuthorityEntity authorityEntity) {
+    public static AuthorityEntity convert(AuthorityEntityReq req, AuthorityEntity dealAuthority) {
+        AuthorityEntity authorityEntity = new AuthorityEntity();
         authorityEntity.setId(req.id().orElse(null));
         authorityEntity.setCode(req.code());
         authorityEntity.setRemark(req.remark());
@@ -16,5 +17,9 @@ public class AuthorityEntityConvertor {
         authorityEntity.setServicePort(req.servicePort());
         authorityEntity.setType(req.type());
         authorityEntity.setStatus(req.status());
+
+        authorityEntity.setCreated(dealAuthority.getCreated());
+
+        return authorityEntity;
     }
 }

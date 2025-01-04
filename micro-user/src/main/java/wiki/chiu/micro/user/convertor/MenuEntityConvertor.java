@@ -24,7 +24,9 @@ public class MenuEntityConvertor {
                 .build();
     }
 
-    public static void convert(MenuEntityReq menu, MenuEntity menuEntity) {
+    public static MenuEntity convert(MenuEntityReq menu, MenuEntity dealMenu) {
+        MenuEntity menuEntity = new MenuEntity();
+
         menuEntity.setMenuId(menu.menuId().orElse(null));
         menuEntity.setParentId(menu.parentId());
         menuEntity.setTitle(menu.title());
@@ -35,5 +37,9 @@ public class MenuEntityConvertor {
         menuEntity.setOrderNum(menu.orderNum());
         menuEntity.setType(menu.type());
         menuEntity.setStatus(menu.status());
+
+        menuEntity.setCreated(dealMenu.getCreated());
+
+        return menuEntity;
     }
 }
