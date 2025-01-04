@@ -1,7 +1,6 @@
 package wiki.chiu.micro.user.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -10,6 +9,7 @@ import wiki.chiu.micro.user.req.UserEntityReq;
 import wiki.chiu.micro.user.service.UserRoleService;
 import wiki.chiu.micro.user.service.UserService;
 import wiki.chiu.micro.user.valid.RegisterSave;
+import wiki.chiu.micro.user.valid.UserSave;
 import wiki.chiu.micro.user.vo.UserEntityVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -61,7 +61,7 @@ public class UserController {
     }
 
     @PostMapping("/save")
-    public Result<Void> saveOrUpdate(@RequestBody @Valid UserEntityReq userEntityReq) {
+    public Result<Void> saveOrUpdate(@RequestBody @UserSave UserEntityReq userEntityReq) {
         return Result.success(() -> userRoleService.saveOrUpdate(userEntityReq));
     }
 

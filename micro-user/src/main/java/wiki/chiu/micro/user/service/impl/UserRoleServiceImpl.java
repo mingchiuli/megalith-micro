@@ -1,7 +1,6 @@
 package wiki.chiu.micro.user.service.impl;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import wiki.chiu.micro.common.exception.CommitException;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -32,7 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.Const.*;
@@ -78,19 +76,9 @@ public class UserRoleServiceImpl implements UserRoleService {
 
         UserEntity dealUser = getUserEntity(userEntityReq);
 
-        UserEntityReq userReq;
-        if (userEntityReq.id().isPresent()) {
-
-            String password = userEntityReq.password();
-            if (StringUtils.hasLength(password)) {
-                userReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(password));
-            } else {
-                userReq = new UserEntityReq(userEntityReq, dealUser.getPassword());
-            }
-        } else {
-            userReq = new UserEntityReq(userEntityReq, passwordEncoder.encode(Optional.ofNullable(userEntityReq.password())
-                    .orElseThrow(() -> new CommitException(PASSWORD_REQUIRED))));
-        }
+        UserEntityReq userReq = userEntityReq.id().isPresent() && !StringUtils.hasLength(userEntityReq.password()) ?
+                new UserEntityReq(userEntityReq, dealUser.getPassword()) :
+                new UserEntityReq(userEntityReq, passwordEncoder.encode(userEntityReq.password()));
 
         UserEntity userEntity = UserEntityConvertor.convert(userReq, dealUser);
 
