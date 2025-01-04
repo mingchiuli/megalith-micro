@@ -16,7 +16,7 @@ class CommonRuntimeHints implements RuntimeHintsRegistrar {
                 .registerPattern("script/count-years.lua")
                 .registerPattern("script/email-phone.lua")
                 .registerPattern("script/hot-blogs.lua")
-                .registerPattern("script/blog-list-delete.lua")
+                .registerPattern("script/blog-delete-list.lua")
                 .registerPattern("script/password.lua")
                 .registerPattern("script/push-action.lua")
                 .registerPattern("script/push-all.lua")
