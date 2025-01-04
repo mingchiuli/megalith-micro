@@ -36,19 +36,22 @@ public class CheckerAspect {
 
     @Before("pt()")
     public void before(JoinPoint jp) {
-        MethodSignature signature = (MethodSignature) jp.getSignature();
-        Method method = signature.getMethod();
+        Method method = ((MethodSignature) jp.getSignature()).getMethod();
         Object[] args = jp.getArgs();
         Checker checker = method.getAnnotation(Checker.class);
-        Class<? extends CheckerHandler> handler0 = checker.handler();
+        Class<? extends CheckerHandler> handlerClass = checker.handler();
 
+        handleChecker(handlerClass, args);
+    }
+
+    private void handleChecker(Class<? extends CheckerHandler> handlerClass, Object[] args) {
         for (CheckerHandler handler : checkerHandlers) {
-            if (handler.supports(handler0)) {
+            if (handler.supports(handlerClass)) {
                 try {
                     handler.handle(args);
                     break;
                 } catch (NestedRuntimeException e) {
-                    log.error(e.toString());
+                    log.error("Error handling checker: ", e);
                 }
             }
         }
