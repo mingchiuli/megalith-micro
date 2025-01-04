@@ -2,6 +2,7 @@ package wiki.chiu.micro.user.req;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import wiki.chiu.micro.user.valid.ListValue;
 
 import java.util.Optional;
 
@@ -31,9 +32,9 @@ public record AuthorityEntityReq(
         @NotNull
         Integer servicePort,
 
-        @NotNull
+        @ListValue(values = {0, 1})
         Integer type,
 
-        @NotNull
+        @ListValue(values = {0, 1})
         Integer status) {
 }
