@@ -4,7 +4,8 @@ import wiki.chiu.micro.user.entity.UserEntity;
 import wiki.chiu.micro.user.req.UserEntityReq;
 
 public class UserEntityConvertor {
-    public static void convert(UserEntityReq userEntityReq, UserEntity userEntity) {
+    public static UserEntity convert(UserEntityReq userEntityReq, UserEntity dealUser) {
+        UserEntity userEntity = new UserEntity();
         userEntity.setId(userEntityReq.id().orElse(null));
         userEntity.setUsername(userEntityReq.username());
         userEntity.setNickname(userEntityReq.nickname());
@@ -13,5 +14,10 @@ public class UserEntityConvertor {
         userEntity.setPhone(userEntityReq.phone());
         userEntity.setPassword(userEntityReq.password());
         userEntity.setStatus(userEntityReq.status());
+
+        userEntity.setCreated(dealUser.getCreated());
+        userEntity.setLastLogin(dealUser.getLastLogin());
+
+        return userEntity;
     }
 }

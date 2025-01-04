@@ -91,10 +91,10 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public void saveOrUpdate(RoleEntityReq roleReq) {
 
-        RoleEntity roleEntity = roleReq.id()
+        RoleEntity dealRole = roleReq.id()
                 .flatMap(roleRepository::findById)
                 .orElseGet(RoleEntity::new);
-        RoleEntityConvertor.convert(roleReq, roleEntity);
+        RoleEntity roleEntity = RoleEntityConvertor.convert(roleReq, dealRole);
         roleRepository.save(roleEntity);
         executeDelRolesAuthTask(Collections.singletonList(roleEntity.getCode()), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
     }

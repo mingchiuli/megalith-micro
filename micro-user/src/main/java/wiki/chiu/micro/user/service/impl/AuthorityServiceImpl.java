@@ -72,11 +72,11 @@ public class AuthorityServiceImpl implements AuthorityService {
 
     @Override
     public void saveOrUpdate(AuthorityEntityReq req) {
-        AuthorityEntity authorityEntity = req.id()
+        AuthorityEntity dealAuthority = req.id()
                 .flatMap(authorityRepository::findById)
                 .orElseGet(AuthorityEntity::new);
 
-        AuthorityEntityConvertor.convert(req, authorityEntity);
+        AuthorityEntity authorityEntity = AuthorityEntityConvertor.convert(req, dealAuthority);
         authorityRepository.save(authorityEntity);
         executeDelAllRoleAuthTask();
     }

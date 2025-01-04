@@ -38,7 +38,7 @@ public class BlogEntityConvertor {
                 .build();
     }
 
-    public static BlogEntity convert(BlogEntityReq blog, BlogEntity preDealBlog) {
+    public static BlogEntity convert(BlogEntityReq blog, BlogEntity dealBlog) {
         BlogEntity blogEntity = new BlogEntity();
         blogEntity.setTitle(blog.title());
         blogEntity.setDescription(blog.description());
@@ -47,10 +47,9 @@ public class BlogEntityConvertor {
         blogEntity.setStatus(blog.status());
         blogEntity.setLink(blog.link());
 
-        blogEntity.setUserId(preDealBlog.getUserId());
-        blogEntity.setReadCount(preDealBlog.getReadCount());
-        blogEntity.setCreated(preDealBlog.getCreated());
-        blogEntity.setUpdated(preDealBlog.getUpdated());
+        blogEntity.setUserId(dealBlog.getUserId());
+        blogEntity.setReadCount(dealBlog.getReadCount());
+        blogEntity.setCreated(dealBlog.getCreated());
 
         return blogEntity;
     }
