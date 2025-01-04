@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class RpcClientFactory {
 
-    public static  <T> T createHttpService(Class<T> serviceClass, String url, HttpClient httpClient, AuthHttpInterceptor interceptor, DefaultUriBuilderFactory.EncodingMode encodingMode, HttpHeaders headers) {
+    public static <T> T createHttpService(Class<T> serviceClass, String url, HttpClient httpClient, AuthHttpInterceptor interceptor, DefaultUriBuilderFactory.EncodingMode encodingMode, HttpHeaders headers) {
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofSeconds(10));
 
