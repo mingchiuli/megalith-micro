@@ -37,8 +37,6 @@ public enum ExceptionMessage {
 
     ACCOUNT_LOCKED(34, "账户被锁"),
 
-    RE_LOGIN(35, "重新登录"),
-
     UPLOAD_MISS(36, "上传出现错误"),
 
     USER_MISS(37, "用户没有找到"),
