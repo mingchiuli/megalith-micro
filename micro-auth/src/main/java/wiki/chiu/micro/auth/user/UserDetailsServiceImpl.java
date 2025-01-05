@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
+import wiki.chiu.micro.common.lang.StatusEnum;
 
 import java.util.List;
 
@@ -35,7 +36,7 @@ public final class UserDetailsServiceImpl implements UserDetailsService {
 				true,
 				true,
 				true,
-				user.status() == 0,
+				StatusEnum.NORMAL.getCode().equals(user.status()),
 				AuthorityUtils.createAuthorityList(roleCodes),
 				userId);
 	}
