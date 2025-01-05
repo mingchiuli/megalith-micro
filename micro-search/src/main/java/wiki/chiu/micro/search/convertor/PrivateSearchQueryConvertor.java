@@ -121,19 +121,19 @@ public class PrivateSearchQueryConvertor {
                         .range(range -> range
                                 .term(term -> term
                                         .field(CREATED.getField())
-                                        .from(createStart != null
-                                                ? ZonedDateTime.of(createStart, ZONE_ID).format(FORMATTER)
-                                                : null)
-                                        .to(createEnd != null
-                                                ? ZonedDateTime.of(createEnd, ZONE_ID).format(FORMATTER)
-                                                : null))))
+                                        .from(createStart != null ?
+                                                ZonedDateTime.of(createStart, ZONE_ID).format(FORMATTER) :
+                                                null)
+                                        .to(createEnd != null ?
+                                                ZonedDateTime.of(createEnd, ZONE_ID).format(FORMATTER) :
+                                                null))))
                 .filter(filter -> filter
                         .terms(terms -> terms
                                 .field(STATUS.getField())
                                 .terms(termsValue -> termsValue
-                                        .value(status == null
-                                                ? ALL_STATUS
-                                                : Collections.singletonList(FieldValue.of(status.longValue()))))));
+                                        .value(status == null ?
+                                                ALL_STATUS :
+                                                Collections.singletonList(FieldValue.of(status.longValue()))))));
 
         if (StringUtils.hasText(keywords)) {
             boolQryBuilder

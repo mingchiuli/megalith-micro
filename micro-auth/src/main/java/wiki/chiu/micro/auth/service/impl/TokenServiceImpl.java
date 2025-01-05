@@ -9,6 +9,7 @@ import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.dto.UserEntityRpcDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import wiki.chiu.micro.common.lang.StatusEnum;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +38,11 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public Map<String, String> refreshToken(Long userId) {
-        List<String> roles = userHttpServiceWrapper.findRoleCodesByUserId(userId);
+        UserEntityRpcDto userEntityRpcDto = userHttpServiceWrapper.findById(userId);
+        List<String> roles = StatusEnum.HIDE.getCode().equals(userEntityRpcDto.status()) ?
+                Collections.emptyList() :
+                userHttpServiceWrapper.findRoleCodesByUserId(userId);
+
         String accessToken = generateAccessToken(userId, roles);
         return Collections.singletonMap("accessToken", TOKEN_PREFIX + accessToken);
     }
