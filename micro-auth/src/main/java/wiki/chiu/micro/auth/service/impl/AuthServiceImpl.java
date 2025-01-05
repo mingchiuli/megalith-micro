@@ -36,7 +36,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static wiki.chiu.micro.common.lang.Const.*;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.RE_LOGIN;
 
 
 @Service
@@ -146,12 +145,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         Claims claims = tokenUtils.getVerifierByToken(token.substring(TOKEN_PREFIX.length()));
-        long userId = Long.parseLong(claims.userId());
         List<String> rawRoles = getRawRoleCodes(claims.roles());
-        List<String> authorities = getAuthorities(userId, rawRoles);
+        List<String> authorities = getAuthorities(rawRoles);
 
         return AuthDto.builder()
-                .userId(userId)
+                .userId(Long.parseLong(claims.userId()))
                 .roles(rawRoles)
                 .authorities(authorities)
                 .build();
@@ -187,9 +185,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         Claims claims = tokenUtils.getVerifierByToken(token.substring(TOKEN_PREFIX.length()));
-        List<String> roles = claims.roles();
+        if (redissonClient.getBucket(BLOCK_USER + claims.userId()).isExists()) {
+            return authorities;
+        }
 
-        List<String> rawRoles = getRawRoleCodes(roles);
+        List<String> rawRoles = getRawRoleCodes(claims.roles());
 
         Set<String> authList = rawRoles.stream()
                 .map(authWrapper::getAuthoritiesByRoleCode)
@@ -206,10 +206,7 @@ public class AuthServiceImpl implements AuthService {
                 .toList();
     }
 
-    private List<String> getAuthorities(Long userId, List<String> rawRoles) throws AuthException {
-        if (redissonClient.getBucket(BLOCK_USER + userId).isExists()) {
-            throw new AuthException(RE_LOGIN.getMsg());
-        }
+    private List<String> getAuthorities(List<String> rawRoles) {
 
         return rawRoles.stream()
                 .map(authWrapper::getAuthoritiesByRoleCode)
