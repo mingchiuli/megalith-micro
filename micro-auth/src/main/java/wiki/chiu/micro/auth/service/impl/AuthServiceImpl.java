@@ -106,7 +106,7 @@ public class AuthServiceImpl implements AuthService {
 
     private void recordIp(String ipAddr) {
         if (StringUtils.hasLength(ipAddr)) {
-            taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT), List.of(ipAddr, ipAddr, ipAddr, ipAddr)));
+            taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT), ipAddr, ipAddr, ipAddr, ipAddr));
         }
     }
 
