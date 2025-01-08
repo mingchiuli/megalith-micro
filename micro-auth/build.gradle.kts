@@ -12,7 +12,7 @@ dependencies {
 	implementation("org.redisson:redisson:3.42.0")
 	implementation("com.nimbusds:nimbus-jose-jwt:10.0.1")
 	implementation(project(":common"))
-	implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.4.1.2")
+	implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.4.1.3")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
 }
