@@ -7,8 +7,5 @@ import java.util.List;
 
 public interface AuthorityRepository extends JpaRepository<AuthorityEntity, Long> {
 
-    List<AuthorityEntity> findByStatus(Integer status);
-
-    List<AuthorityEntity> findByServiceHostInAndStatus(List<String> service, Integer status);
-
+    List<AuthorityEntity> findByServiceHostIn(List<String> service);
 }

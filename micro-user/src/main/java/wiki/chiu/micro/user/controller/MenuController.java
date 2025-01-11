@@ -3,6 +3,7 @@ package wiki.chiu.micro.user.controller;
 
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.user.req.MenuEntityReq;
+import wiki.chiu.micro.user.service.MenuAuthorityService;
 import wiki.chiu.micro.user.service.MenuService;
 import wiki.chiu.micro.user.service.RoleMenuService;
 import wiki.chiu.micro.user.valid.MenuValue;
@@ -10,6 +11,7 @@ import wiki.chiu.micro.user.vo.MenuDisplayVo;
 import wiki.chiu.micro.user.vo.MenuEntityVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import wiki.chiu.micro.user.vo.MenuAuthorityVo;
 
 import java.util.List;
 
@@ -27,9 +29,12 @@ public class MenuController {
 
     private final RoleMenuService roleMenuService;
 
-    public MenuController(MenuService menuService, RoleMenuService roleMenuService) {
+    private final MenuAuthorityService menuAuthorityService;
+
+    public MenuController(MenuService menuService, RoleMenuService roleMenuService, MenuAuthorityService menuAuthorityService) {
         this.menuService = menuService;
         this.roleMenuService = roleMenuService;
+        this.menuAuthorityService = menuAuthorityService;
     }
 
     @GetMapping("/info/{id}")
@@ -55,6 +60,17 @@ public class MenuController {
     @GetMapping("/download")
     public byte[] download() {
         return menuService.download();
+    }
+
+    @PostMapping("/authority/{menuId}")
+    public Result<Void> saveAuthority(@PathVariable Long menuId,
+                                      @RequestBody List<Long> authorityIds) {
+        return Result.success(() -> menuAuthorityService.saveAuthority(menuId, authorityIds));
+    }
+
+    @GetMapping("/authority/{menuId}")
+    public Result<List<MenuAuthorityVo>> getAuthoritiesInfo(@PathVariable Long menuId) {
+        return Result.success(() -> menuAuthorityService.getAuthoritiesInfo(menuId));
     }
 
 }

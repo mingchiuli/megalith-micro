@@ -11,10 +11,7 @@ import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
 import wiki.chiu.micro.user.convertor.RoleEntityConvertor;
 import wiki.chiu.micro.user.convertor.RoleEntityRpcVoConvertor;
 import wiki.chiu.micro.user.convertor.RoleEntityVoConvertor;
-import wiki.chiu.micro.user.entity.RoleAuthorityEntity;
-import wiki.chiu.micro.user.entity.RoleEntity;
-import wiki.chiu.micro.user.entity.RoleMenuEntity;
-import wiki.chiu.micro.user.entity.UserRoleEntity;
+import wiki.chiu.micro.user.entity.*;
 import wiki.chiu.micro.user.event.AuthMenuOperateEvent;
 import wiki.chiu.micro.user.repository.*;
 import wiki.chiu.micro.user.req.RoleEntityReq;
@@ -45,8 +42,6 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleMenuRepository roleMenuRepository;
 
-    private final RoleAuthorityRepository roleAuthorityRepository;
-
     private final UserRoleRepository userRoleRepository;
 
     private final RoleMenuAuthorityWrapper roleMenuAuthorityWrapper;
@@ -55,10 +50,9 @@ public class RoleServiceImpl implements RoleService {
 
     private final ExecutorService taskExecutor;
 
-    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, RoleAuthorityRepository roleAuthorityRepository, UserRoleRepository userRoleRepository, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, UserRoleRepository userRoleRepository, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.roleRepository = roleRepository;
         this.roleMenuRepository = roleMenuRepository;
-        this.roleAuthorityRepository = roleAuthorityRepository;
         this.userRoleRepository = userRoleRepository;
         this.roleMenuAuthorityWrapper = roleMenuAuthorityWrapper;
         this.applicationContext = applicationContext;
@@ -83,9 +77,7 @@ public class RoleServiceImpl implements RoleService {
         List<Long> ids = page.get().map(RoleEntity::getId).toList();
 
         List<RoleMenuEntity> roleMenus = roleMenuRepository.findByRoleIdIn(ids);
-        List<RoleAuthorityEntity> roleAuthorities = roleAuthorityRepository.findByRoleIdIn(ids);
-
-        return RoleEntityVoConvertor.convert(page, roleMenus, roleAuthorities);
+        return RoleEntityVoConvertor.convert(page, roleMenus);
     }
 
     @Override
@@ -101,7 +93,8 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public void delete(List<Long> ids) {
-        roleMenuAuthorityWrapper.delete(ids);
+        List<Long> menuIds = roleMenuRepository.findMenuIdsByRoleIdIn(ids);
+        roleMenuAuthorityWrapper.delete(ids, menuIds);
         List<String> roles = roleRepository.findAllById(ids).stream()
                 .map(RoleEntity::getCode)
                 .distinct()
@@ -131,7 +124,9 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public List<RoleEntityVo> getValidAll() {
-        List<RoleEntity> entities = roleRepository.findByStatus(StatusEnum.NORMAL.getCode());
+        List<RoleEntity> entities = roleRepository.findAll().stream()
+                .filter(item -> StatusEnum.NORMAL.getCode().equals(item.getStatus()))
+                .toList();
         return RoleEntityVoConvertor.convert(entities);
     }
 

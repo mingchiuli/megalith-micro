@@ -17,7 +17,7 @@ import java.util.Objects;
 @Entity
 @DynamicUpdate
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = Const.MENU_TABLE)
+@Table(name = Const.MENU_TABLE, uniqueConstraints = {@UniqueConstraint(columnNames = "name")})
 public class MenuEntity {
 
     @Id

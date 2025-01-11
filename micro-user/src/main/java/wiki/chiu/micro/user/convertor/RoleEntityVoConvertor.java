@@ -1,7 +1,6 @@
 package wiki.chiu.micro.user.convertor;
 
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.user.entity.RoleAuthorityEntity;
 import wiki.chiu.micro.user.entity.RoleEntity;
 import wiki.chiu.micro.user.entity.RoleMenuEntity;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
@@ -29,18 +28,15 @@ public class RoleEntityVoConvertor {
                 .build();
     }
 
-    public static PageAdapter<RoleEntityVo> convert(Page<RoleEntity> page, List<RoleMenuEntity> roleMenus, List<RoleAuthorityEntity> roleAuthorities) {
+    public static PageAdapter<RoleEntityVo> convert(Page<RoleEntity> page, List<RoleMenuEntity> roleMenus) {
 
         Map<Long, LocalDateTime> roleMenusDate = roleMenus.stream()
                 .collect(Collectors.toMap(RoleMenuEntity::getRoleId, RoleMenuEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
 
-        Map<Long, LocalDateTime> roleAuthoritiesDate = roleAuthorities.stream()
-                .collect(Collectors.toMap(RoleAuthorityEntity::getRoleId, RoleAuthorityEntity::getUpdated, (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
-
         Map<Long, LocalDateTime> roleDate = page.get()
                 .collect(Collectors.toMap(RoleEntity::getId, RoleEntity::getUpdated));
 
-        Map<Long, LocalDateTime> mergedMap = Stream.of(roleMenusDate, roleAuthoritiesDate, roleDate)
+        Map<Long, LocalDateTime> mergedMap = Stream.of(roleMenusDate, roleDate)
                 .flatMap(map -> map.entrySet().stream())
                 .collect(HashMap::new, (m, e) -> m.merge(e.getKey(), e.getValue(), (v1, v2) -> v1.isAfter(v2) ? v1 : v2), HashMap::putAll);
 
