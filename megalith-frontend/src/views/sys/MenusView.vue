@@ -349,4 +349,11 @@ const submitForm = async (ref: FormInstance) => {
 .button-form .el-form-item {
   margin-right: 10px;
 }
+
+.authority-display {
+  padding: 10px;
+  width: 200px;
+  height: 20px;
+  display: inline-block;
+}
 </style>

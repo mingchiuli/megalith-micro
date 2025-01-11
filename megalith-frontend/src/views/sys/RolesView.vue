@@ -384,11 +384,4 @@ const handleDelete = async (row: RoleSys) => {
 .el-pagination {
   margin-top: 10px;
 }
-
-.authority-display {
-  padding: 10px;
-  width: 200px;
-  height: 20px;
-  display: inline-block;
-}
 </style>
