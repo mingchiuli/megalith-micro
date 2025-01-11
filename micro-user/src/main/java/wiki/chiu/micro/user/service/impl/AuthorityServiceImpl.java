@@ -11,10 +11,10 @@ import wiki.chiu.micro.user.convertor.AuthorityEntityConvertor;
 import wiki.chiu.micro.user.convertor.AuthorityRpcVoConvertor;
 import wiki.chiu.micro.user.convertor.AuthorityVoConvertor;
 import wiki.chiu.micro.user.entity.AuthorityEntity;
-import wiki.chiu.micro.user.entity.RoleAuthorityEntity;
+import wiki.chiu.micro.user.entity.MenuAuthorityEntity;
 import wiki.chiu.micro.user.event.AuthMenuOperateEvent;
 import wiki.chiu.micro.user.repository.AuthorityRepository;
-import wiki.chiu.micro.user.repository.RoleAuthorityRepository;
+import wiki.chiu.micro.user.repository.MenuAuthorityRepository;
 import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.req.AuthorityEntityReq;
 import wiki.chiu.micro.user.service.AuthorityService;
@@ -32,27 +32,29 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 @Service
 public class AuthorityServiceImpl implements AuthorityService {
 
+    private final MenuAuthorityRepository menuAuthorityRepository;
+
     private final AuthorityRepository authorityRepository;
 
     private final RoleRepository roleRepository;
 
     private final ApplicationContext applicationContext;
 
-    private final RoleAuthorityRepository roleAuthorityRepository;
-
     private final ExecutorService taskExecutor;
 
-    public AuthorityServiceImpl(AuthorityRepository authorityRepository, RoleRepository roleRepository, ApplicationContext applicationContext, RoleAuthorityRepository roleAuthorityRepository, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public AuthorityServiceImpl(AuthorityRepository authorityRepository, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor, MenuAuthorityRepository menuAuthorityRepository) {
         this.authorityRepository = authorityRepository;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;
-        this.roleAuthorityRepository = roleAuthorityRepository;
         this.taskExecutor = taskExecutor;
+        this.menuAuthorityRepository = menuAuthorityRepository;
     }
 
     @Override
     public List<AuthorityRpcVo> findAllByService(List<String> service) {
-        List<AuthorityEntity> authorityEntities = authorityRepository.findByServiceHostInAndStatus(service, StatusEnum.NORMAL.getCode());
+        List<AuthorityEntity> authorityEntities = authorityRepository.findByServiceHostIn(service).stream()
+                .filter(item -> StatusEnum.NORMAL.getCode().equals(item.getStatus()))
+                .toList();
         return AuthorityRpcVoConvertor.convert(authorityEntities);
     }
 
@@ -90,11 +92,11 @@ public class AuthorityServiceImpl implements AuthorityService {
     @Override
     public byte[] download() {
         List<AuthorityEntity> authorityEntities = authorityRepository.findAll();
-        List<RoleAuthorityEntity> roleAuthorityEntities = roleAuthorityRepository.findAll();
+        List<MenuAuthorityEntity> menuAuthorityEntities = menuAuthorityRepository.findAll();
 
         return SQLUtils.compose(
                 SQLUtils.entityToInsertSQL(authorityEntities, Const.AUTHORITY_TABLE),
-                SQLUtils.entityToInsertSQL(roleAuthorityEntities, Const.ROLE_AUTHORITY_TABLE))
+                SQLUtils.entityToInsertSQL(menuAuthorityEntities, Const.MENU_AUTHORITY_TABLE))
                 .getBytes();
     }
 

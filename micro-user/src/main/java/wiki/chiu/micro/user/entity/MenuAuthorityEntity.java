@@ -17,17 +17,17 @@ import java.util.Objects;
 @Entity
 @DynamicUpdate
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = Const.ROLE_AUTHORITY_TABLE,
-        indexes = {@Index(columnList = "role_id"), @Index(columnList = "authority_id")})
-public class RoleAuthorityEntity {
+@Table(name = Const.MENU_AUTHORITY_TABLE,
+        indexes = {@Index(columnList = "menu_id"), @Index(columnList = "authority_id")})
+public class MenuAuthorityEntity {
 
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "role_id")
-    private Long roleId;
+    @Column(name = "menu_id")
+    private Long menuId;
 
     @Column(name = "authority_id")
     private Long authorityId;
@@ -40,15 +40,15 @@ public class RoleAuthorityEntity {
     @LastModifiedDate
     private LocalDateTime updated;
 
-    public RoleAuthorityEntity(Long id, Long roleId, Long authorityId, LocalDateTime created, LocalDateTime updated) {
+    public MenuAuthorityEntity(Long id, Long menuId, Long authorityId, LocalDateTime created, LocalDateTime updated) {
         this.id = id;
-        this.roleId = roleId;
+        this.menuId = menuId;
         this.authorityId = authorityId;
         this.created = created;
         this.updated = updated;
     }
 
-    public RoleAuthorityEntity() {
+    public MenuAuthorityEntity() {
     }
 
     public static RoleAuthorityEntityBuilder builder() {
@@ -59,8 +59,8 @@ public class RoleAuthorityEntity {
         return this.id;
     }
 
-    public Long getRoleId() {
-        return this.roleId;
+    public Long getMenuId() {
+        return this.menuId;
     }
 
     public Long getAuthorityId() {
@@ -79,8 +79,8 @@ public class RoleAuthorityEntity {
         this.id = id;
     }
 
-    public void setRoleId(Long roleId) {
-        this.roleId = roleId;
+    public void setMenuId(Long menuId) {
+        this.menuId = menuId;
     }
 
     public void setAuthorityId(Long authorityId) {
@@ -98,15 +98,15 @@ public class RoleAuthorityEntity {
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RoleAuthorityEntity that)) return false;
+        if (!(o instanceof MenuAuthorityEntity that)) return false;
 
-        return Objects.equals(id, that.id) && Objects.equals(roleId, that.roleId) && Objects.equals(authorityId, that.authorityId) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated);
+        return Objects.equals(id, that.id) && Objects.equals(menuId, that.menuId) && Objects.equals(authorityId, that.authorityId) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated);
     }
 
     @Override
     public int hashCode() {
         int result = Objects.hashCode(id);
-        result = 31 * result + Objects.hashCode(roleId);
+        result = 31 * result + Objects.hashCode(menuId);
         result = 31 * result + Objects.hashCode(authorityId);
         result = 31 * result + Objects.hashCode(created);
         result = 31 * result + Objects.hashCode(updated);
@@ -115,7 +115,7 @@ public class RoleAuthorityEntity {
 
     public static class RoleAuthorityEntityBuilder {
         private Long id;
-        private Long roleId;
+        private Long menuId;
         private Long authorityId;
         private LocalDateTime created;
         private LocalDateTime updated;
@@ -128,8 +128,8 @@ public class RoleAuthorityEntity {
             return this;
         }
 
-        public RoleAuthorityEntityBuilder roleId(Long roleId) {
-            this.roleId = roleId;
+        public RoleAuthorityEntityBuilder menuId(Long menuId) {
+            this.menuId = menuId;
             return this;
         }
 
@@ -148,8 +148,8 @@ public class RoleAuthorityEntity {
             return this;
         }
 
-        public RoleAuthorityEntity build() {
-            return new RoleAuthorityEntity(id, roleId, authorityId, created, updated);
+        public MenuAuthorityEntity build() {
+            return new MenuAuthorityEntity(id, menuId, authorityId, created, updated);
         }
     }
 }

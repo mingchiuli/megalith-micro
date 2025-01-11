@@ -5,10 +5,8 @@ import jakarta.validation.constraints.NotEmpty;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.req.RoleEntityReq;
-import wiki.chiu.micro.user.service.RoleAuthorityService;
 import wiki.chiu.micro.user.service.RoleMenuService;
 import wiki.chiu.micro.user.service.RoleService;
-import wiki.chiu.micro.user.vo.RoleAuthorityVo;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
 import wiki.chiu.micro.user.vo.RoleMenuVo;
 import org.springframework.validation.annotation.Validated;
@@ -29,12 +27,9 @@ public class RoleController {
 
     private final RoleMenuService roleMenuService;
 
-    private final RoleAuthorityService roleAuthorityService;
-
-    public RoleController(RoleService roleService, RoleMenuService roleMenuService, RoleAuthorityService roleAuthorityService) {
+    public RoleController(RoleService roleService, RoleMenuService roleMenuService) {
         this.roleService = roleService;
         this.roleMenuService = roleMenuService;
-        this.roleAuthorityService = roleAuthorityService;
     }
 
     @GetMapping("/info/{id}")
@@ -67,17 +62,6 @@ public class RoleController {
     @GetMapping("/menu/{roleId}")
     public Result<List<RoleMenuVo>> getMenusInfo(@PathVariable Long roleId) {
         return Result.success(() -> roleMenuService.getMenusInfo(roleId));
-    }
-
-    @PostMapping("/authority/{roleId}")
-    public Result<Void> saveAuthority(@PathVariable Long roleId,
-                                      @RequestBody List<Long> authorityIds) {
-        return Result.success(() -> roleAuthorityService.saveAuthority(roleId, authorityIds));
-    }
-
-    @GetMapping("/authority/{roleId}")
-    public Result<List<RoleAuthorityVo>> getAuthoritiesInfo(@PathVariable Long roleId) {
-        return Result.success(() -> roleAuthorityService.getAuthoritiesInfo(roleId));
     }
 
     @GetMapping("/download")

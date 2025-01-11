@@ -3,6 +3,7 @@ package wiki.chiu.micro.user.service.impl;
 import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.exception.CommitException;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
+import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.lang.TypeEnum;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
 import wiki.chiu.micro.user.convertor.ButtonVoConvertor;
@@ -120,9 +121,9 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
     @Override
     public MenusAndButtonsRpcVo getCurrentRoleNav(String role) {
-        Optional<RoleEntity> roleEntity = roleRepository.findByCodeAndStatus(role, NORMAL.getCode());
+        Optional<RoleEntity> roleEntity = roleRepository.findByCode(role);
 
-        if (roleEntity.isEmpty()) {
+        if (roleEntity.isEmpty() || StatusEnum.NORMAL.getCode().equals(roleEntity.get().getStatus())) {
             return MenusAndButtonsRpcVo.builder()
                     .menus(Collections.emptyList())
                     .buttons(Collections.emptyList())
