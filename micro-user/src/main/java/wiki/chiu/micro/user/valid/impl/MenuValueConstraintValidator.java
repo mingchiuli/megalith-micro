@@ -39,6 +39,7 @@ public class MenuValueConstraintValidator implements ConstraintValidator<MenuVal
     private boolean isInvalidBasicFields(MenuEntityReq menu) {
         return Objects.isNull(menu.parentId()) ||
                 !StringUtils.hasLength(menu.title()) ||
+                !StringUtils.hasLength(menu.name()) ||
                 Objects.isNull(menu.orderNum()) ||
                 Objects.isNull(menu.type()) ||
                 (!StatusEnum.NORMAL.getCode().equals(menu.status()) && !StatusEnum.HIDE.getCode().equals(menu.status()));
