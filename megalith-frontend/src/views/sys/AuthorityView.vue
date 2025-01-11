@@ -60,7 +60,7 @@ const delBatch = async () => {
   multipleSelection.value.forEach((item) => {
     args.push(item.id)
   })
-  await POST<null>('/sys/user/delete', args)
+  await POST<null>('/sys/authority/delete', args)
   ElNotification({
     title: '操作成功',
     message: '批量删除成功',
