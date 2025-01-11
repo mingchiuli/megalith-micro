@@ -122,7 +122,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     public MenusAndButtonsRpcVo getCurrentRoleNav(String role) {
         Optional<RoleEntity> roleEntity = roleRepository.findByCode(role);
 
-        if (roleEntity.isEmpty() || StatusEnum.NORMAL.getCode().equals(roleEntity.get().getStatus())) {
+        if (roleEntity.isEmpty() || StatusEnum.HIDE.getCode().equals(roleEntity.get().getStatus())) {
             return MenusAndButtonsRpcVo.builder()
                     .menus(Collections.emptyList())
                     .buttons(Collections.emptyList())
