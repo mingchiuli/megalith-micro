@@ -136,9 +136,9 @@ const submitAuthorityFormHandle = async () => {
   authorityDialogVisible.value = false
 }
 
-const handleAuthority = async (row: RoleSys) => {
-  authorityData.value = await GET<AuthorityForm[]>(`/sys/menu/authority/${row.id}`)
-  menuId.value = row.id
+const handleAuthority = async (row: MenuSys) => {
+  authorityData.value = await GET<AuthorityForm[]>(`/sys/menu/authority/${row.menuId}`)
+  menuId.value = row.menuId
   authorityDialogVisible.value = true
 }
 
@@ -253,12 +253,12 @@ const submitForm = async (ref: FormInstance) => {
           >
         </template>
 
-        <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)">
+        <template v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENUS_AUTHORITY_PERM)">
           <el-button
             size="small"
-            :type="getButtonType(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)"
+            :type="getButtonType(ButtonAuth.SYS_MENUS_AUTHORITY_PERM)"
             @click="handleAuthority(scope.row)"
-            >{{ getButtonTitle(ButtonAuth.SYS_ROLE_AUTHORITY_PERM) }}</el-button
+            >{{ getButtonTitle(ButtonAuth.SYS_MENUS_AUTHORITY_PERM) }}</el-button
           >
         </template>
 
