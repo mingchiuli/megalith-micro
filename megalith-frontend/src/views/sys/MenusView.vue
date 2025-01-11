@@ -264,7 +264,7 @@ const submitForm = async (ref: FormInstance) => {
   <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="handleClose">
     <el-form :model="form" :rules="editFormRules" ref="form" label-width="100px">
       <el-form-item label="祖先菜单" prop="parentId">
-        <el-tree-select v-model="form.parentId" :props="props" :data="content" check-strictly />
+        <el-tree-select :disabled="form.parentId === 0" v-model="form.parentId" :props="props" :data="content" check-strictly />
       </el-form-item>
 
       <el-form-item label="标题" prop="title" label-width="100px">
