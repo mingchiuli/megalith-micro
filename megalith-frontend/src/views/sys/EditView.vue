@@ -413,8 +413,9 @@ const init = async () => {
         </el-popover>
       </el-form-item>
 
-      <el-form-item class="cover" label="封面">
+      <el-form-item class="cover" :label="getButtonTitle(ButtonAuth.SYS_BLOG_UPLOAD)">
         <el-upload
+          v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)"
           v-model:file-list="fileList"
           action="#"
           list-type="picture-card"

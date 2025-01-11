@@ -317,6 +317,7 @@ export enum ButtonAuth {
   SYS_BLOG_DELETE = 'system-blogs-delete',
   SYS_BLOG_CHECK = 'system-blogs-check',
   SYS_BLOG_EDIT = 'system-blogs-edit',
+  SYS_BLOG_UPLOAD = 'system-blogs-upload',
   SYS_BLOG_PASSWORD = 'system-blogs-password',
   SYS_DELETE_RESUME = 'system-delete-resume',
   SYS_EDIT_COMMIT = 'system-edit-submit',

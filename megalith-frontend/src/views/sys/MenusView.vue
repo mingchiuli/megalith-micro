@@ -59,6 +59,7 @@ type AuthorityForm = {
 
 const editFormRules = reactive<FormRules<Form>>({
   parentId: [{ required: true, message: '请输入父ID', trigger: 'blur' }],
+  name: [{ required: true, message: '请输入唯一名字', trigger: 'blur' }],
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
   type: [{ required: true, message: '请选择类型', trigger: 'blur' }],
   orderNum: [{ required: true, message: '请输入排序号', trigger: 'blur' }],
