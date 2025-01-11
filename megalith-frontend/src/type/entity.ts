@@ -240,6 +240,11 @@ export enum AuthStatus {
   NEED_AUTH
 }
 
+export enum RoutesStatus {
+  NORMAL = 0,
+  BLOCK
+}
+
 export enum RoutesEnum {
   CATALOGUE = 0,
   MENU,

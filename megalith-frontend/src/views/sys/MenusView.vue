@@ -3,7 +3,7 @@ import { GET, POST } from '@/http/http'
 import type { MenuSys, RoleSys } from '@/type/entity'
 import { type FormInstance, type FormRules } from 'element-plus'
 import { reactive, ref, useTemplateRef } from 'vue'
-import { Status, RoutesEnum, ButtonAuth } from '@/type/entity'
+import { Status, ButtonAuth, RoutesStatus, RoutesEnum } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
 
@@ -22,7 +22,7 @@ const props = {
   label: 'title',
   //这个value代表根据这个值找节点，和v-model="value"的value不是一个概念
   value: 'menuId',
-  disabled: (data: MenuSys) => data.status !== 0 || data.type === RoutesEnum.BUTTON
+  disabled: (data: MenuSys) => data.status !== RoutesStatus.NORMAL || data.type === RoutesEnum.BUTTON
 }
 
 type Form = {
@@ -106,22 +106,7 @@ const clearForm = () => {
 
 const queryMenus = async () => {
   loading.value = true
-  const data = await GET<Array<MenuSys>>('/sys/menu/list')
-  const top = {
-    menuId: 0,
-    parentId: -1,
-    title: '顶级节点',
-    name: '',
-    url: '',
-    component: '',
-    type: 0,
-    icon: '',
-    orderNum: 0,
-    status: 0,
-    children: data
-  } as MenuSys
-  content.value = []
-  content.value.push(top)
+  content.value = await GET<Array<MenuSys>>('/sys/menu/list')
   loading.value = false
 }
 
@@ -245,7 +230,7 @@ const submitForm = async (ref: FormInstance) => {
     </el-table-column>
     <el-table-column :fixed="fix" label="操作" align="center" min-width="250">
       <template #default="scope">
-        <template v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_EDIT)">
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_MENU_EDIT)">
           <el-button
             size="small"
             :type="getButtonType(ButtonAuth.SYS_MENU_EDIT)"
@@ -254,7 +239,7 @@ const submitForm = async (ref: FormInstance) => {
           >
         </template>
 
-        <template v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENUS_AUTHORITY_PERM)">
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_MENUS_AUTHORITY_PERM)">
           <el-button
             size="small"
             :type="getButtonType(ButtonAuth.SYS_MENUS_AUTHORITY_PERM)"
@@ -263,7 +248,7 @@ const submitForm = async (ref: FormInstance) => {
           >
         </template>
 
-        <template v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_DELETE)">
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_MENU_DELETE)">
           <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
             <template #reference>
               <el-button :type="getButtonType(ButtonAuth.SYS_MENU_DELETE)" size="small">{{
