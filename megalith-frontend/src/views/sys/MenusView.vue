@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { GET, POST } from '@/http/http'
-import type { MenuSys } from '@/type/entity'
+import type { MenuSys, RoleSys } from '@/type/entity'
 import { type FormInstance, type FormRules } from 'element-plus'
 import { reactive, ref, useTemplateRef } from 'vue'
 import { Status, RoutesEnum, ButtonAuth } from '@/type/entity'
@@ -14,6 +14,9 @@ const content = ref<MenuSys[]>([])
 const formRef = useTemplateRef<FormInstance>('form')
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
+const authorityDialogVisible = ref(false)
+let authorityData = ref<AuthorityForm[]>([])
+let menuId = ref<number>()
 
 const props = {
   label: 'title',
@@ -47,6 +50,12 @@ const form: Form = reactive({
   orderNum: 0,
   status: 0
 })
+
+type AuthorityForm = {
+  authorityId: number
+  code: string
+  check: boolean
+}
 
 const editFormRules = reactive<FormRules<Form>>({
   parentId: [{ required: true, message: '请输入父ID', trigger: 'blur' }],
@@ -113,6 +122,29 @@ const queryMenus = async () => {
   content.value = []
   content.value.push(top)
   loading.value = false
+}
+
+const submitAuthorityFormHandle = async () => {
+  const ids = authorityData.value.filter((item) => item.check).map((item) => item.authorityId)
+  await POST<null>(`/sys/menu/authority/${menuId.value}`, ids)
+  ElNotification({
+    title: '操作成功',
+    message: '编辑成功',
+    type: 'success'
+  })
+  authorityData.value = []
+  authorityDialogVisible.value = false
+}
+
+const handleAuthority = async (row: RoleSys) => {
+  authorityData.value = await GET<AuthorityForm[]>(`/sys/menu/authority/${row.id}`)
+  menuId.value = row.id
+  authorityDialogVisible.value = true
+}
+
+const authorityHandleClose = () => {
+  authorityData.value = []
+  authorityDialogVisible.value = false
 }
 
 const submitForm = async (ref: FormInstance) => {
@@ -210,7 +242,7 @@ const submitForm = async (ref: FormInstance) => {
         >
       </template>
     </el-table-column>
-    <el-table-column :fixed="fix" label="操作" align="center" min-width="180">
+    <el-table-column :fixed="fix" label="操作" align="center" min-width="250">
       <template #default="scope">
         <template v-if="scope.row.menuId !== 0 && checkButtonAuth(ButtonAuth.SYS_MENU_EDIT)">
           <el-button
@@ -218,6 +250,15 @@ const submitForm = async (ref: FormInstance) => {
             :type="getButtonType(ButtonAuth.SYS_MENU_EDIT)"
             @click="handleEdit(scope.row)"
             >{{ getButtonTitle(ButtonAuth.SYS_MENU_EDIT) }}</el-button
+          >
+        </template>
+
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)">
+          <el-button
+            size="small"
+            :type="getButtonType(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)"
+            @click="handleAuthority(scope.row)"
+            >{{ getButtonTitle(ButtonAuth.SYS_ROLE_AUTHORITY_PERM) }}</el-button
           >
         </template>
 
@@ -280,6 +321,23 @@ const submitForm = async (ref: FormInstance) => {
 
       <el-form-item label-width="450px">
         <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
+
+  <el-dialog
+    title="接口权限"
+    v-model="authorityDialogVisible"
+    width="600px"
+    :before-close="authorityHandleClose"
+  >
+    <el-form>
+      <span class="authority-display" v-for="item in authorityData" :key="item.authorityId">
+        <el-checkbox v-model="item.check" :label="item.code" size="large" />
+      </span>
+
+      <el-form-item label-width="450px">
+        <el-button type="primary" @click="submitAuthorityFormHandle">Submit</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>

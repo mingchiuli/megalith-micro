@@ -15,12 +15,10 @@ const multipleSelection = ref<RoleSys[]>([])
 const defaultProps = { children: 'children', label: 'title' }
 const formRef = useTemplateRef<FormInstance>('form')
 const menuDialogVisible = ref(false)
-const authorityDialogVisible = ref(false)
 const menuTreeRef = useTemplateRef<InstanceType<typeof ElTree>>('menuTree')
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 let menuTreeData = ref<MenuForm[]>([])
-let authorityData = ref<AuthorityForm[]>([])
 let roleId = ref<number>()
 
 const page: PageAdapter<RoleSys> = reactive({
@@ -59,12 +57,6 @@ type MenuForm = {
   children: MenuForm[]
 }
 
-type AuthorityForm = {
-  authorityId: number
-  code: string
-  check: boolean
-}
-
 const download = async () => {
   await downloadSQLData('/sys/role/download', 'roles', uploadPercentage, showPercentage)
 }
@@ -83,17 +75,7 @@ const submitmenuFormHandle = async (ref: InstanceType<typeof ElTree>) => {
   menuDialogVisible.value = false
 }
 
-const submitAuthorityFormHandle = async () => {
-  const ids = authorityData.value.filter((item) => item.check).map((item) => item.authorityId)
-  await POST<null>(`/sys/role/authority/${roleId.value}`, ids)
-  ElNotification({
-    title: '操作成功',
-    message: '编辑成功',
-    type: 'success'
-  })
-  authorityData.value = []
-  authorityDialogVisible.value = false
-}
+
 
 const clearForm = () => {
   form.id = undefined
@@ -125,11 +107,6 @@ const handleClose = () => {
   clearForm()
 }
 
-const authorityHandleClose = () => {
-  authorityData.value = []
-  authorityDialogVisible.value = false
-}
-
 const menuHandleClose = () => {
   menuTreeData.value = []
   menuDialogVisible.value = false
@@ -146,12 +123,6 @@ const handleMenu = async (row: RoleSys) => {
   menuTreeData.value = data
   roleId.value = row.id
   menuDialogVisible.value = true
-}
-
-const handleAuthority = async (row: RoleSys) => {
-  authorityData.value = await GET<AuthorityForm[]>(`/sys/role/authority/${row.id}`)
-  roleId.value = row.id
-  authorityDialogVisible.value = true
 }
 
 const delBatch = async () => {
@@ -309,7 +280,7 @@ const handleDelete = async (row: RoleSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column :fixed="fix" label="操作" min-width="350" align="center">
+    <el-table-column :fixed="fix" label="操作" label-width="250" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_EDIT)">
           <el-button
@@ -326,15 +297,6 @@ const handleDelete = async (row: RoleSys) => {
             :type="getButtonType(ButtonAuth.SYS_ROLE_MENU_PERM)"
             @click="handleMenu(scope.row)"
             >{{ getButtonTitle(ButtonAuth.SYS_ROLE_MENU_PERM) }}</el-button
-          >
-        </template>
-
-        <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)">
-          <el-button
-            size="small"
-            :type="getButtonType(ButtonAuth.SYS_ROLE_AUTHORITY_PERM)"
-            @click="handleAuthority(scope.row)"
-            >{{ getButtonTitle(ButtonAuth.SYS_ROLE_AUTHORITY_PERM) }}</el-button
           >
         </template>
 
@@ -407,23 +369,6 @@ const handleDelete = async (row: RoleSys) => {
       />
       <el-form-item label-width="450px">
         <el-button type="primary" @click="submitmenuFormHandle(menuTreeRef!)">Submit</el-button>
-      </el-form-item>
-    </el-form>
-  </el-dialog>
-
-  <el-dialog
-    title="接口权限"
-    v-model="authorityDialogVisible"
-    width="600px"
-    :before-close="authorityHandleClose"
-  >
-    <el-form>
-      <span class="authority-display" v-for="item in authorityData" :key="item.authorityId">
-        <el-checkbox v-model="item.check" :label="item.code" size="large" />
-      </span>
-
-      <el-form-item label-width="450px">
-        <el-button type="primary" @click="submitAuthorityFormHandle">Submit</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
