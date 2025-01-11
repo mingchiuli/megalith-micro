@@ -345,7 +345,8 @@ const handleDelete = async (row: RoleSys) => {
       </el-form-item>
 
       <el-form-item label-width="400px">
-        <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
+        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_SAVE)" :type="getButtonType(ButtonAuth.SYS_ROLE_SAVE)" @click="submitForm(formRef!)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_SAVE) }}</el-button>
+
       </el-form-item>
     </el-form>
   </el-dialog>
@@ -368,7 +369,7 @@ const handleDelete = async (row: RoleSys) => {
         :check-strictly="true"
       />
       <el-form-item label-width="450px">
-        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_SAVE)" :type="getButtonType(ButtonAuth.SYS_ROLE_SAVE)" @click="submitmenuFormHandle(menuTreeRef!)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_SAVE) }}</el-button>
+        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)" :type="getButtonType(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)" @click="submitmenuFormHandle(menuTreeRef!)">{{ getButtonTitle(ButtonAuth.SYS_MENU_AUTHORITY_SAVE) }}</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>

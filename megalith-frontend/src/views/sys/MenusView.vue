@@ -321,7 +321,7 @@ const submitForm = async (ref: FormInstance) => {
       </el-form-item>
 
       <el-form-item label-width="450px">
-        <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
+        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_MENU_SAVE)" :type="getButtonType(ButtonAuth.SYS_MENU_SAVE)" @click="submitForm(formRef!)">{{ getButtonTitle(ButtonAuth.SYS_MENU_SAVE) }}</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
@@ -338,7 +338,7 @@ const submitForm = async (ref: FormInstance) => {
       </span>
 
       <el-form-item label-width="450px">
-        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_MENU_SAVE)" :type="getButtonType(ButtonAuth.SYS_MENU_SAVE)" @click="submitAuthorityFormHandle">{{ getButtonTitle(ButtonAuth.SYS_MENU_SAVE) }}</el-button>
+        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)" :type="getButtonType(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)" @click="submitAuthorityFormHandle">{{ getButtonTitle(ButtonAuth.SYS_MENU_AUTHORITY_SAVE) }}</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>

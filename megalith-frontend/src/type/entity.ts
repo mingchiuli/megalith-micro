@@ -333,6 +333,7 @@ export enum ButtonAuth {
   SYS_MENU_DELETE = 'system-menus-delete',
   SYS_MENU_EDIT = 'system-menus-edit',
   SYS_MENU_SAVE = 'system-menus-save',
+  SYS_MENU_AUTHORITY_SAVE = 'system-menus-authorities-save',
   SYS_MENU_DOWNLOAD = 'system-menus-download',
   SYS_MENUS_AUTHORITY_PERM = 'system-menus-authority-perm',
 
@@ -341,6 +342,7 @@ export enum ButtonAuth {
   SYS_ROLE_DOWNLOAD = 'system-roles-download',
   SYS_ROLE_DELETE = 'system-roles-delete',
   SYS_ROLE_MENU_PERM = 'system-roles-menu-perm',
+  SYS_ROLE_MENU_SAVE = 'system-roles-menus-save',
   SYS_ROLE_EDIT = 'system-roles-edit',
   SYS_ROLE_SAVE = 'system-roles-save',
 
