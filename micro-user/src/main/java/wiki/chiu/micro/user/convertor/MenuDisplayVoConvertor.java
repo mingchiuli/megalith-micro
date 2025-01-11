@@ -37,7 +37,7 @@ public class MenuDisplayVoConvertor {
         //2.组装父子的树形结构
         //2.1 找到所有一级分类
         return menus.stream()
-                .filter(menu -> menu.parentId() == 0)
+                .filter(menu -> Objects.equals(menu.parentId(), 0L))
                 .map(menu -> new MenuDisplayVo(menu, 0L, getChildren(menu, menus)))
                 .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.orderNum()) ? 0 : menu.orderNum()))
                 .toList();
