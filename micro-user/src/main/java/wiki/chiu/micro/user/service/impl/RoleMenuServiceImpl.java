@@ -27,7 +27,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_INVALID_OPERATE;
-import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
 import static wiki.chiu.micro.common.lang.TypeEnum.*;
 
 /**

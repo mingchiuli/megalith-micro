@@ -78,8 +78,6 @@ public class Const {
 
     public static final String AUTHORITY_TABLE = "m_authority";
 
-    public static final String ROLE_AUTHORITY_TABLE = "m_role_authority";
-
     public static final String MENU_AUTHORITY_TABLE = "m_menu_authority";
 
     public static final String MENU_TABLE = "m_menu";
