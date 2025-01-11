@@ -326,16 +326,13 @@ export enum ButtonAuth {
   SYS_AUTHORITY_BATCH_DEL = 'system-authorities-batch-del',
   SYS_AUTHORITY_DOWNLOAD = 'system-authorities-download',
   SYS_AUTHORITY_EDIT = 'system-authorities-edit',
+  SYS_AUTHORITY_SAVE = 'system-authorities-save',
   SYS_AUTHORITY_DELETE = 'system-authorities-delete',
-
-  SYS_FAVOR_CREATE = 'system-favors-create',
-  SYS_FAVOR_EDIT = 'system-favors-edit',
-  SYS_FAVOR_DELETE = 'system-favors-delete',
-  SYS_FAVOR_SEARCH = 'system-favors-search',
 
   SYS_MENU_CREATE = 'system-menus-create',
   SYS_MENU_DELETE = 'system-menus-delete',
   SYS_MENU_EDIT = 'system-menus-edit',
+  SYS_MENU_SAVE = 'system-menus-save',
   SYS_MENU_DOWNLOAD = 'system-menus-download',
   SYS_MENUS_AUTHORITY_PERM = 'system-menus-authority-perm',
 
@@ -345,6 +342,8 @@ export enum ButtonAuth {
   SYS_ROLE_DELETE = 'system-roles-delete',
   SYS_ROLE_MENU_PERM = 'system-roles-menu-perm',
   SYS_ROLE_EDIT = 'system-roles-edit',
+  SYS_ROLE_SAVE = 'system-roles-save',
+
 
   SYS_USER_CREATE = 'system-users-create',
   SYS_USER_BATCH_DEL = 'system-users-batch-del',
@@ -352,7 +351,8 @@ export enum ButtonAuth {
   SYS_USER_DELETE = 'system-users-delete',
   SYS_USER_EDIT = 'system-users-edit',
   SYS_USER_MODIFY_REGISTER = 'system-users-modify-register',
-  SYS_USER_DOWNLOAD = 'system-users-download'
+  SYS_USER_DOWNLOAD = 'system-users-download',
+  SYS_USER_SAVE = 'system-users-save'
 }
 
 export interface PushActionForm {

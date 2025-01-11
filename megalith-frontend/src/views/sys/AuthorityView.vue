@@ -307,7 +307,7 @@ const clearForm = () => {
       </el-form-item>
 
       <el-form-item label-width="450px">
-        <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
+        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_SAVE)" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_SAVE)" @click="submitForm(formRef!)">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_SAVE) }}</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>

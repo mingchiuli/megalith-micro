@@ -368,7 +368,7 @@ const handleDelete = async (row: RoleSys) => {
         :check-strictly="true"
       />
       <el-form-item label-width="450px">
-        <el-button type="primary" @click="submitmenuFormHandle(menuTreeRef!)">Submit</el-button>
+        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_SAVE)" :type="getButtonType(ButtonAuth.SYS_ROLE_SAVE)" @click="submitmenuFormHandle(menuTreeRef!)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_SAVE) }}</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
