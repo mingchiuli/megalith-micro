@@ -397,8 +397,7 @@ const init = async () => {
         </el-radio-group>
       </el-form-item>
 
-      <el-form-item v-if="form.status === Status.SENSITIVE_FILTER">
-        <span style="margin-right: 10px">打码</span>
+      <el-form-item v-if="form.status === Status.SENSITIVE_FILTER" label="打码">
         <el-popover
           v-for="tag in sensitiveTags"
           :key="`${tag.element.type}-${tag.element.startIndex}`"
