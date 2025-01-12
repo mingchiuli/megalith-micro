@@ -33,7 +33,7 @@ export const clearLoginState = () => {
   }
   authMarkStore().auth = false
   loginStateStore().login = false
-  menuStore().menuList = []
+  menuStore().menuTree = undefined
   tabStore().editableTabs = []
   tabStore().editableTabsValue = ''
 }

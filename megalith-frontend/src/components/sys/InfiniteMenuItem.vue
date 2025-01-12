@@ -9,8 +9,10 @@ defineProps<{
 }>()
 
 const selectMenu = (item: Tab) => {
-  tabStore().addTab(item)
-  router.push({ name: item.name })
+  if (item.url) {
+    tabStore().addTab(item)
+    router.push({ name: item.name })
+  }
 }
 </script>
 

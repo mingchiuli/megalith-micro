@@ -169,13 +169,13 @@ export interface ChildrenFather {
 export interface Tab {
   title: string
   name: string
+  url?: string
 }
 
 export interface Button extends Tab {
   [propName: string]: any
   menuId: number
   component?: string
-  url?: string
   icon: string
   orderNum: number
   parentId: number
@@ -187,7 +187,7 @@ export interface Menu extends ChildrenFather, Button, Tab {}
 
 export interface MenusAndButtons {
   [propName: string]: any
-  menus: Menu[]
+  menus: Menu
   buttons: Button[]
 }
 

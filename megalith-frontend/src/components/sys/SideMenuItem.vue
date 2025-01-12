@@ -6,7 +6,7 @@ import { storeToRefs } from 'pinia'
 import { displayState } from '@/utils/position'
 
 const { expand } = displayState()
-const { menuList } = storeToRefs(menuStore())
+const { menuTree } = storeToRefs(menuStore())
 let arrow = shallowRef(expand.value ? ArrowLeft : ArrowRight)
 const reverseCollapse = (): void => {
   expand.value = !expand.value
@@ -22,7 +22,7 @@ const reverseCollapse = (): void => {
     :collapse="!expand"
     active-text-color="#ffd04b"
   >
-    <InfiniteMenuItem v-for="item in menuList" v-bind:key="item.menuId" :item="item" />
+    <InfiniteMenuItem v-for="item in menuTree?.children" v-bind:key="item.menuId" :item="item" />
   </el-menu>
 </template>
 

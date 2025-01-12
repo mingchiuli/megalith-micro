@@ -110,7 +110,7 @@ router.beforeEach(async (to, _from) => {
 const dealSysTab = (to: RouteLocationNormalized, allKindsInfo: MenusAndButtons) => {
   //处理tab
   if (to.path.startsWith('/sys')) {
-    const menu = findMenuByPath(allKindsInfo.menus, to.path)
+    const menu = findMenuByPath(allKindsInfo.menus.children, to.path)
     if (menu) {
       const tab: Tab = { name: menu.name, title: menu.title }
       tabStore().addTab(tab)
@@ -127,50 +127,30 @@ const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
     buttons.forEach((button) => buttonList.value.push(button))
   }
 
-  const systemRoute = {
-    path: '/backend',
-    name: 'system',
-    component: () => import('@/views/SystemView.vue'),
-    children: [],
-    meta: {
-      title: '后台管理系统'
-    }
-  } as RouteRecordRaw
-
-  const { menuList } = storeToRefs(menuStore())
-  const menus = allKindsInfo.menus
-  const difMenu = diff(menuList.value, menus)
+  const { menuTree } = storeToRefs(menuStore())
+  const rootMenu = allKindsInfo.menus
+  const difMenu = diff([menuTree.value], [rootMenu])
   if (difMenu) {
-    menuList.value = []
-    if (router.hasRoute('system')) {
-      router.removeRoute('system')
+    menuTree.value = rootMenu
+    const rootName = rootMenu.name
+    if (router.hasRoute(rootName)) {
+      router.removeRoute(rootName)
     }
-    menus.forEach((menu) => {
-      menuList.value.push(menu)
-      const route = buildRoute(menu, systemRoute)
-      if (route.path) {
-        systemRoute.children?.push(route)
-      }
-    })
 
-    router.addRoute(systemRoute)
+    const rootRoute = buildRoute(rootMenu)
+    router.addRoute(rootRoute)
   }
 }
 
 //构建路由
-const buildRoute = (menu: Menu, systemRoute: RouteRecordRaw): RouteRecordRaw => {
-  const route = menuToRoute(menu)
+const buildRoute = (rootMenu: Menu, ): RouteRecordRaw => {
+  const rootRoute = menuToRoute(rootMenu)
 
-  menu.children?.forEach((childMenu) => {
-    const childRoute = buildRoute(childMenu, systemRoute)
-    if (route.path) {
-      route.children?.push(childRoute)
-    } else {
-      //找到sys的路由
-      systemRoute.children?.push(childRoute)
-    }
+  rootMenu.children?.forEach((childMenu) => {
+    const childRoute = buildRoute(childMenu)
+    rootRoute.children?.push(childRoute)
   })
-  return route
+  return rootRoute
 }
 
 //导航转成路由

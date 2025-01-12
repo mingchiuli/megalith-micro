@@ -18,8 +18,8 @@ export const authMarkStore = defineStore('authMarkStore', () => {
 })
 
 export const menuStore = defineStore('menuStore', () => {
-  const menuList = ref<Menu[]>([])
-  return { menuList }
+  const menuTree = ref<Menu>()
+  return { menuTree }
 })
 
 export const buttonStore = defineStore('buttonStore', () => {
