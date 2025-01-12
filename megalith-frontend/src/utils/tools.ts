@@ -85,7 +85,7 @@ export const checkAccessToken = async (accessToken: string): Promise<string> => 
 
 //document.documentElement.scrollTo cant be used, distance is float
 export const diff = (oldArr: any[], newArr: any[]) => {
-  if (oldArr.length !== newArr.length) {
+  if (!oldArr || oldArr.length !== newArr.length) {
     return true
   }
 
