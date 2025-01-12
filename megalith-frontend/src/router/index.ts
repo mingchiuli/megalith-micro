@@ -129,17 +129,23 @@ const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
 
   const { menuTree } = storeToRefs(menuStore())
   const rootMenu = allKindsInfo.menus
-  const difMenu = diff([menuTree.value], [rootMenu])
-  if (difMenu) {
-    menuTree.value = rootMenu
-    const rootName = rootMenu.name
-    if (router.hasRoute(rootName)) {
-      router.removeRoute(rootName)
-    }
 
-    const rootRoute = buildRoute(rootMenu)
-    router.addRoute(rootRoute)
+  if (menuTree.value) {
+    const difMenu = diff([menuTree.value], [rootMenu])
+    if (difMenu) {
+      menuTree.value = rootMenu
+    }
+  } else {
+    menuTree.value = rootMenu
   }
+
+  const rootName = rootMenu.name
+  if (router.hasRoute(rootName)) {
+    router.removeRoute(rootName)
+  }
+
+  const rootRoute = buildRoute(rootMenu)
+  router.addRoute(rootRoute)
 }
 
 //构建路由
