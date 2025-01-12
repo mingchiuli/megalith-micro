@@ -2,7 +2,7 @@
 import type { BlogDesc, PageAdapter } from '@/type/entity'
 import { GET } from '@/http/http'
 import { reactive, toRefs, ref, nextTick, useTemplateRef } from 'vue'
-import { loginStateStore, tabStore, blogsStore } from '@/stores/store'
+import { loginStateStore, tabStore, blogsStore, menuStore } from '@/stores/store'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
 import Search from '@/components/SearchItem.vue'
@@ -146,7 +146,7 @@ const { content, totalElements, pageSize } = toRefs(page)
       v-if="login"
       @click="
         router.push({
-          name: tabStore().editableTabsValue ? tabStore().editableTabsValue : 'system'
+          name: tabStore().editableTabsValue ? tabStore().editableTabsValue : menuStore().menuTree?.url
         })
       "
       >进入后台</el-link
