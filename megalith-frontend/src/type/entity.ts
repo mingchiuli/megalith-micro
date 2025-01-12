@@ -169,7 +169,6 @@ export interface ChildrenFather {
 export interface Tab {
   title: string
   name: string
-  url?: string
 }
 
 export interface Button extends Tab {
@@ -179,8 +178,9 @@ export interface Button extends Tab {
   icon: string
   orderNum: number
   parentId: number
-  status: number
+  url?: string
   type: number
+  status: number
 }
 
 export interface Menu extends ChildrenFather, Button, Tab {}
