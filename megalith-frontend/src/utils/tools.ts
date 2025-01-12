@@ -28,8 +28,9 @@ const md = new MarkdownIt({
 
 export const clearLoginState = () => {
   removeLocalStorageItems(['accessToken', 'refreshToken', 'userinfo'])
-  if (router.hasRoute('system')) {
-    router.removeRoute('system')
+  const rootName = menuStore().menuTree?.name
+  if (rootName && router.hasRoute(rootName)) {
+    router.removeRoute(rootName)
   }
   authMarkStore().auth = false
   loginStateStore().login = false

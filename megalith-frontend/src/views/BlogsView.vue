@@ -143,10 +143,10 @@ const { content, totalElements, pageSize } = toRefs(page)
       type="success"
       size="large"
       class="door"
-      v-if="login"
+      v-if="login && menuStore().menuTree"
       @click="
         router.push({
-          name: tabStore().editableTabsValue ? tabStore().editableTabsValue : menuStore().menuTree?.url
+          name: tabStore().editableTabsValue ? tabStore().editableTabsValue : menuStore().menuTree!.name
         })
       "
       >进入后台</el-link
