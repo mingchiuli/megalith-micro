@@ -29,20 +29,4 @@ public class MenuWithChildDtoConvertor {
                 .toList();
     }
 
-    public static MenuWithChildDto convert(MenuDisplayDto displayDto) {
-        return MenuWithChildDto.builder()
-                .menuId(displayDto.menuId())
-                .icon(displayDto.icon())
-                .name(displayDto.name())
-                .status(displayDto.status())
-                .title(displayDto.title())
-                .url(displayDto.url())
-                .parentId(displayDto.parentId())
-                .orderNum(displayDto.orderNum())
-                .type(displayDto.type())
-                .component(displayDto.component())
-                .children(convert(displayDto.children()))
-                .build();
-    }
-
 }
