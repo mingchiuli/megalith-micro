@@ -49,7 +49,7 @@ public class MenusAndButtonsVoConvertor {
 
         return MenusAndButtonsVo.builder()
                 .buttons(buttonVos)
-                .menus(menuVos)
+                .menus(menuVos.getFirst())
                 .build();
     }
 }

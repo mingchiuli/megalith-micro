@@ -7,7 +7,7 @@ import java.util.List;
  * @Date 2024/4/20 18:17
  **/
 public record MenusAndButtonsVo(
-        List<MenuWithChildVo> menus,
+        MenuWithChildVo menus,
 
         List<ButtonVo> buttons) {
 
@@ -17,10 +17,10 @@ public record MenusAndButtonsVo(
     }
 
     public static class MenusAndButtonsVoBuilder {
-        private List<MenuWithChildVo> menus;
+        private MenuWithChildVo menus;
         private List<ButtonVo> buttons;
 
-        public MenusAndButtonsVoBuilder menus(List<MenuWithChildVo> menus) {
+        public MenusAndButtonsVoBuilder menus(MenuWithChildVo menus) {
             this.menus = menus;
             return this;
         }
