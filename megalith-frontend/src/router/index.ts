@@ -145,11 +145,12 @@ const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
   }
 
   const rootRoute = buildRoute(rootMenu)
+  console.log(rootRoute)
   router.addRoute(rootRoute)
 }
 
 //构建路由
-const buildRoute = (rootMenu: Menu, ): RouteRecordRaw => {
+const buildRoute = (rootMenu: Menu): RouteRecordRaw => {
   const rootRoute = menuToRoute(rootMenu)
 
   rootMenu.children?.forEach((childMenu) => {
