@@ -69,15 +69,15 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public void saveOrUpdate(MenuEntityReq menu) {
-        MenuEntity dealMenu = menu.menuId()
+        MenuEntity dealMenu = menu.id()
                 .flatMap(menuRepository::findById)
                 .orElseGet(MenuEntity::new);
         MenuEntity menuEntity = MenuEntityConvertor.convert(menu, dealMenu);
 
-        if (HIDE_STATUS.equals(menu.status()) && menu.menuId().isPresent()) {
+        if (HIDE_STATUS.equals(menu.status()) && menu.id().isPresent()) {
             List<MenuEntity> menuEntities = new ArrayList<>();
             menuEntities.add(menuEntity);
-            findTargetChildrenMenuId(menu.menuId().get(), menuEntities);
+            findTargetChildrenMenuId(menu.id().get(), menuEntities);
             menuRepository.saveAll(menuEntities);
         } else {
             menuRepository.save(menuEntity);
@@ -117,7 +117,7 @@ public class MenuServiceImpl implements MenuService {
             menu.setUpdated(LocalDateTime.now());
             menu.setStatus(StatusEnum.HIDE.getCode());
             menuEntities.add(menu);
-            findTargetChildrenMenuId(menu.getMenuId(), menuEntities);
+            findTargetChildrenMenuId(menu.getId(), menuEntities);
         });
     }
 }

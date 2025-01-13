@@ -9,7 +9,7 @@ import java.io.Serializable;
  **/
 public record ButtonDto (
 
-        Long menuId,
+        Long id,
 
         Long parentId,
 
@@ -36,7 +36,7 @@ public record ButtonDto (
 
     public static class ButtonDtoBuilder {
 
-        private Long menuId;
+        private Long id;
         private Long parentId;
         private String title;
         private String name;
@@ -47,8 +47,8 @@ public record ButtonDto (
         private Integer orderNum;
         private Integer status;
 
-        public ButtonDtoBuilder menuId(Long menuId) {
-            this.menuId = menuId;
+        public ButtonDtoBuilder id(Long id) {
+            this.id = id;
             return this;
         }
 
@@ -98,7 +98,7 @@ public record ButtonDto (
         }
 
         public ButtonDto build() {
-            return new ButtonDto(this.menuId, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+            return new ButtonDto(this.id, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
         }
     }
 }

@@ -61,9 +61,9 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         menusInfo.forEach(item -> {
             RoleMenuVo.RoleMenuVoBuilder builder = RoleMenuVo.builder()
                     .title(item.title())
-                    .menuId(item.menuId());
+                    .menuId(item.id());
 
-            if (menuIdsByRole.contains(item.menuId())) {
+            if (menuIdsByRole.contains(item.id())) {
                 builder.check(true);
             }
 

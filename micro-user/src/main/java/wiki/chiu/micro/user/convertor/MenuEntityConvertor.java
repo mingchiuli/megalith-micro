@@ -11,7 +11,7 @@ public class MenuEntityConvertor {
 
     public static MenuEntity convert(MenuEntityReq menu) {
         return MenuEntity.builder()
-                .menuId(menu.menuId().orElse(null))
+                .id(menu.id().orElse(null))
                 .parentId(menu.parentId())
                 .icon(menu.icon())
                 .url(menu.url())
@@ -27,7 +27,7 @@ public class MenuEntityConvertor {
     public static MenuEntity convert(MenuEntityReq menu, MenuEntity dealMenu) {
         MenuEntity menuEntity = new MenuEntity();
 
-        menuEntity.setMenuId(menu.menuId().orElse(null));
+        menuEntity.setId(menu.id().orElse(null));
         menuEntity.setParentId(menu.parentId());
         menuEntity.setTitle(menu.title());
         menuEntity.setName(menu.name());

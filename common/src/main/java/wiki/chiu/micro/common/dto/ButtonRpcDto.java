@@ -6,7 +6,7 @@ package wiki.chiu.micro.common.dto;
  **/
 public record ButtonRpcDto(
 
-        Long menuId,
+        Long id,
 
         Long parentId,
 
@@ -32,7 +32,7 @@ public record ButtonRpcDto(
     }
 
     public static class ButtonRpcDtoBuilder {
-        private Long menuId;
+        private Long id;
         private Long parentId;
         private String title;
         private String name;
@@ -43,8 +43,8 @@ public record ButtonRpcDto(
         private Integer orderNum;
         private Integer status;
 
-        public ButtonRpcDtoBuilder menuId(Long menuId) {
-            this.menuId = menuId;
+        public ButtonRpcDtoBuilder id(Long id) {
+            this.id = id;
             return this;
         }
 
@@ -94,7 +94,7 @@ public record ButtonRpcDto(
         }
 
         public ButtonRpcDto build() {
-            return new ButtonRpcDto(menuId, parentId, title, name, url, component, type, icon, orderNum, status);
+            return new ButtonRpcDto(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
     }
 }

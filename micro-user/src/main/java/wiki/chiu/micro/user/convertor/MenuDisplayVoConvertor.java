@@ -17,7 +17,7 @@ public class MenuDisplayVoConvertor {
         return menus.stream()
                 .filter(menu -> StatusEnum.NORMAL.getCode().equals(menu.getStatus()))
                 .map(menu -> MenuDisplayVo.builder()
-                        .menuId(menu.getMenuId())
+                        .id(menu.getId())
                         .parentId(menu.getParentId())
                         .icon(menu.getIcon())
                         .url(menu.getUrl())
@@ -45,9 +45,8 @@ public class MenuDisplayVoConvertor {
 
     private static List<MenuDisplayVo> getChildren(MenuDisplayVo root, List<MenuDisplayVo> all) {
         return all.stream()
-                .filter(menu -> Objects.equals(menu.parentId(), root.menuId()))
-                .map(menu -> new MenuDisplayVo(menu, root.menuId(), getChildren(menu, all)))
-
+                .filter(menu -> Objects.equals(menu.parentId(), root.id()))
+                .map(menu -> new MenuDisplayVo(menu, root.id(), getChildren(menu, all)))
                 .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.orderNum()) ? 0 : menu.orderNum()))
                 .toList();
     }

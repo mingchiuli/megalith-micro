@@ -4,7 +4,7 @@ package wiki.chiu.micro.user.vo;
 
 public record MenuVo(
 
-        Long menuId,
+        Long id,
 
         Long parentId,
 
@@ -29,7 +29,7 @@ public record MenuVo(
     }
 
     public static class MenuVoBuilder {
-        private Long menuId;
+        private Long id;
         private Long parentId;
         private String title;
         private String name;
@@ -40,8 +40,8 @@ public record MenuVo(
         private Integer orderNum;
         private Integer status;
 
-        public MenuVoBuilder menuId(Long menuId) {
-            this.menuId = menuId;
+        public MenuVoBuilder id(Long id) {
+            this.id = id;
             return this;
         }
 
@@ -91,7 +91,7 @@ public record MenuVo(
         }
 
         public MenuVo build() {
-            return new MenuVo(menuId, parentId, title, name, url, component, type, icon, orderNum, status);
+            return new MenuVo(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
     }
 }

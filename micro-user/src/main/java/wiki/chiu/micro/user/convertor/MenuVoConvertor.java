@@ -13,7 +13,7 @@ public class MenuVoConvertor {
     public static List<MenuVo> convert(List<MenuEntity> menus) {
         return menus.stream()
                 .map(menu -> MenuVo.builder()
-                        .menuId(menu.getMenuId())
+                        .id(menu.getId())
                         .parentId(menu.getParentId())
                         .icon(menu.getIcon())
                         .url(menu.getUrl())

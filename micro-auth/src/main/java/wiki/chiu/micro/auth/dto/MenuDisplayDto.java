@@ -6,7 +6,7 @@ import java.util.List;
 
 public record MenuDisplayDto(
 
-        Long menuId,
+        Long id,
 
         Long parentId,
 
@@ -33,7 +33,7 @@ public record MenuDisplayDto(
         List<MenuDisplayDto> children) {
 
     public MenuDisplayDto(MenuDisplayDto dto, Long parentId, List<MenuDisplayDto> children) {
-        this(dto.menuId, parentId, dto.title, dto.name, dto.url, dto.component, dto.type, dto.icon, dto.orderNum, dto.status, dto.created, dto.updated, children);
+        this(dto.id, parentId, dto.title, dto.name, dto.url, dto.component, dto.type, dto.icon, dto.orderNum, dto.status, dto.created, dto.updated, children);
     }
 
     public static MenuDisplayDtoBuilder builder() {
@@ -41,7 +41,7 @@ public record MenuDisplayDto(
     }
 
     public static class MenuDisplayDtoBuilder {
-        private Long menuId;
+        private Long id;
         private Long parentId;
         private String title;
         private String name;
@@ -55,8 +55,8 @@ public record MenuDisplayDto(
         private LocalDateTime updated;
         private List<MenuDisplayDto> children = new ArrayList<>();
 
-        public MenuDisplayDtoBuilder menuId(Long menuId) {
-            this.menuId = menuId;
+        public MenuDisplayDtoBuilder id(Long id) {
+            this.id = id;
             return this;
         }
 
@@ -121,7 +121,7 @@ public record MenuDisplayDto(
         }
 
         public MenuDisplayDto build() {
-            return new MenuDisplayDto(menuId, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            return new MenuDisplayDto(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
     }
 }

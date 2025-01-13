@@ -17,7 +17,7 @@ public class ButtonVoConvertor {
     public static List<ButtonVo> convert(List<MenuEntity> buttons) {
         return buttons.stream()
                 .map(item -> ButtonVo.builder()
-                        .menuId(item.getMenuId())
+                        .id(item.getId())
                         .name(item.getName())
                         .icon(item.getIcon())
                         .component(item.getComponent())

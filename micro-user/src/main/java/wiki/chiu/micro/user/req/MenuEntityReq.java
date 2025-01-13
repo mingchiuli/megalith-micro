@@ -8,7 +8,7 @@ import java.util.Optional;
  */
 public record MenuEntityReq(
 
-        Optional<Long> menuId,
+        Optional<Long> id,
 
         Long parentId,
 

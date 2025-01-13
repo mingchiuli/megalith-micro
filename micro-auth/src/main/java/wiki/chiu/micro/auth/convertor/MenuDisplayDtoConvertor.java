@@ -18,7 +18,7 @@ public class MenuDisplayDtoConvertor {
                 .filter(menu -> StatusEnum.NORMAL.getCode().equals(menu.status()))
                 .distinct()
                 .map(menu -> MenuDisplayDto.builder()
-                        .menuId(menu.menuId())
+                        .id(menu.id())
                         .parentId(menu.parentId())
                         .icon(menu.icon())
                         .url(menu.url())
@@ -44,8 +44,8 @@ public class MenuDisplayDtoConvertor {
 
     private static List<MenuDisplayDto> getChildren(MenuDisplayDto root, List<MenuDisplayDto> all) {
         return all.stream()
-                .filter(menu -> Objects.equals(menu.parentId(), root.menuId()))
-                .map(menu -> new MenuDisplayDto(menu, root.menuId(), getChildren(menu, all)))
+                .filter(menu -> Objects.equals(menu.parentId(), root.id()))
+                .map(menu -> new MenuDisplayDto(menu, root.id(), getChildren(menu, all)))
                 .sorted(Comparator.comparingInt(menu -> Objects.isNull(menu.orderNum()) ? 0 : menu.orderNum()))
                 .toList();
     }

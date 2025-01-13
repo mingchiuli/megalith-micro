@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record MenuWithChildVo(
-        Long menuId,
+        Long id,
 
         Long parentId,
 
@@ -31,7 +31,7 @@ public record MenuWithChildVo(
     }
 
     public static class MenuWithChildVoBuilder {
-        private Long menuId;
+        private Long id;
         private Long parentId;
         private String title;
         private String name;
@@ -43,8 +43,8 @@ public record MenuWithChildVo(
         private Integer status;
         private List<MenuWithChildVo> children = new ArrayList<>();
 
-        public MenuWithChildVoBuilder menuId(Long menuId) {
-            this.menuId = menuId;
+        public MenuWithChildVoBuilder id(Long id) {
+            this.id = id;
             return this;
         }
 
@@ -99,7 +99,7 @@ public record MenuWithChildVo(
         }
 
         public MenuWithChildVo build() {
-            return new MenuWithChildVo(menuId, parentId, title, name, url, component, type, icon, orderNum, status, children);
+            return new MenuWithChildVo(id, parentId, title, name, url, component, type, icon, orderNum, status, children);
         }
     }
 }

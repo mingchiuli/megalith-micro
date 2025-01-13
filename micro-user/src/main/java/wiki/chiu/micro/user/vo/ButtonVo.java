@@ -6,7 +6,7 @@ package wiki.chiu.micro.user.vo;
  **/
 public record ButtonVo(
 
-        Long menuId,
+        Long id,
 
         Long parentId,
 
@@ -31,7 +31,7 @@ public record ButtonVo(
     }
 
     public static class ButtonVoBuilder {
-        private Long menuId;
+        private Long id;
         private Long parentId;
         private String title;
         private String name;
@@ -42,8 +42,8 @@ public record ButtonVo(
         private Integer orderNum;
         private Integer status;
 
-        public ButtonVoBuilder menuId(Long menuId) {
-            this.menuId = menuId;
+        public ButtonVoBuilder id(Long id) {
+            this.id = id;
             return this;
         }
 
@@ -93,7 +93,7 @@ public record ButtonVo(
         }
 
         public ButtonVo build() {
-            return new ButtonVo(menuId, parentId, title, name, url, component, type, icon, orderNum, status);
+            return new ButtonVo(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
     }
 }
