@@ -21,9 +21,9 @@ import java.util.Objects;
 public class MenuEntity {
 
     @Id
-    @Column(name = "menu_id")
+    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long menuId;
+    private Long id;
 
     @Column(name = "parent_id")
     private Long parentId;
@@ -60,8 +60,8 @@ public class MenuEntity {
     @LastModifiedDate
     private LocalDateTime updated;
 
-    public MenuEntity(Long menuId, Long parentId, String title, String name, String url, String component, Integer type, String icon, Integer orderNum, Integer status, LocalDateTime created, LocalDateTime updated) {
-        this.menuId = menuId;
+    public MenuEntity(Long id, Long parentId, String title, String name, String url, String component, Integer type, String icon, Integer orderNum, Integer status, LocalDateTime created, LocalDateTime updated) {
+        this.id = id;
         this.parentId = parentId;
         this.title = title;
         this.name = name;
@@ -82,8 +82,8 @@ public class MenuEntity {
         return new MenuEntityBuilder();
     }
 
-    public Long getMenuId() {
-        return this.menuId;
+    public Long getId() {
+        return this.id;
     }
 
     public Long getParentId() {
@@ -130,8 +130,8 @@ public class MenuEntity {
         return this.updated;
     }
 
-    public void setMenuId(Long menuId) {
-        this.menuId = menuId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public void setParentId(Long parentId) {
@@ -183,12 +183,12 @@ public class MenuEntity {
         if (this == o) return true;
         if (!(o instanceof MenuEntity that)) return false;
 
-        return Objects.equals(menuId, that.menuId) && Objects.equals(parentId, that.parentId) && Objects.equals(title, that.title) && Objects.equals(name, that.name) && Objects.equals(url, that.url) && Objects.equals(component, that.component) && Objects.equals(type, that.type) && Objects.equals(icon, that.icon) && Objects.equals(orderNum, that.orderNum) && Objects.equals(status, that.status) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated);
+        return Objects.equals(id, that.id) && Objects.equals(parentId, that.parentId) && Objects.equals(title, that.title) && Objects.equals(name, that.name) && Objects.equals(url, that.url) && Objects.equals(component, that.component) && Objects.equals(type, that.type) && Objects.equals(icon, that.icon) && Objects.equals(orderNum, that.orderNum) && Objects.equals(status, that.status) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(menuId);
+        int result = Objects.hashCode(id);
         result = 31 * result + Objects.hashCode(parentId);
         result = 31 * result + Objects.hashCode(title);
         result = 31 * result + Objects.hashCode(name);
@@ -204,7 +204,7 @@ public class MenuEntity {
     }
 
     public static class MenuEntityBuilder {
-        private Long menuId;
+        private Long id;
         private Long parentId;
         private String title;
         private String name;
@@ -220,8 +220,8 @@ public class MenuEntity {
         MenuEntityBuilder() {
         }
 
-        public MenuEntityBuilder menuId(Long menuId) {
-            this.menuId = menuId;
+        public MenuEntityBuilder id(Long id) {
+            this.id = id;
             return this;
         }
 
@@ -281,7 +281,7 @@ public class MenuEntity {
         }
 
         public MenuEntity build() {
-            return new MenuEntity(menuId, parentId, title, name, url, component, type, icon, orderNum, status, created, updated);
+            return new MenuEntity(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated);
         }
     }
 }

@@ -10,7 +10,7 @@ public class MenuEntityVoConvertor {
 
     public static MenuEntityVo convert(MenuEntity menuEntity) {
         return MenuEntityVo.builder()
-                .menuId(menuEntity.getMenuId())
+                .id(menuEntity.getId())
                 .url(menuEntity.getUrl())
                 .title(menuEntity.getTitle())
                 .type(menuEntity.getType())

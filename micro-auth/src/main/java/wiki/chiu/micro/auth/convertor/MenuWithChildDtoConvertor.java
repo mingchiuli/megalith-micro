@@ -14,7 +14,7 @@ public class MenuWithChildDtoConvertor {
     public static List<MenuWithChildDto> convert(List<MenuDisplayDto> displayDtos) {
         return displayDtos.stream()
                 .map(item -> MenuWithChildDto.builder()
-                        .menuId(item.menuId())
+                        .id(item.id())
                         .icon(item.icon())
                         .name(item.name())
                         .title(item.title())

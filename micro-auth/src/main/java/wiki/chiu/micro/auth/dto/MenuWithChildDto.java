@@ -5,7 +5,7 @@ import java.util.List;
 
 
 public record MenuWithChildDto(
-        Long menuId,
+        Long id,
 
         Long parentId,
 
@@ -33,7 +33,7 @@ public record MenuWithChildDto(
     }
 
     public static class MenuWithChildDtoBuilder {
-        private Long menuId;
+        private Long id;
         private Long parentId;
         private String title;
         private String name;
@@ -45,8 +45,8 @@ public record MenuWithChildDto(
         private Integer status;
         private List<MenuWithChildDto> children = new ArrayList<>();
 
-        public MenuWithChildDtoBuilder menuId(Long menuId) {
-            this.menuId = menuId;
+        public MenuWithChildDtoBuilder id(Long id) {
+            this.id = id;
             return this;
         }
 
@@ -101,7 +101,7 @@ public record MenuWithChildDto(
         }
 
         public MenuWithChildDto build() {
-            return new MenuWithChildDto(menuId, parentId, title,name, url, component, type, icon, orderNum, status, children);
+            return new MenuWithChildDto(id, parentId, title,name, url, component, type, icon, orderNum, status, children);
         }
 
     }

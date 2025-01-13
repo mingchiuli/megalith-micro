@@ -12,7 +12,7 @@ public class MenuWithChildVoConvertor {
     public static List<MenuWithChildVo> convert(List<MenuWithChildDto> menuVos) {
         return menuVos.stream()
                 .map(menu -> MenuWithChildVo.builder()
-                        .menuId(menu.menuId())
+                        .id(menu.id())
                         .parentId(menu.parentId())
                         .icon(menu.icon())
                         .url(menu.url())

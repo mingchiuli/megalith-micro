@@ -5,7 +5,7 @@ import java.io.Serializable;
 
 public record MenuDto(
 
-        Long menuId,
+        Long id,
 
         Long parentId,
 
@@ -30,7 +30,7 @@ public record MenuDto(
     }
 
     public static class MenuWithChildRpcDtoBuilder {
-        private Long menuId;
+        private Long id;
         private Long parentId;
         private String title;
         private String name;
@@ -42,8 +42,8 @@ public record MenuDto(
         private Integer status;
 
 
-        public MenuDto.MenuWithChildRpcDtoBuilder menuId(Long menuId) {
-            this.menuId = menuId;
+        public MenuDto.MenuWithChildRpcDtoBuilder id(Long id) {
+            this.id = id;
             return this;
         }
 
@@ -93,7 +93,7 @@ public record MenuDto(
         }
 
         public MenuDto build() {
-            return new MenuDto(this.menuId, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+            return new MenuDto(this.id, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
         }
     }
 }

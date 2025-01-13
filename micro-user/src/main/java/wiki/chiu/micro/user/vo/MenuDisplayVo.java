@@ -8,7 +8,7 @@ import java.util.List;
 
 public record MenuDisplayVo(
 
-        Long menuId,
+        Long id,
 
         Long parentId,
 
@@ -37,7 +37,7 @@ public record MenuDisplayVo(
         List<MenuDisplayVo> children) {
 
     public MenuDisplayVo(MenuDisplayVo vo, Long parentId, List<MenuDisplayVo> children) {
-        this(vo.menuId, parentId, vo.title, vo.name, vo.url, vo.component, vo.type, vo.icon, vo.orderNum, vo.status, vo.created, vo.updated, children);
+        this(vo.id, parentId, vo.title, vo.name, vo.url, vo.component, vo.type, vo.icon, vo.orderNum, vo.status, vo.created, vo.updated, children);
     }
 
     public static MenuDisplayVoBuilder builder() {
@@ -45,7 +45,7 @@ public record MenuDisplayVo(
     }
 
     public static class MenuDisplayVoBuilder {
-        private Long menuId;
+        private Long id;
         private Long parentId;
         private String title;
         private String name;
@@ -59,8 +59,8 @@ public record MenuDisplayVo(
         private LocalDateTime updated;
         private List<MenuDisplayVo> children = new ArrayList<>();
 
-        public MenuDisplayVoBuilder menuId(Long menuId) {
-            this.menuId = menuId;
+        public MenuDisplayVoBuilder id(Long id) {
+            this.id = id;
             return this;
         }
 
@@ -127,7 +127,7 @@ public record MenuDisplayVo(
         }
 
         public MenuDisplayVo build() {
-            return new MenuDisplayVo(menuId, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            return new MenuDisplayVo(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
     }
 }
