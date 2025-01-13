@@ -145,7 +145,6 @@ const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
   }
 
   const rootRoute = buildRoute(rootMenu)
-  console.log(rootRoute)
   router.addRoute(rootRoute)
 }
 
