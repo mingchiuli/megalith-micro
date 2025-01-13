@@ -14,6 +14,7 @@ import wiki.chiu.micro.common.lang.StatusEnum;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static wiki.chiu.micro.common.lang.Const.TOKEN_PREFIX;
 
@@ -38,10 +39,11 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public Map<String, String> refreshToken(Long userId) {
-        UserEntityRpcDto userEntityRpcDto = userHttpServiceWrapper.findById(userId);
-        List<String> roles = StatusEnum.HIDE.getCode().equals(userEntityRpcDto.status()) ?
+        List<String> roles = Objects.equals(0L, userId) ?
                 Collections.emptyList() :
-                userHttpServiceWrapper.findRoleCodesByUserId(userId);
+                StatusEnum.HIDE.getCode().equals(userHttpServiceWrapper.findById(userId).status()) ?
+                        Collections.emptyList() :
+                        userHttpServiceWrapper.findRoleCodesByUserId(userId);
 
         String accessToken = generateAccessToken(userId, roles);
         return Collections.singletonMap("accessToken", TOKEN_PREFIX + accessToken);
