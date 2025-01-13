@@ -22,7 +22,7 @@ const reverseCollapse = (): void => {
     :collapse="!expand"
     active-text-color="#ffd04b"
   >
-    <InfiniteMenuItem v-for="item in menuTree?.children" v-bind:key="item.menuId" :item="item" />
+    <InfiniteMenuItem v-for="item in menuTree?.children" v-bind:key="item.id" :item="item" />
   </el-menu>
 </template>
 

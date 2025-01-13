@@ -26,7 +26,7 @@ const selectMenu = (item: Tab) => {
   </el-menu-item>
 
   <!-- 有子节点，使用 el-sub-menu 渲染 -->
-  <el-sub-menu v-else-if="item.type === RoutesEnum.CATALOGUE" :index="String(item.menuId)">
+  <el-sub-menu v-else-if="item.type === RoutesEnum.CATALOGUE" :index="String(item.id)">
     <template #title>
       <el-icon :size="20">
         <component :is="item.icon" />
@@ -34,6 +34,6 @@ const selectMenu = (item: Tab) => {
       <span>{{ item.title }}</span>
     </template>
     <!-- 递归渲染 -->
-    <InfiniteMenuItem v-for="sub in item.children" v-bind:key="sub.menuId" :item="sub" />
+    <InfiniteMenuItem v-for="sub in item.children" v-bind:key="sub.id" :item="sub" />
   </el-sub-menu>
 </template>

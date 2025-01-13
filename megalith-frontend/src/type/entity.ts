@@ -76,7 +76,7 @@ export interface UserSys {
 }
 
 export interface MenuSys {
-  menuId: number
+  id: number
   parentId: number
   title: string
   component: string
@@ -173,7 +173,7 @@ export interface Tab {
 
 export interface Button extends Tab {
   [propName: string]: any
-  menuId: number
+  id: number
   component?: string
   icon: string
   orderNum: number

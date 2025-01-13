@@ -50,7 +50,6 @@ const form: Form = reactive({
   status: 0
 })
 type MenuForm = {
-  roleId: number
   menuId: number
   title: string
   check: boolean

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { GET, POST } from '@/http/http'
-import type { MenuSys, RoleSys } from '@/type/entity'
+import type { MenuSys } from '@/type/entity'
 import { type FormInstance, type FormRules } from 'element-plus'
 import { reactive, ref, useTemplateRef } from 'vue'
 import { Status, ButtonAuth, RoutesStatus, RoutesEnum } from '@/type/entity'
@@ -21,12 +21,12 @@ let menuId = ref<number>()
 const props = {
   label: 'title',
   //这个value代表根据这个值找节点，和v-model="value"的value不是一个概念
-  value: 'menuId',
+  value: 'id',
   disabled: (data: MenuSys) => data.status !== RoutesStatus.NORMAL || data.type === RoutesEnum.BUTTON
 }
 
 type Form = {
-  menuId?: number
+  id?: number
   parentId: number
   title: string
   name: string
@@ -39,7 +39,7 @@ type Form = {
 }
 
 const form: Form = reactive({
-  menuId: undefined,
+  id: undefined,
   parentId: 0,
   title: '',
   name: '',
@@ -67,13 +67,13 @@ const editFormRules = reactive<FormRules<Form>>({
 })
 
 const handleEdit = async (row: MenuSys) => {
-  const data = await GET<MenuSys>(`/sys/menu/info/${row.menuId}`)
+  const data = await GET<MenuSys>(`/sys/menu/info/${row.id}`)
   Object.assign(form, data)
   dialogVisible.value = true
 }
 
 const handleDelete = async (row: MenuSys) => {
-  await POST<null>(`/sys/menu/delete/${row.menuId}`, null)
+  await POST<null>(`/sys/menu/delete/${row.id}`, null)
   ElNotification({
     title: '操作成功',
     message: '删除成功',
@@ -92,7 +92,7 @@ const download = async () => {
 }
 
 const clearForm = () => {
-  form.menuId = undefined
+  form.id = undefined
   form.parentId = 0
   form.title = ''
   form.name = ''
@@ -123,8 +123,8 @@ const submitAuthorityFormHandle = async () => {
 }
 
 const handleAuthority = async (row: MenuSys) => {
-  authorityData.value = await GET<AuthorityForm[]>(`/sys/menu/authority/${row.menuId}`)
-  menuId.value = row.menuId
+  authorityData.value = await GET<AuthorityForm[]>(`/sys/menu/authority/${row.id}`)
+  menuId.value = row.id
   authorityDialogVisible.value = true
 }
 
@@ -177,7 +177,7 @@ const submitForm = async (ref: FormInstance) => {
     </el-form-item>
   </el-form>
 
-  <el-table v-loading="loading" :data="content" row-key="menuId" border stripe default-expand-all>
+  <el-table v-loading="loading" :data="content" row-key="id" border stripe default-expand-all>
     <el-table-column prop="title" label="标题" sortable min-width="150" align="center" />
     <el-table-column prop="icon" label="图标" align="center" min-width="150" />
 
