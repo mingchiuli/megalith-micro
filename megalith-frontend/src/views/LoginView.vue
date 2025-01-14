@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import type { LoginStruct } from '@/type/entity'
-import http from '@/http/axios'
+import { GET } from '@/http/http'
 import { submitLogin } from '@/utils/tools'
 
 const mailButtonDisable = ref(false)
@@ -41,8 +41,7 @@ const sendCode = (via: string) => {
   if (!loginInfo.username) return
   smsButtonDisable.value = true
   mailButtonDisable.value = true
-  http
-    .get(`/code/${via}?loginName=${loginInfo.username}`)
+  GET(`/code/${via}?loginName=${loginInfo.username}`)
     .then((_res) => {
       ElMessage.success('发送成功')
       interval = setInterval(() => {
