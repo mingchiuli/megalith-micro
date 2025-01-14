@@ -1,14 +1,14 @@
-import http from '@/http/axios'
+import client from '@/http/axios'
 import type { Data } from '@/type/entity'
 import type { AxiosProgressEvent } from 'axios'
 import { type Ref } from 'vue'
 
 const GET = async <T>(url: string): Promise<T> => {
-  return Promise.resolve((await http.get<never, Data<T>>(url)).data)
+  return Promise.resolve((await client.http.get<never, Data<T>>(url)).data)
 }
 
 const POST = async <T>(url: string, params: any): Promise<T> => {
-  return Promise.resolve((await http.post<never, Data<T>>(url, params)).data)
+  return Promise.resolve((await client.http.post<never, Data<T>>(url, params)).data)
 }
 
 const handleProgress = (
@@ -28,7 +28,7 @@ const DOWNLOAD_DATA = async (
   let data: any
   percentageShow.value = true
   percentage.value = 0
-  await http
+  await client.longHttp
     .get(url, {
       onDownloadProgress: (progressEvent) =>
         handleProgress(percentage, percentageShow, progressEvent)
@@ -57,7 +57,7 @@ const UPLOAD = async (
   percentageShow.value = true
   percentage.value = 0
   let url = ''
-  await http
+  await client.longHttp
     .post(dest, formData, {
       onUploadProgress: (progressEvent) => handleProgress(percentage, percentageShow, progressEvent)
     })

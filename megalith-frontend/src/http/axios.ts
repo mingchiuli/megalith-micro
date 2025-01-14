@@ -6,7 +6,11 @@ import { loginStateStore } from '@/stores/store'
 
 const http = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
-  timeout: 20000
+  timeout: 10000
+})
+
+const longHttp = axios.create({
+  baseURL: import.meta.env.VITE_BASE_URL
 })
 
 const requestInterceptor = async (config: any) => {
@@ -50,5 +54,7 @@ const errorInterceptor = (error: AxiosError<any, any>) => {
 
 http.interceptors.request.use(requestInterceptor)
 http.interceptors.response.use(responseInterceptor, errorInterceptor)
+longHttp.interceptors.request.use(requestInterceptor)
+longHttp.interceptors.response.use(responseInterceptor, errorInterceptor)
 
-export default http
+export default { http, longHttp }
