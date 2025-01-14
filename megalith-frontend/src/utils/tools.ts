@@ -1,4 +1,4 @@
-import client from '@/http/axios'
+import { http } from '@/http/axios'
 import { DOWNLOAD_DATA, GET, POST } from '@/http/http'
 import router from '@/router'
 import { buttonStore, loginStateStore, menuStore, tabStore, authMarkStore } from '@/stores/store'
@@ -74,7 +74,7 @@ export const checkAccessToken = async (accessToken: string): Promise<string> => 
   //ten minutes
   if (jwt.exp - now < 600) {
     const refreshToken = getLocalStorageItem('refreshToken')
-    const data = await client.http.get<never, Data<RefreshStruct>>('/token/refresh', {
+    const data = await http.get<never, Data<RefreshStruct>>('/token/refresh', {
       headers: { Authorization: refreshToken }
     })
     const token = data.data.accessToken

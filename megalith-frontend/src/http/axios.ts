@@ -57,4 +57,4 @@ http.interceptors.response.use(responseInterceptor, errorInterceptor)
 longHttp.interceptors.request.use(requestInterceptor)
 longHttp.interceptors.response.use(responseInterceptor, errorInterceptor)
 
-export default { http, longHttp }
+export { http, longHttp }
