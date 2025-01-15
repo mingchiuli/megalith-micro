@@ -1,6 +1,5 @@
-package wiki.chiu.micro.exhibit.constant;
+package wiki.chiu.micro.common.lang;
 
-import wiki.chiu.micro.common.lang.BlogOperateEnum;
 
 import java.io.Serializable;
 
@@ -12,7 +11,7 @@ public record BlogOperateMessage(
 
         Long blogId,
 
-        BlogOperateEnum typeEnum,
+        Integer typeEnumCode,
 
         Integer year) implements Serializable {
 }

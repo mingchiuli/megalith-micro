@@ -1,4 +1,4 @@
-package wiki.chiu.micro.auth.constant;
+package wiki.chiu.micro.common.lang;
 
 import java.io.Serializable;
 import java.util.List;

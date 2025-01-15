@@ -1,13 +1,12 @@
 package wiki.chiu.micro.user.config;
 
-import wiki.chiu.micro.user.constant.UserAuthMenuOperateMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
-
+import wiki.chiu.micro.common.lang.UserAuthMenuOperateMessage;
 
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {

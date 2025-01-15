@@ -1,8 +1,8 @@
 package wiki.chiu.micro.user.listener;
 
 import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.lang.UserAuthMenuOperateMessage;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
-import wiki.chiu.micro.user.constant.UserAuthMenuOperateMessage;
 import wiki.chiu.micro.user.event.AuthMenuOperateEvent;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.event.EventListener;

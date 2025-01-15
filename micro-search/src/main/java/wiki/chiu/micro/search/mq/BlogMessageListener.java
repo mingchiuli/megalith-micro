@@ -1,8 +1,9 @@
 package wiki.chiu.micro.search.mq;
 
 import com.rabbitmq.client.Channel;
+import wiki.chiu.micro.common.lang.BlogOperateEnum;
+import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.search.constant.BlogOperateMessage;
 import wiki.chiu.micro.search.mq.handler.BlogIndexSupport;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -29,7 +30,7 @@ public class BlogMessageListener {
             executor = "mqExecutor")
     public void handler(BlogOperateMessage message, Channel channel, Message msg) {
         for (BlogIndexSupport handler : elasticsearchHandlers) {
-            if (handler.supports(message.typeEnum())) {
+            if (handler.supports(BlogOperateEnum.of(message.typeEnumCode()))) {
                 handler.handle(message, channel, msg);
                 break;
             }

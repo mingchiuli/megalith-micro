@@ -14,7 +14,7 @@ import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.utils.EditAuthUtils;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.blog.constant.BlogOperateMessage;
+import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import wiki.chiu.micro.blog.event.BlogOperateEvent;
@@ -328,7 +328,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     private void notifyBlogOperation(BlogOperateEnum type, BlogEntity blogEntity) {
-        var blogSearchIndexMessage = new BlogOperateMessage(blogEntity.getId(), type, blogEntity.getCreated().getYear());
+        var blogSearchIndexMessage = new BlogOperateMessage(blogEntity.getId(), type.getCode(), blogEntity.getCreated().getYear());
         applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
     }
 

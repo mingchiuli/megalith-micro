@@ -4,7 +4,7 @@ package wiki.chiu.micro.search.mq.handler;
 import com.rabbitmq.client.Channel;
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.search.constant.BlogOperateMessage;
+import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.search.rpc.BlogHttpServiceWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public abstract sealed class BlogIndexSupport permits
         try {
             Long blogId = message.blogId();
             BlogEntityRpcDto blogEntity;
-            if (Objects.equals(message.typeEnum(), BlogOperateEnum.REMOVE)) {
+            if (Objects.equals(BlogOperateEnum.of(message.typeEnumCode()), BlogOperateEnum.REMOVE)) {
                 blogEntity = new BlogEntityRpcDto(blogId, null, null, null, null, null, null, null, null, null);
             } else {
                 blogEntity = blogHttpServiceWrapper.findById(blogId);
