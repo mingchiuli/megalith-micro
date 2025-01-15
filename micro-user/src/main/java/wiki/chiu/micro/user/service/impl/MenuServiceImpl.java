@@ -22,6 +22,7 @@ import wiki.chiu.micro.user.vo.MenuDisplayVo;
 import wiki.chiu.micro.user.vo.MenuEntityVo;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+import wiki.chiu.micro.user.wrapper.RoleMenuAuthorityWrapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -50,12 +51,15 @@ public class MenuServiceImpl implements MenuService {
 
     private final ExecutorService taskExecutor;
 
-    public MenuServiceImpl(MenuRepository menuRepository, RoleRepository roleRepository, ApplicationContext applicationContext, RoleMenuRepository roleMenuRepository, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    private final RoleMenuAuthorityWrapper roleMenuAuthorityWrapper;
+
+    public MenuServiceImpl(MenuRepository menuRepository, RoleRepository roleRepository, ApplicationContext applicationContext, RoleMenuRepository roleMenuRepository, @Qualifier("commonExecutor") ExecutorService taskExecutor, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper) {
         this.menuRepository = menuRepository;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;
         this.roleMenuRepository = roleMenuRepository;
         this.taskExecutor = taskExecutor;
+        this.roleMenuAuthorityWrapper = roleMenuAuthorityWrapper;
     }
 
     @Override
@@ -109,6 +113,17 @@ public class MenuServiceImpl implements MenuService {
                 SQLUtils.entityToInsertSQL(menuEntities, Const.MENU_TABLE),
                 SQLUtils.entityToInsertSQL(roleMenuEntities, Const.ROLE_MENU_TABLE))
                 .getBytes();
+    }
+
+    @Override
+    public void delete(Long id) {
+        roleMenuAuthorityWrapper.deleteMenu(id);
+        //全部按钮
+        taskExecutor.execute(() -> {
+            List<String> allRoleCodes = roleRepository.findAllCodes();
+            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
+            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
+        });
     }
 
     private void findTargetChildrenMenuId(Long menuId, List<MenuEntity> menuEntities) {

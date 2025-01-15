@@ -20,4 +20,6 @@ public interface MenuService {
     List<MenuDisplayVo> tree();
 
     byte[] download();
+
+    void delete(Long id);
 }
