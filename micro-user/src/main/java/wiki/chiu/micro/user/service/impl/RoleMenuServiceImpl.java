@@ -19,7 +19,6 @@ import wiki.chiu.micro.user.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.service.RoleMenuService;
 import wiki.chiu.micro.user.vo.*;
-import wiki.chiu.micro.user.wrapper.RoleMenuAuthorityWrapper;
 import wiki.chiu.micro.user.wrapper.RoleMenuWrapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -48,16 +47,13 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
     private final ExecutorService taskExecutor;
 
-    private final RoleMenuAuthorityWrapper roleMenuAuthorityWrapper;
-
-    public RoleMenuServiceImpl(MenuRepository menuRepository, RoleMenuRepository roleMenuRepository, RoleMenuWrapper roleMenuWrapper, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper) {
+    public RoleMenuServiceImpl(MenuRepository menuRepository, RoleMenuRepository roleMenuRepository, RoleMenuWrapper roleMenuWrapper, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
         this.menuRepository = menuRepository;
         this.roleMenuRepository = roleMenuRepository;
         this.roleMenuWrapper = roleMenuWrapper;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;
         this.taskExecutor = taskExecutor;
-        this.roleMenuAuthorityWrapper = roleMenuAuthorityWrapper;
     }
 
     private List<RoleMenuVo> setCheckMenusInfo(List<MenuDisplayVo> menusInfo, List<Long> menuIdsByRole, List<RoleMenuVo> parentChildren) {
@@ -101,7 +97,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         taskExecutor.execute(() -> roleRepository.findById(roleId)
                 .map(RoleEntity::getCode)
                 .ifPresent(role -> {
-                    var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(role), AuthMenuOperateEnum.MENU.getType());
+                    var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(role), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
                     applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
                 }));
     }
