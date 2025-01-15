@@ -25,11 +25,8 @@ public class UserController {
 
     private final UserService userService;
 
-    private final UserRoleService userRoleService;
-
     public UserController(UserService userService, UserRoleService userRoleService) {
         this.userService = userService;
-        this.userRoleService = userRoleService;
     }
 
     @GetMapping("/auth/register/page")
@@ -45,7 +42,7 @@ public class UserController {
 
     @PostMapping("/register/save")
     public Result<Void> saveRegisterPage(@RequestBody @RegisterSave UserEntityRegisterReq req) {
-        return Result.success(() -> userRoleService.saveRegisterPage(req));
+        return Result.success(() -> userService.saveRegisterPage(req));
     }
 
     @PostMapping("/register/image/upload")
@@ -62,23 +59,23 @@ public class UserController {
 
     @PostMapping("/save")
     public Result<Void> saveOrUpdate(@RequestBody @UserSave UserEntityReq userEntityReq) {
-        return Result.success(() -> userRoleService.saveOrUpdate(userEntityReq));
+        return Result.success(() -> userService.saveOrUpdate(userEntityReq));
     }
 
     @GetMapping("/page/{currentPage}")
     public Result<PageAdapter<UserEntityVo>> page(@PathVariable Integer currentPage,
                                                   @RequestParam(defaultValue = "5") Integer size) {
-        return Result.success(() -> userRoleService.listPage(currentPage, size));
+        return Result.success(() -> userService.listPage(currentPage, size));
     }
 
     @PostMapping("/delete")
     public Result<Void> delete(@RequestBody @NotEmpty List<Long> ids) {
-        return Result.success(() -> userRoleService.deleteUsers(ids));
+        return Result.success(() -> userService.deleteUsers(ids));
     }
 
     @GetMapping("/info/{id}")
     public Result<UserEntityVo> info(@PathVariable Long id) {
-        return Result.success(() -> userRoleService.findById(id));
+        return Result.success(() -> userService.findInfo(id));
     }
 
     @GetMapping("/download")

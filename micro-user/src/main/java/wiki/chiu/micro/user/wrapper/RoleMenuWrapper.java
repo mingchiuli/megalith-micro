@@ -1,8 +1,7 @@
 package wiki.chiu.micro.user.wrapper;
 
 import wiki.chiu.micro.user.entity.RoleMenuEntity;
-import wiki.chiu.micro.user.repository.MenuRepository;
-import wiki.chiu.micro.user.repository.RoleMenuRepository;
+import wiki.chiu.micro.user.repository.*;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,22 +13,13 @@ public class RoleMenuWrapper {
 
     private final RoleMenuRepository roleMenuRepository;
 
-    private final MenuRepository menuRepository;
-
-    public RoleMenuWrapper(RoleMenuRepository roleMenuRepository, MenuRepository menuRepository) {
+    public RoleMenuWrapper(RoleMenuRepository roleMenuRepository, RoleRepository roleRepository, UserRoleRepository userRoleRepository) {
         this.roleMenuRepository = roleMenuRepository;
-        this.menuRepository = menuRepository;
     }
 
     @Transactional
     public void saveMenu(Long roleId, List<RoleMenuEntity> roleMenuEntities) {
         roleMenuRepository.deleteByRoleId(roleId);
         roleMenuRepository.saveAll(roleMenuEntities);
-    }
-
-    @Transactional
-    public void deleteMenu(Long id) {
-        menuRepository.deleteById(id);
-        roleMenuRepository.deleteByMenuId(id);
     }
 }

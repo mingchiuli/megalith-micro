@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.AuthStatusEnum;
+import wiki.chiu.micro.common.lang.AuthTypeEnum;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
 import wiki.chiu.micro.common.req.AuthorityRouteReq;
@@ -176,7 +176,7 @@ public class AuthServiceImpl implements AuthService {
     private Set<String> getAuthAuthority(String token) throws AuthException {
 
         Set<String> authorities = authWrapper.getAllSystemAuthorities().stream()
-                .filter(item -> AuthStatusEnum.WHITE_LIST.getCode().equals(item.type()))
+                .filter(item -> AuthTypeEnum.WHITE_LIST.getCode().equals(item.type()))
                 .map(AuthorityRpcDto::code)
                 .collect(Collectors.toSet());
 

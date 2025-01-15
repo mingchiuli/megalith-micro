@@ -1,32 +1,31 @@
 package wiki.chiu.micro.user.wrapper;
 
-import wiki.chiu.micro.user.repository.MenuAuthorityRepository;
-import wiki.chiu.micro.user.repository.RoleMenuRepository;
-import wiki.chiu.micro.user.repository.RoleRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import wiki.chiu.micro.user.repository.MenuAuthorityRepository;
+import wiki.chiu.micro.user.repository.MenuRepository;
+import wiki.chiu.micro.user.repository.RoleMenuRepository;
 
-import java.util.List;
 
 @Component
 public class RoleMenuAuthorityWrapper {
 
-    private final RoleRepository roleRepository;
-
-    private final RoleMenuRepository roleMenuRepository;
+    private final MenuRepository menuRepository;
 
     private final MenuAuthorityRepository menuAuthorityRepository;
 
-    public RoleMenuAuthorityWrapper(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, MenuAuthorityRepository menuAuthorityRepository) {
-        this.roleRepository = roleRepository;
-        this.roleMenuRepository = roleMenuRepository;
+    private final RoleMenuRepository roleMenuRepository;
+
+    public RoleMenuAuthorityWrapper(MenuRepository menuRepository, MenuAuthorityRepository menuAuthorityRepository, RoleMenuRepository roleMenuRepository) {
+        this.menuRepository = menuRepository;
         this.menuAuthorityRepository = menuAuthorityRepository;
+        this.roleMenuRepository = roleMenuRepository;
     }
 
     @Transactional
-    public void delete(List<Long> ids, List<Long> menuIds) {
-        roleRepository.deleteAllById(ids);
-        roleMenuRepository.deleteAllByRoleId(ids);
-        menuAuthorityRepository.deleteAllByMenuId(menuIds);
+    public void deleteMenu(Long id) {
+        menuRepository.deleteById(id);
+        menuAuthorityRepository.deleteByMenuId(id);
+        roleMenuRepository.deleteByMenuId(id);
     }
 }

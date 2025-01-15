@@ -22,6 +22,7 @@ import wiki.chiu.micro.user.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.vo.AuthorityVo;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+import wiki.chiu.micro.user.wrapper.MenuAuthorityWrapper;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -42,12 +43,15 @@ public class AuthorityServiceImpl implements AuthorityService {
 
     private final ExecutorService taskExecutor;
 
-    public AuthorityServiceImpl(AuthorityRepository authorityRepository, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor, MenuAuthorityRepository menuAuthorityRepository) {
+    private final MenuAuthorityWrapper menuAuthorityWrapper;
+
+    public AuthorityServiceImpl(AuthorityRepository authorityRepository, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor, MenuAuthorityRepository menuAuthorityRepository, MenuAuthorityWrapper menuAuthorityWrapper) {
         this.authorityRepository = authorityRepository;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;
         this.taskExecutor = taskExecutor;
         this.menuAuthorityRepository = menuAuthorityRepository;
+        this.menuAuthorityWrapper = menuAuthorityWrapper;
     }
 
     @Override
@@ -79,13 +83,13 @@ public class AuthorityServiceImpl implements AuthorityService {
                 .orElseGet(AuthorityEntity::new);
 
         AuthorityEntity authorityEntity = AuthorityEntityConvertor.convert(req, dealAuthority);
-        authorityRepository.save(authorityEntity);
+        menuAuthorityWrapper.authorityEntitySave(authorityEntity);
         executeDelAllRoleAuthTask();
     }
 
     @Override
     public void deleteAuthorities(List<Long> ids) {
-        authorityRepository.deleteAllById(ids);
+        menuAuthorityWrapper.deleteAuthorities(ids);
         executeDelAllRoleAuthTask();
     }
 

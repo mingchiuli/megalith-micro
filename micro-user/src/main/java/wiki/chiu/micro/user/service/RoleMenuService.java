@@ -18,6 +18,4 @@ public interface RoleMenuService {
 
     void saveMenu(Long roleId, List<Long> menuIds);
 
-    void delete(Long id);
-
 }

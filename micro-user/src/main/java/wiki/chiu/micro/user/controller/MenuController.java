@@ -5,7 +5,7 @@ import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.user.req.MenuEntityReq;
 import wiki.chiu.micro.user.service.MenuAuthorityService;
 import wiki.chiu.micro.user.service.MenuService;
-import wiki.chiu.micro.user.service.RoleMenuService;
+import wiki.chiu.micro.user.valid.DeleteMenu;
 import wiki.chiu.micro.user.valid.MenuValue;
 import wiki.chiu.micro.user.vo.MenuDisplayVo;
 import wiki.chiu.micro.user.vo.MenuEntityVo;
@@ -27,13 +27,10 @@ public class MenuController {
 
     private final MenuService menuService;
 
-    private final RoleMenuService roleMenuService;
-
     private final MenuAuthorityService menuAuthorityService;
 
-    public MenuController(MenuService menuService, RoleMenuService roleMenuService, MenuAuthorityService menuAuthorityService) {
+    public MenuController(MenuService menuService, MenuAuthorityService menuAuthorityService) {
         this.menuService = menuService;
-        this.roleMenuService = roleMenuService;
         this.menuAuthorityService = menuAuthorityService;
     }
 
@@ -53,8 +50,8 @@ public class MenuController {
     }
 
     @PostMapping("/delete/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
-        return Result.success(() -> roleMenuService.delete(id));
+    public Result<Void> delete(@PathVariable @DeleteMenu Long id) {
+        return Result.success(() -> menuService.delete(id));
     }
 
     @GetMapping("/download")

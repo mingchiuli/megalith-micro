@@ -18,12 +18,13 @@ import wiki.chiu.micro.user.req.RoleEntityReq;
 import wiki.chiu.micro.user.service.RoleService;
 import wiki.chiu.micro.user.vo.RoleEntityRpcVo;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
-import wiki.chiu.micro.user.wrapper.RoleMenuAuthorityWrapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import wiki.chiu.micro.user.wrapper.RoleMenuWrapper;
+import wiki.chiu.micro.user.wrapper.UserRoleMenuWrapper;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,19 +45,19 @@ public class RoleServiceImpl implements RoleService {
 
     private final UserRoleRepository userRoleRepository;
 
-    private final RoleMenuAuthorityWrapper roleMenuAuthorityWrapper;
-
     private final ApplicationContext applicationContext;
 
     private final ExecutorService taskExecutor;
 
-    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, UserRoleRepository userRoleRepository, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    private final UserRoleMenuWrapper userRoleMenuWrapper;
+
+    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, UserRoleRepository userRoleRepository, RoleMenuWrapper roleMenuWrapper, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor, UserRoleMenuWrapper userRoleMenuWrapper) {
         this.roleRepository = roleRepository;
         this.roleMenuRepository = roleMenuRepository;
         this.userRoleRepository = userRoleRepository;
-        this.roleMenuAuthorityWrapper = roleMenuAuthorityWrapper;
         this.applicationContext = applicationContext;
         this.taskExecutor = taskExecutor;
+        this.userRoleMenuWrapper = userRoleMenuWrapper;
     }
 
     @Override
@@ -93,8 +94,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public void delete(List<Long> ids) {
-        List<Long> menuIds = roleMenuRepository.findMenuIdsByRoleIdIn(ids);
-        roleMenuAuthorityWrapper.delete(ids, menuIds);
+        userRoleMenuWrapper.deleteRole(ids);
         List<String> roles = roleRepository.findAllById(ids).stream()
                 .map(RoleEntity::getCode)
                 .distinct()

@@ -1,10 +1,5 @@
 package wiki.chiu.micro.user.service;
 
-import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.user.req.UserEntityRegisterReq;
-import wiki.chiu.micro.user.req.UserEntityReq;
-import wiki.chiu.micro.user.vo.UserEntityVo;
-
 import java.util.List;
 
 /**
@@ -13,15 +8,5 @@ import java.util.List;
  **/
 public interface UserRoleService {
 
-    void saveOrUpdate(UserEntityReq userEntityReq);
-
-    void saveRegisterPage(UserEntityRegisterReq req);
-
     List<String> findRoleCodesByUserId(Long userId);
-
-    UserEntityVo findById(Long userId);
-
-    PageAdapter<UserEntityVo> listPage(Integer currentPage, Integer size);
-
-    void deleteUsers(List<Long> ids);
 }

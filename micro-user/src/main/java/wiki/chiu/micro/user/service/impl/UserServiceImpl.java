@@ -3,14 +3,33 @@ package wiki.chiu.micro.user.service.impl;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.rpc.OssHttpService;
+import wiki.chiu.micro.common.utils.CodeUtils;
 import wiki.chiu.micro.common.utils.OssSignUtils;
 import wiki.chiu.micro.common.utils.SQLUtils;
+import wiki.chiu.micro.user.constant.UserIndexMessage;
+import wiki.chiu.micro.user.convertor.UserEntityConvertor;
 import wiki.chiu.micro.user.convertor.UserEntityRpcVoConvertor;
+import wiki.chiu.micro.user.convertor.UserEntityVoConvertor;
+import wiki.chiu.micro.user.entity.RoleEntity;
 import wiki.chiu.micro.user.entity.UserEntity;
+import wiki.chiu.micro.user.entity.UserRoleEntity;
+import wiki.chiu.micro.user.event.UserOperateEvent;
+import wiki.chiu.micro.user.lang.UserOperateEnum;
+import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.repository.UserRepository;
+import wiki.chiu.micro.user.repository.UserRoleRepository;
+import wiki.chiu.micro.user.req.UserEntityRegisterReq;
+import wiki.chiu.micro.user.req.UserEntityReq;
 import wiki.chiu.micro.user.service.UserService;
 import wiki.chiu.micro.user.vo.UserEntityRpcVo;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +41,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import wiki.chiu.micro.user.vo.UserEntityVo;
+import wiki.chiu.micro.user.wrapper.UserRoleWrapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -30,8 +51,9 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static wiki.chiu.micro.common.lang.Const.REGISTER_PREFIX;
+import static wiki.chiu.micro.common.lang.Const.*;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
+import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
 
 /**
  * @author mingchiuli
@@ -50,6 +72,17 @@ public class UserServiceImpl implements UserService {
 
     private final ExecutorService taskExecutor;
 
+    private final UserRoleWrapper userRoleWrapper;
+
+    private final PasswordEncoder passwordEncoder;
+
+    private final ApplicationContext applicationContext;
+
+    private final RoleRepository roleRepository;
+
+    private final UserRoleRepository userRoleRepository;
+
+
     @Value("${megalith.blog.oss.base-url}")
     private String baseUrl;
 
@@ -65,11 +98,16 @@ public class UserServiceImpl implements UserService {
     @Value("${megalith.blog.aliyun.oss.bucket-name}")
     private String bucketName;
 
-    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, @Qualifier("commonExecutor") ExecutorService taskExecutor, UserRoleWrapper userRoleWrapper, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, RoleRepository roleRepository, UserRoleRepository userRoleRepository) {
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
         this.ossHttpService = ossHttpService;
         this.taskExecutor = taskExecutor;
+        this.userRoleWrapper = userRoleWrapper;
+        this.passwordEncoder = passwordEncoder;
+        this.applicationContext = applicationContext;
+        this.roleRepository = roleRepository;
+        this.userRoleRepository = userRoleRepository;
     }
 
     @Override
@@ -160,6 +198,79 @@ public class UserServiceImpl implements UserService {
         userRepository.unlockUser();
     }
 
+    @Override
+    public UserEntityVo findInfo(Long userId) {
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new MissException(USER_NOT_EXIST));
+
+        List<String> roleCodes = findRoleCodesByUserId(userId);
+        return UserEntityVoConvertor.convert(userEntity, roleCodes);
+    }
+
+    @Override
+    public void saveOrUpdate(UserEntityReq userEntityReq) {
+
+        UserEntity dealUser = getUserEntity(userEntityReq);
+
+        UserEntityReq userReq = userEntityReq.id().isPresent() && !StringUtils.hasLength(userEntityReq.password()) ?
+                new UserEntityReq(userEntityReq, dealUser.getPassword()) :
+                new UserEntityReq(userEntityReq, passwordEncoder.encode(userEntityReq.password()));
+
+        UserEntity userEntity = UserEntityConvertor.convert(userReq, dealUser);
+
+        List<UserRoleEntity> userRoleEntities = roleRepository.findByCodeIn(userEntityReq.roles()).stream()
+                .map(role -> UserRoleEntity.builder()
+                        .roleId(role.getId())
+                        .build())
+                .toList();
+
+        userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
+
+        executeTask(dealUser.getId(), userEntityReq.id().isPresent() ? UserOperateEnum.UPDATE : UserOperateEnum.CREATE);
+    }
+
+    @Override
+    public void saveRegisterPage(UserEntityRegisterReq req) {
+        String phone = req.phone();
+
+        UserEntityRegisterReq dealReq;
+        if (!StringUtils.hasLength(phone)) {
+            String fakePhone = CodeUtils.createPhone();
+            dealReq = new UserEntityRegisterReq(req, fakePhone);
+        } else {
+            dealReq = req;
+        }
+
+        UserEntityReq userEntityReq = getUserEntityReq(dealReq);
+        saveOrUpdate(userEntityReq);
+        redisTemplate.delete(REGISTER_PREFIX + req.token());
+    }
+
+    @Override
+    public PageAdapter<UserEntityVo> listPage(Integer currentPage, Integer size) {
+        var pageRequest = PageRequest.of(currentPage - 1,
+                size,
+                Sort.by("created").ascending());
+        Page<UserEntity> page = userRepository.findAll(pageRequest);
+
+        List<Long> userIds = page.get()
+                .map(UserEntity::getId)
+                .toList();
+        List<UserRoleEntity> userRoleEntities = userRoleRepository.findByUserIdIn(userIds);
+
+        List<Long> roleIds = userRoleEntities.stream()
+                .map(UserRoleEntity::getRoleId)
+                .toList();
+        List<RoleEntity> roleEntities = roleRepository.findAllById(roleIds);
+
+        return UserEntityVoConvertor.convert(page, userRoleEntities, roleEntities);
+    }
+
+    @Override
+    public void deleteUsers(List<Long> ids) {
+        userRoleWrapper.deleteUsers(ids);
+    }
+
     private void validateToken(String token) {
         Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
         if (Boolean.FALSE.equals(exist)) {
@@ -218,5 +329,36 @@ public class UserServiceImpl implements UserService {
         } catch (IOException e) {
             throw new MissException(e.getMessage());
         }
+    }
+
+    private UserEntity getUserEntity(UserEntityReq userEntityReq) {
+        return userEntityReq.id()
+                .flatMap(userRepository::findById)
+                .orElseGet(UserEntity::new);
+    }
+
+    private UserEntityReq getUserEntityReq(UserEntityRegisterReq req) {
+        List<String> roles = List.of(USER, REFRESH);
+        return userRepository.findByUsername(req.username())
+                .map(entity -> new UserEntityReq(req, entity.getId(), NORMAL.getCode(), roles))
+                .orElseGet(() -> new UserEntityReq(req, null, NORMAL.getCode(), roles));
+    }
+
+    private void executeTask(Long userId, UserOperateEnum userOperateEnum) {
+        taskExecutor.execute(() -> {
+            var userIndexMessage = new UserIndexMessage(userId, userOperateEnum);
+            applicationContext.publishEvent(new UserOperateEvent(this, userIndexMessage));
+        });
+    }
+
+    public List<String> findRoleCodesByUserId(Long userId) {
+        List<Long> roleIds = userRoleRepository.findByUserId(userId).stream()
+                .map(UserRoleEntity::getRoleId)
+                .toList();
+
+        return roleRepository.findAllById(roleIds).stream()
+                .filter(item -> StatusEnum.NORMAL.getCode().equals(item.getStatus()))
+                .map(RoleEntity::getCode)
+                .toList();
     }
 }

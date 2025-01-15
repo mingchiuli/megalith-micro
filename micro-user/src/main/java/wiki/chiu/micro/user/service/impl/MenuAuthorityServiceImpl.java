@@ -3,7 +3,7 @@ package wiki.chiu.micro.user.service.impl;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
-import wiki.chiu.micro.common.lang.AuthStatusEnum;
+import wiki.chiu.micro.common.lang.AuthTypeEnum;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
 import wiki.chiu.micro.user.convertor.MenuAuthorityEntityConvertor;
 import wiki.chiu.micro.user.convertor.MenuAuthorityVoConvertor;
@@ -69,7 +69,7 @@ public class MenuAuthorityServiceImpl implements MenuAuthorityService {
 
         return authorityRepository.findAll().stream()
                 .filter(item -> NORMAL.getCode().equals(item.getStatus()))
-                .filter(item -> AuthStatusEnum.NEED_AUTH.getCode().equals(item.getType()))
+                .filter(item -> AuthTypeEnum.NEED_AUTH.getCode().equals(item.getType()))
                 .map(item -> MenuAuthorityVoConvertor.convert(item, ids))
                 .toList();
     }

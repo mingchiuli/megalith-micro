@@ -1,6 +1,6 @@
 package wiki.chiu.micro.common.lang;
 
-public enum AuthStatusEnum {
+public enum AuthTypeEnum {
 
     WHITE_LIST(0, "白名单"),
 
@@ -8,7 +8,7 @@ public enum AuthStatusEnum {
 
     private final Integer code;
 
-    AuthStatusEnum(Integer code, String description) {
+    AuthTypeEnum(Integer code, String description) {
         this.code = code;
     }
 
