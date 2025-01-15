@@ -5,7 +5,7 @@ import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.exhibit.constant.BlogOperateMessage;
+import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
@@ -56,7 +56,7 @@ public abstract sealed class BlogCacheEvictHandler permits
     private BlogEntityRpcDto getBlogEntity(BlogOperateMessage message) {
         Long blogId = message.blogId();
         Integer year = message.year();
-        if (Objects.equals(message.typeEnum(), BlogOperateEnum.REMOVE)) {
+        if (Objects.equals(message.typeEnumCode(), BlogOperateEnum.REMOVE.getCode())) {
             return BlogEntityRpcDto.builder()
                     .id(blogId)
                     .created(LocalDateTime.of(year, 1, 1, 0, 0, 0))

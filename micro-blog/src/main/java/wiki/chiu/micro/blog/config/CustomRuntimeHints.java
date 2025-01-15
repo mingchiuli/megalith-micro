@@ -1,6 +1,6 @@
 package wiki.chiu.micro.blog.config;
 
-import wiki.chiu.micro.blog.constant.BlogOperateMessage;
+import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;

@@ -1,7 +1,7 @@
 package wiki.chiu.micro.auth.consumer;
 
 import com.rabbitmq.client.Channel;
-import wiki.chiu.micro.auth.constant.UserAuthMenuOperateMessage;
+import wiki.chiu.micro.common.lang.UserAuthMenuOperateMessage;
 import wiki.chiu.micro.auth.wrapper.AuthWrapper;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;

@@ -1,6 +1,6 @@
 package wiki.chiu.micro.blog.event;
 
-import wiki.chiu.micro.blog.constant.BlogOperateMessage;
+import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import org.springframework.context.ApplicationEvent;
 
 public class BlogOperateEvent extends ApplicationEvent {

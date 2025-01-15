@@ -1,6 +1,6 @@
 package wiki.chiu.micro.blog.listener;
 
-import wiki.chiu.micro.blog.constant.BlogOperateMessage;
+import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.blog.event.BlogOperateEvent;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
