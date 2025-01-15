@@ -90,10 +90,10 @@ router.beforeEach(async (to, _from) => {
     //页面被手动刷新
     if (!to.name || !router.hasRoute(to.name)) {
       if (!authMarkStore().auth) {
+        authMarkStore().auth = true
         allKindsInfo = await GET<MenusAndButtons>('/auth/menu/nav')
         callBackRequireRoutes(allKindsInfo)
         dealSysTab(to, allKindsInfo)
-        authMarkStore().auth = true
         return to.fullPath
       }
     } else {
