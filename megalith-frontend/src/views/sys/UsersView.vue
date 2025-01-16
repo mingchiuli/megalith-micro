@@ -247,7 +247,7 @@ const getRegisterLink = async (username: string) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="角色" align="center">
+    <el-table-column label="角色" min-width="200" align="center">
       <template #default="scope">
         <el-tag size="small" v-for="item in scope.row.roles" v-bind:key="item.code" type="info">{{
           getRoleName(item)
