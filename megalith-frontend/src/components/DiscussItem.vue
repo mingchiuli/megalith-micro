@@ -34,8 +34,8 @@ onMounted(() => {
   const giscus = createGiscusScript()
   const disqus = createDisqusScript()
 
-  document.getElementById('disqus-thread')!.appendChild(disqus)
-  document.getElementById('giscus-thread')!.appendChild(giscus)
+  document.getElementById('disqus_thread')!.appendChild(disqus)
+  document.getElementById('giscus_thread')!.appendChild(giscus)
 })
 </script>
 
@@ -43,10 +43,10 @@ onMounted(() => {
   <div id="comment-div">
     <el-tabs :stretch="true" v-model="activeName">
       <el-tab-pane label="Disqus" name="first">
-        <div id="disqus-thread" style="width: inherit"></div>
+        <div id="disqus_thread" style="width: inherit"></div>
       </el-tab-pane>
       <el-tab-pane label="Giscus" name="second">
-        <div id="giscus-thread" style="width: inherit"></div>
+        <div id="giscus_thread" style="width: inherit"></div>
       </el-tab-pane>
     </el-tabs>
   </div>
