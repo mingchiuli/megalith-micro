@@ -398,6 +398,10 @@ const getRegisterLink = async (username: string) => {
   margin-top: 10px;
 }
 
+.el-tag {
+  margin: 5px;
+}
+
 .username {
   width: 300px;
 }
