@@ -10,7 +10,6 @@ repositories {
 }
 
 subprojects {
-
 	repositories {
 		mavenCentral()
 	}
