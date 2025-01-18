@@ -8,20 +8,18 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
 import java.time.Duration;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.ReentrantLock;
 
 @AutoConfiguration
 public class LocalCacheConfig {
-
-    private static final Random RANDOM = new Random();
 
     @Bean("caffeineCache")
     Cache<String, Object> caffeineCache() {
         return Caffeine.newBuilder()
                 .initialCapacity(512)// 初始大小
                 .maximumSize(12400)// 最大数量
-                .expireAfter(Expiry.<String, Object>creating((_, _) -> Duration.ofMinutes(RANDOM.nextInt(30))))//过期时间
+                .expireAfter(Expiry.<String, Object>creating((_, _) -> Duration.ofMinutes(ThreadLocalRandom.current().nextInt(30))))//过期时间
                 .build();
     }
 
@@ -30,7 +28,7 @@ public class LocalCacheConfig {
         return Caffeine.newBuilder()
                 .initialCapacity(512)// 初始大小
                 .maximumSize(12400)// 最大数量
-                .expireAfter(Expiry.<String, Object>creating((_, _) -> Duration.ofMinutes(RANDOM.nextInt(30))))//过期时间
+                .expireAfter(Expiry.<String, Object>creating((_, _) -> Duration.ofMinutes(ThreadLocalRandom.current().nextInt(30))))//过期时间
                 .build();
     }
 }
