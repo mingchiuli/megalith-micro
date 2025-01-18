@@ -1,11 +1,12 @@
 package wiki.chiu.micro.cache.policy;
 
 import com.github.benmanes.caffeine.cache.Expiry;
-import org.checkerframework.checker.index.qual.NonNegative;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+@NullMarked
 public class LocalCacheExpiryPolicy implements Expiry<String, Object> {
 
     private final Random random = new Random();
@@ -16,12 +17,12 @@ public class LocalCacheExpiryPolicy implements Expiry<String, Object> {
     }
 
     @Override
-    public long expireAfterUpdate(String key, Object value, long currentTime, @NonNegative long currentDuration) {
+    public long expireAfterUpdate(String key, Object value, long currentTime, long currentDuration) {
         return currentDuration;
     }
 
     @Override
-    public long expireAfterRead(String key, Object value, long currentTime, @NonNegative long currentDuration) {
+    public long expireAfterRead(String key, Object value, long currentTime, long currentDuration) {
         return currentDuration;
     }
 }
