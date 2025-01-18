@@ -22,6 +22,7 @@ subprojects {
 	plugins.apply("java")
 
 	dependencyManagement {
+
 		dependencies {
 			dependency("com.github.ben-manes.caffeine:caffeine:3.2.0")
 			dependency("org.redisson:redisson:3.43.0")
