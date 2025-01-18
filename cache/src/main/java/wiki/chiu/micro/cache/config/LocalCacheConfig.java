@@ -3,21 +3,25 @@ package wiki.chiu.micro.cache.config;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-import wiki.chiu.micro.cache.policy.LocalCacheExpiryPolicy;
+import com.github.benmanes.caffeine.cache.Expiry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
+import java.time.Duration;
+import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
 @AutoConfiguration
 public class LocalCacheConfig {
+
+    private static final Random RANDOM = new Random();
 
     @Bean("caffeineCache")
     Cache<String, Object> caffeineCache() {
         return Caffeine.newBuilder()
                 .initialCapacity(512)// 初始大小
                 .maximumSize(12400)// 最大数量
-                .expireAfter(new LocalCacheExpiryPolicy())//过期时间
+                .expireAfter(Expiry.<String, Object>creating((key, value) -> Duration.ofMinutes(RANDOM.nextInt(30))))//过期时间
                 .build();
     }
 
@@ -26,7 +30,7 @@ public class LocalCacheConfig {
         return Caffeine.newBuilder()
                 .initialCapacity(512)// 初始大小
                 .maximumSize(12400)// 最大数量
-                .expireAfter(new LocalCacheExpiryPolicy())//过期时间
+                .expireAfter(Expiry.<String, Object>creating((key, value) -> Duration.ofMinutes(RANDOM.nextInt(30))))//过期时间
                 .build();
     }
 }
