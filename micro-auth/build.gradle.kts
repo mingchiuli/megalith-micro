@@ -9,10 +9,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-amqp")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.redisson:redisson:3.43.0")
-	implementation("com.nimbusds:nimbus-jose-jwt:10.0.1")
+	implementation("org.redisson:redisson")
+	implementation("com.nimbusds:nimbus-jose-jwt")
 	implementation(project(":common"))
-	implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.4.1.8")
+	implementation("wiki.chiu.megalith:cache-spring-boot-starter")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
 }
