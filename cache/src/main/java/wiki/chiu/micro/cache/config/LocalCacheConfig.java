@@ -21,7 +21,7 @@ public class LocalCacheConfig {
         return Caffeine.newBuilder()
                 .initialCapacity(512)// 初始大小
                 .maximumSize(12400)// 最大数量
-                .expireAfter(Expiry.<String, Object>creating((key, value) -> Duration.ofMinutes(RANDOM.nextInt(30))))//过期时间
+                .expireAfter(Expiry.<String, Object>creating((_, _) -> Duration.ofMinutes(RANDOM.nextInt(30))))//过期时间
                 .build();
     }
 
@@ -30,7 +30,7 @@ public class LocalCacheConfig {
         return Caffeine.newBuilder()
                 .initialCapacity(512)// 初始大小
                 .maximumSize(12400)// 最大数量
-                .expireAfter(Expiry.<String, Object>creating((key, value) -> Duration.ofMinutes(RANDOM.nextInt(30))))//过期时间
+                .expireAfter(Expiry.<String, Object>creating((_, _) -> Duration.ofMinutes(RANDOM.nextInt(30))))//过期时间
                 .build();
     }
 }
