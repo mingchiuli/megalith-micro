@@ -1,7 +1,7 @@
 
 import com.vanniktech.maven.publish.SonatypeHost
 
-version = "3.4.1.12"
+version = "3.4.1.11"
 
 plugins {
     id("com.vanniktech.maven.publish") version "0.30.0"
@@ -42,7 +42,7 @@ mavenPublishing {
 }
 
 dependencies {
-    implementation("org.redisson:redisson")
+    implementation("org.redisson:redisson:3.43.0")
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("org.aspectj:aspectjweaver")
     compileOnly("org.springframework.amqp:spring-rabbit")
