@@ -269,6 +269,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUsers(List<Long> ids) {
         userRoleWrapper.deleteUsers(ids);
+        for (Long userId : ids) {
+            executeTask(userId, UserOperateEnum.DELETE);
+        }
     }
 
     private void validateToken(String token) {
