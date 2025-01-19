@@ -168,8 +168,8 @@ const getRegisterLink = async (username: string) => {
 }
 
 ;(async () => {
-  await queryUsers()
   const roles = await GET<RoleSys[]>('/sys/role/valid/all')
+  await queryUsers()
   roleList.value = roles
 })()
 </script>
