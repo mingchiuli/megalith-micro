@@ -42,7 +42,6 @@ public class AuthHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
                 .routeMapping(request.getURI().getPath())
                 .method(request.getMethod().name())
                 .build();
-        Boolean b = authHttpServiceWrapper.routeCheck(req, token);
-        return Boolean.TRUE.equals(b);
+        return authHttpServiceWrapper.routeCheck(req, token);
     }
 }
