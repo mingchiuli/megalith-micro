@@ -9,4 +9,6 @@ public enum UserOperateEnum {
     CREATE,
 
     UPDATE,
+
+    DELETE
 }
