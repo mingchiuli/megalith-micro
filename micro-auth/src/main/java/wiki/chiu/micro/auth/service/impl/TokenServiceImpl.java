@@ -9,6 +9,8 @@ import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.dto.UserEntityRpcDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.lang.StatusEnum;
 
 import java.util.Collections;
@@ -39,9 +41,12 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public Map<String, String> refreshToken(Long userId) {
-        List<String> roles = Objects.equals(0L, userId) ?
-                Collections.emptyList() :
-                StatusEnum.HIDE.getCode().equals(userHttpServiceWrapper.findById(userId).status()) ?
+
+        if (Objects.equals(userId, 0L)) {
+            throw new MissException(ExceptionMessage.NO_AUTH);
+        }
+
+        List<String> roles = StatusEnum.HIDE.getCode().equals(userHttpServiceWrapper.findById(userId).status()) ?
                         Collections.emptyList() :
                         userHttpServiceWrapper.findRoleCodesByUserId(userId);
 
