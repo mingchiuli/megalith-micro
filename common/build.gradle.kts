@@ -1,5 +1,5 @@
 
-version = "1.0.0"
+version = "latest"
 
 dependencies {
     compileOnly("org.springframework:spring-web")
