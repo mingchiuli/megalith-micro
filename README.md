@@ -8,7 +8,7 @@ A Simple Cache Library both local and redis remote cache
 <dependency>
     <groupId>wiki.chiu.megalith</groupId>
     <artifactId>cache-spring-boot-starter</artifactId>
-    <version>3.4.1</version>
+    <version>3.4.2</version>
 </dependency>
 ```
 
