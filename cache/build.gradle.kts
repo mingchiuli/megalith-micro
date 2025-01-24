@@ -10,6 +10,7 @@ plugins {
 mavenPublishing {
 
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
     signAllPublications()
 
     coordinates("$group", "cache-spring-boot-starter", "$version")
