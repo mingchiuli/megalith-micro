@@ -15,7 +15,7 @@ A Simple Cache Library both local and redis remote cache
 or
 
 ```kotlin
-implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.4.1")
+implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.4.2")
 ```
 
 use:
