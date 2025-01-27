@@ -27,7 +27,7 @@ subprojects {
 			dependency("com.github.ben-manes.caffeine:caffeine:3.2.0")
 			dependency("org.redisson:redisson:3.44.0")
 			dependency("com.nimbusds:nimbus-jose-jwt:10.0.1")
-			dependency("wiki.chiu.megalith:cache-spring-boot-starter:3.4.2")
+			dependency("wiki.chiu.megalith:cache-spring-boot-starter:3.4.2.1")
 		}
 	}
 
