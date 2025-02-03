@@ -47,29 +47,23 @@ impl AuthError {
     }
 }
 
-pub fn status_code_from_client_error(err: Box<dyn std::error::Error + Send + Sync>) -> StatusCode {
-    if let Ok(auth_error) = err.downcast::<ClientError>() {
-        match *auth_error {
-            ClientError::Network(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            ClientError::Serialization(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            ClientError::Request(_) => StatusCode::BAD_GATEWAY,
-            ClientError::Status(code, _) => {
-                StatusCode::from_u16(code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
-            }
-        }
-    } else {
-        StatusCode::INTERNAL_SERVER_ERROR
-    }
-}
-
-pub fn status_code_from_auth_error(err: Box<dyn std::error::Error + Send + Sync>) -> StatusCode {
-    if let Ok(auth_error) = err.downcast::<AuthError>() {
+pub fn status_code_from_error(err: Box<dyn std::error::Error + Send + Sync>) -> StatusCode {
+    if let Some(auth_error) = err.downcast_ref::<AuthError>() {
         match *auth_error {
             AuthError::MissingConfig(_) => StatusCode::INTERNAL_SERVER_ERROR,
             AuthError::InvalidUrl(_) => StatusCode::INTERNAL_SERVER_ERROR,
             AuthError::RequestFailed(_) => StatusCode::INTERNAL_SERVER_ERROR,
             AuthError::Unauthorized(_) => StatusCode::UNAUTHORIZED,
             AuthError::Forbidden(_) => StatusCode::FORBIDDEN,
+        }
+    } else if let Some(client_error) = err.downcast_ref::<ClientError>() {
+        match *client_error {
+            ClientError::Network(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            ClientError::Serialization(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            ClientError::Request(_) => StatusCode::BAD_GATEWAY,
+            ClientError::Status(code, _) => {
+                StatusCode::from_u16(code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+            }
         }
     } else {
         StatusCode::INTERNAL_SERVER_ERROR
