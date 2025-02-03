@@ -13,7 +13,7 @@ use tokio::time::timeout;
 use super::client::{self};
 use crate::util::{
     constant::UNKNOWN,
-    http_util::{self, status_code_from_auth_error, ApiResult, ClientError, Result},
+    http_util::{self, status_code_from_error, ApiResult, ClientError, Result},
 };
 
 #[derive(Serialize)]
@@ -45,10 +45,10 @@ const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub async fn handle_request(req: Request<Body>) -> std::result::Result<Response<Body>, StatusCode> {
     // Extract authentication token
-    let token = http_util::extract_token(&req).map_err(|e| status_code_from_auth_error(e))?;
+    let token = http_util::extract_token(&req).map_err(|e| status_code_from_error(e))?;
 
     // Get authentication URL
-    let auth_url = http_util::get_auth_url().map_err(|e| status_code_from_auth_error(e))?;
+    let auth_url = http_util::get_auth_url().map_err(|e| status_code_from_error(e))?;
 
     // Prepare auth request
     let req_body = prepare_auth_request(&req);
@@ -56,18 +56,18 @@ pub async fn handle_request(req: Request<Body>) -> std::result::Result<Response<
     // Forward to auth service
     let auth_resp = forward_to_auth_service(&auth_url, req_body, &token)
         .await
-        .map_err(|e| status_code_from_auth_error(e))?;
+        .map_err(|e| status_code_from_error(e))?;
 
     // Prepare target request
     let target_uri =
-        build_target_uri(&req, &auth_resp).map_err(|e| status_code_from_auth_error(e))?;
+        build_target_uri(&req, &auth_resp).map_err(|e| status_code_from_error(e))?;
 
     // Forward to target service
     let response = forward_to_target_service(req, target_uri, &token)
         .await
-        .map_err(|e| status_code_from_auth_error(e))?;
+        .map_err(|e| status_code_from_error(e))?;
 
-    Ok(prepare_response(response).map_err(|e| status_code_from_auth_error(e))?)
+    Ok(prepare_response(response).map_err(|e| status_code_from_error(e))?)
 }
 
 fn prepare_auth_request(req: &Request<Body>) -> AuthRouteReq {
