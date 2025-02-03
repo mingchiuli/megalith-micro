@@ -3,7 +3,7 @@ use axum::{
     routing::{any, get},
     Router,
 };
-use megalith_gateway_rs::{
+use micro_gateway_rs::{
     http,
     layer::{self},
 };

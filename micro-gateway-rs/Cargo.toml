@@ -1,5 +1,5 @@
 [package]
-name = "megalith-gateway-rs"
+name = "micro-gateway-rs"
 version = "0.1.0"
 edition = "2021"
 
