@@ -8,7 +8,9 @@ use axum::{
 use hyper::Uri;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::f64::consts::E;
 
+use crate::util::http_util::ClientError;
 use crate::{http::client, util::constant::AUTH_URL_KEY, util::http_util::ApiResult};
 use std::env;
 
@@ -60,7 +62,10 @@ pub async fn process(req: Request, next: Next) -> Result<Response, StatusCode> {
     // Make auth request and handle response
     let resp: ApiResult<bool> = client::post(&uri, req_body, headers)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|e| {
+            let mut err = e.downcast_ref::<ClientError>();
+            log::error!("get error: {}", err.take().expect("miss"));
+            StatusCode::INTERNAL_SERVER_ERROR})?;
 
     // Check response status
     match resp.code() {
