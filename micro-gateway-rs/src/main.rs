@@ -25,8 +25,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .layer(middleware::from_fn(layer::logger::process))
         .layer(middleware::from_fn(layer::auth::process));
 
-    // run our app with hyper, listening globally on port 8004
-    let port = env::var("PORT").unwrap_or_else(|_| "8084".to_string());
+    // run our app with hyper, listening globally on port 8008
+    let port = env::var("PORT").unwrap_or_else(|_| "8088".to_string());
     let addr: SocketAddr = format!("0.0.0.0:{}", port).parse()?;
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app)
