@@ -10,6 +10,10 @@ const MAX_BODY_SIZE: usize = 1024 * 1024; // 1MB
 
 pub async fn process(req: Request<Body>, next: Next) -> Result<Response, StatusCode> {
     // Extract the request body
+    if req.uri().path().starts_with("/actuator") {
+        return Ok(next.run(req).await);
+    }
+    
     let (parts, body) = req.into_parts();
 
     let body_bytes = body::to_bytes(body, MAX_BODY_SIZE)
