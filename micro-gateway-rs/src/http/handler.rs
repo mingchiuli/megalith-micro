@@ -127,13 +127,19 @@ async fn forward_to_target_service(
         match *req.method() {
             Method::GET => client::get_raw(&uri, headers)
                 .await
-                .map_err(|_| ClientError::Status(502, String::from("Bad Gateway"))),
+                .map_err(|e| {
+                    log::error!("Method::GET error {}",e );
+                    ClientError::Status(502, String::from("Bad Gateway"))
+                }),
 
             Method::POST => {
                 let body = req.into_body();
                 client::post_raw(&uri, body, headers)
                     .await
-                    .map_err(|_| ClientError::Status(502, String::from("Bad Gateway")))
+                    .map_err(|e| {
+                        log::error!("Method::POST error {}",e );
+                        ClientError::Status(502, String::from("Bad Gateway"))
+                    })
             }
             _ => Err(ClientError::Status(405, String::from("Method Not Allowed"))),
         }
