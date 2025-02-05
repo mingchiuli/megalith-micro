@@ -158,9 +158,12 @@ pub async fn post_raw(
         .body(Full::new(Bytes::from(body_bytes)))
         .map_err(|e| ClientError::Request(e.to_string()))?;
 
+    log::info!("raw post req:{:?}", req);
     let web_res = sender.send_request(req).await?;
 
+
     let res_body = web_res.into_body().collect().await?.to_bytes();
+    log::info!("raw post resp:{:?}", res_body);
 
     Ok(Response::new(res_body))
 }
