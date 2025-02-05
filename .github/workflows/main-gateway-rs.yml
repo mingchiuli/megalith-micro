@@ -36,7 +36,10 @@ jobs:
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-index-
-            
+         
+      - name: In directory   
+        run: cd micro-gateway-rs
+        
       - name: Build application
         run: cargo build --release
         
@@ -50,6 +53,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: In directory   
+        run: cd micro-gateway-rs
+        
       - name: Build Docker image
         run: docker build -t mingchiuli/megalith-micro-gateway-rs:latest .
 
