@@ -4,18 +4,7 @@ FROM rust:latest AS builder
 # Set the working directory
 WORKDIR /usr/src/app
 
-# Copy the Cargo.toml and Cargo.lock files
-COPY Cargo.toml Cargo.lock ./
-
-RUN mkdir src
-
-# Build dependencies only
-RUN cargo build --release
-
-# Remove the dummy source code
-RUN rm -rf src
-
-# Copy the source code
+# Copy the entire project
 COPY . .
 
 # Build the application
@@ -30,8 +19,14 @@ RUN apt-get update && apt-get install -y \
     tzdata \
     && rm -rf /var/lib/apt/lists/*
 
+# Create app directory
+WORKDIR /app
+
 # Copy the build artifact from the builder stage
 COPY --from=builder /usr/src/app/target/release/micro-gateway-rs /app/
 
+# Make the binary executable
+RUN chmod +x /app/micro-gateway-rs
+
 # Set the startup command
-CMD ["./micro-gateway-rs"]
+CMD ["/app/micro-gateway-rs"]
