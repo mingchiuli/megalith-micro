@@ -193,6 +193,7 @@ pub async fn post<T: DeserializeOwned>(
         .body(Full::new(Bytes::from(req_body)))
         .map_err(|e| ClientError::Request(e.to_string()))?;
 
+    log::info!("req:{:?}", req);
     let response = sender
         .send_request(req)
         .await
@@ -201,6 +202,7 @@ pub async fn post<T: DeserializeOwned>(
     // Check status code
     let status = response.status();
     if !status.is_success() {
+        log::error!("error client :{:?}", response);
         return Err(Box::new(ClientError::Status(
             status.as_u16(),
             format!("Request failed with status: {}", status),
