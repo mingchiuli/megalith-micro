@@ -1,11 +1,9 @@
 package wiki.chiu.micro.gateway.router;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.client.ClientHttpResponse;
 import wiki.chiu.micro.common.dto.AuthorityRouteRpcDto;
-import wiki.chiu.micro.common.lang.Result;
 
 import wiki.chiu.micro.common.req.AuthorityRouteReq;
 import wiki.chiu.micro.gateway.rpc.AuthHttpServiceWrapper;
@@ -41,12 +39,10 @@ public class Router {
 
     private final RestClient restClient;
     private final AuthHttpServiceWrapper authHttpServiceWrapper;
-    private final ObjectMapper objectMapper;
 
-    public Router(RestClient restClient, AuthHttpServiceWrapper authHttpServiceWrapper, ObjectMapper objectMapper) {
+    public Router(RestClient restClient, AuthHttpServiceWrapper authHttpServiceWrapper) {
         this.restClient = restClient;
         this.authHttpServiceWrapper = authHttpServiceWrapper;
-        this.objectMapper = objectMapper;
     }
 
     @RequestMapping(value = "/**", method = {RequestMethod.GET, RequestMethod.POST})
