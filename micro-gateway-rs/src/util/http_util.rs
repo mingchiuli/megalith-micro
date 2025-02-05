@@ -160,13 +160,16 @@ pub fn extract_token(req: &Request) -> Result<String> {
 }
 
 pub fn get_auth_url() -> Result<hyper::Uri> {
-    Ok(env::var(AUTH_URL_KEY)
+    let mut auth_url = env::var(AUTH_URL_KEY)
         .map_err(|_| {
             Box::new(AuthError::MissingConfig(format!(
                 "Missing {}",
                 AUTH_URL_KEY
             )))
-        })?
+        })?;
+    
+    auth_url.push_str("/auth/route");
+    Ok(auth_url
         .parse::<hyper::Uri>()
         .map_err(|e| Box::new(AuthError::InvalidUrl(e.to_string())))?)
 }

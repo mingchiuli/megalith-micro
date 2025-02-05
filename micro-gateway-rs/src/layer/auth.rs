@@ -8,7 +8,6 @@ use axum::{
 use hyper::Uri;
 use serde::Serialize;
 use std::collections::HashMap;
-use std::f64::consts::E;
 
 use crate::util::http_util::ClientError;
 use crate::{http::client, util::constant::AUTH_URL_KEY, util::http_util::ApiResult};
@@ -27,8 +26,11 @@ pub async fn process(req: Request, next: Next) -> Result<Response, StatusCode> {
         return Ok(next.run(req).await);
     }
     
-    let uri = env::var(AUTH_URL_KEY)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    let mut uri_str = env::var(AUTH_URL_KEY)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    uri_str.push_str("/auth/route/check");
+        
+    let uri = uri_str
         .parse::<Uri>()
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
