@@ -181,7 +181,9 @@ public class BlogServiceImpl implements BlogService {
             BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(req);
             List<Long> ids = dto.ids();
             blogSensitives.addAll(blogSensitiveContentRepository.findByBlogIdIn(ids));
-            blogs.addAll(blogRepository.findAllById(ids).stream().sorted(Comparator.comparing(ids::indexOf)).toList());
+            blogs.addAll(blogRepository.findAllById(ids).stream()
+                    .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
+                    .toList());
         }, taskExecutor);
     }
 
