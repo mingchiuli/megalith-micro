@@ -1,4 +1,4 @@
-name: GraalVM build Gateway-rs
+name: GraalVM build Gateway-Rs
 on:
   push:
     branches:
@@ -10,6 +10,7 @@ on:
 
 jobs:
   test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -26,6 +27,7 @@ jobs:
         run: cargo test --release
 
   build:
+    name: Build
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -36,7 +38,7 @@ jobs:
         run: docker build -t mingchiuli/megalith-micro-gateway-rs:latest micro-gateway-rs/.
 
       - name: Log in to DockerHub
-        run: echo "${{ secrets.DOCKERHUB_PWD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        run: docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_PWD }}"
 
       - name: Push Docker image
         run: docker push mingchiuli/megalith-micro-gateway-rs

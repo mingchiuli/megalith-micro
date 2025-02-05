@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 COPY . .
 
 # Build the application
-RUN cargo build --release
+RUN RUSTFLAGS='-C link-arg=-static' cargo build --release
 
 # Use a minimal base image for the final stage
 FROM debian:buster-slim
