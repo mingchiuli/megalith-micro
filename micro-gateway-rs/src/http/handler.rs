@@ -65,8 +65,12 @@ pub async fn handle_request(req: Request<Body>) -> std::result::Result<Response<
     // Forward to target service
     let response = forward_to_target_service(req, target_uri, &token)
         .await
-        .map_err(|e| status_code_from_error(e))?;
+        .map_err(|e| {
+            log::error!("error forward_to_target_service:{}", e);
+            status_code_from_error(e)
+        })?;
 
+    log::info!("aaa");
     Ok(prepare_response(response).map_err(|e| status_code_from_error(e))?)
 }
 
@@ -154,6 +158,7 @@ async fn forward_to_target_service(
         status
     })?;
 
+    log::info!("forward_to_target_service resp:{:?}", resp);
     Ok(resp)
 }
 
@@ -194,9 +199,14 @@ fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>> {
     let content_type = resp
         .headers()
         .get(hyper::header::CONTENT_TYPE)
-        .ok_or_else(|| ClientError::Request("Missing content type".to_string()))?
+        .ok_or_else(|| {
+            log::error!("miss CONTENT_TYPE");
+            ClientError::Request("Missing content type".to_string())})?
         .to_str()
-        .map_err(|e| ClientError::Request(e.to_string()))?;
+        .map_err(|e| {
+            log::error!("prepare_response e:{}",e);
+            ClientError::Request(e.to_string())
+        })?;
 
     let mut builder = Response::builder().status(StatusCode::OK);
 
@@ -208,5 +218,8 @@ fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>> {
 
     Ok(builder
         .body(Body::from(resp.into_body()))
-        .map_err(|e| ClientError::Request(e.to_string()))?)
+        .map_err(|e| {
+            log::error!("prepare_response err {}", e);
+            ClientError::Request(e.to_string())
+        })?)
 }
