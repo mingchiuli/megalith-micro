@@ -32,11 +32,14 @@ pub async fn process(req: Request, next: Next) -> Result<Response, StatusCode> {
 
     // Extract request details
     let method = req.method().as_str().to_string();
+    log::info!("auth method: {}", method);
     let route_mapping = format!(
         "{}:{}",
         req.uri().host().ok_or(StatusCode::BAD_REQUEST)?,
         req.uri().port_u16().ok_or(StatusCode::BAD_REQUEST)?
     );
+    
+    log::info!("auth route_mapping: {}", route_mapping);
 
     // Extract and validate authorization token
     let token = req
