@@ -100,12 +100,6 @@ public class Router {
         return ip;
     }
 
-    private void sendErrorResponse(HttpServletResponse response, HttpStatus status, String message) throws IOException {
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setStatus(status.value());
-        response.getWriter().write(objectMapper.writeValueAsString(Result.fail(message)));
-    }
-
     private String buildUrl(AuthorityRouteRpcDto authorityRoute, String requestURI) {
         return "http://" + authorityRoute.serviceHost() + ":" + authorityRoute.servicePort() + requestURI;
     }
