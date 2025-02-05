@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy the build artifact from the builder stage
-COPY --from=builder /usr/src/app/target/release/micro-gateway-rs /app/
+COPY --from=builder /usr/src/app/target/x86_64-unknown-linux-musl/release/micro-gateway-rs /app/
 
 # Make the binary executable
 RUN chmod +x /app/micro-gateway-rs
