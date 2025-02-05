@@ -1,2 +1,3 @@
 [workspace]
 members = [ "micro-gateway-rs"]
+resolver = "2"

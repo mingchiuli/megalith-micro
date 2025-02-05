@@ -9,7 +9,7 @@ on:
       - 'cargo.toml'
 
 jobs:
-  compile:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -37,15 +37,12 @@ jobs:
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-index-
-        
-      - name: Build application
-        run: cargo build --release
-        
+            
       - name: Run tests
         run: cargo test --release
 
   build:
-    needs: compile
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
