@@ -25,10 +25,10 @@ struct AuthRouteReq {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "camelCase")]
 struct AuthRouteResp {
     service_host: String,
-    service_port: String,
+    service_port: u32,
 }
 
 impl AuthRouteResp {
@@ -36,7 +36,7 @@ impl AuthRouteResp {
         &self.service_host
     }
 
-    pub fn service_port(&self) -> &str {
+    pub fn service_port(&self) -> &u32 {
         &self.service_port
     }
 }
