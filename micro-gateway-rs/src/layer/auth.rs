@@ -9,7 +9,7 @@ use hyper::Uri;
 use serde::Serialize;
 use std::collections::HashMap;
 
-use crate::{http::client::post, util::constant::AUTH_URL_KEY, util::http_util::ApiResult};
+use crate::{http::client, util::constant::AUTH_URL_KEY, util::http_util::ApiResult};
 use std::env;
 
 #[derive(Serialize)]
@@ -21,6 +21,10 @@ struct RouteCheckReq {
 
 pub async fn process(req: Request, next: Next) -> Result<Response, StatusCode> {
     // Get auth service URL from environment
+    if req.uri().path().starts_with("/actuator") {
+        return Ok(next.run(req).await);
+    }
+    
     let uri = env::var(AUTH_URL_KEY)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .parse::<Uri>()
@@ -55,7 +59,7 @@ pub async fn process(req: Request, next: Next) -> Result<Response, StatusCode> {
     };
 
     // Make auth request and handle response
-    let resp: ApiResult<bool> = post(&uri, req_body, headers)
+    let resp: ApiResult<bool> = client::post(&uri, req_body, headers)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
