@@ -36,7 +36,7 @@ jobs:
         run: docker build -t mingchiuli/megalith-micro-gateway-rs:latest micro-gateway-rs/.
 
       - name: Log in to DockerHub
-        run: echo "${secrets.DOCKERHUB_PWD}" | docker login -u "${secrets.DOCKERHUB_USERNAME}" --password-stdin
+        run: echo "${{ secrets.DOCKERHUB_PWD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Push Docker image
         run: docker push mingchiuli/megalith-micro-gateway-rs
