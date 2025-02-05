@@ -24,7 +24,7 @@ struct AuthRouteReq {
     ip_addr: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "snake_case")]
 struct AuthRouteResp {
     service_host: String,
@@ -93,7 +93,7 @@ async fn forward_to_auth_service(
     );
 
     let resp: ApiResult<AuthRouteResp> = client::post(&auth_url, req_body, headers).await?;
-
+    log::info!("mapping {:?}", resp);
     Ok(resp.into_data())
 }
 
