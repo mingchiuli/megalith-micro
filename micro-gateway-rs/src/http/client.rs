@@ -217,6 +217,10 @@ pub async fn post<T: DeserializeOwned>(
         .map_err(|e| ClientError::Network(e.to_string()))?
         .aggregate();
 
+    
     Ok(serde_json::from_reader(body.reader())
-        .map_err(|e| Box::new(ClientError::Serialization(e.to_string())))?)
+        .map_err(|e| {
+            log::error!("body error:{}", e);
+            Box::new(ClientError::Serialization(e.to_string()))
+        })?)
 }
