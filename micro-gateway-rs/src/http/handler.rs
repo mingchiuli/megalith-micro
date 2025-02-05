@@ -110,6 +110,8 @@ fn build_target_uri(req: &Request<Body>, auth_resp: &AuthRouteResp) -> Result<hy
         auth_resp.service_port(),
         path_and_query
     );
+    
+    log::info!("forword url {}", uri);
 
     Ok(uri.parse::<hyper::Uri>()?)
 }
