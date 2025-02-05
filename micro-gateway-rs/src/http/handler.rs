@@ -146,10 +146,13 @@ async fn forward_to_target_service(
     })
     .await
     .map_err(|e| {
-        log::error!("forward_to_target_service map_err {}",e );
+        log::error!("forward_to_target_service map_err1 {}",e );
         ClientError::Status(502, String::from("Bad Gateway"))
     })?
-    .map_err(|status| status)?;
+    .map_err(|status| {
+        log::error!("forward_to_target_service map_err2 {}",status);
+        status
+    })?;
 
     Ok(resp)
 }
