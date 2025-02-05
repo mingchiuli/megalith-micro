@@ -193,11 +193,13 @@ pub async fn post<T: DeserializeOwned>(
         .body(Full::new(Bytes::from(req_body)))
         .map_err(|e| ClientError::Request(e.to_string()))?;
 
-    log::info!("req:{:?}", req);
+    log::info!("client req:{:?}", req);
     let response = sender
         .send_request(req)
         .await
         .map_err(|e| ClientError::Network(e.to_string()))?;
+
+    log::info!("client resp:{:?}", response);
 
     // Check status code
     let status = response.status();
