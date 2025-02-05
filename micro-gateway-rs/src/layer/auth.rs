@@ -69,6 +69,8 @@ pub async fn process(req: Request, next: Next) -> Result<Response, StatusCode> {
             log::error!("get error: {}", err.take().expect("miss"));
             StatusCode::INTERNAL_SERVER_ERROR})?;
 
+    log::info!("auth resp {:?}", resp);
+    
     // Check response status
     match resp.code() {
         200 => {

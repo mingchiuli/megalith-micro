@@ -96,7 +96,7 @@ impl std::fmt::Display for ClientError {
 type GenericError = Box<dyn std::error::Error + Send + Sync>;
 pub type Result<T> = std::result::Result<T, GenericError>;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct ApiResult<T> {
     code: i32,
     msg: String,
