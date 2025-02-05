@@ -158,6 +158,7 @@ fn prepare_headers(
     req_headers: &hyper::HeaderMap,
     token: &str,
 ) -> Result<HashMap<HeaderName, HeaderValue>> {
+    log::info!("begin prepare_headers");
     let mut headers = HashMap::new();
 
     headers.insert(
@@ -169,7 +170,10 @@ fn prepare_headers(
         .get(hyper::header::CONTENT_TYPE)
         .unwrap_or(&HeaderValue::from_static("application/json"))
         .to_str()
-        .map_err(|e| ClientError::Request(e.to_string()))?
+        .map_err(|e| {
+            log::error!("prepare_headers, {}", e);
+            ClientError::Request(e.to_string())
+        })?
         .to_string();
 
     headers.insert(
@@ -177,6 +181,8 @@ fn prepare_headers(
         HeaderValue::from_str(&content_type)
             .unwrap_or(HeaderValue::from_static("application/json")),
     );
+    
+    log::info!("headers:{:?}", headers);
 
     Ok(headers)
 }
