@@ -6,7 +6,7 @@ use axum::{
 };
 use hyper::StatusCode;
 
-const MAX_BODY_SIZE: usize = 1024 * 1024; // 1MB
+const MAX_BODY_SIZE: usize = 1024 * 1024 * 1024; // 1GB
 
 pub async fn process(req: Request<Body>, next: Next) -> Result<Response, StatusCode> {
     // Extract the request body
