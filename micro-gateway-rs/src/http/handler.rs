@@ -199,14 +199,13 @@ fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>> {
     let content_type = resp
         .headers()
         .get(hyper::header::CONTENT_TYPE)
-        .ok_or_else(|| {
-            log::error!("miss CONTENT_TYPE");
-            ClientError::Request("Missing content type".to_string())})?
+        .unwrap_or(&HeaderValue::from_static("application/json"))
         .to_str()
         .map_err(|e| {
-            log::error!("prepare_response e:{}",e);
+            log::error!("prepare_headers, {}", e);
             ClientError::Request(e.to_string())
-        })?;
+        })?
+        .to_string();
 
     let mut builder = Response::builder().status(StatusCode::OK);
 
