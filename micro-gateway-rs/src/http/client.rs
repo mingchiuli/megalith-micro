@@ -85,8 +85,12 @@ pub async fn get_raw(
         .map_err(|e| ClientError::Request(e.to_string()))?;
 
     let web_res = sender.send_request(req).await?;
+    
+    log::info!("web_res:{:?}", web_res);
 
     let res_body = web_res.into_body().collect().await?.to_bytes();
+
+    log::info!("res_body:{:?}", res_body);
 
     Ok(Response::new(res_body))
 }
