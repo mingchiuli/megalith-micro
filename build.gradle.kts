@@ -37,7 +37,6 @@ subprojects {
 }
 
 dependencies {
-	implementation(project(":micro-gateway"))
 	implementation(project(":micro-auth"))
 	implementation(project(":micro-blog"))
 	implementation(project(":micro-user"))
