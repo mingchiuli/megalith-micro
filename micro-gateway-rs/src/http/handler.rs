@@ -65,10 +65,7 @@ pub async fn handle_request(req: Request<Body>) -> std::result::Result<Response<
     // Forward to target service
     let response = forward_to_target_service(req, target_uri, &token)
         .await
-        .map_err(|e| {
-            log::error!("error forward_to_target_service:{}", e);
-            status_code_from_error(e)
-        })?;
+        .map_err(|e| status_code_from_error(e))?;
 
     log::info!("aaa");
     Ok(prepare_response(response).map_err(|e| status_code_from_error(e))?)
@@ -97,7 +94,6 @@ async fn forward_to_auth_service(
     );
 
     let resp: ApiResult<AuthRouteResp> = client::post(&auth_url, req_body, headers).await?;
-    log::info!("mapping {:?}", resp);
     Ok(resp.into_data())
 }
 
@@ -115,8 +111,6 @@ fn build_target_uri(req: &Request<Body>, auth_resp: &AuthRouteResp) -> Result<hy
         path_and_query
     );
     
-    log::info!("forword url {}", uri);
-
     Ok(uri.parse::<hyper::Uri>()?)
 }
 
@@ -131,34 +125,21 @@ async fn forward_to_target_service(
         match *req.method() {
             Method::GET => client::get_raw(&uri, headers)
                 .await
-                .map_err(|e| {
-                    log::error!("Method::GET error {}",e );
-                    ClientError::Status(502, String::from("Bad Gateway"))
-                }),
+                .map_err(|e| ClientError::Status(502, e.to_string())),
 
             Method::POST => {
                 let body = req.into_body();
                 client::post_raw(&uri, body, headers)
                     .await
-                    .map_err(|e| {
-                        log::error!("Method::POST error {}",e );
-                        ClientError::Status(502, String::from("Bad Gateway"))
-                    })
+                    .map_err(|e| ClientError::Status(502, e.to_string()))
             }
             _ => Err(ClientError::Status(405, String::from("Method Not Allowed"))),
         }
     })
     .await
-    .map_err(|e| {
-        log::error!("forward_to_target_service map_err1 {}",e );
-        ClientError::Status(502, String::from("Bad Gateway"))
-    })?
-    .map_err(|status| {
-        log::error!("forward_to_target_service map_err2 {}",status);
-        status
-    })?;
+    .map_err(|e| ClientError::Status(502, e.to_string()))?
+    .map_err(|status| status)?;
 
-    log::info!("forward_to_target_service resp:{:?}", resp);
     Ok(resp)
 }
 
@@ -166,7 +147,6 @@ fn prepare_headers(
     req_headers: &hyper::HeaderMap,
     token: &str,
 ) -> Result<HashMap<HeaderName, HeaderValue>> {
-    log::info!("begin prepare_headers");
     let mut headers = HashMap::new();
 
     headers.insert(
@@ -178,10 +158,7 @@ fn prepare_headers(
         .get(hyper::header::CONTENT_TYPE)
         .unwrap_or(&HeaderValue::from_static("application/json"))
         .to_str()
-        .map_err(|e| {
-            log::error!("prepare_headers, {}", e);
-            ClientError::Request(e.to_string())
-        })?
+        .map_err(|e| ClientError::Request(e.to_string()))?
         .to_string();
 
     headers.insert(
@@ -190,8 +167,6 @@ fn prepare_headers(
             .unwrap_or(HeaderValue::from_static("application/json")),
     );
     
-    log::info!("headers:{:?}", headers);
-
     Ok(headers)
 }
 
@@ -201,10 +176,7 @@ fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>> {
         .get(hyper::header::CONTENT_TYPE)
         .unwrap_or(&HeaderValue::from_static("application/json"))
         .to_str()
-        .map_err(|e| {
-            log::error!("prepare_headers, {}", e);
-            ClientError::Request(e.to_string())
-        })?
+        .map_err(|e| ClientError::Request(e.to_string()))?
         .to_string();
 
     let mut builder = Response::builder().status(StatusCode::OK);
@@ -217,8 +189,5 @@ fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>> {
 
     Ok(builder
         .body(Body::from(resp.into_body()))
-        .map_err(|e| {
-            log::error!("prepare_response err {}", e);
-            ClientError::Request(e.to_string())
-        })?)
+        .map_err(|e| ClientError::Request(e.to_string()))?)
 }

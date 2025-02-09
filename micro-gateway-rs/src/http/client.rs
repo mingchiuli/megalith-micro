@@ -158,12 +158,10 @@ pub async fn post_raw(
         .body(Full::new(Bytes::from(body_bytes)))
         .map_err(|e| ClientError::Request(e.to_string()))?;
 
-    log::info!("raw post req:{:?}", req);
     let web_res = sender.send_request(req).await?;
 
 
     let res_body = web_res.into_body().collect().await?.to_bytes();
-    log::info!("raw post resp:{:?}", res_body);
 
     Ok(Response::new(res_body))
 }
@@ -196,18 +194,14 @@ pub async fn post<T: DeserializeOwned>(
         .body(Full::new(Bytes::from(req_body)))
         .map_err(|e| ClientError::Request(e.to_string()))?;
 
-    log::info!("client req:{:?}", req);
     let response = sender
         .send_request(req)
         .await
         .map_err(|e| ClientError::Network(e.to_string()))?;
 
-    log::info!("client resp:{:?}", response);
-
     // Check status code
     let status = response.status();
     if !status.is_success() {
-        log::error!("error client :{:?}", response);
         return Err(Box::new(ClientError::Status(
             status.as_u16(),
             format!("Request failed with status: {}", status),
@@ -222,8 +216,5 @@ pub async fn post<T: DeserializeOwned>(
 
     
     Ok(serde_json::from_reader(body.reader())
-        .map_err(|e| {
-            log::error!("body error:{}", e);
-            Box::new(ClientError::Serialization(e.to_string()))
-        })?)
+        .map_err(|e| Box::new(ClientError::Serialization(e.to_string())))?)
 }
