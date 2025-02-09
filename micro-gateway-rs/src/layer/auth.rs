@@ -36,11 +36,8 @@ pub async fn process(req: Request, next: Next) -> Result<Response, StatusCode> {
 
     // Extract request details
     let method = req.method().as_str().to_string();
-    log::info!("auth method: {}", method);
     let route_mapping = format!("{}", req.uri().path());
     
-    log::info!("auth route_mapping: {}", route_mapping);
-
     // Extract and validate authorization token
     let token = req
         .headers()
@@ -64,12 +61,8 @@ pub async fn process(req: Request, next: Next) -> Result<Response, StatusCode> {
     // Make auth request and handle response
     let resp: ApiResult<bool> = client::post(&uri, req_body, headers)
         .await
-        .map_err(|e| {
-            let mut err = e.downcast_ref::<ClientError>();
-            log::error!("get error: {}", err.take().expect("miss"));
-            StatusCode::INTERNAL_SERVER_ERROR})?;
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    log::info!("auth resp {:?}", resp);
     
     // Check response status
     match resp.code() {
