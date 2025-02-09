@@ -5,6 +5,13 @@
 
 version: 2
 updates:
+  - package-ecosystem: "cargo"
+    directories:
+      - "**/*"
+    schedule:
+      interval: "daily"
+      time: "09:40"
+      timezone: "Asia/Shanghai"
   - package-ecosystem: "gradle" # See documentation for possible values
     directories:
       - "**/*" # Location of package manifests
