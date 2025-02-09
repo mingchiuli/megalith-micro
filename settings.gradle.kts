@@ -1,7 +1,6 @@
 rootProject.name = "megalith-micro"
 
 include(
-    "micro-gateway",
     "micro-auth",
     "micro-blog",
     "micro-user",
