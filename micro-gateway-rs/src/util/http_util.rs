@@ -175,14 +175,12 @@ pub fn get_ip_from_headers(headers: &HeaderMap) -> Option<String> {
     ip.map(String::from)
 }
 
-pub fn extract_token(req: &Request) -> Result<String> {
-    req.headers()
+pub fn extract_token(req: &Request) -> Result<String> {    
+    Ok(req.headers()
         .get("Authorization")
         .and_then(|value| value.to_str().ok())
         .map(String::from)
-        .ok_or(Box::new(AuthError::Unauthorized(
-            "No Authorization header found".to_string(),
-        )))
+        .unwrap_or("".to_string()))
 }
 
 pub fn get_auth_url() -> Result<hyper::Uri> {
