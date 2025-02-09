@@ -166,6 +166,8 @@ fn prepare_headers(
             .unwrap_or(HeaderValue::from_static("application/json")),
     );
     
+    log::info!("headers:{:?}", headers);
+    
     Ok(headers)
 }
 
