@@ -67,7 +67,6 @@ pub async fn handle_request(req: Request<Body>) -> std::result::Result<Response<
         .await
         .map_err(|e| status_code_from_error(e))?;
 
-    log::info!("resp:{:?}", response);
     Ok(prepare_response(response).map_err(|e| status_code_from_error(e))?)
 }
 
@@ -120,7 +119,6 @@ async fn forward_to_target_service(
     token: &str,
 ) -> Result<Response<Bytes>> {
     let headers = prepare_headers(req.headers(), token)?;
-    log::info!("uri:{}", uri.to_string());
 
     let resp = timeout(REQUEST_TIMEOUT, async {
         match *req.method() {
