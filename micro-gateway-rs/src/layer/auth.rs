@@ -9,7 +9,6 @@ use hyper::Uri;
 use serde::Serialize;
 use std::collections::HashMap;
 
-use crate::util::http_util::ClientError;
 use crate::{http::client, util::constant::AUTH_URL_KEY, util::http_util::ApiResult};
 use std::env;
 
