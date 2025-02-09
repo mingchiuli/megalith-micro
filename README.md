@@ -1,6 +1,6 @@
 # megalith-micro
 
-own blog...(A spring application with graalvm aot and Rust gateway)
+own blog...(A spring application with graalvm aot and Rust axum gateway)
 
 A Simple Cache Library both local and redis remote cache
 
