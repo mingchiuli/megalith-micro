@@ -67,7 +67,7 @@ pub async fn handle_request(req: Request<Body>) -> std::result::Result<Response<
         .await
         .map_err(|e| status_code_from_error(e))?;
 
-    log::info!("aaa");
+    log::info!("resp:{:?}", response);
     Ok(prepare_response(response).map_err(|e| status_code_from_error(e))?)
 }
 
