@@ -120,6 +120,7 @@ async fn forward_to_target_service(
     token: &str,
 ) -> Result<Response<Bytes>> {
     let headers = prepare_headers(req.headers(), token)?;
+    log::info!("uri:{}", uri.to_string());
 
     let resp = timeout(REQUEST_TIMEOUT, async {
         match *req.method() {
