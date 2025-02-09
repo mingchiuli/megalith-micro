@@ -1,4 +1,4 @@
-name: GraalVM build Gateway-Rs
+name: Axum build Gateway-Rs
 on:
   push:
     branches:
