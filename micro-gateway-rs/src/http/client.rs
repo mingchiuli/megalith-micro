@@ -76,7 +76,13 @@ pub async fn get_raw(
     let mut builder = Request::builder()
         .method(Method::GET)
         .uri(url)
-        .header(hyper::header::CONTENT_TYPE, "application/json");
+        .header(hyper::header::CONTENT_TYPE, "application/json")
+        .header(
+            hyper::header::HOST,
+            url.authority()
+                .ok_or(ClientError::Request("No authority found".to_string()))?
+                .as_str(),
+        );
 
     builder = set_headers(builder, headers)?;
 
@@ -152,7 +158,13 @@ pub async fn post_raw(
     let mut builder = Request::builder()
         .method(Method::POST)
         .uri(url)
-        .header(hyper::header::CONTENT_TYPE, "application/json");
+        .header(hyper::header::CONTENT_TYPE, "application/json")
+        .header(
+            hyper::header::HOST,
+            url.authority()
+                .ok_or(ClientError::Request("No authority found".to_string()))?
+                .as_str(),
+        );
 
     builder = set_headers(builder, headers)?;
 
