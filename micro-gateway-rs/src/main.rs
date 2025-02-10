@@ -22,7 +22,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = Router::new()
         .route("/actuator/health", get(|| async { "OK" }))
         .route("/{*wildcard}", any(http::handler::handle_request))
-        .layer(middleware::from_fn(layer::logger::process))
         .layer(middleware::from_fn(layer::auth::process));
 
     // run our app with hyper, listening globally on port 8008
