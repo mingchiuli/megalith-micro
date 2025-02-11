@@ -232,8 +232,6 @@ public class BlogServiceImpl implements BlogService {
 
     private String getObjectName(MultipartFile file, Long userId) {
         String originalFilename = Optional.ofNullable(file.getOriginalFilename())
-                .map(String::trim)
-                .map(str -> str.replace(" ", ""))
                 .orElseGet(() -> UUID.randomUUID().toString()
                 .replace(" ", ""));
         String uuid = UUID.randomUUID().toString();
