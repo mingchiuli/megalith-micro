@@ -51,6 +51,3 @@ tasks.named<BootBuildImage>("bootBuildImage") {
         }
     }
 }
-        }
-    }
-}
