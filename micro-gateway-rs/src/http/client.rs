@@ -82,47 +82,9 @@ pub async fn get<T: DeserializeOwned>(
     url: &hyper::Uri,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<T> {
-    let mut sender = create_connection::<Empty<Bytes>>(url).await?;
-
-    let mut builder = Request::builder()
-        .method(Method::GET)
-        .uri(url.clone())
-        .header(
-            hyper::header::HOST,
-            url.authority()
-                .ok_or(ClientError::Request("No authority found".to_string()))?
-                .as_str(),
-        )
-        .header(hyper::header::ACCEPT, "application/json");
-
-    builder = set_headers(builder, headers)?;
-
-    let req = builder
-        .body(Empty::<Bytes>::new())
-        .map_err(|e| ClientError::Request(e.to_string()))?;
-
-    let response = sender
-        .send_request(req)
-        .await
-        .map_err(|e| ClientError::Network(e.to_string()))?;
-
-    // Check status code
-    let status = response.status();
-    if !status.is_success() {
-        return Err(Box::new(ClientError::Status(
-            status.as_u16(),
-            format!("Request failed with status: {}", status),
-        )));
-    }
-
-    let body = response
-        .collect()
-        .await
-        .map_err(|e| ClientError::Network(e.to_string()))?
-        .aggregate();
-
-    Ok(serde_json::from_reader(body.reader())
-        .map_err(|e| Box::new(ClientError::Serialization(e.to_string())))?)
+    let resp = get_raw(url, headers).await?;
+    let data: T = parse_response(resp).await?;
+    Ok(data)
 }
 
 pub async fn post_raw(
@@ -190,23 +152,44 @@ pub async fn post<T: DeserializeOwned>(
         .send_request(req)
         .await
         .map_err(|e| ClientError::Network(e.to_string()))?;
-
-    // Check status code
+    
     let status = response.status();
+    
     if !status.is_success() {
-        return Err(Box::new(ClientError::Status(
-            status.as_u16(),
-            format!("Request failed with status: {}", status),
-        )));
+        return Err(Box::new(ClientError::Api(format!(
+            "Request failed with status: {}", 
+            status
+        ))));
     }
-
+    
     let body = response
         .collect()
         .await
         .map_err(|e| ClientError::Network(e.to_string()))?
         .aggregate();
 
-    
+    // Try to deserialize the response body
     Ok(serde_json::from_reader(body.reader())
-        .map_err(|e| Box::new(ClientError::Serialization(e.to_string())))?)
+        .map_err(|e| Box::new(ClientError::Deserialize(e.to_string())))?)
+}
+
+
+async fn parse_response<T>(response: Response<Bytes>) -> Result<T> 
+where 
+    T: DeserializeOwned,
+{
+    let status = response.status();
+    let body = response.into_body();
+
+    // Check if status is success (2xx range)
+    if !status.is_success() {
+        return Err(Box::new(ClientError::Api(format!(
+            "Request failed with status: {}", 
+            status
+        ))));
+    }
+
+    // Try to deserialize the response body
+    Ok(serde_json::from_reader(body.reader())
+        .map_err(|e| Box::new(ClientError::Deserialize(e.to_string())))?)
 }
