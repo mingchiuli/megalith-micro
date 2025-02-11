@@ -55,15 +55,12 @@ pub async fn get_raw(
 ) -> Result<Response<Bytes>> {
     let mut sender = create_connection::<Empty<Bytes>>(url).await?;
 
-    let mut builder = Request::builder()
-        .method(Method::GET)
-        .uri(url)
-        .header(
-            hyper::header::HOST,
-            url.authority()
-                .ok_or(ClientError::Request("No authority found".to_string()))?
-                .as_str(),
-        );
+    let mut builder = Request::builder().method(Method::GET).uri(url).header(
+        hyper::header::HOST,
+        url.authority()
+            .ok_or(ClientError::Request("No authority found".to_string()))?
+            .as_str(),
+    );
 
     builder = set_headers(builder, headers)?;
 
@@ -72,7 +69,6 @@ pub async fn get_raw(
         .map_err(|e| ClientError::Request(e.to_string()))?;
 
     let web_res = sender.send_request(req).await?;
-    
     let res_body = web_res.into_body().collect().await?.to_bytes();
 
     Ok(Response::new(res_body))
@@ -93,16 +89,13 @@ pub async fn post_raw(
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<Response<Bytes>> {
     let mut sender = create_connection::<Full<Bytes>>(url).await?;
-    
-    let mut builder = Request::builder()
-        .method(Method::POST)
-        .uri(url)
-        .header(
-            hyper::header::HOST,
-            url.authority()
-                .ok_or(ClientError::Request("No authority found".to_string()))?
-                .as_str(),
-        );
+
+    let mut builder = Request::builder().method(Method::POST).uri(url).header(
+        hyper::header::HOST,
+        url.authority()
+            .ok_or(ClientError::Request("No authority found".to_string()))?
+            .as_str(),
+    );
 
     builder = set_headers(builder, headers)?;
 
@@ -114,7 +107,6 @@ pub async fn post_raw(
 
     let web_res = sender.send_request(req).await?;
 
-
     let res_body = web_res.into_body().collect().await?.to_bytes();
 
     Ok(Response::new(res_body))
@@ -125,57 +117,19 @@ pub async fn post<T: DeserializeOwned>(
     req_body: impl Serialize,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<T> {
-    let mut sender = create_connection::<Full<Bytes>>(url).await?;
-    
+    // Serialize request body and set content type
     let req_body =
         serde_json::to_string(&req_body).map_err(|e| ClientError::Serialization(e.to_string()))?;
 
-    let mut builder = Request::builder()
-        .method(Method::POST)
-        .uri(url.clone())
-        .header(
-            hyper::header::HOST,
-            url.authority()
-                .ok_or(ClientError::Request("No authority found".to_string()))?
-                .as_str(),
-        )
-        .header(hyper::header::CONTENT_TYPE, "application/json");
+    // Use post_raw to handle the request
+    let response = post_raw(url, Body::from(req_body), headers).await?;
 
-    // Add custom headers
-    builder = set_headers(builder, headers)?;
-
-    let req = builder
-        .body(Full::new(Bytes::from(req_body)))
-        .map_err(|e| ClientError::Request(e.to_string()))?;
-
-    let response = sender
-        .send_request(req)
-        .await
-        .map_err(|e| ClientError::Network(e.to_string()))?;
-    
-    let status = response.status();
-    
-    if !status.is_success() {
-        return Err(Box::new(ClientError::Api(format!(
-            "Request failed with status: {}", 
-            status
-        ))));
-    }
-    
-    let body = response
-        .collect()
-        .await
-        .map_err(|e| ClientError::Network(e.to_string()))?
-        .aggregate();
-
-    // Try to deserialize the response body
-    Ok(serde_json::from_reader(body.reader())
-        .map_err(|e| Box::new(ClientError::Deserialize(e.to_string())))?)
+    // Parse the response
+    parse_response(response).await
 }
 
-
-async fn parse_response<T>(response: Response<Bytes>) -> Result<T> 
-where 
+async fn parse_response<T>(response: Response<Bytes>) -> Result<T>
+where
     T: DeserializeOwned,
 {
     let status = response.status();
@@ -184,7 +138,7 @@ where
     // Check if status is success (2xx range)
     if !status.is_success() {
         return Err(Box::new(ClientError::Api(format!(
-            "Request failed with status: {}", 
+            "Request failed with status: {}",
             status
         ))));
     }

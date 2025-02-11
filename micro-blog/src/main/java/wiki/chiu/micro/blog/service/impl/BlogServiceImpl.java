@@ -3,8 +3,7 @@ package wiki.chiu.micro.blog.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -70,8 +69,6 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
 
 @Service
 public class BlogServiceImpl implements BlogService {
-
-    private static final Logger log = LoggerFactory.getLogger(BlogServiceImpl.class);
 
     private static final String IMAGE_JPG = "image/jpg";
 
