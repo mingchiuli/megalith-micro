@@ -88,6 +88,14 @@ pub fn status_code_from_error(err: Box<dyn std::error::Error + Send + Sync>) -> 
             ClientError::Status(code, e) => {
                 log::error!("ClientError::Status:{}", e);
                 StatusCode::from_u16(*code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+            },
+            ClientError::Deserialize(e) => {
+                log::error!("ClientError::Deserialize:{}", e);
+                StatusCode::INTERNAL_SERVER_ERROR
+            },
+            ClientError::Api(e) => {
+                log::error!("ClientError::Api:{}", e);
+                StatusCode::INTERNAL_SERVER_ERROR
             }
         }
     } else {
@@ -104,6 +112,8 @@ pub enum ClientError {
     Request(String),
     /// Add status code for HTTP errors
     Status(u16, String),
+    Deserialize(String),
+    Api(String)
 }
 
 impl std::error::Error for ClientError {}
@@ -115,6 +125,8 @@ impl std::fmt::Display for ClientError {
             ClientError::Serialization(msg) => write!(f, "Serialization error: {}", msg),
             ClientError::Request(msg) => write!(f, "Request error: {}", msg),
             ClientError::Status(code, msg) => write!(f, "HTTP error {}: {}", code, msg),
+            ClientError::Deserialize(msg) => write!(f, "Deserialize error: {}", msg),
+            ClientError::Api(msg) => write!(f, "Api error: {}", msg),
         }
     }
 }
