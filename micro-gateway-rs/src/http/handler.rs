@@ -59,8 +59,7 @@ pub async fn handle_request(req: Request<Body>) -> std::result::Result<Response<
         .map_err(|e| status_code_from_error(e))?;
 
     // Prepare target request
-    let target_uri =
-        build_target_uri(&req, &auth_resp).map_err(|e| status_code_from_error(e))?;
+    let target_uri = build_target_uri(&req, &auth_resp).map_err(|e| status_code_from_error(e))?;
 
     // Forward to target service
     let response = forward_to_target_service(req, target_uri, &token)
@@ -86,11 +85,16 @@ async fn forward_to_auth_service(
     req_body: AuthRouteReq,
     token: &str,
 ) -> Result<AuthRouteResp> {
-    let mut headers = HashMap::new();
-    headers.insert(
-        hyper::header::AUTHORIZATION,
-        HeaderValue::from_str(token).unwrap_or(HeaderValue::from_static("")),
-    );
+    let headers = HashMap::from([
+        (
+            hyper::header::AUTHORIZATION,
+            HeaderValue::from_str(token).unwrap_or(HeaderValue::from_static("")),
+        ),
+        (
+            hyper::header::CONTENT_TYPE,
+            HeaderValue::from_static("application/json"),
+        ),
+    ]);
 
     let resp: ApiResult<AuthRouteResp> = client::post(&auth_url, req_body, headers).await?;
     Ok(resp.into_data())
@@ -109,7 +113,7 @@ fn build_target_uri(req: &Request<Body>, auth_resp: &AuthRouteResp) -> Result<hy
         auth_resp.service_port(),
         path_and_query
     );
-    
+
     Ok(uri.parse::<hyper::Uri>()?)
 }
 
@@ -124,19 +128,22 @@ async fn forward_to_target_service(
         match *req.method() {
             Method::GET => client::get_raw(&uri, headers)
                 .await
-                .map_err(|e| ClientError::Status(502, e.to_string())),
+                .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string())),
 
             Method::POST => {
                 let body = req.into_body();
-                client::post_raw(&uri, body, headers)
-                    .await
-                    .map_err(|e| ClientError::Status(502, e.to_string()))
+                client::post_raw(&uri, body, headers).await.map_err(|e| {
+                    ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string())
+                })
             }
-            _ => Err(ClientError::Status(405, String::from("Method Not Allowed"))),
+            _ => Err(ClientError::Status(
+                StatusCode::METHOD_NOT_ALLOWED.as_u16(),
+                String::from("Method Not Allowed"),
+            )),
         }
     })
     .await
-    .map_err(|e| ClientError::Status(502, e.to_string()))?
+    .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()))?
     .map_err(|status| status)?;
 
     Ok(resp)
@@ -165,7 +172,7 @@ fn prepare_headers(
         HeaderValue::from_str(&content_type)
             .unwrap_or(HeaderValue::from_static("application/json")),
     );
-        
+
     Ok(headers)
 }
 
