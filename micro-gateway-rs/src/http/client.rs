@@ -19,31 +19,13 @@ use tokio::net::TcpStream;
 use crate::util::http_util::{set_headers, ClientError, Result};
 
 /// Helper function to create a new client connection
-async fn create_connection_with_empty_body(url: &hyper::Uri) -> Result<SendRequest<Empty<Bytes>>> {
-    let host = url
-        .host()
-        .ok_or(ClientError::Network("No host found".to_string()))?;
-    let port = url.port_u16().unwrap_or(8080);
 
-    let stream = TcpStream::connect(format!("{}:{}", host, port))
-        .await
-        .map_err(|e| ClientError::Network(e.to_string()))?;
-    let io = TokioIo::new(stream);
-
-    let (sender, conn) = http1::handshake(io)
-        .await
-        .map_err(|e| ClientError::Network(e.to_string()))?;
-
-    tokio::task::spawn(async move {
-        if let Err(e) = conn.await {
-            log::error!("Connection error: {}", e);
-        }
-    });
-
-    Ok(sender)
-}
-
-async fn create_connection_with_full_body(url: &hyper::Uri) -> Result<SendRequest<Full<Bytes>>> {
+async fn create_connection<B>(url: &hyper::Uri) -> Result<SendRequest<B>>
+where
+    B: hyper::body::Body + Send + 'static,
+    B::Data: Send,
+    B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+{
     let host = url
         .host()
         .ok_or(ClientError::Network("No host found".to_string()))?;
@@ -71,7 +53,7 @@ pub async fn get_raw(
     url: &hyper::Uri,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<Response<Bytes>> {
-    let mut sender = create_connection_with_empty_body(&url).await?;
+    let mut sender = create_connection::<Empty<Bytes>>(url).await?;
 
     let mut builder = Request::builder()
         .method(Method::GET)
@@ -100,7 +82,7 @@ pub async fn get<T: DeserializeOwned>(
     url: &hyper::Uri,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<T> {
-    let mut sender = create_connection_with_empty_body(&url).await?;
+    let mut sender = create_connection::<Empty<Bytes>>(url).await?;
 
     let mut builder = Request::builder()
         .method(Method::GET)
@@ -148,8 +130,8 @@ pub async fn post_raw(
     req_body: Body,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<Response<Bytes>> {
-    let mut sender = create_connection_with_full_body(&url).await?;
-
+    let mut sender = create_connection::<Full<Bytes>>(url).await?;
+    
     let mut builder = Request::builder()
         .method(Method::POST)
         .uri(url)
@@ -181,8 +163,8 @@ pub async fn post<T: DeserializeOwned>(
     req_body: impl Serialize,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<T> {
-    let mut sender = create_connection_with_full_body(&url).await?;
-
+    let mut sender = create_connection::<Full<Bytes>>(url).await?;
+    
     let req_body =
         serde_json::to_string(&req_body).map_err(|e| ClientError::Serialization(e.to_string()))?;
 
