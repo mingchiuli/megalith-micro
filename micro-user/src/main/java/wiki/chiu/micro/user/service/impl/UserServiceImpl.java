@@ -296,6 +296,8 @@ public class UserServiceImpl implements UserService {
     private String getObjectName(MultipartFile file) {
         String uuid = UUID.randomUUID().toString();
         String originalFilename = Optional.ofNullable(file.getOriginalFilename())
+                .map(String::trim)
+                .map(str -> str.replace(" ", ""))
                 .orElseGet(() -> UUID.randomUUID().toString())
                 .replace(" ", "");
         return "avatar/" + uuid + "-" + originalFilename;
