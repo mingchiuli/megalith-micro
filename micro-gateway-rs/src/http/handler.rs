@@ -10,13 +10,19 @@ use hyper::{Method, StatusCode, Uri};
 use tokio::time::timeout;
 
 use super::client::{self};
-use crate::{entity::api_entity::ApiResult, exception::{error::{ClientError, Result}, handler::status_code_from_error}, util::{
-    constant::UNKNOWN,
-    http_util::{self},
-}};
+use crate::{
+    entity::api_entity::ApiResult,
+    exception::{
+        error::{ClientError, Result},
+        handler::status_code_from_error,
+    },
+    util::{
+        constant::UNKNOWN,
+        http_util::{self},
+    },
+};
 
 use serde::{Deserialize, Serialize};
-
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]

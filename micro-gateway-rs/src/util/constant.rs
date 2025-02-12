@@ -1,4 +1,3 @@
-
 pub const UNKNOWN: &str = "unknown";
 pub const CF_CONNECTING_IP: &str = "CF-Connecting-IP";
 pub const AUTH_HEADER: &str = "X-Real-IP";

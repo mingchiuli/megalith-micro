@@ -34,7 +34,6 @@ impl AuthError {
     }
 }
 
-
 /// Client error types
 #[derive(Debug)]
 pub enum ClientError {
@@ -44,7 +43,7 @@ pub enum ClientError {
     /// Add status code for HTTP errors
     Status(u16, String),
     Deserialize(String),
-    Api(String)
+    Api(String),
 }
 
 impl std::error::Error for ClientError {}
