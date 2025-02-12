@@ -152,10 +152,9 @@ async fn forward_to_target_service(
         }
     })
     .await
-    .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()))?
-    .map_err(|status| status)?;
+    .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()))?;
 
-    Ok(resp)
+    Ok(resp?)
 }
 
 fn prepare_headers(
