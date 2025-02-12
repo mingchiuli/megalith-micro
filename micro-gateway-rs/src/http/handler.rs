@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Duration, usize};
+use std::{collections::HashMap, time::Duration};
 
 use axum::{
     body::{Body, Bytes},
@@ -7,14 +7,16 @@ use axum::{
     response::Response,
 };
 use hyper::{Method, StatusCode, Uri};
-use serde::{Deserialize, Serialize};
 use tokio::time::timeout;
 
 use super::client::{self};
-use crate::util::{
+use crate::{entity::api_entity::ApiResult, exception::{error::{ClientError, Result}, handler::status_code_from_error}, util::{
     constant::UNKNOWN,
-    http_util::{self, status_code_from_error, ApiResult, ClientError, Result},
-};
+    http_util::{self},
+}};
+
+use serde::{Deserialize, Serialize};
+
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -40,6 +42,7 @@ impl AuthRouteResp {
         &self.service_port
     }
 }
+
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
