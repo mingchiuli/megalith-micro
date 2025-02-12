@@ -5,10 +5,13 @@ use axum::{
 use hyper::HeaderMap;
 use std::{collections::HashMap, env};
 
-use crate::{exception::error::{AuthError, Result}, util::constant::{
-    AUTH_HEADER, AUTH_URL_KEY, CF_CONNECTING_IP, FORWARDED_HEADER, PROXY_CLIENT_IP,
-    WL_PROXY_CLIENT_IP,
-}};
+use crate::{
+    exception::error::{AuthError, Result},
+    util::constant::{
+        AUTH_HEADER, AUTH_URL_KEY, CF_CONNECTING_IP, FORWARDED_HEADER, PROXY_CLIENT_IP,
+        WL_PROXY_CLIENT_IP,
+    },
+};
 
 pub fn get_ip_from_headers(headers: &HeaderMap) -> Option<String> {
     // Check headers in order of preference
@@ -24,8 +27,9 @@ pub fn get_ip_from_headers(headers: &HeaderMap) -> Option<String> {
     ip.map(String::from)
 }
 
-pub fn extract_token(req: &Request) -> Result<String> {    
-    Ok(req.headers()
+pub fn extract_token(req: &Request) -> Result<String> {
+    Ok(req
+        .headers()
         .get("Authorization")
         .and_then(|value| value.to_str().ok())
         .map(String::from)
@@ -33,14 +37,13 @@ pub fn extract_token(req: &Request) -> Result<String> {
 }
 
 pub fn get_auth_url() -> Result<hyper::Uri> {
-    let mut auth_url = env::var(AUTH_URL_KEY)
-        .map_err(|_| {
-            Box::new(AuthError::MissingConfig(format!(
-                "Missing {}",
-                AUTH_URL_KEY
-            )))
-        })?;
-    
+    let mut auth_url = env::var(AUTH_URL_KEY).map_err(|_| {
+        Box::new(AuthError::MissingConfig(format!(
+            "Missing {}",
+            AUTH_URL_KEY
+        )))
+    })?;
+
     auth_url.push_str("/auth/route");
     Ok(auth_url
         .parse::<hyper::Uri>()
