@@ -2,7 +2,7 @@ use axum::{response::IntoResponse, BoxError, Json};
 use hyper::StatusCode;
 use serde_json::json;
 
-use super::error::{AppError, AuthError, ClientError};
+use super::error::{AuthError, ClientError};
 
 
 pub async fn handle_error(err: BoxError) -> (StatusCode, String) {

@@ -12,7 +12,7 @@ use tokio::time::timeout;
 use super::client::{self};
 use crate::{
     entity::api_entity::ApiResult,
-exception::error::{AppError, ClientError},
+exception::error::{ClientError},
     util::{
         constant::UNKNOWN,
         http_util::{self},
@@ -49,7 +49,7 @@ impl AuthRouteResp {
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
-pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, AppError> {
+pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, StatusCode> {
     // Extract authentication token
     let token = http_util::extract_token(&req);
 
