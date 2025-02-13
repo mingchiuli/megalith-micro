@@ -18,7 +18,7 @@ import java.util.Set;
 public interface UserHttpService {
 
     @GetExchange("/user/status")
-    void changeUserStatusByUsername(@RequestParam String username, @RequestParam Integer status);
+    Result<Void> changeUserStatusByUsername(@RequestParam String username, @RequestParam Integer status);
 
     @PostExchange("/user/role")
     Result<List<RoleEntityRpcDto>> findByRoleCodeInAndStatus(@RequestBody List<String> roles, @RequestParam Integer status);
