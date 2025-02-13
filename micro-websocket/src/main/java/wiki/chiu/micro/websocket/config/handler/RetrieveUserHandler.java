@@ -1,6 +1,6 @@
 package wiki.chiu.micro.websocket.config.handler;
 
-import wiki.chiu.micro.common.dto.AuthRpcDto;
+import wiki.chiu.micro.common.vo.AuthRpcVo;
 import wiki.chiu.micro.websocket.config.user.AuthUser;
 import wiki.chiu.micro.websocket.rpc.AuthHttpServiceWrapper;
 
@@ -32,7 +32,7 @@ public class RetrieveUserHandler extends DefaultHandshakeHandler {
             return null;
         }
 
-        AuthRpcDto authDto = authHttpServiceWrapper.getAuthentication(token);
+        AuthRpcVo authDto = authHttpServiceWrapper.getAuthentication(token);
 
         AuthUser user = new AuthUser();
         user.setName(authDto.userId().toString());

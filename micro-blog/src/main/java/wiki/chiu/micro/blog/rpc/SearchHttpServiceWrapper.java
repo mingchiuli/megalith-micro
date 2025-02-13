@@ -1,7 +1,7 @@
 package wiki.chiu.micro.blog.rpc;
 
 
-import wiki.chiu.micro.common.dto.BlogSearchRpcDto;
+import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
 
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
@@ -19,7 +19,7 @@ public class SearchHttpServiceWrapper {
         this.searchHttpService = searchHttpService;
     }
 
-    public BlogSearchRpcDto searchBlogs(BlogSysSearchReq req) {
+    public BlogSearchRpcVo searchBlogs(BlogSysSearchReq req) {
         return Result.handleResult(() -> searchHttpService.searchBlogs(req));
     }
 

@@ -1,7 +1,7 @@
 package wiki.chiu.micro.user.convertor;
 
+import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.entity.UserEntity;
-import wiki.chiu.micro.user.vo.UserEntityRpcVo;
 
 public class UserEntityRpcVoConvertor {
 

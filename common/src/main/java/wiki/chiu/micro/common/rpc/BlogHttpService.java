@@ -1,8 +1,8 @@
 package wiki.chiu.micro.common.rpc;
 
 import org.springframework.web.bind.annotation.RequestParam;
-import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
-import wiki.chiu.micro.common.dto.BlogSensitiveContentRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,10 +16,10 @@ import java.util.List;
 public interface BlogHttpService {
 
     @GetExchange("/blog/{blogId}")
-    Result<BlogEntityRpcDto> findById(@PathVariable Long blogId);
+    Result<BlogEntityRpcVo> findById(@PathVariable Long blogId);
 
     @PostExchange("/blog/batch")
-    Result<List<BlogEntityRpcDto>> findAllById(@RequestBody List<Long> ids);
+    Result<List<BlogEntityRpcVo>> findAllById(@RequestBody List<Long> ids);
 
     @GetExchange("/blog/years")
     Result<List<Integer>> getYears();
@@ -34,14 +34,14 @@ public interface BlogHttpService {
     Result<Integer> findStatusById(@PathVariable Long blogId);
 
     @PostExchange("/blog/page")
-    Result<PageAdapter<BlogEntityRpcDto>> findPage(@RequestParam Integer pageNo,
-                                                   @RequestParam Integer pageSize);
+    Result<PageAdapter<BlogEntityRpcVo>> findPage(@RequestParam Integer pageNo,
+                                                  @RequestParam Integer pageSize);
 
     @PostExchange("/blog/page/year")
-    Result<PageAdapter<BlogEntityRpcDto>> findPageByCreatedBetween(@RequestParam Integer pageNo,
-                                                                   @RequestParam Integer pageSize,
-                                                                   @RequestParam LocalDateTime start,
-                                                                   @RequestParam LocalDateTime end);
+    Result<PageAdapter<BlogEntityRpcVo>> findPageByCreatedBetween(@RequestParam Integer pageNo,
+                                                                  @RequestParam Integer pageSize,
+                                                                  @RequestParam LocalDateTime start,
+                                                                  @RequestParam LocalDateTime end);
 
     @GetExchange("/blog/count/year")
     Result<Long> countByCreatedBetween(@RequestParam LocalDateTime start,
@@ -56,5 +56,5 @@ public interface BlogHttpService {
     Result<Long> countByCreatedGreaterThanEqual(@RequestParam LocalDateTime created);
 
     @GetExchange("/blog/sensitive/{blogId}")
-    Result<BlogSensitiveContentRpcDto> findSensitiveByBlogId(@PathVariable Long blogId);
+    Result<BlogSensitiveContentRpcVo> findSensitiveByBlogId(@PathVariable Long blogId);
 }

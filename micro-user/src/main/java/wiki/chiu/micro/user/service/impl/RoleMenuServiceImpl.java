@@ -5,10 +5,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.lang.TypeEnum;
+import wiki.chiu.micro.common.vo.ButtonRpcVo;
+import wiki.chiu.micro.common.vo.MenuRpcVo;
+import wiki.chiu.micro.common.vo.MenusAndButtonsRpcVo;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
-import wiki.chiu.micro.user.convertor.ButtonVoConvertor;
+import wiki.chiu.micro.user.convertor.ButtonRpcVoConvertor;
 import wiki.chiu.micro.user.convertor.MenuDisplayVoConvertor;
-import wiki.chiu.micro.user.convertor.MenuVoConvertor;
+import wiki.chiu.micro.user.convertor.MenuRpcVoConvertor;
 import wiki.chiu.micro.user.convertor.RoleMenuEntityConvertor;
 import wiki.chiu.micro.user.entity.MenuEntity;
 import wiki.chiu.micro.user.entity.RoleEntity;
@@ -18,7 +21,8 @@ import wiki.chiu.micro.user.repository.MenuRepository;
 import wiki.chiu.micro.user.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.service.RoleMenuService;
-import wiki.chiu.micro.user.vo.*;
+import wiki.chiu.micro.user.vo.MenuDisplayVo;
+import wiki.chiu.micro.user.vo.RoleMenuVo;
 import wiki.chiu.micro.user.wrapper.RoleMenuWrapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -119,8 +123,8 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         List<MenuEntity> menus = filterMenuEntities(allKindsInfo, CATALOGUE, MENU);
         List<MenuEntity> buttons = filterMenuEntities(allKindsInfo, BUTTON);
 
-        List<MenuVo> menuDtos = MenuVoConvertor.convert(menus);
-        List<ButtonVo> buttonDtos = ButtonVoConvertor.convert(buttons);
+        List<MenuRpcVo> menuDtos = MenuRpcVoConvertor.convert(menus);
+        List<ButtonRpcVo> buttonDtos = ButtonRpcVoConvertor.convert(buttons);
 
         return MenusAndButtonsRpcVo.builder()
                 .buttons(buttonDtos)

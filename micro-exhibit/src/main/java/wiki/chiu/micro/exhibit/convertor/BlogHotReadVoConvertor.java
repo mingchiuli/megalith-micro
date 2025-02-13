@@ -1,6 +1,6 @@
 package wiki.chiu.micro.exhibit.convertor;
 
-import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.exhibit.vo.BlogHotReadVo;
 import org.redisson.client.protocol.ScoredEntry;
 
@@ -16,7 +16,7 @@ public class BlogHotReadVoConvertor {
 
     private static final String UNKNOWN_TITLE = "未知标题";
 
-    public static List<BlogHotReadVo> convert(List<BlogEntityRpcDto> blogs, Collection<ScoredEntry<String>> scoredEntries) {
+    public static List<BlogHotReadVo> convert(List<BlogEntityRpcVo> blogs, Collection<ScoredEntry<String>> scoredEntries) {
         Map<Long, String> idTitleMap = createIdTitleMap(blogs);
         List<Long> ids = filterVisibleBlogIds(blogs);
 
@@ -26,15 +26,15 @@ public class BlogHotReadVoConvertor {
                 .toList();
     }
 
-    private static Map<Long, String> createIdTitleMap(List<BlogEntityRpcDto> blogs) {
+    private static Map<Long, String> createIdTitleMap(List<BlogEntityRpcVo> blogs) {
         return blogs.stream()
-                .collect(Collectors.toMap(BlogEntityRpcDto::id, BlogEntityRpcDto::title));
+                .collect(Collectors.toMap(BlogEntityRpcVo::id, BlogEntityRpcVo::title));
     }
 
-    private static List<Long> filterVisibleBlogIds(List<BlogEntityRpcDto> blogs) {
+    private static List<Long> filterVisibleBlogIds(List<BlogEntityRpcVo> blogs) {
         return blogs.stream()
                 .filter(item -> !HIDE.getCode().equals(item.status()))
-                .map(BlogEntityRpcDto::id)
+                .map(BlogEntityRpcVo::id)
                 .toList();
     }
 

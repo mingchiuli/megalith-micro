@@ -1,7 +1,7 @@
 package wiki.chiu.micro.user.convertor;
 
+import wiki.chiu.micro.common.vo.ButtonRpcVo;
 import wiki.chiu.micro.user.entity.MenuEntity;
-import wiki.chiu.micro.user.vo.ButtonVo;
 
 import java.util.List;
 
@@ -9,14 +9,14 @@ import java.util.List;
  * @Author limingjiu
  * @Date 2024/4/20 18:40
  **/
-public class ButtonVoConvertor {
+public class ButtonRpcVoConvertor {
 
-    private ButtonVoConvertor() {
+    private ButtonRpcVoConvertor() {
     }
 
-    public static List<ButtonVo> convert(List<MenuEntity> buttons) {
+    public static List<ButtonRpcVo> convert(List<MenuEntity> buttons) {
         return buttons.stream()
-                .map(item -> ButtonVo.builder()
+                .map(item -> ButtonRpcVo.builder()
                         .id(item.getId())
                         .name(item.getName())
                         .icon(item.getIcon())

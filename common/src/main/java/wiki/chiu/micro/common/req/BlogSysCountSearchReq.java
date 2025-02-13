@@ -3,6 +3,7 @@ package wiki.chiu.micro.common.req;
 
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record BlogSysCountSearchReq(
 
@@ -12,7 +13,12 @@ public record BlogSysCountSearchReq(
 
         LocalDateTime createStart,
 
-        LocalDateTime createEnd) {
+        LocalDateTime createEnd,
+
+        Long userId,
+
+        List<String> roles
+) {
 
     public static BlogSysCountSearchReq.BLogSysCountSearchReqBuilder builder() {
         return new BlogSysCountSearchReq.BLogSysCountSearchReqBuilder();
@@ -27,6 +33,10 @@ public record BlogSysCountSearchReq(
         private LocalDateTime createStart;
 
         private LocalDateTime createEnd;
+
+        private Long userId;
+
+        private List<String> roles;
 
         public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder keywords(String keywords) {
             this.keywords = keywords;
@@ -48,8 +58,18 @@ public record BlogSysCountSearchReq(
             return this;
         }
 
+        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder userId(Long userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder roles(List<String> roles) {
+            this.roles = roles;
+            return this;
+        }
+
         public BlogSysCountSearchReq build() {
-            return new BlogSysCountSearchReq(keywords, status, createStart, createEnd);
+            return new BlogSysCountSearchReq(keywords, status, createStart, createEnd, userId, roles);
         }
     }
 }

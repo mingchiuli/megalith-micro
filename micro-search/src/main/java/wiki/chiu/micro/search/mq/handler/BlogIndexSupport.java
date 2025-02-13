@@ -2,7 +2,7 @@ package wiki.chiu.micro.search.mq.handler;
 
 
 import com.rabbitmq.client.Channel;
-import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.search.rpc.BlogHttpServiceWrapper;
@@ -27,15 +27,15 @@ public abstract sealed class BlogIndexSupport permits
 
     public abstract boolean supports(BlogOperateEnum blogOperateEnum);
 
-    protected abstract void elasticSearchProcess(BlogEntityRpcDto blog);
+    protected abstract void elasticSearchProcess(BlogEntityRpcVo blog);
 
     public void handle(BlogOperateMessage message, Channel channel, Message msg) {
         long deliveryTag = msg.getMessageProperties().getDeliveryTag();
         try {
             Long blogId = message.blogId();
-            BlogEntityRpcDto blogEntity;
+            BlogEntityRpcVo blogEntity;
             if (Objects.equals(BlogOperateEnum.of(message.typeEnumCode()), BlogOperateEnum.REMOVE)) {
-                blogEntity = new BlogEntityRpcDto(blogId, null, null, null, null, null, null, null, null, null);
+                blogEntity = new BlogEntityRpcVo(blogId, null, null, null, null, null, null, null, null, null);
             } else {
                 blogEntity = blogHttpServiceWrapper.findById(blogId);
             }

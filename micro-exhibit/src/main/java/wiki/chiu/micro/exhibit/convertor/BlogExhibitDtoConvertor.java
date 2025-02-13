@@ -1,7 +1,7 @@
 package wiki.chiu.micro.exhibit.convertor;
 
-import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
-import wiki.chiu.micro.common.dto.UserEntityRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
 
@@ -9,7 +9,7 @@ public class BlogExhibitDtoConvertor {
 
     private BlogExhibitDtoConvertor() {}
 
-    public static BlogExhibitDto convert(BlogEntityRpcDto blogEntity, UserEntityRpcDto user) {
+    public static BlogExhibitDto convert(BlogEntityRpcVo blogEntity, UserEntityRpcVo user) {
         return BlogExhibitDto.builder()
                 .userId(blogEntity.userId())
                 .title(blogEntity.title())

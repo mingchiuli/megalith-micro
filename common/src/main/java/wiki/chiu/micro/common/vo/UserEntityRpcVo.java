@@ -1,16 +1,16 @@
-package wiki.chiu.micro.user.vo;
+package wiki.chiu.micro.common.vo;
 
 import java.time.LocalDateTime;
 
-public record UserEntityRpcVo(
 
+public record UserEntityRpcVo(
         Long id,
 
         String username,
 
-        String nickname,
-
         String password,
+
+        String nickname,
 
         String avatar,
 
@@ -26,80 +26,94 @@ public record UserEntityRpcVo(
 
         LocalDateTime lastLogin) {
 
-    public static UserEntityRpcVoBuilder builder() {
-        return new UserEntityRpcVoBuilder();
+
+    public static UserEntityRpcVo.UserEntityRpcVoBuilder builder() {
+        return new UserEntityRpcVo.UserEntityRpcVoBuilder();
     }
 
     public static class UserEntityRpcVoBuilder {
         private Long id;
+
         private String username;
-        private String nickname;
+
         private String password;
+
+        private String nickname;
+
         private String avatar;
+
         private String email;
+
         private String phone;
+
         private Integer status;
+
         private LocalDateTime created;
+
         private LocalDateTime updated;
+
         private LocalDateTime lastLogin;
 
-        public UserEntityRpcVoBuilder id(Long id) {
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder id(Long id) {
             this.id = id;
             return this;
         }
 
-        public UserEntityRpcVoBuilder username(String username) {
+        public UserEntityRpcVo.UserEntityRpcVoBuilder username(String username) {
             this.username = username;
             return this;
         }
 
-        public UserEntityRpcVoBuilder nickname(String nickname) {
-            this.nickname = nickname;
-            return this;
-        }
-
-        public UserEntityRpcVoBuilder password(String password) {
+        public UserEntityRpcVo.UserEntityRpcVoBuilder password(String password) {
             this.password = password;
             return this;
         }
 
-        public UserEntityRpcVoBuilder avatar(String avatar) {
+        public UserEntityRpcVo.UserEntityRpcVoBuilder nickname(String nickname) {
+            this.nickname = nickname;
+            return this;
+        }
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder avatar(String avatar) {
             this.avatar = avatar;
             return this;
         }
 
-        public UserEntityRpcVoBuilder email(String email) {
+        public UserEntityRpcVo.UserEntityRpcVoBuilder email(String email) {
             this.email = email;
             return this;
         }
 
-        public UserEntityRpcVoBuilder phone(String phone) {
+        public UserEntityRpcVo.UserEntityRpcVoBuilder phone(String phone) {
             this.phone = phone;
             return this;
         }
 
-        public UserEntityRpcVoBuilder status(Integer status) {
+        public UserEntityRpcVo.UserEntityRpcVoBuilder status(Integer status) {
             this.status = status;
             return this;
         }
 
-        public UserEntityRpcVoBuilder created(LocalDateTime created) {
+        public UserEntityRpcVo.UserEntityRpcVoBuilder created(LocalDateTime created) {
             this.created = created;
             return this;
         }
 
-        public UserEntityRpcVoBuilder updated(LocalDateTime updated) {
+        public UserEntityRpcVo.UserEntityRpcVoBuilder updated(LocalDateTime updated) {
             this.updated = updated;
             return this;
         }
 
-        public UserEntityRpcVoBuilder lastLogin(LocalDateTime lastLogin) {
+        public UserEntityRpcVo.UserEntityRpcVoBuilder lastLogin(LocalDateTime lastLogin) {
             this.lastLogin = lastLogin;
             return this;
         }
 
         public UserEntityRpcVo build() {
-            return new UserEntityRpcVo(id, username, nickname, password, avatar, email, phone, status, created, updated, lastLogin);
+            return new UserEntityRpcVo(id, username, password, nickname, avatar, email, phone, status, created, updated, lastLogin);
         }
+
     }
+
 }

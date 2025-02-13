@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import wiki.chiu.micro.common.rpc.AuthorityHttpService;
+import wiki.chiu.micro.common.rpc.MenuHttpService;
 import wiki.chiu.micro.common.rpc.SmsHttpService;
 import wiki.chiu.micro.common.rpc.UserHttpService;
 import wiki.chiu.micro.common.rpc.config.AuthHttpInterceptor;
@@ -41,5 +43,15 @@ public class HttpClientConfig {
     @Bean
     UserHttpService userHttpService() {
         return RpcClientFactory.createHttpService(UserHttpService.class, userUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null);
+    }
+
+    @Bean
+    MenuHttpService menuHttpService() {
+        return RpcClientFactory.createHttpService(MenuHttpService.class, userUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null);
+    }
+
+    @Bean
+    AuthorityHttpService authorityHttpService() {
+        return RpcClientFactory.createHttpService(AuthorityHttpService.class, userUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null);
     }
 }

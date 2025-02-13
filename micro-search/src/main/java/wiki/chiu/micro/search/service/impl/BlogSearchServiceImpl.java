@@ -8,7 +8,8 @@ import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.common.req.BlogSysSearchReq;
-import wiki.chiu.micro.search.convertor.BlogSearchVoConvertor;
+import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
+import wiki.chiu.micro.search.convertor.BlogSearchRpcVoConvertor;
 import wiki.chiu.micro.search.convertor.PrivateSearchQueryConvertor;
 import wiki.chiu.micro.search.convertor.PublicSearchQueryConvertor;
 import wiki.chiu.micro.search.convertor.BlogDocumentVoConvertor;
@@ -16,15 +17,11 @@ import wiki.chiu.micro.search.document.BlogDocument;
 import wiki.chiu.micro.search.lang.IndexConst;
 import wiki.chiu.micro.search.service.BlogSearchService;
 import wiki.chiu.micro.search.vo.BlogDocumentVo;
-import wiki.chiu.micro.search.vo.BlogSearchVo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-
 
 /**
  * @author mingchiuli
@@ -54,20 +51,20 @@ public class BlogSearchServiceImpl implements BlogSearchService {
     }
 
     @Override
-    public BlogSearchVo searchBlogs(BlogSysSearchReq req, Long userId, List<String> roles) {
+    public BlogSearchRpcVo searchBlogs(BlogSysSearchReq req) {
 
         Integer size = req.pageSize();
         Integer currentPage = req.page();
 
-        NativeQuery matchQuery = PrivateSearchQueryConvertor.searchConvert(req.keywords(), req.status(), req.createStart(), req.createEnd(), userId, roles, highestRole, currentPage, size);
+        NativeQuery matchQuery = PrivateSearchQueryConvertor.searchConvert(req.keywords(), req.status(), req.createStart(), req.createEnd(), req.userId(), req.roles(), highestRole, currentPage, size);
         SearchHits<BlogDocument> searchResp = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
 
-        return BlogSearchVoConvertor.convert(searchResp, currentPage, size);
+        return BlogSearchRpcVoConvertor.convert(searchResp, currentPage, size);
     }
 
     @Override
-    public Long searchCount(BlogSysCountSearchReq req, Long userId, List<String> roles) {
-        NativeQuery countQuery = PrivateSearchQueryConvertor.countConvert(req.keywords(), req.status(), req.createStart(), req.createEnd(), userId, roles, highestRole);
+    public Long searchCount(BlogSysCountSearchReq req) {
+        NativeQuery countQuery = PrivateSearchQueryConvertor.countConvert(req.keywords(), req.status(), req.createStart(), req.createEnd(), req.userId(), req.roles(), highestRole);
         return elasticsearchTemplate.count(countQuery, BlogDocument.class);
     }
 

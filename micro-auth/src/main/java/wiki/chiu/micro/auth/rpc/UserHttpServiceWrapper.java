@@ -1,9 +1,11 @@
 package wiki.chiu.micro.auth.rpc;
 
-import wiki.chiu.micro.common.dto.AuthorityRpcDto;
-import wiki.chiu.micro.common.dto.MenusAndButtonsRpcDto;
-import wiki.chiu.micro.common.dto.RoleEntityRpcDto;
-import wiki.chiu.micro.common.dto.UserEntityRpcDto;
+import wiki.chiu.micro.common.rpc.AuthorityHttpService;
+import wiki.chiu.micro.common.rpc.MenuHttpService;
+import wiki.chiu.micro.common.vo.AuthorityRpcVo;
+import wiki.chiu.micro.common.vo.MenusAndButtonsRpcVo;
+import wiki.chiu.micro.common.vo.RoleEntityRpcVo;
+import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.rpc.UserHttpService;
@@ -17,15 +19,22 @@ public class UserHttpServiceWrapper {
 
     private final UserHttpService userHttpService;
 
-    public UserHttpServiceWrapper(UserHttpService userHttpService) {
+    private final MenuHttpService menuHttpService;
+
+    private final AuthorityHttpService authorityHttpService;
+
+
+    public UserHttpServiceWrapper(UserHttpService userHttpService, MenuHttpService menuHttpService, AuthorityHttpService authorityHttpService) {
         this.userHttpService = userHttpService;
+        this.menuHttpService = menuHttpService;
+        this.authorityHttpService = authorityHttpService;
     }
 
     public void changeUserStatusByUsername(String username, Integer status) {
         userHttpService.changeUserStatusByUsername(username, status);
     }
 
-    public List<RoleEntityRpcDto> findByRoleCodeInAndStatus(List<String> roles, Integer status) {
+    public List<RoleEntityRpcVo> findByRoleCodeInAndStatus(List<String> roles, Integer status) {
         return Result.handleResult(() -> userHttpService.findByRoleCodeInAndStatus(roles, status));
     }
 
@@ -49,23 +58,23 @@ public class UserHttpServiceWrapper {
         return Result.handleResult(() -> userHttpService.findRoleCodesByUserId(userId));
     }
 
-    public UserEntityRpcDto findById(Long userId) {
+    public UserEntityRpcVo findById(Long userId) {
         return Result.handleResult(() -> userHttpService.findById(userId));
     }
 
-    public UserEntityRpcDto findByUsernameOrEmailOrPhone(String username) {
+    public UserEntityRpcVo findByUsernameOrEmailOrPhone(String username) {
         return Result.handleResult(() -> userHttpService.findByUsernameOrEmailOrPhone(username));
     }
 
     public Set<String> getAuthoritiesByRoleCode(String rawRole) {
-        return Result.handleResult(() -> userHttpService.getAuthoritiesByRoleCode(rawRole));
+        return Result.handleResult(() -> authorityHttpService.getAuthoritiesByRoleCode(rawRole));
     }
 
-    public MenusAndButtonsRpcDto getCurrentUserNav(String rawRole) {
-        return Result.handleResult(() -> userHttpService.getCurrentUserNav(rawRole));
+    public MenusAndButtonsRpcVo getCurrentUserNav(String rawRole) {
+        return Result.handleResult(() -> menuHttpService.getCurrentUserNav(rawRole));
     }
 
-    public List<AuthorityRpcDto> getSystemAuthorities(List<String> serviceHost) {
-        return Result.handleResult(() -> userHttpService.getAuthorities(serviceHost));
+    public List<AuthorityRpcVo> getSystemAuthorities(List<String> serviceHost) {
+        return Result.handleResult(() -> authorityHttpService.getAuthorities(serviceHost));
     }
 }

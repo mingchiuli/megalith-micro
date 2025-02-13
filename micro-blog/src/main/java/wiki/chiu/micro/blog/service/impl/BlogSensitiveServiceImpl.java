@@ -1,11 +1,11 @@
 package wiki.chiu.micro.blog.service.impl;
 
-import wiki.chiu.micro.blog.convertor.BlogSensitiveContentVoConvertor;
+import wiki.chiu.micro.blog.convertor.BlogSensitiveContentRpcVoConvertor;
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import wiki.chiu.micro.blog.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.service.BlogSensitiveService;
-import wiki.chiu.micro.blog.vo.BlogSensitiveContentVo;
 import org.springframework.stereotype.Service;
+import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
 
 import java.util.List;
 
@@ -19,9 +19,9 @@ public class BlogSensitiveServiceImpl implements BlogSensitiveService {
     }
 
     @Override
-    public BlogSensitiveContentVo findByBlogId(Long blogId) {
+    public BlogSensitiveContentRpcVo findByBlogId(Long blogId) {
         List<BlogSensitiveContentEntity> entities = blogSensitiveContentRepository.findByBlogId(blogId);
-        return BlogSensitiveContentVoConvertor.convert(entities);
+        return BlogSensitiveContentRpcVoConvertor.convert(entities);
     }
 
 }

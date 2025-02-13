@@ -13,7 +13,7 @@ import wiki.chiu.micro.auth.token.TokenUtils;
 import wiki.chiu.micro.auth.vo.AuthorityRouteVo;
 import wiki.chiu.micro.auth.vo.MenusAndButtonsVo;
 import wiki.chiu.micro.auth.wrapper.AuthWrapper;
-import wiki.chiu.micro.common.dto.AuthorityRpcDto;
+import wiki.chiu.micro.common.vo.AuthorityRpcVo;
 import wiki.chiu.micro.common.exception.AuthException;
 import org.redisson.api.RScript.Mode;
 import org.redisson.api.RScript.ReturnType;
@@ -92,8 +92,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthorityRouteVo findRoute(AuthorityRouteReq req) {
         recordIp(req.ipAddr());
-        List<AuthorityRpcDto> systemAuthorities = authWrapper.getAllSystemAuthorities();
-        for (AuthorityRpcDto dto : systemAuthorities) {
+        List<AuthorityRpcVo> systemAuthorities = authWrapper.getAllSystemAuthorities();
+        for (AuthorityRpcVo dto : systemAuthorities) {
             if (routeMatch(dto.routePattern(), dto.methodType(), req.routeMapping(), req.method())) {
                 return AuthorityRouteVo.builder()
                         .serviceHost(dto.serviceHost())
@@ -164,8 +164,8 @@ public class AuthServiceImpl implements AuthService {
             return false;
         }
 
-        List<AuthorityRpcDto> systemAuthorities = authWrapper.getAllSystemAuthorities();
-        for (AuthorityRpcDto dto : systemAuthorities) {
+        List<AuthorityRpcVo> systemAuthorities = authWrapper.getAllSystemAuthorities();
+        for (AuthorityRpcVo dto : systemAuthorities) {
             if (routeMatch(dto.routePattern(), dto.methodType(), req.routeMapping(), req.method())) {
                 return authorities.contains(dto.code());
             }
@@ -177,7 +177,7 @@ public class AuthServiceImpl implements AuthService {
 
         Set<String> authorities = authWrapper.getAllSystemAuthorities().stream()
                 .filter(item -> AuthTypeEnum.WHITE_LIST.getCode().equals(item.type()))
-                .map(AuthorityRpcDto::code)
+                .map(AuthorityRpcVo::code)
                 .collect(Collectors.toSet());
 
         if (!StringUtils.hasLength(token)) {

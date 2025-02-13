@@ -1,18 +1,18 @@
 package wiki.chiu.micro.user.convertor;
 
+import wiki.chiu.micro.common.vo.MenuRpcVo;
 import wiki.chiu.micro.user.entity.MenuEntity;
-import wiki.chiu.micro.user.vo.MenuVo;
 
 import java.util.List;
 
-public class MenuVoConvertor {
+public class MenuRpcVoConvertor {
 
-    private MenuVoConvertor() {
+    private MenuRpcVoConvertor() {
     }
 
-    public static List<MenuVo> convert(List<MenuEntity> menus) {
+    public static List<MenuRpcVo> convert(List<MenuEntity> menus) {
         return menus.stream()
-                .map(menu -> MenuVo.builder()
+                .map(menu -> MenuRpcVo.builder()
                         .id(menu.getId())
                         .parentId(menu.getParentId())
                         .icon(menu.getIcon())

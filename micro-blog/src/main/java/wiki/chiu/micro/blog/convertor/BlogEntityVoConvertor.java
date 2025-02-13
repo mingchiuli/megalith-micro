@@ -3,7 +3,7 @@ package wiki.chiu.micro.blog.convertor;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
-import wiki.chiu.micro.common.dto.BlogSearchRpcDto;
+import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
 import wiki.chiu.micro.common.page.PageAdapter;
 
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ public class BlogEntityVoConvertor {
     private BlogEntityVoConvertor() {
     }
 
-    public static PageAdapter<BlogEntityVo> convert(List<BlogEntity> items, Map<Long, Integer> readMap, List<BlogSensitiveContentEntity> blogSensitiveContentEntities, BlogSearchRpcDto dto) {
+    public static PageAdapter<BlogEntityVo> convert(List<BlogEntity> items, Map<Long, Integer> readMap, List<BlogSensitiveContentEntity> blogSensitiveContentEntities, BlogSearchRpcVo dto) {
         
         Integer size = dto.size();
         Integer currentPage = dto.currentPage();

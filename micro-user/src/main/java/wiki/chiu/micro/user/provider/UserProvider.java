@@ -1,11 +1,12 @@
 package wiki.chiu.micro.user.provider;
 
 import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.rpc.UserHttpService;
+import wiki.chiu.micro.common.vo.RoleEntityRpcVo;
+import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.service.RoleService;
 import wiki.chiu.micro.user.service.UserRoleService;
 import wiki.chiu.micro.user.service.UserService;
-import wiki.chiu.micro.user.vo.RoleEntityRpcVo;
-import wiki.chiu.micro.user.vo.UserEntityRpcVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/inner/user")
 @Validated
-public class UserProvider {
+public class UserProvider implements UserHttpService {
 
     private final UserService userService;
 
@@ -55,27 +56,27 @@ public class UserProvider {
     }
 
     @GetMapping("/email")
-    Result<UserEntityRpcVo> findByEmail(@RequestParam String email) {
+    public Result<UserEntityRpcVo> findByEmail(@RequestParam String email) {
         return Result.success(() -> userService.findByEmail(email));
     }
 
     @GetMapping("/phone")
-    Result<UserEntityRpcVo> findByPhone(@RequestParam String phone) {
+    public Result<UserEntityRpcVo> findByPhone(@RequestParam String phone) {
         return Result.success(() -> userService.findByPhone(phone));
     }
 
     @GetMapping("/role/{userId}")
-    Result<List<String>> findRoleCodesDByUserId(@PathVariable Long userId) {
+    public Result<List<String>> findRoleCodesByUserId(@PathVariable Long userId) {
         return Result.success(() -> userRoleService.findRoleCodesByUserId(userId));
     }
 
     @GetMapping("/login/query")
-    Result<UserEntityRpcVo> findByUsernameOrEmailOrPhone(@RequestParam String username) {
+    public Result<UserEntityRpcVo> findByUsernameOrEmailOrPhone(@RequestParam String username) {
         return Result.success(() -> userService.findByUsernameOrEmailOrPhone(username));
     }
 
     @GetMapping("/unlock")
-    Result<Void> unlock() {
+    public Result<Void> unlock() {
         return Result.success(userService::unlockUser);
     }
 }

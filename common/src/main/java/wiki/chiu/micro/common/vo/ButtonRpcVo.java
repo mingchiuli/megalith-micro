@@ -1,7 +1,11 @@
-package wiki.chiu.micro.common.dto;
+package wiki.chiu.micro.common.vo;
 
+/**
+ * @Author limingjiu
+ * @Date 2024/4/20 18:17
+ **/
+public record ButtonRpcVo(
 
-public record MenuRpcDto(
         Long id,
 
         Long parentId,
@@ -22,7 +26,12 @@ public record MenuRpcDto(
 
         Integer status) {
 
-    public static class MenuWithChildRpcDtoBuilder {
+
+    public static ButtonRpcDtoBuilder builder() {
+        return new ButtonRpcDtoBuilder();
+    }
+
+    public static class ButtonRpcDtoBuilder {
         private Long id;
         private Long parentId;
         private String title;
@@ -34,59 +43,59 @@ public record MenuRpcDto(
         private Integer orderNum;
         private Integer status;
 
-
-        public MenuWithChildRpcDtoBuilder id(Long id) {
+        public ButtonRpcDtoBuilder id(Long id) {
             this.id = id;
             return this;
         }
 
-        public MenuWithChildRpcDtoBuilder parentId(Long parentId) {
+        public ButtonRpcDtoBuilder parentId(Long parentId) {
             this.parentId = parentId;
             return this;
         }
 
-        public MenuWithChildRpcDtoBuilder title(String title) {
+        public ButtonRpcDtoBuilder title(String title) {
             this.title = title;
             return this;
         }
 
-        public MenuWithChildRpcDtoBuilder name(String name) {
+        public ButtonRpcDtoBuilder name(String name) {
             this.name = name;
             return this;
         }
 
-        public MenuWithChildRpcDtoBuilder url(String url) {
+        public ButtonRpcDtoBuilder url(String url) {
             this.url = url;
             return this;
         }
 
-        public MenuWithChildRpcDtoBuilder component(String component) {
+        public ButtonRpcDtoBuilder component(String component) {
             this.component = component;
             return this;
         }
 
-        public MenuWithChildRpcDtoBuilder type(Integer type) {
+        public ButtonRpcDtoBuilder type(Integer type) {
             this.type = type;
             return this;
         }
 
-        public MenuWithChildRpcDtoBuilder icon(String icon) {
+        public ButtonRpcDtoBuilder icon(String icon) {
             this.icon = icon;
             return this;
         }
 
-        public MenuWithChildRpcDtoBuilder orderNum(Integer orderNum) {
+        public ButtonRpcDtoBuilder orderNum(Integer orderNum) {
             this.orderNum = orderNum;
             return this;
         }
 
-        public MenuWithChildRpcDtoBuilder status(Integer status) {
+        public ButtonRpcDtoBuilder status(Integer status) {
             this.status = status;
             return this;
         }
 
-        public MenuRpcDto build() {
-            return new MenuRpcDto(this.id, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+        public ButtonRpcVo build() {
+            return new ButtonRpcVo(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
     }
 }
+

@@ -1,9 +1,9 @@
-package wiki.chiu.micro.common.dto;
+package wiki.chiu.micro.common.vo;
 
 import java.time.LocalDateTime;
 
 
-public record BlogEntityRpcDto(
+public record BlogEntityRpcVo(
 
         Long id,
 
@@ -91,8 +91,8 @@ public record BlogEntityRpcDto(
             return this;
         }
 
-        public BlogEntityRpcDto build() {
-            return new BlogEntityRpcDto(id, userId, title, description, content, created, updated, status, link, readCount);
+        public BlogEntityRpcVo build() {
+            return new BlogEntityRpcVo(id, userId, title, description, content, created, updated, status, link, readCount);
         }
     }
 }

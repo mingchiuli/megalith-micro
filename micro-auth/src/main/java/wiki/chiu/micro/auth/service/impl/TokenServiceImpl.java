@@ -6,7 +6,7 @@ import wiki.chiu.micro.auth.service.TokenService;
 import wiki.chiu.micro.auth.token.Claims;
 import wiki.chiu.micro.auth.token.TokenUtils;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
-import wiki.chiu.micro.common.dto.UserEntityRpcDto;
+import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import wiki.chiu.micro.common.exception.MissException;
@@ -56,7 +56,7 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public UserInfoVo userinfo(Long userId) {
-        UserEntityRpcDto userEntity = userHttpServiceWrapper.findById(userId);
+        UserEntityRpcVo userEntity = userHttpServiceWrapper.findById(userId);
         return UserInfoVoConvertor.convert(userEntity);
     }
 

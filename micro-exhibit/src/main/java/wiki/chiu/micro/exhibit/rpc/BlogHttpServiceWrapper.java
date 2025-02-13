@@ -1,8 +1,8 @@
 package wiki.chiu.micro.exhibit.rpc;
 
 
-import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
-import wiki.chiu.micro.common.dto.BlogSensitiveContentRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.rpc.BlogHttpService;
@@ -23,11 +23,11 @@ public class BlogHttpServiceWrapper {
         this.blogHttpService = blogHttpService;
     }
 
-    public BlogEntityRpcDto findById(Long blogId) {
+    public BlogEntityRpcVo findById(Long blogId) {
         return Result.handleResult(() -> blogHttpService.findById(blogId));
     }
 
-    public List<BlogEntityRpcDto> findAllById(List<Long> ids) {
+    public List<BlogEntityRpcVo> findAllById(List<Long> ids) {
         return Result.handleResult(() -> blogHttpService.findAllById(ids));
 
     }
@@ -39,7 +39,6 @@ public class BlogHttpServiceWrapper {
 
     public Long count() {
         return Result.handleResult(blogHttpService::count);
-
     }
 
     public void setReadCount(Long id) {
@@ -51,12 +50,12 @@ public class BlogHttpServiceWrapper {
 
     }
 
-    public PageAdapter<BlogEntityRpcDto> findPage(Integer pageNo, Integer pageSize) {
+    public PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize) {
         return Result.handleResult(() -> blogHttpService.findPage(pageNo, pageSize));
 
     }
 
-    public PageAdapter<BlogEntityRpcDto> findPageByCreatedBetween(Integer pageNo, Integer pageSize, LocalDateTime start, LocalDateTime end) {
+    public PageAdapter<BlogEntityRpcVo> findPageByCreatedBetween(Integer pageNo, Integer pageSize, LocalDateTime start, LocalDateTime end) {
         return Result.handleResult(() -> blogHttpService.findPageByCreatedBetween(pageNo, pageSize, start, end));
 
     }
@@ -76,7 +75,7 @@ public class BlogHttpServiceWrapper {
 
     }
 
-    public BlogSensitiveContentRpcDto findSensitiveByBlogId(Long blogId) {
+    public BlogSensitiveContentRpcVo findSensitiveByBlogId(Long blogId) {
         return Result.handleResult(() -> blogHttpService.findSensitiveByBlogId(blogId));
 
     }
