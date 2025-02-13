@@ -2,7 +2,6 @@ package wiki.chiu.micro.common.vo;
 
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 public record AuthorityRpcVo(
 
