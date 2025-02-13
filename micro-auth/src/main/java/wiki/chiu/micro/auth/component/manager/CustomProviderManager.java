@@ -20,11 +20,11 @@ public class CustomProviderManager extends ProviderManager {
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
-        authentication = getAuthGrantTypeToken(authentication);
+        Authentication token = getAuthGrantTypeToken(authentication);
 
         for (AuthenticationProvider provider : getProviders()) {
-            if (provider.supports(authentication.getClass())) {
-                return provider.authenticate(authentication);
+            if (provider.supports(token.getClass())) {
+                return provider.authenticate(token);
             }
         }
         throw new BadCredentialsException(INVALID_LOGIN_OPERATE.getMsg());
