@@ -28,7 +28,7 @@ public interface BlogHttpService {
     Result<Long> count();
 
     @PostExchange("/blog/{blogId}")
-    void setReadCount(@PathVariable Long blogId);
+    Result<Void> setReadCount(@PathVariable Long blogId);
 
     @GetExchange("/blog/status/{blogId}")
     Result<Integer> findStatusById(@PathVariable Long blogId);
