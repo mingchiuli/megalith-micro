@@ -4,7 +4,7 @@ use axum::{
     body::{Body, Bytes},
     extract::Request,
     http::{HeaderName, HeaderValue},
-    response::Response,
+    response::Response, BoxError,
 };
 use hyper::{Method, StatusCode, Uri};
 use tokio::time::timeout;
@@ -12,10 +12,7 @@ use tokio::time::timeout;
 use super::client::{self};
 use crate::{
     entity::api_entity::ApiResult,
-    exception::{
-        error::{ClientError, Result},
-        handler::status_code_from_error,
-    },
+exception::error::{AppError, ClientError},
     util::{
         constant::UNKNOWN,
         http_util::{self},
@@ -52,30 +49,28 @@ impl AuthRouteResp {
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
-pub async fn handle_request(req: Request<Body>) -> std::result::Result<Response<Body>, StatusCode> {
+pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, AppError> {
     // Extract authentication token
-    let token = http_util::extract_token(&req).map_err(|e| status_code_from_error(e))?;
+    let token = http_util::extract_token(&req);
 
     // Get authentication URL
-    let auth_url = http_util::get_auth_url().map_err(|e| status_code_from_error(e))?;
+    let auth_url = http_util::get_auth_url()?;
 
     // Prepare auth request
     let req_body = prepare_auth_request(&req);
 
     // Forward to auth service
     let auth_resp = forward_to_auth_service(&auth_url, req_body, &token)
-        .await
-        .map_err(|e| status_code_from_error(e))?;
+    .await?;
 
     // Prepare target request
-    let target_uri = build_target_uri(&req, &auth_resp).map_err(|e| status_code_from_error(e))?;
+    let target_uri = build_target_uri(&req, &auth_resp)?;
 
     // Forward to target service
     let response = forward_to_target_service(req, target_uri, &token)
-        .await
-        .map_err(|e| status_code_from_error(e))?;
+        .await?;
 
-    Ok(prepare_response(response).map_err(|e| status_code_from_error(e))?)
+    Ok(prepare_response(response)?)
 }
 
 fn prepare_auth_request(req: &Request<Body>) -> AuthRouteReq {
@@ -93,7 +88,7 @@ async fn forward_to_auth_service(
     auth_url: &Uri,
     req_body: AuthRouteReq,
     token: &str,
-) -> Result<AuthRouteResp> {
+) -> Result<AuthRouteResp, ClientError> {
     let headers = HashMap::from([
         (
             hyper::header::AUTHORIZATION,
@@ -105,11 +100,11 @@ async fn forward_to_auth_service(
         ),
     ]);
 
-    let resp: ApiResult<AuthRouteResp> = client::post(&auth_url, req_body, headers).await?;
+        let resp: ApiResult<AuthRouteResp> = client::post(&auth_url, req_body, headers).await.map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()))?;
     Ok(resp.into_data())
 }
 
-fn build_target_uri(req: &Request<Body>, auth_resp: &AuthRouteResp) -> Result<hyper::Uri> {
+fn build_target_uri(req: &Request<Body>, auth_resp: &AuthRouteResp) -> Result<hyper::Uri, ClientError> {
     let path_and_query = req
         .uri()
         .path_and_query()
@@ -123,14 +118,14 @@ fn build_target_uri(req: &Request<Body>, auth_resp: &AuthRouteResp) -> Result<hy
         path_and_query
     );
 
-    Ok(uri.parse::<hyper::Uri>()?)
+    Ok(uri.parse::<hyper::Uri>().map_err(|_| ClientError::Request("parse".to_string()))?)
 }
 
 async fn forward_to_target_service(
     req: Request<Body>,
     uri: hyper::Uri,
     token: &str,
-) -> Result<Response<Bytes>> {
+) -> Result<Response<Bytes>, ClientError> {
     let headers = prepare_headers(req.headers(), token)?;
 
     let resp = timeout(REQUEST_TIMEOUT, async {
@@ -160,7 +155,7 @@ async fn forward_to_target_service(
 fn prepare_headers(
     req_headers: &hyper::HeaderMap,
     token: &str,
-) -> Result<HashMap<HeaderName, HeaderValue>> {
+) -> std::result::Result<HashMap<HeaderName, HeaderValue>, ClientError> {
     let mut headers = HashMap::new();
 
     headers.insert(
@@ -184,7 +179,7 @@ fn prepare_headers(
     Ok(headers)
 }
 
-fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>> {
+fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>, ClientError> {
     let content_type = resp
         .headers()
         .get(hyper::header::CONTENT_TYPE)

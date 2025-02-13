@@ -6,7 +6,7 @@ use hyper::HeaderMap;
 use std::{collections::HashMap, env};
 
 use crate::{
-    exception::error::{AuthError, Result},
+    exception::error::{AuthError},
     util::constant::{
         AUTH_HEADER, AUTH_URL_KEY, CF_CONNECTING_IP, FORWARDED_HEADER, PROXY_CLIENT_IP,
         WL_PROXY_CLIENT_IP,
@@ -27,35 +27,35 @@ pub fn get_ip_from_headers(headers: &HeaderMap) -> Option<String> {
     ip.map(String::from)
 }
 
-pub fn extract_token(req: &Request) -> Result<String> {
-    Ok(req
+pub fn extract_token(req: &Request) -> String {
+    req
         .headers()
         .get("Authorization")
         .and_then(|value| value.to_str().ok())
         .map(String::from)
-        .unwrap_or("".to_string()))
+        .unwrap_or("".to_string())
 }
 
-pub fn get_auth_url() -> Result<hyper::Uri> {
+pub fn get_auth_url() -> std::result::Result<hyper::Uri, AuthError> {
     let mut auth_url = env::var(AUTH_URL_KEY).map_err(|_| {
-        Box::new(AuthError::MissingConfig(format!(
+        AuthError::MissingConfig(format!(
             "Missing {}",
             AUTH_URL_KEY
-        )))
+        ))
     })?;
 
     auth_url.push_str("/auth/route");
     Ok(auth_url
         .parse::<hyper::Uri>()
-        .map_err(|e| Box::new(AuthError::InvalidUrl(e.to_string())))?)
+        .map_err(|e| AuthError::InvalidUrl(e.to_string()))?)
 }
 
 pub fn set_headers(
     mut builder: Builder,
     headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<Builder> {
+) -> Builder {
     for (key, value) in headers {
         builder = builder.header(key, value);
     }
-    Ok(builder)
+    builder
 }
