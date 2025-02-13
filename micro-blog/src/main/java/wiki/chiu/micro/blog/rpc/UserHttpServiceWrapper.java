@@ -1,7 +1,7 @@
 package wiki.chiu.micro.blog.rpc;
 
 
-import wiki.chiu.micro.common.dto.UserEntityRpcDto;
+import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.rpc.UserHttpService;
 import org.springframework.stereotype.Component;
@@ -16,7 +16,7 @@ public class UserHttpServiceWrapper {
         this.userHttpService = userHttpService;
     }
 
-    public UserEntityRpcDto findById(Long userId) {
+    public UserEntityRpcVo findById(Long userId) {
         return Result.handleResult(() -> userHttpService.findById(userId));
     }
 }

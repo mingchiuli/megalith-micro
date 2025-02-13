@@ -2,7 +2,7 @@ package wiki.chiu.micro.exhibit.convertor;
 
 import java.util.List;
 
-import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
 
@@ -15,7 +15,7 @@ public class BlogDescriptionDtoConvertor {
     private BlogDescriptionDtoConvertor() {
     }
 
-    public static PageAdapter<BlogDescriptionDto> convert(PageAdapter<BlogEntityRpcDto> page) {
+    public static PageAdapter<BlogDescriptionDto> convert(PageAdapter<BlogEntityRpcVo> page) {
 
         List<BlogDescriptionDto> dtos = page.content().stream()
                 .map(item -> BlogDescriptionDto.builder()

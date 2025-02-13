@@ -1,9 +1,9 @@
 package wiki.chiu.micro.exhibit.service.impl;
 
 import jakarta.annotation.PostConstruct;
-import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
-import wiki.chiu.micro.common.dto.BlogSensitiveContentRpcDto;
-import wiki.chiu.micro.common.dto.SensitiveContentRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
+import wiki.chiu.micro.common.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -98,7 +98,7 @@ public class BlogServiceImpl implements BlogService {
         if (!BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(desc.status())) {
             return desc;
         }
-        List<SensitiveContentRpcDto> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContent();
+        List<SensitiveContentRpcVo> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContent();
         if (words.isEmpty()) {
             return desc;
         }
@@ -129,7 +129,7 @@ public class BlogServiceImpl implements BlogService {
             return BlogStatusEnum.NORMAL.getCode();
         }
 
-        BlogEntityRpcDto blog = blogHttpServiceWrapper.findById(blogId);
+        BlogEntityRpcVo blog = blogHttpServiceWrapper.findById(blogId);
         return Objects.equals(blog.userId(), userId) ? BlogStatusEnum.NORMAL.getCode() : BlogStatusEnum.HIDE.getCode();
     }
 
@@ -184,7 +184,7 @@ public class BlogServiceImpl implements BlogService {
                 .map(Long::valueOf)
                 .toList();
 
-        List<BlogEntityRpcDto> blogs = blogHttpServiceWrapper.findAllById(ids);
+        List<BlogEntityRpcVo> blogs = blogHttpServiceWrapper.findAllById(ids);
 
         return BlogHotReadVoConvertor.convert(blogs, scoredEntries);
     }
@@ -204,8 +204,8 @@ public class BlogServiceImpl implements BlogService {
         if (BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(status) &&
                 !roles.contains(highestRole) &&
                 !Objects.equals(userId, rawBlog.userId())) {
-            BlogSensitiveContentRpcDto sensitiveContentDto = blogSensitiveWrapper.findSensitiveByBlogId(id);
-            List<SensitiveContentRpcDto> words = sensitiveContentDto.sensitiveContent();
+            BlogSensitiveContentRpcVo sensitiveContentDto = blogSensitiveWrapper.findSensitiveByBlogId(id);
+            List<SensitiveContentRpcVo> words = sensitiveContentDto.sensitiveContent();
             if (!words.isEmpty()) {
                 BlogExhibitDto dealBlog = SensitiveUtils.deal(words, rawBlog);
                 blogWrapper.setReadCount(id);

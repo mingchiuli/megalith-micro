@@ -27,12 +27,12 @@ import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.common.req.BlogSysSearchReq;
 import wiki.chiu.micro.common.utils.OssSignUtils;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
-import wiki.chiu.micro.blog.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
 import wiki.chiu.micro.blog.wrapper.BlogWrapper;
 
-import wiki.chiu.micro.common.dto.BlogSearchRpcDto;
-import wiki.chiu.micro.common.dto.UserEntityRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
+import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -151,7 +151,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void download(HttpServletResponse response, BlogDownloadReq downloadReq) {
+    public void download(HttpServletResponse response, BlogDownloadReq downloadReq, Long userId, List<String> roles) {
         Set<BlogEntity> blogs = Collections.newSetFromMap(new ConcurrentHashMap<>());
         Set<BlogSensitiveContentEntity> blogSensitives = Collections.newSetFromMap(new ConcurrentHashMap<>());
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
@@ -162,7 +162,7 @@ public class BlogServiceImpl implements BlogService {
         int totalPage = (int) (total % pageSize == 0 ? total / pageSize : total / pageSize + 1);
 
         for (int i = 1; i <= totalPage; i++) {
-            BlogSysSearchReq req = BlogSysSearchReqConvertor.convert(downloadReq, i, pageSize);
+            BlogSysSearchReq req = BlogSysSearchReqConvertor.convert(downloadReq, i, pageSize, userId, roles);
             ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             RequestContextHolder.setRequestAttributes(servletRequestAttributes, true);
             completableFutures.add(fetchBlogsAsync(req, blogs, blogSensitives));
@@ -175,7 +175,7 @@ public class BlogServiceImpl implements BlogService {
 
     private CompletableFuture<Void> fetchBlogsAsync(BlogSysSearchReq req, Set<BlogEntity> blogs, Set<BlogSensitiveContentEntity> blogSensitives) {
         return CompletableFuture.runAsync(() -> {
-            BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(req);
+            BlogSearchRpcVo dto = searchHttpServiceWrapper.searchBlogs(req);
             List<Long> ids = dto.ids();
             blogSensitives.addAll(blogSensitiveContentRepository.findByBlogIdIn(ids));
             blogs.addAll(blogRepository.findAllById(ids).stream()
@@ -235,7 +235,7 @@ public class BlogServiceImpl implements BlogService {
                 .orElseGet(() -> UUID.randomUUID().toString())
                 .replace(" ", "");
         String uuid = UUID.randomUUID().toString();
-        UserEntityRpcDto user = userHttpServiceWrapper.findById(userId);
+        UserEntityRpcVo user = userHttpServiceWrapper.findById(userId);
         return user.nickname() + "/" + uuid + "-" + originalFilename;
     }
 
@@ -333,10 +333,10 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public PageAdapter<BlogEntityVo> findAllBlogs(BlogQueryReq blogQueryReq) {
+    public PageAdapter<BlogEntityVo> findAllBlogs(BlogQueryReq blogQueryReq, Long userId, List<String> roles) {
 
-        BlogSysSearchReq req = BlogSysSearchReqConvertor.convert(blogQueryReq);
-        BlogSearchRpcDto dto = searchHttpServiceWrapper.searchBlogs(req);
+        BlogSysSearchReq req = BlogSysSearchReqConvertor.convert(blogQueryReq, userId, roles);
+        BlogSearchRpcVo dto = searchHttpServiceWrapper.searchBlogs(req);
         List<Long> ids = dto.ids();
         if (ids.isEmpty()) {
             return PageAdapter.emptyPage();

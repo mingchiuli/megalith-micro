@@ -1,8 +1,8 @@
 package wiki.chiu.micro.exhibit.wrapper;
 
 import wiki.chiu.micro.cache.annotation.Cache;
-import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
-import wiki.chiu.micro.common.dto.UserEntityRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.convertor.BlogDescriptionDtoConvertor;
@@ -46,9 +46,9 @@ public class BlogWrapper {
 
     @Cache(prefix = Const.HOT_BLOG)
     public BlogExhibitDto findById(Long id) {
-        BlogEntityRpcDto blogEntity = blogHttpServiceWrapper.findById(id);
+        BlogEntityRpcVo blogEntity = blogHttpServiceWrapper.findById(id);
 
-        UserEntityRpcDto user = userHttpServiceWrapper.findById(blogEntity.userId());
+        UserEntityRpcVo user = userHttpServiceWrapper.findById(blogEntity.userId());
         return BlogExhibitDtoConvertor.convert(blogEntity, user);
     }
 
@@ -67,7 +67,7 @@ public class BlogWrapper {
 
     @Cache(prefix = Const.HOT_BLOGS)
     public PageAdapter<BlogDescriptionDto> findPage(Integer currentPage, Integer year) {
-        PageAdapter<BlogEntityRpcDto> page = year == null ?
+        PageAdapter<BlogEntityRpcVo> page = year == null ?
                 blogHttpServiceWrapper.findPage(currentPage, blogPageSize) :
                 blogHttpServiceWrapper.findPageByCreatedBetween(currentPage, blogPageSize,
                         LocalDateTime.of(year, 1, 1, 0, 0, 0),

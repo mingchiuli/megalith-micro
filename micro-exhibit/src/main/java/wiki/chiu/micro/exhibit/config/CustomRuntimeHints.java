@@ -1,6 +1,6 @@
 package wiki.chiu.micro.exhibit.config;
 
-import wiki.chiu.micro.common.dto.BlogSensitiveContentRpcDto;
+import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
 import org.springframework.aot.hint.*;
@@ -17,6 +17,6 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
         hints.serialization()
                 .registerType(BlogExhibitDto.class)
                 .registerType(BlogDescriptionDto.class)
-                .registerType(BlogSensitiveContentRpcDto.class);
+                .registerType(BlogSensitiveContentRpcVo.class);
     }
 }

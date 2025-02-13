@@ -2,7 +2,7 @@ package wiki.chiu.micro.exhibit.consumer.cache.handler;
 
 import com.rabbitmq.client.Channel;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
-import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.common.lang.BlogOperateMessage;
@@ -38,13 +38,13 @@ public abstract sealed class BlogCacheEvictHandler permits
 
     public abstract boolean supports(BlogOperateEnum blogOperateEnum);
 
-    protected abstract void redisProcess(BlogEntityRpcDto blog);
+    protected abstract void redisProcess(BlogEntityRpcVo blog);
 
 
     public void handle(BlogOperateMessage message, Channel channel, Message msg) {
         long deliveryTag = msg.getMessageProperties().getDeliveryTag();
         try {
-            BlogEntityRpcDto blogEntity = getBlogEntity(message);
+            BlogEntityRpcVo blogEntity = getBlogEntity(message);
             redisProcess(blogEntity);
             channel.basicAck(deliveryTag, false);
         } catch (Exception e) {
@@ -53,11 +53,11 @@ public abstract sealed class BlogCacheEvictHandler permits
         }
     }
 
-    private BlogEntityRpcDto getBlogEntity(BlogOperateMessage message) {
+    private BlogEntityRpcVo getBlogEntity(BlogOperateMessage message) {
         Long blogId = message.blogId();
         Integer year = message.year();
         if (Objects.equals(message.typeEnumCode(), BlogOperateEnum.REMOVE.getCode())) {
-            return BlogEntityRpcDto.builder()
+            return BlogEntityRpcVo.builder()
                     .id(blogId)
                     .created(LocalDateTime.of(year, 1, 1, 0, 0, 0))
                     .build();

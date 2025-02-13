@@ -1,8 +1,8 @@
-package wiki.chiu.micro.common.dto;
+package wiki.chiu.micro.common.vo;
 
 import java.util.List;
 
-public record AuthRpcDto(
+public record AuthRpcVo(
 
         Long userId,
 
@@ -34,8 +34,8 @@ public record AuthRpcDto(
             return this;
         }
 
-        public AuthRpcDto build() {
-            return new AuthRpcDto(userId, roles, authorities);
+        public AuthRpcVo build() {
+            return new AuthRpcVo(userId, roles, authorities);
         }
 
     }

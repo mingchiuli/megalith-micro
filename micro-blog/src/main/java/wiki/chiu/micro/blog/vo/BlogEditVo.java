@@ -1,5 +1,7 @@
 package wiki.chiu.micro.blog.vo;
 
+import wiki.chiu.micro.common.vo.SensitiveContentRpcVo;
+
 import java.util.List;
 
 
@@ -21,7 +23,7 @@ public record BlogEditVo(
 
         Integer version,
 
-        List<SensitiveContentVo> sensitiveContentList) {
+        List<SensitiveContentRpcVo> sensitiveContentList) {
 
 
     public static BlogEditVoBuilder builder() {
@@ -37,7 +39,7 @@ public record BlogEditVo(
         private String content;
         private Integer status;
         private Integer version;
-        private List<SensitiveContentVo> sensitiveContentList;
+        private List<SensitiveContentRpcVo> sensitiveContentList;
 
         public BlogEditVoBuilder id(Long id) {
             this.id = id;
@@ -79,7 +81,7 @@ public record BlogEditVo(
             return this;
         }
 
-        public BlogEditVoBuilder sensitiveContentList(List<SensitiveContentVo> sensitiveContentList) {
+        public BlogEditVoBuilder sensitiveContentList(List<SensitiveContentRpcVo> sensitiveContentList) {
             this.sensitiveContentList = sensitiveContentList;
             return this;
         }

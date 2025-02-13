@@ -5,9 +5,9 @@ import org.springframework.web.bind.annotation.*;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.common.req.BlogSysSearchReq;
-import wiki.chiu.micro.common.rpc.config.AuthInfo;
+import wiki.chiu.micro.common.rpc.SearchHttpService;
+import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
 import wiki.chiu.micro.search.service.BlogSearchService;
-import wiki.chiu.micro.search.vo.BlogSearchVo;
 import org.springframework.validation.annotation.Validated;
 
 
@@ -15,7 +15,7 @@ import org.springframework.validation.annotation.Validated;
 @RestController
 @Validated
 @RequestMapping(value = "/inner")
-public class SearchProvider {
+public class SearchProvider implements SearchHttpService {
 
     private final BlogSearchService blogSearchService;
 
@@ -24,17 +24,17 @@ public class SearchProvider {
     }
 
     @PostMapping("/blog/search")
-    public Result<BlogSearchVo> searchAllBlogs(@RequestBody BlogSysSearchReq req, AuthInfo authInfo) {
-        return Result.success(() -> blogSearchService.searchBlogs(req, authInfo.userId(), authInfo.roles()));
+    public Result<BlogSearchRpcVo> searchBlogs(@RequestBody BlogSysSearchReq req) {
+        return Result.success(() -> blogSearchService.searchBlogs(req));
     }
 
     @PostMapping("/blog/count")
-    public Result<Long> searchCount(@RequestBody BlogSysCountSearchReq req, AuthInfo authInfo) {
-        return Result.success(() -> blogSearchService.searchCount(req, authInfo.userId(), authInfo.roles()));
+    public Result<Long> countBlogs(@RequestBody BlogSysCountSearchReq req) {
+        return Result.success(() -> blogSearchService.searchCount(req));
     }
 
     @PostMapping("/blog/read")
-    public Result<Void> readCount(@RequestParam Long id) {
+    public Result<Void> addReadCount(@RequestParam Long id) {
         return Result.success(() -> blogSearchService.addReadCount(id));
     }
 }

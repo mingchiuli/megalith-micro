@@ -3,19 +3,19 @@ package wiki.chiu.micro.blog.convertor;
 import java.util.*;
 
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
-import wiki.chiu.micro.blog.vo.SensitiveContentVo;
-import wiki.chiu.micro.blog.vo.BlogSensitiveContentVo;
+import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
+import wiki.chiu.micro.common.vo.SensitiveContentRpcVo;
 
-public class BlogSensitiveContentVoConvertor {
+public class BlogSensitiveContentRpcVoConvertor {
 
-    private BlogSensitiveContentVoConvertor() {}
+    private BlogSensitiveContentRpcVoConvertor() {}
 
-    public static BlogSensitiveContentVo convert(List<BlogSensitiveContentEntity> entities) {
+    public static BlogSensitiveContentRpcVo convert(List<BlogSensitiveContentEntity> entities) {
         if (!entities.isEmpty()) {
-            return BlogSensitiveContentVo.builder()
+            return BlogSensitiveContentRpcVo.builder()
                     .blogId(entities.getFirst().getBlogId())
                     .sensitiveContent(entities.stream()
-                            .map(item -> SensitiveContentVo.builder()
+                            .map(item -> SensitiveContentRpcVo.builder()
                                     .type(item.getType())
                                     .startIndex(item.getStartIndex())
                                     .endIndex(item.getEndIndex())
@@ -23,6 +23,6 @@ public class BlogSensitiveContentVoConvertor {
                             .toList())
                     .build();
         }
-        return BlogSensitiveContentVo.builder().sensitiveContent(Collections.emptyList()).build();
+        return BlogSensitiveContentRpcVo.builder().sensitiveContent(Collections.emptyList()).build();
     }
 }

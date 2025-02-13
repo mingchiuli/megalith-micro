@@ -4,8 +4,8 @@ import wiki.chiu.micro.auth.convertor.MenusAndButtonsDtoConvertor;
 import wiki.chiu.micro.auth.dto.MenusAndButtonsDto;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.cache.annotation.Cache;
-import wiki.chiu.micro.common.dto.AuthorityRpcDto;
-import wiki.chiu.micro.common.dto.MenusAndButtonsRpcDto;
+import wiki.chiu.micro.common.vo.AuthorityRpcVo;
+import wiki.chiu.micro.common.vo.MenusAndButtonsRpcVo;
 import wiki.chiu.micro.common.lang.Const;
 import org.springframework.stereotype.Component;
 import wiki.chiu.micro.common.lang.ServiceHostEnum;
@@ -29,7 +29,7 @@ public class AuthWrapper {
 
     @Cache(prefix = Const.ROLE_AUTHORITY)
     public MenusAndButtonsDto getCurrentUserNav(String rawRole) {
-        MenusAndButtonsRpcDto dto = userHttpServiceWrapper.getCurrentUserNav(rawRole);
+        MenusAndButtonsRpcVo dto = userHttpServiceWrapper.getCurrentUserNav(rawRole);
         return MenusAndButtonsDtoConvertor.convert(dto);
     }
 
@@ -39,7 +39,7 @@ public class AuthWrapper {
     }
 
     @Cache(prefix = Const.ALL_SERVICE)
-    public List<AuthorityRpcDto> getAllSystemAuthorities() {
+    public List<AuthorityRpcVo> getAllSystemAuthorities() {
         return userHttpServiceWrapper.getSystemAuthorities(services);
     }
 

@@ -1,7 +1,7 @@
 package wiki.chiu.micro.auth.convertor;
 
 import wiki.chiu.micro.auth.dto.*;
-import wiki.chiu.micro.common.dto.MenusAndButtonsRpcDto;
+import wiki.chiu.micro.common.vo.MenusAndButtonsRpcVo;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ public class MenusAndButtonsDtoConvertor {
     private MenusAndButtonsDtoConvertor() {
     }
 
-    public static MenusAndButtonsDto convert(MenusAndButtonsRpcDto dto) {
+    public static MenusAndButtonsDto convert(MenusAndButtonsRpcVo dto) {
 
         List<ButtonDto> buttonDtos = dto.buttons().stream()
                 .distinct()

@@ -1,9 +1,9 @@
 package wiki.chiu.micro.user.service;
 
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.req.UserEntityRegisterReq;
 import wiki.chiu.micro.user.req.UserEntityReq;
-import wiki.chiu.micro.user.vo.UserEntityRpcVo;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 

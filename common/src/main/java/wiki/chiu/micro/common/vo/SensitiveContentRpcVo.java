@@ -1,8 +1,8 @@
-package wiki.chiu.micro.common.dto;
+package wiki.chiu.micro.common.vo;
 
 import java.io.Serializable;
 
-public record SensitiveContentRpcDto(
+public record SensitiveContentRpcVo(
 
         Integer startIndex,
 
@@ -35,8 +35,8 @@ public record SensitiveContentRpcDto(
             return this;
         }
 
-        public SensitiveContentRpcDto build() {
-            return new SensitiveContentRpcDto(startIndex, endIndex, type);
+        public SensitiveContentRpcVo build() {
+            return new SensitiveContentRpcVo(startIndex, endIndex, type);
         }
     }
 }

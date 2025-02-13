@@ -1,6 +1,6 @@
 package wiki.chiu.micro.search.mq.handler;
 
-import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.search.document.BlogDocument;
 import wiki.chiu.micro.search.rpc.BlogHttpServiceWrapper;
@@ -29,7 +29,7 @@ public final class RemoveBlogIndexHandler extends BlogIndexSupport {
     }
 
     @Override
-    protected void elasticSearchProcess(BlogEntityRpcDto blog) {
+    protected void elasticSearchProcess(BlogEntityRpcVo blog) {
         elasticsearchTemplate.delete(blog.id().toString(), BlogDocument.class);
     }
 }

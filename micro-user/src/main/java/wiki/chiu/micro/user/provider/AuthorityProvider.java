@@ -1,9 +1,10 @@
 package wiki.chiu.micro.user.provider;
 
 import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.rpc.AuthorityHttpService;
+import wiki.chiu.micro.common.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.service.AuthorityService;
 import wiki.chiu.micro.user.service.RoleAuthorityService;
-import wiki.chiu.micro.user.vo.AuthorityRpcVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +15,7 @@ import java.util.Set;
 @RestController
 @RequestMapping("/inner/authority")
 @Validated
-public class AuthorityProvider {
+public class AuthorityProvider implements AuthorityHttpService {
 
     private final AuthorityService authorityService;
 
@@ -26,12 +27,12 @@ public class AuthorityProvider {
     }
 
     @PostMapping("/list")
-    public Result<List<AuthorityRpcVo>> list(@RequestBody List<String> service) {
+    public Result<List<AuthorityRpcVo>> getAuthorities(@RequestBody List<String> service) {
         return Result.success(() -> authorityService.findAllByService(service));
     }
 
     @GetMapping("/role")
-    Result<Set<String>> getAuthoritiesByRoleCodes(@RequestParam String rawRole) {
+    public Result<Set<String>> getAuthoritiesByRoleCode(@RequestParam String rawRole) {
         return Result.success(() -> roleAuthorityService.getAuthoritiesByRoleCodes(rawRole));
     }
 

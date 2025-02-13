@@ -8,7 +8,7 @@ import wiki.chiu.micro.auth.vo.UserInfoVo;
 import org.springframework.aot.hint.*;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
-import wiki.chiu.micro.common.dto.AuthorityRpcDto;
+import wiki.chiu.micro.common.vo.AuthorityRpcVo;
 
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
@@ -22,7 +22,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 .registerType(LoginSuccessVo.class)
                 .registerType(UserInfoVo.class)
                 .registerType(MenusAndButtonsDto.class)
-                .registerType(AuthorityRpcDto.class)
+                .registerType(AuthorityRpcVo.class)
                 .registerType(MenuDto.class)
                 .registerType(ButtonDto.class);
     }

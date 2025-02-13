@@ -13,7 +13,6 @@ import wiki.chiu.micro.blog.service.BlogEditService;
 import wiki.chiu.micro.blog.service.BlogSensitiveService;
 import wiki.chiu.micro.blog.utils.EditAuthUtils;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
-import wiki.chiu.micro.blog.vo.SensitiveContentVo;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import wiki.chiu.micro.common.utils.JsonUtils;
@@ -25,6 +24,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
+import wiki.chiu.micro.common.vo.SensitiveContentRpcVo;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -49,7 +49,7 @@ public class BlogEditServiceImpl implements BlogEditService {
 
     private final ObjectMapper objectMapper;
 
-    private final TypeReference<List<SensitiveContentVo>> type = new TypeReference<>() {
+    private final TypeReference<List<SensitiveContentRpcVo>> type = new TypeReference<>() {
     };
 
     public BlogEditServiceImpl(StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogSensitiveService blogSensitiveService, BlogRepository blogRepository, ObjectMapper objectMapper) {
@@ -102,7 +102,7 @@ public class BlogEditServiceImpl implements BlogEditService {
                 .entries(redisKey);
 
         BlogEntityDto blog;
-        List<SensitiveContentVo> sensitiveContentList;
+        List<SensitiveContentRpcVo> sensitiveContentList;
         int version = -1;
         String paragraphListString = null;
 
@@ -149,7 +149,7 @@ public class BlogEditServiceImpl implements BlogEditService {
                 A_WEEK);
     }
 
-    private void executePushAllRedisScript(String redisKey, BlogEntityDto blog, Long originUserId, String paragraphListString, int version, List<SensitiveContentVo> sensitiveContentList) {
+    private void executePushAllRedisScript(String redisKey, BlogEntityDto blog, Long originUserId, String paragraphListString, int version, List<SensitiveContentRpcVo> sensitiveContentList) {
         redisTemplate.execute(RedisScript.of(pushAllScript),
                 Collections.singletonList(redisKey),
                 paragraphListString, ID.getMsg(), USER_ID.getMsg(), TITLE.getMsg(), DESCRIPTION.getMsg(),

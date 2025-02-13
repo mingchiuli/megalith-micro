@@ -1,0 +1,16 @@
+.gradle
+*/bin
+*/build
+*/.factorypath
+*/.project
+*/.settings
+*/.classpath
+.settings
+.classpath
+.project
+.idea
+*/target
+target
+.luarc.json
+*/.DS_Store
+.DS_Store

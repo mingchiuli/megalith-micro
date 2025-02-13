@@ -1,6 +1,6 @@
 package wiki.chiu.micro.search.mq.handler;
 
-import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.search.document.BlogDocument;
 import wiki.chiu.micro.search.rpc.BlogHttpServiceWrapper;
@@ -28,7 +28,7 @@ public final class CreateBlogIndexHandler extends BlogIndexSupport {
     }
 
     @Override
-    protected void elasticSearchProcess(BlogEntityRpcDto blog) {
+    protected void elasticSearchProcess(BlogEntityRpcVo blog) {
         var blogDocument = BlogDocument.builder()
                 .id(blog.id())
                 .userId(blog.userId())

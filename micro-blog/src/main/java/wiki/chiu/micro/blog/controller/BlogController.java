@@ -56,8 +56,8 @@ public class BlogController {
     }
 
     @GetMapping("/blogs")
-    public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@BlogSysQuery BlogQueryReq req) {
-        return Result.success(() -> blogService.findAllBlogs(req));
+    public Result<PageAdapter<BlogEntityVo>> getAllBlogs(@BlogSysQuery BlogQueryReq req, AuthInfo authInfo) {
+        return Result.success(() -> blogService.findAllBlogs(req, authInfo.userId(), authInfo.roles()));
     }
 
     @GetMapping("/deleted")
@@ -83,8 +83,8 @@ public class BlogController {
     }
 
     @GetMapping("/download")
-    public void download(HttpServletResponse response, @BlogSysDownload BlogDownloadReq req) {
-        blogService.download(response, req);
+    public void download(HttpServletResponse response, @BlogSysDownload BlogDownloadReq req, AuthInfo authInfo) {
+        blogService.download(response, req, authInfo.userId(), authInfo.roles());
     }
 
 }

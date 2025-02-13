@@ -1,7 +1,7 @@
 package wiki.chiu.micro.exhibit.consumer.cache.handler;
 
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
-import wiki.chiu.micro.common.dto.BlogEntityRpcDto;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.common.utils.KeyUtils;
 import wiki.chiu.micro.exhibit.consumer.cache.CacheKeyGenerator;
@@ -38,7 +38,7 @@ public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
 
     @Override
-    public void redisProcess(BlogEntityRpcDto blogEntity) {
+    public void redisProcess(BlogEntityRpcVo blogEntity) {
         Long id = blogEntity.id();
         int year = blogEntity.created().getYear();
         LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0, 0);

@@ -1,5 +1,8 @@
-package wiki.chiu.micro.user.vo;
+package wiki.chiu.micro.common.vo;
 
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 public record AuthorityRpcVo(
 
@@ -21,8 +24,7 @@ public record AuthorityRpcVo(
 
         Integer type,
 
-        Integer status) {
-
+        Integer status) implements Serializable {
 
     public static AuthorityRpcVoBuilder builder() {
         return new AuthorityRpcVoBuilder();
@@ -37,6 +39,8 @@ public record AuthorityRpcVo(
         private String routePattern;
         private String serviceHost;
         private Integer servicePort;
+        private LocalDateTime created;
+        private LocalDateTime updated;
         private Integer type;
         private Integer status;
 
@@ -77,6 +81,16 @@ public record AuthorityRpcVo(
 
         public AuthorityRpcVoBuilder servicePort(Integer servicePort) {
             this.servicePort = servicePort;
+            return this;
+        }
+
+        public AuthorityRpcVoBuilder created(LocalDateTime created) {
+            this.created = created;
+            return this;
+        }
+
+        public AuthorityRpcVoBuilder updated(LocalDateTime updated) {
+            this.updated = updated;
             return this;
         }
 

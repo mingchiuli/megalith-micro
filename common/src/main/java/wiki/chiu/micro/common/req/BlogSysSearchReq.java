@@ -4,6 +4,7 @@ package wiki.chiu.micro.common.req;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record BlogSysSearchReq(
 
@@ -17,7 +18,11 @@ public record BlogSysSearchReq(
 
         LocalDateTime createStart,
 
-        LocalDateTime createEnd) implements Serializable {
+        LocalDateTime createEnd,
+
+        Long userId,
+
+        List<String> roles) implements Serializable {
 
     public static BlogSysSearchReq.BlogSearchReqBuilder builder() {
         return new BlogSysSearchReq.BlogSearchReqBuilder();
@@ -30,6 +35,8 @@ public record BlogSysSearchReq(
         private Integer status;
         private LocalDateTime createStart;
         private LocalDateTime createEnd;
+        private Long userId;
+        private List<String> roles;
 
         public BlogSysSearchReq.BlogSearchReqBuilder page(Integer page) {
             this.page = page;
@@ -61,8 +68,18 @@ public record BlogSysSearchReq(
             return this;
         }
 
+        public BlogSysSearchReq.BlogSearchReqBuilder userId(Long userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public BlogSysSearchReq.BlogSearchReqBuilder roles(List<String> roles) {
+            this.roles = roles;
+            return this;
+        }
+
         public BlogSysSearchReq build() {
-            return new BlogSysSearchReq(page, pageSize, keywords, status, createStart, createEnd);
+            return new BlogSysSearchReq(page, pageSize, keywords, status, createStart, createEnd, userId, roles);
         }
     }
 }

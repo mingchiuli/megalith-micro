@@ -1,7 +1,7 @@
 package wiki.chiu.micro.auth.component.provider;
 
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
-import wiki.chiu.micro.common.dto.RoleEntityRpcDto;
+import wiki.chiu.micro.common.vo.RoleEntityRpcVo;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
@@ -44,7 +44,7 @@ public abstract sealed class ProviderBase extends DaoAuthenticationProvider perm
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        List<RoleEntityRpcDto> roleEntities = userHttpServiceWrapper.findByRoleCodeInAndStatus(roles, NORMAL.getCode());
+        List<RoleEntityRpcVo> roleEntities = userHttpServiceWrapper.findByRoleCodeInAndStatus(roles, NORMAL.getCode());
         if (roleEntities.isEmpty()) {
             throw new BadCredentialsException(ROLE_DISABLED.getMsg());
         }

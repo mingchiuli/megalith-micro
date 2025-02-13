@@ -1,6 +1,6 @@
 package wiki.chiu.micro.websocket.rpc;
 
-import wiki.chiu.micro.common.dto.AuthRpcDto;
+import wiki.chiu.micro.common.vo.AuthRpcVo;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
@@ -17,7 +17,7 @@ public class AuthHttpServiceWrapper {
         this.authHttpService = authHttpService;
     }
 
-    public AuthRpcDto getAuthentication(String token) {
+    public AuthRpcVo getAuthentication(String token) {
         return Result.handleResult(() -> authHttpService.getAuthentication(token));
     }
 
