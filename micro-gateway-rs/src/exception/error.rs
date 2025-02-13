@@ -1,4 +1,50 @@
+use axum::{response::{IntoResponse, Response}, BoxError};
+use hyper::StatusCode;
+
 // Custom error type for auth-related errors
+#[derive(Debug)]
+pub enum AppError {
+    AuthError(AuthError),
+    ClientError(ClientError),
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        // How we want errors responses to be serialized
+    
+        let (status, message) = match self {
+            AppError::AuthError(rejection) => {
+                // This error is caused by bad user input so don't log it
+                (502, rejection.msg())
+            }
+            AppError::ClientError(err) => {
+                // Because `TraceLayer` wraps each request in a span that contains the request
+                // method, uri, etc we don't need to include those details here
+        
+                // Don't expose any details about the error to the client
+                (
+                    502,
+                    "Something went wrong".to_owned(),
+                )
+            }
+        };
+        
+        axum::Json(message).into_response()
+    }
+}
+
+impl From<AuthError> for AppError {
+    fn from(error: AuthError) -> Self {
+        AppError::AuthError(error)
+    }
+}
+
+impl From<ClientError> for AppError {
+    fn from(error: ClientError) -> Self {
+        AppError::ClientError(error)
+    }
+}
+
 #[derive(Debug)]
 pub enum AuthError {
     RequestFailed(String),
@@ -60,6 +106,3 @@ impl std::fmt::Display for ClientError {
         }
     }
 }
-
-type GenericError = Box<dyn std::error::Error + Send + Sync>;
-pub type Result<T> = std::result::Result<T, GenericError>;

@@ -3,7 +3,7 @@ use std::{collections::HashMap, usize};
 use axum::{
     body::{self, Body, Bytes},
     extract::Request,
-    http::{HeaderName, HeaderValue},
+    http::{HeaderName, HeaderValue}, BoxError,
 };
 use http_body_util::BodyExt;
 use http_body_util::{Empty, Full};
@@ -17,13 +17,13 @@ use serde::{de::DeserializeOwned, Serialize};
 use tokio::net::TcpStream;
 
 use crate::{
-    exception::error::{ClientError, Result},
+    exception::error::{ClientError},
     util::http_util::set_headers,
 };
 
 /// Helper function to create a new client connection
 
-async fn create_connection<B>(url: &hyper::Uri) -> Result<SendRequest<B>>
+async fn create_connection<B>(url: &hyper::Uri) -> Result<SendRequest<B>, BoxError>
 where
     B: hyper::body::Body + Send + 'static,
     B::Data: Send,
@@ -55,7 +55,7 @@ where
 pub async fn get_raw(
     url: &hyper::Uri,
     headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<Response<Bytes>> {
+) -> Result<Response<Bytes>, BoxError> {
     let mut sender = create_connection::<Empty<Bytes>>(url).await?;
 
     let mut builder = Request::builder().method(Method::GET).uri(url).header(
@@ -65,7 +65,7 @@ pub async fn get_raw(
             .as_str(),
     );
 
-    builder = set_headers(builder, headers)?;
+    builder = set_headers(builder, headers);
 
     let req = builder
         .body(Empty::<Bytes>::new())
@@ -80,7 +80,7 @@ pub async fn get_raw(
 pub async fn get<T: DeserializeOwned>(
     url: &hyper::Uri,
     headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<T> {
+) -> Result<T, BoxError> {
     let resp = get_raw(url, headers).await?;
     let data: T = parse_response(resp).await?;
     Ok(data)
@@ -90,7 +90,7 @@ pub async fn post_raw(
     url: &hyper::Uri,
     req_body: Body,
     headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<Response<Bytes>> {
+) -> Result<Response<Bytes>, BoxError> {
     let mut sender = create_connection::<Full<Bytes>>(url).await?;
 
     let mut builder = Request::builder().method(Method::POST).uri(url).header(
@@ -100,7 +100,7 @@ pub async fn post_raw(
             .as_str(),
     );
 
-    builder = set_headers(builder, headers)?;
+    builder = set_headers(builder, headers);
 
     let body_bytes = body::to_bytes(req_body.into(), usize::MAX).await?;
 
@@ -119,7 +119,7 @@ pub async fn post<T: DeserializeOwned>(
     url: &hyper::Uri,
     req_body: impl Serialize,
     headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<T> {
+) -> Result<T, BoxError> {
     // Serialize request body and set content type
     let req_body =
         serde_json::to_string(&req_body).map_err(|e| ClientError::Serialization(e.to_string()))?;
@@ -131,7 +131,7 @@ pub async fn post<T: DeserializeOwned>(
     parse_response(response).await
 }
 
-async fn parse_response<T>(response: Response<Bytes>) -> Result<T>
+async fn parse_response<T>(response: Response<Bytes>) -> Result<T, BoxError>
 where
     T: DeserializeOwned,
 {
