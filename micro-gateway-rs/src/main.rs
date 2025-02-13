@@ -4,7 +4,6 @@ use axum::{
 use micro_gateway_rs::{
     exception::handler::{handle_error}, http, layer::{self}
 };
-use tower::ServiceBuilder;
 use std::{env, net::SocketAddr, time::Duration};
 use tokio::signal;
 
@@ -20,14 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = Router::new()
         .route("/actuator/health", get(|| async { "OK" }))
         .route("/{*wildcard}", any(http::handler::handle_request))
-        .layer(middleware::from_fn(layer::auth::process))
-        .layer(
-                ServiceBuilder::new()
-                    // `timeout` will produce an error if the handler takes
-                    // too long so we must handle those
-                    .layer(HandleErrorLayer::new(handle_error))
-                    .timeout(Duration::from_secs(30))
-            );
+        .layer(middleware::from_fn(layer::auth::process));
 
     // run our app with hyper, listening globally on port 8008
     let port = env::var("PORT").unwrap_or_else(|_| "8088".to_string());
