@@ -1,7 +1,5 @@
 package wiki.chiu.micro.search.service;
 
-import java.util.List;
-
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.common.req.BlogSysSearchReq;
