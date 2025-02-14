@@ -12,7 +12,7 @@ use tokio::time::timeout;
 use super::client::{self};
 use crate::{
     entity::api_entity::ApiResult,
-exception::error::{ClientError},
+exception::error::{AppError, ClientError},
     util::{
         constant::UNKNOWN,
         http_util::{self},

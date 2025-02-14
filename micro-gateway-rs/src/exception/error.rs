@@ -4,23 +4,23 @@ use hyper::StatusCode;
 use super::handler::handle_error;
 
 // Custom error type for auth-related errors
-// #[derive(Debug)]
-// pub enum AppError {
-//     AuthError(AuthError),
-//     ClientError(ClientError),
-// }
+#[derive(Debug)]
+pub enum AppError {
+    AuthError(AuthError),
+    ClientError(ClientError),
+}
 
-// impl From<AuthError> for AppError {
-//     fn from(error: AuthError) -> Self {
-//         AppError::AuthError(error)
-//     }
-// }
+impl From<AuthError> for AppError {
+    fn from(error: AuthError) -> Self {
+        AppError::AuthError(error)
+    }
+}
 
-// impl From<ClientError> for AppError {
-//     fn from(error: ClientError) -> Self {
-//         AppError::ClientError(error)
-//     }
-// }
+impl From<ClientError> for AppError {
+    fn from(error: ClientError) -> Self {
+        AppError::ClientError(error)
+    }
+}
 
 impl From<ClientError> for StatusCode {
     fn from(error: ClientError) -> Self {
@@ -34,11 +34,11 @@ impl From<AuthError> for StatusCode {
     }
 }
 
-// impl From<AppError> for StatusCode {
-//     fn from(error: AppError) -> Self {
-//         StatusCode::BAD_GATEWAY
-//     }
-// }
+impl From<AppError> for StatusCode {
+    fn from(error: AppError) -> Self {
+        StatusCode::BAD_GATEWAY
+    }
+}
 
 #[derive(Debug)]
 pub enum AuthError {
