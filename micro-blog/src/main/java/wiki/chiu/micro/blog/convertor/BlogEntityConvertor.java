@@ -33,6 +33,7 @@ public class BlogEntityConvertor {
                 .content(blogDeleteDto.content())
                 .status(blogDeleteDto.status())
                 .link(blogDeleteDto.link())
+                .created(blogDeleteDto.created())
                 .userId(blogDeleteDto.userId())
                 .readCount(blogDeleteDto.readCount())
                 .build();
