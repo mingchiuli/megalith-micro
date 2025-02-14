@@ -8,7 +8,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import wiki.chiu.micro.auth.service.AuthService;
-import wiki.chiu.micro.common.exception.AuthException;
 import wiki.chiu.micro.common.rpc.config.AuthInfo;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
 
@@ -29,7 +28,7 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
     }
 
     @Override
-    public Object resolveArgument(@NonNull MethodParameter parameter, ModelAndViewContainer mavContainer, @NonNull NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws AuthException {
+    public Object resolveArgument(@NonNull MethodParameter parameter, ModelAndViewContainer mavContainer, @NonNull NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         String token = Optional.ofNullable(webRequest.getHeader(HttpHeaders.AUTHORIZATION))
                 .orElse("");
 

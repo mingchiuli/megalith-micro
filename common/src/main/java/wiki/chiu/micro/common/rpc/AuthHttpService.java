@@ -1,7 +1,6 @@
 package wiki.chiu.micro.common.rpc;
 
 
-import wiki.chiu.micro.common.exception.AuthException;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
 import wiki.chiu.micro.common.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.common.lang.Result;
