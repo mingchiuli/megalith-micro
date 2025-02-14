@@ -3,7 +3,8 @@ use std::{collections::HashMap, usize};
 use axum::{
     body::{self, Body, Bytes},
     extract::Request,
-    http::{HeaderName, HeaderValue}, BoxError,
+    http::{HeaderName, HeaderValue},
+    BoxError,
 };
 use http_body_util::BodyExt;
 use http_body_util::{Empty, Full};

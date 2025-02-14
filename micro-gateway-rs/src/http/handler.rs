@@ -12,7 +12,7 @@ use tokio::time::timeout;
 use super::client::{self};
 use crate::{
     entity::api_entity::ApiResult,
-exception::error::ClientError,
+    exception::error::ClientError,
     util::{
         constant::UNKNOWN,
         http_util::{self},
@@ -46,7 +46,6 @@ impl AuthRouteResp {
     }
 }
 
-
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, StatusCode> {
@@ -60,15 +59,13 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Status
     let req_body = prepare_auth_request(&req);
 
     // Forward to auth service
-    let auth_resp = forward_to_auth_service(&auth_url, req_body, &token)
-    .await?;
+    let auth_resp = forward_to_auth_service(&auth_url, req_body, &token).await?;
 
     // Prepare target request
     let target_uri = build_target_uri(&req, &auth_resp)?;
 
     // Forward to target service
-    let response = forward_to_target_service(req, target_uri, &token)
-        .await?;
+    let response = forward_to_target_service(req, target_uri, &token).await?;
 
     Ok(prepare_response(response)?)
 }
@@ -100,11 +97,16 @@ async fn forward_to_auth_service(
         ),
     ]);
 
-        let resp: ApiResult<AuthRouteResp> = client::post(&auth_url, req_body, headers).await.map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()))?;
+    let resp: ApiResult<AuthRouteResp> = client::post(&auth_url, req_body, headers)
+        .await
+        .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()))?;
     Ok(resp.into_data())
 }
 
-fn build_target_uri(req: &Request<Body>, auth_resp: &AuthRouteResp) -> Result<hyper::Uri, ClientError> {
+fn build_target_uri(
+    req: &Request<Body>,
+    auth_resp: &AuthRouteResp,
+) -> Result<hyper::Uri, ClientError> {
     let path_and_query = req
         .uri()
         .path_and_query()
@@ -118,7 +120,9 @@ fn build_target_uri(req: &Request<Body>, auth_resp: &AuthRouteResp) -> Result<hy
         path_and_query
     );
 
-    Ok(uri.parse::<hyper::Uri>().map_err(|_| ClientError::Request("parse".to_string()))?)
+    Ok(uri
+        .parse::<hyper::Uri>()
+        .map_err(|e| ClientError::Request(format!("parse: {}", e.to_string())))?)
 }
 
 async fn forward_to_target_service(
