@@ -7,10 +7,10 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-import wiki.chiu.micro.auth.dto.AuthDto;
 import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.common.exception.AuthException;
 import wiki.chiu.micro.common.rpc.config.AuthInfo;
+import wiki.chiu.micro.common.vo.AuthRpcVo;
 
 import java.util.Optional;
 
@@ -33,11 +33,11 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
         String token = Optional.ofNullable(webRequest.getHeader(HttpHeaders.AUTHORIZATION))
                 .orElse("");
 
-        AuthDto authDto = authService.getAuthDto(token);
+        AuthRpcVo rpcVo = authService.getAuthVo(token);
         return AuthInfo.builder()
-                .userId(authDto.userId())
-                .roles(authDto.roles())
-                .authorities(authDto.authorities())
+                .userId(rpcVo.userId())
+                .roles(rpcVo.roles())
+                .authorities(rpcVo.authorities())
                 .build();
     }
 }
