@@ -28,8 +28,7 @@ pub fn get_ip_from_headers(headers: &HeaderMap) -> Option<String> {
 }
 
 pub fn extract_token(req: &Request) -> String {
-    req
-        .headers()
+    req.headers()
         .get("Authorization")
         .and_then(|value| value.to_str().ok())
         .map(String::from)
@@ -37,12 +36,8 @@ pub fn extract_token(req: &Request) -> String {
 }
 
 pub fn get_auth_url() -> std::result::Result<hyper::Uri, AuthError> {
-    let mut auth_url = env::var(AUTH_URL_KEY).map_err(|_| {
-        AuthError::MissingConfig(format!(
-            "Missing {}",
-            AUTH_URL_KEY
-        ))
-    })?;
+    let mut auth_url = env::var(AUTH_URL_KEY)
+        .map_err(|_| AuthError::MissingConfig(format!("Missing {}", AUTH_URL_KEY)))?;
 
     auth_url.push_str("/auth/route");
     Ok(auth_url
@@ -50,10 +45,7 @@ pub fn get_auth_url() -> std::result::Result<hyper::Uri, AuthError> {
         .map_err(|e| AuthError::InvalidUrl(e.to_string()))?)
 }
 
-pub fn set_headers(
-    mut builder: Builder,
-    headers: HashMap<HeaderName, HeaderValue>,
-) -> Builder {
+pub fn set_headers(mut builder: Builder, headers: HashMap<HeaderName, HeaderValue>) -> Builder {
     for (key, value) in headers {
         builder = builder.header(key, value);
     }

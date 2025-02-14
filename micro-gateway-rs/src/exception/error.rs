@@ -21,19 +21,68 @@ impl From<ClientError> for AppError {
 
 impl From<ClientError> for StatusCode {
     fn from(error: ClientError) -> Self {
-        StatusCode::BAD_GATEWAY
+        match error {
+            ClientError::Network(e) => {
+                log::error!("ClientError::Network:{}", e);
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+            ClientError::Serialization(e) => {
+                log::error!("ClientError::Serialization:{}", e);
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+            ClientError::Request(e) => {
+                log::error!("ClientError::Request:{}", e);
+                StatusCode::BAD_GATEWAY
+            }
+            ClientError::Status(code, e) => {
+                log::error!("ClientError::Status:{}", e);
+                StatusCode::from_u16(code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+            }
+            ClientError::Deserialize(e) => {
+                log::error!("ClientError::Deserialize:{}", e);
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+            ClientError::Api(e) => {
+                log::error!("ClientError::Api:{}", e);
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        }
     }
 }
 
 impl From<AuthError> for StatusCode {
     fn from(error: AuthError) -> Self {
-        StatusCode::BAD_GATEWAY
+        match error {
+            AuthError::MissingConfig(e) => {
+                log::error!("AuthError::MissingConfig:{}", e);
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+            AuthError::InvalidUrl(e) => {
+                log::error!("AuthError::InvalidUrl:{}", e);
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+            AuthError::RequestFailed(e) => {
+                log::error!("AuthError::RequestFailed:{}", e);
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+            AuthError::Unauthorized(e) => {
+                log::error!("AuthError::Unauthorized:{}", e);
+                StatusCode::UNAUTHORIZED
+            }
+            AuthError::Forbidden(e) => {
+                log::error!("AuthError::Forbidden:{}", e);
+                StatusCode::FORBIDDEN
+            }
+        }
     }
 }
 
 impl From<AppError> for StatusCode {
     fn from(error: AppError) -> Self {
-        StatusCode::BAD_GATEWAY
+        match error {
+            AppError::ClientError(e) => StatusCode::from(e),
+            AppError::AuthError(e) => StatusCode::from(e),
+        }
     }
 }
 

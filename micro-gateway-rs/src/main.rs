@@ -1,10 +1,10 @@
 use axum::{
-    error_handling::HandleErrorLayer, middleware::{self}, routing::{any, get}, Router
+    middleware::{self},
+    routing::{any, get},
+    Router,
 };
-use micro_gateway_rs::{
-    exception::handler::{handle_error}, http, layer::{self}
-};
-use std::{env, net::SocketAddr, time::Duration};
+use micro_gateway_rs::{http, layer};
+use std::{env, net::SocketAddr};
 use tokio::signal;
 
 #[tokio::main]
