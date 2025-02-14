@@ -16,10 +16,7 @@ use hyper_util::rt::TokioIo;
 use serde::{de::DeserializeOwned, Serialize};
 use tokio::net::TcpStream;
 
-use crate::{
-    exception::error::{ClientError},
-    util::http_util::set_headers,
-};
+use crate::{exception::error::ClientError, util::http_util::set_headers};
 
 /// Helper function to create a new client connection
 

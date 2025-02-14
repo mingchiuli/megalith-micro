@@ -4,7 +4,7 @@ use axum::{
     body::{Body, Bytes},
     extract::Request,
     http::{HeaderName, HeaderValue},
-    response::Response, BoxError,
+    response::Response,
 };
 use hyper::{Method, StatusCode, Uri};
 use tokio::time::timeout;
@@ -12,7 +12,7 @@ use tokio::time::timeout;
 use super::client::{self};
 use crate::{
     entity::api_entity::ApiResult,
-exception::error::{AppError, ClientError},
+exception::error::ClientError,
     util::{
         constant::UNKNOWN,
         http_util::{self},

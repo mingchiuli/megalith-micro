@@ -6,7 +6,7 @@ use hyper::HeaderMap;
 use std::{collections::HashMap, env};
 
 use crate::{
-    exception::error::{AuthError},
+    exception::error::AuthError,
     util::constant::{
         AUTH_HEADER, AUTH_URL_KEY, CF_CONNECTING_IP, FORWARDED_HEADER, PROXY_CLIENT_IP,
         WL_PROXY_CLIENT_IP,
