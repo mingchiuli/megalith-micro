@@ -1,7 +1,4 @@
-use axum::{response::{IntoResponse, Response}, BoxError};
 use hyper::StatusCode;
-
-use super::handler::handle_error;
 
 // Custom error type for auth-related errors
 #[derive(Debug)]
