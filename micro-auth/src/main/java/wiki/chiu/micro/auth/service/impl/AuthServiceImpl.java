@@ -10,9 +10,10 @@ import wiki.chiu.micro.auth.dto.*;
 import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.auth.token.Claims;
 import wiki.chiu.micro.auth.token.TokenUtils;
-import wiki.chiu.micro.auth.vo.AuthorityRouteVo;
 import wiki.chiu.micro.auth.vo.MenusAndButtonsVo;
 import wiki.chiu.micro.auth.wrapper.AuthWrapper;
+import wiki.chiu.micro.common.vo.AuthRpcVo;
+import wiki.chiu.micro.common.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.common.vo.AuthorityRpcVo;
 import wiki.chiu.micro.common.exception.AuthException;
 import org.redisson.api.RScript.Mode;
@@ -90,12 +91,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthorityRouteVo findRoute(AuthorityRouteReq req) {
+    public AuthorityRouteRpcVo findRoute(AuthorityRouteReq req) {
         recordIp(req.ipAddr());
         List<AuthorityRpcVo> systemAuthorities = authWrapper.getAllSystemAuthorities();
         for (AuthorityRpcVo dto : systemAuthorities) {
             if (routeMatch(dto.routePattern(), dto.methodType(), req.routeMapping(), req.method())) {
-                return AuthorityRouteVo.builder()
+                return AuthorityRouteRpcVo.builder()
                         .serviceHost(dto.serviceHost())
                         .servicePort(dto.servicePort())
                         .build();
@@ -135,20 +136,25 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthDto getAuthDto(String token) throws AuthException {
+    public AuthRpcVo getAuthVo(String token) {
         if (!StringUtils.hasLength(token)) {
-            return AuthDto.builder()
+            return AuthRpcVo.builder()
                     .userId(0L)
                     .roles(Collections.emptyList())
                     .authorities(Collections.emptyList())
                     .build();
         }
 
-        Claims claims = tokenUtils.getVerifierByToken(token.substring(TOKEN_PREFIX.length()));
+        Claims claims;
+        try {
+            claims = tokenUtils.getVerifierByToken(token.substring(TOKEN_PREFIX.length()));
+        } catch (AuthException e) {
+            throw new MissException(e.getMessage());
+        }
         List<String> rawRoles = getRawRoleCodes(claims.roles());
         List<String> authorities = getAuthorities(rawRoles);
 
-        return AuthDto.builder()
+        return AuthRpcVo.builder()
                 .userId(Long.parseLong(claims.userId()))
                 .roles(rawRoles)
                 .authorities(authorities)
