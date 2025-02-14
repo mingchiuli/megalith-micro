@@ -25,7 +25,7 @@ async fn create_connection<B>(url: &hyper::Uri) -> Result<SendRequest<B>, BoxErr
 where
     B: hyper::body::Body + Send + 'static,
     B::Data: Send,
-    B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+    B::Error: Into<BoxError>,
 {
     let host = url
         .host()
