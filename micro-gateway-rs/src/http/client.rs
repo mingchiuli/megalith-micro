@@ -56,9 +56,9 @@ pub async fn get_raw(
 ) -> Result<Response<Bytes>, BoxError> {
     let sender = create_connection::<Empty<Bytes>>(&url).await?;
 
-    let builder = parse_req(&url, Method::GET, headers).await?;
+    let req = parse_req(url, Method::GET, headers).await?;
 
-    let req = builder
+    let req = req
         .body(Empty::<Bytes>::new())
         .map_err(|e| ClientError::Request(e.to_string()))?;
 
@@ -68,18 +68,18 @@ pub async fn get_raw(
 }
 
 async fn parse_req(
-    url: &hyper::Uri,
+    url: hyper::Uri,
     method: Method,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<Builder, ClientError> {
     let host = parse_host(&url)?;
 
-    let mut builder = Request::builder()
+    let mut req = Request::builder()
         .method(method)
         .uri(url)
         .header(hyper::header::HOST, host);
-    builder = set_headers(builder, headers);
-    Ok(builder)
+    req = set_headers(req, headers);
+    Ok(req)
 }
 
 async fn invoke<B>(mut sender: SendRequest<B>, req: Request<B>) -> Result<Bytes, BoxError>
@@ -117,11 +117,11 @@ pub async fn post_raw(
 ) -> Result<Response<Bytes>, BoxError> {
     let sender = create_connection::<Full<Bytes>>(&url).await?;
 
-    let builder = parse_req(&url, Method::POST, headers).await?;
+    let req = parse_req(url, Method::POST, headers).await?;
 
     let body_bytes = body::to_bytes(req_body.into(), usize::MAX).await?;
 
-    let req = builder
+    let req = req
         .body(Full::new(Bytes::from(body_bytes)))
         .map_err(|e| ClientError::Request(e.to_string()))?;
 
