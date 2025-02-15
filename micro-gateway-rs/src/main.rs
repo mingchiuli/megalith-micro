@@ -1,14 +1,12 @@
 use axum::{
-    middleware::{self},
-    routing::{any, get},
-    Router,
+    middleware::{self}, routing::{any, get}, BoxError, Router
 };
 use micro_gateway_rs::{http, layer};
 use std::{env, net::SocketAddr};
 use tokio::signal;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), BoxError> {
     // Initialize logging
     if env::var("RUST_LOG").is_err() {
         env::set_var("RUST_LOG", "info");

@@ -59,13 +59,13 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Status
     let req_body = prepare_auth_request(&req);
 
     // Forward to auth service
-    let auth_resp = forward_to_auth_service(&auth_url, req_body, &token).await?;
+    let auth_resp = forward_to_auth_service(auth_url, req_body, &token).await?;
 
     // Prepare target request
     let target_uri = build_target_uri(&req, auth_resp)?;
 
     // Forward to target service
-    let response = forward_to_target_service(req, target_uri, &token).await?;
+    let response = forward_to_target_service(req, target_uri, token).await?;
 
     Ok(prepare_response(response)?)
 }
@@ -82,7 +82,7 @@ fn prepare_auth_request(req: &Request<Body>) -> AuthRouteReq {
 }
 
 async fn forward_to_auth_service(
-    auth_url: &Uri,
+    auth_url: Uri,
     req_body: AuthRouteReq,
     token: &str,
 ) -> Result<AuthRouteResp, ClientError> {
@@ -97,7 +97,7 @@ async fn forward_to_auth_service(
         ),
     ]);
 
-    let resp: ApiResult<AuthRouteResp> = client::post(&auth_url, req_body, headers)
+    let resp: ApiResult<AuthRouteResp> = client::post(auth_url, req_body, headers)
         .await
         .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()))?;
     Ok(resp.into_data())
@@ -128,19 +128,19 @@ fn build_target_uri(
 async fn forward_to_target_service(
     req: Request<Body>,
     uri: hyper::Uri,
-    token: &str,
+    token: String,
 ) -> Result<Response<Bytes>, ClientError> {
     let headers = prepare_headers(req.headers(), token)?;
 
     let resp = timeout(REQUEST_TIMEOUT, async {
         match *req.method() {
-            Method::GET => client::get_raw(&uri, headers)
+            Method::GET => client::get_raw(uri, headers)
                 .await
                 .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string())),
 
             Method::POST => {
                 let body = req.into_body();
-                client::post_raw(&uri, body, headers).await.map_err(|e| {
+                client::post_raw(uri, body, headers).await.map_err(|e| {
                     ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string())
                 })
             }
@@ -158,13 +158,13 @@ async fn forward_to_target_service(
 
 fn prepare_headers(
     req_headers: &hyper::HeaderMap,
-    token: &str,
+    token: String,
 ) -> std::result::Result<HashMap<HeaderName, HeaderValue>, ClientError> {
     let mut headers = HashMap::new();
 
     headers.insert(
         hyper::header::AUTHORIZATION,
-        HeaderValue::from_str(token).unwrap_or(HeaderValue::from_static("")),
+        HeaderValue::from_str(&token).unwrap_or(HeaderValue::from_static("")),
     );
 
     let content_type = req_headers
