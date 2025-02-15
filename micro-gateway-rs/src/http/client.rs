@@ -3,7 +3,7 @@ use std::{collections::HashMap, usize};
 use axum::{
     body::{self, Body, Bytes},
     extract::Request,
-    http::{HeaderName, HeaderValue},
+    http::{request::Builder, HeaderName, HeaderValue},
     BoxError,
 };
 use http_body_util::BodyExt;
@@ -56,14 +56,7 @@ pub async fn get_raw(
 ) -> Result<Response<Bytes>, BoxError> {
     let sender = create_connection::<Empty<Bytes>>(&url).await?;
 
-    let host = parse_host(&url)?;
-
-    let mut builder = Request::builder()
-        .method(Method::GET)
-        .uri(url)
-        .header(hyper::header::HOST, host);
-
-    builder = set_headers(builder, headers);
+    let builder = parse_req(&url, Method::GET, headers).await?;
 
     let req = builder
         .body(Empty::<Bytes>::new())
@@ -72,6 +65,21 @@ pub async fn get_raw(
     let res_body = invoke(sender, req).await?;
 
     Ok(Response::new(res_body))
+}
+
+async fn parse_req(
+    url: &hyper::Uri,
+    method: Method,
+    headers: HashMap<HeaderName, HeaderValue>,
+) -> Result<Builder, ClientError> {
+    let host = parse_host(&url)?;
+
+    let mut builder = Request::builder()
+        .method(method)
+        .uri(url)
+        .header(hyper::header::HOST, host);
+    builder = set_headers(builder, headers);
+    Ok(builder)
 }
 
 async fn invoke<B>(mut sender: SendRequest<B>, req: Request<B>) -> Result<Bytes, BoxError>
@@ -109,14 +117,7 @@ pub async fn post_raw(
 ) -> Result<Response<Bytes>, BoxError> {
     let sender = create_connection::<Full<Bytes>>(&url).await?;
 
-    let host = parse_host(&url)?;
-
-    let mut builder = Request::builder()
-        .method(Method::POST)
-        .uri(url)
-        .header(hyper::header::HOST, host);
-
-    builder = set_headers(builder, headers);
+    let builder = parse_req(&url, Method::POST, headers).await?;
 
     let body_bytes = body::to_bytes(req_body.into(), usize::MAX).await?;
 
