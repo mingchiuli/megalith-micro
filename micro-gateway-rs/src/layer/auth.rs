@@ -58,7 +58,7 @@ pub async fn process(req: Request, next: Next) -> Result<Response, StatusCode> {
     };
 
     // Make auth request and handle response
-    let resp: ApiResult<bool> = client::post(&uri, req_body, headers)
+    let resp: ApiResult<bool> = client::post(uri, req_body, headers)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 

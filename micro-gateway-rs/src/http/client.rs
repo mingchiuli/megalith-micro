@@ -51,17 +51,17 @@ where
 }
 
 pub async fn get_raw(
-    url: &hyper::Uri,
+    url: hyper::Uri,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<Response<Bytes>, BoxError> {
-    let mut sender = create_connection::<Empty<Bytes>>(url).await?;
+    let mut sender = create_connection::<Empty<Bytes>>(&url).await?;
 
-    let mut builder = Request::builder().method(Method::GET).uri(url).header(
-        hyper::header::HOST,
-        url.authority()
-            .ok_or(ClientError::Request("No authority found".to_string()))?
-            .as_str(),
-    );
+    let host = parse_host(&url)?;
+
+    let mut builder = Request::builder()
+        .method(Method::GET)
+        .uri(url)
+        .header(hyper::header::HOST, host);
 
     builder = set_headers(builder, headers);
 
@@ -76,7 +76,7 @@ pub async fn get_raw(
 }
 
 pub async fn get<T: DeserializeOwned>(
-    url: &hyper::Uri,
+    url: hyper::Uri,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<T, BoxError> {
     let resp = get_raw(url, headers).await?;
@@ -84,19 +84,28 @@ pub async fn get<T: DeserializeOwned>(
     Ok(data)
 }
 
+fn parse_host(url: &hyper::Uri) -> Result<HeaderValue, ClientError> {
+    let host = url
+        .authority()
+        .ok_or(ClientError::Request("No authority found".to_string()))?
+        .as_str();
+
+    HeaderValue::from_str(host).map_err(|_| ClientError::Request("Invalid host".to_string()))
+}
+
 pub async fn post_raw(
-    url: &hyper::Uri,
+    url: hyper::Uri,
     req_body: Body,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<Response<Bytes>, BoxError> {
-    let mut sender = create_connection::<Full<Bytes>>(url).await?;
+    let mut sender = create_connection::<Full<Bytes>>(&url).await?;
 
-    let mut builder = Request::builder().method(Method::POST).uri(url).header(
-        hyper::header::HOST,
-        url.authority()
-            .ok_or(ClientError::Request("No authority found".to_string()))?
-            .as_str(),
-    );
+    let host = parse_host(&url)?;
+
+    let mut builder = Request::builder()
+        .method(Method::POST)
+        .uri(url)
+        .header(hyper::header::HOST, host);
 
     builder = set_headers(builder, headers);
 
@@ -107,14 +116,13 @@ pub async fn post_raw(
         .map_err(|e| ClientError::Request(e.to_string()))?;
 
     let web_res = sender.send_request(req).await?;
-
     let res_body = web_res.into_body().collect().await?.to_bytes();
 
     Ok(Response::new(res_body))
 }
 
 pub async fn post<T: DeserializeOwned>(
-    url: &hyper::Uri,
+    url: hyper::Uri,
     req_body: impl Serialize,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<T, BoxError> {
