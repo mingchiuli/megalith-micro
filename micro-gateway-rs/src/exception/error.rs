@@ -46,6 +46,10 @@ impl From<ClientError> for StatusCode {
                 log::error!("ClientError::Api:{}", e);
                 StatusCode::INTERNAL_SERVER_ERROR
             }
+            ClientError::Response(e) => {
+                log::error!("ClientError::Response:{}", e);
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
         }
     }
 }
@@ -127,6 +131,7 @@ pub enum ClientError {
     Network(String),
     Serialization(String),
     Request(String),
+    Response(String),
     /// Add status code for HTTP errors
     Status(u16, String),
     Deserialize(String),
@@ -144,6 +149,7 @@ impl std::fmt::Display for ClientError {
             ClientError::Status(code, msg) => write!(f, "HTTP error {}: {}", code, msg),
             ClientError::Deserialize(msg) => write!(f, "Deserialize error: {}", msg),
             ClientError::Api(msg) => write!(f, "Api error: {}", msg),
+            ClientError::Response(msg) => write!(f, "Response error: {}", msg),
         }
     }
 }

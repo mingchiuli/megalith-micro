@@ -189,7 +189,7 @@ fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>, ClientError
         .get(hyper::header::CONTENT_TYPE)
         .unwrap_or(&HeaderValue::from_static("application/json"))
         .to_str()
-        .map_err(|e| ClientError::Request(e.to_string()))?
+        .map_err(|e| ClientError::Response(e.to_string()))?
         .to_string();
 
     let mut builder = Response::builder().status(StatusCode::OK);
