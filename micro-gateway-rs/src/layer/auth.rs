@@ -4,7 +4,7 @@ use hyper::Uri;
 use serde::Serialize;
 use std::collections::HashMap;
 
-use crate::entity::api_entity::ApiResult;
+use crate::result::api_result::ApiResult;
 use crate::{http::client, util::constant::AUTH_URL_KEY};
 use std::env;
 
