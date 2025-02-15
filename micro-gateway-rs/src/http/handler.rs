@@ -62,7 +62,7 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Status
     let auth_resp = forward_to_auth_service(&auth_url, req_body, &token).await?;
 
     // Prepare target request
-    let target_uri = build_target_uri(&req, &auth_resp)?;
+    let target_uri = build_target_uri(&req, auth_resp)?;
 
     // Forward to target service
     let response = forward_to_target_service(req, target_uri, &token).await?;
@@ -105,7 +105,7 @@ async fn forward_to_auth_service(
 
 fn build_target_uri(
     req: &Request<Body>,
-    auth_resp: &AuthRouteResp,
+    auth_resp: AuthRouteResp,
 ) -> Result<hyper::Uri, ClientError> {
     let path_and_query = req
         .uri()
