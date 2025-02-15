@@ -54,7 +54,7 @@ pub async fn get_raw(
     url: hyper::Uri,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<Response<Bytes>, BoxError> {
-    let mut sender = create_connection::<Empty<Bytes>>(&url).await?;
+    let sender = create_connection::<Empty<Bytes>>(&url).await?;
 
     let host = parse_host(&url)?;
 
@@ -69,10 +69,19 @@ pub async fn get_raw(
         .body(Empty::<Bytes>::new())
         .map_err(|e| ClientError::Request(e.to_string()))?;
 
-    let web_res = sender.send_request(req).await?;
-    let res_body = web_res.into_body().collect().await?.to_bytes();
+    let res_body = invoke(sender, req).await?;
 
     Ok(Response::new(res_body))
+}
+
+async fn invoke<B>(mut sender: SendRequest<B>, req: Request<B>) -> Result<Bytes, BoxError>
+where
+    B: hyper::body::Body + Send + 'static,
+    B::Data: Send,
+    B::Error: Into<BoxError>,
+{
+    let web_res = sender.send_request(req).await?;
+    Ok(web_res.into_body().collect().await?.to_bytes())
 }
 
 pub async fn get<T: DeserializeOwned>(
@@ -98,7 +107,7 @@ pub async fn post_raw(
     req_body: Body,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<Response<Bytes>, BoxError> {
-    let mut sender = create_connection::<Full<Bytes>>(&url).await?;
+    let sender = create_connection::<Full<Bytes>>(&url).await?;
 
     let host = parse_host(&url)?;
 
@@ -115,8 +124,7 @@ pub async fn post_raw(
         .body(Full::new(Bytes::from(body_bytes)))
         .map_err(|e| ClientError::Request(e.to_string()))?;
 
-    let web_res = sender.send_request(req).await?;
-    let res_body = web_res.into_body().collect().await?.to_bytes();
+    let res_body = invoke(sender, req).await?;
 
     Ok(Response::new(res_body))
 }
