@@ -29,7 +29,7 @@ where
 {
     let host = url
         .host()
-        .ok_or(ClientError::Network("No host found".to_string()))?;
+        .ok_or(ClientError::Request("No host found".to_string()))?;
     let port = url.port_u16().unwrap_or(8080);
 
     let stream = TcpStream::connect(format!("{}:{}", host, port))
