@@ -202,5 +202,5 @@ fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>, ClientError
 
     Ok(builder
         .body(Body::from(resp.into_body()))
-        .map_err(|e| ClientError::Request(e.to_string()))?)
+        .map_err(|e| ClientError::Response(e.to_string()))?)
 }

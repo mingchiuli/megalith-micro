@@ -1,7 +1,7 @@
 use std::{collections::HashMap, usize};
 
 use axum::{
-    body::{self, Body, Bytes},
+    body::{self, Bytes},
     extract::Request,
     http::{request::Builder, HeaderName, HeaderValue},
     BoxError,
@@ -112,7 +112,7 @@ fn parse_host(url: &hyper::Uri) -> Result<HeaderValue, ClientError> {
 
 pub async fn post_raw(
     url: hyper::Uri,
-    req_body: Body,
+    req_body: axum::body::Body,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<Response<Bytes>, BoxError> {
     let sender = create_connection::<Full<Bytes>>(&url).await?;
@@ -140,7 +140,7 @@ pub async fn post<T: DeserializeOwned>(
         serde_json::to_string(&req_body).map_err(|e| ClientError::Serialization(e.to_string()))?;
 
     // Use post_raw to handle the request
-    let response = post_raw(url, Body::from(req_body), headers).await?;
+    let response = post_raw(url, axum::body::Body::from(req_body), headers).await?;
 
     // Parse the response
     parse_response(response).await
