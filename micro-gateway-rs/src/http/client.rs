@@ -163,5 +163,5 @@ where
 
     // Try to deserialize the response body
     Ok(serde_json::from_reader(body.reader())
-        .map_err(|e| Box::new(ClientError::Deserialize(e.to_string())))?)
+        .map_err(|e| ClientError::Deserialize(e.to_string()))?)
 }
