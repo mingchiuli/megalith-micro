@@ -1,26 +1,28 @@
 use axum::{
-    middleware::{self}, routing::{any, get}, BoxError, Router
+    middleware::{self},
+    routing::{any, get},
+    BoxError, Router,
 };
 use micro_gateway_rs::{http, layer};
 use std::{env, net::SocketAddr};
 use tokio::signal;
 
 const LOGO: &str = r#"
-    _                        
-   / \   __  ___   _ _ __ ___  
-  / _ \  \ \/ / | | | '_ ` _ \ 
+    _
+   / \   __  ___   _ _ __ ___
+  / _ \  \ \/ / | | | '_ ` _ \
  / ___ \  >  <| |_| | | | | | |
 /_/   \_\/_/\_\\__,_|_| |_| |_|
 "#;
 
 #[tokio::main]
-async fn main() -> Result<(), BoxError> { 
+async fn main() -> Result<(), BoxError> {
     // Initialize logging
     if env::var("RUST_LOG").is_err() {
         env::set_var("RUST_LOG", "info");
     }
     env_logger::init();
-    
+
     log::info!("{}", LOGO);
     log::info!("Starting Axum server...");
 
