@@ -44,7 +44,7 @@ fn extract_request_param(
         .unwrap_or("");
 
     let uri = build_auth_uri()?;
-    let headers = build_headers(auth_token)?;
+    let headers = build_headers(auth_token);
     let req_body = RouteCheckReq {
         method,
         route_mapping: path,
@@ -77,8 +77,8 @@ fn build_auth_uri() -> Result<Uri, ClientError> {
         .map_err(|e| ClientError::Request(e.to_string()))
 }
 
-fn build_headers(auth_token: &str) -> Result<HashMap<HeaderName, HeaderValue>, ClientError> {
-    Ok(HashMap::from([
+fn build_headers(auth_token: &str) -> HashMap<HeaderName, HeaderValue> {
+    HashMap::from([
         (
             hyper::header::AUTHORIZATION,
             HeaderValue::from_str(auth_token).unwrap_or(HeaderValue::from_static("")),
@@ -87,5 +87,5 @@ fn build_headers(auth_token: &str) -> Result<HashMap<HeaderName, HeaderValue>, C
             hyper::header::CONTENT_TYPE,
             HeaderValue::from_static("application/json"),
         ),
-    ]))
+    ])
 }
