@@ -24,7 +24,6 @@ async fn main() -> Result<(), BoxError> {
     env_logger::init();
 
     log::info!("{}", LOGO);
-    log::info!("Starting Axum server...");
 
     // build our application with a single route
     let app = Router::new()
