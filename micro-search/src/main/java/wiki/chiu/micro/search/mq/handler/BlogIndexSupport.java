@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 
 import java.io.IOException;
-import java.util.Objects;
 
 public abstract sealed class BlogIndexSupport permits
         CreateBlogIndexHandler,
@@ -30,27 +29,37 @@ public abstract sealed class BlogIndexSupport permits
     protected abstract void elasticSearchProcess(BlogEntityRpcVo blog);
 
     public void handle(BlogOperateMessage message, Channel channel, Message msg) {
-        long deliveryTag = msg.getMessageProperties().getDeliveryTag();
-        try {
-            Long blogId = message.blogId();
-            BlogEntityRpcVo blogEntity;
-            if (Objects.equals(BlogOperateEnum.of(message.typeEnumCode()), BlogOperateEnum.REMOVE)) {
-                blogEntity = new BlogEntityRpcVo(blogId, null, null, null, null, null, null, null, null, null);
-            } else {
-                blogEntity = blogHttpServiceWrapper.findById(blogId);
-            }
+        final long deliveryTag = msg.getMessageProperties().getDeliveryTag();
 
-            elasticSearchProcess(blogEntity);
-            //手动签收消息
-            //false代表不是批量签收模式
-            channel.basicAck(deliveryTag, false);
+        try {
+            processBlogMessage(message);
+            acknowledgeMessage(channel, deliveryTag);
         } catch (Exception e) {
-            log.error("consume failure", e);
-            try {
-                channel.basicNack(deliveryTag, false, true);
-            } catch (IOException ex) {
-                log.error(ex.getMessage());
-            }
+            log.error("Failed to consume message", e);
+            handleFailure(channel, deliveryTag);
+        }
+    }
+
+    private void processBlogMessage(BlogOperateMessage message) {
+        BlogEntityRpcVo blogEntity = getBlogEntity(message);
+        elasticSearchProcess(blogEntity);
+    }
+
+    private BlogEntityRpcVo getBlogEntity(BlogOperateMessage message) {
+        return BlogOperateEnum.REMOVE.equals(BlogOperateEnum.of(message.typeEnumCode()))
+                ? new BlogEntityRpcVo(message.blogId())
+                : blogHttpServiceWrapper.findById(message.blogId());
+    }
+
+    private void acknowledgeMessage(Channel channel, long deliveryTag) throws IOException {
+        channel.basicAck(deliveryTag, false);
+    }
+
+    private void handleFailure(Channel channel, long deliveryTag) {
+        try {
+            channel.basicNack(deliveryTag, false, true);
+        } catch (IOException ex) {
+            log.error("Failed to negative acknowledge message: {}", ex.getMessage());
         }
     }
 

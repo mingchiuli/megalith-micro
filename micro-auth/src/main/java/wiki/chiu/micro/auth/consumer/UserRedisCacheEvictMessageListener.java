@@ -40,6 +40,7 @@ public class UserRedisCacheEvictMessageListener {
         this.commonCacheKeyGenerator = commonCacheKeyGenerator;
     }
 
+
     @RabbitListener(queues = Const.USER_QUEUE,
             concurrency = "10",
             messageConverter = "jsonMessageConverter",
@@ -47,52 +48,61 @@ public class UserRedisCacheEvictMessageListener {
     public void handler(UserAuthMenuOperateMessage message, Channel channel, Message msg) {
         AuthMenuOperateEnum operateEnum = AuthMenuOperateEnum.of(message.type());
         List<String> roles = message.roles();
-        HashSet<String> keys = new HashSet<>();
 
-        keys.addAll(getMenusAndButtonsKeys(roles, operateEnum));
+        HashSet<String> keysToEvict = new HashSet<>();
+        keysToEvict.addAll(getMenusAndButtonsKeys(roles, operateEnum));
+        keysToEvict.addAll(getAuthKeys(roles, operateEnum));
 
-        keys.addAll(getAuthKeys(roles, operateEnum));
-
-        cacheEvictHandler.evictCache(keys);
+        cacheEvictHandler.evictCache(keysToEvict);
     }
 
     private Set<String> getMenusAndButtonsKeys(List<String> roles, AuthMenuOperateEnum operateEnum) {
         Set<String> keys = new HashSet<>();
-        if (AuthMenuOperateEnum.MENU.equals(operateEnum) || AuthMenuOperateEnum.AUTH_AND_MENU.equals(operateEnum)) {
-            Method method;
-            try {
-                method = AuthWrapper.class.getMethod("getCurrentUserNav", String.class);
-                for (String role : roles) {
-                    keys.add(commonCacheKeyGenerator.generateKey(method, role));
-                }
-            } catch (NoSuchMethodException e) {
-                log.error("some error", e);
-            }
+        if (!shouldProcessMenus(operateEnum)) {
+            return keys;
+        }
+
+        try {
+            Method method = AuthWrapper.class.getMethod("getCurrentUserNav", String.class);
+            roles.forEach(role -> keys.add(commonCacheKeyGenerator.generateKey(method, role)));
+        } catch (NoSuchMethodException e) {
+            log.error("Failed to get method for menu keys generation", e);
         }
         return keys;
     }
 
     private Set<String> getAuthKeys(List<String> roles, AuthMenuOperateEnum operateEnum) {
         Set<String> keys = new HashSet<>();
-        if (AuthMenuOperateEnum.AUTH.equals(operateEnum) || AuthMenuOperateEnum.AUTH_AND_MENU.equals(operateEnum)) {
-            Method getAuthoritiesByRoleCodeMethod;
-            try {
-                getAuthoritiesByRoleCodeMethod = AuthWrapper.class.getMethod("getAuthoritiesByRoleCode", String.class);
-                for (String role : roles) {
-                    keys.add(commonCacheKeyGenerator.generateKey(getAuthoritiesByRoleCodeMethod, role));
-                }
-            } catch (NoSuchMethodException e) {
-                log.error("some error", e);
-            }
+        if (!shouldProcessAuth(operateEnum)) {
+            return keys;
+        }
 
-            Method getAllSystemAuthoritiesMethod;
-            try {
-                getAllSystemAuthoritiesMethod = AuthWrapper.class.getMethod("getAllSystemAuthorities");
-                keys.add(commonCacheKeyGenerator.generateKey(getAllSystemAuthoritiesMethod));
-            } catch (NoSuchMethodException e) {
-                log.error("some error", e);
-            }
+        try {
+            addRoleBasedAuthKeys(roles, keys);
+            addSystemWideAuthKeys(keys);
+        } catch (NoSuchMethodException e) {
+            log.error("Failed to get method for auth keys generation", e);
         }
         return keys;
+    }
+
+    private void addRoleBasedAuthKeys(List<String> roles, Set<String> keys) throws NoSuchMethodException {
+        Method getAuthoritiesByRoleCodeMethod = AuthWrapper.class.getMethod("getAuthoritiesByRoleCode", String.class);
+        roles.forEach(role -> keys.add(commonCacheKeyGenerator.generateKey(getAuthoritiesByRoleCodeMethod, role)));
+    }
+
+    private void addSystemWideAuthKeys(Set<String> keys) throws NoSuchMethodException {
+        Method getAllSystemAuthoritiesMethod = AuthWrapper.class.getMethod("getAllSystemAuthorities");
+        keys.add(commonCacheKeyGenerator.generateKey(getAllSystemAuthoritiesMethod));
+    }
+
+    private boolean shouldProcessMenus(AuthMenuOperateEnum operateEnum) {
+        return AuthMenuOperateEnum.MENU.equals(operateEnum) ||
+                AuthMenuOperateEnum.AUTH_AND_MENU.equals(operateEnum);
+    }
+
+    private boolean shouldProcessAuth(AuthMenuOperateEnum operateEnum) {
+        return AuthMenuOperateEnum.AUTH.equals(operateEnum) ||
+                AuthMenuOperateEnum.AUTH_AND_MENU.equals(operateEnum);
     }
 }
