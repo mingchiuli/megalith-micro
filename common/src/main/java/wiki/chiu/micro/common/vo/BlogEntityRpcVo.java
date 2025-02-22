@@ -25,6 +25,10 @@ public record BlogEntityRpcVo(
 
         Long readCount) {
 
+    public BlogEntityRpcVo(Long blogId) {
+        this(blogId, null, null, null, null, null, null, null, null, null);
+    }
+
     public static BlogEntityDtoBuilder builder() {
         return new BlogEntityDtoBuilder();
     }
