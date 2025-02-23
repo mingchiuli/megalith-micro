@@ -19,7 +19,9 @@ const LOGO: &str = r#"
 async fn main() -> Result<(), BoxError> {
     // Initialize logging
     if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "info");
+        unsafe {
+            env::set_var("RUST_LOG", "info");
+        }
     }
     env_logger::init();
 
