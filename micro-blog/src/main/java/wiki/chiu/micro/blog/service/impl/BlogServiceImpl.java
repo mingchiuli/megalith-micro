@@ -155,7 +155,7 @@ public class BlogServiceImpl implements BlogService {
         Set<BlogEntity> blogs = Collections.newSetFromMap(new ConcurrentHashMap<>());
         Set<BlogSensitiveContentEntity> blogSensitives = Collections.newSetFromMap(new ConcurrentHashMap<>());
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
-        BlogSysCountSearchReq blogSysCountSearchReq = BlogSysCountSearchReqConvertor.convert(downloadReq, userId);
+        BlogSysCountSearchReq blogSysCountSearchReq = BlogSysCountSearchReqConvertor.convert(downloadReq, userId, roles);
 
         Long total = searchHttpServiceWrapper.countBlogs(blogSysCountSearchReq);
         int pageSize = 20;
