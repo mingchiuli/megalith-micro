@@ -1,24 +1,5 @@
 use hyper::StatusCode;
 
-// Custom error type for auth-related errors
-#[derive(Debug)]
-pub enum AppError {
-    AuthError(AuthError),
-    ClientError(ClientError),
-}
-
-impl From<AuthError> for AppError {
-    fn from(error: AuthError) -> Self {
-        AppError::AuthError(error)
-    }
-}
-
-impl From<ClientError> for AppError {
-    fn from(error: ClientError) -> Self {
-        AppError::ClientError(error)
-    }
-}
-
 impl From<ClientError> for StatusCode {
     fn from(error: ClientError) -> Self {
         match error {
@@ -81,15 +62,6 @@ impl From<AuthError> for StatusCode {
     }
 }
 
-impl From<AppError> for StatusCode {
-    fn from(error: AppError) -> Self {
-        match error {
-            AppError::ClientError(e) => StatusCode::from(e),
-            AppError::AuthError(e) => StatusCode::from(e),
-        }
-    }
-}
-
 #[derive(Debug)]
 pub enum AuthError {
     RequestFailed(String),
@@ -139,6 +111,8 @@ pub enum ClientError {
 }
 
 impl std::error::Error for ClientError {}
+unsafe impl Send for ClientError {}
+unsafe impl Sync for ClientError {}
 
 impl std::fmt::Display for ClientError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -151,5 +125,12 @@ impl std::fmt::Display for ClientError {
             ClientError::Api(msg) => write!(f, "Api error: {}", msg),
             ClientError::Response(msg) => write!(f, "Response error: {}", msg),
         }
+    }
+}
+
+pub fn handle_api_error(e: Box<dyn std::error::Error + Send + Sync>) -> ClientError {
+    match e.downcast_ref::<ClientError>() {
+        Some(ClientError::Status(code, msg)) => ClientError::Status(*code, msg.clone()),
+        _ => ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()),
     }
 }

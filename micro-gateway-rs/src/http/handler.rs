@@ -11,7 +11,7 @@ use tokio::time::timeout;
 
 use super::client::{self};
 use crate::{
-    exception::error::ClientError,
+    exception::error::{ClientError, handle_api_error},
     result::api_result::ApiResult,
     util::{
         constant::UNKNOWN,
@@ -134,15 +134,13 @@ async fn forward_to_target_service(
 
     let resp = timeout(REQUEST_TIMEOUT, async {
         match *req.method() {
-            Method::GET => client::get_raw(uri, headers)
-                .await
-                .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string())),
+            Method::GET => client::get_raw(uri, headers).await.map_err(handle_api_error),
 
             Method::POST => {
                 let body = req.into_body();
-                client::post_raw(uri, body, headers).await.map_err(|e| {
-                    ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string())
-                })
+                client::post_raw(uri, body, headers)
+                    .await
+                    .map_err(handle_api_error)
             }
             _ => Err(ClientError::Status(
                 StatusCode::METHOD_NOT_ALLOWED.as_u16(),
