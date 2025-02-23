@@ -11,7 +11,7 @@ use http_body_util::{Empty, Full};
 use hyper::{
     body::{Body, Buf},
     client::conn::http1::{self, SendRequest},
-    Method, Response,
+    Method, Response, StatusCode,
 };
 use hyper_util::rt::TokioIo;
 use serde::{de::DeserializeOwned, Serialize};
@@ -176,6 +176,10 @@ where
     B::Error: Into<BoxError>,
 {
     let res = sender.send_request(req).await?;
+    let status = res.status();
     let body = res.into_body().collect().await?.to_bytes();
+    if status != StatusCode::OK {
+        return Err(Box::new(ClientError::Status(status.as_u16(), String::from_utf8(body.to_vec())?)));
+    }
     Ok(body)
 }

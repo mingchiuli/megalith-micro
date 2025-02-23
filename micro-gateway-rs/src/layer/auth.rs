@@ -5,7 +5,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
 
-use crate::exception::error::ClientError;
+use crate::exception::error::{ClientError, handle_api_error};
 use crate::result::api_result::ApiResult;
 use crate::{http::client, util::constant::AUTH_URL_KEY};
 
@@ -60,7 +60,7 @@ async fn auth(
 ) -> Result<bool, ClientError> {
     let resp: ApiResult<bool> = client::post(uri, req_body, headers)
         .await
-        .map_err(|e| ClientError::Api(e.to_string()))?;
+        .map_err(handle_api_error)?;
 
     match resp.code() {
         200 => Ok(resp.into_data()),
