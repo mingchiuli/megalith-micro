@@ -190,7 +190,6 @@ fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>, ClientError
         .map_err(|e| ClientError::Response(e.to_string()))?
         .to_string();
 
-    log::info!("status:{}", resp.status());
     let mut builder = Response::builder().status(resp.status());
 
     if content_type == "application/octet-stream" {
