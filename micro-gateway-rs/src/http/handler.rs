@@ -192,7 +192,7 @@ fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>, ClientError
         .map_err(|e| ClientError::Response(e.to_string()))?
         .to_string();
 
-    let mut builder = Response::builder().status(StatusCode::OK);
+    let mut builder = Response::builder().status(resp.status());
 
     if content_type == "application/octet-stream" {
         builder = builder.header(hyper::header::CONTENT_TYPE, "application/octet-stream");
