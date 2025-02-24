@@ -10,12 +10,12 @@ updates:
       - "**/*"
     schedule:
       interval: "daily"
-      time: "09:40"
+      time: "09:30"
       timezone: "Asia/Shanghai"
   - package-ecosystem: "gradle" # See documentation for possible values
     directories:
       - "**/*" # Location of package manifests
     schedule:
       interval: "daily"
-      time: "09:40"
+      time: "09:30"
       timezone: "Asia/Shanghai"
