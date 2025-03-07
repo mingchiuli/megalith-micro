@@ -46,7 +46,7 @@ impl AuthRouteResp {
     }
 }
 
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, StatusCode> {
     // Extract authentication token
