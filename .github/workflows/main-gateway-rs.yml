@@ -70,5 +70,5 @@ jobs:
             fi
             nginx=$(docker ps | grep 'nginx' | awk '{print $1}')
             if [ -n "$nginx" ]; then
-              docker restart $nginx
+              docker exec $nginx nginx -s reload
             fi
