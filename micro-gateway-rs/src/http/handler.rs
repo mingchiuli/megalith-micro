@@ -65,6 +65,7 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Status
     let target_uri = build_target_uri(&req, auth_resp)?;
 
     // Forward to target service
+    //TODO 处理错误返回
     let response = forward_to_target_service(req, target_uri, token).await?;
 
     Ok(prepare_response(response)?)
