@@ -14,7 +14,7 @@ pub async fn ws_route_handler(ws: WebSocketUpgrade, uri: Uri) -> impl IntoRespon
     };
 
     // 创建新的URL，使用固定的域名和端口
-    let new_url = match url::Url::parse("http://micro-websocket:8087") {
+    let new_url = match url::Url::parse("ws://micro-websocket:8087") {
         Ok(mut url) => {
             // 复制原始路径
             url.set_path(original_url.path());
