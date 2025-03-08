@@ -37,14 +37,29 @@ fn extract_request_param(
     // Extract data before async operations
     let method = req.method().to_string();
     let path = req.uri().path().to_string();
-    let auth_token = req
-        .headers()
-        .get("Authorization")
-        .and_then(|h| h.to_str().ok())
-        .unwrap_or("");
+
+    // 获取认证令牌 - 根据路径选择不同的方式
+    let auth_token = if path.contains("/ws") {
+        // WebSocket 路径 - 从查询参数获取 token
+        req.uri()
+            .query()
+            .and_then(|q| {
+                url::form_urlencoded::parse(q.as_bytes())
+                    .find(|(key, _)| key == "token")
+                    .map(|(_, value)| value.to_string())
+            })
+            .unwrap_or_default()
+    } else {
+        // 其他路径 - 从 Authorization 头获取
+        req.headers()
+            .get("Authorization")
+            .and_then(|h| h.to_str().ok())
+            .unwrap_or("")
+            .to_string()
+    };
 
     let uri = build_auth_uri()?;
-    let headers = build_headers(auth_token);
+    let headers = build_headers(auth_token.as_str());
     let req_body = RouteCheckReq {
         method,
         route_mapping: path,
