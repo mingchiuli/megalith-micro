@@ -59,7 +59,3 @@ jobs:
             if [ -n "$old" ]; then
               docker rmi $old
             fi
-            nginx=$(docker ps | grep 'nginx' | awk '{print $1}')
-            if [ -n "$nginx" ]; then
-              docker restart $nginx
-            fi

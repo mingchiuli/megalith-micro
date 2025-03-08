@@ -1,9 +1,12 @@
 use axum::{
+    BoxError, Router,
     middleware::{self},
     routing::{any, get},
-    BoxError, Router,
 };
-use micro_gateway_rs::{http, layer};
+use micro_gateway_rs::{
+    http::{self, ws_handler},
+    layer,
+};
 use std::{env, net::SocketAddr};
 use tokio::signal;
 
@@ -30,6 +33,7 @@ async fn main() -> Result<(), BoxError> {
     // build our application with a single route
     let app = Router::new()
         .route("/actuator/health", get(|| async { "OK" }))
+        .route("/edit/ws", get(ws_handler::ws_route_handler))
         .route("/{*wildcard}", any(http::handler::handle_request))
         .layer(middleware::from_fn(layer::auth::process));
 

@@ -2,7 +2,6 @@ package wiki.chiu.micro.websocket.config;
 
 import wiki.chiu.micro.websocket.config.handler.EditWebSocketHandler;
 import wiki.chiu.micro.websocket.config.handler.RetrieveUserHandler;
-import wiki.chiu.micro.websocket.config.interceptor.AuthHandshakeInterceptor;
 
 import org.springframework.context.annotation.Configuration;
 
@@ -19,13 +18,10 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     private final EditWebSocketHandler editWebSocketHandler;
 
-    private final AuthHandshakeInterceptor authHandshakeInterceptor;
-
     private final RetrieveUserHandler retrieveUserHandler;
 
-    public WebSocketConfig(EditWebSocketHandler editWebSocketHandler, AuthHandshakeInterceptor authHandshakeInterceptor, RetrieveUserHandler retrieveUserHandler) {
+    public WebSocketConfig(EditWebSocketHandler editWebSocketHandler, RetrieveUserHandler retrieveUserHandler) {
         this.editWebSocketHandler = editWebSocketHandler;
-        this.authHandshakeInterceptor = authHandshakeInterceptor;
         this.retrieveUserHandler = retrieveUserHandler;
     }
 
@@ -33,7 +29,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(editWebSocketHandler, "/edit/ws")
                 .setHandshakeHandler(retrieveUserHandler)
-                .setAllowedOrigins("https://chiu.wiki")
-                .addInterceptors(authHandshakeInterceptor);
+                .setAllowedOrigins("http://micro-gateway-rs:8088");
     }
 }
