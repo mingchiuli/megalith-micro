@@ -18,20 +18,21 @@ use crate::{
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, StatusCode> {
+    let uri = req.uri();
     // Extract authentication token
     let token = http_util::extract_token(&req);
 
     // Get authentication URL
     let auth_url = http_util::get_auth_url()?;
 
-    // Prepare auth request
-    let req_body = http_util::prepare_route_request(req.method(), req.headers(), req.uri());
+    // Prepare route request
+    let req_body = http_util::prepare_route_request(req.method(), req.headers(), uri);
 
-    // Forward to auth service
+    // Forward to route service
     let route_resp = http_util::find_route(auth_url, req_body, &token).await?;
 
     // Prepare target request
-    let target_uri = build_target_uri(req.uri(), route_resp)?;
+    let target_uri = build_target_uri(uri, route_resp)?;
 
     // Forward to target service
     let response = forward_to_target_service(req, target_uri, token).await?;
