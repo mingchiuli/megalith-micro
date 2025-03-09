@@ -1,7 +1,7 @@
 redis.call('del', KEYS[1])
 local paragraphList = cjson.decode(ARGV[1])
-for i=1, #paragraphList do
-  redis.call('hset', KEYS[1], 'para::' .. i, paragraphList[i])
+for i = 1, #paragraphList do
+    redis.call('hset', KEYS[1], 'para::' .. i, paragraphList[i])
 end
 redis.call('hset', KEYS[1], ARGV[2], ARGV[10])
 redis.call('hset', KEYS[1], ARGV[3], ARGV[11])
