@@ -1,23 +1,60 @@
 use std::{collections::HashMap, usize};
 
 use axum::{
+    BoxError,
     body::{self, Bytes},
     extract::Request,
-    http::{request::Builder, HeaderName, HeaderValue},
-    BoxError,
+    http::{HeaderName, HeaderValue, request::Builder},
 };
-use http_body_util::{combinators::BoxBody, BodyExt};
+use http_body_util::{BodyExt, combinators::BoxBody};
 use http_body_util::{Empty, Full};
 use hyper::{
+    Method, Response, StatusCode,
     body::{Body, Buf},
     client::conn::http1::{self, SendRequest},
-    Method, Response, StatusCode,
 };
 use hyper_util::rt::TokioIo;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use tokio::net::TcpStream;
 
 use crate::{exception::error::ClientError, util::http_util::set_headers};
+
+use serde::Deserialize;
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AuthRouteReq {
+    method: String,
+    route_mapping: String,
+    ip_addr: String,
+}
+
+impl AuthRouteReq {
+    pub fn new(method: &Method, route_mapping: String, ip_addr: String) -> Self {
+        AuthRouteReq {
+            method: method.as_str().to_string(),
+            route_mapping,
+            ip_addr,
+        }
+    }
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AuthRouteResp {
+    service_host: String,
+    service_port: u32,
+}
+
+impl AuthRouteResp {
+    pub fn service_host(&self) -> &str {
+        &self.service_host
+    }
+
+    pub fn service_port(&self) -> &u32 {
+        &self.service_port
+    }
+}
 
 async fn parse_req(
     url: hyper::Uri,
@@ -179,7 +216,10 @@ where
     let status = res.status();
     let body = res.into_body().collect().await?.to_bytes();
     if status != StatusCode::OK {
-        return Err(Box::new(ClientError::Status(status.as_u16(), String::from_utf8(body.to_vec())?)));
+        return Err(Box::new(ClientError::Status(
+            status.as_u16(),
+            String::from_utf8(body.to_vec())?,
+        )));
     }
     Ok(body)
 }

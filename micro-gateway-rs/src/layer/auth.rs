@@ -7,6 +7,7 @@ use std::env;
 
 use crate::exception::error::{ClientError, handle_api_error};
 use crate::result::api_result::ApiResult;
+use crate::util::http_util;
 use crate::{http::client, util::constant::AUTH_URL_KEY};
 
 #[derive(Serialize)]
@@ -39,25 +40,7 @@ fn extract_request_param(
     let path = req.uri().path().to_string();
 
     // 获取认证令牌 - 根据协议选择不同的方式
-        let auth_token = if req.headers().get("sec-websocket-version").is_some() ||
-                          req.headers().get("upgrade").map(|h| h.to_str().unwrap_or("").to_lowercase() == "websocket").unwrap_or(false) {
-            // WebSocket 协议 - 从查询参数获取 token
-            req.uri()
-                .query()
-                .and_then(|q| {
-                    url::form_urlencoded::parse(q.as_bytes())
-                        .find(|(key, _)| key == "token")
-                        .map(|(_, value)| value.to_string())
-                })
-                .unwrap_or_default()
-        } else {
-            // 其他协议 - 从 Authorization 头获取
-            req.headers()
-                .get("Authorization")
-                .and_then(|h| h.to_str().ok())
-                .unwrap_or("")
-                .to_string()
-        };
+    let auth_token = http_util::extract_token(req);
 
     let uri = build_auth_uri()?;
     let headers = build_headers(auth_token.as_str());
