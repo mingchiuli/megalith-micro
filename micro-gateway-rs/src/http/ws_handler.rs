@@ -1,5 +1,5 @@
-use axum::extract::ws::{Message as AxumMessage, WebSocket};
 use axum::extract::WebSocketUpgrade;
+use axum::extract::ws::{Message as AxumMessage, WebSocket};
 use axum::response::IntoResponse;
 use futures_util::{SinkExt, StreamExt};
 use hyper::{HeaderMap, Method, StatusCode, Uri};
@@ -13,8 +13,6 @@ use crate::util::http_util::{self};
 use super::client::AuthRouteResp;
 
 pub async fn ws_route_handler(ws: WebSocketUpgrade, uri: Uri) -> impl IntoResponse {
-    log::info!("WebSocket connection establishing：{}", uri);
-    
     // Extract authentication token
     let token = extract_token(&uri);
 
@@ -27,36 +25,36 @@ pub async fn ws_route_handler(ws: WebSocketUpgrade, uri: Uri) -> impl IntoRespon
         }
     };
 
-    // Prepare auth request
+    // Prepare route request
     let req_body = http_util::prepare_route_request(&Method::GET, &HeaderMap::new(), &uri);
 
-    // Forward to auth service
-    let route_resp = http_util::find_route(auth_url, req_body, &token)
-        .await
-        .unwrap();
+    // Forward to route service
+    let route_resp = match http_util::find_route(auth_url, req_body, &token).await {
+        Ok(resp) => resp,
+        Err(e) => {
+            log::error!("Failed to find route: {}", e);
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+    };
 
-    let mut new_url = parse_url(route_resp, &uri);
-
-    // Set the path from the original request
-    new_url.set_path(uri.path());
-
-    // Set the query parameters if they exist
-    if let Some(q) = uri.query() {
-        new_url.set_query(Some(q));
-    }
-
-    log::info!("Forwarding WebSocket connection to: {}", new_url);
+    let new_url = match parse_url(route_resp, &uri) {
+        Ok(url) => url,
+        Err(e) => {
+            log::error!("Failed to parse URL: {}", e);
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+    };
 
     ws.on_upgrade(|socket| async move {
         handle_websocket_request(socket, new_url).await;
     })
 }
 
-fn parse_url(route_resp: AuthRouteResp, uri: &Uri) -> Url {
+fn parse_url(route_resp: AuthRouteResp, uri: &Uri) -> Result<Url, ClientError> {
     let path_and_query = uri
         .path_and_query()
         .ok_or_else(|| ClientError::Request("Invalid URI".to_string()))
-        .unwrap()
+        .map_err(|e| ClientError::Request(e.to_string()))?
         .to_string();
 
     let uri = format!(
@@ -67,7 +65,7 @@ fn parse_url(route_resp: AuthRouteResp, uri: &Uri) -> Url {
         path_and_query
     );
 
-    url::Url::parse(&uri).unwrap()
+    url::Url::parse(&uri).map_err(|e| ClientError::Request(e.to_string()))
 }
 
 fn extract_token(uri: &Uri) -> String {
@@ -77,17 +75,11 @@ fn extract_token(uri: &Uri) -> String {
                 .find(|(key, _)| key == "token")
                 .map(|(_, value)| value.to_string())
         })
-        .unwrap_or_default()
+        .unwrap_or("".to_string())
 }
 
 async fn handle_websocket_request(ws: WebSocket, target_url: Url) {
-    log::info!(
-        "WebSocket connection established, forwarding to: {}",
-        target_url
-    );
-
     // 连接到微服务
-    log::info!("Connecting to micro-websocket service at: {}", target_url);
     let (server_ws, _) = match connect_async(target_url.as_str()).await {
         Ok(conn) => conn,
         Err(e) => {
@@ -210,6 +202,4 @@ async fn handle_websocket_request(ws: WebSocket, target_url: Url) {
         _ = client_to_server => log::info!("Client to server connection closed"),
         _ = server_to_client => log::info!("Server to client connection closed"),
     }
-
-    log::info!("WebSocket forwarding completed");
 }
