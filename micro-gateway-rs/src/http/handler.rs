@@ -11,7 +11,7 @@ use tokio::time::timeout;
 
 use super::client::{self, AuthRouteResp};
 use crate::{
-    exception::error::{handle_api_error, ClientError},
+    exception::error::{ClientError, handle_api_error},
     util::http_util::{self},
 };
 
@@ -120,10 +120,7 @@ fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>, ClientError
         .map_err(|e| ClientError::Response(e.to_string()))?)
 }
 
-fn build_target_uri(
-    uri: &Uri,
-    route_resp: AuthRouteResp
-) -> Result<hyper::Uri, ClientError> {
+fn build_target_uri(uri: &Uri, route_resp: AuthRouteResp) -> Result<hyper::Uri, ClientError> {
     let path_and_query = uri
         .path_and_query()
         .ok_or_else(|| ClientError::Request("Invalid URI".to_string()))?

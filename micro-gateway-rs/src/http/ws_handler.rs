@@ -53,8 +53,7 @@ pub async fn ws_route_handler(ws: WebSocketUpgrade, uri: Uri) -> impl IntoRespon
 fn parse_url(route_resp: AuthRouteResp, uri: &Uri) -> Result<Url, ClientError> {
     let path_and_query = uri
         .path_and_query()
-        .ok_or_else(|| ClientError::Request("Invalid URI".to_string()))
-        .map_err(|e| ClientError::Request(e.to_string()))?
+        .ok_or_else(|| ClientError::Request("Invalid URI".to_string()))?
         .to_string();
 
     let uri = format!(
