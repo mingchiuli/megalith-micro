@@ -20,7 +20,7 @@ pub async fn ws_route_handler(ws: WebSocketUpgrade, uri: Uri) -> impl IntoRespon
             Ok(url) => url,
             Err(e) => {
                 log::error!("Failed to parse target URL: {}", e);
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+                return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             },
         };
         
