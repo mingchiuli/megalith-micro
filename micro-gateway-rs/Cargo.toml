@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 axum = { version = "0.8.1", features = ["ws"] }
 hyper = { version = "1.6.0", features = ["full"] }
-tokio = { version = "1.43.0", features = ["full"] }
+tokio = { version = "1.44.0", features = ["full"] }
 http-body-util = "0.1.2"
 hyper-util = { version = "0.1.10", features = ["full"] }
 serde = {version = "1.0.218", features = ["derive"]}
