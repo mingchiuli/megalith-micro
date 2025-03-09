@@ -8,6 +8,7 @@ use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use url::Url;
 
 pub async fn ws_route_handler(ws: WebSocketUpgrade, uri: Uri) -> impl IntoResponse {
+    log::info!("WebSocket connection establishing：{}", uri);
     let original_url = match url::Url::parse(&uri.to_string()) {
         Ok(url) => url,
         Err(_) => return StatusCode::BAD_REQUEST.into_response(),
