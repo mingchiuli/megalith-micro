@@ -9,34 +9,34 @@ use url::Url;
 
 pub async fn ws_route_handler(ws: WebSocketUpgrade, uri: Uri) -> impl IntoResponse {
     log::info!("WebSocket connection establishing：{}", uri);
-    let original_url = match url::Url::parse(&uri.to_string()) {
-        Ok(url) => url,
-        Err(e) => {
-            log::error!("WebSocket connection exp：{}", e);
-            return StatusCode::BAD_REQUEST.into_response();
+        
+        // Instead of trying to parse the URI directly,
+        // just extract the path and query parts
+        let path = uri.path();
+        let query = uri.query();
+        
+        // Create the target URL with fixed domain and port
+        let mut new_url = match url::Url::parse("ws://micro-websocket:8087") {
+            Ok(url) => url,
+            Err(e) => {
+                log::error!("Failed to parse target URL: {}", e);
+                StatusCode::INTERNAL_SERVER_ERROR.into_response();
+            },
+        };
+        
+        // Set the path from the original request
+        new_url.set_path(path);
+        
+        // Set the query parameters if they exist
+        if let Some(q) = query {
+            new_url.set_query(Some(q));
         }
-    };
-
-    // 创建新的URL，使用固定的域名和端口
-    let new_url = match url::Url::parse("ws://micro-websocket:8087") {
-        Ok(mut url) => {
-            // 复制原始路径
-            url.set_path(original_url.path());
-
-            // 复制原始查询参数
-            url.set_query(original_url.query());
-
-            // 复制原始片段（如果有）
-            url.set_fragment(original_url.fragment());
-
-            url
-        }
-        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-    };
-
-    ws.on_upgrade(|socket| async move {
-        handle_websocket_request(socket, new_url).await;
-    })
+        
+        log::info!("Forwarding WebSocket connection to: {}", new_url);
+        
+        ws.on_upgrade(|socket| async move {
+            handle_websocket_request(socket, new_url).await;
+        })
 }
 
 async fn handle_websocket_request(ws: WebSocket, target_url: Url) {
