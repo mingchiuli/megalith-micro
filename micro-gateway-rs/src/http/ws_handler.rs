@@ -1,42 +1,83 @@
-use axum::extract::WebSocketUpgrade;
 use axum::extract::ws::{Message as AxumMessage, WebSocket};
+use axum::extract::WebSocketUpgrade;
 use axum::response::IntoResponse;
 use futures_util::{SinkExt, StreamExt};
-use hyper::{StatusCode, Uri};
+use hyper::{HeaderMap, Method, StatusCode, Uri};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use url::Url;
 
+use crate::exception::error::ClientError;
+use crate::util::http_util::{self};
+
+use super::client::AuthRouteResp;
+
 pub async fn ws_route_handler(ws: WebSocketUpgrade, uri: Uri) -> impl IntoResponse {
     log::info!("WebSocket connection establishing：{}", uri);
-        
-        // Instead of trying to parse the URI directly,
-        // just extract the path and query parts
-        let path = uri.path();
-        let query = uri.query();
-        
-        // Create the target URL with fixed domain and port
-        let mut new_url = match url::Url::parse("ws://micro-websocket:8087") {
-            Ok(url) => url,
-            Err(e) => {
-                log::error!("Failed to parse target URL: {}", e);
-                return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-            },
-        };
-        
-        // Set the path from the original request
-        new_url.set_path(path);
-        
-        // Set the query parameters if they exist
-        if let Some(q) = query {
-            new_url.set_query(Some(q));
+    
+    // Extract authentication token
+    let token = extract_token(&uri);
+
+    // Get authentication URL
+    let auth_url = match http_util::get_auth_url() {
+        Ok(url) => url,
+        Err(e) => {
+            log::error!("Failed to get auth URL: {}", e);
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
-        
-        log::info!("Forwarding WebSocket connection to: {}", new_url);
-        
-        ws.on_upgrade(|socket| async move {
-            handle_websocket_request(socket, new_url).await;
+    };
+
+    // Prepare auth request
+    let req_body = http_util::prepare_route_request(&Method::GET, &HeaderMap::new(), &uri);
+
+    // Forward to auth service
+    let route_resp = http_util::find_route(auth_url, req_body, &token)
+        .await
+        .unwrap();
+
+    let mut new_url = parse_url(route_resp, &uri);
+
+    // Set the path from the original request
+    new_url.set_path(uri.path());
+
+    // Set the query parameters if they exist
+    if let Some(q) = uri.query() {
+        new_url.set_query(Some(q));
+    }
+
+    log::info!("Forwarding WebSocket connection to: {}", new_url);
+
+    ws.on_upgrade(|socket| async move {
+        handle_websocket_request(socket, new_url).await;
+    })
+}
+
+fn parse_url(route_resp: AuthRouteResp, uri: &Uri) -> Url {
+    let path_and_query = uri
+        .path_and_query()
+        .ok_or_else(|| ClientError::Request("Invalid URI".to_string()))
+        .unwrap()
+        .to_string();
+
+    let uri = format!(
+        "{}://{}:{}{}",
+        "ws",
+        route_resp.service_host(),
+        route_resp.service_port(),
+        path_and_query
+    );
+
+    url::Url::parse(&uri).unwrap()
+}
+
+fn extract_token(uri: &Uri) -> String {
+    uri.query()
+        .and_then(|q| {
+            url::form_urlencoded::parse(q.as_bytes())
+                .find(|(key, _)| key == "token")
+                .map(|(_, value)| value.to_string())
         })
+        .unwrap_or_default()
 }
 
 async fn handle_websocket_request(ws: WebSocket, target_url: Url) {
