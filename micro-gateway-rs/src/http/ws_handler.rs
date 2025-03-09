@@ -11,7 +11,10 @@ pub async fn ws_route_handler(ws: WebSocketUpgrade, uri: Uri) -> impl IntoRespon
     log::info!("WebSocket connection establishing：{}", uri);
     let original_url = match url::Url::parse(&uri.to_string()) {
         Ok(url) => url,
-        Err(_) => return StatusCode::BAD_REQUEST.into_response(),
+        Err(e) => {
+            log::error!("WebSocket connection exp：{}", e);
+            return StatusCode::BAD_REQUEST.into_response();
+        }
     };
 
     // 创建新的URL，使用固定的域名和端口
