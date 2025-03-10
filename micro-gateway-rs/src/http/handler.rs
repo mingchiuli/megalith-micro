@@ -9,24 +9,28 @@ use axum::{
 use hyper::StatusCode;
 
 pub async fn unified_handler(
-    ws: WebSocketUpgrade,
+    ws: Option<WebSocketUpgrade>,
     uri: Uri,
     req: Request<Body>,
 ) -> impl IntoResponse {
     // 检查是否是 WebSocket 请求，并且路径是 /edit/ws
     if is_websocket_request(&req) {
         // 处理 WebSocket 请求并直接返回
-        return match ws_handler::ws_route_handler(ws, uri).await {
-            Ok(response) => response.into_response(),
-            Err(err) => {
-                // 根据错误类型返回适当的响应
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    format!("WebSocket error: {}", err),
-                )
+        if let Some(ws_upgrade) = ws {
+        // 处理 WebSocket 请求
+            return match ws_handler::ws_route_handler(ws_upgrade, uri).await {
+                Ok(response) => response.into_response(),
+                Err(err) => {
+                    // 根据错误类型返回适当的响应
+                    (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        format!("WebSocket error: {}", err),
+                    )
                     .into_response()
-            }
-        };
+                }
+            };
+        }
+        
     }
 
     // 否则作为普通 HTTP 请求处理
