@@ -1,6 +1,7 @@
+use axum::body::Body;
 use axum::extract::WebSocketUpgrade;
 use axum::extract::ws::{Message as AxumMessage, WebSocket};
-use axum::response::IntoResponse;
+use axum::response::{IntoResponse, Response};
 use futures_util::{SinkExt, StreamExt};
 use hyper::{HeaderMap, Method, StatusCode, Uri};
 use tokio_tungstenite::connect_async;
@@ -12,42 +13,44 @@ use crate::util::http_util::{self};
 
 use super::client::AuthRouteResp;
 
-pub async fn ws_route_handler(ws: WebSocketUpgrade, uri: Uri) -> impl IntoResponse {
+pub async fn ws_route_handler(
+    ws: WebSocketUpgrade,
+    uri: Uri,
+) -> Result<Response<Body>, StatusCode> {
     // Extract authentication token
     let token = extract_token(&uri);
 
     // Get authentication URL
-    let auth_url = match http_util::get_auth_url() {
-        Ok(url) => url,
-        Err(e) => {
-            log::error!("Failed to get auth URL: {}", e);
-            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-        }
-    };
+    let auth_url = http_util::get_auth_url().map_err(|e| {
+        log::error!("Failed to get auth URL: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     // Prepare route request
     let req_body = http_util::prepare_route_request(&Method::GET, &HeaderMap::new(), &uri);
 
     // Forward to route service
-    let route_resp = match http_util::find_route(auth_url, req_body, &token).await {
-        Ok(resp) => resp,
-        Err(e) => {
+    let route_resp = http_util::find_route(auth_url, req_body, &token)
+        .await
+        .map_err(|e| {
             log::error!("Failed to find route: {}", e);
-            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-        }
-    };
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
-    let new_url = match parse_url(route_resp, &uri) {
-        Ok(url) => url,
-        Err(e) => {
-            log::error!("Failed to parse URL: {}", e);
-            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-        }
-    };
+    let new_url = parse_url(route_resp, &uri).map_err(|e| {
+        log::error!("Failed to parse URL: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
-    ws.on_upgrade(|socket| async move {
-        handle_websocket_request(socket, new_url).await;
-    })
+    // 将 WebSocket 升级响应转换为 Response<Body>
+    let response = ws
+        .on_upgrade(|socket| async move {
+            handle_websocket_request(socket, new_url).await;
+        })
+        .into_response();
+
+    let (parts, _) = response.into_parts();
+    Ok(Response::from_parts(parts, Body::empty()))
 }
 
 fn parse_url(route_resp: AuthRouteResp, uri: &Uri) -> Result<Url, ClientError> {
