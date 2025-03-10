@@ -1,3 +1,4 @@
 pub mod client;
 pub mod handler;
-pub mod ws_handler;
+mod http_handler;
+mod ws_handler;
