@@ -38,7 +38,7 @@
     "prettier": "^3.5.3",
     "typescript": "~5.8.2",
     "unplugin-auto-import": "^19.1.1",
-    "typescript-eslint": "^8.26.0",
+    "typescript-eslint": "^8.26.1",
     "unplugin-element-plus": "^0.9.1",
     "unplugin-vue-components": "^28.4.1",
     "vite": "^6.2.1",
