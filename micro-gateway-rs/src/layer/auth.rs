@@ -5,10 +5,11 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
 
+use crate::client::http_client;
 use crate::exception::error::{ClientError, handle_api_error};
 use crate::result::api_result::ApiResult;
-use crate::util::http_util;
-use crate::{http::client, util::constant::AUTH_URL_KEY};
+use crate::utils::constant::AUTH_URL_KEY;
+use crate::utils::http_util;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -57,7 +58,7 @@ async fn auth(
     req_body: RouteCheckReq,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<bool, ClientError> {
-    let resp: ApiResult<bool> = client::post(uri, req_body, headers)
+    let resp: ApiResult<bool> = http_client::post(uri, req_body, headers)
         .await
         .map_err(handle_api_error)?;
 

@@ -3,7 +3,7 @@ use axum::{
     middleware::{self},
     routing::{any, get},
 };
-use micro_gateway_rs::{http::handler, layer};
+use micro_gateway_rs::{layer, tcp::handler};
 use std::{env, net::SocketAddr};
 use tokio::signal;
 

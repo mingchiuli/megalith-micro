@@ -17,7 +17,7 @@ use hyper_util::rt::TokioIo;
 use serde::{Serialize, de::DeserializeOwned};
 use tokio::net::TcpStream;
 
-use crate::{exception::error::ClientError, util::http_util::set_headers};
+use crate::{exception::error::ClientError, utils::http_util::set_headers};
 
 use serde::Deserialize;
 
