@@ -8,10 +8,9 @@ use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use url::Url;
 
+use crate::client::http_client::AuthRouteResp;
 use crate::exception::error::ClientError;
-use crate::util::http_util::{self};
-
-use super::client::AuthRouteResp;
+use crate::utils::http_util::{self};
 
 pub async fn ws_route_handler(
     ws: WebSocketUpgrade,

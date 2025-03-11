@@ -9,10 +9,10 @@ use axum::{
 use hyper::{Method, StatusCode, Uri};
 use tokio::time::timeout;
 
-use super::client::{self, AuthRouteResp};
 use crate::{
+    client::http_client::{self, AuthRouteResp},
     exception::error::{ClientError, handle_api_error},
-    util::http_util::{self},
+    utils::http_util::{self},
 };
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
@@ -49,13 +49,13 @@ async fn forward_to_target_service(
 
     let resp = timeout(REQUEST_TIMEOUT, async {
         match *req.method() {
-            Method::GET => client::get_raw(uri, headers)
+            Method::GET => http_client::get_raw(uri, headers)
                 .await
                 .map_err(handle_api_error),
 
             Method::POST => {
                 let body = req.into_body();
-                client::post_raw(uri, body, headers)
+                http_client::post_raw(uri, body, headers)
                     .await
                     .map_err(handle_api_error)
             }
