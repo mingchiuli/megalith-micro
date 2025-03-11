@@ -341,7 +341,7 @@ const healthCheck = async () => {
   } catch (_e) {
     destroy()
   } finally {
-    healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 2000)
+    healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 4000)
   }
 }
 
