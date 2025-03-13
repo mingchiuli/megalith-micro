@@ -9,7 +9,7 @@ use axum::{
 };
 use hyper::StatusCode;
 
-pub async fn unified_handler(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
+pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
     // 检查是否是 WebSocket 请求
     if is_websocket_request(&req) {
         // 分解请求以获取部分

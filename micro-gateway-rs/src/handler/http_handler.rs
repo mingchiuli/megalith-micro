@@ -1,9 +1,8 @@
-use std::{collections::HashMap, time::Duration};
+use std::time::Duration;
 
 use axum::{
     body::{Body, Bytes},
     extract::Request,
-    http::{HeaderName, HeaderValue},
     response::Response,
 };
 use hyper::{Method, StatusCode};
@@ -37,7 +36,7 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Status
     // Forward to target service
     let response = forward_to_target_service(req, target_uri, token).await?;
 
-    Ok(prepare_response(response)?)
+    Ok(http_util::prepare_response(response)?)
 }
 
 async fn forward_to_target_service(
@@ -45,7 +44,7 @@ async fn forward_to_target_service(
     uri: hyper::Uri,
     token: String,
 ) -> Result<Response<Bytes>, ClientError> {
-    let headers = prepare_headers(req.headers(), token)?;
+    let headers = http_util::prepare_headers(req.headers(), token)?;
 
     let resp = timeout(REQUEST_TIMEOUT, async {
         match *req.method() {
@@ -69,53 +68,4 @@ async fn forward_to_target_service(
     .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()))??;
 
     Ok(resp)
-}
-
-fn prepare_headers(
-    req_headers: &hyper::HeaderMap,
-    token: String,
-) -> std::result::Result<HashMap<HeaderName, HeaderValue>, ClientError> {
-    let mut headers = HashMap::new();
-
-    headers.insert(
-        hyper::header::AUTHORIZATION,
-        HeaderValue::from_str(&token).unwrap_or(HeaderValue::from_static("")),
-    );
-
-    let content_type = req_headers
-        .get(hyper::header::CONTENT_TYPE)
-        .unwrap_or(&HeaderValue::from_static("application/json"))
-        .to_str()
-        .map_err(|e| ClientError::Request(e.to_string()))?
-        .to_string();
-
-    headers.insert(
-        hyper::header::CONTENT_TYPE,
-        HeaderValue::from_str(&content_type)
-            .unwrap_or(HeaderValue::from_static("application/json")),
-    );
-
-    Ok(headers)
-}
-
-fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>, ClientError> {
-    let content_type = resp
-        .headers()
-        .get(hyper::header::CONTENT_TYPE)
-        .unwrap_or(&HeaderValue::from_static("application/json"))
-        .to_str()
-        .map_err(|e| ClientError::Response(e.to_string()))?
-        .to_string();
-
-    let mut builder = Response::builder().status(resp.status());
-
-    if content_type == "application/octet-stream" {
-        builder = builder.header(hyper::header::CONTENT_TYPE, "application/octet-stream");
-    } else {
-        builder = builder.header(hyper::header::CONTENT_TYPE, "application/json");
-    }
-
-    Ok(builder
-        .body(Body::from(resp.into_body()))
-        .map_err(|e| ClientError::Response(e.to_string()))?)
 }
