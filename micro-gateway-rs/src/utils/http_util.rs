@@ -102,3 +102,22 @@ pub fn prepare_route_request(method: &Method, headers: &HeaderMap, uri: &Uri) ->
 
     AuthRouteReq::new(method, uri.path().to_string(), ip_addr)
 }
+
+pub fn parse_url(route_resp: AuthRouteResp, uri: &Uri, protocol: &str) -> Result<Uri, ClientError> {
+    let path_and_query = uri
+        .path_and_query()
+        .ok_or_else(|| ClientError::Request("Invalid URI".to_string()))?
+        .to_string();
+
+    let uri = format!(
+        "{}://{}:{}{}",
+        protocol,
+        route_resp.service_host(),
+        route_resp.service_port(),
+        path_and_query
+    );
+
+    Ok(uri
+        .parse::<hyper::Uri>()
+        .map_err(|e| ClientError::Request(format!("parse: {}", e.to_string())))?)
+}
