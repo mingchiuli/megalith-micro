@@ -6,11 +6,11 @@ use axum::{
     http::{HeaderName, HeaderValue},
     response::Response,
 };
-use hyper::{Method, StatusCode, Uri};
+use hyper::{Method, StatusCode};
 use tokio::time::timeout;
 
 use crate::{
-    client::http_client::{self, AuthRouteResp},
+    client::http_client::{self},
     exception::error::{ClientError, handle_api_error},
     utils::http_util::{self},
 };
@@ -32,7 +32,7 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Status
     let route_resp = http_util::find_route(auth_url, req_body, &token).await?;
 
     // Prepare target request
-    let target_uri = build_target_uri(uri, route_resp)?;
+    let target_uri = http_util::parse_url(route_resp, uri, "http")?;
 
     // Forward to target service
     let response = forward_to_target_service(req, target_uri, token).await?;
@@ -118,23 +118,4 @@ fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>, ClientError
     Ok(builder
         .body(Body::from(resp.into_body()))
         .map_err(|e| ClientError::Response(e.to_string()))?)
-}
-
-fn build_target_uri(uri: &Uri, route_resp: AuthRouteResp) -> Result<hyper::Uri, ClientError> {
-    let path_and_query = uri
-        .path_and_query()
-        .ok_or_else(|| ClientError::Request("Invalid URI".to_string()))?
-        .to_string();
-
-    let uri = format!(
-        "{}://{}:{}{}",
-        "http",
-        route_resp.service_host(),
-        route_resp.service_port(),
-        path_and_query
-    );
-
-    Ok(uri
-        .parse::<hyper::Uri>()
-        .map_err(|e| ClientError::Request(format!("parse: {}", e.to_string())))?)
 }

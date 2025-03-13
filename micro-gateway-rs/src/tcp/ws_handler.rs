@@ -6,9 +6,7 @@ use futures_util::{SinkExt, StreamExt};
 use hyper::{HeaderMap, Method, StatusCode, Uri};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
-use url::Url;
 
-use crate::client::http_client::AuthRouteResp;
 use crate::exception::error::ClientError;
 use crate::utils::http_util::{self};
 
@@ -41,7 +39,7 @@ pub async fn ws_route_handler(
         })?;
 
     // Parse url
-    let new_url = parse_url(route_resp, &uri).map_err(|e| {
+    let new_url = http_util::parse_url(route_resp, &uri, "ws").map_err(|e| {
         ClientError::Status(
             StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
             format!("Failed to parse url: {}", e),
@@ -59,23 +57,6 @@ pub async fn ws_route_handler(
     Ok(Response::from_parts(parts, Body::empty()))
 }
 
-fn parse_url(route_resp: AuthRouteResp, uri: &Uri) -> Result<Url, ClientError> {
-    let path_and_query = uri
-        .path_and_query()
-        .ok_or_else(|| ClientError::Request("Invalid URI".to_string()))?
-        .to_string();
-
-    let uri = format!(
-        "{}://{}:{}{}",
-        "ws",
-        route_resp.service_host(),
-        route_resp.service_port(),
-        path_and_query
-    );
-
-    url::Url::parse(&uri).map_err(|e| ClientError::Request(e.to_string()))
-}
-
 fn extract_token(uri: &Uri) -> String {
     uri.query()
         .and_then(|q| {
@@ -86,9 +67,9 @@ fn extract_token(uri: &Uri) -> String {
         .unwrap_or("".to_string())
 }
 
-async fn handle_websocket_request(ws: WebSocket, target_url: Url) {
+async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
     // 连接到微服务
-    let (server_ws, _) = match connect_async(target_url.as_str()).await {
+    let (server_ws, _) = match connect_async(target_uri.to_string()).await {
         Ok(conn) => conn,
         Err(e) => {
             log::error!("Failed to connect to websocket service: {}", e);
