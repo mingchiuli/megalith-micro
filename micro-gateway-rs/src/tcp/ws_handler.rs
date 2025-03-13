@@ -20,10 +20,7 @@ pub async fn ws_route_handler(
     let token = extract_token(&uri);
 
     // Get authentication URL
-    let auth_url = http_util::get_auth_url().map_err(|e| {
-        log::error!("Failed to get auth URL: {}", e);
-        StatusCode::INTERNAL_SERVER_ERROR
-    })?;
+    let auth_url = http_util::get_auth_url().map_err(|e| ClientError::Status(StatusCode::INTERNAL_SERVER_ERROR.as_u16(), format!("Failed to get auth url: {}", e)))?;
 
     // Prepare route request
     let req_body = http_util::prepare_route_request(&Method::GET, &HeaderMap::new(), &uri);
@@ -31,15 +28,10 @@ pub async fn ws_route_handler(
     // Forward to route service
     let route_resp = http_util::find_route(auth_url, req_body, &token)
         .await
-        .map_err(|e| {
-            log::error!("Failed to find route: {}", e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
+        .map_err(|e| ClientError::Status(StatusCode::INTERNAL_SERVER_ERROR.as_u16(), format!("Failed to find route: {}", e)))?;
 
-    let new_url = parse_url(route_resp, &uri).map_err(|e| {
-        log::error!("Failed to parse URL: {}", e);
-        StatusCode::INTERNAL_SERVER_ERROR
-    })?;
+    // Parse url
+    let new_url = parse_url(route_resp, &uri).map_err(|e| ClientError::Status(StatusCode::INTERNAL_SERVER_ERROR.as_u16(), format!("Failed to parse url: {}", e)))?;
 
     // 将 WebSocket 升级响应转换为 Response<Body>
     let response = ws
