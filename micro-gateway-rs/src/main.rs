@@ -3,7 +3,7 @@ use axum::{
     middleware::{self},
     routing::{any, get},
 };
-use micro_gateway_rs::{layer, tcp::handler};
+use micro_gateway_rs::{handler::main_handler, layer};
 use std::{env, net::SocketAddr};
 use tokio::signal;
 
@@ -30,7 +30,7 @@ async fn main() -> Result<(), BoxError> {
     // build our application with a single route
     let app = Router::new()
         .route("/actuator/health", get(|| async { "OK" }))
-        .route("/{*wildcard}", any(handler::unified_handler))
+        .route("/{*wildcard}", any(main_handler::handle))
         .layer(middleware::from_fn(layer::auth::process));
 
     // run our app with hyper, listening globally on port 8008
