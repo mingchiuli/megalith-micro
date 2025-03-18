@@ -1,6 +1,6 @@
 import com.vanniktech.maven.publish.SonatypeHost
 
-version = "3.4.3"
+version = "3.4.3.1"
 
 plugins { id("com.vanniktech.maven.publish") version "0.31.0" }
 
