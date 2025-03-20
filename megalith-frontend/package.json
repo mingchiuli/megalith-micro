@@ -15,7 +15,7 @@
   "dependencies": {
     "@types/markdown-it": "^14.1.2",
     "@vavt/v3-extension": "^3.0.0",
-    "axios": "^1.8.3",
+    "axios": "^1.8.4",
     "element-plus": "^2.9.6",
     "highlight.js": "^11.11.1",
     "js-base64": "^3.7.7",
