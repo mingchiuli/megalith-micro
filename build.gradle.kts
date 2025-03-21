@@ -26,7 +26,7 @@ subprojects {
         }
     }
 
-    java { sourceCompatibility = JavaVersion.VERSION_24 }
+    java { sourceCompatibility = JavaVersion.VERSION_23 }
 }
 
 dependencies {
