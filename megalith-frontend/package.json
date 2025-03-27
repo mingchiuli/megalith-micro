@@ -37,7 +37,7 @@
     "npm-run-all2": "^7.0.2",
     "prettier": "^3.5.3",
     "typescript": "~5.8.2",
-    "unplugin-auto-import": "^19.1.1",
+    "unplugin-auto-import": "^19.1.2",
     "typescript-eslint": "^8.28.0",
     "unplugin-element-plus": "^0.9.1",
     "unplugin-vue-components": "^28.4.1",
