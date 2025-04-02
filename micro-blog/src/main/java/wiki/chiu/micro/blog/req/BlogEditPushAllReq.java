@@ -17,7 +17,5 @@ public record BlogEditPushAllReq(
 
         String link,
 
-        Integer version,
-
         List<SensitiveContentReq> sensitiveContentList) {
 }

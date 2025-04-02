@@ -9,6 +9,7 @@ public class UserInfoVoConvertor {
 
     public static UserInfoVo convert(UserEntityRpcVo userEntity) {
         return UserInfoVo.builder()
+                .id(userEntity.id())
                 .avatar(userEntity.avatar())
                 .nickname(userEntity.nickname())
                 .build();

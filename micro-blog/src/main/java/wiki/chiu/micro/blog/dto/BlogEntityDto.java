@@ -1,7 +1,5 @@
 package wiki.chiu.micro.blog.dto;
 
-import java.time.LocalDateTime;
-
 
 public record BlogEntityDto(
 
@@ -15,15 +13,9 @@ public record BlogEntityDto(
 
         String content,
 
-        LocalDateTime created,
-
-        LocalDateTime updated,
-
         Integer status,
 
-        String link,
-
-        Long readCount) {
+        String link) {
 
     public static BlogEntityDtoBuilder builder() {
         return new BlogEntityDtoBuilder();
@@ -35,11 +27,8 @@ public record BlogEntityDto(
         private String title;
         private String description;
         private String content;
-        private LocalDateTime created;
-        private LocalDateTime updated;
         private Integer status;
         private String link;
-        private Long readCount;
 
         public BlogEntityDtoBuilder id(Long id) {
             this.id = id;
@@ -66,16 +55,6 @@ public record BlogEntityDto(
             return this;
         }
 
-        public BlogEntityDtoBuilder created(LocalDateTime created) {
-            this.created = created;
-            return this;
-        }
-
-        public BlogEntityDtoBuilder updated(LocalDateTime updated) {
-            this.updated = updated;
-            return this;
-        }
-
         public BlogEntityDtoBuilder status(Integer status) {
             this.status = status;
             return this;
@@ -86,13 +65,8 @@ public record BlogEntityDto(
             return this;
         }
 
-        public BlogEntityDtoBuilder readCount(Long readCount) {
-            this.readCount = readCount;
-            return this;
-        }
-
         public BlogEntityDto build() {
-            return new BlogEntityDto(id, userId, title, description, content, created, updated, status, link, readCount);
+            return new BlogEntityDto(id, userId, title, description, content, status, link);
         }
     }
 }
