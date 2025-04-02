@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, onUnmounted, reactive, ref, useTemplateRef } from 'vue'
+import { computed, defineAsyncComponent, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue'
 import {
   type TagProps,
   type UploadFile,
@@ -13,70 +13,39 @@ import {
 } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import {
-  SubscribeType,
   type EditForm,
-  type PushActionForm,
   type SensitiveItem,
   type SensitiveTrans,
-  type SubscribeItem,
-  FieldType,
-  OperaColor,
   Status,
   ButtonAuth,
   SensitiveType,
   type SensitiveExhibit,
   Colors,
-  type OperateStatusParam
+  type BlogEdit
 } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
-import { blogsStore } from '@/stores/store'
+import { blogsStore, syncStore } from '@/stores/store'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { checkAccessToken, checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
-import { watchInput } from '@/utils/edit'
-import { pushAllData, pullAllData, loadEditContent } from '@/utils/editUtils'
+import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
+
+import { ytext, wsProvider, createIndexedDBProvider } from '@/config/sync'
+import type { IndexeddbPersistence } from 'y-indexeddb'
+import type { UserInfo } from '@/type/entity'
 
 const route = useRoute()
 const blogId = route.query.id as string | undefined
 
-let socket: WebSocket
-const connect = () => {
-  destroy()
-  socket = new WebSocket(
-    `${import.meta.env.VITE_BASE_WS_URL}/edit/ws?token=${localStorage.getItem('accessToken')}`
-  )
-  operateStatus.client = socket
-  socket.addEventListener('message', subscribe)
+if (blogId) {
+  syncStore().room = blogId
+} else {
+  const userStr = localStorage.getItem('userinfo')!
+  const user: UserInfo = JSON.parse(userStr)
+  syncStore().room = `init:${user.id}`
 }
 
-const destroy = () => {
-  if (!socket) return
-  socket.removeEventListener('message', subscribe)
-  socket.close()
-}
-
-const subscribe = async (event: MessageEvent<string>) => {
-  // 处理接收到的消息
-  const body: SubscribeItem = JSON.parse(event.data)
-
-  if (body.type === SubscribeType.PULL_ALL) {
-    await pullAllData(operateStatus, form)
-  }
-
-  if (body.type === SubscribeType.PUSH_ALL) {
-    await pushAllData(operateStatus, form)
-  }
-}
-
-const operateStatus: OperateStatusParam = {
-  composing: false,
-  client: socket!,
-  fieldType: FieldType.NON_PARA,
-  transColor: ref(OperaColor.FAILED),
-  blogId: blogId,
-  readOnly: ref(false),
-  pulling: false
-}
+const initialized = ref(false)
+let indexeddbProvider: IndexeddbPersistence | null = null
 
 const form: EditForm = reactive({
   id: undefined,
@@ -86,22 +55,8 @@ const form: EditForm = reactive({
   content: undefined,
   status: undefined,
   link: undefined,
-  version: 0,
   sensitiveContentList: []
 })
-
-const pushActionForm: PushActionForm = {
-  id: undefined,
-  contentChange: undefined,
-  operateTypeCode: undefined,
-  version: undefined,
-  indexStart: undefined,
-  indexEnd: undefined,
-  field: undefined,
-  paraNo: undefined
-}
-
-watchInput(form, pushActionForm, operateStatus)
 
 type SensitiveTagsItem = {
   element: SensitiveExhibit
@@ -152,6 +107,118 @@ const formRules = reactive<FormRules<EditForm>>({
   status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
 })
 
+const createWsPromise = () => {
+  return new Promise((resolve) => {
+    if (wsProvider.wsconnected) {
+      resolve(true)
+    } else {
+      wsProvider.on('sync', (isSynced: boolean) => {
+        if (isSynced) {
+          resolve(true)
+        }
+      })
+    }
+  })
+}
+
+// Add a counter to track form changes
+const operationCount = ref(0)
+const MAX_OPERATIONS = 10
+
+// Watch for changes in form elements
+watch(
+  () => ({
+    title: form.title,
+    description: form.description,
+    content: form.content,
+    status: form.status,
+    link: form.link,
+    sensitiveContentList: form.sensitiveContentList
+  }),
+  async () => {
+    operationCount.value++
+    
+    // When we reach the threshold, push all data
+    if (operationCount.value >= MAX_OPERATIONS) {
+      try {
+        await pushAllData(form)
+        console.log('Auto-saved after 10 operations')
+      } catch (error) {
+        console.error('Auto-save failed:', error)
+      } finally {
+        // Reset counter regardless of success or failure
+        operationCount.value = 0
+      }
+    }
+  },
+  { deep: true }
+)
+
+const pushAllData = async (form: EditForm) => {
+  await POST<null>('/sys/blog/edit/push/all', form)
+}
+
+const initializeEditor = async () => {
+  try {
+    // 0. 首先初始化 IndexedDB (提前初始化)
+    indexeddbProvider = createIndexedDBProvider()
+    const indexedDbSyncPromise = indexeddbProvider.whenSynced
+
+    // 1. 等待 WebSocket
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('WebSocket timeout')), 5000)
+    )
+
+    try {
+      await Promise.race([createWsPromise(), timeoutPromise])
+      // WebSocket 连接成功
+      const wsText = ytext.toString()
+      if (wsText) {
+        form.content = wsText
+        initialized.value = true
+        await indexedDbSyncPromise // 确保 IndexedDB 同步完成
+        return
+      }
+    } catch (error) {
+      console.log('WebSocket 连接超时或失败', error)
+    }
+
+    await loadEditContent(form, blogId)
+
+    // 2. 检查 serverText
+    if (form.content) {
+      wsProvider.doc.transact(() => {
+        ytext.delete(0, ytext.toString().length)
+        ytext.insert(0, form.content!)
+      })
+      initialized.value = true
+      await indexedDbSyncPromise // 确保 IndexedDB 同步完成
+      return
+    }
+
+    // 3. 尝试使用 IndexedDB 数据
+    await indexedDbSyncPromise
+    const indexedDbText = ytext.toString()
+    if (indexedDbText) {
+      console.log('使用IndexedDB数据:', indexedDbText)
+      form.content = indexedDbText
+      initialized.value = true
+      return
+    }
+
+    // 4. 如果都没有数据，使用默认值
+    console.log('使用默认初始化文本')
+    wsProvider.doc.transact(() => {
+      form.content = ''
+      ytext.insert(0, '')
+    })
+    initialized.value = true
+  } catch (error) {
+    console.error('初始化过程出错:', error)
+    initialized.value = true
+  }
+}
+
 const upload = async (image: UploadRequestOptions) => {
   await uploadFile(image.file)
 }
@@ -200,8 +267,6 @@ const handleTagClose = (tag: SensitiveTagsItem) => {
       (item.startIndex !== sensitiveItem.startIndex && item.type === sensitiveItem.type)
   )
 }
-
-const dealComposing = (payload: boolean) => (operateStatus.composing = payload)
 
 const dealSensitive = (payload: SensitiveTrans) => {
   let flag = true
@@ -318,46 +383,35 @@ const handleDescSelect = () => {
   }
 }
 
-let healthCheckTimeoutId: NodeJS.Timeout
-let initTimeoutId: NodeJS.Timeout
-onUnmounted(() => {
-  clearTimeout(healthCheckTimeoutId)
-  clearTimeout(initTimeoutId)
-  destroy()
+onUnmounted(async () => {
+  if (indexeddbProvider) {
+    await indexeddbProvider.clearData()
+    indexeddbProvider.destroy()
+  }
+  wsProvider.destroy()
 })
 
-const healthCheck = async () => {
-  try {
-    if (socket.readyState !== WebSocket.OPEN) {
-      operateStatus.readOnly.value = true
-      operateStatus.transColor.value = OperaColor.FAILED
-      const accessToken = localStorage.getItem('accessToken')!
-      await checkAccessToken(accessToken)
-      connect()
-    } else {
-      operateStatus.readOnly.value = false
-      operateStatus.transColor.value = OperaColor.SUCCESS
-    }
-  } catch (_e) {
-    destroy()
-  } finally {
-    healthCheckTimeoutId = setTimeout(async () => await healthCheck(), 4000)
+const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
+  let url = '/sys/blog/edit/pull/echo'
+  if (blogId) {
+    url += `?blogId=${blogId}`
   }
+  const data = await GET<BlogEdit>(url)
+  form.title = data.title
+  form.description = data.description
+  form.content = data.content
+  form.link = data.link
+  form.status = data.status
+  form.id = data.id
+  form.userId = data.userId
+  form.sensitiveContentList = data.sensitiveContentList
 }
 
 const init = async () => {
-  if (socket.readyState === WebSocket.OPEN) {
-    operateStatus.transColor.value = OperaColor.SUCCESS
-    await loadEditContent(form, operateStatus)
-    await healthCheck()
-    return
-  }
-
-  initTimeoutId = setTimeout(async () => init(), 100)
+  await initializeEditor()
 }
 
 ;(async () => {
-  connect()
   await init()
 })()
 </script>
@@ -372,7 +426,6 @@ const init = async () => {
           v-model="form.title"
           placeholder="标题"
           maxlength="20"
-          :disabled="operateStatus.readOnly.value"
         />
       </el-form-item>
 
@@ -385,12 +438,11 @@ const init = async () => {
           v-model="form.description"
           placeholder="摘要"
           maxlength="60"
-          :disabled="operateStatus.readOnly.value"
         />
       </el-form-item>
 
       <el-form-item class="status" prop="status">
-        <el-radio-group v-model="form.status" :disabled="operateStatus.readOnly.value">
+        <el-radio-group v-model="form.status">
           <el-radio :value="Status.NORMAL">公开</el-radio>
           <el-radio :value="Status.BLOCK">隐藏</el-radio>
           <el-radio :value="Status.SENSITIVE_FILTER">打码</el-radio>
@@ -423,7 +475,6 @@ const init = async () => {
           :limit="1"
           :http-request="upload"
           :on-remove="handleRemove"
-          :disabled="operateStatus.readOnly.value"
           :on-preview="handlePictureCardPreview"
         >
           <el-icon>
@@ -443,9 +494,7 @@ const init = async () => {
       <el-form-item class="content" prop="content">
         <CustomEditorItem
           v-model:content="form.content"
-          @composing="dealComposing"
           @sensitive="dealSensitive"
-          :trans-color="operateStatus.transColor.value"
           :form-status="form.status"
         />
       </el-form-item>
@@ -455,7 +504,6 @@ const init = async () => {
           :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)"
           v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)"
           @click="submitForm(formRef!)"
-          :disabled="operateStatus.readOnly.value"
           >{{ getButtonTitle(ButtonAuth.SYS_EDIT_COMMIT) }}</el-button
         >
       </div>

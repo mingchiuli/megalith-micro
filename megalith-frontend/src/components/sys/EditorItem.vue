@@ -1,12 +1,6 @@
 <script lang="ts" setup>
 import { UPLOAD } from '@/http/http'
-import {
-  MdEditor,
-  type Footers,
-  type ToolbarNames,
-  type ExposeParam,
-  NormalFooterToolbar
-} from 'md-editor-v3'
+import { MdEditor, type Footers, type ToolbarNames, type ExposeParam } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import '@vavt/v3-extension/lib/asset/ExportPDF.css'
 import { Emoji, ExportPDF } from '@vavt/v3-extension'
@@ -21,12 +15,10 @@ import {
 } from '@/type/entity'
 
 const emit = defineEmits<{
-  composing: [payload: boolean]
   sensitive: [payload: SensitiveTrans]
 }>()
 
-const { transColor, formStatus } = defineProps<{
-  transColor: string
+const { formStatus } = defineProps<{
   formStatus: number | undefined
 }>()
 
@@ -75,14 +67,6 @@ const toolbars: ToolbarNames[] = [
 const footers: Footers[] = ['markdownTotal', 0, '=', 1, 'scrollSwitch']
 
 onMounted(() => {
-  editorRef.value?.domEventHandlers({
-    compositionstart: () => {
-      emit('composing', true)
-    },
-    compositionend: () => {
-      emit('composing', false)
-    }
-  })
   document.getElementById('md-editor')!.onmouseup = () => {
     if (formStatus !== Status.SENSITIVE_FILTER) {
       return
@@ -160,8 +144,8 @@ const onUploadImg = async (files: File[], callback: Function) => {
     :before-close="handleClose"
   >
     <el-table :data="selectSensitiveData" @row-click="selectWord" border stripe>
-      <el-table-column property="startIndex" label="开始位置" align="center" width="100"/>
-      <el-table-column property="endIndex" label="结束位置" align="center" width="100"/>
+      <el-table-column property="startIndex" label="开始位置" align="center" width="100" />
+      <el-table-column property="endIndex" label="结束位置" align="center" width="100" />
       <el-table-column property="content" label="内容" align="center">
         <template #default="scope">
           <el-text>
@@ -196,9 +180,6 @@ const onUploadImg = async (files: File[], callback: Function) => {
         :color="Colors"
         status="success"
       />
-      <NormalFooterToolbar>
-        <span class="trans-radius" :style="{ 'background-color': transColor }" />
-      </NormalFooterToolbar>
     </template>
   </md-editor>
 </template>

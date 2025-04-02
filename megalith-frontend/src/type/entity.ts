@@ -1,5 +1,3 @@
-import { type Ref } from 'vue'
-
 export interface Visitor {
   dayVisit: number
   weekVisit: number
@@ -109,7 +107,6 @@ export interface BlogEdit {
   content: string
   link: string
   status: number
-  version: number
   sensitiveContentList: SensitiveItem[]
 }
 
@@ -159,6 +156,7 @@ export interface Token {
 export interface UserInfo {
   nickname: string
   avatar: string
+  id: number
 }
 
 export interface ChildrenFather {
@@ -251,36 +249,6 @@ export enum RoutesEnum {
   BUTTON
 }
 
-export enum OperateTypeCode {
-  STATUS = -1,
-  NON_PARA_TAIL_APPEND = 0,
-  NON_PARA_TAIL_SUBTRACT = 1,
-  NON_PARA_HEAD_APPEND = 2,
-  NON_PARA_HEAD_SUBTRACT = 3,
-  NON_PARA_REPLACE = 4,
-  NON_PARA_REMOVE = 5,
-  PARA_TAIL_APPEND = 6,
-  PARA_TAIL_SUBTRACT = 7,
-  PARA_HEAD_APPEND = 8,
-  PARA_HEAD_SUBTRACT = 9,
-  PARA_REPLACE = 10,
-  PARA_REMOVE = 11,
-  PARA_SPLIT_APPEND = 12,
-  PARA_SPLIT_SUBTRACT = 13,
-  SENSITIVE_CONTENT_LIST = 14
-}
-
-export enum SubscribeType {
-  PUSH_ALL = -1,
-  PULL_ALL = -2
-}
-
-export enum OperaColor {
-  SUCCESS = '#67c23a',
-  WARNING = '#e6a23c',
-  FAILED = '#FF0000'
-}
-
 export enum FieldName {
   DESCRIPTION = 'description',
   CONTENT = 'content',
@@ -294,21 +262,6 @@ export enum SensitiveType {
   TITLE = 1,
   DESCRIPTION = 2,
   CONTENT = 3
-}
-
-export enum FieldType {
-  NON_PARA = 'non_para',
-  PARA = 'para'
-}
-
-export enum ActionType {
-  PUSH_ACTION = 'push_action',
-  PUSH_ALL = 'push_all',
-  PULL_ALL = 'pull_all'
-}
-
-export enum ParaInfo {
-  PARA_SPLIT = '\n\n'
 }
 
 export enum Role {
@@ -362,27 +315,6 @@ export enum ButtonAuth {
   SYS_USER_SAVE = 'system-users-save'
 }
 
-export interface PushActionForm {
-  id?: number
-  contentChange?: string
-  operateTypeCode?: OperateTypeCode
-  version?: number
-  indexStart?: number
-  indexEnd?: number
-  field?: FieldName
-  paraNo?: number
-}
-
-export interface OperateStatusParam {
-  composing: boolean
-  client: WebSocket
-  fieldType: FieldType
-  transColor: Ref<string>
-  blogId: string | undefined
-  readOnly: Ref<boolean>
-  pulling: boolean
-}
-
 export interface EditForm {
   id?: number
   userId: number | undefined
@@ -391,7 +323,6 @@ export interface EditForm {
   content: string | undefined
   status: number | undefined
   link: string | undefined
-  version: number
   sensitiveContentList: SensitiveItem[]
 }
 
@@ -419,13 +350,6 @@ export interface SensitiveTrans {
   startIndex: number
   endIndex: number
   type: SensitiveType
-}
-
-export interface SubscribeItem {
-  version: number
-  userId: number
-  blogId: number
-  type: number
 }
 
 export const Colors = [

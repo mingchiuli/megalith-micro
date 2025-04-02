@@ -7,6 +7,9 @@ import router from './router'
 import * as Icons from '@element-plus/icons-vue'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
+import { initSync } from './config/sync'
+
+initSync()
 
 const app = createApp(App).use(createPinia()).use(router).use(ElementPlus).use(MdPreview)
 
