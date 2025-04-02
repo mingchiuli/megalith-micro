@@ -30,6 +30,10 @@ public record BlogPushAllDto(
             List<SensitiveContentDto> sensitiveContentList
     ) {
 
+        public BlogPushAllDtoBuilder() {
+            this(null, null,null,null,null,null,null);
+        }
+
         public BlogPushAllDtoBuilder id(Long id) {
             return new BlogPushAllDtoBuilder(id, title, description, content, status, link, sensitiveContentList);
         }
