@@ -1,6 +1,5 @@
 package wiki.chiu.micro.blog.vo;
 
-import wiki.chiu.micro.common.vo.SensitiveContentRpcVo;
 
 import java.util.List;
 
@@ -21,9 +20,7 @@ public record BlogEditVo(
 
         Integer status,
 
-        Integer version,
-
-        List<SensitiveContentRpcVo> sensitiveContentList) {
+        List<SensitiveContentVo> sensitiveContentList) {
 
 
     public static BlogEditVoBuilder builder() {
@@ -38,8 +35,7 @@ public record BlogEditVo(
         private String link;
         private String content;
         private Integer status;
-        private Integer version;
-        private List<SensitiveContentRpcVo> sensitiveContentList;
+        private List<SensitiveContentVo> sensitiveContentList;
 
         public BlogEditVoBuilder id(Long id) {
             this.id = id;
@@ -76,19 +72,52 @@ public record BlogEditVo(
             return this;
         }
 
-        public BlogEditVoBuilder version(Integer version) {
-            this.version = version;
-            return this;
-        }
-
-        public BlogEditVoBuilder sensitiveContentList(List<SensitiveContentRpcVo> sensitiveContentList) {
+        public BlogEditVoBuilder sensitiveContentList(List<SensitiveContentVo> sensitiveContentList) {
             this.sensitiveContentList = sensitiveContentList;
             return this;
         }
 
         public BlogEditVo build() {
-            return new BlogEditVo(id, userId, title, description, link, content, status, version, sensitiveContentList);
+            return new BlogEditVo(id, userId, title, description, link, content, status, sensitiveContentList);
         }
 
+    }
+
+
+    // 敏感内容DTO
+    public record SensitiveContentVo(
+            Integer startIndex,
+            Integer endIndex,
+            Integer type
+    ) {
+        public static BlogEditVo.SensitiveContentVo.SensitiveContentVoBuilder builder() {
+            return new BlogEditVo.SensitiveContentVo.SensitiveContentVoBuilder();
+        }
+
+        public record SensitiveContentVoBuilder(
+                Integer startIndex,
+                Integer endIndex,
+                Integer type
+        ) {
+            public SensitiveContentVoBuilder() {
+                this(null, null, null);
+            }
+
+            public BlogEditVo.SensitiveContentVo.SensitiveContentVoBuilder startIndex(Integer startIndex) {
+                return new BlogEditVo.SensitiveContentVo.SensitiveContentVoBuilder(startIndex, endIndex, type);
+            }
+
+            public BlogEditVo.SensitiveContentVo.SensitiveContentVoBuilder endIndex(Integer endIndex) {
+                return new BlogEditVo.SensitiveContentVo.SensitiveContentVoBuilder(startIndex, endIndex, type);
+            }
+
+            public BlogEditVo.SensitiveContentVo.SensitiveContentVoBuilder type(Integer type) {
+                return new BlogEditVo.SensitiveContentVo.SensitiveContentVoBuilder(startIndex, endIndex, type);
+            }
+
+            public BlogEditVo.SensitiveContentVo build() {
+                return new BlogEditVo.SensitiveContentVo(startIndex, endIndex, type);
+            }
+        }
     }
 }

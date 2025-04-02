@@ -4,23 +4,27 @@ import java.util.List;
 
 import wiki.chiu.micro.blog.dto.BlogEntityDto;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
-import wiki.chiu.micro.common.vo.SensitiveContentRpcVo;
 
 public class BlogEditVoConvertor {
 
     private BlogEditVoConvertor() {}
 
-    public static BlogEditVo convert(BlogEntityDto blog, Integer version, List<SensitiveContentRpcVo> sensitiveContentList) {
+    public static BlogEditVo convert(BlogEntityDto blog, List<BlogEditVo.SensitiveContentVo> sensitiveContentList) {
         return BlogEditVo.builder()
-                .userId(blog.userId())
                 .id(blog.id())
                 .title(blog.title())
                 .description(blog.description())
                 .content(blog.content())
                 .link(blog.link())
-                .version(version)
                 .status(blog.status())
-                .sensitiveContentList(sensitiveContentList)
+                .sensitiveContentList(sensitiveContentList.stream()
+                        .map(item -> BlogEditVo.SensitiveContentVo.builder()
+                                .type(item.type())
+                                .startIndex(item.startIndex())
+                                .endIndex(item.endIndex())
+                                .build())
+                        .toList())
                 .build();
+
     }
 }
