@@ -39,7 +39,8 @@ fn extract_request_param(
     // Extract data before async operations
     let method = req.method().to_string();
     let path = req.uri().path().to_string();
-
+    log::info!("path:{}", path);
+    log::info!("method:{}", method);
     // 获取认证令牌 - 根据协议选择不同的方式
     let auth_token = http_util::extract_token(req);
     let uri = build_auth_uri()?;
