@@ -9,10 +9,10 @@ import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { initSync } from './config/sync'
 
-initSync()
-
 const app = createApp(App).use(createPinia()).use(router).use(ElementPlus).use(MdPreview)
 
 Object.keys(Icons).forEach((key) => app.component(key, Icons[key as keyof typeof Icons]))
+
+initSync()
 
 app.mount('#app')
