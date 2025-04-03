@@ -24,7 +24,6 @@ public class PushAllConstraintValidator implements ConstraintValidator<PushAllVa
         return isValidTitle(blog.title()) &&
                 isValidDescription(blog.description()) &&
                 isValidContent(blog.content()) &&
-                isValidVersion(blog.version()) &&
                 isValidStatus(blog.status()) &&
                 isValidLink(blog.link()) &&
                 isValidSensitiveContentList(blog.sensitiveContentList());
@@ -40,10 +39,6 @@ public class PushAllConstraintValidator implements ConstraintValidator<PushAllVa
 
     private boolean isValidContent(String content) {
         return Objects.nonNull(content);
-    }
-
-    private boolean isValidVersion(Integer version) {
-        return Objects.nonNull(version);
     }
 
     private boolean isValidStatus(Integer status) {
