@@ -13,6 +13,6 @@ const app = createApp(App).use(createPinia()).use(router).use(ElementPlus).use(M
 
 Object.keys(Icons).forEach((key) => app.component(key, Icons[key as keyof typeof Icons]))
 
-initSync()
-
 app.mount('#app')
+
+initSync()
