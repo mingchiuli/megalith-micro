@@ -109,10 +109,10 @@ const formRules = reactive<FormRules<EditForm>>({
 
 const createWsPromise = () => {
   return new Promise((resolve) => {
-    if (wsProvider.wsconnected) {
+    if (wsProvider!.wsconnected) {
       resolve(true)
     } else {
-      wsProvider.on('sync', (isSynced: boolean) => {
+      wsProvider!.on('sync', (isSynced: boolean) => {
         if (isSynced) {
           resolve(true)
         }
@@ -187,7 +187,7 @@ const initializeEditor = async () => {
 
     // 2. 检查 serverText
     if (form.content) {
-      wsProvider.doc.transact(() => {
+      wsProvider!.doc.transact(() => {
         ytext.delete(0, ytext.toString().length)
         ytext.insert(0, form.content!)
       })
@@ -208,7 +208,7 @@ const initializeEditor = async () => {
 
     // 4. 如果都没有数据，使用默认值
     console.log('使用默认初始化文本')
-    wsProvider.doc.transact(() => {
+    wsProvider!.doc.transact(() => {
       form.content = ''
       ytext.insert(0, '')
     })
@@ -388,7 +388,7 @@ onUnmounted(async () => {
     await indexeddbProvider.clearData()
     indexeddbProvider.destroy()
   }
-  wsProvider.destroy()
+  wsProvider!.destroy()
 })
 
 const loadEditContent = async (form: EditForm, blogId: string | undefined) => {

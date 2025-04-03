@@ -7,17 +7,19 @@ import { syncStore } from '@/stores/store'
 import { config } from 'md-editor-v3'
 import type { LoginStruct } from '@/type/entity'
 
-// Create a Y Doc instance
+// 创建Y Doc实例
 const ydoc = new Y.Doc()
-// Create a text type for our editor content
+// 为编辑器内容创建文本类型
 const ytext = ydoc.getText('codemirror')
 
-// Initialize WebSocket provider with null and create it in a function
-let wsProvider: WebsocketProvider 
+// 声明提供者，但不立即初始化
+let wsProvider: WebsocketProvider | null = null
 let indexeddbProvider: IndexeddbPersistence | null = null
 
-// Initialize synchronization
+// 初始化同步
 const initSync = () => {
+  if (wsProvider) return; // 如果已经初始化，则直接返回
+  
   const store = syncStore()
   
   wsProvider = new WebsocketProvider(
@@ -46,7 +48,7 @@ const initSync = () => {
   
   const undoManager = new Y.UndoManager(ytext)
   
-  // Safely get user info
+  // 安全获取用户信息
   const userStr = localStorage.getItem('userinfo')
   if (userStr) {
     try {
@@ -64,15 +66,12 @@ const initSync = () => {
   
   config({
     codeMirrorExtensions(_theme, extensions) {
-      return [...extensions, yCollab(ytext, wsProvider.awareness, { undoManager })]
+      return [...extensions, yCollab(ytext, wsProvider!.awareness, { undoManager })]
     },
   })
 }
 
-// Initialize the sync system immediately
-initSync()
-
-// Create IndexedDB provider
+// 创建IndexedDB提供者
 const createIndexedDBProvider = () => {
   const store = syncStore()
   indexeddbProvider = new IndexeddbPersistence(store.room, ydoc)
