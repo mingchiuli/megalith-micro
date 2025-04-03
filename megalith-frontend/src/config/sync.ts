@@ -9,30 +9,34 @@ import type { LoginStruct } from '@/type/entity'
 
 // 创建 IndexedDB 持久化
 let indexeddbProvider: IndexeddbPersistence | null = null
-const syncConfig = syncStore()
-const wsUrl = syncConfig.url
-const room = syncConfig.room
-const token = syncConfig.token
-const ydoc = new Y.Doc()
-const ytext = ydoc.getText('codemirror')
-
-const wsProvider = new WebsocketProvider(
-  wsUrl,
-  room,
-  ydoc,
-  {
-    params: {
-      token: token, // 作为查询参数添加 token
-    }
-  },
-)
+let wsProvider: WebsocketProvider | null = null
+let ytext: Y.Text | null = null
+let ydoc: Y.Doc | null = null
 
 const createIndexedDBProvider = () => {
-  indexeddbProvider = new IndexeddbPersistence(syncConfig.room, ydoc)
+  const store = syncStore() // 在函数内部使用
+  indexeddbProvider = new IndexeddbPersistence(store.room, ydoc!)
   return indexeddbProvider
 }
 
 const initSync = () => {
+  // 获取 store 实例
+  const store = syncStore()
+  
+  ydoc = new Y.Doc()
+  ytext = ydoc.getText('codemirror')
+  
+  wsProvider = new WebsocketProvider(
+    store.url,
+    store.room,
+    ydoc,
+    {
+      params: {
+        token: store.token,
+      }
+    },
+  )
+
   const usercolors = [
     { color: '#30bced', light: '#30bced33' },
     { color: '#6eeb83', light: '#6eeb8333' },
@@ -44,25 +48,29 @@ const initSync = () => {
     { color: '#1be7ff', light: '#1be7ff33' },
   ]
   
-  // select a random color for this user
   const userColor = usercolors[random.uint32() % usercolors.length]
   
-
-
   const undoManager = new Y.UndoManager(ytext)
   
-  const user = localStorage.getItem('userinfo')!
-  const loginUser: LoginStruct = JSON.parse(user)
-  
-  wsProvider.awareness.setLocalStateField('user', {
-    name: loginUser.username,
-    color: userColor.color,
-    colorLight: userColor.light,
-  })
+  // 安全地获取用户信息
+  const userStr = localStorage.getItem('userinfo')
+  if (userStr) {
+    try {
+      const loginUser: LoginStruct = JSON.parse(userStr)
+      
+      wsProvider.awareness.setLocalStateField('user', {
+        name: loginUser.username,
+        color: userColor.color,
+        colorLight: userColor.light,
+      })
+    } catch (e) {
+      console.error('Failed to parse user info', e)
+    }
+  }
   
   config({
     codeMirrorExtensions(_theme, extensions) {
-      return [...extensions, yCollab(ytext, wsProvider.awareness, { undoManager })]
+      return [...extensions, yCollab(ytext!, wsProvider!.awareness, { undoManager })]
     },
   })
 }
