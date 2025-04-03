@@ -42,7 +42,6 @@ fn extract_request_param(
 
     // 获取认证令牌 - 根据协议选择不同的方式
     let auth_token = http_util::extract_token(req);
-    log::info!("token:{}", auth_token);
     let uri = build_auth_uri()?;
     let headers = build_headers(auth_token.as_str());
     let req_body = RouteCheckReq {
@@ -61,6 +60,7 @@ async fn auth(
     let resp: ApiResult<bool> = http_client::post(uri, req_body, headers)
         .await
         .map_err(handle_api_error)?;
+    log::info!("resp:{}", resp.data());
 
     match resp.code() {
         200 => Ok(resp.into_data()),
