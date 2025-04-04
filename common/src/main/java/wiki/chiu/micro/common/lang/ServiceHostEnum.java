@@ -12,9 +12,9 @@ public enum ServiceHostEnum {
 
     MICRO_USER("micro-user", "用户服务"),
 
-    MICRO_WEBSOCKET("micro-websocket", "长连接服务"),
+    MICRO_WEBSOCKET("micro-sync-rs", "同步服务"),
 
-    MICRO_GATEWAY("micro-gateway", "网关");
+    MICRO_GATEWAY("micro-gateway-rs", "网关");
 
     private final String serviceHost;
 
