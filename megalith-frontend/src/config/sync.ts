@@ -87,19 +87,13 @@ const initSync = () => {
     console.error('连接错误:', error);
   });
   
-  return wsProvider;
-}
-
-// 配置CodeMirror协作功能
-const setupCollaboration = () => {
-  if (!wsProvider) return;
-  
-  // 重新配置CodeMirror以添加协作功能
   config({
     codeMirrorExtensions(_theme, extensions) {
       return [...extensions, yCollab(ytext, wsProvider!.awareness, { undoManager })]
     },
   })
+  
+  return wsProvider;
 }
 
 // 创建IndexedDB提供者
@@ -124,7 +118,6 @@ export {
   indexeddbProvider, 
   createIndexedDBProvider, 
   initSync, 
-  setupCollaboration, 
   disconnectSync, 
   undoManager 
 }

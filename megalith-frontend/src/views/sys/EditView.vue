@@ -45,7 +45,6 @@ import {
   wsProvider,
   createIndexedDBProvider,
   disconnectSync,
-  setupCollaboration
 } from '@/config/sync'
 import type { IndexeddbPersistence } from 'y-indexeddb'
 import type { UserInfo } from '@/type/entity'
@@ -195,11 +194,7 @@ const initializeEditor = async () => {
 
     // 2. 初始化WebSocket连接
     const provider = initSync()
-    if (provider) {
-      // 3. 设置协作功能
-      setupCollaboration()
-    }
-
+    
     // 4. 初始化 IndexedDB (提前初始化)
     indexeddbProvider = createIndexedDBProvider()
     const indexedDbSyncPromise = indexeddbProvider.whenSynced
