@@ -3,6 +3,7 @@ import { WebsocketProvider } from 'y-websocket'
 import { IndexeddbPersistence } from 'y-indexeddb'
 import { yCollab } from 'y-codemirror.next'
 import * as random from 'lib0/random'
+import { config } from 'md-editor-v3'
 import type { LoginStruct } from '@/type/entity'
 import { syncStore } from '@/stores/store'
 
@@ -36,23 +37,29 @@ class CollaborationManager {
   
   // 获取协作扩展，无论协作是否激活都能工作
   public getExtension() {
-    if (this.wsProvider) {
-      // 如果已经激活，返回真实的协作扩展
-      return yCollab(ytext, this.wsProvider.awareness, { undoManager })
-    } else {
-      // 否则返回一个独立的协作扩展（不会尝试连接服务器）
-      return yCollab(ytext, {
-        setLocalStateField: () => {},
-        getStates: () => new Map(),
-        on: () => {},
-        off: () => {}
-      }, { undoManager })
-    }
+   
+    return yCollab(ytext, this.wsProvider!.awareness, { undoManager })
   }
   
   // 检查是否需要切换房间
   private shouldSwitchRoom(roomId: string): boolean {
     return this.activeRoomId !== roomId
+  }
+  
+  // 更新 CodeMirror 配置，使用当前的 awareness
+  private updateCodeMirrorConfig() {
+    // 获取适当的扩展
+    const extension = this.getExtension()
+    
+    // 更新 CodeMirror 配置
+    config({
+      codeMirrorExtensions(_theme, extensions) { 
+        // 添加新的 yCollab 扩展
+        return [...extensions, extension]
+      },
+    })
+    
+    console.log('已更新 CodeMirror 协作配置')
   }
   
   // 激活协作功能，连接到服务器
@@ -118,24 +125,36 @@ class CollaborationManager {
       // 初始化 IndexedDB 持久化
       this.indexeddbProvider = new IndexeddbPersistence(roomId, ydoc)
       
+      // 不管连接状态如何，立即更新 CodeMirror 配置
+      // 这非常重要，确保 CodeMirror 使用新创建的 awareness
+      this.updateCodeMirrorConfig()
+      
       // 等待连接建立
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('连接超时'));
-        }, 5000);
-        
-        this.wsProvider!.on('sync', (isSynced: boolean) => {
-          if (isSynced) {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('连接超时'));
+          }, 5000);
+          
+          const onSync = (isSynced: boolean) => {
+            if (isSynced) {
+              clearTimeout(timeout);
+              this.wsProvider?.off('sync', onSync);
+              resolve();
+            }
+          };
+          
+          this.wsProvider!.on('sync', onSync);
+          
+          if (this.wsProvider!.wsconnected) {
             clearTimeout(timeout);
             resolve();
           }
         });
-        
-        if (this.wsProvider!.wsconnected) {
-          clearTimeout(timeout);
-          resolve();
-        }
-      });
+      } catch (timeoutError) {
+        console.warn('等待同步超时，但连接可能仍然有效');
+        // 继续执行，不要中断流程
+      }
       
       this.isActive = true;
       return true;
@@ -162,6 +181,9 @@ class CollaborationManager {
     
     this.isActive = false;
     this.activeRoomId = '';
+    
+    // 更新配置，切换回独立模式
+    this.updateCodeMirrorConfig();
   }
   
   // 获取文本内容
@@ -193,4 +215,5 @@ class CollaborationManager {
 }
 
 // 创建单例实例
-export const collaborationManager = new CollaborationManager();
+const collaborationManagerInstance = new CollaborationManager();
+export { collaborationManagerInstance as collaborationManager, ytext, ydoc, undoManager };

@@ -197,16 +197,16 @@ const initializeEditor = async () => {
     // 1. 先加载文章内容
     await loadEditContent(form, blogId)
 
-    // 2. 激活协作功能（建立 WebSocket 连接）
+    // 3. 激活协作功能（建立 WebSocket 连接）
     const success = await collaborationManager.activate(roomId)
     
-    // 3. 处理协作激活结果
+    // 4. 处理协作激活结果
     if (success) {
       // 协作功能成功激活
       console.log('协作功能已激活')
       
-      // 检查协作文本
-      const collaborativeText = collaborationManager.getText()
+      // 检查协作文本是否有内容
+      const collaborativeText = ytext.toString()
       if (collaborativeText) {
         // 使用协作文本
         form.content = collaborativeText
@@ -217,7 +217,7 @@ const initializeEditor = async () => {
       console.warn('协作功能激活失败，将使用本地编辑模式')
     }
 
-    // 4. 如果没有协作文本或协作失败，使用服务器内容
+    // 5. 如果协作文本为空，但服务器有内容，设置文本
     if (form.content) {
       // 设置文本内容到协作管理器
       collaborationManager.setText(form.content)
@@ -225,7 +225,7 @@ const initializeEditor = async () => {
       return
     }
 
-    // 5. 如果服务器也没有内容，使用空内容
+    // 6. 如果服务器也没有内容，使用空内容
     console.log('使用默认初始化文本')
     collaborationManager.setText('')
     form.content = ''

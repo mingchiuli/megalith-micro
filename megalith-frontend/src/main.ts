@@ -13,12 +13,4 @@ const app = createApp(App).use(createPinia()).use(router).use(ElementPlus).use(M
 
 Object.keys(Icons).forEach((key) => app.component(key, Icons[key as keyof typeof Icons]))
 
-// 在应用启动时配置 CodeMirror，使用协作管理器的扩展
-config({
-  codeMirrorExtensions(_theme, extensions) {
-    // 添加协作扩展，但不连接服务器
-    return [...extensions, collaborationManager.getExtension()]
-  },
-})
-
 app.mount('#app')
