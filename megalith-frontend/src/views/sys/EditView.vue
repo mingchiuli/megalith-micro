@@ -49,6 +49,8 @@ import {
 import type { IndexeddbPersistence } from 'y-indexeddb'
 import type { UserInfo } from '@/type/entity'
 
+import { collaborationManager } from '@/config/collaborationManager'
+
 const route = useRoute()
 const blogId = route.query.id as string | undefined
 
@@ -56,10 +58,13 @@ const blogId = route.query.id as string | undefined
 const setupSyncRoom = () => {
   if (blogId) {
     syncStore().room = blogId
+    return blogId
   } else {
     const userStr = localStorage.getItem('userinfo')!
     const user: UserInfo = JSON.parse(userStr)
-    syncStore().room = `init:${user.id}`
+    const roomId = `init:${user.id}`
+    syncStore().room = roomId
+    return roomId
   }
 }
 
@@ -186,69 +191,44 @@ const pushAllData = async (form: EditForm) => {
 // 初始化编辑器
 const initializeEditor = async () => {
   try {
-    // 0. 设置同步房间ID
-    setupSyncRoom()
+    // 0. 设置同步房间ID并获取ID值
+    const roomId = setupSyncRoom()
 
     // 1. 先加载文章内容
     await loadEditContent(form, blogId)
 
-    // 2. 初始化WebSocket连接
-    const provider = initSync()
+    // 2. 激活协作功能（建立 WebSocket 连接）
+    const success = await collaborationManager.activate(roomId)
     
-    // 4. 初始化 IndexedDB (提前初始化)
-    indexeddbProvider = createIndexedDBProvider()
-    const indexedDbSyncPromise = indexeddbProvider.whenSynced
-
-    // 4. 等待 WebSocket 连接
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('WebSocket 连接超时')), 5000)
-    )
-
-    try {
-      await Promise.race([createWsPromise(), timeoutPromise])
-      // WebSocket 连接成功
-      const wsText = ytext.toString()
-      if (wsText) {
-        form.content = wsText
+    // 3. 处理协作激活结果
+    if (success) {
+      // 协作功能成功激活
+      console.log('协作功能已激活')
+      
+      // 检查协作文本
+      const collaborativeText = collaborationManager.getText()
+      if (collaborativeText) {
+        // 使用协作文本
+        form.content = collaborativeText
         initialized.value = true
-        await indexedDbSyncPromise // 确保 IndexedDB 同步完成
         return
       }
-    } catch (error) {
-      console.log('WebSocket 连接超时或失败', error)
+    } else {
+      console.warn('协作功能激活失败，将使用本地编辑模式')
     }
 
-    // 5. 检查服务器文本数据
+    // 4. 如果没有协作文本或协作失败，使用服务器内容
     if (form.content) {
-      if (wsProvider) {
-        wsProvider.doc.transact(() => {
-          ytext.delete(0, ytext.toString().length)
-          ytext.insert(0, form.content!)
-        })
-      }
-      initialized.value = true
-      await indexedDbSyncPromise // 确保 IndexedDB 同步完成
-      return
-    }
-
-    // 6. 尝试使用 IndexedDB 数据
-    await indexedDbSyncPromise
-    const indexedDbText = ytext.toString()
-    if (indexedDbText) {
-      console.log('使用IndexedDB数据:', indexedDbText)
-      form.content = indexedDbText
+      // 设置文本内容到协作管理器
+      collaborationManager.setText(form.content)
       initialized.value = true
       return
     }
 
-    // 7. 如果都没有数据，使用默认值
+    // 5. 如果服务器也没有内容，使用空内容
     console.log('使用默认初始化文本')
-    if (wsProvider) {
-      wsProvider.doc.transact(() => {
-        form.content = ''
-        ytext.insert(0, '')
-      })
-    }
+    collaborationManager.setText('')
+    form.content = ''
     initialized.value = true
   } catch (error) {
     console.error('初始化过程出错:', error)
@@ -422,19 +402,14 @@ const handleDescSelect = () => {
 
 // 组件挂载时初始化编辑器
 onMounted(async () => {
+  console.log('编辑器组件已挂载，开始初始化...')
   await initializeEditor()
 })
 
-// 组件卸载时清理资源
-onUnmounted(async () => {
-  if (indexeddbProvider) {
-    await indexeddbProvider.clearData()
-    indexeddbProvider.destroy()
-  }
-  if (wsProvider) {
-    // 使用新增的断开连接函数
-    disconnectSync()
-  }
+// 组件卸载时停用协作功能
+onUnmounted(() => {
+  console.log('编辑器组件卸载，停用协作功能...')
+  collaborationManager.deactivate()
 })
 
 const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
