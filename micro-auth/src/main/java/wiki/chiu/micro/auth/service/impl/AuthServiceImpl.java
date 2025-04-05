@@ -171,6 +171,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             authorities = getAuthAuthority(token);
         } catch (AuthException e) {
+            log.error("routeCheck false", e);
             return false;
         }
 
@@ -202,7 +203,6 @@ public class AuthServiceImpl implements AuthService {
         }
 
         List<String> rawRoles = getRawRoleCodes(claims.roles());
-
         Set<String> authList = rawRoles.stream()
                 .map(authWrapper::getAuthoritiesByRoleCode)
                 .flatMap(Collection::stream)
