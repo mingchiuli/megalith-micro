@@ -37,6 +37,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static wiki.chiu.micro.common.lang.Const.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 @Service
@@ -173,6 +175,7 @@ public class AuthServiceImpl implements AuthService {
         List<AuthorityRpcVo> systemAuthorities = authWrapper.getAllSystemAuthorities();
         for (AuthorityRpcVo dto : systemAuthorities) {
             if (routeMatch(dto.routePattern(), dto.methodType(), req.routeMapping(), req.method())) {
+                log.info("dto:{}", dto);
                 return authorities.contains(dto.code());
             }
         }
