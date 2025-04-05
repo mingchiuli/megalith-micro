@@ -1,5 +1,14 @@
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue'
+import {
+  computed,
+  defineAsyncComponent,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  useTemplateRef,
+  watch
+} from 'vue'
 import {
   type TagProps,
   type UploadFile,
@@ -30,7 +39,14 @@ import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 
 // 改为导入初始化函数而不是直接导入实例
-import { initSync, ytext, wsProvider, createIndexedDBProvider, disconnectSync } from '@/config/sync'
+import {
+  initSync,
+  ytext,
+  wsProvider,
+  createIndexedDBProvider,
+  disconnectSync,
+  setupCollaboration
+} from '@/config/sync'
 import type { IndexeddbPersistence } from 'y-indexeddb'
 import type { UserInfo } from '@/type/entity'
 
@@ -118,7 +134,7 @@ const createWsPromise = () => {
       resolve(false)
       return
     }
-    
+
     if (wsProvider.wsconnected) {
       resolve(true)
     } else {
@@ -147,7 +163,7 @@ watch(
   }),
   async () => {
     operationCount.value++
-    
+
     // 当我们达到阈值时，推送所有数据
     if (operationCount.value >= MAX_OPERATIONS) {
       try {
@@ -173,14 +189,18 @@ const initializeEditor = async () => {
   try {
     // 0. 设置同步房间ID
     setupSyncRoom()
-    
+
     // 1. 先加载文章内容
     await loadEditContent(form, blogId)
-    
+
     // 2. 初始化WebSocket连接
-    initSync()
-    
-    // 3. 初始化 IndexedDB (提前初始化)
+    const provider = initSync()
+    if (provider) {
+      // 3. 设置协作功能
+      setupCollaboration()
+    }
+
+    // 4. 初始化 IndexedDB (提前初始化)
     indexeddbProvider = createIndexedDBProvider()
     const indexedDbSyncPromise = indexeddbProvider.whenSynced
 

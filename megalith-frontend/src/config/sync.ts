@@ -12,15 +12,31 @@ const ydoc = new Y.Doc()
 // 为编辑器内容创建文本类型
 const ytext = ydoc.getText('codemirror')
 
-// 声明提供者，但不立即初始化
+// 声明提供者，但不会创建实例
 let wsProvider: WebsocketProvider | null = null
 let indexeddbProvider: IndexeddbPersistence | null = null
+// 创建撤销管理器
+const undoManager = new Y.UndoManager(ytext)
 
-// 初始化同步
+// 配置CodeMirror扩展，但暂不设置实际的协作部分
+config({
+  codeMirrorExtensions(_theme, extensions) {
+    // 返回基本扩展，不包含协作功能
+    return extensions
+  },
+})
+
+// 初始化WebSocket同步
 const initSync = () => {
   if (wsProvider) return; // 如果已经初始化，则直接返回
   
   const store = syncStore()
+  
+  // 确保有必要的参数
+  if (!store.url || !store.room || !store.token) {
+    console.warn('缺少必要的连接参数');
+    return;
+  }
   
   wsProvider = new WebsocketProvider(
     store.url,
@@ -46,8 +62,6 @@ const initSync = () => {
   
   const userColor = usercolors[random.uint32() % usercolors.length]
   
-  const undoManager = new Y.UndoManager(ytext)
-  
   // 安全获取用户信息
   const userStr = localStorage.getItem('userinfo')
   if (userStr) {
@@ -64,6 +78,23 @@ const initSync = () => {
     }
   }
   
+  // 添加事件监听器来监控连接状态
+  wsProvider.on('status', (event) => {
+    console.log('连接状态:', event.status);
+  });
+  
+  wsProvider.on('connection-error', (error) => {
+    console.error('连接错误:', error);
+  });
+  
+  return wsProvider;
+}
+
+// 配置CodeMirror协作功能
+const setupCollaboration = () => {
+  if (!wsProvider) return;
+  
+  // 重新配置CodeMirror以添加协作功能
   config({
     codeMirrorExtensions(_theme, extensions) {
       return [...extensions, yCollab(ytext, wsProvider!.awareness, { undoManager })]
@@ -78,7 +109,7 @@ const createIndexedDBProvider = () => {
   return indexeddbProvider
 }
 
-// 在 sync.js 文件中添加此函数
+// 断开WebSocket连接
 const disconnectSync = () => {
   if (wsProvider) {
     wsProvider.disconnect();
@@ -86,4 +117,14 @@ const disconnectSync = () => {
   }
 }
 
-export { ytext, wsProvider, indexeddbProvider, createIndexedDBProvider, initSync, disconnectSync }
+export { 
+  ydoc, 
+  ytext, 
+  wsProvider, 
+  indexeddbProvider, 
+  createIndexedDBProvider, 
+  initSync, 
+  setupCollaboration, 
+  disconnectSync, 
+  undoManager 
+}
