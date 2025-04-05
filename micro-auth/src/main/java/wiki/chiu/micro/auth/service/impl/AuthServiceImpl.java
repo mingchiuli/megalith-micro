@@ -37,15 +37,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static wiki.chiu.micro.common.lang.Const.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 @Service
 public class AuthServiceImpl implements AuthService {
-    
-    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
-    
+        
     private final AuthWrapper authWrapper;
 
     private final RedissonClient redissonClient;
@@ -171,15 +166,12 @@ public class AuthServiceImpl implements AuthService {
         try {
             authorities = getAuthAuthority(token);
         } catch (AuthException e) {
-            log.error("routeCheck false", e);
             return false;
         }
 
         List<AuthorityRpcVo> systemAuthorities = authWrapper.getAllSystemAuthorities();
         for (AuthorityRpcVo dto : systemAuthorities) {
-            log.info("开始对比:{}", systemAuthorities);
             if (routeMatch(dto.routePattern(), dto.methodType(), req.routeMapping(), req.method())) {
-                log.info("dto:{}  Sys:{}", dto, authorities);
                 return authorities.contains(dto.code());
             }
         }
