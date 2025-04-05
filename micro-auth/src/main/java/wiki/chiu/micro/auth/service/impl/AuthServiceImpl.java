@@ -43,7 +43,9 @@ import org.slf4j.LoggerFactory;
 
 @Service
 public class AuthServiceImpl implements AuthService {
-
+    
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
+    
     private final AuthWrapper authWrapper;
 
     private final RedissonClient redissonClient;
@@ -174,8 +176,9 @@ public class AuthServiceImpl implements AuthService {
 
         List<AuthorityRpcVo> systemAuthorities = authWrapper.getAllSystemAuthorities();
         for (AuthorityRpcVo dto : systemAuthorities) {
+            log.info("开始对比:{}", systemAuthorities);
             if (routeMatch(dto.routePattern(), dto.methodType(), req.routeMapping(), req.method())) {
-                log.info("dto:{}", dto);
+                log.info("dto:{}  Sys:{}", dto, authorities);
                 return authorities.contains(dto.code());
             }
         }
