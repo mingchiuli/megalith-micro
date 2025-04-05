@@ -78,4 +78,12 @@ const createIndexedDBProvider = () => {
   return indexeddbProvider
 }
 
-export { ytext, wsProvider, indexeddbProvider, createIndexedDBProvider, initSync }
+// 在 sync.js 文件中添加此函数
+const disconnectSync = () => {
+  if (wsProvider) {
+    wsProvider.disconnect();
+    wsProvider = null;
+  }
+}
+
+export { ytext, wsProvider, indexeddbProvider, createIndexedDBProvider, initSync, disconnectSync }

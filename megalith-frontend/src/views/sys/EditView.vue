@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue'
 import {
   type TagProps,
   type UploadFile,
@@ -29,19 +29,23 @@ import { blogsStore, syncStore } from '@/stores/store'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 
-import { ytext, wsProvider, createIndexedDBProvider } from '@/config/sync'
+// 改为导入初始化函数而不是直接导入实例
+import { initSync, ytext, wsProvider, createIndexedDBProvider, disconnectSync } from '@/config/sync'
 import type { IndexeddbPersistence } from 'y-indexeddb'
 import type { UserInfo } from '@/type/entity'
 
 const route = useRoute()
 const blogId = route.query.id as string | undefined
 
-if (blogId) {
-  syncStore().room = blogId
-} else {
-  const userStr = localStorage.getItem('userinfo')!
-  const user: UserInfo = JSON.parse(userStr)
-  syncStore().room = `init:${user.id}`
+// 设置同步房间ID
+const setupSyncRoom = () => {
+  if (blogId) {
+    syncStore().room = blogId
+  } else {
+    const userStr = localStorage.getItem('userinfo')!
+    const user: UserInfo = JSON.parse(userStr)
+    syncStore().room = `init:${user.id}`
+  }
 }
 
 const initialized = ref(false)
@@ -107,12 +111,18 @@ const formRules = reactive<FormRules<EditForm>>({
   status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
 })
 
+// 创建等待WebSocket连接的Promise
 const createWsPromise = () => {
   return new Promise((resolve) => {
-    if (wsProvider!.wsconnected) {
+    if (!wsProvider) {
+      resolve(false)
+      return
+    }
+    
+    if (wsProvider.wsconnected) {
       resolve(true)
     } else {
-      wsProvider!.on('sync', (isSynced: boolean) => {
+      wsProvider.on('sync', (isSynced: boolean) => {
         if (isSynced) {
           resolve(true)
         }
@@ -121,11 +131,11 @@ const createWsPromise = () => {
   })
 }
 
-// Add a counter to track form changes
+// 添加计数器跟踪表单更改
 const operationCount = ref(0)
 const MAX_OPERATIONS = 10
 
-// Watch for changes in form elements
+// 监视表单元素的变化
 watch(
   () => ({
     title: form.title,
@@ -138,15 +148,15 @@ watch(
   async () => {
     operationCount.value++
     
-    // When we reach the threshold, push all data
+    // 当我们达到阈值时，推送所有数据
     if (operationCount.value >= MAX_OPERATIONS) {
       try {
         await pushAllData(form)
-        console.log('Auto-saved after 10 operations')
+        console.log('完成10次操作后自动保存')
       } catch (error) {
-        console.error('Auto-save failed:', error)
+        console.error('自动保存失败:', error)
       } finally {
-        // Reset counter regardless of success or failure
+        // 无论成功或失败都重置计数器
         operationCount.value = 0
       }
     }
@@ -158,15 +168,25 @@ const pushAllData = async (form: EditForm) => {
   await POST<null>('/sys/blog/edit/push/all', form)
 }
 
+// 初始化编辑器
 const initializeEditor = async () => {
   try {
-    // 0. 首先初始化 IndexedDB (提前初始化)
+    // 0. 设置同步房间ID
+    setupSyncRoom()
+    
+    // 1. 先加载文章内容
+    await loadEditContent(form, blogId)
+    
+    // 2. 初始化WebSocket连接
+    initSync()
+    
+    // 3. 初始化 IndexedDB (提前初始化)
     indexeddbProvider = createIndexedDBProvider()
     const indexedDbSyncPromise = indexeddbProvider.whenSynced
 
-    // 1. 等待 WebSocket
+    // 4. 等待 WebSocket 连接
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('WebSocket timeout')), 5000)
+      setTimeout(() => reject(new Error('WebSocket 连接超时')), 5000)
     )
 
     try {
@@ -183,20 +203,20 @@ const initializeEditor = async () => {
       console.log('WebSocket 连接超时或失败', error)
     }
 
-    await loadEditContent(form, blogId)
-
-    // 2. 检查 serverText
+    // 5. 检查服务器文本数据
     if (form.content) {
-      wsProvider!.doc.transact(() => {
-        ytext.delete(0, ytext.toString().length)
-        ytext.insert(0, form.content!)
-      })
+      if (wsProvider) {
+        wsProvider.doc.transact(() => {
+          ytext.delete(0, ytext.toString().length)
+          ytext.insert(0, form.content!)
+        })
+      }
       initialized.value = true
       await indexedDbSyncPromise // 确保 IndexedDB 同步完成
       return
     }
 
-    // 3. 尝试使用 IndexedDB 数据
+    // 6. 尝试使用 IndexedDB 数据
     await indexedDbSyncPromise
     const indexedDbText = ytext.toString()
     if (indexedDbText) {
@@ -206,12 +226,14 @@ const initializeEditor = async () => {
       return
     }
 
-    // 4. 如果都没有数据，使用默认值
+    // 7. 如果都没有数据，使用默认值
     console.log('使用默认初始化文本')
-    wsProvider!.doc.transact(() => {
-      form.content = ''
-      ytext.insert(0, '')
-    })
+    if (wsProvider) {
+      wsProvider.doc.transact(() => {
+        form.content = ''
+        ytext.insert(0, '')
+      })
+    }
     initialized.value = true
   } catch (error) {
     console.error('初始化过程出错:', error)
@@ -383,12 +405,21 @@ const handleDescSelect = () => {
   }
 }
 
+// 组件挂载时初始化编辑器
+onMounted(async () => {
+  await initializeEditor()
+})
+
+// 组件卸载时清理资源
 onUnmounted(async () => {
   if (indexeddbProvider) {
     await indexeddbProvider.clearData()
     indexeddbProvider.destroy()
   }
-  wsProvider!.destroy()
+  if (wsProvider) {
+    // 使用新增的断开连接函数
+    disconnectSync()
+  }
 })
 
 const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
@@ -406,14 +437,6 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   form.userId = data.userId
   form.sensitiveContentList = data.sensitiveContentList
 }
-
-const init = async () => {
-  await initializeEditor()
-}
-
-;(async () => {
-  await init()
-})()
 </script>
 
 <template>
