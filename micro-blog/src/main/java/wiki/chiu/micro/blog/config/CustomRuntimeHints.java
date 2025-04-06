@@ -1,6 +1,7 @@
 package wiki.chiu.micro.blog.config;
 
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
+import wiki.chiu.micro.blog.dto.BlogPushAllDto;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 
@@ -19,8 +20,9 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
         hints.serialization()
                 .registerType(BlogQueryReq.class)
                 .registerType(BlogDownloadReq.class)
-                .registerType(BlogDeleteDto.class);
-
+                .registerType(BlogDeleteDto.class)
+                .registerType(BlogPushAllDto.class)
+                .registerType(BlogPushAllDto.SensitiveContentDto.class);
         hints.resources().registerPattern("ValidationMessages.properties");
 
     }
