@@ -1,111 +1,252 @@
 package wiki.chiu.micro.user.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 public record UserEntityVo(
+    Long id,
 
-        Long id,
+    String username,
 
-        String username,
+    String nickname,
 
-        String nickname,
+    String avatar,
 
-        String avatar,
+    String email,
 
-        String email,
+    String phone,
 
-        String phone,
+    Integer status,
 
-        Integer status,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime created,
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        LocalDateTime created,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime updated,
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        LocalDateTime updated,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime lastLogin,
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        LocalDateTime lastLogin,
-
-        List<String> roles) {
-
+    List<String> roles
+) {
     public static UserEntityVoBuilder builder() {
-        return new UserEntityVoBuilder();
+        return new UserEntityVoBuilder(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+                Collections.emptyList()
+        );
     }
 
-    public static class UserEntityVoBuilder {
-        private Long id;
-        private String username;
-        private String nickname;
-        private String avatar;
-        private String email;
-        private String phone;
-        private Integer status;
-        private LocalDateTime created;
-        private LocalDateTime updated;
-        private LocalDateTime lastLogin;
-        private List<String> roles;
-
+    public record UserEntityVoBuilder(
+        Long id,
+        String username,
+        String nickname,
+        String avatar,
+        String email,
+        String phone,
+        Integer status,
+        LocalDateTime created,
+        LocalDateTime updated,
+        LocalDateTime lastLogin,
+        List<String> roles
+    ) {
         public UserEntityVoBuilder id(Long id) {
-            this.id = id;
-            return this;
+            return new UserEntityVoBuilder(
+                id,
+                username,
+                nickname,
+                avatar,
+                email,
+                phone,
+                status,
+                created,
+                updated,
+                lastLogin,
+                roles
+            );
         }
 
         public UserEntityVoBuilder username(String username) {
-            this.username = username;
-            return this;
+            return new UserEntityVoBuilder(
+                id,
+                username,
+                nickname,
+                avatar,
+                email,
+                phone,
+                status,
+                created,
+                updated,
+                lastLogin,
+                roles
+            );
         }
 
         public UserEntityVoBuilder nickname(String nickname) {
-            this.nickname = nickname;
-            return this;
+            return new UserEntityVoBuilder(
+                id,
+                username,
+                nickname,
+                avatar,
+                email,
+                phone,
+                status,
+                created,
+                updated,
+                lastLogin,
+                roles
+            );
         }
 
         public UserEntityVoBuilder avatar(String avatar) {
-            this.avatar = avatar;
-            return this;
+            return new UserEntityVoBuilder(
+                id,
+                username,
+                nickname,
+                avatar,
+                email,
+                phone,
+                status,
+                created,
+                updated,
+                lastLogin,
+                roles
+            );
         }
 
         public UserEntityVoBuilder email(String email) {
-            this.email = email;
-            return this;
+            return new UserEntityVoBuilder(
+                id,
+                username,
+                nickname,
+                avatar,
+                email,
+                phone,
+                status,
+                created,
+                updated,
+                lastLogin,
+                roles
+            );
         }
 
         public UserEntityVoBuilder phone(String phone) {
-            this.phone = phone;
-            return this;
+            return new UserEntityVoBuilder(
+                id,
+                username,
+                nickname,
+                avatar,
+                email,
+                phone,
+                status,
+                created,
+                updated,
+                lastLogin,
+                roles
+            );
         }
 
         public UserEntityVoBuilder status(Integer status) {
-            this.status = status;
-            return this;
+            return new UserEntityVoBuilder(
+                id,
+                username,
+                nickname,
+                avatar,
+                email,
+                phone,
+                status,
+                created,
+                updated,
+                lastLogin,
+                roles
+            );
         }
 
         public UserEntityVoBuilder created(LocalDateTime created) {
-            this.created = created;
-            return this;
+            return new UserEntityVoBuilder(
+                id,
+                username,
+                nickname,
+                avatar,
+                email,
+                phone,
+                status,
+                created,
+                updated,
+                lastLogin,
+                roles
+            );
         }
 
         public UserEntityVoBuilder updated(LocalDateTime updated) {
-            this.updated = updated;
-            return this;
+            return new UserEntityVoBuilder(
+                id,
+                username,
+                nickname,
+                avatar,
+                email,
+                phone,
+                status,
+                created,
+                updated,
+                lastLogin,
+                roles
+            );
         }
 
         public UserEntityVoBuilder lastLogin(LocalDateTime lastLogin) {
-            this.lastLogin = lastLogin;
-            return this;
+            return new UserEntityVoBuilder(
+                id,
+                username,
+                nickname,
+                avatar,
+                email,
+                phone,
+                status,
+                created,
+                updated,
+                lastLogin,
+                roles
+            );
         }
 
         public UserEntityVoBuilder roles(List<String> roles) {
-            this.roles = roles;
-            return this;
+            return new UserEntityVoBuilder(
+                id,
+                username,
+                nickname,
+                avatar,
+                email,
+                phone,
+                status,
+                created,
+                updated,
+                lastLogin,
+                roles
+            );
         }
 
         public UserEntityVo build() {
-            return new UserEntityVo(id, username, nickname, avatar, email, phone, status, created, updated, lastLogin, roles);
+            return new UserEntityVo(
+                id,
+                username,
+                nickname,
+                avatar,
+                email,
+                phone,
+                status,
+                created,
+                updated,
+                lastLogin,
+                roles
+            );
         }
     }
 }

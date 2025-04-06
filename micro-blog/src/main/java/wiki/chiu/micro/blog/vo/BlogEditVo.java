@@ -1,6 +1,7 @@
 package wiki.chiu.micro.blog.vo;
 
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -24,57 +25,57 @@ public record BlogEditVo(
 
 
     public static BlogEditVoBuilder builder() {
-        return new BlogEditVoBuilder();
+        return new BlogEditVoBuilder(null, null, null, null, null, null, null, Collections.emptyList());
     }
 
-    public static class BlogEditVoBuilder {
-        private Long id;
-        private Long userId;
-        private String title;
-        private String description;
-        private String link;
-        private String content;
-        private Integer status;
-        private List<SensitiveContentVo> sensitiveContentList;
+    public record BlogEditVoBuilder(
+
+        Long id,
+
+        Long userId,
+
+        String title,
+
+        String description,
+
+        String link,
+
+        String content,
+
+        Integer status,
+
+        List<SensitiveContentVo> sensitiveContentList) {
 
         public BlogEditVoBuilder id(Long id) {
-            this.id = id;
-            return this;
+            return new BlogEditVoBuilder(id, userId, title, description, link, content, status, sensitiveContentList);
         }
 
         public BlogEditVoBuilder userId(Long userId) {
-            this.userId = userId;
-            return this;
+            return new BlogEditVoBuilder(id, userId, title, description, link, content, status, sensitiveContentList);
         }
 
         public BlogEditVoBuilder title(String title) {
-            this.title = title;
-            return this;
+            return new BlogEditVoBuilder(id, userId, title, description, link, content, status, sensitiveContentList);
         }
 
         public BlogEditVoBuilder description(String description) {
-            this.description = description;
-            return this;
+            return new BlogEditVoBuilder(id, userId, title, description, link, content, status, sensitiveContentList);
         }
 
         public BlogEditVoBuilder link(String link) {
-            this.link = link;
-            return this;
+            return new BlogEditVoBuilder(id, userId, title, description, link, content, status, sensitiveContentList);
         }
 
         public BlogEditVoBuilder content(String content) {
-            this.content = content;
-            return this;
+            return new BlogEditVoBuilder(id, userId, title, description, link, content, status, sensitiveContentList);
         }
 
         public BlogEditVoBuilder status(Integer status) {
-            this.status = status;
-            return this;
+            return new BlogEditVoBuilder(id, userId, title, description, link, content, status, sensitiveContentList);
         }
 
         public BlogEditVoBuilder sensitiveContentList(List<SensitiveContentVo> sensitiveContentList) {
-            this.sensitiveContentList = sensitiveContentList;
-            return this;
+            return new BlogEditVoBuilder(id, userId, title, description, link, content, status, sensitiveContentList);
         }
 
         public BlogEditVo build() {

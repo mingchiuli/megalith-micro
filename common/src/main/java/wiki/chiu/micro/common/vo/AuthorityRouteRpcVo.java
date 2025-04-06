@@ -8,21 +8,20 @@ public record AuthorityRouteRpcVo(
         Integer servicePort) {
 
     public static AuthorityRouteRpcVoBuilder builder() {
-        return new AuthorityRouteRpcVoBuilder();
+        return new AuthorityRouteRpcVoBuilder(null, null);
     }
 
-    public static class AuthorityRouteRpcVoBuilder {
-        private String serviceHost;
-        private Integer servicePort;
+    public record AuthorityRouteRpcVoBuilder(
+            String serviceHost,
+            Integer servicePort
+    ) {
 
         public AuthorityRouteRpcVoBuilder serviceHost(String serviceHost) {
-            this.serviceHost = serviceHost;
-            return this;
+            return new AuthorityRouteRpcVoBuilder(serviceHost, this.servicePort);
         }
 
         public AuthorityRouteRpcVoBuilder servicePort(Integer servicePort) {
-            this.servicePort = servicePort;
-            return this;
+            return new AuthorityRouteRpcVoBuilder(this.serviceHost, servicePort);
         }
 
         public AuthorityRouteRpcVo build() {

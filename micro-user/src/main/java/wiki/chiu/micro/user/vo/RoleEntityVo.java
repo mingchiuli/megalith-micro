@@ -1,78 +1,138 @@
 package wiki.chiu.micro.user.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-
 import java.time.LocalDateTime;
 
 public record RoleEntityVo(
+    Long id,
 
-        Long id,
+    String name,
 
-        String name,
+    String code,
 
-        String code,
+    String remark,
 
-        String remark,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime created,
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        LocalDateTime created,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime updated,
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        LocalDateTime updated,
-
-        Integer status) {
-
+    Integer status
+) {
     public static RoleEntityVoBuilder builder() {
-        return new RoleEntityVoBuilder();
+        return new RoleEntityVoBuilder(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
     }
 
-    public static class RoleEntityVoBuilder {
-        private Long id;
-        private String name;
-        private String code;
-        private String remark;
-        private LocalDateTime created;
-        private LocalDateTime updated;
-        private Integer status;
-
-
+    public record RoleEntityVoBuilder(
+        Long id,
+        String name,
+        String code,
+        String remark,
+        LocalDateTime created,
+        LocalDateTime updated,
+        Integer status
+    ) {
         public RoleEntityVoBuilder id(Long id) {
-            this.id = id;
-            return this;
+            return new RoleEntityVoBuilder(
+                id,
+                name,
+                code,
+                remark,
+                created,
+                updated,
+                status
+            );
         }
 
         public RoleEntityVoBuilder name(String name) {
-            this.name = name;
-            return this;
+            return new RoleEntityVoBuilder(
+                id,
+                name,
+                code,
+                remark,
+                created,
+                updated,
+                status
+            );
         }
 
         public RoleEntityVoBuilder code(String code) {
-            this.code = code;
-            return this;
+            return new RoleEntityVoBuilder(
+                id,
+                name,
+                code,
+                remark,
+                created,
+                updated,
+                status
+            );
         }
 
         public RoleEntityVoBuilder remark(String remark) {
-            this.remark = remark;
-            return this;
+            return new RoleEntityVoBuilder(
+                id,
+                name,
+                code,
+                remark,
+                created,
+                updated,
+                status
+            );
         }
 
         public RoleEntityVoBuilder created(LocalDateTime created) {
-            this.created = created;
-            return this;
+            return new RoleEntityVoBuilder(
+                id,
+                name,
+                code,
+                remark,
+                created,
+                updated,
+                status
+            );
         }
 
         public RoleEntityVoBuilder updated(LocalDateTime updated) {
-            this.updated = updated;
-            return this;
+            return new RoleEntityVoBuilder(
+                id,
+                name,
+                code,
+                remark,
+                created,
+                updated,
+                status
+            );
         }
 
         public RoleEntityVoBuilder status(Integer status) {
-            this.status = status;
-            return this;
+            return new RoleEntityVoBuilder(
+                id,
+                name,
+                code,
+                remark,
+                created,
+                updated,
+                status
+            );
         }
 
         public RoleEntityVo build() {
-            return new RoleEntityVo(id, name, code, remark, created, updated, status);
+            return new RoleEntityVo(
+                id,
+                name,
+                code,
+                remark,
+                created,
+                updated,
+                status
+            );
         }
     }
 }

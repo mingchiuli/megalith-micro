@@ -1,72 +1,127 @@
 package wiki.chiu.micro.blog.dto;
 
-
 public record BlogEntityDto(
+    Long id,
 
-        Long id,
+    Long userId,
 
-        Long userId,
+    String title,
 
-        String title,
+    String description,
 
-        String description,
+    String content,
 
-        String content,
+    Integer status,
 
-        Integer status,
-
-        String link) {
-
+    String link
+) {
     public static BlogEntityDtoBuilder builder() {
-        return new BlogEntityDtoBuilder();
+        return new BlogEntityDtoBuilder(null, null, null, null, null, null, null);
     }
 
-    public static class BlogEntityDtoBuilder {
-        private Long id;
-        private Long userId;
-        private String title;
-        private String description;
-        private String content;
-        private Integer status;
-        private String link;
-
+    public record BlogEntityDtoBuilder(
+        Long id,
+        Long userId,
+        String title,
+        String description,
+        String content,
+        Integer status,
+        String link
+    ) {
         public BlogEntityDtoBuilder id(Long id) {
-            this.id = id;
-            return this;
+            return new BlogEntityDtoBuilder(
+                id,
+                userId,
+                title,
+                description,
+                content,
+                status,
+                link
+            );
         }
 
         public BlogEntityDtoBuilder userId(Long userId) {
-            this.userId = userId;
-            return this;
+            return new BlogEntityDtoBuilder(
+                id,
+                userId,
+                title,
+                description,
+                content,
+                status,
+                link
+            );
         }
 
         public BlogEntityDtoBuilder title(String title) {
-            this.title = title;
-            return this;
+            return new BlogEntityDtoBuilder(
+                id,
+                userId,
+                title,
+                description,
+                content,
+                status,
+                link
+            );
         }
 
         public BlogEntityDtoBuilder description(String description) {
-            this.description = description;
-            return this;
+            return new BlogEntityDtoBuilder(
+                id,
+                userId,
+                title,
+                description,
+                content,
+                status,
+                link
+            );
         }
 
         public BlogEntityDtoBuilder content(String content) {
-            this.content = content;
-            return this;
+            return new BlogEntityDtoBuilder(
+                id,
+                userId,
+                title,
+                description,
+                content,
+                status,
+                link
+            );
         }
 
         public BlogEntityDtoBuilder status(Integer status) {
-            this.status = status;
-            return this;
+            return new BlogEntityDtoBuilder(
+                id,
+                userId,
+                title,
+                description,
+                content,
+                status,
+                link
+            );
         }
 
         public BlogEntityDtoBuilder link(String link) {
-            this.link = link;
-            return this;
+            return new BlogEntityDtoBuilder(
+                id,
+                userId,
+                title,
+                description,
+                content,
+                status,
+                link
+            );
         }
 
         public BlogEntityDto build() {
-            return new BlogEntityDto(id, userId, title, description, content, status, link);
+            return new BlogEntityDto(
+                id,
+                userId,
+                title,
+                description,
+                content,
+                status,
+                link
+            );
         }
     }
 }

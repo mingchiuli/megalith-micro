@@ -1,75 +1,67 @@
 package wiki.chiu.micro.common.req;
 
-
-
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 public record BlogSysCountSearchReq(
-
+        Integer page,
+        Integer pageSize,
         String keywords,
-
         Integer status,
-
         LocalDateTime createStart,
-
         LocalDateTime createEnd,
-
         Long userId,
+        List<String> roles) {
 
-        List<String> roles
-) {
-
-    public static BlogSysCountSearchReq.BLogSysCountSearchReqBuilder builder() {
-        return new BlogSysCountSearchReq.BLogSysCountSearchReqBuilder();
+    public static BlogSysCountSearchReqBuilder builder() {
+        return new BlogSysCountSearchReqBuilder(null, null, null, null, null, null, null, Collections.emptyList());
     }
 
-    public static class BLogSysCountSearchReqBuilder {
+    public record BlogSysCountSearchReqBuilder(
+            Integer page,
+            Integer pageSize,
+            String keywords,
+            Integer status,
+            LocalDateTime createStart,
+            LocalDateTime createEnd,
+            Long userId,
+            List<String> roles) {
 
-        private String keywords;
-
-        private Integer status;
-
-        private LocalDateTime createStart;
-
-        private LocalDateTime createEnd;
-
-        private Long userId;
-
-        private List<String> roles;
-
-        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder keywords(String keywords) {
-            this.keywords = keywords;
-            return this;
+        public BlogSysCountSearchReqBuilder page(Integer page) {
+            return new BlogSysCountSearchReqBuilder(page, this.pageSize, this.keywords, this.status, this.createStart, this.createEnd, this.userId, this.roles);
         }
 
-        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder status(Integer status) {
-            this.status = status;
-            return this;
+        public BlogSysCountSearchReqBuilder pageSize(Integer pageSize) {
+            return new BlogSysCountSearchReqBuilder(this.page, pageSize, this.keywords, this.status, this.createStart, this.createEnd, this.userId, this.roles);
         }
 
-        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder createStart(LocalDateTime createStart) {
-            this.createStart = createStart;
-            return this;
+        public BlogSysCountSearchReqBuilder keywords(String keywords) {
+            return new BlogSysCountSearchReqBuilder(this.page, this.pageSize, keywords, this.status, this.createStart, this.createEnd, this.userId, this.roles);
         }
 
-        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder createEnd(LocalDateTime createEnd) {
-            this.createEnd = createEnd;
-            return this;
+        public BlogSysCountSearchReqBuilder status(Integer status) {
+            return new BlogSysCountSearchReqBuilder(this.page, this.pageSize, this.keywords, status, this.createStart, this.createEnd, this.userId, this.roles);
         }
 
-        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder userId(Long userId) {
-            this.userId = userId;
-            return this;
+        public BlogSysCountSearchReqBuilder createStart(LocalDateTime createStart) {
+            return new BlogSysCountSearchReqBuilder(this.page, this.pageSize, this.keywords, this.status, createStart, this.createEnd, this.userId, this.roles);
         }
 
-        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder roles(List<String> roles) {
-            this.roles = roles;
-            return this;
+        public BlogSysCountSearchReqBuilder createEnd(LocalDateTime createEnd) {
+            return new BlogSysCountSearchReqBuilder(this.page, this.pageSize, this.keywords, this.status, this.createStart, createEnd, this.userId, this.roles);
+        }
+
+        public BlogSysCountSearchReqBuilder userId(Long userId) {
+            return new BlogSysCountSearchReqBuilder(this.page, this.pageSize, this.keywords, this.status, this.createStart, this.createEnd, userId, this.roles);
+        }
+
+        public BlogSysCountSearchReqBuilder roles(List<String> roles) {
+            return new BlogSysCountSearchReqBuilder(this.page, this.pageSize, this.keywords, this.status, this.createStart, this.createEnd, this.userId, roles);
         }
 
         public BlogSysCountSearchReq build() {
-            return new BlogSysCountSearchReq(keywords, status, createStart, createEnd, userId, roles);
+            return new BlogSysCountSearchReq(page, pageSize, keywords, status, createStart, createEnd, userId, roles);
         }
     }
 }

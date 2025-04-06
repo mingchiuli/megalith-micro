@@ -1,38 +1,34 @@
 package wiki.chiu.micro.auth.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 
 public record MenusAndButtonsDto(
-
         List<ButtonDto> buttons,
-
         List<MenuDto> menus) implements Serializable {
 
-
     public static MenusAndButtonsDtoBuilder builder() {
-        return new MenusAndButtonsDtoBuilder();
+        return new MenusAndButtonsDtoBuilder(new ArrayList<>(), new ArrayList<>());
     }
 
-    public static class MenusAndButtonsDtoBuilder {
-
-        private List<ButtonDto> buttons;
-        private List<MenuDto> menus;
+    public record MenusAndButtonsDtoBuilder(
+            List<ButtonDto> buttons,
+            List<MenuDto> menus
+    ) {
 
         public MenusAndButtonsDtoBuilder buttons(List<ButtonDto> buttons) {
-            this.buttons = buttons;
-            return this;
+            return new MenusAndButtonsDtoBuilder(buttons, menus);
         }
 
         public MenusAndButtonsDtoBuilder menus(List<MenuDto> menus) {
-            this.menus = menus;
-            return this;
+            return new MenusAndButtonsDtoBuilder(buttons, menus);
+
         }
 
         public MenusAndButtonsDto build() {
             return new MenusAndButtonsDto(buttons, menus);
         }
-
     }
 }

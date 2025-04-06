@@ -22,39 +22,34 @@ public record BlogDescriptionVo(
         String link) {
 
     public static BlogDescriptionVoBuilder builder() {
-        return new BlogDescriptionVoBuilder();
+        return new BlogDescriptionVoBuilder(null, null, null, null, null);
     }
 
-    public static class BlogDescriptionVoBuilder {
-        private Long id;
-        private String title;
-        private String description;
-        private LocalDateTime created;
-        private String link;
-
+    public record BlogDescriptionVoBuilder(
+            Long id,
+            String title,
+            String description,
+            LocalDateTime created,
+            String link
+    ) {
         public BlogDescriptionVoBuilder id(Long id) {
-            this.id = id;
-            return this;
+            return new BlogDescriptionVoBuilder(id, title, description, created, link);
         }
 
         public BlogDescriptionVoBuilder title(String title) {
-            this.title = title;
-            return this;
+            return new BlogDescriptionVoBuilder(id, title, description, created, link);
         }
 
         public BlogDescriptionVoBuilder description(String description) {
-            this.description = description;
-            return this;
+            return new BlogDescriptionVoBuilder(id, title, description, created, link);
         }
 
         public BlogDescriptionVoBuilder created(LocalDateTime created) {
-            this.created = created;
-            return this;
+            return new BlogDescriptionVoBuilder(id, title, description, created, link);
         }
 
         public BlogDescriptionVoBuilder link(String link) {
-            this.link = link;
-            return this;
+            return new BlogDescriptionVoBuilder(id, title, description, created, link);
         }
 
         public BlogDescriptionVo build() {

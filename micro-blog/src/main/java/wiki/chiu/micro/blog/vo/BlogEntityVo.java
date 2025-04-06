@@ -1,7 +1,6 @@
 package wiki.chiu.micro.blog.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-
 import java.time.LocalDateTime;
 
 /**
@@ -9,99 +8,95 @@ import java.time.LocalDateTime;
  * @create 2022-12-03 11:36 pm
  */
 public record BlogEntityVo(
-        Long id,
+    Long id,
 
-        String title,
+    String title,
 
-        String description,
+    String description,
 
-        String content,
+    String content,
 
-        String link,
+    String link,
 
-        Long readCount,
+    Long readCount,
 
-        Integer recentReadCount,
+    Integer recentReadCount,
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        LocalDateTime created,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime created,
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        LocalDateTime updated,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime updated,
 
-        Integer status) {
-
-
+    Integer status
+) {
     public static BlogEntityVoBuilder builder() {
-        return new BlogEntityVoBuilder();
+        return new BlogEntityVoBuilder(null, null, null, null, null, null, null, null, null, null);
     }
 
-
-    public static class BlogEntityVoBuilder {
-        private Long id;
-        private String title;
-        private String description;
-        private String content;
-        private String link;
-        private Long readCount;
-        private Integer recentReadCount;
-        private LocalDateTime created;
-        private LocalDateTime updated;
-        private Integer status;
-
+    public record BlogEntityVoBuilder(
+        Long id,
+        String title,
+        String description,
+        String content,
+        String link,
+        Long readCount,
+        Integer recentReadCount,
+        LocalDateTime created,
+        LocalDateTime updated,
+        Integer status
+    ) {
         public BlogEntityVoBuilder id(Long id) {
-            this.id = id;
-            return this;
+            return new BlogEntityVoBuilder(id, title, description, content, link, readCount, recentReadCount, created, updated, status);
         }
 
         public BlogEntityVoBuilder title(String title) {
-            this.title = title;
-            return this;
+            return new BlogEntityVoBuilder(id, title, description, content, link, readCount, recentReadCount, created, updated, status);
         }
 
         public BlogEntityVoBuilder description(String description) {
-            this.description = description;
-            return this;
+            return new BlogEntityVoBuilder(id, title, description, content, link, readCount, recentReadCount, created, updated, status);
         }
 
         public BlogEntityVoBuilder content(String content) {
-            this.content = content;
-            return this;
+            return new BlogEntityVoBuilder(id, title, description, content, link, readCount, recentReadCount, created, updated, status);
         }
 
         public BlogEntityVoBuilder link(String link) {
-            this.link = link;
-            return this;
+            return new BlogEntityVoBuilder(id, title, description, content, link, readCount, recentReadCount, created, updated, status);
         }
 
         public BlogEntityVoBuilder readCount(Long readCount) {
-            this.readCount = readCount;
-            return this;
+            return new BlogEntityVoBuilder(id, title, description, content, link, readCount, recentReadCount, created, updated, status);
         }
 
         public BlogEntityVoBuilder recentReadCount(Integer recentReadCount) {
-            this.recentReadCount = recentReadCount;
-            return this;
+            return new BlogEntityVoBuilder(id, title, description, content, link, readCount, recentReadCount, created, updated, status);
         }
 
         public BlogEntityVoBuilder created(LocalDateTime created) {
-            this.created = created;
-            return this;
+            return new BlogEntityVoBuilder(id, title, description, content, link, readCount, recentReadCount, created, updated, status);
         }
 
         public BlogEntityVoBuilder updated(LocalDateTime updated) {
-            this.updated = updated;
-            return this;
+            return new BlogEntityVoBuilder(id, title, description, content, link, readCount, recentReadCount, created, updated, status);
         }
 
         public BlogEntityVoBuilder status(Integer status) {
-            this.status = status;
-            return this;
+            return new BlogEntityVoBuilder(id, title, description, content, link, readCount, recentReadCount, created, updated, status);
         }
 
         public BlogEntityVo build() {
-            return new BlogEntityVo(id, title, description, content, link, readCount, recentReadCount, created, updated, status);
+            return new BlogEntityVo(
+                id,
+                title,
+                description,
+                content,
+                link,
+                readCount,
+                recentReadCount,
+                created,
+                updated,
+                status
+            );
         }
-
     }
 }

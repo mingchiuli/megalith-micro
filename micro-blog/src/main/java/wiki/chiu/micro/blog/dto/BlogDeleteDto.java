@@ -27,69 +27,61 @@ public record BlogDeleteDto(
         Long readCount) implements Serializable {
 
     public static BlogEntityDtoBuilder builder() {
-        return new BlogEntityDtoBuilder();
+        return new BlogEntityDtoBuilder(null, null, null, null, null, null, null, null, null, null);
     }
 
-    public static class BlogEntityDtoBuilder {
-        private Long id;
-        private Long userId;
-        private String title;
-        private String description;
-        private String content;
-        private LocalDateTime created;
-        private LocalDateTime updated;
-        private Integer status;
-        private String link;
-        private Long readCount;
+    public record BlogEntityDtoBuilder(
+            Long id,
+            Long userId,
+            String title,
+            String description,
+            String content,
+            LocalDateTime created,
+            LocalDateTime updated,
+            Integer status,
+            String link,
+            Long readCount
+    ) {
+
 
         public BlogEntityDtoBuilder id(Long id) {
-            this.id = id;
-            return this;
+            return new BlogEntityDtoBuilder(id, userId, title, description, content, created, updated, status, link, readCount);
         }
 
         public BlogEntityDtoBuilder userId(Long userId) {
-            this.userId = userId;
-            return this;
+            return new BlogEntityDtoBuilder(id, userId, title, description, content, created, updated, status, link, readCount);
         }
 
         public BlogEntityDtoBuilder title(String title) {
-            this.title = title;
-            return this;
+            return new BlogEntityDtoBuilder(id, userId, title, description, content, created, updated, status, link, readCount);
         }
 
         public BlogEntityDtoBuilder description(String description) {
-            this.description = description;
-            return this;
+            return new BlogEntityDtoBuilder(id, userId, title, description, content, created, updated, status, link, readCount);
         }
 
         public BlogEntityDtoBuilder content(String content) {
-            this.content = content;
-            return this;
+            return new BlogEntityDtoBuilder(id, userId, title, description, content, created, updated, status, link, readCount);
         }
 
         public BlogEntityDtoBuilder created(LocalDateTime created) {
-            this.created = created;
-            return this;
+            return new BlogEntityDtoBuilder(id, userId, title, description, content, created, updated, status, link, readCount);
         }
 
         public BlogEntityDtoBuilder updated(LocalDateTime updated) {
-            this.updated = updated;
-            return this;
+            return new BlogEntityDtoBuilder(id, userId, title, description, content, created, updated, status, link, readCount);
         }
 
         public BlogEntityDtoBuilder status(Integer status) {
-            this.status = status;
-            return this;
+            return new BlogEntityDtoBuilder(id, userId, title, description, content, created, updated, status, link, readCount);
         }
 
         public BlogEntityDtoBuilder link(String link) {
-            this.link = link;
-            return this;
+            return new BlogEntityDtoBuilder(id, userId, title, description, content, created, updated, status, link, readCount);
         }
 
         public BlogEntityDtoBuilder readCount(Long readCount) {
-            this.readCount = readCount;
-            return this;
+            return new BlogEntityDtoBuilder(id, userId, title, description, content, created, updated, status, link, readCount);
         }
 
         public BlogDeleteDto build() {

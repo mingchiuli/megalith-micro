@@ -34,81 +34,69 @@ public record AuthorityVo(
 
 
     public static AuthorityVoBuilder builder() {
-        return new AuthorityVoBuilder();
+        return new AuthorityVoBuilder(null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
-    public static class AuthorityVoBuilder {
-        private Long id;
-        private String code;
-        private String remark;
-        private String prototype;
-        private String methodType;
-        private String routePattern;
-        private String serviceHost;
-        private Integer servicePort;
-        private LocalDateTime created;
-        private LocalDateTime updated;
-        private Integer type;
-        private Integer status;
+    public record AuthorityVoBuilder(
+            Long id,
+            String code,
+            String remark,
+            String prototype,
+            String methodType,
+            String routePattern,
+            String serviceHost,
+            Integer servicePort,
+            LocalDateTime created,
+            LocalDateTime updated,
+            Integer type,
+            Integer status) {
 
         public AuthorityVoBuilder id(Long id) {
-            this.id = id;
-            return this;
+            return new AuthorityVoBuilder(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
 
         public AuthorityVoBuilder code(String code) {
-            this.code = code;
-            return this;
+            return new AuthorityVoBuilder(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
 
         public AuthorityVoBuilder remark(String remark) {
-            this.remark = remark;
-            return this;
+            return new AuthorityVoBuilder(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
 
         public AuthorityVoBuilder prototype(String prototype) {
-            this.prototype = prototype;
-            return this;
+            return new AuthorityVoBuilder(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
 
         public AuthorityVoBuilder methodType(String methodType) {
-            this.methodType = methodType;
-            return this;
+            return new AuthorityVoBuilder(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
 
         public AuthorityVoBuilder routePattern(String routePattern) {
-            this.routePattern = routePattern;
-            return this;
+            return new AuthorityVoBuilder(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
 
         public AuthorityVoBuilder serviceHost(String serviceHost) {
-            this.serviceHost = serviceHost;
-            return this;
+            return new AuthorityVoBuilder(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
 
         public AuthorityVoBuilder servicePort(Integer servicePort) {
-            this.servicePort = servicePort;
-            return this;
+            return new AuthorityVoBuilder(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
 
         public AuthorityVoBuilder created(LocalDateTime created) {
-            this.created = created;
-            return this;
+            return new AuthorityVoBuilder(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
 
         public AuthorityVoBuilder updated(LocalDateTime updated) {
-            this.updated = updated;
-            return this;
+            return new AuthorityVoBuilder(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
 
         public AuthorityVoBuilder type(Integer type) {
-            this.type = type;
-            return this;
+            return new AuthorityVoBuilder(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
 
         public AuthorityVoBuilder status(Integer status) {
-            this.status = status;
-            return this;
+            return new AuthorityVoBuilder(id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort, created, updated, type, status);
         }
 
         public AuthorityVo build() {

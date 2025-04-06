@@ -1,6 +1,6 @@
 package wiki.chiu.micro.user.vo;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public record RoleMenuVo(
@@ -15,34 +15,30 @@ public record RoleMenuVo(
         List<RoleMenuVo> children) {
 
     public static RoleMenuVoBuilder builder() {
-        return new RoleMenuVoBuilder();
+        return new RoleMenuVoBuilder(null, null, null, Collections.emptyList());
     }
 
-    public static class RoleMenuVoBuilder {
-        private Long menuId;
-        private String title;
-        private Boolean check;
-        private List<RoleMenuVo> children = new ArrayList<>();
+    public record RoleMenuVoBuilder(
+        Long menuId,
+        String title,
+        Boolean check,
+        List<RoleMenuVo> children) {
 
 
         public RoleMenuVoBuilder menuId(Long menuId) {
-            this.menuId = menuId;
-            return this;
+            return new RoleMenuVoBuilder(menuId, title, check, children);
         }
 
         public RoleMenuVoBuilder title(String title) {
-            this.title = title;
-            return this;
+            return new RoleMenuVoBuilder(menuId, title, check, children);
         }
 
         public RoleMenuVoBuilder check(Boolean check) {
-            this.check = check;
-            return this;
+            return new RoleMenuVoBuilder(menuId, title, check, children);
         }
 
         public RoleMenuVoBuilder children(List<RoleMenuVo> children) {
-            this.children = children;
-            return this;
+            return new RoleMenuVoBuilder(menuId, title, check, children);
         }
 
         public RoleMenuVo build() {
