@@ -2,76 +2,59 @@ package wiki.chiu.micro.common.vo;
 
 import java.time.LocalDateTime;
 
-
 public record RoleEntityRpcVo(
-
         Long id,
-
         String name,
-
         String code,
-
         String remark,
-
         LocalDateTime created,
-
         LocalDateTime updated,
-
         Integer status) {
 
-    public static RoleEntityRpcVo.RoleEntityRpcVoBuilder builder() {
-        return new RoleEntityRpcVo.RoleEntityRpcVoBuilder();
+    public static RoleEntityRpcVo builder() {
+        return new RoleEntityRpcVo(null, null, null, null, null, null, null);
     }
 
-    public static class RoleEntityRpcVoBuilder {
-        private Long id;
-        private String name;
-        private String code;
-        private String remark;
-        private LocalDateTime created;
-        private LocalDateTime updated;
-        private Integer status;
+    public record RoleEntityRpcVoBuilder(
+            Long id,
+            String name,
+            String code,
+            String remark,
+            LocalDateTime created,
+            LocalDateTime updated,
+            Integer status
+    ) {
 
-
-        public RoleEntityRpcVo.RoleEntityRpcVoBuilder id(Long id) {
-            this.id = id;
-            return this;
+        public RoleEntityRpcVoBuilder id(Long id) {
+            return new RoleEntityRpcVoBuilder(id, this.name, this.code, this.remark, this.created, this.updated, this.status);
         }
 
-        public RoleEntityRpcVo.RoleEntityRpcVoBuilder name(String name) {
-            this.name = name;
-            return this;
+        public RoleEntityRpcVoBuilder name(String name) {
+            return new RoleEntityRpcVoBuilder(this.id, name, this.code, this.remark, this.created, this.updated, this.status);
         }
 
-        public RoleEntityRpcVo.RoleEntityRpcVoBuilder code(String code) {
-            this.code = code;
-            return this;
+        public RoleEntityRpcVoBuilder code(String code) {
+            return new RoleEntityRpcVoBuilder(this.id, this.name, code, this.remark, this.created, this.updated, this.status);
         }
 
-        public RoleEntityRpcVo.RoleEntityRpcVoBuilder remark(String remark) {
-            this.remark = remark;
-            return this;
+        public RoleEntityRpcVoBuilder remark(String remark) {
+            return new RoleEntityRpcVoBuilder(this.id, this.name, this.code, remark, this.created, this.updated, this.status);
         }
 
-        public RoleEntityRpcVo.RoleEntityRpcVoBuilder created(LocalDateTime created) {
-            this.created = created;
-            return this;
+        public RoleEntityRpcVoBuilder created(LocalDateTime created) {
+            return new RoleEntityRpcVoBuilder(this.id, this.name, this.code, this.remark, created, this.updated, this.status);
         }
 
-        public RoleEntityRpcVo.RoleEntityRpcVoBuilder updated(LocalDateTime updated) {
-            this.updated = updated;
-            return this;
+        public RoleEntityRpcVoBuilder updated(LocalDateTime updated) {
+            return new RoleEntityRpcVoBuilder(this.id, this.name, this.code, this.remark, this.created, updated, this.status);
         }
 
-        public RoleEntityRpcVo.RoleEntityRpcVoBuilder status(Integer status) {
-            this.status = status;
-            return this;
+        public RoleEntityRpcVoBuilder status(Integer status) {
+            return new RoleEntityRpcVoBuilder(this.id, this.name, this.code, this.remark, this.created, this.updated, status);
         }
 
         public RoleEntityRpcVo build() {
             return new RoleEntityRpcVo(id, name, code, remark, created, updated, status);
         }
-
     }
 }
-

@@ -27,69 +27,59 @@ public record ButtonVo(
         Integer status) {
 
     public static ButtonVoBuilder builder() {
-        return new ButtonVoBuilder();
+        return new ButtonVoBuilder(null, null, null, null, null, null, null, null, null, null);
     }
 
-    public static class ButtonVoBuilder {
-        private Long id;
-        private Long parentId;
-        private String title;
-        private String name;
-        private String url;
-        private String component;
-        private Integer type;
-        private String icon;
-        private Integer orderNum;
-        private Integer status;
+    public record ButtonVoBuilder(
+            Long id,
+            Long parentId,
+            String title,
+            String name,
+            String url,
+            String component,
+            Integer type,
+            String icon,
+            Integer orderNum,
+            Integer status) {
 
         public ButtonVoBuilder id(Long id) {
-            this.id = id;
-            return this;
+            return new ButtonVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
 
         public ButtonVoBuilder parentId(Long parentId) {
-            this.parentId = parentId;
-            return this;
+            return new ButtonVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
 
         public ButtonVoBuilder title(String title) {
-            this.title = title;
-            return this;
+            return new ButtonVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
 
         public ButtonVoBuilder name(String name) {
-            this.name = name;
-            return this;
+            return new ButtonVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
 
         public ButtonVoBuilder url(String url) {
-            this.url = url;
-            return this;
+            return new ButtonVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
 
         public ButtonVoBuilder component(String component) {
-            this.component = component;
-            return this;
+            return new ButtonVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
 
         public ButtonVoBuilder type(Integer type) {
-            this.type = type;
-            return this;
+            return new ButtonVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
 
         public ButtonVoBuilder icon(String icon) {
-            this.icon = icon;
-            return this;
+            return new ButtonVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
 
         public ButtonVoBuilder orderNum(Integer orderNum) {
-            this.orderNum = orderNum;
-            return this;
+            return new ButtonVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
 
         public ButtonVoBuilder status(Integer status) {
-            this.status = status;
-            return this;
+            return new ButtonVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
 
         public ButtonVo build() {

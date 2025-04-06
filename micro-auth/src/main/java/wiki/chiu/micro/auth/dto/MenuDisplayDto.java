@@ -5,31 +5,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record MenuDisplayDto(
-
         Long id,
-
         Long parentId,
-
         String title,
-
         String name,
-
         String url,
-
         String component,
-
         Integer type,
-
         String icon,
-
         Integer orderNum,
-
         Integer status,
-
         LocalDateTime created,
-
         LocalDateTime updated,
-
         List<MenuDisplayDto> children) {
 
     public MenuDisplayDto(MenuDisplayDto dto, Long parentId, List<MenuDisplayDto> children) {
@@ -37,87 +24,78 @@ public record MenuDisplayDto(
     }
 
     public static MenuDisplayDtoBuilder builder() {
-        return new MenuDisplayDtoBuilder();
+        return new MenuDisplayDtoBuilder(null, null, null, null, null, null, null, null, null, null, null, null, new ArrayList<>());
     }
 
-    public static class MenuDisplayDtoBuilder {
-        private Long id;
-        private Long parentId;
-        private String title;
-        private String name;
-        private String url;
-        private String component;
-        private Integer type;
-        private String icon;
-        private Integer orderNum;
-        private Integer status;
-        private LocalDateTime created;
-        private LocalDateTime updated;
-        private List<MenuDisplayDto> children = new ArrayList<>();
+    public record MenuDisplayDtoBuilder(
+            Long id,
+            Long parentId,
+            String title,
+            String name,
+            String url,
+            String component,
+            Integer type,
+            String icon,
+            Integer orderNum,
+            Integer status,
+            LocalDateTime created,
+            LocalDateTime updated,
+            List<MenuDisplayDto> children) {
+
+        public MenuDisplayDtoBuilder() {
+            this(null, null, null, null, null, null, null, null, null, null, null, null, new ArrayList<>());
+        }
 
         public MenuDisplayDtoBuilder id(Long id) {
-            this.id = id;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDtoBuilder parentId(Long parentId) {
-            this.parentId = parentId;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDtoBuilder title(String title) {
-            this.title = title;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDtoBuilder name(String name) {
-            this.name = name;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDtoBuilder url(String url) {
-            this.url = url;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDtoBuilder component(String component) {
-            this.component = component;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDtoBuilder type(Integer type) {
-            this.type = type;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDtoBuilder icon(String icon) {
-            this.icon = icon;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDtoBuilder orderNum(Integer orderNum) {
-            this.orderNum = orderNum;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDtoBuilder status(Integer status) {
-            this.status = status;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDtoBuilder created(LocalDateTime created) {
-            this.created = created;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDtoBuilder updated(LocalDateTime updated) {
-            this.updated = updated;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDtoBuilder children(List<MenuDisplayDto> children) {
-            this.children = children;
-            return this;
+            return new MenuDisplayDtoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
         }
 
         public MenuDisplayDto build() {

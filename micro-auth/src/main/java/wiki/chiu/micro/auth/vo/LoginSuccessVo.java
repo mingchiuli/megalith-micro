@@ -13,22 +13,20 @@ public record LoginSuccessVo(
         String refreshToken) implements Serializable {
 
     public static LoginSuccessVoBuilder builder() {
-        return new LoginSuccessVoBuilder();
+        return new LoginSuccessVoBuilder(null, null);
     }
 
-    public static class LoginSuccessVoBuilder {
-        private String accessToken;
-        private String refreshToken;
-
+    public record LoginSuccessVoBuilder(
+            String accessToken,
+            String refreshToken
+    ) {
 
         public LoginSuccessVoBuilder accessToken(String accessToken) {
-            this.accessToken = accessToken;
-            return this;
+            return new LoginSuccessVoBuilder(accessToken, refreshToken);
         }
 
         public LoginSuccessVoBuilder refreshToken(String refreshToken) {
-            this.refreshToken = refreshToken;
-            return this;
+            return new LoginSuccessVoBuilder(accessToken, refreshToken);
         }
 
         public LoginSuccessVo build() {

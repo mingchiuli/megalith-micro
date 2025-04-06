@@ -1,5 +1,6 @@
 package wiki.chiu.micro.common.rpc.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public record AuthInfo(
@@ -11,27 +12,25 @@ public record AuthInfo(
         List<String> authorities) {
 
     public static AuthInfoBuilder builder() {
-        return new AuthInfoBuilder();
+        return new AuthInfoBuilder(null, new ArrayList<>(), new ArrayList<>());
     }
 
-    public static class AuthInfoBuilder {
-        private Long userId;
-        private List<String> roles;
-        private List<String> authorities;
+    public record AuthInfoBuilder(
+            Long userId,
+            List<String> roles,
+            List<String> authorities
+    ) {
 
         public AuthInfoBuilder userId(Long userId) {
-            this.userId = userId;
-            return this;
+            return new AuthInfoBuilder(userId, this.roles, this.authorities);
         }
 
         public AuthInfoBuilder roles(List<String> roles) {
-            this.roles = roles;
-            return this;
+            return new AuthInfoBuilder(this.userId, roles, this.authorities);
         }
 
         public AuthInfoBuilder authorities(List<String> authorities) {
-            this.authorities = authorities;
-            return this;
+            return new AuthInfoBuilder(this.userId, this.roles, authorities);
         }
 
         public AuthInfo build() {

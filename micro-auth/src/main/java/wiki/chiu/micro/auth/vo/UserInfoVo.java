@@ -16,27 +16,25 @@ public record UserInfoVo(
         String avatar) implements Serializable {
 
     public static UserInfoVoBuilder builder() {
-        return new UserInfoVoBuilder();
+        return new UserInfoVoBuilder(null, null, null);
     }
 
-    public static class UserInfoVoBuilder {
-        private Long id;
-        private String nickname;
-        private String avatar;
+    public record UserInfoVoBuilder(
+             Long id,
+             String nickname,
+             String avatar
+    ) {
 
         public UserInfoVoBuilder nickname(String nickname) {
-            this.nickname = nickname;
-            return this;
+            return new UserInfoVoBuilder(id, nickname, avatar);
         }
 
         public UserInfoVoBuilder avatar(String avatar) {
-            this.avatar = avatar;
-            return this;
+            return new UserInfoVoBuilder(id, nickname, avatar);
         }
 
         public UserInfoVoBuilder id(Long id) {
-            this.id = id;
-            return this;
+            return new UserInfoVoBuilder(id, nickname, avatar);
         }
 
         public UserInfoVo build() {

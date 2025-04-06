@@ -5,97 +5,78 @@ import java.util.List;
 
 public record MenuWithChildVo(
         Long id,
-
         Long parentId,
-
         String title,
-
         String name,
-
         String url,
-
         String component,
-
         Integer type,
-
         String icon,
-
         Integer orderNum,
-
         Integer status,
-
         List<MenuWithChildVo> children) {
 
     public static MenuWithChildVoBuilder builder() {
-        return new MenuWithChildVoBuilder();
+        return new MenuWithChildVoBuilder(null, null, null, null, null, null, null, null, null, null, new ArrayList<>());
     }
 
-    public static class MenuWithChildVoBuilder {
-        private Long id;
-        private Long parentId;
-        private String title;
-        private String name;
-        private String url;
-        private String component;
-        private Integer type;
-        private String icon;
-        private Integer orderNum;
-        private Integer status;
-        private List<MenuWithChildVo> children = new ArrayList<>();
+    public record MenuWithChildVoBuilder(
+             Long id,
+             Long parentId,
+             String title,
+             String name,
+             String url,
+             String component,
+             Integer type,
+             String icon,
+             Integer orderNum,
+             Integer status,
+             List<MenuWithChildVo> children
+    ) {
+
 
         public MenuWithChildVoBuilder id(Long id) {
-            this.id = id;
-            return this;
+            return new MenuWithChildVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, children);
         }
 
         public MenuWithChildVoBuilder parentId(Long parentId) {
-            this.parentId = parentId;
-            return this;
+            return new MenuWithChildVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, children);
         }
 
         public MenuWithChildVoBuilder title(String title) {
-            this.title = title;
-            return this;
+            return new MenuWithChildVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, children);
         }
 
         public MenuWithChildVoBuilder name(String name) {
-            this.name = name;
-            return this;
+            return new MenuWithChildVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, children);
         }
 
         public MenuWithChildVoBuilder url(String url) {
-            this.url = url;
-            return this;
+            return new MenuWithChildVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, children);
         }
 
         public MenuWithChildVoBuilder component(String component) {
-            this.component = component;
-            return this;
+            return new MenuWithChildVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, children);
         }
 
         public MenuWithChildVoBuilder type(Integer type) {
-            this.type = type;
-            return this;
+            return new MenuWithChildVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, children);
         }
 
         public MenuWithChildVoBuilder icon(String icon) {
-            this.icon = icon;
-            return this;
+            return new MenuWithChildVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, children);
         }
 
         public MenuWithChildVoBuilder orderNum(Integer orderNum) {
-            this.orderNum = orderNum;
-            return this;
+            return new MenuWithChildVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, children);
         }
 
         public MenuWithChildVoBuilder status(Integer status) {
-            this.status = status;
-            return this;
+            return new MenuWithChildVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, children);
         }
 
         public MenuWithChildVoBuilder children(List<MenuWithChildVo> children) {
-            this.children = children;
-            return this;
+            return new MenuWithChildVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, children);
         }
 
         public MenuWithChildVo build() {

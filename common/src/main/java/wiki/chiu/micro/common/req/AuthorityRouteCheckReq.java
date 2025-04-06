@@ -1,28 +1,24 @@
 package wiki.chiu.micro.common.req;
 
 public record AuthorityRouteCheckReq(
-
         String method,
-
         String routeMapping) {
 
-    public static AuthorityRouteReqBuilder builder() {
-        return new AuthorityRouteReqBuilder();
+    public static AuthorityRouteCheckReqBuilder builder() {
+        return new AuthorityRouteCheckReqBuilder(null, null);
     }
 
-    public static class AuthorityRouteReqBuilder {
-        private String method;
-        private String routeMapping;
+    public record AuthorityRouteCheckReqBuilder(
+            String method,
+            String routeMapping
+    ) {
 
-
-        public AuthorityRouteReqBuilder method(String method) {
-            this.method = method;
-            return this;
+        public AuthorityRouteCheckReqBuilder method(String method) {
+            return new AuthorityRouteCheckReqBuilder(method, this.routeMapping);
         }
 
-        public AuthorityRouteReqBuilder routeMapping(String routeMapping) {
-            this.routeMapping = routeMapping;
-            return this;
+        public AuthorityRouteCheckReqBuilder routeMapping(String routeMapping) {
+            return new AuthorityRouteCheckReqBuilder(this.method, routeMapping);
         }
 
         public AuthorityRouteCheckReq build() {
