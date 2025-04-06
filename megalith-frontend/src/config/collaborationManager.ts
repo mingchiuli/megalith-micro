@@ -85,7 +85,7 @@ const activate = async (roomId: string) => {
 
     // 初始化 IndexedDB 持久化
     indexeddbProvider = new IndexeddbPersistence(roomId, ydoc)
-
+    await indexeddbProvider.whenSynced
     // 不管连接状态如何，立即更新 CodeMirror 配置
     // 这非常重要，确保 CodeMirror 使用新创建的 awareness
     updateCodeMirrorConfig()
