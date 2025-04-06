@@ -91,30 +91,30 @@ const activate = async (roomId: string) => {
     updateCodeMirrorConfig()
 
     // 等待连接建立
-    try {
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('连接超时'))
-        }, 5000)
+    // try {
+    //   await new Promise<void>((resolve, reject) => {
+    //     const timeout = setTimeout(() => {
+    //       reject(new Error('连接超时'))
+    //     }, 5000)
 
-        const onSync = (isSynced: boolean) => {
-          if (isSynced) {
-            clearTimeout(timeout)
-            wsProvider?.off('sync', onSync)
-            resolve()
-          }
-        }
+    //     const onSync = (isSynced: boolean) => {
+    //       if (isSynced) {
+    //         clearTimeout(timeout)
+    //         wsProvider?.off('sync', onSync)
+    //         resolve()
+    //       }
+    //     }
 
-        wsProvider!.on('sync', onSync)
+    //     wsProvider!.on('sync', onSync)
 
-        if (wsProvider!.wsconnected) {
-          clearTimeout(timeout)
-          resolve()
-        }
-      })
-    } catch (timeoutError) {
-      console.warn('等待同步超时，但连接可能仍然有效')
-    }
+    //     if (wsProvider!.wsconnected) {
+    //       clearTimeout(timeout)
+    //       resolve()
+    //     }
+    //   })
+    // } catch (timeoutError) {
+    //   console.warn('等待同步超时，但连接可能仍然有效')
+    // }
 
     return true
   } catch (error) {
