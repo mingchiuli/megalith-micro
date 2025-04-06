@@ -23,39 +23,45 @@ public record BlogDescriptionDto(
         String link) implements Serializable {
 
     public static BlogDescriptionDtoBuilder builder() {
-        return new BlogDescriptionDtoBuilder(null, null, null, null, null, null);
+        return new BlogDescriptionDtoBuilder();
     }
 
-    public record BlogDescriptionDtoBuilder(
-            Long id,
-            String title,
-            String description,
-            Integer status,
-            LocalDateTime created,
-            String link
-    ) {
+    public static class BlogDescriptionDtoBuilder {
+        private Long id;
+        private String title;
+        private String description;
+        private Integer status;
+        private LocalDateTime created;
+        private String link;
+
         public BlogDescriptionDtoBuilder id(Long id) {
-            return new BlogDescriptionDtoBuilder(id, title, description, status, created, link);
+            this.id = id;
+            return this;
         }
 
         public BlogDescriptionDtoBuilder title(String title) {
-            return new BlogDescriptionDtoBuilder(id, title, description, status, created, link);
+            this.title = title;
+            return this;
         }
 
         public BlogDescriptionDtoBuilder description(String description) {
-            return new BlogDescriptionDtoBuilder(id, title, description, status, created, link);
+            this.description = description;
+            return this;
         }
 
         public BlogDescriptionDtoBuilder status(Integer status) {
-            return new BlogDescriptionDtoBuilder(id, title, description, status, created, link);
+            this.status = status;
+            return this;
         }
 
         public BlogDescriptionDtoBuilder created(LocalDateTime created) {
-            return new BlogDescriptionDtoBuilder(id, title, description, status, created, link);
+            this.created = created;
+            return this;
         }
 
         public BlogDescriptionDtoBuilder link(String link) {
-            return new BlogDescriptionDtoBuilder(id, title, description, status, created, link);
+            this.link = link;
+            return this;
         }
 
         public BlogDescriptionDto build() {

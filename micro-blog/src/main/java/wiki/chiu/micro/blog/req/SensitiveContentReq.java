@@ -9,25 +9,27 @@ public record SensitiveContentReq(
         Integer type) {
 
     public static SensitiveContentReqBuilder builder() {
-        return new SensitiveContentReqBuilder(null, null, null);
+        return new SensitiveContentReqBuilder();
     }
 
-    public record SensitiveContentReqBuilder(
-            Integer startIndex,
-            Integer endIndex,
-            Integer type
-    ) {
+    public static class SensitiveContentReqBuilder {
+        private Integer startIndex;
+        private Integer endIndex;
+        private Integer type;
 
         public SensitiveContentReqBuilder startIndex(Integer startIndex) {
-            return new SensitiveContentReqBuilder(startIndex, endIndex, type);
+            this.startIndex = startIndex;
+            return this;
         }
 
         public SensitiveContentReqBuilder endIndex(Integer endIndex) {
-            return new SensitiveContentReqBuilder(startIndex, endIndex, type);
+            this.endIndex = endIndex;
+            return this;
         }
 
         public SensitiveContentReqBuilder type(Integer type) {
-            return new SensitiveContentReqBuilder(startIndex, endIndex, type);
+            this.type = type;
+            return this;
         }
 
         public SensitiveContentReq build() {

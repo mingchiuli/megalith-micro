@@ -3,7 +3,6 @@ package wiki.chiu.micro.search.vo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -36,59 +35,69 @@ public record BlogDocumentVo(
 
 
     public static BlogDocumentVoBuilder builder() {
-        return new BlogDocumentVoBuilder(null, null, null, null, null, null, null, null, null, Collections.emptyMap());
+        return new BlogDocumentVoBuilder();
     }
 
-    public record BlogDocumentVoBuilder(
-            Long id,
-            Long userId,
-            Integer status,
-            String title,
-            String description,
-            String content,
-            String link,
-            LocalDateTime created,
-            Float score,
-            Map<String, List<String>> highlight
-    ) {
+    public static class BlogDocumentVoBuilder {
+        private Long id;
+        private Long userId;
+        private Integer status;
+        private String title;
+        private String description;
+        private String content;
+        private String link;
+        private LocalDateTime created;
+        private Float score;
+        private Map<String, List<String>> highlight;
+
         public BlogDocumentVoBuilder id(Long id) {
-            return new BlogDocumentVoBuilder(id, userId, status, title, description, content, link, created, score, highlight);
+            this.id = id;
+            return this;
         }
 
         public BlogDocumentVoBuilder userId(Long userId) {
-            return new BlogDocumentVoBuilder(id, userId, status, title, description, content, link, created, score, highlight);
+            this.userId = userId;
+            return this;
         }
 
         public BlogDocumentVoBuilder status(Integer status) {
-            return new BlogDocumentVoBuilder(id, userId, status, title, description, content, link, created, score, highlight);
+            this.status = status;
+            return this;
         }
 
         public BlogDocumentVoBuilder title(String title) {
-            return new BlogDocumentVoBuilder(id, userId, status, title, description, content, link, created, score, highlight);
+            this.title = title;
+            return this;
         }
 
         public BlogDocumentVoBuilder description(String description) {
-            return new BlogDocumentVoBuilder(id, userId, status, title, description, content, link, created, score, highlight);
+            this.description = description;
+            return this;
         }
 
         public BlogDocumentVoBuilder content(String content) {
-            return new BlogDocumentVoBuilder(id, userId, status, title, description, content, link, created, score, highlight);
+            this.content = content;
+            return this;
         }
 
         public BlogDocumentVoBuilder link(String link) {
-            return new BlogDocumentVoBuilder(id, userId, status, title, description, content, link, created, score, highlight);
+            this.link = link;
+            return this;
         }
 
         public BlogDocumentVoBuilder created(LocalDateTime created) {
-            return new BlogDocumentVoBuilder(id, userId, status, title, description, content, link, created, score, highlight);
+            this.created = created;
+            return this;
         }
 
         public BlogDocumentVoBuilder score(Float score) {
-            return new BlogDocumentVoBuilder(id, userId, status, title, description, content, link, created, score, highlight);
+            this.score = score;
+            return this;
         }
 
         public BlogDocumentVoBuilder highlight(Map<String, List<String>> highlight) {
-            return new BlogDocumentVoBuilder(id, userId, status, title, description, content, link, created, score, highlight);
+            this.highlight = highlight;
+            return this;
         }
 
         public BlogDocumentVo build() {

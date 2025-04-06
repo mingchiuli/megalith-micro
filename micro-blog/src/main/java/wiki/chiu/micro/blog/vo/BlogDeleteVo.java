@@ -32,65 +32,75 @@ public record BlogDeleteVo(
         Long readCount) {
 
     public static BlogDeleteVoBuilder builder() {
-        return new BlogDeleteVoBuilder(null, null, null, null, null, null, null, null, null, null, null);
+        return new BlogDeleteVoBuilder();
     }
 
-    public record BlogDeleteVoBuilder(
-            Long id,
-            Long userId,
-            String title,
-            String description,
-            String content,
-            LocalDateTime created,
-            LocalDateTime updated,
-            Integer status,
-            Integer idx,
-            String link,
-            Long readCount
-    ) {
+    public static class BlogDeleteVoBuilder {
+        private Long id;
+        private Long userId;
+        private String title;
+        private String description;
+        private String content;
+        private LocalDateTime created;
+        private LocalDateTime updated;
+        private Integer status;
+        private Integer idx;
+        private String link;
+        private Long readCount;
 
         public BlogDeleteVoBuilder id(Long id) {
-            return new BlogDeleteVoBuilder(id, userId, title, description, content, created, updated, status, idx, link, readCount);
+            this.id = id;
+            return this;
         }
 
         public BlogDeleteVoBuilder userId(Long userId) {
-            return new BlogDeleteVoBuilder(id, userId, title, description, content, created, updated, status, idx, link, readCount);
+            this.userId = userId;
+            return this;
         }
 
         public BlogDeleteVoBuilder title(String title) {
-            return new BlogDeleteVoBuilder(id, userId, title, description, content, created, updated, status, idx, link, readCount);
+            this.title = title;
+            return this;
         }
 
         public BlogDeleteVoBuilder description(String description) {
-            return new BlogDeleteVoBuilder(id, userId, title, description, content, created, updated, status, idx, link, readCount);
+            this.description = description;
+            return this;
         }
 
         public BlogDeleteVoBuilder content(String content) {
-            return new BlogDeleteVoBuilder(id, userId, title, description, content, created, updated, status, idx, link, readCount);
+            this.content = content;
+            return this;
         }
 
         public BlogDeleteVoBuilder created(LocalDateTime created) {
-            return new BlogDeleteVoBuilder(id, userId, title, description, content, created, updated, status, idx, link, readCount);
+            this.created = created;
+            return this;
         }
 
         public BlogDeleteVoBuilder updated(LocalDateTime updated) {
-            return new BlogDeleteVoBuilder(id, userId, title, description, content, created, updated, status, idx, link, readCount);
+            this.updated = updated;
+            return this;
         }
 
         public BlogDeleteVoBuilder status(Integer status) {
-            return new BlogDeleteVoBuilder(id, userId, title, description, content, created, updated, status, idx, link, readCount);
+            this.status = status;
+            return this;
         }
 
         public BlogDeleteVoBuilder idx(Integer idx) {
-            return new BlogDeleteVoBuilder(id, userId, title, description, content, created, updated, status, idx, link, readCount);
+            this.idx = idx;
+            return this;
         }
 
         public BlogDeleteVoBuilder link(String link) {
-            return new BlogDeleteVoBuilder(id, userId, title, description, content, created, updated, status, idx, link, readCount);
+            this.link = link;
+            return this;
         }
 
         public BlogDeleteVoBuilder readCount(Long readCount) {
-            return new BlogDeleteVoBuilder(id, userId, title, description, content, created, updated, status, idx, link, readCount);
+            this.readCount = readCount;
+            return this;
         }
 
         public BlogDeleteVo build() {

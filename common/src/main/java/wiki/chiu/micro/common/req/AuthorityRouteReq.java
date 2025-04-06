@@ -9,25 +9,28 @@ public record AuthorityRouteReq(
         String ipAddr) {
 
     public static AuthorityRouteReqBuilder builder() {
-        return new AuthorityRouteReqBuilder(null, null, null);
+        return new AuthorityRouteReqBuilder();
     }
 
-    public record AuthorityRouteReqBuilder(
-            String method,
-            String routeMapping,
-            String ipAddr
-    ) {
+    public static class AuthorityRouteReqBuilder {
+        private String method;
+        private String routeMapping;
+        private String ipAddr;
+
 
         public AuthorityRouteReqBuilder method(String method) {
-            return new AuthorityRouteReqBuilder(method, this.routeMapping, this.ipAddr);
+            this.method = method;
+            return this;
         }
 
         public AuthorityRouteReqBuilder routeMapping(String routeMapping) {
-            return new AuthorityRouteReqBuilder(this.method, routeMapping, this.ipAddr);
+            this.routeMapping = routeMapping;
+            return this;
         }
 
         public AuthorityRouteReqBuilder ipAddr(String ipAddr) {
-            return new AuthorityRouteReqBuilder(this.method, this.routeMapping, ipAddr);
+            this.ipAddr = ipAddr;
+            return this;
         }
 
         public AuthorityRouteReq build() {

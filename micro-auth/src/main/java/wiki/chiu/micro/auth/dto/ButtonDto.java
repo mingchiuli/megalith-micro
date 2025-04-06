@@ -1,76 +1,100 @@
 package wiki.chiu.micro.auth.dto;
 
-
 import java.io.Serializable;
 
-public record ButtonDto(
-        Long id,
-        Long parentId,
-        String title,
-        String name,
-        String url,
-        String component,
-        Integer type,
-        String icon,
-        Integer orderNum,
-        Integer status
-) implements Serializable {
 
-    public static ButtonDto.ButtonDtoBuilder builder() {
-        return new ButtonDto.ButtonDtoBuilder(null, null, null, null, null, null, null, null, null, null);
+/**
+ * @Author limingjiu
+ * @Date 2024/4/20 18:17
+ **/
+public record ButtonDto (
+
+        Long id,
+
+        Long parentId,
+
+        String title,
+
+        String name,
+
+        String url,
+
+        String component,
+
+        Integer type,
+
+        String icon,
+
+        Integer orderNum,
+
+        Integer status) implements Serializable {
+
+    public static ButtonDtoBuilder builder() {
+        return new ButtonDtoBuilder();
     }
 
-    public record ButtonDtoBuilder(
-            Long id,
-            Long parentId,
-            String title,
-            String name,
-            String url,
-            String component,
-            Integer type,
-            String icon,
-            Integer orderNum,
-            Integer status
-    ) {
+
+    public static class ButtonDtoBuilder {
+
+        private Long id;
+        private Long parentId;
+        private String title;
+        private String name;
+        private String url;
+        private String component;
+        private Integer type;
+        private String icon;
+        private Integer orderNum;
+        private Integer status;
 
         public ButtonDtoBuilder id(Long id) {
-            return new ButtonDtoBuilder(id, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+            this.id = id;
+            return this;
         }
 
         public ButtonDtoBuilder parentId(Long parentId) {
-            return new ButtonDtoBuilder(this.id, parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+            this.parentId = parentId;
+            return this;
         }
 
         public ButtonDtoBuilder title(String title) {
-            return new ButtonDtoBuilder(this.id, this.parentId, title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+            this.title = title;
+            return this;
         }
 
         public ButtonDtoBuilder name(String name) {
-            return new ButtonDtoBuilder(this.id, this.parentId, this.title, name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+            this.name = name;
+            return this;
         }
 
         public ButtonDtoBuilder url(String url) {
-            return new ButtonDtoBuilder(this.id, this.parentId, this.title, this.name, url, this.component, this.type, this.icon, this.orderNum, this.status);
+            this.url = url;
+            return this;
         }
 
         public ButtonDtoBuilder component(String component) {
-            return new ButtonDtoBuilder(this.id, this.parentId, this.title, this.name, this.url, component, this.type, this.icon, this.orderNum, this.status);
+            this.component = component;
+            return this;
         }
 
         public ButtonDtoBuilder type(Integer type) {
-            return new ButtonDtoBuilder(this.id, this.parentId, this.title, this.name, this.url, this.component, type, this.icon, this.orderNum, this.status);
+            this.type = type;
+            return this;
         }
 
         public ButtonDtoBuilder icon(String icon) {
-            return new ButtonDtoBuilder(this.id, this.parentId, this.title, this.name, this.url, this.component, this.type, icon, this.orderNum, this.status);
+            this.icon = icon;
+            return this;
         }
 
         public ButtonDtoBuilder orderNum(Integer orderNum) {
-            return new ButtonDtoBuilder(this.id, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, orderNum, this.status);
+            this.orderNum = orderNum;
+            return this;
         }
 
         public ButtonDtoBuilder status(Integer status) {
-            return new ButtonDtoBuilder(this.id, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, status);
+            this.status = status;
+            return this;
         }
 
         public ButtonDto build() {
@@ -78,3 +102,4 @@ public record ButtonDto(
         }
     }
 }
+

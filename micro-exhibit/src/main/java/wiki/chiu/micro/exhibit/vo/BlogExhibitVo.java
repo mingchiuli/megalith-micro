@@ -27,44 +27,51 @@ public record BlogExhibitVo(
         Long readCount) {
 
     public static BlogExhibitVoBuilder builder() {
-        return new BlogExhibitVoBuilder(null, null, null, null, null, null, null);
+        return new BlogExhibitVoBuilder();
     }
 
-    public record BlogExhibitVoBuilder(
-            String description,
-            String nickname,
-            String avatar,
-            String title,
-            String content,
-            LocalDateTime created,
-            Long readCount) {
+    public static class BlogExhibitVoBuilder {
+        private String description;
+        private String nickname;
+        private String avatar;
+        private String title;
+        private String content;
+        private LocalDateTime created;
+        private Long readCount;
 
         public BlogExhibitVoBuilder description(String description) {
-            return new BlogExhibitVoBuilder(description, nickname, avatar, title, content, created, readCount);
+            this.description = description;
+            return this;
         }
 
         public BlogExhibitVoBuilder nickname(String nickname) {
-            return new BlogExhibitVoBuilder(description, nickname, avatar, title, content, created, readCount);
+            this.nickname = nickname;
+            return this;
         }
 
         public BlogExhibitVoBuilder avatar(String avatar) {
-            return new BlogExhibitVoBuilder(description, nickname, avatar, title, content, created, readCount);
+            this.avatar = avatar;
+            return this;
         }
 
         public BlogExhibitVoBuilder title(String title) {
-            return new BlogExhibitVoBuilder(description, nickname, avatar, title, content, created, readCount);
+            this.title = title;
+            return this;
         }
 
         public BlogExhibitVoBuilder content(String content) {
-            return new BlogExhibitVoBuilder(description, nickname, avatar, title, content, created, readCount);
+            this.content = content;
+            return this;
         }
 
         public BlogExhibitVoBuilder created(LocalDateTime created) {
-            return new BlogExhibitVoBuilder(description, nickname, avatar, title, content, created, readCount);
+            this.created = created;
+            return this;
         }
 
         public BlogExhibitVoBuilder readCount(Long readCount) {
-            return new BlogExhibitVoBuilder(description, nickname, avatar, title, content, created, readCount);
+            this.readCount = readCount;
+            return this;
         }
 
         public BlogExhibitVo build() {

@@ -1,73 +1,95 @@
+
 package wiki.chiu.micro.auth.dto;
 
 import java.io.Serializable;
 
 public record MenuDto(
+
         Long id,
+
         Long parentId,
+
         String title,
+
         String name,
+
         String url,
+
         String component,
+
         Integer type,
+
         String icon,
+
         Integer orderNum,
+
         Integer status) implements Serializable {
 
-    public static MenuDtoBuilder builder() {
-        return new MenuDtoBuilder(null, null, null, null, null, null, null, null, null, null);
+    public static MenuDto.MenuWithChildRpcDtoBuilder builder() {
+        return new MenuDto.MenuWithChildRpcDtoBuilder();
     }
 
-    public record MenuDtoBuilder(
-            Long id,
-            Long parentId,
-            String title,
-            String name,
-            String url,
-            String component,
-            Integer type,
-            String icon,
-            Integer orderNum,
-            Integer status) {
+    public static class MenuWithChildRpcDtoBuilder {
+        private Long id;
+        private Long parentId;
+        private String title;
+        private String name;
+        private String url;
+        private String component;
+        private Integer type;
+        private String icon;
+        private Integer orderNum;
+        private Integer status;
 
-        public MenuDtoBuilder id(Long id) {
-            return new MenuDtoBuilder(id, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+
+        public MenuDto.MenuWithChildRpcDtoBuilder id(Long id) {
+            this.id = id;
+            return this;
         }
 
-        public MenuDtoBuilder parentId(Long parentId) {
-            return new MenuDtoBuilder(this.id, parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+        public MenuDto.MenuWithChildRpcDtoBuilder parentId(Long parentId) {
+            this.parentId = parentId;
+            return this;
         }
 
-        public MenuDtoBuilder title(String title) {
-            return new MenuDtoBuilder(this.id, this.parentId, title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+        public MenuDto.MenuWithChildRpcDtoBuilder title(String title) {
+            this.title = title;
+            return this;
         }
 
-        public MenuDtoBuilder name(String name) {
-            return new MenuDtoBuilder(this.id, this.parentId, this.title, name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+        public MenuDto.MenuWithChildRpcDtoBuilder name(String name) {
+            this.name = name;
+            return this;
         }
 
-        public MenuDtoBuilder url(String url) {
-            return new MenuDtoBuilder(this.id, this.parentId, this.title, this.name, url, this.component, this.type, this.icon, this.orderNum, this.status);
+        public MenuDto.MenuWithChildRpcDtoBuilder url(String url) {
+            this.url = url;
+            return this;
         }
 
-        public MenuDtoBuilder component(String component) {
-            return new MenuDtoBuilder(this.id, this.parentId, this.title, this.name, this.url, component, this.type, this.icon, this.orderNum, this.status);
+        public MenuDto.MenuWithChildRpcDtoBuilder component(String component) {
+            this.component = component;
+            return this;
         }
 
-        public MenuDtoBuilder type(Integer type) {
-            return new MenuDtoBuilder(this.id, this.parentId, this.title, this.name, this.url, this.component, type, this.icon, this.orderNum, this.status);
+        public MenuDto.MenuWithChildRpcDtoBuilder type(Integer type) {
+            this.type = type;
+            return this;
         }
 
-        public MenuDtoBuilder icon(String icon) {
-            return new MenuDtoBuilder(this.id, this.parentId, this.title, this.name, this.url, this.component, this.type, icon, this.orderNum, this.status);
+        public MenuDto.MenuWithChildRpcDtoBuilder icon(String icon) {
+            this.icon = icon;
+            return this;
         }
 
-        public MenuDtoBuilder orderNum(Integer orderNum) {
-            return new MenuDtoBuilder(this.id, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, orderNum, this.status);
+        public MenuDto.MenuWithChildRpcDtoBuilder orderNum(Integer orderNum) {
+            this.orderNum = orderNum;
+            return this;
         }
 
-        public MenuDtoBuilder status(Integer status) {
-            return new MenuDtoBuilder(this.id, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, status);
+        public MenuDto.MenuWithChildRpcDtoBuilder status(Integer status) {
+            this.status = status;
+            return this;
         }
 
         public MenuDto build() {
