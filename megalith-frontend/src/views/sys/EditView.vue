@@ -153,6 +153,7 @@ const initializeEditor = async () => {
     // 5. 如果协作文本为空，但服务器有内容，设置文本
     if (form.content) {
       // 设置文本内容到协作管理器
+      console.log('设置文本内容到协作管理器', form.content)
       setText(form.content)
       initialized.value = true
       return
