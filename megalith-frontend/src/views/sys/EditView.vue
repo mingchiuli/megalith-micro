@@ -39,7 +39,7 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 
 import type { UserInfo } from '@/type/entity'
 
-import { ytext, activate, deactivate, setText, clearIndexDbData } from '@/config/collaborationManager'
+import { ytext, activate, deactivate, setText, clearIndexDbData, resetDocument } from '@/config/collaborationManager'
 
 const route = useRoute()
 const blogId = route.query.id as string | undefined
@@ -123,6 +123,8 @@ const formRules = reactive<FormRules<EditForm>>({
 // 初始化编辑器
 const initializeEditor = async () => {
   try {
+    
+    resetDocument()
     // 0. 设置同步房间ID
     const roomId = setupSyncRoom()
 
@@ -336,6 +338,7 @@ onMounted(async () => {
 onUnmounted(() => {
   console.log('编辑器组件卸载，停用协作功能...')
   deactivate()
+  resetDocument()
 })
 
 const loadEditContent = async (form: EditForm, blogId: string | undefined) => {

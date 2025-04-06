@@ -172,5 +172,28 @@ const setText = (content: string) => {
   }
 }
 
+const resetDocument = () => {
+  console.log('开始完全重置Y.Doc和Y.Text...')
+  
+  // 1. 先断开所有连接
+  deactivate()
+  
+  // 2. 销毁当前文档
+  ydoc.destroy()
+  
+  // 3. 创建新的 Y.Doc 和 Y.Text 实例
+  const newDoc = new Y.Doc()
+  const newText = newDoc.getText('codemirror')
+  const newUndoManager = new Y.UndoManager(newText)
+  
+  // 4. 将新实例的所有属性复制到单例对象
+  Object.assign(ydoc, newDoc)
+  Object.assign(ytext, newText)
+  Object.assign(undoManager, newUndoManager)
+  
+  console.log('Y.Doc 和 Y.Text 已完全重置')
+  return true
+}
+
 // 创建单例实例
-export { activate, deactivate, setText, ytext, clearIndexDbData }
+export { activate, deactivate, setText, ytext, clearIndexDbData, resetDocument }
