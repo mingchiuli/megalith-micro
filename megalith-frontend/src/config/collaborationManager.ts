@@ -21,7 +21,7 @@ export class CollaborationManager {
     this.ydoc = new Y.Doc()
     this.ytext = this.ydoc.getText('codemirror')
     this.undoManager = new Y.UndoManager(this.ytext)
-    
+
     // 设置用户颜色
     const usercolors = [
       { color: '#30bced', light: '#30bced33' },
@@ -34,7 +34,7 @@ export class CollaborationManager {
       { color: '#1be7ff', light: '#1be7ff33' }
     ]
     this.userColor = usercolors[random.uint32() % usercolors.length]
-    
+
     console.log('已创建新的协作管理器实例')
   }
 
@@ -50,7 +50,9 @@ export class CollaborationManager {
       return
     }
 
-    const extension = yCollab(this.ytext, this.wsProvider.awareness, { undoManager: this.undoManager })
+    const extension = yCollab(this.ytext, this.wsProvider.awareness, {
+      undoManager: this.undoManager
+    })
 
     config({
       codeMirrorExtensions(_theme, extensions) {
@@ -102,7 +104,7 @@ export class CollaborationManager {
 
       // 初始化IndexedDB持久化
       this.indexeddbProvider = new IndexeddbPersistence(roomId, this.ydoc)
-      
+
       // 等待IndexedDB同步完成
       await this.indexeddbProvider.whenSynced
       console.log('IndexedDB同步完成')
@@ -168,21 +170,13 @@ export class CollaborationManager {
   // 设置文本内容
   public setText(content: string): void {
     console.log('设置文本内容，长度:', content?.length || 0)
-    
+
     const currentLength = this.ytext.toString().length
-    if (currentLength > 0) {
-      console.log('删除现有内容:', currentLength, '字符')
-      this.ydoc.transact(() => {
-        this.ytext.delete(0, currentLength)
-      })
-    }
-    
-    if (content && content.length > 0) {
-      console.log('插入新内容:', content.length, '字符')
-      this.ydoc.transact(() => {
-        this.ytext.insert(0, content)
-      })
-    }
+
+    this.ydoc.transact(() => {
+      this.ytext.delete(0, currentLength)
+      this.ytext.insert(0, content)
+    })
   }
 
   // 销毁所有资源
