@@ -6,8 +6,7 @@ import {
   onUnmounted,
   reactive,
   ref,
-  useTemplateRef,
-  watch
+  useTemplateRef
 } from 'vue'
 import {
   type TagProps,
@@ -38,10 +37,9 @@ import { blogsStore, syncStore } from '@/stores/store'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 
-import type { IndexeddbPersistence } from 'y-indexeddb'
 import type { UserInfo } from '@/type/entity'
 
-import { collaborationManager, ytext } from '@/config/collaborationManager'
+import { ytext, activate, deactivate, setText, clearIndexDbData } from '@/config/collaborationManager'
 
 const route = useRoute()
 const blogId = route.query.id as string | undefined
@@ -61,7 +59,6 @@ const setupSyncRoom = () => {
 }
 
 const initialized = ref(false)
-let indexeddbProvider: IndexeddbPersistence | null = null
 
 const form: EditForm = reactive({
   id: undefined,
@@ -123,10 +120,6 @@ const formRules = reactive<FormRules<EditForm>>({
   status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
 })
 
-// 添加计数器跟踪表单更改
-const operationCount = ref(0)
-const MAX_OPERATIONS = 10
-
 // 初始化编辑器
 const initializeEditor = async () => {
   try {
@@ -137,7 +130,7 @@ const initializeEditor = async () => {
     await loadEditContent(form, blogId)
 
     // 3. 激活协作功能（建立 WebSocket 连接）
-    const success = await collaborationManager.activate(roomId)
+    const success = await activate(roomId)
     
     // 4. 处理协作激活结果
     if (success) {
@@ -159,14 +152,14 @@ const initializeEditor = async () => {
     // 5. 如果协作文本为空，但服务器有内容，设置文本
     if (form.content) {
       // 设置文本内容到协作管理器
-      collaborationManager.setText(form.content)
+      setText(form.content)
       initialized.value = true
       return
     }
 
     // 6. 如果服务器也没有内容，使用空内容
     console.log('使用默认初始化文本')
-    collaborationManager.setText('')
+    setText('')
     form.content = ''
     initialized.value = true
   } catch (error) {
@@ -202,6 +195,7 @@ const submitForm = async (ref: FormInstance) => {
         type: 'success',
         duration: 1000
       })
+      clearIndexDbData()
       blogsStore().pageNum = 1
       router.push({
         name: 'system-blogs'
@@ -348,7 +342,7 @@ onMounted(async () => {
 // 组件卸载时停用协作功能
 onUnmounted(() => {
   console.log('编辑器组件卸载，停用协作功能...')
-  collaborationManager.deactivate()
+  deactivate()
 })
 
 const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
