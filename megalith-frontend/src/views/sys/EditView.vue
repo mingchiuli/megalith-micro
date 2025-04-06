@@ -128,7 +128,7 @@ const initializeEditor = async () => {
 
     // 1. 先加载文章内容
     await loadEditContent(form, blogId)
-
+    console.log('data', form.content)
     // 3. 激活协作功能（建立 WebSocket 连接）
     const success = await activate(roomId)
     
