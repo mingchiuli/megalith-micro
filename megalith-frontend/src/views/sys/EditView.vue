@@ -158,9 +158,6 @@ const initializeEditor = async () => {
       console.warn('协作功能激活失败，将使用本地编辑模式')
     }
 
-    // 6. 检查是否需要用协作文本更新表单
-    form.content = ytext.toString()
-
     // 4. 设置文本到协作文档
     if (form.content) {
       collaborationManager.value.setText(form.content)
