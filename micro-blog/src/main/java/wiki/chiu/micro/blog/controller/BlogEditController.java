@@ -1,8 +1,6 @@
 package wiki.chiu.micro.blog.controller;
 
-import wiki.chiu.micro.blog.req.BlogEditPushAllReq;
 import wiki.chiu.micro.blog.service.BlogEditService;
-import wiki.chiu.micro.blog.valid.PushAllValue;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
 
 import wiki.chiu.micro.common.lang.Result;
@@ -19,11 +17,6 @@ public class BlogEditController {
 
     public BlogEditController(BlogEditService blogEditService) {
         this.blogEditService = blogEditService;
-    }
-
-    @PostMapping("/push/all")
-    public Result<Void> pushSaveBlog(@RequestBody @PushAllValue BlogEditPushAllReq blog, AuthInfo authInfo) {
-        return Result.success(() -> blogEditService.pushAll(blog, authInfo.userId()));
     }
 
     @GetMapping("/pull/echo")

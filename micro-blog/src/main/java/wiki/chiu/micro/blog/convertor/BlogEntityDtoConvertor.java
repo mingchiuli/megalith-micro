@@ -1,7 +1,6 @@
 package wiki.chiu.micro.blog.convertor;
 
 import wiki.chiu.micro.blog.dto.BlogEntityDto;
-import wiki.chiu.micro.blog.dto.BlogPushAllDto;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 
 
@@ -20,16 +19,4 @@ public class BlogEntityDtoConvertor {
                 .userId(blogEntity.getUserId())
                 .build();
   }
-
-
-    public static BlogEntityDto convert(BlogPushAllDto dto) {
-        return BlogEntityDto.builder()
-                .id(dto.id())
-                .title(dto.title())
-                .description(dto.description())
-                .content(dto.content())
-                .link(dto.link())
-                .status(dto.status())
-                .build();
-    }
 }
