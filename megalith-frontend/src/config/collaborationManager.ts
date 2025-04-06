@@ -7,188 +7,188 @@ import { config } from 'md-editor-v3'
 import type { LoginStruct } from '@/type/entity'
 import { syncStore } from '@/stores/store'
 
-// 创建 Yjs Doc 和文本类型
-let ydoc = new Y.Doc()
-let ytext = ydoc.getText('codemirror')
-let undoManager = new Y.UndoManager(ytext)
+export class CollaborationManager {
+  // 私有属性
+  private ydoc: Y.Doc
+  private ytext: Y.Text
+  private undoManager: Y.UndoManager
+  private wsProvider: WebsocketProvider | null = null
+  private indexeddbProvider: IndexeddbPersistence | null = null
+  private userColor: { color: string; light: string }
 
-let wsProvider: WebsocketProvider | null = null
-let indexeddbProvider: IndexeddbPersistence | null = null
-const usercolors = [
-  { color: '#30bced', light: '#30bced33' },
-  { color: '#6eeb83', light: '#6eeb8333' },
-  { color: '#ffbc42', light: '#ffbc4233' },
-  { color: '#ecd444', light: '#ecd44433' },
-  { color: '#ee6352', light: '#ee635233' },
-  { color: '#9ac2c9', light: '#9ac2c933' },
-  { color: '#8acb88', light: '#8acb8833' },
-  { color: '#1be7ff', light: '#1be7ff33' }
-]
-const userColor = usercolors[random.uint32() % usercolors.length]
+  constructor() {
+    // 创建新的 Y.Doc 和文本
+    this.ydoc = new Y.Doc()
+    this.ytext = this.ydoc.getText('codemirror')
+    this.undoManager = new Y.UndoManager(this.ytext)
+    
+    // 设置用户颜色
+    const usercolors = [
+      { color: '#30bced', light: '#30bced33' },
+      { color: '#6eeb83', light: '#6eeb8333' },
+      { color: '#ffbc42', light: '#ffbc4233' },
+      { color: '#ecd444', light: '#ecd44433' },
+      { color: '#ee6352', light: '#ee635233' },
+      { color: '#9ac2c9', light: '#9ac2c933' },
+      { color: '#8acb88', light: '#8acb8833' },
+      { color: '#1be7ff', light: '#1be7ff33' }
+    ]
+    this.userColor = usercolors[random.uint32() % usercolors.length]
+    
+    console.log('已创建新的协作管理器实例')
+  }
 
-// 获取协作扩展，无论协作是否激活都能工作
-const getExtension = () => {
-  return yCollab(ytext, wsProvider!.awareness, { undoManager })
-}
-
-// 更新 CodeMirror 配置，使用当前的 awareness
-const updateCodeMirrorConfig = () => {
-  // 获取适当的扩展
-  const extension = getExtension()
+  // 获取y-text实例，用于直接读取内容
+  public getYText(): Y.Text {
+    return this.ytext
+  }
 
   // 更新 CodeMirror 配置
-  config({
-    codeMirrorExtensions(_theme, extensions) {
-      // 添加新的 yCollab 扩展
-      return [...extensions, extension]
+  private updateCodeMirrorConfig() {
+    if (!this.wsProvider) {
+      console.warn('无法更新CodeMirror配置：WebSocket提供程序未初始化')
+      return
     }
-  })
 
-  console.log('已更新 CodeMirror 协作配置')
-}
+    const extension = yCollab(this.ytext, this.wsProvider.awareness, { undoManager: this.undoManager })
 
-// 激活协作功能，连接到服务器
-const activate = async (roomId: string) => {
-  const store = syncStore()
-  store.room = roomId
-
-  if (!store.url || !store.token) {
-    console.warn('缺少必要的连接参数')
-    return false
-  }
-
-  try {
-    console.log('正在激活WebSocket协作功能，连接房间:', roomId)
-
-    // 初始化 WebSocket 提供者
-    wsProvider = new WebsocketProvider(store.url, roomId, ydoc, {
-      params: {
-        token: store.token
+    config({
+      codeMirrorExtensions(_theme, extensions) {
+        return [...extensions, extension]
       }
     })
 
-    // 设置用户信息
-    const userStr = localStorage.getItem('userinfo')
-    if (userStr) {
-      try {
-        const loginUser: LoginStruct = JSON.parse(userStr)
+    console.log('已更新CodeMirror协作配置')
+  }
 
-        wsProvider.awareness.setLocalStateField('user', {
-          name: loginUser.username,
-          color: userColor.color,
-          colorLight: userColor.light
-        })
-      } catch (e) {
-        console.error('解析用户信息失败', e)
-      }
+  // 激活协作功能
+  public async activate(roomId: string): Promise<boolean> {
+    const store = syncStore()
+    store.room = roomId
+
+    if (!store.url || !store.token) {
+      console.warn('缺少必要的连接参数')
+      return false
     }
 
-    //立即更新 CodeMirror 配置
-    updateCodeMirrorConfig()
-
-    // 初始化 IndexedDB 持久化
-    indexeddbProvider = new IndexeddbPersistence(roomId, ydoc)
-    // 等待IndexedDB同步完成
-    await indexeddbProvider.whenSynced
-
-    // 等待连接建立
     try {
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('连接超时'))
-        }, 5000)
+      console.log('正在激活WebSocket协作功能，连接房间:', roomId)
 
-        const onSync = (isSynced: boolean) => {
-          if (isSynced) {
-            clearTimeout(timeout)
-            wsProvider?.off('sync', onSync)
-            resolve()
-          }
-        }
-
-        wsProvider!.on('sync', onSync)
-
-        if (wsProvider!.wsconnected) {
-          clearTimeout(timeout)
-          resolve()
+      // 初始化WebSocket提供程序
+      this.wsProvider = new WebsocketProvider(store.url, roomId, this.ydoc, {
+        params: {
+          token: store.token
         }
       })
-    } catch (timeoutError) {
-      console.warn('等待同步超时，但连接可能仍然有效')
+
+      // 设置用户信息
+      const userStr = localStorage.getItem('userinfo')
+      if (userStr) {
+        try {
+          const loginUser: LoginStruct = JSON.parse(userStr)
+
+          this.wsProvider.awareness.setLocalStateField('user', {
+            name: loginUser.username,
+            color: this.userColor.color,
+            colorLight: this.userColor.light
+          })
+        } catch (e) {
+          console.error('解析用户信息失败', e)
+        }
+      }
+
+      // 更新CodeMirror配置
+      this.updateCodeMirrorConfig()
+
+      // 初始化IndexedDB持久化
+      this.indexeddbProvider = new IndexeddbPersistence(roomId, this.ydoc)
+      
+      // 等待IndexedDB同步完成
+      await this.indexeddbProvider.whenSynced
+      console.log('IndexedDB同步完成')
+
+      // 等待连接建立
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('连接超时'))
+          }, 5000)
+
+          const onSync = (isSynced: boolean) => {
+            if (isSynced) {
+              clearTimeout(timeout)
+              this.wsProvider?.off('sync', onSync)
+              resolve()
+            }
+          }
+
+          this.wsProvider!.on('sync', onSync)
+
+          if (this.wsProvider!.wsconnected) {
+            clearTimeout(timeout)
+            resolve()
+          }
+        })
+        console.log('WebSocket同步完成')
+      } catch (timeoutError) {
+        console.warn('等待同步超时，但连接可能仍然有效')
+      }
+
+      return true
+    } catch (error) {
+      console.error('激活协作功能失败:', error)
+      this.deactivate() // 清理资源
+      return false
+    }
+  }
+
+  // 停用协作功能
+  public deactivate(): void {
+    console.log('停用WebSocket协作功能')
+
+    if (this.indexeddbProvider) {
+      this.indexeddbProvider.destroy()
+      this.indexeddbProvider = null
     }
 
-    return true
-  } catch (error) {
-    console.error('激活协作功能失败:', error)
-    deactivate() // 清理任何部分创建的资源
-    return false
+    if (this.wsProvider) {
+      this.wsProvider.disconnect()
+      this.wsProvider = null
+    }
+  }
+
+  // 清除IndexedDB数据
+  public clearIndexDbData(): void {
+    if (this.indexeddbProvider) {
+      this.indexeddbProvider.clearData()
+      console.log('已清理IndexedDB数据')
+    }
+  }
+
+  // 设置文本内容
+  public setText(content: string): void {
+    console.log('设置文本内容，长度:', content?.length || 0)
+    
+    const currentLength = this.ytext.toString().length
+    if (currentLength > 0) {
+      console.log('删除现有内容:', currentLength, '字符')
+      this.ydoc.transact(() => {
+        this.ytext.delete(0, currentLength)
+      })
+    }
+    
+    if (content && content.length > 0) {
+      console.log('插入新内容:', content.length, '字符')
+      this.ydoc.transact(() => {
+        this.ytext.insert(0, content)
+      })
+    }
+  }
+
+  // 销毁所有资源
+  public destroy(): void {
+    this.deactivate()
+    this.ydoc.destroy()
+    console.log('协作管理器已销毁')
   }
 }
-
-// 停用协作功能，断开连接
-const deactivate = () => {
-  console.log('停用WebSocket协作功能')
-
-  if (indexeddbProvider) {
-    indexeddbProvider.destroy()
-    indexeddbProvider = null
-  }
-
-  if (wsProvider) {
-    wsProvider.disconnect()
-    wsProvider = null
-  }
-}
-
-const clearIndexDbData = () => {
-  if (indexeddbProvider) {
-    indexeddbProvider.clearData()
-    console.log('已清理IndexedDB数据')
-  }
-
-  // 重置 ytext 内容
-  const currentLength = ytext.toString().length
-  if (currentLength > 0) {
-    ydoc.transact(() => {
-      ytext.delete(0, currentLength)
-    })
-  }
-}
-// 设置文本内容
-const setText = (content: string) => {
-  // 确保先完全删除现有内容
-  const currentLength = ytext.toString().length
-  if (currentLength > 0) {
-    ydoc.transact(() => {
-      ytext.delete(0, currentLength)
-    })
-  }
-
-  // 然后添加新内容
-  if (content) {
-    ydoc.transact(() => {
-      ytext.insert(0, content)
-    })
-  }
-}
-
-const resetDocument = () => {
-  console.log('开始完全重置Y.Doc和Y.Text...')
-
-  // 1. 先断开所有连接
-  deactivate()
-
-  // 2. 销毁当前文档
-  ydoc.destroy()
-
-  // 3. 创建新的 Y.Doc 和 Y.Text 实例
-  ydoc = new Y.Doc()
-  ytext = ydoc.getText('codemirror')
-  undoManager = new Y.UndoManager(ytext)
-
-  console.log('Y.Doc 和 Y.Text 已完全重置')
-  return true
-}
-
-// 创建单例实例
-export { activate, deactivate, setText, ytext, clearIndexDbData, resetDocument }
