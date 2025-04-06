@@ -82,13 +82,15 @@ const activate = async (roomId: string) => {
         console.error('解析用户信息失败', e)
       }
     }
+    
+    //立即更新 CodeMirror 配置
+    updateCodeMirrorConfig()
 
     // 初始化 IndexedDB 持久化
     indexeddbProvider = new IndexeddbPersistence(roomId, ydoc)
-    // 不管连接状态如何，立即更新 CodeMirror 配置
-    // 这非常重要，确保 CodeMirror 使用新创建的 awareness
-    updateCodeMirrorConfig()
-
+    // 等待IndexedDB同步完成
+    await indexeddbProvider.whenSynced
+    
     // 等待连接建立
     try {
       await new Promise<void>((resolve, reject) => {
