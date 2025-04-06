@@ -38,18 +38,10 @@ import { blogsStore, syncStore } from '@/stores/store'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 
-// 改为导入初始化函数而不是直接导入实例
-import {
-  initSync,
-  ytext,
-  wsProvider,
-  createIndexedDBProvider,
-  disconnectSync,
-} from '@/config/sync'
 import type { IndexeddbPersistence } from 'y-indexeddb'
 import type { UserInfo } from '@/type/entity'
 
-import { collaborationManager } from '@/config/collaborationManager'
+import { collaborationManager, ytext } from '@/config/collaborationManager'
 
 const route = useRoute()
 const blogId = route.query.id as string | undefined
@@ -130,26 +122,6 @@ const formRules = reactive<FormRules<EditForm>>({
   content: [{ required: true, message: '请输入内容', trigger: 'blur' }],
   status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
 })
-
-// 创建等待WebSocket连接的Promise
-const createWsPromise = () => {
-  return new Promise((resolve) => {
-    if (!wsProvider) {
-      resolve(false)
-      return
-    }
-
-    if (wsProvider.wsconnected) {
-      resolve(true)
-    } else {
-      wsProvider.on('sync', (isSynced: boolean) => {
-        if (isSynced) {
-          resolve(true)
-        }
-      })
-    }
-  })
-}
 
 // 添加计数器跟踪表单更改
 const operationCount = ref(0)
