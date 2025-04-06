@@ -127,39 +127,6 @@ const formRules = reactive<FormRules<EditForm>>({
 const operationCount = ref(0)
 const MAX_OPERATIONS = 10
 
-// 监视表单元素的变化
-watch(
-  () => ({
-    title: form.title,
-    description: form.description,
-    content: form.content,
-    status: form.status,
-    link: form.link,
-    sensitiveContentList: form.sensitiveContentList
-  }),
-  async () => {
-    operationCount.value++
-
-    // 当我们达到阈值时，推送所有数据
-    if (operationCount.value >= MAX_OPERATIONS) {
-      try {
-        await pushAllData(form)
-        console.log('完成10次操作后自动保存')
-      } catch (error) {
-        console.error('自动保存失败:', error)
-      } finally {
-        // 无论成功或失败都重置计数器
-        operationCount.value = 0
-      }
-    }
-  },
-  { deep: true }
-)
-
-const pushAllData = async (form: EditForm) => {
-  await POST<null>('/sys/blog/edit/push/all', form)
-}
-
 // 初始化编辑器
 const initializeEditor = async () => {
   try {
