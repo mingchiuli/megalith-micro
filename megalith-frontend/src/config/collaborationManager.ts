@@ -8,9 +8,9 @@ import type { LoginStruct } from '@/type/entity'
 import { syncStore } from '@/stores/store'
 
 // 创建 Yjs Doc 和文本类型
-const ydoc = new Y.Doc()
-const ytext = ydoc.getText('codemirror')
-const undoManager = new Y.UndoManager(ytext)
+let ydoc = new Y.Doc()
+let ytext = ydoc.getText('codemirror')
+let undoManager = new Y.UndoManager(ytext)
 
 let wsProvider: WebsocketProvider | null = null
 let indexeddbProvider: IndexeddbPersistence | null = null
@@ -82,7 +82,7 @@ const activate = async (roomId: string) => {
         console.error('解析用户信息失败', e)
       }
     }
-    
+
     //立即更新 CodeMirror 配置
     updateCodeMirrorConfig()
 
@@ -90,7 +90,7 @@ const activate = async (roomId: string) => {
     indexeddbProvider = new IndexeddbPersistence(roomId, ydoc)
     // 等待IndexedDB同步完成
     await indexeddbProvider.whenSynced
-    
+
     // 等待连接建立
     try {
       await new Promise<void>((resolve, reject) => {
@@ -145,7 +145,7 @@ const clearIndexDbData = () => {
     indexeddbProvider.clearData()
     console.log('已清理IndexedDB数据')
   }
-  
+
   // 重置 ytext 内容
   const currentLength = ytext.toString().length
   if (currentLength > 0) {
@@ -163,7 +163,7 @@ const setText = (content: string) => {
       ytext.delete(0, currentLength)
     })
   }
-  
+
   // 然后添加新内容
   if (content) {
     ydoc.transact(() => {
@@ -174,23 +174,18 @@ const setText = (content: string) => {
 
 const resetDocument = () => {
   console.log('开始完全重置Y.Doc和Y.Text...')
-  
+
   // 1. 先断开所有连接
   deactivate()
-  
+
   // 2. 销毁当前文档
   ydoc.destroy()
-  
+
   // 3. 创建新的 Y.Doc 和 Y.Text 实例
-  const newDoc = new Y.Doc()
-  const newText = newDoc.getText('codemirror')
-  const newUndoManager = new Y.UndoManager(newText)
-  
-  // 4. 将新实例的所有属性复制到单例对象
-  Object.assign(ydoc, newDoc)
-  Object.assign(ytext, newText)
-  Object.assign(undoManager, newUndoManager)
-  
+  ydoc = new Y.Doc()
+  ytext = ydoc.getText('codemirror')
+  undoManager = new Y.UndoManager(ytext)
+
   console.log('Y.Doc 和 Y.Text 已完全重置')
   return true
 }
