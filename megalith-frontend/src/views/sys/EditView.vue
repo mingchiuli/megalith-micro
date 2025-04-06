@@ -139,6 +139,7 @@ const initializeEditor = async () => {
       
       // 检查协作文本是否有内容
       const collaborativeText = ytext.toString()
+      console.log('协作文本内容:', collaborativeText)
       if (collaborativeText) {
         // 使用协作文本
         form.content = collaborativeText
