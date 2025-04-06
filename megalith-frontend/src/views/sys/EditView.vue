@@ -123,46 +123,37 @@ const formRules = reactive<FormRules<EditForm>>({
 // 初始化编辑器
 const initializeEditor = async () => {
   try {
-    // 0. 设置同步房间ID并获取ID值
+    // 0. 设置同步房间ID
     const roomId = setupSyncRoom()
 
-    // 1. 先加载文章内容
-    await loadEditContent(form, blogId)
-    console.log('data', form.content)
-    // 3. 激活协作功能（建立 WebSocket 连接）
+    // 1. 先激活协作功能
     const success = await activate(roomId)
     
-    // 4. 处理协作激活结果
     if (success) {
-      // 协作功能成功激活
-      console.log('协作功能已激活')
-      
-      // 检查协作文本是否有内容
+      // 2. 检查协作文本是否已有内容
       const collaborativeText = ytext.toString()
       console.log('协作文本内容:', collaborativeText)
+      
       if (collaborativeText) {
-        // 使用协作文本
+        // 协作文本存在，直接使用
+        console.log('使用现有协作文本')
         form.content = collaborativeText
         initialized.value = true
         return
       }
-    } else {
-      console.warn('协作功能激活失败，将使用本地编辑模式')
     }
-
-    // 5. 如果协作文本为空，但服务器有内容，设置文本
+    
+    // 3. 协作功能未激活或协作文本为空，加载服务器内容
+    await loadEditContent(form, blogId)
+    
+    // 4. 重置协作文本，用服务器内容替换
+    console.log('重置协作文本为服务器内容')
     if (form.content) {
-      // 设置文本内容到协作管理器
-      console.log('设置文本内容到协作管理器', form.content)
       setText(form.content)
-      initialized.value = true
-      return
+    } else {
+      setText('')
     }
-
-    // 6. 如果服务器也没有内容，使用空内容
-    console.log('使用默认初始化文本')
-    setText('')
-    form.content = ''
+    
     initialized.value = true
   } catch (error) {
     console.error('初始化过程出错:', error)

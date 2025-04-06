@@ -143,15 +143,33 @@ const deactivate = () => {
 const clearIndexDbData = () => {
   if (indexeddbProvider) {
     indexeddbProvider.clearData()
+    console.log('已清理IndexedDB数据')
+  }
+  
+  // 重置 ytext 内容
+  const currentLength = ytext.toString().length
+  if (currentLength > 0) {
+    ydoc.transact(() => {
+      ytext.delete(0, currentLength)
+    })
   }
 }
-
 // 设置文本内容
 const setText = (content: string) => {
-  ydoc.transact(() => {
-    ytext.delete(0, ytext.toString().length)
-    ytext.insert(0, content)
-  })
+  // 确保先完全删除现有内容
+  const currentLength = ytext.toString().length
+  if (currentLength > 0) {
+    ydoc.transact(() => {
+      ytext.delete(0, currentLength)
+    })
+  }
+  
+  // 然后添加新内容
+  if (content) {
+    ydoc.transact(() => {
+      ytext.insert(0, content)
+    })
+  }
 }
 
 // 创建单例实例
