@@ -1,74 +1,94 @@
 package wiki.chiu.micro.common.vo;
 
+
 import java.io.Serializable;
 
 public record AuthorityRpcVo(
+
         Long id,
+
         String code,
+
         String remark,
+
         String prototype,
+
         String methodType,
+
         String routePattern,
+
         String serviceHost,
+
         Integer servicePort,
+
         Integer type,
+
         Integer status) implements Serializable {
 
     public static AuthorityRpcVoBuilder builder() {
-        return new AuthorityRpcVoBuilder(null, null, null, null, null, null, null, null, null, null);
+        return new AuthorityRpcVoBuilder();
     }
 
-    public record AuthorityRpcVoBuilder(
-            Long id,
-            String code,
-            String remark,
-            String prototype,
-            String methodType,
-            String routePattern,
-            String serviceHost,
-            Integer servicePort,
-            Integer type,
-            Integer status
-    ) {
+    public static class AuthorityRpcVoBuilder {
+        private Long id;
+        private String code;
+        private String remark;
+        private String prototype;
+        private String methodType;
+        private String routePattern;
+        private String serviceHost;
+        private Integer servicePort;
+        private Integer type;
+        private Integer status;
 
         public AuthorityRpcVoBuilder id(Long id) {
-            return new AuthorityRpcVoBuilder(id, this.code, this.remark, this.prototype, this.methodType, this.routePattern, this.serviceHost, this.servicePort, this.type, this.status);
+            this.id = id;
+            return this;
         }
 
         public AuthorityRpcVoBuilder code(String code) {
-            return new AuthorityRpcVoBuilder(this.id, code, this.remark, this.prototype, this.methodType, this.routePattern, this.serviceHost, this.servicePort, this.type, this.status);
+            this.code = code;
+            return this;
         }
 
         public AuthorityRpcVoBuilder remark(String remark) {
-            return new AuthorityRpcVoBuilder(this.id, this.code, remark, this.prototype, this.methodType, this.routePattern, this.serviceHost, this.servicePort, this.type, this.status);
+            this.remark = remark;
+            return this;
         }
 
         public AuthorityRpcVoBuilder prototype(String prototype) {
-            return new AuthorityRpcVoBuilder(this.id, this.code, this.remark, prototype, this.methodType, this.routePattern, this.serviceHost, this.servicePort, this.type, this.status);
+            this.prototype = prototype;
+            return this;
         }
 
         public AuthorityRpcVoBuilder methodType(String methodType) {
-            return new AuthorityRpcVoBuilder(this.id, this.code, this.remark, this.prototype, methodType, this.routePattern, this.serviceHost, this.servicePort, this.type, this.status);
+            this.methodType = methodType;
+            return this;
         }
 
         public AuthorityRpcVoBuilder routePattern(String routePattern) {
-            return new AuthorityRpcVoBuilder(this.id, this.code, this.remark, this.prototype, this.methodType, routePattern, this.serviceHost, this.servicePort, this.type, this.status);
+            this.routePattern = routePattern;
+            return this;
         }
 
         public AuthorityRpcVoBuilder serviceHost(String serviceHost) {
-            return new AuthorityRpcVoBuilder(this.id, this.code, this.remark, this.prototype, this.methodType, this.routePattern, serviceHost, this.servicePort, this.type, this.status);
+            this.serviceHost = serviceHost;
+            return this;
         }
 
         public AuthorityRpcVoBuilder servicePort(Integer servicePort) {
-            return new AuthorityRpcVoBuilder(this.id, this.code, this.remark, this.prototype, this.methodType, this.routePattern, this.serviceHost, servicePort, this.type, this.status);
+            this.servicePort = servicePort;
+            return this;
         }
 
         public AuthorityRpcVoBuilder type(Integer type) {
-            return new AuthorityRpcVoBuilder(this.id, this.code, this.remark, this.prototype, this.methodType, this.routePattern, this.serviceHost, this.servicePort, type, this.status);
+            this.type = type;
+            return this;
         }
 
         public AuthorityRpcVoBuilder status(Integer status) {
-            return new AuthorityRpcVoBuilder(this.id, this.code, this.remark, this.prototype, this.methodType, this.routePattern, this.serviceHost, this.servicePort, this.type, status);
+            this.status = status;
+            return this;
         }
 
         public AuthorityRpcVo build() {

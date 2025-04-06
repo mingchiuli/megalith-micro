@@ -10,26 +10,29 @@ public record SensitiveContentRpcVo(
 
         Integer type) implements Serializable {
 
-    public static SensitiveContentRpcVoBuilder builder() {
-        return new SensitiveContentRpcVoBuilder(null, null, null);
+    public static SensitiveContentBuilder builder() {
+        return new SensitiveContentBuilder();
     }
 
-    public record SensitiveContentRpcVoBuilder(
-            Integer startIndex,
-            Integer endIndex,
-            Integer type
-    ) {
+    public static class SensitiveContentBuilder {
+        private Integer startIndex;
+        private Integer endIndex;
+        private Integer type;
 
-        public SensitiveContentRpcVoBuilder startIndex(Integer startIndex) {
-            return new SensitiveContentRpcVoBuilder(startIndex, this.endIndex, this.type);
+
+        public SensitiveContentBuilder startIndex(Integer startIndex) {
+            this.startIndex = startIndex;
+            return this;
         }
 
-        public SensitiveContentRpcVoBuilder endIndex(Integer endIndex) {
-            return new SensitiveContentRpcVoBuilder(this.startIndex, endIndex, this.type);
+        public SensitiveContentBuilder endIndex(Integer endIndex) {
+            this.endIndex = endIndex;
+            return this;
         }
 
-        public SensitiveContentRpcVoBuilder type(Integer type) {
-            return new SensitiveContentRpcVoBuilder(this.startIndex, this.endIndex, type);
+        public SensitiveContentBuilder type(Integer type) {
+            this.type = type;
+            return this;
         }
 
         public SensitiveContentRpcVo build() {

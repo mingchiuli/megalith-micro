@@ -1,95 +1,95 @@
 package wiki.chiu.micro.user.vo;
 
 public record MenuEntityVo(
-    Long id,
 
-    Long parentId,
+        Long id,
 
-    String title,
+        Long parentId,
 
-    String name,
+        String title,
 
-    String url,
+        String name,
 
-    String component,
+        String url,
 
-    Integer type,
+        String component,
 
-    String icon,
+        Integer type,
 
-    Integer orderNum,
+        String icon,
 
-    Integer status
-) {
+        Integer orderNum,
+
+        Integer status) {
+
     public static MenuEntityVoBuilder builder() {
-        return new MenuEntityVoBuilder(null, null, null, null, null, null, null, null, null, null);
+        return new MenuEntityVoBuilder();
     }
 
-    public record MenuEntityVoBuilder(
-        Long id,
-        Long parentId,
-        String title,
-        String name,
-        String url,
-        String component,
-        Integer type,
-        String icon,
-        Integer orderNum,
-        Integer status
-    ) {
+    public static class MenuEntityVoBuilder {
+        private Long id;
+        private Long parentId;
+        private String title;
+        private String name;
+        private String url;
+        private String component;
+        private Integer type;
+        private String icon;
+        private Integer orderNum;
+        private Integer status;
+
         public MenuEntityVoBuilder id(Long id) {
-            return new MenuEntityVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
+            this.id = id;
+            return this;
         }
 
         public MenuEntityVoBuilder parentId(Long parentId) {
-            return new MenuEntityVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
+            this.parentId = parentId;
+            return this;
         }
 
         public MenuEntityVoBuilder title(String title) {
-            return new MenuEntityVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
+            this.title = title;
+            return this;
         }
 
         public MenuEntityVoBuilder name(String name) {
-            return new MenuEntityVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
+            this.name = name;
+            return this;
         }
 
         public MenuEntityVoBuilder url(String url) {
-            return new MenuEntityVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
+            this.url = url;
+            return this;
         }
 
         public MenuEntityVoBuilder component(String component) {
-            return new MenuEntityVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
+            this.component = component;
+            return this;
         }
 
         public MenuEntityVoBuilder type(Integer type) {
-            return new MenuEntityVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
+            this.type = type;
+            return this;
         }
 
         public MenuEntityVoBuilder icon(String icon) {
-            return new MenuEntityVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
+            this.icon = icon;
+            return this;
         }
 
         public MenuEntityVoBuilder orderNum(Integer orderNum) {
-            return new MenuEntityVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
+            this.orderNum = orderNum;
+            return this;
         }
 
         public MenuEntityVoBuilder status(Integer status) {
-            return new MenuEntityVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status);
+            this.status = status;
+            return this;
         }
 
         public MenuEntityVo build() {
-            return new MenuEntityVo(
-                id,
-                parentId,
-                title,
-                name,
-                url,
-                component,
-                type,
-                icon,
-                orderNum,
-                status
-            );
+            return new MenuEntityVo(id, parentId, title, name, url, component, type, icon, orderNum, status);
         }
     }
 }

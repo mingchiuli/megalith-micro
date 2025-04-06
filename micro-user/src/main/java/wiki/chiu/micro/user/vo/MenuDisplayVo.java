@@ -3,7 +3,7 @@ package wiki.chiu.micro.user.vo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 public record MenuDisplayVo(
@@ -41,74 +41,89 @@ public record MenuDisplayVo(
     }
 
     public static MenuDisplayVoBuilder builder() {
-        return new MenuDisplayVoBuilder(null, null, null, null, null, null, null, null, null, null, null, null, Collections.emptyList());
+        return new MenuDisplayVoBuilder();
     }
 
-    public record MenuDisplayVoBuilder(
-            Long id,
-            Long parentId,
-            String title,
-            String name,
-            String url,
-            String component,
-            Integer type,
-            String icon,
-            Integer orderNum,
-            Integer status,
-            LocalDateTime created,
-            LocalDateTime updated,
-            List<MenuDisplayVo> children
-    ) {
+    public static class MenuDisplayVoBuilder {
+        private Long id;
+        private Long parentId;
+        private String title;
+        private String name;
+        private String url;
+        private String component;
+        private Integer type;
+        private String icon;
+        private Integer orderNum;
+        private Integer status;
+        private LocalDateTime created;
+        private LocalDateTime updated;
+        private List<MenuDisplayVo> children = new ArrayList<>();
+
         public MenuDisplayVoBuilder id(Long id) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.id = id;
+            return this;
         }
 
         public MenuDisplayVoBuilder parentId(Long parentId) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.parentId = parentId;
+            return this;
         }
 
         public MenuDisplayVoBuilder title(String title) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.title = title;
+            return this;
         }
 
         public MenuDisplayVoBuilder name(String name) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.name = name;
+            return this;
         }
 
         public MenuDisplayVoBuilder url(String url) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.url = url;
+            return this;
         }
 
         public MenuDisplayVoBuilder component(String component) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.component = component;
+            return this;
         }
 
         public MenuDisplayVoBuilder type(Integer type) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.type = type;
+            return this;
         }
 
         public MenuDisplayVoBuilder icon(String icon) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.icon = icon;
+            return this;
         }
 
         public MenuDisplayVoBuilder orderNum(Integer orderNum) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.orderNum = orderNum;
+            return this;
         }
 
         public MenuDisplayVoBuilder status(Integer status) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.status = status;
+            return this;
         }
 
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         public MenuDisplayVoBuilder created(LocalDateTime created) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.created = created;
+            return this;
         }
 
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         public MenuDisplayVoBuilder updated(LocalDateTime updated) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.updated = updated;
+            return this;
         }
 
         public MenuDisplayVoBuilder children(List<MenuDisplayVo> children) {
-            return new MenuDisplayVoBuilder(id, parentId, title, name, url, component, type, icon, orderNum, status, created, updated, children);
+            this.children = children;
+            return this;
         }
 
         public MenuDisplayVo build() {

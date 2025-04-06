@@ -1,43 +1,54 @@
 package wiki.chiu.micro.common.vo;
 
-import java.util.Collections;
 import java.util.List;
 
 public record BlogSearchRpcVo(
+
         Long total,
+
         Integer currentPage,
+
         Integer size,
+
         List<Long> ids) {
 
-    public static BlogSearchRpcVoBuilder builder() {
-        return new BlogSearchRpcVoBuilder(null, null, null, Collections.emptyList());
+    public static BlogSearchRpcVo.BlogSearchRpcVoBuilder builder() {
+        return new BlogSearchRpcVo.BlogSearchRpcVoBuilder();
     }
 
-    public record BlogSearchRpcVoBuilder(
-            Long total,
-            Integer currentPage,
-            Integer size,
-            List<Long> ids
-    ) {
+    public static class BlogSearchRpcVoBuilder {
+        private Long total;
 
-        public BlogSearchRpcVoBuilder total(Long total) {
-            return new BlogSearchRpcVoBuilder(total, this.currentPage, this.size, this.ids);
+        private Integer currentPage;
+
+        private Integer size;
+
+        private List<Long> ids;
+
+        public BlogSearchRpcVo.BlogSearchRpcVoBuilder total(Long total) {
+            this.total = total;
+            return this;
         }
 
-        public BlogSearchRpcVoBuilder currentPage(Integer currentPage) {
-            return new BlogSearchRpcVoBuilder(this.total, currentPage, this.size, this.ids);
+        public BlogSearchRpcVo.BlogSearchRpcVoBuilder currentPage(Integer currentPage) {
+            this.currentPage = currentPage;
+            return this;
         }
 
-        public BlogSearchRpcVoBuilder size(Integer size) {
-            return new BlogSearchRpcVoBuilder(this.total, this.currentPage, size, this.ids);
+        public BlogSearchRpcVo.BlogSearchRpcVoBuilder size(Integer size) {
+            this.size = size;
+            return this;
         }
 
-        public BlogSearchRpcVoBuilder ids(List<Long> ids) {
-            return new BlogSearchRpcVoBuilder(this.total, this.currentPage, this.size, ids);
+        public BlogSearchRpcVo.BlogSearchRpcVoBuilder ids(List<Long> ids) {
+            this.ids = ids;
+            return this;
         }
+
 
         public BlogSearchRpcVo build() {
             return new BlogSearchRpcVo(total, currentPage, size, ids);
         }
     }
+
 }

@@ -9,24 +9,27 @@ public record MenuAuthorityVo(
         Boolean check) {
 
     public static MenuAuthorityVoBuilder builder() {
-        return new MenuAuthorityVoBuilder(null, null, null);
+        return new MenuAuthorityVoBuilder();
     }
 
-    public record MenuAuthorityVoBuilder(
-            Long authorityId,
-            String code,
-            Boolean check) {
+    public static class MenuAuthorityVoBuilder {
+        private Long authorityId;
+        private String code;
+        private Boolean check;
 
         public MenuAuthorityVoBuilder authorityId(Long authorityId) {
-            return new MenuAuthorityVoBuilder(authorityId, code, check);
+            this.authorityId = authorityId;
+            return this;
         }
 
         public MenuAuthorityVoBuilder code(String code) {
-            return new MenuAuthorityVoBuilder(authorityId, code, check);
+            this.code = code;
+            return this;
         }
 
         public MenuAuthorityVoBuilder check(Boolean check) {
-            return new MenuAuthorityVoBuilder(authorityId, code, check);
+            this.check = check;
+            return this;
         }
 
         public MenuAuthorityVo build() {

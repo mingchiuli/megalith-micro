@@ -1,73 +1,93 @@
 package wiki.chiu.micro.common.vo;
 
+
 public record MenuRpcVo(
         Long id,
+
         Long parentId,
+
         String title,
+
         String name,
+
         String url,
+
         String component,
+
         Integer type,
+
         String icon,
+
         Integer orderNum,
+
         Integer status) {
 
-
-    public static MenuRpcVoBuilder builder() {
-        return new MenuRpcVoBuilder(null, null, null, null, null, null, null, null, null, null);
+    public static MenuRpcVo.MenuRpcVoBuilder builder() {
+        return new MenuRpcVo.MenuRpcVoBuilder();
     }
 
-    public record MenuRpcVoBuilder(
-            Long id,
-            Long parentId,
-            String title,
-            String name,
-            String url,
-            String component,
-            Integer type,
-            String icon,
-            Integer orderNum,
-            Integer status
-    ) {
+
+    public static class MenuRpcVoBuilder {
+        private Long id;
+        private Long parentId;
+        private String title;
+        private String name;
+        private String url;
+        private String component;
+        private Integer type;
+        private String icon;
+        private Integer orderNum;
+        private Integer status;
+
 
         public MenuRpcVoBuilder id(Long id) {
-            return new MenuRpcVoBuilder(id, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+            this.id = id;
+            return this;
         }
 
         public MenuRpcVoBuilder parentId(Long parentId) {
-            return new MenuRpcVoBuilder(this.id, parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+            this.parentId = parentId;
+            return this;
         }
 
         public MenuRpcVoBuilder title(String title) {
-            return new MenuRpcVoBuilder(this.id, this.parentId, title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+            this.title = title;
+            return this;
         }
 
         public MenuRpcVoBuilder name(String name) {
-            return new MenuRpcVoBuilder(this.id, this.parentId, this.title, name, this.url, this.component, this.type, this.icon, this.orderNum, this.status);
+            this.name = name;
+            return this;
         }
 
         public MenuRpcVoBuilder url(String url) {
-            return new MenuRpcVoBuilder(this.id, this.parentId, this.title, this.name, url, this.component, this.type, this.icon, this.orderNum, this.status);
+            this.url = url;
+            return this;
         }
 
         public MenuRpcVoBuilder component(String component) {
-            return new MenuRpcVoBuilder(this.id, this.parentId, this.title, this.name, this.url, component, this.type, this.icon, this.orderNum, this.status);
+            this.component = component;
+            return this;
         }
 
         public MenuRpcVoBuilder type(Integer type) {
-            return new MenuRpcVoBuilder(this.id, this.parentId, this.title, this.name, this.url, this.component, type, this.icon, this.orderNum, this.status);
+            this.type = type;
+            return this;
         }
 
         public MenuRpcVoBuilder icon(String icon) {
-            return new MenuRpcVoBuilder(this.id, this.parentId, this.title, this.name, this.url, this.component, this.type, icon, this.orderNum, this.status);
+            this.icon = icon;
+            return this;
         }
 
         public MenuRpcVoBuilder orderNum(Integer orderNum) {
-            return new MenuRpcVoBuilder(this.id, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, orderNum, this.status);
+            this.orderNum = orderNum;
+            return this;
         }
 
         public MenuRpcVoBuilder status(Integer status) {
-            return new MenuRpcVoBuilder(this.id, this.parentId, this.title, this.name, this.url, this.component, this.type, this.icon, this.orderNum, status);
+            this.status = status;
+            return this;
         }
 
         public MenuRpcVo build() {

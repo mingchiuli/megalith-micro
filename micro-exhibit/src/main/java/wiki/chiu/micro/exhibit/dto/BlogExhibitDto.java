@@ -22,49 +22,57 @@ public record BlogExhibitDto(
         Long readCount) implements Serializable {
 
     public static BlogExhibitDtoBuilder builder() {
-        return new BlogExhibitDtoBuilder(null, null, null, null, null, null, null, null);
+        return new BlogExhibitDtoBuilder();
     }
 
-    public record BlogExhibitDtoBuilder(
-            Long userId,
-            String description,
-            String nickname,
-            String avatar,
-            String title,
-            String content,
-            LocalDateTime created,
-            Long readCount
-    ) {
+    public static class BlogExhibitDtoBuilder {
+        private Long userId;
+        private String description;
+        private String nickname;
+        private String avatar;
+        private String title;
+        private String content;
+        private LocalDateTime created;
+        private Long readCount;
+
         public BlogExhibitDtoBuilder userId(Long userId) {
-            return new BlogExhibitDtoBuilder(userId, description, nickname, avatar, title, content, created, readCount);
+            this.userId = userId;
+            return this;
         }
 
         public BlogExhibitDtoBuilder description(String description) {
-            return new BlogExhibitDtoBuilder(userId, description, nickname, avatar, title, content, created, readCount);
+            this.description = description;
+            return this;
         }
 
         public BlogExhibitDtoBuilder nickname(String nickname) {
-            return new BlogExhibitDtoBuilder(userId, description, nickname, avatar, title, content, created, readCount);
+            this.nickname = nickname;
+            return this;
         }
 
         public BlogExhibitDtoBuilder avatar(String avatar) {
-            return new BlogExhibitDtoBuilder(userId, description, nickname, avatar, title, content, created, readCount);
+            this.avatar = avatar;
+            return this;
         }
 
         public BlogExhibitDtoBuilder title(String title) {
-            return new BlogExhibitDtoBuilder(userId, description, nickname, avatar, title, content, created, readCount);
+            this.title = title;
+            return this;
         }
 
         public BlogExhibitDtoBuilder content(String content) {
-            return new BlogExhibitDtoBuilder(userId, description, nickname, avatar, title, content, created, readCount);
+            this.content = content;
+            return this;
         }
 
         public BlogExhibitDtoBuilder created(LocalDateTime created) {
-            return new BlogExhibitDtoBuilder(userId, description, nickname, avatar, title, content, created, readCount);
+            this.created = created;
+            return this;
         }
 
         public BlogExhibitDtoBuilder readCount(Long readCount) {
-            return new BlogExhibitDtoBuilder(userId, description, nickname, avatar, title, content, created, readCount);
+            this.readCount = readCount;
+            return this;
         }
 
         public BlogExhibitDto build() {

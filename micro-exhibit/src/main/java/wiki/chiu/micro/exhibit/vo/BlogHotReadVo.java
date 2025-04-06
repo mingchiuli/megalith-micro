@@ -13,25 +13,28 @@ public record BlogHotReadVo(
         Long readCount) {
 
     public static BlogHotReadVoBuilder builder() {
-        return new BlogHotReadVoBuilder(null, null, null);
+        return new BlogHotReadVoBuilder();
     }
 
-    public record BlogHotReadVoBuilder(
-            Long id,
-            String title,
-            Long readCount
-    ) {
+    public static class BlogHotReadVoBuilder {
+        private Long id;
+        private String title;
+        private Long readCount;
+
 
         public BlogHotReadVoBuilder id(Long id) {
-            return new BlogHotReadVoBuilder(id, title, readCount);
+            this.id = id;
+            return this;
         }
 
         public BlogHotReadVoBuilder title(String title) {
-            return new BlogHotReadVoBuilder(id, title, readCount);
+            this.title = title;
+            return this;
         }
 
         public BlogHotReadVoBuilder readCount(Long readCount) {
-            return new BlogHotReadVoBuilder(id, title, readCount);
+            this.readCount = readCount;
+            return this;
         }
 
         public BlogHotReadVo build() {
