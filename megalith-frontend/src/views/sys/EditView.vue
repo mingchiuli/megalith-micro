@@ -134,15 +134,15 @@ const initializeEditor = async () => {
     console.log('同步房间ID:', roomId)
 
     // 3. 从服务器加载内容
-    await loadEditContent(form, blogId)
-    console.log('从服务器加载的内容长度:', form.content?.length || 0)
+    // await loadEditContent(form, blogId)
+    // console.log('从服务器加载的内容长度:', form.content?.length || 0)
 
     // 4. 设置文本到协作文档
-     if (form.content) {
-       collaborationManager.value.setText(form.content)
-     } else {
-       collaborationManager.value.setText('')
-     }
+     // if (form.content) {
+     //   collaborationManager.value.setText(form.content)
+     // } else {
+     //   collaborationManager.value.setText('')
+     // }
     
     // 5. 激活协作功能
     const success = await collaborationManager.value.activate(roomId)
