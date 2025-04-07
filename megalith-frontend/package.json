@@ -30,7 +30,7 @@
     "yjs": "^13.6.24"
   },
   "devDependencies": {
-    "@eslint/js": "^9.23.0",
+    "@eslint/js": "^9.24.0",
     "@tsconfig/node20": "^20.1.5",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-vue": "^5.2.3",
