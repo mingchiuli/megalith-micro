@@ -435,6 +435,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 
       <el-form-item class="content" prop="content">
         <CustomEditorItem
+          v-if="initialized"
           v-model:content="form.content"
           @sensitive="dealSensitive"
           :form-status="form.status"
