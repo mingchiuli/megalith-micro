@@ -169,13 +169,11 @@ export class CollaborationManager {
 
   // 设置文本内容
   public setText(content: string): void {
-  setTimeout(() => {
     this.ydoc.transact(() => {
       const currentLength = this.ytext.toString().length;
       this.ytext.delete(0, currentLength);
       this.ytext.insert(0, content);
     });
-  }, 0);
 }
 
   // 销毁所有资源
