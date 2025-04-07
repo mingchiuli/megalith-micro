@@ -137,32 +137,21 @@ const initializeEditor = async () => {
     await loadEditContent(form, blogId)
     console.log('从服务器加载的内容长度:', form.content?.length || 0)
 
+    // 4. 设置文本到协作文档
+     if (form.content) {
+       collaborationManager.value.setText(form.content)
+     } else {
+       collaborationManager.value.setText('')
+     }
+    
     // 5. 激活协作功能
     const success = await collaborationManager.value.activate(roomId)
     console.log('协作功能激活结果:', success)
-    const ytext = collaborationManager.value.getYText()
 
-    if (success) {
-      // 2. 检查协作文本是否已有内容
-      const collaborativeText = ytext.toString()
-      console.log('协作文本内容:', collaborativeText)
-
-      if (collaborativeText) {
-        // 协作文本存在，直接使用
-        console.log('使用现有协作文本')
-        form.content = collaborativeText
-        initialized.value = true
-        return
-      }
-    } else {
-      console.warn('协作功能激活失败，将使用本地编辑模式')
-    }
-
-    // 4. 设置文本到协作文档
-    if (form.content) {
-      collaborationManager.value.setText(form.content)
-    }
-
+    // 6. 检查是否需要用协作文本更新表单
+     const ytext = collaborationManager.value.getYText()
+     form.content = ytext.toString()
+    
     initialized.value = true
     console.log('========= 编辑器初始化完成 =========')
   } catch (error) {
