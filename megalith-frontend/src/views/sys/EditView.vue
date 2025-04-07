@@ -161,8 +161,6 @@ const initializeEditor = async () => {
     // 4. 设置文本到协作文档
     if (form.content) {
       collaborationManager.value.setText(form.content)
-    } else {
-      collaborationManager.value.setText('')
     }
 
     initialized.value = true
