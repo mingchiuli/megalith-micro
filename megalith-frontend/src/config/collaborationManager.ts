@@ -169,15 +169,14 @@ export class CollaborationManager {
 
   // 设置文本内容
   public setText(content: string): void {
-    console.log('设置文本内容，长度:', content?.length || 0)
-
-    const currentLength = this.ytext.toString().length
-
+  setTimeout(() => {
     this.ydoc.transact(() => {
-      this.ytext.delete(0, currentLength)
-      this.ytext.insert(0, content)
-    })
-  }
+      const currentLength = this.ytext.toString().length;
+      this.ytext.delete(0, currentLength);
+      this.ytext.insert(0, content);
+    });
+  }, 0);
+}
 
   // 销毁所有资源
   public destroy(): void {
