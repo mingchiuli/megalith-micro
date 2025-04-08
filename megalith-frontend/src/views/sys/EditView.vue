@@ -73,23 +73,18 @@ const usercolors = [
   { color: '#ee6352', light: '#ee635233' },
   { color: '#9ac2c9', light: '#9ac2c933' },
   { color: '#8acb88', light: '#8acb8833' },
-  { color: '#1be7ff', light: '#1be7ff33' },
+  { color: '#1be7ff', light: '#1be7ff33' }
 ]
 
 const ydoc = new Y.Doc()
 const configStore = syncStore()
 
 const wsUrlWithToken = configStore.url
-const wsProvider = new WebsocketProvider(
-  wsUrlWithToken.toString(),
-  configStore.room,
-  ydoc,
-  {
-    params: {
-      token: configStore.token, // 作为查询参数添加 token
-    },
-  },
-)
+const wsProvider = new WebsocketProvider(wsUrlWithToken.toString(), configStore.room, ydoc, {
+  params: {
+    token: configStore.token // 作为查询参数添加 token
+  }
+})
 const ytext = ydoc.getText('codemirror')
 const undoManager = new Y.UndoManager(ytext)
 const userColor = usercolors[random.uint32() % usercolors.length]
@@ -97,31 +92,25 @@ const userColor = usercolors[random.uint32() % usercolors.length]
 wsProvider.awareness.setLocalStateField('user', {
   name: 'Anonymous ' + Math.floor(Math.random() * 100),
   color: userColor.color,
-  colorLight: userColor.light,
+  colorLight: userColor.light
 })
 
-const indexeddbProvider: IndexeddbPersistence = new IndexeddbPersistence(
-  configStore.room,
-  ydoc,
-)
+const indexeddbProvider: IndexeddbPersistence = new IndexeddbPersistence(configStore.room, ydoc)
 
 config({
   codeMirrorExtensions(_theme, extensions) {
     return [...extensions, yCollab(ytext, wsProvider.awareness, { undoManager })]
-  },
+  }
 })
 
 const initializeEditor = async () => {
   try {
-    
     await loadEditContent(form, blogId)
-
     // 等待IndexedDB同步完成
     await indexeddbProvider.whenSynced
 
-    // 1. 首先尝试WebSocket数据 
+    // 1. 首先尝试WebSocket数据
     const wsText = ytext.toString()
-    console.log('尝试WebSocket数据 ', wsText)
     if (wsText) {
       console.log('使用WebSocket同步的内容:', wsText)
       form.content = wsText
@@ -133,14 +122,14 @@ const initializeEditor = async () => {
     if (form.content) {
       console.log('使用服务器数据:', form.content)
       // 确保清空现有内容后再插入
-      wsProvider.doc.transact(() => {
+      ydoc.transact(() => {
         ytext.delete(0, ytext.length)
         ytext.insert(0, form.content!)
       })
     } else {
       // 默认值
       form.content = ''
-      wsProvider.doc.transact(() => {
+      ydoc.transact(() => {
         ytext.delete(0, ytext.length)
         ytext.insert(0, '')
       })
@@ -159,8 +148,7 @@ onMounted(async () => {
 
 onUnmounted(async () => {
   if (indexeddbProvider) {
-    await indexeddbProvider.clearData()
-    indexeddbProvider.destroy()
+    await indexeddbProvider.destroy()
   }
   wsProvider.destroy()
 })
@@ -225,7 +213,6 @@ const formRules = reactive<FormRules<EditForm>>({
   status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
 })
 
-
 const upload = async (image: UploadRequestOptions) => {
   await uploadFile(image.file)
 }
@@ -253,7 +240,7 @@ const submitForm = async (ref: FormInstance) => {
         type: 'success',
         duration: 1000
       })
-     
+      await indexeddbProvider.clearData()
       blogsStore().pageNum = 1
       router.push({
         name: 'system-blogs'
@@ -390,8 +377,6 @@ const handleDescSelect = () => {
     dealSensitive(sensitive)
   }
 }
-
-
 
 const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   let url = '/sys/blog/edit/pull/echo'
