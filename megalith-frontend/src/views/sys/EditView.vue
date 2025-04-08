@@ -48,8 +48,9 @@ import { WebsocketProvider } from 'y-websocket'
 import { IndexeddbPersistence } from 'y-indexeddb'
 
 const initialized = ref(false)
-const text = ref('')
-const serverText = ref('123')
+
+const route = useRoute()
+const blogId = route.query.id as string | undefined
 
 const usercolors = [
   { color: '#30bced', light: '#30bced33' },
@@ -99,6 +100,10 @@ config({
 
 const initializeEditor = async () => {
   try {
+    
+    setupSyncRoom()
+    await loadEditContent(form, blogId)
+
     // 等待IndexedDB同步完成
     await indexeddbProvider.whenSynced
 
@@ -106,27 +111,22 @@ const initializeEditor = async () => {
     const wsText = ytext.toString()
     if (wsText) {
       console.log('使用WebSocket同步的内容:', wsText)
-      text.value = wsText
+      form.content = wsText
       initialized.value = true
       return
     }
 
     // 3. 最后使用服务器数据或默认数据
-    if (serverText.value) {
-      console.log('使用服务器数据:', serverText.value)
+    if (form.content) {
+      console.log('使用服务器数据:', form.content)
       // 确保清空现有内容后再插入
       wsProvider.doc.transact(() => {
         ytext.delete(0, ytext.length)
-        ytext.insert(0, serverText.value)
+        ytext.insert(0, form.content!)
       })
-      text.value = serverText.value
     } else {
       // 默认值
-      text.value = ''
-      wsProvider.doc.transact(() => {
-        ytext.delete(0, ytext.length)
-        ytext.insert(0, text.value)
-      })
+      form.content = ''
     }
 
     initialized.value = true
@@ -147,16 +147,6 @@ onUnmounted(async () => {
   }
   wsProvider.destroy()
 })
-
-
-
-
-
-
-
-
-const route = useRoute()
-const blogId = route.query.id as string | undefined
 
 // 设置同步房间ID
 const setupSyncRoom = () => {
