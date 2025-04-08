@@ -114,13 +114,14 @@ config({
 const initializeEditor = async () => {
   try {
     
-    // await loadEditContent(form, blogId)
+    await loadEditContent(form, blogId)
 
     // 等待IndexedDB同步完成
     await indexeddbProvider.whenSynced
 
     // 1. 首先尝试WebSocket数据 
     const wsText = ytext.toString()
+    console.log('尝试WebSocket数据 ', wsText)
     if (wsText) {
       console.log('使用WebSocket同步的内容:', wsText)
       form.content = wsText
@@ -139,6 +140,10 @@ const initializeEditor = async () => {
     } else {
       // 默认值
       form.content = ''
+      wsProvider.doc.transact(() => {
+        ytext.delete(0, ytext.length)
+        ytext.insert(0, '')
+      })
     }
 
     initialized.value = true
