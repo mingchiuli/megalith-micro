@@ -114,7 +114,7 @@ config({
 const initializeEditor = async () => {
   try {
     
-    await loadEditContent(form, blogId)
+    // await loadEditContent(form, blogId)
 
     // 等待IndexedDB同步完成
     await indexeddbProvider.whenSynced
