@@ -39,9 +39,122 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 
 import type { UserInfo } from '@/type/entity'
 
-import { CollaborationManager } from '@/config/collaborationManager'
+import 'md-editor-v3/lib/style.css'
+import { config } from 'md-editor-v3'
+import * as Y from 'yjs'
+import * as random from 'lib0/random'
+import { yCollab } from 'y-codemirror.next'
+import { WebsocketProvider } from 'y-websocket'
+import { IndexeddbPersistence } from 'y-indexeddb'
 
-const collaborationManager = ref<CollaborationManager | null>(null)
+const initialized = ref(false)
+const text = ref('')
+const serverText = ref('123')
+
+const usercolors = [
+  { color: '#30bced', light: '#30bced33' },
+  { color: '#6eeb83', light: '#6eeb8333' },
+  { color: '#ffbc42', light: '#ffbc4233' },
+  { color: '#ecd444', light: '#ecd44433' },
+  { color: '#ee6352', light: '#ee635233' },
+  { color: '#9ac2c9', light: '#9ac2c933' },
+  { color: '#8acb88', light: '#8acb8833' },
+  { color: '#1be7ff', light: '#1be7ff33' },
+]
+
+const ydoc = new Y.Doc()
+const configStore = syncStore()
+
+const wsUrlWithToken = configStore.url
+const wsProvider = new WebsocketProvider(
+  wsUrlWithToken.toString(),
+  configStore.room,
+  ydoc,
+  {
+    params: {
+      token: configStore.token, // 作为查询参数添加 token
+    },
+  },
+)
+const ytext = ydoc.getText('codemirror')
+const undoManager = new Y.UndoManager(ytext)
+const userColor = usercolors[random.uint32() % usercolors.length]
+
+wsProvider.awareness.setLocalStateField('user', {
+  name: 'Anonymous ' + Math.floor(Math.random() * 100),
+  color: userColor.color,
+  colorLight: userColor.light,
+})
+
+const indexeddbProvider: IndexeddbPersistence = new IndexeddbPersistence(
+  configStore.room,
+  ydoc,
+)
+
+config({
+  codeMirrorExtensions(_theme, extensions) {
+    return [...extensions, yCollab(ytext, wsProvider.awareness, { undoManager })]
+  },
+})
+
+const initializeEditor = async () => {
+  try {
+    // 等待IndexedDB同步完成
+    await indexeddbProvider.whenSynced
+
+    // 1. 首先尝试WebSocket数据 
+    const wsText = ytext.toString()
+    if (wsText) {
+      console.log('使用WebSocket同步的内容:', wsText)
+      text.value = wsText
+      initialized.value = true
+      return
+    }
+
+    // 3. 最后使用服务器数据或默认数据
+    if (serverText.value) {
+      console.log('使用服务器数据:', serverText.value)
+      // 确保清空现有内容后再插入
+      wsProvider.doc.transact(() => {
+        ytext.delete(0, ytext.length)
+        ytext.insert(0, serverText.value)
+      })
+      text.value = serverText.value
+    } else {
+      // 默认值
+      text.value = ''
+      wsProvider.doc.transact(() => {
+        ytext.delete(0, ytext.length)
+        ytext.insert(0, text.value)
+      })
+    }
+
+    initialized.value = true
+  } catch (error) {
+    console.error('初始化过程出错:', error)
+    initialized.value = true
+  }
+}
+
+onMounted(async () => {
+  await initializeEditor()
+})
+
+onUnmounted(async () => {
+  if (indexeddbProvider) {
+    await indexeddbProvider.clearData()
+    indexeddbProvider.destroy()
+  }
+  wsProvider.destroy()
+})
+
+
+
+
+
+
+
+
 const route = useRoute()
 const blogId = route.query.id as string | undefined
 
@@ -58,8 +171,6 @@ const setupSyncRoom = () => {
     return roomId
   }
 }
-
-const initialized = ref(false)
 
 const form: EditForm = reactive({
   id: undefined,
@@ -121,57 +232,7 @@ const formRules = reactive<FormRules<EditForm>>({
   status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
 })
 
-// 初始化编辑器
-const initializeEditor = async () => {
-  try {
-    console.log('========= 开始初始化编辑器 =========')
 
-    // 1. 创建新的协作管理器实例
-    collaborationManager.value = new CollaborationManager()
-
-    // 2. 设置同步房间ID
-    const roomId = setupSyncRoom()
-    console.log('同步房间ID:', roomId)
-
-    // 3. 从服务器加载内容
-    await loadEditContent(form, blogId)
-    console.log('从服务器加载的内容长度:', form.content?.length || 0)
-
-    // 5. 激活协作功能
-    const success = await collaborationManager.value.activate(roomId)
-    console.log('协作功能激活结果:', success)
-    const ytext = collaborationManager.value.getYText()
-
-    if (success) {
-      // 2. 检查协作文本是否已有内容
-      const collaborativeText = ytext.toString()
-      console.log('协作文本内容:', collaborativeText)
-
-      if (collaborativeText) {
-        // 协作文本存在，直接使用
-        console.log('使用现有协作文本')
-        form.content = collaborativeText
-        initialized.value = true
-        return
-      }
-    } else {
-      console.warn('协作功能激活失败，将使用本地编辑模式')
-    }
-
-    // 4. 设置文本到协作文档
-    if (form.content) {
-      collaborationManager.value.setText(form.content)
-    } else {
-      collaborationManager.value.setText('')
-    }
-
-    initialized.value = true
-    console.log('========= 编辑器初始化完成 =========')
-  } catch (error) {
-    console.error('初始化过程出错:', error)
-    initialized.value = true
-  }
-}
 const upload = async (image: UploadRequestOptions) => {
   await uploadFile(image.file)
 }
@@ -199,9 +260,7 @@ const submitForm = async (ref: FormInstance) => {
         type: 'success',
         duration: 1000
       })
-      if (collaborationManager.value) {
-        collaborationManager.value.clearIndexDbData()
-      }
+     
       blogsStore().pageNum = 1
       router.push({
         name: 'system-blogs'
@@ -339,20 +398,7 @@ const handleDescSelect = () => {
   }
 }
 
-// 组件挂载时初始化编辑器
-onMounted(async () => {
-  console.log('编辑器组件已挂载，开始初始化...')
-  await initializeEditor()
-})
 
-// 组件卸载时停用协作功能
-onUnmounted(() => {
-  console.log('编辑器组件卸载，清理协作管理器...')
-  if (collaborationManager.value) {
-    collaborationManager.value.destroy()
-    collaborationManager.value = null
-  }
-})
 
 const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   let url = '/sys/blog/edit/pull/echo'
