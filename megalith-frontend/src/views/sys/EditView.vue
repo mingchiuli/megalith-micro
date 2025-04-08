@@ -48,9 +48,22 @@ import { WebsocketProvider } from 'y-websocket'
 import { IndexeddbPersistence } from 'y-indexeddb'
 
 const initialized = ref(false)
-
 const route = useRoute()
 const blogId = route.query.id as string | undefined
+// 设置同步房间ID
+const setupSyncRoom = () => {
+  if (blogId) {
+    syncStore().room = blogId
+    return blogId
+  } else {
+    const userStr = localStorage.getItem('userinfo')!
+    const user: UserInfo = JSON.parse(userStr)
+    const roomId = `init:${user.id}`
+    syncStore().room = roomId
+    return roomId
+  }
+}
+setupSyncRoom()
 
 const usercolors = [
   { color: '#30bced', light: '#30bced33' },
@@ -101,7 +114,6 @@ config({
 const initializeEditor = async () => {
   try {
     
-    setupSyncRoom()
     await loadEditContent(form, blogId)
 
     // 等待IndexedDB同步完成
@@ -147,20 +159,6 @@ onUnmounted(async () => {
   }
   wsProvider.destroy()
 })
-
-// 设置同步房间ID
-const setupSyncRoom = () => {
-  if (blogId) {
-    syncStore().room = blogId
-    return blogId
-  } else {
-    const userStr = localStorage.getItem('userinfo')!
-    const user: UserInfo = JSON.parse(userStr)
-    const roomId = `init:${user.id}`
-    syncStore().room = roomId
-    return roomId
-  }
-}
 
 const form: EditForm = reactive({
   id: undefined,
