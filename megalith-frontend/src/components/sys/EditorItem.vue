@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { UPLOAD } from '@/http/http'
-import { onMounted, ref, useTemplateRef } from 'vue'
+import { onMounted, ref } from 'vue'
 import {
   SensitiveType,
   Status,
@@ -9,7 +9,7 @@ import {
   type UserInfo
 } from '@/type/entity'
 
-import { Milkdown, useEditor } from '@milkdown/vue'
+import { Milkdown, useEditor, MilkdownProvider } from '@milkdown/vue'
 import { Crepe } from '@milkdown/crepe'
 import { Doc } from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
