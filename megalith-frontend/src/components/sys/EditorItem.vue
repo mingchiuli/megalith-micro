@@ -195,7 +195,7 @@ onMounted(() => {
   }
 })
 
-onUnmounted(async () => {
+onBeforeUnmount(async () => {
   if (crepeInstance) {
     crepeInstance.destroy()
   }
