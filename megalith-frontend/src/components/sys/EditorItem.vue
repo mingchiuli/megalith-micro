@@ -120,7 +120,7 @@ const editor = useEditor((root) => {
     const doc = new Doc()
     // 创建 IndexedDB 持久化实例
     indexeddbProvider = new IndexeddbPersistence(roomId, doc)
-    websocketProvider = new WebsocketProvider('ws://localhost:8089/rooms', roomId, doc)
+    websocketProvider = new WebsocketProvider(`${import.meta.env.VITE_BASE_WS_URL}`, roomId, doc)
 
     const usercolors = [
       { color: '#30bced', light: '#30bced33' },
