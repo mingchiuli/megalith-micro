@@ -8,7 +8,7 @@ import {
   type SensitiveContentItem,
   type UserInfo
 } from '@/type/entity'
-
+import { commonmark } from '@milkdown/kit/preset/commonmark'
 import { Milkdown, useEditor } from '@milkdown/vue'
 import { Crepe } from '@milkdown/crepe'
 import { Doc } from 'yjs'
@@ -93,8 +93,8 @@ const onUploadImg = async (file: File) => {
 }
 
 let indexeddbProvider: IndexeddbPersistence | undefined
-let websocketProvider: WebsocketProvider | null
-
+let websocketProvider: WebsocketProvider | undefined
+let crepeInstance: Crepe | undefined
 const clearIndexdbDate = () => {
   if (indexeddbProvider) {
     indexeddbProvider.clearData()
@@ -114,17 +114,24 @@ const editor = useEditor((root) => {
     }
   })
 
+  crepeInstance = crepe
   const editor = crepe.editor
+  
   editor.use(collab)
   crepe.create().then(() => {
     const doc = new Doc()
     // 创建 IndexedDB 持久化实例
     indexeddbProvider = new IndexeddbPersistence(roomId, doc)
-    websocketProvider = new WebsocketProvider(`${import.meta.env.VITE_BASE_WS_URL}/rooms`, roomId, doc, {
-      params: {
-        token: localStorage.getItem('accessToken')!
+    websocketProvider = new WebsocketProvider(
+      `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
+      roomId,
+      doc,
+      {
+        params: {
+          token: localStorage.getItem('accessToken')!
+        }
       }
-    })
+    )
 
     const usercolors = [
       { color: '#30bced', light: '#30bced33' },
@@ -188,12 +195,11 @@ onMounted(() => {
   }
 })
 
-// onUnmounted(async () => {
-//   if (indexeddbProvider) {
-//     await indexeddbProvider.destroy()
-//   }
-
-// })
+onUnmounted(async () => {
+  if (crepeInstance) {
+    crepeInstance.destroy()
+  }
+})
 
 defineExpose({
   clearIndexdbDate
