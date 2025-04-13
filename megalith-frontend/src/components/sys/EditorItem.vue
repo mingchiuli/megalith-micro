@@ -18,6 +18,7 @@ import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
 import { onBeforeUnmount } from 'vue'
+import { onUnmounted } from 'vue'
 
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
@@ -183,13 +184,13 @@ onMounted(() => {
   }
 })
 
-onBeforeUnmount(async () => {
-  if (indexeddbProvider) {
-    await indexeddbProvider.destroy()
-  }
+// onUnmounted(async () => {
+//   if (indexeddbProvider) {
+//     await indexeddbProvider.destroy()
+//   }
   
-  await editor.get()!.destroy()
-})
+  
+// })
 
 defineExpose({
   clearIndexdbDate

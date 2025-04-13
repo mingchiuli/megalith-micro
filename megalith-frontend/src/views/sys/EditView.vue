@@ -361,7 +361,7 @@ onMounted(async () => {
 
       <el-form-item class="content" prop="content">
         <MilkdownProvider>
-          <CustomEditorItem
+          <EditorItem
             v-model:content="form.content"
             @sensitive="dealSensitive"
             :form-status="form.status"
