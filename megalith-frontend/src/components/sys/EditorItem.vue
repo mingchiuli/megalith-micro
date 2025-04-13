@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import "@milkdown/theme-nord/style.css";
+
 import { UPLOAD } from '@/http/http'
 import { onMounted, ref } from 'vue'
 import {
@@ -9,6 +11,9 @@ import {
   type UserInfo
 } from '@/type/entity'
 import { commonmark } from '@milkdown/kit/preset/commonmark'
+import { uploadConfig } from "@milkdown/kit/plugin/upload";
+import { Editor, rootCtx } from "@milkdown/kit/core"
+import { nord } from "@milkdown/theme-nord";
 import { Milkdown, useEditor } from '@milkdown/vue'
 import { Crepe } from '@milkdown/crepe'
 import { Doc } from 'yjs'
@@ -18,7 +23,6 @@ import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
 import { onBeforeUnmount } from 'vue'
-import { onUnmounted } from 'vue'
 
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
@@ -101,24 +105,22 @@ const clearIndexdbDate = () => {
   }
 }
 
-const editor = useEditor((root) => {
-  const crepe = new Crepe({
-    root,
-    featureConfigs: {
-      [Crepe.Feature.ImageBlock]: {
-        onUpload: async (file: File) => {
-          const url = await onUploadImg(file)
-          return url
-        }
-      }
-    }
-  })
+useEditor((root) => {
+  const editor = Editor.make()
+    .config((ctx) => {
+      ctx.set(rootCtx, root);
+    })
+    .config(nord)
+    .config((ctx) => {
+        ctx.update(uploadConfig.key, (prev) => ({
+          ...prev,
+          onUpload: onUploadImg,
+        }));
+      })
+    .use(commonmark)
+    .use(collab);
 
-  crepeInstance = crepe
-  const editor = crepe.editor
-
-  editor.use(collab)
-  crepe.create().then(() => {
+  editor.create().then(() => {
     const doc = new Doc()
     // 创建 IndexedDB 持久化实例
     indexeddbProvider = new IndexeddbPersistence(roomId, doc)
@@ -173,7 +175,8 @@ const editor = useEditor((root) => {
       })
     })
   })
-  return crepe
+  
+  return editor
 })
 
 onMounted(() => {
