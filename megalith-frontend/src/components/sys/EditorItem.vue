@@ -11,7 +11,7 @@ import {
   type UserInfo
 } from '@/type/entity'
 import { commonmark } from '@milkdown/kit/preset/commonmark'
-import { uploadConfig } from "@milkdown/kit/plugin/upload";
+import { imageBlockConfig } from "@milkdown/kit/component/image-block";
 import { Editor, rootCtx } from "@milkdown/kit/core"
 import { nord } from "@milkdown/theme-nord";
 import { Milkdown, useEditor } from '@milkdown/vue'
@@ -112,7 +112,7 @@ useEditor((root) => {
     })
     .config(nord)
     .config((ctx) => {
-        ctx.update(uploadConfig.key, (prev) => ({
+        ctx.update(imageBlockConfig.key, (prev) => ({
           ...prev,
           onUpload: onUploadImg,
         }));
