@@ -164,9 +164,7 @@ useEditor((root) => {
           if (isSynced) {
             collabService
               .applyTemplate(content.value!, (remoteNode, templateNode) => {
-                return (
-                  !remoteNode.textContent
-                )
+                return !remoteNode.textContent
               })
               .connect()
           }
