@@ -30,6 +30,8 @@ import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 import EditorItem from '@/components/sys/EditorItem.vue'
 import { MilkdownProvider } from '@milkdown/vue'
+import "@milkdown/crepe/theme/common/style.css"
+import "@milkdown/crepe/theme/frame.css"
 
 const editorRef = useTemplateRef<InstanceType<typeof EditorItem>>('editor')
 
