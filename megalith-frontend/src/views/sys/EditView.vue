@@ -3,7 +3,6 @@ import {
   computed,
   defineAsyncComponent,
   onMounted,
-  onUnmounted,
   reactive,
   ref,
   useTemplateRef
@@ -33,109 +32,16 @@ import {
 } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
-import { blogsStore, syncStore } from '@/stores/store'
+import { blogsStore } from '@/stores/store'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
+import EditorItem from '@/components/sys/EditorItem.vue'
 
-import { config } from 'md-editor-v3'
-import * as Y from 'yjs'
-import * as random from 'lib0/random'
-import { yCollab } from 'y-codemirror.next'
-import { WebsocketProvider } from 'y-websocket'
-import { IndexeddbPersistence } from 'y-indexeddb'
 
-const initialized = ref(false)
+const editorRef = useTemplateRef<InstanceType<typeof EditorItem>>('editor')
+
 const route = useRoute()
 const blogId = route.query.id as string | undefined
-
-const ydoc = new Y.Doc()
-const configStore = syncStore()
-
-const wsUrlWithToken = configStore.url
-const wsProvider = new WebsocketProvider(wsUrlWithToken.toString(), configStore.room, ydoc, {
-  params: {
-    token: configStore.token // 作为查询参数添加 token
-  }
-})
-const ytext = ydoc.getText('codemirror')
-const undoManager = new Y.UndoManager(ytext)
-
-const usercolors = [
-  { color: '#30bced', light: '#30bced33' },
-  { color: '#6eeb83', light: '#6eeb8333' },
-  { color: '#ffbc42', light: '#ffbc4233' },
-  { color: '#ecd444', light: '#ecd44433' },
-  { color: '#ee6352', light: '#ee635233' },
-  { color: '#9ac2c9', light: '#9ac2c933' },
-  { color: '#8acb88', light: '#8acb8833' },
-  { color: '#1be7ff', light: '#1be7ff33' }
-]
-
-const userColor = usercolors[random.uint32() % usercolors.length]
-
-wsProvider.awareness.setLocalStateField('user', {
-  name: 'Anonymous ' + Math.floor(Math.random() * 100),
-  color: userColor.color,
-  colorLight: userColor.light
-})
-
-const indexeddbProvider: IndexeddbPersistence = new IndexeddbPersistence(configStore.room, ydoc)
-
-config({
-  codeMirrorExtensions(_theme, extensions) {
-    return [...extensions, yCollab(ytext, wsProvider.awareness, { undoManager })]
-  }
-})
-
-const initializeEditor = async () => {
-  try {
-    await loadEditContent(form, blogId)
-    // 等待IndexedDB同步完成
-    await indexeddbProvider.whenSynced
-
-    // 1. 首先尝试WebSocket数据
-    const wsText = ytext.toString()
-    if (wsText) {
-      console.log('使用WebSocket同步的内容:', wsText)
-      form.content = wsText
-      initialized.value = true
-      return
-    }
-
-    // 3. 最后使用服务器数据或默认数据
-    if (form.content) {
-      console.log('使用服务器数据:', form.content)
-      // 确保清空现有内容后再插入
-      ydoc.transact(() => {
-        ytext.delete(0, ytext.length)
-        ytext.insert(0, form.content!)
-      })
-    } else {
-      // 默认值
-      form.content = ''
-      ydoc.transact(() => {
-        ytext.delete(0, ytext.length)
-        ytext.insert(0, '')
-      })
-    }
-
-    initialized.value = true
-  } catch (error) {
-    console.error('初始化过程出错:', error)
-    initialized.value = true
-  }
-}
-
-onMounted(async () => {
-  await initializeEditor()
-})
-
-onUnmounted(async () => {
-  if (indexeddbProvider) {
-    await indexeddbProvider.destroy()
-  }
-  wsProvider.destroy()
-})
 
 const form: EditForm = reactive({
   id: undefined,
@@ -224,7 +130,7 @@ const submitForm = async (ref: FormInstance) => {
         type: 'success',
         duration: 1000
       })
-      await indexeddbProvider.clearData()
+      editorRef.value!.clearIndexdbDate()
       blogsStore().pageNum = 1
       router.push({
         name: 'system-blogs'
@@ -377,6 +283,11 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   form.userId = data.userId
   form.sensitiveContentList = data.sensitiveContentList
 }
+
+onMounted(async () => {
+  await loadEditContent(form, blogId)
+})
+
 </script>
 
 <template>

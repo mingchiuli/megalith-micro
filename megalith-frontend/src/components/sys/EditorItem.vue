@@ -17,6 +17,7 @@ import { IndexeddbPersistence } from 'y-indexeddb'
 import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
+import { onUnmounted } from 'vue'
 
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
@@ -33,32 +34,12 @@ const { formStatus } = defineProps<{
 }>()
 
 const content = defineModel<string | undefined>('content')
-const editorRef = useTemplateRef<InstanceType<typeof Milkdown>>('editor')
 
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 const showSensitiveListDialog = ref(false)
 
 const selectSensitiveData = ref<SensitiveContentItem[]>([])
-
-onMounted(() => {
-  document.getElementById('milk')!.onmouseup = () => {
-    if (formStatus !== Status.SENSITIVE_FILTER) {
-      return
-    }
-
-    const selection = document.getSelection()?.toString()
-
-    if (!selection || !content.value) {
-      return
-    }
-    const items = findAllOccurrences(content.value, selection)
-    if (items) {
-      selectSensitiveData.value = items
-      showSensitiveListDialog.value = true
-    }
-  }
-})
 
 const selectWord = (row: SensitiveContentItem) => {
   const sensitive: SensitiveTrans = {
@@ -110,6 +91,15 @@ const onUploadImg = async (file: File) => {
   return url
 }
 
+let indexeddbProvider: IndexeddbPersistence | undefined
+let websocketProvider: WebsocketProvider | null
+
+const clearIndexdbDate = () => {
+  if (indexeddbProvider) {
+    indexeddbProvider.clearData()
+  }
+}
+
 useEditor((root) => {
   const crepe = new Crepe({
     root,
@@ -128,8 +118,8 @@ useEditor((root) => {
   crepe.create().then(() => {
     const doc = new Doc()
     // 创建 IndexedDB 持久化实例
-    const indexeddbProvider = new IndexeddbPersistence(roomId, doc)
-    const wsProvider = new WebsocketProvider('ws://localhost:8089/rooms', roomId, doc)
+    indexeddbProvider = new IndexeddbPersistence(roomId, doc)
+    websocketProvider = new WebsocketProvider('ws://localhost:8089/rooms', roomId, doc)
 
     const usercolors = [
       { color: '#30bced', light: '#30bced33' },
@@ -144,7 +134,7 @@ useEditor((root) => {
 
     const userColor = usercolors[random.uint32() % usercolors.length]
 
-    wsProvider.awareness.setLocalStateField('user', {
+    websocketProvider.awareness.setLocalStateField('user', {
       name: user.nickname,
       color: userColor.color,
       colorLight: userColor.light
@@ -154,10 +144,10 @@ useEditor((root) => {
       const collabService = ctx.get(collabServiceCtx)
 
       // 等待 IndexedDB 加载完成
-      indexeddbProvider.whenSynced.then(() => {
-        collabService.bindDoc(doc).setAwareness(wsProvider.awareness)
+      indexeddbProvider!.whenSynced.then(() => {
+        collabService.bindDoc(doc).setAwareness(websocketProvider!.awareness)
 
-        wsProvider.once('sync', async (isSynced: boolean) => {
+        websocketProvider!.once('sync', async (isSynced: boolean) => {
           if (isSynced) {
             collabService
               .applyTemplate(content.value!, (remoteNode, templateNode) => {
@@ -172,6 +162,39 @@ useEditor((root) => {
     })
   })
   return crepe
+})
+
+
+onMounted(() => {
+  document.getElementById('milk')!.onmouseup = () => {
+    if (formStatus !== Status.SENSITIVE_FILTER) {
+      return
+    }
+
+    const selection = document.getSelection()?.toString()
+
+    if (!selection || !content.value) {
+      return
+    }
+    const items = findAllOccurrences(content.value, selection)
+    if (items) {
+      selectSensitiveData.value = items
+      showSensitiveListDialog.value = true
+    }
+  }
+})
+
+onUnmounted(() => {
+  if (indexeddbProvider) {
+    indexeddbProvider.destroy()
+  }
+  if (websocketProvider) {
+    websocketProvider.destroy()
+  }
+})
+
+defineExpose({
+  clearIndexdbDate
 })
 </script>
 
