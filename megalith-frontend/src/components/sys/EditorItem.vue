@@ -17,7 +17,6 @@ import { commonmark } from '@milkdown/kit/preset/commonmark'
 import { imageBlockConfig, imageBlockComponent } from "@milkdown/kit/component/image-block";
 
 import { Editor, rootCtx } from "@milkdown/kit/core"
-import { cursor } from "@milkdown/kit/plugin/cursor";
 import { nord } from "@milkdown/theme-nord";
 import { Milkdown, useEditor } from '@milkdown/vue'
 import { Crepe } from '@milkdown/crepe'
@@ -124,7 +123,6 @@ useEditor((root) => {
       })
     .use(commonmark)
     .use(history)
-    .use(cursor)
     .use(diagram)
     .use(clipboard)
     .use(emoji)
