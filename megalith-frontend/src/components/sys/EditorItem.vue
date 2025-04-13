@@ -245,16 +245,57 @@ defineExpose({
 </template>
 
 <style scoped>
-:deep(.milkdown .ProseMirror) {
-  padding: 5px 10px; /* 或者你想要的其他值 */
+:deep(.ProseMirror) {
+  /* 第一个光标位置的修复 */
+  & > .ProseMirror-yjs-cursor:first-child {
+    margin-top: 16px;
+  }
+
+  /* 首个块级元素的间距 */
+  & p:first-child,
+  & h1:first-child,
+  & h2:first-child,
+  & h3:first-child,
+  & h4:first-child,
+  & h5:first-child,
+  & h6:first-child {
+    margin-top: 16px;
+  }
 }
 
-.trans-radius {
-  display: inline-flex;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 5px;
+/* 远程用户光标样式 */
+:deep(.ProseMirror-yjs-cursor) {
+  position: relative;
+  margin-left: -1px;
+  margin-right: -1px;
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+  border-color: orange;
+  word-break: normal;
+  pointer-events: none;
+
+  /* 光标上方的用户名 */
+  & > div {
+    position: absolute;
+    top: -1.05em;
+    left: -1px;
+    font-size: 13px;
+    background-color: rgb(250, 129, 0);
+    font-family: serif;
+    font-style: normal;
+    font-weight: normal;
+    line-height: normal;
+    user-select: none;
+    color: white;
+    padding-left: 2px;
+    padding-right: 2px;
+    white-space: nowrap;
+  }
+}
+
+/* 编辑器内容区域内边距 */
+:deep(.milkdown .ProseMirror) {
+  padding: 5px 10px;
 }
 
 .el-progress {
