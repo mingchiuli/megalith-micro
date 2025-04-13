@@ -164,6 +164,10 @@ useEditor((root) => {
           if (isSynced) {
             collabService
               .applyTemplate(content.value!, (remoteNode, templateNode) => {
+                if (!remoteNode.textContent || remoteNode.textContent === templateNode.textContent) {
+                  console.log(`remoteNode`, remoteNode)
+                  console.log(`templateNode`, templateNode)
+                }
                 return (
                   !remoteNode.textContent || remoteNode.textContent === templateNode.textContent
                 )
