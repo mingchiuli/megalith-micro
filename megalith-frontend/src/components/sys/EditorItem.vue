@@ -232,8 +232,8 @@ defineExpose({
 </template>
 
 <style scoped>
-.milkdown:deep(.ProseMirror) {
-  padding: 10px;
+.milkdown .ProseMirror {
+  padding: 5px 10px;
 }
 
 .trans-radius {
