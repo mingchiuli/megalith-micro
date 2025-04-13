@@ -317,12 +317,12 @@ export enum ButtonAuth {
 
 export interface EditForm {
   id?: number
-  userId: number | undefined
-  title: string | undefined
-  description: string | undefined
-  content: string | undefined
-  status: number | undefined
-  link: string | undefined
+  userId: number
+  title: string
+  description: string
+  content: string
+  status: number
+  link: string
   sensitiveContentList: SensitiveItem[]
 }
 

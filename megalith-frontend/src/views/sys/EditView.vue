@@ -30,8 +30,8 @@ import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 import EditorItem from '@/components/sys/EditorItem.vue'
 import { MilkdownProvider } from '@milkdown/vue'
-import "@milkdown/crepe/theme/common/style.css"
-import "@milkdown/crepe/theme/frame.css"
+import '@milkdown/crepe/theme/common/style.css'
+import '@milkdown/crepe/theme/frame.css'
 
 const editorRef = useTemplateRef<InstanceType<typeof EditorItem>>('editor')
 
@@ -39,13 +39,13 @@ const route = useRoute()
 const blogId = route.query.id as string | undefined
 
 const form: EditForm = reactive({
-  id: undefined,
-  userId: undefined,
-  title: undefined,
-  description: undefined,
-  content: undefined,
-  status: undefined,
-  link: undefined,
+  id: 0,
+  userId: 0,
+  title: '',
+  description: '',
+  content: '',
+  status: 0,
+  link: '',
   sensitiveContentList: []
 })
 
@@ -279,9 +279,9 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   form.sensitiveContentList = data.sensitiveContentList
 }
 
-onMounted(async () => {
+;(async () => {
   await loadEditContent(form, blogId)
-})
+})()
 </script>
 
 <template>
