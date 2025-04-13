@@ -17,6 +17,7 @@ import { IndexeddbPersistence } from 'y-indexeddb'
 import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
+import { onBeforeUnmount } from 'vue'
 
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
@@ -99,7 +100,7 @@ const clearIndexdbDate = () => {
   }
 }
 
-useEditor((root) => {
+const editor = useEditor((root) => {
   const crepe = new Crepe({
     root,
     featureConfigs: {
@@ -182,14 +183,13 @@ onMounted(() => {
   }
 })
 
-// onUnmounted(() => {
-//   if (indexeddbProvider) {
-//     indexeddbProvider.destroy()
-//   }
-//   if (websocketProvider) {
-//     websocketProvider.destroy()
-//   }
-// })
+onBeforeUnmount(async () => {
+  if (indexeddbProvider) {
+    await indexeddbProvider.destroy()
+  }
+  
+  await editor.get()!.destroy()
+})
 
 defineExpose({
   clearIndexdbDate
