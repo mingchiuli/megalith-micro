@@ -171,7 +171,7 @@ useEditor((root) => {
       })
     })
   })
-  return editor
+  return crepe
 })
 
 onMounted(() => {
