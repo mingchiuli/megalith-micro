@@ -1,6 +1,9 @@
 <script lang="ts" setup>
 import "@milkdown/theme-nord/style.css";
-
+import { emoji } from "@milkdown/plugin-emoji";
+import { diagram } from "@milkdown/plugin-diagram";
+import { clipboard } from "@milkdown/kit/plugin/clipboard";
+import { history } from "@milkdown/kit/plugin/history";
 import { UPLOAD } from '@/http/http'
 import { onMounted, ref } from 'vue'
 import {
@@ -11,8 +14,10 @@ import {
   type UserInfo
 } from '@/type/entity'
 import { commonmark } from '@milkdown/kit/preset/commonmark'
-import { imageBlockConfig } from "@milkdown/kit/component/image-block";
+import { imageBlockConfig, imageBlockComponent } from "@milkdown/kit/component/image-block";
+
 import { Editor, rootCtx } from "@milkdown/kit/core"
+import { cursor } from "@milkdown/kit/plugin/cursor";
 import { nord } from "@milkdown/theme-nord";
 import { Milkdown, useEditor } from '@milkdown/vue'
 import { Crepe } from '@milkdown/crepe'
@@ -118,6 +123,12 @@ useEditor((root) => {
         }));
       })
     .use(commonmark)
+    .use(history)
+    .use(cursor)
+    .use(diagram)
+    .use(clipboard)
+    .use(emoji)
+    .use(imageBlockComponent)
     .use(collab);
 
   editor.create().then(() => {
