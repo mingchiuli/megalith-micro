@@ -219,7 +219,7 @@ defineExpose({
     </el-table>
   </el-dialog>
 
-  <Milkdown id="milk" ref="editor" />
+  <Milkdown id="milk" />
 </template>
 
 <style scoped>
