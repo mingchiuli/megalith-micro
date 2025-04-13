@@ -116,7 +116,7 @@ const editor = useEditor((root) => {
 
   crepeInstance = crepe
   const editor = crepe.editor
-  
+
   editor.use(collab)
   crepe.create().then(() => {
     const doc = new Doc()
@@ -232,8 +232,8 @@ defineExpose({
 </template>
 
 <style scoped>
-.md-editor:deep(.md-editor-footer) {
-  height: 40px;
+.milkdown:deep(.ProseMirror) {
+  padding: 10px;
 }
 
 .trans-radius {
