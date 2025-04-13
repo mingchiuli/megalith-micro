@@ -122,41 +122,41 @@ const editor = useEditor((root) => {
     const doc = new Doc()
     // 创建 IndexedDB 持久化实例
     indexeddbProvider = new IndexeddbPersistence(roomId, doc)
-    websocketProvider = new WebsocketProvider(
-      `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
-      roomId,
-      doc,
-      {
-        params: {
-          token: localStorage.getItem('accessToken')!
+    indexeddbProvider!.whenSynced.then(() => {
+      websocketProvider = new WebsocketProvider(
+        `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
+        roomId,
+        doc,
+        {
+          params: {
+            token: localStorage.getItem('accessToken')!
+          }
         }
-      }
-    )
+      )
 
-    const usercolors = [
-      { color: '#30bced', light: '#30bced33' },
-      { color: '#6eeb83', light: '#6eeb8333' },
-      { color: '#ffbc42', light: '#ffbc4233' },
-      { color: '#ecd444', light: '#ecd44433' },
-      { color: '#ee6352', light: '#ee635233' },
-      { color: '#9ac2c9', light: '#9ac2c933' },
-      { color: '#8acb88', light: '#8acb8833' },
-      { color: '#1be7ff', light: '#1be7ff33' }
-    ]
+      const usercolors = [
+        { color: '#30bced', light: '#30bced33' },
+        { color: '#6eeb83', light: '#6eeb8333' },
+        { color: '#ffbc42', light: '#ffbc4233' },
+        { color: '#ecd444', light: '#ecd44433' },
+        { color: '#ee6352', light: '#ee635233' },
+        { color: '#9ac2c9', light: '#9ac2c933' },
+        { color: '#8acb88', light: '#8acb8833' },
+        { color: '#1be7ff', light: '#1be7ff33' }
+      ]
 
-    const userColor = usercolors[random.uint32() % usercolors.length]
+      const userColor = usercolors[random.uint32() % usercolors.length]
 
-    websocketProvider.awareness.setLocalStateField('user', {
-      name: user.nickname,
-      color: userColor.color,
-      colorLight: userColor.light
-    })
+      websocketProvider.awareness.setLocalStateField('user', {
+        name: user.nickname,
+        color: userColor.color,
+        colorLight: userColor.light
+      })
 
-    editor.action((ctx) => {
-      const collabService = ctx.get(collabServiceCtx)
+      editor.action((ctx) => {
+        const collabService = ctx.get(collabServiceCtx)
 
-      // 等待 IndexedDB 加载完成
-      indexeddbProvider!.whenSynced.then(() => {
+        // 等待 IndexedDB 加载完成
         collabService.bindDoc(doc).setAwareness(websocketProvider!.awareness)
 
         websocketProvider!.once('sync', async (isSynced: boolean) => {
