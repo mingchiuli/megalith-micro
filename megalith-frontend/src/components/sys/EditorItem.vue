@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import '@milkdown/crepe/theme/common/style.css'
-// We have some themes for you to choose
 import '@milkdown/crepe/theme/frame.css'
 
 import { UPLOAD } from '@/http/http'
@@ -21,6 +20,7 @@ import { IndexeddbPersistence } from 'y-indexeddb'
 import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
+import { onUnmounted } from 'vue'
 
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
@@ -161,9 +161,6 @@ useEditor((root) => {
           if (isSynced) {
             collabService
               .applyTemplate(content.value!, (remoteNode, templateNode) => {
-                console.log(remoteNode.textContent)
-                console.log(templateNode.textContent)
-
                 return (
                   !remoteNode.textContent || remoteNode.textContent === templateNode.textContent
                 )
@@ -174,7 +171,7 @@ useEditor((root) => {
       })
     })
   })
-  return crepe
+  return editor
 })
 
 onMounted(() => {
@@ -193,6 +190,15 @@ onMounted(() => {
       selectSensitiveData.value = items
       showSensitiveListDialog.value = true
     }
+  }
+})
+
+onUnmounted(async () => {
+  if (websocketProvider) {
+    websocketProvider.disconnect()
+  }
+  if (indexeddbProvider) {
+    indexeddbProvider.destroy()
   }
 })
 
