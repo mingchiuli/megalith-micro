@@ -1,9 +1,8 @@
 <script lang="ts" setup>
-import "@milkdown/theme-nord/style.css";
-import { emoji } from "@milkdown/plugin-emoji";
-import { diagram } from "@milkdown/plugin-diagram";
-import { clipboard } from "@milkdown/kit/plugin/clipboard";
-import { history } from "@milkdown/kit/plugin/history";
+import '@milkdown/crepe/theme/common/style.css'
+// We have some themes for you to choose
+import '@milkdown/crepe/theme/frame.css'
+
 import { UPLOAD } from '@/http/http'
 import { onMounted, ref } from 'vue'
 import {
@@ -13,11 +12,7 @@ import {
   type SensitiveContentItem,
   type UserInfo
 } from '@/type/entity'
-import { commonmark } from '@milkdown/kit/preset/commonmark'
-import { imageBlockConfig, imageBlockComponent } from "@milkdown/kit/component/image-block";
 
-import { Editor, rootCtx } from "@milkdown/kit/core"
-import { nord } from "@milkdown/theme-nord";
 import { Milkdown, useEditor } from '@milkdown/vue'
 import { Crepe } from '@milkdown/crepe'
 import { Doc } from 'yjs'
@@ -26,7 +21,6 @@ import { IndexeddbPersistence } from 'y-indexeddb'
 import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
-import { onBeforeUnmount } from 'vue'
 
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
@@ -102,7 +96,6 @@ const onUploadImg = async (file: File) => {
 
 let indexeddbProvider: IndexeddbPersistence | undefined
 let websocketProvider: WebsocketProvider | undefined
-let crepeInstance: Crepe | undefined
 const clearIndexdbDate = () => {
   if (indexeddbProvider) {
     indexeddbProvider.clearData()
@@ -110,26 +103,20 @@ const clearIndexdbDate = () => {
 }
 
 useEditor((root) => {
-  const editor = Editor.make()
-    .config((ctx) => {
-      ctx.set(rootCtx, root);
-    })
-    .config(nord)
-    .config((ctx) => {
-        ctx.update(imageBlockConfig.key, (prev) => ({
-          ...prev,
-          onUpload: onUploadImg,
-        }));
-      })
-    .use(commonmark)
-    .use(history)
-    .use(diagram)
-    .use(clipboard)
-    .use(emoji)
-    .use(imageBlockComponent)
-    .use(collab);
+  const crepe = new Crepe({
+    root,
+    featureConfigs: {
+      [Crepe.Feature.ImageBlock]: {
+        onUpload: async (file: File) => await onUploadImg(file)
+      }
+    }
+  })
 
-  editor.create().then(() => {
+  const editor = crepe.editor
+
+  editor.use(collab)
+
+  crepe.create().then(() => {
     const doc = new Doc()
     // 创建 IndexedDB 持久化实例
     indexeddbProvider = new IndexeddbPersistence(roomId, doc)
@@ -184,7 +171,6 @@ useEditor((root) => {
       })
     })
   })
-  
   return editor
 })
 
@@ -204,13 +190,6 @@ onMounted(() => {
       selectSensitiveData.value = items
       showSensitiveListDialog.value = true
     }
-  }
-})
-
-onBeforeUnmount(async () => {
-  if (crepeInstance) {
-    console.log('123')
-    crepeInstance.destroy()
   }
 })
 
@@ -244,44 +223,7 @@ defineExpose({
   <Milkdown id="milk" />
 </template>
 
-<style >
-
-/* this is a rough fix for the first cursor position when the first paragraph is empty */
-.ProseMirror > .ProseMirror-yjs-cursor:first-child {
-  margin-top: 16px;
-}
-.ProseMirror p:first-child, .ProseMirror h1:first-child, .ProseMirror h2:first-child, .ProseMirror h3:first-child, .ProseMirror h4:first-child, .ProseMirror h5:first-child, .ProseMirror h6:first-child {
-  margin-top: 16px
-}
-/* This gives the remote user caret. The colors are automatically overwritten*/
-.ProseMirror-yjs-cursor {
-  position: relative;
-  margin-left: -1px;
-  margin-right: -1px;
-  border-left: 1px solid black;
-  border-right: 1px solid black;
-  border-color: orange;
-  word-break: normal;
-  pointer-events: none;
-}
-/* This renders the username above the caret */
-.ProseMirror-yjs-cursor > div {
-  position: absolute;
-  top: -1.05em;
-  left: -1px;
-  font-size: 13px;
-  background-color: rgb(250, 129, 0);
-  font-family: serif;
-  font-style: normal;
-  font-weight: normal;
-  line-height: normal;
-  user-select: none;
-  color: white;
-  padding-left: 2px;
-  padding-right: 2px;
-  white-space: nowrap;
-}
-
+<style scoped>
 /* 编辑器内容区域内边距 */
 :deep(.milkdown .ProseMirror) {
   padding: 5px 10px;
