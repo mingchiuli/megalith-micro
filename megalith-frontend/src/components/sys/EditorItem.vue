@@ -244,27 +244,17 @@ defineExpose({
   <Milkdown id="milk" />
 </template>
 
-<style scoped>
-:deep(.ProseMirror) {
-  /* 第一个光标位置的修复 */
-  & > .ProseMirror-yjs-cursor:first-child {
-    margin-top: 16px;
-  }
+<style >
 
-  /* 首个块级元素的间距 */
-  & p:first-child,
-  & h1:first-child,
-  & h2:first-child,
-  & h3:first-child,
-  & h4:first-child,
-  & h5:first-child,
-  & h6:first-child {
-    margin-top: 16px;
-  }
+/* this is a rough fix for the first cursor position when the first paragraph is empty */
+.ProseMirror > .ProseMirror-yjs-cursor:first-child {
+  margin-top: 16px;
 }
-
-/* 远程用户光标样式 */
-:deep(.ProseMirror-yjs-cursor) {
+.ProseMirror p:first-child, .ProseMirror h1:first-child, .ProseMirror h2:first-child, .ProseMirror h3:first-child, .ProseMirror h4:first-child, .ProseMirror h5:first-child, .ProseMirror h6:first-child {
+  margin-top: 16px
+}
+/* This gives the remote user caret. The colors are automatically overwritten*/
+.ProseMirror-yjs-cursor {
   position: relative;
   margin-left: -1px;
   margin-right: -1px;
@@ -273,24 +263,23 @@ defineExpose({
   border-color: orange;
   word-break: normal;
   pointer-events: none;
-
-  /* 光标上方的用户名 */
-  & > div {
-    position: absolute;
-    top: -1.05em;
-    left: -1px;
-    font-size: 13px;
-    background-color: rgb(250, 129, 0);
-    font-family: serif;
-    font-style: normal;
-    font-weight: normal;
-    line-height: normal;
-    user-select: none;
-    color: white;
-    padding-left: 2px;
-    padding-right: 2px;
-    white-space: nowrap;
-  }
+}
+/* This renders the username above the caret */
+.ProseMirror-yjs-cursor > div {
+  position: absolute;
+  top: -1.05em;
+  left: -1px;
+  font-size: 13px;
+  background-color: rgb(250, 129, 0);
+  font-family: serif;
+  font-style: normal;
+  font-weight: normal;
+  line-height: normal;
+  user-select: none;
+  color: white;
+  padding-left: 2px;
+  padding-right: 2px;
+  white-space: nowrap;
 }
 
 /* 编辑器内容区域内边距 */
