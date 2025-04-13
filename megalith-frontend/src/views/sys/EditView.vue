@@ -37,9 +37,6 @@ import { blogsStore, syncStore } from '@/stores/store'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 
-import type { UserInfo } from '@/type/entity'
-
-import 'md-editor-v3/lib/style.css'
 import { config } from 'md-editor-v3'
 import * as Y from 'yjs'
 import * as random from 'lib0/random'
@@ -50,31 +47,6 @@ import { IndexeddbPersistence } from 'y-indexeddb'
 const initialized = ref(false)
 const route = useRoute()
 const blogId = route.query.id as string | undefined
-// 设置同步房间ID
-const setupSyncRoom = () => {
-  if (blogId) {
-    syncStore().room = blogId
-    return blogId
-  } else {
-    const userStr = localStorage.getItem('userinfo')!
-    const user: UserInfo = JSON.parse(userStr)
-    const roomId = `init:${user.id}`
-    syncStore().room = roomId
-    return roomId
-  }
-}
-setupSyncRoom()
-
-const usercolors = [
-  { color: '#30bced', light: '#30bced33' },
-  { color: '#6eeb83', light: '#6eeb8333' },
-  { color: '#ffbc42', light: '#ffbc4233' },
-  { color: '#ecd444', light: '#ecd44433' },
-  { color: '#ee6352', light: '#ee635233' },
-  { color: '#9ac2c9', light: '#9ac2c933' },
-  { color: '#8acb88', light: '#8acb8833' },
-  { color: '#1be7ff', light: '#1be7ff33' }
-]
 
 const ydoc = new Y.Doc()
 const configStore = syncStore()
@@ -87,6 +59,18 @@ const wsProvider = new WebsocketProvider(wsUrlWithToken.toString(), configStore.
 })
 const ytext = ydoc.getText('codemirror')
 const undoManager = new Y.UndoManager(ytext)
+
+const usercolors = [
+  { color: '#30bced', light: '#30bced33' },
+  { color: '#6eeb83', light: '#6eeb8333' },
+  { color: '#ffbc42', light: '#ffbc4233' },
+  { color: '#ecd444', light: '#ecd44433' },
+  { color: '#ee6352', light: '#ee635233' },
+  { color: '#9ac2c9', light: '#9ac2c933' },
+  { color: '#8acb88', light: '#8acb8833' },
+  { color: '#1be7ff', light: '#1be7ff33' }
+]
+
 const userColor = usercolors[random.uint32() % usercolors.length]
 
 wsProvider.awareness.setLocalStateField('user', {
@@ -472,7 +456,6 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 
       <el-form-item class="content" prop="content">
         <CustomEditorItem
-          v-if="initialized"
           v-model:content="form.content"
           @sensitive="dealSensitive"
           :form-status="form.status"

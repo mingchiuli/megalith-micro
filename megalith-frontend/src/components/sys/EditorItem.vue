@@ -1,18 +1,28 @@
 <script lang="ts" setup>
 import { UPLOAD } from '@/http/http'
-import { MdEditor, type Footers, type ToolbarNames, type ExposeParam } from 'md-editor-v3'
-import 'md-editor-v3/lib/style.css'
-import '@vavt/v3-extension/lib/asset/ExportPDF.css'
-import { Emoji, ExportPDF } from '@vavt/v3-extension'
-import '@vavt/v3-extension/lib/asset/Emoji.css'
 import { onMounted, ref, useTemplateRef } from 'vue'
 import {
   SensitiveType,
   Status,
   type SensitiveTrans,
-  Colors,
-  type SensitiveContentItem
+  type SensitiveContentItem,
+  type UserInfo
 } from '@/type/entity'
+
+import { Milkdown, useEditor } from '@milkdown/vue'
+import { Crepe } from '@milkdown/crepe'
+import { Doc } from 'yjs'
+import { WebsocketProvider } from 'y-websocket'
+import { IndexeddbPersistence } from 'y-indexeddb'
+import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
+import * as random from 'lib0/random'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const userStr = localStorage.getItem('userinfo')!
+const user: UserInfo = JSON.parse(userStr)
+const blogId = route.query.id as string | undefined
+const roomId = blogId ? blogId : `init:${user.id}`
 
 const emit = defineEmits<{
   sensitive: [payload: SensitiveTrans]
@@ -23,7 +33,7 @@ const { formStatus } = defineProps<{
 }>()
 
 const content = defineModel<string | undefined>('content')
-const editorRef = useTemplateRef<ExposeParam>('editor')
+const editorRef = useTemplateRef<InstanceType<typeof Milkdown>>('editor')
 
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
@@ -31,48 +41,13 @@ const showSensitiveListDialog = ref(false)
 
 const selectSensitiveData = ref<SensitiveContentItem[]>([])
 
-const toolbars: ToolbarNames[] = [
-  'revoke',
-  'next',
-  'bold',
-  1,
-  'underline',
-  'italic',
-  '-',
-  'title',
-  'strikeThrough',
-  'sub',
-  'sup',
-  'quote',
-  'unorderedList',
-  'orderedList',
-  'task',
-  '-',
-  'codeRow',
-  'code',
-  'link',
-  'image',
-  'table',
-  'mermaid',
-  'katex',
-  '-',
-  0,
-  'pageFullscreen',
-  'fullscreen',
-  'preview',
-  'htmlPreview',
-  'catalog',
-  'github'
-]
-const footers: Footers[] = ['markdownTotal', 0, '=', 1, 'scrollSwitch']
-
 onMounted(() => {
-  document.getElementById('md-editor')!.onmouseup = () => {
+  document.getElementById('milk')!.onmouseup = () => {
     if (formStatus !== Status.SENSITIVE_FILTER) {
       return
     }
 
-    const selection = editorRef.value!.getSelectedText()
+    const selection = document.getSelection()?.toString()
 
     if (!selection || !content.value) {
       return
@@ -128,12 +103,76 @@ const findAllOccurrences = (text: string, pattern: string) => {
   return occurrences
 }
 
-const onUploadImg = async (files: File[], callback: Function) => {
+const onUploadImg = async (file: File) => {
   const formdata = new FormData()
-  formdata.append('image', files[0])
+  formdata.append('image', file)
   const url = await UPLOAD('sys/blog/oss/upload', formdata, uploadPercentage, showPercentage)
-  callback([url])
+  return url
 }
+
+useEditor((root) => {
+  const crepe = new Crepe({
+    root,
+    featureConfigs: {
+      [Crepe.Feature.ImageBlock]: {
+        onUpload: async (file: File) => {
+          const url = await onUploadImg(file)
+          return url
+        }
+      }
+    }
+  })
+
+  const editor = crepe.editor
+  editor.use(collab)
+  crepe.create().then(() => {
+    const doc = new Doc()
+    // 创建 IndexedDB 持久化实例
+    const indexeddbProvider = new IndexeddbPersistence(roomId, doc)
+    const wsProvider = new WebsocketProvider('ws://localhost:8089/rooms', roomId, doc)
+
+    const usercolors = [
+      { color: '#30bced', light: '#30bced33' },
+      { color: '#6eeb83', light: '#6eeb8333' },
+      { color: '#ffbc42', light: '#ffbc4233' },
+      { color: '#ecd444', light: '#ecd44433' },
+      { color: '#ee6352', light: '#ee635233' },
+      { color: '#9ac2c9', light: '#9ac2c933' },
+      { color: '#8acb88', light: '#8acb8833' },
+      { color: '#1be7ff', light: '#1be7ff33' }
+    ]
+
+    const userColor = usercolors[random.uint32() % usercolors.length]
+
+    wsProvider.awareness.setLocalStateField('user', {
+      name: user.nickname,
+      color: userColor.color,
+      colorLight: userColor.light
+    })
+
+    editor.action((ctx) => {
+      const collabService = ctx.get(collabServiceCtx)
+
+      // 等待 IndexedDB 加载完成
+      indexeddbProvider.whenSynced.then(() => {
+        collabService.bindDoc(doc).setAwareness(wsProvider.awareness)
+
+        wsProvider.once('sync', async (isSynced: boolean) => {
+          if (isSynced) {
+            collabService
+              .applyTemplate(content.value!, (remoteNode, templateNode) => {
+                return (
+                  !remoteNode.textContent || remoteNode.textContent === templateNode.textContent
+                )
+              })
+              .connect()
+          }
+        })
+      })
+    })
+  })
+  return crepe
+})
 </script>
 
 <template>
@@ -158,30 +197,9 @@ const onUploadImg = async (files: File[], callback: Function) => {
     </el-table>
   </el-dialog>
 
-  <md-editor
-    v-model="content"
-    :preview="false"
-    :toolbars="toolbars"
-    :toolbarsExclude="['github']"
-    @on-upload-img="onUploadImg"
-    :footers="footers"
-    ref="editor"
-    id="md-editor"
-  >
-    <template #defToolbars>
-      <ExportPDF v-model="content" />
-      <Emoji />
-    </template>
-    <template #defFooters>
-      <el-progress
-        v-if="showPercentage"
-        type="line"
-        :percentage="uploadPercentage"
-        :color="Colors"
-        status="success"
-      />
-    </template>
-  </md-editor>
+  <MilkdownProvider>
+    <Milkdown id="milk" ref="editor" />
+  </MilkdownProvider>
 </template>
 
 <style scoped>
