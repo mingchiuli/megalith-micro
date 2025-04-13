@@ -1,12 +1,5 @@
 <script lang="ts" setup>
-import {
-  computed,
-  defineAsyncComponent,
-  onMounted,
-  reactive,
-  ref,
-  useTemplateRef
-} from 'vue'
+import { computed, defineAsyncComponent, onMounted, reactive, ref, useTemplateRef } from 'vue'
 import {
   type TagProps,
   type UploadFile,
@@ -36,7 +29,7 @@ import { blogsStore } from '@/stores/store'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 import EditorItem from '@/components/sys/EditorItem.vue'
-
+import { MilkdownProvider } from '@milkdown/vue'
 
 const editorRef = useTemplateRef<InstanceType<typeof EditorItem>>('editor')
 
@@ -287,7 +280,6 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 onMounted(async () => {
   await loadEditContent(form, blogId)
 })
-
 </script>
 
 <template>
@@ -366,11 +358,13 @@ onMounted(async () => {
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <CustomEditorItem
-          v-model:content="form.content"
-          @sensitive="dealSensitive"
-          :form-status="form.status"
-        />
+        <MilkdownProvider>
+          <CustomEditorItem
+            v-model:content="form.content"
+            @sensitive="dealSensitive"
+            :form-status="form.status"
+          />
+        </MilkdownProvider>
       </el-form-item>
 
       <div class="submit-button">

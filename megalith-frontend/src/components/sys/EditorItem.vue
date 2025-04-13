@@ -9,7 +9,7 @@ import {
   type UserInfo
 } from '@/type/entity'
 
-import { Milkdown, useEditor, MilkdownProvider } from '@milkdown/vue'
+import { Milkdown, useEditor } from '@milkdown/vue'
 import { Crepe } from '@milkdown/crepe'
 import { Doc } from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
@@ -164,7 +164,6 @@ useEditor((root) => {
   return crepe
 })
 
-
 onMounted(() => {
   document.getElementById('milk')!.onmouseup = () => {
     if (formStatus !== Status.SENSITIVE_FILTER) {
@@ -220,9 +219,7 @@ defineExpose({
     </el-table>
   </el-dialog>
 
-  <MilkdownProvider>
-    <Milkdown id="milk" ref="editor" />
-  </MilkdownProvider>
+  <Milkdown id="milk" ref="editor" />
 </template>
 
 <style scoped>
