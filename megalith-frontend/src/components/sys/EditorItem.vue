@@ -197,6 +197,7 @@ onMounted(() => {
 
 onBeforeUnmount(async () => {
   if (crepeInstance) {
+    console.log('123')
     crepeInstance.destroy()
   }
 })
@@ -232,8 +233,8 @@ defineExpose({
 </template>
 
 <style scoped>
-.milkdown .ProseMirror {
-  padding: 5px 10px;
+:deep(.milkdown .ProseMirror) {
+  padding: 5px 10px; /* 或者你想要的其他值 */
 }
 
 .trans-radius {
