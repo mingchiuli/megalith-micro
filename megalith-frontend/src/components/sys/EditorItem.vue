@@ -17,7 +17,7 @@ import { IndexeddbPersistence } from 'y-indexeddb'
 import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
-import { onUnmounted } from 'vue'
+import { onBeforeUnmount } from 'vue'
 
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
@@ -183,7 +183,7 @@ onMounted(() => {
   }
 })
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   if (indexeddbProvider) {
     indexeddbProvider.destroy()
   }
