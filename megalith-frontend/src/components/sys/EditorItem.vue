@@ -21,6 +21,7 @@ import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
 import { onUnmounted } from 'vue'
+import type { Editor } from '@milkdown/kit/core'
 
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
@@ -96,6 +97,8 @@ const onUploadImg = async (file: File) => {
 
 let indexeddbProvider: IndexeddbPersistence | undefined
 let websocketProvider: WebsocketProvider | undefined
+let editor: Editor | undefined
+
 const clearIndexdbDate = () => {
   if (indexeddbProvider) {
     indexeddbProvider.clearData()
@@ -112,7 +115,7 @@ useEditor((root) => {
     }
   })
 
-  const editor = crepe.editor
+  editor = crepe.editor
 
   editor.use(collab)
 
@@ -151,7 +154,7 @@ useEditor((root) => {
         colorLight: userColor.light
       })
 
-      editor.action((ctx) => {
+      editor!.action((ctx) => {
         const collabService = ctx.get(collabServiceCtx)
 
         // 等待 IndexedDB 加载完成
@@ -199,6 +202,9 @@ onUnmounted(async () => {
   }
   if (indexeddbProvider) {
     indexeddbProvider.destroy()
+  }
+  if (editor) {
+    editor.destroy()
   }
 })
 
