@@ -206,7 +206,7 @@ const CustomEditorItem = defineAsyncComponent({
   loadingComponent: EditorLoadingItem,
   delay: 200,
   errorComponent: EditorLoadingItem,
-  timeout: 10000
+  timeout: 15000
 })
 
 const handleTitleSelect = () => {
