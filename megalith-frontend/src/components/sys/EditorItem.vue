@@ -251,5 +251,6 @@ defineExpose({
 :deep(.milkdown) {
   border: 1px solid #dcdfe6;  /* 使用 Element Plus 默认的边框颜色 */
   border-radius: 4px;         /* 圆角边框 */
+  width: 40rem;
 }
 </style>
