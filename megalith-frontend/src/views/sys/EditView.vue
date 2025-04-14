@@ -275,6 +275,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   form.id = data.id
   form.userId = data.userId
   form.sensitiveContentList = data.sensitiveContentList
+  form.owner = data.owner
 }
 
 ;(async () => {
@@ -292,6 +293,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
           v-model="form.title"
           placeholder="标题"
           maxlength="20"
+          :disabled="!form.owner"
         />
       </el-form-item>
 
@@ -304,11 +306,12 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
           v-model="form.description"
           placeholder="摘要"
           maxlength="60"
+          :disabled="!form.owner"
         />
       </el-form-item>
 
       <el-form-item class="status" prop="status">
-        <el-radio-group v-model="form.status">
+        <el-radio-group v-model="form.status" :disabled="!form.owner">
           <el-radio :value="Status.NORMAL">公开</el-radio>
           <el-radio :value="Status.BLOCK">隐藏</el-radio>
           <el-radio :value="Status.SENSITIVE_FILTER">打码</el-radio>
@@ -342,6 +345,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
           :http-request="upload"
           :on-remove="handleRemove"
           :on-preview="handlePictureCardPreview"
+          :disabled="!form.owner"
         >
           <el-icon>
             <Plus />

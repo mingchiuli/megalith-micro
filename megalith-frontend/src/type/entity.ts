@@ -108,6 +108,7 @@ export interface BlogEdit {
   link: string
   status: number
   sensitiveContentList: SensitiveItem[]
+  owner: boolean
 }
 
 export interface BlogExhibit {
@@ -324,6 +325,7 @@ export interface EditForm {
   status: number
   link: string
   sensitiveContentList: SensitiveItem[]
+  owner: boolean
 }
 
 export interface SensitiveItem {
