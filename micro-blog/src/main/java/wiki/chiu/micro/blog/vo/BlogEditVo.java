@@ -20,7 +20,9 @@ public record BlogEditVo(
 
         Integer status,
 
-        List<SensitiveContentVo> sensitiveContentList) {
+        List<SensitiveContentVo> sensitiveContentList,
+
+        Boolean owner) {
 
 
     public static BlogEditVoBuilder builder() {
@@ -36,6 +38,7 @@ public record BlogEditVo(
         private String content;
         private Integer status;
         private List<SensitiveContentVo> sensitiveContentList;
+        private Boolean owner;
 
         public BlogEditVoBuilder id(Long id) {
             this.id = id;
@@ -77,8 +80,13 @@ public record BlogEditVo(
             return this;
         }
 
+        public BlogEditVoBuilder owner(Boolean owner) {
+            this.owner = owner;
+            return this;
+        }
+
         public BlogEditVo build() {
-            return new BlogEditVo(id, userId, title, description, link, content, status, sensitiveContentList);
+            return new BlogEditVo(id, userId, title, description, link, content, status, sensitiveContentList, owner);
         }
 
     }
