@@ -246,4 +246,10 @@ defineExpose({
   width: 100px;
   display: inline-flex;
 }
+
+/* 为编辑器添加边框 */
+:deep(.milkdown) {
+  border: 1px solid #dcdfe6;  /* 使用 Element Plus 默认的边框颜色 */
+  border-radius: 4px;         /* 圆角边框 */
+}
 </style>
