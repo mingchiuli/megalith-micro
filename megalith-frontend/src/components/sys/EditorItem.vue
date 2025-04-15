@@ -247,10 +247,21 @@ defineExpose({
   display: inline-flex;
 }
 
-/* 为编辑器添加边框 */
 :deep(.milkdown) {
-  border: 1px solid #dcdfe6;  /* 使用 Element Plus 默认的边框颜色 */
-  border-radius: 4px;         /* 圆角边框 */
-  width: 40rem;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    width: 100%;          
+    max-width: 40rem;     
+    min-width: 320px;     
+}
+
+@media screen and (max-width: 768px) {
+    :deep(.milkdown) {
+        width: 100%;
+        min-width: unset;  
+        max-width: 100%;   
+        margin: 0 auto;    
+        padding: 0 10px;   
+    }
 }
 </style>
