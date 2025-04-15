@@ -425,7 +425,6 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 }
 
 .content {
-  max-width: 40rem;
   margin: 5px auto;
 }
 

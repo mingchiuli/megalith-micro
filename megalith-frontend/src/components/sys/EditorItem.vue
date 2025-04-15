@@ -248,8 +248,8 @@ defineExpose({
 }
 
 :deep(.milkdown) {
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    width: 640px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  width: 640px;
 }
 </style>
