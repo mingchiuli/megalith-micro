@@ -45,6 +45,9 @@ const computeWidth = () => {
   const width = (screenWidth - label!.offsetWidth) / 2
 
   const halfWidth = width / 2
+  console.log(halfWidth)
+  console.log(catalogueWidth.value)
+
   if (halfWidth > catalogueWidth.value + 10) {
     right.value = halfWidth
     showCatalogue.value = true
