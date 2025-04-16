@@ -392,22 +392,22 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 }
 
 .title {
-  margin-top: 5px;
+  margin-top: 15px;
   width: 200px;
 }
 
 .desc {
-  margin-top: 5px;
+  margin-top: 25px;
   width: 300px;
 }
 
 .progress {
-  margin-top: 5px;
+  margin-top: 25px;
   width: 300px;
 }
 
 .status {
-  margin-top: 5px;
+  margin-top: 25px;
   width: 300px;
 }
 
@@ -416,7 +416,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 }
 
 .el-upload__text {
-  margin-top: 5px;
+  margin-top: 25px;
   width: 290px;
 }
 
@@ -426,7 +426,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 }
 
 .content {
-  margin: 5px auto;
+  margin: 25px auto;
 }
 
 .el-progress {
