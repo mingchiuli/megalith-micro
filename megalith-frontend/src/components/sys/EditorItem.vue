@@ -165,7 +165,6 @@ useEditor((root) => {
       editor!.action((ctx) => {
         const collabService = ctx.get(collabServiceCtx)
 
-        // 等待 IndexedDB 加载完成
         collabService.bindDoc(doc).setAwareness(websocketProvider!.awareness)
 
         websocketProvider!.once('sync', async (isSynced: boolean) => {
@@ -175,6 +174,7 @@ useEditor((root) => {
                 return !remoteNode.textContent
               })
               .connect()
+            content.value = crepe.getMarkdown()
           }
         })
       })
