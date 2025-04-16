@@ -34,10 +34,10 @@ const emit = defineEmits<{
 }>()
 
 const { formStatus } = defineProps<{
-  formStatus: number | undefined
+  formStatus: number
 }>()
 
-const content = defineModel<string | undefined>('content')
+const content = defineModel<string>('content')
 
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
@@ -118,6 +118,14 @@ useEditor((root) => {
   editor = crepe.editor
 
   editor.use(collab)
+  
+  // 添加事件监听
+  crepe.on((listener) => {
+    listener.markdownUpdated((ctx, text) => {
+      // 更新 markdown 的值
+      content.value = text
+    })
+  })
 
   crepe.create().then(() => {
     const doc = new Doc()
