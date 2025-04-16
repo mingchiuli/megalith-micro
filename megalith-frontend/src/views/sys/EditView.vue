@@ -124,7 +124,7 @@ const submitForm = async (ref: FormInstance) => {
         type: 'success',
         duration: 1000
       })
-      editorRef.value!.clearIndexdbDate()
+      editorRef.value!.clearIndexdbData()
       blogsStore().pageNum = 1
       router.push({
         name: 'system-blogs'
@@ -368,6 +368,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
             v-model:content="form.content"
             @sensitive="dealSensitive"
             :form-status="form.status"
+            ref="editor"
           />
         </MilkdownProvider>
       </el-form-item>

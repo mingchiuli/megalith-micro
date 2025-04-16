@@ -99,7 +99,7 @@ let indexeddbProvider: IndexeddbPersistence | undefined
 let websocketProvider: WebsocketProvider | undefined
 let editor: Editor | undefined
 
-const clearIndexdbDate = () => {
+const clearIndexdbData = () => {
   if (indexeddbProvider) {
     indexeddbProvider.clearData()
   }
@@ -215,7 +215,7 @@ onUnmounted(async () => {
 })
 
 defineExpose({
-  clearIndexdbDate
+  clearIndexdbData
 })
 </script>
 
