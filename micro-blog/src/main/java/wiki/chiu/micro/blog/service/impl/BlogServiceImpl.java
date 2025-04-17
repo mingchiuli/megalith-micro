@@ -288,8 +288,8 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void saveOrUpdate(BlogEntityReq blog, Long userId) {
-        BlogEntity dealBlog = getBlogEntity(blog, userId);
+    public void saveOrUpdate(BlogEntityReq blog, Long userId, List<String> roles) {
+        BlogEntity dealBlog = getBlogEntity(blog, userId, roles);
         BlogEntity blogEntity = BlogEntityConvertor.convert(blog, dealBlog);
 
         List<BlogSensitiveContentEntity> blogSensitiveContentEntityList = blog.sensitiveContentList().stream()
@@ -312,12 +312,12 @@ public class BlogServiceImpl implements BlogService {
         taskExecutor.execute(() -> notifyBlogOperation(blog.id().isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE, saved));
     }
 
-    private BlogEntity getBlogEntity(BlogEntityReq blog, Long userId) {
+    private BlogEntity getBlogEntity(BlogEntityReq blog, Long userId, List<String> roles) {
         return blog.id()
                 .map(blogId -> {
                     BlogEntity blogEntity = blogRepository.findById(blogId)
                             .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-                    EditAuthUtils.checkEditAuth(blogEntity, userId);
+                    EditAuthUtils.checkSaveAuth(blogEntity, userId, roles, highestRole);
                     return blogEntity;
                 })
                 .orElseGet(() -> BlogEntity.builder()

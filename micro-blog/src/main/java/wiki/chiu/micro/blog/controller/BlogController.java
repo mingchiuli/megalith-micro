@@ -42,7 +42,7 @@ public class BlogController {
 
     @PostMapping("/save")
     public Result<Void> saveOrUpdate(@RequestBody @BlogSaveValue BlogEntityReq blog, AuthInfo authInfo) {
-        return Result.success(() -> blogService.saveOrUpdate(blog, authInfo.userId()));
+        return Result.success(() -> blogService.saveOrUpdate(blog, authInfo.userId(), authInfo.roles()));
     }
 
     @PostMapping("/delete")
