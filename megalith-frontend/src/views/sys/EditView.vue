@@ -375,6 +375,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 
       <div class="submit-button">
         <el-button
+          :disabled="!form.owner"
           :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)"
           v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)"
           @click="submitForm(formRef!)"
