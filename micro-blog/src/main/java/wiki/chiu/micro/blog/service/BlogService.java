@@ -16,7 +16,7 @@ import java.util.List;
 
 public interface BlogService {
 
-    void saveOrUpdate(BlogEntityReq blog, Long userId);
+    void saveOrUpdate(BlogEntityReq blog, Long userId, List<String> roles);
 
     PageAdapter<BlogEntityVo> findAllBlogs(BlogQueryReq req, Long userId, List<String> roles);
 

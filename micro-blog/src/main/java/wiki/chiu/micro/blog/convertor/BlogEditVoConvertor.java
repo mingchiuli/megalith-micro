@@ -10,7 +10,7 @@ public class BlogEditVoConvertor {
 
     private BlogEditVoConvertor() {}
 
-    public static BlogEditVo convert(BlogEntity blog, List<BlogEditVo.SensitiveContentVo> sensitiveContentList, Long userId, Long blogUserId) {
+    public static BlogEditVo convert(BlogEntity blog, List<BlogEditVo.SensitiveContentVo> sensitiveContentList, Long userId, Long blogUserId, List<String> roles, String highestRole) {
         return BlogEditVo.builder()
                 .id(blog.getId())
                 .title(blog.getTitle())
@@ -18,7 +18,7 @@ public class BlogEditVoConvertor {
                 .content(blog.getContent())
                 .link(blog.getLink())
                 .status(blog.getStatus())
-                .owner(Objects.equals(userId, blogUserId))
+                .owner(Objects.equals(userId, blogUserId) || roles.contains(highestRole))
                 .sensitiveContentList(sensitiveContentList.stream()
                         .map(item -> BlogEditVo.SensitiveContentVo.builder()
                                 .type(item.type())

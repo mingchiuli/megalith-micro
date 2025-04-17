@@ -1,5 +1,6 @@
 package wiki.chiu.micro.blog.service.impl;
 
+import org.springframework.beans.factory.annotation.Value;
 import wiki.chiu.micro.blog.convertor.BlogEditVoConvertor;
 import wiki.chiu.micro.blog.convertor.SensitiveContentVoConvertor;
 import wiki.chiu.micro.blog.entity.BlogEntity;
@@ -24,13 +25,17 @@ public class BlogEditServiceImpl implements BlogEditService {
 
     private final BlogRepository blogRepository;
 
+
+    @Value("${megalith.blog.highest-role}")
+    private String highestRole;
+
     public BlogEditServiceImpl(BlogSensitiveContentRepository blogSensitiveContentRepository, BlogRepository blogRepository) {
         this.blogSensitiveContentRepository = blogSensitiveContentRepository;
         this.blogRepository = blogRepository;
     }
 
     @Override
-    public BlogEditVo findEdit(Long id, Long userId) {
+    public BlogEditVo findEdit(Long id, Long userId, List<String> roles) {
 
         BlogEntity blog;
         List<BlogEditVo.SensitiveContentVo> sensitiveContentList;
@@ -48,7 +53,7 @@ public class BlogEditServiceImpl implements BlogEditService {
             blogUserId = userId;
         }
 
-        return BlogEditVoConvertor.convert(blog, sensitiveContentList, userId, blogUserId);
+        return BlogEditVoConvertor.convert(blog, sensitiveContentList, userId, blogUserId, roles, highestRole);
     }
 
     private BlogEntity createNewBlog() {

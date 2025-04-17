@@ -21,6 +21,6 @@ public class BlogEditController {
 
     @GetMapping("/pull/echo")
     public Result<BlogEditVo> getEchoDetail(@RequestParam(value = "blogId", required = false) Long id, AuthInfo authInfo) {
-        return Result.success(() -> blogEditService.findEdit(id, authInfo.userId()));
+        return Result.success(() -> blogEditService.findEdit(id, authInfo.userId(), authInfo.roles()));
     }
 }
