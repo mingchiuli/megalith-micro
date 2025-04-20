@@ -35,7 +35,7 @@ megalith:
     email-try-count: 3
     password-error-intervalTime: 900000
     jwt:
-      access-token-expire: 3600
+      access-token-expire: 120
       refresh-token-expire: 604800
     highest-role: admin
     sms:
