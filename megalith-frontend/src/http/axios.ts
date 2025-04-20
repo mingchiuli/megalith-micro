@@ -1,7 +1,5 @@
-import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
-import type { Data } from '@/type/entity'
-import { checkAccessToken, clearLoginState } from '@/utils/tools'
-import router from '@/router'
+import axios, {type InternalAxiosRequestConfig } from 'axios'
+import { checkAccessToken } from '@/utils/tools'
 import { loginStateStore } from '@/stores/store'
 
 const http = axios.create({
@@ -23,38 +21,7 @@ const requestInterceptor = async (config: InternalAxiosRequestConfig) => {
   return config
 }
 
-const responseInterceptor = (resp: AxiosResponse<Data<any>, any>): Promise<any> => {
-  const data = resp.data
-  if (resp.status === 200) {
-    return Promise.resolve(data)
-  } else {
-    ElNotification.error({
-      title: 'request forbidden',
-      message: data.msg,
-      showClose: true
-    })
-    return Promise.reject(new Error(data.msg))
-  }
-}
-
-const errorInterceptor = (error: AxiosError<Data<unknown>>) => {
-  ElNotification.error({
-    title: error.code,
-    message: error.response?.data.msg ?? error.message,
-    showClose: true
-  })
-  if (error.response?.status === 403) {
-    clearLoginState()
-    router.push({
-      name: 'login'
-    })
-  }
-  return Promise.reject(error)
-}
-
 http.interceptors.request.use(requestInterceptor)
-http.interceptors.response.use(responseInterceptor, errorInterceptor)
 longHttp.interceptors.request.use(requestInterceptor)
-longHttp.interceptors.response.use(responseInterceptor, errorInterceptor)
 
 export { http, longHttp }

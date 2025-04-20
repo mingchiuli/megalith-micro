@@ -1,14 +1,63 @@
 import { longHttp, http } from '@/http/axios'
 import type { Data } from '@/type/entity'
-import type { AxiosProgressEvent } from 'axios'
+import { clearLoginState } from '@/utils/tools'
+import type { AxiosError, AxiosProgressEvent, AxiosResponse } from 'axios'
 import { type Ref } from 'vue'
+import router from '@/router'
 
 const GET = async <T>(url: string): Promise<T> => {
-  return Promise.resolve((await http.get<never, Data<T>>(url)).data)
+  try {
+    const response = await http.get<T, AxiosResponse<Data<T>>>(url)
+    
+    if (response.status === 200) {
+      return response.data.data
+    } else {
+      ElNotification.error({
+        title: 'Request Error',
+        message: response.data.msg,
+        showClose: true
+      })
+      throw new Error(response.data.msg)
+    }
+  } catch (error) {
+    handleError(error as AxiosError<Data<T>>)
+    throw error
+  }
 }
 
 const POST = async <T>(url: string, params: unknown): Promise<T> => {
-  return Promise.resolve((await http.post<never, Data<T>>(url, params)).data)
+  try {
+    const response = await http.post<T, AxiosResponse<Data<T>>>(url, params)
+    
+    if (response.status === 200) {
+      return response.data.data
+    } else {
+      ElNotification.error({
+        title: 'Request Error',
+        message: response.data.msg,
+        showClose: true
+      })
+      throw new Error(response.data.msg)
+    }
+  } catch (error) {
+    handleError(error as AxiosError<Data<T>>)
+    throw error
+  }
+}
+
+const handleError = (error: AxiosError<Data<unknown>>) => {
+  ElNotification.error({
+    title: error.code,
+    message: error.response?.data.msg ?? error.message,
+    showClose: true
+  })
+  
+  if (error.response?.status === 403) {
+    clearLoginState()
+    router.push({
+      name: 'login'
+    })
+  }
 }
 
 const handleProgress = (
