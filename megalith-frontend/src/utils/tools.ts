@@ -181,9 +181,8 @@ export const downloadSQLData = async (
   percentage: Ref<number>,
   percentageShow: Ref<boolean>
 ) => {
-  const resp = await DOWNLOAD_DATA(url, percentage, percentageShow)
-  console.log(resp)
-  const blob = new Blob([String(resp)], {
+  const resp= await DOWNLOAD_DATA(url, percentage, percentageShow)
+  const blob = new Blob([String(resp?.data)], {
     type: 'text/plain'
   })
   const aDom = document.createElement('a')

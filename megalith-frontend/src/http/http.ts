@@ -26,8 +26,8 @@ const DOWNLOAD_DATA = async (
   url: string,
   percentage: Ref<number>,
   percentageShow: Ref<boolean>
-): Promise<unknown> => {
-  let data: unknown
+): Promise<AxiosResponse<string> | null> => {
+  let data: AxiosResponse<string> | null = null
   percentageShow.value = true
   percentage.value = 0
   await longHttp
