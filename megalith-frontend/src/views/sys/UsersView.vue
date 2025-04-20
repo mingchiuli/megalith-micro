@@ -115,7 +115,7 @@ const handleClose = () => {
 }
 
 const submitForm = async (ref: FormInstance) => {
-  await ref.validate(async (valid, _fields) => {
+  await ref.validate(async (valid) => {
     if (valid) {
       await POST<null>('/sys/user/save', form)
       ElNotification({

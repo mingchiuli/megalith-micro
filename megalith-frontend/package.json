@@ -10,7 +10,7 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
     "format": "prettier --write src/",
-    "lint": "eslint src/**/*.{ts,vue}"
+    "lint": "eslint \"src/**/*.{ts,vue}\""
   },
   "dependencies": {
     "@milkdown/crepe": "^7.9.0",
