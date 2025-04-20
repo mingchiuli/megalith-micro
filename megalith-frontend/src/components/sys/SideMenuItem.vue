@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import { menuStore, tabStore } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import { displayState } from '@/utils/position'
+import type { Menu } from '@/type/entity'
 
 const { expand } = displayState()
 const { menuTree } = storeToRefs(menuStore())
@@ -22,7 +23,7 @@ const reverseCollapse = (): void => {
     :collapse="!expand"
     active-text-color="#ffd04b"
   >
-    <InfiniteMenuItem v-for="item in menuTree?.children" v-bind:key="item.id" :item="item" />
+    <InfiniteMenuItem v-for="item in menuTree?.children as Menu[]" v-bind:key="item.id" :item="item as Menu" />
   </el-menu>
 </template>
 
