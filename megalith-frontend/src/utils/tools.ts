@@ -11,6 +11,7 @@ import {
   type Token,
   type UserInfo
 } from '@/type/entity'
+import type { AxiosResponse } from 'axios'
 import hljs from 'highlight.js'
 import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
@@ -78,10 +79,10 @@ export const checkAccessToken = async (accessToken: string): Promise<string> => 
   //ten minutes
   if (jwt.exp - now < 600) {
     const refreshToken = getLocalStorageItem('refreshToken')
-    const data = await http.get<never, Data<RefreshStruct>>('/token/refresh', {
+    const data = await http.get<never, AxiosResponse<Data<RefreshStruct>>>('/token/refresh', {
       headers: { Authorization: refreshToken }
     })
-    const token = data.data.accessToken
+    const token = data.data.data.accessToken
     setLocalStorageItem('accessToken', token)
     return token
   }
