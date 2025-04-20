@@ -186,7 +186,7 @@ public class BlogServiceImpl implements BlogService {
 
     private void waitForFutures(List<CompletableFuture<Void>> futures) {
         try {
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get(1000, TimeUnit.MILLISECONDS);
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get(5000, TimeUnit.MILLISECONDS);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
             throw new RuntimeException(e);
         }
