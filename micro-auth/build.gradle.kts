@@ -33,7 +33,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				-march=compatibility
 				--gc=serial
 				-R:MaxHeapSize=128m
-				-O3
+				-Ob
 				-J-XX:MaxRAMPercentage=80.0
 				-H:+CompactingOldGen
 			""",
