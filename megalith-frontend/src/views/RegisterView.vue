@@ -70,7 +70,7 @@ const fileList = computed(() => {
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 
-const validatePassword = (_rule: unknown, value: string, callback: Function) => {
+const validatePassword = (_rule: unknown, value: string, callback: (error?: Error) => void) => {
   if (value !== form.password) {
     callback(new Error('两次输入的密码不一致'))
     return
@@ -131,7 +131,7 @@ const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
 }
 
 const submitForm = async (ref: FormInstance) => {
-  await ref.validate(async (valid, _) => {
+  await ref.validate(async (valid) => {
     if (valid) {
       await POST<null>('/sys/user/register/save', form)
       ElNotification({
@@ -150,7 +150,7 @@ const handlePictureCardPreview = (file: UploadFile) => {
   dialogVisible.value = true
 }
 
-const handleRemove = async (_: UploadFile) => {
+const handleRemove = async () => {
   if (form.avatar) return
   await GET<null>(`/sys/user/register/image/delete?url=${form.avatar}&token=${t}`)
   form.avatar = ''

@@ -42,7 +42,7 @@ const sendCode = (via: string) => {
   smsButtonDisable.value = true
   mailButtonDisable.value = true
   GET(`/code/${via}?loginName=${loginInfo.username}`)
-    .then((_res) => {
+    .then(() => {
       ElMessage.success('发送成功')
       interval = setInterval(() => {
         buttonText.value = `等待${buttonMiles.value}秒`
@@ -56,7 +56,7 @@ const sendCode = (via: string) => {
         }
       }, 1000)
     })
-    .catch((_e) => {
+    .catch(() => {
       mailButtonDisable.value = false
       smsButtonDisable.value = false
     })

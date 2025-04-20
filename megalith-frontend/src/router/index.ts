@@ -66,7 +66,7 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach(async (to, _) => {
+router.beforeEach(async (to) => {
   if (to.path.startsWith('/sys')) {
     welcomeStateStore().welcomeBackend = false
   }
