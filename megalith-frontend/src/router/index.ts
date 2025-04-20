@@ -66,7 +66,7 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach(async (to, _from) => {
+router.beforeEach(async (to, _) => {
   if (to.path.startsWith('/sys')) {
     welcomeStateStore().welcomeBackend = false
   }
@@ -110,7 +110,7 @@ router.beforeEach(async (to, _from) => {
 const dealSysTab = (to: RouteLocationNormalized, allKindsInfo: MenusAndButtons) => {
   //处理tab
   if (to.path.startsWith('/sys')) {
-    const menu = findMenuByPath(allKindsInfo.menus.children, to.path)
+    const menu = findMenuByPath(allKindsInfo.menus.children as Menu[], to.path)
     if (menu) {
       const tab: Tab = { name: menu.name, title: menu.title }
       tabStore().addTab(tab)
@@ -153,7 +153,7 @@ const buildRoute = (rootMenu: Menu): RouteRecordRaw => {
   const rootRoute = menuToRoute(rootMenu)
 
   rootMenu.children?.forEach((childMenu) => {
-    const childRoute = buildRoute(childMenu)
+    const childRoute = buildRoute(childMenu as Menu)
     rootRoute.children?.push(childRoute)
   })
   return rootRoute

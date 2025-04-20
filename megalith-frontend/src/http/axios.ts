@@ -1,4 +1,4 @@
-import axios, { type AxiosError, type AxiosResponse } from 'axios'
+import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import type { Data } from '@/type/entity'
 import { checkAccessToken, clearLoginState } from '@/utils/tools'
 import router from '@/router'
@@ -13,7 +13,7 @@ const longHttp = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL
 })
 
-const requestInterceptor = async (config: any) => {
+const requestInterceptor = async (config: InternalAxiosRequestConfig) => {
   const url = config.url
   if (url !== '/token/refresh' && loginStateStore().login) {
     const accessToken = localStorage.getItem('accessToken')
@@ -37,13 +37,13 @@ const responseInterceptor = (resp: AxiosResponse<Data<any>, any>): Promise<any> 
   }
 }
 
-const errorInterceptor = (error: AxiosError<any, any>) => {
+const errorInterceptor = (error: AxiosError<Data<unknown>>) => {
   ElNotification.error({
     title: error.code,
-    message: error.response!.data.msg ? error.response!.data.msg : error.message,
+    message: error.response?.data.msg ?? error.message,
     showClose: true
   })
-  if (error.response!.status === 403) {
+  if (error.response?.status === 403) {
     clearLoginState()
     router.push({
       name: 'login'

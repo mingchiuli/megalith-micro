@@ -11,7 +11,7 @@ defineProps<{
 
 const loadingCatalogue = defineModel<boolean>('loadingCatalogue')
 const loading = ref(true)
-let data = ref<CatalogueLabel[]>()
+const data = ref<CatalogueLabel[]>()
 let allNodes: Node[]
 const defaultProps = { children: 'children', label: 'label' }
 const rollGap = 10
@@ -40,11 +40,11 @@ const render = async () => {
 }
 
 const selectAnchorHeight = (labels: CatalogueLabel[], id: string): number => {
-  for (let label of labels) {
+  for (const label of labels) {
     if (label.id === id) {
       return label.dist
     }
-    const h = selectAnchorHeight(label.children, id)
+    const h = selectAnchorHeight(label.children as CatalogueLabel[], id)
     if (h !== 0) {
       return h
     }
@@ -71,7 +71,7 @@ const geneCatalogueArr = (labels: NodeListOf<HTMLElement>): CatalogueLabel[] => 
     item.dist = aLabel.getBoundingClientRect().top + scrolled
     item.label = aLabel.innerText
     item.children = getChildren(labels, i)
-    i += getChildrenTotal(item.children)
+    i += getChildrenTotal(item.children as CatalogueLabel[])
     arr.push(item)
   }
   return arr
@@ -85,7 +85,7 @@ const getChildrenTotal = (children: CatalogueLabel[]): number => {
   let count = 0
   children.forEach((e) => {
     count++
-    count += getChildrenTotal(e.children)
+    count += getChildrenTotal(e.children as CatalogueLabel[])
   })
   return count
 }
@@ -119,7 +119,7 @@ const getChildren = (labels: NodeListOf<HTMLElement>, index: number): CatalogueL
     item.dist = aLabel.getBoundingClientRect().top + scrolled
     item.label = aLabel.innerText
     item.children = getChildren(labels, i)
-    i += getChildrenTotal(item.children)
+    i += getChildrenTotal(item.children as CatalogueLabel[])
     arr.push(item)
   }
   return arr
@@ -133,7 +133,7 @@ const rollToTargetLabel = (data: CatalogueLabel[], scrolled: number): CatalogueL
     }
 
     label = element
-    let childLabel = rollToTargetLabel(element.children, scrolled)
+    const childLabel = rollToTargetLabel(element.children as CatalogueLabel[], scrolled)
     if (childLabel) {
       label = childLabel
     }
@@ -157,9 +157,9 @@ const roll = async () => {
     return
   }
 
-  let scrolled = document.documentElement.scrollTop
+  const scrolled = document.documentElement.scrollTop
   await extractAndFlushData()
-  let temp: CatalogueLabel = rollToTargetLabel(data.value!, scrolled)!
+  const temp: CatalogueLabel = rollToTargetLabel(data.value!, scrolled)!
   //高亮和关闭树节点的逻辑
   for (const node of allNodes) {
     const id = node.data.id

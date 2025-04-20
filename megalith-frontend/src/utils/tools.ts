@@ -51,11 +51,15 @@ export const render = (content: string): string => {
   return md.render(content)
 }
 
-export const debounce = (fn: Function, interval = 100) => {
-  let timeout: NodeJS.Timeout
-  return (...args: any[]) => {
+export const debounce = <T extends (...args: unknown[]) => unknown>(
+  fn: T,
+  interval = 100
+): ((...args: Parameters<T>) => void) => {
+  let timeout: NodeJS.Timeout | undefined
+  
+  return function(this: ThisParameterType<T>, ...args: Parameters<T>): void {
     clearTimeout(timeout)
-    timeout = setTimeout(function (this: Function) {
+    timeout = setTimeout(() => {
       fn.apply(this, args)
     }, interval)
   }
@@ -85,7 +89,7 @@ export const checkAccessToken = async (accessToken: string): Promise<string> => 
 }
 
 //document.documentElement.scrollTo cant be used, distance is float
-export const diff = (oldArr: any[], newArr: any[]) => {
+export const diff = <T extends { [key: string]: unknown }>(oldArr: T[], newArr: T[]): boolean => {
   if (oldArr.length !== newArr.length) {
     return true
   }
@@ -94,7 +98,8 @@ export const diff = (oldArr: any[], newArr: any[]) => {
     const newObj = newArr[i]
     const oldObj = oldArr[i]
 
-    for (const key in newObj) {
+    const newObjKeys = Object.keys(newObj)
+    for (const key of newObjKeys) {
       if (key === 'children') {
         continue
       }
@@ -103,11 +108,25 @@ export const diff = (oldArr: any[], newArr: any[]) => {
         return true
       }
     }
-    if (newObj.children && oldObj.children) {
-      const dif = diff(newObj.children, oldObj.children)
+
+    const newChildren = newObj['children'] as T[]
+    const oldChildren = oldObj['children'] as T[]
+
+    if (
+      'children' in newObj && 
+      'children' in oldObj && 
+      Array.isArray(newChildren) && 
+      Array.isArray(oldChildren)
+    ) {
+      const dif = diff(newChildren, oldChildren)
       if (dif) {
         return true
       }
+    } else if (
+      ('children' in newObj) !== ('children' in oldObj) ||
+      newChildren !== oldChildren
+    ) {
+      return true
     }
   }
   return false
@@ -181,7 +200,7 @@ export const findMenuByPath = (menus: Menu[], path: string): Menu | Tab | undefi
       return menu
     }
     if (menu.children) {
-      const item = findMenuByPath(menu.children, path)
+      const item = findMenuByPath(menu.children as Menu[], path)
       if (item) {
         return item
       }

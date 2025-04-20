@@ -161,8 +161,8 @@ export interface UserInfo {
 }
 
 export interface ChildrenFather {
-  [propName: string]: any
-  children: any[]
+  [propName: string]: unknown
+  children: unknown[]
 }
 
 export interface Tab {
@@ -171,7 +171,7 @@ export interface Tab {
 }
 
 export interface Button extends Tab {
-  [propName: string]: any
+  [propName: string]: unknown
   id: number
   component?: string
   icon: string
@@ -185,7 +185,7 @@ export interface Button extends Tab {
 export interface Menu extends ChildrenFather, Button, Tab {}
 
 export interface MenusAndButtons {
-  [propName: string]: any
+  [propName: string]: unknown
   menus: Menu
   buttons: Button[]
 }
@@ -220,7 +220,7 @@ export interface PageAdapter<T> {
 }
 
 export interface SearchPage<T> extends PageAdapter<T> {
-  additional: any
+  additional: unknown
 }
 
 export interface Data<T> {

@@ -209,9 +209,6 @@ onUnmounted(async () => {
   if (indexeddbProvider) {
     indexeddbProvider.destroy()
   }
-  if (editor) {
-    editor.destroy()
-  }
 })
 
 defineExpose({

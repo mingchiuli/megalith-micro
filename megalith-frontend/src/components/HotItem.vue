@@ -4,7 +4,7 @@ import type { Hot } from '@/type/entity'
 import { GET } from '@/http/http'
 import router from '@/router'
 
-let hots = ref<Hot[]>()
+const hots = ref<Hot[]>()
 const loading = ref(false)
 
 const to = (id: number) =>

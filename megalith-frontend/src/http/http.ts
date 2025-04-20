@@ -7,7 +7,7 @@ const GET = async <T>(url: string): Promise<T> => {
   return Promise.resolve((await http.get<never, Data<T>>(url)).data)
 }
 
-const POST = async <T>(url: string, params: any): Promise<T> => {
+const POST = async <T>(url: string, params: unknown): Promise<T> => {
   return Promise.resolve((await http.post<never, Data<T>>(url, params)).data)
 }
 
@@ -24,8 +24,8 @@ const DOWNLOAD_DATA = async (
   url: string,
   percentage: Ref<number>,
   percentageShow: Ref<boolean>
-): Promise<any> => {
-  let data: any
+): Promise<unknown> => {
+  let data: unknown
   percentageShow.value = true
   percentage.value = 0
   await longHttp
@@ -61,7 +61,7 @@ const UPLOAD = async (
     .post(dest, formData, {
       onUploadProgress: (progressEvent) => handleProgress(percentage, percentageShow, progressEvent)
     })
-    .then((resp: any) => {
+    .then((resp: unknown) => {
       url = resp as string
       url = url.substring('data:'.length).replace(/\n/g, '')
     })

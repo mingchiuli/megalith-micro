@@ -2,8 +2,8 @@
 import { ref } from 'vue'
 import { GET } from '@/http/http'
 
-let start = ref(2021)
-let end = ref<number>()
+const start = ref(2021)
+const end = ref<number>()
 
 ;(async () => {
   const years = await GET<number[]>('/public/blog/years')

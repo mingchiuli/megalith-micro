@@ -23,7 +23,7 @@ const year = defineModel<string>('year')
 const { keywords } = storeToRefs(blogsStore())
 const loading = defineModel<boolean>('loading')
 const searchDialogVisible = defineModel<boolean>('searchDialogVisible')
-let suggestionList = ref<BlogDesc[]>([])
+const suggestionList = ref<BlogDesc[]>([])
 let currentPage = 1
 const hotItemRef = useTemplateRef<InstanceType<typeof HotItem>>('hotItem')
 
@@ -134,12 +134,11 @@ const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
   }
 }
 
-const handleSelect = (item: Record<string, any>) => {
-  const blog = item as BlogDesc
+const handleSelect = (item: Record<string, string | number>) => {
   router.push({
     name: 'blog',
     params: {
-      id: blog.id
+      id: item.id
     }
   })
 }
@@ -162,7 +161,7 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
   emit('refresh')
 }
 
-const searchBeforeClose = (close: Function) => {
+const searchBeforeClose = (close: () => void) => {
   year.value = ''
   keywords.value = ''
   refAutocompleteRef.value!.suggestions = []
