@@ -8,7 +8,7 @@ import type { Menu } from '@/type/entity'
 
 const { expand } = displayState()
 const { menuTree } = storeToRefs(menuStore())
-let arrow = shallowRef(expand.value ? ArrowLeft : ArrowRight)
+const arrow = shallowRef(expand.value ? ArrowLeft : ArrowRight)
 const reverseCollapse = (): void => {
   expand.value = !expand.value
   arrow.value = expand.value ? ArrowLeft : ArrowRight

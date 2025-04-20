@@ -18,8 +18,8 @@ const menuDialogVisible = ref(false)
 const menuTreeRef = useTemplateRef<InstanceType<typeof ElTree>>('menuTree')
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
-let menuTreeData = ref<MenuForm[]>([])
-let roleId = ref<number>()
+const menuTreeData = ref<MenuForm[]>([])
+const roleId = ref<number>()
 
 const page: PageAdapter<RoleSys> = reactive({
   content: [],
@@ -85,7 +85,7 @@ const clearForm = () => {
 }
 
 const submitForm = async (ref: FormInstance) => {
-  await ref.validate(async (valid, _fields) => {
+  await ref.validate(async (valid) => {
     if (valid) {
       await POST<null>('/sys/role/save', form)
       ElNotification({

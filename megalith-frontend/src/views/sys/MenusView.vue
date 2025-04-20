@@ -15,8 +15,8 @@ const formRef = useTemplateRef<FormInstance>('form')
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 const authorityDialogVisible = ref(false)
-let authorityData = ref<AuthorityForm[]>([])
-let menuId = ref<number>()
+const authorityData = ref<AuthorityForm[]>([])
+const menuId = ref<number>()
 
 const props = {
   label: 'title',
@@ -134,7 +134,7 @@ const authorityHandleClose = () => {
 }
 
 const submitForm = async (ref: FormInstance) => {
-  await ref.validate(async (valid, _fields) => {
+  await ref.validate(async (valid) => {
     if (valid) {
       await POST<null>('/sys/menu/save', form)
       ElNotification({

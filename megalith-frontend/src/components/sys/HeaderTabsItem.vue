@@ -8,7 +8,7 @@ import { storeToRefs } from 'pinia'
 const { editableTabs, editableTabsValue } = storeToRefs(tabStore())
 
 const clickTab = (tab: TabsPaneContext) => router.push({ name: String(tab.props.name) })
-const removeTab = (name: TabPaneName): any => {
+const removeTab = (name: TabPaneName) => {
   let changed = false
   const tabs: Tab[] = editableTabs.value
   if (tabs.length === 1) {
@@ -21,7 +21,7 @@ const removeTab = (name: TabPaneName): any => {
   if (editableTabsValue.value === name) {
     tabs.forEach((tab, idx) => {
       if (tab.name === name) {
-        let nextTab = tabs[idx + 1] || tabs[idx - 1]
+        const nextTab = tabs[idx + 1] || tabs[idx - 1]
         if (nextTab) {
           tabStore().editableTabsValue = nextTab.name
           changed = true

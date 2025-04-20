@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, onMounted, reactive, ref, useTemplateRef } from 'vue'
+import { computed, defineAsyncComponent, reactive, ref, useTemplateRef } from 'vue'
 import {
   type TagProps,
   type UploadFile,
@@ -108,14 +108,14 @@ const uploadFile = async (file: UploadRawFile) => {
   form.link = url
 }
 
-const handleRemove = async (_file: UploadFile) => {
+const handleRemove = async () => {
   if (!form.link) return
   await GET<null>(`/sys/blog/oss/delete?url=${form.link}`)
   form.link = ''
 }
 
 const submitForm = async (ref: FormInstance) => {
-  await ref.validate(async (valid, _fields) => {
+  await ref.validate(async (valid) => {
     if (valid) {
       await POST<null>('/sys/blog/save', form)
       ElNotification({
