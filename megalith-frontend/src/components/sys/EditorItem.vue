@@ -244,7 +244,7 @@ defineExpose({
 <style scoped>
 /* 编辑器内容区域内边距 */
 :deep(.milkdown .ProseMirror) {
-  padding: 5px 10px;
+  padding: 10px 15px;
 }
 
 .el-progress {
