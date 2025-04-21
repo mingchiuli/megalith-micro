@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-yrs = "0.18.2"
+yrs = "=0.18.2"
 yrs-warp = "0.8.0"
 warp = "0.3.7"
 futures-util = { version = "0.3.31", features = ["sink"] }
