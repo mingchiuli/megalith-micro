@@ -170,7 +170,9 @@ useEditor((root) => {
         websocketProvider!.once('sync', async (isSynced: boolean) => {
           if (isSynced) {
             collabService
-              .applyTemplate(content.value!, (remoteNode) => {
+              .applyTemplate(content.value!, (remoteNode, localNode) => {
+                console.log('remoteNode', remoteNode.textContent)
+                console.log('localNode', localNode.textContent)
                 return !remoteNode.textContent
               })
               .connect()
