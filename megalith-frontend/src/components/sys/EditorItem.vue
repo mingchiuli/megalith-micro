@@ -118,7 +118,7 @@ useEditor((root) => {
   editor = crepe.editor
 
   editor.use(collab)
-  
+
   // 添加事件监听
   crepe.on((listener) => {
     listener.markdownUpdated((ctx, text) => {
@@ -205,9 +205,6 @@ onMounted(() => {
 })
 
 onUnmounted(async () => {
-  if (websocketProvider) {
-    websocketProvider.disconnect()
-  }
   if (indexeddbProvider) {
     indexeddbProvider.destroy()
   }
