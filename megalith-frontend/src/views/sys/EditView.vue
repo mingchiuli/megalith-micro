@@ -30,7 +30,7 @@ import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 import EditorItem from '@/components/sys/EditorItem.vue'
 import { MilkdownProvider } from '@milkdown/vue'
-// import 'element-plus/es/components/input/style/css'
+import 'element-plus/es/components/input/style/css'//不明原因样式缺失
 
 const editorRef = useTemplateRef<InstanceType<typeof EditorItem>>('editor')
 
@@ -291,7 +291,6 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
       <el-form-item class="title" prop="title">
         <el-input
           ref="title"
-          class="title-input"
           @select="handleTitleSelect"
           v-model="form.title"
           placeholder="标题"
@@ -303,7 +302,6 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
       <el-form-item class="desc" prop="description">
         <el-input
           ref="desc"
-          class="desc-input"
           @select="handleDescSelect"
           autosize
           type="textarea"
@@ -390,14 +388,6 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 </template>
 
 <style scoped>
-.title-input {
-  width: 200px;
-}
-
-.desc-input {
-  width: 400px;
-}
-
 .father {
   max-width: 40rem;
   margin: 0 auto;
