@@ -42,12 +42,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     build: {
-      outDir: fileName,
-      chunkSizeWarningLimit: 2000,
-      cssCodeSplit: true, //css 拆分
-      sourcemap: false, //不生成sourcemap
-      minify: false, //是否禁用最小化混淆，esbuild打包速度最快，terser打包体积最小。
-      assetsInlineLimit: 5000 //小于该值 图片将打包成Base64
+      outDir: fileName
     }
   }
 })

@@ -30,7 +30,7 @@ import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 import EditorItem from '@/components/sys/EditorItem.vue'
 import { MilkdownProvider } from '@milkdown/vue'
-import 'element-plus/es/components/input/style/css'//不明原因样式缺失
+// import 'element-plus/es/components/input/style/css'//不明原因样式缺失
 
 const editorRef = useTemplateRef<InstanceType<typeof EditorItem>>('editor')
 
