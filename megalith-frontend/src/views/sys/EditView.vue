@@ -30,7 +30,7 @@ import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 import EditorItem from '@/components/sys/EditorItem.vue'
 import { MilkdownProvider } from '@milkdown/vue'
-import 'element-plus/es/components/input/style/css'
+// import 'element-plus/es/components/input/style/css'
 
 const editorRef = useTemplateRef<InstanceType<typeof EditorItem>>('editor')
 
@@ -203,13 +203,13 @@ const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
   return true
 }
 
-const CustomEditorItem = defineAsyncComponent({
-  loader: () => import('@/components/sys/EditorItem.vue'),
-  loadingComponent: EditorLoadingItem,
-  delay: 200,
-  errorComponent: EditorLoadingItem,
-  timeout: 15000
-})
+// const CustomEditorItem = defineAsyncComponent({
+//   loader: () => import('@/components/sys/EditorItem.vue'),
+//   loadingComponent: EditorLoadingItem,
+//   delay: 200,
+//   errorComponent: EditorLoadingItem,
+//   timeout: 15000
+// })
 
 const handleTitleSelect = () => {
   if (form.status !== Status.SENSITIVE_FILTER) {
@@ -365,7 +365,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 
       <el-form-item class="content" prop="content">
         <MilkdownProvider>
-          <CustomEditorItem
+          <EditorItem
             v-model:content="form.content"
             @sensitive="dealSensitive"
             :form-status="form.status"
