@@ -171,8 +171,8 @@ useEditor((root) => {
           if (isSynced) {
             collabService
               .applyTemplate(content.value!, (remoteNode, localNode) => {
-                console.log('remoteNode', remoteNode.textContent)
-                console.log('localNode', localNode.textContent)
+                console.log('remoteNode', remoteNode)
+                console.log('localNode', localNode)
                 return !remoteNode.textContent
               })
               .connect()
