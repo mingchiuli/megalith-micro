@@ -96,7 +96,6 @@ const onUploadImg = async (file: File) => {
 }
 
 let indexeddbProvider: IndexeddbPersistence | undefined
-let websocketProvider: WebsocketProvider | undefined
 let editor: Editor | undefined
 
 const clearIndexdbData = () => {
@@ -132,7 +131,7 @@ useEditor((root) => {
     // 创建 IndexedDB 持久化实例
     indexeddbProvider = new IndexeddbPersistence(roomId, doc)
     indexeddbProvider!.whenSynced.then(() => {
-      websocketProvider = new WebsocketProvider(
+      const websocketProvider = new WebsocketProvider(
         `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
         roomId,
         doc,
@@ -170,9 +169,7 @@ useEditor((root) => {
         websocketProvider!.once('sync', async (isSynced: boolean) => {
           if (isSynced) {
             collabService
-              .applyTemplate(content.value!, (remoteNode, localNode) => {
-                console.log('remoteNode', remoteNode)
-                console.log('localNode', localNode)
+              .applyTemplate(content.value!, (remoteNode) => {
                 return !remoteNode.textContent
               })
               .connect()
