@@ -27,7 +27,7 @@ const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
 const user: UserInfo = JSON.parse(userStr)
 const blogId = route.query.id as string | undefined
-const roomId = blogId ? `${user.id}:${blogId}` : `init:${user.id}`
+const roomId = blogId ? `${blogId}` : `init:${user.id}`
 
 const emit = defineEmits<{
   sensitive: [payload: SensitiveTrans]
