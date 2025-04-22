@@ -105,7 +105,7 @@ const clearIndexdbData = () => {
   }
 }
 
-useEditor((root) => {
+const crepe = useEditor((root) => {
   const crepe = new Crepe({
     root,
     featureConfigs: {
@@ -209,6 +209,7 @@ onUnmounted(async () => {
   if (indexeddbProvider) {
     indexeddbProvider.destroy()
   }
+  crepe.get()?.destroy()
 })
 
 defineExpose({
