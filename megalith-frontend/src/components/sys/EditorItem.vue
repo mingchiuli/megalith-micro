@@ -17,11 +17,11 @@ import { Crepe } from '@milkdown/crepe'
 import { Doc } from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
 import { IndexeddbPersistence } from 'y-indexeddb'
-import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
+import { collab, CollabService, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
-import { onUnmounted } from 'vue'
 import type { Editor } from '@milkdown/kit/core'
+import { onBeforeUnmount } from 'vue'
 
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
@@ -96,6 +96,8 @@ const onUploadImg = async (file: File) => {
 }
 
 let indexeddbProvider: IndexeddbPersistence | undefined
+let websocketProvider: WebsocketProvider | undefined
+let collabService: CollabService | undefined
 let editor: Editor | undefined
 
 const clearIndexdbData = () => {
@@ -131,7 +133,7 @@ useEditor((root) => {
     // 创建 IndexedDB 持久化实例
     indexeddbProvider = new IndexeddbPersistence(roomId, doc)
     indexeddbProvider!.whenSynced.then(() => {
-      const websocketProvider = new WebsocketProvider(
+      websocketProvider = new WebsocketProvider(
         `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
         roomId,
         doc,
@@ -162,13 +164,13 @@ useEditor((root) => {
       })
 
       editor!.action((ctx) => {
-        const collabService = ctx.get(collabServiceCtx)
+        collabService = ctx.get(collabServiceCtx)
 
         collabService.bindDoc(doc).setAwareness(websocketProvider!.awareness)
 
         websocketProvider!.once('sync', async (isSynced: boolean) => {
           if (isSynced) {
-            collabService
+            collabService!
               .applyTemplate(content.value!, (remoteNode) => {
                 return !remoteNode.textContent
               })
@@ -201,10 +203,19 @@ onMounted(() => {
   }
 })
 
-onUnmounted(async () => {
+onBeforeUnmount(async () => {
   if (indexeddbProvider) {
     indexeddbProvider.destroy()
   }
+  
+  if (collabService) {
+    collabService.disconnect()
+  }
+  
+  if (websocketProvider) {
+    websocketProvider.disconnect()
+  }
+  
 })
 
 defineExpose({
