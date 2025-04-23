@@ -166,14 +166,11 @@ useEditor((root) => {
       editor!.action((ctx) => {
         collabService = ctx.get(collabServiceCtx)
 
-        collabService.bindDoc(doc).setAwareness(websocketProvider!.awareness)
-
         websocketProvider!.once('sync', async (isSynced: boolean) => {
           if (isSynced) {
+            collabService!.bindDoc(doc).setAwareness(websocketProvider!.awareness)
             collabService!
-              .applyTemplate(content.value!, (remoteNode,n) => {
-                console.log(remoteNode)
-                console.log(n)
+              .applyTemplate(content.value!, (remoteNode) => {
                 return !remoteNode.textContent
               })
               .connect()
@@ -209,15 +206,14 @@ onBeforeUnmount(async () => {
   if (indexeddbProvider) {
     indexeddbProvider.destroy()
   }
-  
+
   if (collabService) {
     collabService.disconnect()
   }
-  
+
   if (websocketProvider) {
     websocketProvider.disconnect()
   }
-  
 })
 
 defineExpose({
