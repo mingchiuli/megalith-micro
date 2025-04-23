@@ -181,6 +181,7 @@ useEditor((root) => {
             const xmlFragment = doc.getXmlFragment('prosemirror')
             doc.transact(() => {
               xmlFragment.delete(0, xmlFragment.length)
+              console.log('Deleted local content', remoteXmlFragment)
               xmlFragment.insert(0, remoteXmlFragment.slice(0))
             })
           } else {
