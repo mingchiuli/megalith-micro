@@ -3,7 +3,7 @@ import '@milkdown/crepe/theme/common/style.css'
 import '@milkdown/crepe/theme/frame.css'
 
 import { UPLOAD } from '@/http/http'
-import { onMounted, onUnmount, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import {
   SensitiveType,
   Status,
@@ -189,7 +189,7 @@ onMounted(() => {
   }
 })
 
-onUnmount(async () => {
+onUnmounted(async () => {
   if (websocketProvider) {
     websocketProvider.disconnect()
   }
