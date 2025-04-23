@@ -117,67 +117,84 @@ useEditor((root) => {
   })
 
   editor = crepe.editor
-
   editor.use(collab)
 
-  // 添加事件监听
   crepe.on((listener) => {
     listener.markdownUpdated((ctx, text) => {
-      // 更新 markdown 的值
       content.value = text
     })
   })
 
   crepe.create().then(() => {
     const doc = new Doc()
-    // 创建 IndexedDB 持久化实例
-    indexeddbProvider = new IndexeddbPersistence(roomId, doc)
-    indexeddbProvider!.whenSynced.then(() => {
-      websocketProvider = new WebsocketProvider(
-        `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
-        roomId,
-        doc,
-        {
-          params: {
-            token: localStorage.getItem('accessToken')!
-          }
+
+    // 先创建 WebSocket provider
+    websocketProvider = new WebsocketProvider(
+      `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
+      roomId,
+      doc,
+      {
+        params: {
+          token: localStorage.getItem('accessToken')!
         }
-      )
+      }
+    )
 
-      const usercolors = [
-        { color: '#30bced', light: '#30bced33' },
-        { color: '#6eeb83', light: '#6eeb8333' },
-        { color: '#ffbc42', light: '#ffbc4233' },
-        { color: '#ecd444', light: '#ecd44433' },
-        { color: '#ee6352', light: '#ee635233' },
-        { color: '#9ac2c9', light: '#9ac2c933' },
-        { color: '#8acb88', light: '#8acb8833' },
-        { color: '#1be7ff', light: '#1be7ff33' }
-      ]
+    const usercolors = [
+      { color: '#30bced', light: '#30bced33' },
+      { color: '#6eeb83', light: '#6eeb8333' },
+      { color: '#ffbc42', light: '#ffbc4233' },
+      { color: '#ecd444', light: '#ecd44433' },
+      { color: '#ee6352', light: '#ee635233' },
+      { color: '#9ac2c9', light: '#9ac2c933' },
+      { color: '#8acb88', light: '#8acb8833' },
+      { color: '#1be7ff', light: '#1be7ff33' }
+    ]
+    const userColor = usercolors[random.uint32() % usercolors.length]
+    websocketProvider.awareness.setLocalStateField('user', {
+      name: user.nickname,
+      color: userColor.color,
+      colorLight: userColor.light
+    })
 
-      const userColor = usercolors[random.uint32() % usercolors.length]
+    // 等待 WebSocket 首次同步
+    websocketProvider.once('sync', async (isSynced: boolean) => {
+      if (isSynced) {
+        // 获取共享文档片段
+        const remoteXmlFragment = doc.getXmlFragment('prosemirror')
+        const hasRemoteContent = remoteXmlFragment.length > 0
 
-      websocketProvider.awareness.setLocalStateField('user', {
-        name: user.nickname,
-        color: userColor.color,
-        colorLight: userColor.light
-      })
+        // 创建 IndexedDB provider
+        indexeddbProvider = new IndexeddbPersistence(roomId, doc)
+        await indexeddbProvider.whenSynced
 
-      editor!.action((ctx) => {
-        collabService = ctx.get(collabServiceCtx)
+        editor!.action((ctx) => {
+          collabService = ctx.get(collabServiceCtx)
 
-        websocketProvider!.once('sync', async (isSynced: boolean) => {
-          if (isSynced) {
-            collabService!.bindDoc(doc).setAwareness(websocketProvider!.awareness)
-            collabService!
-              .applyTemplate(content.value!, (remoteNode) => {
-                return !remoteNode.textContent
-              })
-              .connect()
-            content.value = crepe.getMarkdown()
+          // 绑定文档和 awareness
+          collabService!.bindDoc(doc).setAwareness(websocketProvider!.awareness)
+
+          if (hasRemoteContent) {
+            // 如果有远程内容，清除本地内容
+            
+            // 重新应用远程内容
+            const xmlFragment = doc.getXmlFragment('prosemirror')
+            doc.transact(() => {
+              xmlFragment.delete(0, xmlFragment.length)
+              xmlFragment.insert(0, remoteXmlFragment.slice(0))
+            })
+          } else {
+            // 如果没有远程内容，使用本地内容作为模板
+            collabService!.applyTemplate(content.value!)
           }
+
+          // 连接协同服务
+          collabService!.connect()
+
+          // 更新编辑器显示
+          content.value = crepe.getMarkdown()
         })
-      })
+      }
     })
   })
   return crepe
