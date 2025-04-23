@@ -161,7 +161,7 @@ useEditor((root) => {
     websocketProvider.once('sync', async (isSynced: boolean) => {
       if (isSynced) {
         // 获取共享文档片段
-        const remoteXmlFragment = doc.getXmlFragment('prosemirror')
+        const remoteXmlFragment = doc.getXmlFragment('prosemirror').clone()
         const hasRemoteContent = remoteXmlFragment.length > 0
 
         // 创建 IndexedDB provider
