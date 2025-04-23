@@ -28,12 +28,8 @@ import router from '@/router'
 import { blogsStore } from '@/stores/store'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
-import EditorItem from '@/components/sys/EditorItem.vue'
 import { MilkdownProvider } from '@milkdown/vue'
 import 'element-plus/es/components/input/style/css'//不明原因样式缺失
-
-const editorRef = useTemplateRef<InstanceType<typeof EditorItem>>('editor')
-
 const route = useRoute()
 const blogId = route.query.id as string | undefined
 
@@ -125,7 +121,6 @@ const submitForm = async (ref: FormInstance) => {
         type: 'success',
         duration: 1000
       })
-      editorRef.value!.clearIndexdbData()
       blogsStore().pageNum = 1
       router.push({
         name: 'system-blogs'
@@ -369,7 +364,6 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
             v-model:content="form.content"
             @sensitive="dealSensitive"
             :form-status="form.status"
-            ref="editor"
           />
         </MilkdownProvider>
       </el-form-item>

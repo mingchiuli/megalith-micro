@@ -16,11 +16,9 @@ import { Milkdown, useEditor } from '@milkdown/vue'
 import { Crepe } from '@milkdown/crepe'
 import { Doc } from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
-import { IndexeddbPersistence } from 'y-indexeddb'
-import { collab, CollabService, collabServiceCtx } from '@milkdown/plugin-collab'
+import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
-import type { Editor } from '@milkdown/kit/core'
 import { onBeforeUnmount } from 'vue'
 
 const route = useRoute()
@@ -95,16 +93,7 @@ const onUploadImg = async (file: File) => {
   return url
 }
 
-let indexeddbProvider: IndexeddbPersistence | undefined
 let websocketProvider: WebsocketProvider | undefined
-let collabService: CollabService | undefined
-let editor: Editor | undefined
-
-const clearIndexdbData = () => {
-  if (indexeddbProvider) {
-    indexeddbProvider.clearData()
-  }
-}
 
 useEditor((root) => {
   const crepe = new Crepe({
@@ -116,7 +105,7 @@ useEditor((root) => {
     }
   })
 
-  editor = crepe.editor
+  const editor = crepe.editor
   editor.use(collab)
 
   crepe.on((listener) => {
@@ -157,45 +146,26 @@ useEditor((root) => {
       colorLight: userColor.light
     })
 
-    // 等待 WebSocket 首次同步
-    websocketProvider.once('sync', async (isSynced: boolean) => {
-      if (isSynced) {
-        // 获取共享文档片段
-        const remoteXmlFragment = doc.getXmlFragment('prosemirror').clone()
-        const hasRemoteContent = remoteXmlFragment.length > 0
+    editor.action((ctx) => {
+      const collabService = ctx.get(collabServiceCtx)
 
-        // 创建 IndexedDB provider
-        indexeddbProvider = new IndexeddbPersistence(roomId, doc)
-        await indexeddbProvider.whenSynced
+      collabService
+        // bind doc and awareness
+        .bindDoc(doc)
+        .setAwareness(websocketProvider!.awareness)
 
-        editor!.action((ctx) => {
-          collabService = ctx.get(collabServiceCtx)
-
-          // 绑定文档和 awareness
-          collabService!.bindDoc(doc).setAwareness(websocketProvider!.awareness)
-
-          if (hasRemoteContent) {
-            // 如果有远程内容，清除本地内容
-            
-            // 重新应用远程内容
-            const xmlFragment = doc.getXmlFragment('prosemirror')
-            doc.transact(() => {
-              xmlFragment.delete(0, xmlFragment.length)
-              console.log('Deleted local content', remoteXmlFragment)
-              xmlFragment.insert(0, remoteXmlFragment.slice(0))
+      websocketProvider!.once('sync', async (isSynced: boolean) => {
+        if (isSynced) {
+          collabService
+            // apply your template
+            .applyTemplate(content.value!, (remote) => {
+              // apply your template logic here
+              return !remote.textContent
             })
-          } else {
-            // 如果没有远程内容，使用本地内容作为模板
-            collabService!.applyTemplate(content.value!)
-          }
-
-          // 连接协同服务
-          collabService!.connect()
-
-          // 更新编辑器显示
-          content.value = crepe.getMarkdown()
-        })
-      }
+            // don't forget connect
+            .connect()
+        }
+      })
     })
   })
   return crepe
@@ -221,21 +191,9 @@ onMounted(() => {
 })
 
 onBeforeUnmount(async () => {
-  if (indexeddbProvider) {
-    indexeddbProvider.destroy()
-  }
-
-  if (collabService) {
-    collabService.disconnect()
-  }
-
   if (websocketProvider) {
     websocketProvider.disconnect()
   }
-})
-
-defineExpose({
-  clearIndexdbData
 })
 </script>
 
