@@ -231,7 +231,8 @@ export interface Data<T> {
 export enum Status {
   NORMAL = 0,
   BLOCK,
-  SENSITIVE_FILTER
+  SENSITIVE_FILTER,
+  DRAFT
 }
 
 export enum AuthStatus {

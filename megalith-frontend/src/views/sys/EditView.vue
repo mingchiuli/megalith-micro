@@ -312,6 +312,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
           <el-radio :value="Status.NORMAL">公开</el-radio>
           <el-radio :value="Status.BLOCK">隐藏</el-radio>
           <el-radio :value="Status.SENSITIVE_FILTER">打码</el-radio>
+          <el-radio :value="Status.DRAFT">草稿</el-radio>
         </el-radio-group>
       </el-form-item>
 
