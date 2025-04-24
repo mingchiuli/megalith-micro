@@ -34,6 +34,10 @@ const statusOptions = [
   {
     value: 2,
     label: '打码'
+  },
+  {
+    value: 3,
+    label: '草稿'
   }
 ]
 
