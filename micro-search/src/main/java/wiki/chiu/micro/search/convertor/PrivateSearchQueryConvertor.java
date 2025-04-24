@@ -174,9 +174,10 @@ public class PrivateSearchQueryConvertor {
                                     .field(USERID.getField())
                                     .value(userId)))
                     .should(should -> should
-                            .term(term -> term
+                            .terms(term -> term
                                     .field(STATUS.getField())
-                                    .value(BlogStatusEnum.NORMAL.getCode())))
+                                    .terms(termsValue -> termsValue
+                                            .value(List.of(FieldValue.of(BlogStatusEnum.NORMAL.getCode()), FieldValue.of(BlogStatusEnum.DRAFT.getCode()))))))
                     .minimumShouldMatch("1"));
             boolQryBuilder.filter(filter -> filter.bool(boolQry));
         }
