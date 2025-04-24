@@ -24,7 +24,7 @@ public class PublicSearchQueryConvertor {
 
     private static final String BABEL = "</b>";
 
-    public static NativeQuery searchConvert(String keywords, String year, Integer currentPage, Integer blogPageSize, Boolean allInfo) {
+    public static NativeQuery searchConvert(String keywords, Integer currentPage, Integer blogPageSize, Boolean allInfo) {
         return NativeQuery.builder()
                 .withQuery(query -> query
                         .functionScore(functionScore -> functionScore
@@ -60,16 +60,6 @@ public class PublicSearchQueryConvertor {
                                                                 .field(CONTENT.getField())
                                                                 .query(keywords)))
                                                 .minimumShouldMatch("1")
-                                                .filter(filter -> filter
-                                                        .range(range -> range
-                                                                .term(term -> term
-                                                                        .field(CREATED.getField())
-                                                                        .from(StringUtils.hasLength(year) ?
-                                                                                year + "-01-01T00:00:00.000+08:00" :
-                                                                                null)
-                                                                        .to(StringUtils.hasLength(year) ?
-                                                                                year + "-12-31T23:59:59.999+08:00" :
-                                                                                null))))
                                                 .filter(filter -> filter
                                                         .term(termQry -> termQry
                                                                 .field(STATUS.getField())

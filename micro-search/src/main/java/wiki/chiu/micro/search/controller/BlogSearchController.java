@@ -30,9 +30,8 @@ public class BlogSearchController {
     @GetMapping("/public/blog")
     public Result<PageAdapter<BlogDocumentVo>> searchBlogs(@RequestParam Integer currentPage,
                                                            @RequestParam Boolean allInfo,
-                                                           @RequestParam(required = false) String year,
                                                            @RequestParam @Size(min = 1, max = 20) String keywords) {
-        return Result.success(() -> blogSearchService.selectBlogsByES(currentPage, keywords, allInfo, year));
+        return Result.success(() -> blogSearchService.selectBlogsByES(currentPage, keywords, allInfo));
     }
 
 }
