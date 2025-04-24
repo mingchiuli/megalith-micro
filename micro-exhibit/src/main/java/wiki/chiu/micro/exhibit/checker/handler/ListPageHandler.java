@@ -20,18 +20,9 @@ public class ListPageHandler extends CheckerHandler {
     @Override
     public void handle(Object[] args) {
         Integer currentPage = (Integer) args[0];
-        Integer year = (Integer) args[1];
-
-        if (year == null) {
-            Boolean bit = redissonClient.getBitSet(Const.BLOOM_FILTER_PAGE).get(currentPage);
-            if (Boolean.FALSE.equals(bit)) {
-                throw new MissException(NO_FOUND.getMsg() + currentPage + " page");
-            }
-        } else {
-            Boolean bit = redissonClient.getBitSet(Const.BLOOM_FILTER_YEAR_PAGE + year).get(currentPage);
-            if (Boolean.FALSE.equals(bit)) {
-                throw new MissException("Not found " + year + " year " + currentPage + " page");
-            }
+        boolean bit = redissonClient.getBitSet(Const.BLOOM_FILTER_PAGE).get(currentPage);
+        if (!bit) {
+            throw new MissException(NO_FOUND.getMsg() + currentPage + " page");
         }
     }
 }

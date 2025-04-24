@@ -55,11 +55,9 @@ public abstract sealed class BlogCacheEvictHandler permits
 
     private BlogEntityRpcVo getBlogEntity(BlogOperateMessage message) {
         Long blogId = message.blogId();
-        Integer year = message.year();
         if (Objects.equals(message.typeEnumCode(), BlogOperateEnum.REMOVE.getCode())) {
             return BlogEntityRpcVo.builder()
                     .id(blogId)
-                    .created(LocalDateTime.of(year, 1, 1, 0, 0, 0))
                     .build();
         } else {
             return blogHttpServiceWrapper.findById(blogId);

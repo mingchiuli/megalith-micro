@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 
 import static wiki.chiu.micro.common.lang.Const.READ_TOKEN;
@@ -48,23 +47,17 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
     @Override
     public void redisProcess(BlogEntityRpcVo blogEntity) {
         Long id = blogEntity.id();
-        int year = blogEntity.created().getYear();
         Integer status = blogEntity.status();
         Long userId = blogEntity.userId();
 
-        //不分年份的页数
-        LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
-        LocalDateTime end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
-
         //保守处理，前面的全删
         long countAfter = blogHttpServiceWrapper.countByCreatedGreaterThanEqual(blogEntity.created());
-        long countYearAfter = blogHttpServiceWrapper.getPageCountYear(blogEntity.created(), start, end);
-        evictCaches(id, year, countAfter, countYearAfter);
+        evictCaches(id, countAfter);
         clearKeys(id, status, userId);
     }
 
-    private void evictCaches(Long id, int year, long countAfter, long countYearAfter) {
-        HashSet<String> keys = cacheKeyGenerator.generateBlogKey(countAfter, countYearAfter, year);
+    private void evictCaches(Long id, long countAfter) {
+        HashSet<String> keys = cacheKeyGenerator.generateBlogKey(countAfter);
 
         //博客对象本身缓存
         try {

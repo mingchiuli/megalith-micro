@@ -35,7 +35,6 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -82,8 +81,8 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public PageAdapter<BlogDescriptionVo> findPage(Integer currentPage, Integer year) {
-        PageAdapter<BlogDescriptionDto> dtoPageAdapter = blogWrapper.findPage(currentPage, year);
+    public PageAdapter<BlogDescriptionVo> findPage(Integer currentPage) {
+        PageAdapter<BlogDescriptionDto> dtoPageAdapter = blogWrapper.findPage(currentPage);
         List<BlogDescriptionDto> descList = dtoPageAdapter.content();
 
         List<BlogDescriptionDto> descSensitiveList = descList.stream()
@@ -148,25 +147,6 @@ public class BlogServiceImpl implements BlogService {
         BlogExhibitDto blogExhibitDto = blogWrapper.findById(blogId);
         redissonClient.getBucket(READ_TOKEN + blogId).delete();
         return BlogExhibitVoConvertor.convert(blogExhibitDto);
-    }
-
-    @Override
-    public List<Integer> searchYears() {
-        long count = redissonClient.getBitSet(BLOOM_FILTER_YEARS).cardinality();
-        return generateYearsList(count);
-    }
-
-    private List<Integer> generateYearsList(Long count) {
-        int start = 2021;
-        int end = (int) Math.max(start + count - 1, start);
-        var years = new ArrayList<Integer>(end - start + 1);
-        for (int year = start; year <= end; year++) {
-            years.add(year);
-        }
-        if (years.size() == 1) {
-            years.add(start);
-        }
-        return years;
     }
 
     @Override

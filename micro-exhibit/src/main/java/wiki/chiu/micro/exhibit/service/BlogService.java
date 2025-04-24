@@ -14,15 +14,13 @@ import java.util.List;
  */
 public interface BlogService {
 
-    PageAdapter<BlogDescriptionVo> findPage(Integer currentPage, Integer year);
+    PageAdapter<BlogDescriptionVo> findPage(Integer currentPage);
 
     BlogExhibitVo getLockedBlog(Long blogId, String token);
 
     Boolean checkToken(Long blogId, String token);
 
     Integer getBlogStatus(List<String> roles, Long blogId, Long userId);
-
-    List<Integer> searchYears();
 
     VisitStatisticsVo getVisitStatistics();
 

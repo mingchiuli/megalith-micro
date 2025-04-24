@@ -36,8 +36,6 @@ public interface BlogService {
 
     List<BlogEntityRpcVo> findAllById(List<Long> ids);
 
-    List<Integer> getYears();
-
     Long count();
 
     void setReadCount(Long blogId);
@@ -45,12 +43,6 @@ public interface BlogService {
     Integer findStatusById(Long blogId);
 
     PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize);
-
-    PageAdapter<BlogEntityRpcVo> findPageByCreatedBetween(Integer pageNo, Integer pageSize, LocalDateTime start, LocalDateTime end);
-
-    Long countByCreatedBetween(LocalDateTime start, LocalDateTime end);
-
-    Long getPageCountYear(LocalDateTime created, LocalDateTime start, LocalDateTime end);
 
     Long countByCreatedGreaterThanEqual(LocalDateTime created);
 

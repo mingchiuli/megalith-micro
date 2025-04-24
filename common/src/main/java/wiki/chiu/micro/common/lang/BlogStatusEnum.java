@@ -10,7 +10,9 @@ public enum BlogStatusEnum {
 
     HIDE(1, "隐藏/禁用状态"),
 
-    SENSITIVE_FILTER(2, "过滤敏感内容状态");
+    SENSITIVE_FILTER(2, "过滤敏感内容状态"),
+    
+    DRAFT(3, "草稿状态");
 
     private final Integer code;
 
