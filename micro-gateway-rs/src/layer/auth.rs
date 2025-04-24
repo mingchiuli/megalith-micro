@@ -39,8 +39,6 @@ fn extract_request_param(
     // Extract data before async operations
     let method = req.method().to_string();
     let path = req.uri().path().to_string();
-    log::info!("path:{}", path);
-    log::info!("method:{}", method);
     // 获取认证令牌 - 根据协议选择不同的方式
     let auth_token = http_util::extract_token(req);
     let uri = build_auth_uri()?;
@@ -61,7 +59,6 @@ async fn auth(
     let resp: ApiResult<bool> = http_client::post(uri, req_body, headers)
         .await
         .map_err(handle_api_error)?;
-    log::info!("resp:{}", resp.data());
 
     match resp.code() {
         200 => Ok(resp.into_data()),
