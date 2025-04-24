@@ -39,9 +39,8 @@ public class BlogController {
 
     @GetMapping("/page/{currentPage}")
     @Checker(handler = ListPageHandler.class)
-    public Result<PageAdapter<BlogDescriptionVo>> getPage(@PathVariable Integer currentPage,
-                                                          @RequestParam(required = false) Integer year) {
-        return Result.success(() -> blogService.findPage(currentPage, year));
+    public Result<PageAdapter<BlogDescriptionVo>> getPage(@PathVariable Integer currentPage) {
+        return Result.success(() -> blogService.findPage(currentPage));
     }
 
     @GetMapping("/secret/{blogId}")
@@ -62,11 +61,6 @@ public class BlogController {
     @Checker(handler = DetailHandler.class)
     public Result<Integer> getBlogStatus(@PathVariable Long blogId, AuthInfo authInfo) {
         return Result.success(() -> blogService.getBlogStatus(authInfo.roles(), blogId, authInfo.userId()));
-    }
-
-    @GetMapping("/years")
-    public Result<List<Integer>> searchYears() {
-        return Result.success(blogService::searchYears);
     }
 
     @GetMapping("/stat")

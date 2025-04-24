@@ -44,10 +44,6 @@ public class Const {
 
     public static final String TEMP_EDIT_BLOG = "temp_edit_blog:";
 
-    public static final String PARAGRAPH_SPLITTER = "\n\n";
-
-    public static final String PARAGRAPH_PREFIX = "para::";
-
     public static final String HOT_BLOGS = "hot_blogs";
 
     public static final String HOT_BLOG = "hot_blog";
@@ -57,10 +53,6 @@ public class Const {
     public static final String BLOOM_FILTER_BLOG = "bloom_filter_blog";
 
     public static final String BLOOM_FILTER_PAGE = "bloom_filter_page";
-
-    public static final String BLOOM_FILTER_YEAR_PAGE = "bloom_filter_page_";
-
-    public static final String BLOOM_FILTER_YEARS = "bloom_filter_years";
 
     public static final String REGISTER_PREFIX = "register_prefix:";
 

@@ -21,9 +21,6 @@ public interface BlogHttpService {
     @PostExchange("/blog/batch")
     Result<List<BlogEntityRpcVo>> findAllById(@RequestBody List<Long> ids);
 
-    @GetExchange("/blog/years")
-    Result<List<Integer>> getYears();
-
     @GetExchange("/blog/count")
     Result<Long> count();
 
@@ -36,21 +33,6 @@ public interface BlogHttpService {
     @PostExchange("/blog/page")
     Result<PageAdapter<BlogEntityRpcVo>> findPage(@RequestParam Integer pageNo,
                                                   @RequestParam Integer pageSize);
-
-    @PostExchange("/blog/page/year")
-    Result<PageAdapter<BlogEntityRpcVo>> findPageByCreatedBetween(@RequestParam Integer pageNo,
-                                                                  @RequestParam Integer pageSize,
-                                                                  @RequestParam LocalDateTime start,
-                                                                  @RequestParam LocalDateTime end);
-
-    @GetExchange("/blog/count/year")
-    Result<Long> countByCreatedBetween(@RequestParam LocalDateTime start,
-                                       @RequestParam LocalDateTime end);
-
-    @GetExchange("/blog/page/count/year")
-    Result<Long> getPageCountYear(@RequestParam LocalDateTime created,
-                                  @RequestParam LocalDateTime start,
-                                  @RequestParam LocalDateTime end);
 
     @GetExchange("/blog/count/until")
     Result<Long> countByCreatedGreaterThanEqual(@RequestParam LocalDateTime created);

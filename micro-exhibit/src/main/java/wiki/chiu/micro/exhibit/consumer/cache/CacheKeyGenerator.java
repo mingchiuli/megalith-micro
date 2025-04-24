@@ -29,61 +29,37 @@ public class CacheKeyGenerator {
     @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
-    public HashSet<String> generateHotBlogsKeys(Integer year, Long count, Long countYear) {
+    public HashSet<String> generateHotBlogsKeys(Long count) {
         HashSet<String> keys = new HashSet<>();
         long pageNo = count % blogPageSize == 0 ? count / blogPageSize : count / blogPageSize + 1;
-        long pageYearNo = countYear % blogPageSize == 0 ? countYear / blogPageSize : countYear / blogPageSize + 1;
 
         for (long i = 1; i <= pageNo; i++) {
             Method method;
             try {
-                method = BlogWrapper.class.getMethod("findPage", Integer.class, Integer.class);
-                String key = commonCacheKeyGenerator.generateKey(method, i, null);
+                method = BlogWrapper.class.getMethod("findPage", Integer.class);
+                String key = commonCacheKeyGenerator.generateKey(method, i);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
                 log.error("some exception happen...", e);
             }
         }
 
-        for (long i = 1; i <= pageYearNo; i++) {
-            Method method;
-            try {
-                method = BlogWrapper.class.getMethod("findPage", Integer.class, Integer.class);
-                String key = commonCacheKeyGenerator.generateKey(method, i, year);
-                keys.add(key);
-            } catch (NoSuchMethodException e) {
-                log.error("some exception happen...", e);
-            }
-        }
         return keys;
     }
 
-    public HashSet<String> generateBlogKey(long countAfter, long countYearAfter, Integer year) {
+    public HashSet<String> generateBlogKey(long countAfter) {
         HashSet<String> keys = new HashSet<>();
         long pageBeforeNo = countAfter / blogPageSize + 1;
-        long pageYearBeforeNo = countYearAfter / blogPageSize + 1;
 
         for (long i = 1; i <= pageBeforeNo; i++) {
             Method method;
             try {
-                method = BlogWrapper.class.getMethod("findPage", Integer.class, Integer.class);
-                String key = commonCacheKeyGenerator.generateKey(method, i, null);
+                method = BlogWrapper.class.getMethod("findPage", Integer.class);
+                String key = commonCacheKeyGenerator.generateKey(method, i);
                 keys.add(key);
             } catch (NoSuchMethodException e) {
                 log.error("some exception happen...", e);
             }
-        }
-
-        for (long i = 1; i <= pageYearBeforeNo; i++) {
-            Method method;
-            try {
-                method = BlogWrapper.class.getMethod("findPage", Integer.class, Integer.class);
-                String key = commonCacheKeyGenerator.generateKey(method, i, year);
-                keys.add(key);
-            } catch (NoSuchMethodException e) {
-                log.error("some exception happen...", e);
-            }
-
         }
         return keys;
     }

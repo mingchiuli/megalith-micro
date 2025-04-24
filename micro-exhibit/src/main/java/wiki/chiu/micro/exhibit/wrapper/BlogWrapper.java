@@ -16,7 +16,6 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.concurrent.ExecutorService;
 
 
@@ -66,13 +65,8 @@ public class BlogWrapper {
     }
 
     @Cache(prefix = Const.HOT_BLOGS)
-    public PageAdapter<BlogDescriptionDto> findPage(Integer currentPage, Integer year) {
-        PageAdapter<BlogEntityRpcVo> page = year == null ?
-                blogHttpServiceWrapper.findPage(currentPage, blogPageSize) :
-                blogHttpServiceWrapper.findPageByCreatedBetween(currentPage, blogPageSize,
-                        LocalDateTime.of(year, 1, 1, 0, 0, 0),
-                        LocalDateTime.of(year, 12, 31, 23, 59, 59));
-
+    public PageAdapter<BlogDescriptionDto> findPage(Integer currentPage) {
+        PageAdapter<BlogEntityRpcVo> page = blogHttpServiceWrapper.findPage(currentPage, blogPageSize);
         return BlogDescriptionDtoConvertor.convert(page);
     }
 

@@ -32,11 +32,6 @@ public class BlogHttpServiceWrapper {
 
     }
 
-    public List<Integer> getYears() {
-        return Result.handleResult(blogHttpService::getYears);
-
-    }
-
     public Long count() {
         return Result.handleResult(blogHttpService::count);
     }
@@ -55,23 +50,8 @@ public class BlogHttpServiceWrapper {
 
     }
 
-    public PageAdapter<BlogEntityRpcVo> findPageByCreatedBetween(Integer pageNo, Integer pageSize, LocalDateTime start, LocalDateTime end) {
-        return Result.handleResult(() -> blogHttpService.findPageByCreatedBetween(pageNo, pageSize, start, end));
-
-    }
-
-    public Long countByCreatedBetween(LocalDateTime start, LocalDateTime end) {
-        return Result.handleResult(() -> blogHttpService.countByCreatedBetween(start, end));
-
-    }
-
     public long countByCreatedGreaterThanEqual(LocalDateTime created) {
         return Result.handleResult(() -> blogHttpService.countByCreatedGreaterThanEqual(created));
-
-    }
-
-    public long getPageCountYear(LocalDateTime created, LocalDateTime start, LocalDateTime end) {
-        return Result.handleResult(() -> blogHttpService.getPageCountYear(created, start, end));
 
     }
 

@@ -11,7 +11,5 @@ public record BlogOperateMessage(
 
         Long blogId,
 
-        Integer typeEnumCode,
-
-        Integer year) implements Serializable {
+        Integer typeEnumCode) implements Serializable {
 }

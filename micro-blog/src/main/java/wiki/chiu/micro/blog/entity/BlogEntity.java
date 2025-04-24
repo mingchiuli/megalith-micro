@@ -1,14 +1,13 @@
 package wiki.chiu.micro.blog.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.Objects;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import wiki.chiu.micro.common.lang.Const;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * @author mingchiuli
@@ -17,8 +16,10 @@ import java.util.Objects;
 @Entity
 @DynamicUpdate
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = Const.BLOG_TABLE,
-        indexes = {@Index(columnList = "created")})
+@Table(
+    name = Const.BLOG_TABLE,
+    indexes = { @Index(columnList = "status,created") }
+)
 public class BlogEntity {
 
     @Id
@@ -55,7 +56,18 @@ public class BlogEntity {
     @Column(name = "read_count")
     private Long readCount;
 
-    public BlogEntity(Long id, Long userId, String title, String description, String content, LocalDateTime created, LocalDateTime updated, Integer status, String link, Long readCount) {
+    public BlogEntity(
+        Long id,
+        Long userId,
+        String title,
+        String description,
+        String content,
+        LocalDateTime created,
+        LocalDateTime updated,
+        Integer status,
+        String link,
+        Long readCount
+    ) {
         this.id = id;
         this.userId = userId;
         this.title = title;
@@ -68,8 +80,7 @@ public class BlogEntity {
         this.readCount = readCount;
     }
 
-    public BlogEntity() {
-    }
+    public BlogEntity() {}
 
     public static BlogEntityBuilder builder() {
         return new BlogEntityBuilder();
@@ -160,7 +171,18 @@ public class BlogEntity {
         if (this == o) return true;
         if (!(o instanceof BlogEntity that)) return false;
 
-        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(title, that.title) && Objects.equals(description, that.description) && Objects.equals(content, that.content) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated) && Objects.equals(status, that.status) && Objects.equals(link, that.link) && Objects.equals(readCount, that.readCount);
+        return (
+            Objects.equals(id, that.id) &&
+            Objects.equals(userId, that.userId) &&
+            Objects.equals(title, that.title) &&
+            Objects.equals(description, that.description) &&
+            Objects.equals(content, that.content) &&
+            Objects.equals(created, that.created) &&
+            Objects.equals(updated, that.updated) &&
+            Objects.equals(status, that.status) &&
+            Objects.equals(link, that.link) &&
+            Objects.equals(readCount, that.readCount)
+        );
     }
 
     @Override
@@ -179,6 +201,7 @@ public class BlogEntity {
     }
 
     public static class BlogEntityBuilder {
+
         private Long id;
         private Long userId;
         private String title;
@@ -189,7 +212,6 @@ public class BlogEntity {
         private Integer status;
         private String link;
         private Long readCount;
-
 
         public BlogEntityBuilder id(Long id) {
             this.id = id;
@@ -242,8 +264,18 @@ public class BlogEntity {
         }
 
         public BlogEntity build() {
-            return new BlogEntity(this.id, this.userId, this.title, this.description, this.content, this.created, this.updated, this.status, this.link, this.readCount);
+            return new BlogEntity(
+                this.id,
+                this.userId,
+                this.title,
+                this.description,
+                this.content,
+                this.created,
+                this.updated,
+                this.status,
+                this.link,
+                this.readCount
+            );
         }
-
     }
 }

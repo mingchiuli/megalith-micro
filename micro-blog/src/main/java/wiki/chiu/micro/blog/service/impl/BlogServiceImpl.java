@@ -23,6 +23,7 @@ import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.rpc.SearchHttpServiceWrapper;
 import wiki.chiu.micro.blog.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.blog.service.BlogService;
+import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.common.req.BlogSysSearchReq;
 import wiki.chiu.micro.common.utils.OssSignUtils;
@@ -327,7 +328,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     private void notifyBlogOperation(BlogOperateEnum type, BlogEntity blogEntity) {
-        var blogSearchIndexMessage = new BlogOperateMessage(blogEntity.getId(), type.getCode(), blogEntity.getCreated().getYear());
+        var blogSearchIndexMessage = new BlogOperateMessage(blogEntity.getId(), type.getCode());
         applicationContext.publishEvent(new BlogOperateEvent(this, blogSearchIndexMessage));
     }
 
@@ -457,11 +458,6 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public List<Integer> getYears() {
-        return blogRepository.getYears();
-    }
-
-    @Override
     public Long count() {
         return blogRepository.count();
     }
@@ -482,27 +478,10 @@ public class BlogServiceImpl implements BlogService {
                 pageSize,
                 Sort.by("created").descending());
 
-        Page<BlogEntity> page = blogRepository.findAll(pageRequest);
+        List<Integer> statusList = List.of(BlogStatusEnum.NORMAL.getCode(), BlogStatusEnum.SENSITIVE_FILTER.getCode(), BlogStatusEnum.HIDE.getCode());
+
+        Page<BlogEntity> page = blogRepository.findByStatusIn(pageRequest, statusList);
         return BlogEntityRpcVoConvertor.convert(page);
-    }
-
-    @Override
-    public PageAdapter<BlogEntityRpcVo> findPageByCreatedBetween(Integer pageNo, Integer pageSize, LocalDateTime start, LocalDateTime end) {
-        var pageRequest = PageRequest.of(pageNo - 1,
-                pageSize,
-                Sort.by("created").descending());
-        Page<BlogEntity> page = blogRepository.findAllByCreatedBetween(pageRequest, start, end);
-        return BlogEntityRpcVoConvertor.convert(page);
-    }
-
-    @Override
-    public Long countByCreatedBetween(LocalDateTime start, LocalDateTime end) {
-        return blogRepository.countByCreatedBetween(start, end);
-    }
-
-    @Override
-    public Long getPageCountYear(LocalDateTime created, LocalDateTime start, LocalDateTime end) {
-        return blogRepository.getPageCountYear(created, start, end);
     }
 
     @Override

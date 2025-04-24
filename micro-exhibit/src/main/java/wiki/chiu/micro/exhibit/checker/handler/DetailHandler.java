@@ -20,8 +20,8 @@ public class DetailHandler extends CheckerHandler {
     @Override
     public void handle(Object[] args) {
         Long blogId = (Long) args[0];
-        Boolean bit = redissonClient.getBitSet(BLOOM_FILTER_BLOG).get(blogId);
-        if (Boolean.FALSE.equals(bit)) {
+        boolean bit = redissonClient.getBitSet(BLOOM_FILTER_BLOG).get(blogId);
+        if (!bit) {
             throw new MissException(NO_FOUND.getMsg() + blogId + " blog");
         }
     }

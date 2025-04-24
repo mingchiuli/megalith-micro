@@ -40,11 +40,6 @@ public class BlogProvider implements BlogHttpService {
         return Result.success(() -> blogService.findAllById(ids));
     }
 
-    @GetMapping("/years")
-    public Result<List<Integer>> getYears() {
-        return Result.success(blogService::getYears);
-    }
-
     @GetMapping("/count")
     public Result<Long> count() {
         return Result.success(blogService::count);
@@ -64,27 +59,6 @@ public class BlogProvider implements BlogHttpService {
     public Result<PageAdapter<BlogEntityRpcVo>> findPage(@RequestParam Integer pageNo,
                                                          @RequestParam Integer pageSize) {
         return Result.success(() -> blogService.findPage(pageNo, pageSize));
-    }
-
-    @PostMapping("/page/year")
-    public Result<PageAdapter<BlogEntityRpcVo>> findPageByCreatedBetween(@RequestParam Integer pageNo,
-                                                                         @RequestParam Integer pageSize,
-                                                                         @RequestParam LocalDateTime start,
-                                                                         @RequestParam LocalDateTime end) {
-        return Result.success(() -> blogService.findPageByCreatedBetween(pageNo, pageSize, start, end));
-    }
-
-    @GetMapping("/count/year")
-    public Result<Long> countByCreatedBetween(@RequestParam LocalDateTime start,
-                                              @RequestParam LocalDateTime end) {
-        return Result.success(() -> blogService.countByCreatedBetween(start, end));
-    }
-
-    @GetMapping("/page/count/year")
-    public Result<Long> getPageCountYear(@RequestParam LocalDateTime created,
-                                         @RequestParam LocalDateTime start,
-                                         @RequestParam LocalDateTime end) {
-        return Result.success(() -> blogService.getPageCountYear(created, start, end));
     }
 
     @GetMapping("/count/until")
