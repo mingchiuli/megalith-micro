@@ -335,7 +335,7 @@ const clearDatePicker = async () => {
         <el-tag size="small" v-else-if="scope.row.status === Status.SENSITIVE_FILTER" type="warning"
           >打码</el-tag
         >
-        <el-tag size="small" v-else-if="scope.row.status === Status.DRAFT" type="info">打码</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.DRAFT" type="info">草稿</el-tag>
       </template>
     </el-table-column>
 
