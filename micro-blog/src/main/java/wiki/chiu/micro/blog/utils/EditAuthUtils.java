@@ -17,7 +17,7 @@ public class EditAuthUtils {
 
     public static void checkEditAuth(BlogEntity blogEntity, Long userId) {
 
-        if (!Objects.equals(BlogStatusEnum.NORMAL.getCode(), blogEntity.getStatus()) && !Objects.equals(blogEntity.getUserId(), userId)) {
+        if (!Objects.equals(BlogStatusEnum.NORMAL.getCode(), blogEntity.getStatus()) && !Objects.equals(BlogStatusEnum.DRAFT.getCode(), blogEntity.getStatus()) && !Objects.equals(blogEntity.getUserId(), userId)) {
             throw new MissException(EDIT_NO_AUTH.getMsg());
         }
     }
