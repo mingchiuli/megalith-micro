@@ -12,7 +12,7 @@ import wiki.chiu.micro.search.vo.BlogDocumentVo;
  */
 public interface BlogSearchService {
 
-    PageAdapter<BlogDocumentVo> selectBlogsByES(Integer currentPage, String keywords, Boolean allInfo, String year);
+    PageAdapter<BlogDocumentVo> selectBlogsByES(Integer currentPage, String keywords, Boolean allInfo);
 
     BlogSearchRpcVo searchBlogs(BlogSysSearchReq req);
 

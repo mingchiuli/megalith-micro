@@ -44,8 +44,8 @@ public class BlogSearchServiceImpl implements BlogSearchService {
     }
 
     @Override
-    public PageAdapter<BlogDocumentVo> selectBlogsByES(Integer currentPage, String keywords, Boolean allInfo, String year) {
-        NativeQuery matchQuery = PublicSearchQueryConvertor.searchConvert(keywords, year, currentPage, blogPageSize, allInfo);
+    public PageAdapter<BlogDocumentVo> selectBlogsByES(Integer currentPage, String keywords, Boolean allInfo) {
+        NativeQuery matchQuery = PublicSearchQueryConvertor.searchConvert(keywords, currentPage, blogPageSize, allInfo);
         SearchHits<BlogDocument> search = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
         return BlogDocumentVoConvertor.convert(search, blogPageSize, currentPage);
     }
