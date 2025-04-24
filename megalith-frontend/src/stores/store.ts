@@ -48,8 +48,7 @@ export const blogsStore = defineStore('blogsPageStore', () => {
   const pageNum = ref(1)
   const searchPageNum = ref(1)
   const keywords = ref('')
-  const year = ref('')
-  return { pageNum, searchPageNum, keywords, year }
+  return { pageNum, searchPageNum, keywords }
 })
 
 export const pageStore = defineStore('pageStore', () => {

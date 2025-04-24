@@ -19,7 +19,6 @@ const emit = defineEmits<{
   refresh: [payload: void]
 }>()
 
-const year = defineModel<string>('year')
 const { keywords } = storeToRefs(blogsStore())
 const loading = defineModel<boolean>('loading')
 const searchDialogVisible = defineModel<boolean>('searchDialogVisible')
@@ -27,17 +26,15 @@ const suggestionList = ref<BlogDesc[]>([])
 let currentPage = 1
 const hotItemRef = useTemplateRef<InstanceType<typeof HotItem>>('hotItem')
 
-const yearDialogVisible = ref(false)
 const search = async (
   queryString: string,
   currentPage: number,
   allInfo: boolean,
-  year: string,
   searchOrder: number | null
 ): Promise<SearchPage<BlogDesc>> => {
   loading.value = true
   const data = await GET<SearchPage<BlogDesc>>(
-    `/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}&year=${year}`
+    `/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}`
   )
   data.additional = searchOrder
   return Promise.resolve(data)
@@ -56,7 +53,7 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (
 ) => {
   if (queryString.trim().length) {
     searchOrder++
-    search(queryString, currentPage, false, year.value!, searchOrder).then((page) => {
+    search(queryString, currentPage, false, searchOrder).then((page) => {
       if (page.additional !== searchOrder) {
         return
       }
@@ -106,7 +103,6 @@ const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
       keywords.value,
       currentPage + 1,
       false,
-      year.value!,
       null
     )
     if (page.content.length < page.pageSize) {
@@ -150,7 +146,6 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
       queryString,
       currentPage,
       true,
-      year.value!,
       null
     )
     if (page.content.length) {
@@ -162,7 +157,6 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
 }
 
 const searchBeforeClose = (close: () => void) => {
-  year.value = ''
   keywords.value = ''
   refAutocompleteRef.value!.suggestions = []
   if (controller) controller.abort()
@@ -173,14 +167,6 @@ const searchBeforeClose = (close: () => void) => {
 }
 
 const refAutocompleteRef = useTemplateRef<InstanceType<typeof ElAutocomplete>>('refAutocomplete')
-
-const yearsCloseEvent = async () => {
-  if (keywords.value!.length) {
-    setTimeout(() => {
-      refAutocompleteRef.value!.activated = true
-    }, 100)
-  }
-}
 
 const openDialog = () => {
   hotItemRef.value!.load()
@@ -214,10 +200,6 @@ defineExpose({ searchAllInfo })
   >
     <template #default>
       <HotItem ref="hotItem" class="dialog-hot" />
-      <div class="dialog-year" v-if="year!.length">
-        <div>年份：{{ year }}</div>
-        <el-button link type="warning" @click="year = ''">清除</el-button>
-      </div>
       <div class="dialog-autocomplete">
         <el-autocomplete
           id="elc"
@@ -269,16 +251,10 @@ defineExpose({ searchAllInfo })
         </el-autocomplete>
       </div>
 
-      <years-item
-        v-model:year="year"
-        v-model:yearDialogVisible="yearDialogVisible"
-        @close="yearsCloseEvent"
-      ></years-item>
     </template>
     <template #footer>
       <div class="dialog-footer">
         <el-button type="primary" @click="searchAllInfo(keywords!)">Confirm</el-button>
-        <el-button type="primary" @click="yearDialogVisible = true">Archive</el-button>
       </div>
     </template>
   </el-dialog>
@@ -288,12 +264,7 @@ defineExpose({ searchAllInfo })
 .value {
   overflow-x: auto;
 }
-
-.dialog-year {
-  text-align: center;
-  margin-top: 10px;
-}
-
+        
 .dialog-autocomplete {
   margin: 10px auto 0 auto;
   max-width: max-content;

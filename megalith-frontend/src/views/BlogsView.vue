@@ -25,7 +25,6 @@ const page: PageAdapter<BlogDesc> = reactive({
 const { searchPageNum } = storeToRefs(blogsStore())
 const { pageNum } = storeToRefs(blogsStore())
 const { keywords } = storeToRefs(blogsStore())
-const { year } = storeToRefs(blogsStore())
 
 const { login } = storeToRefs(loginStateStore())
 
@@ -38,13 +37,12 @@ const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
     totalElements.value = payload.totalElements
     loading.value = false
   } else {
-    queryBlogs(1, '')
+    queryBlogs(1)
   }
 }
 
 const clearSearch = () => {
   keywords.value = ''
-  year.value = ''
   refresh()
 }
 
@@ -54,9 +52,9 @@ const refresh = () => {
   getPage(1)
 }
 
-const queryBlogs = async (pageNo: number, year: string) => {
+const queryBlogs = async (pageNo: number) => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogDesc>>(`/public/blog/page/${pageNo}?year=${year}`)
+  const data = await GET<PageAdapter<BlogDesc>>(`/public/blog/page/${pageNo}`)
   statImg(data.content)
   if (!imgCount) loading.value = false
   page.content = data.content
@@ -73,7 +71,7 @@ const getPage = async (pageNo: number) => {
   initImgCount()
   if (!keywords.value) {
     pageNum.value = pageNo
-    await queryBlogs(pageNo, year.value)
+    await queryBlogs(pageNo)
   } else {
     searchPageNum.value = pageNo
     await nextTick()
@@ -133,7 +131,6 @@ const { content, totalElements, pageSize } = toRefs(page)
         ref="search"
         @trans-search-data="fillSearchData"
         @refresh="refresh"
-        v-model:year="year"
         v-model:loading="loading"
         v-model:search-dialog-visible="searchDialogVisible"
       />
@@ -151,7 +148,7 @@ const { content, totalElements, pageSize } = toRefs(page)
       "
       >进入后台</el-link
     >
-    <el-link class="door" type="warning" v-if="keywords || year" link @click="clearSearch">返回</el-link>
+    <el-link class="door" type="warning" v-if="keywords" link @click="clearSearch">返回</el-link>
     <br />
     <div class="description">
       <el-skeleton animated :loading="loading" :throttle="300">
