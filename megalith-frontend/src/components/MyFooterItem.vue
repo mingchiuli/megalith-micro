@@ -1,22 +1,12 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
-import { GET } from '@/http/http'
 
-const start = ref(2021)
-const end = ref<number>()
-
-;(async () => {
-  const years = await GET<number[]>('/public/blog/years')
-  start.value = years[0]
-  end.value = years[years.length - 1]
-})()
 </script>
 
 <template>
   <div class="footer">
     <el-divider />
     <el-link :underline="false" class="copyright" href="/"
-      >&copy; Powered by Docker {{ start }}-{{ end }}
+      >&copy; Powered by Docker 2021 - 2025
     </el-link>
   </div>
 </template>
