@@ -6,6 +6,7 @@ plugins { id("com.vanniktech.maven.publish") version "0.31.0" }
 
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
     signAllPublications()
 
     coordinates("$group", "cache-spring-boot-starter", "$version")
