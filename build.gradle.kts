@@ -34,7 +34,6 @@ dependencies {
     implementation(project(":micro-blog"))
     implementation(project(":micro-user"))
     implementation(project(":micro-exhibit"))
-    implementation(project(":micro-websocket"))
     implementation(project(":micro-search"))
     implementation(project(":common"))
     implementation(project(":cache"))
