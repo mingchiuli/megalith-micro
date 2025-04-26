@@ -19,6 +19,7 @@ import { WebsocketProvider } from 'y-websocket'
 import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
+import { onBeforeUnmount } from 'vue'
 
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
@@ -189,11 +190,11 @@ onMounted(() => {
   }
 })
 
-// onUnmounted(async () => {
-//   if (websocketProvider) {
-//     websocketProvider.disconnect()
-//   }
-// })
+onBeforeUnmount(async () => {
+  if (websocketProvider) {
+    websocketProvider.disconnect()
+  }
+})
 </script>
 
 <template>
