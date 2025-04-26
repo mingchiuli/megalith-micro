@@ -5,7 +5,7 @@ use warp::ws::{WebSocket, Ws};
 use warp::{Rejection, Reply};
 use yrs_warp::ws::{WarpSink, WarpStream};
 
-use crate::room::room_info::{RoomConnection, RoomManager};
+use crate::room::room::{RoomConnection, RoomManager};
 
 pub async fn ws_handler(
     room_id: String,
