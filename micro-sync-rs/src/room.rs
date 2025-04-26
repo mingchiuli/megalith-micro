@@ -1,1 +1,1 @@
-pub mod room_info;
+pub mod room;

@@ -1,5 +1,5 @@
 use micro_sync_rs::handler::broadcast::ws_handler;
-use micro_sync_rs::room::room_info::RoomManager;
+use micro_sync_rs::room::room::RoomManager;
 use std::env;
 use std::sync::Arc;
 use tokio::signal;
