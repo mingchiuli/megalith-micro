@@ -181,6 +181,12 @@ public class BlogServiceImpl implements BlogService {
             throw new MissException(AUTH_EXCEPTION.getMsg());
         }
 
+        if (BlogStatusEnum.DRAFT.getCode().equals(status) &&
+                !roles.contains(highestRole) &&
+                !Objects.equals(userId, rawBlog.userId())) {
+            throw new MissException(AUTH_EXCEPTION.getMsg());
+        }
+
         if (BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(status) &&
                 !roles.contains(highestRole) &&
                 !Objects.equals(userId, rawBlog.userId())) {
