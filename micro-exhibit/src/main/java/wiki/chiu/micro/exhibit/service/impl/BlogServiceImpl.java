@@ -182,7 +182,7 @@ public class BlogServiceImpl implements BlogService {
         }
 
         if (BlogStatusEnum.DRAFT.getCode().equals(status) &&
-                !Objects.equals(userId, rawBlog.userId())) {
+                Objects.equals(userId, 0L)) {
             throw new MissException(AUTH_EXCEPTION.getMsg());
         }
 
