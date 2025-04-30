@@ -20,7 +20,7 @@ subprojects {
     dependencyManagement {
         dependencies {
             dependency("com.github.ben-manes.caffeine:caffeine:3.2.0")
-            dependency("org.redisson:redisson:3.45.1")
+            dependency("org.redisson:redisson:3.46.0")
             dependency("com.nimbusds:nimbus-jose-jwt:10.2")
             dependency("wiki.chiu.megalith:cache-spring-boot-starter:3.4.5")
         }
