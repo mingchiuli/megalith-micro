@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@milkdown/crepe": "^7.9.0",
-    "@milkdown/kit": "^7.9.0",
+    "@milkdown/kit": "^7.9.1",
     "@milkdown/plugin-collab": "^7.9.0",
     "@milkdown/vue": "^7.9.0",
     "@types/markdown-it": "^14.1.2",
