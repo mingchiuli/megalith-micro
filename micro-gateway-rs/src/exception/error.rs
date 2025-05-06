@@ -1,3 +1,8 @@
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result},
+};
+
 use axum::response::{IntoResponse, Response};
 use hyper::StatusCode;
 
@@ -150,8 +155,8 @@ pub enum AuthError {
 
 impl std::error::Error for AuthError {}
 
-impl std::fmt::Display for AuthError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl Display for AuthError {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
             AuthError::RequestFailed(msg) => write!(f, "RequestFailed error: {}", msg),
             AuthError::Unauthorized(msg) => write!(f, "Unauthorized error: {}", msg),
@@ -187,12 +192,12 @@ pub enum ClientError {
     Api(String),
 }
 
-impl std::error::Error for ClientError {}
+impl Error for ClientError {}
 unsafe impl Send for ClientError {}
 unsafe impl Sync for ClientError {}
 
-impl std::fmt::Display for ClientError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl Display for ClientError {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
             ClientError::Network(msg) => write!(f, "Network error: {}", msg),
             ClientError::Serialization(msg) => write!(f, "Serialization error: {}", msg),
@@ -205,7 +210,7 @@ impl std::fmt::Display for ClientError {
     }
 }
 
-pub fn handle_api_error(e: Box<dyn std::error::Error + Send + Sync>) -> ClientError {
+pub fn handle_api_error(e: Box<dyn Error + Send + Sync>) -> ClientError {
     match e.downcast_ref::<ClientError>() {
         Some(ClientError::Status(code, msg)) => ClientError::Status(*code, msg.clone()),
         _ => ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()),
