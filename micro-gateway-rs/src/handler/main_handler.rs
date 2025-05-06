@@ -7,7 +7,6 @@ use axum::{
     http::{Request, Uri},
     response::IntoResponse,
 };
-use hyper::StatusCode;
 
 pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
     // 检查是否是 WebSocket 请求
@@ -24,11 +23,7 @@ pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
                     Ok(response) => response.into_response(),
                     Err(err) => {
                         // 根据错误类型返回适当的响应
-                        (
-                            StatusCode::INTERNAL_SERVER_ERROR,
-                            format!("WebSocket error: {}", err),
-                        )
-                            .into_response()
+                        err.into_response()
                     }
                 };
             }
@@ -42,7 +37,7 @@ pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
     // 否则作为普通 HTTP 请求处理
     match http_handler::handle_request(req).await {
         Ok(response) => response.into_response(),
-        Err(status) => (status, "Error processing request").into_response(),
+        Err(err) => err.into_response(),
     }
 }
 

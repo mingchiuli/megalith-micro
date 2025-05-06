@@ -1,62 +1,139 @@
+use axum::response::{IntoResponse, Response};
 use hyper::StatusCode;
 
-impl From<ClientError> for StatusCode {
+#[derive(Debug)]
+pub struct HandlerError {
+    status: StatusCode,
+    message: String,
+}
+
+impl HandlerError {
+    /// 创建一个新的 HandlerError 实例
+    pub fn new(status: StatusCode, message: impl Into<String>) -> Self {
+        Self {
+            status,
+            message: message.into(),
+        }
+    }
+
+    /// 获取错误的 HTTP 状态码
+    pub fn status(&self) -> StatusCode {
+        self.status
+    }
+
+    /// 获取错误消息
+    pub fn message(&self) -> &str {
+        &self.message
+    }
+
+    /// 创建一个 FORBIDDEN 错误
+    pub fn forbidden(message: &str) -> Self {
+        Self::new(StatusCode::FORBIDDEN, message)
+    }
+}
+
+// 实现 IntoResponse 使其可以直接用作 Axum 响应
+impl IntoResponse for HandlerError {
+    fn into_response(self) -> Response {
+        (self.status, self.message).into_response()
+    }
+}
+
+// 实现从 ClientError 到 HandlerError 的转换
+impl From<ClientError> for HandlerError {
     fn from(error: ClientError) -> Self {
         match error {
-            ClientError::Network(e) => {
-                log::error!("ClientError::Network:{}", e);
-                StatusCode::INTERNAL_SERVER_ERROR
+            ClientError::Network(msg) => {
+                log::error!("ClientError::Network:{}", msg);
+                HandlerError {
+                    status: StatusCode::INTERNAL_SERVER_ERROR,
+                    message: format!("网络错误: {}", msg),
+                }
             }
-            ClientError::Serialization(e) => {
-                log::error!("ClientError::Serialization:{}", e);
-                StatusCode::INTERNAL_SERVER_ERROR
+            ClientError::Serialization(msg) => {
+                log::error!("ClientError::Serialization:{}", msg);
+                HandlerError {
+                    status: StatusCode::INTERNAL_SERVER_ERROR,
+                    message: format!("序列化错误: {}", msg),
+                }
             }
-            ClientError::Request(e) => {
-                log::error!("ClientError::Request:{}", e);
-                StatusCode::BAD_GATEWAY
+            ClientError::Request(msg) => {
+                log::error!("ClientError::Request:{}", msg);
+                HandlerError {
+                    status: StatusCode::BAD_GATEWAY,
+                    message: format!("请求错误: {}", msg),
+                }
             }
-            ClientError::Status(code, e) => {
-                log::error!("ClientError::Status:{}", e);
-                StatusCode::from_u16(code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+            ClientError::Response(msg) => {
+                log::error!("ClientError::Response:{}", msg);
+                HandlerError {
+                    status: StatusCode::INTERNAL_SERVER_ERROR,
+                    message: format!("响应错误: {}", msg),
+                }
             }
-            ClientError::Deserialize(e) => {
-                log::error!("ClientError::Deserialize:{}", e);
-                StatusCode::INTERNAL_SERVER_ERROR
+            ClientError::Status(code, msg) => {
+                log::error!("ClientError::Status:{}", msg);
+                HandlerError {
+                    status: StatusCode::from_u16(code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+                    message: msg,
+                }
             }
-            ClientError::Api(e) => {
-                log::error!("ClientError::Api:{}", e);
-                StatusCode::INTERNAL_SERVER_ERROR
+            ClientError::Deserialize(msg) => {
+                log::error!("ClientError::Deserialize:{}", msg);
+                HandlerError {
+                    status: StatusCode::INTERNAL_SERVER_ERROR,
+                    message: format!("反序列化错误: {}", msg),
+                }
             }
-            ClientError::Response(e) => {
-                log::error!("ClientError::Response:{}", e);
-                StatusCode::INTERNAL_SERVER_ERROR
+            ClientError::Api(msg) => {
+                log::error!("ClientError::Api:{}", msg);
+                HandlerError {
+                    status: StatusCode::INTERNAL_SERVER_ERROR,
+                    message: format!("API错误: {}", msg),
+                }
             }
         }
     }
 }
 
-impl From<AuthError> for StatusCode {
+// 实现从 AuthError 到 HandlerError 的转换
+impl From<AuthError> for HandlerError {
     fn from(error: AuthError) -> Self {
         match error {
-            AuthError::MissingConfig(e) => {
-                log::error!("AuthError::MissingConfig:{}", e);
-                StatusCode::INTERNAL_SERVER_ERROR
+            AuthError::MissingConfig(msg) => {
+                log::error!("AuthError::MissingConfig:{}", msg);
+                HandlerError {
+                    status: StatusCode::INTERNAL_SERVER_ERROR,
+                    message: format!("配置缺失: {}", msg),
+                }
             }
-            AuthError::InvalidUrl(e) => {
-                log::error!("AuthError::InvalidUrl:{}", e);
-                StatusCode::INTERNAL_SERVER_ERROR
+            AuthError::InvalidUrl(msg) => {
+                log::error!("AuthError::InvalidUrl:{}", msg);
+                HandlerError {
+                    status: StatusCode::INTERNAL_SERVER_ERROR,
+                    message: format!("无效URL: {}", msg),
+                }
             }
-            AuthError::RequestFailed(e) => {
-                log::error!("AuthError::RequestFailed:{}", e);
-                StatusCode::INTERNAL_SERVER_ERROR
+            AuthError::RequestFailed(msg) => {
+                log::error!("AuthError::RequestFailed:{}", msg);
+                HandlerError {
+                    status: StatusCode::INTERNAL_SERVER_ERROR,
+                    message: format!("请求失败: {}", msg),
+                }
             }
-            AuthError::Unauthorized(e) => {
-                log::error!("AuthError::Unauthorized:{}", e);
-                StatusCode::UNAUTHORIZED
+            AuthError::Unauthorized(msg) => {
+                log::error!("AuthError::Unauthorized:{}", msg);
+                HandlerError {
+                    status: StatusCode::UNAUTHORIZED,
+                    message: format!("未授权: {}", msg),
+                }
             }
-            AuthError::Forbidden(e) => {
-                log::error!("AuthError::Forbidden:{}", e);
-                StatusCode::FORBIDDEN
+            AuthError::Forbidden(msg) => {
+                log::error!("AuthError::Forbidden:{}", msg);
+                HandlerError {
+                    status: StatusCode::FORBIDDEN,
+                    message: format!("禁止访问: {}", msg),
+                }
             }
         }
     }

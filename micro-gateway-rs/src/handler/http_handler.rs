@@ -10,13 +10,13 @@ use tokio::time::timeout;
 
 use crate::{
     client::http_client::{self},
-    exception::error::{ClientError, handle_api_error},
+    exception::error::{handle_api_error, ClientError, HandlerError},
     utils::http_util::{self},
 };
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 
-pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, StatusCode> {
+pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, HandlerError> {
     let uri = req.uri();
     // Extract authentication token
     let token = http_util::extract_token(&req);
