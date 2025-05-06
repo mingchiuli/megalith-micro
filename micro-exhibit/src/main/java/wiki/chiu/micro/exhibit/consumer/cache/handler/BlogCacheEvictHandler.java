@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 public abstract sealed class BlogCacheEvictHandler permits

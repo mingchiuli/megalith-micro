@@ -11,7 +11,6 @@ import org.springframework.data.elasticsearch.core.query.HighlightQuery;
 import org.springframework.data.elasticsearch.core.query.highlight.Highlight;
 import org.springframework.data.elasticsearch.core.query.highlight.HighlightField;
 import org.springframework.data.elasticsearch.core.query.highlight.HighlightParameters;
-import org.springframework.util.StringUtils;
 import wiki.chiu.micro.common.lang.BlogStatusEnum;
 
 import java.util.List;
