@@ -1,12 +1,12 @@
 use axum::http::{HeaderName, HeaderValue};
-use axum::{extract::Request, http::StatusCode, middleware::Next, response::Response};
+use axum::{extract::Request, middleware::Next, response::Response};
 use hyper::Uri;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
 
 use crate::client::http_client;
-use crate::exception::error::{ClientError, handle_api_error};
+use crate::exception::error::{handle_api_error, ClientError, HandlerError};
 use crate::result::api_result::ApiResult;
 use crate::utils::constant::AUTH_URL_KEY;
 use crate::utils::http_util;
@@ -18,7 +18,7 @@ struct RouteCheckReq {
     route_mapping: String,
 }
 
-pub async fn process(req: Request, next: Next) -> Result<Response, StatusCode> {
+pub async fn process(req: Request, next: Next) -> Result<Response, HandlerError> {
     // Skip authentication for actuator endpoints
     if req.uri().path().starts_with("/actuator") {
         return Ok(next.run(req).await);
@@ -27,7 +27,7 @@ pub async fn process(req: Request, next: Next) -> Result<Response, StatusCode> {
     // Authenticate the request
     let (uri, req_body, headers) = extract_request_param(&req)?;
     if !auth(uri, req_body, headers).await? {
-        return Err(StatusCode::FORBIDDEN);
+        return Err(HandlerError::forbidden("访问被拒绝"));
     }
 
     Ok(next.run(req).await)

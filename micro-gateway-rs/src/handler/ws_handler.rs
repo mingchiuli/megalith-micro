@@ -3,16 +3,17 @@ use axum::extract::WebSocketUpgrade;
 use axum::extract::ws::{Message as AxumMessage, WebSocket};
 use axum::response::{IntoResponse, Response};
 use futures_util::{SinkExt, StreamExt};
-use hyper::{HeaderMap, Method, StatusCode, Uri};
+use hyper::{HeaderMap, Method, Uri};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 
+use crate::exception::error::HandlerError;
 use crate::utils::http_util::{self};
 
 pub async fn ws_route_handler(
     ws: WebSocketUpgrade,
     uri: Uri,
-) -> Result<Response<Body>, StatusCode> {
+) -> Result<Response<Body>, HandlerError> {
     // Extract authentication token
     let token = extract_token(&uri);
 
