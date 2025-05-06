@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::env;
 
 use crate::client::http_client;
-use crate::exception::error::{handle_api_error, ClientError, HandlerError};
+use crate::exception::error::{AuthError, ClientError, HandlerError, handle_api_error};
 use crate::result::api_result::ApiResult;
 use crate::utils::constant::AUTH_URL_KEY;
 use crate::utils::http_util;
@@ -55,14 +55,17 @@ async fn auth(
     uri: Uri,
     req_body: RouteCheckReq,
     headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<bool, ClientError> {
-    let resp: ApiResult<bool> = http_client::post(uri, req_body, headers)
+) -> Result<bool, AuthError> {
+    let resp: Result<ApiResult<bool>, ClientError> = http_client::post(uri, req_body, headers)
         .await
-        .map_err(handle_api_error)?;
+        .map_err(handle_api_error);
 
-    match resp.code() {
-        200 => Ok(resp.into_data()),
-        e => Err(ClientError::Response(e.to_string())),
+    match resp {
+        Ok(resp) => match resp.code() {
+            200 => Ok(resp.into_data()),
+            e => Err(AuthError::Unauthorized(e.to_string())),
+        },
+        Err(e) => Err(AuthError::RequestFailed(e.to_string())),
     }
 }
 
