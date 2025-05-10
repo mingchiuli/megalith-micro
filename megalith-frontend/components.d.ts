@@ -74,7 +74,6 @@ declare module 'vue' {
     SearchItem: typeof import('./src/components/SearchItem.vue')['default']
     SideMenuItem: typeof import('./src/components/sys/SideMenuItem.vue')['default']
     StatItem: typeof import('./src/components/StatItem.vue')['default']
-    YearsItem: typeof import('./src/components/YearsItem.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']
