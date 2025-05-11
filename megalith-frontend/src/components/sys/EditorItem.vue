@@ -16,6 +16,7 @@ import { Milkdown, useEditor } from '@milkdown/vue'
 import { Crepe } from '@milkdown/crepe'
 import { Doc } from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
+import { IndexeddbPersistence } from 'y-indexeddb'
 import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
@@ -94,6 +95,7 @@ const onUploadImg = async (file: File) => {
 }
 
 let websocketProvider: WebsocketProvider | undefined
+let indexeddbProvider: IndexeddbPersistence | undefined
 
 useEditor((root) => {
   const crepe = new Crepe({
@@ -117,59 +119,74 @@ useEditor((root) => {
   crepe.create().then(() => {
     const doc = new Doc()
 
-    // 先创建 WebSocket provider
-    websocketProvider = new WebsocketProvider(
-      `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
-      roomId,
-      doc,
-      {
-        params: {
-          token: localStorage.getItem('accessToken')!
+    // 首先创建 IndexeddbPersistence
+    indexeddbProvider = new IndexeddbPersistence(roomId, doc)
+
+    // 等待 IndexedDB 同步完成
+    indexeddbProvider.once('synced', () => {
+      websocketProvider = new WebsocketProvider(
+        `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
+        roomId,
+        doc,
+        {
+          params: {
+            token: localStorage.getItem('accessToken')!
+          },
+          connect: true,
+          resyncInterval: 3000,
+          maxBackoffTime: 10000
         }
-      }
-    )
+      )
 
-    const usercolors = [
-      { color: '#30bced', light: '#30bced33' },
-      { color: '#6eeb83', light: '#6eeb8333' },
-      { color: '#ffbc42', light: '#ffbc4233' },
-      { color: '#ecd444', light: '#ecd44433' },
-      { color: '#ee6352', light: '#ee635233' },
-      { color: '#9ac2c9', light: '#9ac2c933' },
-      { color: '#8acb88', light: '#8acb8833' },
-      { color: '#1be7ff', light: '#1be7ff33' }
-    ]
-    const userColor = usercolors[random.uint32() % usercolors.length]
-    websocketProvider.awareness.setLocalStateField('user', {
-      name: user.nickname,
-      color: userColor.color,
-      colorLight: userColor.light
-    })
+      const usercolors = [
+        { color: '#30bced', light: '#30bced33' },
+        { color: '#6eeb83', light: '#6eeb8333' },
+        { color: '#ffbc42', light: '#ffbc4233' },
+        { color: '#ecd444', light: '#ecd44433' },
+        { color: '#ee6352', light: '#ee635233' },
+        { color: '#9ac2c9', light: '#9ac2c933' },
+        { color: '#8acb88', light: '#8acb8833' },
+        { color: '#1be7ff', light: '#1be7ff33' }
+      ]
 
-    editor.action((ctx) => {
-      const collabService = ctx.get(collabServiceCtx)
+      const userColor = usercolors[random.uint32() % usercolors.length]
+      websocketProvider.awareness.setLocalStateField('user', {
+        name: user.nickname,
+        color: userColor.color,
+        colorLight: userColor.light
+      })
 
-      collabService
-        // bind doc and awareness
-        .bindDoc(doc)
-        .setAwareness(websocketProvider!.awareness)
+      editor.action((ctx) => {
+        const collabService = ctx.get(collabServiceCtx)
 
-      websocketProvider!.once('sync', async (isSynced: boolean) => {
-        if (isSynced) {
-          collabService
-            // apply your template
-            .applyTemplate(content.value!, (remote) => {
-              // apply your template logic here
-              return !remote.textContent
-            })
-            // don't forget connect
-            .connect()
-        }
+        collabService
+          // bind doc and awareness
+          .bindDoc(doc)
+          .setAwareness(websocketProvider!.awareness)
+
+        websocketProvider!.once('sync', async (isSynced: boolean) => {
+          if (isSynced) {
+            collabService
+              // apply your template
+              .applyTemplate(content.value!, (remote) => {
+                // apply your template logic here
+                return !remote.textContent
+              })
+              // don't forget connect
+              .connect()
+          }
+        })
       })
     })
   })
   return crepe
 })
+
+const clearLocalData = async () => {
+  if (indexeddbProvider) {
+    await indexeddbProvider.clearData()
+  }
+}
 
 onMounted(() => {
   document.getElementById('milk')!.onmouseup = () => {
@@ -194,6 +211,14 @@ onUnmounted(async () => {
   if (websocketProvider) {
     websocketProvider.disconnect()
   }
+
+  if (indexeddbProvider) {
+    await indexeddbProvider.destroy()
+  }
+})
+
+defineExpose({
+  clearLocalData
 })
 </script>
 

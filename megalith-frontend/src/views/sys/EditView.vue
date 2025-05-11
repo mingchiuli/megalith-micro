@@ -78,6 +78,8 @@ const fileList = computed(() => {
 
 const titleRef = useTemplateRef<InstanceType<typeof ElInput>>('title')
 const descRef = useTemplateRef<InstanceType<typeof ElInput>>('desc')
+const editorRef = useTemplateRef<InstanceType<typeof CustomEditorItem>>('editor')
+
 
 //中文输入法的问题
 const uploadPercentage = ref(0)
@@ -121,6 +123,7 @@ const submitForm = async (ref: FormInstance) => {
         type: 'success',
         duration: 1000
       })
+      editorRef.value!.clearLocalData()
       blogsStore().pageNum = 1
       router.push({
         name: 'system-blogs'
@@ -362,6 +365,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
       <el-form-item class="content" prop="content">
         <MilkdownProvider>
           <CustomEditorItem
+            ref="editor"
             v-model:content="form.content"
             @sensitive="dealSensitive"
             :form-status="form.status"
