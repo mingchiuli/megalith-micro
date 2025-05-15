@@ -19,6 +19,7 @@ spring:
 
 megalith:
   blog:
+    auth-url: http://127.0.0.1:8081/inner
     register:
       page-prefix: http://127.0.0.1:1919/register/
     jwt:
