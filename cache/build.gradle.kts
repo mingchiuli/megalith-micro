@@ -2,7 +2,7 @@ import com.vanniktech.maven.publish.SonatypeHost
 
 version = "3.4.5.2"
 
-plugins { id("com.vanniktech.maven.publish") version "0.31.0" }
+plugins { id("com.vanniktech.maven.publish") version "0.32.0" }
 
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
