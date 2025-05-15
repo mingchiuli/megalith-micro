@@ -47,7 +47,7 @@ public class CacheEvictRabbitConfig {
     Queue evictQueue() {
         String evictNodeMark = UUID.randomUUID().toString();
         cacheEvictQueue += evictNodeMark;
-        return new Queue(cacheEvictQueue, false, false, true);
+        return new Queue(cacheEvictQueue, false, true, true);
     }
 
     @Bean("cacheEvictFanoutExchange")

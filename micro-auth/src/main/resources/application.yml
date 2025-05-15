@@ -28,7 +28,6 @@ server:
 
 megalith:
   cache:
-    topic: rabbit
     queue-prefix: cache.user.evict.queue.
     fanout-exchange: cache.user.evict.fanout.exchange
   blog:
