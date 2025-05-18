@@ -61,7 +61,7 @@ pub fn extract_token(req: &Request) -> String {
 }
 
 pub fn get_auth_url() -> Result<hyper::Uri, AuthError> {
-    let mut auth_url = env::var(AUTH_URL_KEY).unwrap_or("http://127.0.0.1:8081".to_string());
+    let mut auth_url = env::var(AUTH_URL_KEY).unwrap_or("http://127.0.0.1:8081/inner".to_string());
 
     auth_url.push_str("/auth/route");
     Ok(auth_url
