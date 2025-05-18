@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface AuthorityService {
 
-    List<AuthorityRpcVo> findAllByService(List<String> service);
+    List<AuthorityRpcVo> findAllByService();
 
     List<AuthorityVo> findAll();
 

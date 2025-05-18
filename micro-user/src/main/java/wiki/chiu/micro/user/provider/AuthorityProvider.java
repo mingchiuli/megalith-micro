@@ -27,8 +27,8 @@ public class AuthorityProvider implements AuthorityHttpService {
     }
 
     @PostMapping("/list")
-    public Result<List<AuthorityRpcVo>> getAuthorities(@RequestBody List<String> service) {
-        return Result.success(() -> authorityService.findAllByService(service));
+    public Result<List<AuthorityRpcVo>> getAuthorities() {
+        return Result.success(() -> authorityService.findAllByService());
     }
 
     @GetMapping("/role")

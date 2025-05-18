@@ -74,7 +74,7 @@ public class UserHttpServiceWrapper {
         return Result.handleResult(() -> menuHttpService.getCurrentUserNav(rawRole));
     }
 
-    public List<AuthorityRpcVo> getSystemAuthorities(List<String> serviceHost) {
-        return Result.handleResult(() -> authorityHttpService.getAuthorities(serviceHost));
+    public List<AuthorityRpcVo> getSystemAuthorities() {
+        return Result.handleResult(authorityHttpService::getAuthorities);
     }
 }

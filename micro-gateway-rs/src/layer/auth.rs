@@ -70,7 +70,7 @@ async fn auth(
 }
 
 fn build_auth_uri() -> Result<Uri, ClientError> {
-    let mut uri_str = env::var(AUTH_URL_KEY).unwrap_or("http://127.0.0.1:8081".to_string());
+    let mut uri_str = env::var(AUTH_URL_KEY).unwrap_or("http://127.0.0.1:8081/inner".to_string());
     uri_str.push_str("/auth/route/check");
 
     uri_str
