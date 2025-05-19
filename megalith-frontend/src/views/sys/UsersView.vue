@@ -2,7 +2,7 @@
 import { GET, POST } from '@/http/http'
 import type { PageAdapter, RoleSys, UserSys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
-import { reactive, ref, toRefs, useTemplateRef } from 'vue'
+import { reactive, ref, toRefs } from 'vue'
 import { Status, ButtonAuth } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
@@ -33,7 +33,7 @@ const formRules = reactive<FormRules<Form>>({
   roles: [{ required: true, message: '请选择角色', trigger: 'blur' }],
   status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
 })
-const formRef = useTemplateRef<FormInstance>('form')
+const formRef = ref<FormInstance>()
 type Form = {
   id?: number
   username: string
@@ -332,7 +332,7 @@ const getRegisterLink = async (username: string) => {
   />
 
   <el-dialog v-model="dialogVisible" title="新增/编辑" width="600px" :before-close="handleClose">
-    <el-form :model="form" :rules="formRules" ref="form">
+    <el-form :model="form" :rules="formRules" ref="formRef">
       <el-form-item label="用户名" label-width="100px" prop="username" class="username">
         <el-input v-model="form.username" maxlength="30" />
       </el-form-item>

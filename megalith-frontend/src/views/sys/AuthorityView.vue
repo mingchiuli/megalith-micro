@@ -2,7 +2,7 @@
 import { GET, POST } from '@/http/http'
 import type { AuthoritySys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
-import { reactive, ref, useTemplateRef } from 'vue'
+import { reactive, ref } from 'vue'
 import { Status, ButtonAuth, AuthStatus } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
@@ -28,7 +28,7 @@ const formRules = reactive<FormRules<Form>>({
   serviceHost: [{ required: true, message: '请输入调用域名', trigger: 'blur' }],
   servicePort: [{ required: true, message: '请输入调用端口', trigger: 'blur' }]
 })
-const formRef = useTemplateRef<FormInstance>('form')
+const formRef = ref<FormInstance>()
 type Form = {
   id?: number
   code: string
@@ -263,7 +263,7 @@ const clearForm = () => {
   </el-table>
 
   <el-dialog v-model="dialogVisible" title="新增/编辑" width="600px" :before-close="handleClose">
-    <el-form :model="form" :rules="formRules" ref="form">
+    <el-form :model="form" :rules="formRules" ref="formRef">
       <el-form-item label="权限编码" label-width="100px" prop="code">
         <el-input v-model="form.code" maxlength="50" />
       </el-form-item>

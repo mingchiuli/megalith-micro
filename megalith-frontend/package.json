@@ -15,8 +15,8 @@
   "dependencies": {
     "@milkdown/crepe": "^7.10.4",
     "@milkdown/kit": "^7.10.4",
-    "@milkdown/plugin-collab": "^7.10.3",
-    "@milkdown/vue": "^7.10.3",
+    "@milkdown/plugin-collab": "^7.10.4",
+    "@milkdown/vue": "^7.10.4",
     "@types/markdown-it": "^14.1.2",
     "@vavt/v3-extension": "^3.0.0",
     "axios": "^1.9.0",

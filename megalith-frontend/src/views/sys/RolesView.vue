@@ -13,9 +13,9 @@ const delBtlStatus = ref(true)
 const loading = ref(false)
 const multipleSelection = ref<RoleSys[]>([])
 const defaultProps = { children: 'children', label: 'title' }
-const formRef = useTemplateRef<FormInstance>('form')
+const formRef = ref<FormInstance>()
 const menuDialogVisible = ref(false)
-const menuTreeRef = useTemplateRef<InstanceType<typeof ElTree>>('menuTree')
+const menuTreeRef = useTemplateRef<InstanceType<typeof ElTree>>('menuTreeRef')
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 const menuTreeData = ref<MenuForm[]>([])
@@ -323,7 +323,7 @@ const handleDelete = async (row: RoleSys) => {
   />
 
   <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="handleClose">
-    <el-form :model="form" :rules="formRules" label-width="100px" ref="form">
+    <el-form :model="form" :rules="formRules" label-width="100px" ref="formRef">
       <el-form-item label="名字" prop="name">
         <el-input v-model="form.name"></el-input>
       </el-form-item>
@@ -364,7 +364,7 @@ const handleDelete = async (row: RoleSys) => {
         node-key="menuId"
         :props="defaultProps"
         :default-checked-keys="getCheckKeys(menuTreeData)"
-        ref="menuTree"
+        ref="menuTreeRef"
         :check-strictly="true"
       />
       <el-form-item label-width="450px">

@@ -5,7 +5,7 @@
 <template>
   <div class="footer">
     <el-divider />
-    <el-link :underline="false" class="copyright" href="/"
+    <el-link underline="hover" class="copyright" href="/"
       >&copy; Powered by Docker 2021 - 2025
     </el-link>
   </div>

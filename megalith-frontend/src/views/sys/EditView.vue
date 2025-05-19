@@ -76,9 +76,9 @@ const fileList = computed(() => {
   return arr
 })
 
-const titleRef = useTemplateRef<InstanceType<typeof ElInput>>('title')
-const descRef = useTemplateRef<InstanceType<typeof ElInput>>('desc')
-const editorRef = useTemplateRef<InstanceType<typeof CustomEditorItem>>('editor')
+const titleRef = useTemplateRef<InstanceType<typeof ElInput>>('titleRef')
+const descRef = useTemplateRef<InstanceType<typeof ElInput>>('descRef')
+const editorRef = useTemplateRef<InstanceType<typeof CustomEditorItem>>('editorRef')
 
 
 //中文输入法的问题
@@ -88,7 +88,7 @@ const showPercentage = ref(false)
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 
-const formRef = useTemplateRef<FormInstance>('form')
+const formRef = ref<FormInstance>()
 const formRules = reactive<FormRules<EditForm>>({
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
   description: [{ required: true, message: '请输入描述', trigger: 'blur' }],
@@ -285,10 +285,10 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 
 <template>
   <div class="father">
-    <el-form :model="form" :rules="formRules" ref="form">
+    <el-form :model="form" :rules="formRules" ref="formRef">
       <el-form-item class="title" prop="title">
         <el-input
-          ref="title"
+          ref="titleRef"
           @select="handleTitleSelect"
           v-model="form.title"
           placeholder="标题"
@@ -299,7 +299,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 
       <el-form-item class="desc" prop="description">
         <el-input
-          ref="desc"
+          ref="descRef"
           @select="handleDescSelect"
           autosize
           type="textarea"
@@ -365,7 +365,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
       <el-form-item class="content" prop="content">
         <MilkdownProvider>
           <CustomEditorItem
-            ref="editor"
+            ref="editorRef"
             v-model:content="form.content"
             @sensitive="dealSensitive"
             :form-status="form.status"

@@ -10,7 +10,7 @@ import { Status } from '@/type/entity'
 
 const loading = ref(false)
 const searchDialogVisible = ref(false)
-const searchRef = useTemplateRef<InstanceType<typeof Search>>('search')
+const searchRef = useTemplateRef<InstanceType<typeof Search>>('searchRef')
 const readTokenDialogVisible = ref(false)
 const blogId = ref(0)
 
@@ -128,7 +128,7 @@ const { content, totalElements, pageSize } = toRefs(page)
     <div class="search-father">
       <el-button class="search-button" @click="search" type="success">Search</el-button>
       <SearchItem
-        ref="search"
+        ref="searchRef"
         @trans-search-data="fillSearchData"
         @refresh="refresh"
         v-model:loading="loading"
