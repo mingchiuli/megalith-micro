@@ -13,7 +13,7 @@
     "lint": "eslint \"src/**/*.{ts,vue}\""
   },
   "dependencies": {
-    "@milkdown/crepe": "^7.10.3",
+    "@milkdown/crepe": "^7.10.4",
     "@milkdown/kit": "^7.10.4",
     "@milkdown/plugin-collab": "^7.10.3",
     "@milkdown/vue": "^7.10.3",
