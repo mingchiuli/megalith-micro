@@ -21,7 +21,7 @@ tasks.named<BootBuildImage>("bootBuildImage") {
             listOf(
                     "docker.io/paketobuildpacks/oracle",
                     "urn:cnb:builder:paketo-buildpacks/java-native-image",
-                    "gcr.io/paketo-buildpacks/health-checker"
+                    "docker.io/paketobuildpacks/health-checker"
             )
     environment =
             mapOf(
