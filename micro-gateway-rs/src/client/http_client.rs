@@ -116,16 +116,7 @@ async fn parse_response<T>(response: Response<Bytes>) -> Result<T, BoxError>
 where
     T: DeserializeOwned,
 {
-    let status = response.status();
     let body = response.into_body();
-
-    // Check if status is success (2xx range)
-    if !status.is_success() {
-        return Err(Box::new(ClientError::Api(format!(
-            "Request failed with status: {}",
-            status
-        ))));
-    }
 
     // Try to deserialize the response body
     Ok(serde_json::from_reader(body.reader())

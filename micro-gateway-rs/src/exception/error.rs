@@ -52,28 +52,28 @@ impl From<ClientError> for HandlerError {
                 log::error!("ClientError::Network:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
-                    message: format!("网络错误: {}", msg),
+                    message: msg,
                 }
             }
             ClientError::Serialization(msg) => {
                 log::error!("ClientError::Serialization:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
-                    message: format!("序列化错误: {}", msg),
+                    message: msg,
                 }
             }
             ClientError::Request(msg) => {
                 log::error!("ClientError::Request:{}", msg);
                 HandlerError {
                     status: StatusCode::BAD_GATEWAY,
-                    message: format!("请求错误: {}", msg),
+                    message: msg,
                 }
             }
             ClientError::Response(msg) => {
                 log::error!("ClientError::Response:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
-                    message: format!("响应错误: {}", msg),
+                    message: msg,
                 }
             }
             ClientError::Status(code, msg) => {
@@ -87,14 +87,7 @@ impl From<ClientError> for HandlerError {
                 log::error!("ClientError::Deserialize:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
-                    message: format!("反序列化错误: {}", msg),
-                }
-            }
-            ClientError::Api(msg) => {
-                log::error!("ClientError::Api:{}", msg);
-                HandlerError {
-                    status: StatusCode::INTERNAL_SERVER_ERROR,
-                    message: format!("API错误: {}", msg),
+                    message: msg,
                 }
             }
         }
@@ -109,7 +102,7 @@ impl From<AuthError> for HandlerError {
                 log::error!("AuthError::MissingConfig:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
-                    message: format!("配置缺失: {}", msg),
+                    message: msg,
                 }
             }
             AuthError::InvalidUrl(msg) => {
@@ -123,7 +116,7 @@ impl From<AuthError> for HandlerError {
                 log::error!("AuthError::RequestFailed:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
-                    message: format!("请求失败: {}", msg),
+                    message: msg,
                 }
             }
             AuthError::Unauthorized(msg) => {
@@ -131,13 +124,6 @@ impl From<AuthError> for HandlerError {
                 HandlerError {
                     status: StatusCode::UNAUTHORIZED,
                     message: format!("未授权: {}", msg),
-                }
-            }
-            AuthError::Forbidden(msg) => {
-                log::error!("AuthError::Forbidden:{}", msg);
-                HandlerError {
-                    status: StatusCode::FORBIDDEN,
-                    message: format!("禁止访问: {}", msg),
                 }
             }
         }
@@ -148,7 +134,6 @@ impl From<AuthError> for HandlerError {
 pub enum AuthError {
     RequestFailed(String),
     Unauthorized(String),
-    Forbidden(String),
     MissingConfig(String),
     InvalidUrl(String),
 }
@@ -160,7 +145,6 @@ impl Display for AuthError {
         match self {
             AuthError::RequestFailed(msg) => write!(f, "RequestFailed error: {}", msg),
             AuthError::Unauthorized(msg) => write!(f, "Unauthorized error: {}", msg),
-            AuthError::Forbidden(msg) => write!(f, "Forbidden error: {}", msg),
             AuthError::MissingConfig(msg) => write!(f, "MissingConfig error: {}", msg),
             AuthError::InvalidUrl(msg) => write!(f, "InvalidUrl error: {}", msg),
         }
@@ -172,7 +156,6 @@ impl AuthError {
         match self {
             AuthError::RequestFailed(msg) => msg,
             AuthError::Unauthorized(msg) => msg,
-            AuthError::Forbidden(msg) => msg,
             AuthError::MissingConfig(msg) => msg,
             AuthError::InvalidUrl(msg) => msg,
         }
@@ -189,7 +172,6 @@ pub enum ClientError {
     /// Add status code for HTTP errors
     Status(u16, String),
     Deserialize(String),
-    Api(String),
 }
 
 impl Error for ClientError {}
@@ -202,9 +184,8 @@ impl Display for ClientError {
             ClientError::Network(msg) => write!(f, "Network error: {}", msg),
             ClientError::Serialization(msg) => write!(f, "Serialization error: {}", msg),
             ClientError::Request(msg) => write!(f, "Request error: {}", msg),
-            ClientError::Status(code, msg) => write!(f, "HTTP error {}: {}", code, msg),
+            ClientError::Status(_, msg) => write!(f, "{}", msg),
             ClientError::Deserialize(msg) => write!(f, "Deserialize error: {}", msg),
-            ClientError::Api(msg) => write!(f, "Api error: {}", msg),
             ClientError::Response(msg) => write!(f, "Response error: {}", msg),
         }
     }

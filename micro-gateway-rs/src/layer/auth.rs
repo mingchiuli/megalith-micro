@@ -63,7 +63,7 @@ async fn auth(
     match resp {
         Ok(resp) => match resp.code() {
             200 => Ok(resp.into_data()),
-            e => Err(AuthError::Unauthorized(e.to_string())),
+            _ => Err(AuthError::Unauthorized("鉴权失败".to_string())),
         },
         Err(e) => Err(AuthError::RequestFailed(e.to_string())),
     }
