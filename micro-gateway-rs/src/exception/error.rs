@@ -151,17 +151,6 @@ impl Display for AuthError {
     }
 }
 
-impl AuthError {
-    pub fn msg(self) -> String {
-        match self {
-            AuthError::RequestFailed(msg) => msg,
-            AuthError::Unauthorized(msg) => msg,
-            AuthError::MissingConfig(msg) => msg,
-            AuthError::InvalidUrl(msg) => msg,
-        }
-    }
-}
-
 /// Client error types
 #[derive(Debug)]
 pub enum ClientError {
