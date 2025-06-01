@@ -13,6 +13,7 @@ import wiki.chiu.micro.common.rpc.config.AuthHttpInterceptor;
 import wiki.chiu.micro.common.rpc.config.RpcClientFactory;
 
 import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.concurrent.Executors;
 
 @Configuration
@@ -50,23 +51,23 @@ public class HttpClientConfig {
 
     @Bean
     UserHttpService userHttpService() {
-        return RpcClientFactory.createHttpService(UserHttpService.class, userUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null);
+        return RpcClientFactory.createHttpService(UserHttpService.class, userUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null, Duration.ofSeconds(10));
     }
 
     @Bean
     OssHttpService ossHttpService() {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.HOST, bucketName + "." + ep);
-        return RpcClientFactory.createHttpService(OssHttpService.class, baseUrl, httpClient(), null, DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, httpHeaders);
+        return RpcClientFactory.createHttpService(OssHttpService.class, baseUrl, httpClient(), null, DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, httpHeaders, Duration.ofSeconds(10));
     }
 
     @Bean
     AuthHttpService authHttpService() {
-        return RpcClientFactory.createHttpService(AuthHttpService.class, authUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null);
+        return RpcClientFactory.createHttpService(AuthHttpService.class, authUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null, Duration.ofSeconds(10));
     }
 
     @Bean
     SearchHttpService searchHttpService() {
-        return RpcClientFactory.createHttpService(SearchHttpService.class, searchUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null);
+        return RpcClientFactory.createHttpService(SearchHttpService.class, searchUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null, Duration.ofSeconds(10));
     }
 }

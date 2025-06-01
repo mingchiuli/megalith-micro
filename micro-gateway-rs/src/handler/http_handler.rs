@@ -14,7 +14,7 @@ use crate::{
     utils::http_util::{self},
 };
 
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
 pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, HandlerError> {
     let uri = req.uri();

@@ -11,6 +11,7 @@ import wiki.chiu.micro.common.rpc.config.AuthHttpInterceptor;
 import wiki.chiu.micro.common.rpc.config.RpcClientFactory;
 
 import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.concurrent.Executors;
 
 @Configuration
@@ -42,13 +43,13 @@ public class HttpClientConfig {
 
     @Bean
     AuthHttpService authHttpService() {
-        return RpcClientFactory.createHttpService(AuthHttpService.class, authUrl, httpClient(), httpInterceptor(), null, null);
+        return RpcClientFactory.createHttpService(AuthHttpService.class, authUrl, httpClient(), httpInterceptor(), null, null, Duration.ofSeconds(10));
     }
 
     @Bean
     OssHttpService ossHttpService() {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.HOST, bucketName + "." + ep);
-        return RpcClientFactory.createHttpService(OssHttpService.class, baseUrl, httpClient(), null, DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, httpHeaders);
+        return RpcClientFactory.createHttpService(OssHttpService.class, baseUrl, httpClient(), null, DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, httpHeaders, Duration.ofSeconds(20));
     }
 }
