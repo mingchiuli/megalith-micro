@@ -12,6 +12,7 @@ import wiki.chiu.micro.common.rpc.config.AuthHttpInterceptor;
 import wiki.chiu.micro.common.rpc.config.RpcClientFactory;
 
 import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.concurrent.Executors;
 
 @Configuration
@@ -37,21 +38,21 @@ public class HttpClientConfig {
 
     @Bean
     SmsHttpService smsHttpService() {
-        return RpcClientFactory.createHttpService(SmsHttpService.class, baseUrl, httpClient(), null, DefaultUriBuilderFactory.EncodingMode.NONE, null);
+        return RpcClientFactory.createHttpService(SmsHttpService.class, baseUrl, httpClient(), null, DefaultUriBuilderFactory.EncodingMode.NONE, null, Duration.ofSeconds(20));
     }
 
     @Bean
     UserHttpService userHttpService() {
-        return RpcClientFactory.createHttpService(UserHttpService.class, userUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null);
+        return RpcClientFactory.createHttpService(UserHttpService.class, userUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null, Duration.ofSeconds(10));
     }
 
     @Bean
     MenuHttpService menuHttpService() {
-        return RpcClientFactory.createHttpService(MenuHttpService.class, userUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null);
+        return RpcClientFactory.createHttpService(MenuHttpService.class, userUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null, Duration.ofSeconds(10));
     }
 
     @Bean
     AuthorityHttpService authorityHttpService() {
-        return RpcClientFactory.createHttpService(AuthorityHttpService.class, userUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null);
+        return RpcClientFactory.createHttpService(AuthorityHttpService.class, userUrl, httpClient(), httpInterceptor(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null, Duration.ofSeconds(10));
     }
 }

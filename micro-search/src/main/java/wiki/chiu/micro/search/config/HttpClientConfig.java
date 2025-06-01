@@ -9,6 +9,7 @@ import wiki.chiu.micro.common.rpc.config.AuthHttpInterceptor;
 import wiki.chiu.micro.common.rpc.config.RpcClientFactory;
 
 import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.concurrent.Executors;
 
 @Configuration
@@ -34,11 +35,11 @@ public class HttpClientConfig {
 
     @Bean
     AuthHttpService authHttpService() {
-        return RpcClientFactory.createHttpService(AuthHttpService.class, authUrl, httpClient(), httpInterceptor(), null, null);
+        return RpcClientFactory.createHttpService(AuthHttpService.class, authUrl, httpClient(), httpInterceptor(), null, null, Duration.ofSeconds(10));
     }
 
     @Bean
     BlogHttpService blogHttpService() {
-        return RpcClientFactory.createHttpService(BlogHttpService.class, blogUrl, httpClient(), httpInterceptor(), null, null);
+        return RpcClientFactory.createHttpService(BlogHttpService.class, blogUrl, httpClient(), httpInterceptor(), null, null, Duration.ofSeconds(10));
     }
 }
