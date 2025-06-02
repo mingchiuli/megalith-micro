@@ -1,5 +1,5 @@
 import { httpClient } from '@/http/axios'
-import { DOWNLOAD_DATA, GET, POST } from '@/http/http'
+import { DOWNLOAD, GET, POST } from '@/http/http'
 import router from '@/router'
 import { buttonStore, loginStateStore, menuStore, tabStore, authMarkStore } from '@/stores/store'
 import {
@@ -182,7 +182,7 @@ export const downloadSQLData = async (
   percentage: Ref<number>,
   percentageShow: Ref<boolean>
 ) => {
-  const resp= await DOWNLOAD_DATA(url, percentage, percentageShow)
+  const resp= await DOWNLOAD(url, percentage, percentageShow)
   const blob = new Blob([String(resp?.data)], {
     type: 'text/plain'
   })

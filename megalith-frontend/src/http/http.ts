@@ -22,7 +22,7 @@ const handleProgress = (
   percentage.value = Math.floor((loaded * 100) / total!)
 }
 
-const DOWNLOAD_DATA = async (
+const DOWNLOAD = async (
   url: string,
   percentage: Ref<number>,
   percentageShow: Ref<boolean>
@@ -78,4 +78,4 @@ const UPLOAD = async (
   return Promise.resolve(url)
 }
 
-export { GET, POST, DOWNLOAD_DATA, UPLOAD }
+export { GET, POST, DOWNLOAD, UPLOAD }
