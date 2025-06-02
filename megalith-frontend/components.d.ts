@@ -75,7 +75,7 @@ declare module 'vue' {
     SideMenuItem: typeof import('./src/components/sys/SideMenuItem.vue')['default']
     StatItem: typeof import('./src/components/StatItem.vue')['default']
   }
-  export interface ComponentCustomProperties {
+  export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']
   }
 }
