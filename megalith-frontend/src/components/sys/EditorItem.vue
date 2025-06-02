@@ -170,7 +170,11 @@ useEditor((root) => {
               // apply your template
               .applyTemplate(content.value!, (remote) => {
                 // apply your template logic here
-                return !remote.textContent
+                const b = remote.textContent
+                if (b) {
+                  content.value = remote.textContent
+                }
+                return !b
               })
               // don't forget connect
               .connect()

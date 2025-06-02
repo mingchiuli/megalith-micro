@@ -207,6 +207,25 @@ export interface RefreshStruct {
   accessToken: string
 }
 
+export interface AiContentResp {
+  model: string
+  response: string
+}
+
+export interface AiContent {
+  title: string
+  description: string
+}
+
+export interface AiModelsResp {
+  models: AiModel[]
+}
+
+export interface AiModel {
+  name: string
+  model: string
+}
+
 export interface Hot {
   id: number
   title: string

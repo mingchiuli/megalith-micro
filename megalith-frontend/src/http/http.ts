@@ -1,21 +1,21 @@
-import { longHttp, http } from '@/http/axios'
+import { longHttpClient, httpClient } from '@/http/axios'
 import type { Data } from '@/type/entity'
 import type { AxiosProgressEvent, AxiosResponse } from 'axios'
 import { type Ref } from 'vue'
 
 const GET = async <T>(url: string): Promise<T> => {
-  const response = await http.get<never, AxiosResponse<Data<T>>>(url)
+  const response = await httpClient.get<never, AxiosResponse<Data<T>>>(url)
   return response.data.data
 }
 
 const POST = async <T>(url: string, params: unknown): Promise<T> => {
-  const response = await http.post<never, AxiosResponse<Data<T>>>(url, params)
+  const response = await httpClient.post<never, AxiosResponse<Data<T>>>(url, params)
   return response.data.data
 }
 
 const handleProgress = (
   percentage: Ref<number>,
-  percentageShow: Ref<boolean>,
+  _: Ref<boolean>,
   progressEvent: AxiosProgressEvent
 ) => {
   const { loaded, total } = progressEvent
@@ -30,7 +30,7 @@ const DOWNLOAD_DATA = async (
   let data: AxiosResponse<string> | null = null
   percentageShow.value = true
   percentage.value = 0
-  await longHttp
+  await longHttpClient
     .get(url, {
       onDownloadProgress: (progressEvent) =>
         handleProgress(percentage, percentageShow, progressEvent)
@@ -59,7 +59,7 @@ const UPLOAD = async (
   percentageShow.value = true
   percentage.value = 0
   let url = ''
-  await longHttp
+  await longHttpClient
     .post(dest, formData, {
       onUploadProgress: (progressEvent) => handleProgress(percentage, percentageShow, progressEvent)
     })

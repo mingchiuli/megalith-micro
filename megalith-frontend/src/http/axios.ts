@@ -4,13 +4,18 @@ import { checkAccessToken, clearLoginState } from '@/utils/tools'
 import router from '@/router'
 import { loginStateStore } from '@/stores/store'
 
-const http = axios.create({
+const httpClient = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
   timeout: 10000
 })
 
-const longHttp = axios.create({
+const longHttpClient = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL
+})
+
+const aiHttpClient = axios.create({
+  baseURL: 'http://localhost:11434',
+  timeout: 60000
 })
 
 // 请求拦截器
@@ -56,9 +61,9 @@ const errorInterceptor = (error: AxiosError<Data<unknown>>) => {
 }
 
 // 应用拦截器
-http.interceptors.request.use(requestInterceptor)
-http.interceptors.response.use(responseInterceptor, errorInterceptor)
-longHttp.interceptors.request.use(requestInterceptor)
-longHttp.interceptors.response.use(responseInterceptor, errorInterceptor)
+httpClient.interceptors.request.use(requestInterceptor)
+httpClient.interceptors.response.use(responseInterceptor, errorInterceptor)
+longHttpClient.interceptors.request.use(requestInterceptor)
+longHttpClient.interceptors.response.use(responseInterceptor, errorInterceptor)
 
-export { http, longHttp }
+export { httpClient, longHttpClient, aiHttpClient }

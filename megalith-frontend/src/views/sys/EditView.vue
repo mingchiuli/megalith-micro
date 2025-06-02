@@ -21,7 +21,11 @@ import {
   SensitiveType,
   type SensitiveExhibit,
   Colors,
-  type BlogEdit
+  type BlogEdit,
+  type AiContentResp,
+  type AiModelsResp,
+  type AiContent,
+  type AiModel
 } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
@@ -29,10 +33,14 @@ import { blogsStore } from '@/stores/store'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 import { MilkdownProvider } from '@milkdown/vue'
-import 'element-plus/es/components/input/style/css'//不明原因样式缺失
+import { aiHttpClient } from '@/http/axios'
+import 'element-plus/es/components/input/style/css' //不明原因样式缺失
+
+const aiModels = ref<AiModel[]>([])
+const aiModel = ref('')
+const aiLoading = ref(false)
 const route = useRoute()
 const blogId = route.query.id as string | undefined
-
 const form: EditForm = reactive({
   id: 0,
   userId: 0,
@@ -79,7 +87,6 @@ const fileList = computed(() => {
 const titleRef = useTemplateRef<InstanceType<typeof ElInput>>('titleRef')
 const descRef = useTemplateRef<InstanceType<typeof ElInput>>('descRef')
 const editorRef = useTemplateRef<InstanceType<typeof CustomEditorItem>>('editorRef')
-
 
 //中文输入法的问题
 const uploadPercentage = ref(0)
@@ -278,8 +285,62 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   form.owner = data.owner
 }
 
+const loadAiModel = async () => {
+  try {
+    const response = await aiHttpClient.get('/api/tags')
+    const result: AiModelsResp = response.data
+    aiModels.value = result.models
+  } catch (e) {
+    console.warn(e)
+  }
+}
+
+const aiGenerate = async () => {
+  try {
+    // 检查是否有内容
+    if (!form.content || !aiModel.value) {
+      return
+    }
+
+    // 设置按钮加载状态
+    const prompt = `作为一个文本处理助手，请帮我完成以下任务：
+    基于给定的文章内容，生成一个标题（不超过10字）和摘要（不超过50字）。
+    严格要求：
+    1. 直接输出JSON格式
+    2. 不要包含任何markdown标记或代码块标识
+    3. 不要有任何其他额外的文字说明
+    4. 只输出以下格式的内容（注意大括号前后无其他字符）：
+    {"title": "标题", "description": "摘要"}
+
+    示例输出：
+    {"title": "美好的一天", "description": "今天天气晴朗，心情愉快。"}
+
+    文章内容：${form.content}`
+    aiLoading.value = true
+    const response = await aiHttpClient.post('/api/generate', {
+      model: aiModel.value, // 可用的模型
+      prompt,
+      stream: false
+    })
+
+    // 解析 AI 返回的结果
+    const result: AiContentResp = response.data
+    const aiContent: AiContent = JSON.parse(result.response)
+
+    // 更新表单数据
+    if (aiContent.title && aiContent.description) {
+      form.title = aiContent.title
+      form.description = aiContent.description
+    }
+  } finally {
+    // 无论成功与否，都关闭加载状态
+    aiLoading.value = false
+  }
+}
+
 ;(async () => {
   await loadEditContent(form, blogId)
+  await loadAiModel()
 })()
 </script>
 
@@ -298,16 +359,36 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
       </el-form-item>
 
       <el-form-item class="desc" prop="description">
-        <el-input
-          ref="descRef"
-          @select="handleDescSelect"
-          autosize
-          type="textarea"
-          v-model="form.description"
-          placeholder="摘要"
-          maxlength="60"
-          :disabled="!form.owner"
-        />
+        <div class="desc-input-group">
+          <el-input
+            ref="descRef"
+            @select="handleDescSelect"
+            autosize
+            type="textarea"
+            v-model="form.description"
+            placeholder="摘要"
+            maxlength="60"
+            :disabled="!form.owner"
+          />
+
+          <el-select v-model="aiModel" placeholder="模型" style="width: 140px">
+            <el-option
+              v-for="item in aiModels"
+              :key="item.name"
+              :label="item.name"
+              :value="item.model"
+            />
+          </el-select>
+
+          <el-button
+            color="#626aef"
+            size="small"
+            @click="aiGenerate"
+            :loading="aiLoading"
+            :disabled="aiLoading || !form.content || !aiModel"
+            >✨AI</el-button
+          >
+        </div>
       </el-form-item>
 
       <el-form-item class="status" prop="status">
@@ -399,7 +480,20 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 
 .desc {
   margin-top: 25px;
-  width: 300px;
+  width: 500px;
+}
+
+.desc-input-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  max-width: 800px; /* 限制最大宽度 */
+}
+
+.desc-input-group .el-input {
+  flex: 1;
+  min-width: 350px; /* 设置最小宽度确保输入框足够大 */
 }
 
 .progress {
