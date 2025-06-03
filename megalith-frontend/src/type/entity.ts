@@ -300,7 +300,8 @@ export enum ButtonAuth {
   SYS_BLOG_PASSWORD = 'system-blogs-password',
   SYS_DELETE_RESUME = 'system-delete-resume',
   SYS_EDIT_COMMIT = 'system-edit-submit',
-
+  SYS_EDIT_AI = 'system-edit-ai',
+  
   SYS_AUTHORITY_CREATE = 'system-authorities-create',
   SYS_AUTHORITY_BATCH_DEL = 'system-authorities-batch-del',
   SYS_AUTHORITY_DOWNLOAD = 'system-authorities-download',

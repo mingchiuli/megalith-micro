@@ -381,6 +381,7 @@ const aiGenerate = async () => {
           </el-select>
 
           <el-button
+            v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_AI)"
             color="#626aef"
             size="small"
             @click="aiGenerate"
