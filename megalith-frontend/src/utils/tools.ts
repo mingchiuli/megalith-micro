@@ -72,7 +72,8 @@ export const getJWTStruct = (): JWTStruct => {
   return JSON.parse(Base64.fromBase64(tokenArray[1]))
 }
 
-export const checkAccessToken = async (accessToken: string): Promise<string> => {
+export const checkAccessToken = async (): Promise<string> => {
+  const accessToken = localStorage.getItem('accessToken')!
   const tokenArray = accessToken.split('.')
   const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
   const now = Math.floor(new Date().getTime() / 1000)

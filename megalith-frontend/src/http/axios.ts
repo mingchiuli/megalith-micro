@@ -22,8 +22,7 @@ const aiHttpClient = axios.create({
 const requestInterceptor = async (config: InternalAxiosRequestConfig) => {
   const url = config.url
   if (url !== '/token/refresh' && loginStateStore().login) {
-    const accessToken = localStorage.getItem('accessToken')
-    const token = await checkAccessToken(accessToken!)
+    const token = await checkAccessToken()
     config.headers.Authorization = token
   }
   return config
