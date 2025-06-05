@@ -212,7 +212,7 @@ onMounted(() => {
   }
 })
 
-setTimeout(async () => {
+const checkTokenTask = setInterval(async () => {
   await checkAccessToken()
 }, 1000)
 
@@ -223,6 +223,9 @@ onUnmounted(async () => {
 
   if (indexeddbProvider) {
     await indexeddbProvider.destroy()
+  }
+  if (checkTokenTask) {
+    clearInterval(checkTokenTask)
   }
 })
 
