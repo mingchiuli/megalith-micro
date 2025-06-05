@@ -214,6 +214,9 @@ onMounted(() => {
 
 const checkTokenTask = setInterval(async () => {
   await checkAccessToken()
+  websocketProvider!.params = {
+    token: localStorage.getItem('accessToken')!
+  }
 }, 1000)
 
 onUnmounted(async () => {
