@@ -130,11 +130,8 @@ useEditor((root) => {
         roomId,
         doc,
         {
-          get params() {
-            // 每次访问 params 时获取最新的 token
-            return {
-              token: localStorage.getItem('accessToken')!
-            }
+          params: {
+            token: localStorage.getItem('accessToken')!
           },
           connect: true,
           resyncInterval: 3000,
@@ -217,6 +214,11 @@ onMounted(() => {
 
 const checkTokenTask = setInterval(async () => {
   await checkAccessToken()
+  if (websocketProvider) {
+    websocketProvider.params = {
+      token: localStorage.getItem('accessToken')!
+    }
+  }
 }, 1000)
 
 onUnmounted(async () => {
