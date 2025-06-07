@@ -14,8 +14,7 @@ const longHttpClient = axios.create({
 })
 
 const aiHttpClient = axios.create({
-  baseURL: 'http://localhost:11434',
-  timeout: 60000
+  baseURL: 'http://localhost:11434'
 })
 
 // 请求拦截器
