@@ -303,19 +303,30 @@ const aiGenerate = async () => {
     }
 
     // 设置按钮加载状态
-    const prompt = `作为一个文本处理助手，请帮我完成以下任务：
-    基于给定的文章内容，生成一个标题（不超过10字）和摘要（不超过50字）。
-    严格要求：
-    1. 直接输出JSON格式
-    2. 不要包含任何markdown标记或代码块标识
-    3. 不要有任何其他额外的文字说明
-    4. 只输出以下格式的内容（注意大括号前后无其他字符）：
-    {"title": "标题", "description": "摘要"}
-
+    const prompt = `请根据输入的文章内容生成标题和摘要：
+    
+    输入要求：
+    - content: 必填，字符串类型
+    
+    输出要求：
+    - 格式：严格的JSON字符串
+    - title: 不超过10字的标题
+    - description: 不超过50字的摘要
+    - 不含任何额外字符和格式标记
+    
     示例输出：
     {"title": "美好的一天", "description": "今天天气晴朗，心情愉快。"}
+    
+    禁止输出：
+    \`\`\`为开头的代码块内容
+    
+    注意事项：
+    - 返回内容必须是可直接解析的JSON
+    - 不要包含markdown、代码块等任何格式标记
+    - JSON前后不能有空格或其他字符
+    
+    ${form.content}`
 
-    文章内容：${form.content}`
     aiLoading.value = true
     const response = await aiHttpClient.post('/api/generate', {
       model: aiModel.value, // 可用的模型
