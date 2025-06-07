@@ -322,6 +322,8 @@ const aiGenerate = async () => {
     - 不要包含markdown、代码块等任何格式标记
     - JSON前后不能有空格或其他字符
     
+    以下为内容：
+    
     ${form.content}`
 
     aiLoading.value = true
