@@ -31,7 +31,7 @@ import { useRoute } from 'vue-router'
 import router from '@/router'
 import { blogsStore } from '@/stores/store'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
+import { checkButtonAuth, getButtonType, getButtonTitle, cleanJsonResponse } from '@/utils/tools'
 import { MilkdownProvider } from '@milkdown/vue'
 import { aiHttpClient } from '@/http/axios'
 import 'element-plus/es/components/input/style/css' //不明原因样式缺失
@@ -341,7 +341,7 @@ const aiGenerate = async () => {
     
     const result: AiContentResp = response.data
     
-    const aiContent: AiContent = JSON.parse(result.response)
+    const aiContent: AiContent = JSON.parse(cleanJsonResponse(result.response))
 
     // 更新表单数据
     if (aiContent.title && aiContent.description) {

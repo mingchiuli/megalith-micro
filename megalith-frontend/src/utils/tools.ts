@@ -209,3 +209,29 @@ export const findMenuByPath = (menus: Menu[], path: string): Menu | Tab | undefi
     }
   }
 }
+
+export const cleanJsonResponse = (response: string): string => {
+  // 移除可能的代码块标记
+  let cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '')
+  
+  // 移除开头和结尾的空白字符
+  cleaned = cleaned.trim()
+  
+  // 如果第一个字符不是 {，尝试找到第一个 { 开始的位置
+  if (!cleaned.startsWith('{')) {
+    const start = cleaned.indexOf('{')
+    if (start !== -1) {
+      cleaned = cleaned.slice(start)
+    }
+  }
+  
+  // 如果最后一个字符不是 }，尝试找到最后一个 } 结束的位置
+  if (!cleaned.endsWith('}')) {
+    const end = cleaned.lastIndexOf('}')
+    if (end !== -1) {
+      cleaned = cleaned.slice(0, end + 1)
+    }
+  }
+  
+  return cleaned
+}
