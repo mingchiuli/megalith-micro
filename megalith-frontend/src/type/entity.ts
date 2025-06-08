@@ -210,6 +210,7 @@ export interface RefreshStruct {
 export interface AiContentResp {
   model: string
   response: string
+  context: number[]
 }
 
 export interface AiContent {

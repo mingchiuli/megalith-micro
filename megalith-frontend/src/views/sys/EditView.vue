@@ -303,10 +303,20 @@ const aiGenerate = async () => {
     }
 
     // 设置按钮加载状态
-    const prompt = `请根据输入的文章内容生成标题和摘要：
+    const prePrompt = `请仔细阅读以下文章：\n${form.content}`
+
+    aiLoading.value = true
+    const preResponse = await aiHttpClient.post('/api/generate', {
+      model: aiModel.value, // 可用的模型
+      prompt: prePrompt,
+      stream: false
+    })
+
+    // 解析 AI 返回的结果
+    const preResult: AiContentResp = preResponse.data
+    const context = preResult.context
     
-    输入要求：
-    - content: 必填，字符串类型
+    const prompt = `请根据文章内容生成标题和摘要：
     
     输出要求：
     - 格式：严格的JSON字符串
@@ -320,21 +330,17 @@ const aiGenerate = async () => {
     注意事项：
     - 返回内容必须是可直接解析的JSON
     - 不要包含markdown、代码块等任何格式标记
-    - JSON前后不能有空格或其他字符
+    - JSON前后不能有空格或其他字符`
     
-    以下为内容：
-    
-    ${form.content}`
-
-    aiLoading.value = true
     const response = await aiHttpClient.post('/api/generate', {
       model: aiModel.value, // 可用的模型
       prompt,
-      stream: false
+      stream: false,
+      context
     })
-
-    // 解析 AI 返回的结果
+    
     const result: AiContentResp = response.data
+    
     const aiContent: AiContent = JSON.parse(result.response)
 
     // 更新表单数据
