@@ -17,10 +17,10 @@ import { Crepe } from '@milkdown/crepe'
 import { Doc } from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
 import { IndexeddbPersistence } from 'y-indexeddb'
-import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
+import { collab, CollabService, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
-import { onUnmounted } from 'vue'
+import { onUnmounted, watch } from 'vue'
 import { checkAccessToken } from '@/utils/tools'
 
 const route = useRoute()
@@ -97,6 +97,22 @@ const onUploadImg = async (file: File) => {
 
 let websocketProvider: WebsocketProvider | undefined
 let indexeddbProvider: IndexeddbPersistence | undefined
+let collabService: CollabService | undefined // 用于存储 collabService 实例
+
+// 创建一个标志来追踪是否已经执行过同步
+const hasSynced = ref(false)
+// 创建一个处理同步的函数
+const handleSync = (collabService: CollabService) => {
+  if (hasSynced.value || !content.value) return
+
+  collabService
+    .applyTemplate(content.value, (remote) => {
+      return !remote.toString()
+    })
+    .connect()
+
+  hasSynced.value = true
+}
 
 useEditor((root) => {
   const crepe = new Crepe({
@@ -158,7 +174,7 @@ useEditor((root) => {
       })
 
       editor.action((ctx) => {
-        const collabService = ctx.get(collabServiceCtx)
+        collabService = ctx.get(collabServiceCtx)
 
         collabService
           // bind doc and awareness
@@ -166,19 +182,8 @@ useEditor((root) => {
           .setAwareness(websocketProvider!.awareness)
 
         websocketProvider!.once('sync', async (isSynced: boolean) => {
-          if (isSynced) {
-            collabService
-              // apply your template
-              .applyTemplate(content.value!, (remote) => {
-                // apply your template logic here
-                const b = remote.textContent
-                if (b) {
-                  content.value = remote.textContent
-                }
-                return !b
-              })
-              // don't forget connect
-              .connect()
+          if (isSynced && content.value) {
+            handleSync(collabService!)
           }
         })
       })
@@ -192,6 +197,18 @@ const clearLocalData = async () => {
     await indexeddbProvider.clearData()
   }
 }
+
+// 监听 content 的变化
+watch(
+  () => content.value,
+  (newValue) => {
+    // 当 content 有值，并且 websocketProvider 已经同步完成时执行
+    if (newValue && websocketProvider && !hasSynced.value && collabService) {
+      handleSync(collabService!)
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
   document.getElementById('milk')!.onmouseup = () => {
