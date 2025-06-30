@@ -98,7 +98,7 @@ const onUploadImg = async (file: File) => {
 let websocketProvider: WebsocketProvider | undefined
 let indexeddbProvider: IndexeddbPersistence | undefined
 let collabService: CollabService | undefined // 用于存储 collabService 实例
-
+let crepe: Crepe | undefined // 用于存储 crepe 实例
 // 创建一个标志来追踪是否已经执行过同步
 const hasSynced = ref(false)
 // 创建一个处理同步的函数
@@ -111,11 +111,15 @@ const handleSync = (collabService: CollabService) => {
     })
     .connect()
 
+  const md = crepe!.getMarkdown()
+  if (md) {
+    content.value = md
+  }
   hasSynced.value = true
 }
 
 useEditor((root) => {
-  const crepe = new Crepe({
+  crepe = new Crepe({
     root,
     featureConfigs: {
       [Crepe.Feature.ImageBlock]: {
