@@ -108,7 +108,7 @@ const handleSync = (collabService: CollabService) => {
   console.log('handleSync 123:{}', content.value)
   collabService
     .applyTemplate(content.value, (remote) => {
-      console.log('remote:{}', remote)
+      console.log('remote:{}', remote.toString())
       return !remote.toString()
     })
     .connect()
