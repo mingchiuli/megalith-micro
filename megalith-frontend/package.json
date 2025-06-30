@@ -13,9 +13,9 @@
     "lint": "eslint \"src/**/*.{ts,vue}\""
   },
   "dependencies": {
-    "@milkdown/crepe": "^7.14.0",
+    "@milkdown/crepe": "^7.15.0",
     "@milkdown/plugin-collab": "^7.15.0",
-    "@milkdown/vue": "^7.14.0",
+    "@milkdown/vue": "^7.15.0",
     "@types/markdown-it": "^14.1.2",
     "@vavt/v3-extension": "^3.0.0",
     "axios": "^1.10.0",
