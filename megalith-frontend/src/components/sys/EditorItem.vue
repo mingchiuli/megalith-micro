@@ -104,11 +104,9 @@ const hasSynced = ref(false)
 // 创建一个处理同步的函数
 const handleSync = (collabService: CollabService) => {
   if (hasSynced.value || !content.value) return
-
-  console.log('handleSync 123:{}', content.value)
+  
   collabService
     .applyTemplate(content.value, (remote) => {
-      console.log('remote:{}', remote.textContent)
       return !remote.textContent
     })
     .connect()
