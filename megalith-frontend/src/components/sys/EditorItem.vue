@@ -111,10 +111,7 @@ const handleSync = (collabService: CollabService) => {
     })
     .connect()
 
-  const md = crepe!.getMarkdown()
-  if (md) {
-    content.value = md
-  }
+  content.value = crepe!.getMarkdown()
   hasSynced.value = true
 }
 
