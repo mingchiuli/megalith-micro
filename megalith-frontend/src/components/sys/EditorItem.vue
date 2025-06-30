@@ -105,8 +105,10 @@ const hasSynced = ref(false)
 const handleSync = (collabService: CollabService) => {
   if (hasSynced.value || !content.value) return
 
+  console.log('handleSync 123:{}', content.value)
   collabService
     .applyTemplate(content.value, (remote) => {
+      console.log('remote:{}', remote)
       return !remote.toString()
     })
     .connect()
