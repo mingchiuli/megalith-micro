@@ -15,6 +15,8 @@ import { useRoute } from 'vue-router'
 import { clearLoginState, submitLogin } from '@/utils/tools'
 import { Colors } from '@/type/entity'
 
+const saveLoading = ref(false)
+
 type Form = {
   username: string
   nickname: string
@@ -133,14 +135,18 @@ const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid) => {
     if (valid) {
-      await POST<null>('/sys/user/register/save', form)
-      ElNotification({
-        title: '操作成功',
-        message: '编辑成功',
-        type: 'success'
-      })
-      clearLoginState()
-      await submitLogin(form.username, form.password)
+      try {
+        await POST<null>('/sys/user/register/save', form)
+        ElNotification({
+          title: '操作成功',
+          message: '编辑成功',
+          type: 'success'
+        })
+        clearLoginState()
+        await submitLogin(form.username, form.password)
+      } finally {
+        saveLoading.value = false
+      }
     }
   })
 }
@@ -214,7 +220,13 @@ const handleRemove = async () => {
       </el-form-item>
 
       <div class="submit-button">
-        <el-button type="primary" @click="submitForm(formRef!)">Submit</el-button>
+        <el-button
+          type="primary"
+          :loading="saveLoading"
+          :disabled="saveLoading"
+          @click="submitForm(formRef!)"
+          >Submit</el-button
+        >
       </div>
     </el-form>
   </div>

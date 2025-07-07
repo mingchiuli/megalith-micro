@@ -11,10 +11,20 @@ const buttonMiles = ref(120)
 const radioSelect = ref('Password')
 const radioSMS = ref(false)
 const radioEmail = ref(false)
+const loginLoading = ref(false)
 const loginInfo = reactive<LoginStruct>({
   username: '',
   password: ''
 })
+
+const triggerSubmitLogin = async (username: string, password: string) => {
+  try {
+    loginLoading.value = true
+    await submitLogin(username, password)
+  } finally {
+    loginLoading.value = false
+  }
+}
 
 const loginType = () => {
   switch (radioSelect.value) {
@@ -85,7 +95,11 @@ const sendCode = (via: string) => {
         />
       </div>
       <div class="dialog-footer">
-        <el-button type="primary" @click="submitLogin(loginInfo.username, loginInfo.password)"
+        <el-button
+          type="primary"
+          :loading="loginLoading"
+          :disabled="loginLoading"
+          @click="triggerSubmitLogin(loginInfo.username, loginInfo.password)"
           >登录</el-button
         >
         <el-button
