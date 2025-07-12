@@ -336,7 +336,10 @@ const aiGenerate = async () => {
       model: aiModel.value, // 可用的模型
       prompt,
       stream: false,
-      context
+      context,
+      options: {
+        echo: false
+      }
     })
     
     const result: AiContentResp = response.data
