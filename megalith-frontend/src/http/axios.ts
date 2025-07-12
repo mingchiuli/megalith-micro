@@ -1,6 +1,6 @@
 import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import type { Data } from '@/type/entity'
-import { checkAccessToken, clearLoginState } from '@/utils/tools'
+import { updateAccessToken, clearLoginState } from '@/utils/tools'
 import router from '@/router'
 import { loginStateStore } from '@/stores/store'
 
@@ -21,7 +21,7 @@ const aiHttpClient = axios.create({
 const requestInterceptor = async (config: InternalAxiosRequestConfig) => {
   const url = config.url
   if (url !== '/token/refresh' && loginStateStore().login) {
-    const token = await checkAccessToken()
+    const token = await updateAccessToken()
     config.headers.Authorization = token
   }
   return config

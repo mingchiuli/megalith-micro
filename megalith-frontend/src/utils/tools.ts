@@ -72,7 +72,7 @@ export const getJWTStruct = (): JWTStruct => {
   return JSON.parse(Base64.fromBase64(tokenArray[1]))
 }
 
-export const checkAccessToken = async (): Promise<string> => {
+export const updateAccessToken = async (): Promise<string> => {
   const accessToken = localStorage.getItem('accessToken')!
   const tokenArray = accessToken.split('.')
   const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
@@ -88,6 +88,24 @@ export const checkAccessToken = async (): Promise<string> => {
     return token
   }
   return accessToken
+}
+
+export const checkAccessToken = async (): Promise<boolean> => {
+  const accessToken = localStorage.getItem('accessToken')!
+  const tokenArray = accessToken.split('.')
+  const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
+  const now = Math.floor(new Date().getTime() / 1000)
+  //ten minutes
+  if (jwt.exp - now < 600) {
+    const refreshToken = getLocalStorageItem('refreshToken')
+    const data = await httpClient.get<never, AxiosResponse<Data<RefreshStruct>>>('/token/refresh', {
+      headers: { Authorization: refreshToken }
+    })
+    const token = data.data.data.accessToken
+    setLocalStorageItem('accessToken', token)
+    return true
+  }
+  return false
 }
 
 //document.documentElement.scrollTo cant be used, distance is float

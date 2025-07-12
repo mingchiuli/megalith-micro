@@ -1,32 +1,59 @@
 <script lang="ts" setup>
-import '@milkdown/crepe/theme/common/style.css'
-import '@milkdown/crepe/theme/frame.css'
-
 import { UPLOAD } from '@/http/http'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, onBeforeUnmount } from 'vue'
 import {
   SensitiveType,
   Status,
   type SensitiveTrans,
   type SensitiveContentItem,
-  type UserInfo
+  type UserInfo,
+  Colors
 } from '@/type/entity'
-
-import { Milkdown, useEditor } from '@milkdown/vue'
-import { Crepe } from '@milkdown/crepe'
-import { Doc } from 'yjs'
-import { WebsocketProvider } from 'y-websocket'
-import { collab, CollabService, collabServiceCtx } from '@milkdown/plugin-collab'
-import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
-import { onUnmounted, watch } from 'vue'
 import { checkAccessToken } from '@/utils/tools'
+import { createYjsExtension, yjsCompartment, cleanupYjs } from '@/config/editorConfig';
 
+import type { ExposeParam, Footers, ToolbarNames } from 'md-editor-v3'
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
 const user: UserInfo = JSON.parse(userStr)
 const blogId = route.query.id as string | undefined
 const roomId = blogId ? `${blogId}` : `init:${user.id}`
+
+const toolbars: ToolbarNames[] = [
+  'revoke',
+  'next',
+  'bold',
+  1,
+  'underline',
+  'italic',
+  '-',
+  'title',
+  'strikeThrough',
+  'sub',
+  'sup',
+  'quote',
+  'unorderedList',
+  'orderedList',
+  'task',
+  '-',
+  'codeRow',
+  'code',
+  'link',
+  'image',
+  'table',
+  'mermaid',
+  'katex',
+  '-',
+  0,
+  'pageFullscreen',
+  'fullscreen',
+  'preview',
+  'htmlPreview',
+  'catalog',
+  'github'
+]
+const footers: Footers[] = ['markdownTotal', 0, '=', 1, 'scrollSwitch']
 
 const emit = defineEmits<{
   sensitive: [payload: SensitiveTrans]
@@ -87,119 +114,27 @@ const findAllOccurrences = (text: string, pattern: string) => {
   return occurrences
 }
 
-const onUploadImg = async (file: File) => {
+const editorRef = ref<ExposeParam>()
+
+const updateEditorExtension = () => {
+  const view = editorRef.value?.getEditorView();
+  if (view) {
+    const extension = createYjsExtension(roomId);
+    view.dispatch({
+      effects: yjsCompartment.reconfigure(extension),
+    });
+  }
+}
+
+const onUploadImg = async (files: File[], callback: (urls: string[]) => void) => {
   const formdata = new FormData()
-  formdata.append('image', file)
+  formdata.append('image', files[0])
   const url = await UPLOAD('sys/blog/oss/upload', formdata, uploadPercentage, showPercentage)
-  return url
+  callback([url])
 }
-
-let websocketProvider: WebsocketProvider | undefined
-let collabService: CollabService | undefined // 用于存储 collabService 实例
-let crepe: Crepe | undefined // 用于存储 crepe 实例
-// 创建一个标志来追踪是否已经执行过同步
-const hasSynced = ref(false)
-// 创建一个处理同步的函数
-const handleSync = (collabService: CollabService) => {
-  if (hasSynced.value || !content.value) return
-
-  collabService
-    .applyTemplate(content.value, (remote) => {
-      return !remote.textContent
-    })
-    .connect()
-
-  content.value = crepe!.getMarkdown()
-  hasSynced.value = true
-}
-
-useEditor((root) => {
-  crepe = new Crepe({
-    root,
-    featureConfigs: {
-      [Crepe.Feature.ImageBlock]: {
-        onUpload: async (file: File) => await onUploadImg(file)
-      }
-    }
-  })
-
-  const editor = crepe.editor
-  editor.use(collab)
-
-  crepe.on((listener) => {
-    listener.markdownUpdated((ctx, text) => {
-      content.value = text
-    })
-  })
-
-  crepe.create().then(() => {
-    const doc = new Doc()
-
-    // 等待 IndexedDB 同步完成
-    websocketProvider = new WebsocketProvider(
-      `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
-      roomId,
-      doc,
-      {
-        params: {
-          token: localStorage.getItem('accessToken')!
-        },
-        connect: true,
-        resyncInterval: 3000,
-        maxBackoffTime: 10000
-      }
-    )
-
-    const usercolors = [
-      { color: '#30bced', light: '#30bced33' },
-      { color: '#6eeb83', light: '#6eeb8333' },
-      { color: '#ffbc42', light: '#ffbc4233' },
-      { color: '#ecd444', light: '#ecd44433' },
-      { color: '#ee6352', light: '#ee635233' },
-      { color: '#9ac2c9', light: '#9ac2c933' },
-      { color: '#8acb88', light: '#8acb8833' },
-      { color: '#1be7ff', light: '#1be7ff33' }
-    ]
-
-    const userColor = usercolors[random.uint32() % usercolors.length]
-    websocketProvider.awareness.setLocalStateField('user', {
-      name: user.nickname,
-      color: userColor.color,
-      colorLight: userColor.light
-    })
-
-    editor.action((ctx) => {
-      collabService = ctx.get(collabServiceCtx)
-
-      collabService
-        // bind doc and awareness
-        .bindDoc(doc)
-        .setAwareness(websocketProvider!.awareness)
-
-      websocketProvider!.once('sync', async (isSynced: boolean) => {
-        if (isSynced && content.value) {
-          handleSync(collabService!)
-        }
-      })
-    })
-  })
-  return crepe
-})
-
-// 监听 content 的变化
-watch(
-  () => content.value,
-  (newValue) => {
-    // 当 content 有值，并且 websocketProvider 已经同步完成时执行
-    if (newValue && websocketProvider && !hasSynced.value && collabService) {
-      handleSync(collabService!)
-    }
-  },
-  { immediate: true }
-)
 
 onMounted(() => {
-  document.getElementById('milk')!.onmouseup = () => {
+  document.getElementById('md-editor')!.onmouseup = () => {
     if (formStatus !== Status.SENSITIVE_FILTER) {
       return
     }
@@ -215,22 +150,19 @@ onMounted(() => {
       showSensitiveListDialog.value = true
     }
   }
+  updateEditorExtension()
 })
 
 const checkTokenTask = setInterval(async () => {
-  await checkAccessToken()
-  if (websocketProvider) {
-    websocketProvider.params = {
-      token: localStorage.getItem('accessToken')!
-    }
+  const changed = await checkAccessToken()
+  if (changed) {
+    cleanupYjs()
+    updateEditorExtension()
   }
 }, 1000)
 
-onUnmounted(async () => {
-  if (websocketProvider) {
-    websocketProvider.disconnect()
-  }
-
+onBeforeUnmount(() => {
+  cleanupYjs()
   if (checkTokenTask) {
     clearInterval(checkTokenTask)
   }
@@ -259,23 +191,40 @@ onUnmounted(async () => {
     </el-table>
   </el-dialog>
 
-  <Milkdown id="milk" />
+  <md-editor
+    v-model="content"
+    :preview="false"
+    :toolbars="toolbars"
+    :toolbarsExclude="['github']"
+    @on-upload-img="onUploadImg"
+    :footers="footers"
+    ref="editorRef"
+    id="md-editor"
+  >
+    <template #defToolbars>
+      <ExportPDF v-model="content" />
+      <Emoji />
+    </template>
+    <template #defFooters>
+      <el-progress
+        v-if="showPercentage"
+        type="line"
+        :percentage="uploadPercentage"
+        :color="Colors"
+        status="success"
+      />
+    </template>
+  </md-editor>
 </template>
 
 <style scoped>
 /* 编辑器内容区域内边距 */
-:deep(.milkdown .ProseMirror) {
-  padding: 10px 15px;
+.md-editor:deep(.md-editor-footer) {
+  height: 40px;
 }
 
 .el-progress {
   width: 100px;
   display: inline-flex;
-}
-
-:deep(.milkdown) {
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  width: 640px;
 }
 </style>
