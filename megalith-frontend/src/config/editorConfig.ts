@@ -1,5 +1,5 @@
 import { config } from 'md-editor-v3'
-import { Compartment } from '@codemirror/state'
+import { Compartment, type Extension } from '@codemirror/state'
 import * as Y from 'yjs'
 import { yCollab } from 'y-codemirror.next'
 import { WebsocketProvider } from 'y-websocket'
@@ -30,7 +30,12 @@ export const cleanupYjs = () => {
   currentDoc = null
 }
 
-export const createYjsExtension = (roomId: string) => {
+export const updateProviderToken = () => {
+  if (!currentProvider) return
+  currentProvider.params.token = localStorage.getItem('accessToken')!
+}
+
+export const createYjsExtension = (roomId: string): Extension => {
   cleanupYjs();
 
   const userColor = usercolors[random.uint32() % usercolors.length];

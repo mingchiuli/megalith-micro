@@ -11,7 +11,7 @@ import {
 } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import { checkAccessToken } from '@/utils/tools'
-import { createYjsExtension, yjsCompartment, cleanupYjs } from '@/config/editorConfig';
+import { createYjsExtension, yjsCompartment, cleanupYjs, updateProviderToken } from '@/config/editorConfig';
 
 import type { ExposeParam, Footers, ToolbarNames } from 'md-editor-v3'
 const route = useRoute()
@@ -156,8 +156,7 @@ onMounted(() => {
 const checkTokenTask = setInterval(async () => {
   const changed = await checkAccessToken()
   if (changed) {
-    cleanupYjs()
-    updateEditorExtension()
+    updateProviderToken()
   }
 }, 1000)
 
