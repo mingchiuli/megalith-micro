@@ -16,7 +16,6 @@ import { Milkdown, useEditor } from '@milkdown/vue'
 import { Crepe } from '@milkdown/crepe'
 import { Doc } from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
-import { IndexeddbPersistence } from 'y-indexeddb'
 import { collab, CollabService, collabServiceCtx } from '@milkdown/plugin-collab'
 import * as random from 'lib0/random'
 import { useRoute } from 'vue-router'
@@ -96,7 +95,6 @@ const onUploadImg = async (file: File) => {
 }
 
 let websocketProvider: WebsocketProvider | undefined
-let indexeddbProvider: IndexeddbPersistence | undefined
 let collabService: CollabService | undefined // 用于存储 collabService 实例
 let crepe: Crepe | undefined // 用于存储 crepe 实例
 // 创建一个标志来追踪是否已经执行过同步
@@ -104,7 +102,7 @@ const hasSynced = ref(false)
 // 创建一个处理同步的函数
 const handleSync = (collabService: CollabService) => {
   if (hasSynced.value || !content.value) return
-  
+
   collabService
     .applyTemplate(content.value, (remote) => {
       return !remote.textContent
@@ -137,67 +135,56 @@ useEditor((root) => {
   crepe.create().then(() => {
     const doc = new Doc()
 
-    // 首先创建 IndexeddbPersistence
-    indexeddbProvider = new IndexeddbPersistence(roomId, doc)
-
     // 等待 IndexedDB 同步完成
-    indexeddbProvider.once('synced', () => {
-      websocketProvider = new WebsocketProvider(
-        `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
-        roomId,
-        doc,
-        {
-          params: {
-            token: localStorage.getItem('accessToken')!
-          },
-          connect: true,
-          resyncInterval: 3000,
-          maxBackoffTime: 10000
+    websocketProvider = new WebsocketProvider(
+      `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
+      roomId,
+      doc,
+      {
+        params: {
+          token: localStorage.getItem('accessToken')!
+        },
+        connect: true,
+        resyncInterval: 3000,
+        maxBackoffTime: 10000
+      }
+    )
+
+    const usercolors = [
+      { color: '#30bced', light: '#30bced33' },
+      { color: '#6eeb83', light: '#6eeb8333' },
+      { color: '#ffbc42', light: '#ffbc4233' },
+      { color: '#ecd444', light: '#ecd44433' },
+      { color: '#ee6352', light: '#ee635233' },
+      { color: '#9ac2c9', light: '#9ac2c933' },
+      { color: '#8acb88', light: '#8acb8833' },
+      { color: '#1be7ff', light: '#1be7ff33' }
+    ]
+
+    const userColor = usercolors[random.uint32() % usercolors.length]
+    websocketProvider.awareness.setLocalStateField('user', {
+      name: user.nickname,
+      color: userColor.color,
+      colorLight: userColor.light
+    })
+
+    editor.action((ctx) => {
+      collabService = ctx.get(collabServiceCtx)
+
+      collabService
+        // bind doc and awareness
+        .bindDoc(doc)
+        .setAwareness(websocketProvider!.awareness)
+
+      websocketProvider!.once('sync', async (isSynced: boolean) => {
+        if (isSynced && content.value) {
+          handleSync(collabService!)
         }
-      )
-
-      const usercolors = [
-        { color: '#30bced', light: '#30bced33' },
-        { color: '#6eeb83', light: '#6eeb8333' },
-        { color: '#ffbc42', light: '#ffbc4233' },
-        { color: '#ecd444', light: '#ecd44433' },
-        { color: '#ee6352', light: '#ee635233' },
-        { color: '#9ac2c9', light: '#9ac2c933' },
-        { color: '#8acb88', light: '#8acb8833' },
-        { color: '#1be7ff', light: '#1be7ff33' }
-      ]
-
-      const userColor = usercolors[random.uint32() % usercolors.length]
-      websocketProvider.awareness.setLocalStateField('user', {
-        name: user.nickname,
-        color: userColor.color,
-        colorLight: userColor.light
-      })
-
-      editor.action((ctx) => {
-        collabService = ctx.get(collabServiceCtx)
-
-        collabService
-          // bind doc and awareness
-          .bindDoc(doc)
-          .setAwareness(websocketProvider!.awareness)
-
-        websocketProvider!.once('sync', async (isSynced: boolean) => {
-          if (isSynced && content.value) {
-            handleSync(collabService!)
-          }
-        })
       })
     })
   })
   return crepe
 })
-
-const clearLocalData = async () => {
-  if (indexeddbProvider) {
-    await indexeddbProvider.clearData()
-  }
-}
 
 // 监听 content 的变化
 watch(
@@ -244,16 +231,9 @@ onUnmounted(async () => {
     websocketProvider.disconnect()
   }
 
-  if (indexeddbProvider) {
-    await indexeddbProvider.destroy()
-  }
   if (checkTokenTask) {
     clearInterval(checkTokenTask)
   }
-})
-
-defineExpose({
-  clearLocalData
 })
 </script>
 
