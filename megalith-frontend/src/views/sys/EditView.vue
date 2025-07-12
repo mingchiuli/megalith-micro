@@ -32,7 +32,6 @@ import router from '@/router'
 import { blogsStore } from '@/stores/store'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle, cleanJsonResponse } from '@/utils/tools'
-import { MilkdownProvider } from '@milkdown/vue'
 import { aiHttpClient } from '@/http/axios'
 import 'element-plus/es/components/input/style/css' //不明原因样式缺失
 
@@ -313,23 +312,23 @@ const aiGenerate = async () => {
     // 解析 AI 返回的结果
     const preResult: AiContentResp = preResponse.data
     const context = preResult.context
-    
+
     const prompt = `请根据文章内容生成标题和摘要：
-    
+
     输出要求：
     - 格式：严格的JSON字符串
     - title: 不超过10字的标题
     - description: 不超过50字的摘要
     - 不含任何额外字符和格式标记
-    
+
     示例输出：
     {"title": "美好的一天", "description": "今天天气晴朗，心情愉快。"}
-    
+
     注意事项：
     - 返回内容必须是可直接解析的JSON
     - 不要包含markdown、代码块等任何格式标记
     - JSON前后不能有空格或其他字符`
-    
+
     const response = await aiHttpClient.post('/api/generate', {
       model: aiModel.value, // 可用的模型
       prompt,
@@ -339,9 +338,9 @@ const aiGenerate = async () => {
         echo: false
       }
     })
-    
+
     const result: AiContentResp = response.data
-    
+
     const aiContent: AiContent = JSON.parse(cleanJsonResponse(result.response))
 
     // 更新表单数据
@@ -462,13 +461,11 @@ const aiGenerate = async () => {
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <MilkdownProvider>
-          <CustomEditorItem
-            v-model:content="form.content"
-            @sensitive="dealSensitive"
-            :form-status="form.status"
-          />
-        </MilkdownProvider>
+        <CustomEditorItem
+          v-model:content="form.content"
+          @sensitive="dealSensitive"
+          :form-status="form.status"
+        />
       </el-form-item>
 
       <div class="submit-button">
