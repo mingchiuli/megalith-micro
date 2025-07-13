@@ -11,10 +11,11 @@ import {
 } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import { checkAccessToken } from '@/utils/tools'
-import { createYjsExtension, yjsCompartment, cleanupYjs, updateProviderToken } from '@/config/editorConfig';
-
+import { createYjsExtension, yjsCompartment, cleanupYjs, updateProviderToken } from '@/config/editorConfig'
 import type { Footers, ToolbarNames, ExposeParam } from 'md-editor-v3'
 import { MdEditor } from 'md-editor-v3'
+import 'md-editor-v3/lib/style.css'
+
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
 const user: UserInfo = JSON.parse(userStr)
@@ -118,7 +119,6 @@ const findAllOccurrences = (text: string, pattern: string) => {
 const editorRef = ref<ExposeParam>()
 
 const updateEditorExtension = () => {
-  console.log('editorRef.value:', editorRef.value)
   const view = editorRef.value?.getEditorView()
   if (view) {
     const extension = createYjsExtension(roomId)
