@@ -13,8 +13,8 @@ import { useRoute } from 'vue-router'
 import { checkAccessToken } from '@/utils/tools'
 import { createYjsExtension, yjsCompartment, cleanupYjs, updateProviderToken } from '@/config/editorConfig';
 
-import type { ExposeParam, Footers, ToolbarNames, MdEditor } from 'md-editor-v3'
-import { useTemplateRef } from 'vue'
+import type { Footers, ToolbarNames } from 'md-editor-v3'
+import { MdEditor, ExposeParam } from 'md-editor-v3'
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
 const user: UserInfo = JSON.parse(userStr)
