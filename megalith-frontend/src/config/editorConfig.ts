@@ -67,6 +67,7 @@ export const createYjsExtension = (
     if (syncedYtextContent === '' && initialContent) {
       Y.transact(ydoc, () => {
         console.log('2' + initialContent)
+        ytext.delete(0, initialContent.length)
         ytext.insert(0, initialContent) // 注入初始内容
       })
     }
