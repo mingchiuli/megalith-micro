@@ -118,10 +118,9 @@ const findAllOccurrences = (text: string, pattern: string) => {
 const editorRef = useTemplateRef<ExposeParam>('editorRef')
 
 const updateEditorExtension = () => {
-  console.log(editorRef)
-  const view = editorRef.value?.getEditorView();
+  const view = editorRef.value?.getEditorView()
   if (view) {
-    const extension = createYjsExtension(roomId);
+    const extension = createYjsExtension(roomId)
     view.dispatch({
       effects: yjsCompartment.reconfigure(extension),
     });
