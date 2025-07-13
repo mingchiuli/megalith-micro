@@ -58,6 +58,7 @@ export const createYjsExtension = (roomId: string, initialContent: string | unde
 
   if (initialContent && ytext.toString() === '') {
     Y.transact(ydoc, () => {
+      ytext.delete(0, ytext.length)
       ytext.insert(0, initialContent) // 插入初始内容到ytext
     })
   }
