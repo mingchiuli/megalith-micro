@@ -62,12 +62,9 @@ export const createYjsExtension = (
   provider.on('sync', () => {
     // 同步完成后检查yText是否为空
     const syncedYtextContent = ytext.toString()
-    console.log('1' + syncedYtextContent)
     // 条件：同步后yText为空 + 存在初始内容 → 说明是第一个进入房间的用户
     if (syncedYtextContent === '' && initialContent) {
       Y.transact(ydoc, () => {
-        console.log('2' + initialContent)
-        ytext.delete(0, initialContent.length)
         ytext.insert(0, initialContent) // 注入初始内容
       })
     }
