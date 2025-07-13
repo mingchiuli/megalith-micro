@@ -35,7 +35,7 @@ export const updateProviderToken = () => {
   currentProvider.params.token = localStorage.getItem('accessToken')!
 }
 
-export const createYjsExtension = (roomId: string, initialContent: string): Extension => {
+export const createYjsExtension = (roomId: string, initialContent: string | undefined): Extension => {
   cleanupYjs()
 
   const userColor = usercolors[random.uint32() % usercolors.length]
