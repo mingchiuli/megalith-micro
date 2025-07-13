@@ -191,7 +191,7 @@ onBeforeUnmount(() => {
     </el-table>
   </el-dialog>
 
-  <md-editor
+  <MdEditor
     v-model="content"
     :preview="false"
     :toolbars="toolbars"
@@ -214,7 +214,7 @@ onBeforeUnmount(() => {
         status="success"
       />
     </template>
-  </md-editor>
+  </MdEditor>
 </template>
 
 <style scoped>
