@@ -35,7 +35,7 @@ export const updateProviderToken = () => {
   currentProvider.params.token = localStorage.getItem('accessToken')!
 }
 
-export const createYjsExtension = (roomId: string, initialContent: string | undefined): Extension => {
+export const createYjsExtension = (roomId: string): Extension => {
   cleanupYjs()
 
   const userColor = usercolors[random.uint32() % usercolors.length]
@@ -54,14 +54,7 @@ export const createYjsExtension = (roomId: string, initialContent: string | unde
       maxBackoffTime: 10000
     }
   )
-  const ytext = ydoc.getText('megalith-collab')
-
-  if (initialContent && ytext.toString() === '') {
-    Y.transact(ydoc, () => {
-      ytext.delete(0, ytext.length)
-      ytext.insert(0, initialContent) // 插入初始内容到ytext
-    })
-  }
+  const ytext = ydoc.getText()
 
   const undoManager = new Y.UndoManager(ytext)
 

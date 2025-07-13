@@ -65,7 +65,8 @@ const { formStatus } = defineProps<{
   formStatus: number
 }>()
 
-const content = defineModel<string>('content')
+// const content = defineModel<string>('content')
+const content = ref('')
 
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
@@ -121,7 +122,7 @@ const editorRef = ref<ExposeParam>()
 const updateEditorExtension = () => {
   const view = editorRef.value?.getEditorView()
   if (view) {
-    const extension = createYjsExtension(roomId, content.value)
+    const extension = createYjsExtension(roomId)
     view.dispatch({
       effects: yjsCompartment.reconfigure(extension),
     });
