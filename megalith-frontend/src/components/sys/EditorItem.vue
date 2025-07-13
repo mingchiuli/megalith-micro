@@ -13,7 +13,7 @@ import { useRoute } from 'vue-router'
 import { checkAccessToken } from '@/utils/tools'
 import { createYjsExtension, yjsCompartment, cleanupYjs, updateProviderToken } from '@/config/editorConfig';
 
-import type { ExposeParam, Footers, ToolbarNames } from 'md-editor-v3'
+import type { ExposeParam, Footers, ToolbarNames, MdEditor } from 'md-editor-v3'
 import { useTemplateRef } from 'vue'
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
@@ -191,7 +191,7 @@ onBeforeUnmount(() => {
     </el-table>
   </el-dialog>
 
-  <md-editor
+  <MdEditor
     v-model="content"
     :preview="false"
     :toolbars="toolbars"
@@ -214,7 +214,7 @@ onBeforeUnmount(() => {
         status="success"
       />
     </template>
-  </md-editor>
+  </MdEditor>
 </template>
 
 <style scoped>
