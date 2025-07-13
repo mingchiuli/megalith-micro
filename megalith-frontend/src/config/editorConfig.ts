@@ -14,7 +14,7 @@ const usercolors = [
   { color: '#ee6352', light: '#ee635233' },
   { color: '#9ac2c9', light: '#9ac2c933' },
   { color: '#8acb88', light: '#8acb8833' },
-  { color: '#1be7ff', light: '#1be7ff33' },
+  { color: '#1be7ff', light: '#1be7ff33' }
 ]
 
 export const yjsCompartment = new Compartment()
@@ -35,12 +35,12 @@ export const updateProviderToken = () => {
   currentProvider.params.token = localStorage.getItem('accessToken')!
 }
 
-export const createYjsExtension = (roomId: string): Extension => {
-  cleanupYjs();
+export const createYjsExtension = (roomId: string, initialContent: string | undefined): Extension => {
+  cleanupYjs()
 
-  const userColor = usercolors[random.uint32() % usercolors.length];
+  const userColor = usercolors[random.uint32() % usercolors.length]
 
-  const ydoc = new Y.Doc();
+  const ydoc = new Y.Doc()
   const provider = new WebsocketProvider(
     `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
     roomId,
@@ -56,12 +56,18 @@ export const createYjsExtension = (roomId: string): Extension => {
   )
   const ytext = ydoc.getText('megalith-collab')
 
-  const undoManager = new Y.UndoManager(ytext);
+  if (initialContent && ytext.toString() === '') {
+    Y.transact(ydoc, () => {
+      ytext.insert(0, initialContent) // 插入初始内容到ytext
+    })
+  }
+
+  const undoManager = new Y.UndoManager(ytext)
 
   provider.awareness.setLocalStateField('user', {
     name: user.nickname,
     color: userColor.color,
-    colorLight: userColor.light,
+    colorLight: userColor.light
   })
 
   currentDoc = ydoc
@@ -72,6 +78,6 @@ export const createYjsExtension = (roomId: string): Extension => {
 
 config({
   codeMirrorExtensions(_theme, extensions) {
-    return [...extensions, yjsCompartment.of([])];
-  },
+    return [...extensions, yjsCompartment.of([])]
+  }
 })
