@@ -36,8 +36,7 @@ export const updateProviderToken = () => {
 }
 
 export const createYjsExtension = (
-  roomId: string,
-  initialContent: string | undefined
+  roomId: string
 ): Extension => {
   cleanupYjs()
 
@@ -58,17 +57,6 @@ export const createYjsExtension = (
     }
   )
   const ytext = ydoc.getText()
-
-  provider.on('sync', () => {
-    // 同步完成后检查yText是否为空
-    const syncedYtextContent = ytext.toString()
-    // 条件：同步后yText为空 + 存在初始内容 → 说明是第一个进入房间的用户
-    if (syncedYtextContent === '' && initialContent) {
-      Y.transact(ydoc, () => {
-        ytext.insert(0, initialContent) // 注入初始内容
-      })
-    }
-  })
 
   const undoManager = new Y.UndoManager(ytext)
 

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { UPLOAD } from '@/http/http'
-import { onMounted, ref, onBeforeUnmount } from 'vue'
+import { onMounted, ref, onBeforeUnmount, useTemplateRef } from 'vue'
 import {
   SensitiveType,
   Status,
@@ -11,7 +11,12 @@ import {
 } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import { checkAccessToken } from '@/utils/tools'
-import { createYjsExtension, yjsCompartment, cleanupYjs, updateProviderToken } from '@/config/editorConfig'
+import {
+  createYjsExtension,
+  yjsCompartment,
+  cleanupYjs,
+  updateProviderToken
+} from '@/config/editorConfig'
 import type { Footers, ToolbarNames, ExposeParam } from 'md-editor-v3'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
@@ -116,15 +121,15 @@ const findAllOccurrences = (text: string, pattern: string) => {
   return occurrences
 }
 
-const editorRef = ref<ExposeParam>()
+const editorRef = useTemplateRef<ExposeParam>('editorRef')
 
 const updateEditorExtension = () => {
   const view = editorRef.value?.getEditorView()
   if (view) {
-    const extension = createYjsExtension(roomId, content.value)
+    const extension = createYjsExtension(roomId)
     view.dispatch({
-      effects: yjsCompartment.reconfigure(extension),
-    });
+      effects: yjsCompartment.reconfigure(extension)
+    })
   }
 }
 
