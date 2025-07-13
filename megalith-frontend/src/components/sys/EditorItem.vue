@@ -117,6 +117,7 @@ const findAllOccurrences = (text: string, pattern: string) => {
 const editorRef = ref<ExposeParam>()
 
 const updateEditorExtension = () => {
+  console.log(editorRef.value)
   const view = editorRef.value?.getEditorView();
   if (view) {
     const extension = createYjsExtension(roomId);
