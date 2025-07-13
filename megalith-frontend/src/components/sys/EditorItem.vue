@@ -115,7 +115,7 @@ const findAllOccurrences = (text: string, pattern: string) => {
   return occurrences
 }
 
-const editorRef = useTemplateRef<ExposeParam>('editorRef')
+const editorRef = ref<ExposeParam>()
 
 const updateEditorExtension = () => {
   const view = editorRef.value?.getEditorView()
