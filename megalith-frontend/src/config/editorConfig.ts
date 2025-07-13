@@ -35,7 +35,10 @@ export const updateProviderToken = () => {
   currentProvider.params.token = localStorage.getItem('accessToken')!
 }
 
-export const createYjsExtension = (roomId: string, initialContent: string | undefined): Extension => {
+export const createYjsExtension = (
+  roomId: string,
+  initialContent: string | undefined
+): Extension => {
   cleanupYjs()
 
   const userColor = usercolors[random.uint32() % usercolors.length]
@@ -55,18 +58,19 @@ export const createYjsExtension = (roomId: string, initialContent: string | unde
     }
   )
   const ytext = ydoc.getText()
-  
+
   provider.on('sync', () => {
-  
-      // 同步完成后检查yText是否为空
-      const syncedYtextContent = ytext.toString();
-      // 条件：同步后yText为空 + 存在初始内容 → 说明是第一个进入房间的用户
-      if (syncedYtextContent === '' && initialContent) {
-        Y.transact(ydoc, () => {
-          ytext.insert(0, initialContent); // 注入初始内容
-        });
-      }
-    })
+    // 同步完成后检查yText是否为空
+    const syncedYtextContent = ytext.toString()
+    console.log('1' + syncedYtextContent)
+    // 条件：同步后yText为空 + 存在初始内容 → 说明是第一个进入房间的用户
+    if (syncedYtextContent === '' && initialContent) {
+      Y.transact(ydoc, () => {
+        console.log('2' + initialContent)
+        ytext.insert(0, initialContent) // 注入初始内容
+      })
+    }
+  })
 
   const undoManager = new Y.UndoManager(ytext)
 
