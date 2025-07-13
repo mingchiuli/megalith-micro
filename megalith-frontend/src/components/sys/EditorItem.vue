@@ -14,6 +14,7 @@ import { checkAccessToken } from '@/utils/tools'
 import { createYjsExtension, yjsCompartment, cleanupYjs, updateProviderToken } from '@/config/editorConfig';
 
 import type { ExposeParam, Footers, ToolbarNames } from 'md-editor-v3'
+import { useTemplateRef } from 'vue'
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
 const user: UserInfo = JSON.parse(userStr)
@@ -114,10 +115,9 @@ const findAllOccurrences = (text: string, pattern: string) => {
   return occurrences
 }
 
-const editorRef = ref<ExposeParam>()
+const editorRef = useTemplateRef<ExposeParam>('editorRef')
 
 const updateEditorExtension = () => {
-  console.log(editorRef.value)
   const view = editorRef.value?.getEditorView();
   if (view) {
     const extension = createYjsExtension(roomId);
@@ -191,7 +191,7 @@ onBeforeUnmount(() => {
     </el-table>
   </el-dialog>
 
-  <MdEditor
+  <md-editor
     v-model="content"
     :preview="false"
     :toolbars="toolbars"
@@ -214,7 +214,7 @@ onBeforeUnmount(() => {
         status="success"
       />
     </template>
-  </MdEditor>
+  </md-editor>
 </template>
 
 <style scoped>
