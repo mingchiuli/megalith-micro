@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { UPLOAD } from '@/http/http'
-import { onMounted, ref, onBeforeUnmount, useTemplateRef } from 'vue'
+import { onMounted, ref, onBeforeUnmount, useTemplateRef, watch } from 'vue'
 import {
   SensitiveType,
   Status,
@@ -70,7 +70,11 @@ const { formStatus } = defineProps<{
   formStatus: number
 }>()
 
-const content = defineModel<string>('content')
+const text = defineModel<string>('content')
+const content = ref('')
+watch(content, (newValue: string) => {
+  text.value = newValue
+})
 
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
@@ -126,7 +130,7 @@ const editorRef = useTemplateRef<ExposeParam>('editorRef')
 const updateEditorExtension = () => {
   const view = editorRef.value?.getEditorView()
   if (view) {
-    const extension = createYjsExtension(roomId)
+    const extension = createYjsExtension(roomId, text.value!)
     view.dispatch({
       effects: yjsCompartment.reconfigure(extension)
     })
