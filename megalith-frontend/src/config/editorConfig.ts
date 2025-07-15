@@ -58,15 +58,6 @@ export const createYjsExtension = (
     }
   )
   const ytext = ydoc.getText()
-  
-  // 等同步完成后判断是否插入内容
-  provider.on('sync', async () => {
-    console.log('synced', ytext.length, ytext)
-
-    if (ytext.length === 0 && initialContent) {
-      ytext.insert(0, initialContent)
-    }
-  });
 
   const undoManager = new Y.UndoManager(ytext)
 
@@ -78,6 +69,15 @@ export const createYjsExtension = (
 
   currentDoc = ydoc
   currentProvider = provider
+  
+  // 等同步完成后判断是否插入内容
+  provider.on('sync', async () => {
+    console.log('synced', ytext.length, ytext)
+    await new Promise((r) => setTimeout(r, 500));
+    if (ytext.length === 0 && initialContent) {
+      ytext.insert(0, initialContent)
+    }
+  });
 
   return yCollab(ytext, provider.awareness, { undoManager })
 }
