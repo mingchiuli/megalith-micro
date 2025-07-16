@@ -73,6 +73,8 @@ const { formStatus } = defineProps<{
 const text = defineModel<string>('content')
 const content = ref('')
 watch(content, (newValue: string) => {
+  console.log(text.value)
+  console.log(newValue)
   text.value = newValue
 })
 
