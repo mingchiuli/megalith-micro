@@ -61,9 +61,10 @@ export const createYjsExtension = (
   const ytext = ydoc.getText()
   // 等同步完成后判断是否插入内容
   provider.on('sync', async () => {
-    console.log('synced', ytext.length, ytext)
+    console.log('synced', ytext.length, initialContent)
     await new Promise((r) => setTimeout(r, 500));
     if (ytext.length === 0 && initialContent) {
+      console.log('insert', initialContent)
       ytext.insert(0, initialContent)
     }
   })
