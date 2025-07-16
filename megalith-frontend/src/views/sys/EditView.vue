@@ -265,6 +265,7 @@ const handleDescSelect = () => {
   }
 }
 
+const loadContent = ref(true)
 const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   let url = '/sys/blog/edit/pull/echo'
   if (blogId) {
@@ -280,6 +281,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   form.userId = data.userId
   form.sensitiveContentList = data.sensitiveContentList
   form.owner = data.owner
+  loadContent.value = false
 }
 
 const loadAiModel = async () => {
@@ -462,6 +464,7 @@ const aiGenerate = async () => {
 
       <el-form-item class="content" prop="content">
         <CustomEditorItem
+          v-if="!loadContent"
           v-model:content="form.content"
           @sensitive="dealSensitive"
           :form-status="form.status"
