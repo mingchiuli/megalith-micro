@@ -59,6 +59,7 @@ export const createYjsExtension = (
   )
   
   const ytext = ydoc.getText()
+  console.log('content', initialContent)
   // 等同步完成后判断是否插入内容
   provider.on('sync', async () => {
     console.log('synced', ytext.length, initialContent)
