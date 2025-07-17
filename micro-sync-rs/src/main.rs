@@ -59,7 +59,7 @@ async fn main() {
                     "msg": "success",
                     "data": {
                         "exists": exists,
-                        "room_id": room_id
+                        "roomId": room_id
                     }
                 })))
             }
