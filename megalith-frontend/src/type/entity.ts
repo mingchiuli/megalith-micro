@@ -386,5 +386,4 @@ export const Colors = [
 
 export interface CheckRoom {
   exists: boolean
-  roomId: string
 }
