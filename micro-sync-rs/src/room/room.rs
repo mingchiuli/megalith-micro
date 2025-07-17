@@ -51,6 +51,11 @@ impl RoomManager {
         }
     }
 
+    // 检查房间是否存在
+    pub fn room_exists(&self, room_id: &str) -> bool {
+        self.rooms.contains_key(room_id)
+    }
+
     // 获取或创建房间
     pub async fn get_or_create_room(
         &mut self,

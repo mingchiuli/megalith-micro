@@ -1,10 +1,12 @@
 use micro_sync_rs::handler::broadcast::ws_handler;
 use micro_sync_rs::room::room::RoomManager;
+use serde_json::json;
 use std::env;
 use std::sync::Arc;
 use tokio::signal;
 use tokio::sync::Mutex;
 use warp::Filter;
+use warp::reject::Rejection;
 
 const LOGO: &str = r#"
  _    _  ___  ____  ____
@@ -27,12 +29,14 @@ async fn main() {
     log::info!("{}", LOGO);
 
     let room_manager = Arc::new(Mutex::new(RoomManager::new()));
+    let room_manager_ws = room_manager.clone();
+    let room_manager_rooms = room_manager.clone();
 
     // WebSocket 路由
     let ws_routes = warp::path("rooms")
         .and(warp::path::param::<String>())
         .and(warp::ws())
-        .and(warp::any().map(move || room_manager.clone()))
+        .and(warp::any().map(move || room_manager_ws.clone()))
         .and_then(ws_handler);
 
     // 简单的健康检查路由
@@ -41,8 +45,28 @@ async fn main() {
         .and(warp::get())
         .map(|| "OK");
 
+    let check_rooms = warp::path("rooms")
+        .and(warp::path("exist"))
+        .and(warp::path::param::<String>())
+        .and(warp::get())
+        .and_then(move |room_id: String| {
+            let room_manager = room_manager_rooms.clone();
+            async move {
+                let room_manager = room_manager.lock().await;
+                let exists = room_manager.room_exists(&room_id);
+                Ok::<_, Rejection>(warp::reply::json(&json!({
+                    "code": 200,
+                    "msg": "success",
+                    "data": {
+                        "exists": exists,
+                        "room_id": room_id
+                    }
+                })))
+            }
+        });
+
     // 合并所有路由
-    let routes = ws_routes.or(health_check);
+    let routes = ws_routes.or(health_check).or(check_rooms);
 
     // 创建服务器任务
     let (_, server) =
