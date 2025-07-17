@@ -18,6 +18,7 @@ const LOGO: &str = r#"
 
 #[tokio::main]
 async fn main() {
+    
     // Initialize logging
     if env::var("RUST_LOG").is_err() {
         unsafe {
