@@ -129,10 +129,10 @@ const findAllOccurrences = (text: string, pattern: string) => {
 
 const editorRef = useTemplateRef<ExposeParam>('editorRef')
 
-const updateEditorExtension = () => {
+const updateEditorExtension = async () => {
   const view = editorRef.value?.getEditorView()
   if (view) {
-    const extension = createYjsExtension(roomId, text.value!)
+    const extension = await createYjsExtension(roomId, text.value!)
     view.dispatch({
       effects: yjsCompartment.reconfigure(extension)
     })
@@ -146,7 +146,7 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
   callback([url])
 }
 
-onMounted(() => {
+onMounted(async () => {
   document.getElementById('md-editor')!.onmouseup = () => {
     if (formStatus !== Status.SENSITIVE_FILTER) {
       return
@@ -163,7 +163,7 @@ onMounted(() => {
       showSensitiveListDialog.value = true
     }
   }
-  updateEditorExtension()
+  await updateEditorExtension()
 })
 
 const checkTokenTask = setInterval(async () => {

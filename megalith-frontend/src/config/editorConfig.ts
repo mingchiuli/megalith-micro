@@ -4,7 +4,8 @@ import * as Y from 'yjs'
 import { yCollab } from 'y-codemirror.next'
 import { WebsocketProvider } from 'y-websocket'
 import * as random from 'lib0/random'
-import type { UserInfo } from '@/type/entity'
+import type { CheckRoom, UserInfo } from '@/type/entity'
+import { GET } from '@/http/http'
 
 const usercolors = [
   { color: '#30bced', light: '#30bced33' },
@@ -35,10 +36,10 @@ export const updateProviderToken = () => {
   currentProvider.params.token = localStorage.getItem('accessToken')!
 }
 
-export const createYjsExtension = (
+export const createYjsExtension = async (
   roomId: string,
   initialContent: string
-): Extension => {
+): Promise<Extension> => {
   cleanupYjs()
 
   const userColor = usercolors[random.uint32() % usercolors.length]
@@ -59,13 +60,10 @@ export const createYjsExtension = (
   )
   
   const ytext = ydoc.getText()
-  console.log('content', initialContent)
   // 等同步完成后判断是否插入内容
   provider.on('sync', async () => {
-    console.log('synced', ytext.length, initialContent)
-    await new Promise((r) => setTimeout(r, 500));
-    if (ytext.length === 0 && initialContent) {
-      console.log('insert', initialContent)
+    const data = await GET<CheckRoom>(`/rooms/exist/${roomId}`)
+    if (!data.exists) {
       ytext.insert(0, initialContent)
     }
   })
