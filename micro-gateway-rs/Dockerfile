@@ -12,7 +12,7 @@ RUN rustup target add x86_64-unknown-linux-musl \
     && cargo build --release --target x86_64-unknown-linux-musl
 
 # Use a minimal base image for the final stage
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 # Install necessary runtime dependencies
 RUN apt-get update && apt-get install -y \
