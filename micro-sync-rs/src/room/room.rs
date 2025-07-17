@@ -53,7 +53,10 @@ impl RoomManager {
 
     // 检查房间是否存在
     pub fn room_exists(&self, room_id: &str) -> bool {
-        self.rooms.contains_key(room_id)
+        match self.rooms.get(room_id) {
+            Some(room) => room.connection_count.load(Ordering::SeqCst) > 1,
+            None => false,
+        }
     }
 
     // 获取或创建房间
