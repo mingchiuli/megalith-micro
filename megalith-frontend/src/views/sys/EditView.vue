@@ -358,7 +358,7 @@ const aiGenerate = async () => {
 
 ;(async () => {
   await loadEditContent(form, blogId)
-  await loadAiModel()
+  loadAiModel()
 })()
 </script>
 
