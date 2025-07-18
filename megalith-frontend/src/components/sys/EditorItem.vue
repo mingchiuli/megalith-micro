@@ -130,10 +130,11 @@ const editorRef = useTemplateRef<ExposeParam>('editorRef')
 const updateEditorExtension = async () => {
   const view = editorRef.value?.getEditorView()
   if (view) {
-    const extension = await createYjsExtension(roomId, text.value!)
+    const { config, provider } = await createYjsExtension(roomId, text.value!)
     view.dispatch({
-      effects: yjsCompartment.reconfigure(extension)
+      effects: yjsCompartment.reconfigure(config)
     })
+    provider.connect()
   }
 }
 
@@ -161,7 +162,7 @@ onMounted(async () => {
       showSensitiveListDialog.value = true
     }
   }
-  await updateEditorExtension()
+  updateEditorExtension()
 })
 
 const checkTokenTask = setInterval(async () => {

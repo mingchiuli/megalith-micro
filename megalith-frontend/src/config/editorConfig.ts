@@ -39,7 +39,7 @@ export const updateProviderToken = () => {
 export const createYjsExtension = async (
   roomId: string,
   initialContent: string
-): Promise<Extension> => {
+) => {
   cleanupYjs()
 
   const userColor = usercolors[random.uint32() % usercolors.length]
@@ -79,9 +79,11 @@ export const createYjsExtension = async (
   currentDoc = ydoc
   currentProvider = provider
   
-  provider.connect()
-
-  return yCollab(ytext, provider.awareness, { undoManager })
+  const config = yCollab(ytext, provider.awareness, { undoManager })
+  
+  return {
+    config, provider
+  }
 }
 
 config({
