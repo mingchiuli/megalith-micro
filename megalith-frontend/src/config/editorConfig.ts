@@ -61,7 +61,7 @@ export const createYjsExtension = async (
   
   const ytext = ydoc.getText()
   // 等同步完成后判断是否插入内容
-  provider.on('sync', async () => {
+  provider.once('sync', async () => {
     const data = await GET<CheckRoom>(`/rooms/exist/${roomId}`)
     if (!data.exists) {
       ytext.insert(0, initialContent)
