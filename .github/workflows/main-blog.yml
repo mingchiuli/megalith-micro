@@ -55,7 +55,7 @@ jobs:
               done
             fi
             docker compose --compatibility up -d micro-blog
-            old=$(docker images | grep 'micro-blog' | grep 'none' | awk '{print $3}')
+            old=$(docker images | grep -w 'micro-blog' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
               docker rmi $old
             fi

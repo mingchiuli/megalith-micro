@@ -55,7 +55,7 @@ jobs:
               done
             fi
             docker compose --compatibility up -d micro-search
-            old=$(docker images | grep 'micro-search' | grep 'none' | awk '{print $3}')
+            old=$(docker images | grep -w 'micro-search' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
               docker rmi $old
             fi
