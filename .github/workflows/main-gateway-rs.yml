@@ -64,11 +64,11 @@ jobs:
               done
             fi
             docker compose --compatibility up -d micro-gateway-rs
-            old=$(docker images | grep 'micro-gateway-rs' | grep 'none' | awk '{print $3}')
+            old=$(docker images | grep -w 'micro-gateway-rs' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
               docker rmi $old
             fi
-            nginx=$(docker ps | grep 'nginx' | awk '{print $1}')
+            nginx=$(docker ps | grep -w 'nginx' | awk '{print $1}')
             if [ -n "$nginx" ]; then
               docker exec $nginx nginx -s reload
             fi

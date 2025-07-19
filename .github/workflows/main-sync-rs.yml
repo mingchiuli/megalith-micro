@@ -64,7 +64,7 @@ jobs:
               done
             fi
             docker compose --compatibility up -d micro-sync-rs
-            old=$(docker images | grep 'micro-sync-rs' | grep 'none' | awk '{print $3}')
+            old=$(docker images | grep -w 'micro-sync-rs' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
               docker rmi $old
             fi

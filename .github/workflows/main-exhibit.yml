@@ -55,7 +55,7 @@ jobs:
               done
             fi
             docker compose --compatibility up -d micro-exhibit
-            old=$(docker images | grep 'micro-exhibit' | grep 'none' | awk '{print $3}')
+            old=$(docker images | grep -w 'micro-exhibit' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
               docker rmi $old
             fi
