@@ -404,7 +404,7 @@ const aiGenerate = async () => {
             size="small"
             @click="aiGenerate"
             :loading="aiLoading"
-            :disabled="aiLoading || !form.content || !aiModel"
+            :disabled="!form.owner || aiLoading || !form.content || !aiModel"
             >✨AI</el-button
           >
         </div>
@@ -468,6 +468,7 @@ const aiGenerate = async () => {
           v-model:content="form.content"
           @sensitive="dealSensitive"
           :form-status="form.status"
+          :owner="form.owner"
         />
       </el-form-item>
 

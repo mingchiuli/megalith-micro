@@ -1,5 +1,5 @@
 import { config } from 'md-editor-v3'
-import { Compartment, type Extension } from '@codemirror/state'
+import { Compartment } from '@codemirror/state'
 import * as Y from 'yjs'
 import { yCollab } from 'y-codemirror.next'
 import { WebsocketProvider } from 'y-websocket'

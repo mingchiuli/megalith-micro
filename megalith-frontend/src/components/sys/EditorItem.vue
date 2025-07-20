@@ -66,8 +66,9 @@ const emit = defineEmits<{
   sensitive: [payload: SensitiveTrans]
 }>()
 
-const { formStatus } = defineProps<{
+const { formStatus, owner } = defineProps<{
   formStatus: number
+  owner: boolean
 }>()
 
 const text = defineModel<string>('content')
@@ -145,7 +146,9 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
   callback([url])
 }
 
-onMounted(async () => {
+const sensitiveListen = () => {
+  if (!owner) return
+
   document.getElementById('md-editor')!.onmouseup = () => {
     if (formStatus !== Status.SENSITIVE_FILTER) {
       return
@@ -162,6 +165,10 @@ onMounted(async () => {
       showSensitiveListDialog.value = true
     }
   }
+}
+
+onMounted(async () => {
+  sensitiveListen()
   updateEditorExtension()
 })
 
