@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use tokio::sync::{Mutex, RwLock};
+use tokio::sync::Mutex;
 use yrs::Doc;
 use yrs::sync::Awareness;
 use yrs_warp::broadcast::BroadcastGroup;
@@ -76,7 +76,7 @@ impl RoomManager {
             // 创建新房间
             let doc = Doc::new();
 
-            let awareness = Arc::new(RwLock::new(Awareness::new(doc)));
+            let awareness = Arc::new(Awareness::new(doc));
 
             let broadcast_group = Arc::new(BroadcastGroup::new(awareness, 32).await);
 
