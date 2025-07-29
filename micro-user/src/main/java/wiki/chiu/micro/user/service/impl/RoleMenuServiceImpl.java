@@ -84,7 +84,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     public List<RoleMenuVo> getMenusInfo(Long roleId) {
         List<Long> menuIds = menuRepository.findAllIds();
         List<MenuEntity> menus = menuRepository.findAllById(menuIds);
-        List<MenuDisplayVo> menuEntities = MenuDisplayVoConvertor.convert(menus);
+        List<MenuDisplayVo> menuEntities = MenuDisplayVoConvertor.convert(menus, true);
         // 转树状结构
         List<MenuDisplayVo> menusInfo =  MenuDisplayVoConvertor.buildTreeMenu(menuEntities);
 
