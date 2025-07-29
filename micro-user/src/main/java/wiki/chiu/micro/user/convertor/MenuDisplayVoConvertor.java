@@ -7,15 +7,22 @@ import wiki.chiu.micro.user.vo.MenuDisplayVo;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public class MenuDisplayVoConvertor {
 
     private MenuDisplayVoConvertor() {
     }
 
-    public static List<MenuDisplayVo> convert(List<MenuEntity> menus) {
-        return menus.stream()
-                .filter(menu -> StatusEnum.NORMAL.getCode().equals(menu.getStatus()))
+    public static List<MenuDisplayVo> convert(List<MenuEntity> menus, boolean filterNormal) {
+
+        Stream<MenuEntity> stream = menus.stream();
+
+        if (filterNormal) {
+            stream = stream.filter(menu -> StatusEnum.NORMAL.getCode().equals(menu.getStatus()));
+        }
+
+        return stream
                 .map(menu -> MenuDisplayVo.builder()
                         .id(menu.getId())
                         .parentId(menu.getParentId())
