@@ -1,4 +1,4 @@
-package wiki.chiu.micro.common.rpc.config;
+package wiki.chiu.micro.common.rpc.config.interceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;

@@ -1,15 +1,20 @@
 package wiki.chiu.micro.search.config;
 
+import brave.Tracing;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.BlogHttpService;
-import wiki.chiu.micro.common.rpc.config.AuthHttpInterceptor;
+import wiki.chiu.micro.common.rpc.config.interceptor.AuthHttpInterceptor;
 import wiki.chiu.micro.common.rpc.config.RpcClientFactory;
+import wiki.chiu.micro.common.rpc.config.interceptor.TraceHttpInterceptor;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 @Configuration
@@ -21,6 +26,19 @@ public class HttpClientConfig {
     @Value("${megalith.blog.blog-url}")
     private String blogUrl;
 
+    @Resource
+    private Tracing tracing;
+
+    @Bean
+    ClientHttpRequestInterceptor tracingInterceptor() {
+        return TraceHttpInterceptor.tracingInterceptor(tracing);
+    }
+
+    @Bean
+    ClientHttpRequestInterceptor httpInterceptor() {
+        return new AuthHttpInterceptor();
+    }
+
     @Bean
     HttpClient httpClient() {
         return HttpClient.newBuilder()
@@ -29,17 +47,12 @@ public class HttpClientConfig {
     }
 
     @Bean
-    AuthHttpInterceptor httpInterceptor() {
-        return new AuthHttpInterceptor();
-    }
-
-    @Bean
     AuthHttpService authHttpService() {
-        return RpcClientFactory.createHttpService(AuthHttpService.class, authUrl, httpClient(), httpInterceptor(), null, null, Duration.ofSeconds(10));
+        return RpcClientFactory.createHttpService(AuthHttpService.class, authUrl, httpClient(), null, null, Duration.ofSeconds(10), List.of(tracingInterceptor(), httpInterceptor()));
     }
 
     @Bean
     BlogHttpService blogHttpService() {
-        return RpcClientFactory.createHttpService(BlogHttpService.class, blogUrl, httpClient(), httpInterceptor(), null, null, Duration.ofSeconds(10));
+        return RpcClientFactory.createHttpService(BlogHttpService.class, blogUrl, httpClient(), null, null, Duration.ofSeconds(10), List.of(tracingInterceptor(), httpInterceptor()));
     }
 }
