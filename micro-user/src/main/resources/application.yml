@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: micro-user
   threads:
     virtual:
       enabled: true
@@ -34,6 +36,12 @@ spring:
 server:
   port: 8086
   max-http-request-header-size: 10MB
+
+logging:
+  # 日志格式
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr([${spring.application.name:},%X{traceId:-},%X{spanId:-}]){yellow} %clr(%t){magenta} %clr(---){faint} %clr(%logger{36}){cyan} %clr(:){faint} %m%n"
+
 
 megalith:
   blog:
