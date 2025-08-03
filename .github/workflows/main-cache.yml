@@ -29,5 +29,5 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: 3.5.3
+          tag_name: 3.5.4
           token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
