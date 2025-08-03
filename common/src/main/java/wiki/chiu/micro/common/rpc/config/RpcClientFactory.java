@@ -1,6 +1,7 @@
 package wiki.chiu.micro.common.rpc.config;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -16,7 +17,7 @@ import java.util.Map;
 
 public class RpcClientFactory {
 
-    public static <T> T createHttpService(Class<T> serviceClass, String url, HttpClient httpClient, AuthHttpInterceptor interceptor, DefaultUriBuilderFactory.EncodingMode encodingMode, HttpHeaders headers, Duration timeout) {
+    public static <T> T createHttpService(Class<T> serviceClass, String url, HttpClient httpClient, DefaultUriBuilderFactory.EncodingMode encodingMode, HttpHeaders headers, Duration timeout, List<? extends ClientHttpRequestInterceptor> clientHttpRequestInterceptors) {
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(timeout);
 
@@ -36,16 +37,16 @@ public class RpcClientFactory {
                 .uriBuilderFactory(uriBuilderFactory)
                 .requestFactory(requestFactory);
 
+        if (!CollectionUtils.isEmpty(clientHttpRequestInterceptors)) {
+            clientBuilder.requestInterceptors(interceptors -> interceptors.addAll(clientHttpRequestInterceptors));
+        }
+
         if (!CollectionUtils.isEmpty(headers)) {
             clientBuilder.defaultHeaders(httpHeaders -> {
                 for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
                     httpHeaders.addAll(entry.getKey(), entry.getValue());
                 }
             });
-        }
-
-        if (interceptor != null) {
-            clientBuilder.requestInterceptor(interceptor);
         }
 
         RestClient client = clientBuilder.build();

@@ -106,7 +106,7 @@ public class CodeServiceImpl implements CodeService {
     }
 
     private void checkCodeExistence(String key) {
-        if (Boolean.TRUE.equals(redissonClient.getBucket(key).isExists())) {
+        if (redissonClient.getBucket(key).isExists()) {
             throw new CodeException(CODE_EXISTED);
         }
     }

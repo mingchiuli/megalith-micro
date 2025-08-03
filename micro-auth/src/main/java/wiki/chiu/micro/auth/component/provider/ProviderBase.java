@@ -31,7 +31,7 @@ public abstract sealed class ProviderBase extends DaoAuthenticationProvider perm
 
     protected ProviderBase(UserDetailsService userDetailsService,
                            UserHttpServiceWrapper userHttpServiceWrapper) {
-        setUserDetailsService(userDetailsService);
+        super(userDetailsService);
         setHideUserNotFoundExceptions(false);
         this.userDetailsService = userDetailsService;
         this.userHttpServiceWrapper = userHttpServiceWrapper;

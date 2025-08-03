@@ -9,6 +9,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    implementation("io.zipkin.brave:brave-instrumentation-spring-web")
     implementation("org.redisson:redisson")
     implementation("com.nimbusds:nimbus-jose-jwt")
     implementation(project(":common"))
