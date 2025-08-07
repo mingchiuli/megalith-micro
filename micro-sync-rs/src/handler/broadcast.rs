@@ -1,10 +1,9 @@
 use futures_util::StreamExt;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use warp::ws::{WebSocket, Ws};
 use warp::{Rejection, Reply};
+use warp::filters::ws::{Ws, WebSocket};
 use yrs_warp::ws::{WarpSink, WarpStream};
-
 use crate::room::room::{RoomConnection, RoomManager};
 
 pub async fn ws_handler(
