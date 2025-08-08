@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 yrs = "0.24.0"
 yrs-warp = "0.9.0"
-warp = { version = "0.3.7", features = ["websocket"] }
+warp = { version = "0.4.1", features = ["websocket"] }
 futures-util = { version = "0.3.31", features = ["sink"] }
 tokio = { version = "1.47.1", features = ["full"] }
 serde = { version = "1.0.219", features = ["derive", "rc"] }
