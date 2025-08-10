@@ -49,42 +49,42 @@ impl From<ClientError> for HandlerError {
     fn from(error: ClientError) -> Self {
         match error {
             ClientError::Network(msg) => {
-                log::error!("ClientError::Network:{}", msg);
+                tracing::error!("ClientError::Network:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
                     message: msg,
                 }
             }
             ClientError::Serialization(msg) => {
-                log::error!("ClientError::Serialization:{}", msg);
+                tracing::error!("ClientError::Serialization:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
                     message: msg,
                 }
             }
             ClientError::Request(msg) => {
-                log::error!("ClientError::Request:{}", msg);
+                tracing::error!("ClientError::Request:{}", msg);
                 HandlerError {
                     status: StatusCode::BAD_GATEWAY,
                     message: msg,
                 }
             }
             ClientError::Response(msg) => {
-                log::error!("ClientError::Response:{}", msg);
+                tracing::error!("ClientError::Response:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
                     message: msg,
                 }
             }
             ClientError::Status(code, msg) => {
-                log::error!("ClientError::Status:{}", msg);
+                tracing::error!("ClientError::Status:{}", msg);
                 HandlerError {
                     status: StatusCode::from_u16(code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
                     message: msg,
                 }
             }
             ClientError::Deserialize(msg) => {
-                log::error!("ClientError::Deserialize:{}", msg);
+                tracing::error!("ClientError::Deserialize:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
                     message: msg,
@@ -99,28 +99,28 @@ impl From<AuthError> for HandlerError {
     fn from(error: AuthError) -> Self {
         match error {
             AuthError::MissingConfig(msg) => {
-                log::error!("AuthError::MissingConfig:{}", msg);
+                tracing::error!("AuthError::MissingConfig:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
                     message: msg,
                 }
             }
             AuthError::InvalidUrl(msg) => {
-                log::error!("AuthError::InvalidUrl:{}", msg);
+                tracing::error!("AuthError::InvalidUrl:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
                     message: format!("无效URL: {}", msg),
                 }
             }
             AuthError::RequestFailed(msg) => {
-                log::error!("AuthError::RequestFailed:{}", msg);
+                tracing::error!("AuthError::RequestFailed:{}", msg);
                 HandlerError {
                     status: StatusCode::INTERNAL_SERVER_ERROR,
                     message: msg,
                 }
             }
             AuthError::Unauthorized(msg) => {
-                log::error!("AuthError::Unauthorized:{}", msg);
+                tracing::error!("AuthError::Unauthorized:{}", msg);
                 HandlerError {
                     status: StatusCode::UNAUTHORIZED,
                     message: format!("未授权: {}", msg),

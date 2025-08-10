@@ -23,9 +23,9 @@ async fn main() -> Result<(), BoxError> {
             env::set_var("RUST_LOG", "info");
         }
     }
-    env_logger::init();
+    tracing_subscriber::fmt::init();
 
-    log::info!("{}", LOGO);
+    tracing::info!("{}", LOGO);
 
     // build our application with a single route
     let app = Router::new()
@@ -62,11 +62,11 @@ async fn shutdown_signal() {
     let terminate = std::future::pending::<()>();
     tokio::select! {
         _ = ctrl_c => {
-            log::info!("Ctrl-C received");
+            tracing::info!("Ctrl-C received");
         },
         _ = terminate => {
-            log::info!("Terminate signal received");
+            tracing::info!("Terminate signal received");
         },
     }
-    log::info!("Shutdown signal received");
+    tracing::info!("Shutdown signal received");
 }

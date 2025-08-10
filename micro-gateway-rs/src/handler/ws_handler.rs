@@ -55,7 +55,7 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
     let (server_ws, _) = match connect_async(target_uri.to_string()).await {
         Ok(conn) => conn,
         Err(e) => {
-            log::error!("Failed to connect to websocket service: {}", e);
+            tracing::error!("Failed to connect to websocket service: {}", e);
             return;
         }
     };
@@ -99,12 +99,12 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
                     };
 
                     if let Err(e) = server_sender.send(converted_msg).await {
-                        log::error!("Error forwarding message to server: {}", e);
+                        tracing::error!("Error forwarding message to server: {}", e);
                         break;
                     }
                 }
                 Err(e) => {
-                    log::error!("Error receiving message from client: {}", e);
+                    tracing::error!("Error receiving message from client: {}", e);
                     break;
                 }
             }
@@ -157,12 +157,12 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
                     };
 
                     if let Err(e) = client_sender.send(converted_msg).await {
-                        log::error!("Error forwarding message to client: {}", e);
+                        tracing::error!("Error forwarding message to client: {}", e);
                         break;
                     }
                 }
                 Err(e) => {
-                    log::error!("Error receiving message from server: {}", e);
+                    tracing::error!("Error receiving message from server: {}", e);
                     break;
                 }
             }
@@ -171,7 +171,7 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
 
     // 同时处理两个方向的消息转发
     tokio::select! {
-        _ = client_to_server => log::info!("Client to server connection closed"),
-        _ = server_to_client => log::info!("Server to client connection closed"),
+        _ = client_to_server => tracing::info!("Client to server connection closed"),
+        _ = server_to_client => tracing::info!("Server to client connection closed"),
     }
 }

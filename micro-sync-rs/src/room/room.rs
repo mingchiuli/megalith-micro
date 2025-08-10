@@ -66,7 +66,7 @@ impl RoomManager {
     ) -> (Arc<RoomInfo>, Arc<BroadcastGroup>) {
         if let Some(room) = self.rooms.get(room_id) {
             room.connection_count.fetch_add(1, Ordering::SeqCst);
-            log::info!(
+            tracing::info!(
                 "用户加入已存在房间 {}. 当前连接数: {}",
                 room_id,
                 room.connection_count.load(Ordering::SeqCst)
@@ -86,7 +86,7 @@ impl RoomManager {
             });
 
             self.rooms.insert(room_id.to_string(), room_info.clone());
-            log::info!("创建新房间: {}", room_id);
+            tracing::info!("创建新房间: {}", room_id);
 
             (room_info, broadcast_group)
         }
@@ -97,10 +97,10 @@ impl RoomManager {
         let prev_count = room_info.connection_count.fetch_sub(1, Ordering::SeqCst);
         let current_count = prev_count - 1;
 
-        log::info!("用户离开房间 {}. 剩余连接数: {}", room_id, current_count);
+        tracing::info!("用户离开房间 {}. 剩余连接数: {}", room_id, current_count);
 
         if current_count == 0 {
-            log::info!("用户全部离开房间:{}", room_id);
+            tracing::info!("用户全部离开房间:{}", room_id);
             self.rooms.remove(room_id);
         }
 
