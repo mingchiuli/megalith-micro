@@ -18,16 +18,15 @@ const LOGO: &str = r#"
 
 #[tokio::main]
 async fn main() {
-    
     // Initialize logging
     if env::var("RUST_LOG").is_err() {
         unsafe {
             env::set_var("RUST_LOG", "info");
         }
     }
-    env_logger::init();
+    tracing_subscriber::fmt::init();
 
-    log::info!("{}", LOGO);
+    tracing::info!("{}", LOGO);
 
     let room_manager = Arc::new(Mutex::new(RoomManager::new()));
     let room_manager_ws = room_manager.clone();
@@ -75,7 +74,7 @@ async fn main() {
     // 等待服务器运行完成
     server.await;
 
-    log::info!("Server shutdown completed");
+    tracing::info!("Server shutdown completed");
 }
 
 async fn shutdown_signal() {
@@ -97,11 +96,11 @@ async fn shutdown_signal() {
     let terminate = std::future::pending::<()>();
     tokio::select! {
         _ = ctrl_c => {
-            log::info!("Ctrl-C received");
+            tracing::info!("Ctrl-C received");
         },
         _ = terminate => {
-            log::info!("Terminate signal received");
+            tracing::info!("Terminate signal received");
         },
     }
-    log::info!("Shutdown signal received");
+    tracing::info!("Shutdown signal received");
 }

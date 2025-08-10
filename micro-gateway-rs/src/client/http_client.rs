@@ -190,7 +190,7 @@ where
 
     tokio::task::spawn(async move {
         if let Err(e) = conn.await {
-            log::error!("Connection error: {}", e);
+            tracing::error!("Connection error: {}", e);
         }
     });
 
