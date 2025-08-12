@@ -28,8 +28,6 @@ subprojects {
     java { sourceCompatibility = JavaVersion.VERSION_24 }
 }
 
-java { sourceCompatibility = JavaVersion.VERSION_24 }
-
 dependencies {
     implementation(project(":micro-auth"))
     implementation(project(":micro-blog"))
