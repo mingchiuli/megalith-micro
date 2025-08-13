@@ -16,7 +16,7 @@
     "@types/markdown-it": "^14.1.2",
     "@vavt/v3-extension": "^3.0.0",
     "axios": "^1.11.0",
-    "element-plus": "^2.10.6",
+    "element-plus": "^2.10.7",
     "highlight.js": "^11.11.1",
     "js-base64": "^3.7.8",
     "markdown-it": "^14.1.0",
