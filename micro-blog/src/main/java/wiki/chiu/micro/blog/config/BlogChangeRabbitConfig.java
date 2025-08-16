@@ -23,7 +23,7 @@ public class BlogChangeRabbitConfig {
     }
 
     @Bean("cacheQueue")
-    Queue cahceQueue() {
+    Queue cacheQueue() {
         return new Queue(Const.CACHE_QUEUE, true, false, false);
     }
 

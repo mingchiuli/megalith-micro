@@ -1,18 +1,16 @@
 package wiki.chiu.micro.user.config;
 
-import brave.Tracing;
+import brave.spring.web.TracingClientHttpRequestInterceptor;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.OssHttpService;
 import wiki.chiu.micro.common.rpc.config.interceptor.AuthHttpInterceptor;
-import wiki.chiu.micro.common.rpc.config.RpcClientFactory;
-import wiki.chiu.micro.common.rpc.config.interceptor.TraceHttpInterceptor;
+import wiki.chiu.micro.common.rpc.RpcClientFactory;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
@@ -35,18 +33,10 @@ public class HttpClientConfig {
     private String authUrl;
 
     @Resource
-    private Tracing tracing;
+    private TracingClientHttpRequestInterceptor tracingInterceptor;
 
-    @Bean
-    ClientHttpRequestInterceptor tracingInterceptor() {
-        return TraceHttpInterceptor.tracingInterceptor(tracing);
-    }
-
-    @Bean
-    ClientHttpRequestInterceptor httpInterceptor() {
-        return new AuthHttpInterceptor();
-    }
-
+    @Resource
+    private AuthHttpInterceptor authHttpInterceptor;
 
     @Bean
     HttpClient httpClient() {
@@ -57,7 +47,7 @@ public class HttpClientConfig {
 
     @Bean
     AuthHttpService authHttpService() {
-        return RpcClientFactory.createHttpService(AuthHttpService.class, authUrl, httpClient(), null, null, Duration.ofSeconds(10), List.of(tracingInterceptor(), httpInterceptor()));
+        return RpcClientFactory.createHttpService(AuthHttpService.class, authUrl, httpClient(), null, null, Duration.ofSeconds(10), List.of(tracingInterceptor, authHttpInterceptor));
     }
 
     @Bean

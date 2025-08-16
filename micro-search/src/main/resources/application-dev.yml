@@ -1,8 +1,17 @@
 spring:
+  ssl:
+    bundle:
+      pem:
+        elasticsearch-trust:
+          truststore:
+            certificate: "/Users/chiu/Config/megalith/elasticsearch/certs/ca/ca.crt"
   elasticsearch:
     username: elastic
     password: 123456
-    uris: http://127.0.0.1:9200
+    uris: https://127.0.0.1:9200
+    restclient:
+      ssl:
+        bundle: elasticsearch-trust
   rabbitmq:
     username: guest
     password: guest
