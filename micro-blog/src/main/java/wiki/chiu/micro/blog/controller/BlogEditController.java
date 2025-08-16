@@ -6,7 +6,7 @@ import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.common.lang.Result;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import wiki.chiu.micro.common.rpc.config.AuthInfo;
+import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
 
 @RestController
 @RequestMapping(value = "/sys/blog/edit")

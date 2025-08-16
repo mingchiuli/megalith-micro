@@ -1,19 +1,17 @@
 package wiki.chiu.micro.auth.config;
 
-import brave.Tracing;
+import brave.spring.web.TracingClientHttpRequestInterceptor;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import wiki.chiu.micro.common.rpc.AuthorityHttpService;
 import wiki.chiu.micro.common.rpc.MenuHttpService;
 import wiki.chiu.micro.common.rpc.SmsHttpService;
 import wiki.chiu.micro.common.rpc.UserHttpService;
 import wiki.chiu.micro.common.rpc.config.interceptor.AuthHttpInterceptor;
-import wiki.chiu.micro.common.rpc.config.RpcClientFactory;
-import wiki.chiu.micro.common.rpc.config.interceptor.TraceHttpInterceptor;
+import wiki.chiu.micro.common.rpc.RpcClientFactory;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
@@ -30,17 +28,11 @@ public class HttpClientConfig {
     private String userUrl;
 
     @Resource
-    private Tracing tracing;
+    private TracingClientHttpRequestInterceptor tracingInterceptor;
 
-    @Bean
-    ClientHttpRequestInterceptor tracingInterceptor() {
-        return TraceHttpInterceptor.tracingInterceptor(tracing);
-    }
+    @Resource
+    private AuthHttpInterceptor authHttpInterceptor;
 
-    @Bean
-    ClientHttpRequestInterceptor httpInterceptor() {
-        return new AuthHttpInterceptor();
-    }
 
     @Bean
     HttpClient httpClient() {
@@ -56,16 +48,16 @@ public class HttpClientConfig {
 
     @Bean
     UserHttpService userHttpService() {
-        return RpcClientFactory.createHttpService(UserHttpService.class, userUrl, httpClient(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null, Duration.ofSeconds(10), List.of(tracingInterceptor(), httpInterceptor()));
+        return RpcClientFactory.createHttpService(UserHttpService.class, userUrl, httpClient(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null, Duration.ofSeconds(10), List.of(tracingInterceptor, authHttpInterceptor));
     }
 
     @Bean
     MenuHttpService menuHttpService() {
-        return RpcClientFactory.createHttpService(MenuHttpService.class, userUrl, httpClient(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null, Duration.ofSeconds(10), List.of(tracingInterceptor(), httpInterceptor()));
+        return RpcClientFactory.createHttpService(MenuHttpService.class, userUrl, httpClient(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null, Duration.ofSeconds(10), List.of(tracingInterceptor, authHttpInterceptor));
     }
 
     @Bean
     AuthorityHttpService authorityHttpService() {
-        return RpcClientFactory.createHttpService(AuthorityHttpService.class, userUrl, httpClient(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null, Duration.ofSeconds(10), List.of(tracingInterceptor(), httpInterceptor()));
+        return RpcClientFactory.createHttpService(AuthorityHttpService.class, userUrl, httpClient(), DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES, null, Duration.ofSeconds(10), List.of(tracingInterceptor, authHttpInterceptor));
     }
 }

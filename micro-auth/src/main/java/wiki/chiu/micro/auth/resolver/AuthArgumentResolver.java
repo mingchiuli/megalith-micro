@@ -8,7 +8,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import wiki.chiu.micro.auth.service.AuthService;
-import wiki.chiu.micro.common.rpc.config.AuthInfo;
+import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
 
 import java.util.Optional;
