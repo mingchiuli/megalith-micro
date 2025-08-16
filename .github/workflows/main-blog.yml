@@ -54,7 +54,7 @@ jobs:
                 docker rm "$container_id"
               done
             fi
-            docker compose --compatibility up -d micro-blog
+            docker compose up -d micro-blog
             old=$(docker images | grep -w 'micro-blog' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
               docker rmi $old

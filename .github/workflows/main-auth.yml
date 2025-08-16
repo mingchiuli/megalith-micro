@@ -54,7 +54,7 @@ jobs:
                 docker rm "$container_id"
               done
             fi
-            docker compose --compatibility up -d micro-auth
+            docker compose up -d micro-auth
             old=$(docker images | grep -w 'micro-auth' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
               docker rmi $old
