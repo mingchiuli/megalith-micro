@@ -25,10 +25,8 @@ server:
   max-http-request-header-size: 10MB
 
 logging:
-  # 日志格式
   pattern:
-    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr([${spring.application.name:},%X{traceId:-},%X{spanId:-}]){yellow} %clr(%t){magenta} %clr(---){faint} %clr(%logger{36}){cyan} %clr(:){faint} %m%n"
-
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [${spring.application.name},%X{traceId},%X{spanId}] [%t] --- %logger{36}: %m%n"
 
 megalith:
   cache:
