@@ -36,13 +36,13 @@ public class BlogSchedule {
 
     private void buildExecutor(Runnable task, String key, String finishKey) {
         RLock rLock = redissonClient.getLock(key);
-        if (Boolean.FALSE.equals(rLock.tryLock())) {
+        if (!rLock.tryLock()) {
             return;
         }
 
         try {
-            Boolean executed = redissonClient.getBucket(finishKey).isExists();
-            if (Boolean.FALSE.equals(executed)) {
+            boolean executed = redissonClient.getBucket(finishKey).isExists();
+            if (!executed) {
                 CompletableFuture.runAsync(task, taskExecutor);
                 redissonClient.getBucket(finishKey).set("flag", Duration.ofSeconds(10));
             }
