@@ -56,7 +56,7 @@ const geneCatalogueArr = (labels: NodeListOf<HTMLElement>): CatalogueLabel[] => 
   const arr: CatalogueLabel[] = []
   const scrolled = document.documentElement.scrollTop
   for (let i = 0; i < labels.length; i++) {
-    const aLabel = labels[i]
+    const aLabel = labels[i]!
     const item: CatalogueLabel = {
       id: '',
       label: '',
@@ -96,11 +96,11 @@ const getChildren = (labels: NodeListOf<HTMLElement>, index: number): CatalogueL
     return arr
   }
 
-  const curLabel = labels[index].nodeName
+  const curLabel = labels[index]!.nodeName
   const curLabelNo = curLabel.substring(1)
   const scrolled = document.documentElement.scrollTop
   for (let i = index + 1; i < labels.length; i++) {
-    const aLabel = labels[i]
+    const aLabel = labels[i]!
     const labelNo = aLabel.nodeName.substring(1)
 
     if (parseInt(labelNo) <= parseInt(curLabelNo)) {

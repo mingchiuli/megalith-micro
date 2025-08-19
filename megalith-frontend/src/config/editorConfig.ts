@@ -42,7 +42,7 @@ export const createYjsExtension = async (
 ) => {
   cleanupYjs()
 
-  const userColor = usercolors[random.uint32() % usercolors.length]
+  const userColor = usercolors[random.uint32() % usercolors.length]!
 
   const ydoc = new Y.Doc()
   const provider = new WebsocketProvider(

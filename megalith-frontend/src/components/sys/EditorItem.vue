@@ -119,7 +119,7 @@ const findAllOccurrences = (text: string, pattern: string) => {
   }
 
   if (occurrences.length === 1) {
-    selectWord(occurrences[0])
+    selectWord(occurrences[0]!)
     return
   }
 
@@ -141,7 +141,7 @@ const updateEditorExtension = async () => {
 
 const onUploadImg = async (files: File[], callback: (urls: string[]) => void) => {
   const formdata = new FormData()
-  formdata.append('image', files[0])
+  formdata.append('image', files[0]!, files[0]!.name)
   const url = await UPLOAD('sys/blog/oss/upload', formdata, uploadPercentage, showPercentage)
   callback([url])
 }

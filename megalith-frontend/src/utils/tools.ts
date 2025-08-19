@@ -69,13 +69,13 @@ export const debounce = <T extends (...args: unknown[]) => unknown>(
 export const getJWTStruct = (): JWTStruct => {
   const accessToken = localStorage.getItem('accessToken')!
   const tokenArray = accessToken.split('.')
-  return JSON.parse(Base64.fromBase64(tokenArray[1]))
+  return JSON.parse(Base64.fromBase64(tokenArray[1]!))
 }
 
 export const updateAccessToken = async (): Promise<string> => {
   const accessToken = localStorage.getItem('accessToken')!
   const tokenArray = accessToken.split('.')
-  const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
+  const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]!))
   const now = Math.floor(new Date().getTime() / 1000)
   //ten minutes
   if (jwt.exp - now < 600) {
@@ -93,7 +93,7 @@ export const updateAccessToken = async (): Promise<string> => {
 export const checkAccessToken = async (): Promise<boolean> => {
   const accessToken = localStorage.getItem('accessToken')!
   const tokenArray = accessToken.split('.')
-  const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]))
+  const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]!))
   const now = Math.floor(new Date().getTime() / 1000)
   //ten minutes
   if (jwt.exp - now < 600) {
@@ -115,8 +115,8 @@ export const diff = <T extends { [key: string]: unknown }>(oldArr: T[], newArr: 
   }
 
   for (let i = 0; i < newArr.length; i++) {
-    const newObj = newArr[i]
-    const oldObj = oldArr[i]
+    const newObj = newArr[i]!
+    const oldObj = oldArr[i]!
 
     const newObjKeys = Object.keys(newObj)
     for (const key of newObjKeys) {
