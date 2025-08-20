@@ -20,6 +20,7 @@ import {
 import type { Footers, ToolbarNames, ExposeParam } from 'md-editor-v3'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
+import { ExportPDF, Emoji } from '@vavt/v3-extension'
 
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!

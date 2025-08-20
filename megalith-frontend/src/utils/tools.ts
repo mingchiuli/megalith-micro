@@ -186,8 +186,10 @@ export const submitLogin = async (username: string, password: string) => {
   setLocalStorageItem('accessToken', token.accessToken)
   setLocalStorageItem('refreshToken', token.refreshToken)
   loginStateStore().login = true
-  const info = await GET<UserInfo>('/token/userinfo')
-  setLocalStorageItem('userinfo', JSON.stringify(info))
+  GET<UserInfo>('/token/userinfo')
+    .then((info) => {
+      setLocalStorageItem('userinfo', JSON.stringify(info))
+    })
   router.push('/backend')
 }
 
