@@ -8,6 +8,9 @@ on:
       - '.github/workflows/main-gateway-rs.yml'
       - 'cargo.toml'
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Test
