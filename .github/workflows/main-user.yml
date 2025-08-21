@@ -8,6 +8,10 @@ on:
       - 'build.gradle.kts'
       - 'common/**'
       - '.github/workflows/main-user.yml'
+
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build
