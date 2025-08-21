@@ -2,6 +2,8 @@ package wiki.chiu.micro.auth.service.impl;
 
 
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wiki.chiu.micro.auth.convertor.ButtonVoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuDisplayDtoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuWithChildDtoConvertor;
@@ -40,7 +42,8 @@ import static wiki.chiu.micro.common.lang.Const.*;
 
 @Service
 public class AuthServiceImpl implements AuthService {
-        
+
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
     private final AuthWrapper authWrapper;
 
     private final RedissonClient redissonClient;
@@ -106,6 +109,8 @@ public class AuthServiceImpl implements AuthService {
 
     private void recordIp(String ipAddr) {
         if (StringUtils.hasLength(ipAddr)) {
+            log.info("Record visit IP: {}", ipAddr);
+            // Use Lua script to atomically increment visit counts for different time periods
             taskExecutor.execute(() -> redissonClient.getScript().eval(Mode.READ_WRITE, script, ReturnType.VALUE, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT), ipAddr, ipAddr, ipAddr, ipAddr));
         }
     }
