@@ -6,6 +6,10 @@ on:
     paths:
       - 'cache/**'
       - '.github/workflows/main-cache.yml'
+
+permissions:
+  contents: read
+
 jobs:
   build:
     name: publish
