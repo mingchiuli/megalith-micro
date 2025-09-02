@@ -45,16 +45,10 @@ public class RpcClientFactory {
                 .requestFactory(requestFactory)
                 .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                     String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
-
-                    try {
-                        // 尝试解析为 Result 对象
-                        Result<?> result = objectMapper.readValue(responseBody, Result.class);
-                        // 如果解析成功，直接抛出包含原始错误消息的异常
-                        throw new MissException(result.msg());
-                    } catch (Exception e) {
-                        // 如果解析失败，抛出包含原始响应体的异常
-                        throw new MissException(responseBody);
-                    }
+                    // 尝试解析为 Result 对象
+                    Result<?> result = objectMapper.readValue(responseBody, Result.class);
+                    // 如果解析成功，直接抛出包含原始错误消息的异常
+                    throw new MissException(result.msg());
                 });
 
         if (!CollectionUtils.isEmpty(clientHttpRequestInterceptors)) {
