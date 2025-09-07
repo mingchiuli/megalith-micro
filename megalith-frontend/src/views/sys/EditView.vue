@@ -29,7 +29,6 @@ import {
 } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
-import { blogsStore } from '@/stores/store'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle, cleanJsonResponse } from '@/utils/tools'
 import { aiHttpClient } from '@/http/axios'
@@ -38,6 +37,7 @@ import 'element-plus/es/components/input/style/css' //不明原因样式缺失
 const aiModels = ref<AiModel[]>([])
 const aiModel = ref('')
 const aiLoading = ref(false)
+const submitLoading = ref(false)
 const route = useRoute()
 const blogId = route.query.id as string | undefined
 const form: EditForm = reactive({
@@ -121,14 +121,18 @@ const handleRemove = async () => {
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid) => {
     if (valid) {
-      await POST<null>('/sys/blog/save', form)
+      try {
+        submitLoading.value = true
+        await POST<null>('/sys/blog/save', form)
+      } finally {
+        submitLoading.value = false
+      }
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
         type: 'success',
         duration: 1000
       })
-      blogsStore().pageNum = 1
       router.push({
         name: 'system-blogs'
       })
@@ -474,7 +478,8 @@ const aiGenerate = async () => {
 
       <div class="submit-button">
         <el-button
-          :disabled="!form.owner"
+          :disabled="submitLoading || !form.owner"
+          :loading="submitLoading"
           :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)"
           v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)"
           @click="submitForm(formRef!)"
