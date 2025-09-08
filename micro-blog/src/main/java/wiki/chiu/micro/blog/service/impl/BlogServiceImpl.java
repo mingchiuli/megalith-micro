@@ -12,6 +12,7 @@ import wiki.chiu.micro.blog.dto.BlogDeleteDto;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.utils.EditAuthUtils;
+import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.blog.entity.BlogEntity;
@@ -149,6 +150,38 @@ public class BlogServiceImpl implements BlogService {
         Resource blogDeleteResource = resourceLoader
                 .getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/rpush-expire.lua");
         blogDeleteScript = blogDeleteResource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public BlogEditVo findEdit(Long id, Long userId, List<String> roles) {
+
+        BlogEntity blog;
+        List<BlogEditVo.SensitiveContentVo> sensitiveContentList;
+        Long blogUserId;
+        if (id != null) {
+            blog = blogRepository.findById(id)
+                    .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+            EditAuthUtils.checkEditAuth(blog, userId);
+            blogUserId = blog.getUserId();
+            var sensitiveContentRpcList = blogSensitiveContentRepository.findByBlogId(id);
+            sensitiveContentList = SensitiveContentVoConvertor.convert(sensitiveContentRpcList);
+        } else {
+            blog = createNewBlog();
+            sensitiveContentList = new ArrayList<>();
+            blogUserId = userId;
+        }
+
+        return BlogEditVoConvertor.convert(blog, sensitiveContentList, userId, blogUserId, roles, highestRole);
+    }
+
+    private BlogEntity createNewBlog() {
+        return BlogEntity.builder()
+                .status(BlogStatusEnum.NORMAL.getCode())
+                .content("")
+                .description("")
+                .link("")
+                .title("")
+                .build();
     }
 
     @Override

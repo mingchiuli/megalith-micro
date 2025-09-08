@@ -12,6 +12,7 @@ import wiki.chiu.micro.blog.valid.BlogSaveValue;
 import wiki.chiu.micro.blog.valid.BlogSysDownload;
 import wiki.chiu.micro.blog.valid.BlogSysQuery;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
+import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
 
 import wiki.chiu.micro.common.lang.Result;
@@ -85,6 +86,11 @@ public class BlogController {
     @GetMapping("/download")
     public void download(HttpServletResponse response, @BlogSysDownload BlogDownloadReq req, AuthInfo authInfo) {
         blogService.download(response, req, authInfo.userId(), authInfo.roles());
+    }
+
+    @GetMapping("/edit/pull/echo")
+    public Result<BlogEditVo> getEchoDetail(@RequestParam(value = "blogId", required = false) Long id, AuthInfo authInfo) {
+        return Result.success(() -> blogService.findEdit(id, authInfo.userId(), authInfo.roles()));
     }
 
 }
