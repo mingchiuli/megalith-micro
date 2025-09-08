@@ -5,6 +5,7 @@ import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
+import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
 import wiki.chiu.micro.common.page.PageAdapter;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,4 +48,6 @@ public interface BlogService {
     Long countByCreatedGreaterThanEqual(LocalDateTime created);
 
     void download(HttpServletResponse response, BlogDownloadReq req, Long userId, List<String> roles);
+
+    BlogEditVo findEdit(Long id, Long userId, List<String> roles);
 }
