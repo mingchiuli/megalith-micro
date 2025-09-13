@@ -87,7 +87,14 @@ export const createYjsExtension = async (
 }
 
 config({
-  codeMirrorExtensions(_theme, extensions) {
-    return [...extensions, yjsCompartment.of([])]
+  codeMirrorExtensions(extensions) {
+    // Return an array of CodeMirrorExtension objects, where each has the expected structure
+    return [
+      ...extensions,
+      {
+        type: 'compartment',
+        extension: yjsCompartment.of([])
+      }
+    ]
   }
 })
