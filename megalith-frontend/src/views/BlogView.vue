@@ -152,14 +152,6 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth))
   margin-bottom: 5px;
 }
 
-.el-card:deep(.md-editor-preview-wrapper) {
-  padding: 20px 20px;
-}
-
-.content:deep(.el-card__body) {
-  padding: 0;
-}
-
 .affix {
   right: v-bind(right + 'px');
   position: fixed;
