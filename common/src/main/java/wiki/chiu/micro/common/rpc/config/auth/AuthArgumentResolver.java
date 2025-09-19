@@ -14,13 +14,7 @@ import wiki.chiu.micro.common.rpc.AuthHttpService;
 import java.util.Optional;
 
 
-public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
-
-    private final AuthHttpService authHttpService;
-
-    public AuthArgumentResolver(AuthHttpService authHttpService) {
-        this.authHttpService = authHttpService;
-    }
+public record AuthArgumentResolver(AuthHttpService authHttpService) implements HandlerMethodArgumentResolver {
 
     @Override
     public boolean supportsParameter(@NonNull MethodParameter parameter) {
