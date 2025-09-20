@@ -37,6 +37,9 @@ tasks.named<BootBuildImage>("bootBuildImage") {
 				-O3
 				-J-XX:MaxRAMPercentage=80.0
 				-H:+CompactingOldGen
+                -H:+MLCallCountProfileInference
+                -H:+TrackPrimitiveValues
+                -H:+UsePredicates
 			""",
                     "BP_HEALTH_CHECKER_ENABLED" to "true",
             )
