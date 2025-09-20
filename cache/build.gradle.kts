@@ -1,5 +1,5 @@
 
-version = "3.5.4"
+version = "3.5.6"
 
 plugins { id("com.vanniktech.maven.publish") version "0.34.0" }
 
@@ -13,7 +13,7 @@ mavenPublishing {
     pom {
         name.set("Megalith Cache")
         description.set("A Cache Framework for Megalith")
-        inceptionYear.set("2024")
+        inceptionYear.set("2025")
         url.set("https://github.com/mingchiuli/megalith-micro/")
         licenses {
             license {
