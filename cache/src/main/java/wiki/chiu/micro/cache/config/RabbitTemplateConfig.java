@@ -12,9 +12,6 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.retry.policy.CircuitBreakerRetryPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
 
 /**
  * @author mingchiuli
@@ -51,19 +48,6 @@ public class RabbitTemplateConfig {
         rabbitTemplate.setReturnsCallback(returned -> log.info("message not come to queue {}", returned));
 
         rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
-
-        var retryPolicy = new CircuitBreakerRetryPolicy(
-                new SimpleRetryPolicy(10)
-        );
-        retryPolicy.setOpenTimeout(5000L);
-        retryPolicy.setResetTimeout(10000L);
-        RetryTemplate retryTemplate = RetryTemplate
-                .builder()
-                .customPolicy(retryPolicy)
-                .build();
-
-        rabbitTemplate.setRetryTemplate(retryTemplate);
-
         return rabbitTemplate;
     }
 
