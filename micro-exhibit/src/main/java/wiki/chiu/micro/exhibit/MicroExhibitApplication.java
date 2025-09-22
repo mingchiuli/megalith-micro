@@ -10,7 +10,7 @@ import wiki.chiu.micro.exhibit.config.CustomRuntimeHints;
 @EnableScheduling
 @ImportRuntimeHints({ CustomRuntimeHints.class })
 public class MicroExhibitApplication {
-    void main(String[] args) {
+    public static void main(String[] args) {
         SpringApplication.run(MicroExhibitApplication.class, args);
     }
 }
