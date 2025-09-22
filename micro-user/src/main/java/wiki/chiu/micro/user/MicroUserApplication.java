@@ -11,7 +11,7 @@ import wiki.chiu.micro.user.config.CustomRuntimeHints;
 @ImportRuntimeHints({ CustomRuntimeHints.class })
 public class MicroUserApplication {
 
-    public static void main(String[] args) {
+   void main(String[] args) {
         SpringApplication.run(MicroUserApplication.class, args);
     }
 }

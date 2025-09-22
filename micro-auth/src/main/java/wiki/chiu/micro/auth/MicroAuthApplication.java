@@ -11,7 +11,7 @@ import wiki.chiu.micro.auth.config.CustomRuntimeHints;
 @EnableScheduling
 public class MicroAuthApplication {
 
-    public static void main(String[] args) {
+    void main(String[] args) {
         SpringApplication.run(MicroAuthApplication.class, args);
     }
 }
