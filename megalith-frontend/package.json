@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@types/markdown-it": "^14.1.2",
-    "@vavt/v3-extension": "^3.0.0",
+    "@vavt/v3-extension": "^4.0.0",
     "axios": "^1.12.2",
     "element-plus": "^2.11.3",
     "highlight.js": "^11.11.1",
@@ -46,7 +46,7 @@
     "unplugin-auto-import": "^20.2.0",
     "unplugin-element-plus": "^0.10.0",
     "unplugin-vue-components": "^29.1.0",
-    "vue-tsc": "^3.0.8"
-    "vite": "^7.1.7",
+    "vue-tsc": "^3.0.8",
+    "vite": "^7.1.7"
   }
 }
