@@ -4,22 +4,23 @@ FROM rust:latest AS builder
 # Set the working directory
 WORKDIR /usr/src/app
 
-# Copy the entire project
-COPY . .
+# Copy workspace manifest
+COPY Cargo.toml Cargo.lock ./
 
-# Build the application
-RUN rustup target add x86_64-unknown-linux-musl \
-    && cargo build --release --target x86_64-unknown-linux-musl
+# Copy all workspace members
+COPY micro-sync-rs ./micro-sync-rs
 
-# Use a minimal base image for the final stage
-FROM debian:bullseye-slim
+# Install musl target
+RUN rustup target add x86_64-unknown-linux-musl
 
-# Install necessary runtime dependencies
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    tzdata \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Build only micro-sync-rs
+RUN cargo build --release --target x86_64-unknown-linux-musl -p micro-sync-rs
+
+# Use Alpine for minimal image size (matches musl)
+FROM alpine:latest
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata
 
 # Create app directory
 WORKDIR /app
@@ -27,8 +28,8 @@ WORKDIR /app
 # Copy the build artifact from the builder stage
 COPY --from=builder /usr/src/app/target/x86_64-unknown-linux-musl/release/micro-sync-rs /app/
 
-# Make the binary executable
-RUN chmod +x /app/micro-sync-rs
+# Expose the port (adjust based on your application)
+EXPOSE 8089
 
 # Set the startup command
 CMD ["/app/micro-sync-rs"]
