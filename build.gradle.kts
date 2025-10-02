@@ -1,16 +1,14 @@
-val springBootVersion = "3.5.6"
-val springDependencyManagementVersion = "1.1.7"
-val graalvmVersion = "0.11.1"
-val redissonVersion = "3.52.0"
-val nimbusJoseJwtVersion = "10.5"
-val cacheStarterVersion = "3.5.7"
-
 plugins {
     java
-    id("org.springframework.boot") version springBootVersion apply false
-    id("io.spring.dependency-management") version springDependencyManagementVersion
-    id("org.graalvm.buildtools.native") version graalvmVersion apply false
+    id("org.springframework.boot") version "3.5.6" apply false
+    id("io.spring.dependency-management") version "1.1.7"
+    id("org.graalvm.buildtools.native") version "0.11.1" apply false
 }
+
+extra["springBootVersion"] = "3.5.6"
+extra["redissonVersion"] = "3.52.0"
+extra["nimbusJoseJwtVersion"] = "10.5"
+extra["cacheStarterVersion"] = "3.5.7"
 
 repositories { mavenCentral() }
 
@@ -27,6 +25,11 @@ subprojects {
         plugins.apply("org.springframework.boot")
         plugins.apply("org.graalvm.buildtools.native")
     }
+
+    val springBootVersion: String by rootProject.extra
+    val redissonVersion: String by rootProject.extra
+    val nimbusJoseJwtVersion: String by rootProject.extra
+    val cacheStarterVersion: String by rootProject.extra
 
     dependencyManagement {
         imports {
