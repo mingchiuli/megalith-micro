@@ -6,7 +6,8 @@ on:
     paths:
       - 'micro-gateway-rs/**'
       - '.github/workflows/main-gateway-rs.yml'
-      - 'cargo.toml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
 
 permissions:
   contents: read
@@ -36,7 +37,7 @@ jobs:
         uses: actions/checkout@v2
           
       - name: Build Docker image
-        run: docker build -t mingchiuli/megalith-micro-gateway-rs:latest micro-gateway-rs/.
+        run: docker build -t mingchiuli/megalith-micro-gateway-rs:latest -f micro-gateway-rs/Dockerfile .
 
       - name: Log in to DockerHub
         run: echo "${{ secrets.DOCKERHUB_PWD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
