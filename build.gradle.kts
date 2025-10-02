@@ -20,10 +20,12 @@ subprojects {
     plugins.apply("java")
     plugins.apply("io.spring.dependency-management")
 
+    // Apply GraalVM plugin to all modules (for AOT processing)
+    plugins.apply("org.graalvm.buildtools.native")
+
     // Only apply Spring Boot plugin to microservice modules
     if (name.startsWith("micro-")) {
         plugins.apply("org.springframework.boot")
-        plugins.apply("org.graalvm.buildtools.native")
     }
 
     val springBootVersion: String by rootProject.extra
