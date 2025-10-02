@@ -1,8 +1,8 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.5.6"
+    id("org.springframework.boot") version "3.5.6" apply false
     id("io.spring.dependency-management") version "1.1.7"
-    id("org.graalvm.buildtools.native") version "0.11.1"
+    id("org.graalvm.buildtools.native") version "0.11.1" apply false
 }
 
 repositories { mavenCentral() }
@@ -12,10 +12,14 @@ subprojects {
 
     group = "wiki.chiu.megalith"
 
-    plugins.apply("org.springframework.boot")
-    plugins.apply("io.spring.dependency-management")
-    plugins.apply("org.graalvm.buildtools.native")
     plugins.apply("java")
+    plugins.apply("io.spring.dependency-management")
+
+    // Only apply Spring Boot plugin to microservice modules
+    if (name.startsWith("micro-")) {
+        plugins.apply("org.springframework.boot")
+        plugins.apply("org.graalvm.buildtools.native")
+    }
 
     dependencyManagement {
         dependencies {
@@ -26,14 +30,4 @@ subprojects {
     }
 
     java { sourceCompatibility = JavaVersion.VERSION_25 }
-}
-
-dependencies {
-    implementation(project(":micro-auth"))
-    implementation(project(":micro-blog"))
-    implementation(project(":micro-user"))
-    implementation(project(":micro-exhibit"))
-    implementation(project(":micro-search"))
-    implementation(project(":common"))
-    implementation(project(":cache"))
 }
