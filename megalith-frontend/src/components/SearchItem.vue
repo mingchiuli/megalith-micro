@@ -13,6 +13,7 @@ import { ElLoading } from 'element-plus'
 import type HotItem from '@/components/HotItem.vue'
 import { storeToRefs } from 'pinia'
 import { blogsStore } from '@/stores/store'
+import { buildCommonUrls } from '@/config/apiConfig'
 
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
@@ -33,9 +34,12 @@ const search = async (
   searchOrder: number | null
 ): Promise<SearchPage<BlogDesc>> => {
   loading.value = true
-  const data = await GET<SearchPage<BlogDesc>>(
-    `/search/public/blog?keywords=${queryString}&currentPage=${currentPage}&allInfo=${allInfo}`
-  )
+  const url = buildCommonUrls.searchQuery({
+    keywords: queryString,
+    currentPage,
+    allInfo
+  })
+  const data = await GET<SearchPage<BlogDesc>>(url)
   data.additional = searchOrder
   return Promise.resolve(data)
 }
@@ -99,12 +103,7 @@ const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
     lock = true
     e.append(div)
     loadingInstance = ElLoading.service({ target: div })
-    const page: PageAdapter<BlogDesc> = await search(
-      keywords.value,
-      currentPage + 1,
-      false,
-      null
-    )
+    const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, null)
     if (page.content.length < page.pageSize) {
       page.content.forEach((blogsDesc: BlogDesc) => {
         blogsDesc.value = keywords.value
@@ -142,12 +141,7 @@ const handleSelect = (item: Record<string, string | number>) => {
 const searchAllInfo = async (queryString: string, currentPage = 1) => {
   searchDialogVisible.value = false
   if (queryString.length) {
-    const page: PageAdapter<BlogDesc> = await search(
-      queryString,
-      currentPage,
-      true,
-      null
-    )
+    const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, null)
     if (page.content.length) {
       emit('transSearchData', page)
       return
@@ -250,7 +244,6 @@ defineExpose({ searchAllInfo })
           </template>
         </el-autocomplete>
       </div>
-
     </template>
     <template #footer>
       <div class="dialog-footer">
@@ -264,7 +257,7 @@ defineExpose({ searchAllInfo })
 .value {
   overflow-x: auto;
 }
-        
+
 .dialog-autocomplete {
   margin: 10px auto 0 auto;
   max-width: max-content;

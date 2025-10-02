@@ -6,6 +6,7 @@ import { reactive, ref } from 'vue'
 import { Status, ButtonAuth, RoutesStatus, RoutesEnum } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 
 const { fix } = displayState()
 const dialogVisible = ref(false)
@@ -22,7 +23,8 @@ const props = {
   label: 'title',
   //这个value代表根据这个值找节点，和v-model="value"的value不是一个概念
   value: 'id',
-  disabled: (data: MenuSys) => data.status !== RoutesStatus.NORMAL || data.type === RoutesEnum.BUTTON
+  disabled: (data: MenuSys) =>
+    data.status !== RoutesStatus.NORMAL || data.type === RoutesEnum.BUTTON
 }
 
 type Form = {
@@ -67,13 +69,13 @@ const editFormRules = reactive<FormRules<Form>>({
 })
 
 const handleEdit = async (row: MenuSys) => {
-  const data = await GET<MenuSys>(`/sys/menu/info/${row.id}`)
+  const data = await GET<MenuSys>(API_ENDPOINTS.MENU_ADMIN.GET_MENU_INFO(row.id))
   Object.assign(form, data)
   dialogVisible.value = true
 }
 
 const handleDelete = async (row: MenuSys) => {
-  await POST<null>(`/sys/menu/delete/${row.id}`, null)
+  await POST<null>(API_ENDPOINTS.MENU_ADMIN.DELETE_MENU(row.id), null)
   ElNotification({
     title: '操作成功',
     message: '删除成功',
@@ -88,7 +90,12 @@ const handleClose = () => {
 }
 
 const download = async () => {
-  await downloadSQLData('/sys/menu/download', 'menus', uploadPercentage, showPercentage)
+  await downloadSQLData(
+    API_ENDPOINTS.MENU_ADMIN.DOWNLOAD_MENUS,
+    'menus',
+    uploadPercentage,
+    showPercentage
+  )
 }
 
 const clearForm = () => {
@@ -106,13 +113,13 @@ const clearForm = () => {
 
 const queryMenus = async () => {
   loading.value = true
-  content.value = await GET<Array<MenuSys>>('/sys/menu/list')
+  content.value = await GET<Array<MenuSys>>(API_ENDPOINTS.MENU_ADMIN.GET_MENUS)
   loading.value = false
 }
 
 const submitAuthorityFormHandle = async () => {
   const ids = authorityData.value.filter((item) => item.check).map((item) => item.authorityId)
-  await POST<null>(`/sys/menu/authority/${menuId.value}`, ids)
+  await POST<null>(API_ENDPOINTS.MENU_ADMIN.SET_MENU_AUTHORITY(menuId.value!), ids)
   ElNotification({
     title: '操作成功',
     message: '编辑成功',
@@ -123,7 +130,9 @@ const submitAuthorityFormHandle = async () => {
 }
 
 const handleAuthority = async (row: MenuSys) => {
-  authorityData.value = await GET<AuthorityForm[]>(`/sys/menu/authority/${row.id}`)
+  authorityData.value = await GET<AuthorityForm[]>(
+    API_ENDPOINTS.MENU_ADMIN.GET_MENU_AUTHORITY(row.id)
+  )
   menuId.value = row.id
   authorityDialogVisible.value = true
 }
@@ -136,7 +145,7 @@ const authorityHandleClose = () => {
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid) => {
     if (valid) {
-      await POST<null>('/sys/menu/save', form)
+      await POST<null>(API_ENDPOINTS.MENU_ADMIN.SAVE_MENU, form)
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
@@ -306,7 +315,12 @@ const submitForm = async (ref: FormInstance) => {
       </el-form-item>
 
       <el-form-item label-width="450px">
-        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_MENU_SAVE)" :type="getButtonType(ButtonAuth.SYS_MENU_SAVE)" @click="submitForm(formRef!)">{{ getButtonTitle(ButtonAuth.SYS_MENU_SAVE) }}</el-button>
+        <el-button
+          v-if="checkButtonAuth(ButtonAuth.SYS_MENU_SAVE)"
+          :type="getButtonType(ButtonAuth.SYS_MENU_SAVE)"
+          @click="submitForm(formRef!)"
+          >{{ getButtonTitle(ButtonAuth.SYS_MENU_SAVE) }}</el-button
+        >
       </el-form-item>
     </el-form>
   </el-dialog>
@@ -323,7 +337,12 @@ const submitForm = async (ref: FormInstance) => {
       </span>
 
       <el-form-item label-width="450px">
-        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)" :type="getButtonType(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)" @click="submitAuthorityFormHandle">{{ getButtonTitle(ButtonAuth.SYS_MENU_AUTHORITY_SAVE) }}</el-button>
+        <el-button
+          v-if="checkButtonAuth(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)"
+          :type="getButtonType(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)"
+          @click="submitAuthorityFormHandle"
+          >{{ getButtonTitle(ButtonAuth.SYS_MENU_AUTHORITY_SAVE) }}</el-button
+        >
       </el-form-item>
     </el-form>
   </el-dialog>

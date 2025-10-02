@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import type { Hot } from '@/type/entity'
 import { GET } from '@/http/http'
 import router from '@/router'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 
 const hots = ref<Hot[]>()
 const loading = ref(false)
@@ -17,7 +18,7 @@ const to = (id: number) =>
 
 const load = async () => {
   loading.value = true
-  hots.value = await GET<Hot[]>('/public/blog/scores')
+  hots.value = await GET<Hot[]>(API_ENDPOINTS.BLOG_PUBLIC.GET_HOT_BLOGS)
   loading.value = false
 }
 

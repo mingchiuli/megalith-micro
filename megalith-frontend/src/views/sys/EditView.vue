@@ -33,6 +33,7 @@ import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle, cleanJsonResponse } from '@/utils/tools'
 import { aiHttpClient } from '@/http/axios'
 import 'element-plus/es/components/input/style/css' //不明原因样式缺失
+import { API_ENDPOINTS } from '@/config/apiConfig'
 
 const aiModels = ref<AiModel[]>([])
 const aiModel = ref('')
@@ -108,13 +109,18 @@ const upload = async (image: UploadRequestOptions) => {
 const uploadFile = async (file: UploadRawFile) => {
   const formdata = new FormData()
   formdata.append('image', file)
-  const url = await UPLOAD('sys/blog/oss/upload', formdata, uploadPercentage, showPercentage)
+  const url = await UPLOAD(
+    API_ENDPOINTS.BLOG_ADMIN.OSS_UPLOAD,
+    formdata,
+    uploadPercentage,
+    showPercentage
+  )
   form.link = url
 }
 
 const handleRemove = async () => {
   if (!form.link) return
-  await GET<null>(`/sys/blog/oss/delete?url=${form.link}`)
+  await GET<null>(`${API_ENDPOINTS.BLOG_ADMIN.OSS_DELETE}?url=${form.link}`)
   form.link = ''
 }
 
@@ -123,7 +129,7 @@ const submitForm = async (ref: FormInstance) => {
     if (valid) {
       try {
         submitLoading.value = true
-        await POST<null>('/sys/blog/save', form)
+        await POST<null>(API_ENDPOINTS.BLOG_ADMIN.SAVE_BLOG, form)
       } finally {
         submitLoading.value = false
       }
@@ -271,7 +277,7 @@ const handleDescSelect = () => {
 
 const loadContent = ref(true)
 const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
-  let url = '/sys/blog/edit/pull/echo'
+  let url = API_ENDPOINTS.BLOG_ADMIN.EDIT_PULL_ECHO
   if (blogId) {
     url += `?blogId=${blogId}`
   }
@@ -290,7 +296,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
 
 const loadAiModel = async () => {
   try {
-    const response = await aiHttpClient.get('/api/tags')
+    const response = await aiHttpClient.get(API_ENDPOINTS.AI.GET_MODELS)
     const result: AiModelsResp = response.data
     aiModels.value = result.models
   } catch (e) {
@@ -309,7 +315,7 @@ const aiGenerate = async () => {
     const prePrompt = `请仔细阅读以下文章：\n${form.content}`
 
     aiLoading.value = true
-    const preResponse = await aiHttpClient.post('/api/generate', {
+    const preResponse = await aiHttpClient.post(API_ENDPOINTS.AI.GENERATE_CONTENT, {
       model: aiModel.value, // 可用的模型
       prompt: prePrompt,
       stream: false
@@ -335,7 +341,7 @@ const aiGenerate = async () => {
     - 不要包含markdown、代码块等任何格式标记
     - JSON前后不能有空格或其他字符`
 
-    const response = await aiHttpClient.post('/api/generate', {
+    const response = await aiHttpClient.post(API_ENDPOINTS.AI.GENERATE_CONTENT, {
       model: aiModel.value, // 可用的模型
       prompt,
       stream: false,

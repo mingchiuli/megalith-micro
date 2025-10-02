@@ -14,6 +14,7 @@ import router from '@/router'
 import { useRoute } from 'vue-router'
 import { clearLoginState, submitLogin } from '@/utils/tools'
 import { Colors } from '@/type/entity'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 
 const saveLoading = ref(false)
 
@@ -52,7 +53,7 @@ if (username) {
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
-GET<boolean>(`/sys/user/register/check?token=${t}`).then((res) => {
+GET<boolean>(`${API_ENDPOINTS.AUTH.REGISTER_CHECK}?token=${t}`).then((res) => {
   if (!res) {
     router.push('/blogs')
   }
@@ -104,7 +105,7 @@ const uploadFile = async (file: UploadRawFile) => {
   formdata.append('image', file)
   formdata.append('token', t)
   const url = await UPLOAD(
-    'sys/user/register/image/upload',
+    API_ENDPOINTS.AUTH.REGISTER_IMAGE_UPLOAD,
     formdata,
     uploadPercentage,
     showPercentage
@@ -136,7 +137,7 @@ const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid) => {
     if (valid) {
       try {
-        await POST<null>('/sys/user/register/save', form)
+        await POST<null>(API_ENDPOINTS.AUTH.REGISTER_SAVE, form)
         ElNotification({
           title: '操作成功',
           message: '编辑成功',
@@ -158,7 +159,7 @@ const handlePictureCardPreview = (file: UploadFile) => {
 
 const handleRemove = async () => {
   if (form.avatar) return
-  await GET<null>(`/sys/user/register/image/delete?url=${form.avatar}&token=${t}`)
+  await GET<null>(`${API_ENDPOINTS.AUTH.REGISTER_IMAGE_DELETE}?url=${form.avatar}&token=${t}`)
   form.avatar = ''
 }
 </script>

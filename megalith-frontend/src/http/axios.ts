@@ -3,24 +3,25 @@ import type { Data } from '@/type/entity'
 import { updateAccessToken, clearLoginState } from '@/utils/tools'
 import router from '@/router'
 import { loginStateStore } from '@/stores/store'
+import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 
 const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL,
-  timeout: 10000
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT
 })
 
 const longHttpClient = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL
+  baseURL: API_CONFIG.BASE_URL
 })
 
 const aiHttpClient = axios.create({
-  baseURL: 'http://localhost:11434'
+  baseURL: API_CONFIG.AI_BASE_URL
 })
 
 // 请求拦截器
 const requestInterceptor = async (config: InternalAxiosRequestConfig) => {
   const url = config.url
-  if (url !== '/token/refresh' && loginStateStore().login) {
+  if (url !== API_ENDPOINTS.AUTH.TOKEN_REFRESH && loginStateStore().login) {
     const token = await updateAccessToken()
     config.headers.Authorization = token
   }

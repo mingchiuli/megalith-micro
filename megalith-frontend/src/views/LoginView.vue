@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import type { LoginStruct } from '@/type/entity'
 import { GET } from '@/http/http'
 import { submitLogin } from '@/utils/tools'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 
 const mailButtonDisable = ref(false)
 const smsButtonDisable = ref(false)
@@ -51,7 +52,7 @@ const sendCode = (via: string) => {
   if (!loginInfo.username) return
   smsButtonDisable.value = true
   mailButtonDisable.value = true
-  GET(`/code/${via}?loginName=${loginInfo.username}`)
+  GET(`${API_ENDPOINTS.AUTH.SEND_CODE(via)}?loginName=${loginInfo.username}`)
     .then(() => {
       ElMessage.success('发送成功')
       interval = setInterval(() => {

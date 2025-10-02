@@ -12,6 +12,7 @@ import {
   getButtonTitle
 } from '@/utils/tools'
 import { displayState } from '@/utils/position'
+import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
 
 const { fixSelection, fix, moreItems } = displayState()
 const input = ref('')
@@ -54,7 +55,7 @@ const delBatch = async () => {
   multipleSelection.value.forEach((item) => {
     args.push(item.id)
   })
-  await POST<null>('/sys/blog/delete', args)
+  await POST<null>(API_ENDPOINTS.BLOG_ADMIN.DELETE_BLOGS, args)
   ElNotification({
     title: '操作成功',
     message: '批量删除成功',
@@ -67,7 +68,7 @@ const delBatch = async () => {
 const handleDelete = async (row: BlogSys) => {
   const id: number[] = []
   id.push(row.id)
-  await POST<null>('/sys/blog/delete', id)
+  await POST<null>(API_ENDPOINTS.BLOG_ADMIN.DELETE_BLOGS, id)
   ElNotification({
     title: '操作成功',
     message: '删除成功',
@@ -86,7 +87,7 @@ const handleEdit = (row: BlogSys) => {
 }
 
 const handlePassword = async (row: BlogSys) => {
-  const token = await GET<string>(`/sys/blog/lock/${row.id}`)
+  const token = await GET<string>(API_ENDPOINTS.BLOG_ADMIN.LOCK_BLOG(row.id))
   ElNotification({
     title: '操作成功',
     message: token,
@@ -95,12 +96,12 @@ const handlePassword = async (row: BlogSys) => {
 }
 
 const download = async () => {
-  await downloadSQLData(
-    `/sys/blog/download?keywords=${input.value}&createStart=${dateTimeScope.value[0]}&createEnd=${dateTimeScope.value[1]}`,
-    'blogs',
-    uploadPercentage,
-    showPercentage
-  )
+  const url = buildCommonUrls.blogDownload({
+    keywords: input.value,
+    createStart: dateTimeScope.value[0],
+    createEnd: dateTimeScope.value[1]
+  })
+  await downloadSQLData(url, 'blogs', uploadPercentage, showPercentage)
 }
 
 const handleCheck = (row: BlogSys) => {
@@ -134,9 +135,15 @@ const searchBlogsAction = () => {
 
 const searchBlogs = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogSys>>(
-    `/sys/blog/blogs?currentPage=${pageNumber.value}&size=${pageSize.value}&keywords=${input.value}&createStart=${dateTimeScope.value[0]}&createEnd=${dateTimeScope.value[1]}&status=${status.value}`
-  )
+  const url = buildCommonUrls.blogQuery({
+    currentPage: pageNumber.value,
+    size: pageSize.value,
+    keywords: input.value,
+    createStart: dateTimeScope.value[0],
+    createEnd: dateTimeScope.value[1],
+    status: status.value
+  })
+  const data = await GET<PageAdapter<BlogSys>>(url)
   page.content = data.content
   page.totalElements = data.totalElements
   loading.value = false

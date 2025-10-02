@@ -17,6 +17,7 @@ import { Base64 } from 'js-base64'
 import MarkdownIt from 'markdown-it'
 import { storeToRefs } from 'pinia'
 import type { Ref } from 'vue'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 
 const md = new MarkdownIt({
   highlight: (str: string, lang: string) => {
@@ -57,8 +58,8 @@ export const debounce = <T extends (...args: unknown[]) => unknown>(
   interval = 100
 ): ((...args: Parameters<T>) => void) => {
   let timeout: NodeJS.Timeout | undefined
-  
-  return function(this: ThisParameterType<T>, ...args: Parameters<T>): void {
+
+  return function (this: ThisParameterType<T>, ...args: Parameters<T>): void {
     clearTimeout(timeout)
     timeout = setTimeout(() => {
       fn.apply(this, args)
@@ -80,9 +81,12 @@ export const updateAccessToken = async (): Promise<string> => {
   //ten minutes
   if (jwt.exp - now < 600) {
     const refreshToken = getLocalStorageItem('refreshToken')
-    const data = await httpClient.get<never, AxiosResponse<Data<RefreshStruct>>>('/token/refresh', {
-      headers: { Authorization: refreshToken }
-    })
+    const data = await httpClient.get<never, AxiosResponse<Data<RefreshStruct>>>(
+      API_ENDPOINTS.AUTH.TOKEN_REFRESH,
+      {
+        headers: { Authorization: refreshToken }
+      }
+    )
     const token = data.data.data.accessToken
     setLocalStorageItem('accessToken', token)
     return token
@@ -98,9 +102,12 @@ export const checkAccessToken = async (): Promise<boolean> => {
   //ten minutes
   if (jwt.exp - now < 600) {
     const refreshToken = getLocalStorageItem('refreshToken')
-    const data = await httpClient.get<never, AxiosResponse<Data<RefreshStruct>>>('/token/refresh', {
-      headers: { Authorization: refreshToken }
-    })
+    const data = await httpClient.get<never, AxiosResponse<Data<RefreshStruct>>>(
+      API_ENDPOINTS.AUTH.TOKEN_REFRESH,
+      {
+        headers: { Authorization: refreshToken }
+      }
+    )
     const token = data.data.data.accessToken
     setLocalStorageItem('accessToken', token)
     return true
@@ -133,19 +140,16 @@ export const diff = <T extends { [key: string]: unknown }>(oldArr: T[], newArr: 
     const oldChildren = oldObj['children'] as T[]
 
     if (
-      'children' in newObj && 
-      'children' in oldObj && 
-      Array.isArray(newChildren) && 
+      'children' in newObj &&
+      'children' in oldObj &&
+      Array.isArray(newChildren) &&
       Array.isArray(oldChildren)
     ) {
       const dif = diff(newChildren, oldChildren)
       if (dif) {
         return true
       }
-    } else if (
-      ('children' in newObj) !== ('children' in oldObj) ||
-      newChildren !== oldChildren
-    ) {
+    } else if ('children' in newObj !== 'children' in oldObj || newChildren !== oldChildren) {
       return true
     }
   }
@@ -182,11 +186,11 @@ export const submitLogin = async (username: string, password: string) => {
   const form = new FormData()
   form.append('username', username)
   form.append('password', password)
-  const token = await POST<Token>('/login', form)
+  const token = await POST<Token>(API_ENDPOINTS.AUTH.LOGIN, form)
   setLocalStorageItem('accessToken', token.accessToken)
   setLocalStorageItem('refreshToken', token.refreshToken)
   loginStateStore().login = true
-  const info = await GET<UserInfo>('/token/userinfo')
+  const info = await GET<UserInfo>(API_ENDPOINTS.AUTH.USER_INFO)
   setLocalStorageItem('userinfo', JSON.stringify(info))
   router.push('/backend')
 }
@@ -201,7 +205,7 @@ export const downloadSQLData = async (
   percentage: Ref<number>,
   percentageShow: Ref<boolean>
 ) => {
-  const resp= await DOWNLOAD(url, percentage, percentageShow)
+  const resp = await DOWNLOAD(url, percentage, percentageShow)
   const blob = new Blob([String(resp?.data)], {
     type: 'text/plain'
   })
@@ -231,10 +235,10 @@ export const findMenuByPath = (menus: Menu[], path: string): Menu | Tab | undefi
 export const cleanJsonResponse = (response: string): string => {
   // 移除可能的代码块标记
   let cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '')
-  
+
   // 移除开头和结尾的空白字符
   cleaned = cleaned.trim()
-  
+
   // 如果第一个字符不是 {，尝试找到第一个 { 开始的位置
   if (!cleaned.startsWith('{')) {
     const start = cleaned.indexOf('{')
@@ -242,7 +246,7 @@ export const cleanJsonResponse = (response: string): string => {
       cleaned = cleaned.slice(start)
     }
   }
-  
+
   // 如果最后一个字符不是 }，尝试找到最后一个 } 结束的位置
   if (!cleaned.endsWith('}')) {
     const end = cleaned.lastIndexOf('}')
@@ -250,6 +254,6 @@ export const cleanJsonResponse = (response: string): string => {
       cleaned = cleaned.slice(0, end + 1)
     }
   }
-  
+
   return cleaned
 }

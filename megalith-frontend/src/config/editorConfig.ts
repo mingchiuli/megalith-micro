@@ -6,6 +6,7 @@ import { WebsocketProvider } from 'y-websocket'
 import * as random from 'lib0/random'
 import type { CheckRoom, UserInfo } from '@/type/entity'
 import { GET } from '@/http/http'
+import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 
 const usercolors = [
   { color: '#30bced', light: '#30bced33' },
@@ -46,7 +47,7 @@ export const createYjsExtension = async (
 
   const ydoc = new Y.Doc()
   const provider = new WebsocketProvider(
-    `${import.meta.env.VITE_BASE_WS_URL}/rooms`,
+    `${API_CONFIG.BASE_WS_URL}${API_ENDPOINTS.COLLABORATION.WS_ROOMS}`,
     roomId,
     ydoc,
     {
@@ -58,11 +59,11 @@ export const createYjsExtension = async (
       maxBackoffTime: 10000
     }
   )
-  
+
   const ytext = ydoc.getText()
   // 等同步完成后判断是否插入内容
   provider.once('sync', async () => {
-    const data = await GET<CheckRoom>(`/rooms/exist/${roomId}`)
+    const data = await GET<CheckRoom>(API_ENDPOINTS.COLLABORATION.CHECK_ROOM_EXISTS(roomId))
     if (!data.exists) {
       ytext.insert(0, initialContent)
     }

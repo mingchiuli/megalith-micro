@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive, toRefs } from 'vue'
 import { GET } from '@/http/http'
-
+import { API_ENDPOINTS } from '@/config/apiConfig'
 import type { Visitor } from '@/type/entity'
 
 const blogStat = reactive<Visitor>({
@@ -14,7 +14,7 @@ const blogStat = reactive<Visitor>({
 const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat)
 
 ;(async () => {
-  const data = await GET<Visitor>('/public/blog/stat')
+  const data = await GET<Visitor>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOG_STAT)
   blogStat.dayVisit = data.dayVisit
   blogStat.weekVisit = data.weekVisit
   blogStat.monthVisit = data.monthVisit

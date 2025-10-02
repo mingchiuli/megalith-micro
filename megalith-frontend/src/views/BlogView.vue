@@ -4,10 +4,11 @@ import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import Catalogue from '@/components/CatalogueItem.vue'
 import { useRoute } from 'vue-router'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 
 const route = useRoute()
 const token = route.query.token
-const blogId = route.params.id
+const blogId = route.params.id as string
 const loading = ref(true)
 const loadingCatalogue = ref(true)
 const affixHeight = ref(document.body.clientWidth > 900 ? '100px' : '0')
@@ -65,9 +66,11 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth))
 ;(async () => {
   let data: BlogExhibit
   if (token) {
-    data = await GET<BlogExhibit>(`/public/blog/secret/${blogId}?readToken=${token}`)
+    data = await GET<BlogExhibit>(
+      `${API_ENDPOINTS.BLOG_PUBLIC.GET_SECRET_BLOG(blogId)}?readToken=${token}`
+    )
   } else {
-    data = await GET<BlogExhibit>(`/public/blog/info/${blogId}`)
+    data = await GET<BlogExhibit>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOG_INFO(blogId))
   }
   blog.title = data.title
   document.title = data.title

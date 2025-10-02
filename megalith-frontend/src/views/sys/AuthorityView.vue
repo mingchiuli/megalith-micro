@@ -6,6 +6,7 @@ import { reactive, ref } from 'vue'
 import { Status, ButtonAuth, AuthStatus } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 
 const { fixSelection, fix } = displayState()
 const multipleSelection = ref<AuthoritySys[]>([])
@@ -60,7 +61,7 @@ const delBatch = async () => {
   multipleSelection.value.forEach((item) => {
     args.push(item.id)
   })
-  await POST<null>('/sys/authority/delete', args)
+  await POST<null>(API_ENDPOINTS.AUTHORITY_ADMIN.DELETE_AUTHORITIES, args)
   ElNotification({
     title: '操作成功',
     message: '批量删除成功',
@@ -71,13 +72,18 @@ const delBatch = async () => {
 }
 
 const download = async () => {
-  await downloadSQLData('/sys/authority/download', 'authorities', uploadPercentage, showPercentage)
+  await downloadSQLData(
+    API_ENDPOINTS.AUTHORITY_ADMIN.DOWNLOAD_AUTHORITIES,
+    'authorities',
+    uploadPercentage,
+    showPercentage
+  )
 }
 
 const handleDelete = async (row: AuthoritySys) => {
   const id: number[] = []
   id.push(row.id)
-  await POST<null>('/sys/authority/delete', id)
+  await POST<null>(API_ENDPOINTS.AUTHORITY_ADMIN.DELETE_AUTHORITIES, id)
   ElNotification({
     title: '操作成功',
     message: '删除成功',
@@ -87,7 +93,7 @@ const handleDelete = async (row: AuthoritySys) => {
 }
 
 const handleEdit = async (row: AuthoritySys) => {
-  const data = await GET<AuthoritySys>(`/sys/authority/info/${row.id}`)
+  const data = await GET<AuthoritySys>(API_ENDPOINTS.AUTHORITY_ADMIN.GET_AUTHORITY_INFO(row.id))
   Object.assign(form, data)
   dialogVisible.value = true
 }
@@ -99,7 +105,7 @@ const handleSelectionChange = (val: AuthoritySys[]) => {
 
 const queryAuthorities = async () => {
   loading.value = true
-  content = await GET<AuthoritySys[]>('/sys/authority/list')
+  content = await GET<AuthoritySys[]>(API_ENDPOINTS.AUTHORITY_ADMIN.GET_AUTHORITIES)
   loading.value = false
 }
 
@@ -111,7 +117,7 @@ const handleClose = () => {
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid) => {
     if (valid) {
-      await POST<null>('/sys/authority/save', form)
+      await POST<null>(API_ENDPOINTS.AUTHORITY_ADMIN.SAVE_AUTHORITY, form)
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
@@ -307,7 +313,12 @@ const clearForm = () => {
       </el-form-item>
 
       <el-form-item label-width="450px">
-        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_SAVE)" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_SAVE)" @click="submitForm(formRef!)">{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_SAVE) }}</el-button>
+        <el-button
+          v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_SAVE)"
+          :type="getButtonType(ButtonAuth.SYS_AUTHORITY_SAVE)"
+          @click="submitForm(formRef!)"
+          >{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_SAVE) }}</el-button
+        >
       </el-form-item>
     </el-form>
   </el-dialog>

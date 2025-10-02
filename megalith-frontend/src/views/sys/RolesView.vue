@@ -6,6 +6,7 @@ import { Status, ButtonAuth } from '@/type/entity'
 import { reactive, ref, toRefs, useTemplateRef } from 'vue'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
+import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
 
 const { moreItems, fixSelection, fix } = displayState()
 const dialogVisible = ref(false)
@@ -57,14 +58,22 @@ type MenuForm = {
 }
 
 const download = async () => {
-  await downloadSQLData('/sys/role/download', 'roles', uploadPercentage, showPercentage)
+  await downloadSQLData(
+    API_ENDPOINTS.ROLE_ADMIN.DOWNLOAD_ROLES,
+    'roles',
+    uploadPercentage,
+    showPercentage
+  )
 }
 
 const submitmenuFormHandle = async (ref: InstanceType<typeof ElTree>) => {
   //全选和半选都要包含
   const ids = ref.getCheckedKeys()
   const halfCheckedIds = ref.getHalfCheckedKeys()
-  await POST<null>(`/sys/role/menu/${roleId.value}`, ids.concat(halfCheckedIds))
+  await POST<null>(
+    API_ENDPOINTS.ROLE_ADMIN.SET_ROLE_MENUS(roleId.value!),
+    ids.concat(halfCheckedIds)
+  )
   ElNotification({
     title: '操作成功',
     message: '编辑成功',
@@ -73,8 +82,6 @@ const submitmenuFormHandle = async (ref: InstanceType<typeof ElTree>) => {
   menuTreeData.value = []
   menuDialogVisible.value = false
 }
-
-
 
 const clearForm = () => {
   form.id = undefined
@@ -87,7 +94,7 @@ const clearForm = () => {
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid) => {
     if (valid) {
-      await POST<null>('/sys/role/save', form)
+      await POST<null>(API_ENDPOINTS.ROLE_ADMIN.SAVE_ROLE, form)
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
@@ -112,13 +119,13 @@ const menuHandleClose = () => {
 }
 
 const handleEdit = async (row: RoleSys) => {
-  const data = await GET<RoleSys>(`/sys/role/info/${row.id}`)
+  const data = await GET<RoleSys>(API_ENDPOINTS.ROLE_ADMIN.GET_ROLE_INFO(row.id))
   Object.assign(form, data)
   dialogVisible.value = true
 }
 
 const handleMenu = async (row: RoleSys) => {
-  const data = await GET<MenuForm[]>(`/sys/role/menu/${row.id}`)
+  const data = await GET<MenuForm[]>(API_ENDPOINTS.ROLE_ADMIN.GET_ROLE_MENUS(row.id))
   menuTreeData.value = data
   roleId.value = row.id
   menuDialogVisible.value = true
@@ -129,7 +136,7 @@ const delBatch = async () => {
   multipleSelection.value.forEach((item) => {
     args.push(item.id)
   })
-  await POST<null>('/sys/role/delete', args)
+  await POST<null>(API_ENDPOINTS.ROLE_ADMIN.DELETE_ROLES, args)
   ElNotification({
     title: '操作成功',
     message: '批量删除成功',
@@ -141,9 +148,11 @@ const delBatch = async () => {
 
 const queryRoles = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<RoleSys>>(
-    `/sys/role/roles?currentPage=${pageNumber.value}&size=${pageSize.value}`
-  )
+  const url = buildCommonUrls.roleQuery({
+    currentPage: pageNumber.value,
+    size: pageSize.value
+  })
+  const data = await GET<PageAdapter<RoleSys>>(url)
   content.value = data.content
   totalElements.value = data.totalElements
   loading.value = false
@@ -344,8 +353,12 @@ const handleDelete = async (row: RoleSys) => {
       </el-form-item>
 
       <el-form-item label-width="400px">
-        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_SAVE)" :type="getButtonType(ButtonAuth.SYS_ROLE_SAVE)" @click="submitForm(formRef!)">{{ getButtonTitle(ButtonAuth.SYS_ROLE_SAVE) }}</el-button>
-
+        <el-button
+          v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_SAVE)"
+          :type="getButtonType(ButtonAuth.SYS_ROLE_SAVE)"
+          @click="submitForm(formRef!)"
+          >{{ getButtonTitle(ButtonAuth.SYS_ROLE_SAVE) }}</el-button
+        >
       </el-form-item>
     </el-form>
   </el-dialog>
@@ -368,7 +381,12 @@ const handleDelete = async (row: RoleSys) => {
         :check-strictly="true"
       />
       <el-form-item label-width="450px">
-        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)" :type="getButtonType(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)" @click="submitmenuFormHandle(menuTreeRef!)">{{ getButtonTitle(ButtonAuth.SYS_MENU_AUTHORITY_SAVE) }}</el-button>
+        <el-button
+          v-if="checkButtonAuth(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)"
+          :type="getButtonType(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)"
+          @click="submitmenuFormHandle(menuTreeRef!)"
+          >{{ getButtonTitle(ButtonAuth.SYS_MENU_AUTHORITY_SAVE) }}</el-button
+        >
       </el-form-item>
     </el-form>
   </el-dialog>

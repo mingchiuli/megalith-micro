@@ -6,6 +6,7 @@ import { reactive, ref, toRefs } from 'vue'
 import { Status, ButtonAuth } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
+import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
 
 const { moreItems, fixSelection, fix } = displayState()
 const multipleSelection = ref<UserSys[]>([])
@@ -58,7 +59,12 @@ const form: Form = reactive({
 })
 
 const download = async () => {
-  await downloadSQLData('/sys/user/download', 'users', uploadPercentage, showPercentage)
+  await downloadSQLData(
+    API_ENDPOINTS.USER_ADMIN.DOWNLOAD_USERS,
+    'users',
+    uploadPercentage,
+    showPercentage
+  )
 }
 
 const delBatch = async () => {
@@ -66,7 +72,7 @@ const delBatch = async () => {
   multipleSelection.value.forEach((item) => {
     args.push(item.id)
   })
-  await POST<null>('/sys/user/delete', args)
+  await POST<null>(API_ENDPOINTS.USER_ADMIN.DELETE_USERS, args)
   ElNotification({
     title: '操作成功',
     message: '批量删除成功',
@@ -79,7 +85,7 @@ const delBatch = async () => {
 const handleDelete = async (row: UserSys) => {
   const id: number[] = []
   id.push(row.id)
-  await POST<null>('/sys/user/delete', id)
+  await POST<null>(API_ENDPOINTS.USER_ADMIN.DELETE_USERS, id)
   ElNotification({
     title: '操作成功',
     message: '删除成功',
@@ -89,7 +95,7 @@ const handleDelete = async (row: UserSys) => {
 }
 
 const handleEdit = async (row: UserSys) => {
-  const data = await GET<UserSys>(`/sys/user/info/${row.id}`)
+  const data = await GET<UserSys>(API_ENDPOINTS.USER_ADMIN.GET_USER_INFO(row.id))
   Object.assign(form, data)
   dialogVisible.value = true
 }
@@ -101,9 +107,8 @@ const handleSelectionChange = (val: UserSys[]) => {
 
 const queryUsers = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<UserSys>>(
-    `/sys/user/page/${pageNumber.value}?size=${pageSize.value}`
-  )
+  const url = buildCommonUrls.userQuery(pageNumber.value, { size: pageSize.value })
+  const data = await GET<PageAdapter<UserSys>>(url)
   content.value = data.content
   totalElements.value = data.totalElements
   loading.value = false
@@ -117,7 +122,7 @@ const handleClose = () => {
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid) => {
     if (valid) {
-      await POST<null>('/sys/user/save', form)
+      await POST<null>(API_ENDPOINTS.USER_ADMIN.SAVE_USER, form)
       ElNotification({
         title: '操作成功',
         message: '编辑成功',
@@ -159,7 +164,9 @@ const handleCurrentChange = async (val: number) => {
 }
 
 const getRegisterLink = async (username: string) => {
-  const link = await GET<string>(`/sys/user/auth/register/page?username=${username}`)
+  const link = await GET<string>(
+    `${API_ENDPOINTS.USER_ADMIN.GET_REGISTER_LINK}?username=${username}`
+  )
   ElNotification({
     title: '操作成功',
     message: link,
@@ -168,7 +175,7 @@ const getRegisterLink = async (username: string) => {
 }
 
 ;(async () => {
-  const roles = await GET<RoleSys[]>('/sys/role/valid/all')
+  const roles = await GET<RoleSys[]>(API_ENDPOINTS.ROLE_ADMIN.GET_VALID_ROLES)
   await queryUsers()
   roleList.value = roles
 })()
@@ -377,7 +384,12 @@ const getRegisterLink = async (username: string) => {
       </el-form-item>
 
       <el-form-item label-width="450px">
-        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_USER_SAVE)" :type="getButtonType(ButtonAuth.SYS_USER_SAVE)" @click="submitForm(formRef!)">{{ getButtonTitle(ButtonAuth.SYS_USER_SAVE) }}</el-button>
+        <el-button
+          v-if="checkButtonAuth(ButtonAuth.SYS_USER_SAVE)"
+          :type="getButtonType(ButtonAuth.SYS_USER_SAVE)"
+          @click="submitForm(formRef!)"
+          >{{ getButtonTitle(ButtonAuth.SYS_USER_SAVE) }}</el-button
+        >
       </el-form-item>
     </el-form>
   </el-dialog>

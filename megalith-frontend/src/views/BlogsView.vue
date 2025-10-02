@@ -7,6 +7,7 @@ import router from '@/router'
 import { storeToRefs } from 'pinia'
 import Search from '@/components/SearchItem.vue'
 import { Status } from '@/type/entity'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 
 const loading = ref(false)
 const searchDialogVisible = ref(false)
@@ -54,7 +55,7 @@ const refresh = () => {
 
 const queryBlogs = async (pageNo: number) => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogDesc>>(`/public/blog/page/${pageNo}`)
+  const data = await GET<PageAdapter<BlogDesc>>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOGS_PAGE(pageNo))
   statImg(data.content)
   if (!imgCount) loading.value = false
   page.content = data.content
@@ -98,7 +99,7 @@ const search = () => {
 }
 
 const to = async (id: number) => {
-  const status = await GET<number>(`/public/blog/status/${id}`)
+  const status = await GET<number>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOG_STATUS(id))
   if (status === Status.NORMAL || status === Status.SENSITIVE_FILTER) {
     router.push({
       name: 'blog',
@@ -143,7 +144,9 @@ const { content, totalElements, pageSize } = toRefs(page)
       v-if="login && menuStore().menuTree"
       @click="
         router.push({
-          name: tabStore().editableTabsValue ? tabStore().editableTabsValue : menuStore().menuTree!.name
+          name: tabStore().editableTabsValue
+            ? tabStore().editableTabsValue
+            : menuStore().menuTree!.name
         })
       "
       >进入后台</el-link

@@ -5,6 +5,7 @@ import { Status, ButtonAuth } from '@/type/entity'
 import { reactive, ref, toRefs } from 'vue'
 import { checkButtonAuth, getButtonType, render, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
+import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 
 const { moreItems, fix } = displayState()
 const loading = ref(false)
@@ -25,9 +26,11 @@ const handleSelectionChange = (val: BlogDelSys[]) => {
 
 const queryDelBLogs = async () => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogDelSys>>(
-    `/sys/blog/deleted?currentPage=${pageNumber.value}&size=${pageSize.value}`
-  )
+  const url = buildQueryUrl(API_ENDPOINTS.BLOG_ADMIN.GET_DELETED_BLOGS, {
+    currentPage: pageNumber.value,
+    size: pageSize.value
+  })
+  const data = await GET<PageAdapter<BlogDelSys>>(url)
   content.value = data.content
   totalElements.value = data.totalElements
   loading.value = false
@@ -46,7 +49,7 @@ const handleSizeChange = async (val: number) => {
 
 const handleResume = async (row: BlogDelSys) => {
   loading.value = true
-  await GET<PageAdapter<BlogDelSys>>(`/sys/blog/recover/${row.idx}`)
+  await GET<PageAdapter<BlogDelSys>>(API_ENDPOINTS.BLOG_ADMIN.RECOVER_BLOG(row.idx))
   loading.value = false
   ElNotification({
     title: '操作成功',

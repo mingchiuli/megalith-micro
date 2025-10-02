@@ -16,6 +16,7 @@ import {
 } from '@/stores/store'
 import { storeToRefs } from 'pinia'
 import { diff, findMenuByPath } from '@/utils/tools'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 
 const modules = import.meta.glob('@/views/sys/*.vue')
 
@@ -91,14 +92,14 @@ router.beforeEach(async (to) => {
     if (!to.name || !router.hasRoute(to.name)) {
       if (!authMarkStore().auth) {
         authMarkStore().auth = true
-        allKindsInfo = await GET<MenusAndButtons>('/auth/menu/nav')
+        allKindsInfo = await GET<MenusAndButtons>(API_ENDPOINTS.AUTH.MENU_NAV)
         callBackRequireRoutes(allKindsInfo)
         dealSysTab(to, allKindsInfo)
         return to.fullPath
       }
     } else {
       //正常路由切换diff
-      GET<MenusAndButtons>('/auth/menu/nav').then((resp) => {
+      GET<MenusAndButtons>(API_ENDPOINTS.AUTH.MENU_NAV).then((resp) => {
         allKindsInfo = resp
         callBackRequireRoutes(allKindsInfo)
         dealSysTab(to, allKindsInfo)
