@@ -21,7 +21,7 @@ RUN cargo build --release --target x86_64-unknown-linux-musl -p micro-sync-rs
 FROM alpine:latest
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache ca-certificates tzdata curl
 
 # Create app directory
 WORKDIR /app
