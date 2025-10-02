@@ -63,7 +63,7 @@ jobs:
             container_ids=$(docker ps --filter "name=micro-gateway-rs" -q | awk '{print $1}')
             if [ -n "$container_ids" ]; then
               for container_id in $container_ids; do
-                docker stop "$container_id"
+                docker stop --time=30 "$container_id"
                 docker rm "$container_id"
               done
             fi
