@@ -30,7 +30,7 @@ subprojects {
 
     dependencyManagement {
         imports {
-            ç("org.springframework.boot:spring-boot-dependencies:$springBootVersion")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:$springBootVersion")
         }
         dependencies {
             dependency("org.redisson:redisson:$redissonVersion")
