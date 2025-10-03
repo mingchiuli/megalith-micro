@@ -1,7 +1,7 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.5.6" apply false
     id("io.spring.dependency-management") version "1.1.7"
+    id("org.springframework.boot") version "3.5.6" apply false
     id("org.graalvm.buildtools.native") version "0.11.1" apply false
 }
 
@@ -12,15 +12,26 @@ subprojects {
 
     group = "wiki.chiu.megalith"
 
+    // Apply plugins in order
     plugins.apply("java")
     plugins.apply("io.spring.dependency-management")
-
-    // Apply GraalVM plugin to all modules (for AOT processing)
+    plugins.apply("org.springframework.boot")  // Apply to all modules for -parameters and AOT
     plugins.apply("org.graalvm.buildtools.native")
 
-    // Only apply Spring Boot plugin to microservice modules
+    // Configure jar tasks based on module type
     if (name.startsWith("micro-")) {
-        plugins.apply("org.springframework.boot")
+        // Microservice modules: generate executable jar
+        tasks.named<Jar>("jar") {
+            enabled = false
+        }
+    } else {
+        // Library modules: generate plain jar
+        tasks.named<BootJar>("bootJar") {
+            enabled = false
+        }
+        tasks.named<Jar>("jar") {
+            enabled = true
+        }
     }
 
     dependencyManagement {
@@ -34,5 +45,7 @@ subprojects {
         }
     }
 
-    java { sourceCompatibility = JavaVersion.VERSION_25 }
+    java {
+        sourceCompatibility = JavaVersion.VERSION_25
+    }
 }
