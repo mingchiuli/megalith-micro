@@ -47,6 +47,6 @@
     "unplugin-element-plus": "^0.10.0",
     "unplugin-vue-components": "^29.1.0",
     "vue-tsc": "^3.1.1",
-    "vite": "^7.1.9"
+    "vite": "^7.1.10"
   }
 }
