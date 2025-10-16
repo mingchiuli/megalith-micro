@@ -40,7 +40,6 @@ public final class UpdateBlogIndexHandler extends BlogIndexSupport {
                 .readCount(blog.readCount())
                 .description(blog.description()).content(blog.content())
                 .status(blog.status())
-                .link(blog.link())
                 .created(ZonedDateTime.of(blog.created(), ZoneId.of("Asia/Shanghai")))
                 .updated(ZonedDateTime.of(blog.updated(), ZoneId.of("Asia/Shanghai")))
                 .build();

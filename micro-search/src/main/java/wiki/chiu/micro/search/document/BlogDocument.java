@@ -38,16 +38,13 @@ public class BlogDocument {
     @Field(type = FieldType.Text, searchAnalyzer = "ik_smart", analyzer = "ik_max_word")
     private String content;
 
-    @Field(type = FieldType.Keyword)
-    private String link;
-
     @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
     private ZonedDateTime created;
 
     @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
     private ZonedDateTime updated;
 
-    BlogDocument(Long id, Long userId, Integer status, Long readCount, String title, String description, String content, String link, ZonedDateTime created, ZonedDateTime updated) {
+    BlogDocument(Long id, Long userId, Integer status, Long readCount, String title, String description, String content, ZonedDateTime created, ZonedDateTime updated) {
         this.id = id;
         this.userId = userId;
         this.status = status;
@@ -55,7 +52,6 @@ public class BlogDocument {
         this.title = title;
         this.description = description;
         this.content = content;
-        this.link = link;
         this.created = created;
         this.updated = updated;
     }
@@ -86,10 +82,6 @@ public class BlogDocument {
 
     public String getContent() {
         return this.content;
-    }
-
-    public String getLink() {
-        return this.link;
     }
 
     public Long getReadCount() {
@@ -132,10 +124,6 @@ public class BlogDocument {
         this.content = content;
     }
 
-    public void setLink(String link) {
-        this.link = link;
-    }
-
     public void setCreated(ZonedDateTime created) {
         this.created = created;
     }
@@ -149,7 +137,7 @@ public class BlogDocument {
         if (this == o) return true;
         if (!(o instanceof BlogDocument that)) return false;
 
-        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(status, that.status) && Objects.equals(readCount, that.readCount) && Objects.equals(title, that.title) && Objects.equals(description, that.description) && Objects.equals(content, that.content) && Objects.equals(link, that.link) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated);
+        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(status, that.status) && Objects.equals(readCount, that.readCount) && Objects.equals(title, that.title) && Objects.equals(description, that.description) && Objects.equals(content, that.content) && Objects.equals(created, that.created) && Objects.equals(updated, that.updated);
     }
 
     @Override
@@ -161,7 +149,6 @@ public class BlogDocument {
         result = 31 * result + Objects.hashCode(title);
         result = 31 * result + Objects.hashCode(description);
         result = 31 * result + Objects.hashCode(content);
-        result = 31 * result + Objects.hashCode(link);
         result = 31 * result + Objects.hashCode(created);
         result = 31 * result + Objects.hashCode(updated);
         return result;
@@ -175,7 +162,6 @@ public class BlogDocument {
         private String title;
         private String description;
         private String content;
-        private String link;
         private ZonedDateTime created;
         private ZonedDateTime updated;
 
@@ -214,10 +200,6 @@ public class BlogDocument {
             return this;
         }
 
-        public BlogDocumentBuilder link(String link) {
-            this.link = link;
-            return this;
-        }
 
         public BlogDocumentBuilder created(ZonedDateTime created) {
             this.created = created;
@@ -230,7 +212,7 @@ public class BlogDocument {
         }
 
         public BlogDocument build() {
-            return new BlogDocument(id, userId, status, readCount, title, description, content, link, created, updated);
+            return new BlogDocument(id, userId, status, readCount, title, description, content, created, updated);
         }
     }
 }

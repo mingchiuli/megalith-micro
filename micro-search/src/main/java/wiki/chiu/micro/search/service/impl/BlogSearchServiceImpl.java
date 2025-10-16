@@ -2,12 +2,17 @@ package wiki.chiu.micro.search.service.impl;
 
 import co.elastic.clients.elasticsearch._types.ScriptLanguage;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.common.req.BlogSysSearchReq;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
 import wiki.chiu.micro.search.convertor.BlogSearchRpcVoConvertor;
 import wiki.chiu.micro.search.convertor.PrivateSearchQueryConvertor;
@@ -15,6 +20,7 @@ import wiki.chiu.micro.search.convertor.PublicSearchQueryConvertor;
 import wiki.chiu.micro.search.convertor.BlogDocumentVoConvertor;
 import wiki.chiu.micro.search.document.BlogDocument;
 import wiki.chiu.micro.search.lang.IndexConst;
+import wiki.chiu.micro.search.rpc.BlogHttpServiceWrapper;
 import wiki.chiu.micro.search.service.BlogSearchService;
 import wiki.chiu.micro.search.vo.BlogDocumentVo;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +29,9 @@ import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 /**
  * @author mingchiuli
  * @create 2022-11-30 9:00 pm
@@ -30,6 +39,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class BlogSearchServiceImpl implements BlogSearchService {
 
+    private static final Logger log = LoggerFactory.getLogger(BlogSearchServiceImpl.class);
     private final ElasticsearchTemplate elasticsearchTemplate;
 
     @Value("${megalith.blog.blog-page-size}")
@@ -76,6 +86,35 @@ public class BlogSearchServiceImpl implements BlogSearchService {
                 .withScriptType(ScriptType.INLINE)
                 .build();
         elasticsearchTemplate.update(updateQuery, IndexCoordinates.of(IndexConst.indexName));
+    }
+
+    @Resource
+    private BlogHttpServiceWrapper blogHttpServiceWrapper;
+
+
+    @PostConstruct
+    private void init() {
+        for (long i = 1; i < 500; i++) {
+            try {
+                BlogEntityRpcVo blog = blogHttpServiceWrapper.findById(i);
+                var blogDocument = BlogDocument.builder()
+                        .id(blog.id())
+                        .userId(blog.userId())
+                        .title(blog.title())
+                        .description(blog.description())
+                        .content(blog.content())
+                        .readCount(blog.readCount())
+                        .status(blog.status())
+                        .created(ZonedDateTime.of(blog.created(), ZoneId.of("Asia/Shanghai")))
+                        .updated(ZonedDateTime.of(blog.updated(), ZoneId.of("Asia/Shanghai")))
+                        .build();
+
+                elasticsearchTemplate.save(blogDocument);
+
+            } catch (Exception e) {
+                log.error("init error", e);
+            }
+        }
     }
 
 }
