@@ -23,7 +23,6 @@ public class BlogDocumentVoConvertor {
                         .title(hit.getContent().getTitle())
                         .description(hit.getContent().getDescription())
                         .content(hit.getContent().getContent())
-                        .link(hit.getContent().getLink())
                         .created(hit.getContent().getCreated().toLocalDateTime())
                         .score(hit.getScore())
                         .highlight(hit.getHighlightFields())
