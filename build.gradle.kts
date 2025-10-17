@@ -4,7 +4,7 @@ plugins {
     java
     id("io.spring.dependency-management") version "1.1.7"
     id("org.springframework.boot") version "3.5.6" apply false
-    id("org.graalvm.buildtools.native") version "0.11.1" apply false
+    id("org.graalvm.buildtools.native") version "0.11.2" apply false
 }
 
 repositories { mavenCentral() }
