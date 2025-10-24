@@ -3,7 +3,7 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 plugins {
     java
     id("io.spring.dependency-management") version "1.1.7"
-    id("org.springframework.boot") version "3.5.6" apply false
+    id("org.springframework.boot") version "3.5.7" apply false
     id("org.graalvm.buildtools.native") version "0.11.2" apply false
 }
 
@@ -38,7 +38,7 @@ subprojects {
 
     dependencyManagement {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.6")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.7")
         }
         dependencies {
             dependency("org.redisson:redisson:3.52.0")
