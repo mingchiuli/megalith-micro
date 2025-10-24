@@ -38,7 +38,7 @@ subprojects {
 
     dependencyManagement {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.6")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.7")
         }
         dependencies {
             dependency("org.redisson:redisson:3.52.0")
