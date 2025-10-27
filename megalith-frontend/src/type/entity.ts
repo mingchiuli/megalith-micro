@@ -213,11 +213,6 @@ export interface AiContentResp {
   context: number[]
 }
 
-export interface AiContent {
-  title: string
-  description: string
-}
-
 export interface AiModelsResp {
   models: AiModel[]
 }

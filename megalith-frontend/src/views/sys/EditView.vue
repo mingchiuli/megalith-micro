@@ -9,6 +9,7 @@ import {
   type FormRules,
   type FormInstance,
   ElInput,
+  ElNotification,
   type UploadUserFile
 } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
@@ -24,16 +25,15 @@ import {
   type BlogEdit,
   type AiContentResp,
   type AiModelsResp,
-  type AiContent,
   type AiModel
 } from '@/type/entity'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { checkButtonAuth, getButtonType, getButtonTitle, cleanJsonResponse } from '@/utils/tools'
+import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 import { aiHttpClient } from '@/http/axios'
 import 'element-plus/es/components/input/style/css' //不明原因样式缺失
-import { API_ENDPOINTS } from '@/config/apiConfig'
+import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 
 const aiModels = ref<AiModel[]>([])
 const aiModel = ref('')
@@ -341,24 +341,80 @@ const aiGenerate = async () => {
     - 不要包含markdown、代码块等任何格式标记
     - JSON前后不能有空格或其他字符`
 
-    const response = await aiHttpClient.post(API_ENDPOINTS.AI.GENERATE_CONTENT, {
-      model: aiModel.value, // 可用的模型
-      prompt,
-      stream: false,
-      context,
-      options: {
-        echo: false
-      }
+    // 使用 Fetch API 实现真正的流式处理
+    const response = await fetch(API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: aiModel.value,
+        prompt,
+        stream: true,
+        context,
+        options: {
+          echo: false
+        }
+      })
     })
 
-    const result: AiContentResp = response.data
+    if (!response.ok) {
+      return
+    }
 
-    const aiContent: AiContent = JSON.parse(cleanJsonResponse(result.response))
+    // 获取流式读取器
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let fullResponse = ''
 
-    // 更新表单数据
-    if (aiContent.title && aiContent.description) {
-      form.title = aiContent.title
-      form.description = aiContent.description
+    if (reader) {
+      while (true) {
+        // 读取数据块（不 await 整个响应，而是逐块读取）
+        const { done, value } = await reader.read()
+
+        if (done) break
+
+        // 解码当前数据块
+        buffer += decoder.decode(value, { stream: true })
+
+        // 按行分割处理 NDJSON
+        const lines = buffer.split('\n')
+        // 保留最后一个可能不完整的行
+        buffer = lines.pop() || ''
+
+        // 处理完整的行
+        for (const line of lines) {
+          if (line.trim()) {
+            const json = JSON.parse(line)
+
+            // 累积响应内容
+            if (json.response) {
+              fullResponse += json.response
+
+              // 尝试提取 title 和 description（即使 JSON 不完整）
+              // 使用正则表达式提取部分内容
+              const titleMatch = fullResponse.match(/"title"\s*:\s*"([^"]*)"?/)
+              const descMatch = fullResponse.match(/"description"\s*:\s*"([^"]*)"?/)
+
+              if (titleMatch && titleMatch[1]) {
+                // 逐字显示 title
+                form.title = titleMatch[1]
+              }
+
+              if (descMatch && descMatch[1]) {
+                // 逐字显示 description
+                form.description = descMatch[1]
+              }
+            }
+
+            // 检查是否完成
+            if (json.done) {
+              break
+            }
+          }
+        }
+      }
     }
   } finally {
     // 无论成功与否，都关闭加载状态
