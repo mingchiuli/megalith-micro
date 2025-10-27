@@ -5,7 +5,8 @@ import type { BlogExhibit } from '@/type/entity'
 import Catalogue from '@/components/CatalogueItem.vue'
 import { useRoute } from 'vue-router'
 import { API_ENDPOINTS } from '@/config/apiConfig'
-import { MdPreview } from 'md-editor-v3';
+import { MdPreview } from 'md-editor-v3'
+import 'md-editor-v3/lib/preview.css'
 
 const route = useRoute()
 const token = route.query.token

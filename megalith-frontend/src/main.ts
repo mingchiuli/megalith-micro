@@ -4,7 +4,6 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import * as Icons from '@element-plus/icons-vue'
-import 'md-editor-v3/lib/preview.css'
 
 const app = createApp(App).use(createPinia()).use(router)
 
