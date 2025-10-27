@@ -1,17 +1,16 @@
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, reactive, ref, useTemplateRef } from 'vue'
-import {
-  type TagProps,
-  type UploadFile,
-  type UploadProps,
-  type UploadRawFile,
-  type UploadRequestOptions,
-  type FormRules,
-  type FormInstance,
-  ElInput,
-  ElNotification,
-  type UploadUserFile
+import type {
+  TagProps,
+  UploadFile,
+  UploadProps,
+  UploadRawFile,
+  UploadRequestOptions,
+  FormRules,
+  FormInstance,
+  UploadUserFile
 } from 'element-plus'
+import { ElInput } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import {
   type EditForm,
@@ -32,7 +31,6 @@ import router from '@/router'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
 import { aiHttpClient } from '@/http/axios'
-import 'element-plus/es/components/input/style/css' //不明原因样式缺失
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 
 const aiModels = ref<AiModel[]>([])
@@ -394,17 +392,17 @@ const aiGenerate = async () => {
 
               // 尝试提取 title 和 description（即使 JSON 不完整）
               // 使用正则表达式提取部分内容
-              const titleMatch = fullResponse.match(/"title"\s*:\s*"([^"]*)"?/)
               const descMatch = fullResponse.match(/"description"\s*:\s*"([^"]*)"?/)
-
-              if (titleMatch && titleMatch[1]) {
-                // 逐字显示 title
-                form.title = titleMatch[1]
-              }
 
               if (descMatch && descMatch[1]) {
                 // 逐字显示 description
                 form.description = descMatch[1]
+              } else {
+                // description 还未出现时，才更新 title
+                const titleMatch = fullResponse.match(/"title"\s*:\s*"([^"]*)"?/)
+                if (titleMatch && titleMatch[1]) {
+                  form.title = titleMatch[1]
+                }
               }
             }
 
