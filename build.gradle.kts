@@ -1,4 +1,5 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
+import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 
 plugins {
@@ -13,6 +14,11 @@ subprojects {
 
     group = "wiki.chiu.megalith"
 
+    // Set default version for all modules (cache module will override this)
+    if (name != "cache") {
+        version = "latest"
+    }
+
     // Apply plugins to all subprojects
     plugins.apply("java")
     plugins.apply("io.spring.dependency-management")
@@ -21,9 +27,52 @@ subprojects {
     // Configure jar tasks based on module type
     if (name.startsWith("micro-")) {
         plugins.apply("org.graalvm.buildtools.native")
+
         // Microservice modules: generate executable jar
         tasks.named<Jar>("jar") {
             enabled = false
+        }
+
+        // Configure test tasks
+        tasks.withType<Test> {
+            useJUnitPlatform()
+        }
+
+        // Configure bootBuildImage for all microservices
+        tasks.named<BootBuildImage>("bootBuildImage") {
+            buildpacks = listOf(
+                "docker.io/paketobuildpacks/oracle",
+                "urn:cnb:builder:paketo-buildpacks/java-native-image",
+                "docker.io/paketobuildpacks/health-checker"
+            )
+
+            // Default heap size, can be overridden in individual modules
+            val heapSize = project.findProperty("nativeImageHeapSize") as String? ?: "128m"
+
+            environment = mapOf(
+                "BP_NATIVE_IMAGE_BUILD_ARGUMENTS" to """
+                    -march=compatibility
+                    --gc=serial
+                    -R:MaxHeapSize=$heapSize
+                    -O3
+                    -J-XX:MaxRAMPercentage=80.0
+                    -H:+CompactingOldGen
+                    -H:+MLCallCountProfileInference
+                    -H:+TrackPrimitiveValues
+                    -H:+UsePredicates
+                """.trimIndent(),
+                "BP_HEALTH_CHECKER_ENABLED" to "true"
+            )
+
+            docker {
+                publish.set(true)
+                publishRegistry {
+                    imageName.set("docker.io/mingchiuli/megalith-${project.name}:${version}")
+                    url.set("https://docker.io")
+                    username.set(System.getenv("DOCKER_USERNAME"))
+                    password.set(System.getenv("DOCKER_PWD"))
+                }
+            }
         }
     } else {
         // Library modules: generate plain jar

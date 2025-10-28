@@ -1,6 +1,5 @@
-import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
-
-version = "latest"
+// Override default heap size for this service (needs more memory)
+ext.set("nativeImageHeapSize", "256m")
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -18,40 +17,3 @@ dependencies {
     testImplementation("org.springframework.amqp:spring-rabbit-test")
 }
 
-tasks.withType<Test> { useJUnitPlatform() }
-
-tasks.named<BootBuildImage>("bootBuildImage") {
-    buildpacks =
-            listOf(
-                    "docker.io/paketobuildpacks/oracle",
-                    "urn:cnb:builder:paketo-buildpacks/java-native-image",
-                    "docker.io/paketobuildpacks/health-checker"
-            )
-    environment =
-            mapOf(
-                    "BP_NATIVE_IMAGE_BUILD_ARGUMENTS" to
-                            """
-				-march=compatibility
-				--gc=serial
-				-R:MaxHeapSize=256m
-				-O3
-				-J-XX:MaxRAMPercentage=80.0
-				-H:+CompactingOldGen
-                -H:+MLCallCountProfileInference
-                -H:+TrackPrimitiveValues
-                -H:+UsePredicates
-			""",
-                    "BP_HEALTH_CHECKER_ENABLED" to "true",
-            )
-    docker {
-        publish.set(true)
-        publishRegistry {
-            imageName.set("docker.io/mingchiuli/megalith-micro-user:${version}")
-            url.set("https://docker.io")
-            val un = System.getenv("DOCKER_USERNAME")
-            val pwd = System.getenv("DOCKER_PWD")
-            username.set(un)
-            password.set(pwd)
-        }
-    }
-}
