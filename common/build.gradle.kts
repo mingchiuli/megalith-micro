@@ -1,5 +1,3 @@
-version = "latest"
-
 dependencies {
     compileOnly("org.springframework:spring-web")
     compileOnly("org.springframework:spring-webmvc")
