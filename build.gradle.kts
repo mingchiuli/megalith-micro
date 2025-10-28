@@ -1,27 +1,26 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
+import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 
 plugins {
-    java
-    id("io.spring.dependency-management") version "1.1.7"
+    // Only declare plugin versions, don't apply to root project
+    id("io.spring.dependency-management") version "1.1.7" apply false
     id("org.springframework.boot") version "3.5.7" apply false
     id("org.graalvm.buildtools.native") version "0.11.2" apply false
 }
-
-repositories { mavenCentral() }
 
 subprojects {
     repositories { mavenCentral() }
 
     group = "wiki.chiu.megalith"
 
-    // Apply plugins in order
+    // Apply plugins to all subprojects
     plugins.apply("java")
     plugins.apply("io.spring.dependency-management")
     plugins.apply("org.springframework.boot")  // Apply to all modules for -parameters and AOT
-    plugins.apply("org.graalvm.buildtools.native")
 
     // Configure jar tasks based on module type
     if (name.startsWith("micro-")) {
+        plugins.apply("org.graalvm.buildtools.native")
         // Microservice modules: generate executable jar
         tasks.named<Jar>("jar") {
             enabled = false
@@ -36,7 +35,7 @@ subprojects {
         }
     }
 
-    dependencyManagement {
+    configure<DependencyManagementExtension> {
         imports {
             mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.7")
         }
@@ -47,7 +46,7 @@ subprojects {
         }
     }
 
-    java {
+    configure<JavaPluginExtension> {
         sourceCompatibility = JavaVersion.VERSION_25
     }
 }
