@@ -128,7 +128,7 @@ const submitForm = async (ref: FormInstance) => {
       try {
         submitLoading.value = true
         await POST<null>(API_ENDPOINTS.BLOG_ADMIN.SAVE_BLOG, form)
-      } finally {
+      } catch {
         submitLoading.value = false
       }
       ElNotification({
