@@ -192,7 +192,7 @@ export const submitLogin = async (username: string, password: string) => {
   loginStateStore().login = true
   const info = await GET<UserInfo>(API_ENDPOINTS.AUTH.USER_INFO)
   setLocalStorageItem('userinfo', JSON.stringify(info))
-  await router.push('/backend')
+  await router.push('/backend')//wait page jump
 }
 
 const setLocalStorageItem = (key: string, value: string) => {
