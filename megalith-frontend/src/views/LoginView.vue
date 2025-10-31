@@ -22,7 +22,7 @@ const triggerSubmitLogin = async (username: string, password: string) => {
   try {
     loginLoading.value = true
     await submitLogin(username, password)
-  } finally {
+  } catch {
     loginLoading.value = false
   }
 }
