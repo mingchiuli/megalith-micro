@@ -281,7 +281,7 @@ const clearForm = () => {
       <el-form-item label="协议" label-width="100px" prop="prototype">
         <el-select v-model="form.prototype" placeholder="请选择协议" style="width: 100%">
           <el-option label="http" value="http" />
-          <el-option label="websocket" value="ws" />
+          <el-option label="ws" value="ws" />
         </el-select>
       </el-form-item>
       
