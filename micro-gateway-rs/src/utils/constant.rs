@@ -6,3 +6,8 @@ pub const PROXY_CLIENT_IP: &str = "Proxy-Client-IP";
 pub const WL_PROXY_CLIENT_IP: &str = "WL-Proxy-Client-IP";
 
 pub const AUTH_URL_KEY: &str = "megalith.blog.auth-url";
+
+pub const HTTP: &str = "http";
+pub const WS: &str = "ws";
+
+pub const TOKEN: &str = "token";

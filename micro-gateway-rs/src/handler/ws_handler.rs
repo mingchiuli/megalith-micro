@@ -1,13 +1,14 @@
-use axum::body::Body;
+use axum::body::{Body, Bytes};
 use axum::extract::WebSocketUpgrade;
-use axum::extract::ws::{Message as AxumMessage, WebSocket};
+use axum::extract::ws::{CloseFrame, Message as AxumMessage, Utf8Bytes, WebSocket};
 use axum::response::{IntoResponse, Response};
-use futures_util::{SinkExt, StreamExt};
+use futures_util::{SinkExt, StreamExt, stream};
 use hyper::{HeaderMap, Method, Uri};
 use tokio_tungstenite::connect_async;
-use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
+use tokio_tungstenite::tungstenite::{Message as TungsteniteMessage, protocol};
 
 use crate::exception::error::HandlerError;
+use crate::utils::constant;
 use crate::utils::http_util::{self};
 
 pub async fn ws_route_handler(
@@ -27,7 +28,7 @@ pub async fn ws_route_handler(
     let route_resp = http_util::find_route(auth_url, req_body, &token).await?;
 
     // Parse url
-    let new_url = http_util::parse_url(route_resp, &uri, "ws")?;
+    let new_url = http_util::parse_url(route_resp, &uri, constant::WS)?;
 
     // 将 WebSocket 升级响应转换为 Response<Body>
     let response = ws
@@ -44,7 +45,7 @@ fn extract_token(uri: &Uri) -> String {
     uri.query()
         .and_then(|q| {
             url::form_urlencoded::parse(q.as_bytes())
-                .find(|(key, _)| key == "token")
+                .find(|(key, _)| key == constant::TOKEN)
                 .map(|(_, value)| value.to_string())
         })
         .unwrap_or("".to_string())
@@ -61,9 +62,8 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
     };
 
     // 使用 futures_util 的 split 方法
-    let (mut client_sender, mut client_receiver) = futures_util::stream::StreamExt::split(ws);
-    let (mut server_sender, mut server_receiver) =
-        futures_util::stream::StreamExt::split(server_ws);
+    let (mut client_sender, mut client_receiver) = stream::StreamExt::split(ws);
+    let (mut server_sender, mut server_receiver) = stream::StreamExt::split(server_ws);
 
     // 从客户端到服务端的消息转发
     let client_to_server = async {
@@ -74,11 +74,11 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
                     let converted_msg = match msg {
                         AxumMessage::Text(text) => TungsteniteMessage::text(text.as_str()),
                         AxumMessage::Binary(data) => TungsteniteMessage::binary(data.to_vec()),
-                        AxumMessage::Ping(data) => TungsteniteMessage::Ping(data.clone().into()),
-                        AxumMessage::Pong(data) => TungsteniteMessage::Pong(data.clone().into()),
+                        AxumMessage::Ping(data) => TungsteniteMessage::Ping(data.into()),
+                        AxumMessage::Pong(data) => TungsteniteMessage::Pong(data.into()),
                         AxumMessage::Close(Some(frame)) => {
                             // Convert from u16 to CloseCode
-                            let code = tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode::from(frame.code);
+                            let code = protocol::frame::coding::CloseCode::from(frame.code);
 
                             // If there's a way to create a CloseFrame from a reason string
                             let reason_string = frame.reason.as_str().to_string();
@@ -87,13 +87,12 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
                             // Without seeing the full API, we can attempt a few approaches:
 
                             // Option 1: If there's a with_reason or similar method
-                            let close_frame =
-                                tokio_tungstenite::tungstenite::protocol::CloseFrame {
-                                    code,
-                                    reason: reason_string.into(), // Try with bytes directly
-                                };
+                            let close_frame = protocol::CloseFrame {
+                                code,
+                                reason: reason_string.into(), // Try with bytes directly
+                            };
 
-                            tokio_tungstenite::tungstenite::Message::Close(Some(close_frame))
+                            TungsteniteMessage::Close(Some(close_frame))
                         }
                         AxumMessage::Close(None) => TungsteniteMessage::Close(None),
                     };
@@ -120,18 +119,14 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
                     let converted_msg = match msg {
                         TungsteniteMessage::Text(text) => {
                             // 将 String 转换为 axum 的 Utf8Bytes
-                            AxumMessage::Text(axum::extract::ws::Utf8Bytes::from(text.as_str()))
+                            AxumMessage::Text(Utf8Bytes::from(text.as_str()))
                         }
                         TungsteniteMessage::Binary(data) => {
                             // 从 Vec<u8> 转为 axum 的 Bytes
-                            AxumMessage::Binary(axum::body::Bytes::from(data))
+                            AxumMessage::Binary(Bytes::from(data))
                         }
-                        TungsteniteMessage::Ping(data) => {
-                            AxumMessage::Ping(axum::body::Bytes::from(data))
-                        }
-                        TungsteniteMessage::Pong(data) => {
-                            AxumMessage::Pong(axum::body::Bytes::from(data))
-                        }
+                        TungsteniteMessage::Ping(data) => AxumMessage::Ping(Bytes::from(data)),
+                        TungsteniteMessage::Pong(data) => AxumMessage::Pong(Bytes::from(data)),
                         TungsteniteMessage::Close(frame) => {
                             match frame {
                                 Some(close_frame) => {
@@ -145,7 +140,7 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
 
                                     // Option 2: If this is a tungstenite::protocol::CloseFrame
                                     // This might work directly
-                                    AxumMessage::Close(Some(axum::extract::ws::CloseFrame {
+                                    AxumMessage::Close(Some(CloseFrame {
                                         code,
                                         reason: reason_str.into(),
                                     }))
