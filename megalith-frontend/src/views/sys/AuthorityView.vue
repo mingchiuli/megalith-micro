@@ -278,23 +278,38 @@ const clearForm = () => {
         <el-input v-model="form.remark" maxlength="50" />
       </el-form-item>
 
-      <el-form-item label="协议" label-width="100px" prop="remark">
-        <el-input v-model="form.prototype" maxlength="50" />
+      <el-form-item label="协议" label-width="100px" prop="prototype">
+        <el-select v-model="form.prototype" placeholder="请选择协议" style="width: 100%">
+          <el-option label="http" value="http" />
+          <el-option label="websocket" value="ws" />
+        </el-select>
+      </el-form-item>
+      
+      <el-form-item label="方法类型" label-width="100px" prop="methodType">
+        <el-select v-model="form.methodType" placeholder="请选择方法类型" style="width: 100%">
+          <el-option label="GET" value="GET" />
+          <el-option label="POST" value="POST" />
+        </el-select>
       </el-form-item>
 
-      <el-form-item label="方法类型" label-width="100px" prop="remark">
-        <el-input v-model="form.methodType" maxlength="50" />
-      </el-form-item>
 
-      <el-form-item label="路由匹配" label-width="100px" prop="remark">
+      <el-form-item label="路由匹配" label-width="100px" prop="routePattern">
         <el-input v-model="form.routePattern" maxlength="50" />
       </el-form-item>
 
-      <el-form-item label="请求服务" label-width="100px" prop="remark">
-        <el-input v-model="form.serviceHost" maxlength="50" />
+      <el-form-item label="请求服务" label-width="100px" prop="serviceHost">
+        <el-select v-model="form.serviceHost" placeholder="请选择服务" style="width: 100%">
+          <el-option label="micro-blog" value="micro-blog" />
+          <el-option label="micro-user" value="micro-user" />
+          <el-option label="micro-auth" value="micro-auth" />
+          <el-option label="micro-search" value="micro-search" />
+          <el-option label="micro-sync-rs" value="micro-sync-rs" />
+          <el-option label="micro-exhibit" value="micro-exhibit" />
+        </el-select>
       </el-form-item>
 
-      <el-form-item label="请求端口" label-width="100px" prop="remark">
+
+      <el-form-item label="请求端口" label-width="100px" prop="servicePort">
         <el-input v-model="form.servicePort" maxlength="50" />
       </el-form-item>
 
@@ -305,7 +320,7 @@ const clearForm = () => {
         </el-radio-group>
       </el-form-item>
 
-      <el-form-item label="类型" label-width="100px" prop="status">
+      <el-form-item label="类型" label-width="100px" prop="type">
         <el-radio-group v-model="form.type">
           <el-radio :value="AuthStatus.WHITE_LIST">白名单</el-radio>
           <el-radio :value="AuthStatus.NEED_AUTH">需鉴权</el-radio>
