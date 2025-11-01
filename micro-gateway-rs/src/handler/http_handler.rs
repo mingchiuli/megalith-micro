@@ -5,13 +5,13 @@ use axum::{
     extract::Request,
     response::Response,
 };
-use hyper::{Method, StatusCode};
+use hyper::{Method, StatusCode, Uri};
 use tokio::time::timeout;
 
 use crate::{
     client::http_client::{self},
-    exception::error::{handle_api_error, ClientError, HandlerError},
-    utils::http_util::{self},
+    exception::error::{ClientError, HandlerError, handle_api_error},
+    utils::{constant, http_util::{self}},
 };
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
@@ -31,7 +31,7 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Handle
     let route_resp = http_util::find_route(auth_url, req_body, &token).await?;
 
     // Prepare target request
-    let target_uri = http_util::parse_url(route_resp, uri, "http")?;
+    let target_uri = http_util::parse_url(route_resp, uri, constant::HTTP)?;
 
     // Forward to target service
     let response = forward_to_target_service(req, target_uri, token).await?;
@@ -41,7 +41,7 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Handle
 
 async fn forward_to_target_service(
     req: Request<Body>,
-    uri: hyper::Uri,
+    uri: Uri,
     token: String,
 ) -> Result<Response<Bytes>, ClientError> {
     let headers = http_util::prepare_headers(req.headers(), token)?;

@@ -9,9 +9,7 @@ use axum::{
 use http_body_util::{BodyExt, combinators::BoxBody};
 use http_body_util::{Empty, Full};
 use hyper::{
-    Method, Response, StatusCode,
-    body::{Body, Buf},
-    client::conn::http1::{self, SendRequest},
+    Method, Response, StatusCode, Uri, body::{Buf}, client::conn::http1::{self, SendRequest}, header
 };
 use hyper_util::rt::TokioIo;
 use serde::{Serialize, de::DeserializeOwned};
@@ -32,7 +30,7 @@ pub struct AuthRouteReq {
 impl AuthRouteReq {
     pub fn new(method: &Method, route_mapping: String, ip_addr: String) -> Self {
         AuthRouteReq {
-            method: method.as_str().to_string(),
+            method: method.to_string(),
             route_mapping,
             ip_addr,
         }
@@ -66,14 +64,14 @@ async fn parse_req(
     let mut req = Request::builder()
         .method(method)
         .uri(url)
-        .header(hyper::header::HOST, host);
+        .header(header::HOST, host);
     req = set_headers(req, headers);
     Ok(req)
 }
 
 // Raw GET 方法
 pub async fn get_raw(
-    url: hyper::Uri,
+    url: Uri,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<Response<Bytes>, BoxError> {
     request_raw(Method::GET, url, None, headers).await
@@ -81,7 +79,7 @@ pub async fn get_raw(
 
 // Raw POST 方法
 pub async fn post_raw(
-    url: hyper::Uri,
+    url: Uri,
     body: axum::body::Body,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<Response<Bytes>, BoxError> {
@@ -89,21 +87,21 @@ pub async fn post_raw(
 }
 
 pub async fn get<T: DeserializeOwned>(
-    url: hyper::Uri,
+    url: Uri,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<T, BoxError> {
     request(Method::GET, url, None::<()>, headers).await
 }
 
 pub async fn post<T: DeserializeOwned>(
-    url: hyper::Uri,
+    url: Uri,
     body: impl Serialize,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<T, BoxError> {
     request(Method::POST, url, Some(body), headers).await
 }
 
-fn parse_host(url: &hyper::Uri) -> Result<HeaderValue, ClientError> {
+fn parse_host(url: &Uri) -> Result<HeaderValue, ClientError> {
     let host = url
         .authority()
         .ok_or(ClientError::Request("No authority found".to_string()))?
@@ -125,7 +123,7 @@ where
 
 pub async fn request<T: DeserializeOwned>(
     method: Method,
-    url: hyper::Uri,
+    url: Uri,
     body: Option<impl Serialize>,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<T, BoxError> {
@@ -172,7 +170,7 @@ pub async fn request_raw(
 
 async fn create_connection<B>(url: &hyper::Uri) -> Result<SendRequest<B>, BoxError>
 where
-    B: Body<Data = Bytes, Error = BoxError> + Send + 'static,
+    B: hyper::body::Body<Data = Bytes, Error = BoxError> + Send + 'static,
 {
     let host = url
         .host()
@@ -199,7 +197,7 @@ where
 
 async fn invoke<B>(mut sender: SendRequest<B>, req: Request<B>) -> Result<Bytes, BoxError>
 where
-    B: Body + Send + 'static,
+    B: hyper::body::Body + Send + 'static,
     B::Data: Send,
     B::Error: Into<BoxError>,
 {

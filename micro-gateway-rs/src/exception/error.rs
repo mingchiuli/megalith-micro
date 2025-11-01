@@ -3,7 +3,7 @@ use std::{
     fmt::{Display, Formatter, Result},
 };
 
-use axum::response::{IntoResponse, Response};
+use axum::{BoxError, response::{IntoResponse, Response}};
 use hyper::StatusCode;
 
 #[derive(Debug)]
@@ -138,7 +138,7 @@ pub enum AuthError {
     InvalidUrl(String),
 }
 
-impl std::error::Error for AuthError {}
+impl Error for AuthError {}
 
 impl Display for AuthError {
     fn fmt(&self, f: &mut Formatter) -> Result {
@@ -164,8 +164,6 @@ pub enum ClientError {
 }
 
 impl Error for ClientError {}
-unsafe impl Send for ClientError {}
-unsafe impl Sync for ClientError {}
 
 impl Display for ClientError {
     fn fmt(&self, f: &mut Formatter) -> Result {
@@ -180,7 +178,7 @@ impl Display for ClientError {
     }
 }
 
-pub fn handle_api_error(e: Box<dyn Error + Send + Sync>) -> ClientError {
+pub fn handle_api_error(e: BoxError) -> ClientError {
     match e.downcast_ref::<ClientError>() {
         Some(ClientError::Status(code, msg)) => ClientError::Status(*code, msg.clone()),
         _ => ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()),

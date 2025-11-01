@@ -27,7 +27,7 @@ async fn peer(ws: WebSocket, room_manager: Arc<Mutex<RoomManager>>, room_id: Str
     };
 
     // 创建连接信息对象，用于管理生命周期
-    let connection = RoomConnection::new(room_id.clone(), room_info.clone(), room_manager.clone());
+    let connection = RoomConnection::new(room_id.clone(), room_info, room_manager);
 
     let (sink, stream) = ws.split();
     let sink = Arc::new(Mutex::new(WarpSink::from(sink)));

@@ -1,6 +1,7 @@
 use micro_sync_rs::handler::broadcast::ws_handler;
 use micro_sync_rs::room::room::RoomManager;
 use serde_json::json;
+use warp::reply::json;
 use std::env;
 use std::sync::Arc;
 use tokio::signal;
@@ -54,7 +55,7 @@ async fn main() {
             async move {
                 let room_manager = room_manager.lock().await;
                 let exists = room_manager.room_exists(&room_id);
-                Ok::<_, Rejection>(warp::reply::json(&json!({
+                Ok::<_, Rejection>(json(&json!({
                     "code": 200,
                     "msg": "success",
                     "data": {
