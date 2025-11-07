@@ -3,6 +3,9 @@ package wiki.chiu.micro.cache.config;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.cache.handler.impl.RabbitCacheEvictHandler;
@@ -22,7 +25,9 @@ import org.springframework.core.task.TaskExecutor;
 import java.util.UUID;
 
 @AutoConfiguration
-@ConditionalOnClass(ConnectionFactory.class)
+@ConditionalOnClass({ConnectionFactory.class, RabbitAutoConfiguration.class}) // 同时检查两个类
+@ConditionalOnBean(ConnectionFactory.class)
+@AutoConfigureAfter(RabbitAutoConfiguration.class) // 此时RabbitAutoConfiguration一定存在
 public class CacheEvictRabbitConfig {
 
     @Value("${megalith.cache.queue-prefix}")
