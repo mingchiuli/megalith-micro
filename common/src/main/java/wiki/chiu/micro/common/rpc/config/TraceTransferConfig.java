@@ -17,6 +17,6 @@ public class TraceTransferConfig {
             return (TracingClientHttpRequestInterceptor) TraceHttpInterceptor.tracingInterceptor(tracing);
         }
         // 没有 tracing 时不注册拦截器
-        return null;
+        throw new IllegalStateException("tracing not available");
     }
 }
