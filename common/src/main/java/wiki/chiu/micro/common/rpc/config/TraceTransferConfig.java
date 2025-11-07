@@ -3,11 +3,11 @@ package wiki.chiu.micro.common.rpc.config;
 import brave.Tracing;
 import brave.spring.web.TracingClientHttpRequestInterceptor;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import wiki.chiu.micro.common.rpc.config.interceptor.TraceHttpInterceptor;
 
-@Configuration
+@AutoConfiguration
 public class TraceTransferConfig {
 
     @Bean
