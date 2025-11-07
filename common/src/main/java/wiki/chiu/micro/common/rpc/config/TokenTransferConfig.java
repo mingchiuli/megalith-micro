@@ -1,10 +1,10 @@
 package wiki.chiu.micro.common.rpc.config;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import wiki.chiu.micro.common.rpc.config.interceptor.AuthHttpInterceptor;
 
-@Configuration
+@AutoConfiguration
 public class TokenTransferConfig {
 
     @Bean
