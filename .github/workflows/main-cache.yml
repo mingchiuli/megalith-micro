@@ -2,10 +2,10 @@ name: Release Cache Maven Package
 on:
   push:
     branches:
-      - 'main'
+      - "main"
     paths:
-      - 'cache/**'
-      - '.github/workflows/main-cache.yml'
+      - "cache/**"
+      - ".github/workflows/main-cache.yml"
 
 permissions:
   contents: read
@@ -20,8 +20,8 @@ jobs:
       - name: Install JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'graalvm'
-          java-version: '25'
+          distribution: "graalvm"
+          java-version: "25"
       - uses: gradle/actions/setup-gradle@v4
       - name: Publish
         run: ./gradlew :cache:publishAndReleaseToMavenCentral
@@ -30,8 +30,14 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
+      - name: Extract version from build.gradle.kts
+        id: get_version
+        run: |
+          VERSION=$(grep '^version\s*=' cache/build.gradle.kts | sed 's/version\s*=\s*"\(.*\)"/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: 3.5.8
+          tag_name: ${{ steps.get_version.outputs.version }}
           token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
