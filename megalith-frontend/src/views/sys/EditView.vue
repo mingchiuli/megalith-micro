@@ -48,7 +48,7 @@ const form: EditForm = reactive({
   status: 0,
   link: '',
   sensitiveContentList: [],
-  owner: false
+  owner: true
 })
 
 type SensitiveTagsItem = {
