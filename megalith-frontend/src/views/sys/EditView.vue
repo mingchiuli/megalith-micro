@@ -8,9 +8,9 @@ import type {
   UploadRequestOptions,
   FormRules,
   FormInstance,
-  UploadUserFile
+  UploadUserFile,
+  ElInput
 } from 'element-plus'
-import { ElInput } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import {
   type EditForm,
@@ -48,7 +48,7 @@ const form: EditForm = reactive({
   status: 0,
   link: '',
   sensitiveContentList: [],
-  owner: true
+  owner: false
 })
 
 type SensitiveTagsItem = {
