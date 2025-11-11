@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
       port: 1919,
       proxy: {
         '/api': {
-          target: 'http://127.0.0.1:8088',	//接口地址
+          target: 'http://127.0.0.1:8088',
           rewrite: (path: string) => path.replace(/^\/api/, '')
         },
         '/wsapi': {
@@ -42,8 +42,52 @@ export default defineConfig(({ mode }) => {
       }
     },
     build: {
-      outDir: fileName
+      outDir: fileName,
+      // 提高 chunk 大小警告限制（可选）
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          // 手动分包策略
+          manualChunks: {
+            // Vue 核心库
+            'vue-vendor': ['vue', 'vue-router', 'pinia'],
+            
+            // Element Plus 组件库
+            'element-plus': ['element-plus'],
+            
+            // Markdown 编辑器相关（这是你最大的包）
+            'md-editor': ['md-editor-v3', 'markdown-it'],
+            
+            // 代码高亮
+            'highlight': ['highlight.js'],
+            
+            // 协同编辑相关
+            'yjs-vendor': ['yjs', 'y-websocket', 'y-codemirror.next'],
+            
+            // 其他工具库
+            'utils': ['axios', 'js-base64', '@vavt/v3-extension']
+          },
+          
+          // 为每个 chunk 生成更小的文件
+          chunkFileNames: (chunkInfo) => {
+            const facadeModuleId = chunkInfo.facadeModuleId 
+              ? chunkInfo.facadeModuleId.split('/').pop() 
+              : 'chunk';
+            return `assets/${facadeModuleId}/[name]-[hash].js`;
+          }
+        }
+      }
+    },
+    
+    // 优化依赖预构建
+    optimizeDeps: {
+      include: [
+        'vue',
+        'vue-router',
+        'pinia',
+        'element-plus',
+        'axios'
+      ]
     }
   }
 })
-
