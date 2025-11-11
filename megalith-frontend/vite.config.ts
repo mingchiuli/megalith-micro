@@ -32,12 +32,12 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': {
           target: 'http://127.0.0.1:8088',
-          rewrite: (path: string) => path.replace(/^\/api/, '')
+          rewrite: (path) => path.replace(/^\/api/, '')
         },
         '/wsapi': {
           target: 'ws://127.0.0.1:8088',
           ws: true,
-          rewrite: (path: string) => path.replace(/^\/wsapi/, '')
+          rewrite: (path) => path.replace(/^\/wsapi/, '')
         }
       }
     },
