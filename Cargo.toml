@@ -29,7 +29,7 @@ axum = { version = "0.8.6", features = ["ws"] }
 warp = { version = "0.3.7", features = ["websocket"] }
 
 # HTTP
-hyper = { version = "1.7.0", features = ["full"] }
+hyper = { version = "1.8.0", features = ["full"] }
 hyper-util = { version = "0.1.17", features = ["full"] }
 http-body-util = "0.1.3"
 
