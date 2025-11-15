@@ -1,9 +1,7 @@
 use std::time::Duration;
-
+use http_body_util::combinators::BoxBody;
 use axum::{
-    body::{Body, Bytes},
-    extract::Request,
-    response::Response,
+    BoxError, body::{Body, Bytes}, extract::Request, response::Response
 };
 use hyper::{Method, StatusCode, Uri};
 use tokio::time::timeout;
@@ -43,15 +41,14 @@ async fn forward_to_target_service(
     req: Request<Body>,
     uri: Uri,
     token: String,
-) -> Result<Response<Bytes>, ClientError> {
+) -> Result<Response<BoxBody<Bytes, BoxError>>, ClientError> {
     let headers = http_util::prepare_headers(req.headers(), token)?;
-
+    
     let resp = timeout(REQUEST_TIMEOUT, async {
         match *req.method() {
             Method::GET => http_client::get_raw(uri, headers)
                 .await
                 .map_err(handle_api_error),
-
             Method::POST => {
                 let body = req.into_body();
                 http_client::post_raw(uri, body, headers)
@@ -66,6 +63,6 @@ async fn forward_to_target_service(
     })
     .await
     .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()))??;
-
+    
     Ok(resp)
 }

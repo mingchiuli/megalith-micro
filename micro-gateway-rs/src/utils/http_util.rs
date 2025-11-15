@@ -3,7 +3,11 @@ use axum::{
     extract::Request,
     http::{HeaderName, HeaderValue, request::Builder},
     response::Response,
+    BoxError
 };
+
+use http_body_util::combinators::BoxBody;
+
 use hyper::{HeaderMap, Method, StatusCode, Uri, header};
 use std::{collections::HashMap, env};
 
@@ -148,7 +152,9 @@ pub fn prepare_headers(
     Ok(headers)
 }
 
-pub fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>, ClientError> {
+pub fn prepare_response(
+    resp: Response<BoxBody<Bytes, BoxError>>  // ← 修改参数类型
+) -> Result<Response<Body>, ClientError> {
     let content_type = resp
         .headers()
         .get(hyper::header::CONTENT_TYPE)
@@ -157,15 +163,27 @@ pub fn prepare_response(resp: Response<Bytes>) -> Result<Response<Body>, ClientE
         .map_err(|e| ClientError::Response(e.to_string()))?
         .to_string();
 
-    let mut builder = Response::builder().status(resp.status());
+    let status = resp.status();
+    let (parts, body) = resp.into_parts();
 
+    // 将 BoxBody 转换为 axum::body::Body
+    let axum_body = Body::new(body);
+
+    let mut builder = Response::builder().status(status);
+
+    // 保留原有的 headers
+    for (key, value) in parts.headers.iter() {
+        builder = builder.header(key, value);
+    }
+
+    // 设置或覆盖 Content-Type
     if content_type == "application/octet-stream" {
         builder = builder.header(header::CONTENT_TYPE, "application/octet-stream");
-    } else {
+    } else if !parts.headers.contains_key(header::CONTENT_TYPE) {
         builder = builder.header(header::CONTENT_TYPE, "application/json");
     }
 
     Ok(builder
-        .body(Body::from(resp.into_body()))
+        .body(axum_body)
         .map_err(|e| ClientError::Response(e.to_string()))?)
 }

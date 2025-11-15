@@ -9,7 +9,7 @@ use axum::{
 use http_body_util::{BodyExt, combinators::BoxBody};
 use http_body_util::{Empty, Full};
 use hyper::{
-    Method, Response, StatusCode, Uri, body::{Buf}, client::conn::http1::{self, SendRequest}, header
+    Method, Response, Uri, body::{Buf}, client::conn::http1::{self, SendRequest}, header
 };
 use hyper_util::rt::TokioIo;
 use serde::{Serialize, de::DeserializeOwned};
@@ -69,30 +69,22 @@ async fn parse_req(
     Ok(req)
 }
 
-// Raw GET 方法
 pub async fn get_raw(
     url: Uri,
     headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<Response<Bytes>, BoxError> {
+) -> Result<Response<BoxBody<Bytes, BoxError>>, BoxError> {
     request_raw(Method::GET, url, None, headers).await
 }
 
-// Raw POST 方法
 pub async fn post_raw(
     url: Uri,
     body: axum::body::Body,
     headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<Response<Bytes>, BoxError> {
+) -> Result<Response<BoxBody<Bytes, BoxError>>, BoxError> {
     request_raw(Method::POST, url, Some(body), headers).await
 }
 
-pub async fn get<T: DeserializeOwned>(
-    url: Uri,
-    headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<T, BoxError> {
-    request(Method::GET, url, None::<()>, headers).await
-}
-
+//这个方法阻塞响应的
 pub async fn post<T: DeserializeOwned>(
     url: Uri,
     body: impl Serialize,
@@ -110,16 +102,28 @@ fn parse_host(url: &Uri) -> Result<HeaderValue, ClientError> {
     HeaderValue::from_str(host).map_err(|_| ClientError::Request("Invalid host".to_string()))
 }
 
-async fn parse_response<T>(response: Response<Bytes>) -> Result<T, BoxError>
+async fn parse_response<T>(response: Response<BoxBody<Bytes, BoxError>>) -> Result<T, BoxError>
 where
     T: DeserializeOwned,
 {
-    let body = response.into_body();
+    
+    let status = response.status();
+    
+    // 从流式 body 收集完整数据
+    let body = response.into_body().collect().await?.to_bytes();
+    
+    // 检查状态码（可选但推荐）
+        if !status.is_success() {
+            return Err(Box::new(ClientError::Status(
+                status.as_u16(),
+                String::from_utf8_lossy(&body).to_string(),
+            )));
+        }
 
-    // Try to deserialize the response body
     Ok(serde_json::from_reader(body.reader())
         .map_err(|e| ClientError::Deserialize(e.to_string()))?)
 }
+
 
 pub async fn request<T: DeserializeOwned>(
     method: Method,
@@ -143,7 +147,7 @@ pub async fn request_raw(
     url: hyper::Uri,
     body: Option<axum::body::Body>,
     headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<Response<Bytes>, BoxError> {
+) -> Result<Response<BoxBody<Bytes, BoxError>>, BoxError> {
     let sender = create_connection::<BoxBody<Bytes, BoxError>>(&url).await?;
     let req = parse_req(url, method, headers).await?;
 
@@ -164,8 +168,7 @@ pub async fn request_raw(
     }
     .map_err(|e| ClientError::Request(e.to_string()))?;
 
-    let res_body = invoke(sender, req).await?;
-    Ok(Response::new(res_body))
+    invoke(sender, req).await
 }
 
 async fn create_connection<B>(url: &hyper::Uri) -> Result<SendRequest<B>, BoxError>
@@ -195,20 +198,25 @@ where
     Ok(sender)
 }
 
-async fn invoke<B>(mut sender: SendRequest<B>, req: Request<B>) -> Result<Bytes, BoxError>
+// 流式 invoke - 修复版
+async fn invoke<B>(
+    mut sender: SendRequest<B>, 
+    req: Request<B>
+) -> Result<Response<BoxBody<Bytes, BoxError>>, BoxError>
 where
     B: hyper::body::Body + Send + 'static,
     B::Data: Send,
     B::Error: Into<BoxError>,
 {
     let res = sender.send_request(req).await?;
-    let status = res.status();
-    let body = res.into_body().collect().await?.to_bytes();
-    if status != StatusCode::OK {
-        return Err(Box::new(ClientError::Status(
-            status.as_u16(),
-            String::from_utf8(body.to_vec())?,
-        )));
-    }
-    Ok(body)
+    
+    // ✅ 不要过滤状态码，让所有响应都能正常转发
+    // 将 body 转换为 BoxBody 并返回完整的响应
+    let (parts, body) = res.into_parts();
+    
+    let boxed_body = body
+        .map_err(|e| Box::new(ClientError::Network(e.to_string())) as BoxError)
+        .boxed();
+    
+    Ok(Response::from_parts(parts, boxed_body))
 }
