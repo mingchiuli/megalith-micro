@@ -63,10 +63,8 @@ const UPLOAD = async (
     .post(dest, formData, {
       onUploadProgress: (progressEvent) => handleProgress(percentage, percentageShow, progressEvent)
     })
-    .then((resp: AxiosResponse<string>) => {
-      console.log(resp.data)
-      url = resp.data
-      url = url.substring('data:'.length).replace(/\n/g, '')
+    .then((resp: AxiosResponse<Data<string>>) => {
+      url = resp.data.data
     })
     .catch((e) => {
       return Promise.reject(new Error(e))
