@@ -291,6 +291,13 @@ public class BlogServiceImpl implements BlogService {
 
     private void sendSseEmitter(SseEmitter sseEmitter, String url) {
         try {
+            sseEmitter.send("123", MediaType.TEXT_PLAIN);
+            sseEmitter.send("456", MediaType.TEXT_PLAIN);
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             sseEmitter.send(url, MediaType.TEXT_PLAIN);
             sseEmitter.complete();
         } catch (IOException e) {
