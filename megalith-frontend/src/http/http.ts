@@ -64,6 +64,7 @@ const UPLOAD = async (
       onUploadProgress: (progressEvent) => handleProgress(percentage, percentageShow, progressEvent)
     })
     .then((resp: AxiosResponse<string>) => {
+      console.log(resp.data)
       url = resp.data
       url = url.substring('data:'.length).replace(/\n/g, '')
     })
