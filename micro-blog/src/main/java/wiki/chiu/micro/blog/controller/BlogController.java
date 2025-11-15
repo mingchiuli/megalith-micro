@@ -74,7 +74,7 @@ public class BlogController {
     }
 
     @PostMapping(value = "/oss/upload")
-    public SseEmitter uploadOss(@RequestBody MultipartFile image, AuthInfo authInfo) {
+    public SseEmitter uploadOss(@RequestParam MultipartFile image, AuthInfo authInfo) {
         return blogService.uploadOss(image, authInfo.userId());
     }
 
