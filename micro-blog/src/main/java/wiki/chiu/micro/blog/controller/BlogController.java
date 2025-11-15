@@ -20,7 +20,6 @@ import wiki.chiu.micro.common.page.PageAdapter;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
 
 import java.util.List;
@@ -74,8 +73,8 @@ public class BlogController {
     }
 
     @PostMapping(value = "/oss/upload")
-    public SseEmitter uploadOss(@RequestParam MultipartFile image, AuthInfo authInfo) {
-        return blogService.uploadOss(image, authInfo.userId());
+    public Result<String> uploadOss(@RequestParam MultipartFile image, AuthInfo authInfo) {
+        return Result.success(() -> blogService.uploadOss(image, authInfo.userId()));
     }
 
     @GetMapping("/oss/delete")

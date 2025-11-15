@@ -40,7 +40,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import wiki.chiu.micro.user.vo.UserEntityVo;
 import wiki.chiu.micro.user.wrapper.UserRoleWrapper;
 
@@ -128,19 +127,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public SseEmitter imageUpload(String token, MultipartFile file) {
+    public String imageUpload(String token, MultipartFile file) {
         validateToken(token);
         byte[] imageBytes = getImageBytes(file);
-        SseEmitter sseEmitter = new SseEmitter();
-
-        taskExecutor.execute(() -> {
-            String objectName = getObjectName(file);
-            Map<String, String> headers = getHeaders(objectName, HttpMethod.PUT.name(), IMAGE_JPG);
-            ossHttpService.putOssObject(objectName, imageBytes, headers);
-            sendSseEmitter(sseEmitter, baseUrl + "/" + objectName);
-        });
-
-        return sseEmitter;
+        String objectName = getObjectName(file);
+        Map<String, String> headers = getHeaders(objectName, HttpMethod.PUT.name(), IMAGE_JPG);
+        ossHttpService.putOssObject(objectName, imageBytes, headers);
+        return baseUrl + "/" + objectName;
     }
 
     @Override
@@ -276,7 +269,7 @@ public class UserServiceImpl implements UserService {
 
     private void validateToken(String token) {
         Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
-        if (Boolean.FALSE.equals(exist)) {
+        if (!exist) {
             throw new MissException(NO_AUTH.getMsg());
         }
     }
@@ -309,15 +302,6 @@ public class UserServiceImpl implements UserService {
         headers.put(HttpHeaders.CACHE_CONTROL, "no-cache");
         headers.put(HttpHeaders.CONTENT_TYPE, contentType);
         return headers;
-    }
-
-    private void sendSseEmitter(SseEmitter sseEmitter, String url) {
-        try {
-            sseEmitter.send(url, MediaType.TEXT_PLAIN);
-            sseEmitter.complete();
-        } catch (IOException e) {
-            sseEmitter.completeWithError(e);
-        }
     }
 
     private void writeResponse(HttpServletResponse response, String data) {

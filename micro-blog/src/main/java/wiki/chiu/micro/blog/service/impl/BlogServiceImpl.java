@@ -13,8 +13,7 @@ import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.utils.EditAuthUtils;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
-import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.common.lang.BlogOperateMessage;
+import wiki.chiu.micro.common.lang.*;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import wiki.chiu.micro.blog.event.BlogOperateEvent;
@@ -24,7 +23,6 @@ import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.rpc.SearchHttpServiceWrapper;
 import wiki.chiu.micro.blog.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.blog.service.BlogService;
-import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.common.req.BlogSysSearchReq;
 import wiki.chiu.micro.common.utils.OssSignUtils;
@@ -36,7 +34,6 @@ import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
 import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.rpc.OssHttpService;
 import wiki.chiu.micro.common.utils.JsonUtils;
@@ -243,13 +240,12 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public SseEmitter uploadOss(MultipartFile file, Long userId) {
+    public String uploadOss(MultipartFile file, Long userId) {
         byte[] imageBytes = getImageBytes(file);
         String objectName = getObjectName(file, userId);
-
-        SseEmitter sseEmitter = new SseEmitter();
-        taskExecutor.execute(() -> uploadImageToOss(imageBytes, objectName, sseEmitter));
-        return sseEmitter;
+        Map<String, String> headers = getOssHeaders(objectName, HttpMethod.PUT.name(), IMAGE_JPG);
+        ossHttpService.putOssObject(objectName, imageBytes, headers);
+        return baseUrl + "/" + objectName;
     }
 
     private byte[] getImageBytes(MultipartFile file) {
@@ -271,12 +267,6 @@ public class BlogServiceImpl implements BlogService {
         String uuid = UUID.randomUUID().toString();
         UserEntityRpcVo user = userHttpServiceWrapper.findById(userId);
         return user.nickname() + "/" + uuid + "-" + originalFilename;
-    }
-
-    private void uploadImageToOss(byte[] imageBytes, String objectName, SseEmitter sseEmitter) {
-        Map<String, String> headers = getOssHeaders(objectName, HttpMethod.PUT.name(), IMAGE_JPG);
-        ossHttpService.putOssObject(objectName, imageBytes, headers);
-        sendSseEmitter(sseEmitter, baseUrl + "/" + objectName);
     }
 
     private Map<String, String> getOssHeaders(String objectName, String method, String contentType) {

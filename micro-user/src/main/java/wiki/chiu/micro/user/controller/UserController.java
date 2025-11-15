@@ -14,7 +14,6 @@ import wiki.chiu.micro.user.vo.UserEntityVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
@@ -46,9 +45,9 @@ public class UserController {
     }
 
     @PostMapping("/register/image/upload")
-    public SseEmitter imageUpload(@RequestBody MultipartFile image,
-                                  @RequestParam String token) {
-        return userService.imageUpload(token, image);
+    public Result<String> imageUpload(@RequestParam MultipartFile image,
+                                      @RequestParam String token) {
+        return Result.success(() -> userService.imageUpload(token, image));
     }
 
     @GetMapping("/register/image/delete")

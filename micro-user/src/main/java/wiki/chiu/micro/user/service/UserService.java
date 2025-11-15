@@ -5,7 +5,6 @@ import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.req.UserEntityRegisterReq;
 import wiki.chiu.micro.user.req.UserEntityReq;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.servlet.http.HttpServletResponse;
 import wiki.chiu.micro.user.vo.UserEntityVo;
@@ -25,7 +24,7 @@ public interface UserService {
 
     String getRegisterPage(String username);
 
-    SseEmitter imageUpload(String token, MultipartFile req);
+    String imageUpload(String token, MultipartFile req);
 
     void imageDelete(String token, String url);
 

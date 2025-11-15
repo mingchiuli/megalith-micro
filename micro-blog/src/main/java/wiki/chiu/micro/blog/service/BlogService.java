@@ -9,7 +9,6 @@ import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
 import wiki.chiu.micro.common.page.PageAdapter;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 
 import java.time.LocalDateTime;
@@ -27,7 +26,7 @@ public interface BlogService {
 
     void deleteBatch(List<Long> ids, Long userId, List<String> roles);
 
-    SseEmitter uploadOss(MultipartFile file, Long userId);
+    String uploadOss(MultipartFile file, Long userId);
 
     void deleteOss(String url);
 
