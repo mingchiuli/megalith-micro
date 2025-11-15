@@ -54,7 +54,7 @@ subprojects {
                     -march=compatibility
                     --gc=serial
                     -R:MaxHeapSize=$heapSize
-                    -O3
+                    -Ob
                     -J-XX:MaxRAMPercentage=80.0
                     -H:+CompactingOldGen
                     -H:+MLCallCountProfileInference
