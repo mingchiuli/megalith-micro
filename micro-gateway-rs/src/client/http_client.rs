@@ -9,7 +9,10 @@ use axum::{
 use http_body_util::{BodyExt, combinators::BoxBody};
 use http_body_util::{Empty, Full};
 use hyper::{
-    Method, Response, Uri, body::{Buf}, client::conn::http1::{self, SendRequest}, header
+    Method, Response, Uri,
+    body::Buf,
+    client::conn::http1::{self, SendRequest},
+    header,
 };
 use hyper_util::rt::TokioIo;
 use serde::{Serialize, de::DeserializeOwned};
@@ -106,24 +109,22 @@ async fn parse_response<T>(response: Response<BoxBody<Bytes, BoxError>>) -> Resu
 where
     T: DeserializeOwned,
 {
-    
     let status = response.status();
-    
+
     // 从流式 body 收集完整数据
     let body = response.into_body().collect().await?.to_bytes();
-    
+
     // 检查状态码（可选但推荐）
-        if !status.is_success() {
-            return Err(Box::new(ClientError::Status(
-                status.as_u16(),
-                String::from_utf8_lossy(&body).to_string(),
-            )));
-        }
+    if !status.is_success() {
+        return Err(Box::new(ClientError::Status(
+            status.as_u16(),
+            String::from_utf8_lossy(&body).to_string(),
+        )));
+    }
 
     Ok(serde_json::from_reader(body.reader())
         .map_err(|e| ClientError::Deserialize(e.to_string()))?)
 }
-
 
 pub async fn request<T: DeserializeOwned>(
     method: Method,
@@ -200,8 +201,8 @@ where
 
 // 流式 invoke - 修复版
 async fn invoke<B>(
-    mut sender: SendRequest<B>, 
-    req: Request<B>
+    mut sender: SendRequest<B>,
+    req: Request<B>,
 ) -> Result<Response<BoxBody<Bytes, BoxError>>, BoxError>
 where
     B: hyper::body::Body + Send + 'static,
@@ -209,14 +210,14 @@ where
     B::Error: Into<BoxError>,
 {
     let res = sender.send_request(req).await?;
-    
+
     // ✅ 不要过滤状态码，让所有响应都能正常转发
     // 将 body 转换为 BoxBody 并返回完整的响应
     let (parts, body) = res.into_parts();
-    
+
     let boxed_body = body
         .map_err(|e| Box::new(ClientError::Network(e.to_string())) as BoxError)
         .boxed();
-    
+
     Ok(Response::from_parts(parts, boxed_body))
 }
