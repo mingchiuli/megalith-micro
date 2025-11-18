@@ -25,7 +25,7 @@ tracing-subscriber = "0.3.20"
 futures-util = "0.3.31"
 
 # Web frameworks
-axum = { version = "0.8.6", features = ["ws"] }
+axum = { version = "0.8.7", features = ["ws"] }
 warp = { version = "0.3.7", features = ["websocket"] }
 
 # HTTP
