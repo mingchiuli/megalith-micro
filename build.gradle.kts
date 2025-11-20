@@ -5,7 +5,7 @@ import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 plugins {
     // Only declare plugin versions, don't apply to root project
     id("io.spring.dependency-management") version "1.1.7" apply false
-    id("org.springframework.boot") version "3.5.7" apply false
+    id("org.springframework.boot") version "3.5.8" apply false
     id("org.graalvm.buildtools.native") version "0.11.3" apply false
 }
 
@@ -86,7 +86,7 @@ subprojects {
 
     configure<DependencyManagementExtension> {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.7")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.8")
         }
         dependencies {
             dependency("org.redisson:redisson:3.52.0")
