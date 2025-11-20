@@ -5,16 +5,19 @@
 
 version: 2
 updates:
+  # Rust (Cargo)：仅根目录覆盖整个 workspace
   - package-ecosystem: "cargo"
     directories:
-      - "**/*"
+      - "/"
     schedule:
       interval: "daily"
       time: "09:30"
       timezone: "Asia/Shanghai"
-  - package-ecosystem: "gradle" # See documentation for possible values
+
+  # Gradle：仅根目录覆盖所有子项目（版本定义在根目录）
+  - package-ecosystem: "gradle"
     directories:
-      - "**/*" # Location of package manifests
+      - "/"
     schedule:
       interval: "daily"
       time: "09:30"
