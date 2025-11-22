@@ -1,8 +1,6 @@
 package wiki.chiu.micro.common.aot.hints;
 
 import org.springframework.aot.hint.*;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.common.lang.UserAuthMenuOperateMessage;
 
@@ -10,7 +8,7 @@ import wiki.chiu.micro.common.lang.UserAuthMenuOperateMessage;
 class CommonRuntimeHints implements RuntimeHintsRegistrar {
 
     @Override// Register method for reflection
-    public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {
+    public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
         // Register method for reflection
 
 

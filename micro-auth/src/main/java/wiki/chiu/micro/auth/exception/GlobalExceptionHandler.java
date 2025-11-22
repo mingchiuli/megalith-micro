@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
         log.error("-------------------error", e);
         return Result.fail(e.getBindingResult().getAllErrors().stream()
                 .findFirst()
-                .<String>map(MessageSourceResolvable::getDefaultMessage)
+                .map(MessageSourceResolvable::getDefaultMessage)
                 .orElse(""));
     }
 

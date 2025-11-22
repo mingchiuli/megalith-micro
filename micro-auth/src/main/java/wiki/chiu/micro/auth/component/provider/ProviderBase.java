@@ -1,5 +1,6 @@
 package wiki.chiu.micro.auth.component.provider;
 
+import org.jspecify.annotations.NonNull;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.common.vo.RoleEntityRpcVo;
 import org.springframework.security.authentication.*;
@@ -51,11 +52,12 @@ public abstract sealed class ProviderBase extends DaoAuthenticationProvider perm
     }
 
     @Override
-    protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
+    protected void additionalAuthenticationChecks(@NonNull UserDetails userDetails, @NonNull UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         authProcess(userDetails, authentication);
     }
 
     @Override
+    @NonNull
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         UserDetails user = retrieveUser(authentication.getName(), (UsernamePasswordAuthenticationToken) authentication);
         if (!user.isAccountNonLocked()) {

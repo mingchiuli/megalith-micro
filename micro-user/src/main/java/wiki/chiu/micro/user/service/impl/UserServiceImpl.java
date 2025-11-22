@@ -2,6 +2,7 @@ package wiki.chiu.micro.user.service.impl;
 
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
@@ -244,7 +245,7 @@ public class UserServiceImpl implements UserService {
         var pageRequest = PageRequest.of(currentPage - 1,
                 size,
                 Sort.by("created").ascending());
-        Page<UserEntity> page = userRepository.findAll(pageRequest);
+        Page<@NonNull UserEntity> page = userRepository.findAll(pageRequest);
 
         List<Long> userIds = page.get()
                 .map(UserEntity::getId)

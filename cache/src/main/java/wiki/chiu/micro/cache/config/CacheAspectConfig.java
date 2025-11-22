@@ -1,16 +1,17 @@
 package wiki.chiu.micro.cache.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.NonNull;
 import org.redisson.api.RedissonClient;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import wiki.chiu.micro.cache.aspect.CacheAspect;
 
@@ -28,27 +29,27 @@ public class CacheAspectConfig {
 
     private final RedissonClient redissonClient;
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
-    private final com.github.benmanes.caffeine.cache.Cache<String, Object> localCache;
+    private final com.github.benmanes.caffeine.cache.Cache<@NonNull String, Object> localCache;
 
-    private final com.github.benmanes.caffeine.cache.Cache<String, ReentrantLock> localLockMap;
+    private final com.github.benmanes.caffeine.cache.Cache<@NonNull String, ReentrantLock> localLockMap;
 
-    public CacheAspectConfig(@Qualifier("cacheRedissonClient") RedissonClient redissonClient, ObjectMapper objectMapper, @Qualifier("caffeineCache") Cache<String, Object> localCache, @Qualifier("localLockMap") Cache<String, ReentrantLock> localLockMap) {
+    public CacheAspectConfig(@Qualifier("cacheRedissonClient") RedissonClient redissonClient, JsonMapper jsonMapper, @Qualifier("caffeineCache") Cache<@NonNull String, Object> localCache, @Qualifier("localLockMap") Cache<@NonNull String, ReentrantLock> localLockMap) {
         this.redissonClient = redissonClient;
-        this.objectMapper = objectMapper;
+        this.jsonMapper = jsonMapper;
         this.localCache = localCache;
         this.localLockMap = localLockMap;
     }
 
     @Bean
     CacheAspect cacheAspect() {
-        return new CacheAspect(redissonClient, objectMapper, commonCacheKeyGenerator(), localCache, localLockMap);
+        return new CacheAspect(redissonClient, jsonMapper, commonCacheKeyGenerator(), localCache, localLockMap);
     }
 
 
     @Bean
     CommonCacheKeyGenerator commonCacheKeyGenerator() {
-        return new CommonCacheKeyGenerator(objectMapper);
+        return new CommonCacheKeyGenerator(jsonMapper);
     }
 }

@@ -12,7 +12,6 @@ module wiki.chiu.megalith.cache {
     requires spring.core;
     requires org.aspectj.weaver;
     requires redisson;
-    requires com.fasterxml.jackson.databind;
     requires com.github.benmanes.caffeine;
     requires spring.beans;
     requires spring.context;
@@ -20,6 +19,9 @@ module wiki.chiu.megalith.cache {
     requires spring.amqp;
     requires spring.rabbit;
     requires jakarta.annotation;
+    requires org.jspecify;
+    requires spring.boot.amqp;
+    requires tools.jackson.databind;
 
 
     // Exports - public API packages

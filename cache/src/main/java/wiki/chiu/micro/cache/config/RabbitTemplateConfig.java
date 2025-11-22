@@ -5,13 +5,15 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
+import org.springframework.boot.amqp.autoconfigure.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
 
 /**
  * @author mingchiuli
@@ -37,7 +39,9 @@ public class RabbitTemplateConfig {
         //只要消息没有投递给指定的队列，就触发这个失败回调
         rabbitTemplate.setReturnsCallback(returned -> log.info("message not come to queue {}", returned));
 
-        rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
+        rabbitTemplate.setMessageConverter(new JacksonJsonMessageConverter());
+
+        rabbitTemplate.setRetryTemplate(new RetryTemplate(RetryPolicy.withDefaults()));
         return rabbitTemplate;
     }
 }

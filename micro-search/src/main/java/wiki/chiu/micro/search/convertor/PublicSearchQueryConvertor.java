@@ -1,6 +1,7 @@
 package wiki.chiu.micro.search.convertor;
 
 import co.elastic.clients.elasticsearch._types.ScriptLanguage;
+import co.elastic.clients.elasticsearch._types.ScriptSource;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.Time;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
@@ -113,7 +114,8 @@ public class PublicSearchQueryConvertor {
                                 .functions(function -> function
                                         .scriptScore(scriptScore -> scriptScore
                                                 .script(script -> script
-                                                        .source("def c = doc['readCount'].value;return Math.log(c + 3);")
+                                                        .source(ScriptSource.of(builder -> builder
+                                                                .scriptString("def c = doc['readCount'].value;return Math.log(c + 3);")))
                                                         .lang(ScriptLanguage.Painless))))
                                 .scoreMode(FunctionScoreMode.Sum)
                                 .boostMode(FunctionBoostMode.Multiply)))

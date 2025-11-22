@@ -1,14 +1,15 @@
 package wiki.chiu.micro.cache.aspect;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.jspecify.annotations.NonNull;
 import org.redisson.api.RBucket;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import org.redisson.api.RLock;
@@ -36,14 +37,14 @@ public class CacheAspect {
     private static final long LOCK_TIMEOUT = 5000;
 
     private final RedissonClient redissonClient;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
     private final CommonCacheKeyGenerator commonCacheKeyGenerator;
-    private final com.github.benmanes.caffeine.cache.Cache<String, Object> localCache;
-    private final com.github.benmanes.caffeine.cache.Cache<String, ReentrantLock> localLockMap;
+    private final com.github.benmanes.caffeine.cache.Cache<@NonNull String, Object> localCache;
+    private final com.github.benmanes.caffeine.cache.Cache<@NonNull String, ReentrantLock> localLockMap;
 
-    public CacheAspect(RedissonClient redissonClient, ObjectMapper objectMapper, CommonCacheKeyGenerator commonCacheKeyGenerator, com.github.benmanes.caffeine.cache.Cache<String, Object> localCache, com.github.benmanes.caffeine.cache.Cache<String, ReentrantLock> localLockMap) {
+    public CacheAspect(RedissonClient redissonClient, JsonMapper jsonMapper, CommonCacheKeyGenerator commonCacheKeyGenerator, com.github.benmanes.caffeine.cache.Cache<@NonNull String, Object> localCache, com.github.benmanes.caffeine.cache.Cache<@NonNull String, ReentrantLock> localLockMap) {
         this.redissonClient = redissonClient;
-        this.objectMapper = objectMapper;
+        this.jsonMapper = jsonMapper;
         this.commonCacheKeyGenerator = commonCacheKeyGenerator;
         this.localCache = localCache;
         this.localLockMap = localLockMap;
@@ -59,7 +60,7 @@ public class CacheAspect {
         Method method = signature.getMethod();
         Object[] args = pjp.getArgs();
         Type genericReturnType = method.getGenericReturnType();
-        JavaType javaType = objectMapper.getTypeFactory().constructType(genericReturnType);
+        JavaType javaType = jsonMapper.getTypeFactory().constructType(genericReturnType);
         String cacheKey = commonCacheKeyGenerator.generateKey(method, args);
 
         Object localCacheObj = getLocalCache(cacheKey);
@@ -111,7 +112,7 @@ public class CacheAspect {
     }
 
     private Object parseRemoteCache(String remoteCacheStr, JavaType javaType, String cacheKey) throws JsonProcessingException {
-        Object remoteCacheObj = objectMapper.readValue(remoteCacheStr, javaType);
+        Object remoteCacheObj = jsonMapper.readValue(remoteCacheStr, javaType);
         localCache.put(cacheKey, remoteCacheObj);
         return remoteCacheObj;
     }
@@ -125,7 +126,7 @@ public class CacheAspect {
         try {
             String remoteCacheStr = getRemoteCache(cacheKey);
             if (StringUtils.hasLength(remoteCacheStr)) {
-                return parseRemoteCache(remoteCacheStr, objectMapper.getTypeFactory().constructType(method.getGenericReturnType()), cacheKey);
+                return parseRemoteCache(remoteCacheStr, jsonMapper.getTypeFactory().constructType(method.getGenericReturnType()), cacheKey);
             }
 
             Object proceed = pjp.proceed();
@@ -138,12 +139,8 @@ public class CacheAspect {
     }
 
     private void cacheResult(String cacheKey, Object result, int expireMinutes) {
-        try {
-            String resultStr = objectMapper.writeValueAsString(result);
-            redissonClient.getBucket(cacheKey).set(resultStr, Duration.ofMinutes(expireMinutes));
-            localCache.put(cacheKey, result);
-        } catch (JsonProcessingException e) {
-            log.error("Error caching result", e);
-        }
+        String resultStr = jsonMapper.writeValueAsString(result);
+        redissonClient.getBucket(cacheKey).set(resultStr, Duration.ofMinutes(expireMinutes));
+        localCache.put(cacheKey, result);
     }
 }

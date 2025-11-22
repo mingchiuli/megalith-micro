@@ -1,18 +1,17 @@
 package wiki.chiu.micro.auth.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.redisson.api.RScript;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.ResourceUtils;
+import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.service.CodeService;
 import wiki.chiu.micro.common.utils.CodeUtils;
 import wiki.chiu.micro.common.exception.CodeException;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.rpc.SmsHttpService;
-import wiki.chiu.micro.common.utils.JsonUtils;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -46,7 +45,7 @@ public class CodeServiceImpl implements CodeService {
 
     private final ResourceLoader resourceLoader;
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     @Value("${spring.mail.properties.from}")
     private String from;
@@ -59,13 +58,13 @@ public class CodeServiceImpl implements CodeService {
 
     private String script;
 
-    public CodeServiceImpl(JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, ResourceLoader resourceLoader, ObjectMapper objectMapper) {
+    public CodeServiceImpl(JavaMailSender javaMailSender, RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, SmsHttpService smsHttpService, ResourceLoader resourceLoader, JsonMapper jsonMapper) {
         this.javaMailSender = javaMailSender;
         this.redissonClient = redissonClient;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.smsHttpService = smsHttpService;
         this.resourceLoader = resourceLoader;
-        this.objectMapper = objectMapper;
+        this.jsonMapper = jsonMapper;
     }
 
     @PostConstruct
@@ -122,7 +121,7 @@ public class CodeServiceImpl implements CodeService {
 
     private void sendSms(String phone, Object code) {
         Map<String, Object> codeMap = Collections.singletonMap("code", code);
-        String signature = SmsUtils.getSignature(phone, JsonUtils.writeValueAsString(objectMapper, codeMap), accessKeyId, accessKeySecret);
+        String signature = SmsUtils.getSignature(phone, jsonMapper.writeValueAsString(codeMap), accessKeyId, accessKeySecret);
         smsHttpService.sendSms("?Signature=" + signature);
     }
 

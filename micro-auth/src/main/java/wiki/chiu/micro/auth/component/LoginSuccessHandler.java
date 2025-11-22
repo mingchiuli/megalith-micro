@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.token.Claims;
 import wiki.chiu.micro.auth.token.TokenUtils;
@@ -51,11 +52,21 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+    public void onAuthenticationSuccess(@NonNull HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         ServletOutputStream outputStream = response.getOutputStream();
         String username = authentication.getName();
         LoginUser user = (LoginUser) authentication.getPrincipal();
+        if (user == null) {
+            outputStream.write(
+                    objectMapper.writeValueAsString(
+                            Result.fail("用户不存在")
+                    ).getBytes(StandardCharsets.UTF_8)
+            );
+            outputStream.flush();
+            outputStream.close();
+            return;
+        }
         Long userId = user.getUserId();
 
         List<String> keys = List.of(PASSWORD_KEY + username, BLOCK_USER + userId);

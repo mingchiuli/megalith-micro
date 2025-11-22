@@ -1,5 +1,6 @@
 package wiki.chiu.micro.user.service.impl;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
@@ -73,7 +74,7 @@ public class RoleServiceImpl implements RoleService {
         var pageRequest = PageRequest.of(currentPage - 1,
                 size,
                 Sort.by("created").ascending());
-        Page<RoleEntity> page = roleRepository.findAll(pageRequest);
+        Page<@NonNull RoleEntity> page = roleRepository.findAll(pageRequest);
 
         List<Long> ids = page.get().map(RoleEntity::getId).toList();
 

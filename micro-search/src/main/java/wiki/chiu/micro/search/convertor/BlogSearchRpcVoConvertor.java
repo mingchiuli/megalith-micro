@@ -1,5 +1,6 @@
 package wiki.chiu.micro.search.convertor;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
@@ -8,7 +9,7 @@ import wiki.chiu.micro.search.document.BlogDocument;
 import java.util.List;
 
 public class BlogSearchRpcVoConvertor {
-    public static BlogSearchRpcVo convert(SearchHits<BlogDocument> searchResp, Integer currentPage, Integer size) {
+    public static BlogSearchRpcVo convert(SearchHits<@NonNull BlogDocument> searchResp, Integer currentPage, Integer size) {
         List<Long> ids = searchResp.getSearchHits().stream()
                 .map(SearchHit::getContent)
                 .map(BlogDocument::getId)
