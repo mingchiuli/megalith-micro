@@ -1,6 +1,5 @@
 package wiki.chiu.micro.cache.aspect;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -111,7 +110,7 @@ public class CacheAspect {
         }
     }
 
-    private Object parseRemoteCache(String remoteCacheStr, JavaType javaType, String cacheKey) throws JsonProcessingException {
+    private Object parseRemoteCache(String remoteCacheStr, JavaType javaType, String cacheKey) {
         Object remoteCacheObj = jsonMapper.readValue(remoteCacheStr, javaType);
         localCache.put(cacheKey, remoteCacheObj);
         return remoteCacheObj;
