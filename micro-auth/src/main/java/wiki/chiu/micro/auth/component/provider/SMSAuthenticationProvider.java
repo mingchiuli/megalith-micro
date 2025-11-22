@@ -1,5 +1,6 @@
 package wiki.chiu.micro.auth.component.provider;
 
+import org.jspecify.annotations.NonNull;
 import wiki.chiu.micro.auth.component.token.SMSAuthenticationToken;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.common.lang.Const;
@@ -59,7 +60,7 @@ public final class SMSAuthenticationProvider extends ProviderBase {
     }
 
     @Override
-    public boolean supports(Class<?> authentication) {
+    public boolean supports(@NonNull Class<?> authentication) {
         return SMSAuthenticationToken.class.equals(authentication);
     }
 
@@ -68,7 +69,7 @@ public final class SMSAuthenticationProvider extends ProviderBase {
         String prefix = Const.PHONE_KEY + user.getUsername();
         Map<String, String> entries = redissonClient.<String, String>getMap(prefix).readAllMap();
 
-        if (!entries.isEmpty()) {
+        if (!entries.isEmpty() && authentication.getCredentials() != null) {
             validateCode(entries, authentication.getCredentials().toString(), prefix);
             redissonClient.getBucket(prefix).delete();
         } else {

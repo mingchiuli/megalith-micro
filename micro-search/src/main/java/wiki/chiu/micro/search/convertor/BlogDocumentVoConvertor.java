@@ -1,5 +1,6 @@
 package wiki.chiu.micro.search.convertor;
 
+import org.jspecify.annotations.NonNull;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.search.document.BlogDocument;
 import wiki.chiu.micro.search.vo.BlogDocumentVo;
@@ -11,7 +12,7 @@ public class BlogDocumentVoConvertor {
 
     private BlogDocumentVoConvertor() {}
 
-    public static PageAdapter<BlogDocumentVo> convert(SearchHits<BlogDocument> search, Integer blogPageSize, Integer currentPage) {
+    public static PageAdapter<BlogDocumentVo> convert(SearchHits<@NonNull BlogDocument> search, Integer blogPageSize, Integer currentPage) {
         long totalHits = search.getTotalHits();
         long totalPage = totalHits % blogPageSize == 0 ? totalHits / blogPageSize : totalHits / blogPageSize + 1;
 

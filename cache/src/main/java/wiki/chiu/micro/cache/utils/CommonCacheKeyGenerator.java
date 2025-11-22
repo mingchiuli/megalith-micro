@@ -1,8 +1,7 @@
 package wiki.chiu.micro.cache.utils;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.cache.annotation.Cache;
 
 import org.springframework.util.StringUtils;
@@ -14,17 +13,10 @@ import java.util.Objects;
  * @author mingchiuli
  * @since 2023-04-02 11:12 pm
  */
-public class CommonCacheKeyGenerator {
+public record CommonCacheKeyGenerator(JsonMapper jsonMapper) {
 
     private static final String NULL_PARAM = ":null";
     private static final String PARAM_SEPARATOR = ":";
-    private static final String EMPTY_STRING = "";
-
-    private final ObjectMapper objectMapper;
-
-    public CommonCacheKeyGenerator(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     public String generateKey(Method method, Object... args) {
         String className = method.getDeclaringClass().getSimpleName();
@@ -42,7 +34,7 @@ public class CommonCacheKeyGenerator {
         for (Object arg : args) {
             params.append(PARAM_SEPARATOR);
             if (Objects.nonNull(arg)) {
-                params.append(arg instanceof String ? arg : convertToString(arg));
+                params.append(arg instanceof String ? arg : jsonMapper.writeValueAsString(arg));
             } else {
                 params.append(NULL_PARAM);
             }
@@ -50,13 +42,6 @@ public class CommonCacheKeyGenerator {
         return params.toString();
     }
 
-    private String convertToString(Object arg) {
-        try {
-            return objectMapper.writeValueAsString(arg);
-        } catch (JsonProcessingException e) {
-            return EMPTY_STRING;
-        }
-    }
 
     private String getPrefix(Method method) {
         Cache annotation = method.getAnnotation(Cache.class);

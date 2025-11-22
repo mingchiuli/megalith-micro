@@ -1,5 +1,7 @@
 package wiki.chiu.micro.auth.component.manager;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import wiki.chiu.micro.auth.component.token.EmailAuthenticationToken;
 import wiki.chiu.micro.auth.component.token.SMSAuthenticationToken;
 import org.springframework.security.authentication.*;
@@ -18,7 +20,8 @@ public class CustomProviderManager extends ProviderManager {
     }
 
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    @NullUnmarked
+    public Authentication authenticate(@NonNull Authentication authentication) throws AuthenticationException {
 
         Authentication token = getAuthGrantTypeToken(authentication);
 

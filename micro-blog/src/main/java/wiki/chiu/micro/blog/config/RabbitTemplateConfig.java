@@ -4,11 +4,10 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.retry.policy.CircuitBreakerRetryPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
 
 /**
  * @author mingchiuli
@@ -20,9 +19,9 @@ public class RabbitTemplateConfig {
     private static final Logger log = LoggerFactory.getLogger(RabbitTemplateConfig.class);
     private final RabbitTemplate rabbitTemplate;
 
-    private final Jackson2JsonMessageConverter jsonMessageConverter;
+    private final JacksonJsonMessageConverter jsonMessageConverter;
 
-    public RabbitTemplateConfig(RabbitTemplate rabbitTemplate, Jackson2JsonMessageConverter jsonMessageConverter) {
+    public RabbitTemplateConfig(RabbitTemplate rabbitTemplate, JacksonJsonMessageConverter jsonMessageConverter) {
         this.rabbitTemplate = rabbitTemplate;
         this.jsonMessageConverter = jsonMessageConverter;
     }
@@ -40,16 +39,6 @@ public class RabbitTemplateConfig {
 
         rabbitTemplate.setMessageConverter(jsonMessageConverter);
 
-        var retryPolicy = new CircuitBreakerRetryPolicy(
-                new SimpleRetryPolicy(10)
-        );
-        retryPolicy.setOpenTimeout(5000L);
-        retryPolicy.setResetTimeout(10000L);
-        RetryTemplate retryTemplate = RetryTemplate
-                .builder()
-                .customPolicy(retryPolicy)
-                .build();
-
-        rabbitTemplate.setRetryTemplate(retryTemplate);
+        rabbitTemplate.setRetryTemplate(new RetryTemplate(RetryPolicy.withDefaults()));
     }
 }

@@ -1,5 +1,6 @@
 package wiki.chiu.micro.blog.repository;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import wiki.chiu.micro.blog.entity.BlogEntity;
@@ -15,7 +16,7 @@ import java.util.List;
  * @author mingchiuli
  * @create 2022-11-27 1:30 am
  */
-public interface BlogRepository extends JpaRepository<BlogEntity, Long> {
+public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonNull Long> {
 
     Long countByCreatedGreaterThanEqual(LocalDateTime created);
 
@@ -30,5 +31,5 @@ public interface BlogRepository extends JpaRepository<BlogEntity, Long> {
     @Query(value = "SELECT blog.userId from BlogEntity blog where blog.id = ?1")
     Long findUserIdById(Long id);
 
-    Page<BlogEntity> findByStatusIn(PageRequest pageRequest, List<Integer> status);
+    Page<@NonNull BlogEntity> findByStatusIn(PageRequest pageRequest, List<Integer> status);
 }

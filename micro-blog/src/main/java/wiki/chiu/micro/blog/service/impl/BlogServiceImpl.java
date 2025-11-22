@@ -1,12 +1,13 @@
 package wiki.chiu.micro.blog.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.blog.convertor.*;
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
@@ -36,7 +37,6 @@ import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.rpc.OssHttpService;
-import wiki.chiu.micro.common.utils.JsonUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
@@ -91,7 +91,7 @@ public class BlogServiceImpl implements BlogService {
 
     private final ExecutorService taskExecutor;
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     @Value("${megalith.blog.highest-role}")
     private String highestRole;
@@ -119,7 +119,7 @@ public class BlogServiceImpl implements BlogService {
 
     private String blogDeleteScript;
 
-    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogWrapper blogWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor, ObjectMapper objectMapper) {
+    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogWrapper blogWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor, JsonMapper jsonMapper) {
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.ossHttpService = ossHttpService;
         this.applicationContext = applicationContext;
@@ -130,7 +130,7 @@ public class BlogServiceImpl implements BlogService {
         this.blogSensitiveContentRepository = blogSensitiveContentRepository;
         this.searchHttpServiceWrapper = searchHttpServiceWrapper;
         this.taskExecutor = taskExecutor;
-        this.objectMapper = objectMapper;
+        this.jsonMapper = jsonMapper;
     }
 
     @PostConstruct
@@ -375,7 +375,7 @@ public class BlogServiceImpl implements BlogService {
 
         List<String> res = redisTemplate.execute(RedisScript.of(hotBlogsScript, List.class),
                 Collections.singletonList(HOT_READ),
-                JsonUtils.writeValueAsString(objectMapper, ids.stream()
+                jsonMapper.writeValueAsString(ids.stream()
                         .map(String::valueOf)
                         .toList()));
 
@@ -395,7 +395,7 @@ public class BlogServiceImpl implements BlogService {
         List<BlogEntity> deletedBlogs = Optional.ofNullable(deletedBlogsStr)
                 .orElseGet(Collections::emptyList)
                 .stream()
-                .map(blogStr -> JsonUtils.readValue(objectMapper, blogStr, BlogEntity.class))
+                .map(blogStr -> jsonMapper.readValue(blogStr, BlogEntity.class))
                 .toList();
 
         if (deletedBlogs.isEmpty()) {
@@ -416,7 +416,7 @@ public class BlogServiceImpl implements BlogService {
         Long total = Long.valueOf(resp.getLast());
 
         List<BlogEntity> blogEntities = respList.stream()
-                .map(str -> JsonUtils.readValue(objectMapper, str, BlogDeleteDto.class))
+                .map(str -> jsonMapper.readValue(str, BlogDeleteDto.class))
                 .map(BlogEntityConvertor::convert)
                 .toList();
 
@@ -434,7 +434,7 @@ public class BlogServiceImpl implements BlogService {
             return;
         }
 
-        BlogDeleteDto delBlog = JsonUtils.readValue(objectMapper, str, BlogDeleteDto.class);
+        BlogDeleteDto delBlog = jsonMapper.readValue(str, BlogDeleteDto.class);
         BlogEntity tempBlog = BlogEntityConvertor.convertRecover(delBlog);
         BlogEntity blog = blogRepository.save(tempBlog);
 
@@ -461,7 +461,7 @@ public class BlogServiceImpl implements BlogService {
                 entities.forEach(entity -> {
                     redisTemplate.execute(RedisScript.of(blogDeleteScript),
                             Collections.singletonList(QUERY_DELETED + userId),
-                            JsonUtils.writeValueAsString(objectMapper, BlogDeleteDtoConvertor.convert(entity)), A_WEEK);
+                            jsonMapper.writeValueAsString(BlogDeleteDtoConvertor.convert(entity)), A_WEEK);
 
                     notifyBlogOperation(BlogOperateEnum.REMOVE, entity);
                 }));
@@ -503,7 +503,7 @@ public class BlogServiceImpl implements BlogService {
 
         List<Integer> statusList = List.of(BlogStatusEnum.NORMAL.getCode(), BlogStatusEnum.SENSITIVE_FILTER.getCode(), BlogStatusEnum.HIDE.getCode());
 
-        Page<BlogEntity> page = blogRepository.findByStatusIn(pageRequest, statusList);
+        Page<@NonNull BlogEntity> page = blogRepository.findByStatusIn(pageRequest, statusList);
         return BlogEntityRpcVoConvertor.convert(page);
     }
 

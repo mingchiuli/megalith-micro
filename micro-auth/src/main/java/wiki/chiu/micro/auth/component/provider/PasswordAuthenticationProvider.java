@@ -1,5 +1,6 @@
 package wiki.chiu.micro.auth.component.provider;
 
+import org.jspecify.annotations.NonNull;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.common.lang.Const;
 import org.redisson.api.RScript;
@@ -67,7 +68,7 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
     }
 
     @Override
-    public boolean supports(Class<?> authentication) {
+    public boolean supports(@NonNull Class<?> authentication) {
         return UsernamePasswordAuthenticationToken.class.equals(authentication);
     }
 

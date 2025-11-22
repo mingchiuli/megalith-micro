@@ -13,7 +13,7 @@ public class RoleMenuWrapper {
 
     private final RoleMenuRepository roleMenuRepository;
 
-    public RoleMenuWrapper(RoleMenuRepository roleMenuRepository, RoleRepository roleRepository, UserRoleRepository userRoleRepository) {
+    public RoleMenuWrapper(RoleMenuRepository roleMenuRepository) {
         this.roleMenuRepository = roleMenuRepository;
     }
 

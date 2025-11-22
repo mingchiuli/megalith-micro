@@ -3,7 +3,6 @@ package wiki.chiu.micro.search.service.impl;
 import co.elastic.clients.elasticsearch._types.ScriptLanguage;
 
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
@@ -74,7 +73,6 @@ public class BlogSearchServiceImpl implements BlogSearchService {
         var updateQuery = UpdateQuery.builder(id.toString())
                 .withScript("ctx._source.readCount += 1;")
                 .withLang(ScriptLanguage.Painless.jsonValue())
-                .withScriptType(ScriptType.INLINE)
                 .build();
         elasticsearchTemplate.update(updateQuery, IndexCoordinates.of(IndexConst.indexName));
     }

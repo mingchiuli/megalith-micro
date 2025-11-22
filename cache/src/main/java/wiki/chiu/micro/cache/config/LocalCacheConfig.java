@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 import com.github.benmanes.caffeine.cache.Expiry;
+import org.jspecify.annotations.NonNull;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -15,7 +16,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class LocalCacheConfig {
 
     @Bean("caffeineCache")
-    Cache<String, Object> caffeineCache() {
+    Cache<@NonNull String, Object> caffeineCache() {
         return Caffeine.newBuilder()
                 .initialCapacity(512)// 初始大小
                 .maximumSize(12400)// 最大数量
@@ -24,7 +25,7 @@ public class LocalCacheConfig {
     }
 
     @Bean("localLockMap")
-    Cache<String, ReentrantLock> localLockMap() {
+    Cache<@NonNull String, ReentrantLock> localLockMap() {
         return Caffeine.newBuilder()
                 .initialCapacity(512)// 初始大小
                 .maximumSize(12400)// 最大数量

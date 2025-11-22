@@ -1,5 +1,7 @@
 package wiki.chiu.micro.auth.user;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 
 import wiki.chiu.micro.common.vo.UserEntityRpcVo;
@@ -23,7 +25,8 @@ public final class UserDetailsServiceImpl implements UserDetailsService {
 	}
 
 	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    @NullUnmarked
+	public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
 
 		UserEntityRpcVo user = userHttpServiceWrapper.findByUsernameOrEmailOrPhone(username);
 

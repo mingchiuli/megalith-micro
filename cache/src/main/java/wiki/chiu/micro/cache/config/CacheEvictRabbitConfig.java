@@ -1,10 +1,11 @@
 package wiki.chiu.micro.cache.config;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import org.jspecify.annotations.NonNull;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
@@ -14,13 +15,13 @@ import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.boot.amqp.autoconfigure.RabbitAutoConfiguration;
 
 import java.util.UUID;
 
@@ -36,13 +37,13 @@ public class CacheEvictRabbitConfig {
     @Value("${megalith.cache.fanout-exchange}")
     public String CACHE_EVICT_FANOUT_EXCHANGE;
 
-    private final Cache<String, Object> localCache;
+    private final Cache<@NonNull String, Object> localCache;
 
     private final RedissonClient redissonClient;
 
     private final RabbitTemplate rabbitTemplate;
 
-    public CacheEvictRabbitConfig(@Qualifier("caffeineCache") Cache<String, Object> localCache, @Qualifier("cacheRedissonClient") RedissonClient redissonClient, @Qualifier("cacheRabbitTemplate") RabbitTemplate rabbitTemplate) {
+    public CacheEvictRabbitConfig(@Qualifier("caffeineCache") Cache<@NonNull String, Object> localCache, @Qualifier("cacheRedissonClient") RedissonClient redissonClient, @Qualifier("cacheRabbitTemplate") RabbitTemplate rabbitTemplate) {
         this.localCache = localCache;
         this.redissonClient = redissonClient;
         this.rabbitTemplate = rabbitTemplate;
@@ -81,7 +82,7 @@ public class CacheEvictRabbitConfig {
         var container = new SimpleMessageListenerContainer();
         //框架处理了
         listenerAdapter.containerAckMode(AcknowledgeMode.MANUAL);
-        listenerAdapter.setMessageConverter(new Jackson2JsonMessageConverter());
+        listenerAdapter.setMessageConverter(new JacksonJsonMessageConverter());
         container.setConcurrency("5");
         container.setConnectionFactory(connectionFactory);
         container.setQueueNames(queue.getName());
