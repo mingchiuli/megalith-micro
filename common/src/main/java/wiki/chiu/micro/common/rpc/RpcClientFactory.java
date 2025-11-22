@@ -1,6 +1,5 @@
 package wiki.chiu.micro.common.rpc;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
@@ -11,6 +10,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Result;
 
@@ -22,7 +22,7 @@ import java.util.Map;
 
 public class RpcClientFactory {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final JsonMapper jsonMapper = JsonMapper.builder().build();
 
     public static <T> T createHttpService(Class<T> serviceClass, String url, HttpClient httpClient, DefaultUriBuilderFactory.EncodingMode encodingMode, HttpHeaders headers, Duration timeout, List<? extends ClientHttpRequestInterceptor> clientHttpRequestInterceptors) {
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
@@ -46,7 +46,7 @@ public class RpcClientFactory {
                 .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                     String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
                     // 尝试解析为 Result 对象
-                    Result<?> result = objectMapper.readValue(responseBody, Result.class);
+                    Result<?> result = jsonMapper.readValue(responseBody, Result.class);
                     // 如果解析成功，直接抛出包含原始错误消息的异常
                     throw new MissException(result.msg());
                 });
