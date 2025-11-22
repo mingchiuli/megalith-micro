@@ -24,7 +24,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import wiki.chiu.micro.user.wrapper.RoleMenuWrapper;
 import wiki.chiu.micro.user.wrapper.UserRoleMenuWrapper;
 
 import java.util.Collections;
@@ -52,7 +51,7 @@ public class RoleServiceImpl implements RoleService {
 
     private final UserRoleMenuWrapper userRoleMenuWrapper;
 
-    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, UserRoleRepository userRoleRepository, RoleMenuWrapper roleMenuWrapper, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor, UserRoleMenuWrapper userRoleMenuWrapper) {
+    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, UserRoleRepository userRoleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor, UserRoleMenuWrapper userRoleMenuWrapper) {
         this.roleRepository = roleRepository;
         this.roleMenuRepository = roleMenuRepository;
         this.userRoleRepository = userRoleRepository;
