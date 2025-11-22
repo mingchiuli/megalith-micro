@@ -1,10 +1,10 @@
 package wiki.chiu.micro.auth.component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
+import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.common.lang.Result;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,10 +18,10 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class LoginFailureHandler implements AuthenticationFailureHandler {
 
-	private final ObjectMapper objectMapper;
+	private final JsonMapper jsonMapper;
 
-	public LoginFailureHandler(ObjectMapper objectMapper) {
-		this.objectMapper = objectMapper;
+	public LoginFailureHandler(JsonMapper jsonMapper) {
+		this.jsonMapper = jsonMapper;
 	}
 
 	@Override
@@ -31,7 +31,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 		ServletOutputStream outputStream = response.getOutputStream();
 		Result<Void> result = Result.fail(exception.getMessage());
 		outputStream.write(
-				objectMapper.writeValueAsString(result).getBytes(StandardCharsets.UTF_8)
+                jsonMapper.writeValueAsString(result).getBytes(StandardCharsets.UTF_8)
 		);
 
 		outputStream.flush();

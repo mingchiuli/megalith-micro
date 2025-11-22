@@ -1,10 +1,10 @@
 package wiki.chiu.micro.auth.component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
+import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.token.Claims;
 import wiki.chiu.micro.auth.token.TokenUtils;
@@ -30,7 +30,7 @@ import static wiki.chiu.micro.common.lang.Const.*;
 @Component
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     private final TokenUtils<Claims> tokenUtils;
 
@@ -44,8 +44,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     @Value("${megalith.blog.jwt.refresh-token-expire}")
     private long refreshExpire;
 
-    public LoginSuccessHandler(ObjectMapper objectMapper, TokenUtils<Claims> tokenUtils, UserHttpServiceWrapper userHttpServiceWrapper, RedissonClient redissonClient) {
-        this.objectMapper = objectMapper;
+    public LoginSuccessHandler(JsonMapper jsonMapper, TokenUtils<Claims> tokenUtils, UserHttpServiceWrapper userHttpServiceWrapper, RedissonClient redissonClient) {
+        this.jsonMapper = jsonMapper;
         this.tokenUtils = tokenUtils;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.redissonClient = redissonClient;
@@ -59,7 +59,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         LoginUser user = (LoginUser) authentication.getPrincipal();
         if (user == null) {
             outputStream.write(
-                    objectMapper.writeValueAsString(
+                    jsonMapper.writeValueAsString(
                             Result.fail("用户不存在")
                     ).getBytes(StandardCharsets.UTF_8)
             );
@@ -85,7 +85,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
                 refreshExpire);
 
         outputStream.write(
-                objectMapper.writeValueAsString(
+                jsonMapper.writeValueAsString(
                                 Result.success(
                                         LoginSuccessVo.builder()
                                                 .accessToken(TOKEN_PREFIX + accessToken)
