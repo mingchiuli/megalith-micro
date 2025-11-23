@@ -45,9 +45,6 @@ dependencies {
     compileOnly("jakarta.servlet:jakarta.servlet-api")
     compileOnly("jakarta.annotation:jakarta.annotation-api")
     compileOnly("tools.jackson.core:jackson-databind")
-    compileOnly("org.springframework:spring-context")
-    compileOnly("org.springframework:spring-core")
-    compileOnly("org.springframework:spring-web")
     compileOnly("org.springframework.boot:spring-boot-autoconfigure")
     compileOnly("org.springframework.boot:spring-boot-amqp")
 }
