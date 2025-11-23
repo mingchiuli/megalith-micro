@@ -1,5 +1,5 @@
 
-version = "3.5.9"
+version = "4.0.0"
 
 plugins { id("com.vanniktech.maven.publish") version "0.35.0" }
 
