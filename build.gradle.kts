@@ -60,6 +60,7 @@ subprojects {
                     -H:+MLCallCountProfileInference
                     -H:+TrackPrimitiveValues
                     -H:+UsePredicates
+                    -H:+SharedArenaSupport
                 """.trimIndent(),
                 "BP_HEALTH_CHECKER_ENABLED" to "true"
             )
