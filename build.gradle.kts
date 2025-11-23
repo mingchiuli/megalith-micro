@@ -1,6 +1,8 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
+import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
+
 plugins {
     // Only declare plugin versions, don't apply to root project
     id("io.spring.dependency-management") version "1.1.7" apply false
@@ -31,6 +33,27 @@ subprojects {
         tasks.withType<Test> {
             useJUnitPlatform()
         }
+
+        // Configure GraalVM Native Image compilation (仅用于本地测试)
+        configure<GraalVMExtension> {
+            binaries {
+                named("main") {
+                    // 本地测试专用的编译参数
+                    val localHeapSize = project.findProperty("localNativeHeapSize") as String? ?: "256m"
+
+                    buildArgs.addAll(
+                        "-march=compatibility",
+                        "--gc=serial",
+                        "-R:MaxHeapSize=$localHeapSize",
+                    )
+
+                    // 启用快速构建（测试环境）
+                    quickBuild.set(true)
+                    verbose.set(false)
+                }
+            }
+        }
+
 
         // Configure bootBuildImage for all microservices
         tasks.named<BootBuildImage>("bootBuildImage") {
