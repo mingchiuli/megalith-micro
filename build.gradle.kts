@@ -1,7 +1,6 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
-
 plugins {
     // Only declare plugin versions, don't apply to root project
     id("io.spring.dependency-management") version "1.1.7" apply false
@@ -27,11 +26,6 @@ subprojects {
     // Configure jar tasks based on module type
     if (name.startsWith("micro-")) {
         plugins.apply("org.graalvm.buildtools.native")
-
-        // Microservice modules: generate executable jar
-        tasks.named<Jar>("jar") {
-            enabled = false
-        }
 
         // Configure test tasks
         tasks.withType<Test> {
@@ -79,9 +73,6 @@ subprojects {
         // Library modules: generate plain jar
         tasks.named<BootJar>("bootJar") {
             enabled = false
-        }
-        tasks.named<Jar>("jar") {
-            enabled = true
         }
     }
 
