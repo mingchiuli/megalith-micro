@@ -1,7 +1,7 @@
 package wiki.chiu.micro.common.rpc.config;
 
-import brave.Tracing;
 import brave.spring.web.TracingClientHttpRequestInterceptor;
+import brave.Tracing;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

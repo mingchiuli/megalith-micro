@@ -13,7 +13,5 @@ dependencies {
     implementation("io.zipkin.brave:brave-instrumentation-spring-web")
     implementation(project(":common"))
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.amqp:spring-rabbit-test")
 }
 
