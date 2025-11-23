@@ -12,7 +12,5 @@ dependencies {
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
     implementation("org.springframework.boot:spring-boot-micrometer-tracing")
     implementation("io.zipkin.brave:brave-instrumentation-spring-web")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.amqp:spring-rabbit-test")
 }
 
