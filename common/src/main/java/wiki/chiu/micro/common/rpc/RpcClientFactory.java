@@ -55,7 +55,7 @@ public class RpcClientFactory {
             clientBuilder.requestInterceptors(interceptors -> interceptors.addAll(clientHttpRequestInterceptors));
         }
 
-        if (!headers.isEmpty()) {
+        if (headers != null && !headers.isEmpty()) {
             clientBuilder.defaultHeaders(httpHeaders -> {
                 for (Map.Entry<String, List<String>> entry : headers.headerSet()) {
                     httpHeaders.addAll(entry.getKey(), entry.getValue());

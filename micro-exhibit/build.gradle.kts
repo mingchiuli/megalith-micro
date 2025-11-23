@@ -10,7 +10,7 @@ dependencies {
     implementation("wiki.chiu.megalith:cache-spring-boot-starter")
     implementation("org.redisson:redisson")
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
-    implementation("org.springframework.boot:spring-boot-micrometer-tracing")
+    implementation("org.springframework.boot:spring-boot-micrometer-tracing-brave")
     implementation("io.zipkin.brave:brave-instrumentation-spring-web")
 }
 
