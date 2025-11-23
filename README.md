@@ -25,13 +25,13 @@ A high-performance, multi-level caching framework for Spring Boot applications t
 <dependency>
     <groupId>wiki.chiu.megalith</groupId>
     <artifactId>cache-spring-boot-starter</artifactId>
-    <version>3.5.4</version>
+    <version>${version}</version>
 </dependency>
 ```
 
 **Gradle:**
 ```kotlin
-implementation("wiki.chiu.megalith:cache-spring-boot-starter:3.5.4")
+implementation("wiki.chiu.megalith:cache-spring-boot-starter:${version}")
 ```
 
 ### Basic Usage
