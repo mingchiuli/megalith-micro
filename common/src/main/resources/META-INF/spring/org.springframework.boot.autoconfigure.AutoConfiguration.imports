@@ -1,3 +1,2 @@
 wiki.chiu.micro.common.rpc.config.AuthArgumentResolverConfig
-wiki.chiu.micro.common.rpc.config.TraceTransferConfig
-wiki.chiu.micro.common.rpc.config.TokenTransferConfig
+wiki.chiu.micro.common.rpc.config.HttpGroupConfig
