@@ -2,9 +2,10 @@ package wiki.chiu.micro.blog.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.support.ContextPropagatingTaskDecorator;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * @author mingchiuli
@@ -14,8 +15,11 @@ import java.util.concurrent.Executors;
 public class ThreadPoolConfig {
 
     @Bean("commonExecutor")
-    ExecutorService executorService() {
-        return Executors.newVirtualThreadPerTaskExecutor();
+    TaskExecutor taskExecutor(ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.setVirtualThreads(true);
+        threadPoolTaskExecutor.setTaskDecorator(contextPropagatingTaskDecorator);
+        return threadPoolTaskExecutor;
     }
 
 }

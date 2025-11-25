@@ -1,6 +1,7 @@
 package wiki.chiu.micro.user.service.impl;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.Const;
@@ -27,7 +28,6 @@ import wiki.chiu.micro.user.wrapper.RoleMenuAuthorityWrapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_NOT_EXIST;
 
@@ -49,11 +49,11 @@ public class MenuServiceImpl implements MenuService {
 
     private final RoleMenuRepository roleMenuRepository;
 
-    private final ExecutorService taskExecutor;
+    private final TaskExecutor taskExecutor;
 
     private final RoleMenuAuthorityWrapper roleMenuAuthorityWrapper;
 
-    public MenuServiceImpl(MenuRepository menuRepository, RoleRepository roleRepository, ApplicationContext applicationContext, RoleMenuRepository roleMenuRepository, @Qualifier("commonExecutor") ExecutorService taskExecutor, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper) {
+    public MenuServiceImpl(MenuRepository menuRepository, RoleRepository roleRepository, ApplicationContext applicationContext, RoleMenuRepository roleMenuRepository, @Qualifier("commonExecutor") TaskExecutor taskExecutor, RoleMenuAuthorityWrapper roleMenuAuthorityWrapper) {
         this.menuRepository = menuRepository;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;
