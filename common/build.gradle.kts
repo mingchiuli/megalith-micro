@@ -3,6 +3,7 @@ dependencies {
     implementation("io.micrometer:context-propagation")
     implementation("org.springframework.boot:spring-boot-micrometer-tracing-brave")
     implementation("io.zipkin.brave:brave-instrumentation-spring-web")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     compileOnly("org.springframework:spring-webmvc")
     compileOnly("org.springframework.boot:spring-boot-autoconfigure")
