@@ -2,6 +2,7 @@ package wiki.chiu.micro.user.service.impl;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.Const;
@@ -28,7 +29,6 @@ import wiki.chiu.micro.user.wrapper.UserRoleMenuWrapper;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.ROLE_NOT_EXIST;
 
@@ -47,11 +47,11 @@ public class RoleServiceImpl implements RoleService {
 
     private final ApplicationContext applicationContext;
 
-    private final ExecutorService taskExecutor;
+    private final TaskExecutor taskExecutor;
 
     private final UserRoleMenuWrapper userRoleMenuWrapper;
 
-    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, UserRoleRepository userRoleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor, UserRoleMenuWrapper userRoleMenuWrapper) {
+    public RoleServiceImpl(RoleRepository roleRepository, RoleMenuRepository roleMenuRepository, UserRoleRepository userRoleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") TaskExecutor taskExecutor, UserRoleMenuWrapper userRoleMenuWrapper) {
         this.roleRepository = roleRepository;
         this.roleMenuRepository = roleMenuRepository;
         this.userRoleRepository = userRoleRepository;

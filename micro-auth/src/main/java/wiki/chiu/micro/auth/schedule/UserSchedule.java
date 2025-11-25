@@ -1,5 +1,6 @@
 package wiki.chiu.micro.auth.schedule;
 
+import org.springframework.core.task.TaskExecutor;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -9,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 
 /**
@@ -23,10 +23,9 @@ public class UserSchedule {
 
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 
-    @Qualifier("commonExecutor")
-    private final ExecutorService taskExecutor;
+    private final TaskExecutor taskExecutor;
 
-    public UserSchedule(RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public UserSchedule(RedissonClient redissonClient, UserHttpServiceWrapper userHttpServiceWrapper, @Qualifier("commonExecutor") TaskExecutor taskExecutor) {
         this.redissonClient = redissonClient;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.taskExecutor = taskExecutor;

@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import tools.jackson.databind.json.JsonMapper;
@@ -89,7 +90,7 @@ public class BlogServiceImpl implements BlogService {
 
     private final SearchHttpServiceWrapper searchHttpServiceWrapper;
 
-    private final ExecutorService taskExecutor;
+    private final TaskExecutor taskExecutor;
 
     private final JsonMapper jsonMapper;
 
@@ -119,7 +120,7 @@ public class BlogServiceImpl implements BlogService {
 
     private String blogDeleteScript;
 
-    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogWrapper blogWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") ExecutorService taskExecutor, JsonMapper jsonMapper) {
+    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogWrapper blogWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") TaskExecutor taskExecutor, JsonMapper jsonMapper) {
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.ossHttpService = ossHttpService;
         this.applicationContext = applicationContext;

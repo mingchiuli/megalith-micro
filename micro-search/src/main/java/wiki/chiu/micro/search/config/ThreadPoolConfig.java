@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.support.ContextPropagatingTaskDecorator;
 
 /**
  * @author mingchiuli
@@ -13,9 +14,10 @@ import org.springframework.core.task.TaskExecutor;
 public class ThreadPoolConfig {
 
     @Bean("mqExecutor")
-    TaskExecutor simpleAsyncTaskExecutor() {
+    TaskExecutor simpleAsyncTaskExecutor(ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
         SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
         executor.setVirtualThreads(true);
+        executor.setTaskDecorator(contextPropagatingTaskDecorator);
         return executor;
     }
 

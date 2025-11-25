@@ -2,6 +2,7 @@ package wiki.chiu.micro.search.service.impl;
 
 import co.elastic.clients.elasticsearch._types.ScriptLanguage;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -46,7 +47,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
     @Override
     public PageAdapter<BlogDocumentVo> selectBlogsByES(Integer currentPage, String keywords, Boolean allInfo) {
         NativeQuery matchQuery = PublicSearchQueryConvertor.searchConvert(keywords, currentPage, blogPageSize, allInfo);
-        SearchHits<BlogDocument> search = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
+        SearchHits<@NonNull BlogDocument> search = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
         return BlogDocumentVoConvertor.convert(search, blogPageSize, currentPage);
     }
 
@@ -57,7 +58,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
         Integer currentPage = req.page();
 
         NativeQuery matchQuery = PrivateSearchQueryConvertor.searchConvert(req.keywords(), req.status(), req.createStart(), req.createEnd(), req.userId(), req.roles(), highestRole, currentPage, size);
-        SearchHits<BlogDocument> searchResp = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
+        SearchHits<@NonNull BlogDocument> searchResp = elasticsearchTemplate.search(matchQuery, BlogDocument.class);
 
         return BlogSearchRpcVoConvertor.convert(searchResp, currentPage, size);
     }

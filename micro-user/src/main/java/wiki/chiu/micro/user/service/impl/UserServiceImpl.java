@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -48,7 +49,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static wiki.chiu.micro.common.lang.Const.*;
@@ -70,7 +70,7 @@ public class UserServiceImpl implements UserService {
 
     private final OssHttpService ossHttpService;
 
-    private final ExecutorService taskExecutor;
+    private final TaskExecutor taskExecutor;
 
     private final UserRoleWrapper userRoleWrapper;
 
@@ -98,7 +98,7 @@ public class UserServiceImpl implements UserService {
     @Value("${megalith.blog.aliyun.oss.bucket-name}")
     private String bucketName;
 
-    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, @Qualifier("commonExecutor") ExecutorService taskExecutor, UserRoleWrapper userRoleWrapper, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, RoleRepository roleRepository, UserRoleRepository userRoleRepository) {
+    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, @Qualifier("commonExecutor") TaskExecutor taskExecutor, UserRoleWrapper userRoleWrapper, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, RoleRepository roleRepository, UserRoleRepository userRoleRepository) {
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
         this.ossHttpService = ossHttpService;

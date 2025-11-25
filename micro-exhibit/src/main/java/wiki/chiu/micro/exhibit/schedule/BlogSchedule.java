@@ -5,12 +5,12 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.Const.*;
 
@@ -22,14 +22,14 @@ import static wiki.chiu.micro.common.lang.Const.*;
 public class BlogSchedule {
 
     @Qualifier("commonExecutor")
-    private final ExecutorService taskExecutor;
+    private final ThreadPoolTaskExecutor taskExecutor;
 
     private final RedissonClient redissonClient;
 
     @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
-    public BlogSchedule(@Qualifier("commonExecutor") ExecutorService taskExecutor, RedissonClient redissonClient) {
+    public BlogSchedule(@Qualifier("commonExecutor") ThreadPoolTaskExecutor taskExecutor, RedissonClient redissonClient) {
         this.taskExecutor = taskExecutor;
         this.redissonClient = redissonClient;
     }
@@ -43,7 +43,7 @@ public class BlogSchedule {
         try {
             boolean executed = redissonClient.getBucket(finishKey).isExists();
             if (!executed) {
-                CompletableFuture.runAsync(task, taskExecutor);
+                CompletableFuture.runAsync(task, taskExecutor.getThreadPoolExecutor());
                 redissonClient.getBucket(finishKey).set("flag", Duration.ofSeconds(10));
             }
         } finally {

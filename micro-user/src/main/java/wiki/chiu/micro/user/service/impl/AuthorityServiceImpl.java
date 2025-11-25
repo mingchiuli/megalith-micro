@@ -1,6 +1,7 @@
 package wiki.chiu.micro.user.service.impl;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.Const;
@@ -25,7 +26,6 @@ import org.springframework.stereotype.Service;
 import wiki.chiu.micro.user.wrapper.MenuAuthorityWrapper;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 
@@ -41,11 +41,11 @@ public class AuthorityServiceImpl implements AuthorityService {
 
     private final ApplicationContext applicationContext;
 
-    private final ExecutorService taskExecutor;
+    private final TaskExecutor taskExecutor;
 
     private final MenuAuthorityWrapper menuAuthorityWrapper;
 
-    public AuthorityServiceImpl(AuthorityRepository authorityRepository, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor, MenuAuthorityRepository menuAuthorityRepository, MenuAuthorityWrapper menuAuthorityWrapper) {
+    public AuthorityServiceImpl(AuthorityRepository authorityRepository, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") TaskExecutor taskExecutor, MenuAuthorityRepository menuAuthorityRepository, MenuAuthorityWrapper menuAuthorityWrapper) {
         this.authorityRepository = authorityRepository;
         this.roleRepository = roleRepository;
         this.applicationContext = applicationContext;

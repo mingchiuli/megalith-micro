@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
@@ -34,6 +36,7 @@ import java.util.List;
 @Validated
 public class BlogController {
 
+    private static final Logger log = LoggerFactory.getLogger(BlogController.class);
     private final BlogService blogService;
 
     public BlogController(BlogService blogService) {

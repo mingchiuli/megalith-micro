@@ -1,6 +1,8 @@
 package wiki.chiu.micro.user.service.impl;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.AuthTypeEnum;
@@ -17,7 +19,6 @@ import wiki.chiu.micro.user.vo.MenuAuthorityVo;
 import wiki.chiu.micro.user.wrapper.MenuAuthorityWrapper;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
 
@@ -28,7 +29,7 @@ public class MenuAuthorityServiceImpl implements MenuAuthorityService {
 
     private final RoleRepository roleRepository;
 
-    private final ExecutorService taskExecutor;
+    private final TaskExecutor taskExecutor;
 
     private final ApplicationContext applicationContext;
 
@@ -36,7 +37,7 @@ public class MenuAuthorityServiceImpl implements MenuAuthorityService {
 
     private final AuthorityRepository authorityRepository;
 
-    public MenuAuthorityServiceImpl(MenuAuthorityWrapper menuAuthorityWrapper, RoleRepository roleRepository, ExecutorService taskExecutor, ApplicationContext applicationContext, MenuAuthorityRepository menuAuthorityRepository, AuthorityRepository authorityRepository) {
+    public MenuAuthorityServiceImpl(MenuAuthorityWrapper menuAuthorityWrapper, RoleRepository roleRepository, @Qualifier("commonExecutor") TaskExecutor taskExecutor, ApplicationContext applicationContext, MenuAuthorityRepository menuAuthorityRepository, AuthorityRepository authorityRepository) {
         this.menuAuthorityWrapper = menuAuthorityWrapper;
         this.roleRepository = roleRepository;
         this.taskExecutor = taskExecutor;

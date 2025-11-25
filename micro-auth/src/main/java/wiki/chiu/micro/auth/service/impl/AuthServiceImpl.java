@@ -4,6 +4,8 @@ package wiki.chiu.micro.auth.service.impl;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import wiki.chiu.micro.auth.convertor.ButtonVoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuDisplayDtoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuWithChildDtoConvertor;
@@ -35,7 +37,6 @@ import wiki.chiu.micro.common.req.AuthorityRouteReq;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static wiki.chiu.micro.common.lang.Const.*;
@@ -48,7 +49,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final RedissonClient redissonClient;
 
-    private final ExecutorService taskExecutor;
+    private final TaskExecutor taskExecutor;
 
     private final ResourceLoader resourceLoader;
 
@@ -56,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
 
     private String script;
 
-    public AuthServiceImpl(AuthWrapper authWrapper, RedissonClient redissonClient, ExecutorService taskExecutor, ResourceLoader resourceLoader, TokenUtils<Claims> tokenUtils) {
+    public AuthServiceImpl(AuthWrapper authWrapper, RedissonClient redissonClient, @Qualifier("commonExecutor") TaskExecutor taskExecutor, ResourceLoader resourceLoader, TokenUtils<Claims> tokenUtils) {
         this.authWrapper = authWrapper;
         this.redissonClient = redissonClient;
         this.taskExecutor = taskExecutor;

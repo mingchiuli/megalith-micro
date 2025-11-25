@@ -2,6 +2,7 @@ package wiki.chiu.micro.user.service.impl;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import org.springframework.core.task.TaskExecutor;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.lang.TypeEnum;
@@ -28,7 +29,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 
 import static wiki.chiu.micro.common.lang.TypeEnum.*;
 
@@ -49,9 +49,9 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
     private final ApplicationContext applicationContext;
 
-    private final ExecutorService taskExecutor;
+    private final TaskExecutor taskExecutor;
 
-    public RoleMenuServiceImpl(MenuRepository menuRepository, RoleMenuRepository roleMenuRepository, RoleMenuWrapper roleMenuWrapper, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") ExecutorService taskExecutor) {
+    public RoleMenuServiceImpl(MenuRepository menuRepository, RoleMenuRepository roleMenuRepository, RoleMenuWrapper roleMenuWrapper, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") TaskExecutor taskExecutor) {
         this.menuRepository = menuRepository;
         this.roleMenuRepository = roleMenuRepository;
         this.roleMenuWrapper = roleMenuWrapper;

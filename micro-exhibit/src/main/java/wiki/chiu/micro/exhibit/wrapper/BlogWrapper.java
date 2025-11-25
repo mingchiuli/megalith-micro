@@ -1,5 +1,7 @@
 package wiki.chiu.micro.exhibit.wrapper;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.vo.UserEntityRpcVo;
@@ -16,7 +18,6 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ExecutorService;
 
 
 @Component
@@ -28,18 +29,18 @@ public class BlogWrapper {
 
     private final SearchHttpServiceWrapper searchHttpServiceWrapper;
 
-    private final ExecutorService executorService;
+    private final TaskExecutor taskExecutor;
 
     private final RedissonClient redissonClient;
 
     @Value("${megalith.blog.blog-page-size}")
     private int blogPageSize;
 
-    public BlogWrapper(BlogHttpServiceWrapper blogHttpServiceWrapper, UserHttpServiceWrapper userHttpServiceWrapper, SearchHttpServiceWrapper searchHttpServiceWrapper, ExecutorService executorService, RedissonClient redissonClient) {
+    public BlogWrapper(BlogHttpServiceWrapper blogHttpServiceWrapper, UserHttpServiceWrapper userHttpServiceWrapper, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") TaskExecutor taskExecutor, RedissonClient redissonClient) {
         this.blogHttpServiceWrapper = blogHttpServiceWrapper;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.searchHttpServiceWrapper = searchHttpServiceWrapper;
-        this.executorService = executorService;
+        this.taskExecutor = taskExecutor;
         this.redissonClient = redissonClient;
     }
 
@@ -52,7 +53,7 @@ public class BlogWrapper {
     }
 
     public void setReadCount(Long id) {
-        executorService.execute(() -> {
+        taskExecutor.execute(() -> {
             blogHttpServiceWrapper.setReadCount(id);
             redissonClient.<String>getScoredSortedSet(Const.HOT_READ).addScore(id.toString(), 1);
             searchHttpServiceWrapper.addReadCount(id);
