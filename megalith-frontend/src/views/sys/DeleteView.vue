@@ -67,7 +67,7 @@ const handleResume = async (row: BlogDelSys) => {
 <template>
   <el-table
     :data="content"
-    style="width: 100%"
+    :style="{ width: '100%' }"
     border
     stripe
     @selection-change="handleSelectionChange"

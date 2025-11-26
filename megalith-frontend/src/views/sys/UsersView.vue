@@ -226,7 +226,7 @@ const getRegisterLink = async (username: string) => {
 
   <el-table
     :data="content"
-    style="width: 100%"
+    :style="{ width: '100%' }"
     border
     stripe
     @selection-change="handleSelectionChange"
