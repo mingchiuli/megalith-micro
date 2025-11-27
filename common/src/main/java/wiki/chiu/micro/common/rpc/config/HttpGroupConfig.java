@@ -4,6 +4,7 @@ import brave.Tracing;
 import brave.spring.web.TracingClientHttpRequestInterceptor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -87,7 +88,7 @@ public class HttpGroupConfig {
 
     // 复用原有 HttpClient（虚拟线程）
     @Bean
-    HttpClient httpClient() {
+    HttpClient baseHttpClient() {
         return HttpClient.newBuilder()
                 .executor(Executors.newVirtualThreadPerTaskExecutor())
                 .build();
@@ -101,7 +102,7 @@ public class HttpGroupConfig {
     }
 
     @Bean
-    RestClientHttpServiceGroupConfigurer groupConfigurer(AuthHttpInterceptor authHttpInterceptor, TracingClientHttpRequestInterceptor tracingInterceptor, JsonMapper jsonMapper) {
+    RestClientHttpServiceGroupConfigurer groupConfigurer(AuthHttpInterceptor authHttpInterceptor, TracingClientHttpRequestInterceptor tracingInterceptor, JsonMapper jsonMapper, @Qualifier("baseHttpClient") HttpClient httpClient) {
 
         DefaultUriBuilderFactory userUriBuilderFactory = new DefaultUriBuilderFactory(userUrl);
         userUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES);
@@ -131,7 +132,7 @@ public class HttpGroupConfig {
                             .requestInterceptors(interceptors ->
                                     interceptors.addAll(List.of(tracingInterceptor, authHttpInterceptor))
                             )
-                            .requestFactory(createRequestFactory(httpClient(), userTimeout)) // 配置超时
+                            .requestFactory(createRequestFactory(httpClient, userTimeout)) // 配置超时
                             .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                                 String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
                                 Result<?> result = jsonMapper.readValue(responseBody, Result.class);
@@ -148,7 +149,7 @@ public class HttpGroupConfig {
                                 .defaultHeaders(headers ->
                                         headers.add(HttpHeaders.HOST, bucketName + "." + ep)
                                 )
-                                .requestFactory(createRequestFactory(httpClient(), ossTimeout)) // 配置超时
+                                .requestFactory(createRequestFactory(httpClient, ossTimeout)) // 配置超时
                                 .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                                     String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
 
@@ -167,7 +168,7 @@ public class HttpGroupConfig {
                             .requestInterceptors(interceptors ->
                                     interceptors.addAll(List.of(tracingInterceptor, authHttpInterceptor))
                             )
-                            .requestFactory(createRequestFactory(httpClient(), authTimeout)) // 配置超时
+                            .requestFactory(createRequestFactory(httpClient, authTimeout)) // 配置超时
                             .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                                 String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
                                 Result<?> result = jsonMapper.readValue(responseBody, Result.class);
@@ -183,7 +184,7 @@ public class HttpGroupConfig {
                             .requestInterceptors(interceptors ->
                                     interceptors.addAll(List.of(tracingInterceptor, authHttpInterceptor))
                             )
-                            .requestFactory(createRequestFactory(httpClient(), searchTimeout)) // 配置超时
+                            .requestFactory(createRequestFactory(httpClient, searchTimeout)) // 配置超时
                             .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                                 String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
                                 Result<?> result = jsonMapper.readValue(responseBody, Result.class);
@@ -199,7 +200,7 @@ public class HttpGroupConfig {
                             .requestInterceptors(interceptors ->
                                     interceptors.addAll(List.of(tracingInterceptor, authHttpInterceptor))
                             )
-                            .requestFactory(createRequestFactory(httpClient(), blogTimeout)) // 配置超时
+                            .requestFactory(createRequestFactory(httpClient, blogTimeout)) // 配置超时
                             .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                                 String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
                                 Result<?> result = jsonMapper.readValue(responseBody, Result.class);
@@ -213,7 +214,7 @@ public class HttpGroupConfig {
                         builder
                                 .baseUrl(smsUrl)
                                 .uriBuilderFactory(smsUriBuilderFactory)
-                                .requestFactory(createRequestFactory(httpClient(), smsTimeout)) // 配置超时
+                                .requestFactory(createRequestFactory(httpClient, smsTimeout)) // 配置超时
                                 .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                                     String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
                                     Result<?> result = jsonMapper.readValue(responseBody, Result.class);
