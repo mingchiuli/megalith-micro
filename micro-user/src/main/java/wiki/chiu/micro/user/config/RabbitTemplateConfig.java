@@ -13,7 +13,7 @@ import org.springframework.core.retry.RetryTemplate;
  * @author mingchiuli
  * @create 2022-12-23 12:32 pm
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class RabbitTemplateConfig {
 
     private static final Logger log = LoggerFactory.getLogger(RabbitTemplateConfig.class);

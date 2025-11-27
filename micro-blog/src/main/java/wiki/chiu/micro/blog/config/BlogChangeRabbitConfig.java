@@ -13,7 +13,7 @@ import wiki.chiu.micro.common.lang.Const;
  * @author mingchiuli
  * @create 2022-12-25 4:13 pm
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class BlogChangeRabbitConfig {
 
 

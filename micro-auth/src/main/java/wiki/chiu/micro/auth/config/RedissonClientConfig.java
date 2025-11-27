@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Primary;
 /**
  * RedissonClientConfig
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class RedissonClientConfig {
 
     @Value("${spring.data.redis.host}")
