@@ -10,7 +10,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author mingchiuli
  * @create 2022-04-26 10:06 PM
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class ThreadPoolConfig {
 
     @Bean("commonExecutor")
