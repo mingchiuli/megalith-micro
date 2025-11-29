@@ -16,5 +16,8 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 .registerType(BlogExhibitDto.class)
                 .registerType(BlogDescriptionDto.class)
                 .registerType(BlogSensitiveContentRpcVo.class);
+
+        hints.resources()
+                .registerPattern("logback-spring.xml");
     }
 }

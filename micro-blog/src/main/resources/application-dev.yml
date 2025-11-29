@@ -33,3 +33,25 @@ megalith:
         bucket-name: blog
       access-key-id: accessKeyId
       access-key-secret: accessKeySecret
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    metrics:
+      export:
+        url: http://localhost:8200/v1/metrics
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: http://localhost:8200/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: http://localhost:8200/v1/logs

@@ -16,3 +16,25 @@ megalith:
     blog-url: http://127.0.0.1:8082/inner
     search-url: http://127.0.0.1:8085/inner
     user-url: http://127.0.0.1:8086/inner
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    metrics:
+      export:
+        url: http://localhost:8200/v1/metrics
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: http://localhost:8200/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: http://localhost:8200/v1/logs

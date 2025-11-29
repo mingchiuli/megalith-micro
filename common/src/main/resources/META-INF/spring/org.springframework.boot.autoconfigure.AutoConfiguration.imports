@@ -1,3 +1,4 @@
 wiki.chiu.micro.common.rpc.config.AuthArgumentResolverConfig
 wiki.chiu.micro.common.rpc.config.HttpGroupConfig
 wiki.chiu.micro.common.rpc.config.TracePropagateConfig
+wiki.chiu.micro.common.rpc.config.InstallOpenTelemetryAppender

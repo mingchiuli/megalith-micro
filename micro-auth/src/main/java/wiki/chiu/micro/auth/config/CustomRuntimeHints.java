@@ -24,5 +24,8 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 .registerType(AuthorityRpcVo.class)
                 .registerType(MenuDto.class)
                 .registerType(ButtonDto.class);
+
+        hints.resources()
+                .registerPattern("logback-spring.xml");
     }
 }
