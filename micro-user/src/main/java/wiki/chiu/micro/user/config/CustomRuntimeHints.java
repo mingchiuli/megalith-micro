@@ -10,7 +10,9 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
         // Register method for reflection
 
-        hints.resources().registerPattern("ValidationMessages.properties");
+        hints.resources()
+                .registerPattern("ValidationMessages.properties")
+                .registerPattern("logback-spring.xml");
 
     }
 }

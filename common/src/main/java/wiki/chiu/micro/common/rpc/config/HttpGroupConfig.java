@@ -1,9 +1,5 @@
 package wiki.chiu.micro.common.rpc.config;
 
-import brave.Tracing;
-import brave.spring.web.TracingClientHttpRequestInterceptor;
-import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -18,12 +14,10 @@ import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.rpc.config.interceptor.AuthHttpInterceptor;
-import wiki.chiu.micro.common.rpc.config.interceptor.TraceHttpInterceptor;
 
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.Executors;
 
 @AutoConfiguration
@@ -76,16 +70,6 @@ public class HttpGroupConfig {
         return new AuthHttpInterceptor();
     }
 
-    @Bean
-    public TracingClientHttpRequestInterceptor tracingInterceptor(ObjectProvider<@NonNull Tracing> tracingProvider) {
-        Tracing tracing = tracingProvider.getIfAvailable();
-        if (tracing != null) {
-            return (TracingClientHttpRequestInterceptor) TraceHttpInterceptor.tracingInterceptor(tracing);
-        }
-        // 没有 tracing 时不注册拦截器
-        throw new IllegalStateException("tracing not available");
-    }
-
     // 复用原有 HttpClient（虚拟线程）
     @Bean
     HttpClient baseHttpClient() {
@@ -102,7 +86,7 @@ public class HttpGroupConfig {
     }
 
     @Bean
-    RestClientHttpServiceGroupConfigurer groupConfigurer(AuthHttpInterceptor authHttpInterceptor, TracingClientHttpRequestInterceptor tracingInterceptor, JsonMapper jsonMapper, @Qualifier("baseHttpClient") HttpClient httpClient) {
+    RestClientHttpServiceGroupConfigurer groupConfigurer(AuthHttpInterceptor authHttpInterceptor, JsonMapper jsonMapper, @Qualifier("baseHttpClient") HttpClient httpClient) {
 
         DefaultUriBuilderFactory userUriBuilderFactory = new DefaultUriBuilderFactory(userUrl);
         userUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES);
@@ -130,7 +114,7 @@ public class HttpGroupConfig {
                             .baseUrl(userUrl)
                             .uriBuilderFactory(userUriBuilderFactory)
                             .requestInterceptors(interceptors ->
-                                    interceptors.addAll(List.of(tracingInterceptor, authHttpInterceptor))
+                                    interceptors.add(authHttpInterceptor)
                             )
                             .requestFactory(createRequestFactory(httpClient, userTimeout)) // 配置超时
                             .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
@@ -166,7 +150,7 @@ public class HttpGroupConfig {
                             .baseUrl(authUrl)
                             .uriBuilderFactory(authUriBuilderFactory)
                             .requestInterceptors(interceptors ->
-                                    interceptors.addAll(List.of(tracingInterceptor, authHttpInterceptor))
+                                    interceptors.add(authHttpInterceptor)
                             )
                             .requestFactory(createRequestFactory(httpClient, authTimeout)) // 配置超时
                             .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
@@ -182,7 +166,7 @@ public class HttpGroupConfig {
                             .baseUrl(searchUrl)
                             .uriBuilderFactory(searchUriBuilderFactory)
                             .requestInterceptors(interceptors ->
-                                    interceptors.addAll(List.of(tracingInterceptor, authHttpInterceptor))
+                                    interceptors.add(authHttpInterceptor)
                             )
                             .requestFactory(createRequestFactory(httpClient, searchTimeout)) // 配置超时
                             .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
@@ -198,7 +182,7 @@ public class HttpGroupConfig {
                             .baseUrl(blogUrl)
                             .uriBuilderFactory(blogUriBuilderFactory)
                             .requestInterceptors(interceptors ->
-                                    interceptors.addAll(List.of(tracingInterceptor, authHttpInterceptor))
+                                    interceptors.add(authHttpInterceptor)
                             )
                             .requestFactory(createRequestFactory(httpClient, blogTimeout)) // 配置超时
                             .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {

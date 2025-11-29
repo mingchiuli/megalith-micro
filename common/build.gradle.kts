@@ -1,7 +1,6 @@
 dependencies {
-    implementation("io.micrometer:micrometer-tracing-bridge-brave")
-    implementation("org.springframework.boot:spring-boot-micrometer-tracing-brave")
-    implementation("io.zipkin.brave:brave-instrumentation-spring-web")
+    implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.21.0-alpha")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     compileOnly("org.springframework:spring-webmvc")
