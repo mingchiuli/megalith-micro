@@ -37,10 +37,6 @@ server:
   port: 8086
   max-http-request-header-size: 10MB
 
-logging:
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [${spring.application.name},%X{traceId},%X{spanId}] [%t] --- %logger{36}: %m%n"
-
 megalith:
   blog:
     jwt:

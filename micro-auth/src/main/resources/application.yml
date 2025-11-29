@@ -28,10 +28,6 @@ server:
   port: 8081
   max-http-request-header-size: 10MB
 
-logging:
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [${spring.application.name},%X{traceId},%X{spanId}] [%t] --- %logger{36}: %m%n"
-
 megalith:
   cache:
     queue-prefix: cache.user.evict.queue.

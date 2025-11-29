@@ -1,12 +1,12 @@
 package wiki.chiu.micro.common.rpc.config;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
+import org.springframework.boot.http.client.HttpClientSettings;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.support.RestClientHttpServiceGroupConfigurer;
 import org.springframework.web.util.DefaultUriBuilderFactory;
@@ -15,10 +15,8 @@ import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.rpc.config.interceptor.AuthHttpInterceptor;
 
-import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.concurrent.Executors;
 
 @AutoConfiguration
 public class HttpGroupConfig {
@@ -70,24 +68,8 @@ public class HttpGroupConfig {
         return new AuthHttpInterceptor();
     }
 
-    // 复用原有 HttpClient（虚拟线程）
     @Bean
-    HttpClient baseHttpClient() {
-        return HttpClient.newBuilder()
-                .executor(Executors.newVirtualThreadPerTaskExecutor())
-                .build();
-    }
-
-    // 为不同分组创建带超时的请求工厂
-    private JdkClientHttpRequestFactory createRequestFactory(HttpClient httpClient, int timeoutMs) {
-        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
-        factory.setReadTimeout(Duration.ofMillis(timeoutMs)); // 配置读取超时
-        return factory;
-    }
-
-    @Bean
-    RestClientHttpServiceGroupConfigurer groupConfigurer(AuthHttpInterceptor authHttpInterceptor, JsonMapper jsonMapper, @Qualifier("baseHttpClient") HttpClient httpClient) {
-
+    RestClientHttpServiceGroupConfigurer groupConfigurer(AuthHttpInterceptor authHttpInterceptor, JsonMapper jsonMapper, ClientHttpRequestFactoryBuilder<?> requestFactoryBuilder) {
         DefaultUriBuilderFactory userUriBuilderFactory = new DefaultUriBuilderFactory(userUrl);
         userUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES);
 
@@ -116,7 +98,8 @@ public class HttpGroupConfig {
                             .requestInterceptors(interceptors ->
                                     interceptors.add(authHttpInterceptor)
                             )
-                            .requestFactory(createRequestFactory(httpClient, userTimeout)) // 配置超时
+                            .requestFactory(requestFactoryBuilder.build(HttpClientSettings.defaults()
+                                    .withReadTimeout(Duration.ofMillis(userTimeout))))
                             .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                                 String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
                                 Result<?> result = jsonMapper.readValue(responseBody, Result.class);
@@ -133,10 +116,10 @@ public class HttpGroupConfig {
                                 .defaultHeaders(headers ->
                                         headers.add(HttpHeaders.HOST, bucketName + "." + ep)
                                 )
-                                .requestFactory(createRequestFactory(httpClient, ossTimeout)) // 配置超时
+                                .requestFactory(requestFactoryBuilder.build(HttpClientSettings.defaults()
+                                        .withReadTimeout(Duration.ofMillis(ossTimeout))))
                                 .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                                     String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
-
                                     Result<?> result = jsonMapper.readValue(responseBody, Result.class);
                                     throw new MissException(result.msg());
                                 })
@@ -152,7 +135,8 @@ public class HttpGroupConfig {
                             .requestInterceptors(interceptors ->
                                     interceptors.add(authHttpInterceptor)
                             )
-                            .requestFactory(createRequestFactory(httpClient, authTimeout)) // 配置超时
+                            .requestFactory(requestFactoryBuilder.build(HttpClientSettings.defaults()
+                                    .withReadTimeout(Duration.ofMillis(authTimeout))))
                             .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                                 String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
                                 Result<?> result = jsonMapper.readValue(responseBody, Result.class);
@@ -168,7 +152,8 @@ public class HttpGroupConfig {
                             .requestInterceptors(interceptors ->
                                     interceptors.add(authHttpInterceptor)
                             )
-                            .requestFactory(createRequestFactory(httpClient, searchTimeout)) // 配置超时
+                            .requestFactory(requestFactoryBuilder.build(HttpClientSettings.defaults()
+                                    .withReadTimeout(Duration.ofMillis(searchTimeout))))
                             .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                                 String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
                                 Result<?> result = jsonMapper.readValue(responseBody, Result.class);
@@ -184,7 +169,8 @@ public class HttpGroupConfig {
                             .requestInterceptors(interceptors ->
                                     interceptors.add(authHttpInterceptor)
                             )
-                            .requestFactory(createRequestFactory(httpClient, blogTimeout)) // 配置超时
+                            .requestFactory(requestFactoryBuilder.build(HttpClientSettings.defaults()
+                                    .withReadTimeout(Duration.ofMillis(blogTimeout))))
                             .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                                 String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
                                 Result<?> result = jsonMapper.readValue(responseBody, Result.class);
@@ -198,7 +184,8 @@ public class HttpGroupConfig {
                         builder
                                 .baseUrl(smsUrl)
                                 .uriBuilderFactory(smsUriBuilderFactory)
-                                .requestFactory(createRequestFactory(httpClient, smsTimeout)) // 配置超时
+                                .requestFactory(requestFactoryBuilder.build(HttpClientSettings.defaults()
+                                        .withReadTimeout(Duration.ofMillis(smsTimeout))))
                                 .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
                                     String responseBody = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
                                     Result<?> result = jsonMapper.readValue(responseBody, Result.class);
