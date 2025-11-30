@@ -1,25 +1,14 @@
 package wiki.chiu.micro.blog.config;
 
-import wiki.chiu.micro.blog.dto.BlogDeleteDto;
-import wiki.chiu.micro.blog.req.BlogDownloadReq;
-import wiki.chiu.micro.blog.req.BlogQueryReq;
-
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
-    @Override// Register method for reflection
+    @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-        // Register method for reflection
-
-        hints.serialization()
-                .registerType(BlogQueryReq.class)
-                .registerType(BlogDownloadReq.class)
-                .registerType(BlogDeleteDto.class);
-
+        // ValidationMessages.properties for Bean Validation
         hints.resources()
-                .registerPattern("ValidationMessages.properties")
-                .registerPattern("logback-spring.xml");
+                .registerPattern("ValidationMessages.properties");
     }
 }

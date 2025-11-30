@@ -6,13 +6,10 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
-    @Override// Register method for reflection
+    @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-        // Register method for reflection
-
+        // ValidationMessages.properties for Bean Validation
         hints.resources()
-                .registerPattern("ValidationMessages.properties")
-                .registerPattern("logback-spring.xml");
-
+                .registerPattern("ValidationMessages.properties");
     }
 }
