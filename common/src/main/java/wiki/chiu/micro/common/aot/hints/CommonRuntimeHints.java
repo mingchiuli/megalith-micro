@@ -1,5 +1,6 @@
 package wiki.chiu.micro.common.aot.hints;
 
+import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import wiki.chiu.micro.common.lang.BlogOperateMessage;
@@ -11,8 +12,12 @@ class CommonRuntimeHints implements RuntimeHintsRegistrar {
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
 
-        hints.reflection().registerType(BlogOperateMessage.class)
-                .registerType(UserAuthMenuOperateMessage.class);
+        hints.reflection().registerType(BlogOperateMessage.class,
+                        MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                        MemberCategory.INVOKE_DECLARED_METHODS)
+                .registerType(UserAuthMenuOperateMessage.class,
+                        MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                        MemberCategory.INVOKE_DECLARED_METHODS);
 
         // Lua scripts for Redis operations
         hints.resources()
