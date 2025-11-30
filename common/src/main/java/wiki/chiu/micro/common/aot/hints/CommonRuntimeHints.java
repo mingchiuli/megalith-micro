@@ -1,21 +1,14 @@
 package wiki.chiu.micro.common.aot.hints;
 
-import org.springframework.aot.hint.*;
-import wiki.chiu.micro.common.lang.BlogOperateMessage;
-import wiki.chiu.micro.common.lang.UserAuthMenuOperateMessage;
+import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
 
 class CommonRuntimeHints implements RuntimeHintsRegistrar {
 
-    @Override// Register method for reflection
+    @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-        // Register method for reflection
-
-
-        hints.serialization()
-                .registerType(BlogOperateMessage.class)
-                .registerType(UserAuthMenuOperateMessage.class);
-
+        // Lua scripts for Redis operations
         hints.resources()
                 .registerPattern("script/rpush-expire.lua")
                 .registerPattern("script/email-phone.lua")
@@ -27,5 +20,4 @@ class CommonRuntimeHints implements RuntimeHintsRegistrar {
                 .registerPattern("script/multi-pfadd.lua")
                 .registerPattern("script/multi-pfcount.lua");
     }
-
 }
