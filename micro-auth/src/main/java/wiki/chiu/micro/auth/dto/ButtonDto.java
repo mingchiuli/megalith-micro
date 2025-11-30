@@ -1,6 +1,5 @@
 package wiki.chiu.micro.auth.dto;
 
-import java.io.Serializable;
 
 
 /**
@@ -27,7 +26,7 @@ public record ButtonDto (
 
         Integer orderNum,
 
-        Integer status) implements Serializable {
+        Integer status) {
 
     public static ButtonDtoBuilder builder() {
         return new ButtonDtoBuilder();

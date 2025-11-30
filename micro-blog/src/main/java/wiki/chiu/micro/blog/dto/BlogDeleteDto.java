@@ -1,6 +1,5 @@
 package wiki.chiu.micro.blog.dto;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 
@@ -24,7 +23,7 @@ public record BlogDeleteDto(
 
         String link,
 
-        Long readCount) implements Serializable {
+        Long readCount) {
 
     public static BlogEntityDtoBuilder builder() {
         return new BlogEntityDtoBuilder();

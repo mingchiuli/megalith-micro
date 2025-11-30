@@ -1,7 +1,6 @@
 package wiki.chiu.micro.common.lang;
 
 
-import java.io.Serializable;
 
 /**
  * @author mingchiuli
@@ -11,5 +10,5 @@ public record BlogOperateMessage(
 
         Long blogId,
 
-        Integer typeEnumCode) implements Serializable {
+        Integer typeEnumCode) {
 }

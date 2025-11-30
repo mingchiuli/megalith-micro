@@ -45,6 +45,7 @@ subprojects {
                         "-march=compatibility",
                         "--gc=serial",
                         "-R:MaxHeapSize=$localHeapSize",
+                        "-H:+SharedArenaSupport"
                     )
 
                     // 启用快速构建（测试环境）

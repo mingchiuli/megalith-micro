@@ -2,7 +2,6 @@ package wiki.chiu.micro.common.req;
 
 
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,7 +21,7 @@ public record BlogSysSearchReq(
 
         Long userId,
 
-        List<String> roles) implements Serializable {
+        List<String> roles) {
 
     public static BlogSysSearchReq.BlogSearchReqBuilder builder() {
         return new BlogSysSearchReq.BlogSearchReqBuilder();
