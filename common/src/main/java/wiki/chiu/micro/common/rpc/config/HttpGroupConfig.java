@@ -1,5 +1,6 @@
 package wiki.chiu.micro.common.rpc.config;
 
+import io.micrometer.observation.ObservationRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
@@ -69,7 +70,7 @@ public class HttpGroupConfig {
     }
 
     @Bean
-    RestClientHttpServiceGroupConfigurer groupConfigurer(AuthHttpInterceptor authHttpInterceptor, JsonMapper jsonMapper, ClientHttpRequestFactoryBuilder<?> requestFactoryBuilder) {
+    RestClientHttpServiceGroupConfigurer groupConfigurer(AuthHttpInterceptor authHttpInterceptor, JsonMapper jsonMapper, ClientHttpRequestFactoryBuilder<?> requestFactoryBuilder, ObservationRegistry observationRegistry) {
         DefaultUriBuilderFactory userUriBuilderFactory = new DefaultUriBuilderFactory(userUrl);
         userUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES);
 
@@ -95,6 +96,7 @@ public class HttpGroupConfig {
                     builder
                             .baseUrl(userUrl)
                             .uriBuilderFactory(userUriBuilderFactory)
+                            .observationRegistry(observationRegistry)
                             .requestInterceptors(interceptors ->
                                     interceptors.add(authHttpInterceptor)
                             )
@@ -113,6 +115,7 @@ public class HttpGroupConfig {
                         builder
                                 .baseUrl(ossUrl)
                                 .uriBuilderFactory(ossUriBuilderFactory)
+                                .observationRegistry(observationRegistry)
                                 .defaultHeaders(headers ->
                                         headers.add(HttpHeaders.HOST, bucketName + "." + ep)
                                 )
@@ -132,6 +135,7 @@ public class HttpGroupConfig {
                     builder
                             .baseUrl(authUrl)
                             .uriBuilderFactory(authUriBuilderFactory)
+                            .observationRegistry(observationRegistry)
                             .requestInterceptors(interceptors ->
                                     interceptors.add(authHttpInterceptor)
                             )
@@ -149,6 +153,7 @@ public class HttpGroupConfig {
                     builder
                             .baseUrl(searchUrl)
                             .uriBuilderFactory(searchUriBuilderFactory)
+                            .observationRegistry(observationRegistry)
                             .requestInterceptors(interceptors ->
                                     interceptors.add(authHttpInterceptor)
                             )
@@ -166,6 +171,7 @@ public class HttpGroupConfig {
                     builder
                             .baseUrl(blogUrl)
                             .uriBuilderFactory(blogUriBuilderFactory)
+                            .observationRegistry(observationRegistry)
                             .requestInterceptors(interceptors ->
                                     interceptors.add(authHttpInterceptor)
                             )
@@ -184,6 +190,7 @@ public class HttpGroupConfig {
                         builder
                                 .baseUrl(smsUrl)
                                 .uriBuilderFactory(smsUriBuilderFactory)
+                                .observationRegistry(observationRegistry)
                                 .requestFactory(requestFactoryBuilder.build(HttpClientSettings.defaults()
                                         .withReadTimeout(Duration.ofMillis(smsTimeout))))
                                 .defaultStatusHandler(HttpStatusCode::isError, (_, response) -> {
