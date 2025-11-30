@@ -1,7 +1,6 @@
 package wiki.chiu.micro.common.vo;
 
 
-import java.io.Serializable;
 
 public record AuthorityRpcVo(
 
@@ -23,7 +22,7 @@ public record AuthorityRpcVo(
 
         Integer type,
 
-        Integer status) implements Serializable {
+        Integer status) {
 
     public static AuthorityRpcVoBuilder builder() {
         return new AuthorityRpcVoBuilder();

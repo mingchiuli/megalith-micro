@@ -1,13 +1,12 @@
 package wiki.chiu.micro.common.vo;
 
-import java.io.Serializable;
 import java.util.List;
 
 public record BlogSensitiveContentRpcVo(
 
         Long blogId,
 
-        List<SensitiveContentRpcVo> sensitiveContent) implements Serializable {
+        List<SensitiveContentRpcVo> sensitiveContent) {
 
     public static BlogSensitiveContentDtoBuilder builder() {
         return new BlogSensitiveContentDtoBuilder();

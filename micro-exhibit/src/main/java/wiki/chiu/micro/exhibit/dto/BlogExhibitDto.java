@@ -1,6 +1,5 @@
 package wiki.chiu.micro.exhibit.dto;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public record BlogExhibitDto(
@@ -19,7 +18,7 @@ public record BlogExhibitDto(
 
         LocalDateTime created,
 
-        Long readCount) implements Serializable {
+        Long readCount) {
 
     public static BlogExhibitDtoBuilder builder() {
         return new BlogExhibitDtoBuilder();

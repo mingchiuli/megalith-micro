@@ -1,6 +1,5 @@
 package wiki.chiu.micro.auth.vo;
 
-import java.io.Serializable;
 
 /**
  * @author mingchiuli
@@ -13,7 +12,7 @@ public record UserInfoVo(
 
         String nickname,
 
-        String avatar) implements Serializable {
+        String avatar) {
 
     public static UserInfoVoBuilder builder() {
         return new UserInfoVoBuilder();

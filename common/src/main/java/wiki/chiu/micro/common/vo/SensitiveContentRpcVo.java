@@ -1,6 +1,5 @@
 package wiki.chiu.micro.common.vo;
 
-import java.io.Serializable;
 
 public record SensitiveContentRpcVo(
 
@@ -8,7 +7,7 @@ public record SensitiveContentRpcVo(
 
         Integer endIndex,
 
-        Integer type) implements Serializable {
+        Integer type) {
 
     public static SensitiveContentBuilder builder() {
         return new SensitiveContentBuilder();

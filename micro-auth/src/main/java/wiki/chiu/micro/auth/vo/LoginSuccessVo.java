@@ -1,6 +1,5 @@
 package wiki.chiu.micro.auth.vo;
 
-import java.io.Serializable;
 
 /**
  * @author mingchiuli
@@ -10,7 +9,7 @@ public record LoginSuccessVo(
 
         String accessToken,
 
-        String refreshToken) implements Serializable {
+        String refreshToken) {
 
     public static LoginSuccessVoBuilder builder() {
         return new LoginSuccessVoBuilder();

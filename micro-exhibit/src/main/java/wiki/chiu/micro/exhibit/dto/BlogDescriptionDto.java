@@ -1,7 +1,6 @@
 package wiki.chiu.micro.exhibit.dto;
 
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -20,7 +19,7 @@ public record BlogDescriptionDto(
 
         LocalDateTime created,
 
-        String link) implements Serializable {
+        String link) {
 
     public static BlogDescriptionDtoBuilder builder() {
         return new BlogDescriptionDtoBuilder();

@@ -1,6 +1,5 @@
 package wiki.chiu.micro.common.lang;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -9,7 +8,7 @@ import java.util.List;
 public record UserAuthMenuOperateMessage(
         List<String> roles,
 
-        Integer type) implements Serializable {
+        Integer type) {
 
     public static UserAuthMenuOperateMessageBuilder builder() {
         return new UserAuthMenuOperateMessageBuilder();
