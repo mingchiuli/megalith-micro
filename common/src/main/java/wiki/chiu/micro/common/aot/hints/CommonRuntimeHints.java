@@ -2,12 +2,18 @@ package wiki.chiu.micro.common.aot.hints;
 
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import wiki.chiu.micro.common.lang.BlogOperateMessage;
+import wiki.chiu.micro.common.lang.UserAuthMenuOperateMessage;
 
 
 class CommonRuntimeHints implements RuntimeHintsRegistrar {
 
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+
+        hints.reflection().registerType(BlogOperateMessage.class)
+                .registerType(UserAuthMenuOperateMessage.class);
+
         // Lua scripts for Redis operations
         hints.resources()
                 .registerPattern("script/rpush-expire.lua")
