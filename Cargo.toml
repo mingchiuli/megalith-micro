@@ -27,7 +27,7 @@ opentelemetry_sdk = { version = "0.30.0", features = ["rt-tokio", "trace", "metr
 opentelemetry-otlp = { version = "0.30.0", features = ["trace", "metrics", "logs", "http-proto", "reqwest-client", "reqwest-blocking-client"] }
 tracing-opentelemetry = "0.31.0"
 opentelemetry-appender-tracing = "0.30.0"
-reqwest = { version = "0.12", features = ["blocking"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
 
 # Async utilities
 futures-util = "0.3.31"
