@@ -7,8 +7,20 @@ use axum::{
     http::{Request, Uri},
     response::IntoResponse,
 };
+use opentelemetry::{global, KeyValue};
 
+#[tracing::instrument(skip(req), fields(uri = %uri))]
 pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
+    // Record metrics
+    let meter = global::meter("micro-gateway-rs");
+    let counter = meter
+        .u64_counter("http_requests_total")
+        .with_description("Total number of HTTP requests")
+        .build();
+    counter.add(1, &[KeyValue::new("path", uri.path().to_string())]);
+
+    tracing::info!(method = ?req.method(), "Processing request");
+
     // 检查是否是 WebSocket 请求
     if is_websocket_request(&req) {
         // 分解请求以获取部分

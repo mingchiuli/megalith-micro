@@ -4,8 +4,21 @@ use axum::{
     routing::{any, get},
 };
 use micro_gateway_rs::{handler::main_handler, layer};
+use opentelemetry::{KeyValue, global, trace::TracerProvider};
+use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
+use opentelemetry_otlp::{
+    LogExporter, MetricExporter, SpanExporter, WithExportConfig, WithHttpConfig,
+};
+use opentelemetry_sdk::{
+    Resource,
+    logs::SdkLoggerProvider,
+    metrics::{PeriodicReader, SdkMeterProvider},
+    trace::{Sampler, SdkTracerProvider},
+};
 use std::{env, net::SocketAddr};
 use tokio::signal;
+use tracing_opentelemetry::OpenTelemetryLayer;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 const LOGO: &str = r#"
     _
@@ -15,16 +28,115 @@ const LOGO: &str = r#"
 /_/   \_\/_/\_\\__,_|_| |_| |_|
 "#;
 
-#[tokio::main]
-async fn main() -> Result<(), BoxError> {
+fn resource() -> Resource {
+    Resource::builder()
+        .with_service_name("micro-gateway-rs")
+        .with_attributes([KeyValue::new("service.version", env!("CARGO_PKG_VERSION"))])
+        .build()
+}
+
+fn init_tracer_provider() -> SdkTracerProvider {
+    let endpoint = env::var("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
+        .unwrap_or_else(|_| "http://localhost:8200/v1/traces".to_string());
+
+    let http_client = reqwest::blocking::Client::new();
+    let exporter = SpanExporter::builder()
+        .with_http()
+        .with_http_client(http_client)
+        .with_endpoint(&endpoint)
+        .build()
+        .expect("Failed to create span exporter");
+
+    SdkTracerProvider::builder()
+        .with_batch_exporter(exporter)
+        .with_sampler(Sampler::AlwaysOn)
+        .with_resource(resource())
+        .build()
+}
+
+fn init_meter_provider() -> SdkMeterProvider {
+    let endpoint = env::var("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT")
+        .unwrap_or_else(|_| "http://localhost:8200/v1/metrics".to_string());
+
+    let http_client = reqwest::blocking::Client::new();
+    let exporter = MetricExporter::builder()
+        .with_http()
+        .with_http_client(http_client)
+        .with_endpoint(&endpoint)
+        .build()
+        .expect("Failed to create metric exporter");
+
+    let reader = PeriodicReader::builder(exporter).build();
+
+    SdkMeterProvider::builder()
+        .with_reader(reader)
+        .with_resource(resource())
+        .build()
+}
+
+fn init_logger_provider() -> SdkLoggerProvider {
+    let endpoint = env::var("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")
+        .unwrap_or_else(|_| "http://localhost:8200/v1/logs".to_string());
+
+    let http_client = reqwest::blocking::Client::new();
+    let exporter = LogExporter::builder()
+        .with_http()
+        .with_http_client(http_client)
+        .with_endpoint(&endpoint)
+        .build()
+        .expect("Failed to create log exporter");
+
+    SdkLoggerProvider::builder()
+        .with_batch_exporter(exporter)
+        .with_resource(resource())
+        .build()
+}
+
+fn main() -> Result<(), BoxError> {
     // Initialize logging
     if env::var("RUST_LOG").is_err() {
         unsafe {
             env::set_var("RUST_LOG", "info");
         }
     }
-    tracing_subscriber::fmt::init();
 
+    // Initialize OpenTelemetry BEFORE entering async runtime (blocking clients)
+    let tracer_provider = init_tracer_provider();
+    global::set_tracer_provider(tracer_provider.clone());
+    let tracer = tracer_provider.tracer("micro-gateway-rs");
+
+    let meter_provider = init_meter_provider();
+    global::set_meter_provider(meter_provider.clone());
+
+    let logger_provider = init_logger_provider();
+
+    // Setup tracing subscriber with OpenTelemetry layers
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer())
+        .with(tracing_subscriber::EnvFilter::from_default_env())
+        .with(OpenTelemetryLayer::new(tracer))
+        .with(OpenTelemetryTracingBridge::new(&logger_provider))
+        .init();
+
+    // Build the Tokio runtime
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .expect("Failed to create Tokio runtime");
+
+    // Run the async main function
+    let result = runtime.block_on(async_main());
+
+    // Shutdown OpenTelemetry providers AFTER runtime is done (outside async context)
+    let _ = tracer_provider.shutdown();
+    let _ = meter_provider.shutdown();
+    let _ = logger_provider.shutdown();
+
+    println!("Server shutdown completed");
+    result
+}
+
+async fn async_main() -> Result<(), BoxError> {
     tracing::info!("{}", LOGO);
 
     // build our application with a single route
@@ -40,6 +152,7 @@ async fn main() -> Result<(), BoxError> {
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
         .await?;
+
     Ok(())
 }
 
