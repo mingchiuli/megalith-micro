@@ -1,6 +1,9 @@
 # Use the official Rust image as the base image
 FROM rust:latest AS builder
 
+# Install musl tools for cross-compilation
+RUN apt-get update && apt-get install -y musl-tools musl-dev && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory
 WORKDIR /usr/src/app
 
