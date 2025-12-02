@@ -24,12 +24,13 @@ tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 # OpenTelemetry
 opentelemetry = { version = "0.31.0", features = ["trace", "metrics", "logs"] }
 opentelemetry_sdk = { version = "0.31.0", features = ["rt-tokio", "trace", "metrics", "logs"] }
-opentelemetry-otlp = { version = "0.31.0", features = ["trace", "metrics", "logs", "http-proto", "reqwest-client"] }
+opentelemetry-otlp = { version = "0.31.0", features = ["trace", "metrics", "logs", "http-proto", "reqwest-blocking-client"] }
 tracing-opentelemetry = "0.32.0"
 opentelemetry-appender-tracing = "0.31.1"
 
-# HTTP client
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+# HTTP client - MUST use blocking client for OpenTelemetry
+# BatchProcessor runs in non-tokio threads and cannot use async reqwest
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
 
 # Async utilities
 futures-util = "0.3.31"
