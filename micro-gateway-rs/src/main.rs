@@ -48,7 +48,7 @@ fn init_tracer_provider(http_client: &reqwest::blocking::Client) -> SdkTracerPro
 
     SdkTracerProvider::builder()
         .with_batch_exporter(exporter)
-        .with_sampler(Sampler::AlwaysOn)
+        .with_sampler(Sampler::TraceIdRatioBased(0.5))
         .with_resource(resource())
         .build()
 }
@@ -107,6 +107,8 @@ fn main() -> Result<(), BoxError> {
 
     let meter_provider = init_meter_provider(&http_client);
     global::set_meter_provider(meter_provider.clone());
+
+    global::set_text_map_propagator(opentelemetry_sdk::propagation::TraceContextPropagator::new());
 
     let logger_provider = init_logger_provider(&http_client);
 
