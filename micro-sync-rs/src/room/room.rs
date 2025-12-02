@@ -6,7 +6,7 @@ use yrs::Doc;
 use yrs::sync::Awareness;
 use yrs_warp::broadcast::BroadcastGroup;
 
-// 房间连接信息
+// 房间信息
 pub struct RoomConnection {
     room_id: String,
     room_info: Arc<RoomInfo>,
