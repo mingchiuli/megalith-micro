@@ -1,15 +1,21 @@
-use std::time::Duration;
-use http_body_util::combinators::BoxBody;
 use axum::{
-    BoxError, body::{Body, Bytes}, extract::Request, response::Response
+    BoxError,
+    body::{Body, Bytes},
+    extract::Request,
+    response::Response,
 };
+use http_body_util::combinators::BoxBody;
 use hyper::{Method, StatusCode, Uri};
+use std::time::Duration;
 use tokio::time::timeout;
 
 use crate::{
     client::http_client::{self},
     exception::error::{ClientError, HandlerError, handle_api_error},
-    utils::{constant, http_util::{self}},
+    utils::{
+        constant,
+        http_util::{self},
+    },
 };
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
@@ -42,8 +48,12 @@ async fn forward_to_target_service(
     uri: Uri,
     token: String,
 ) -> Result<Response<BoxBody<Bytes, BoxError>>, ClientError> {
-    let headers = http_util::prepare_headers(req.headers(), token)?;
     
+    let mut headers = http_util::prepare_headers(req.headers(), token)?;
+
+    // 注入 Trace Context
+    http_util::inject_trace_context_hashmap(&mut headers);
+
     let resp = timeout(REQUEST_TIMEOUT, async {
         match *req.method() {
             Method::GET => http_client::get_raw(uri, headers)
@@ -63,6 +73,6 @@ async fn forward_to_target_service(
     })
     .await
     .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()))??;
-    
+
     Ok(resp)
 }

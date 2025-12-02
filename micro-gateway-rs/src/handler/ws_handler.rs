@@ -5,7 +5,9 @@ use axum::response::{IntoResponse, Response};
 use futures_util::{SinkExt, StreamExt, stream};
 use hyper::{HeaderMap, Method, Uri};
 use tokio_tungstenite::connect_async;
-use tokio_tungstenite::tungstenite::{Message as TungsteniteMessage, protocol};
+use tokio_tungstenite::tungstenite::{
+    Message as TungsteniteMessage, client::IntoClientRequest, protocol,
+};
 
 use crate::exception::error::HandlerError;
 use crate::utils::constant;
@@ -52,14 +54,32 @@ fn extract_token(uri: &Uri) -> String {
 }
 
 async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
-    // 连接到微服务
-    let (server_ws, _) = match connect_async(target_uri.to_string()).await {
-        Ok(conn) => conn,
+    // 1. 构建 WebSocket 客户端请求（利用 IntoClientRequest 特性）
+    let mut ws_request = match target_uri.into_client_request() {
+        Ok(req) => req,
+        Err(e) => {
+            tracing::error!("Failed to build websocket request: {}", e);
+            return;
+        }
+    };
+
+    // 2. 获取请求头并注入 Trace Context（核心步骤）
+    let headers = ws_request.headers_mut(); // 直接操作 tungstenite 的头
+    http_util::inject_trace_context(headers); // 复用 HTTP 的注入逻辑
+
+    // 3. 连接下游 WebSocket 服务（带 traceparent 头）
+    let (server_ws, response) = match connect_async(ws_request).await {
+        Ok((stream, resp)) => (stream, resp),
         Err(e) => {
             tracing::error!("Failed to connect to websocket service: {}", e);
             return;
         }
     };
+
+    tracing::info!(
+        "WebSocket connected to downstream, status: {}",
+        response.status()
+    );
 
     // 使用 futures_util 的 split 方法
     let (mut client_sender, mut client_receiver) = stream::StreamExt::split(ws);

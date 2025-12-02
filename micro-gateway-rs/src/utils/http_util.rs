@@ -21,6 +21,10 @@ use crate::{
     },
 };
 
+use opentelemetry::global;
+use opentelemetry_http::HeaderInjector;
+use tracing_opentelemetry::OpenTelemetrySpanExt;
+
 pub fn get_ip_from_headers(headers: &HeaderMap) -> Option<String> {
     // Check headers in order of preference
     let ip = headers
@@ -186,4 +190,31 @@ pub fn prepare_response(
     Ok(builder
         .body(axum_body)
         .map_err(|e| ClientError::Response(e.to_string()))?)
+}
+
+// 原有 hyper::HeaderMap 版本（WebSocket 用）
+pub fn inject_trace_context(headers: &mut HeaderMap) {
+    global::get_text_map_propagator(|propagator| {
+        let current_context = tracing::Span::current().context();
+        propagator.inject_context(&current_context, &mut HeaderInjector(headers));
+    });
+}
+
+// 修复后的 HashMap 版本（HTTP 转发用）
+pub fn inject_trace_context_hashmap(headers: &mut HashMap<HeaderName, HeaderValue>) {
+    // 1. 将 HashMap 转换为 hyper::HeaderMap（无歧义）
+    let mut hyper_headers: HeaderMap<HeaderValue> = headers.drain().collect();
+
+    // 2. 注入 Trace Context（traceparent/tracestate 头）
+    inject_trace_context(&mut hyper_headers);
+
+    // 3. 关键修复：过滤 Option<HeaderName>，提取 Some(HeaderName)
+    headers.extend(
+        hyper_headers
+            .into_iter()
+            // 过滤掉 None 键（实际不会出现，避免类型不匹配）
+            .filter_map(|(opt_name, value)| {
+                opt_name.map(|name| (name, value)) // 仅保留 Some(HeaderName)，转换为 (HeaderName, HeaderValue)
+            }),
+    );
 }

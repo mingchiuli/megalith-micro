@@ -901,6 +901,7 @@ dependencies = [
  "hyper-util",
  "opentelemetry",
  "opentelemetry-appender-tracing",
+ "opentelemetry-http",
  "opentelemetry-otlp",
  "opentelemetry_sdk",
  "reqwest",

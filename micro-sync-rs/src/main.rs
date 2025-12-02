@@ -51,7 +51,7 @@ fn init_tracer_provider(http_client: &reqwest::blocking::Client) -> SdkTracerPro
 
     SdkTracerProvider::builder()
         .with_batch_exporter(exporter)
-        .with_sampler(Sampler::AlwaysOn)
+        .with_sampler(Sampler::TraceIdRatioBased(0.5))
         .with_resource(resource())
         .build()
 }
