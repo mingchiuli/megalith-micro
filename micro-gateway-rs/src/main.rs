@@ -35,13 +35,13 @@ fn resource() -> Resource {
         .build()
 }
 
-fn init_tracer_provider(http_client: reqwest::Client) -> SdkTracerProvider {
+fn init_tracer_provider(http_client: &reqwest::blocking::Client) -> SdkTracerProvider {
     let endpoint = env::var("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
         .unwrap_or_else(|_| "http://localhost:8200/v1/traces".to_string());
 
     let exporter = SpanExporter::builder()
         .with_http()
-        .with_http_client(http_client)
+        .with_http_client(http_client.clone())
         .with_endpoint(&endpoint)
         .build()
         .expect("Failed to create span exporter");
@@ -53,13 +53,13 @@ fn init_tracer_provider(http_client: reqwest::Client) -> SdkTracerProvider {
         .build()
 }
 
-fn init_meter_provider(http_client: reqwest::Client) -> SdkMeterProvider {
+fn init_meter_provider(http_client: &reqwest::blocking::Client) -> SdkMeterProvider {
     let endpoint = env::var("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT")
         .unwrap_or_else(|_| "http://localhost:8200/v1/metrics".to_string());
 
     let exporter = MetricExporter::builder()
         .with_http()
-        .with_http_client(http_client)
+        .with_http_client(http_client.clone())
         .with_endpoint(&endpoint)
         .build()
         .expect("Failed to create metric exporter");
@@ -72,13 +72,13 @@ fn init_meter_provider(http_client: reqwest::Client) -> SdkMeterProvider {
         .build()
 }
 
-fn init_logger_provider(http_client: reqwest::Client) -> SdkLoggerProvider {
+fn init_logger_provider(http_client: &reqwest::blocking::Client) -> SdkLoggerProvider {
     let endpoint = env::var("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")
         .unwrap_or_else(|_| "http://localhost:8200/v1/logs".to_string());
 
     let exporter = LogExporter::builder()
         .with_http()
-        .with_http_client(http_client)
+        .with_http_client(http_client.clone())
         .with_endpoint(&endpoint)
         .build()
         .expect("Failed to create log exporter");
@@ -89,8 +89,7 @@ fn init_logger_provider(http_client: reqwest::Client) -> SdkLoggerProvider {
         .build()
 }
 
-#[tokio::main]
-async fn main() -> Result<(), BoxError> {
+fn main() -> Result<(), BoxError> {
     // Initialize logging
     if env::var("RUST_LOG").is_err() {
         unsafe {
@@ -98,18 +97,18 @@ async fn main() -> Result<(), BoxError> {
         }
     }
 
-    // Create a shared async reqwest client
-    let http_client = reqwest::Client::new();
-    
-    // Initialize OpenTelemetry (using async client)
-    let tracer_provider = init_tracer_provider(http_client.clone());
+    // Initialize OpenTelemetry BEFORE entering async runtime
+    // MUST use blocking client - BatchProcessor runs in non-tokio threads
+    let http_client = reqwest::blocking::Client::new();
+
+    let tracer_provider = init_tracer_provider(&http_client);
     global::set_tracer_provider(tracer_provider.clone());
     let tracer = tracer_provider.tracer("micro-gateway-rs");
 
-    let meter_provider = init_meter_provider(http_client.clone());
+    let meter_provider = init_meter_provider(&http_client);
     global::set_meter_provider(meter_provider.clone());
 
-    let logger_provider = init_logger_provider(http_client);
+    let logger_provider = init_logger_provider(&http_client);
 
     // Setup tracing subscriber with OpenTelemetry layers
     tracing_subscriber::registry()
@@ -119,10 +118,16 @@ async fn main() -> Result<(), BoxError> {
         .with(OpenTelemetryTracingBridge::new(&logger_provider))
         .init();
 
-    // Run the async main function
-    let result = async_main().await;
+    // Build the Tokio runtime
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .expect("Failed to create Tokio runtime");
 
-    // Shutdown OpenTelemetry providers
+    // Run the async main function
+    let result = runtime.block_on(async_main());
+
+    // Shutdown OpenTelemetry providers AFTER runtime is done (outside async context)
     let _ = tracer_provider.shutdown();
     let _ = meter_provider.shutdown();
     let _ = logger_provider.shutdown();
