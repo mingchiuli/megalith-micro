@@ -669,7 +669,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.6.1",
+ "socket2 0.5.10",
  "system-configuration",
  "tokio",
  "tower-service",
@@ -902,7 +902,7 @@ dependencies = [
  "opentelemetry 0.31.0",
  "opentelemetry-appender-tracing",
  "opentelemetry-otlp",
- "opentelemetry_sdk 0.30.0",
+ "opentelemetry_sdk 0.31.0",
  "reqwest",
  "serde",
  "serde_json",
@@ -922,7 +922,7 @@ dependencies = [
  "opentelemetry 0.31.0",
  "opentelemetry-appender-tracing",
  "opentelemetry-otlp",
- "opentelemetry_sdk 0.30.0",
+ "opentelemetry_sdk 0.31.0",
  "reqwest",
  "serde",
  "serde_json",
@@ -1090,10 +1090,7 @@ dependencies = [
  "opentelemetry 0.30.0",
  "percent-encoding",
  "rand 0.9.2",
- "serde_json",
  "thiserror 2.0.17",
- "tokio",
- "tokio-stream",
 ]
 
 [[package]]
@@ -1109,6 +1106,8 @@ dependencies = [
  "percent-encoding",
  "rand 0.9.2",
  "thiserror 2.0.17",
+ "tokio",
+ "tokio-stream",
 ]
 
 [[package]]
@@ -1241,7 +1240,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2 0.6.1",
+ "socket2 0.5.10",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
@@ -1278,9 +1277,9 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.6.1",
+ "socket2 0.5.10",
  "tracing",
- "windows-sys 0.60.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
