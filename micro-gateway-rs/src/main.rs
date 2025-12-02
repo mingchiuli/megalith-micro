@@ -35,13 +35,13 @@ fn resource() -> Resource {
         .build()
 }
 
-async fn init_tracer_provider(http_client: &reqwest::Client) -> SdkTracerProvider {
+fn init_tracer_provider(http_client: reqwest::Client) -> SdkTracerProvider {
     let endpoint = env::var("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
         .unwrap_or_else(|_| "http://localhost:8200/v1/traces".to_string());
 
     let exporter = SpanExporter::builder()
         .with_http()
-        .with_http_client(http_client.clone())
+        .with_http_client(http_client)
         .with_endpoint(&endpoint)
         .build()
         .expect("Failed to create span exporter");
@@ -53,13 +53,13 @@ async fn init_tracer_provider(http_client: &reqwest::Client) -> SdkTracerProvide
         .build()
 }
 
-async fn init_meter_provider(http_client: &reqwest::Client) -> SdkMeterProvider {
+fn init_meter_provider(http_client: reqwest::Client) -> SdkMeterProvider {
     let endpoint = env::var("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT")
         .unwrap_or_else(|_| "http://localhost:8200/v1/metrics".to_string());
 
     let exporter = MetricExporter::builder()
         .with_http()
-        .with_http_client(http_client.clone())
+        .with_http_client(http_client)
         .with_endpoint(&endpoint)
         .build()
         .expect("Failed to create metric exporter");
@@ -72,13 +72,13 @@ async fn init_meter_provider(http_client: &reqwest::Client) -> SdkMeterProvider 
         .build()
 }
 
-async fn init_logger_provider(http_client: &reqwest::Client) -> SdkLoggerProvider {
+fn init_logger_provider(http_client: reqwest::Client) -> SdkLoggerProvider {
     let endpoint = env::var("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")
         .unwrap_or_else(|_| "http://localhost:8200/v1/logs".to_string());
 
     let exporter = LogExporter::builder()
         .with_http()
-        .with_http_client(http_client.clone())
+        .with_http_client(http_client)
         .with_endpoint(&endpoint)
         .build()
         .expect("Failed to create log exporter");
@@ -98,17 +98,18 @@ async fn main() -> Result<(), BoxError> {
         }
     }
 
-    // Initialize OpenTelemetry
+    // Create a shared async reqwest client
     let http_client = reqwest::Client::new();
-
-    let tracer_provider = init_tracer_provider(&http_client).await;
+    
+    // Initialize OpenTelemetry (using async client)
+    let tracer_provider = init_tracer_provider(http_client.clone());
     global::set_tracer_provider(tracer_provider.clone());
     let tracer = tracer_provider.tracer("micro-gateway-rs");
 
-    let meter_provider = init_meter_provider(&http_client).await;
+    let meter_provider = init_meter_provider(http_client.clone());
     global::set_meter_provider(meter_provider.clone());
 
-    let logger_provider = init_logger_provider(&http_client).await;
+    let logger_provider = init_logger_provider(http_client);
 
     // Setup tracing subscriber with OpenTelemetry layers
     tracing_subscriber::registry()
