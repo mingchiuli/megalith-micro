@@ -35,11 +35,10 @@ fn resource() -> Resource {
         .build()
 }
 
-fn init_tracer_provider() -> SdkTracerProvider {
+fn init_tracer_provider(http_client: reqwest::Client) -> SdkTracerProvider {
     let endpoint = env::var("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
         .unwrap_or_else(|_| "http://localhost:8200/v1/traces".to_string());
 
-    let http_client = reqwest::blocking::Client::new();
     let exporter = SpanExporter::builder()
         .with_http()
         .with_http_client(http_client)
@@ -54,11 +53,10 @@ fn init_tracer_provider() -> SdkTracerProvider {
         .build()
 }
 
-fn init_meter_provider() -> SdkMeterProvider {
+fn init_meter_provider(http_client: reqwest::Client) -> SdkMeterProvider {
     let endpoint = env::var("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT")
         .unwrap_or_else(|_| "http://localhost:8200/v1/metrics".to_string());
 
-    let http_client = reqwest::blocking::Client::new();
     let exporter = MetricExporter::builder()
         .with_http()
         .with_http_client(http_client)
@@ -74,11 +72,10 @@ fn init_meter_provider() -> SdkMeterProvider {
         .build()
 }
 
-fn init_logger_provider() -> SdkLoggerProvider {
+fn init_logger_provider(http_client: reqwest::Client) -> SdkLoggerProvider {
     let endpoint = env::var("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")
         .unwrap_or_else(|_| "http://localhost:8200/v1/logs".to_string());
 
-    let http_client = reqwest::blocking::Client::new();
     let exporter = LogExporter::builder()
         .with_http()
         .with_http_client(http_client)
@@ -92,7 +89,8 @@ fn init_logger_provider() -> SdkLoggerProvider {
         .build()
 }
 
-fn main() -> Result<(), BoxError> {
+#[tokio::main]
+async fn main() -> Result<(), BoxError> {
     // Initialize logging
     if env::var("RUST_LOG").is_err() {
         unsafe {
@@ -100,15 +98,18 @@ fn main() -> Result<(), BoxError> {
         }
     }
 
-    // Initialize OpenTelemetry BEFORE entering async runtime (blocking clients)
-    let tracer_provider = init_tracer_provider();
+    // Create a shared async reqwest client
+    let http_client = reqwest::Client::new();
+    
+    // Initialize OpenTelemetry (using async client)
+    let tracer_provider = init_tracer_provider(http_client.clone());
     global::set_tracer_provider(tracer_provider.clone());
     let tracer = tracer_provider.tracer("micro-gateway-rs");
 
-    let meter_provider = init_meter_provider();
+    let meter_provider = init_meter_provider(http_client.clone());
     global::set_meter_provider(meter_provider.clone());
 
-    let logger_provider = init_logger_provider();
+    let logger_provider = init_logger_provider(http_client);
 
     // Setup tracing subscriber with OpenTelemetry layers
     tracing_subscriber::registry()
@@ -118,16 +119,10 @@ fn main() -> Result<(), BoxError> {
         .with(OpenTelemetryTracingBridge::new(&logger_provider))
         .init();
 
-    // Build the Tokio runtime
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .expect("Failed to create Tokio runtime");
-
     // Run the async main function
-    let result = runtime.block_on(async_main());
+    let result = async_main().await;
 
-    // Shutdown OpenTelemetry providers AFTER runtime is done (outside async context)
+    // Shutdown OpenTelemetry providers
     let _ = tracer_provider.shutdown();
     let _ = meter_provider.shutdown();
     let _ = logger_provider.shutdown();
