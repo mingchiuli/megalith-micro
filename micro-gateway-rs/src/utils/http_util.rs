@@ -1,9 +1,9 @@
 use axum::{
+    BoxError,
     body::{Body, Bytes},
     extract::Request,
     http::{HeaderName, HeaderValue, request::Builder},
     response::Response,
-    BoxError
 };
 
 use http_body_util::combinators::BoxBody;
@@ -16,8 +16,8 @@ use crate::{
     exception::error::{AuthError, ClientError},
     result::api_result::ApiResult,
     utils::constant::{
-        AUTH_HEADER, AUTH_URL_KEY, CF_CONNECTING_IP, FORWARDED_HEADER, PROXY_CLIENT_IP,
-        WL_PROXY_CLIENT_IP, UNKNOWN
+        AUTH_HEADER, AUTH_URL_KEY, CF_CONNECTING_IP, FORWARDED_HEADER, PROXY_CLIENT_IP, UNKNOWN,
+        WL_PROXY_CLIENT_IP,
     },
 };
 
@@ -153,7 +153,7 @@ pub fn prepare_headers(
 }
 
 pub fn prepare_response(
-    resp: Response<BoxBody<Bytes, BoxError>>  // ← 修改参数类型
+    resp: Response<BoxBody<Bytes, BoxError>>, // ← 修改参数类型
 ) -> Result<Response<Body>, ClientError> {
     let content_type = resp
         .headers()
