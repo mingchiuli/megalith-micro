@@ -68,7 +68,6 @@ async fn auth(
         .await
         .map_err(handle_api_error);
 
-    tracing::info!("auth response: {:?}", resp);
     match resp {
         Ok(resp) => match resp.code() {
             200 => Ok(resp.into_data()),
