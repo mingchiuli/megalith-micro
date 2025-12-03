@@ -31,10 +31,10 @@ pub async fn process(req: Request, next: Next) -> Result<Response, HandlerError>
 
     // 手动创建动态名称的 span
     let span = tracing::info_span!(
-        "Request",
+        "request_handler",  // 这个是 tracing 内部名称
         http.method = %method,
         http.uri = %path,
-        name = format!("Request: {} {}", method, path)
+        otel.name = format!("Request: {} {}", method, path)  // 这个才是显示的名称
     );
 
     async move {
