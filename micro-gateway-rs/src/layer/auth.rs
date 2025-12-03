@@ -23,7 +23,7 @@ pub async fn process(req: Request, next: Next) -> Result<Response, HandlerError>
     if req.uri().path() == "/actuator/health" {
         return Ok(next.run(req).await);
     }
-    
+
     // Authenticate the request
     let (uri, req_body, headers) = extract_request_param(&req)?;
     if !auth(uri, req_body, headers).await? {
@@ -79,7 +79,7 @@ fn build_auth_uri() -> Result<Uri, ClientError> {
 }
 
 fn build_headers(auth_token: &str) -> HashMap<HeaderName, HeaderValue> {
-    HashMap::from([
+    let mut headers = HashMap::from([
         (
             hyper::header::AUTHORIZATION,
             HeaderValue::from_str(auth_token).unwrap_or(HeaderValue::from_static("")),
@@ -88,5 +88,8 @@ fn build_headers(auth_token: &str) -> HashMap<HeaderName, HeaderValue> {
             hyper::header::CONTENT_TYPE,
             HeaderValue::from_static("application/json"),
         ),
-    ])
+    ]);
+
+    http_util::inject_trace_context_hashmap(&mut headers);
+    headers
 }
