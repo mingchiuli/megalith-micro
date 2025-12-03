@@ -18,6 +18,14 @@ struct RouteCheckReq {
     route_mapping: String,
 }
 
+#[tracing::instrument(
+    name = "auth_middleware",
+    skip(req, next),
+    fields(
+        http.method = %req.method(),
+        http.uri = %req.uri().path(),
+    )
+)]
 pub async fn process(req: Request, next: Next) -> Result<Response, HandlerError> {
     // Skip authentication for actuator endpoints
     if req.uri().path() == "/actuator/health" {
