@@ -43,7 +43,6 @@ fn extract_request_param(
     let auth_token = http_util::extract_token(req);
     let uri = build_auth_uri()?;
     let headers = build_headers(auth_token.as_str());
-    tracing::info!("headers: {:?}", headers);
     let req_body = RouteCheckReq {
         method,
         route_mapping: path,
@@ -61,6 +60,7 @@ async fn auth(
         .await
         .map_err(handle_api_error);
 
+    tracing::info!("auth response: {:?}", resp);
     match resp {
         Ok(resp) => match resp.code() {
             200 => Ok(resp.into_data()),
