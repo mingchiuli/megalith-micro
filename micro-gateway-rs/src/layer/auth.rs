@@ -19,7 +19,7 @@ struct RouteCheckReq {
 }
 
 #[tracing::instrument(
-    name = "auth_middleware",
+    name = "Once Request",
     skip(req, next),
     fields(
         http.method = %req.method(),
