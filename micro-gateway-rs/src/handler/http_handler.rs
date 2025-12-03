@@ -5,12 +5,12 @@ use axum::{
     response::Response,
 };
 use http_body_util::combinators::BoxBody;
-use hyper::{Method, StatusCode, Uri};
+use hyper::{Method, StatusCode};
 use std::time::Duration;
 use tokio::time::timeout;
 
 use crate::{
-    client::http_client::{self},
+    client::http_client::{self, AuthRouteResp},
     exception::error::{ClientError, HandlerError, handle_api_error},
     utils::{
         constant,
@@ -25,7 +25,6 @@ const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
     skip(req)
 )]
 pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, HandlerError> {
-    let uri = req.uri();
     // Extract authentication token
     let token = http_util::extract_token(&req);
 
@@ -33,16 +32,13 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Handle
     let auth_url = http_util::get_auth_url()?;
 
     // Prepare route request
-    let req_body = http_util::prepare_route_request(req.method(), req.headers(), uri);
+    let req_body = http_util::prepare_route_request(req.method(), req.headers(), req.uri());
 
     // Forward to route service
     let route_resp = http_util::find_route(auth_url, req_body, &token).await?;
-
-    // Prepare target request
-    let target_uri = http_util::parse_url(route_resp, uri, constant::HTTP)?;
-
+        
     // Forward to target service
-    let response = forward_to_target_service(req, target_uri, token).await?;
+    let response = forward_to_target_service(route_resp, req, token).await?;
 
     Ok(http_util::prepare_response(response)?)
 }
@@ -52,14 +48,19 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Handle
     name = "forward_to_backend",
     skip(req, token),
     fields(
-        auth.url = %uri,
+        auth.url = %req.uri(),
+        otel.kind = "client",
+        peer.service = %route_resp.service_host(),
+        server.address = tracing::field::Empty
     )
 )]
 async fn forward_to_target_service(
+    route_resp: AuthRouteResp,
     req: Request<Body>,
-    uri: Uri,
     token: String,
 ) -> Result<Response<BoxBody<Bytes, BoxError>>, ClientError> {
+    
+    let target_uri = http_util::parse_url(route_resp, req.uri(), constant::HTTP)?;
     
     let mut headers = http_util::prepare_headers(req.headers(), token)?;
 
@@ -68,12 +69,12 @@ async fn forward_to_target_service(
 
     let resp = timeout(REQUEST_TIMEOUT, async {
         match *req.method() {
-            Method::GET => http_client::get_raw(uri, headers)
+            Method::GET => http_client::get_raw(target_uri, headers)
                 .await
                 .map_err(handle_api_error),
             Method::POST => {
                 let body = req.into_body();
-                http_client::post_raw(uri, body, headers)
+                http_client::post_raw(target_uri, body, headers)
                     .await
                     .map_err(handle_api_error)
             }
