@@ -43,6 +43,7 @@ fn extract_request_param(
     let auth_token = http_util::extract_token(req);
     let uri = build_auth_uri()?;
     let headers = build_headers(auth_token.as_str());
+    tracing::info!("headers: {:?}", headers);
     let req_body = RouteCheckReq {
         method,
         route_mapping: path,
