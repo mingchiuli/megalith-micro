@@ -18,5 +18,4 @@ class InstallOpenTelemetryAppender implements InitializingBean {
     public void afterPropertiesSet() {
         OpenTelemetryAppender.install(this.openTelemetry);
     }
-
 }
