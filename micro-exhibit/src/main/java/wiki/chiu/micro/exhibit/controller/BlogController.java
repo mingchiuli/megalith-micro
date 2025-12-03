@@ -15,8 +15,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 /**
  * @author mingchiuli
  * @create 2022-11-26 5:30 pm
@@ -27,8 +25,6 @@ import org.slf4j.LoggerFactory;
 public class BlogController {
 
     private final BlogService blogService;
-    
-    private static final Logger log = LoggerFactory.getLogger(BlogController.class);
 
     public BlogController(BlogService blogService) {
         this.blogService = blogService;
@@ -37,14 +33,12 @@ public class BlogController {
     @GetMapping("/info/{blogId}")
     @Checker(handler = DetailHandler.class)
     public Result<BlogExhibitVo> getBlogDetail(@PathVariable Long blogId, AuthInfo authInfo) {
-        log.info("getBlogDetail");
         return Result.success(() -> blogService.getBlogDetail(authInfo.roles(), blogId, authInfo.userId()));
     }
 
     @GetMapping("/page/{currentPage}")
     @Checker(handler = ListPageHandler.class)
     public Result<PageAdapter<BlogDescriptionVo>> getPage(@PathVariable Integer currentPage) {
-        log.info("getPage");
         return Result.success(() -> blogService.findPage(currentPage));
     }
 
