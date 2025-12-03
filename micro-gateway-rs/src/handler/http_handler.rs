@@ -20,6 +20,10 @@ use crate::{
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
+#[tracing::instrument(
+    name = "proxy_http_request",
+    skip(req)
+)]
 pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, HandlerError> {
     let uri = req.uri();
     // Extract authentication token
@@ -43,6 +47,14 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Handle
     Ok(http_util::prepare_response(response)?)
 }
 
+
+#[tracing::instrument(
+    name = "forward_to_backend",
+    skip(req, token),
+    fields(
+        auth.url = %uri,
+    )
+)]
 async fn forward_to_target_service(
     req: Request<Body>,
     uri: Uri,

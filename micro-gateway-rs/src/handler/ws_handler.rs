@@ -13,6 +13,13 @@ use crate::exception::error::HandlerError;
 use crate::utils::constant;
 use crate::utils::http_util::{self};
 
+#[tracing::instrument(
+    name = "proxy_websocket_request",
+    skip(ws),
+    fields(
+        http.url = %uri,
+    )
+)]
 pub async fn ws_route_handler(
     ws: WebSocketUpgrade,
     uri: Uri,
