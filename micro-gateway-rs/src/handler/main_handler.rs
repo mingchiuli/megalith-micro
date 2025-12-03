@@ -9,6 +9,14 @@ use axum::{
 };
 use opentelemetry::{global, KeyValue};
 
+#[tracing::instrument(
+    name = "main_handler",
+    skip(uri, req),
+    fields(
+        http.method = %req.method(),
+        http.uri = %req.uri().path(),
+    )
+)]
 pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
     // Record metrics
     let meter = global::meter("micro-gateway-rs");
