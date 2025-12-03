@@ -11,6 +11,8 @@ use crate::result::api_result::ApiResult;
 use crate::utils::constant::AUTH_URL_KEY;
 use crate::utils::http_util;
 
+use tracing::Instrument;
+
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct RouteCheckReq {
@@ -23,27 +25,27 @@ pub async fn process(req: Request, next: Next) -> Result<Response, HandlerError>
     if req.uri().path() == "/actuator/health" {
         return Ok(next.run(req).await);
     }
-    
-    do_process(req, next).await
-}
 
-#[tracing::instrument(
-    // 动态名称：格式为 "Request: /path/xxx"，%http.uri 引用下面 fields 中的路径
-    name = "Request: %http.method %http.uri",
-    skip(req, next),
-    fields(
-        http.method = %req.method(),
-        http.uri = %req.uri().path(),
-    )
-)]
-async fn do_process(req: Request, next: Next) -> Result<Response, HandlerError> {
-    // Authenticate the request
-    let (uri, req_body, headers) = extract_request_param(&req)?;
-    if !auth(uri, req_body, headers).await? {
-        return Err(HandlerError::forbidden("访问被拒绝"));
+    let method = req.method();
+    let path = req.uri().path();
+
+    // 手动创建动态名称的 span
+    let span = tracing::info_span!(
+        "Request",
+        http.method = %method,
+        http.uri = %path,
+        name = format!("Request: {} {}", method, path)
+    );
+
+    async move {
+        let (uri, req_body, headers) = extract_request_param(&req)?;
+        if !auth(uri, req_body, headers).await? {
+            return Err(HandlerError::forbidden("访问被拒绝"));
+        }
+        Ok(next.run(req).await)
     }
-
-    Ok(next.run(req).await)
+    .instrument(span)
+    .await
 }
 
 fn extract_request_param(
