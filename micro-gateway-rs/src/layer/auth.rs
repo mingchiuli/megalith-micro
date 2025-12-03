@@ -18,6 +18,15 @@ struct RouteCheckReq {
     route_mapping: String,
 }
 
+pub async fn process(req: Request, next: Next) -> Result<Response, HandlerError> {
+    // Skip authentication for actuator endpoints
+    if req.uri().path() == "/actuator/health" {
+        return Ok(next.run(req).await);
+    }
+    
+    do_process(req, next).await
+}
+
 #[tracing::instrument(
     name = "Once Request",
     skip(req, next),
@@ -26,12 +35,7 @@ struct RouteCheckReq {
         http.uri = %req.uri().path(),
     )
 )]
-pub async fn process(req: Request, next: Next) -> Result<Response, HandlerError> {
-    // Skip authentication for actuator endpoints
-    if req.uri().path() == "/actuator/health" {
-        return Ok(next.run(req).await);
-    }
-
+async fn do_process(req: Request, next: Next) -> Result<Response, HandlerError> {
     // Authenticate the request
     let (uri, req_body, headers) = extract_request_param(&req)?;
     if !auth(uri, req_body, headers).await? {
