@@ -11,7 +11,7 @@ use crate::result::api_result::ApiResult;
 use crate::utils::constant::AUTH_URL_KEY;
 use crate::utils::http_util;
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct RouteCheckReq {
     method: String,
@@ -63,6 +63,13 @@ fn extract_request_param(
     Ok((uri, req_body, headers))
 }
 
+#[tracing::instrument(
+    name = "check_auth",
+    skip(uri, headers),
+    fields(
+        auth.route = %req_body.route_mapping,
+    )
+)]
 async fn auth(
     uri: Uri,
     req_body: RouteCheckReq,

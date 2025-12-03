@@ -82,6 +82,13 @@ pub fn set_headers(mut builder: Builder, headers: HashMap<HeaderName, HeaderValu
     builder
 }
 
+#[tracing::instrument(
+    name = "find_target_address",
+    skip(req_body, token),
+    fields(
+        http.url = %auth_url
+    )
+)]
 pub async fn find_route(
     auth_url: Uri,
     req_body: AuthRouteReq,
