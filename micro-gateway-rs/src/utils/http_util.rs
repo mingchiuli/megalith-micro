@@ -94,7 +94,7 @@ pub async fn find_route(
     req_body: AuthRouteReq,
     token: &str,
 ) -> Result<AuthRouteResp, ClientError> {
-    let headers = HashMap::from([
+    let mut headers = HashMap::from([
         (
             hyper::header::AUTHORIZATION,
             HeaderValue::from_str(token).unwrap_or(HeaderValue::from_static("")),
@@ -104,6 +104,8 @@ pub async fn find_route(
             HeaderValue::from_static("application/json"),
         ),
     ]);
+    
+    inject_trace_context_hashmap(&mut headers);
 
     let resp: ApiResult<AuthRouteResp> = http_client::post(auth_url, req_body, headers)
         .await
