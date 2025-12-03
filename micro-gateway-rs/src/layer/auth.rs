@@ -28,7 +28,8 @@ pub async fn process(req: Request, next: Next) -> Result<Response, HandlerError>
 }
 
 #[tracing::instrument(
-    name = "Once Request",
+    // 动态名称：格式为 "Request: /path/xxx"，%http.uri 引用下面 fields 中的路径
+    name = "Request: %http.method %http.uri",
     skip(req, next),
     fields(
         http.method = %req.method(),
@@ -48,10 +49,8 @@ async fn do_process(req: Request, next: Next) -> Result<Response, HandlerError> 
 fn extract_request_param(
     req: &Request,
 ) -> Result<(Uri, RouteCheckReq, HashMap<HeaderName, HeaderValue>), ClientError> {
-    // Extract data before async operations
     let method = req.method().to_string();
     let path = req.uri().path().to_string();
-    // 获取认证令牌 - 根据协议选择不同的方式
     let auth_token = http_util::extract_token(req);
     let uri = build_auth_uri()?;
     let headers = build_headers(auth_token.as_str());
