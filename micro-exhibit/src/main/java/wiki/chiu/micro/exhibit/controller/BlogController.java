@@ -15,7 +15,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * @author mingchiuli
  * @create 2022-11-26 5:30 pm
@@ -27,7 +28,7 @@ public class BlogController {
 
     private final BlogService blogService;
     
-    Logger log = LoggerFactory.getLogger(BlogController.class);
+    private static final Logger log = LoggerFactory.getLogger(BlogController.class);
 
     public BlogController(BlogService blogService) {
         this.blogService = blogService;
