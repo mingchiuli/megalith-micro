@@ -27,6 +27,7 @@ pub async fn ws_handler(
     room_manager: Arc<Mutex<RoomManager>>,
 ) -> Result<impl Reply, Rejection> {
     // 从请求头中提取 trace context
+    tracing::info!("header: {:?}", headers);
     let parent_context = global::get_text_map_propagator(|propagator| {
         propagator.extract(&WarpHeaderExtractor(&headers))
     });
