@@ -101,7 +101,7 @@ fn main() {
     }
 
     let http_client = reqwest::blocking::Client::new();
-    
+
     // Initialize OpenTelemetry BEFORE entering async runtime (blocking clients)
     let tracer_provider = init_tracer_provider(&http_client);
     global::set_tracer_provider(tracer_provider.clone());
@@ -109,6 +109,8 @@ fn main() {
 
     let meter_provider = init_meter_provider(&http_client);
     global::set_meter_provider(meter_provider.clone());
+
+    global::set_text_map_propagator(opentelemetry_sdk::propagation::TraceContextPropagator::new());
 
     let logger_provider = init_logger_provider(&http_client);
 
