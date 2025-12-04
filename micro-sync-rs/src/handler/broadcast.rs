@@ -21,7 +21,7 @@ pub async fn ws_handler(
     let parent_context = global::get_text_map_propagator(|propagator| {
         propagator.extract(&WarpHeaderExtractor(&headers))
     });
-    
+
     // 创建带有父 context 的 span
     let span = tracing::info_span!(
         "websocket_connection",
