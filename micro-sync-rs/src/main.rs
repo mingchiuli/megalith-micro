@@ -1,3 +1,4 @@
+use micro_sync_rs::extractor::header_extractor::WarpHeaderExtractor;
 use micro_sync_rs::handler::broadcast::ws_handler;
 use micro_sync_rs::room::room::RoomManager;
 use opentelemetry::metrics::Counter;
@@ -17,9 +18,11 @@ use std::env;
 use std::sync::Arc;
 use tokio::signal;
 use tokio::sync::Mutex;
-use tracing_opentelemetry::OpenTelemetryLayer;
+use tracing_opentelemetry::{OpenTelemetryLayer, OpenTelemetrySpanExt};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use warp::Filter;
+use warp::filters::header::headers_cloned;
+use warp::http::HeaderMap;
 use warp::reject::Rejection;
 use warp::reply::json;
 
@@ -171,10 +174,12 @@ async fn async_main() {
         .and(warp::path("exist"))
         .and(warp::path::param::<String>())
         .and(warp::get())
-        .and_then(move |room_id: String| {
+        .and(headers_cloned())
+        .and_then(move |room_id: String, headers: HeaderMap| {
+            // 新增：接收 headers 参数
             let room_manager = room_manager_rooms.clone();
             let counter = request_counter.clone();
-            async move { check_room_exists(room_id, room_manager, counter).await }
+            async move { check_room_exists(room_id, room_manager, counter, headers).await }
         });
 
     // 合并所有路由
@@ -188,12 +193,27 @@ async fn async_main() {
     server.await;
 }
 
-#[tracing::instrument(skip(room_manager, counter))]
 async fn check_room_exists(
     room_id: String,
     room_manager: Arc<Mutex<RoomManager>>,
     counter: Counter<u64>,
+    headers: HeaderMap,
 ) -> Result<warp::reply::Json, Rejection> {
+    // 从请求头中提取 trace context
+    tracing::info!("headerMap:{:?}", headers);
+
+    let parent_context = global::get_text_map_propagator(|propagator| {
+        propagator.extract(&WarpHeaderExtractor(&headers))
+    });
+    
+    // 创建带有父 context 的 span
+    let span = tracing::info_span!(
+        "websocket_connection",
+        room_id = %room_id,
+        otel.name = format!("WebSocket: /rooms/{}", room_id)
+    );
+    let _ = span.set_parent(parent_context);
+
     // Record metric
     counter.add(1, &[KeyValue::new("endpoint", "check_room_exists")]);
 
