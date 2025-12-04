@@ -8,7 +8,6 @@ use axum::{
     response::IntoResponse,
 };
 use opentelemetry::{KeyValue, global};
-use tracing::{Instrument, Span};
 
 pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
     // Record metrics
@@ -26,11 +25,7 @@ pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
 
         // 尝试从请求部分中提取 WebSocketUpgrade
         // 注意: 使用 axum 提供的 FromRequestParts trait
-        match WebSocketUpgrade::from_request_parts(&mut parts, &())
-            // 关键：为异步调用附加当前 Span 上下文
-            .instrument(Span::current())
-            .await
-        {
+        match WebSocketUpgrade::from_request_parts(&mut parts, &()).await {
             Ok(ws_upgrade) => {
                 // 处理 WebSocket 请求
                 return match ws_handler::ws_route_handler(ws_upgrade, uri).await {
