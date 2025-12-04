@@ -4,22 +4,13 @@ use futures_util::StreamExt;
 use opentelemetry::global;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tracing::{Instrument, instrument};
+use tracing::Instrument;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 use warp::filters::ws::{WebSocket, Ws};
 use warp::http::HeaderMap;
 use warp::{Rejection, Reply};
 use yrs_warp::ws::{WarpSink, WarpStream};
 
-#[instrument(
-    name = "websocket_connection",  // span 名称
-    level = "info",                 // 日志级别
-    fields(
-        room_id = %room_id,         // 房间 ID 字段
-        otel.name = %format!("WebSocket: /rooms/{}", room_id)  // OTel 名称字段
-    ),
-    skip(ws, room_manager, headers)  // 跳过不需要作为字段的参数
-)]
 pub async fn ws_handler(
     room_id: String,
     headers: HeaderMap,
@@ -27,20 +18,23 @@ pub async fn ws_handler(
     room_manager: Arc<Mutex<RoomManager>>,
 ) -> Result<impl Reply, Rejection> {
     // 从请求头中提取 trace context
-    tracing::info!("header: {:?}", headers);
+    tracing::info!("headerMap:{:?}", headers);
     let parent_context = global::get_text_map_propagator(|propagator| {
         propagator.extract(&WarpHeaderExtractor(&headers))
     });
-
-    let current_span = tracing::Span::current();
-    let _ = current_span.set_parent(parent_context);
+    
+    // 创建带有父 context 的 span
+    let span = tracing::info_span!(
+        "websocket_connection",
+        room_id = %room_id,
+        otel.name = format!("WebSocket: /rooms/{}", room_id)
+    );
+    let _ = span.set_parent(parent_context);
 
     tracing::info!("新连接尝试加入房间: {}", room_id);
     let room_id_clone = room_id.clone();
 
-    Ok(ws.on_upgrade(move |socket| {
-        peer(socket, room_manager, room_id_clone).instrument(current_span.clone())
-    }))
+    Ok(ws.on_upgrade(move |socket| peer(socket, room_manager, room_id_clone).instrument(span)))
 }
 
 async fn peer(ws: WebSocket, room_manager: Arc<Mutex<RoomManager>>, room_id: String) {
