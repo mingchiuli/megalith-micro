@@ -42,10 +42,11 @@ pub async fn ws_route_handler(
     let new_url = http_util::parse_url(route_resp, &uri, constant::WS)?;
 
     // 将 WebSocket 升级响应转换为 Response<Body>
+    let span = Span::current();
     let response = ws
         .on_upgrade(|socket| {
             // 使用 instrument 将 span 附加到 future 上
-            handle_websocket_request(socket, new_url).instrument(Span::current())
+            handle_websocket_request(socket, new_url).instrument(span)
         })
         .into_response();
 
