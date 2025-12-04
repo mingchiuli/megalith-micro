@@ -146,9 +146,10 @@ async fn async_main() {
     let room_manager_ws = room_manager.clone();
     let room_manager_rooms = room_manager.clone();
 
-    // WebSocket 路由
+    // WebSocket 路由 - 提取 headers 用于链路追踪
     let ws_routes = warp::path("rooms")
         .and(warp::path::param::<String>())
+        .and(warp::header::headers_cloned())
         .and(warp::ws())
         .and(warp::any().map(move || room_manager_ws.clone()))
         .and_then(ws_handler);

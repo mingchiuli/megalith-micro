@@ -8,12 +8,13 @@ use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::{
     Message as TungsteniteMessage, client::IntoClientRequest, protocol,
 };
+use tracing::instrument;
 
 use crate::exception::error::HandlerError;
 use crate::utils::constant;
 use crate::utils::http_util::{self};
 
-#[tracing::instrument(
+#[instrument(
     name = "proxy_websocket_request",
     skip(ws),
     fields(
