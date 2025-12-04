@@ -11,7 +11,7 @@ use crate::result::api_result::ApiResult;
 use crate::utils::constant::AUTH_URL_KEY;
 use crate::utils::http_util;
 
-use tracing::Instrument;
+use tracing::{Instrument, instrument};
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -64,7 +64,7 @@ fn extract_request_param(
     Ok((uri, req_body, headers))
 }
 
-#[tracing::instrument(
+#[instrument(
     name = "check_auth",
     skip(uri, headers),
     fields(

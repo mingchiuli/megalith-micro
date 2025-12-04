@@ -8,6 +8,7 @@ use http_body_util::combinators::BoxBody;
 use hyper::{Method, StatusCode};
 use std::time::Duration;
 use tokio::time::timeout;
+use tracing::instrument;
 
 use crate::{
     client::http_client::{self, AuthRouteResp},
@@ -20,10 +21,7 @@ use crate::{
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
-#[tracing::instrument(
-    name = "proxy_http_request",
-    skip(req)
-)]
+#[instrument(name = "proxy_http_request", skip(req))]
 pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, HandlerError> {
     // Extract authentication token
     let token = http_util::extract_token(&req);
@@ -36,13 +34,12 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Handle
 
     // Forward to route service
     let route_resp = http_util::find_route(auth_url, req_body, &token).await?;
-        
+
     // Forward to target service
     let response = forward_to_target_service(route_resp, req, token).await?;
 
     Ok(http_util::prepare_response(response)?)
 }
-
 
 #[tracing::instrument(
     name = "forward_to_backend",
@@ -59,9 +56,8 @@ async fn forward_to_target_service(
     req: Request<Body>,
     token: String,
 ) -> Result<Response<BoxBody<Bytes, BoxError>>, ClientError> {
-    
     let target_uri = http_util::parse_url(route_resp, req.uri(), constant::HTTP)?;
-    
+
     let mut headers = http_util::prepare_headers(req.headers(), token)?;
 
     // 注入 Trace Context
