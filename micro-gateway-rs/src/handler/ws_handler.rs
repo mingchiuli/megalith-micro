@@ -8,11 +8,12 @@ use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::{
     Message as TungsteniteMessage, client::IntoClientRequest, protocol,
 };
-use tracing::instrument;
+use tracing::{Instrument, instrument};
 
 use crate::exception::error::HandlerError;
 use crate::utils::constant;
 use crate::utils::http_util::{self};
+use tracing::Span;
 
 #[instrument(
     name = "proxy_websocket_request",
@@ -42,8 +43,9 @@ pub async fn ws_route_handler(
 
     // 将 WebSocket 升级响应转换为 Response<Body>
     let response = ws
-        .on_upgrade(|socket| async move {
-            handle_websocket_request(socket, new_url).await;
+        .on_upgrade(|socket| {
+            // 使用 instrument 将 span 附加到 future 上
+            handle_websocket_request(socket, new_url).instrument(Span::current())
         })
         .into_response();
 
@@ -74,6 +76,8 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
     // 2. 获取请求头并注入 Trace Context（核心步骤）
     let headers = ws_request.headers_mut(); // 直接操作 tungstenite 的头
     http_util::inject_trace_context(headers); // 复用 HTTP 的注入逻辑
+
+    tracing::info!("raw Header:{:?}", headers);
 
     // 3. 连接下游 WebSocket 服务（带 traceparent 头）
     let (server_ws, response) = match connect_async(ws_request).await {
