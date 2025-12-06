@@ -58,10 +58,10 @@ public class HttpGroupConfig {
     @Value("${megalith.blog.blog-url:http://127.0.0.1:8082/inner}")
     private String blogUrl;
 
-    @Value("${megalith.blog.oss-url:}")
+    @Value("${megalith.blog.oss.base-url:}")
     private String ossUrl;
 
-    @Value("${megalith.blog.sms-url:}")
+    @Value("${megalith.blog.sms.base-url:}")
     private String smsUrl;
 
     @Bean
