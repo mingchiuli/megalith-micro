@@ -1,4 +1,5 @@
-pub mod room;
-pub mod otel;
-pub mod shutdown;
 mod extractor;
+pub mod otel;
+mod room;
+pub mod route;
+pub mod shutdown;
