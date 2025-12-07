@@ -3,20 +3,14 @@ use axum::{
     middleware::{self},
     routing::{any, get},
 };
-use micro_gateway_rs::{handler::main_handler, layer};
-use opentelemetry::{KeyValue, global, trace::TracerProvider};
+use micro_gateway_rs::{handler::main_handler, layer, shutdown::shutdown::shutdown_signal};
+use opentelemetry::{global, trace::TracerProvider};
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
-use opentelemetry_otlp::{
-    LogExporter, MetricExporter, SpanExporter, WithExportConfig, WithHttpConfig,
-};
-use opentelemetry_sdk::{
-    Resource,
-    logs::SdkLoggerProvider,
-    metrics::{PeriodicReader, SdkMeterProvider},
-    trace::{Sampler, SdkTracerProvider},
+
+use micro_gateway_rs::otel::otel::{
+    init_logger_provider, init_meter_provider, init_tracer_provider,
 };
 use std::{env, net::SocketAddr};
-use tokio::signal;
 use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -27,67 +21,6 @@ const LOGO: &str = r#"
  / ___ \  >  <| |_| | | | | | |
 /_/   \_\/_/\_\\__,_|_| |_| |_|
 "#;
-
-fn resource() -> Resource {
-    Resource::builder()
-        .with_service_name("micro-gateway-rs")
-        .with_attributes([KeyValue::new("service.version", env!("CARGO_PKG_VERSION"))])
-        .build()
-}
-
-fn init_tracer_provider(http_client: &reqwest::blocking::Client) -> SdkTracerProvider {
-    let endpoint = env::var("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
-        .unwrap_or_else(|_| "http://localhost:8200/v1/traces".to_string());
-
-    let exporter = SpanExporter::builder()
-        .with_http()
-        .with_http_client(http_client.clone())
-        .with_endpoint(&endpoint)
-        .build()
-        .expect("Failed to create span exporter");
-
-    SdkTracerProvider::builder()
-        .with_batch_exporter(exporter)
-        .with_sampler(Sampler::TraceIdRatioBased(0.5))
-        .with_resource(resource())
-        .build()
-}
-
-fn init_meter_provider(http_client: &reqwest::blocking::Client) -> SdkMeterProvider {
-    let endpoint = env::var("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT")
-        .unwrap_or_else(|_| "http://localhost:8200/v1/metrics".to_string());
-
-    let exporter = MetricExporter::builder()
-        .with_http()
-        .with_http_client(http_client.clone())
-        .with_endpoint(&endpoint)
-        .build()
-        .expect("Failed to create metric exporter");
-
-    let reader = PeriodicReader::builder(exporter).build();
-
-    SdkMeterProvider::builder()
-        .with_reader(reader)
-        .with_resource(resource())
-        .build()
-}
-
-fn init_logger_provider(http_client: &reqwest::blocking::Client) -> SdkLoggerProvider {
-    let endpoint = env::var("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")
-        .unwrap_or_else(|_| "http://localhost:8200/v1/logs".to_string());
-
-    let exporter = LogExporter::builder()
-        .with_http()
-        .with_http_client(http_client.clone())
-        .with_endpoint(&endpoint)
-        .build()
-        .expect("Failed to create log exporter");
-
-    SdkLoggerProvider::builder()
-        .with_batch_exporter(exporter)
-        .with_resource(resource())
-        .build()
-}
 
 fn main() -> Result<(), BoxError> {
     // Initialize logging
@@ -156,32 +89,4 @@ async fn async_main() -> Result<(), BoxError> {
         .await?;
 
     Ok(())
-}
-
-async fn shutdown_signal() {
-    let ctrl_c = async {
-        signal::ctrl_c()
-            .await
-            .expect("Failed to install Ctrl+C handler");
-    };
-
-    #[cfg(unix)]
-    let terminate = async {
-        signal::unix::signal(signal::unix::SignalKind::terminate())
-            .expect("Failed to install signal handler")
-            .recv()
-            .await;
-    };
-
-    #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
-    tokio::select! {
-        _ = ctrl_c => {
-            tracing::info!("Ctrl-C received");
-        },
-        _ = terminate => {
-            tracing::info!("Terminate signal received");
-        },
-    }
-    tracing::info!("Shutdown signal received");
 }
