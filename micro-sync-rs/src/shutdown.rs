@@ -1,1 +1,3 @@
-pub mod shutdown;
+mod shutdown;
+
+pub use shutdown::shutdown_signal;

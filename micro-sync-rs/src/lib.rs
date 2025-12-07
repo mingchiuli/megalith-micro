@@ -1,5 +1,12 @@
 mod extractor;
-pub mod otel;
+mod otel;
 mod room;
-pub mod route;
-pub mod shutdown;
+mod route;
+mod shutdown;
+
+pub use otel::init_logger_provider;
+pub use otel::init_meter_provider;
+pub use otel::init_tracer_provider;
+
+pub use route::set_route;
+pub use shutdown::shutdown_signal;

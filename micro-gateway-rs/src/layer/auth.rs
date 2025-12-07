@@ -5,11 +5,10 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
 
-use crate::client::http_client;
-use crate::exception::error::{AuthError, ClientError, HandlerError, handle_api_error};
-use crate::result::api_result::ApiResult;
-use crate::utils::constant::AUTH_URL_KEY;
-use crate::utils::http_util;
+use crate::exception::{AuthError, ClientError, HandlerError, handle_api_error};
+use crate::result::ApiResult;
+use crate::utils::{self};
+use crate::{client, constant};
 
 use tracing::{Instrument, instrument};
 
@@ -53,7 +52,7 @@ fn extract_request_param(
 ) -> Result<(Uri, RouteCheckReq, HashMap<HeaderName, HeaderValue>), ClientError> {
     let method = req.method().to_string();
     let path = req.uri().path().to_string();
-    let auth_token = http_util::extract_token(req);
+    let auth_token = utils::extract_token(req);
     let uri = build_auth_uri()?;
     let headers = build_headers(auth_token.as_str());
     let req_body = RouteCheckReq {
@@ -76,7 +75,7 @@ async fn auth(
     req_body: RouteCheckReq,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<bool, AuthError> {
-    let resp: Result<ApiResult<bool>, ClientError> = http_client::post(uri, req_body, headers)
+    let resp: Result<ApiResult<bool>, ClientError> = client::post(uri, req_body, headers)
         .await
         .map_err(handle_api_error);
 
@@ -90,7 +89,8 @@ async fn auth(
 }
 
 fn build_auth_uri() -> Result<Uri, ClientError> {
-    let mut uri_str = env::var(AUTH_URL_KEY).unwrap_or("http://127.0.0.1:8081/inner".to_string());
+    let mut uri_str =
+        env::var(constant::AUTH_URL_KEY).unwrap_or("http://127.0.0.1:8081/inner".to_string());
     uri_str.push_str("/auth/route/check");
 
     uri_str
@@ -110,6 +110,6 @@ fn build_headers(auth_token: &str) -> HashMap<HeaderName, HeaderValue> {
         ),
     ]);
 
-    http_util::inject_trace_context_hashmap(&mut headers);
+    utils::inject_trace_context_hashmap(&mut headers);
     headers
 }

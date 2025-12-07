@@ -12,13 +12,13 @@ use hyper::{HeaderMap, Method, StatusCode, Uri, header};
 use std::{collections::HashMap, env};
 
 use crate::{
-    client::http_client::{self, AuthRouteReq, AuthRouteResp},
-    exception::error::{AuthError, ClientError},
-    result::api_result::ApiResult,
-    utils::constant::{
+    client::{self, AuthRouteReq, AuthRouteResp},
+    constant::{
         AUTH_HEADER, AUTH_URL_KEY, CF_CONNECTING_IP, FORWARDED_HEADER, PROXY_CLIENT_IP, UNKNOWN,
         WL_PROXY_CLIENT_IP,
     },
+    exception::{AuthError, ClientError},
+    result::ApiResult,
 };
 
 use opentelemetry::global;
@@ -104,10 +104,10 @@ pub async fn find_route(
             HeaderValue::from_static("application/json"),
         ),
     ]);
-    
+
     inject_trace_context_hashmap(&mut headers);
 
-    let resp: ApiResult<AuthRouteResp> = http_client::post(auth_url, req_body, headers)
+    let resp: ApiResult<AuthRouteResp> = client::post(auth_url, req_body, headers)
         .await
         .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()))?;
     Ok(resp.into_data())

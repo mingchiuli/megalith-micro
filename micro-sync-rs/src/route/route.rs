@@ -8,9 +8,8 @@ use warp::Filter;
 use warp::filters::header::headers_cloned;
 use warp::http::HeaderMap;
 
-use crate::room::broadcast::ws_handler;
-use crate::room::room::RoomManager;
-use crate::room::room_checker::check_room_exists;
+use crate::room::{RoomManager, check_room_exists, ws_handler};
+
 
 pub fn set_route() -> impl Filter<Extract = impl Reply, Error = warp::Rejection> + Clone {
     let room_manager = Arc::new(Mutex::new(RoomManager::new()));
