@@ -1,7 +1,6 @@
-use micro_sync_rs::otel::otel::{init_logger_provider, init_meter_provider, init_tracer_provider};
-
-use micro_sync_rs::route::route::set_route;
-use micro_sync_rs::shutdown::shutdown::shutdown_signal;
+use micro_sync_rs::{
+    init_logger_provider, init_meter_provider, init_tracer_provider, set_route, shutdown_signal,
+};
 use opentelemetry::{global, trace::TracerProvider};
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
 

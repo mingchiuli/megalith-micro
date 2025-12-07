@@ -3,13 +3,13 @@ use axum::{
     middleware::{self},
     routing::{any, get},
 };
-use micro_gateway_rs::{handler::main_handler, layer, shutdown::shutdown::shutdown_signal};
+use micro_gateway_rs::{
+    auth_process, handle_main, init_logger_provider, init_meter_provider, init_tracer_provider,
+    shutdown_signal,
+};
 use opentelemetry::{global, trace::TracerProvider};
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
 
-use micro_gateway_rs::otel::otel::{
-    init_logger_provider, init_meter_provider, init_tracer_provider,
-};
 use std::{env, net::SocketAddr};
 use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -77,8 +77,8 @@ async fn async_main() -> Result<(), BoxError> {
     // build our application with a single route
     let app = Router::new()
         .route("/actuator/health", get(|| async { "OK" }))
-        .route("/{*wildcard}", any(main_handler::handle))
-        .layer(middleware::from_fn(layer::auth::process));
+        .route("/{*wildcard}", any(handle_main))
+        .layer(middleware::from_fn(auth_process));
 
     // run our app with hyper, listening globally on port 8008
     let port = env::var("PORT").unwrap_or_else(|_| "8088".to_string());

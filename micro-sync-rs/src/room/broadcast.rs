@@ -1,4 +1,4 @@
-use crate::extractor::header_extractor::WarpHeaderExtractor;
+use crate::extractor::WarpHeaderExtractor;
 use crate::room::room::{RoomConnection, RoomManager};
 use futures_util::StreamExt;
 use opentelemetry::global;

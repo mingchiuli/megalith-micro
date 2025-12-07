@@ -11,7 +11,7 @@ use warp::http::HeaderMap;
 use warp::reject::Rejection;
 use warp::reply::json;
 
-use crate::extractor::header_extractor::WarpHeaderExtractor;
+use crate::extractor::WarpHeaderExtractor;
 use crate::room::room::RoomManager;
 
 pub async fn check_room_exists(

@@ -10,9 +10,9 @@ use tokio_tungstenite::tungstenite::{
 };
 use tracing::{Instrument, instrument};
 
-use crate::exception::error::HandlerError;
-use crate::utils::constant;
-use crate::utils::http_util::{self};
+use crate::exception::HandlerError;
+use crate::{constant, utils};
+
 use tracing::Span;
 
 #[instrument(
@@ -30,16 +30,16 @@ pub async fn ws_route_handler(
     let token = extract_token(&uri);
 
     // Get authentication URL
-    let auth_url = http_util::get_auth_url()?;
+    let auth_url = utils::get_auth_url()?;
 
     // Prepare route request
-    let req_body = http_util::prepare_route_request(&Method::GET, &HeaderMap::new(), &uri);
+    let req_body = utils::prepare_route_request(&Method::GET, &HeaderMap::new(), &uri);
 
     // Forward to route service
-    let route_resp = http_util::find_route(auth_url, req_body, &token).await?;
+    let route_resp = utils::find_route(auth_url, req_body, &token).await?;
 
     // Parse url
-    let new_url = http_util::parse_url(route_resp, &uri, constant::WS)?;
+    let new_url = utils::parse_url(route_resp, &uri, constant::WS)?;
 
     // 将 WebSocket 升级响应转换为 Response<Body>
     let span = Span::current();
@@ -76,7 +76,7 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
 
     // 2. 获取请求头并注入 Trace Context（核心步骤）
     let headers = ws_request.headers_mut(); // 直接操作 tungstenite 的头
-    http_util::inject_trace_context(headers); // 复用 HTTP 的注入逻辑
+    utils::inject_trace_context(headers); // 复用 HTTP 的注入逻辑
 
     tracing::info!("raw Header:{:?}", headers);
 

@@ -1,1 +1,3 @@
-pub mod api_result;
+mod api_result;
+
+pub use api_result::ApiResult;
