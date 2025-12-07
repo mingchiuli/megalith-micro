@@ -93,7 +93,7 @@ impl RoomManager {
     }
 
     // 用户离开房间
-    pub fn leave_room(&mut self, room_id: &str, room_info: Arc<RoomInfo>) -> bool {
+    fn leave_room(&mut self, room_id: &str, room_info: Arc<RoomInfo>) -> bool {
         let prev_count = room_info.connection_count.fetch_sub(1, Ordering::SeqCst);
         let current_count = prev_count - 1;
 

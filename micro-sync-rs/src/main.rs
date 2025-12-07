@@ -1,31 +1,20 @@
-use micro_sync_rs::extractor::header_extractor::WarpHeaderExtractor;
-use micro_sync_rs::handler::broadcast::ws_handler;
+use micro_sync_rs::otel::otel::{init_logger_provider, init_meter_provider, init_tracer_provider};
+use micro_sync_rs::room::broadcast::ws_handler;
 use micro_sync_rs::room::room::RoomManager;
+use micro_sync_rs::room::room_checker::check_room_exists;
+use micro_sync_rs::shutdown::shutdown::shutdown_signal;
 use opentelemetry::metrics::Counter;
-use opentelemetry::{KeyValue, global, trace::TracerProvider};
+use opentelemetry::{global, trace::TracerProvider};
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
-use opentelemetry_otlp::{
-    LogExporter, MetricExporter, SpanExporter, WithExportConfig, WithHttpConfig,
-};
-use opentelemetry_sdk::{
-    Resource,
-    logs::SdkLoggerProvider,
-    metrics::{PeriodicReader, SdkMeterProvider},
-    trace::{Sampler, SdkTracerProvider},
-};
-use serde_json::json;
+
 use std::env;
 use std::sync::Arc;
-use tokio::signal;
 use tokio::sync::Mutex;
-use tracing::Instrument;
-use tracing_opentelemetry::{OpenTelemetryLayer, OpenTelemetrySpanExt};
+use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use warp::Filter;
 use warp::filters::header::headers_cloned;
 use warp::http::HeaderMap;
-use warp::reject::Rejection;
-use warp::reply::json;
 
 const LOGO: &str = r#"
  _    _  ___  ____  ____
@@ -34,67 +23,6 @@ const LOGO: &str = r#"
 \  /\  /  _  |  _ <|  __/
  \/  \/_/ \_\_| \_\_|
 "#;
-
-fn resource() -> Resource {
-    Resource::builder()
-        .with_service_name("micro-sync-rs")
-        .with_attributes([KeyValue::new("service.version", env!("CARGO_PKG_VERSION"))])
-        .build()
-}
-
-fn init_tracer_provider(http_client: &reqwest::blocking::Client) -> SdkTracerProvider {
-    let endpoint = env::var("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
-        .unwrap_or_else(|_| "http://localhost:8200/v1/traces".to_string());
-
-    let exporter = SpanExporter::builder()
-        .with_http()
-        .with_http_client(http_client.clone())
-        .with_endpoint(&endpoint)
-        .build()
-        .expect("Failed to create span exporter");
-
-    SdkTracerProvider::builder()
-        .with_batch_exporter(exporter)
-        .with_sampler(Sampler::TraceIdRatioBased(0.5))
-        .with_resource(resource())
-        .build()
-}
-
-fn init_meter_provider(http_client: &reqwest::blocking::Client) -> SdkMeterProvider {
-    let endpoint = env::var("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT")
-        .unwrap_or_else(|_| "http://localhost:8200/v1/metrics".to_string());
-
-    let exporter = MetricExporter::builder()
-        .with_http()
-        .with_http_client(http_client.clone())
-        .with_endpoint(&endpoint)
-        .build()
-        .expect("Failed to create metric exporter");
-
-    let reader = PeriodicReader::builder(exporter).build();
-
-    SdkMeterProvider::builder()
-        .with_reader(reader)
-        .with_resource(resource())
-        .build()
-}
-
-fn init_logger_provider(http_client: &reqwest::blocking::Client) -> SdkLoggerProvider {
-    let endpoint = env::var("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")
-        .unwrap_or_else(|_| "http://localhost:8200/v1/logs".to_string());
-
-    let exporter = LogExporter::builder()
-        .with_http()
-        .with_http_client(http_client.clone())
-        .with_endpoint(&endpoint)
-        .build()
-        .expect("Failed to create log exporter");
-
-    SdkLoggerProvider::builder()
-        .with_batch_exporter(exporter)
-        .with_resource(resource())
-        .build()
-}
 
 fn main() {
     // Initialize logging
@@ -192,74 +120,4 @@ async fn async_main() {
 
     // 等待服务器运行完成
     server.await;
-}
-
-async fn check_room_exists(
-    room_id: String,
-    room_manager: Arc<Mutex<RoomManager>>,
-    counter: Counter<u64>,
-    headers: HeaderMap,
-) -> Result<warp::reply::Json, Rejection> {
-    // 1. 提取上游 Trace Context
-    tracing::info!("headerMap:{:?}", headers);
-    let parent_context = global::get_text_map_propagator(|propagator| {
-        propagator.extract(&WarpHeaderExtractor(&headers))
-    });
-
-    // 2. 创建 Span 并关联父上下文
-    let span = tracing::info_span!(
-        "websocket_connection",
-        room_id = %room_id,
-        otel.name = format!("WebSocket: /rooms/{}", room_id)
-    );
-    let _ = span.set_parent(parent_context);
-
-    // 3. 核心修复：用 instrument 包裹所有异步逻辑（替代 span.entered()）
-    let result = async move {
-        // 业务逻辑：跨 await 完全安全（instrument 保证 Span 上下文自动传播）
-        counter.add(1, &[KeyValue::new("endpoint", "check_room_exists")]);
-        let room_manager = room_manager.lock().await; // 无编译错误
-        let exists = room_manager.room_exists(&room_id);
-        tracing::info!(room_id = %room_id, exists = %exists, "Checking room existence");
-
-        Ok(json(&json!({
-            "code": 200,
-            "msg": "success",
-            "data": {
-                "exists": exists
-            }
-        })))
-    }
-    .instrument(span)
-    .await; // instrument 满足 Send，跨 await 安全
-
-    result
-}
-
-async fn shutdown_signal() {
-    let ctrl_c = async {
-        signal::ctrl_c()
-            .await
-            .expect("Failed to install Ctrl+C handler");
-    };
-
-    #[cfg(unix)]
-    let terminate = async {
-        signal::unix::signal(signal::unix::SignalKind::terminate())
-            .expect("Failed to install signal handler")
-            .recv()
-            .await;
-    };
-
-    #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
-    tokio::select! {
-        _ = ctrl_c => {
-            tracing::info!("Ctrl-C received");
-        },
-        _ = terminate => {
-            tracing::info!("Terminate signal received");
-        },
-    }
-    tracing::info!("Shutdown signal received");
 }

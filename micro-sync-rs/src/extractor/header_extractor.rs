@@ -1,5 +1,5 @@
-use warp::http::HeaderMap;
 use opentelemetry::propagation::Extractor;
+use warp::http::HeaderMap;
 
 /// 自定义 HeaderExtractor，用于从 warp 的 HeaderMap (http 0.2) 中提取 trace context
 pub struct WarpHeaderExtractor<'a>(pub &'a HeaderMap);
