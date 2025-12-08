@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import avatar from '@/assets/logo.svg'
 import { Notebook } from '@element-plus/icons-vue'
+import avatarUrl from '@/assets/logo.svg'
 
-const toGithub = () => (window.location.href = 'https://github.com/mingchiuli')
+const avatar = avatarUrl as string
+
+const toGithub = () => {
+  window.location.href = 'https://github.com/mingchiuli'
+}
 </script>
 
 <template>
@@ -10,7 +14,6 @@ const toGithub = () => (window.location.href = 'https://github.com/mingchiuli')
     <div class="into-avatar">
       <el-avatar shape="square" :size="200" :src="avatar" fit="cover" />
     </div>
-
     <div class="into-button">
       <router-link to="/blogs">
         <el-button circle size="large" style="font-size: 30px" :icon="Notebook"></el-button>
