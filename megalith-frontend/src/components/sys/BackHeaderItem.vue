@@ -14,9 +14,13 @@ if (info) {
 const avatar = ref(user?.avatar || '')
 const nickname = ref(user?.nickname || '')
 
+const goToHome = () => {
+  router.push('/blogs')
+}
+
 const logout = () => {
   clearLoginState()
-  router.push('/blogs')
+  goToHome()
 }
 </script>
 
@@ -32,7 +36,7 @@ const logout = () => {
       </span>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item @click="router.push('/blogs')">回到首页</el-dropdown-item>
+          <el-dropdown-item @click="goToHome">回到首页</el-dropdown-item>
           <el-dropdown-item divided @click="logout">退出登录</el-dropdown-item>
         </el-dropdown-menu>
       </template>

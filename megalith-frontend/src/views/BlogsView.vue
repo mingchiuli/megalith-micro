@@ -113,6 +113,12 @@ const to = async (id: number) => {
   }
 }
 
+const goToBack = () => {
+  router.push({
+    name: tabStore().editableTabsValue ? tabStore().editableTabsValue : menuStore().menuTree!.name
+  })
+}
+
 const { content, totalElements, pageSize } = toRefs(page)
 
 ;(async () => {
@@ -142,13 +148,7 @@ const { content, totalElements, pageSize } = toRefs(page)
       size="large"
       class="door"
       v-if="login && menuStore().menuTree"
-      @click="
-        router.push({
-          name: tabStore().editableTabsValue
-            ? tabStore().editableTabsValue
-            : menuStore().menuTree!.name
-        })
-      "
+      @click="goToBack"
       >进入后台</el-link
     >
     <el-link class="door" type="warning" v-if="keywords" link @click="clearSearch">返回</el-link>
