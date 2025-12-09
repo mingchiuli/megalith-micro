@@ -17,16 +17,20 @@ public class ThreadPoolConfig {
 
     @Bean("commonExecutor")
     TaskExecutor taskExecutor(ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
-        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-        threadPoolTaskExecutor.setVirtualThreads(true);
-        threadPoolTaskExecutor.setTaskDecorator(contextPropagatingTaskDecorator);
-        return threadPoolTaskExecutor;
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setVirtualThreads(true);
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
+        executor.setTaskDecorator(contextPropagatingTaskDecorator);
+        return executor;
     }
 
     @Bean("mqExecutor")
     TaskExecutor simpleAsyncTaskExecutor(ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
         SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
         executor.setTaskDecorator(contextPropagatingTaskDecorator);
+        executor.setTaskTerminationTimeout(60000);
+        executor.setCancelRemainingTasksOnClose(true);
         executor.setVirtualThreads(true);
         return executor;
     }

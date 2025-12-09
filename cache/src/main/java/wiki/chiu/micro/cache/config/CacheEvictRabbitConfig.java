@@ -91,9 +91,11 @@ public class CacheEvictRabbitConfig {
         return container;
     }
 
-    TaskExecutor simpleAsyncTaskExecutor() {
+    private TaskExecutor simpleAsyncTaskExecutor() {
         SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
         executor.setVirtualThreads(true);
+        executor.setTaskTerminationTimeout(60000);
+        executor.setCancelRemainingTasksOnClose(true);
         return executor;
     }
 
