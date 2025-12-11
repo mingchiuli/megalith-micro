@@ -89,13 +89,26 @@ export const createYjsExtension = async (
 
 config({
   codeMirrorExtensions(extensions) {
-    // Return an array of CodeMirrorExtension objects, where each has the expected structure
+    // 1. 先修改 linkShortener 扩展的配置（关键：必须先处理原扩展，再添加自定义扩展）
+    const modifiedExtensions = extensions.map((item) => {
+      if (item.type === 'linkShortener') {
+        return {
+          ...item,
+          options: {
+            maxLength: 10e9, // 设大值相当于禁用缩短
+          },
+        };
+      }
+      return item;
+    });
+
+    // 2. 再添加 Yjs 的 compartment 扩展（顺序：原扩展处理完后，再追加自定义扩展）
     return [
-      ...extensions,
+      ...modifiedExtensions, // 使用修改后的扩展数组
       {
         type: 'compartment',
         extension: yjsCompartment.of([])
       }
-    ]
+    ];
   }
-})
+});
