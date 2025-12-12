@@ -47,9 +47,10 @@ const form: EditForm = reactive({
   content: '',
   status: 0,
   link: '',
-  sensitiveContentList: [],
-  owner: false
+  sensitiveContentList: []
 })
+
+const owner = ref(false)
 
 type SensitiveTagsItem = {
   element: SensitiveExhibit
@@ -288,7 +289,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   form.id = data.id
   form.userId = data.userId
   form.sensitiveContentList = data.sensitiveContentList
-  form.owner = data.owner
+  owner.value = data.owner
   loadContent.value = false
 }
 
@@ -436,7 +437,7 @@ const aiGenerate = async () => {
           v-model="form.title"
           placeholder="标题"
           maxlength="20"
-          :disabled="!form.owner"
+          :disabled="!owner"
         />
       </el-form-item>
 
@@ -450,7 +451,7 @@ const aiGenerate = async () => {
             v-model="form.description"
             placeholder="摘要"
             maxlength="60"
-            :disabled="!form.owner"
+            :disabled="!owner"
           />
 
           <el-select v-model="aiModel" placeholder="模型" style="width: 140px">
@@ -468,14 +469,14 @@ const aiGenerate = async () => {
             size="small"
             @click="aiGenerate"
             :loading="aiLoading"
-            :disabled="!form.owner || aiLoading || !form.content || !aiModel"
+            :disabled="!owner || aiLoading || !form.content || !aiModel"
             >✨AI</el-button
           >
         </div>
       </el-form-item>
 
       <el-form-item class="status" prop="status">
-        <el-radio-group v-model="form.status" :disabled="!form.owner">
+        <el-radio-group v-model="form.status" :disabled="!owner">
           <el-radio :value="Status.NORMAL">公开</el-radio>
           <el-radio :value="Status.BLOCK">隐藏</el-radio>
           <el-radio :value="Status.SENSITIVE_FILTER">打码</el-radio>
@@ -510,7 +511,7 @@ const aiGenerate = async () => {
           :http-request="upload"
           :on-remove="handleRemove"
           :on-preview="handlePictureCardPreview"
-          :disabled="!form.owner"
+          :disabled="!owner"
         >
           <el-icon>
             <Plus />
@@ -532,13 +533,13 @@ const aiGenerate = async () => {
           v-model:content="form.content"
           @sensitive="dealSensitive"
           :form-status="form.status"
-          :owner="form.owner"
+          :owner="owner"
         />
       </el-form-item>
 
       <div class="submit-button">
         <el-button
-          :disabled="submitLoading || !form.owner"
+          :disabled="submitLoading || !owner"
           :loading="submitLoading"
           :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)"
           v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)"

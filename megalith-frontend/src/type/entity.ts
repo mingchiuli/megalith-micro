@@ -342,7 +342,6 @@ export interface EditForm {
   status: number
   link: string
   sensitiveContentList: SensitiveItem[]
-  owner: boolean
 }
 
 export interface SensitiveItem {
