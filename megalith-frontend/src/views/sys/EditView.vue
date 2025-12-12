@@ -129,18 +129,18 @@ const submitForm = async (ref: FormInstance) => {
       try {
         submitLoading.value = true
         await POST<null>(API_ENDPOINTS.BLOG_ADMIN.SAVE_BLOG, form)
+        ElNotification({
+          title: '操作成功',
+          message: '编辑成功',
+          type: 'success',
+          duration: 1000
+        })
+        router.push({
+          name: 'system-blogs'
+        })
       } catch {
         submitLoading.value = false
       }
-      ElNotification({
-        title: '操作成功',
-        message: '编辑成功',
-        type: 'success',
-        duration: 1000
-      })
-      router.push({
-        name: 'system-blogs'
-      })
     }
   })
 }
