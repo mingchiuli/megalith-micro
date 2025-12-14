@@ -41,8 +41,6 @@ export const AUTH_API = {
 export const BLOG_PUBLIC_API = {
   // 分页获取博客列表
   GET_BLOGS_PAGE: (pageNo: number) => `/public/blog/page/${pageNo}`,
-  // 获取博客状态
-  GET_BLOG_STATUS: (id: number) => `/public/blog/status/${id}`,
   // 获取博客详情
   GET_BLOG_INFO: (id: number | string) => `/public/blog/info/${id}`,
   // 通过阅读密码获取博客

@@ -98,8 +98,7 @@ const search = () => {
   searchDialogVisible.value = true
 }
 
-const to = async (id: number) => {
-  const status = await GET<number>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOG_STATUS(id))
+const to = async (id: number, status: number) => {
   if (status === Status.NORMAL || status === Status.SENSITIVE_FILTER) {
     router.push({
       name: 'blog',
@@ -168,7 +167,7 @@ const { content, totalElements, pageSize } = toRefs(page)
           :color="'#0bbd87'"
           v-show="!loading"
         >
-          <el-card shadow="hover" @click="to(blog.id)">
+          <el-card shadow="hover" @click="to(blog.id, blog.status)">
             <el-image
               v-if="blog.link"
               :key="blog.link"

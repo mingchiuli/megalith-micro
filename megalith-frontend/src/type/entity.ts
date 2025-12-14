@@ -11,6 +11,7 @@ export interface BlogDesc {
   description: string
   created: string
   link: string
+  status: number
   content?: string
   score?: number
   highlight?: SearchBlogsHighlightStruct
