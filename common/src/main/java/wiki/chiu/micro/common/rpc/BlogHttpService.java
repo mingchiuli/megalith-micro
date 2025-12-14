@@ -27,9 +27,6 @@ public interface BlogHttpService {
     @PostExchange("/blog/{blogId}")
     Result<Void> setReadCount(@PathVariable Long blogId);
 
-    @GetExchange("/blog/status/{blogId}")
-    Result<Integer> findStatusById(@PathVariable Long blogId);
-
     @PostExchange("/blog/page")
     Result<PageAdapter<BlogEntityRpcVo>> findPage(@RequestParam Integer pageNo,
                                                   @RequestParam Integer pageSize);

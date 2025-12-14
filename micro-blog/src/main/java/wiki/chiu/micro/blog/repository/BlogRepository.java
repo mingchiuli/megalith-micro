@@ -20,9 +20,6 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
 
     Long countByCreatedGreaterThanEqual(LocalDateTime created);
 
-    @Query(value = "SELECT blog.status from BlogEntity blog where blog.id = ?1")
-    Integer findStatusById(Long blogId);
-
     @Query(value = "UPDATE BlogEntity blog SET blog.readCount = blog.readCount + 1 WHERE blog.id = ?1")
     @Modifying
     @Transactional

@@ -20,8 +20,6 @@ public interface BlogService {
 
     Boolean checkToken(Long blogId, String token);
 
-    Integer getBlogStatus(List<String> roles, Long blogId, Long userId);
-
     VisitStatisticsVo getVisitStatistics();
 
     List<BlogHotReadVo> getScoreBlogs();

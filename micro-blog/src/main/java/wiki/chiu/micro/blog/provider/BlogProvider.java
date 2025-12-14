@@ -50,11 +50,6 @@ public class BlogProvider implements BlogHttpService {
         return Result.success(() -> blogService.setReadCount(blogId));
     }
 
-    @GetMapping("/status/{blogId}")
-    public Result<Integer> findStatusById(@PathVariable Long blogId) {
-        return Result.success(() -> blogService.findStatusById(blogId));
-    }
-
     @PostMapping("/page")
     public Result<PageAdapter<BlogEntityRpcVo>> findPage(@RequestParam Integer pageNo,
                                                          @RequestParam Integer pageSize) {

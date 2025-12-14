@@ -492,11 +492,6 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public Integer findStatusById(Long blogId) {
-        return blogRepository.findStatusById(blogId);
-    }
-
-    @Override
     public PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize) {
         var pageRequest = PageRequest.of(pageNo - 1,
                 pageSize,

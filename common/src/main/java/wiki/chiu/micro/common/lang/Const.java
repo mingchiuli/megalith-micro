@@ -48,8 +48,6 @@ public class Const {
 
     public static final String HOT_BLOG = "hot_blog";
 
-    public static final String BLOG_STATUS = "blog_status";
-
     public static final String BLOOM_FILTER_BLOG = "bloom_filter_blog";
 
     public static final String BLOOM_FILTER_PAGE = "bloom_filter_page";

@@ -102,14 +102,6 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
         }
 
         try {
-            Method statusMethod = BlogWrapper.class.getMethod("findStatusById", Long.class);
-            String status = commonCacheKeyGenerator.generateKey(statusMethod, id);
-            keys.add(status);
-        } catch (NoSuchMethodException e) {
-            log.error(e.getMessage());
-        }
-
-        try {
             Method sensitiveMethod = BlogSensitiveWrapper.class.getMethod("findSensitiveByBlogId", Long.class);
             String sensitive = commonCacheKeyGenerator.generateKey(sensitiveMethod, id);
             keys.add(sensitive);

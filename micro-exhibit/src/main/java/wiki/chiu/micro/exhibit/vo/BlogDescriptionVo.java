@@ -19,7 +19,9 @@ public record BlogDescriptionVo(
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime created,
 
-        String link) {
+        String link,
+
+        Integer status) {
 
     public static BlogDescriptionVoBuilder builder() {
         return new BlogDescriptionVoBuilder();
@@ -31,6 +33,7 @@ public record BlogDescriptionVo(
         private String description;
         private LocalDateTime created;
         private String link;
+        private Integer status;
 
         public BlogDescriptionVoBuilder id(Long id) {
             this.id = id;
@@ -57,8 +60,13 @@ public record BlogDescriptionVo(
             return this;
         }
 
+        public BlogDescriptionVoBuilder status(Integer status) {
+            this.status = status;
+            return this;
+        }
+
         public BlogDescriptionVo build() {
-            return new BlogDescriptionVo(id, title, description, created, link);
+            return new BlogDescriptionVo(id, title, description, created, link, status);
         }
     }
 }
