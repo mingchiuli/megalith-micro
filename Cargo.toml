@@ -31,7 +31,7 @@ opentelemetry-http = "0.31.0"
 
 # HTTP client - MUST use blocking client for OpenTelemetry
 # BatchProcessor runs in non-tokio threads and cannot use async reqwest
-reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+reqwest = { version = "0.12.25", default-features = false, features = ["blocking", "rustls-tls"] }
 
 # Async utilities
 futures-util = "0.3.31"
