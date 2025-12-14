@@ -40,8 +40,6 @@ public interface BlogService {
 
     void setReadCount(Long blogId);
 
-    Integer findStatusById(Long blogId);
-
     PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize);
 
     Long countByCreatedGreaterThanEqual(LocalDateTime created);

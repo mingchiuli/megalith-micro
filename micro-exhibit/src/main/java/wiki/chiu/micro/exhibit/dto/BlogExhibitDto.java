@@ -18,7 +18,9 @@ public record BlogExhibitDto(
 
         LocalDateTime created,
 
-        Long readCount) {
+        Long readCount,
+
+        Integer status) {
 
     public static BlogExhibitDtoBuilder builder() {
         return new BlogExhibitDtoBuilder();
@@ -33,6 +35,7 @@ public record BlogExhibitDto(
         private String content;
         private LocalDateTime created;
         private Long readCount;
+        private Integer status;
 
         public BlogExhibitDtoBuilder userId(Long userId) {
             this.userId = userId;
@@ -74,8 +77,13 @@ public record BlogExhibitDto(
             return this;
         }
 
+        public BlogExhibitDtoBuilder status(Integer status) {
+            this.status = status;
+            return this;
+        }
+
         public BlogExhibitDto build() {
-            return new BlogExhibitDto(userId, description, nickname, avatar, title, content, created, readCount);
+            return new BlogExhibitDto(userId, description, nickname, avatar, title, content, created, readCount, status);
         }
     }
 }

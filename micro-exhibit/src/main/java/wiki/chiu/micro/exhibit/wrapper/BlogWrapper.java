@@ -60,11 +60,6 @@ public class BlogWrapper {
         });
     }
 
-    @Cache(prefix = Const.BLOG_STATUS)
-    public Integer findStatusById(Long blogId) {
-        return blogHttpServiceWrapper.findStatusById(blogId);
-    }
-
     @Cache(prefix = Const.HOT_BLOGS)
     public PageAdapter<BlogDescriptionDto> findPage(Integer currentPage) {
         PageAdapter<BlogEntityRpcVo> page = blogHttpServiceWrapper.findPage(currentPage, blogPageSize);

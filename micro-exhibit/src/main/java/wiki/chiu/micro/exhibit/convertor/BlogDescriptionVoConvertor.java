@@ -19,6 +19,7 @@ public class BlogDescriptionVoConvertor {
                         .title(dto.title())
                         .created(dto.created())
                         .link(dto.link())
+                        .status(dto.status())
                         .build())
                 .toList();
 

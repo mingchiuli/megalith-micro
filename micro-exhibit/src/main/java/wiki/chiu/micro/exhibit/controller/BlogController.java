@@ -56,12 +56,6 @@ public class BlogController {
         return Result.success(() -> blogService.checkToken(blogId, token));
     }
 
-    @GetMapping("/status/{blogId}")
-    @Checker(handler = DetailHandler.class)
-    public Result<Integer> getBlogStatus(@PathVariable Long blogId, AuthInfo authInfo) {
-        return Result.success(() -> blogService.getBlogStatus(authInfo.roles(), blogId, authInfo.userId()));
-    }
-
     @GetMapping("/stat")
     public Result<VisitStatisticsVo> getVisitStatistics() {
         return Result.success(blogService::getVisitStatistics);

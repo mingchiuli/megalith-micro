@@ -20,6 +20,7 @@ public class BlogExhibitDtoConvertor {
                 .avatar(user.avatar())
                 .created(blogEntity.created())
                 .readCount(blogEntity.readCount())
+                .status(blogEntity.status())
                 .build();
     }
 

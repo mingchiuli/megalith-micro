@@ -40,11 +40,6 @@ public class BlogHttpServiceWrapper {
         blogHttpService.setReadCount(id);
     }
 
-    public Integer findStatusById(Long blogId) {
-        return Result.handleResult(() -> blogHttpService.findStatusById(blogId));
-
-    }
-
     public PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize) {
         return Result.handleResult(() -> blogHttpService.findPage(pageNo, pageSize));
 

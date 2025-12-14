@@ -112,26 +112,6 @@ public class BlogServiceImpl implements BlogService {
         return StringUtils.hasLength(token) && Objects.equals(password, token);
     }
 
-    @Override
-    public Integer getBlogStatus(List<String> roles, Long blogId, Long userId) {
-        Integer status = blogWrapper.findStatusById(blogId);
-
-        if (isNormalOrSensitive(status)) {
-            return status;
-        }
-
-        if (roles.isEmpty()) {
-            return BlogStatusEnum.HIDE.getCode();
-        }
-
-        if (roles.contains(highestRole)) {
-            return BlogStatusEnum.NORMAL.getCode();
-        }
-
-        BlogEntityRpcVo blog = blogHttpServiceWrapper.findById(blogId);
-        return Objects.equals(blog.userId(), userId) ? BlogStatusEnum.NORMAL.getCode() : BlogStatusEnum.HIDE.getCode();
-    }
-
     private boolean isNormalOrSensitive(Integer status) {
         return BlogStatusEnum.NORMAL.getCode().equals(status) || BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(status);
     }
@@ -173,7 +153,7 @@ public class BlogServiceImpl implements BlogService {
     public BlogExhibitVo getBlogDetail(List<String> roles, Long id, Long userId) {
 
         BlogExhibitDto rawBlog = blogWrapper.findById(id);
-        Integer status = blogWrapper.findStatusById(id);
+        Integer status = rawBlog.status();
 
         if (BlogStatusEnum.HIDE.getCode().equals(status) &&
                 !roles.contains(highestRole) &&
