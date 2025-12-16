@@ -131,7 +131,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public VisitStatisticsVo getVisitStatistics() {
-        List<Long> list = redissonClient.getScript().eval(Mode.READ_WRITE, visitScript, ReturnType.MULTI.LONG, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT));
+        List<Long> list = redissonClient.getScript().eval(Mode.READ_WRITE, visitScript, ReturnType.LIST, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT));
         return VisitStatisticsVoConvertor.convert(list);
     }
 
