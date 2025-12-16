@@ -105,7 +105,7 @@ subprojects {
             mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.0")
         }
         dependencies {
-            dependency("org.redisson:redisson:3.52.0")
+            dependency("org.redisson:redisson:4.0.0")
             dependency("com.nimbusds:nimbus-jose-jwt:10.6")
             dependency("wiki.chiu.megalith:cache-spring-boot-starter:4.0")
         }

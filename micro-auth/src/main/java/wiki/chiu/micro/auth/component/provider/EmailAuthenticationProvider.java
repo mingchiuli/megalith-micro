@@ -86,7 +86,7 @@ public final class EmailAuthenticationProvider extends ProviderBase {
         }
 
         if (!code.equalsIgnoreCase(credentials)) {
-            Long ttl = redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.INTEGER, Collections.singletonList(prefix), Const.TRY_COUNT_KEY);
+            Long ttl = redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.LONG, Collections.singletonList(prefix), Const.TRY_COUNT_KEY);
 
             if (Objects.equals(0L, ttl)) {
                 throw new BadCredentialsException(CODE_EXPIRED.getMsg());
