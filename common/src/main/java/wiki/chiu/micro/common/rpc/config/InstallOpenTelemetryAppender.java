@@ -5,6 +5,9 @@ import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppen
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 
+/**
+ * OTEL log
+ */
 @AutoConfiguration
 class InstallOpenTelemetryAppender implements InitializingBean {
 
