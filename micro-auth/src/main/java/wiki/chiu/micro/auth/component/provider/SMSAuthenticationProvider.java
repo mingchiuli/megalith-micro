@@ -87,7 +87,7 @@ public final class SMSAuthenticationProvider extends ProviderBase {
         }
 
         if (!Objects.equals(code, credentials)) {
-            Long ttl = redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.INTEGER, Collections.singletonList(prefix), Const.TRY_COUNT_KEY);
+            Long ttl = redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.LONG, Collections.singletonList(prefix), Const.TRY_COUNT_KEY);
             if (Long.valueOf(0).equals(ttl)) {
                 throw new BadCredentialsException(SMS_EXPIRED.getMsg());
             }
