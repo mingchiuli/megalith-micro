@@ -28,8 +28,8 @@ public class RedissonClientConfig {
         Config config = new Config();
         SingleServerConfig singleServerConfig = config.useSingleServer();
         config.setCodec(new StringCodec());
+        config.setPassword(password);
         singleServerConfig.setAddress("redis://" + host + ":" + port);
-        singleServerConfig.setPassword(password);
         return Redisson.create(config);
     }
 }

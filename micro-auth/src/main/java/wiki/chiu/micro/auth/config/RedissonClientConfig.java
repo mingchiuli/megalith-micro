@@ -29,9 +29,9 @@ public class RedissonClientConfig {
     RedissonClient redisson() {
         Config config = new Config();
         config.setCodec(new StringCodec());
+        config.setPassword(password);
         SingleServerConfig singleServerConfig = config.useSingleServer();
         singleServerConfig.setAddress("redis://" + host + ":" + port);
-        singleServerConfig.setPassword(password);
         return Redisson.create(config);
     }
 }
