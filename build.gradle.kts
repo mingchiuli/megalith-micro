@@ -2,6 +2,8 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
+import org.hibernate.orm.tooling.gradle.HibernateOrmSpec
+import org.springframework.boot.gradle.tasks.aot.ProcessAot
 
 plugins {
     // Only declare plugin versions, don't apply to root project
@@ -30,8 +32,19 @@ subprojects {
     if (name.startsWith("micro-")) {
         plugins.apply("org.graalvm.buildtools.native")
 
-        if (name.equals("micro-user") || name.equals("micro-blog")) {
+        if (name == "micro-user" || name == "micro-blog") {
             plugins.apply("org.hibernate.orm")
+
+            configure<HibernateOrmSpec> {
+                enhancement {
+                    enableAssociationManagement = true
+                }
+            }
+
+
+            tasks.withType<ProcessAot>().configureEach {
+                systemProperty("spring.jpa.properties.jakarta.persistence.schema-generation.database.action", "none")
+            }
         }
 
         // Configure test tasks
@@ -106,9 +119,9 @@ subprojects {
     }
 
     configure<DependencyManagementExtension> {
-        imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.1")
-        }
+//        imports {
+//            mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.1")
+//        }
         dependencies {
             dependency("org.redisson:redisson:4.0.0")
             dependency("com.nimbusds:nimbus-jose-jwt:10.6")
