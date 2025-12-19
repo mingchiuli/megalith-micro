@@ -8,6 +8,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7" apply false
     id("org.springframework.boot") version "4.0.0" apply false
     id("org.graalvm.buildtools.native") version "0.11.3" apply false
+    id("org.hibernate.orm") version "7.2.0.Final" apply false
 }
 
 subprojects {
@@ -28,6 +29,10 @@ subprojects {
     // Configure jar tasks based on module type
     if (name.startsWith("micro-")) {
         plugins.apply("org.graalvm.buildtools.native")
+
+        if (name.equals("micro-user") || name.equals("micro-blog")) {
+            plugins.apply("org.hibernate.orm")
+        }
 
         // Configure test tasks
         tasks.withType<Test> {
