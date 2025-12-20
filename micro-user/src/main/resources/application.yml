@@ -16,7 +16,6 @@ spring:
     default: dev
     active: dev
   jpa:
-    open-in-view: false
     properties:
       hibernate:
         hbm2ddl:
