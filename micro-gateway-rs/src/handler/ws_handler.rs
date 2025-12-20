@@ -78,8 +78,6 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
     let headers = ws_request.headers_mut(); // 直接操作 tungstenite 的头
     utils::inject_trace_context(headers); // 复用 HTTP 的注入逻辑
 
-    tracing::info!("raw Header:{:?}", headers);
-
     // 3. 连接下游 WebSocket 服务（带 traceparent 头）
     let (server_ws, response) = match connect_async(ws_request).await {
         Ok((stream, resp)) => (stream, resp),

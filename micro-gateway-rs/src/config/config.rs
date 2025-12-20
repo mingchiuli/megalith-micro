@@ -19,7 +19,7 @@ impl ConfigKey {
             ConfigKey::OtelExporterOtlpTracesEndpoint => "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
             ConfigKey::OtelExporterOtlpMetricsEndpoint => "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
             ConfigKey::OtelExporterOtlpLogsEndpoint => "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
-            ConfigKey::AuthUrlKey => "AUTH_URL_KEY",
+            ConfigKey::AuthUrlKey => "megalith.blog.auth-url",
             ConfigKey::RustLog => "RUST_LOG",
         }
     }
