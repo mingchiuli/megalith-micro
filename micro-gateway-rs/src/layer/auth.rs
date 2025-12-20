@@ -3,12 +3,12 @@ use axum::{extract::Request, middleware::Next, response::Response};
 use hyper::Uri;
 use serde::Serialize;
 use std::collections::HashMap;
-use std::env;
 
+use crate::client;
+use crate::config::config::{self, ConfigKey};
 use crate::exception::{AuthError, ClientError, HandlerError, handle_api_error};
 use crate::result::ApiResult;
 use crate::utils::{self};
-use crate::{client, constant};
 
 use tracing::{Instrument, instrument};
 
@@ -89,8 +89,7 @@ async fn auth(
 }
 
 fn build_auth_uri() -> Result<Uri, ClientError> {
-    let mut uri_str =
-        env::var(constant::AUTH_URL_KEY).unwrap_or("http://127.0.0.1:8081/inner".to_string());
+    let mut uri_str = config::get_config(ConfigKey::AuthUrlKey);
     uri_str.push_str("/auth/route/check");
 
     uri_str

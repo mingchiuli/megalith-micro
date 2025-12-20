@@ -7,6 +7,7 @@ mod result;
 mod shutdown;
 mod utils;
 mod constant;
+pub mod config;
 
 pub use otel::init_logger_provider;
 pub use otel::init_meter_provider;
