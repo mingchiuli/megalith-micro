@@ -8,8 +8,10 @@ use warp::Filter;
 use warp::filters::header::headers_cloned;
 use warp::http::HeaderMap;
 
-use crate::room::{RoomManager, check_room_exists, ws_handler};
-
+use crate::{
+    config::config::{self, ConfigKey},
+    room::{RoomManager, check_room_exists, ws_handler},
+};
 
 pub fn set_route() -> impl Filter<Extract = impl Reply, Error = warp::Rejection> + Clone {
     let room_manager = Arc::new(Mutex::new(RoomManager::new()));
@@ -31,7 +33,8 @@ pub fn set_route() -> impl Filter<Extract = impl Reply, Error = warp::Rejection>
         .map(|| "OK");
 
     // Create metrics
-    let meter = global::meter("micro-sync-rs");
+    let meter = global::meter(config::get_static_value(ConfigKey::ServerName));
+
     let request_counter: Counter<u64> = meter
         .u64_counter("http_requests_total")
         .with_description("Total number of HTTP requests")

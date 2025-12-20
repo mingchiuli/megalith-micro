@@ -10,16 +10,17 @@ use opentelemetry_sdk::{
 };
 use std::env;
 
+use crate::config::config::{self, ConfigKey};
+
 fn resource() -> Resource {
     Resource::builder()
-        .with_service_name("micro-sync-rs")
+        .with_service_name(config::get_config(ConfigKey::ServerName))
         .with_attributes([KeyValue::new("service.version", env!("CARGO_PKG_VERSION"))])
         .build()
 }
 
 pub fn init_tracer_provider(http_client: &reqwest::blocking::Client) -> SdkTracerProvider {
-    let endpoint = env::var("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
-        .unwrap_or_else(|_| "http://localhost:8200/v1/traces".to_string());
+    let endpoint = config::get_config(ConfigKey::OtelExporterOtlpTracesEndpoint);
 
     let exporter = SpanExporter::builder()
         .with_http()
@@ -36,8 +37,7 @@ pub fn init_tracer_provider(http_client: &reqwest::blocking::Client) -> SdkTrace
 }
 
 pub fn init_meter_provider(http_client: &reqwest::blocking::Client) -> SdkMeterProvider {
-    let endpoint = env::var("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT")
-        .unwrap_or_else(|_| "http://localhost:8200/v1/metrics".to_string());
+    let endpoint = config::get_config(ConfigKey::OtelExporterOtlpMetricsEndpoint);
 
     let exporter = MetricExporter::builder()
         .with_http()
@@ -55,8 +55,7 @@ pub fn init_meter_provider(http_client: &reqwest::blocking::Client) -> SdkMeterP
 }
 
 pub fn init_logger_provider(http_client: &reqwest::blocking::Client) -> SdkLoggerProvider {
-    let endpoint = env::var("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")
-        .unwrap_or_else(|_| "http://localhost:8200/v1/logs".to_string());
+    let endpoint = config::get_config(ConfigKey::OtelExporterOtlpLogsEndpoint);
 
     let exporter = LogExporter::builder()
         .with_http()

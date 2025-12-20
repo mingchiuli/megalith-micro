@@ -1,4 +1,5 @@
 use micro_sync_rs::{
+    config::config::{self, ConfigKey},
     init_logger_provider, init_meter_provider, init_tracer_provider, set_route, shutdown_signal,
 };
 use opentelemetry::{global, trace::TracerProvider};
@@ -19,10 +20,8 @@ const LOGO: &str = r#"
 
 fn main() {
     // Initialize logging
-    if env::var("RUST_LOG").is_err() {
-        unsafe {
-            env::set_var("RUST_LOG", "info");
-        }
+    unsafe {
+        env::set_var("RUST_LOG", config::get_config(ConfigKey::RustLog));
     }
 
     let http_client = reqwest::blocking::Client::new();
@@ -30,7 +29,7 @@ fn main() {
     // Initialize OpenTelemetry BEFORE entering async runtime (blocking clients)
     let tracer_provider = init_tracer_provider(&http_client);
     global::set_tracer_provider(tracer_provider.clone());
-    let tracer = tracer_provider.tracer("micro-sync-rs");
+    let tracer = tracer_provider.tracer(config::get_config(ConfigKey::ServerName));
 
     let meter_provider = init_meter_provider(&http_client);
     global::set_meter_provider(meter_provider.clone());
@@ -58,8 +57,13 @@ fn main() {
         tracing::info!("{}", LOGO);
 
         // 创建服务器任务
-        let (_, server) = warp::serve(set_route())
-            .bind_with_graceful_shutdown(([0, 0, 0, 0], 8089), shutdown_signal());
+        let (_, server) = warp::serve(set_route()).bind_with_graceful_shutdown(
+            (
+                [0, 0, 0, 0],
+                config::get_config(ConfigKey::ServerPort).parse().unwrap(),
+            ),
+            shutdown_signal(),
+        );
 
         // 等待服务器运行完成
         server.await;

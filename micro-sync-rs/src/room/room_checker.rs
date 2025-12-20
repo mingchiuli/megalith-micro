@@ -21,7 +21,6 @@ pub async fn check_room_exists(
     headers: HeaderMap,
 ) -> Result<warp::reply::Json, Rejection> {
     // 1. 提取上游 Trace Context
-    tracing::info!("headerMap:{:?}", headers);
     let parent_context = global::get_text_map_propagator(|propagator| {
         propagator.extract(&WarpHeaderExtractor(&headers))
     });

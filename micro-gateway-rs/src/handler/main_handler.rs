@@ -1,3 +1,5 @@
+use crate::config::config::{self, ConfigKey};
+
 use super::{http_handler, ws_handler};
 use axum::extract::FromRequestParts;
 use axum::http::header;
@@ -11,7 +13,8 @@ use opentelemetry::{KeyValue, global};
 
 pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
     // Record metrics
-    let meter = global::meter("micro-gateway-rs");
+    let meter = global::meter(config::get_static_value(ConfigKey::ServerName));
+
     let counter = meter
         .u64_counter("http_requests_total")
         .with_description("Total number of HTTP requests")

@@ -4,8 +4,9 @@ use axum::{
     routing::{any, get},
 };
 use micro_gateway_rs::{
-    auth_process, handle_main, init_logger_provider, init_meter_provider, init_tracer_provider,
-    shutdown_signal,
+    auth_process,
+    config::config::{self, ConfigKey},
+    handle_main, init_logger_provider, init_meter_provider, init_tracer_provider, shutdown_signal,
 };
 use opentelemetry::{global, trace::TracerProvider};
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
@@ -24,10 +25,8 @@ const LOGO: &str = r#"
 
 fn main() -> Result<(), BoxError> {
     // Initialize logging
-    if env::var("RUST_LOG").is_err() {
-        unsafe {
-            env::set_var("RUST_LOG", "info");
-        }
+    unsafe {
+        env::set_var("RUST_LOG", config::get_config(ConfigKey::RustLog));
     }
 
     // Initialize OpenTelemetry BEFORE entering async runtime
@@ -36,7 +35,7 @@ fn main() -> Result<(), BoxError> {
 
     let tracer_provider = init_tracer_provider(&http_client);
     global::set_tracer_provider(tracer_provider.clone());
-    let tracer = tracer_provider.tracer("micro-gateway-rs");
+    let tracer = tracer_provider.tracer(config::get_config(ConfigKey::ServerName));
 
     let meter_provider = init_meter_provider(&http_client);
     global::set_meter_provider(meter_provider.clone());
@@ -81,7 +80,7 @@ async fn async_main() -> Result<(), BoxError> {
         .layer(middleware::from_fn(auth_process));
 
     // run our app with hyper, listening globally on port 8008
-    let port = env::var("PORT").unwrap_or_else(|_| "8088".to_string());
+    let port = config::get_config(ConfigKey::ServerPort);
     let addr: SocketAddr = format!("0.0.0.0:{}", port).parse()?;
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app)

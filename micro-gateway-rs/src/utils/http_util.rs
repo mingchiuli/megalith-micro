@@ -9,12 +9,13 @@ use axum::{
 use http_body_util::combinators::BoxBody;
 
 use hyper::{HeaderMap, Method, StatusCode, Uri, header};
-use std::{collections::HashMap, env};
+use std::collections::HashMap;
 
 use crate::{
     client::{self, AuthRouteReq, AuthRouteResp},
+    config::config::{self, ConfigKey},
     constant::{
-        AUTH_HEADER, AUTH_URL_KEY, CF_CONNECTING_IP, FORWARDED_HEADER, PROXY_CLIENT_IP, UNKNOWN,
+        AUTH_HEADER, CF_CONNECTING_IP, FORWARDED_HEADER, PROXY_CLIENT_IP, UNKNOWN,
         WL_PROXY_CLIENT_IP,
     },
     exception::{AuthError, ClientError},
@@ -67,7 +68,7 @@ pub fn extract_token(req: &Request) -> String {
 }
 
 pub fn get_auth_url() -> Result<hyper::Uri, AuthError> {
-    let mut auth_url = env::var(AUTH_URL_KEY).unwrap_or("http://127.0.0.1:8081/inner".to_string());
+    let mut auth_url = config::get_config(ConfigKey::AuthUrlKey);
 
     auth_url.push_str("/auth/route");
     Ok(auth_url
