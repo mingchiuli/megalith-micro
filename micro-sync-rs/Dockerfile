@@ -11,7 +11,6 @@ WORKDIR /usr/src/app
 COPY Cargo.toml Cargo.lock ./
 
 # Copy all workspace members
-COPY micro-gateway-rs ./micro-gateway-rs
 COPY micro-sync-rs ./micro-sync-rs
 
 # Install musl target
@@ -31,6 +30,8 @@ WORKDIR /app
 
 # Copy the build artifact from the builder stage
 COPY --from=builder /usr/src/app/target/x86_64-unknown-linux-musl/release/micro-sync-rs /app/
+
+COPY --from=builder /usr/src/app/micro-sync-rs/application.* /app/micro-sync-rs/
 
 # Expose the port (adjust based on your application)
 EXPOSE 8089
