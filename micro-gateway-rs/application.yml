@@ -1,0 +1,22 @@
+# micro-gateway-rs 配置文件
+server:
+  name: micro-gateway-rs
+  port: 8088
+
+otel:
+  exporter:
+    otlp:
+      traces:
+        endpoint: http://localhost:8200/v1/traces
+      metrics:
+        endpoint: http://localhost:8200/v1/metrics
+      logs:
+        endpoint: http://localhost:8200/v1/logs
+
+megalith:
+  blog:
+    auth:
+      url: http://127.0.0.1:8081/inner
+
+log:
+  level: info

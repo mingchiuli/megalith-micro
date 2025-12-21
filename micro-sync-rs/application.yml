@@ -1,0 +1,17 @@
+# 应用配置文件
+server:
+  name: micro-sync-rs
+  port: 8089
+
+otel:
+  exporter:
+    otlp:
+      traces:
+        endpoint: http://localhost:8200/v1/traces
+      metrics:
+        endpoint: http://localhost:8200/v1/metrics
+      logs:
+        endpoint: http://localhost:8200/v1/logs
+
+log:
+  level: info
