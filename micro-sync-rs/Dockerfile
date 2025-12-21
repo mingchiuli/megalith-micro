@@ -11,6 +11,7 @@ WORKDIR /usr/src/app
 COPY Cargo.toml Cargo.lock ./
 
 # Copy all workspace members
+COPY micro-gateway-rs ./micro-gateway-rs
 COPY micro-sync-rs ./micro-sync-rs
 
 # Install musl target
