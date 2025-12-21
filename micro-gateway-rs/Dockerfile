@@ -12,7 +12,6 @@ COPY Cargo.toml Cargo.lock ./
 
 # Copy all workspace members
 COPY micro-gateway-rs ./micro-gateway-rs
-COPY micro-sync-rs ./micro-sync-rs
 
 # Install musl target
 RUN rustup target add x86_64-unknown-linux-musl
@@ -31,6 +30,8 @@ WORKDIR /app
 
 # Copy the build artifact from the builder stage
 COPY --from=builder /usr/src/app/target/x86_64-unknown-linux-musl/release/micro-gateway-rs /app/
+
+COPY --from=builder /usr/src/app/micro-gateway-rs/application.* /app/micro-gateway-rs/
 
 # Expose the port (adjust based on your application)
 EXPOSE 8088

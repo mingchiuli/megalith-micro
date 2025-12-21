@@ -88,7 +88,7 @@ pub fn init_config() -> Result<(), ConfigError> {
         .add_source(File::with_name("micro-gateway-rs/application").required(false))
         .add_source(
             Environment::default()
-                .separator("__")
+                .separator("_")
                 .try_parsing(true)
         )
         .build()?;
