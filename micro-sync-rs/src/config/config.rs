@@ -1,4 +1,4 @@
-use config::{Config, ConfigError, Environment, File};
+use config::{Config, ConfigError, Environment};
 use serde::Deserialize;
 use std::sync::OnceLock;
 
@@ -72,19 +72,13 @@ static APP_CONFIG: OnceLock<AppConfig> = OnceLock::new();
 /// 初始化配置
 /// 按优先级加载: 环境变量 > config.yaml > 默认值
 pub fn init_config() -> Result<(), ConfigError> {
-    let config_paths = [
-        // 容器内的新配置路径
-        "/app/config/application",
-        // 本地开发的路径
-        "micro-sync-rs/application",
-    ];
+    const DEFAULT_CONFIG: &str = include_str!("../../application.yml");
 
-    let mut config_builder = Config::builder();
-    for path in config_paths {
-        config_builder = config_builder.add_source(File::with_name(path).required(false));
-    }
-
-    let config = config_builder
+    let config = Config::builder()
+        .add_source(config::File::from_str(
+            DEFAULT_CONFIG,
+            config::FileFormat::Yaml,
+        ))
         .add_source(Environment::default().separator("_").try_parsing(true))
         .build()?;
 
