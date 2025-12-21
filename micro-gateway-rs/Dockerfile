@@ -32,7 +32,10 @@ WORKDIR /app
 # Copy the build artifact from the builder stage
 COPY --from=builder /usr/src/app/target/x86_64-unknown-linux-musl/release/micro-gateway-rs /app/
 
-COPY --from=builder /usr/src/app/micro-gateway-rs/application.* /app/micro-gateway-rs/
+# 创建配置目录
+RUN mkdir -p /app/config
+
+COPY --from=builder /usr/src/app/micro-gateway-rs/application.* /app/config/
 
 # Expose the port (adjust based on your application)
 EXPOSE 8088
