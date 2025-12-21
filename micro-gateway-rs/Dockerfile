@@ -12,6 +12,7 @@ COPY Cargo.toml Cargo.lock ./
 
 # Copy all workspace members
 COPY micro-gateway-rs ./micro-gateway-rs
+COPY micro-sync-rs ./micro-sync-rs
 
 # Install musl target
 RUN rustup target add x86_64-unknown-linux-musl
