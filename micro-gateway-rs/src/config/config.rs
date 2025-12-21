@@ -3,69 +3,69 @@ use serde::Deserialize;
 use std::sync::OnceLock;
 
 #[derive(Deserialize)]
-pub struct AppConfig {
-    pub server: ServerConfig,
-    pub otel: OtelConfig,
-    pub log: LogConfig,
-    pub megalith: MegalithConfig,
+struct AppConfig {
+    server: ServerConfig,
+    otel: OtelConfig,
+    log: LogConfig,
+    megalith: MegalithConfig,
 }
 
 #[derive(Deserialize)]
-pub struct ServerConfig {
-    pub name: String,
-    pub port: u16,
+struct ServerConfig {
+    name: String,
+    port: u16,
 }
 
 #[derive(Deserialize)]
-pub struct OtelConfig {
-    pub exporter: ExporterConfig,
+struct OtelConfig {
+    exporter: ExporterConfig,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct ExporterConfig {
-    pub otlp: OtlpConfig,
+struct ExporterConfig {
+    otlp: OtlpConfig,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct OtlpConfig {
-    pub traces: TracesConfig,
-    pub metrics: MetricsConfig,
-    pub logs: LogsConfig,
+struct OtlpConfig {
+    traces: TracesConfig,
+    metrics: MetricsConfig,
+    logs: LogsConfig,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct TracesConfig {
-    pub endpoint: String,
+struct TracesConfig {
+    endpoint: String,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct MetricsConfig {
-    pub endpoint: String,
+struct MetricsConfig {
+    endpoint: String,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct LogsConfig {
-    pub endpoint: String,
+struct LogsConfig {
+    endpoint: String,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct LogConfig {
-    pub level: String,
+struct LogConfig {
+    level: String,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct MegalithConfig {
-    pub blog: BlogConfig,
+struct MegalithConfig {
+    blog: BlogConfig,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct BlogConfig {
-    pub auth: AuthConfig,
+struct BlogConfig {
+    auth: AuthConfig,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct AuthConfig {
-    pub url: String,
+struct AuthConfig {
+    url: String,
 }
 
 pub enum ConfigKey {
