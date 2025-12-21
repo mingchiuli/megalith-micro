@@ -27,3 +27,6 @@ opentelemetry-otlp.workspace = true
 tracing-opentelemetry.workspace = true
 opentelemetry-appender-tracing.workspace = true
 reqwest.workspace = true
+
+# Config
+config.workspace = true

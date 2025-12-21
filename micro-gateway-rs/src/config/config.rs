@@ -1,4 +1,72 @@
-use std::env;
+use config::{Config, ConfigError, Environment, File};
+use serde::Deserialize;
+use std::sync::OnceLock;
+
+#[derive(Deserialize)]
+pub struct AppConfig {
+    pub server: ServerConfig,
+    pub otel: OtelConfig,
+    pub log: LogConfig,
+    pub megalith: MegalithConfig,
+}
+
+#[derive(Deserialize)]
+pub struct ServerConfig {
+    pub name: String,
+    pub port: u16,
+}
+
+#[derive(Deserialize)]
+pub struct OtelConfig {
+    pub exporter: ExporterConfig,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ExporterConfig {
+    pub otlp: OtlpConfig,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct OtlpConfig {
+    pub traces: TracesConfig,
+    pub metrics: MetricsConfig,
+    pub logs: LogsConfig,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TracesConfig {
+    pub endpoint: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MetricsConfig {
+    pub endpoint: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LogsConfig {
+    pub endpoint: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LogConfig {
+    pub level: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MegalithConfig {
+    pub blog: BlogConfig,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BlogConfig {
+    pub auth: AuthConfig,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AuthConfig {
+    pub url: String,
+}
 
 pub enum ConfigKey {
     ServerName,
@@ -7,46 +75,58 @@ pub enum ConfigKey {
     OtelExporterOtlpMetricsEndpoint,
     OtelExporterOtlpLogsEndpoint,
     AuthUrlKey,
-    RustLog
+    RustLog,
 }
 
-impl ConfigKey {
-    /// 获取环境变量名
-    fn env_name(&self) -> &str {
-        match self {
-            ConfigKey::ServerName => "SERVER_NAME",
-            ConfigKey::ServerPort => "SERVER_PORT",
-            ConfigKey::OtelExporterOtlpTracesEndpoint => "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
-            ConfigKey::OtelExporterOtlpMetricsEndpoint => "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
-            ConfigKey::OtelExporterOtlpLogsEndpoint => "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
-            ConfigKey::AuthUrlKey => "megalith.blog.auth-url",
-            ConfigKey::RustLog => "RUST_LOG",
-        }
-    }
+// 全局配置实例
+static APP_CONFIG: OnceLock<AppConfig> = OnceLock::new();
 
-    /// 获取默认值
-    fn default_value(&self) -> &str {
-        match self {
-            ConfigKey::ServerName => "micro-gateway-rs",
-            ConfigKey::ServerPort => "8088",
-            ConfigKey::OtelExporterOtlpTracesEndpoint => "http://localhost:8200/v1/traces",
-            ConfigKey::OtelExporterOtlpMetricsEndpoint => "http://localhost:8200/v1/metrics",
-            ConfigKey::OtelExporterOtlpLogsEndpoint => "http://localhost:8200/v1/logs",
-            ConfigKey::AuthUrlKey => "http://127.0.0.1:8081/inner",
-            ConfigKey::RustLog => "info",
-        }
-    }
+/// 初始化配置
+/// 按优先级加载: 环境变量 > config.yaml > 默认值
+pub fn init_config() -> Result<(), ConfigError> {
+    let config = Config::builder()
+        .add_source(File::with_name("micro-gateway-rs/application").required(false))
+        .add_source(
+            Environment::default()
+                .separator("__")
+                .try_parsing(true)
+        )
+        .build()?;
+    
+    let app_config: AppConfig = config.try_deserialize()?;
+    APP_CONFIG
+        .set(app_config)
+        .map_err(|_| ConfigError::Message("Config already initialized".to_string()))?;
+    
+    Ok(())
 }
 
-/// 从环境变量获取配置，若不存在则使用枚举的默认值
-/// # 参数
-/// * `key` - 配置项枚举
-/// # 返回
-/// 配置值的字符串
+/// 获取配置实例
+fn get_app_config() -> &'static AppConfig {
+    APP_CONFIG.get().expect("Config should be initialized")
+}
+
+/// 从配置获取值
 pub fn get_config(key: ConfigKey) -> String {
-    env::var(key.env_name()).unwrap_or_else(|_| key.default_value().to_string())
+    let config = get_app_config();
+    match key {
+        ConfigKey::ServerName => config.server.name.clone(),
+        ConfigKey::ServerPort => config.server.port.to_string(),
+        ConfigKey::OtelExporterOtlpTracesEndpoint => {
+            config.otel.exporter.otlp.traces.endpoint.clone()
+        }
+        ConfigKey::OtelExporterOtlpMetricsEndpoint => {
+            config.otel.exporter.otlp.metrics.endpoint.clone()
+        }
+        ConfigKey::OtelExporterOtlpLogsEndpoint => {
+            config.otel.exporter.otlp.logs.endpoint.clone()
+        }
+        ConfigKey::AuthUrlKey => config.megalith.blog.auth.url.clone(),
+        ConfigKey::RustLog => config.log.level.clone(),
+    }
 }
 
+/// 获取静态字符串引用
 pub fn get_static_value(key: ConfigKey) -> &'static str {
     Box::leak(get_config(key).into_boxed_str())
 }

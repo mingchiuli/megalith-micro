@@ -1,5 +1,5 @@
 use micro_sync_rs::{
-    config::config::{self, ConfigKey},
+    config::config::{self, ConfigKey, init_config},
     init_logger_provider, init_meter_provider, init_tracer_provider, set_route, shutdown_signal,
 };
 use opentelemetry::{global, trace::TracerProvider};
@@ -19,6 +19,10 @@ const LOGO: &str = r#"
 "#;
 
 fn main() {
+    init_config().unwrap_or_else(|err| {
+        eprintln!("Failed to load config: {:?}", err);
+        std::process::exit(1);
+    });
     // Initialize logging
     unsafe {
         env::set_var("RUST_LOG", config::get_config(ConfigKey::RustLog));
