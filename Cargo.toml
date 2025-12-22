@@ -37,7 +37,7 @@ reqwest = { version = "0.12.26", default-features = false, features = ["blocking
 futures-util = "0.3.31"
 
 # Web frameworks
-axum = { version = "0.8.7", features = ["ws"] }
+axum = { version = "0.8.8", features = ["ws"] }
 warp = { version = "0.3.7", features = ["websocket"] }
 
 # HTTP
