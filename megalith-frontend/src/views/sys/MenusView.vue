@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { GET, POST } from '@/http/http'
 import type { MenuSys } from '@/type/entity'
-import { type FormInstance, type FormRules } from 'element-plus'
+import { type FormInstance, type FormRules, type TreeNodeData } from 'element-plus'
 import { reactive, ref } from 'vue'
 import { Status, ButtonAuth, RoutesStatus, RoutesEnum } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
@@ -23,8 +23,10 @@ const props = {
   label: 'title',
   //这个value代表根据这个值找节点，和v-model="value"的value不是一个概念
   value: 'id',
-  disabled: (data: MenuSys) =>
-    data.status !== RoutesStatus.NORMAL || data.type === RoutesEnum.BUTTON
+  disabled: (data: TreeNodeData) => {
+    const menuData = data as MenuSys
+    return menuData.status !== RoutesStatus.NORMAL || menuData.type === RoutesEnum.BUTTON
+  }
 }
 
 type Form = {
