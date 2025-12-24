@@ -22,7 +22,6 @@ import {
   type SensitiveExhibit,
   Colors,
   type BlogEdit,
-  type AiContentResp,
   type AiModelsResp,
   type AiModel
 } from '@/type/entity'
@@ -310,21 +309,7 @@ const aiGenerate = async () => {
       return
     }
 
-    // 设置按钮加载状态
-    const prePrompt = `请仔细阅读以下文章：\n${form.content}`
-
-    aiLoading.value = true
-    const preResponse = await aiHttpClient.post(API_ENDPOINTS.AI.GENERATE_CONTENT, {
-      model: aiModel.value, // 可用的模型
-      prompt: prePrompt,
-      stream: false
-    })
-
-    // 解析 AI 返回的结果
-    const preResult: AiContentResp = preResponse.data
-    const context = preResult.context
-
-    const prompt = `请根据文章内容生成标题和摘要：
+    const prompt = `请仔细阅读以下文章：\n${form.content}，根据文章内容生成标题和摘要：
 
     输出要求：
     - 格式：严格的JSON字符串
@@ -350,7 +335,6 @@ const aiGenerate = async () => {
         model: aiModel.value,
         prompt,
         stream: true,
-        context,
         options: {
           echo: false
         }
