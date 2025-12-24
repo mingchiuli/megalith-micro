@@ -309,7 +309,7 @@ const aiGenerate = async () => {
       return
     }
 
-     aiLoading.value = true
+    aiLoading.value = true
     
     const prompt = `请仔细阅读以下文章：\n${form.content}，根据文章内容生成标题和摘要：
 
