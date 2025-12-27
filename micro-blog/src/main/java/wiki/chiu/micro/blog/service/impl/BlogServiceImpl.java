@@ -233,6 +233,7 @@ public class BlogServiceImpl implements BlogService {
             String blogSensitive = SQLUtils.entityToInsertSQL(new ArrayList<>(blogSensitives), BLOG_SENSITIVE_TABLE);
 
             byte[] bytes = SQLUtils.compose(blog, blogSensitive).getBytes();
+            response.setContentLength(bytes.length);
             outputStream.write(bytes);
             outputStream.flush();
         } catch (IOException e) {
