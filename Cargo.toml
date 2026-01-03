@@ -11,7 +11,7 @@ repository = "https://github.com/mingchiuli/megalith-micro"
 
 [workspace.dependencies]
 # Async runtime
-tokio = { version = "1.48.0", features = ["full"] }
+tokio = { version = "1.49.0", features = ["full"] }
 
 # Serialization
 serde = { version = "1.0.228", features = ["derive"] }
@@ -31,6 +31,7 @@ opentelemetry-http = "0.31.0"
 
 # HTTP client - MUST use blocking client for OpenTelemetry
 # BatchProcessor runs in non-tokio threads and cannot use async reqwest
+# Note: opentelemetry-http 0.31.0 requires reqwest ^0.12, not 0.13
 reqwest = { version = "0.12.28", default-features = false, features = ["blocking", "rustls-tls"] }
 
 # Async utilities
