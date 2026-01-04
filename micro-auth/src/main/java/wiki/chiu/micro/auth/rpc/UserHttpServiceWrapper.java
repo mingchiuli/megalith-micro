@@ -42,10 +42,6 @@ public class UserHttpServiceWrapper {
         Result.handleResult(() -> userHttpService.updateLoginTime(username));
     }
 
-    public void unlock() {
-        Result.handleResult(userHttpService::unlock);
-    }
-
     public void findByEmail(String loginEmail) {
         Result.handleResult(() -> userHttpService.findByEmail(loginEmail));
     }
