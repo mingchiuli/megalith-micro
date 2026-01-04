@@ -74,9 +74,4 @@ public class UserProvider implements UserHttpService {
     public Result<UserEntityRpcVo> findByUsernameOrEmailOrPhone(@RequestParam String username) {
         return Result.success(() -> userService.findByUsernameOrEmailOrPhone(username));
     }
-
-    @GetMapping("/unlock")
-    public Result<Void> unlock() {
-        return Result.success(userService::unlockUser);
-    }
 }

@@ -37,8 +37,5 @@ public interface UserHttpService {
 
     @GetExchange("/user/login/query")
     Result<UserEntityRpcVo> findByUsernameOrEmailOrPhone(@RequestParam String username);
-    
-    @GetExchange("/user/unlock")
-    Result<Void> unlock();
   
 }

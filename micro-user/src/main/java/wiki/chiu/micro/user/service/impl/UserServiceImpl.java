@@ -188,11 +188,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void unlockUser() {
-        userRepository.unlockUser();
-    }
-
-    @Override
     public UserEntityVo findInfo(Long userId) {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new MissException(USER_NOT_EXIST));
