@@ -65,6 +65,7 @@ export const createYjsExtension = async (
   provider.once('sync', async () => {
     const data = await GET<CheckRoom>(API_ENDPOINTS.COLLABORATION.CHECK_ROOM_EXISTS(roomId))
     if (!data.exists) {
+      console.log('create room:{}', initialContent)
       ytext.insert(0, initialContent)
     }
   })

@@ -132,6 +132,7 @@ const editorRef = useTemplateRef<ExposeParam>('editorRef')
 const updateEditorExtension = async () => {
   const view = editorRef.value?.getEditorView()
   if (view) {
+    console.log('updateEditorExtension:{}', text.value!)
     const { config, provider } = await createYjsExtension(roomId, text.value!)
     view.dispatch({
       effects: yjsCompartment.reconfigure(config)
