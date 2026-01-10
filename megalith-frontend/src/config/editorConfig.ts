@@ -43,6 +43,10 @@ export const createYjsExtension = async (
 ) => {
   cleanupYjs()
 
+  // 在连接之前检查房间是否存在
+  const data = await GET<CheckRoom>(API_ENDPOINTS.COLLABORATION.CHECK_ROOM_EXISTS(roomId))
+  const needInsert = !data.exists
+
   const userColor = usercolors[random.uint32() % usercolors.length]!
 
   const ydoc = new Y.Doc()
@@ -61,11 +65,9 @@ export const createYjsExtension = async (
   )
 
   const ytext = ydoc.getText()
-  // 等同步完成后判断是否插入内容
-  provider.once('sync', async () => {
-    const data = await GET<CheckRoom>(API_ENDPOINTS.COLLABORATION.CHECK_ROOM_EXISTS(roomId))
-    if (!data.exists) {
-      console.log('create room:{}', initialContent)
+  // 同步完成后，如果房间之前不存在，则插入初始内容
+  provider.once('sync', () => {
+    if (needInsert) {
       ytext.insert(0, initialContent)
     }
   })

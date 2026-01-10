@@ -55,10 +55,3 @@ export const pageStore = defineStore('pageStore', () => {
   const front = ref(true)
   return { front }
 })
-
-export const syncStore = defineStore('sync', () => {
-  const url = ref(`${import.meta.env.VITE_BASE_WS_URL}/rooms`)
-  const room = ref('')
-  const token = ref(localStorage.getItem('accessToken')!)
-  return { url, room, token }
-})
