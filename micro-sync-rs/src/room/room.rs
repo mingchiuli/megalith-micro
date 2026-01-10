@@ -53,10 +53,7 @@ impl RoomManager {
 
     // 检查房间是否存在
     pub fn room_exists(&self, room_id: &str) -> bool {
-        match self.rooms.get(room_id) {
-            Some(room) => room.connection_count.load(Ordering::SeqCst) > 1,
-            None => false,
-        }
+        self.rooms.contains_key(room_id) // 房间存在于 HashMap 中就返回 true
     }
 
     // 获取或创建房间
