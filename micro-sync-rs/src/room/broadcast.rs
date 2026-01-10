@@ -15,7 +15,7 @@ pub async fn ws_handler(
     room_id: String,
     headers: HeaderMap,
     ws: Ws,
-    room_manager: Arc<Mutex<RoomManager>>,
+    room_manager: Arc<RoomManager>,
 ) -> Result<impl Reply, Rejection> {
     // 从请求头中提取 trace context
     let parent_context = global::get_text_map_propagator(|propagator| {
@@ -36,14 +36,11 @@ pub async fn ws_handler(
     Ok(ws.on_upgrade(move |socket| peer(socket, room_manager, room_id_clone).instrument(span)))
 }
 
-async fn peer(ws: WebSocket, room_manager: Arc<Mutex<RoomManager>>, room_id: String) {
+async fn peer(ws: WebSocket, room_manager: Arc<RoomManager>, room_id: String) {
     tracing::info!("已建立新连接到房间: {}", room_id);
 
     // 获取或创建此房间的广播组，同时获取房间信息引用
-    let (room_info, bcast) = {
-        let mut manager = room_manager.lock().await;
-        manager.get_or_create_room(&room_id).await
-    };
+    let (room_info, bcast) = room_manager.get_or_create_room(&room_id).await;
 
     // 创建连接信息对象，用于管理生命周期
     let connection = RoomConnection::new(room_id.clone(), room_info, room_manager);

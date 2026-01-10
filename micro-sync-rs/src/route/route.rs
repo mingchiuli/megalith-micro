@@ -3,7 +3,6 @@ use opentelemetry::metrics::Counter;
 use warp::reply::Reply;
 
 use std::sync::Arc;
-use tokio::sync::Mutex;
 use warp::Filter;
 use warp::filters::header::headers_cloned;
 use warp::http::HeaderMap;
@@ -14,7 +13,7 @@ use crate::{
 };
 
 pub fn set_route() -> impl Filter<Extract = impl Reply, Error = warp::Rejection> + Clone {
-    let room_manager = Arc::new(Mutex::new(RoomManager::new()));
+    let room_manager = Arc::new(RoomManager::new());
     let room_manager_ws = room_manager.clone();
     let room_manager_rooms = room_manager.clone();
 
