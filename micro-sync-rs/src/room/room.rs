@@ -17,7 +17,7 @@ impl RoomConnection {
     // 在连接关闭时自动清理
     pub async fn cleanup(self) {
         let mut manager = self.room_manager.lock().await;
-        manager.leave_room(&self.room_id, self.room_info);
+        manager.leave_room(&self.room_id, &self.room_info);
     }
 
     pub fn new(
@@ -89,18 +89,20 @@ impl RoomManager {
         }
     }
 
-    // 用户离开房间
-    fn leave_room(&mut self, room_id: &str, room_info: Arc<RoomInfo>) -> bool {
+    /// 用户离开房间
+    pub fn leave_room(&mut self, room_id: &str, room_info: &Arc<RoomInfo>) -> bool {
         let prev_count = room_info.connection_count.fetch_sub(1, Ordering::SeqCst);
-        let current_count = prev_count - 1;
+        let current_count = prev_count.saturating_sub(1);
 
         tracing::info!("用户离开房间 {}. 剩余连接数: {}", room_id, current_count);
 
+        // 当连接数降到 0 时清理房间
         if current_count == 0 {
-            tracing::info!("用户全部离开房间:{}", room_id);
+            tracing::info!("房间 {} 已无用户，执行清理", room_id);
             self.rooms.remove(room_id);
+            return true;
         }
 
-        true
+        false
     }
 }
