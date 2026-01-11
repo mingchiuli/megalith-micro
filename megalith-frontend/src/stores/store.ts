@@ -57,8 +57,17 @@ export const pageStore = defineStore('pageStore', () => {
 })
 
 export const themeStore = defineStore('themeStore', () => {
-  // 从 localStorage 读取主题设置，默认为 light
-  const isDark = ref(localStorage.getItem('theme') === 'dark')
+  // 获取系统主题设置
+  const getSystemTheme = (): boolean => {
+    if (window.matchMedia) {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
+      return prefersDark.matches
+    }
+    // 默认使用 light 模式
+    return false
+  }
+
+  const isDark = ref(getSystemTheme())
 
   const toggleTheme = () => {
     isDark.value = !isDark.value
@@ -66,10 +75,8 @@ export const themeStore = defineStore('themeStore', () => {
 
     if (isDark.value) {
       htmlElement.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
     } else {
       htmlElement.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
     }
   }
 

@@ -25,26 +25,33 @@ const logout = () => {
 </script>
 
 <template>
-  <el-text class="header-title" size="large"
-    >后台
-    <el-dropdown class="header-dropdown">
-      <span class="el-dropdown-link">
-        {{ nickname }}
-        <el-icon class="el-icon--right">
-          <arrow-down />
-        </el-icon>
-      </span>
-      <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item @click="goToHome">回到首页</el-dropdown-item>
-          <el-dropdown-item divided @click="logout">退出登录</el-dropdown-item>
-        </el-dropdown-menu>
-      </template>
-    </el-dropdown>
-    <el-avatar class="header-avatar" size="default" :src="avatar"></el-avatar>
-  </el-text>
+  <div class="header-container">
+    <el-text class="header-title" size="large"
+      >后台
+      <el-dropdown class="header-dropdown">
+        <span class="el-dropdown-link">
+          {{ nickname }}
+          <el-icon class="el-icon--right">
+            <arrow-down />
+          </el-icon>
+        </span>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="goToHome">回到首页</el-dropdown-item>
+            <el-dropdown-item divided @click="logout">退出登录</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <el-avatar class="header-avatar" size="default" :src="avatar"></el-avatar>
+    </el-text>
+  </div>
 </template>
 <style scoped>
+.header-container {
+  width: 100%;
+  border-bottom: 1px solid var(--el-border-color);
+}
+
 .header-title {
   text-align: center;
   line-height: 60px;
