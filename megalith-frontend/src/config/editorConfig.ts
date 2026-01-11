@@ -139,9 +139,9 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
         // 重要：不要清理 Doc 和 Provider，等待自动重连
         ElNotification({
           title: '连接断开',
-          message: '正在自动重连...',
+          message: '连接已断开',
           type: 'warning',
-          duration: 0 // 持续显示直到重连
+          duration: 2000
         })
         break
 
