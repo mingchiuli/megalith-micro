@@ -48,7 +48,6 @@ const logout = () => {
 .header-title {
   text-align: center;
   line-height: 60px;
-  background-color: #f6f6f6;
   display: inline-block;
   width: 100%;
 }
