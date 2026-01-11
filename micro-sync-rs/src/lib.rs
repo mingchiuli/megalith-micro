@@ -3,6 +3,7 @@ mod otel;
 mod room;
 mod route;
 mod shutdown;
+mod schedule;
 pub mod config;
 
 pub use otel::init_logger_provider;
