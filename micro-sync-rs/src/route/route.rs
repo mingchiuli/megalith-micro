@@ -9,11 +9,12 @@ use warp::http::HeaderMap;
 
 use crate::{
     config::config::{self, ConfigKey},
-    room::{RoomManager, check_room_exists, ws_handler},
+    room::{RoomManager, check_room_exists, ws_handler}, schedule::task::start_cleanup_task,
 };
 
 pub fn set_route() -> impl Filter<Extract = impl Reply, Error = warp::Rejection> + Clone {
     let room_manager = Arc::new(RoomManager::new());
+    start_cleanup_task(room_manager.clone());
     let room_manager_ws = room_manager.clone();
     let room_manager_rooms = room_manager.clone();
 
