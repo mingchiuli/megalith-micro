@@ -41,6 +41,7 @@ const removeTab = (name: TabPaneName) => {
     closable
     @tab-remove="removeTab"
     @tab-click="clickTab"
+    class="header-tabs"
   >
     <el-tab-pane
       v-for="item in editableTabs"
@@ -51,3 +52,10 @@ const removeTab = (name: TabPaneName) => {
     </el-tab-pane>
   </el-tabs>
 </template>
+
+<style scoped>
+.header-tabs:deep(.el-tabs__header) {
+  margin-bottom: 0;
+  border-top: none;
+}
+</style>
