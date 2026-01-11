@@ -49,7 +49,7 @@ const logout = () => {
 <style scoped>
 .header-container {
   width: 100%;
-  border-bottom: 1px solid var(--el-border-color);
+  padding-bottom: 8px;
 }
 
 .header-title {
@@ -57,6 +57,7 @@ const logout = () => {
   line-height: 60px;
   display: inline-block;
   width: 100%;
+  border-bottom: 1px solid var(--el-border-color);
 }
 
 /* 用line-height对于图片时失效 */
