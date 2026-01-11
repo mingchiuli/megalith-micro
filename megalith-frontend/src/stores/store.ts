@@ -55,3 +55,33 @@ export const pageStore = defineStore('pageStore', () => {
   const front = ref(true)
   return { front }
 })
+
+export const themeStore = defineStore('themeStore', () => {
+  // 从 localStorage 读取主题设置，默认为 light
+  const isDark = ref(localStorage.getItem('theme') === 'dark')
+
+  const toggleTheme = () => {
+    isDark.value = !isDark.value
+    const htmlElement = document.documentElement
+
+    if (isDark.value) {
+      htmlElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      htmlElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }
+
+  // 初始化时应用主题
+  const initTheme = () => {
+    const htmlElement = document.documentElement
+    if (isDark.value) {
+      htmlElement.classList.add('dark')
+    } else {
+      htmlElement.classList.remove('dark')
+    }
+  }
+
+  return { isDark, toggleTheme, initTheme }
+})

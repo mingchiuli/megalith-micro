@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { UPLOAD } from '@/http/http'
-import { onMounted, ref, onBeforeUnmount, useTemplateRef, watch } from 'vue'
+import { onMounted, ref, onBeforeUnmount, useTemplateRef, watch, computed } from 'vue'
 import {
   SensitiveType,
   Status,
@@ -21,12 +21,19 @@ import type { Footers, ToolbarNames, ExposeParam } from 'md-editor-v3'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import { ExportPDF, Emoji } from '@vavt/v3-extension'
+import { themeStore } from '@/stores/store'
+import { storeToRefs } from 'pinia'
 
 const route = useRoute()
 const userStr = localStorage.getItem('userinfo')!
 const user: UserInfo = JSON.parse(userStr)
 const blogId = route.query.id as string | undefined
 const roomId = blogId ? `${blogId}` : `init:${user.id}`
+
+// 主题管理
+const theme = themeStore()
+const { isDark } = storeToRefs(theme)
+const editorTheme = computed(() => isDark.value ? 'dark' : 'light')
 
 const toolbars: ToolbarNames[] = [
   'revoke',
@@ -217,6 +224,7 @@ onBeforeUnmount(() => {
     :toolbarsExclude="['github']"
     @on-upload-img="onUploadImg"
     :footers="footers"
+    :theme="editorTheme"
     ref="editorRef"
     id="md-editor"
   >

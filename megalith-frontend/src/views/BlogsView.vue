@@ -1,13 +1,14 @@
 <script lang="ts" setup>
 import type { BlogDesc, PageAdapter } from '@/type/entity'
 import { GET } from '@/http/http'
-import { reactive, toRefs, ref, nextTick, useTemplateRef } from 'vue'
-import { loginStateStore, tabStore, blogsStore, menuStore } from '@/stores/store'
+import { reactive, toRefs, ref, nextTick, useTemplateRef, onMounted } from 'vue'
+import { loginStateStore, tabStore, blogsStore, menuStore, themeStore } from '@/stores/store'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
 import Search from '@/components/SearchItem.vue'
 import { Status } from '@/type/entity'
 import { API_ENDPOINTS } from '@/config/apiConfig'
+import { Moon, Sunny } from '@element-plus/icons-vue'
 
 const loading = ref(false)
 const searchDialogVisible = ref(false)
@@ -28,6 +29,13 @@ const { pageNum } = storeToRefs(blogsStore())
 const { keywords } = storeToRefs(blogsStore())
 
 const { login } = storeToRefs(loginStateStore())
+const theme = themeStore()
+const { isDark } = storeToRefs(theme)
+
+// 初始化主题
+onMounted(() => {
+  theme.initTheme()
+})
 
 const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
   initImgCount()
@@ -133,6 +141,12 @@ const { content, totalElements, pageSize } = toRefs(page)
     />
     <div class="search-father">
       <el-button class="search-button" @click="search" type="success">Search</el-button>
+      <el-button
+        class="theme-button"
+        @click="theme.toggleTheme"
+        :icon="isDark ? Sunny : Moon"
+        circle
+      />
       <SearchItem
         ref="searchRef"
         @trans-search-data="fillSearchData"
@@ -255,6 +269,13 @@ const { content, totalElements, pageSize } = toRefs(page)
 .search-button {
   position: absolute;
   right: 0;
+  top: 5px;
+  z-index: 1;
+}
+
+.theme-button {
+  position: absolute;
+  right: 90px;
   top: 5px;
   z-index: 1;
 }

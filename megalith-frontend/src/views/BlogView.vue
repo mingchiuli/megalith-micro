@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { nextTick, onMounted, onUnmounted, reactive, ref, useTemplateRef } from 'vue'
+import { nextTick, onMounted, onUnmounted, reactive, ref, useTemplateRef, computed } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import Catalogue from '@/components/CatalogueItem.vue'
@@ -7,6 +7,8 @@ import { useRoute } from 'vue-router'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
+import { themeStore } from '@/stores/store'
+import { storeToRefs } from 'pinia'
 
 const route = useRoute()
 const token = route.query.token
@@ -17,6 +19,11 @@ const affixHeight = ref(document.body.clientWidth > 900 ? '100px' : '0')
 const showCatalogue = ref(false)
 const catalogueWidth = ref(200)
 const right = ref(10)
+
+// 主题管理
+const theme = themeStore()
+const { isDark } = storeToRefs(theme)
+const editorTheme = computed(() => isDark.value ? 'dark' : 'light')
 
 const blog = reactive<BlogExhibit>({
   title: '',
@@ -63,7 +70,10 @@ const computeWidth = () => {
   }
 }
 
-onMounted(() => window.addEventListener('resize', computeWidth))
+onMounted(() => {
+  window.addEventListener('resize', computeWidth)
+  theme.initTheme()
+})
 onUnmounted(() => window.removeEventListener('resize', computeWidth))
 ;(async () => {
   let data: BlogExhibit
@@ -113,6 +123,7 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth))
         id="preview-only"
         v-model="blog.content"
         :showCodeRowNumber="true"
+        :theme="editorTheme"
         @on-html-changed="renderCatalogue"
       />
     </el-card>
