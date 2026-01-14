@@ -153,7 +153,7 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth))
 .exhibit-author {
   display: block;
   text-align: center;
-  margin-top: 5px;
+  margin-top: 10px;
 }
 
 .exhibit-time {
