@@ -1,7 +1,10 @@
 use crate::extractor::WarpHeaderExtractor;
 use crate::room::room::{RoomConnection, RoomManager};
-use futures_util::StreamExt;
+use futures_util::{SinkExt, StreamExt};
 use opentelemetry::global;
+use yrs::{ReadTxn, Transact};
+use yrs::sync::{Message, SyncMessage};
+use yrs::updates::encoder::Encode;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::Instrument;
@@ -48,6 +51,24 @@ async fn peer(ws: WebSocket, room_manager: Arc<RoomManager>, room_id: String) {
     let (sink, stream) = ws.split();
     let sink = Arc::new(Mutex::new(WarpSink::from(sink)));
     let stream = WarpStream::from(stream);
+
+    // 🔑 发送 SyncStep1（对新连接和重连都安全）
+    {
+        let awareness = bcast.awareness();
+        let sv = awareness.doc().transact().state_vector();
+        let msg = Message::Sync(SyncMessage::SyncStep1(sv));
+        let payload = msg.encode_v1();
+        
+        let mut sink_guard = sink.lock().await;
+        if let Err(e) = sink_guard.send(payload).await {
+            tracing::error!("发送 SyncStep1 失败: {}", e);
+            // 发送失败，提前退出
+            connection.cleanup().await;
+            return;
+        }
+        tracing::debug!("已向房间 {} 发送 SyncStep1", room_id);
+    }
+
     let sub = bcast.subscribe(sink, stream);
 
     // 等待连接关闭
