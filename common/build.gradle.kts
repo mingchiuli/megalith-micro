@@ -1,6 +1,6 @@
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
-    implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.23.0-alpha")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.24.0-alpha")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-http-client")
 
