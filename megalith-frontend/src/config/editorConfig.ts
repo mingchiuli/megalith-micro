@@ -47,24 +47,15 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
   // 1. 这个方法只在组件挂载时调用一次
   // 2. Yjs 的断线重连是 WebsocketProvider 自动处理的
   // 3. 重连时不会再次调用这个方法
-  // 4. 所以不需要"检查是否重用"的逻辑
 
   // 清理旧连接（如果存在）
   cleanupYjs()
 
   const userColor = usercolors[random.uint32() % usercolors.length]!
 
-  // 关键修复2: 在建立连接前检查房间是否存在
-  let roomExistsBefore = false
-  try {
-    const data = await GET<CheckRoom>(API_ENDPOINTS.COLLABORATION.CHECK_ROOM_EXISTS(roomId))
-    roomExistsBefore = data.exists
-    console.log('Room exists before connection:', roomExistsBefore)
-  } catch (error) {
-    console.warn('Failed to check room existence:', error)
-    // 如果检查失败，保守处理：假设房间已存在
-    roomExistsBefore = true
-  }
+  // 在建立连接前检查房间是否存在
+  const data = await GET<CheckRoom>(API_ENDPOINTS.COLLABORATION.CHECK_ROOM_EXISTS(roomId))
+  const roomExistsBefore = data.exists
 
   const ydoc = new Y.Doc()
   const ytext = ydoc.getText()
@@ -93,22 +84,20 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
     }
   )
 
-  // 关键修复5: 只在首次同步且房间为空时插入内容
-  let hasInsertedInitialContent = false
 
-  provider.on('sync', (isSynced: boolean) => {
+  provider.on('sync', async (isSynced: boolean) => {
     console.log('Sync event fired, isSynced:', isSynced)
-    console.log('Document length after sync:', ytext.length)
 
+    const data = await GET<CheckRoom>(API_ENDPOINTS.COLLABORATION.CHECK_ROOM_EXISTS(roomId))
+    const roomExistsAfterSync = data.exists
     // sync 事件参数说明：
     // isSynced = true: 文档已与服务器同步
     // isSynced = false: 文档未同步（通常不会触发这个状态）
 
     // 只在首次同步、房间原本不存在、文档为空时插入
-    if (!hasInsertedInitialContent && !roomExistsBefore && ytext.length === 0 && isSynced) {
+    if ((!roomExistsAfterSync || !roomExistsBefore) && isSynced) {
       console.log('Inserting initial content:', initialContent.substring(0, 50))
       ytext.insert(0, initialContent)
-      hasInsertedInitialContent = true
 
       ElNotification({
         title: '文档已初始化',
