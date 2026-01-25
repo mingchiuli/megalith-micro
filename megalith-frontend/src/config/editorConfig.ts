@@ -93,17 +93,22 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
       }
   )
 
+  // 关键修复5: 只在首次同步且房间为空时插入内容
+  let hasInsertedInitialContent = false
+
   provider.on('sync', (isSynced: boolean) => {
     console.log('Sync event fired, isSynced:', isSynced)
+    console.log('Document length after sync:', ytext.length)
 
     // sync 事件参数说明：
     // isSynced = true: 文档已与服务器同步
     // isSynced = false: 文档未同步（通常不会触发这个状态）
 
-    // 只在首次同步、房间原本不存在时插入
-    if (!roomExistsBefore && isSynced) {
+    // 只在首次同步、房间原本不存在、文档为空时插入
+    if (!hasInsertedInitialContent && !roomExistsBefore && ytext.length === 0 && isSynced) {
       console.log('Inserting initial content:', initialContent.substring(0, 50))
       ytext.insert(0, initialContent)
+      hasInsertedInitialContent = true
 
       ElNotification({
         title: '文档已初始化',
