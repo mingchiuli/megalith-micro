@@ -147,7 +147,7 @@ impl RoomManager {
             *empty_since = Some(SystemTime::now());
             
             tracing::info!(
-                "房间 {} 已无用户，标记为待删除（将在 60 分钟后删除）",
+                "房间 {} 已无用户，标记为待删除（将在 5 分钟后删除）",
                 room_id
             );
             
@@ -174,8 +174,8 @@ impl RoomManager {
                     
                     if let Some(empty_time) = *empty_since {
                         if let Ok(duration) = now.duration_since(empty_time) {
-                            // 超过 60 分钟才删除
-                            if duration >= Duration::from_secs(3600) {
+                            // 超过 5 分钟才删除
+                            if duration >= Duration::from_secs(300) {
                                 tracing::info!(
                                     "房间 {} 已空闲 {:?}，准备清理",
                                     room_id,
