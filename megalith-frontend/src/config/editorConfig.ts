@@ -47,55 +47,61 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
   // 1. 这个方法只在组件挂载时调用一次
   // 2. Yjs 的断线重连是 WebsocketProvider 自动处理的
   // 3. 重连时不会再次调用这个方法
+  // 4. 所以不需要"检查是否重用"的逻辑
 
   // 清理旧连接（如果存在）
   cleanupYjs()
 
   const userColor = usercolors[random.uint32() % usercolors.length]!
 
-  // 在建立连接前检查房间是否存在
-  const data = await GET<CheckRoom>(API_ENDPOINTS.COLLABORATION.CHECK_ROOM_EXISTS(roomId))
-  const roomExistsBefore = data.exists
+  // 关键修复2: 在建立连接前检查房间是否存在
+  let roomExistsBefore = false
+  try {
+    const data = await GET<CheckRoom>(API_ENDPOINTS.COLLABORATION.CHECK_ROOM_EXISTS(roomId))
+    roomExistsBefore = data.exists
+    console.log('Room exists before connection:', roomExistsBefore)
+  } catch (error) {
+    console.warn('Failed to check room existence:', error)
+    // 如果检查失败，保守处理：假设房间已存在
+    roomExistsBefore = true
+  }
 
   const ydoc = new Y.Doc()
   const ytext = ydoc.getText()
 
   const provider = new WebsocketProvider(
-    `${API_CONFIG.BASE_WS_URL}${API_ENDPOINTS.COLLABORATION.WS_ROOMS}`,
-    roomId,
-    ydoc,
-    {
-      // URL 参数：认证令牌会附加到 WebSocket URL 上
-      params: {
-        token: localStorage.getItem('accessToken')!
-      },
+      `${API_CONFIG.BASE_WS_URL}${API_ENDPOINTS.COLLABORATION.WS_ROOMS}`,
+      roomId,
+      ydoc,
+      {
+        // URL 参数：认证令牌会附加到 WebSocket URL 上
+        params: {
+          token: localStorage.getItem('accessToken')!
+        },
 
-      // 延迟连接：在配置完成后手动调用 provider.connect()
-      connect: false,
+        // 延迟连接：在配置完成后手动调用 provider.connect()
+        connect: false,
 
-      // 定期同步：每3秒向服务器请求一次完整状态，防止增量更新丢失
-      resyncInterval: 3000,
+        // 定期同步：每3秒向服务器请求一次完整状态，防止增量更新丢失
+        resyncInterval: 3000,
 
-      // 重连退避：断线重连时的最大等待时间（采用指数退避策略）
-      maxBackoffTime: 10000,
+        // 重连退避：断线重连时的最大等待时间（采用指数退避策略）
+        maxBackoffTime: 10000,
 
-      // 跨标签页通信：启用 BroadcastChannel（同一浏览器的多个标签页可直接通信）
-      disableBc: false
-    }
+        // 跨标签页通信：启用 BroadcastChannel（同一浏览器的多个标签页可直接通信）
+        disableBc: false
+      }
   )
 
-
-  provider.on('sync', async (isSynced: boolean) => {
+  provider.on('sync', (isSynced: boolean) => {
     console.log('Sync event fired, isSynced:', isSynced)
 
-    const data = await GET<CheckRoom>(API_ENDPOINTS.COLLABORATION.CHECK_ROOM_EXISTS(roomId))
-    const roomExistsAfterSync = data.exists
     // sync 事件参数说明：
     // isSynced = true: 文档已与服务器同步
     // isSynced = false: 文档未同步（通常不会触发这个状态）
 
-    // 只在首次同步、房间原本不存在、或重连后房间不存在时插入初始内容
-    if ((!roomExistsAfterSync || !roomExistsBefore) && isSynced) {
+    // 只在首次同步、房间原本不存在时插入
+    if (!roomExistsBefore && isSynced) {
       console.log('Inserting initial content:', initialContent.substring(0, 50))
       ytext.insert(0, initialContent)
 
