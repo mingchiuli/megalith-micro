@@ -94,7 +94,7 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
     // isSynced = true: 文档已与服务器同步
     // isSynced = false: 文档未同步（通常不会触发这个状态）
 
-    // 只在首次同步、房间原本不存在、文档为空时插入
+    // 只在首次同步、房间原本不存在、或重连后房间不存在时插入初始内容
     if ((!roomExistsAfterSync || !roomExistsBefore) && isSynced) {
       console.log('Inserting initial content:', initialContent.substring(0, 50))
       ytext.insert(0, initialContent)
