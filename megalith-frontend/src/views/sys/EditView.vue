@@ -34,7 +34,10 @@ import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 
 const aiModels = ref<AiModel[]>([])
 const aiModel = ref('')
+const imageModel = 'x/flux2-klein:9b-bf16'
 const aiLoading = ref(false)
+const imageGenerating = ref(false)
+const imageProgress = ref(0)
 const submitLoading = ref(false)
 const route = useRoute()
 const blogId = route.query.id as string | undefined
@@ -310,7 +313,7 @@ const aiGenerate = async () => {
     }
 
     aiLoading.value = true
-    
+
     const prompt = `请仔细阅读以下文章：\n${form.content}，根据文章内容生成标题和摘要：
 
     输出要求：
@@ -401,9 +404,144 @@ const aiGenerate = async () => {
         }
       }
     }
+
+    // 如果链接为空且存在图片生成模型，生成封面图片
+    if (!form.link && aiModels.value.some(m => m.name === imageModel)) {
+      await generateImagePrompt()
+    }
   } finally {
     // 无论成功与否，都关闭加载状态
     aiLoading.value = false
+  }
+}
+
+// 生成封面图片提示词并生成图片
+const generateImagePrompt = async () => {
+  if (!form.content || !aiModel.value) {
+    return
+  }
+
+  try {
+    const prompt = `请仔细阅读以下文章：\n${form.content}，根据文章内容生成一张图片的英文提示词。
+
+    输出要求：
+    - 格式：严格的JSON字符串
+    - imagePrompt: 适合Flux模型生成图片的英文提示词，不超过100字，描述文章的核心场景或意象
+    - 不含任何额外字符和格式标记
+
+    示例输出：
+    {"imagePrompt": "A beautiful sunny day with blue sky and white clouds, person walking in a park with smile"}
+
+    注意事项：
+    - 返回内容必须是可直接解析的JSON
+    - 不要包含markdown、代码块等任何格式标记
+    - JSON前后不能有空格或其他字符`
+
+    const response = await fetch(API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: aiModel.value,
+        prompt,
+        stream: false
+      })
+    })
+
+    if (!response.ok) {
+      return
+    }
+
+    const json = await response.json()
+
+    // 非 stream 格式: response 在 json.response 中
+    if (json.done && json.response) {
+      const result = JSON.parse(json.response)
+      if (result.imagePrompt) {
+        await generateImage(result.imagePrompt)
+      }
+    }
+  } catch (e) {
+    console.warn('图片提示词生成失败:', e)
+  }
+}
+
+const generateImage = async (prompt: string) => {
+  try {
+    imageGenerating.value = true
+    imageProgress.value = 0
+
+    const response = await fetch(API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: imageModel,
+        prompt,
+        stream: true
+      })
+    })
+
+    if (!response.ok) {
+      return
+    }
+
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let base64Image = ''
+
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read()
+
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (line.trim()) {
+            const json = JSON.parse(line)
+
+            // 更新进度
+            if (json.completed !== undefined && json.total) {
+              imageProgress.value = Math.round((json.completed / json.total) * 100)
+            }
+
+            // 收集 base64 图片数据
+            if (json.image) {
+              base64Image = json.image
+            }
+          }
+        }
+      }
+    }
+
+    // 上传图片
+    if (base64Image) {
+      // 将 base64 转换为 File 对象
+      const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '')
+      const byteCharacters = atob(base64Data)
+      const byteNumbers = new Array(byteCharacters.length)
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i)
+      }
+      const byteArray = new Uint8Array(byteNumbers)
+      const blob = new Blob([byteArray], { type: 'image/png' })
+      const file: UploadRawFile = new File([blob], 'cover.png', { type: 'image/png' }) as UploadRawFile
+      ;(file as UploadRawFile & { uid: number }).uid = Date.now()
+
+      await uploadFile(file)
+    }
+  } catch (e) {
+    console.warn('图片生成失败:', e)
+  } finally {
+    imageGenerating.value = false
+    imageProgress.value = 0
   }
 }
 
@@ -507,9 +645,17 @@ const aiGenerate = async () => {
         <el-dialog v-model="dialogVisible">
           <img style="width: 100%" :src="dialogImageUrl" alt="" />
         </el-dialog>
+
+        <el-progress
+          v-if="imageGenerating"
+          type="circle"
+          :percentage="imageProgress"
+          :width="80"
+          status="success"
+        />
       </el-form-item>
 
-      <el-form-item label="进度" class="progress" v-if="showPercentage">
+      <el-form-item label="上传进度" class="progress" v-if="showPercentage">
         <el-progress type="line" :percentage="uploadPercentage" :color="Colors" />
       </el-form-item>
 
