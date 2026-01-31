@@ -17,7 +17,7 @@ use crate::{
     utils,
 };
 
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(300);
 
 #[instrument(name = "proxy_http_request", skip(req))]
 pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, HandlerError> {

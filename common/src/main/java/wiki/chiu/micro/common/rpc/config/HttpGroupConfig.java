@@ -31,7 +31,7 @@ public class HttpGroupConfig {
     @Value("${megalith.blog.http.user-timeout:10000}")
     private int userTimeout;
 
-    @Value("${megalith.blog.http.oss-timeout:30000}")
+    @Value("${megalith.blog.http.oss-timeout:300000}")
     private int ossTimeout;
 
     @Value("${megalith.blog.http.auth-timeout:10000}")
