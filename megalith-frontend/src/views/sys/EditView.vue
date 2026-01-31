@@ -645,17 +645,13 @@ const generateImage = async (prompt: string) => {
         <el-dialog v-model="dialogVisible">
           <img style="width: 100%" :src="dialogImageUrl" alt="" />
         </el-dialog>
-
-        <el-progress
-          v-if="imageGenerating"
-          type="circle"
-          :percentage="imageProgress"
-          :width="80"
-          status="success"
-        />
       </el-form-item>
 
-      <el-form-item label="上传进度" class="progress" v-if="showPercentage">
+      <el-form-item label="生成进度" class="progress" v-if="imageGenerating">
+        <el-progress type="line" :percentage="imageProgress" :color="Colors" />
+      </el-form-item>
+
+      <el-form-item label="上传进度" class="progress" v-if="showPercentage && !imageGenerating">
         <el-progress type="line" :percentage="uploadPercentage" :color="Colors" />
       </el-form-item>
 
