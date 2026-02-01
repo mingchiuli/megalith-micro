@@ -1,9 +1,9 @@
-import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
-import type { Data } from '@/type/entity'
-import { updateAccessToken, clearLoginState } from '@/utils/tools'
+import axios, {type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig} from 'axios'
+import type {Data} from '@/type/entity'
+import {clearLoginState, updateAccessToken} from '@/utils/tools'
 import router from '@/router'
-import { loginStateStore } from '@/stores/store'
-import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
+import {loginStateStore} from '@/stores/store'
+import {API_CONFIG, API_ENDPOINTS} from '@/config/apiConfig'
 
 const httpClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -22,8 +22,7 @@ const aiHttpClient = axios.create({
 const requestInterceptor = async (config: InternalAxiosRequestConfig) => {
   const url = config.url
   if (url !== API_ENDPOINTS.AUTH.TOKEN_REFRESH && loginStateStore().login) {
-    const token = await updateAccessToken()
-    config.headers.Authorization = token
+    config.headers.Authorization = await updateAccessToken()
   }
   return config
 }
