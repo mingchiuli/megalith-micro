@@ -1,36 +1,36 @@
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, reactive, ref, useTemplateRef } from 'vue'
+import {computed, defineAsyncComponent, reactive, ref, useTemplateRef} from 'vue'
 import type {
+  ElInput,
+  FormInstance,
+  FormRules,
   TagProps,
   UploadFile,
   UploadProps,
   UploadRawFile,
   UploadRequestOptions,
-  FormRules,
-  FormInstance,
-  UploadUserFile,
-  ElInput
+  UploadUserFile
 } from 'element-plus'
-import { GET, POST, UPLOAD } from '@/http/http'
+import {GET, POST, UPLOAD} from '@/http/http'
 import {
+  type AiModel,
+  type AiModelsResp,
+  type BlogEdit,
+  ButtonAuth,
+  Colors,
   type EditForm,
+  type SensitiveExhibit,
   type SensitiveItem,
   type SensitiveTrans,
-  Status,
-  ButtonAuth,
   SensitiveType,
-  type SensitiveExhibit,
-  Colors,
-  type BlogEdit,
-  type AiModelsResp,
-  type AiModel
+  Status
 } from '@/type/entity'
-import { useRoute } from 'vue-router'
+import {useRoute} from 'vue-router'
 import router from '@/router'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
-import { aiHttpClient } from '@/http/axios'
-import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
+import {checkButtonAuth, getButtonTitle, getButtonType} from '@/utils/tools'
+import {aiHttpClient} from '@/http/axios'
+import {API_CONFIG, API_ENDPOINTS} from '@/config/apiConfig'
 
 const aiModels = ref<AiModel[]>([])
 const aiModel = ref('')
@@ -108,15 +108,14 @@ const upload = async (image: UploadRequestOptions) => {
 }
 
 const uploadFile = async (file: UploadRawFile) => {
-  const formdata = new FormData()
-  formdata.append('image', file)
-  const url = await UPLOAD(
-    API_ENDPOINTS.BLOG_ADMIN.OSS_UPLOAD,
-    formdata,
-    uploadPercentage,
-    showPercentage
+  const formData = new FormData()
+  formData.append('image', file)
+  form.link = await UPLOAD(
+      API_ENDPOINTS.BLOG_ADMIN.OSS_UPLOAD,
+      formData,
+      uploadPercentage,
+      showPercentage
   )
-  form.link = url
 }
 
 const handleRemove = async () => {
@@ -467,11 +466,13 @@ const generateImagePrompt = async () => {
   }
 }
 
-const generateImage = async (prompt: string) => {
-  try {
-    imageGenerating.value = true
-    imageProgress.value = 0
 
+
+const generateImage = async (prompt: string) => {
+  let base64Image = ''
+  imageGenerating.value = true
+  imageProgress.value = 0
+  try {
     const response = await fetch(API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT, {
       method: 'POST',
       headers: {
@@ -491,7 +492,6 @@ const generateImage = async (prompt: string) => {
     const reader = response.body?.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
-    let base64Image = ''
 
     if (reader) {
       while (true) {
@@ -520,7 +520,12 @@ const generateImage = async (prompt: string) => {
         }
       }
     }
+  } finally {
+    imageGenerating.value = false
+    imageProgress.value = 0
+  }
 
+  try {
     // 上传图片
     if (base64Image) {
       // 将 base64 转换为 File 对象
@@ -539,9 +544,6 @@ const generateImage = async (prompt: string) => {
     }
   } catch (e) {
     console.warn('图片生成失败:', e)
-  } finally {
-    imageGenerating.value = false
-    imageProgress.value = 0
   }
 }
 
