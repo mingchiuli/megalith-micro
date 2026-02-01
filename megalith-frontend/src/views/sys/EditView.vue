@@ -322,7 +322,7 @@ const aiGenerate = async () => {
     - 不含任何额外字符和格式标记
 
     示例输出：
-    {"title": "美好的一天", "description": "今天天气晴朗，心情愉快。"}
+    {"title": "标题", "description": "文章摘要"}
 
     注意事项：
     - 返回内容必须是可直接解析的JSON
