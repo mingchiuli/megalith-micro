@@ -679,6 +679,13 @@ const handleRegenerateImage = async () => {
           <div class="image-preview-container">
             <img v-if="generatedImageUrl" :src="generatedImageUrl" class="preview-image" alt="预览图片" />
           </div>
+          <el-progress
+            v-if="generatedImageDialogVisible && showPercentage"
+            type="line"
+            :percentage="uploadPercentage"
+            :color="Colors"
+            class="dialog-progress"
+          />
           <template #footer>
             <el-button v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_AI)" @click="handleRegenerateImage" :loading="imageGenerating">重新生成</el-button>
             <el-button v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)" type="primary" @click="handleConfirmUpload" :loading="uploadPercentage > 0 && uploadPercentage < 100">确认上传</el-button>
@@ -690,7 +697,7 @@ const handleRegenerateImage = async () => {
         <el-progress type="line" :percentage="imageProgress" :color="Colors" />
       </el-form-item>
 
-      <el-form-item label="上传进度" class="progress" v-if="showPercentage && !imageGenerating">
+      <el-form-item label="上传进度" class="progress" v-if="showPercentage && !generatedImageDialogVisible">
         <el-progress type="line" :percentage="uploadPercentage" :color="Colors" />
       </el-form-item>
 
@@ -792,5 +799,9 @@ const handleRegenerateImage = async () => {
   object-fit: contain;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dialog-progress {
+  margin-top: 16px;
 }
 </style>
