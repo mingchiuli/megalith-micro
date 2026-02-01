@@ -95,6 +95,11 @@ const showPercentage = ref(false)
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 
+// 图片生成预览 dialog
+const generatedImageDialogVisible = ref(false)
+const generatedImageUrl = ref('')
+const generatedImageBase64 = ref('')
+
 const formRef = ref<FormInstance>()
 const formRules = reactive<FormRules<EditForm>>({
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
@@ -525,25 +530,41 @@ const generateImage = async (prompt: string) => {
     imageProgress.value = 0
   }
 
-  try {
-    // 上传图片
-    if (base64Image) {
-      // 将 base64 转换为 File 对象
-      const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '')
-      const byteCharacters = atob(base64Data)
-      const byteNumbers = new Array(byteCharacters.length)
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i)
-      }
-      const byteArray = new Uint8Array(byteNumbers)
-      const blob = new Blob([byteArray], { type: 'image/png' })
-      const file: UploadRawFile = new File([blob], 'cover.png', { type: 'image/png' }) as UploadRawFile
-      ;(file as UploadRawFile & { uid: number }).uid = Date.now()
+  // 展示图片预览 dialog，不自动上传
+  if (base64Image) {
+    generatedImageUrl.value = `data:image/png;base64,${base64Image}`
+    generatedImageBase64.value = base64Image
+    generatedImageDialogVisible.value = true
+  }
+}
 
-      await uploadFile(file)
+const handleConfirmUpload = async () => {
+  if (!generatedImageBase64.value) return
+
+  try {
+    // 将 base64 转换为 File 对象
+    const base64Data = generatedImageBase64.value.replace(/^data:image\/\w+;base64,/, '')
+    const byteCharacters = atob(base64Data)
+    const byteNumbers = new Array(byteCharacters.length)
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i)
     }
+    const byteArray = new Uint8Array(byteNumbers)
+    const blob = new Blob([byteArray], { type: 'image/png' })
+    const file: UploadRawFile = new File([blob], 'cover.png', { type: 'image/png' }) as UploadRawFile
+    ;(file as UploadRawFile & { uid: number }).uid = Date.now()
+
+    await uploadFile(file)
+    generatedImageDialogVisible.value = false
   } catch (e) {
-    console.warn('图片生成失败:', e)
+    console.warn('图片上传失败:', e)
+  }
+}
+
+const handleRegenerateImage = async () => {
+  generatedImageDialogVisible.value = false
+  if (form.content && aiModels.value.some(item => item.model === imageModel)) {
+    await generateImagePrompt()
   }
 }
 
@@ -647,6 +668,22 @@ const generateImage = async (prompt: string) => {
         <el-dialog v-model="dialogVisible">
           <img style="width: 100%" :src="dialogImageUrl" alt="" />
         </el-dialog>
+
+        <!-- 图片生成预览 dialog -->
+        <el-dialog
+          v-model="generatedImageDialogVisible"
+          title="封面图片预览"
+          width="500px"
+          :close-on-click-modal="true"
+        >
+          <div class="image-preview-container">
+            <img v-if="generatedImageUrl" :src="generatedImageUrl" class="preview-image" alt="预览图片" />
+          </div>
+          <template #footer>
+            <el-button @click="handleRegenerateImage" :loading="imageGenerating">重新生成</el-button>
+            <el-button type="primary" @click="handleConfirmUpload" :loading="uploadPercentage > 0 && uploadPercentage < 100">确认上传</el-button>
+          </template>
+        </el-dialog>
       </el-form-item>
 
       <el-form-item label="生成进度" class="progress" v-if="imageGenerating">
@@ -740,5 +777,20 @@ const generateImage = async (prompt: string) => {
 
 .el-progress {
   width: 150px;
+}
+
+.image-preview-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 </style>
