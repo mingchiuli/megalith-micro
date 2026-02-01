@@ -684,7 +684,6 @@ const handleRegenerateImage = async () => {
             <img v-if="generatedImageUrl" :src="generatedImageUrl" class="preview-image" alt="预览图片" />
           </div>
           <div class="upload-progress-wrapper">
-            <span class="progress-label">生成进度</span>
             <el-progress
               v-if="generatedImageDialogVisible && showPercentage"
               type="line"
@@ -814,11 +813,8 @@ const handleRegenerateImage = async () => {
 
 .upload-progress-wrapper {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 12px;
-}
-
-.progress-label {
-  white-space: nowrap;
 }
 </style>
