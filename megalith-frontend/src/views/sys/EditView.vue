@@ -570,7 +570,7 @@ const handleRegenerateImage = async () => {
 
 ;(async () => {
   await loadEditContent(form, blogId)
-  loadAiModel()
+  await loadAiModel()
 })()
 </script>
 
@@ -680,8 +680,8 @@ const handleRegenerateImage = async () => {
             <img v-if="generatedImageUrl" :src="generatedImageUrl" class="preview-image" alt="预览图片" />
           </div>
           <template #footer>
-            <el-button @click="handleRegenerateImage" :loading="imageGenerating">重新生成</el-button>
-            <el-button type="primary" @click="handleConfirmUpload" :loading="uploadPercentage > 0 && uploadPercentage < 100">确认上传</el-button>
+            <el-button v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_AI)" @click="handleRegenerateImage" :loading="imageGenerating">重新生成</el-button>
+            <el-button v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)" type="primary" @click="handleConfirmUpload" :loading="uploadPercentage > 0 && uploadPercentage < 100">确认上传</el-button>
           </template>
         </el-dialog>
       </el-form-item>
