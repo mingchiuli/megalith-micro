@@ -91,6 +91,7 @@ const descRef = useTemplateRef<InstanceType<typeof ElInput>>('descRef')
 //中文输入法的问题
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
+const uploadLoading = ref(false)
 
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
@@ -541,6 +542,7 @@ const generateImage = async (prompt: string) => {
 const handleConfirmUpload = async () => {
   if (!generatedImageBase64.value) return
 
+  uploadLoading.value = true
   try {
     // 将 base64 转换为 File 对象
     const base64Data = generatedImageBase64.value.replace(/^data:image\/\w+;base64,/, '')
@@ -558,6 +560,8 @@ const handleConfirmUpload = async () => {
     generatedImageDialogVisible.value = false
   } catch (e) {
     console.warn('图片上传失败:', e)
+  } finally {
+    uploadLoading.value = false
   }
 }
 
@@ -679,16 +683,19 @@ const handleRegenerateImage = async () => {
           <div class="image-preview-container">
             <img v-if="generatedImageUrl" :src="generatedImageUrl" class="preview-image" alt="预览图片" />
           </div>
-          <el-progress
-            v-if="generatedImageDialogVisible && showPercentage"
-            type="line"
-            :percentage="uploadPercentage"
-            :color="Colors"
-            class="dialog-progress"
-          />
+          <div class="upload-progress-wrapper">
+            <span class="progress-label">生成进度</span>
+            <el-progress
+              v-if="generatedImageDialogVisible && showPercentage"
+              type="line"
+              :percentage="uploadPercentage"
+              :color="Colors"
+              class="dialog-progress"
+            />
+          </div>
           <template #footer>
             <el-button v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_AI)" @click="handleRegenerateImage" :loading="imageGenerating">重新生成</el-button>
-            <el-button v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)" type="primary" @click="handleConfirmUpload" :loading="uploadPercentage > 0 && uploadPercentage < 100">确认上传</el-button>
+            <el-button v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)" type="primary" @click="handleConfirmUpload" :loading="uploadLoading">确认上传</el-button>
           </template>
         </el-dialog>
       </el-form-item>
@@ -803,5 +810,15 @@ const handleRegenerateImage = async () => {
 
 .dialog-progress {
   margin-top: 16px;
+}
+
+.upload-progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-label {
+  white-space: nowrap;
 }
 </style>
