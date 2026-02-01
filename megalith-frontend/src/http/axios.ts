@@ -11,11 +11,14 @@ const httpClient = axios.create({
 })
 
 const longHttpClient = axios.create({
-  baseURL: API_CONFIG.BASE_URL
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.LONG_TIMEOUT
 })
 
 const aiHttpClient = axios.create({
-  baseURL: API_CONFIG.AI_BASE_URL
+  baseURL: API_CONFIG.AI_BASE_URL,
+  timeout: API_CONFIG.LONG_TIMEOUT
+
 })
 
 // 请求拦截器

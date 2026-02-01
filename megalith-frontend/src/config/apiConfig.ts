@@ -12,7 +12,9 @@ export const API_CONFIG = {
   // AI服务器URL
   AI_BASE_URL: 'http://localhost:11434',
   // 请求超时时间
-  TIMEOUT: 10000
+  TIMEOUT: 10000,
+  // 长时间请求超时时间
+  LONG_TIMEOUT: 300000
 }
 
 // 认证相关API
