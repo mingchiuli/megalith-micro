@@ -1,12 +1,12 @@
 use micro_sync_rs::{
-    config::config::{self, ConfigKey, init_config},
+    config::config::{self, init_config, ConfigKey},
     init_logger_provider, init_meter_provider, init_tracer_provider, set_route, shutdown_signal,
 };
 use opentelemetry::{global, trace::TracerProvider};
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
-
 use std::env;
-
+use std::net::SocketAddr;
+use tokio::net::TcpListener;
 use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -57,21 +57,20 @@ fn main() {
         .expect("Failed to create Tokio runtime");
 
     // Run the async main function
-    runtime.block_on((async || {
+    runtime.block_on(async {
         tracing::info!("{}", LOGO);
 
-        // 创建服务器任务
-        let (_, server) = warp::serve(set_route()).bind_with_graceful_shutdown(
-            (
-                [0, 0, 0, 0],
-                config::get_config(ConfigKey::ServerPort).parse().unwrap(),
-            ),
-            shutdown_signal(),
-        );
+        let port: u16 = config::get_config(ConfigKey::ServerPort).parse().unwrap();
+        let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
-        // 等待服务器运行完成
-        server.await;
-    })());
+        let listener = TcpListener::bind(addr).await.unwrap();
+        tracing::info!("Server listening on {}", addr);
+
+        axum::serve(listener, set_route())
+            .with_graceful_shutdown(shutdown_signal())
+            .await
+            .unwrap();
+    });
 
     // Shutdown OpenTelemetry providers AFTER runtime is done (outside async context)
     let _ = tracer_provider.shutdown();
