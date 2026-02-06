@@ -1,28 +1,24 @@
-use crate::extractor::WarpHeaderExtractor;
+use crate::extractor::AxumHeaderExtractor;
 use crate::room::room::{RoomConnection, RoomManager};
+use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
+use axum::extract::{Path, State};
+use axum::response::IntoResponse;
 use futures_util::{SinkExt, StreamExt};
+use axum::http::HeaderMap;
 use opentelemetry::global;
-use yrs::{ReadTxn, Transact};
-use yrs::sync::{Message, SyncMessage};
-use yrs::updates::encoder::Encode;
 use std::sync::Arc;
-use tokio::sync::Mutex;
 use tracing::Instrument;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
-use warp::filters::ws::{WebSocket, Ws};
-use warp::http::HeaderMap;
-use warp::{Rejection, Reply};
-use yrs_warp::ws::{WarpSink, WarpStream};
 
 pub async fn ws_handler(
-    room_id: String,
+    Path(room_id): Path<String>,
+    State(room_manager): State<Arc<RoomManager>>,
     headers: HeaderMap,
-    ws: Ws,
-    room_manager: Arc<RoomManager>,
-) -> Result<impl Reply, Rejection> {
+    ws: WebSocketUpgrade,
+) -> impl IntoResponse {
     // 从请求头中提取 trace context
     let parent_context = global::get_text_map_propagator(|propagator| {
-        propagator.extract(&WarpHeaderExtractor(&headers))
+        propagator.extract(&AxumHeaderExtractor(&headers))
     });
 
     // 创建带有父 context 的 span
@@ -34,9 +30,8 @@ pub async fn ws_handler(
     let _ = span.set_parent(parent_context);
 
     tracing::info!("新连接尝试加入房间: {}", room_id);
-    let room_id_clone = room_id.clone();
 
-    Ok(ws.on_upgrade(move |socket| peer(socket, room_manager, room_id_clone).instrument(span)))
+    ws.on_upgrade(move |socket| peer(socket, room_manager, room_id).instrument(span))
 }
 
 async fn peer(ws: WebSocket, room_manager: Arc<RoomManager>, room_id: String) {
@@ -48,34 +43,89 @@ async fn peer(ws: WebSocket, room_manager: Arc<RoomManager>, room_id: String) {
     // 创建连接信息对象，用于管理生命周期
     let connection = RoomConnection::new(room_id.clone(), room_info, room_manager);
 
-    let (sink, stream) = ws.split();
-    let sink = Arc::new(Mutex::new(WarpSink::from(sink)));
-    let stream = WarpStream::from(stream);
+    let (mut sink, mut stream) = ws.split();
 
     // 🔑 发送 SyncStep1（对新连接和重连都安全）
-    {
-        let awareness = bcast.awareness();
-        let sv = awareness.doc().transact().state_vector();
-        let msg = Message::Sync(SyncMessage::SyncStep1(sv));
-        let payload = msg.encode_v1();
-        
-        let mut sink_guard = sink.lock().await;
-        if let Err(e) = sink_guard.send(payload).await {
-            tracing::error!("发送 SyncStep1 失败: {}", e);
-            // 发送失败，提前退出
+    let sync_step1 = bcast.create_sync_step1().await;
+    if let Err(e) = sink.send(Message::Binary(sync_step1.into())).await {
+        tracing::error!("发送 SyncStep1 失败: {}", e);
+        connection.cleanup().await;
+        return;
+    }
+    tracing::debug!("已向房间 {} 发送 SyncStep1", room_id);
+
+    // 发送当前 awareness 状态
+    if let Some(awareness_update) = bcast.create_awareness_update().await {
+        if let Err(e) = sink.send(Message::Binary(awareness_update.into())).await {
+            tracing::error!("发送 awareness 更新失败: {}", e);
             connection.cleanup().await;
             return;
         }
-        tracing::debug!("已向房间 {} 发送 SyncStep1", room_id);
     }
 
-    let sub = bcast.subscribe(sink, stream);
+    // 订阅广播消息
+    let mut broadcast_rx = bcast.subscribe();
 
-    // 等待连接关闭
-    match sub.completed().await {
-        Ok(_) => tracing::info!("房间 {} 的通道广播成功完成", room_id),
-        Err(e) => tracing::error!("房间 {} 的通道广播异常终止: {}", room_id, e),
+    // 主循环：处理来自客户端的消息和广播消息
+    loop {
+        tokio::select! {
+            // 处理来自客户端的消息
+            msg = stream.next() => {
+                match msg {
+                    Some(Ok(Message::Binary(data))) => {
+                        // 处理消息并获取可能的响应
+                        if let Some(response) = bcast.handle_message(&data).await {
+                            if let Err(e) = sink.send(Message::Binary(response.into())).await {
+                                tracing::error!("发送响应失败: {}", e);
+                                break;
+                            }
+                        }
+                    }
+                    Some(Ok(Message::Close(_))) => {
+                        tracing::info!("客户端关闭连接: {}", room_id);
+                        break;
+                    }
+                    Some(Ok(Message::Ping(data))) => {
+                        if let Err(e) = sink.send(Message::Pong(data)).await {
+                            tracing::error!("发送 Pong 失败: {}", e);
+                            break;
+                        }
+                    }
+                    Some(Ok(_)) => {
+                        // 忽略其他消息类型
+                    }
+                    Some(Err(e)) => {
+                        tracing::error!("WebSocket 错误: {}", e);
+                        break;
+                    }
+                    None => {
+                        tracing::info!("WebSocket 流结束: {}", room_id);
+                        break;
+                    }
+                }
+            }
+            // 处理广播消息
+            broadcast_msg = broadcast_rx.recv() => {
+                match broadcast_msg {
+                    Ok(data) => {
+                        if let Err(e) = sink.send(Message::Binary(data.into())).await {
+                            tracing::error!("发送广播消息失败: {}", e);
+                            break;
+                        }
+                    }
+                    Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
+                        tracing::warn!("广播接收器落后 {} 条消息", n);
+                    }
+                    Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                        tracing::info!("广播通道已关闭");
+                        break;
+                    }
+                }
+            }
+        }
     }
+
+    tracing::info!("房间 {} 的连接已关闭", room_id);
 
     // 连接关闭时清理资源
     connection.cleanup().await;

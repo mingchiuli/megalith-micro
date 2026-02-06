@@ -1,11 +1,10 @@
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 use tokio::sync::{Mutex, RwLock};
-use yrs::Doc;
-use yrs::sync::Awareness;
-use yrs_warp::broadcast::BroadcastGroup;
+
+use super::sync_protocol::BroadcastGroup;
 
 // 房间连接包装器
 pub struct RoomConnection {
@@ -109,10 +108,8 @@ impl RoomManager {
         
         // 确认不存在，创建新房间
         tracing::info!("创建新房间: {}", room_id);
-        
-        let doc = Doc::new();
-        let awareness = Arc::new(Awareness::new(doc));
-        let broadcast_group = Arc::new(BroadcastGroup::new(awareness, 32).await);
+
+        let broadcast_group = Arc::new(BroadcastGroup::new(32));
         
         let room_info = Arc::new(RoomInfo {
             broadcast_group: broadcast_group.clone(),

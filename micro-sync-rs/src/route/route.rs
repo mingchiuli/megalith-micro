@@ -1,57 +1,40 @@
+use axum::routing::get;
+use axum::Router;
 use opentelemetry::global;
-use opentelemetry::metrics::Counter;
-use warp::reply::Reply;
-
 use std::sync::Arc;
-use warp::Filter;
-use warp::filters::header::headers_cloned;
-use warp::http::HeaderMap;
 
 use crate::{
     config::config::{self, ConfigKey},
-    room::{RoomManager, check_room_exists, ws_handler}, schedule::task::start_cleanup_task,
+    room::{check_room_exists, ws_handler, RoomCheckerState, RoomManager},
+    schedule::task::start_cleanup_task,
 };
 
-pub fn set_route() -> impl Filter<Extract = impl Reply, Error = warp::Rejection> + Clone {
+pub fn set_route() -> Router {
     let room_manager = Arc::new(RoomManager::new());
     start_cleanup_task(room_manager.clone());
-    let room_manager_ws = room_manager.clone();
-    let room_manager_rooms = room_manager.clone();
-
-    // WebSocket 路由 - 提取 headers 用于链路追踪
-    let ws_routes = warp::path("rooms")
-        .and(warp::path::param::<String>())
-        .and(warp::header::headers_cloned())
-        .and(warp::ws())
-        .and(warp::any().map(move || room_manager_ws.clone()))
-        .and_then(ws_handler);
-
-    // 简单的健康检查路由
-    let health_check = warp::path("actuator")
-        .and(warp::path("health"))
-        .and(warp::get())
-        .map(|| "OK");
 
     // Create metrics
     let meter = global::meter(config::get_static_value(ConfigKey::ServerName));
 
-    let request_counter: Counter<u64> = meter
+    let request_counter = meter
         .u64_counter("http_requests_total")
         .with_description("Total number of HTTP requests")
         .build();
 
-    let check_rooms = warp::path("rooms")
-        .and(warp::path("exist"))
-        .and(warp::path::param::<String>())
-        .and(warp::get())
-        .and(headers_cloned())
-        .and_then(move |room_id: String, headers: HeaderMap| {
-            // 新增：接收 headers 参数
-            let room_manager = room_manager_rooms.clone();
-            let counter = request_counter.clone();
-            async move { check_room_exists(room_id, room_manager, counter, headers).await }
-        });
+    let room_checker_state = Arc::new(RoomCheckerState {
+        room_manager: room_manager.clone(),
+        counter: request_counter,
+    });
 
-    // 合并所有路由
-    ws_routes.or(health_check).or(check_rooms)
+    Router::new()
+        // WebSocket 路由
+        .route("/rooms/{room_id}", get(ws_handler))
+        .with_state(room_manager)
+        // 健康检查路由
+        .route("/actuator/health", get(|| async { "OK" }))
+        // 检查房间是否存在
+        .route(
+            "/rooms/exist/{room_id}",
+            get(check_room_exists).with_state(room_checker_state),
+        )
 }
