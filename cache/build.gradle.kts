@@ -39,7 +39,7 @@ mavenPublishing {
 }
 
 dependencies {
-    implementation("org.redisson:redisson:4.1.0")
+    implementation("org.redisson:redisson:4.2.0")
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("org.aspectj:aspectjweaver")
     compileOnly("jakarta.servlet:jakarta.servlet-api")
