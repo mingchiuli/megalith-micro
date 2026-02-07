@@ -16,12 +16,10 @@ pub async fn ws_handler(
     headers: HeaderMap,
     ws: WebSocketUpgrade,
 ) -> impl IntoResponse {
-    // 从请求头中提取 trace context
     let parent_context = global::get_text_map_propagator(|propagator| {
         propagator.extract(&AxumHeaderExtractor(&headers))
     });
 
-    // 创建带有父 context 的 span
     let span = tracing::info_span!(
         "websocket_connection",
         room_id = %room_id,
@@ -37,44 +35,35 @@ pub async fn ws_handler(
 async fn peer(ws: WebSocket, room_manager: Arc<RoomManager>, room_id: String) {
     tracing::info!("已建立新连接到房间: {}", room_id);
 
-    // 获取或创建此房间的广播组，同时获取房间信息引用
     let (room_info, bcast) = room_manager.get_or_create_room(&room_id).await;
 
-    // 创建连接信息对象，用于管理生命周期
+    // Allocate a unique connection ID for echo prevention
+    let connection_id = bcast.next_connection_id();
+
     let connection = RoomConnection::new(room_id.clone(), room_info, room_manager);
 
     let (mut sink, mut stream) = ws.split();
 
-    // 🔑 发送 SyncStep1（对新连接和重连都安全）
-    let sync_step1 = bcast.create_sync_step1().await;
-    if let Err(e) = sink.send(Message::Binary(sync_step1.into())).await {
-        tracing::error!("发送 SyncStep1 失败: {}", e);
-        connection.cleanup().await;
-        return;
-    }
-    tracing::debug!("已向房间 {} 发送 SyncStep1", room_id);
-
-    // 发送当前 awareness 状态
-    if let Some(awareness_update) = bcast.create_awareness_update().await {
-        if let Err(e) = sink.send(Message::Binary(awareness_update.into())).await {
-            tracing::error!("发送 awareness 更新失败: {}", e);
+    // Send initial messages (SyncStep1 + SyncStep2 + AwarenessUpdate)
+    let initial_messages = bcast.get_initial_messages().await;
+    for msg in initial_messages {
+        if let Err(e) = sink.send(Message::Binary(msg.into())).await {
+            tracing::error!("发送初始化消息失败: {}", e);
             connection.cleanup().await;
             return;
         }
     }
+    tracing::debug!("已向房间 {} 发送初始化消息", room_id);
 
-    // 订阅广播消息
     let mut broadcast_rx = bcast.subscribe();
 
-    // 主循环：处理来自客户端的消息和广播消息
     loop {
         tokio::select! {
-            // 处理来自客户端的消息
             msg = stream.next() => {
                 match msg {
                     Some(Ok(Message::Binary(data))) => {
-                        // 处理消息并获取可能的响应
-                        if let Some(response) = bcast.handle_message(&data).await {
+                        let responses = bcast.handle_message(connection_id, &data).await;
+                        for response in responses {
                             if let Err(e) = sink.send(Message::Binary(response.into())).await {
                                 tracing::error!("发送响应失败: {}", e);
                                 break;
@@ -91,9 +80,7 @@ async fn peer(ws: WebSocket, room_manager: Arc<RoomManager>, room_id: String) {
                             break;
                         }
                     }
-                    Some(Ok(_)) => {
-                        // 忽略其他消息类型
-                    }
+                    Some(Ok(_)) => {}
                     Some(Err(e)) => {
                         tracing::error!("WebSocket 错误: {}", e);
                         break;
@@ -104,11 +91,14 @@ async fn peer(ws: WebSocket, room_manager: Arc<RoomManager>, room_id: String) {
                     }
                 }
             }
-            // 处理广播消息
             broadcast_msg = broadcast_rx.recv() => {
                 match broadcast_msg {
-                    Ok(data) => {
-                        if let Err(e) = sink.send(Message::Binary(data.into())).await {
+                    Ok(payload) => {
+                        // Skip messages sent by this connection (echo prevention)
+                        if payload.sender_id == connection_id {
+                            continue;
+                        }
+                        if let Err(e) = sink.send(Message::Binary(payload.data.into())).await {
                             tracing::error!("发送广播消息失败: {}", e);
                             break;
                         }
@@ -126,7 +116,5 @@ async fn peer(ws: WebSocket, room_manager: Arc<RoomManager>, room_id: String) {
     }
 
     tracing::info!("房间 {} 的连接已关闭", room_id);
-
-    // 连接关闭时清理资源
     connection.cleanup().await;
 }
