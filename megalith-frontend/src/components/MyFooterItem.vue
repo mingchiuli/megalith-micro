@@ -6,7 +6,7 @@
   <div class="footer">
     <el-divider />
     <el-link underline="hover" class="copyright" href="/"
-      >&copy; Powered by Docker 2021 - 2025
+      >&copy; Powered by Docker 2021 - 2026
     </el-link>
   </div>
 </template>
