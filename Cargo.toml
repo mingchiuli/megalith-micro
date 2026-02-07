@@ -39,7 +39,6 @@ futures-util = "0.3.31"
 
 # Web frameworks
 axum = { version = "0.8.8", features = ["ws"] }
-warp = { version = "0.3.7", features = ["websocket"] }
 
 # HTTP
 hyper = { version = "1.8.1", features = ["full"] }
@@ -50,8 +49,7 @@ http-body-util = "0.1.3"
 tokio-tungstenite = "0.28.0"
 
 # CRDT and collaboration
-yrs = "0.24.0"
-yrs-warp = "0.9.0"
+yrs = "0.25.0"
 
 # Utilities
 url = "2.5.8"
