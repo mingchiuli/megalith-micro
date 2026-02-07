@@ -1,5 +1,5 @@
 use tokio::sync::{broadcast, mpsc, oneshot};
-use yrs::sync::{Awareness, AwarenessUpdate, SyncMessage};
+use yrs::sync::{Awareness, AwarenessUpdate};
 use yrs::updates::decoder::Decode;
 use yrs::updates::encoder::Encode;
 use yrs::{Doc, ReadTxn, StateVector, Transact, Update};
