@@ -13,7 +13,6 @@ yrs.workspace = true
 # Inherit from workspace
 axum.workspace = true
 tokio.workspace = true
-tokio-tungstenite.workspace = true
 serde = { workspace = true, features = ["rc"] }
 serde_json.workspace = true
 tracing.workspace = true
