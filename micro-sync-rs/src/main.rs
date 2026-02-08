@@ -11,11 +11,11 @@ use tracing_opentelemetry::OpenTelemetryLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 const LOGO: &str = r#"
- _    _  ___  ____  ____
-| |  | |/ _ \|  _ \|  _ \
-| |/\| | |_| | |_) | |_) |
-\  /\  /  _  |  _ <|  __/
- \/  \/_/ \_\_| \_\_|
+    _
+   / \   __  ___   _ _ __ ___
+  / _ \  \ \/ / | | | '_ ` _ \
+ / ___ \  >  <| |_| | | | | | |
+/_/   \_\/_/\_\\__,_|_| |_| |_|
 "#;
 
 fn main() {
