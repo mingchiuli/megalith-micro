@@ -42,7 +42,7 @@
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.8.1",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.54.0",
+    "typescript-eslint": "^8.55.0",
     "unplugin-auto-import": "^21.0.0",
     "unplugin-element-plus": "^0.11.2",
     "unplugin-vue-components": "^31.0.0",
