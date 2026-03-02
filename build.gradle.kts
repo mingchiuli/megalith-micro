@@ -114,7 +114,7 @@ subprojects {
         dependencies {
             dependency("org.redisson:redisson:4.3.0")
             dependency("com.nimbusds:nimbus-jose-jwt:10.8")
-            dependency("wiki.chiu.megalith:cache-spring-boot-starter:4.0.3")
+            dependency("wiki.chiu.megalith:cache-spring-boot-starter:4.3.0")
         }
     }
 
