@@ -2,7 +2,7 @@
 import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
 import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
-import Node from 'element-plus/es/components/tree/src/model/node'
+import type { Node as TreeNode } from 'element-plus/es/components/tree/src/model/node'
 import { debounce } from '@/utils/tools'
 
 defineProps<{
@@ -12,7 +12,7 @@ defineProps<{
 const loadingCatalogue = defineModel<boolean>('loadingCatalogue')
 const loading = ref(true)
 const data = ref<CatalogueLabel[]>()
-let allNodes: Node[]
+let allNodes: TreeNode[]
 const defaultProps = { children: 'children', label: 'label' }
 const rollGap = 10
 const treeRef = useTemplateRef<InstanceType<typeof ElTree>>('tree')
