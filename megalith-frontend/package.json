@@ -23,7 +23,7 @@
     "md-editor-v3": "^6.4.0",
     "vue": "^3.5.30",
     "pinia": "^3.0.4",
-    "vue-router": "^5.0.3",
+    "vue-router": "^5.0.4",
     "y-codemirror.next": "^0.3.5",
     "y-websocket": "^3.0.0",
     "yjs": "^13.6.30"
