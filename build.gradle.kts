@@ -2,7 +2,6 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
-import org.hibernate.orm.tooling.gradle.HibernateOrmSpec
 
 plugins {
     // Only declare plugin versions, don't apply to root project
@@ -33,12 +32,6 @@ subprojects {
 
         if (name == "micro-user" || name == "micro-blog") {
             plugins.apply("org.hibernate.orm")
-
-            configure<HibernateOrmSpec> {
-                enhancement {
-                    enableAssociationManagement = true
-                }
-            }
         }
 
         // Configure test tasks
