@@ -15,7 +15,7 @@
   "dependencies": {
     "@types/markdown-it": "^14.1.2",
     "@vavt/v3-extension": "^4.0.0",
-    "axios": "^1.14.0",
+    "axios": "^1.14.1",
     "element-plus": "^2.13.6",
     "highlight.js": "^11.11.1",
     "js-base64": "^3.7.8",
@@ -42,7 +42,7 @@
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
-    "typescript-eslint": "^8.57.2",
+    "typescript-eslint": "^8.58.0",
     "unplugin-auto-import": "^21.0.0",
     "unplugin-vue-components": "^32.0.0",
     "vue-tsc": "^3.2.6",
