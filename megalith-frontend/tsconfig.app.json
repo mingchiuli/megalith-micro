@@ -12,13 +12,12 @@
   ],
   "compilerOptions": {
     "composite": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./src/*"
       ]
     },
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "types": [
       "node",
       "element-plus/global"
