@@ -106,7 +106,7 @@ subprojects {
     configure<DependencyManagementExtension> {
         dependencies {
             dependency("org.redisson:redisson:4.3.0")
-            dependency("com.nimbusds:nimbus-jose-jwt:10.8")
+            dependency("com.nimbusds:nimbus-jose-jwt:10.9")
             dependency("wiki.chiu.megalith:cache-spring-boot-starter:4.3.0")
         }
     }
