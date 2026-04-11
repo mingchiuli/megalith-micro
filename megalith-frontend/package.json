@@ -13,10 +13,6 @@
     "lint": "eslint \"src/**/*.{ts,vue}\""
   },
   "dependencies": {
-    "@opentelemetry/api": "^1.9.1",
-    "@opentelemetry/core": "^2.6.1",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.214.0",
-    "@opentelemetry/sdk-trace-web": "^2.6.1",
     "@types/markdown-it": "^14.1.2",
     "@vavt/v3-extension": "^4.0.0",
     "axios": "^1.15.0",
