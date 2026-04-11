@@ -6,6 +6,7 @@ use axum::{
 };
 use opentelemetry::propagation::Extractor;
 use opentelemetry::global;
+use tracing::Instrument;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 /// 自定义 HeaderExtractor，用于从 HeaderMap 中提取 trace context
@@ -23,17 +24,21 @@ impl<'a> Extractor for AxumHeaderExtractor<'a> {
 
 /// Trace Context Extract 中间件
 ///
-/// 自动从请求头提取上游 Trace Context 并关联到当前 Span
+/// 自动从请求头提取上游 Trace Context 并创建新的 span 作为子 span
 pub async fn trace_context_middleware(req: Request, next: Next) -> Response {
     // 1. 提取上游 Trace Context
     let parent_context = global::get_text_map_propagator(|propagator| {
         propagator.extract(&AxumHeaderExtractor(req.headers()))
     });
 
-    // 2. 获取当前 span 并设置父上下文
-    let span = tracing::Span::current();
+    // 2. 创建新 span，显式设置父上下文
+    let span = tracing::info_span!("gateway_request");
     let _ = span.set_parent(parent_context);
 
-    // 3. 继续处理请求
-    next.run(req).await
+    // 3. 用 instrument 确保后续 handler 使用这个 span 作为父
+    async move {
+        next.run(req).await
+    }
+    .instrument(span)
+    .await
 }
