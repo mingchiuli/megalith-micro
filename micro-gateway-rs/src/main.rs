@@ -7,6 +7,7 @@ use micro_gateway_rs::{
     auth_process,
     config::config::{self, ConfigKey, init_config},
     handle_main, init_logger_provider, init_meter_provider, init_tracer_provider, shutdown_signal,
+    trace_context_middleware,
 };
 use opentelemetry::{global, trace::TracerProvider};
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
@@ -81,6 +82,7 @@ async fn async_main() -> Result<(), BoxError> {
     let app = Router::new()
         .route("/actuator/health", get(|| async { "OK" }))
         .route("/{*wildcard}", any(handle_main))
+        .layer(middleware::from_fn_with_state((), trace_context_middleware))
         .layer(middleware::from_fn(auth_process));
 
     // run our app with hyper, listening globally on port 8008

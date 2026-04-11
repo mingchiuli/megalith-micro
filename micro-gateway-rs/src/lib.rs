@@ -2,6 +2,7 @@ mod client;
 mod exception;
 mod handler;
 mod layer;
+mod middleware;
 mod otel;
 mod result;
 mod shutdown;
@@ -9,6 +10,7 @@ mod utils;
 mod constant;
 pub mod config;
 
+pub use middleware::trace_context_middleware;
 pub use otel::init_logger_provider;
 pub use otel::init_meter_provider;
 pub use otel::init_tracer_provider;

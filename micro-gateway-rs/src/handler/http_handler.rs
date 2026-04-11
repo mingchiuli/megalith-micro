@@ -56,10 +56,7 @@ async fn forward_to_target_service(
 ) -> Result<Response<BoxBody<Bytes, BoxError>>, ClientError> {
     let target_uri = utils::parse_url(route_resp, req.uri(), constant::HTTP)?;
 
-    let mut headers = utils::prepare_headers(req.headers(), token)?;
-
-    // 注入 Trace Context
-    utils::inject_trace_context_hashmap(&mut headers);
+    let headers = utils::prepare_headers(req.headers(), token)?;
 
     let resp = timeout(REQUEST_TIMEOUT, async {
         match *req.method() {
