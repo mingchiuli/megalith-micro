@@ -1,6 +1,8 @@
 use micro_sync_rs::{
     config::config::{self, init_config, ConfigKey},
-    init_logger_provider, init_meter_provider, init_tracer_provider, set_route, shutdown_signal,
+    init_logger_provider, init_meter_provider, init_tracer_provider,
+    set_route, shutdown_signal,
+    trace_context_middleware
 };
 use opentelemetry::{global, trace::TracerProvider};
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
@@ -66,7 +68,8 @@ fn main() {
         let listener = TcpListener::bind(addr).await.unwrap();
         tracing::info!("Server listening on {}", addr);
 
-        axum::serve(listener, set_route())
+        axum::serve(listener, set_route()
+            .layer(axum::middleware::from_fn_with_state((), trace_context_middleware)))
             .with_graceful_shutdown(shutdown_signal())
             .await
             .unwrap();

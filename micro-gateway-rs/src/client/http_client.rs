@@ -15,8 +15,11 @@ use hyper::{
     header,
 };
 use hyper_util::rt::TokioIo;
+use opentelemetry::global;
+use opentelemetry_http::HeaderInjector;
 use serde::{Serialize, de::DeserializeOwned};
 use tokio::net::TcpStream;
+use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use crate::{exception::ClientError, utils::set_headers};
 
@@ -60,8 +63,11 @@ impl AuthRouteResp {
 async fn parse_req(
     url: hyper::Uri,
     method: Method,
-    headers: HashMap<HeaderName, HeaderValue>,
+    mut headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<Builder, ClientError> {
+    // 注入 Trace Context
+    inject_trace_context_hashmap(&mut headers);
+
     let host = parse_host(&url)?;
 
     let mut req = Request::builder()
@@ -70,6 +76,27 @@ async fn parse_req(
         .header(header::HOST, host);
     req = set_headers(req, headers);
     Ok(req)
+}
+
+/// 注入 Trace Context 到 HashMap headers
+fn inject_trace_context_hashmap(headers: &mut HashMap<HeaderName, HeaderValue>) {
+    use hyper::HeaderMap;
+    use std::iter::FromIterator;
+
+    // 1. 将 HashMap 转换为 hyper::HeaderMap
+    let mut hyper_headers: HeaderMap<HeaderValue> = HeaderMap::from_iter(headers.drain());
+
+    // 2. 注入 Trace Context
+    global::get_text_map_propagator(|propagator| {
+        let current_context = tracing::Span::current().context();
+        propagator.inject_context(&current_context, &mut HeaderInjector(&mut hyper_headers));
+    });
+
+    // 3. 转换回 HashMap
+    *headers = hyper_headers
+        .into_iter()
+        .filter_map(|(opt_name, value)| opt_name.map(|name| (name, value)))
+        .collect();
 }
 
 pub async fn get_raw(

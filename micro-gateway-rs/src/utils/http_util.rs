@@ -95,7 +95,7 @@ pub async fn find_route(
     req_body: AuthRouteReq,
     token: &str,
 ) -> Result<AuthRouteResp, ClientError> {
-    let mut headers = HashMap::from([
+    let headers = HashMap::from([
         (
             hyper::header::AUTHORIZATION,
             HeaderValue::from_str(token).unwrap_or(HeaderValue::from_static("")),
@@ -105,8 +105,6 @@ pub async fn find_route(
             HeaderValue::from_static("application/json"),
         ),
     ]);
-
-    inject_trace_context_hashmap(&mut headers);
 
     let resp: ApiResult<AuthRouteResp> = client::post(auth_url, req_body, headers)
         .await
@@ -208,23 +206,4 @@ pub fn inject_trace_context(headers: &mut HeaderMap) {
         let current_context = tracing::Span::current().context();
         propagator.inject_context(&current_context, &mut HeaderInjector(headers));
     });
-}
-
-// 修复后的 HashMap 版本（HTTP 转发用）
-pub fn inject_trace_context_hashmap(headers: &mut HashMap<HeaderName, HeaderValue>) {
-    // 1. 将 HashMap 转换为 hyper::HeaderMap（无歧义）
-    let mut hyper_headers: HeaderMap<HeaderValue> = headers.drain().collect();
-
-    // 2. 注入 Trace Context（traceparent/tracestate 头）
-    inject_trace_context(&mut hyper_headers);
-
-    // 3. 关键修复：过滤 Option<HeaderName>，提取 Some(HeaderName)
-    headers.extend(
-        hyper_headers
-            .into_iter()
-            // 过滤掉 None 键（实际不会出现，避免类型不匹配）
-            .filter_map(|(opt_name, value)| {
-                opt_name.map(|name| (name, value)) // 仅保留 Some(HeaderName)，转换为 (HeaderName, HeaderValue)
-            }),
-    );
 }

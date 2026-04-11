@@ -98,7 +98,7 @@ fn build_auth_uri() -> Result<Uri, ClientError> {
 }
 
 fn build_headers(auth_token: &str) -> HashMap<HeaderName, HeaderValue> {
-    let mut headers = HashMap::from([
+    HashMap::from([
         (
             hyper::header::AUTHORIZATION,
             HeaderValue::from_str(auth_token).unwrap_or(HeaderValue::from_static("")),
@@ -107,8 +107,5 @@ fn build_headers(auth_token: &str) -> HashMap<HeaderName, HeaderValue> {
             hyper::header::CONTENT_TYPE,
             HeaderValue::from_static("application/json"),
         ),
-    ]);
-
-    utils::inject_trace_context_hashmap(&mut headers);
-    headers
+    ])
 }
