@@ -6,13 +6,6 @@ function randomHex(length: number): string {
   return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
-// Root trace ID generated once per page session
-const ROOT_TRACE_ID = randomHex(32)
-
-export function createTraceParent(spanId: string): string {
-  return `${TRACE_VERSION}-${ROOT_TRACE_ID}-${spanId}-${TRACE_FLAG}`
-}
-
-export function generateSpanId(): string {
-  return randomHex(16)
+export function createTraceParent(): string {
+  return `${TRACE_VERSION}-${randomHex(32)}-${randomHex(16)}-${TRACE_FLAG}`
 }
