@@ -4,7 +4,7 @@ import {clearLoginState, updateAccessToken} from '@/utils/tools'
 import router from '@/router'
 import {loginStateStore} from '@/stores/store'
 import {API_CONFIG, API_ENDPOINTS} from '@/config/apiConfig'
-import { createTraceParent, generateSpanId } from '@/config/otel'
+import { createTraceParent } from '@/config/otel'
 
 const httpClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -29,7 +29,7 @@ const requestInterceptor = async (config: InternalAxiosRequestConfig) => {
   }
   // Inject trace context for non-Ollama requests
   if (config.baseURL !== API_CONFIG.AI_BASE_URL) {
-    config.headers.traceparent = createTraceParent(generateSpanId())
+    config.headers.traceparent = createTraceParent()
   }
   return config
 }
