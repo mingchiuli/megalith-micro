@@ -1,11 +1,10 @@
 import axios, {type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig} from 'axios'
-import { context } from '@opentelemetry/api'
-import { W3CTraceContextPropagator } from '@opentelemetry/core'
 import type {Data} from '@/type/entity'
 import {clearLoginState, updateAccessToken} from '@/utils/tools'
 import router from '@/router'
 import {loginStateStore} from '@/stores/store'
 import {API_CONFIG, API_ENDPOINTS} from '@/config/apiConfig'
+import { createTraceParent, generateSpanId } from '@/config/otel'
 
 const httpClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -20,10 +19,7 @@ const longHttpClient = axios.create({
 const aiHttpClient = axios.create({
   baseURL: API_CONFIG.AI_BASE_URL,
   timeout: API_CONFIG.LONG_TIMEOUT
-
 })
-
-const propagator = new W3CTraceContextPropagator()
 
 // 请求拦截器
 const requestInterceptor = async (config: InternalAxiosRequestConfig) => {
@@ -32,17 +28,15 @@ const requestInterceptor = async (config: InternalAxiosRequestConfig) => {
     config.headers.Authorization = await updateAccessToken()
   }
   // Inject trace context for non-Ollama requests
-  if (!url?.startsWith(API_CONFIG.AI_BASE_URL)) {
-    propagator.inject(context.active(), config.headers, {
-      req: { headers: config.headers }
-    } as never)
+  if (config.baseURL !== API_CONFIG.AI_BASE_URL) {
+    config.headers.traceparent = createTraceParent(generateSpanId())
   }
   return config
 }
 
 // 响应拦截器
 const responseInterceptor = (response: AxiosResponse) => {
-  if (response.status === 200) {
+  if (response.status >= 200 && response.status < 300) {
     return response
   }
   
