@@ -1,26 +1,33 @@
 # megalith-frontend
 
-A modern blog frontend built with Vue 3 and Vite, featuring a clean interface for reading and managing blog content.
+A modern blog frontend built with Vue 3 and Vite, featuring real-time collaborative editing, full-text search, and comprehensive content management.
 
 ## ✨ Features
 
-- 📝 Blog reading with markdown support
-- 🔍 Full-text search functionality
-- 💬 Comment system (Disqus & Giscus)
-- 📊 Reading statistics and hot articles
-- 🎨 Responsive design with Element Plus UI
-- 🔐 Admin panel for content management
-- 🌐 Multi-language support (Chinese)
+- 📝 **Blog System** - Read and manage blog articles with Markdown support
+- ✏️ **Real-time Collaborative Editing** - Built on Yjs and WebSocket for simultaneous multi-user editing
+- 🔍 **Full-text Search** - Search content with syntax highlighting
+- 💬 **Comment System** - Supports Disqus and Giscus
+- 📊 **Reading Statistics** - Track article views and popular content
+- 🔐 **Admin Panel** - Complete content management with role-based access control
+- 🎨 **Responsive Design** - Element Plus UI components
+- 🌐 **i18n Support** - Chinese language support
+- 📡 **OpenTelemetry** - Distributed tracing with traceparent header propagation
+- 🔒 **Sensitive Content Filter** - Real-time content moderation
 
 ## 🛠️ Tech Stack
 
-- **Framework**: Vue 3 with Composition API
-- **Build Tool**: Vite
-- **UI Library**: Element Plus
-- **Markdown**: md-editor-v3
-- **State Management**: Pinia
-- **Routing**: Vue Router
-- **Language**: TypeScript
+| Category | Technology |
+|----------|------------|
+| Framework | Vue 3 (Composition API) |
+| Build Tool | Vite |
+| UI Library | Element Plus |
+| Markdown Editor | md-editor-v3 |
+| Collaborative Editing | Yjs + y-websocket |
+| State Management | Pinia |
+| Routing | Vue Router |
+| HTTP Client | Axios |
+| Language | TypeScript |
 
 ## 🚀 Quick Start
 
@@ -33,7 +40,7 @@ A modern blog frontend built with Vue 3 and Vite, featuring a clean interface fo
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/mingchiuli/megalith-frontend.git
 cd megalith-frontend
 
 # Install dependencies
@@ -55,14 +62,26 @@ npm run build
 
 ```
 src/
-├── components/     # Reusable components
-├── views/         # Page components
-├── stores/        # Pinia stores
-├── router/        # Vue Router configuration
-├── http/          # API utilities
-├── type/          # TypeScript type definitions
-├── utils/         # Utility functions
-└── assets/        # Static assets
+├── components/          # Reusable Vue components
+│   ├── sys/              # System components (editor, headers, menus)
+│   ├── DiscussItem.vue   # Comment component
+│   ├── HotItem.vue       # Popular articles widget
+│   ├── SearchItem.vue    # Search component
+│   └── CatalogueItem.vue # Table of contents
+├── views/                # Page components
+│   ├── sys/              # Admin panel pages
+│   ├── BlogView.vue      # Article reading page
+│   ├── BlogsView.vue     # Article listing
+│   └── LoginView.vue     # Authentication
+├── stores/               # Pinia state stores
+├── router/               # Vue Router configuration
+├── http/                 # API utilities and Axios config
+├── config/               # Application configuration
+│   ├── editorConfig.ts   # Yjs collaborative editing setup
+│   └── otel.ts           # OpenTelemetry trace context
+├── type/                 # TypeScript type definitions
+├── utils/                # Utility functions
+└── assets/              # Static assets and styles
 ```
 
 ## 🔧 Configuration
@@ -85,16 +104,31 @@ The development server proxies API requests:
 ## 📖 Usage
 
 ### Public Features
-- Browse blog articles at `/blogs`
+- Browse articles at `/blogs`
 - Read individual posts at `/blog/:id`
-- Search content with highlighting
-- View reading statistics
+- Full-text search with highlighting
+- View reading statistics and popular articles
 
 ### Admin Features
 - Login at `/login`
-- Manage blogs in admin panel
-- View deleted content
-- Monitor system statistics
+- Rich text editor with real-time collaboration
+- Content management at `/sys/blogs`
+- User and role management at `/sys/authority`
+- System statistics at `/sys`
+
+## 🔍 Notable Implementation
+
+### Real-time Collaborative Editing
+
+The editor uses Yjs CRDT framework with WebSocket provider, enabling multiple authors to edit simultaneously with conflict-free merging.
+
+### OpenTelemetry Integration
+
+Requests to the backend include `traceparent` headers for distributed tracing across services.
+
+### Sensitive Content Filtering
+
+The editor supports real-time content selection and filtering for sensitive material review.
 
 ## 🤝 Contributing
 
@@ -110,5 +144,5 @@ This project is licensed under the MIT License.
 
 ## 🔗 Related
 
-- Backend API: [megalith-backend](link-to-backend-repo)
+- Backend API: [megalith-backend](https://github.com/mingchiuli/megalith-backend)
 - Live Demo: [chiu.wiki](https://chiu.wiki)
