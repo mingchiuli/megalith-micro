@@ -1,185 +1,140 @@
-# Megalith Cache Spring Boot Starter
+# Megalith Micro
 
-[![Maven Central](https://img.shields.io/maven-central/v/wiki.chiu.megalith/cache-spring-boot-starter.svg)](https://search.maven.org/artifact/wiki.chiu.megalith/cache-spring-boot-starter)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Java Version](https://img.shields.io/badge/Java-24+-orange.svg)](https://openjdk.java.net/)
+[![Rust Version](https://img.shields.io/badge/Rust-2024-edb974.svg)](https://www.rust-lang.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A high-performance, multi-level caching framework for Spring Boot applications that provides both local and distributed caching capabilities with automatic cache eviction support.
-
-## ✨ Features
-
-- **Multi-Level Caching**: Combines local (Caffeine) and remote (Redis) caching for optimal performance
-- **Automatic Cache Eviction**: Supports distributed cache invalidation via RabbitMQ or Redis pub/sub
-- **Spring Boot Integration**: Seamless auto-configuration with Spring Boot
-- **AOP-Based**: Simple annotation-driven caching with `@Cache`
-- **GraalVM Native Support**: Fully compatible with GraalVM native compilation
-- **JPMS Module**: Proper Java Platform Module System support
-- **High Performance**: Optimized for low latency and high throughput
-
-## 🚀 Quick Start
-
-### Installation
-
-**Maven:**
-```xml
-<dependency>
-    <groupId>wiki.chiu.megalith</groupId>
-    <artifactId>cache-spring-boot-starter</artifactId>
-    <version>${version}</version>
-</dependency>
-```
-
-**Gradle:**
-```kotlin
-implementation("wiki.chiu.megalith:cache-spring-boot-starter:${version}")
-```
-
-### Basic Usage
-
-```java
-import wiki.chiu.micro.cache.annotation.Cache;
-import wiki.chiu.micro.cache.handler.CacheEvictHandler;
-import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-@RestController
-public class UserController {
-
-    @Autowired
-    private CacheEvictHandler cacheEvictHandler;
-
-    // Cache the result for 30 minutes (default)
-    @GetMapping("/users/{id}")
-    @Cache(prefix = "user", expire = 30)
-    public User getUserById(@PathVariable Long id) {
-        // This method result will be cached
-        return userService.findById(id);
-    }
-
-    // Cache with custom expiration time (60 minutes)
-    @GetMapping("/users")
-    @Cache(prefix = "users", expire = 60)
-    public List<User> getAllUsers() {
-        return userService.findAll();
-    }
-
-    // Manually evict cache
-    @DeleteMapping("/users/{id}")
-    public void deleteUser(@PathVariable Long id) throws Exception {
-        userService.delete(id);
-
-        // Evict related cache entries
-        Method method = UserController.class.getMethod("getUserById", Long.class);
-        HashSet<String> keys = CommonCacheKeyGenerator.generateKey(method, id);
-        cacheEvictHandler.evictCache(keys);
-    }
-}
-```
-
-## ⚙️ Configuration
-
-### Basic Configuration
-
-```yaml
-# Redis configuration (required)
-spring:
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password: your-password
-```
-
-### Advanced Configuration with RabbitMQ
-
-For distributed cache eviction across multiple application instances:
-
-```yaml
-# RabbitMQ configuration (optional)
-spring:
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-
-# Cache eviction configuration
-megalith:
-  cache:
-    queue-prefix: cache.evict.queue.
-    fanout-exchange: cache.evict.fanout.exchange
-```
-
-## 📖 How It Works
-
-### Cache Key Generation
-
-Cache keys are automatically generated based on:
-- Method signature
-- Method parameters
-- Custom prefix
-
-The key generation logic can be found in `CommonCacheKeyGenerator.generateKey()`.
-
-### Multi-Level Caching Strategy
-
-1. **L1 Cache (Local)**: Caffeine in-memory cache for ultra-fast access
-2. **L2 Cache (Remote)**: Redis for distributed caching
-3. **Fallback**: Original method execution if cache miss
-
-### Cache Eviction Strategies
-
-- **Redis Pub/Sub**: Default distributed eviction mechanism
-- **RabbitMQ**: More reliable eviction with message persistence (optional)
-
-## 🔧 Advanced Features
-
-### Custom Cache Key Generation
-
-```java
-@Cache(prefix = "custom")
-public String customMethod(@CacheKey String param1, String param2) {
-    // Only param1 will be included in cache key generation
-    return "result";
-}
-```
-
-### Conditional Caching
-
-```java
-@Cache(prefix = "conditional")
-@Checker(handler = CustomCheckerHandler.class)
-public String conditionalCache(String param) {
-    // Cache only if CustomCheckerHandler allows it
-    return "result";
-}
-```
+A hybrid Java/Rust microservices platform providing multi-level caching, distributed tracing, and real-time collaboration capabilities.
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Application   │    │   Application   │    │   Application   │
-│    Instance 1   │    │    Instance 2   │    │    Instance 3   │
-└─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘
-          │                      │                      │
-          └──────────────────────┼──────────────────────┘
-                                 │
-                    ┌─────────────┴─────────────┐
-                    │                           │
-            ┌───────▼────────┐         ┌───────▼────────┐
-            │     Redis      │         │    RabbitMQ    │
-            │  (L2 Cache)    │         │ (Cache Evict)  │
-            └────────────────┘         └────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         Clients                                  │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+                    ┌─────────▼─────────┐
+                    │  micro-gateway-rs │  (Rust API Gateway)
+                    │   (Axum + JWT)    │
+                    └───────┬───────────┘
+                            │
+        ┌───────────────────┼───────────────────┐
+        │                   │                   │
+┌───────▼───────┐   ┌───────▼───────┐   ┌───────▼───────┐
+│  micro-auth   │   │  micro-blog   │   │  micro-user   │
+│  (JWT/SMS)    │   │               │   │ (Hibernate)   │
+└───────┬───────┘   └───────┬───────┘   └───────┬───────┘
+        │                   │                   │
+        │           ┌───────▼───────┐           │
+        │           │ micro-exhibit │           │
+        │           │   (Display)   │           │
+        │           └───────┬───────┘           │
+        │                   │                   │
+        │           ┌───────▼───────┐           │
+        │           │ micro-search │           │
+        │           │(Elasticsearch)│           │
+        │           └───────────────┘           │
+        │                                       │
+        └───────────────────┬───────────────────┘
+                            │
+                    ┌───────▼───────┐
+                    │  micro-sync-rs │  (Rust Sync Service)
+                    │ (WebSocket/YRS)│
+                    └───────────────┘
 ```
 
-## 🤝 Contributing
+## 📦 Modules
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+### Java Modules (Spring Boot)
+
+| Module | Description |
+|--------|-------------|
+| `cache` | Megalith Cache Spring Boot Starter - Multi-level caching (L1 Caffeine + L2 Redis) with distributed eviction |
+| `common` | Shared utilities, DTOs, and converters |
+| `micro-auth` | Authentication service - JWT, Email/SMS authentication |
+| `micro-blog` | Blog content management with sensitive content handling |
+| `micro-user` | User management with Hibernate ORM |
+| `micro-exhibit` | Blog display and visit statistics |
+| `micro-search` | Full-text search powered by Elasticsearch |
+
+### Rust Modules
+
+| Module | Description |
+|--------|-------------|
+| `micro-gateway-rs` | High-performance API gateway built with Axum, JWT auth, OpenTelemetry tracing |
+| `micro-sync-rs` | Real-time collaboration sync service using WebSocket and YRS CRDT |
+
+## ✨ Features
+
+- **Multi-Level Caching**: L1 (Caffeine) + L2 (Redis) with automatic eviction via RabbitMQ or Redis pub/sub
+- **Distributed Tracing**: Full OpenTelemetry integration across all services
+- **GraalVM Native Support**: All Java microservices support native compilation
+- **Real-time Collaboration**: CRDT-based sync via WebSocket (YRS)
+- **JWT Authentication**: Secure token-based auth across services
+- **JPMS Module**: Proper Java Platform Module System support
+
+## 🛠️ Tech Stack
+
+**Java:**
+- Spring Boot 4.0.5
+- Hibernate ORM 7.3.0
+- Redisson 4.3.1 (Redis)
+- Caffeine Cache
+- Elasticsearch
+
+**Rust:**
+- Axum 0.8 (Web framework)
+- Tokio (Async runtime)
+- YRS (CRDT)
+- OpenTelemetry
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- JDK 24+
+- Rust 2024 edition
+- Redis
+- RabbitMQ (optional, for distributed cache eviction)
+
+### Build
+
+```bash
+# Build all Java modules
+./gradlew build
+
+# Build Rust modules
+cargo build --manifest-path micro-gateway-rs/Cargo.toml
+cargo build --manifest-path micro-sync-rs/Cargo.toml
+```
+
+### Run
+
+```bash
+# Run Java microservices
+./gradlew :micro-auth:bootRun
+./gradlew :micro-blog:bootRun
+
+# Run Rust services
+cargo run --manifest-path micro-gateway-rs/Cargo.toml
+cargo run --manifest-path micro-sync-rs/Cargo.toml
+```
+
+## 📁 Project Structure
+
+```
+megalith-micro/
+├── cache/                    # Cache Spring Boot Starter
+├── common/                   # Shared utilities
+├── micro-auth/               # Authentication service
+├── micro-blog/               # Blog service
+├── micro-exhibit/            # Blog display service
+├── micro-search/             # Search service
+├── micro-user/               # User service
+├── micro-gateway-rs/         # Rust API Gateway
+└── micro-sync-rs/            # Rust Sync Service
+```
 
 ## 📄 License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-
