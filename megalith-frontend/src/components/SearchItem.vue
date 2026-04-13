@@ -5,7 +5,7 @@ import type { BlogDesc, PageAdapter, SearchPage } from '@/type/entity'
 import type {
   AutocompleteFetchSuggestions,
   AutocompleteFetchSuggestionsCallback,
-  ElAutocomplete
+  AutocompleteInstance
 } from 'element-plus'
 import { onBeforeUnmount, ref, useTemplateRef } from 'vue'
 import { ElLoading } from 'element-plus'
@@ -160,7 +160,7 @@ const searchBeforeClose = (close: () => void) => {
   close()
 }
 
-const refAutocompleteRef = useTemplateRef<InstanceType<typeof ElAutocomplete>>('refAutocomplete')
+const refAutocompleteRef = useTemplateRef<AutocompleteInstance>('refAutocomplete')
 
 const openDialog = () => {
   hotItemRef.value!.load()
