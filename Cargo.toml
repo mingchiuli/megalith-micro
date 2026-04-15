@@ -38,7 +38,7 @@ reqwest = { version = "0.12.28", default-features = false, features = ["blocking
 futures-util = "0.3.32"
 
 # Web frameworks
-axum = { version = "0.8.8", features = ["ws"] }
+axum = { version = "0.8.9", features = ["ws"] }
 
 # HTTP
 hyper = { version = "1.9.0", features = ["full"] }
