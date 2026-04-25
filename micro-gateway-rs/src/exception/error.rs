@@ -184,3 +184,94 @@ pub fn handle_api_error(e: BoxError) -> ClientError {
         _ => ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn client_error_display_messages() {
+        assert!(ClientError::Network("net".into()).to_string().contains("Network"));
+        assert!(ClientError::Serialization("s".into()).to_string().contains("Serialization"));
+        assert!(ClientError::Request("r".into()).to_string().contains("Request"));
+        assert!(ClientError::Response("r".into()).to_string().contains("Response"));
+        assert!(ClientError::Deserialize("d".into()).to_string().contains("Deserialize"));
+        assert_eq!(ClientError::Status(404, "not found".into()).to_string(), "not found");
+    }
+
+    #[test]
+    fn auth_error_display_messages() {
+        assert!(AuthError::Unauthorized("x".into()).to_string().contains("Unauthorized"));
+        assert!(AuthError::RequestFailed("x".into()).to_string().contains("RequestFailed"));
+        assert!(AuthError::MissingConfig("x".into()).to_string().contains("MissingConfig"));
+        assert!(AuthError::InvalidUrl("x".into()).to_string().contains("InvalidUrl"));
+    }
+
+    #[test]
+    fn client_error_to_handler_error_status_codes() {
+        let h: HandlerError = ClientError::Network("e".into()).into();
+        assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
+
+        let h: HandlerError = ClientError::Serialization("e".into()).into();
+        assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
+
+        let h: HandlerError = ClientError::Request("e".into()).into();
+        assert_eq!(h.status(), StatusCode::BAD_GATEWAY);
+
+        let h: HandlerError = ClientError::Response("e".into()).into();
+        assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
+
+        let h: HandlerError = ClientError::Status(404, "nf".into()).into();
+        assert_eq!(h.status(), StatusCode::NOT_FOUND);
+        assert_eq!(h.message(), "nf");
+
+        let h: HandlerError = ClientError::Status(9999, "x".into()).into();
+        assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
+
+        let h: HandlerError = ClientError::Deserialize("e".into()).into();
+        assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    #[test]
+    fn auth_error_to_handler_error_status_codes() {
+        let h: HandlerError = AuthError::Unauthorized("u".into()).into();
+        assert_eq!(h.status(), StatusCode::UNAUTHORIZED);
+
+        let h: HandlerError = AuthError::MissingConfig("c".into()).into();
+        assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
+
+        let h: HandlerError = AuthError::InvalidUrl("u".into()).into();
+        assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
+
+        let h: HandlerError = AuthError::RequestFailed("r".into()).into();
+        assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    #[test]
+    fn handle_api_error_preserves_status_when_downcastable() {
+        let boxed: BoxError = Box::new(ClientError::Status(403, "no".into()));
+        match handle_api_error(boxed) {
+            ClientError::Status(c, m) => {
+                assert_eq!(c, 403);
+                assert_eq!(m, "no");
+            }
+            _ => panic!("wrong variant"),
+        }
+    }
+
+    #[test]
+    fn handle_api_error_falls_back_to_bad_gateway() {
+        let boxed: BoxError = Box::<dyn Error + Send + Sync>::from("plain error");
+        match handle_api_error(boxed) {
+            ClientError::Status(c, _) => assert_eq!(c, StatusCode::BAD_GATEWAY.as_u16()),
+            _ => panic!("wrong variant"),
+        }
+    }
+
+    #[test]
+    fn forbidden_helper_builds_403_error() {
+        let e = HandlerError::forbidden("nope");
+        assert_eq!(e.status(), StatusCode::FORBIDDEN);
+        assert_eq!(e.message(), "nope");
+    }
+}

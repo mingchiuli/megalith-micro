@@ -215,3 +215,26 @@ impl Default for RoomManager {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn new_room_manager_has_no_rooms() {
+        let rm = RoomManager::new();
+        assert!(!rm.room_exists("any").await);
+    }
+
+    #[tokio::test]
+    async fn default_constructor_has_no_rooms() {
+        let rm = RoomManager::default();
+        assert!(!rm.room_exists("x").await);
+    }
+
+    #[tokio::test]
+    async fn cleanup_returns_zero_when_no_rooms() {
+        let rm = RoomManager::new();
+        assert_eq!(rm.cleanup_expired_rooms().await, 0);
+    }
+}
+

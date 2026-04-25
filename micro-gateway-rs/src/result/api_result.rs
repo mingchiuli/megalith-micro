@@ -23,3 +23,24 @@ impl<T> ApiResult<T> {
     }
 
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn deserialize_and_access_fields() {
+        let json = r#"{"code":200,"msg":"ok","data":42}"#;
+        let r: ApiResult<i32> = serde_json::from_str(json).unwrap();
+        assert_eq!(r.code(), 200);
+        assert_eq!(r.into_data(), 42);
+    }
+
+    #[test]
+    fn deserialize_with_error_code() {
+        let json = r#"{"code":401,"msg":"unauthorized","data":""}"#;
+        let r: ApiResult<String> = serde_json::from_str(json).unwrap();
+        assert_eq!(r.code(), 401);
+        assert_eq!(r.into_data(), "");
+    }
+}

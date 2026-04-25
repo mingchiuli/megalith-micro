@@ -207,3 +207,133 @@ pub fn inject_trace_context(headers: &mut HeaderMap) {
         propagator.inject_context(&current_context, &mut HeaderInjector(headers));
     });
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::body::Body;
+
+    #[test]
+    fn ip_from_cf_header() {
+        let mut h = HeaderMap::new();
+        h.insert("CF-Connecting-IP", "1.2.3.4".parse().unwrap());
+        assert_eq!(get_ip_from_headers(&h), Some("1.2.3.4".to_string()));
+    }
+
+    #[test]
+    fn ip_takes_first_in_forwarded_chain() {
+        let mut h = HeaderMap::new();
+        h.insert("X-Forwarded-For", "1.1.1.1, 2.2.2.2".parse().unwrap());
+        assert_eq!(get_ip_from_headers(&h), Some("1.1.1.1".to_string()));
+    }
+
+    #[test]
+    fn ip_returns_none_when_absent() {
+        let h = HeaderMap::new();
+        assert!(get_ip_from_headers(&h).is_none());
+    }
+
+    #[test]
+    fn ip_prefers_cf_over_others() {
+        let mut h = HeaderMap::new();
+        h.insert("X-Real-IP", "9.9.9.9".parse().unwrap());
+        h.insert("CF-Connecting-IP", "1.1.1.1".parse().unwrap());
+        assert_eq!(get_ip_from_headers(&h), Some("1.1.1.1".to_string()));
+    }
+
+    #[test]
+    fn extract_token_from_authorization() {
+        let req = Request::builder()
+            .uri("/x")
+            .header("Authorization", "Bearer abc")
+            .body(Body::empty())
+            .unwrap();
+        assert_eq!(extract_token(&req), "Bearer abc");
+    }
+
+    #[test]
+    fn extract_token_returns_empty_when_absent() {
+        let req = Request::builder().uri("/x").body(Body::empty()).unwrap();
+        assert_eq!(extract_token(&req), "");
+    }
+
+    #[test]
+    fn extract_token_from_websocket_query() {
+        let req = Request::builder()
+            .uri("/ws?token=ws-token-1")
+            .header("upgrade", "websocket")
+            .body(Body::empty())
+            .unwrap();
+        assert_eq!(extract_token(&req), "ws-token-1");
+    }
+
+    #[test]
+    fn extract_token_websocket_without_token_query() {
+        let req = Request::builder()
+            .uri("/ws")
+            .header("sec-websocket-version", "13")
+            .body(Body::empty())
+            .unwrap();
+        assert_eq!(extract_token(&req), "");
+    }
+
+    #[test]
+    fn set_headers_applies_all_provided_headers() {
+        let builder = Request::builder().uri("/x");
+        let mut headers: HashMap<HeaderName, HeaderValue> = HashMap::new();
+        headers.insert(
+            HeaderName::from_static("x-test"),
+            HeaderValue::from_static("v"),
+        );
+        let req = set_headers(builder, headers).body(Body::empty()).unwrap();
+        assert_eq!(req.headers().get("x-test").unwrap().to_str().unwrap(), "v");
+    }
+
+    #[test]
+    fn prepare_route_request_uses_unknown_when_no_ip() {
+        let h = HeaderMap::new();
+        let uri = "/api/v1/foo".parse::<Uri>().unwrap();
+        let req = prepare_route_request(&Method::GET, &h, &uri);
+        let json = serde_json::to_string(&req).unwrap();
+        assert!(json.contains("/api/v1/foo"));
+        assert!(json.contains("unknown"));
+        assert!(json.contains("GET"));
+    }
+
+    #[test]
+    fn prepare_route_request_propagates_ip_from_headers() {
+        let mut h = HeaderMap::new();
+        h.insert("CF-Connecting-IP", "8.8.8.8".parse().unwrap());
+        let uri = "/p".parse::<Uri>().unwrap();
+        let req = prepare_route_request(&Method::POST, &h, &uri);
+        let json = serde_json::to_string(&req).unwrap();
+        assert!(json.contains("8.8.8.8"));
+    }
+
+    #[test]
+    fn prepare_headers_includes_authorization_and_content_type() {
+        let mut h = HeaderMap::new();
+        h.insert(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("application/json"),
+        );
+        let result = prepare_headers(&h, "tok".to_string()).unwrap();
+        assert_eq!(
+            result.get(&header::AUTHORIZATION).unwrap().to_str().unwrap(),
+            "tok"
+        );
+        assert_eq!(
+            result.get(&header::CONTENT_TYPE).unwrap().to_str().unwrap(),
+            "application/json"
+        );
+    }
+
+    #[test]
+    fn parse_url_builds_full_uri() {
+        let resp_json = r#"{"serviceHost":"example.com","servicePort":8080}"#;
+        let resp: AuthRouteResp = serde_json::from_str(resp_json).unwrap();
+        let uri = "/path?x=1".parse::<Uri>().unwrap();
+        let result = parse_url(resp, &uri, "http").unwrap();
+        assert_eq!(result.to_string(), "http://example.com:8080/path?x=1");
+    }
+}
