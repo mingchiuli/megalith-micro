@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig, loadEnv } from 'vite'
@@ -97,6 +98,25 @@ export default defineConfig(({ mode }) => {
         'element-plus',
         'axios'
       ]
+    },
+
+    // Vitest 单元测试配置
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      include: ['src/**/__tests__/*.test.ts'],
+      // 让 Vite 内联处理 element-plus，避免 Node ESM 解析 .css 报错
+      server: {
+        deps: {
+          inline: ['element-plus']
+        }
+      },
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'html'],
+        include: ['src/**/*.{ts,vue}'],
+        exclude: ['src/**/__tests__/**', 'src/main.ts', 'src/type/**']
+      }
     }
   }
 })
