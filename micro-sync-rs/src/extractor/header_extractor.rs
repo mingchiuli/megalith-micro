@@ -13,3 +13,35 @@ impl Extractor for AxumHeaderExtractor<'_> {
         self.0.keys().map(|k| k.as_str()).collect()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn get_returns_value_for_existing_key() {
+        let mut h = HeaderMap::new();
+        h.insert("traceparent", "abc".parse().unwrap());
+        let ex = AxumHeaderExtractor(&h);
+        assert_eq!(ex.get("traceparent"), Some("abc"));
+    }
+
+    #[test]
+    fn get_returns_none_for_missing_key() {
+        let h = HeaderMap::new();
+        let ex = AxumHeaderExtractor(&h);
+        assert!(ex.get("missing").is_none());
+    }
+
+    #[test]
+    fn keys_lists_all_headers() {
+        let mut h = HeaderMap::new();
+        h.insert("a", "1".parse().unwrap());
+        h.insert("b", "2".parse().unwrap());
+        let ex = AxumHeaderExtractor(&h);
+        let keys = ex.keys();
+        assert!(keys.contains(&"a"));
+        assert!(keys.contains(&"b"));
+        assert_eq!(keys.len(), 2);
+    }
+}

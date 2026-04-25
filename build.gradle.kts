@@ -39,6 +39,10 @@ subprojects {
             useJUnitPlatform()
         }
 
+        dependencies {
+            add("testImplementation", "org.springframework.boot:spring-boot-starter-test")
+        }
+
         // Configure GraalVM Native Image compilation (仅用于本地测试)
         configure<GraalVMExtension> {
             binaries {

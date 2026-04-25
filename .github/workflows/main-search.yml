@@ -13,8 +13,24 @@ permissions:
   contents: read
 
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Prepare
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests
+        run: ./gradlew :micro-search:test
   build:
     name: Build
+    needs:
+      - test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
