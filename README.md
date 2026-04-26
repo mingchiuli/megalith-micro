@@ -12,37 +12,37 @@ A hybrid Java/Rust microservices platform providing multi-level caching, distrib
 graph TD
     %% Layer Definitions
     subgraph ExternalLayer[External Layer]
-        Nginx[nginx<br/>External Gateway + Frontend Proxy]
+        Nginx["nginx<br/>External Gateway + Frontend Proxy"]
     end
 
     subgraph GatewayLayer[Gateway Layer]
-        Gateway[gateway service (Rust)<br/>Request Auth & Routing]
+        Gateway["gateway service Rust<br/>Request Auth & Routing"]
     end
 
     subgraph ServiceLayer[Service Layer]
-        Auth[auth service<br/>Permission L2 Cache / Login API + Cache Update]
-        User[user service<br/>User & Permission Management]
-        Blog[blog service<br/>Blog Content Management]
-        Sync[sync service (Rust)<br/>Collaborative Editing WS (Single Point)]
-        Exhibit[exhibit service<br/>Blog L2 Cache]
-        Search[search service<br/>Search Functionality]
+        Auth["auth service<br/>Permission L2 Cache / Login API + Cache Update"]
+        User["user service<br/>User & Permission Management"]
+        Blog["blog service<br/>Blog Content Management"]
+        Sync["sync service Rust<br/>Collaborative Editing WS Single Point"]
+        Exhibit["exhibit service<br/>Blog L2 Cache"]
+        Search["search service<br/>Search Functionality"]
     end
 
     subgraph StorageLayer[Storage & Middleware Layer]
-        MariaDB[mariadb<br/>User/Blog Storage]
-        Redis[redis<br/>Distributed Cache]
-        RabbitMQ[rabbitmq<br/>Message Queue]
-        ES[ElasticSearch<br/>Search/APM Storage]
+        MariaDB["mariadb<br/>User/Blog Storage"]
+        Redis["redis<br/>Distributed Cache"]
+        RabbitMQ["rabbitmq<br/>Message Queue"]
+        ES["ElasticSearch<br/>Search/APM Storage"]
     end
 
     subgraph MonitoringLayer[Monitoring Layer]
-        APM-Server[apm-server<br/>OTel Data Receiver]
-        Kibana[kibana<br/>Monitoring Visualization]
+        APMServer["apm-server<br/>OTel Data Receiver"]
+        Kibana["kibana<br/>Monitoring Visualization"]
     end
 
-    %% Traffic Flow (Sync uses WS, others HTTP)
+    %% Traffic Flow Sync uses WS others HTTP
     Nginx --> Gateway
-    Gateway -->|HTTP/WS: Auth Call, Route Selection| Auth
+    Gateway -->|HTTP/WS Auth Call Route Selection| Auth
     Gateway -->|HTTP| User
     Gateway -->|HTTP| Blog
     Gateway -->|WS| Sync
@@ -56,9 +56,9 @@ graph TD
     Exhibit -->|Fetch Data| Blog
     Auth -->|Fetch Data| User
     Search --> ES
-    Blog -->|Complex Query: ES Query ID then Fetch| Search
+    Blog -->|Complex Query ES Query ID then Fetch| Search
 
-    %% Messages & Cache (Auth receives RabbitMQ messages to update cache)
+    %% Messages & Cache Auth receives RabbitMQ messages to update cache
     User -->|Message| RabbitMQ
     Blog -->|Message| RabbitMQ
     RabbitMQ -->|Update Cache| Exhibit
@@ -68,8 +68,8 @@ graph TD
     Auth -->|L1 Cache| Redis
 
     %% Monitoring Flow
-    User & Blog & Auth & Exhibit & Search & Sync & Gateway -->|OTel Data| APM-Server
-    APM-Server --> ES
+    User & Blog & Auth & Exhibit & Search & Sync & Gateway -->|OTel Data| APMServer
+    APMServer --> ES
     ES --> Kibana
 ```
 
