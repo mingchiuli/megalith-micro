@@ -1,11 +1,12 @@
 package wiki.chiu.micro.cache.aot.hints;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import wiki.chiu.micro.cache.listener.RabbitCacheEvictMessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.*;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
+
 
 import java.util.HashSet;
 import java.util.Set;
