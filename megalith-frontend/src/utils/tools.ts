@@ -1,7 +1,7 @@
 import { httpClient } from '@/http/axios'
 import { DOWNLOAD, GET, POST } from '@/http/http'
 import router from '@/router'
-import { buttonStore, loginStateStore, menuStore, tabStore, authMarkStore } from '@/stores/store'
+import { buttonStore, loginStateStore, menuStore, tabStore, authMarkStore } from '@/stores'
 import {
   type Data,
   type JWTStruct,
@@ -18,6 +18,7 @@ import MarkdownIt from 'markdown-it'
 import { storeToRefs } from 'pinia'
 import type { Ref } from 'vue'
 import { API_ENDPOINTS } from '@/config/apiConfig'
+import { storage } from '@/utils/storage'
 
 const md = new MarkdownIt({
   highlight: (str: string, lang: string) => {
@@ -29,7 +30,7 @@ const md = new MarkdownIt({
 })
 
 export const clearLoginState = () => {
-  removeLocalStorageItems(['accessToken', 'refreshToken', 'userinfo'])
+  storage.clearAuth()
   const rootName = menuStore().menuTree?.name
   if (rootName && router.hasRoute(rootName)) {
     router.removeRoute(rootName)
@@ -39,14 +40,6 @@ export const clearLoginState = () => {
   menuStore().menuTree = undefined
   tabStore().editableTabs = []
   tabStore().editableTabsValue = ''
-}
-
-const removeLocalStorageItems = (items: string[]) => {
-  items.forEach((item) => localStorage.removeItem(item))
-}
-
-const getLocalStorageItem = (key: string): string | null => {
-  return localStorage.getItem(key)
 }
 
 export const render = (content: string): string => {
@@ -68,51 +61,91 @@ export const debounce = <T extends (...args: unknown[]) => unknown>(
 }
 
 export const getJWTStruct = (): JWTStruct => {
-  const accessToken = localStorage.getItem('accessToken')!
+  const accessToken = storage.getAccessToken()
+  if (!accessToken) {
+    throw new Error('No access token found')
+  }
   const tokenArray = accessToken.split('.')
   return JSON.parse(Base64.fromBase64(tokenArray[1]!))
 }
 
-export const updateAccessToken = async (): Promise<string> => {
-  const accessToken = localStorage.getItem('accessToken')!
-  const tokenArray = accessToken.split('.')
-  const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]!))
-  const now = Math.floor(new Date().getTime() / 1000)
-  //ten minutes
-  if (jwt.exp - now < 600) {
-    const refreshToken = getLocalStorageItem('refreshToken')
-    const data = await httpClient.get<never, AxiosResponse<Data<RefreshStruct>>>(
-      API_ENDPOINTS.AUTH.TOKEN_REFRESH,
-      {
-        headers: { Authorization: refreshToken }
-      }
-    )
-    const token = data.data.data.accessToken
-    setLocalStorageItem('accessToken', token)
-    return token
-  }
-  return accessToken
+// Token refresh lock mechanism to prevent concurrent refreshes
+let refreshPromise: Promise<string> | null = null
+let lastRefreshTime = 0
+const REFRESH_COoldown = 5 // seconds
+
+// Reset function for testing purposes
+export const resetTokenRefreshState = () => {
+  refreshPromise = null
+  lastRefreshTime = 0
 }
 
-export const checkAccessToken = async (): Promise<boolean> => {
-  const accessToken = localStorage.getItem('accessToken')!
-  const tokenArray = accessToken.split('.')
-  const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]!))
-  const now = Math.floor(new Date().getTime() / 1000)
-  //ten minutes
-  if (jwt.exp - now < 600) {
-    const refreshToken = getLocalStorageItem('refreshToken')
-    const data = await httpClient.get<never, AxiosResponse<Data<RefreshStruct>>>(
-      API_ENDPOINTS.AUTH.TOKEN_REFRESH,
-      {
-        headers: { Authorization: refreshToken }
-      }
-    )
-    const token = data.data.data.accessToken
-    setLocalStorageItem('accessToken', token)
-    return true
+export const updateAccessToken = async (): Promise<string> => {
+  const accessToken = storage.getAccessToken()
+  if (!accessToken) {
+    return ''
   }
-  return false
+
+  const tokenArray = accessToken.split('.')
+  if (tokenArray.length < 2) {
+    return accessToken
+  }
+
+  const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]!))
+  const now = Math.floor(Date.now() / 1000)
+
+  // If token still valid for more than 10 minutes, return it
+  if (jwt.exp - now > 600) {
+    return accessToken
+  }
+
+  // Prevent rapid repeated refreshes
+  if (now - lastRefreshTime < REFRESH_COoldown) {
+    return accessToken
+  }
+
+  // Check if refresh is already in progress - wait for it
+  if (refreshPromise) {
+    return refreshPromise
+  }
+
+  // Create and store the refresh promise
+  refreshPromise = (async () => {
+    try {
+      const refreshToken = storage.getRefreshToken()
+      if (!refreshToken) {
+        return accessToken
+      }
+
+      const data = await httpClient.get<never, AxiosResponse<Data<RefreshStruct>>>(
+        API_ENDPOINTS.AUTH.TOKEN_REFRESH,
+        {
+          headers: { Authorization: refreshToken }
+        }
+      )
+      const token = data.data.data.accessToken
+      storage.setAccessToken(token)
+      lastRefreshTime = Math.floor(Date.now() / 1000)
+      return token
+    } catch {
+      // On error, return current token
+      return accessToken
+    } finally {
+      // Clear lock after short delay to prevent deadlock
+      setTimeout(() => {
+        refreshPromise = null
+      }, 1000)
+    }
+  })()
+
+  return refreshPromise
+}
+
+// Re-export for backward compatibility - now just calls updateAccessToken
+export const checkAccessToken = async (): Promise<boolean> => {
+  const oldToken = storage.getAccessToken()
+  const newToken = await updateAccessToken()
+  return oldToken !== newToken
 }
 
 //document.documentElement.scrollTo cant be used, distance is float
@@ -187,16 +220,12 @@ export const submitLogin = async (username: string, password: string) => {
   form.append('username', username)
   form.append('password', password)
   const token = await POST<Token>(API_ENDPOINTS.AUTH.LOGIN, form)
-  setLocalStorageItem('accessToken', token.accessToken)
-  setLocalStorageItem('refreshToken', token.refreshToken)
+  storage.setAccessToken(token.accessToken)
+  storage.setRefreshToken(token.refreshToken)
   loginStateStore().login = true
   const info = await GET<UserInfo>(API_ENDPOINTS.AUTH.USER_INFO)
-  setLocalStorageItem('userinfo', JSON.stringify(info))
+  storage.setUserInfo(info)
   await router.push('/backend')//wait page jump
-}
-
-const setLocalStorageItem = (key: string, value: string) => {
-  localStorage.setItem(key, value)
 }
 
 export const downloadSQLData = async (

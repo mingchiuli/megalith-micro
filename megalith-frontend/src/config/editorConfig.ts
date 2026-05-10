@@ -7,6 +7,8 @@ import * as random from 'lib0/random'
 import type { CheckRoom, UserInfo } from '@/type/entity'
 import { GET } from '@/http/http'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
+import { logger } from '@/utils/logger'
+import { storage } from '@/utils/storage'
 
 const usercolors = [
   { color: '#30bced', light: '#30bced33' },
@@ -20,8 +22,7 @@ const usercolors = [
 ]
 
 export const yjsCompartment = new Compartment()
-const userStr = localStorage.getItem('userinfo')!
-const user: UserInfo = JSON.parse(userStr)
+const user = storage.getUserInfo<UserInfo>() || { nickname: 'Anonymous', avatar: '', id: 0 }
 let currentProvider: WebsocketProvider | null = null
 let currentDoc: Y.Doc | null = null
 
@@ -39,7 +40,10 @@ export const cleanupYjs = () => {
 
 export const updateProviderToken = () => {
   if (!currentProvider) return
-  currentProvider.params.token = localStorage.getItem('accessToken')!
+  const token = storage.getAccessToken()
+  if (token) {
+    currentProvider.params.token = token
+  }
 }
 
 export const createYjsExtension = async (roomId: string, initialContent: string) => {
@@ -59,9 +63,9 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
   try {
     const data = await GET<CheckRoom>(API_ENDPOINTS.COLLABORATION.CHECK_ROOM_EXISTS(roomId))
     roomExistsBefore = data.exists
-    console.log('Room exists before connection:', roomExistsBefore)
+    logger.log('Room exists before connection:', roomExistsBefore)
   } catch (error) {
-    console.warn('Failed to check room existence:', error)
+    logger.warn('Failed to check room existence:', error)
     // 如果检查失败，保守处理：假设房间已存在
     roomExistsBefore = true
   }
@@ -76,7 +80,7 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
       {
         // URL 参数：认证令牌会附加到 WebSocket URL 上
         params: {
-          token: localStorage.getItem('accessToken')!
+          token: storage.getAccessToken() || ''
         },
 
         // 延迟连接：在配置完成后手动调用 provider.connect()
@@ -97,8 +101,8 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
   let hasInsertedInitialContent = false
 
   provider.on('sync', (isSynced: boolean) => {
-    console.log('Sync event fired, isSynced:', isSynced)
-    console.log('Document length after sync:', ytext.length)
+    logger.log('Sync event fired, isSynced:', isSynced)
+    logger.log('Document length after sync:', ytext.length)
 
     // sync 事件参数说明：
     // isSynced = true: 文档已与服务器同步
@@ -106,7 +110,7 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
 
     // 只在首次同步、房间原本不存在、文档为空时插入
     if (!hasInsertedInitialContent && !roomExistsBefore && ytext.length === 0 && isSynced) {
-      console.log('Inserting initial content:', initialContent.substring(0, 50))
+      logger.log('Inserting initial content:', initialContent.substring(0, 50))
       ytext.insert(0, initialContent)
       hasInsertedInitialContent = true
 
@@ -121,11 +125,11 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
 
   // 关键修复6: 监听连接状态
   provider.on('status', (event: { status: 'connected' | 'disconnected' | 'connecting' }) => {
-    console.log('WebSocket status:', event.status)
+    logger.log('WebSocket status:', event.status)
 
     switch (event.status) {
       case 'connected':
-        console.log('✅ WebSocket 已连接')
+        logger.log('✅ WebSocket 已连接')
         ElNotification({
           title: '已连接',
           message: '协同编辑连接成功',
@@ -135,7 +139,7 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
         break
 
       case 'disconnected':
-        console.warn('⚠️ WebSocket 断开连接')
+        logger.warn('⚠️ WebSocket 断开连接')
         // 重要：不要清理 Doc 和 Provider，等待自动重连
         ElNotification({
           title: '连接断开',
@@ -146,14 +150,14 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
         break
 
       case 'connecting':
-        console.log('🔄 WebSocket 正在连接...')
+        logger.log('🔄 WebSocket 正在连接...')
         break
     }
   })
 
   // 关键修复7: 连接错误处理
   provider.on('connection-error', (event: Event) => {
-    console.error('❌ WebSocket 连接错误:', event)
+    logger.error('❌ WebSocket 连接错误:', event)
     ElNotification({
       title: '连接错误',
       message: '协同编辑连接失败，将继续重试',
@@ -165,11 +169,11 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
   // 关键修复8: 连接关闭处理
   provider.on('connection-close', (event: CloseEvent | null) => {
     if (!event) {
-      console.warn('WebSocket 连接关闭: 事件为 null')
+      logger.warn('WebSocket 连接关闭: 事件为 null')
       return
     }
 
-    console.warn('WebSocket 连接关闭:', {
+    logger.warn('WebSocket 连接关闭:', {
       code: event.code,
       reason: event.reason,
       wasClean: event.wasClean

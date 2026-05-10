@@ -17,16 +17,17 @@ import {
   cleanupYjs,
   updateProviderToken
 } from '@/config/editorConfig'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 import type { Footers, ToolbarNames, ExposeParam } from 'md-editor-v3'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import { ExportPDF, Emoji } from '@vavt/v3-extension'
-import { themeStore } from '@/stores/store'
+import { themeStore } from '@/stores'
 import { storeToRefs } from 'pinia'
+import { storage } from '@/utils/storage'
 
 const route = useRoute()
-const userStr = localStorage.getItem('userinfo')!
-const user: UserInfo = JSON.parse(userStr)
+const user = storage.getUserInfo<UserInfo>() || { username: 'Anonymous', id: 0, color: '#30bced' }
 const blogId = route.query.id as string | undefined
 const roomId = blogId ? `${blogId}` : `init:${user.id}`
 
@@ -150,7 +151,7 @@ const updateEditorExtension = async () => {
 const onUploadImg = async (files: File[], callback: (urls: string[]) => void) => {
   const formdata = new FormData()
   formdata.append('image', files[0]!, files[0]!.name)
-  const url = await UPLOAD('sys/blog/oss/upload', formdata, uploadPercentage, showPercentage)
+  const url = await UPLOAD(API_ENDPOINTS.BLOG_ADMIN.OSS_UPLOAD, formdata, uploadPercentage, showPercentage)
   callback([url])
 }
 

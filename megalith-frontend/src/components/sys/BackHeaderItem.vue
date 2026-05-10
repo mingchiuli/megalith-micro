@@ -4,12 +4,9 @@ import { ArrowDown } from '@element-plus/icons-vue'
 import { clearLoginState } from '@/utils/tools'
 import router from '@/router'
 import { ref } from 'vue'
+import { storage } from '@/utils/storage'
 
-const info = localStorage.getItem('userinfo')
-let user: UserInfo | null = null
-if (info) {
-  user = JSON.parse(info)
-}
+const user = storage.getUserInfo<UserInfo>()
 
 const avatar = ref(user?.avatar || '')
 const nickname = ref(user?.nickname || '')

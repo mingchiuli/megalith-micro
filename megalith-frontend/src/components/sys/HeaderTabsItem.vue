@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import router from '@/router'
-import { welcomeStateStore, tabStore } from '@/stores/store'
+import { welcomeStateStore, tabStore } from '@/stores'
 import type { Tab } from '@/type/entity'
 import type { TabPaneName, TabsPaneContext } from 'element-plus'
 import { storeToRefs } from 'pinia'

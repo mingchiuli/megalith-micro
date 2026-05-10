@@ -6,7 +6,7 @@ import router from './router'
 import * as Icons from '@element-plus/icons-vue'
 // 导入 Element Plus 暗黑模式样式
 import 'element-plus/theme-chalk/dark/css-vars.css'
-import { themeStore } from './stores/store'
+import { themeStore } from './stores'
 
 const pinia = createPinia()
 const app = createApp(App).use(pinia).use(router)

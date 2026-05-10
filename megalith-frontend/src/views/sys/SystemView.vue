@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { pageStore, welcomeStateStore } from '@/stores/store'
+import { pageStore, welcomeStateStore } from '@/stores'
 import { onUnmounted } from 'vue'
 
 const page = pageStore()

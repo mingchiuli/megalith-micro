@@ -10,7 +10,7 @@ import {
   buttonStore,
   blogsStore,
   pageStore
-} from '@/stores/store'
+} from '@/stores'
 import type { Menu, Button } from '@/type/entity'
 
 describe('stores/store', () => {

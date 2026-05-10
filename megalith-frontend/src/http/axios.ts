@@ -2,7 +2,7 @@ import axios, {type AxiosError, type AxiosResponse, type InternalAxiosRequestCon
 import type {Data} from '@/type/entity'
 import {clearLoginState, updateAccessToken} from '@/utils/tools'
 import router from '@/router'
-import {loginStateStore} from '@/stores/store'
+import {loginStateStore} from '@/stores'
 import {API_CONFIG, API_ENDPOINTS} from '@/config/apiConfig'
 import { createTraceParent } from '@/config/otel'
 

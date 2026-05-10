@@ -13,10 +13,11 @@ import {
   buttonStore,
   tabStore,
   authMarkStore
-} from '@/stores/store'
+} from '@/stores'
 import { storeToRefs } from 'pinia'
 import { diff, findMenuByPath } from '@/utils/tools'
 import { API_ENDPOINTS } from '@/config/apiConfig'
+import { storage } from '@/utils/storage'
 
 const modules = import.meta.glob('@/views/sys/*.vue')
 
@@ -72,7 +73,7 @@ router.beforeEach(async (to) => {
     welcomeStateStore().welcomeBackend = false
   }
 
-  if (localStorage.getItem('accessToken') && !loginStateStore().login) {
+  if (storage.isLoggedIn() && !loginStateStore().login) {
     loginStateStore().login = true
   }
 
