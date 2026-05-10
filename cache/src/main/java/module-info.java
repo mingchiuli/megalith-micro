@@ -39,7 +39,7 @@ module wiki.chiu.megalith.cache {
     // Opens packages for reflection (required for Spring and Jackson)
     opens wiki.chiu.micro.cache.config to spring.core, spring.context;
     opens wiki.chiu.micro.cache.aspect to spring.core, spring.context;
-    opens wiki.chiu.micro.cache.listener to spring.core, spring.context, com.fasterxml.jackson.databind;
+    opens wiki.chiu.micro.cache.listener to spring.core, spring.context;
     opens wiki.chiu.micro.cache.handler.impl to spring.core, spring.context;
     opens wiki.chiu.micro.cache.utils to spring.core, spring.context;
     opens wiki.chiu.micro.cache.aot.hints to spring.core, spring.context;
