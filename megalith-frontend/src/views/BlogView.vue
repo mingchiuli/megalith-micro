@@ -7,7 +7,7 @@ import { useRoute } from 'vue-router'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
-import { themeStore } from '@/stores/store'
+import { themeStore } from '@/stores'
 import { storeToRefs } from 'pinia'
 
 const route = useRoute()

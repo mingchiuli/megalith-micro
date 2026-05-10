@@ -12,8 +12,9 @@ import { ElLoading } from 'element-plus'
 import { debounce } from '@/utils/tools'
 import type HotItem from '@/components/HotItem.vue'
 import { storeToRefs } from 'pinia'
-import { blogsStore } from '@/stores/store'
+import { blogsStore } from '@/stores'
 import { buildCommonUrls } from '@/config/apiConfig'
+import { sanitizeHighlight } from '@/utils/sanitize'
 
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
@@ -140,6 +141,10 @@ const handleSelect = (item: Record<string, string | number>) => {
 
 const searchAllInfo = async (queryString: string, currentPage = 1) => {
   searchDialogVisible.value = false
+  // Reset searchPageNum when starting a new search from the dialog
+  if (currentPage === 1) {
+    blogsStore().searchPageNum = 1
+  }
   if (queryString.length) {
     const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, null)
     if (page.content.length) {
@@ -216,7 +221,7 @@ defineExpose({ searchAllInfo })
                 class="value"
                 v-for="(title, key) in item.highlight.title"
                 v-bind:key="key"
-                v-html="'标题：' + title"
+                v-html="sanitizeHighlight('标题：' + title)"
               />
             </template>
             <template v-if="item.highlight.description">
@@ -224,7 +229,7 @@ defineExpose({ searchAllInfo })
                 class="value"
                 v-for="(description, key) in item.highlight.description"
                 v-bind:key="key"
-                v-html="'摘要：' + description"
+                v-html="sanitizeHighlight('摘要：' + description)"
               />
             </template>
             <template v-if="item.highlight.content">
@@ -233,7 +238,7 @@ defineExpose({ searchAllInfo })
                 class="value"
                 v-for="(content, key) in item.highlight.content"
                 v-bind:key="key"
-                v-html="'内容：' + content"
+                v-html="sanitizeHighlight('内容：' + content)"
               />
             </template>
           </template>

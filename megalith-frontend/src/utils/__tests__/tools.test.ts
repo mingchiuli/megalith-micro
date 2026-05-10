@@ -41,7 +41,8 @@ import {
   cleanJsonResponse,
   checkButtonAuth,
   getButtonType,
-  getButtonTitle
+  getButtonTitle,
+  resetTokenRefreshState
 } from '@/utils/tools'
 import { httpClient } from '@/http/axios'
 import { GET, POST } from '@/http/http'
@@ -52,7 +53,7 @@ import {
   menuStore,
   tabStore,
   buttonStore
-} from '@/stores/store'
+} from '@/stores'
 import type { Menu, Button } from '@/type/entity'
 
 const buildJWT = (payload: Record<string, unknown>): string => {
@@ -66,6 +67,7 @@ describe('utils/tools', () => {
     setActivePinia(createPinia())
     localStorage.clear()
     vi.clearAllMocks()
+    resetTokenRefreshState()
   })
 
   describe('debounce', () => {

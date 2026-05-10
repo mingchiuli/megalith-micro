@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AuthButton: typeof import('./src/components/sys/AuthButton.vue')['default']
     BackHeaderItem: typeof import('./src/components/sys/BackHeaderItem.vue')['default']
     CatalogueItem: typeof import('./src/components/CatalogueItem.vue')['default']
     DiscussItem: typeof import('./src/components/DiscussItem.vue')['default']
@@ -77,6 +78,8 @@ declare module 'vue' {
     SearchItem: typeof import('./src/components/SearchItem.vue')['default']
     SideMenuItem: typeof import('./src/components/sys/SideMenuItem.vue')['default']
     StatItem: typeof import('./src/components/StatItem.vue')['default']
+    StatusTag: typeof import('./src/components/sys/StatusTag.vue')['default']
+    TimeColumn: typeof import('./src/components/sys/TimeColumn.vue')['default']
   }
   export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

@@ -31,10 +31,12 @@ import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import {checkButtonAuth, getButtonTitle, getButtonType} from '@/utils/tools'
 import {aiHttpClient} from '@/http/axios'
 import {API_CONFIG, API_ENDPOINTS} from '@/config/apiConfig'
+import {AI_MODELS} from '@/config/aiConfig'
+import {logger} from '@/utils/logger'
 
 const aiModels = ref<AiModel[]>([])
 const aiModel = ref('')
-const imageModel = 'x/flux2-klein:9b-bf16'
+const imageModel = AI_MODELS.IMAGE_MODEL
 const aiLoading = ref(false)
 const imageGenerating = ref(false)
 const imageProgress = ref(0)
@@ -306,7 +308,7 @@ const loadAiModel = async () => {
     const result: AiModelsResp = response.data
     aiModels.value = result.models
   } catch (e) {
-    console.warn(e)
+    logger.warn(e)
   }
 }
 
@@ -468,7 +470,7 @@ const generateImagePrompt = async () => {
       }
     }
   } catch (e) {
-    console.warn('图片提示词生成失败:', e)
+    logger.warn('图片提示词生成失败:', e)
   }
 }
 
@@ -559,7 +561,7 @@ const handleConfirmUpload = async () => {
     await uploadFile(file)
     generatedImageDialogVisible.value = false
   } catch (e) {
-    console.warn('图片上传失败:', e)
+    logger.warn('图片上传失败:', e)
   } finally {
     uploadLoading.value = false
   }

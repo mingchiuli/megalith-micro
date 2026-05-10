@@ -9,8 +9,8 @@ export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_BASE_URL,
   // WebSocket基础URL
   BASE_WS_URL: import.meta.env.VITE_BASE_WS_URL,
-  // AI服务器URL
-  AI_BASE_URL: 'http://localhost:11434',
+  // AI服务器URL (从环境变量获取，默认本地)
+  AI_BASE_URL: import.meta.env.VITE_AI_BASE_URL || 'http://localhost:11434',
   // 请求超时时间
   TIMEOUT: 10000,
   // 长时间请求超时时间

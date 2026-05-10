@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { tabStore } from '@/stores/store'
+import { tabStore } from '@/stores'
 import type { Menu, Tab } from '@/type/entity'
 import router from '@/router'
 import { RoutesEnum } from '@/type/entity'
