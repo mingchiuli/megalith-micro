@@ -14,6 +14,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 import wiki.chiu.micro.common.lang.Const;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
@@ -46,14 +47,25 @@ public class UserRedisCacheEvictMessageListener {
             messageConverter = "jsonMessageConverter",
             executor = "mqExecutor")
     public void handler(UserAuthMenuOperateMessage message, Channel channel, Message msg) {
-        AuthMenuOperateEnum operateEnum = AuthMenuOperateEnum.of(message.type());
-        List<String> roles = message.roles();
+        try {
+            AuthMenuOperateEnum operateEnum = AuthMenuOperateEnum.of(message.type());
+            List<String> roles = message.roles();
 
-        HashSet<String> keysToEvict = new HashSet<>();
-        keysToEvict.addAll(getMenusAndButtonsKeys(roles, operateEnum));
-        keysToEvict.addAll(getAuthKeys(roles, operateEnum));
+            HashSet<String> keysToEvict = new HashSet<>();
+            keysToEvict.addAll(getMenusAndButtonsKeys(roles, operateEnum));
+            keysToEvict.addAll(getAuthKeys(roles, operateEnum));
 
-        cacheEvictHandler.evictCache(keysToEvict);
+            cacheEvictHandler.evictCache(keysToEvict);
+
+            channel.basicAck(msg.getMessageProperties().getDeliveryTag(), false);
+        } catch (Exception e) {
+            log.error("Failed to process cache eviction message", e);
+            try {
+                channel.basicNack(msg.getMessageProperties().getDeliveryTag(), false, true);
+            } catch (IOException ioException) {
+                log.error("Failed to nack message", ioException);
+            }
+        }
     }
 
     private Set<String> getMenusAndButtonsKeys(List<String> roles, AuthMenuOperateEnum operateEnum) {

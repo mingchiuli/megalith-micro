@@ -54,7 +54,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import wiki.chiu.micro.common.utils.SQLUtils;
 
 import java.io.IOException;
@@ -279,15 +278,6 @@ public class BlogServiceImpl implements BlogService {
         headers.put(HttpHeaders.CACHE_CONTROL, "no-cache");
         headers.put(HttpHeaders.CONTENT_TYPE, contentType);
         return headers;
-    }
-
-    private void sendSseEmitter(SseEmitter sseEmitter, String url) {
-        try {
-            sseEmitter.send(url, MediaType.TEXT_PLAIN);
-            sseEmitter.complete();
-        } catch (IOException e) {
-            sseEmitter.completeWithError(e);
-        }
     }
 
     @Override
