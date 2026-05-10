@@ -159,12 +159,14 @@ pub async fn request<T: DeserializeOwned>(
     body: Option<impl Serialize>,
     headers: HashMap<HeaderName, HeaderValue>,
 ) -> Result<T, BoxError> {
-    let body = body.map(|b| {
-        let json = serde_json::to_string(&b)
-            .map_err(|e| ClientError::Serialization(e.to_string()))
-            .unwrap();
-        axum::body::Body::from(json)
-    });
+    let body = match body {
+        Some(b) => {
+            let json = serde_json::to_string(&b)
+                .map_err(|e| Box::new(ClientError::Serialization(e.to_string())) as BoxError)?;
+            Some(axum::body::Body::from(json))
+        },
+        None => None,
+    };
 
     let response = request_raw(method, url, body, headers).await?;
     parse_response(response).await

@@ -97,6 +97,7 @@ public class CacheAspect {
         try {
             return lock.tryLock(LOCK_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             return false;
         }
     }

@@ -62,17 +62,21 @@ fn main() {
     runtime.block_on(async {
         tracing::info!("{}", LOGO);
 
-        let port: u16 = config::get_config(ConfigKey::ServerPort).parse().unwrap();
+        let port: u16 = config::get_config(ConfigKey::ServerPort)
+            .parse()
+            .expect("Invalid server port configuration");
         let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
-        let listener = TcpListener::bind(addr).await.unwrap();
+        let listener = TcpListener::bind(addr)
+            .await
+            .expect("Failed to bind to address");
         tracing::info!("Server listening on {}", addr);
 
         axum::serve(listener, set_route()
             .layer(axum::middleware::from_fn_with_state((), trace_context_middleware)))
             .with_graceful_shutdown(shutdown_signal())
             .await
-            .unwrap();
+            .expect("Server error");
     });
 
     // Shutdown OpenTelemetry providers AFTER runtime is done (outside async context)

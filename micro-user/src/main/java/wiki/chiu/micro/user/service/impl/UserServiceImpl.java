@@ -305,10 +305,11 @@ public class UserServiceImpl implements UserService {
             byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-            ServletOutputStream outputStream = response.getOutputStream();
-            outputStream.write(bytes);
-            outputStream.flush();
-            outputStream.close();
+            response.setContentLength(bytes.length);
+            try (ServletOutputStream outputStream = response.getOutputStream()) {
+                outputStream.write(bytes);
+                outputStream.flush();
+            }
         } catch (IOException e) {
             throw new MissException(e.getMessage());
         }

@@ -60,7 +60,7 @@ impl BroadcastGroup {
             let rt = tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .build()
-                .unwrap();
+                .expect("Failed to create tokio runtime for document actor");
             rt.block_on(doc_actor(awareness, cmd_rx, broadcast_tx_clone));
         });
 
