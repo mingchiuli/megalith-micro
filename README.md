@@ -14,11 +14,9 @@ graph TD
     subgraph ExternalLayer[External Layer]
         Nginx["nginx<br/>External Gateway + Frontend Proxy"]
     end
-
     subgraph GatewayLayer[Gateway Layer]
         Gateway["gateway service Rust<br/>Request Auth & Routing"]
     end
-
     subgraph ServiceLayer[Service Layer]
         Auth["auth service<br/>Permission L2 Cache / Login API + Cache Update"]
         User["user service<br/>User & Permission Management"]
@@ -27,19 +25,18 @@ graph TD
         Exhibit["exhibit service<br/>Blog L2 Cache"]
         Search["search service<br/>Search Functionality"]
     end
-
     subgraph StorageLayer[Storage & Middleware Layer]
         MariaDB["mariadb<br/>User/Blog Storage"]
         Redis["redis<br/>Distributed Cache"]
         RabbitMQ["rabbitmq<br/>Message Queue"]
         ES["ElasticSearch<br/>Search/APM Storage"]
     end
-
-    subgraph MonitoringLayer[Monitoring Layer]
+    subgraph MonitoringLayer[Monitoring Layer - Server]
         APMServer["apm-server<br/>OTel Data Receiver"]
-        Kibana["kibana<br/>Monitoring Visualization"]
     end
-
+    subgraph LocalMachine[Local Machine - Developer Laptop]
+        Kibana["kibana<br/>Monitoring Visualization<br/>(Local Install)"]
+    end
     %% Traffic Flow Sync uses WS others HTTP
     Nginx --> Gateway
     Gateway -->|HTTP/WS Auth Call Route Selection| Auth
@@ -48,7 +45,6 @@ graph TD
     Gateway -->|WS| Sync
     Gateway -->|HTTP| Exhibit
     Gateway -->|HTTP| Search
-
     %% Business Dependencies
     User --> MariaDB
     Blog --> MariaDB
@@ -57,7 +53,6 @@ graph TD
     Auth -->|Fetch Data| User
     Search --> ES
     Blog -->|Complex Query ES Query ID then Fetch| Search
-
     %% Messages & Cache Auth receives RabbitMQ messages to update cache
     User -->|Message| RabbitMQ
     Blog -->|Message| RabbitMQ
@@ -66,11 +61,10 @@ graph TD
     RabbitMQ -->|Update Cache| Auth
     Exhibit -->|L1 Cache| Redis
     Auth -->|L1 Cache| Redis
-
     %% Monitoring Flow
     User & Blog & Auth & Exhibit & Search & Sync & Gateway -->|OTel Data| APMServer
     APMServer --> ES
-    ES --> Kibana
+    ES -->|Encrypted WireGuard VPN| Kibana
 ```
 
 ## 📦 Modules
