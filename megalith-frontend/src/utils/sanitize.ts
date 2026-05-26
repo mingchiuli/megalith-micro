@@ -18,10 +18,8 @@ export const sanitizeHighlight = (html: string): string => {
     // Remove event handlers like onclick, onerror, etc.
     .replace(/on\w+="[^"]*"/gi, '')
     .replace(/on\w+='[^']*'/gi, '')
-    // Remove javascript: URLs
-    .replace(/javascript:/gi, '')
-    // Remove data: URLs that could contain malicious content
-    .replace(/data:\s*text\/html/gi, '')
+    // Remove dangerous executable URL schemes
+    .replace(/\b(?:javascript|data|vbscript)\s*:/gi, '')
 
   return sanitized
 }
