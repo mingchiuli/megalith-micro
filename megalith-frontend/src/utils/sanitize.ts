@@ -31,7 +31,7 @@ export const sanitizeHighlight = (html: string): string => {
 export const sanitizeMarkdown = (html: string): string => {
   if (!html) return ''
 
-  let sanitized = html
+let sanitized = html
   let previous: string
 
   // Repeatedly apply removals to avoid incomplete multi-character sanitization
@@ -39,12 +39,12 @@ export const sanitizeMarkdown = (html: string): string => {
   do {
     previous = sanitized
     sanitized = sanitized
-      // Remove script tags
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      // Remove script tags (handle whitespace in end tag: </script >)
+      .replace(/<script\b[^<]*(?:(?!<\/script\s*>)[^<])*<\/script\s*>/gi, '')
       // Remove iframe tags
-      .replace(/<iframe\b[^>]*>.*?<\/iframe>/gi, '')
+      .replace(/<iframe\b[^>]*>.*?<\/iframe\s*>/gi, '')
       // Remove object/embed tags
-      .replace(/<object\b[^>]*>.*?<\/object>/gi, '')
+      .replace(/<object\b[^>]*>.*?<\/object\s*>/gi, '')
       .replace(/<embed\b[^>]*>/gi, '')
       // Remove event handlers
       .replace(/on\w+="[^"]*"/gi, '')
