@@ -31,17 +31,25 @@ export const sanitizeHighlight = (html: string): string => {
 export const sanitizeMarkdown = (html: string): string => {
   if (!html) return ''
 
-  // Remove script tags
-  const sanitized = html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Remove iframe tags
-    .replace(/<iframe\b[^>]*>.*?<\/iframe>/gi, '')
-    // Remove object/embed tags
-    .replace(/<object\b[^>]*>.*?<\/object>/gi, '')
-    .replace(/<embed\b[^>]*>/gi, '')
-    // Remove event handlers
-    .replace(/on\w+="[^"]*"/gi, '')
-    .replace(/on\w+='[^']*'/gi, '')
+  let sanitized = html
+  let previous: string
+
+  // Repeatedly apply removals to avoid incomplete multi-character sanitization
+  // where one replacement can expose another dangerous pattern.
+  do {
+    previous = sanitized
+    sanitized = sanitized
+      // Remove script tags
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      // Remove iframe tags
+      .replace(/<iframe\b[^>]*>.*?<\/iframe>/gi, '')
+      // Remove object/embed tags
+      .replace(/<object\b[^>]*>.*?<\/object>/gi, '')
+      .replace(/<embed\b[^>]*>/gi, '')
+      // Remove event handlers
+      .replace(/on\w+="[^"]*"/gi, '')
+      .replace(/on\w+='[^']*'/gi, '')
+  } while (sanitized !== previous)
 
   return sanitized
 }
