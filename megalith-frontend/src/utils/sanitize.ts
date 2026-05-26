@@ -10,16 +10,22 @@
 export const sanitizeHighlight = (html: string): string => {
   if (!html) return ''
 
-  // Only allow <em> and </em> tags for highlighting
-  // Remove any other HTML tags
-  const sanitized = html
-    // Remove all HTML tags except <em> and </em>
-    .replace(/<(?!\/?em\b)[^>]+>/gi, '')
-    // Remove event handlers like onclick, onerror, etc.
-    .replace(/on\w+="[^"]*"/gi, '')
-    .replace(/on\w+='[^']*'/gi, '')
-    // Remove dangerous executable URL schemes
-    .replace(/\b(?:javascript|data|vbscript)\s*:/gi, '')
+  let sanitized = html
+  let previous: string
+
+  // Repeatedly apply removals to avoid incomplete multi-character sanitization
+  // where one replacement can expose another dangerous pattern.
+  do {
+    previous = sanitized
+    sanitized = sanitized
+      // Remove all HTML tags except <em> and </em>
+      // Handle unclosed tags and tags with > in attribute values
+      .replace(/<(?!\/?em\b)[^>]*(?:>|$)/gi, '')
+      // Remove event handlers (quoted, single-quoted, and unquoted values)
+      .replace(/on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
+      // Remove dangerous executable URL schemes (handle whitespace variations)
+      .replace(/\b(?:javascript|data|vbscript)\s*:/gi, '')
+  } while (sanitized !== previous)
 
   return sanitized
 }
@@ -31,7 +37,7 @@ export const sanitizeHighlight = (html: string): string => {
 export const sanitizeMarkdown = (html: string): string => {
   if (!html) return ''
 
-let sanitized = html
+  let sanitized = html
   let previous: string
 
   // Repeatedly apply removals to avoid incomplete multi-character sanitization
@@ -41,14 +47,18 @@ let sanitized = html
     sanitized = sanitized
       // Remove script tags (handle whitespace in end tag: </script >)
       .replace(/<script\b[^<]*(?:(?!<\/script\s*>)[^<])*<\/script\s*>/gi, '')
+      // Remove unclosed script tags
+      .replace(/<script\b[^>]*(?:>|$)/gi, '')
       // Remove iframe tags
       .replace(/<iframe\b[^>]*>.*?<\/iframe\s*>/gi, '')
+      // Remove unclosed iframe tags
+      .replace(/<iframe\b[^>]*(?:>|$)/gi, '')
       // Remove object/embed tags
       .replace(/<object\b[^>]*>.*?<\/object\s*>/gi, '')
-      .replace(/<embed\b[^>]*>/gi, '')
-      // Remove event handlers
-      .replace(/on\w+="[^"]*"/gi, '')
-      .replace(/on\w+='[^']*'/gi, '')
+      .replace(/<object\b[^>]*(?:>|$)/gi, '')
+      .replace(/<embed\b[^>]*(?:>|$)/gi, '')
+      // Remove event handlers (quoted, single-quoted, and unquoted values)
+      .replace(/on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
   } while (sanitized !== previous)
 
   return sanitized
