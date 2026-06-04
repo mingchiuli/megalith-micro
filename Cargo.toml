@@ -48,7 +48,7 @@ http-body-util = "0.1.3"
 tokio-tungstenite = "0.29.0"
 
 # CRDT and collaboration
-yrs = "0.26.0"
+yrs = "0.27.0"
 
 # Utilities
 url = "2.5.8"
