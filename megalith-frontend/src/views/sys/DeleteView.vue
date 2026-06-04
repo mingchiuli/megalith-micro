@@ -161,6 +161,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
+    <!-- @vue-generic {BlogDelSys} -->
     <el-table-column :fixed="fix" label="操作" min-width="120" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_DELETE_RESUME)">

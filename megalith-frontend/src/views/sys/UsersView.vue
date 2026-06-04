@@ -295,6 +295,7 @@ const getRegisterLink = async (username: string) => {
       </template>
     </el-table-column>
 
+    <!-- @vue-generic {UserSys} -->
     <el-table-column :fixed="fix" label="操作" min-width="280" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_USER_EDIT)">

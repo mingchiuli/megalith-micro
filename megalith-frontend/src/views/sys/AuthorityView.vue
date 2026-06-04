@@ -244,6 +244,7 @@ const clearForm = () => {
       </template>
     </el-table-column>
 
+    <!-- @vue-generic {AuthoritySys} -->
     <el-table-column :fixed="fix" label="操作" min-width="180" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_EDIT)">

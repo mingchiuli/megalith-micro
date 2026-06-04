@@ -239,6 +239,7 @@ const submitForm = async (ref: FormInstance) => {
         >
       </template>
     </el-table-column>
+    <!-- @vue-generic {MenuSys} -->
     <el-table-column :fixed="fix" label="操作" align="center" min-width="250">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_MENU_EDIT)">
