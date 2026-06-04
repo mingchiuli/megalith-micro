@@ -346,6 +346,7 @@ const clearDatePicker = async () => {
       </template>
     </el-table-column>
 
+    <!-- @vue-generic {BlogSys} -->
     <el-table-column :fixed="fix" label="操作" min-width="300" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_CHECK)">
