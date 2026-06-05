@@ -219,7 +219,7 @@ defineExpose({ searchAllInfo })
                 class="value"
                 v-for="(title, key) in item.highlight.title"
                 v-bind:key="key"
-                v-html="'标题：' + title"> </div>
+                v-html="'标题：' + title"/>
             </template>
             <template v-if="item.highlight.description">
               <div
