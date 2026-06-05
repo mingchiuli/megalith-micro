@@ -14,8 +14,6 @@ import type HotItem from '@/components/HotItem.vue'
 import { storeToRefs } from 'pinia'
 import { blogsStore } from '@/stores'
 import { buildCommonUrls } from '@/config/apiConfig'
-import { sanitizeHighlight } from '@/utils/sanitize'
-
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
   refresh: [payload: void]
@@ -221,15 +219,14 @@ defineExpose({ searchAllInfo })
                 class="value"
                 v-for="(title, key) in item.highlight.title"
                 v-bind:key="key"
-                v-html="sanitizeHighlight('标题：' + title)"
-              />
+                v-html="'标题：' + title"> </div>
             </template>
             <template v-if="item.highlight.description">
               <div
                 class="value"
                 v-for="(description, key) in item.highlight.description"
                 v-bind:key="key"
-                v-html="sanitizeHighlight('摘要：' + description)"
+                v-html="'摘要：' + description"
               />
             </template>
             <template v-if="item.highlight.content">
@@ -238,7 +235,7 @@ defineExpose({ searchAllInfo })
                 class="value"
                 v-for="(content, key) in item.highlight.content"
                 v-bind:key="key"
-                v-html="sanitizeHighlight('内容：' + content)"
+                v-html="'内容：' + content"
               />
             </template>
           </template>

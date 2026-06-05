@@ -9,8 +9,6 @@ import Search from '@/components/SearchItem.vue'
 import { Status } from '@/type/entity'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { Moon, Sunny } from '@element-plus/icons-vue'
-import { sanitizeHighlight } from '@/utils/sanitize'
-
 const loading = ref(false)
 const searchDialogVisible = ref(false)
 const searchRef = useTemplateRef<InstanceType<typeof Search>>('searchRef')
@@ -197,21 +195,21 @@ const { content, totalElements, pageSize } = toRefs(page)
               <p
                 v-for="(title, key) in blog.highlight.title"
                 v-bind:key="key"
-                v-html="sanitizeHighlight('标题: ' + title)"
+                v-html="'标题: ' + title"
               ></p>
             </template>
             <template v-if="blog.highlight?.description">
               <p
                 v-for="(description, key) in blog.highlight.description"
                 v-bind:key="key"
-                v-html="sanitizeHighlight('摘要: ' + description)"
+                v-html="'摘要: ' + description"
               ></p>
             </template>
             <template v-if="blog.highlight?.content">
               <p
                 v-for="(content, key) in blog.highlight.content"
                 v-bind:key="key"
-                v-html="sanitizeHighlight('内容: ' + content)"
+                v-html="'内容: ' + content"
               ></p>
             </template>
           </el-card>
