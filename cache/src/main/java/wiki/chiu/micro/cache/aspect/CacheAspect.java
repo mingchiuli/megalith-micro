@@ -34,7 +34,6 @@ public class CacheAspect {
 
     private static final String LOCK = "megalithRemoteLock:";
     private static final long LOCK_TIMEOUT = 5000;
-
     private final RedissonClient redissonClient;
     private final JsonMapper jsonMapper;
     private final CommonCacheKeyGenerator commonCacheKeyGenerator;
