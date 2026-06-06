@@ -7,41 +7,31 @@
  * @author mingchiuli
  * @since 2025
  */
-module wiki.chiu.megalith.cache {
+module wiki.chiu.micro.cache {
     requires org.slf4j;
     requires spring.core;
     requires org.aspectj.weaver;
-    requires redisson;
+    requires transitive redisson;
     requires com.github.benmanes.caffeine;
     requires spring.beans;
     requires spring.context;
-    requires spring.boot.autoconfigure;
-    requires spring.amqp;
-    requires spring.rabbit;
+    requires static spring.boot.autoconfigure;
+    requires static spring.amqp;
+    requires static spring.rabbit;
+    requires static spring.boot.amqp;
     requires jakarta.annotation;
     requires org.jspecify;
-    requires spring.boot.amqp;
-    requires tools.jackson.databind;
+    requires static tools.jackson.databind;
 
-
-    // Exports - public API packages
+    // Public API packages - used by downstream modules
     exports wiki.chiu.micro.cache.annotation;
     exports wiki.chiu.micro.cache.handler;
-    exports wiki.chiu.micro.cache.config;
+    exports wiki.chiu.micro.cache.utils;
 
-    // Exports for Spring Boot auto-configuration
-    exports wiki.chiu.micro.cache.aspect to spring.core, spring.context;
-    exports wiki.chiu.micro.cache.utils to spring.core, spring.context;
-    exports wiki.chiu.micro.cache.listener to spring.core, spring.context;
-    exports wiki.chiu.micro.cache.handler.impl to spring.core, spring.context;
-    exports wiki.chiu.micro.cache.aot.hints to spring.core, spring.context;
-
-    // Opens packages for reflection (required for Spring and Jackson)
-    opens wiki.chiu.micro.cache.config to spring.core, spring.context;
-    opens wiki.chiu.micro.cache.aspect to spring.core, spring.context;
-    opens wiki.chiu.micro.cache.listener to spring.core, spring.context;
-    opens wiki.chiu.micro.cache.handler.impl to spring.core, spring.context;
-    opens wiki.chiu.micro.cache.utils to spring.core, spring.context;
-    opens wiki.chiu.micro.cache.aot.hints to spring.core, spring.context;
+    // Implementation packages - opened for Spring reflection only
+    opens wiki.chiu.micro.cache.config;
+    opens wiki.chiu.micro.cache.aspect;
+    opens wiki.chiu.micro.cache.listener;
+    opens wiki.chiu.micro.cache.handler.impl;
+    opens wiki.chiu.micro.cache.aot.hints;
 }
-

@@ -13,8 +13,7 @@ import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
@@ -29,8 +28,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @Aspect
 @Order(2)
 public class CacheAspect {
-
-    private static final Logger log = LoggerFactory.getLogger(CacheAspect.class);
 
     private static final String LOCK = "megalithRemoteLock:";
     private static final long LOCK_TIMEOUT = 5000;
