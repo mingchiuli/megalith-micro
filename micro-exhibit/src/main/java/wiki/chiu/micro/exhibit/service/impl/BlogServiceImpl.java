@@ -112,9 +112,6 @@ public class BlogServiceImpl implements BlogService {
         return StringUtils.hasLength(token) && Objects.equals(password, token);
     }
 
-    private boolean isNormalOrSensitive(Integer status) {
-        return BlogStatusEnum.NORMAL.getCode().equals(status) || BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(status);
-    }
 
     @Override
     public BlogExhibitVo getLockedBlog(Long blogId, String token) {
