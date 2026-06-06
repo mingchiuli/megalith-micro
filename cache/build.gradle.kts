@@ -1,5 +1,5 @@
 
-version = "4.3.1"
+version = "4.5.0"
 
 plugins { id("com.vanniktech.maven.publish") version "0.36.0" }
 
@@ -39,7 +39,7 @@ mavenPublishing {
 }
 
 dependencies {
-    implementation("org.redisson:redisson:4.4.0")
+    implementation("org.redisson:redisson:4.5.0")
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("org.aspectj:aspectjweaver")
     compileOnly("jakarta.servlet:jakarta.servlet-api")
