@@ -112,6 +112,8 @@ subprojects {
             dependency("org.redisson:redisson:4.5.0")
             dependency("com.nimbusds:nimbus-jose-jwt:10.9.1")
             dependency("wiki.chiu.megalith:cache-spring-boot-starter:4.5.1")
+            // 锁定 incubator 版本与 Spring SDK 1.55.0 一致，防止 logback-appender 传递依赖拉入高版本导致 NoSuchMethodError
+            dependency("io.opentelemetry:opentelemetry-api-incubator:1.55.0-alpha")
         }
     }
 
