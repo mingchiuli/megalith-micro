@@ -26,13 +26,6 @@ subprojects {
     plugins.apply("io.spring.dependency-management")
     plugins.apply("org.springframework.boot")  // Apply to all modules for -parameters and AOT
 
-    // 强制锁定 OTEL incubator 版本，防止传递 BOM 覆盖 dependencyManagement 的推荐版本
-    configurations.all {
-        resolutionStrategy {
-            force("io.opentelemetry:opentelemetry-api-incubator:1.55.0-alpha")
-        }
-    }
-
     // Configure jar tasks based on module type
     if (name.startsWith("micro-")) {
         plugins.apply("org.graalvm.buildtools.native")
@@ -119,8 +112,6 @@ subprojects {
             dependency("org.redisson:redisson:4.5.0")
             dependency("com.nimbusds:nimbus-jose-jwt:10.9.1")
             dependency("wiki.chiu.megalith:cache-spring-boot-starter:4.5.1")
-            // 锁定 incubator 版本与 Spring SDK 1.55.0 一致，防止 logback-appender 传递依赖拉入高版本导致 NoSuchMethodError
-            dependency("io.opentelemetry:opentelemetry-api-incubator:1.55.0-alpha")
         }
     }
 
