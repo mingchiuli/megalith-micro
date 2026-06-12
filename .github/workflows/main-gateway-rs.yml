@@ -47,6 +47,9 @@ jobs:
   
   deploy:
     name: Deploy
+    concurrency:
+      group: megalith-production-deploy
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     needs:
       - build
@@ -59,18 +62,30 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
+            set -e
             docker pull mingchiuli/megalith-micro-gateway-rs:latest
-            container_ids=$(docker ps --filter "name=micro-gateway-rs" -q | awk '{print $1}')
-            if [ -n "$container_ids" ]; then
-              for container_id in $container_ids; do
-                docker stop --time=30 "$container_id"
-                docker rm "$container_id"
-              done
+            docker compose -f docker-compose.infrastructure.yml rm -sf micro-gateway-rs
+            docker compose -f docker-compose.infrastructure.yml up -d --no-deps --force-recreate micro-gateway-rs
+            container_id=$(docker compose -f docker-compose.infrastructure.yml ps -q micro-gateway-rs)
+            if [ -z "$container_id" ]; then
+              docker compose -f docker-compose.infrastructure.yml ps micro-gateway-rs
+              exit 1
             fi
-            docker compose -f docker-compose.infrastructure.yml up -d micro-gateway-rs
+            for attempt in $(seq 1 60); do
+              health_status=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$container_id")
+              if [ "$health_status" = "healthy" ]; then
+                break
+              fi
+              if [ "$health_status" = "unhealthy" ] || [ "$attempt" -eq 60 ]; then
+                docker compose -f docker-compose.infrastructure.yml ps micro-gateway-rs
+                docker logs --tail=200 "$container_id"
+                exit 1
+              fi
+              sleep 2
+            done
             old=$(docker images | grep -w 'micro-gateway-rs' | grep 'none' | awk '{print $3}')
             if [ -n "$old" ]; then
-              docker rmi $old
+              docker rmi $old || true
             fi
             nginx=$(docker ps | grep -w 'nginx' | awk '{print $1}')
             if [ -n "$nginx" ]; then
