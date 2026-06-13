@@ -19,7 +19,6 @@ spring:
       enabled: true
   profiles:
     default: dev
-    active: dev
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     default-property-inclusion: NON_NULL

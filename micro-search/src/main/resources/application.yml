@@ -6,7 +6,6 @@ spring:
       enabled: true
   profiles:
     default: dev
-    active: dev
   rabbitmq:
     listener:
       simple:

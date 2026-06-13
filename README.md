@@ -1,6 +1,6 @@
 # Megalith Micro
 
-[![Java Version](https://img.shields.io/badge/Java-24+-orange.svg)](https://openjdk.java.net/)
+[![Java Version](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.java.net/)
 [![Rust Version](https://img.shields.io/badge/Rust-2024-edb974.svg)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -100,9 +100,9 @@ graph TD
 ## 🛠️ Tech Stack
 
 **Java:**
-- Spring Boot 4.0.5
-- Hibernate ORM 7.3.0
-- Redisson 4.3.1 (Redis)
+- Spring Boot 4.1.0
+- Hibernate ORM 7.4.1
+- Redisson 4.5.0 (Redis)
 - Caffeine Cache
 - Elasticsearch
 
@@ -125,7 +125,7 @@ graph TD
 
 ### Prerequisites
 
-- JDK 24+
+- JDK 25
 - Rust 2024 edition
 - Redis
 - RabbitMQ (optional, for distributed cache eviction)
