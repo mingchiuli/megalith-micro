@@ -152,7 +152,7 @@ public class AuthServiceImpl implements AuthService {
 
         Claims claims;
         try {
-            claims = tokenUtils.getVerifierByToken(token.substring(TOKEN_PREFIX.length()));
+            claims = tokenUtils.getVerifierByToken(extractBearerToken(token));
         } catch (AuthException e) {
             throw new MissException(e.getMessage());
         }
@@ -195,7 +195,7 @@ public class AuthServiceImpl implements AuthService {
             return authorities;
         }
 
-        Claims claims = tokenUtils.getVerifierByToken(token.substring(TOKEN_PREFIX.length()));
+        Claims claims = tokenUtils.getVerifierByToken(extractBearerToken(token));
         if (redissonClient.getBucket(BLOCK_USER + claims.userId()).isExists()) {
             return authorities;
         }
@@ -223,6 +223,13 @@ public class AuthServiceImpl implements AuthService {
                 .flatMap(Collection::stream)
                 .distinct()
                 .toList();
+    }
+
+    private String extractBearerToken(String token) throws AuthException {
+        if (!StringUtils.hasLength(token) || !token.startsWith(TOKEN_PREFIX) || token.length() == TOKEN_PREFIX.length()) {
+            throw new AuthException(ExceptionMessage.TOKEN_INVALID.getMsg());
+        }
+        return token.substring(TOKEN_PREFIX.length());
     }
 
 }

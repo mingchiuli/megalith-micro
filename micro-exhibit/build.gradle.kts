@@ -9,4 +9,3 @@ dependencies {
     implementation("wiki.chiu.megalith:cache-spring-boot-starter")
     implementation("org.redisson:redisson")
 }
-
