@@ -19,7 +19,11 @@ const handleProgress = (
   progressEvent: AxiosProgressEvent
 ) => {
   const { loaded, total } = progressEvent
-  percentage.value = Math.floor((loaded * 100) / total!)
+  if (!total) {
+    percentage.value = 0
+    return
+  }
+  percentage.value = Math.min(100, Math.floor((loaded * 100) / total))
 }
 
 const DOWNLOAD = async (
@@ -37,9 +41,6 @@ const DOWNLOAD = async (
     })
     .then((res) => {
       data = res
-    })
-    .catch((e) => {
-      return Promise.reject(new Error(e))
     })
     .finally(() => {
       setTimeout(() => {
@@ -65,9 +66,6 @@ const UPLOAD = async (
     })
     .then((resp: AxiosResponse<Data<string>>) => {
       url = resp.data.data
-    })
-    .catch((e) => {
-      return Promise.reject(new Error(e))
     })
     .finally(() => {
       setTimeout(() => {

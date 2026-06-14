@@ -78,9 +78,9 @@ router.beforeEach(async (to) => {
   }
 
   if (to.path.startsWith('/login') && loginStateStore().login) {
-    router.push({
+    return {
       name: 'blogs'
-    })
+    }
   }
 
   if (to.meta.title) {

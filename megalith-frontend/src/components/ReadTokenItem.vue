@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { GET } from '@/http/http'
 import router from '@/router'
-import { API_ENDPOINTS } from '@/config/apiConfig'
+import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 
 const { blogId } = defineProps<{
   blogId: number
@@ -12,9 +12,9 @@ const readTokenDialogVisible = defineModel<boolean>('readTokenDialogVisible')
 const input = ref<string>()
 
 const submit = async () => {
-  const valid = await GET<boolean>(
-    `${API_ENDPOINTS.BLOG_PUBLIC.VALIDATE_READ_TOKEN(blogId)}?readToken=${input.value}`
-  )
+  const valid = await GET<boolean>(buildQueryUrl(API_ENDPOINTS.BLOG_PUBLIC.VALIDATE_READ_TOKEN(blogId), {
+    readToken: input.value
+  }))
   if (valid) {
     router.push({
       name: 'blog',

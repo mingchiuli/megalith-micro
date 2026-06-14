@@ -115,8 +115,11 @@ const clearForm = () => {
 
 const queryMenus = async () => {
   loading.value = true
-  content.value = await GET<Array<MenuSys>>(API_ENDPOINTS.MENU_ADMIN.GET_MENUS)
-  loading.value = false
+  try {
+    content.value = await GET<Array<MenuSys>>(API_ENDPOINTS.MENU_ADMIN.GET_MENUS)
+  } finally {
+    loading.value = false
+  }
 }
 
 const submitAuthorityFormHandle = async () => {

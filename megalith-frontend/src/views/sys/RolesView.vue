@@ -148,14 +148,17 @@ const delBatch = async () => {
 
 const queryRoles = async () => {
   loading.value = true
-  const url = buildCommonUrls.roleQuery({
-    currentPage: pageNumber.value,
-    size: pageSize.value
-  })
-  const data = await GET<PageAdapter<RoleSys>>(url)
-  content.value = data.content
-  totalElements.value = data.totalElements
-  loading.value = false
+  try {
+    const url = buildCommonUrls.roleQuery({
+      currentPage: pageNumber.value,
+      size: pageSize.value
+    })
+    const data = await GET<PageAdapter<RoleSys>>(url)
+    content.value = data.content
+    totalElements.value = data.totalElements
+  } finally {
+    loading.value = false
+  }
 }
 
 const handleSizeChange = async (val: number) => {

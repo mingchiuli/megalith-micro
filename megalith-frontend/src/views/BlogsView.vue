@@ -9,6 +9,7 @@ import Search from '@/components/SearchItem.vue'
 import { Status } from '@/type/entity'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { Moon, Sunny } from '@element-plus/icons-vue'
+import { sanitizeHighlight } from '@/utils/sanitize'
 const loading = ref(false)
 const searchDialogVisible = ref(false)
 const searchRef = useTemplateRef<InstanceType<typeof Search>>('searchRef')
@@ -62,11 +63,15 @@ const refresh = () => {
 
 const queryBlogs = async (pageNo: number) => {
   loading.value = true
-  const data = await GET<PageAdapter<BlogDesc>>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOGS_PAGE(pageNo))
-  statImg(data.content)
-  if (!imgCount) loading.value = false
-  page.content = data.content
-  page.totalElements = data.totalElements
+  try {
+    const data = await GET<PageAdapter<BlogDesc>>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOGS_PAGE(pageNo))
+    statImg(data.content)
+    page.content = data.content
+    page.totalElements = data.totalElements
+    if (!imgCount) loading.value = false
+  } finally {
+    if (!imgCount) loading.value = false
+  }
 }
 
 const statImg = (items: BlogDesc[]) => {
@@ -100,6 +105,8 @@ const loadImg = () => {
     loading.value = false
   }
 }
+
+const highlighted = (label: string, html: string) => sanitizeHighlight(label + html)
 
 const search = () => {
   searchDialogVisible.value = true
@@ -195,21 +202,21 @@ const { content, totalElements, pageSize } = toRefs(page)
               <p
                 v-for="(title, key) in blog.highlight.title"
                 v-bind:key="key"
-                v-html="'标题: ' + title"
+                v-html="highlighted('标题: ', title)"
               ></p>
             </template>
             <template v-if="blog.highlight?.description">
               <p
                 v-for="(description, key) in blog.highlight.description"
                 v-bind:key="key"
-                v-html="'摘要: ' + description"
+                v-html="highlighted('摘要: ', description)"
               ></p>
             </template>
             <template v-if="blog.highlight?.content">
               <p
                 v-for="(content, key) in blog.highlight.content"
                 v-bind:key="key"
-                v-html="'内容: ' + content"
+                v-html="highlighted('内容: ', content)"
               ></p>
             </template>
           </el-card>

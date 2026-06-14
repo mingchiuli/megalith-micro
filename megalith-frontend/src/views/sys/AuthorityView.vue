@@ -16,7 +16,7 @@ const delBtlStatus = ref(true)
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
-let content = reactive<AuthoritySys[]>([])
+const content = ref<AuthoritySys[]>([])
 
 const formRules = reactive<FormRules<Form>>({
   code: [{ required: true, message: '请输入权限编码', trigger: 'blur' }],
@@ -105,8 +105,11 @@ const handleSelectionChange = (val: AuthoritySys[]) => {
 
 const queryAuthorities = async () => {
   loading.value = true
-  content = await GET<AuthoritySys[]>(API_ENDPOINTS.AUTHORITY_ADMIN.GET_AUTHORITIES)
-  loading.value = false
+  try {
+    content.value = await GET<AuthoritySys[]>(API_ENDPOINTS.AUTHORITY_ADMIN.GET_AUTHORITIES)
+  } finally {
+    loading.value = false
+  }
 }
 
 const handleClose = () => {

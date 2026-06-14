@@ -4,11 +4,12 @@ import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import Catalogue from '@/components/CatalogueItem.vue'
 import { useRoute } from 'vue-router'
-import { API_ENDPOINTS } from '@/config/apiConfig'
+import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { themeStore } from '@/stores'
 import { storeToRefs } from 'pinia'
+import { sanitizeHtml } from '@/utils/sanitize'
 
 const route = useRoute()
 const token = route.query.token
@@ -78,9 +79,9 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth))
 ;(async () => {
   let data: BlogExhibit
   if (token) {
-    data = await GET<BlogExhibit>(
-      `${API_ENDPOINTS.BLOG_PUBLIC.GET_SECRET_BLOG(blogId)}?readToken=${token}`
-    )
+    data = await GET<BlogExhibit>(buildQueryUrl(API_ENDPOINTS.BLOG_PUBLIC.GET_SECRET_BLOG(blogId), {
+      readToken: String(token)
+    }))
   } else {
     data = await GET<BlogExhibit>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOG_INFO(blogId))
   }
@@ -124,6 +125,7 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth))
         v-model="blog.content"
         :showCodeRowNumber="true"
         :theme="editorTheme"
+        :sanitize="sanitizeHtml"
         @on-html-changed="renderCatalogue"
       />
     </el-card>

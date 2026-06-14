@@ -14,7 +14,7 @@ import router from '@/router'
 import { useRoute } from 'vue-router'
 import { clearLoginState, submitLogin } from '@/utils/tools'
 import { Colors } from '@/type/entity'
-import { API_ENDPOINTS } from '@/config/apiConfig'
+import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 
 const saveLoading = ref(false)
 
@@ -53,7 +53,7 @@ if (username) {
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
-GET<boolean>(`${API_ENDPOINTS.AUTH.REGISTER_CHECK}?token=${t}`).then((res) => {
+GET<boolean>(buildQueryUrl(API_ENDPOINTS.AUTH.REGISTER_CHECK, { token: t })).then((res) => {
   if (!res) {
     router.push('/blogs')
   }
@@ -134,7 +134,12 @@ const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
 }
 
 const submitForm = async (ref: FormInstance) => {
+  saveLoading.value = true
   await ref.validate(async (valid) => {
+    if (!valid) {
+      saveLoading.value = false
+      return
+    }
     if (valid) {
       try {
         await POST<null>(API_ENDPOINTS.AUTH.REGISTER_SAVE, form)
@@ -158,8 +163,11 @@ const handlePictureCardPreview = (file: UploadFile) => {
 }
 
 const handleRemove = async () => {
-  if (form.avatar) return
-  await GET<null>(`${API_ENDPOINTS.AUTH.REGISTER_IMAGE_DELETE}?url=${form.avatar}&token=${t}`)
+  if (!form.avatar) return
+  await GET<null>(buildQueryUrl(API_ENDPOINTS.AUTH.REGISTER_IMAGE_DELETE, {
+    url: form.avatar,
+    token: t
+  }))
   form.avatar = ''
 }
 </script>

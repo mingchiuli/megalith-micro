@@ -19,6 +19,7 @@ import { storeToRefs } from 'pinia'
 import type { Ref } from 'vue'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { storage } from '@/utils/storage'
+import { sanitizeHtml } from '@/utils/sanitize'
 
 const md = new MarkdownIt({
   highlight: (str: string, lang: string) => {
@@ -43,7 +44,7 @@ export const clearLoginState = () => {
 }
 
 export const render = (content: string): string => {
-  return md.render(content)
+  return sanitizeHtml(md.render(content))
 }
 
 export const debounce = <T extends (...args: unknown[]) => unknown>(

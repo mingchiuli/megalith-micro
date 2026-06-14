@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { reactive, ref } from 'vue'
+import { onBeforeUnmount, reactive, ref } from 'vue'
 import type { LoginStruct } from '@/type/entity'
 import { GET } from '@/http/http'
 import { submitLogin } from '@/utils/tools'
-import { API_ENDPOINTS } from '@/config/apiConfig'
+import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 
 const mailButtonDisable = ref(false)
 const smsButtonDisable = ref(false)
@@ -47,12 +47,12 @@ const loginType = () => {
   loginInfo.password = ''
 }
 
-let interval: NodeJS.Timeout
+let interval: NodeJS.Timeout | undefined
 const sendCode = (via: string) => {
   if (!loginInfo.username) return
   smsButtonDisable.value = true
   mailButtonDisable.value = true
-  GET(`${API_ENDPOINTS.AUTH.SEND_CODE(via)}?loginName=${loginInfo.username}`)
+  GET(buildQueryUrl(API_ENDPOINTS.AUTH.SEND_CODE(via), { loginName: loginInfo.username }))
     .then(() => {
       ElMessage.success('发送成功')
       interval = setInterval(() => {
@@ -72,6 +72,12 @@ const sendCode = (via: string) => {
       smsButtonDisable.value = false
     })
 }
+
+onBeforeUnmount(() => {
+  if (interval) {
+    clearInterval(interval)
+  }
+})
 </script>
 
 <template>
@@ -90,7 +96,7 @@ const sendCode = (via: string) => {
           v-model="loginInfo.password"
           type="text"
           :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'"
-          @keyup.enter="submitLogin(loginInfo.username, loginInfo.password)"
+          @keyup.enter="triggerSubmitLogin(loginInfo.username, loginInfo.password)"
           clearable
           :show-password="radioSelect === 'Password' ? true : false"
         />

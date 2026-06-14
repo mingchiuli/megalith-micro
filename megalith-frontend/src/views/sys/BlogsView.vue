@@ -135,18 +135,21 @@ const searchBlogsAction = () => {
 
 const searchBlogs = async () => {
   loading.value = true
-  const url = buildCommonUrls.blogQuery({
-    currentPage: pageNumber.value,
-    size: pageSize.value,
-    keywords: input.value,
-    createStart: dateTimeScope.value[0],
-    createEnd: dateTimeScope.value[1],
-    status: status.value
-  })
-  const data = await GET<PageAdapter<BlogSys>>(url)
-  page.content = data.content
-  page.totalElements = data.totalElements
-  loading.value = false
+  try {
+    const url = buildCommonUrls.blogQuery({
+      currentPage: pageNumber.value,
+      size: pageSize.value,
+      keywords: input.value,
+      createStart: dateTimeScope.value[0],
+      createEnd: dateTimeScope.value[1],
+      status: status.value
+    })
+    const data = await GET<PageAdapter<BlogSys>>(url)
+    page.content = data.content
+    page.totalElements = data.totalElements
+  } finally {
+    loading.value = false
+  }
 }
 
 const handleSizeChange = async (val: number) => {
