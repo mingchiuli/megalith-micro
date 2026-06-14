@@ -179,9 +179,12 @@ impl Display for ClientError {
 }
 
 pub fn handle_api_error(e: BoxError) -> ClientError {
-    match e.downcast_ref::<ClientError>() {
-        Some(ClientError::Status(code, msg)) => ClientError::Status(*code, msg.clone()),
-        _ => ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()),
+    match e.downcast::<ClientError>() {
+        Ok(client_error) => match *client_error {
+            ClientError::Status(code, msg) => ClientError::Status(code, msg),
+            error => ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), error.to_string()),
+        },
+        Err(error) => ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), error.to_string()),
     }
 }
 

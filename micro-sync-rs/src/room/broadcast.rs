@@ -35,11 +35,11 @@ async fn peer(ws: WebSocket, room_manager: Arc<RoomManager>, room_id: String) {
     tracing::info!("已建立新连接到房间: {}", room_id);
 
     let (room_info, bcast) = room_manager.get_or_create_room(&room_id).await;
-    let connection = RoomConnection::new(room_id.clone(), room_info, room_manager);
+    let connection = RoomConnection::new(room_id, room_info, room_manager);
 
     match bcast.subscribe(ws).await {
-        Ok(()) => tracing::info!("房间 {} 的连接正常结束", room_id),
-        Err(e) => tracing::error!("房间 {} 的连接异常结束: {}", room_id, e),
+        Ok(()) => tracing::info!("房间 {} 的连接正常结束", connection.room_id()),
+        Err(e) => tracing::error!("房间 {} 的连接异常结束: {}", connection.room_id(), e),
     }
 
     connection.cleanup().await;
