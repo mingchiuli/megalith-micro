@@ -25,6 +25,7 @@ import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import { themeStore } from '@/stores'
 import { storeToRefs } from 'pinia'
 import { storage } from '@/utils/storage'
+import { sanitizeHtml } from '@/utils/sanitize'
 
 const route = useRoute()
 const user = storage.getUserInfo<UserInfo>() || { username: 'Anonymous', id: 0, color: '#30bced' }
@@ -81,9 +82,16 @@ const { formStatus, owner } = defineProps<{
 }>()
 
 const text = defineModel<string>('content')
-const content = ref('')
+const content = ref(text.value ?? '')
 watch(content, (newValue: string) => {
-  text.value = newValue
+  if (text.value !== newValue) {
+    text.value = newValue
+  }
+})
+watch(text, (newValue) => {
+  if (newValue !== undefined && newValue !== content.value) {
+    content.value = newValue
+  }
 })
 
 const uploadPercentage = ref(0)
@@ -109,7 +117,8 @@ const handleClose = () => {
 }
 
 const findAllOccurrences = (text: string, pattern: string) => {
-  const regex = new RegExp(pattern, 'g')
+  const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const regex = new RegExp(escapedPattern, 'g')
   let match
   const occurrences: SensitiveContentItem[] = []
 
@@ -158,7 +167,10 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
 const sensitiveListen = () => {
   if (!owner) return
 
-  document.getElementById('md-editor')!.onmouseup = () => {
+  const editorElement = document.getElementById('md-editor')
+  if (!editorElement) return
+
+  editorElement.onmouseup = () => {
     if (formStatus !== Status.SENSITIVE_FILTER) {
       return
     }
@@ -226,6 +238,7 @@ onBeforeUnmount(() => {
     @on-upload-img="onUploadImg"
     :footers="footers"
     :theme="editorTheme"
+    :sanitize="sanitizeHtml"
     ref="editorRef"
     id="md-editor"
   >

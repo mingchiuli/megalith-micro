@@ -30,7 +30,7 @@ import router from '@/router'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import {checkButtonAuth, getButtonTitle, getButtonType} from '@/utils/tools'
 import {aiHttpClient} from '@/http/axios'
-import {API_CONFIG, API_ENDPOINTS} from '@/config/apiConfig'
+import {API_CONFIG, API_ENDPOINTS, buildQueryUrl} from '@/config/apiConfig'
 import {AI_MODELS} from '@/config/aiConfig'
 import {logger} from '@/utils/logger'
 
@@ -128,7 +128,7 @@ const uploadFile = async (file: UploadRawFile) => {
 
 const handleRemove = async () => {
   if (!form.link) return
-  await GET<null>(`${API_ENDPOINTS.BLOG_ADMIN.OSS_DELETE}?url=${form.link}`)
+  await GET<null>(buildQueryUrl(API_ENDPOINTS.BLOG_ADMIN.OSS_DELETE, { url: form.link }))
   form.link = ''
 }
 
@@ -287,7 +287,7 @@ const loadContent = ref(true)
 const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   let url = API_ENDPOINTS.BLOG_ADMIN.EDIT_PULL_ECHO
   if (blogId) {
-    url += `?blogId=${blogId}`
+    url = buildQueryUrl(url, { blogId })
   }
   const data = await GET<BlogEdit>(url)
   form.title = data.title
@@ -413,7 +413,7 @@ const aiGenerate = async () => {
     }
 
     // 如果链接为空且存在图片生成模型，生成封面图片
-    if (!form.link && aiModels.value.some(m => m.name === imageModel)) {
+    if (!form.link && aiModels.value.some((m) => m.model === imageModel || m.name === imageModel)) {
       await generateImagePrompt()
     }
   } finally {
@@ -569,7 +569,7 @@ const handleConfirmUpload = async () => {
 
 const handleRegenerateImage = async () => {
   generatedImageDialogVisible.value = false
-  if (form.content && aiModels.value.some(item => item.model === imageModel)) {
+  if (form.content && aiModels.value.some((item) => item.model === imageModel || item.name === imageModel)) {
     await generateImagePrompt()
   }
 }

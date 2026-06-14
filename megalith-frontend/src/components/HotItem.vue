@@ -18,8 +18,11 @@ const to = (id: number) =>
 
 const load = async () => {
   loading.value = true
-  hots.value = await GET<Hot[]>(API_ENDPOINTS.BLOG_PUBLIC.GET_HOT_BLOGS)
-  loading.value = false
+  try {
+    hots.value = await GET<Hot[]>(API_ENDPOINTS.BLOG_PUBLIC.GET_HOT_BLOGS)
+  } finally {
+    loading.value = false
+  }
 }
 
 defineExpose({ load })

@@ -14,6 +14,7 @@ import type HotItem from '@/components/HotItem.vue'
 import { storeToRefs } from 'pinia'
 import { blogsStore } from '@/stores'
 import { buildCommonUrls } from '@/config/apiConfig'
+import { sanitizeHighlight } from '@/utils/sanitize'
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
   refresh: [payload: void]
@@ -33,14 +34,20 @@ const search = async (
   searchOrder: number | null
 ): Promise<SearchPage<BlogDesc>> => {
   loading.value = true
-  const url = buildCommonUrls.searchQuery({
-    keywords: queryString,
-    currentPage,
-    allInfo
-  })
-  const data = await GET<SearchPage<BlogDesc>>(url)
-  data.additional = searchOrder
-  return Promise.resolve(data)
+  try {
+    const url = buildCommonUrls.searchQuery({
+      keywords: queryString,
+      currentPage,
+      allInfo
+    })
+    const data = await GET<SearchPage<BlogDesc>>(url)
+    data.additional = searchOrder
+    return data
+  } finally {
+    if (!allInfo) {
+      loading.value = false
+    }
+  }
 }
 
 let searchOrder = 1
@@ -56,41 +63,53 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (
 ) => {
   if (queryString.trim().length) {
     searchOrder++
-    search(queryString, currentPage, false, searchOrder).then((page) => {
-      if (page.additional !== searchOrder) {
-        return
-      }
-      currentPage = 1
-      suggestionList.value = []
-      page.content.forEach((blogsDesc: BlogDesc) => {
-        blogsDesc.value = keywords.value
-        suggestionList.value.push(blogsDesc)
-      })
-
-      //防止空内容闪烁
-      timeout = setTimeout(() => {
-        //不执行cd 下拉框没数据就不会收回去
-        cb(suggestionList.value)
-        if (!page.content.length) {
-          suggestionList.value = []
-          ElMessage.error('No Records')
+    search(queryString, currentPage, false, searchOrder)
+      .then((page) => {
+        if (page.additional !== searchOrder) {
           return
         }
+        currentPage = 1
+        suggestionList.value = []
+        page.content.forEach((blogsDesc: BlogDesc) => {
+          blogsDesc.value = keywords.value
+          suggestionList.value.push(blogsDesc)
+        })
 
-        if (!suggestionEle) {
-          suggestionEle = document.querySelector('.select-list .el-autocomplete-suggestion__wrap')
-          suggestionEle!.append(div)
-          controller = new AbortController()
-          const { signal } = controller
-          fin = false
-          suggestionEle!.addEventListener(
-            'scroll',
-            debounce(() => load(suggestionEle!, cb)),
-            { signal }
-          )
-        }
-      }, 1000 * Math.random())
-    })
+        //防止空内容闪烁
+        timeout = setTimeout(() => {
+          //不执行cd 下拉框没数据就不会收回去
+          cb(suggestionList.value)
+          if (!page.content.length) {
+            suggestionList.value = []
+            ElMessage.error('No Records')
+            return
+          }
+
+          if (!suggestionEle) {
+            suggestionEle = document.querySelector('.select-list .el-autocomplete-suggestion__wrap')
+            if (!suggestionEle) return
+            suggestionEle.append(div)
+            controller = new AbortController()
+            const { signal } = controller
+            fin = false
+            suggestionEle.addEventListener(
+              'scroll',
+              debounce(() => {
+                if (suggestionEle) {
+                  load(suggestionEle, cb).catch(() => {
+                    loadingInstance?.close()
+                    lock = false
+                  })
+                }
+              }),
+              { signal }
+            )
+          }
+        }, 1000 * Math.random())
+      })
+      .catch(() => {
+        suggestionList.value = []
+      })
   }
 }
 
@@ -102,29 +121,31 @@ const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
     lock = true
     e.append(div)
     loadingInstance = ElLoading.service({ target: div })
-    const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, null)
-    if (page.content.length < page.pageSize) {
+    try {
+      const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, null)
+      if (page.content.length < page.pageSize) {
+        page.content.forEach((blogsDesc: BlogDesc) => {
+          blogsDesc.value = keywords.value
+          suggestionList.value.push(blogsDesc)
+        })
+        cb(suggestionList.value)
+        controller?.abort()
+        if (e.lastChild === div) e.removeChild(div)
+        fin = true
+        return
+      }
+      if (e.lastChild === div) e.removeChild(div)
+      currentPage++
       page.content.forEach((blogsDesc: BlogDesc) => {
         blogsDesc.value = keywords.value
         suggestionList.value.push(blogsDesc)
       })
       cb(suggestionList.value)
-      loadingInstance.close()
-      controller?.abort()
+    } finally {
       if (e.lastChild === div) e.removeChild(div)
+      loadingInstance?.close()
       lock = false
-      fin = true
-      return
     }
-    loadingInstance.close()
-    e.removeChild(div)
-    currentPage++
-    page.content.forEach((blogsDesc: BlogDesc) => {
-      blogsDesc.value = keywords.value
-      suggestionList.value.push(blogsDesc)
-    })
-    cb(suggestionList.value)
-    lock = false
   }
 }
 
@@ -143,14 +164,18 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
   if (currentPage === 1) {
     blogsStore().searchPageNum = 1
   }
-  if (queryString.length) {
-    const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, null)
-    if (page.content.length) {
-      emit('transSearchData', page)
-      return
+  try {
+    if (queryString.length) {
+      const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, null)
+      if (page.content.length) {
+        emit('transSearchData', page)
+        return
+      }
     }
+    emit('refresh')
+  } catch {
+    loading.value = false
   }
-  emit('refresh')
 }
 
 const searchBeforeClose = (close: () => void) => {
@@ -176,6 +201,8 @@ const clearSearch = () => {
   if (controller) controller.abort()
   suggestionEle = null
 }
+
+const highlighted = (label: string, html: string) => sanitizeHighlight(label + html)
 
 onBeforeUnmount(() => {
   if (controller) controller.abort()
@@ -219,14 +246,14 @@ defineExpose({ searchAllInfo })
                 class="value"
                 v-for="(title, key) in item.highlight.title"
                 v-bind:key="key"
-                v-html="'标题：' + title"/>
+                v-html="highlighted('标题：', title)"/>
             </template>
             <template v-if="item.highlight.description">
               <div
                 class="value"
                 v-for="(description, key) in item.highlight.description"
                 v-bind:key="key"
-                v-html="'摘要：' + description"
+                v-html="highlighted('摘要：', description)"
               />
             </template>
             <template v-if="item.highlight.content">
@@ -235,7 +262,7 @@ defineExpose({ searchAllInfo })
                 class="value"
                 v-for="(content, key) in item.highlight.content"
                 v-bind:key="key"
-                v-html="'内容：' + content"
+                v-html="highlighted('内容：', content)"
               />
             </template>
           </template>

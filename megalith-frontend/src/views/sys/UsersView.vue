@@ -6,7 +6,7 @@ import { reactive, ref, toRefs } from 'vue'
 import { Status, ButtonAuth } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
-import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
+import { API_ENDPOINTS, buildCommonUrls, buildQueryUrl } from '@/config/apiConfig'
 
 const { moreItems, fixSelection, fix } = displayState()
 const multipleSelection = ref<UserSys[]>([])
@@ -107,11 +107,14 @@ const handleSelectionChange = (val: UserSys[]) => {
 
 const queryUsers = async () => {
   loading.value = true
-  const url = buildCommonUrls.userQuery(pageNumber.value, { size: pageSize.value })
-  const data = await GET<PageAdapter<UserSys>>(url)
-  content.value = data.content
-  totalElements.value = data.totalElements
-  loading.value = false
+  try {
+    const url = buildCommonUrls.userQuery(pageNumber.value, { size: pageSize.value })
+    const data = await GET<PageAdapter<UserSys>>(url)
+    content.value = data.content
+    totalElements.value = data.totalElements
+  } finally {
+    loading.value = false
+  }
 }
 
 const handleClose = () => {
@@ -164,9 +167,9 @@ const handleCurrentChange = async (val: number) => {
 }
 
 const getRegisterLink = async (username: string) => {
-  const link = await GET<string>(
-    `${API_ENDPOINTS.USER_ADMIN.GET_REGISTER_LINK}?username=${username}`
-  )
+  const link = await GET<string>(buildQueryUrl(API_ENDPOINTS.USER_ADMIN.GET_REGISTER_LINK, {
+    username
+  }))
   ElNotification({
     title: '操作成功',
     message: link,
@@ -365,7 +368,7 @@ const getRegisterLink = async (username: string) => {
         <el-input v-model="form.phone" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="角色" label-width="100px" prop="role" class="role">
+      <el-form-item label="角色" label-width="100px" prop="roles" class="role">
         <el-select multiple class="role-option" v-model="form.roles" placeholder="请选择">
           <el-option
             v-for="item in roleList"

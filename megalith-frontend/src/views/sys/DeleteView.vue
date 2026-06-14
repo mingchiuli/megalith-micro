@@ -26,14 +26,17 @@ const handleSelectionChange = (val: BlogDelSys[]) => {
 
 const queryDelBLogs = async () => {
   loading.value = true
-  const url = buildQueryUrl(API_ENDPOINTS.BLOG_ADMIN.GET_DELETED_BLOGS, {
-    currentPage: pageNumber.value,
-    size: pageSize.value
-  })
-  const data = await GET<PageAdapter<BlogDelSys>>(url)
-  content.value = data.content
-  totalElements.value = data.totalElements
-  loading.value = false
+  try {
+    const url = buildQueryUrl(API_ENDPOINTS.BLOG_ADMIN.GET_DELETED_BLOGS, {
+      currentPage: pageNumber.value,
+      size: pageSize.value
+    })
+    const data = await GET<PageAdapter<BlogDelSys>>(url)
+    content.value = data.content
+    totalElements.value = data.totalElements
+  } finally {
+    loading.value = false
+  }
 }
 
 const handleCurrentChange = async (pageNo: number) => {
@@ -49,8 +52,11 @@ const handleSizeChange = async (val: number) => {
 
 const handleResume = async (row: BlogDelSys) => {
   loading.value = true
-  await GET<PageAdapter<BlogDelSys>>(API_ENDPOINTS.BLOG_ADMIN.RECOVER_BLOG(row.idx))
-  loading.value = false
+  try {
+    await GET<PageAdapter<BlogDelSys>>(API_ENDPOINTS.BLOG_ADMIN.RECOVER_BLOG(row.idx))
+  } finally {
+    loading.value = false
+  }
   ElNotification({
     title: '操作成功',
     message: '恢复成功',

@@ -184,7 +184,9 @@ export const API_ENDPOINTS = {
 }
 
 // 辅助函数：构建查询参数URL
-export const buildQueryUrl = (baseUrl: string, params: Record<string, string | number | boolean>): string => {
+type QueryParamValue = string | number | boolean | null | undefined
+
+export const buildQueryUrl = (baseUrl: string, params: Record<string, QueryParamValue>): string => {
   const url = new URL(baseUrl, 'http://localhost')
   Object.keys(params).forEach(key => {
     if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
