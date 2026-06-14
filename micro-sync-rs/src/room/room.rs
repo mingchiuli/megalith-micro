@@ -26,6 +26,10 @@ impl RoomConnection {
         }
     }
 
+    pub fn room_id(&self) -> &str {
+        &self.room_id
+    }
+
     pub async fn cleanup(self) {
         self.room_manager
             .leave_room(&self.room_id, &self.room_info)
@@ -237,4 +241,3 @@ mod tests {
         assert_eq!(rm.cleanup_expired_rooms().await, 0);
     }
 }
-
