@@ -144,5 +144,5 @@ This project is licensed under the MIT License.
 
 ## 🔗 Related
 
-- Backend API: [megalith-backend](https://github.com/mingchiuli/megalith-backend)
+- Backend API: [megalith-backend](https://github.com/mingchiuli/megalith-micro)
 - Live Demo: [chiu.wiki](https://chiu.wiki)
