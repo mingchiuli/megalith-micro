@@ -1,7 +1,7 @@
 
 version = "4.6.1"
 
-plugins { id("com.vanniktech.maven.publish") version "0.36.0" }
+plugins { id("com.vanniktech.maven.publish") version "0.37.0" }
 
 mavenPublishing {
     publishToMavenCentral()
