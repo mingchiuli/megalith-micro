@@ -16,6 +16,15 @@ export default defineConfig(({ mode }) => {
     plugins: [
       vue(),
       AutoImport({
+        imports: [
+          'vue',
+          'vue-router',
+          'pinia',
+          {
+            vue: ['createApp'],
+            'vue-router': ['createRouter', 'createWebHistory']
+          }
+        ],
         resolvers: [ElementPlusResolver()],
       }),
       Components({

@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
 import { Base64 } from 'js-base64'
 
 // 隔离对外部模块的依赖（router / axios 实例 / 业务 http 封装 / OTEL）

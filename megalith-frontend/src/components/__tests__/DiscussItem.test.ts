@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { nextTick } from 'vue'
 import ElementPlus from 'element-plus'
 import * as ElIcons from '@element-plus/icons-vue'
 import DiscussItem from '@/components/DiscussItem.vue'

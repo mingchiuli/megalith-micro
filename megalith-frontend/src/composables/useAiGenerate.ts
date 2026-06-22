@@ -1,4 +1,3 @@
-import { ref } from 'vue'
 import { aiHttpClient } from '@/http/axios'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 import { cleanJsonResponse } from '@/utils/tools'

@@ -1,5 +1,3 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
 
 /**
  * Blogs store - blog pagination state (pageNum, keywords)

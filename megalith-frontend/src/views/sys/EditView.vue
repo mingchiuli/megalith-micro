@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import {computed, defineAsyncComponent, reactive, ref, useTemplateRef} from 'vue'
 import type {
   ElInput,
   FormInstance,
@@ -25,7 +24,6 @@ import {
   SensitiveType,
   Status
 } from '@/type/entity'
-import {useRoute} from 'vue-router'
 import router from '@/router'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import {checkButtonAuth, getButtonTitle, getButtonType} from '@/utils/tools'

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, reactive, ref } from 'vue'
 import type { LoginStruct } from '@/type/entity'
 import { GET } from '@/http/http'
 import { submitLogin } from '@/utils/tools'

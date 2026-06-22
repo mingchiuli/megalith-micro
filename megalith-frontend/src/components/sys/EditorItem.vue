@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { UPLOAD } from '@/http/http'
-import { onMounted, ref, onBeforeUnmount, useTemplateRef, watch, computed } from 'vue'
 import {
   SensitiveType,
   Status,
@@ -9,7 +8,6 @@ import {
   type UserInfo,
   Colors
 } from '@/type/entity'
-import { useRoute } from 'vue-router'
 import { checkAccessToken } from '@/utils/tools'
 import {
   createYjsExtension,
@@ -23,7 +21,6 @@ import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import { themeStore } from '@/stores'
-import { storeToRefs } from 'pinia'
 import { storage } from '@/utils/storage'
 import { sanitizeHtml } from '@/utils/sanitize'
 

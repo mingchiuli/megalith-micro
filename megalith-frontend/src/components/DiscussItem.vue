@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
 
 const activeName = ref('first')
 

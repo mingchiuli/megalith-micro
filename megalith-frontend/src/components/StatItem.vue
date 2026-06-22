@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { reactive, toRefs } from 'vue'
 import { GET } from '@/http/http'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import type { Visitor } from '@/type/entity'

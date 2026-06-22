@@ -1,5 +1,3 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
 
 /**
  * Welcome state - controls backend welcome message visibility

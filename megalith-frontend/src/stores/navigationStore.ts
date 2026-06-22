@@ -1,5 +1,3 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
 import type { Button, Menu, Tab } from '@/type/entity'
 
 /**

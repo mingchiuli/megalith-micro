@@ -3,7 +3,6 @@ import router from '@/router'
 import { welcomeStateStore, tabStore } from '@/stores'
 import type { Tab } from '@/type/entity'
 import type { TabPaneName, TabsPaneContext } from 'element-plus'
-import { storeToRefs } from 'pinia'
 
 const { editableTabs, editableTabsValue } = storeToRefs(tabStore())
 

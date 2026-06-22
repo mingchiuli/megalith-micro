@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
 import type { Hot } from '@/type/entity'
 import { GET } from '@/http/http'
 import router from '@/router'

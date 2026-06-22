@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { computed, reactive, ref, useTemplateRef } from 'vue'
 import {
   type FormInstance,
   type FormRules,
@@ -11,7 +10,6 @@ import {
 } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import router from '@/router'
-import { useRoute } from 'vue-router'
 import { clearLoginState, submitLogin } from '@/utils/tools'
 import { Colors } from '@/type/entity'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'

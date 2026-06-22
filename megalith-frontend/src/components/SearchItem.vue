@@ -7,11 +7,9 @@ import type {
   AutocompleteFetchSuggestionsCallback,
   AutocompleteInstance
 } from 'element-plus'
-import { onBeforeUnmount, ref, useTemplateRef } from 'vue'
 import { ElLoading } from 'element-plus'
 import { debounce } from '@/utils/tools'
 import type HotItem from '@/components/HotItem.vue'
-import { storeToRefs } from 'pinia'
 import { blogsStore } from '@/stores'
 import { buildCommonUrls } from '@/config/apiConfig'
 import { sanitizeHighlight } from '@/utils/sanitize'
