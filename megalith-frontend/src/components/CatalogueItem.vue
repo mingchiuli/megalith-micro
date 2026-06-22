@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
-import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
 import type Node from 'element-plus/es/components/tree/src/model/node'
 import { debounce } from '@/utils/tools'
 

@@ -1,8 +1,6 @@
 <script lang="ts" setup>
-import { shallowRef } from 'vue'
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import { menuStore, tabStore } from '@/stores'
-import { storeToRefs } from 'pinia'
 import { displayState } from '@/utils/position'
 import type { Menu } from '@/type/entity'
 

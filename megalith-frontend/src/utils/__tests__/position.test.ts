@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { defineComponent, h } from 'vue'
 import { displayState } from '@/utils/position'
 
 // 通过宿主组件让 onMounted / onUnmounted 生效

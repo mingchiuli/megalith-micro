@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
 import { GET } from '@/http/http'
 import router from '@/router'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'

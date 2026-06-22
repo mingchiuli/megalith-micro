@@ -1,4 +1,3 @@
-import { onMounted, onUnmounted, ref } from 'vue'
 
 export const displayState = () => {
   const fix = ref(document.body.clientWidth > 900 ? 'right' : false)

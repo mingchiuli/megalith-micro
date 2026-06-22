@@ -1,9 +1,4 @@
-import {
-  createRouter,
-  createWebHistory,
-  type RouteLocationNormalized,
-  type RouteRecordRaw
-} from 'vue-router'
+import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import { GET } from '@/http/http'
 import { type Menu, type MenusAndButtons, type Tab } from '@/type/entity'
 import {
@@ -14,7 +9,6 @@ import {
   tabStore,
   authMarkStore
 } from '@/stores'
-import { storeToRefs } from 'pinia'
 import { diff, findMenuByPath } from '@/utils/tools'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { storage } from '@/utils/storage'

@@ -1,10 +1,8 @@
 <script lang="ts" setup>
 import type { BlogDesc, PageAdapter } from '@/type/entity'
 import { GET } from '@/http/http'
-import { reactive, toRefs, ref, nextTick, useTemplateRef, onMounted } from 'vue'
 import { loginStateStore, tabStore, blogsStore, menuStore, themeStore } from '@/stores'
 import router from '@/router'
-import { storeToRefs } from 'pinia'
 import Search from '@/components/SearchItem.vue'
 import { Status } from '@/type/entity'
 import { API_ENDPOINTS } from '@/config/apiConfig'

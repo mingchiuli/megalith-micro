@@ -2,7 +2,6 @@
 import { GET, POST } from '@/http/http'
 import type { AuthoritySys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
-import { reactive, ref } from 'vue'
 import { Status, ButtonAuth, AuthStatus } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'

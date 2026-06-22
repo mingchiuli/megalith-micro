@@ -1,14 +1,11 @@
 <script lang="ts" setup>
-import { nextTick, onMounted, onUnmounted, reactive, ref, useTemplateRef, computed } from 'vue'
 import { GET } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import Catalogue from '@/components/CatalogueItem.vue'
-import { useRoute } from 'vue-router'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { themeStore } from '@/stores'
-import { storeToRefs } from 'pinia'
 import { sanitizeHtml } from '@/utils/sanitize'
 
 const route = useRoute()

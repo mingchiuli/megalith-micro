@@ -1,5 +1,3 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
 
 /**
  * Theme store - dark/light theme with system preference detection
