@@ -35,7 +35,7 @@
     "@eslint/js": "^10.0.1",
     "@pinia/testing": "^1.0.3",
     "@tsconfig/node24": "^24.0.4",
-    "@types/node": "^25.9.3",
+    "@types/node": "^26.0.0",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vitest/coverage-v8": "^4.1.9",
     "@vue/eslint-config-prettier": "^10.2.0",
