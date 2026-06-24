@@ -15,7 +15,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@codemirror/state": "^6.6.0",
+    "@codemirror/state": "^6.7.0",
     "@vavt/v3-extension": "^5.0.0",
     "axios": "^1.18.1",
     "dompurify": "^3.4.11",
