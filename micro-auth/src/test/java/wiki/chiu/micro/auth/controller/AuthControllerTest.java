@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import wiki.chiu.micro.auth.exception.GlobalExceptionHandler;
 import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.auth.support.StubAuthInfoResolver;
-import wiki.chiu.micro.auth.vo.MenusAndButtonsVo;
+import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.common.exception.BaseException;
 
 import java.util.List;
@@ -42,17 +42,25 @@ class AuthControllerTest {
     }
 
     @Test
-    void navReturnsMenusAndButtons() throws Exception {
-        MenusAndButtonsVo vo = MenusAndButtonsVo.builder()
-                .menus(null)
-                .buttons(List.of())
+    void navReturnsMenuTree() throws Exception {
+        MenuWithChildVo vo = MenuWithChildVo.builder()
+                .id(1L)
+                .name("backend")
+                .children(List.of(MenuWithChildVo.builder()
+                        .id(2L)
+                        .name("system-users-create")
+                        .parentId(1L)
+                        .type(2)
+                        .children(List.of())
+                        .build()))
                 .build();
         when(authService.getCurrentUserNav(anyList())).thenReturn(vo);
 
         mockMvc.perform(get("/auth/menu/nav"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data").exists());
+                .andExpect(jsonPath("$.data.name").value("backend"))
+                .andExpect(jsonPath("$.data.children[0].name").value("system-users-create"));
     }
 
     @Test

@@ -3,7 +3,7 @@ package wiki.chiu.micro.auth.rpc;
 import wiki.chiu.micro.common.rpc.AuthorityHttpService;
 import wiki.chiu.micro.common.rpc.MenuHttpService;
 import wiki.chiu.micro.common.vo.AuthorityRpcVo;
-import wiki.chiu.micro.common.vo.MenusAndButtonsRpcVo;
+import wiki.chiu.micro.common.vo.MenuRpcVo;
 import wiki.chiu.micro.common.vo.RoleEntityRpcVo;
 import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 
@@ -66,7 +66,7 @@ public class UserHttpServiceWrapper {
         return Result.handleResult(() -> authorityHttpService.getAuthoritiesByRoleCode(rawRole));
     }
 
-    public MenusAndButtonsRpcVo getCurrentUserNav(String rawRole) {
+    public List<MenuRpcVo> getCurrentUserNav(String rawRole) {
         return Result.handleResult(() -> menuHttpService.getCurrentUserNav(rawRole));
     }
 

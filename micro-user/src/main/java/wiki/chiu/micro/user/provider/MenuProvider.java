@@ -3,9 +3,11 @@ package wiki.chiu.micro.user.provider;
 import org.springframework.web.bind.annotation.*;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.rpc.MenuHttpService;
-import wiki.chiu.micro.common.vo.MenusAndButtonsRpcVo;
+import wiki.chiu.micro.common.vo.MenuRpcVo;
 import wiki.chiu.micro.user.service.RoleMenuService;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/inner/menu")
@@ -19,7 +21,7 @@ public class MenuProvider implements MenuHttpService {
     }
 
     @GetMapping("/nav")
-    public Result<MenusAndButtonsRpcVo> getCurrentUserNav(@RequestParam String role) {
+    public Result<List<MenuRpcVo>> getCurrentUserNav(@RequestParam String role) {
         return Result.success(() -> roleMenuService.getCurrentRoleNav(role));
     }
 }

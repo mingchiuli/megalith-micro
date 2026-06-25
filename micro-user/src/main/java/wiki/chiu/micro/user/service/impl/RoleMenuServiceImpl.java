@@ -5,12 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.StatusEnum;
-import wiki.chiu.micro.common.lang.TypeEnum;
-import wiki.chiu.micro.common.vo.ButtonRpcVo;
 import wiki.chiu.micro.common.vo.MenuRpcVo;
-import wiki.chiu.micro.common.vo.MenusAndButtonsRpcVo;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
-import wiki.chiu.micro.user.convertor.ButtonRpcVoConvertor;
 import wiki.chiu.micro.user.convertor.MenuDisplayVoConvertor;
 import wiki.chiu.micro.user.convertor.MenuRpcVoConvertor;
 import wiki.chiu.micro.user.convertor.RoleMenuEntityConvertor;
@@ -29,8 +25,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-
-import static wiki.chiu.micro.common.lang.TypeEnum.*;
 
 /**
  * @author mingchiuli
@@ -107,38 +101,17 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     }
 
     @Override
-    public MenusAndButtonsRpcVo getCurrentRoleNav(String role) {
+    public List<MenuRpcVo> getCurrentRoleNav(String role) {
         Optional<RoleEntity> roleEntity = roleRepository.findByCode(role);
 
         if (roleEntity.isEmpty() || StatusEnum.HIDE.getCode().equals(roleEntity.get().getStatus())) {
-            return MenusAndButtonsRpcVo.builder()
-                    .menus(Collections.emptyList())
-                    .buttons(Collections.emptyList())
-                    .build();
+            return Collections.emptyList();
         }
 
         List<Long> menuIds = roleMenuRepository.findMenuIdsByRoleId(roleEntity.get().getId());
         List<MenuEntity> allKindsInfo = menuRepository.findAllById(menuIds);
 
-        List<MenuEntity> menus = filterMenuEntities(allKindsInfo, CATALOGUE, MENU);
-        List<MenuEntity> buttons = filterMenuEntities(allKindsInfo, BUTTON);
-
-        List<MenuRpcVo> menuDtos = MenuRpcVoConvertor.convert(menus);
-        List<ButtonRpcVo> buttonDtos = ButtonRpcVoConvertor.convert(buttons);
-
-        return MenusAndButtonsRpcVo.builder()
-                .buttons(buttonDtos)
-                .menus(menuDtos)
-                .build();
-    }
-
-    private List<MenuEntity> filterMenuEntities(List<MenuEntity> entities, TypeEnum... types) {
-        List<Integer> typeCodes = Arrays.stream(types)
-                .map(TypeEnum::getCode)
-                .toList();
-        return entities.stream()
-                .filter(entity -> typeCodes.contains(entity.getType()))
-                .toList();
+        return MenuRpcVoConvertor.convert(allKindsInfo);
     }
 
 }
