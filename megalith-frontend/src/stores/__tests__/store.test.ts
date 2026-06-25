@@ -10,7 +10,34 @@ import {
   blogsStore,
   pageStore
 } from '@/stores'
-import type { Menu, Button } from '@/type/entity'
+import { RoutesEnum, RoutesStatus, type Button, type Menu } from '@/type/entity'
+
+const menuNode = (overrides: Partial<Menu> = {}): Menu => ({
+  id: 1,
+  parentId: 0,
+  title: 'Menu',
+  name: 'Menu',
+  icon: '',
+  orderNum: 0,
+  status: RoutesStatus.NORMAL,
+  type: RoutesEnum.MENU,
+  url: '/menu',
+  component: 'MenuView',
+  children: [],
+  ...overrides
+})
+
+const buttonNode = (overrides: Partial<Button> = {}): Button => ({
+  id: 1,
+  parentId: 0,
+  title: 'Button',
+  name: 'Button',
+  icon: '',
+  orderNum: 0,
+  status: RoutesStatus.NORMAL,
+  type: RoutesEnum.BUTTON,
+  ...overrides
+})
 
 describe('stores/store', () => {
   beforeEach(() => {
@@ -110,7 +137,7 @@ describe('stores/store', () => {
     it('默认 menuTree 为 undefined，可写入与重置', () => {
       const store = menuStore()
       expect(store.menuTree).toBeUndefined()
-      store.menuTree = { name: 'root' } as Menu
+      store.menuTree = menuNode({ name: 'root' })
       expect(menuStore().menuTree?.name).toBe('root')
       store.menuTree = undefined
       expect(menuStore().menuTree).toBeUndefined()
@@ -123,7 +150,7 @@ describe('stores/store', () => {
     })
 
     it('可批量赋值并被读取', () => {
-      const list = [{ name: 'save', title: 'Save', icon: 'primary' }] as Button[]
+      const list = [buttonNode({ name: 'save', title: 'Save', icon: 'primary' })]
       buttonStore().buttonList = list
       expect(buttonStore().buttonList).toHaveLength(1)
       expect(buttonStore().buttonList[0]?.name).toBe('save')

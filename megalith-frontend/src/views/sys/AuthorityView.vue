@@ -33,8 +33,8 @@ type Form = {
   id?: number
   code: string
   remark: string
-  status: number
-  type: number
+  status: Status
+  type: AuthStatus
   prototype: string
   methodType: string
   routePattern: string

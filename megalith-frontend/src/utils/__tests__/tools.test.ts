@@ -53,13 +53,40 @@ import {
   tabStore,
   buttonStore
 } from '@/stores'
-import type { Menu, Button } from '@/type/entity'
+import { RoutesEnum, RoutesStatus, type Button, type Menu, type MenuNode } from '@/type/entity'
 
 const buildJWT = (payload: Record<string, unknown>): string => {
   const header = Base64.toBase64(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
   const body = Base64.toBase64(JSON.stringify(payload))
   return `${header}.${body}.signature`
 }
+
+const menuNode = (overrides: Partial<Menu> = {}): Menu => ({
+  id: 1,
+  parentId: 0,
+  title: 'Menu',
+  name: 'Menu',
+  icon: '',
+  orderNum: 0,
+  status: RoutesStatus.NORMAL,
+  type: RoutesEnum.MENU,
+  url: '/menu',
+  component: 'MenuView',
+  children: [],
+  ...overrides
+})
+
+const buttonNode = (overrides: Partial<Button> = {}): Button => ({
+  id: 10,
+  parentId: 1,
+  title: 'Button',
+  name: 'Button',
+  icon: '',
+  orderNum: 0,
+  status: RoutesStatus.NORMAL,
+  type: RoutesEnum.BUTTON,
+  ...overrides
+})
 
 describe('utils/tools', () => {
   beforeEach(() => {
@@ -194,7 +221,7 @@ describe('utils/tools', () => {
 
       authMarkStore().auth = true
       loginStateStore().login = true
-      menuStore().menuTree = { name: 'root' } as Menu
+      menuStore().menuTree = menuNode({ name: 'root' })
       tabStore().editableTabs = [{ name: 'a', title: 'A' }]
       tabStore().editableTabsValue = 'a'
 
@@ -209,6 +236,7 @@ describe('utils/tools', () => {
       expect(authMarkStore().auth).toBe(false)
       expect(loginStateStore().login).toBe(false)
       expect(menuStore().menuTree).toBeUndefined()
+      expect(buttonStore().buttonList).toEqual([])
       expect(tabStore().editableTabs).toEqual([])
       expect(tabStore().editableTabsValue).toBe('')
     })
@@ -235,9 +263,14 @@ describe('utils/tools', () => {
   })
 
   describe('findMenuByPath', () => {
-    const tree: Menu[] = [
-      { url: '/a', name: 'A', children: [{ url: '/a/b', name: 'AB' } as Menu] } as Menu,
-      { url: '/c', name: 'C' } as Menu
+    const tree: MenuNode[] = [
+      menuNode({
+        id: 1,
+        url: '/a',
+        name: 'A',
+        children: [menuNode({ id: 2, parentId: 1, url: '/a/b', name: 'AB' })]
+      }),
+      menuNode({ id: 3, url: '/c', name: 'C' })
     ]
 
     it('命中顶层节点', () => {
@@ -250,6 +283,19 @@ describe('utils/tools', () => {
 
     it('未命中返回 undefined', () => {
       expect(findMenuByPath(tree, '/none')).toBeUndefined()
+    })
+
+    it('忽略按钮节点', () => {
+      const menuTree: MenuNode[] = [
+        menuNode({
+          url: '/system',
+          name: 'System',
+          type: RoutesEnum.CATALOGUE,
+          children: [buttonNode({ url: '/system/save', name: 'Save' })]
+        })
+      ]
+
+      expect(findMenuByPath(menuTree, '/system/save')).toBeUndefined()
     })
   })
 

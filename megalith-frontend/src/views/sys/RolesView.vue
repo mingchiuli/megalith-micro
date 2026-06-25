@@ -40,7 +40,7 @@ type Form = {
   name: string
   code: string
   remark: string
-  status: number
+  status: Status
 }
 const form: Form = reactive({
   id: undefined,

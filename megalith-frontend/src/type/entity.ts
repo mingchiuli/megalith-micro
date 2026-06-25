@@ -11,7 +11,7 @@ export interface BlogDesc {
   description: string
   created: string
   link: string
-  status: number
+  status: Status
   content?: string
   score?: number
   highlight?: SearchBlogsHighlightStruct
@@ -27,7 +27,7 @@ export interface BlogSys {
   content: string
   readCount?: number
   recentReadCount?: number
-  status: number
+  status: Status
   link: string
 }
 
@@ -40,7 +40,7 @@ export interface BlogDelSys {
   content: string
   created: string
   updated: string
-  status: number
+  status: Status
   link: string
   readCount: number
 }
@@ -51,8 +51,8 @@ export interface AuthoritySys {
   remark: string
   created: string
   updated: string
-  status: number
-  type: number
+  status: Status
+  type: AuthStatus
   prototype: string
   methodType: string
   routePattern: string
@@ -67,27 +67,26 @@ export interface UserSys {
   avatar: string
   email: string
   phone: string
-  status: number
+  status: Status
   created: string
   updated: string
   lastLogin: string
   roles: string[]
 }
 
-export interface MenuSys {
+export interface MenuSys extends ChildrenFather<MenuSys> {
   id: number
   parentId: number
   title: string
   component: string
   name: string
   url: string
-  type: number
+  type: RoutesEnum
   icon: string
   orderNum: number
-  status: number
+  status: RoutesStatus
   created: string
   updated: string
-  children: MenuSys[]
 }
 
 export interface RoleSys {
@@ -97,7 +96,7 @@ export interface RoleSys {
   remark: string
   created: string
   updated: string
-  status: number
+  status: Status
 }
 
 export interface BlogEdit {
@@ -107,7 +106,7 @@ export interface BlogEdit {
   description: string
   content: string
   link: string
-  status: number
+  status: Status
   sensitiveContentList: SensitiveItem[]
   owner: boolean
 }
@@ -130,7 +129,7 @@ interface SearchBlogsHighlightStruct {
 
 export interface SearchFavors {
   id: string
-  status: number
+  status: Status
   title: string
   description: string
   link: string
@@ -161,9 +160,8 @@ export interface UserInfo {
   id: number
 }
 
-export interface ChildrenFather {
-  [propName: string]: unknown
-  children: unknown[]
+export interface ChildrenFather<TChild> {
+  children: TChild[]
 }
 
 export interface Tab {
@@ -171,25 +169,28 @@ export interface Tab {
   name: string
 }
 
-export interface Button extends Tab {
-  [propName: string]: unknown
+interface MenuNodeBase extends Tab {
   id: number
-  component?: string
   icon: string
   orderNum: number
   parentId: number
+  status: RoutesStatus
+}
+
+export interface Button extends MenuNodeBase {
+  type: RoutesEnum.BUTTON
   url?: string
-  type: number
-  status: number
+  component?: string
 }
 
-export interface Menu extends ChildrenFather, Button, Tab {}
-
-export interface MenusAndButtons {
-  [propName: string]: unknown
-  menus: Menu
-  buttons: Button[]
+export interface MenuRoute extends MenuNodeBase, ChildrenFather<MenuNode> {
+  type: RoutesEnum.CATALOGUE | RoutesEnum.MENU
+  url: string
+  component: string
 }
+
+export type MenuNode = MenuRoute | Button
+export type Menu = MenuRoute
 
 export interface JWTStruct {
   role: string
@@ -198,7 +199,7 @@ export interface JWTStruct {
   exp: number
 }
 
-export interface CatalogueLabel extends ChildrenFather {
+export interface CatalogueLabel extends ChildrenFather<CatalogueLabel> {
   id: string
   label: string
   dist: number
@@ -340,7 +341,7 @@ export interface EditForm {
   title: string
   description: string
   content: string
-  status: number
+  status: Status
   link: string
   sensitiveContentList: SensitiveItem[]
 }

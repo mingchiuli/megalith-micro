@@ -42,7 +42,7 @@ type Form = {
   avatar: string
   email: string
   phone: string
-  status: number
+  status: Status
   roles: string[]
 }
 const form: Form = reactive({

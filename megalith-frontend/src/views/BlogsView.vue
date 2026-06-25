@@ -110,7 +110,7 @@ const search = () => {
   searchDialogVisible.value = true
 }
 
-const to = async (id: number, status: number) => {
+const to = async (id: number, status: Status) => {
   if (status === Status.NORMAL || status === Status.SENSITIVE_FILTER) {
     router.push({
       name: 'blog',
