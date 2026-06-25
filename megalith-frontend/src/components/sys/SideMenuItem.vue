@@ -2,11 +2,13 @@
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import { menuStore, tabStore } from '@/stores'
 import { displayState } from '@/utils/position'
-import type { Menu } from '@/type/entity'
+import { RoutesEnum, type Menu, type MenuNode } from '@/type/entity'
 
 const { expand } = displayState()
 const { menuTree } = storeToRefs(menuStore())
 const arrow = shallowRef(expand.value ? ArrowLeft : ArrowRight)
+const isRouteMenuNode = (node: MenuNode): node is Menu => node.type !== RoutesEnum.BUTTON
+const visibleMenuItems = computed(() => menuTree.value?.children.filter(isRouteMenuNode) ?? [])
 const reverseCollapse = (): void => {
   expand.value = !expand.value
   arrow.value = expand.value ? ArrowLeft : ArrowRight
@@ -21,7 +23,7 @@ const reverseCollapse = (): void => {
     :collapse="!expand"
     active-text-color="#ffd04b"
   >
-    <InfiniteMenuItem v-for="item in menuTree?.children as Menu[]" v-bind:key="item.id" :item="item as Menu" />
+    <InfiniteMenuItem v-for="item in visibleMenuItems" v-bind:key="item.id" :item="item" />
   </el-menu>
 </template>
 

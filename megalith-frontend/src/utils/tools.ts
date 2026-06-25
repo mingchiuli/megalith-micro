@@ -6,7 +6,9 @@ import {
   type Data,
   type JWTStruct,
   type Menu,
+  type MenuNode,
   type RefreshStruct,
+  RoutesEnum,
   type Tab,
   type Token,
   type UserInfo
@@ -38,6 +40,7 @@ export const clearLoginState = () => {
   authMarkStore().auth = false
   loginStateStore().login = false
   menuStore().menuTree = undefined
+  buttonStore().buttonList = []
   tabStore().editableTabs = []
   tabStore().editableTabsValue = ''
 }
@@ -149,7 +152,7 @@ export const checkAccessToken = async (): Promise<boolean> => {
 }
 
 //document.documentElement.scrollTo cant be used, distance is float
-export const diff = <T extends { [key: string]: unknown }>(oldArr: T[], newArr: T[]): boolean => {
+export const diff = <T extends object>(oldArr: T[], newArr: T[]): boolean => {
   if (oldArr.length !== newArr.length) {
     return true
   }
@@ -157,6 +160,8 @@ export const diff = <T extends { [key: string]: unknown }>(oldArr: T[], newArr: 
   for (let i = 0; i < newArr.length; i++) {
     const newObj = newArr[i]!
     const oldObj = oldArr[i]!
+    const newRecord = newObj as Record<string, unknown>
+    const oldRecord = oldObj as Record<string, unknown>
 
     const newObjKeys = Object.keys(newObj)
     for (const key of newObjKeys) {
@@ -164,13 +169,13 @@ export const diff = <T extends { [key: string]: unknown }>(oldArr: T[], newArr: 
         continue
       }
 
-      if (newObj[key] !== oldObj[key]) {
+      if (newRecord[key] !== oldRecord[key]) {
         return true
       }
     }
 
-    const newChildren = newObj['children'] as T[]
-    const oldChildren = oldObj['children'] as T[]
+    const newChildren = newRecord['children'] as T[]
+    const oldChildren = oldRecord['children'] as T[]
 
     if (
       'children' in newObj &&
@@ -247,16 +252,19 @@ export const downloadSQLData = async (
   document.body.removeChild(aDom)
 }
 
-export const findMenuByPath = (menus: Menu[], path: string): Menu | Tab | undefined => {
-  for (const menu of menus) {
-    if (menu.url === path) {
-      return menu
+const isRouteMenuNode = (node: MenuNode): node is Menu => node.type !== RoutesEnum.BUTTON
+
+export const findMenuByPath = (menus: MenuNode[], path: string): Menu | Tab | undefined => {
+  for (const node of menus) {
+    if (!isRouteMenuNode(node)) {
+      continue
     }
-    if (menu.children) {
-      const item = findMenuByPath(menu.children as Menu[], path)
-      if (item) {
-        return item
-      }
+    if (node.url === path) {
+      return node
+    }
+    const item = findMenuByPath(node.children, path)
+    if (item) {
+      return item
     }
   }
 }

@@ -43,7 +43,7 @@ const selectAnchorHeight = (labels: CatalogueLabel[], id: string): number => {
     if (label.id === id) {
       return label.dist
     }
-    const h = selectAnchorHeight(label.children as CatalogueLabel[], id)
+    const h = selectAnchorHeight(label.children, id)
     if (h !== 0) {
       return h
     }
@@ -70,7 +70,7 @@ const geneCatalogueArr = (labels: NodeListOf<HTMLElement>): CatalogueLabel[] => 
     item.dist = aLabel.getBoundingClientRect().top + scrolled
     item.label = aLabel.innerText
     item.children = getChildren(labels, i)
-    i += getChildrenTotal(item.children as CatalogueLabel[])
+    i += getChildrenTotal(item.children)
     arr.push(item)
   }
   return arr
@@ -84,7 +84,7 @@ const getChildrenTotal = (children: CatalogueLabel[]): number => {
   let count = 0
   children.forEach((e) => {
     count++
-    count += getChildrenTotal(e.children as CatalogueLabel[])
+    count += getChildrenTotal(e.children)
   })
   return count
 }
@@ -118,7 +118,7 @@ const getChildren = (labels: NodeListOf<HTMLElement>, index: number): CatalogueL
     item.dist = aLabel.getBoundingClientRect().top + scrolled
     item.label = aLabel.innerText
     item.children = getChildren(labels, i)
-    i += getChildrenTotal(item.children as CatalogueLabel[])
+    i += getChildrenTotal(item.children)
     arr.push(item)
   }
   return arr
@@ -132,7 +132,7 @@ const rollToTargetLabel = (data: CatalogueLabel[], scrolled: number): CatalogueL
     }
 
     label = element
-    const childLabel = rollToTargetLabel(element.children as CatalogueLabel[], scrolled)
+    const childLabel = rollToTargetLabel(element.children, scrolled)
     if (childLabel) {
       label = childLabel
     }

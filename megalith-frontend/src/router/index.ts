@@ -1,6 +1,6 @@
 import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import { GET } from '@/http/http'
-import { type Menu, type MenusAndButtons, type Tab } from '@/type/entity'
+import { RoutesEnum, type Button, type Menu, type MenuNode, type Tab } from '@/type/entity'
 import {
   menuStore,
   loginStateStore,
@@ -82,31 +82,31 @@ router.beforeEach(async (to) => {
   }
 
   if (loginStateStore().login) {
-    let allKindsInfo: MenusAndButtons
+    let menuTree: Menu
     //页面被手动刷新
     if (!to.name || !router.hasRoute(to.name)) {
       if (!authMarkStore().auth) {
         authMarkStore().auth = true
-        allKindsInfo = await GET<MenusAndButtons>(API_ENDPOINTS.AUTH.MENU_NAV)
-        callBackRequireRoutes(allKindsInfo)
-        dealSysTab(to, allKindsInfo)
+        menuTree = await GET<Menu>(API_ENDPOINTS.AUTH.MENU_NAV)
+        callBackRequireRoutes(menuTree)
+        dealSysTab(to, menuTree)
         return to.fullPath
       }
     } else {
       //正常路由切换diff
-      GET<MenusAndButtons>(API_ENDPOINTS.AUTH.MENU_NAV).then((resp) => {
-        allKindsInfo = resp
-        callBackRequireRoutes(allKindsInfo)
-        dealSysTab(to, allKindsInfo)
+      GET<Menu>(API_ENDPOINTS.AUTH.MENU_NAV).then((resp) => {
+        menuTree = resp
+        callBackRequireRoutes(menuTree)
+        dealSysTab(to, menuTree)
       })
     }
   }
 })
 
-const dealSysTab = (to: RouteLocationNormalized, allKindsInfo: MenusAndButtons) => {
+const dealSysTab = (to: RouteLocationNormalized, menuTree: Menu) => {
   //处理tab
   if (to.path.startsWith('/sys')) {
-    const menu = findMenuByPath(allKindsInfo.menus.children as Menu[], to.path)
+    const menu = findMenuByPath(menuTree.children, to.path)
     if (menu) {
       const tab: Tab = { name: menu.name, title: menu.title }
       tabStore().addTab(tab)
@@ -114,8 +114,8 @@ const dealSysTab = (to: RouteLocationNormalized, allKindsInfo: MenusAndButtons) 
   }
 }
 
-const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
-  const buttons = allKindsInfo.buttons
+const callBackRequireRoutes = (rootMenu: Menu) => {
+  const buttons = collectButtons(rootMenu)
   const { buttonList } = storeToRefs(buttonStore())
   const difButton = diff(buttonList.value, buttons)
   if (difButton) {
@@ -124,7 +124,6 @@ const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
   }
 
   const { menuTree } = storeToRefs(menuStore())
-  const rootMenu = allKindsInfo.menus
 
   if (menuTree.value) {
     const difMenu = diff([menuTree.value], [rootMenu])
@@ -144,12 +143,35 @@ const callBackRequireRoutes = (allKindsInfo: MenusAndButtons) => {
   router.addRoute(rootRoute)
 }
 
+const collectButtons = (rootMenu: MenuNode): Button[] => {
+  const buttons: Button[] = []
+
+  const walk = (node: MenuNode) => {
+    if (isButtonNode(node)) {
+      buttons.push(node)
+      return
+    }
+
+    node.children.forEach(walk)
+  }
+
+  walk(rootMenu)
+  return buttons
+}
+
+const isButtonNode = (node: MenuNode): node is Button => node.type === RoutesEnum.BUTTON
+const isRouteMenuNode = (node: MenuNode): node is Menu => node.type !== RoutesEnum.BUTTON
+
 //构建路由
 const buildRoute = (rootMenu: Menu): RouteRecordRaw => {
   const rootRoute = menuToRoute(rootMenu)
 
   rootMenu.children?.forEach((childMenu) => {
-    const childRoute = buildRoute(childMenu as Menu)
+    if (!isRouteMenuNode(childMenu)) {
+      return
+    }
+
+    const childRoute = buildRoute(childMenu)
     rootRoute.children?.push(childRoute)
   })
   return rootRoute

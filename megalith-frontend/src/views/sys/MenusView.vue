@@ -35,10 +35,10 @@ type Form = {
   name: string
   url: string
   component: string
-  type: number
+  type: RoutesEnum
   icon: string
   orderNum: number
-  status: number
+  status: RoutesStatus
 }
 
 const form: Form = reactive({
