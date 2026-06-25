@@ -1,11 +1,11 @@
 package wiki.chiu.micro.auth.wrapper;
 
-import wiki.chiu.micro.auth.convertor.MenusAndButtonsDtoConvertor;
-import wiki.chiu.micro.auth.dto.MenusAndButtonsDto;
+import wiki.chiu.micro.auth.convertor.MenuDtoConvertor;
+import wiki.chiu.micro.auth.dto.MenuDto;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.common.vo.AuthorityRpcVo;
-import wiki.chiu.micro.common.vo.MenusAndButtonsRpcVo;
+import wiki.chiu.micro.common.vo.MenuRpcVo;
 import wiki.chiu.micro.common.lang.Const;
 import org.springframework.stereotype.Component;
 
@@ -22,9 +22,9 @@ public class AuthWrapper {
     }
 
     @Cache(prefix = Const.ROLE_AUTHORITY)
-    public MenusAndButtonsDto getCurrentUserNav(String rawRole) {
-        MenusAndButtonsRpcVo dto = userHttpServiceWrapper.getCurrentUserNav(rawRole);
-        return MenusAndButtonsDtoConvertor.convert(dto);
+    public List<MenuDto> getCurrentUserNav(String rawRole) {
+        List<MenuRpcVo> dto = userHttpServiceWrapper.getCurrentUserNav(rawRole);
+        return MenuDtoConvertor.convert(dto);
     }
 
     @Cache(prefix = Const.ROLE_AUTHORITY)

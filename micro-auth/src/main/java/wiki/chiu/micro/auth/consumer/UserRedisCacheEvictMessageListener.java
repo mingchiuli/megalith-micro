@@ -52,7 +52,7 @@ public class UserRedisCacheEvictMessageListener {
             List<String> roles = message.roles();
 
             HashSet<String> keysToEvict = new HashSet<>();
-            keysToEvict.addAll(getMenusAndButtonsKeys(roles, operateEnum));
+            keysToEvict.addAll(getNavigationKeys(roles, operateEnum));
             keysToEvict.addAll(getAuthKeys(roles, operateEnum));
 
             cacheEvictHandler.evictCache(keysToEvict);
@@ -68,7 +68,7 @@ public class UserRedisCacheEvictMessageListener {
         }
     }
 
-    private Set<String> getMenusAndButtonsKeys(List<String> roles, AuthMenuOperateEnum operateEnum) {
+    private Set<String> getNavigationKeys(List<String> roles, AuthMenuOperateEnum operateEnum) {
         Set<String> keys = new HashSet<>();
         if (!shouldProcessMenus(operateEnum)) {
             return keys;

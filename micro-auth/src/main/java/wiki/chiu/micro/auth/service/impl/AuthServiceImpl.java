@@ -6,15 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
-import wiki.chiu.micro.auth.convertor.ButtonVoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuDisplayDtoConvertor;
+import wiki.chiu.micro.auth.convertor.MenuRootVoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuWithChildDtoConvertor;
-import wiki.chiu.micro.auth.convertor.MenusAndButtonsVoConvertor;
 import wiki.chiu.micro.auth.dto.*;
 import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.auth.token.Claims;
 import wiki.chiu.micro.auth.token.TokenUtils;
-import wiki.chiu.micro.auth.vo.MenusAndButtonsVo;
+import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.auth.wrapper.AuthWrapper;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
 import wiki.chiu.micro.common.vo.AuthorityRouteRpcVo;
@@ -72,19 +71,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public MenusAndButtonsVo getCurrentUserNav(List<String> roles) {
+    public MenuWithChildVo getCurrentUserNav(List<String> roles) {
         List<MenuDto> menus = new ArrayList<>();
-        List<ButtonDto> buttons = new ArrayList<>();
 
         roles.stream()
                 .map(authWrapper::getCurrentUserNav)
-                .forEach(partDto -> {
-                    menus.addAll(partDto.menus());
-                    buttons.addAll(partDto.buttons());
-                });
+                .forEach(menus::addAll);
 
-        return MenusAndButtonsVoConvertor.convert(
-                ButtonVoConvertor.convert(buttons),
+        return MenuRootVoConvertor.convert(
                 MenuWithChildDtoConvertor.convert(
                         MenuDisplayDtoConvertor.buildTreeMenu(
                                 MenuDisplayDtoConvertor.convert(menus)
