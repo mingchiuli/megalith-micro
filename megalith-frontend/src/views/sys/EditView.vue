@@ -31,11 +31,17 @@ import {aiHttpClient} from '@/http/axios'
 import {API_CONFIG, API_ENDPOINTS, buildQueryUrl} from '@/config/apiConfig'
 import {AI_MODELS} from '@/config/aiConfig'
 import {logger} from '@/utils/logger'
+import {ollamaStreamRequest, ollamaRequest, type StreamChunk} from '@/utils/ollamaStream'
 
 const aiModels = ref<AiModel[]>([])
 const aiModel = ref('')
 const imageModel = AI_MODELS.IMAGE_MODEL
 const aiLoading = ref(false)
+const aiStep = ref(0) // 0=隐藏, 1=文本生成, 2=图片提示词, 3=封面图片
+const aiThinking = ref('')
+const aiThinkingCollapse = ref<string[]>(['thinking'])
+const aiPanelVisible = ref(false)
+const thinkingRef = useTemplateRef<HTMLDivElement>('thinkingRef')
 const imageGenerating = ref(false)
 const imageProgress = ref(0)
 const submitLoading = ref(false)
@@ -311,15 +317,16 @@ const loadAiModel = async () => {
 }
 
 const aiGenerate = async () => {
-  try {
-    // 检查是否有内容
-    if (!form.content || !aiModel.value) {
-      return
-    }
+    if (!form.content || !aiModel.value) return
 
+    aiPanelVisible.value = true
+    aiStep.value = 1
+    aiThinking.value = ''
     aiLoading.value = true
 
-    const prompt = `请仔细阅读以下文章：\n${form.content}，根据文章内容生成标题和摘要：
+    try {
+      let fullResponse = ''
+      const prompt = `请仔细阅读以下文章：\n${form.content}，根据文章内容生成标题和摘要：
 
     输出要求：
     - 格式：严格的JSON字符串
@@ -335,99 +342,51 @@ const aiGenerate = async () => {
     - 不要包含markdown、代码块等任何格式标记
     - JSON前后不能有空格或其他字符`
 
-    // 使用 Fetch API 实现真正的流式处理
-    const response = await fetch(API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
+      await ollamaStreamRequest({
+        url: API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT,
         model: aiModel.value,
         prompt,
-        stream: true,
-        options: {
-          echo: false
-        }
-      })
-    })
-
-    if (!response.ok) {
-      return
-    }
-
-    // 获取流式读取器
-    const reader = response.body?.getReader()
-    const decoder = new TextDecoder()
-    let buffer = ''
-    let fullResponse = ''
-
-    if (reader) {
-      while (true) {
-        // 读取数据块（不 await 整个响应，而是逐块读取）
-        const { done, value } = await reader.read()
-
-        if (done) break
-
-        // 解码当前数据块
-        buffer += decoder.decode(value, { stream: true })
-
-        // 按行分割处理 NDJSON
-        const lines = buffer.split('\n')
-        // 保留最后一个可能不完整的行
-        buffer = lines.pop() || ''
-
-        // 处理完整的行
-        for (const line of lines) {
-          if (line.trim()) {
-            const json = JSON.parse(line)
-
-            // 累积响应内容
-            if (json.response) {
-              fullResponse += json.response
-
-              // 尝试提取 title 和 description（即使 JSON 不完整）
-              // 使用正则表达式提取部分内容
-              const descMatch = fullResponse.match(/"description"\s*:\s*"([^"]*)"?/)
-
-              if (descMatch && descMatch[1]) {
-                // 逐字显示 description
-                form.description = descMatch[1]
-              } else {
-                // description 还未出现时，才更新 title
-                const titleMatch = fullResponse.match(/"title"\s*:\s*"([^"]*)"?/)
-                if (titleMatch && titleMatch[1]) {
-                  form.title = titleMatch[1]
-                }
+        onChunk: (chunk: StreamChunk) => {
+          if (chunk.thinking) {
+            aiThinking.value += chunk.thinking
+            // 自动滚动到底部
+            nextTick(() => {
+              if (thinkingRef.value) {
+                thinkingRef.value.scrollTop = thinkingRef.value.scrollHeight
               }
-            }
-
-            // 检查是否完成
-            if (json.done) {
-              break
+            })
+          }
+          if (chunk.response) {
+            fullResponse += chunk.response
+            const descMatch = fullResponse.match(/"description"\s*:\s*"([^"]*)"?/)
+            if (descMatch?.[1]) {
+              form.description = descMatch[1]
+            } else {
+              const titleMatch = fullResponse.match(/"title"\s*:\s*"([^"]*)"?/)
+              if (titleMatch?.[1]) form.title = titleMatch[1]
             }
           }
         }
-      }
-    }
+      })
 
-    // 如果链接为空且存在图片生成模型，生成封面图片
-    if (!form.link && aiModels.value.some((m) => m.model === imageModel || m.name === imageModel)) {
-      await generateImagePrompt()
+      // 步骤1完成 → 步骤2：生成图片提示词（条件执行）
+      if (!form.link && aiModels.value.some((m) => m.model === imageModel || m.name === imageModel)) {
+        aiStep.value = 2
+        await generateImagePrompt()
+      } else {
+        aiStep.value = 2 // 无图片生成，标记步骤1完成
+      }
+    } finally {
+      aiLoading.value = false
     }
-  } finally {
-    // 无论成功与否，都关闭加载状态
-    aiLoading.value = false
   }
-}
 
 // 生成封面图片提示词并生成图片
 const generateImagePrompt = async () => {
-  if (!form.content || !aiModel.value) {
-    return
-  }
+    if (!form.content || !aiModel.value) return
 
-  try {
-    const prompt = `请仔细阅读以下文章：\n${form.content}，根据文章内容生成一张图片的英文提示词。
+    try {
+      const prompt = `请仔细阅读以下文章：\n${form.content}，根据文章内容生成一张图片的英文提示词。
 
     输出要求：
     - 格式：严格的JSON字符串
@@ -442,102 +401,52 @@ const generateImagePrompt = async () => {
     - 不要包含markdown、代码块等任何格式标记
     - JSON前后不能有空格或其他字符`
 
-    const response = await fetch(API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: aiModel.value,
-        prompt,
-        stream: false
-      })
-    })
+      const text = await ollamaRequest(
+        API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT,
+        aiModel.value,
+        prompt
+      )
+      if (!text) return
 
-    if (!response.ok) {
-      return
-    }
-
-    const json = await response.json()
-
-    // 非 stream 格式: response 在 json.response 中
-    if (json.done && json.response) {
-      const result = JSON.parse(json.response)
+      const result = JSON.parse(text)
       if (result.imagePrompt) {
+        aiStep.value = 3
         await generateImage(result.imagePrompt)
       }
+    } catch (e) {
+      logger.warn('图片提示词生成失败:', e)
     }
-  } catch (e) {
-    logger.warn('图片提示词生成失败:', e)
   }
-}
 
 
 
 const generateImage = async (prompt: string) => {
-  let base64Image = ''
-  imageGenerating.value = true
-  imageProgress.value = 0
-  try {
-    const response = await fetch(API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: imageModel,
-        prompt,
-        stream: true
-      })
+    let base64Image = ''
+    imageGenerating.value = true
+    imageProgress.value = 0
+
+    await ollamaStreamRequest({
+      url: API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT,
+      model: imageModel,
+      prompt,
+      onChunk: (chunk: StreamChunk) => {
+        if (chunk.completed !== undefined && chunk.total) {
+          imageProgress.value = Math.round((chunk.completed / chunk.total) * 100)
+        }
+        if (chunk.image) base64Image = chunk.image
+      }
     })
 
-    if (!response.ok) {
-      return
-    }
-
-    const reader = response.body?.getReader()
-    const decoder = new TextDecoder()
-    let buffer = ''
-
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read()
-
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
-
-        for (const line of lines) {
-          if (line.trim()) {
-            const json = JSON.parse(line)
-
-            // 更新进度
-            if (json.completed !== undefined && json.total) {
-              imageProgress.value = Math.round((json.completed / json.total) * 100)
-            }
-
-            // 收集 base64 图片数据
-            if (json.image) {
-              base64Image = json.image
-            }
-          }
-        }
-      }
-    }
-  } finally {
     imageGenerating.value = false
     imageProgress.value = 0
-  }
 
-  // 展示图片预览 dialog，不自动上传
-  if (base64Image) {
-    generatedImageUrl.value = `data:image/png;base64,${base64Image}`
-    generatedImageBase64.value = base64Image
-    generatedImageDialogVisible.value = true
+    if (base64Image) {
+      generatedImageUrl.value = `data:image/png;base64,${base64Image}`
+      generatedImageBase64.value = base64Image
+      generatedImageDialogVisible.value = true
+      aiStep.value = 4 // 全部完成，所有步骤变绿 ✓
+    }
   }
-}
 
 const handleConfirmUpload = async () => {
   if (!generatedImageBase64.value) return
@@ -626,6 +535,27 @@ const handleRegenerateImage = async () => {
         </div>
       </el-form-item>
 
+      <!-- AI 生成面板 -->
+      <div v-if="aiPanelVisible" class="ai-panel">
+        <el-steps :active="aiStep - 1" align-center finish-status="success">
+          <el-step title="生成标题摘要" />
+          <el-step title="生成图片提示词" />
+          <el-step title="生成封面图片" />
+        </el-steps>
+
+        <el-collapse v-model="aiThinkingCollapse" class="thinking-collapse">
+          <el-collapse-item title="💭 模型思考过程" name="thinking">
+            <div class="thinking-content" ref="thinkingRef">
+              {{ aiThinking || '等待模型思考...' }}
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+
+        <el-form-item v-if="imageGenerating" label="图片生成进度" class="progress">
+          <el-progress type="line" :percentage="imageProgress" :color="Colors" />
+        </el-form-item>
+      </div>
+
       <el-form-item class="status" prop="status">
         <el-radio-group v-model="form.status" :disabled="!owner">
           <el-radio :value="Status.NORMAL">公开</el-radio>
@@ -697,10 +627,6 @@ const handleRegenerateImage = async () => {
             <el-button v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)" type="primary" @click="handleConfirmUpload" :loading="uploadLoading">确认上传</el-button>
           </template>
         </el-dialog>
-      </el-form-item>
-
-      <el-form-item label="生成进度" class="progress" v-if="imageGenerating">
-        <el-progress type="line" :percentage="imageProgress" :color="Colors" />
       </el-form-item>
 
       <el-form-item label="上传进度" class="progress" v-if="showPercentage && !generatedImageDialogVisible">
@@ -816,5 +742,31 @@ const handleRegenerateImage = async () => {
   justify-content: center;
   align-items: center;
   gap: 12px;
+}
+
+.ai-panel {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 8px;
+  background: var(--el-fill-color-light);
+}
+
+.thinking-collapse {
+  margin-top: 16px;
+}
+
+.thinking-content {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--el-bg-color);
+  border-radius: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--el-text-color-regular);
 }
 </style>
