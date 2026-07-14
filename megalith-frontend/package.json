@@ -18,7 +18,7 @@
     "@codemirror/state": "^6.7.1",
     "@vavt/v3-extension": "^5.0.0",
     "axios": "^1.18.1",
-    "dompurify": "^3.4.11",
+    "dompurify": "^3.4.12",
     "element-plus": "^2.14.3",
     "highlight.js": "^11.11.1",
     "js-base64": "^3.8.1",
