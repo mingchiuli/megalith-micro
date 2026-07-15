@@ -15,6 +15,9 @@ export interface StreamChunk {
   done: boolean
 }
 
+export type ThinkOption = boolean | 'low' | 'medium' | 'high'
+export type ResponseFormat = 'json' | Record<string, unknown>
+
 export interface StreamOptions {
   /** 完整 API 地址 */
   url: string
@@ -24,6 +27,10 @@ export interface StreamOptions {
   prompt: string
   /** 是否使用流式，默认 true */
   stream?: boolean
+  /** 开启思考输出；GPT-OSS 使用 low/medium/high */
+  think?: ThinkOption
+  /** 强制模型使用 JSON 或指定的 JSON Schema 输出 */
+  format?: ResponseFormat
   /** 每个 NDJSON chunk 的回调 */
   onChunk: (chunk: StreamChunk) => void
   /** 流结束回调 */
@@ -52,7 +59,18 @@ export interface StreamOptions {
  * ```
  */
 export async function ollamaStreamRequest(options: StreamOptions): Promise<void> {
-  const { url, model, prompt, stream = true, onChunk, onDone, onError, signal } = options
+  const {
+    url,
+    model,
+    prompt,
+    stream = true,
+    think,
+    format,
+    onChunk,
+    onDone,
+    onError,
+    signal
+  } = options
 
   try {
     const response = await fetch(url, {
@@ -62,38 +80,56 @@ export async function ollamaStreamRequest(options: StreamOptions): Promise<void>
         model,
         prompt,
         stream,
+        ...(think !== undefined ? { think } : {}),
+        ...(format !== undefined ? { format } : {}),
         options: { echo: false }
       }),
       signal
     })
 
     if (!response.ok) {
-      onDone?.()
-      return
+      throw new Error(`Ollama request failed with status ${response.status}`)
     }
 
     const reader = response.body?.getReader()
     if (!reader) {
-      onDone?.()
-      return
+      throw new Error('Ollama response body is empty')
     }
 
     const decoder = new TextDecoder()
     let buffer = ''
+    let generationDone = false
+
+    const emitLine = (line: string) => {
+      if (!line.trim()) return false
+      const chunk: StreamChunk = JSON.parse(line)
+      onChunk(chunk)
+      return chunk.done
+    }
 
     try {
       while (true) {
         const { done, value } = await reader.read()
-        if (done) break
+        if (done) {
+          buffer += decoder.decode()
+          if (buffer.trim()) emitLine(buffer)
+          break
+        }
 
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
         buffer = lines.pop() || ''
 
         for (const line of lines) {
-          if (!line.trim()) continue
-          const chunk: StreamChunk = JSON.parse(line)
-          onChunk(chunk)
+          if (emitLine(line)) {
+            generationDone = true
+            break
+          }
+        }
+
+        if (generationDone) {
+          await reader.cancel()
+          break
         }
       }
     } finally {
@@ -101,6 +137,7 @@ export async function ollamaStreamRequest(options: StreamOptions): Promise<void>
     }
   } catch (e) {
     onError?.(e)
+    throw e
   } finally {
     onDone?.()
   }
@@ -114,17 +151,30 @@ export async function ollamaStreamRequest(options: StreamOptions): Promise<void>
  * const text = await ollamaRequest('http://localhost:11434/api/generate', 'qwen', '你好')
  * ```
  */
-export async function ollamaRequest(url: string, model: string, prompt: string): Promise<string> {
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, prompt, stream: false })
-    })
-    if (!response.ok) return ''
-    const json = await response.json()
-    return json.response || ''
-  } catch {
-    return ''
+export async function ollamaRequest(
+  url: string,
+  model: string,
+  prompt: string,
+  options: Pick<StreamOptions, 'think' | 'format' | 'signal'> = {}
+): Promise<string> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      prompt,
+      stream: false,
+      ...(options.think !== undefined ? { think: options.think } : {}),
+      ...(options.format !== undefined ? { format: options.format } : {})
+    }),
+    signal: options.signal
+  })
+  if (!response.ok) {
+    throw new Error(`Ollama request failed with status ${response.status}`)
   }
+  const json = await response.json()
+  if (typeof json.response !== 'string' || !json.response) {
+    throw new Error('Ollama response text is empty')
+  }
+  return json.response
 }
