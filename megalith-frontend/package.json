@@ -27,7 +27,7 @@
     "md-editor-v3": "^6.5.3",
     "pinia": "^4.0.1",
     "vue": "^3.5.39",
-    "vue-router": "^5.1.0",
+    "vue-router": "^5.2.0",
     "y-codemirror.next": "^0.3.5",
     "y-websocket": "^3.0.0",
     "yjs": "^13.6.31"
@@ -48,7 +48,7 @@
     "jsdom": "^29.1.1",
     "npm-run-all2": "^9.0.2",
     "prettier": "^3.9.5",
-    "typescript": "~7.0.2",
+    "typescript": "~6.0.3",
     "typescript-eslint": "^8.64.0",
     "unplugin-auto-import": "^21.0.0",
     "unplugin-vue-components": "^32.1.0",
