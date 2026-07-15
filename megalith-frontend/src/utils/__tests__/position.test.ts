@@ -86,7 +86,7 @@ describe('utils/position#displayState', () => {
     expect(state.expand.value).toBe(true)
 
     // 找到本次 mount 注册的 resize 处理函数并手动触发
-    const handler = addSpy.mock.calls.find((c) => c[0] === 'resize')?.[1] as
+    const handler = addSpy.mock.calls.find((call: unknown[]) => call[0] === 'resize')?.[1] as
       | EventListener
       | undefined
     expect(handler).toBeTypeOf('function')

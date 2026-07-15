@@ -2,46 +2,37 @@ import { aiHttpClient } from '@/http/axios'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 import { cleanJsonResponse } from '@/utils/tools'
 import { logger } from '@/utils/logger'
+import {
+  ollamaRequest,
+  ollamaStreamRequest,
+  type StreamChunk,
+  type ThinkOption
+} from '@/utils/ollamaStream'
 import type { AiModel, AiModelsResp } from '@/type/entity'
 
-/**
- * Composable for AI content and image generation
- */
-export const useAiGenerate = (form: { content: string; title: string; description: string }) => {
-  // State
-  const aiModels = ref<AiModel[]>([])
-  const aiModel = ref('')
-  const aiLoading = ref(false)
-  const imageGenerating = ref(false)
-  const imageProgress = ref(0)
-  const generatedImageUrl = ref('')
-  const generatedImageBase64 = ref('')
-  const generatedImageDialogVisible = ref(false)
+type AiGenerateForm = {
+  content: string
+  title: string
+  description: string
+  link: string
+}
 
-  /**
-   * Load available AI models
-   */
-  const loadAiModels = async () => {
-    try {
-      const response = await aiHttpClient.get(API_ENDPOINTS.AI.GET_MODELS)
-      const result: AiModelsResp = response.data
-      aiModels.value = result.models
-    } catch (e) {
-      logger.warn(e)
-    }
-  }
+type WorkflowStep = 0 | 1 | 2 | 3 | 4
+type FailedStep = 1 | 2 | 3 | null
+type GenerationContext = {
+  content: string
+  model: string
+  think?: ThinkOption
+}
 
-  /**
-   * Generate title and description from content using AI
-   */
-  const aiGenerateContent = async () => {
-    if (!form.content || !aiModel.value) {
-      return
-    }
+const AI_URL = API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT
+const STEP_LABELS: Record<Exclude<FailedStep, null>, string> = {
+  1: '标题摘要',
+  2: '图片提示词',
+  3: '封面图片'
+}
 
-    aiLoading.value = true
-
-    const prompt = `请仔细阅读以下文章：\n${form.content}，根据文章内容生成标题和摘要：
+const titleSummaryPrompt = (content: string) => `请仔细阅读以下文章：\n${content}，根据文章内容生成标题和摘要：
 
 输出要求：
 - 格式：严格的JSON字符串
@@ -57,111 +48,219 @@ export const useAiGenerate = (form: { content: string; title: string; descriptio
 - 不要包含markdown、代码块等任何格式标记
 - JSON前后不能有空格或其他字符`
 
+const imagePrompt = (content: string) => `请仔细阅读以下文章：\n${content}，根据文章内容生成一张图片的英文提示词。
+
+输出要求：
+- 格式：严格的JSON字符串
+- imagePrompt: 适合Flux模型生成图片的英文提示词，不超过100字，描述文章的核心场景或意象
+- 不含任何额外字符和格式标记
+
+示例输出：
+{"imagePrompt": "A beautiful sunny day with blue sky and white clouds, person walking in a park with smile"}
+
+注意事项：
+- 返回内容必须是可直接解析的JSON
+- 不要包含markdown、代码块等任何格式标记
+- JSON前后不能有空格或其他字符`
+
+const parseJsonResponse = (response: string): Record<string, unknown> =>
+  JSON.parse(cleanJsonResponse(response)) as Record<string, unknown>
+
+const requiredString = (value: unknown, field: string) => {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error(`AI response is missing ${field}`)
+  }
+  return value.trim()
+}
+
+export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
+  const aiModels = ref<AiModel[]>([])
+  const aiModel = ref('')
+  const aiLoading = ref(false)
+  const aiStep = ref<WorkflowStep>(0)
+  const failedStep = ref<FailedStep>(null)
+  const aiError = ref('')
+  const aiThinking = ref('')
+  const imageSkipReason = ref('')
+  const aiPanelVisible = ref(false)
+  const imageGenerating = ref(false)
+  const imageProgress = ref(0)
+  const generatedImageUrl = ref('')
+  const generatedImageBase64 = ref('')
+  const generatedImageDialogVisible = ref(false)
+
+  const selectedModel = computed(() =>
+    aiModels.value.find((item) => item.model === aiModel.value)
+  )
+  const imageModelAvailable = computed(() =>
+    aiModels.value.some((item) => item.model === imageModel || item.name === imageModel)
+  )
+  const thinkingSupported = computed(() =>
+    Boolean(selectedModel.value?.capabilities?.includes('thinking'))
+  )
+
+  const getThinkingOption = (): ThinkOption | undefined => {
+    const model = selectedModel.value
+    if (!model?.capabilities?.includes('thinking')) return undefined
+    return model.model.toLowerCase().startsWith('gpt-oss') ? 'medium' : true
+  }
+
+  const createGenerationContext = (): GenerationContext => ({
+    content: form.content,
+    model: aiModel.value,
+    think: getThinkingOption()
+  })
+
+  const loadAiModels = async () => {
     try {
-      const response = await fetch(API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: aiModel.value,
-          prompt,
-          stream: true
-        })
+      const response = await aiHttpClient.get<AiModelsResp>(API_ENDPOINTS.AI.GET_MODELS)
+      aiModels.value = response.data.models
+    } catch (error) {
+      logger.warn('AI 模型列表加载失败:', error)
+    }
+  }
+
+  const generateTitleSummary = async (context: GenerationContext) => {
+    let fullResponse = ''
+
+    await ollamaStreamRequest({
+      url: AI_URL,
+      model: context.model,
+      prompt: titleSummaryPrompt(context.content),
+      think: context.think,
+      format: 'json',
+      onChunk: (chunk: StreamChunk) => {
+        if (chunk.thinking) aiThinking.value += chunk.thinking
+        if (chunk.response) fullResponse += chunk.response
+      }
+    })
+
+    const result = parseJsonResponse(fullResponse)
+    const title = requiredString(result.title, 'title')
+    const description = requiredString(result.description, 'description')
+    form.title = title
+    form.description = description
+  }
+
+  const generateImagePrompt = async (context: GenerationContext) => {
+    const response = await ollamaRequest(
+      AI_URL,
+      context.model,
+      imagePrompt(context.content),
+      { think: context.think, format: 'json' }
+    )
+    const result = parseJsonResponse(response)
+    return requiredString(result.imagePrompt, 'imagePrompt')
+  }
+
+  const generateImage = async (prompt: string) => {
+    let base64Image = ''
+    imageGenerating.value = true
+    imageProgress.value = 0
+
+    try {
+      await ollamaStreamRequest({
+        url: AI_URL,
+        model: imageModel,
+        prompt,
+        onChunk: (chunk: StreamChunk) => {
+          if (chunk.completed !== undefined && chunk.total) {
+            imageProgress.value = Math.round((chunk.completed / chunk.total) * 100)
+          }
+          if (chunk.image) base64Image = chunk.image
+        }
       })
 
-      if (!response.ok) {
+      if (!base64Image) throw new Error('AI response is missing an image')
+      generatedImageUrl.value = `data:image/png;base64,${base64Image}`
+      generatedImageBase64.value = base64Image
+      generatedImageDialogVisible.value = true
+    } finally {
+      imageGenerating.value = false
+      imageProgress.value = 0
+    }
+  }
+
+  const generateImageWorkflow = async (context: GenerationContext) => {
+    aiStep.value = 2
+    const prompt = await generateImagePrompt(context)
+    aiStep.value = 3
+    await generateImage(prompt)
+    aiStep.value = 4
+  }
+
+  const handleWorkflowError = (error: unknown) => {
+    failedStep.value =
+      aiStep.value === 1 || aiStep.value === 2 || aiStep.value === 3 ? aiStep.value : null
+    const label = failedStep.value ? STEP_LABELS[failedStep.value] : 'AI 内容'
+    aiError.value = `${label}生成失败，请重试`
+    logger.warn('AI 生成流程失败:', error)
+  }
+
+  const aiGenerate = async () => {
+    if (!form.content || !aiModel.value || aiLoading.value) return
+
+    aiPanelVisible.value = true
+    aiStep.value = 1
+    failedStep.value = null
+    aiError.value = ''
+    aiThinking.value = ''
+    imageSkipReason.value = ''
+    aiLoading.value = true
+    const context = createGenerationContext()
+
+    try {
+      await generateTitleSummary(context)
+      if (form.link || !imageModelAvailable.value) {
+        imageSkipReason.value = form.link ? '已有封面，已跳过' : '图片模型不可用，已跳过'
+        aiStep.value = 4
         return
       }
-
-      const reader = response.body?.getReader()
-      if (!reader) {
-        return
-      }
-
-      const decoder = new TextDecoder()
-      let result = ''
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        const chunk = decoder.decode(value, { stream: true })
-        result += chunk
-      }
-
-      // Clean and parse JSON response
-      const cleanedResult = cleanJsonResponse(result)
-      const parsed = JSON.parse(cleanedResult)
-
-      if (parsed.title) {
-        form.title = parsed.title
-      }
-      if (parsed.description) {
-        form.description = parsed.description
-      }
-    } catch (e) {
-      logger.warn(e)
+      await generateImageWorkflow(context)
+    } catch (error) {
+      handleWorkflowError(error)
     } finally {
       aiLoading.value = false
     }
   }
 
-  /**
-   * Generate image from prompt using AI
-   */
-  const generateImage = async (prompt: string, imageModel: string) => {
-    if (!prompt) {
-      return
-    }
+  const regenerateImage = async () => {
+    if (!form.content || !aiModel.value || !imageModelAvailable.value || aiLoading.value) return
 
-    imageGenerating.value = true
-    imageProgress.value = 0
+    failedStep.value = null
+    aiError.value = ''
+    imageSkipReason.value = ''
+    generatedImageDialogVisible.value = false
+    aiLoading.value = true
+    const context = createGenerationContext()
 
     try {
-      const response = await fetch(API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: imageModel,
-          prompt,
-          stream: false
-        })
-      })
-
-      if (!response.ok) {
-        return
-      }
-
-      const data = await response.json()
-
-      if (data.images && data.images[0]) {
-        generatedImageBase64.value = data.images[0]
-        generatedImageUrl.value = `data:image/png;base64,${data.images[0]}`
-        generatedImageDialogVisible.value = true
-      }
-    } catch (e) {
-      logger.warn('图片生成失败:', e)
+      await generateImageWorkflow(context)
+    } catch (error) {
+      handleWorkflowError(error)
     } finally {
-      imageGenerating.value = false
+      aiLoading.value = false
     }
   }
 
   return {
-    // State
     aiModels,
     aiModel,
     aiLoading,
+    aiStep,
+    failedStep,
+    aiError,
+    aiThinking,
+    imageSkipReason,
+    thinkingSupported,
+    aiPanelVisible,
     imageGenerating,
     imageProgress,
     generatedImageUrl,
     generatedImageBase64,
     generatedImageDialogVisible,
-    // Methods
     loadAiModels,
-    aiGenerateContent,
-    generateImage
+    aiGenerate,
+    regenerateImage
   }
 }

@@ -12,8 +12,6 @@ import type {
 } from 'element-plus'
 import {GET, POST, UPLOAD} from '@/http/http'
 import {
-  type AiModel,
-  type AiModelsResp,
   type BlogEdit,
   ButtonAuth,
   Colors,
@@ -27,23 +25,14 @@ import {
 import router from '@/router'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import {checkButtonAuth, getButtonTitle, getButtonType} from '@/utils/tools'
-import {aiHttpClient} from '@/http/axios'
-import {API_CONFIG, API_ENDPOINTS, buildQueryUrl} from '@/config/apiConfig'
+import {API_ENDPOINTS, buildQueryUrl} from '@/config/apiConfig'
 import {AI_MODELS} from '@/config/aiConfig'
 import {logger} from '@/utils/logger'
-import {ollamaStreamRequest, ollamaRequest, type StreamChunk} from '@/utils/ollamaStream'
+import {useAiGenerate} from '@/composables'
 
-const aiModels = ref<AiModel[]>([])
-const aiModel = ref('')
 const imageModel = AI_MODELS.IMAGE_MODEL
-const aiLoading = ref(false)
-const aiStep = ref(0) // 0=隐藏, 1=文本生成, 2=图片提示词, 3=封面图片
-const aiThinking = ref('')
 const aiThinkingCollapse = ref<string[]>(['thinking'])
-const aiPanelVisible = ref(false)
 const thinkingRef = useTemplateRef<HTMLDivElement>('thinkingRef')
-const imageGenerating = ref(false)
-const imageProgress = ref(0)
 const submitLoading = ref(false)
 const route = useRoute()
 const blogId = route.query.id as string | undefined
@@ -56,6 +45,39 @@ const form: EditForm = reactive({
   status: 0,
   link: '',
   sensitiveContentList: []
+})
+
+const {
+  aiModels,
+  aiModel,
+  aiLoading,
+  aiStep,
+  failedStep,
+  aiError,
+  aiThinking,
+  imageSkipReason,
+  thinkingSupported,
+  aiPanelVisible,
+  imageGenerating,
+  imageProgress,
+  generatedImageUrl,
+  generatedImageBase64,
+  generatedImageDialogVisible,
+  loadAiModels,
+  aiGenerate,
+  regenerateImage
+} = useAiGenerate(form, imageModel)
+
+watch(aiThinking, () => {
+  nextTick(() => {
+    if (thinkingRef.value) thinkingRef.value.scrollTop = thinkingRef.value.scrollHeight
+  })
+})
+
+const aiThinkingContent = computed(() => {
+  if (aiThinking.value) return aiThinking.value
+  if (aiError.value) return '模型未返回思考过程'
+  return thinkingSupported.value ? '等待模型思考...' : '当前模型不支持思考过程'
 })
 
 const owner = ref(false)
@@ -101,11 +123,6 @@ const uploadLoading = ref(false)
 
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
-
-// 图片生成预览 dialog
-const generatedImageDialogVisible = ref(false)
-const generatedImageUrl = ref('')
-const generatedImageBase64 = ref('')
 
 const formRef = ref<FormInstance>()
 const formRules = reactive<FormRules<EditForm>>({
@@ -306,148 +323,6 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   loadContent.value = false
 }
 
-const loadAiModel = async () => {
-  try {
-    const response = await aiHttpClient.get(API_ENDPOINTS.AI.GET_MODELS)
-    const result: AiModelsResp = response.data
-    aiModels.value = result.models
-  } catch (e) {
-    logger.warn(e)
-  }
-}
-
-const aiGenerate = async () => {
-    if (!form.content || !aiModel.value) return
-
-    aiPanelVisible.value = true
-    aiStep.value = 1
-    aiThinking.value = ''
-    aiLoading.value = true
-
-    try {
-      let fullResponse = ''
-      const prompt = `请仔细阅读以下文章：\n${form.content}，根据文章内容生成标题和摘要：
-
-    输出要求：
-    - 格式：严格的JSON字符串
-    - title: 不超过10字的标题
-    - description: 不超过50字的摘要
-    - 不含任何额外字符和格式标记
-
-    示例输出：
-    {"title": "标题", "description": "文章摘要"}
-
-    注意事项：
-    - 返回内容必须是可直接解析的JSON
-    - 不要包含markdown、代码块等任何格式标记
-    - JSON前后不能有空格或其他字符`
-
-      await ollamaStreamRequest({
-        url: API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT,
-        model: aiModel.value,
-        prompt,
-        onChunk: (chunk: StreamChunk) => {
-          if (chunk.thinking) {
-            aiThinking.value += chunk.thinking
-            // 自动滚动到底部
-            nextTick(() => {
-              if (thinkingRef.value) {
-                thinkingRef.value.scrollTop = thinkingRef.value.scrollHeight
-              }
-            })
-          }
-          if (chunk.response) {
-            fullResponse += chunk.response
-            const descMatch = fullResponse.match(/"description"\s*:\s*"([^"]*)"?/)
-            if (descMatch?.[1]) {
-              form.description = descMatch[1]
-            } else {
-              const titleMatch = fullResponse.match(/"title"\s*:\s*"([^"]*)"?/)
-              if (titleMatch?.[1]) form.title = titleMatch[1]
-            }
-          }
-        }
-      })
-
-      // 步骤1完成 → 步骤2：生成图片提示词（条件执行）
-      if (!form.link && aiModels.value.some((m) => m.model === imageModel || m.name === imageModel)) {
-        aiStep.value = 2
-        await generateImagePrompt()
-      } else {
-        aiStep.value = 2 // 无图片生成，标记步骤1完成
-      }
-    } finally {
-      aiLoading.value = false
-    }
-  }
-
-// 生成封面图片提示词并生成图片
-const generateImagePrompt = async () => {
-    if (!form.content || !aiModel.value) return
-
-    try {
-      const prompt = `请仔细阅读以下文章：\n${form.content}，根据文章内容生成一张图片的英文提示词。
-
-    输出要求：
-    - 格式：严格的JSON字符串
-    - imagePrompt: 适合Flux模型生成图片的英文提示词，不超过100字，描述文章的核心场景或意象
-    - 不含任何额外字符和格式标记
-
-    示例输出：
-    {"imagePrompt": "A beautiful sunny day with blue sky and white clouds, person walking in a park with smile"}
-
-    注意事项：
-    - 返回内容必须是可直接解析的JSON
-    - 不要包含markdown、代码块等任何格式标记
-    - JSON前后不能有空格或其他字符`
-
-      const text = await ollamaRequest(
-        API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT,
-        aiModel.value,
-        prompt
-      )
-      if (!text) return
-
-      const result = JSON.parse(text)
-      if (result.imagePrompt) {
-        aiStep.value = 3
-        await generateImage(result.imagePrompt)
-      }
-    } catch (e) {
-      logger.warn('图片提示词生成失败:', e)
-    }
-  }
-
-
-
-const generateImage = async (prompt: string) => {
-    let base64Image = ''
-    imageGenerating.value = true
-    imageProgress.value = 0
-
-    await ollamaStreamRequest({
-      url: API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT,
-      model: imageModel,
-      prompt,
-      onChunk: (chunk: StreamChunk) => {
-        if (chunk.completed !== undefined && chunk.total) {
-          imageProgress.value = Math.round((chunk.completed / chunk.total) * 100)
-        }
-        if (chunk.image) base64Image = chunk.image
-      }
-    })
-
-    imageGenerating.value = false
-    imageProgress.value = 0
-
-    if (base64Image) {
-      generatedImageUrl.value = `data:image/png;base64,${base64Image}`
-      generatedImageBase64.value = base64Image
-      generatedImageDialogVisible.value = true
-      aiStep.value = 4 // 全部完成，所有步骤变绿 ✓
-    }
-  }
-
 const handleConfirmUpload = async () => {
   if (!generatedImageBase64.value) return
 
@@ -474,16 +349,9 @@ const handleConfirmUpload = async () => {
   }
 }
 
-const handleRegenerateImage = async () => {
-  generatedImageDialogVisible.value = false
-  if (form.content && aiModels.value.some((item) => item.model === imageModel || item.name === imageModel)) {
-    await generateImagePrompt()
-  }
-}
-
 ;(async () => {
   await loadEditContent(form, blogId)
-  await loadAiModel()
+  await loadAiModels()
 })()
 </script>
 
@@ -514,7 +382,12 @@ const handleRegenerateImage = async () => {
             :disabled="!owner"
           />
 
-          <el-select v-model="aiModel" placeholder="模型" style="width: 140px">
+          <el-select
+            v-model="aiModel"
+            placeholder="模型"
+            style="width: 140px"
+            :disabled="aiLoading"
+          >
             <el-option
               v-for="item in aiModels"
               :key="item.name"
@@ -538,15 +411,31 @@ const handleRegenerateImage = async () => {
       <!-- AI 生成面板 -->
       <div v-if="aiPanelVisible" class="ai-panel">
         <el-steps :active="aiStep - 1" align-center finish-status="success">
-          <el-step title="生成标题摘要" />
-          <el-step title="生成图片提示词" />
-          <el-step title="生成封面图片" />
+          <el-step title="生成标题摘要" :status="failedStep === 1 ? 'error' : undefined" />
+          <el-step
+            title="生成图片提示词"
+            :description="imageSkipReason"
+            :status="failedStep === 2 ? 'error' : imageSkipReason ? 'wait' : undefined"
+          />
+          <el-step
+            title="生成封面图片"
+            :status="failedStep === 3 ? 'error' : imageSkipReason ? 'wait' : undefined"
+          />
         </el-steps>
+
+        <el-alert
+          v-if="aiError"
+          :title="aiError"
+          type="error"
+          show-icon
+          :closable="false"
+          class="ai-error"
+        />
 
         <el-collapse v-model="aiThinkingCollapse" class="thinking-collapse">
           <el-collapse-item title="💭 模型思考过程" name="thinking">
             <div class="thinking-content" ref="thinkingRef">
-              {{ aiThinking || '等待模型思考...' }}
+              {{ aiThinkingContent }}
             </div>
           </el-collapse-item>
         </el-collapse>
@@ -623,7 +512,7 @@ const handleRegenerateImage = async () => {
             />
           </div>
           <template #footer>
-            <el-button v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_AI)" @click="handleRegenerateImage" :loading="imageGenerating">重新生成</el-button>
+            <el-button v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_AI)" @click="regenerateImage" :loading="imageGenerating">重新生成</el-button>
             <el-button v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)" type="primary" @click="handleConfirmUpload" :loading="uploadLoading">确认上传</el-button>
           </template>
         </el-dialog>
@@ -753,6 +642,10 @@ const handleRegenerateImage = async () => {
 }
 
 .thinking-collapse {
+  margin-top: 16px;
+}
+
+.ai-error {
   margin-top: 16px;
 }
 

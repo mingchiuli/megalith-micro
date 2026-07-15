@@ -222,6 +222,7 @@ export interface AiModelsResp {
 export interface AiModel {
   name: string
   model: string
+  capabilities?: string[]
 }
 
 export interface Hot {
