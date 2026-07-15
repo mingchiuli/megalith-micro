@@ -21,7 +21,7 @@
     "dompurify": "^3.4.12",
     "element-plus": "^2.14.3",
     "highlight.js": "^11.11.1",
-    "js-base64": "^3.8.1",
+    "js-base64": "^3.9.0",
     "lib0": "^0.2.117",
     "markdown-it": "^14.3.0",
     "md-editor-v3": "^6.5.3",
