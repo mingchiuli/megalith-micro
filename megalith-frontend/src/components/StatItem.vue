@@ -23,10 +23,10 @@ const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat)
 
 <template>
   <el-breadcrumb separator="/" class="visitor-stat">
-    <el-breadcrumb-item>Day {{ dayVisit }}</el-breadcrumb-item>
-    <el-breadcrumb-item>Week {{ weekVisit }}</el-breadcrumb-item>
-    <el-breadcrumb-item>Month {{ monthVisit }}</el-breadcrumb-item>
-    <el-breadcrumb-item>Year {{ yearVisit }}</el-breadcrumb-item>
+    <el-breadcrumb-item>{{ $t('stats.day', { count: dayVisit }) }}</el-breadcrumb-item>
+    <el-breadcrumb-item>{{ $t('stats.week', { count: weekVisit }) }}</el-breadcrumb-item>
+    <el-breadcrumb-item>{{ $t('stats.month', { count: monthVisit }) }}</el-breadcrumb-item>
+    <el-breadcrumb-item>{{ $t('stats.year', { count: yearVisit }) }}</el-breadcrumb-item>
   </el-breadcrumb>
 </template>
 

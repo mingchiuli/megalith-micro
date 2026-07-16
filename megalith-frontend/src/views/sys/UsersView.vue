@@ -6,6 +6,9 @@ import { Status, ButtonAuth } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls, buildQueryUrl } from '@/config/apiConfig'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { moreItems, fixSelection, fix } = displayState()
 const multipleSelection = ref<UserSys[]>([])
@@ -23,16 +26,52 @@ const page: PageAdapter<UserSys> = reactive({
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
-const formRules = reactive<FormRules<Form>>({
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
-  password: [{ required: false, message: '请输入密码', trigger: 'blur' }],
-  avatar: [{ required: true, message: '请输入头像链接', trigger: 'blur' }],
-  email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
-  phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
-  roles: [{ required: true, message: '请选择角色', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
-})
+const formRules = computed<FormRules<Form>>(() => ({
+  username: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('auth.username') }),
+      trigger: 'blur'
+    }
+  ],
+  nickname: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('auth.nickname') }),
+      trigger: 'blur'
+    }
+  ],
+  password: [
+    {
+      required: false,
+      message: t('validation.enter', { field: t('auth.password') }),
+      trigger: 'blur'
+    }
+  ],
+  avatar: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('auth.avatarUrl') }),
+      trigger: 'blur'
+    }
+  ],
+  email: [
+    { required: true, message: t('validation.enter', { field: t('auth.email') }), trigger: 'blur' }
+  ],
+  phone: [
+    { required: true, message: t('validation.enter', { field: t('auth.phone') }), trigger: 'blur' }
+  ],
+  roles: [
+    { required: true, message: t('validation.select', { field: t('auth.role') }), trigger: 'blur' }
+  ],
+  status: [
+    {
+      required: true,
+      message: t('validation.select', { field: t('common.status') }),
+      trigger: 'blur'
+    }
+  ]
+}))
 const formRef = ref<FormInstance>()
 type Form = {
   id?: number
@@ -73,8 +112,8 @@ const delBatch = async () => {
   })
   await POST<null>(API_ENDPOINTS.USER_ADMIN.DELETE_USERS, args)
   ElNotification({
-    title: '操作成功',
-    message: '批量删除成功',
+    title: t('common.operationSuccess'),
+    message: t('common.batchDeleteSuccess'),
     type: 'success'
   })
   multipleSelection.value = []
@@ -86,8 +125,8 @@ const handleDelete = async (row: UserSys) => {
   id.push(row.id)
   await POST<null>(API_ENDPOINTS.USER_ADMIN.DELETE_USERS, id)
   ElNotification({
-    title: '操作成功',
-    message: '删除成功',
+    title: t('common.operationSuccess'),
+    message: t('common.deleteSuccess'),
     type: 'success'
   })
   queryUsers()
@@ -126,8 +165,8 @@ const submitForm = async (ref: FormInstance) => {
     if (valid) {
       await POST<null>(API_ENDPOINTS.USER_ADMIN.SAVE_USER, form)
       ElNotification({
-        title: '操作成功',
-        message: '编辑成功',
+        title: t('common.operationSuccess'),
+        message: t('common.editSuccess'),
         type: 'success'
       })
       clearForm()
@@ -166,11 +205,13 @@ const handleCurrentChange = async (val: number) => {
 }
 
 const getRegisterLink = async (username: string) => {
-  const link = await GET<string>(buildQueryUrl(API_ENDPOINTS.USER_ADMIN.GET_REGISTER_LINK, {
-    username
-  }))
+  const link = await GET<string>(
+    buildQueryUrl(API_ENDPOINTS.USER_ADMIN.GET_REGISTER_LINK, {
+      username
+    })
+  )
   ElNotification({
-    title: '操作成功',
+    title: t('common.operationSuccess'),
     message: link,
     type: 'success'
   })
@@ -194,7 +235,7 @@ const getRegisterLink = async (username: string) => {
       >
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_USER_BATCH_DEL)">
-      <el-popconfirm title="确定批量删除?" @confirm="delBatch">
+      <el-popconfirm :title="t('common.batchDeleteConfirm')" @confirm="delBatch">
         <template #reference>
           <el-button
             :type="getButtonType(ButtonAuth.SYS_USER_BATCH_DEL)"
@@ -235,28 +276,30 @@ const getRegisterLink = async (username: string) => {
     v-loading="loading"
   >
     <el-table-column type="selection" :fixed="fixSelection" />
-    <el-table-column label="用户名" align="center" prop="username" min-width="180" />
-    <el-table-column label="昵称" align="center" prop="nickname" min-width="180" />
+    <el-table-column :label="t('auth.username')" align="center" prop="username" min-width="180" />
+    <el-table-column :label="t('auth.nickname')" align="center" prop="nickname" min-width="180" />
 
-    <el-table-column label="头像" align="center">
+    <el-table-column :label="t('auth.avatar')" align="center">
       <template #default="scope">
         <el-avatar size="default" :src="scope.row.avatar" />
       </template>
     </el-table-column>
 
-    <el-table-column label="邮箱" min-width="200" align="center" prop="email" />
-    <el-table-column label="手机号" min-width="200" align="center" prop="phone" />
+    <el-table-column :label="t('auth.email')" min-width="200" align="center" prop="email" />
+    <el-table-column :label="t('auth.phone')" min-width="200" align="center" prop="phone" />
 
-    <el-table-column label="状态" align="center">
+    <el-table-column :label="t('common.status')" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">启用</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger"
-          >停用</el-tag
-        >
+        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">{{
+          t('common.enabled')
+        }}</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">{{
+          t('common.inactive')
+        }}</el-tag>
       </template>
     </el-table-column>
 
-    <el-table-column label="角色" min-width="200" align="center">
+    <el-table-column :label="t('auth.role')" min-width="200" align="center">
       <template #default="scope">
         <el-tag size="small" v-for="item in scope.row.roles" v-bind:key="item.code" type="info">{{
           getRoleName(item)
@@ -264,7 +307,7 @@ const getRegisterLink = async (username: string) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="创建时间" min-width="180" align="center">
+    <el-table-column :label="t('common.createdAt')" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">
           <el-icon>
@@ -275,7 +318,7 @@ const getRegisterLink = async (username: string) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="更新时间" min-width="180" align="center">
+    <el-table-column :label="t('common.updatedAt')" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">
           <el-icon>
@@ -286,7 +329,7 @@ const getRegisterLink = async (username: string) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="最后登录时间" min-width="180" align="center">
+    <el-table-column :label="t('admin.lastLogin')" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">
           <el-icon>
@@ -298,7 +341,7 @@ const getRegisterLink = async (username: string) => {
     </el-table-column>
 
     <!-- @vue-generic {UserSys} -->
-    <el-table-column :fixed="fix" label="操作" min-width="280" align="center">
+    <el-table-column :fixed="fix" :label="t('common.operations')" min-width="280" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_USER_EDIT)">
           <el-button
@@ -310,7 +353,7 @@ const getRegisterLink = async (username: string) => {
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_USER_DELETE)">
-          <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
+          <el-popconfirm :title="t('common.deleteConfirm')" @confirm="handleDelete(scope.row)">
             <template #reference>
               <el-button size="small" :type="getButtonType(ButtonAuth.SYS_USER_DELETE)">{{
                 getButtonTitle(ButtonAuth.SYS_USER_DELETE)
@@ -341,34 +384,59 @@ const getRegisterLink = async (username: string) => {
     :total="totalElements"
   />
 
-  <el-dialog v-model="dialogVisible" title="新增/编辑" width="600px" :before-close="handleClose">
+  <el-dialog
+    v-model="dialogVisible"
+    :title="t('common.addEdit')"
+    width="600px"
+    :before-close="handleClose"
+  >
     <el-form :model="form" :rules="formRules" ref="formRef">
-      <el-form-item label="用户名" label-width="100px" prop="username" class="username">
+      <el-form-item
+        :label="t('auth.username')"
+        label-width="100px"
+        prop="username"
+        class="username"
+      >
         <el-input v-model="form.username" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="昵称" label-width="100px" prop="nickname" class="nickname">
+      <el-form-item
+        :label="t('auth.nickname')"
+        label-width="100px"
+        prop="nickname"
+        class="nickname"
+      >
         <el-input v-model="form.nickname" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="密码" label-width="100px" prop="password" class="password">
+      <el-form-item
+        :label="t('auth.password')"
+        label-width="100px"
+        prop="password"
+        class="password"
+      >
         <el-input v-model="form.password" type="password" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="头像链接" label-width="100px" prop="avatar" class="avatar">
+      <el-form-item :label="t('auth.avatarUrl')" label-width="100px" prop="avatar" class="avatar">
         <el-input v-model="form.avatar" />
       </el-form-item>
 
-      <el-form-item label="邮箱" label-width="100px" prop="email" class="email">
+      <el-form-item :label="t('auth.email')" label-width="100px" prop="email" class="email">
         <el-input v-model="form.email" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="手机号" label-width="100px" prop="phone" class="phone">
+      <el-form-item :label="t('auth.phone')" label-width="100px" prop="phone" class="phone">
         <el-input v-model="form.phone" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="角色" label-width="100px" prop="roles" class="role">
-        <el-select multiple class="role-option" v-model="form.roles" placeholder="请选择">
+      <el-form-item :label="t('auth.role')" label-width="100px" prop="roles" class="role">
+        <el-select
+          multiple
+          class="role-option"
+          v-model="form.roles"
+          :placeholder="t('common.select')"
+        >
           <el-option
             v-for="item in roleList"
             :key="item.code"
@@ -379,10 +447,10 @@ const getRegisterLink = async (username: string) => {
         </el-select>
       </el-form-item>
 
-      <el-form-item label="状态" label-width="100px" prop="status" class="status">
+      <el-form-item :label="t('common.status')" label-width="100px" prop="status" class="status">
         <el-radio-group v-model="form.status">
-          <el-radio :value="Status.NORMAL">启用</el-radio>
-          <el-radio :value="Status.BLOCK">禁用</el-radio>
+          <el-radio :value="Status.NORMAL">{{ t('common.enabled') }}</el-radio>
+          <el-radio :value="Status.BLOCK">{{ t('common.disabled') }}</el-radio>
         </el-radio-group>
       </el-form-item>
 

@@ -114,6 +114,7 @@ export default defineConfig(({ mode }) => {
       globals: true,
       environment: 'jsdom',
       include: ['src/**/__tests__/*.test.ts'],
+      setupFiles: ['src/test/setup.ts'],
       // 让 Vite 内联处理 element-plus，避免 Node ESM 解析 .css 报错
       server: {
         deps: {

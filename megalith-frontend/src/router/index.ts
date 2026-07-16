@@ -23,7 +23,7 @@ const router = createRouter({
       name: 'intro',
       component: () => import('@/views/IntroView.vue'),
       meta: {
-        title: '简介'
+        titleKey: 'admin.intro'
       }
     },
     {
@@ -31,7 +31,7 @@ const router = createRouter({
       name: 'login',
       component: () => import('@/views/LoginView.vue'),
       meta: {
-        title: '登录'
+        titleKey: 'auth.login'
       }
     },
     {
@@ -39,7 +39,7 @@ const router = createRouter({
       name: 'register',
       component: () => import('@/views/RegisterView.vue'),
       meta: {
-        title: '注册'
+        titleKey: 'admin.register'
       }
     },
     {
@@ -47,7 +47,7 @@ const router = createRouter({
       name: 'blogs',
       component: () => import('@/views/BlogsView.vue'),
       meta: {
-        title: '内容列表'
+        titleKey: 'admin.contentList'
       }
     },
     {

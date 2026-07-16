@@ -13,7 +13,9 @@ import router from '@/router'
 import { clearLoginState, submitLogin } from '@/utils/tools'
 import { Colors } from '@/type/entity'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const saveLoading = ref(false)
 
 type Form = {
@@ -39,9 +41,9 @@ const form: Form = reactive({
 })
 
 const route = useRoute()
-const t = route.params.token as string
-if (t) {
-  form.token = t
+const registerToken = route.params.token as string
+if (registerToken) {
+  form.token = registerToken
 }
 const username = route.query.username as string
 if (username) {
@@ -51,17 +53,19 @@ if (username) {
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
-GET<boolean>(buildQueryUrl(API_ENDPOINTS.AUTH.REGISTER_CHECK, { token: t })).then((res) => {
-  if (!res) {
-    router.push('/blogs')
+GET<boolean>(buildQueryUrl(API_ENDPOINTS.AUTH.REGISTER_CHECK, { token: registerToken })).then(
+  (res) => {
+    if (!res) {
+      router.push('/blogs')
+    }
   }
-})
+)
 
 const fileList = computed(() => {
   const arr: UploadUserFile[] = []
   if (form.avatar) {
     arr.push({
-      name: 'Cover',
+      name: t('auth.avatar'),
       url: form.avatar
     })
   }
@@ -73,24 +77,56 @@ const dialogImageUrl = ref('')
 
 const validatePassword = (_rule: unknown, value: string, callback: (error?: Error) => void) => {
   if (value !== form.password) {
-    callback(new Error('两次输入的密码不一致'))
+    callback(new Error(t('validation.passwordMismatch')))
     return
   }
   callback()
 }
 
-const formRules = reactive<FormRules<Form>>({
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+const formRules = computed<FormRules<Form>>(() => ({
+  username: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('auth.username') }),
+      trigger: 'blur'
+    }
+  ],
+  nickname: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('auth.nickname') }),
+      trigger: 'blur'
+    }
+  ],
+  password: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('auth.password') }),
+      trigger: 'blur'
+    }
+  ],
   confirmPassword: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
+    {
+      required: true,
+      message: t('validation.enter', { field: t('auth.password') }),
+      trigger: 'blur'
+    },
     { validator: validatePassword, trigger: 'blur' }
   ],
-  avatar: [{ required: false, message: '请输入头像链接', trigger: 'blur' }],
-  email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
-  phone: [{ required: false, message: '请输入手机号', trigger: 'blur' }]
-})
+  avatar: [
+    {
+      required: false,
+      message: t('validation.enter', { field: t('auth.avatarUrl') }),
+      trigger: 'blur'
+    }
+  ],
+  email: [
+    { required: true, message: t('validation.enter', { field: t('auth.email') }), trigger: 'blur' }
+  ],
+  phone: [
+    { required: false, message: t('validation.enter', { field: t('auth.phone') }), trigger: 'blur' }
+  ]
+}))
 
 const formRef = useTemplateRef<FormInstance>('form')
 
@@ -101,7 +137,7 @@ const upload = async (image: UploadRequestOptions) => {
 const uploadFile = async (file: UploadRawFile) => {
   const formdata = new FormData()
   formdata.append('image', file)
-  formdata.append('token', t)
+  formdata.append('token', registerToken)
   const url = await UPLOAD(
     API_ENDPOINTS.AUTH.REGISTER_IMAGE_UPLOAD,
     formdata,
@@ -114,18 +150,18 @@ const uploadFile = async (file: UploadRawFile) => {
   })
   form.avatar = url
   ElNotification({
-    title: '操作成功',
-    message: '图片上传成功',
+    title: t('common.operationSuccess'),
+    message: t('auth.imageUploadSuccess'),
     type: 'success'
   })
 }
 
 const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
   if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png') {
-    ElMessage.error('Avatar picture must be JPG/PNG format!')
+    ElMessage.error(t('common.imageFormatError'))
     return false
   } else if (rawFile.size / 1024 / 1024 > 5) {
-    ElMessage.error('Avatar picture size can not exceed 5MB!')
+    ElMessage.error(t('common.imageSizeError'))
     return false
   }
   return true
@@ -142,8 +178,8 @@ const submitForm = async (ref: FormInstance) => {
       try {
         await POST<null>(API_ENDPOINTS.AUTH.REGISTER_SAVE, form)
         ElNotification({
-          title: '操作成功',
-          message: '编辑成功',
+          title: t('common.operationSuccess'),
+          message: t('common.editSuccess'),
           type: 'success'
         })
         clearLoginState()
@@ -162,10 +198,12 @@ const handlePictureCardPreview = (file: UploadFile) => {
 
 const handleRemove = async () => {
   if (!form.avatar) return
-  await GET<null>(buildQueryUrl(API_ENDPOINTS.AUTH.REGISTER_IMAGE_DELETE, {
-    url: form.avatar,
-    token: t
-  }))
+  await GET<null>(
+    buildQueryUrl(API_ENDPOINTS.AUTH.REGISTER_IMAGE_DELETE, {
+      url: form.avatar,
+      token: registerToken
+    })
+  )
   form.avatar = ''
 }
 </script>
@@ -173,7 +211,7 @@ const handleRemove = async () => {
 <template>
   <div class="front">
     <el-form :model="form" :rules="formRules" ref="form" class="father">
-      <el-form-item label="用户名" label-width="80" prop="username" class="username">
+      <el-form-item :label="t('auth.username')" label-width="80" prop="username" class="username">
         <el-input
           v-model="form.username"
           maxlength="30"
@@ -181,19 +219,24 @@ const handleRemove = async () => {
         />
       </el-form-item>
 
-      <el-form-item label="昵称" label-width="80" prop="nickname" class="nickname">
+      <el-form-item :label="t('auth.nickname')" label-width="80" prop="nickname" class="nickname">
         <el-input v-model="form.nickname" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="密码" label-width="80" prop="password" class="password">
+      <el-form-item :label="t('auth.password')" label-width="80" prop="password" class="password">
         <el-input v-model="form.password" type="password" maxlength="30" />
       </el-form-item>
-      <el-form-item label="确认密码" label-width="80" prop="confirmPassword" class="password">
+      <el-form-item
+        :label="t('auth.confirmPassword')"
+        label-width="80"
+        prop="confirmPassword"
+        class="password"
+      >
         <el-input v-model="form.confirmPassword" type="password" maxlength="30" />
       </el-form-item>
 
       <el-form-item class="avatar" label-width="40">
-        <span style="margin-right: 10px">头像</span>
+        <span style="margin-right: 10px">{{ t('auth.avatar') }}</span>
         <el-upload
           v-model:file-list="fileList"
           action="#"
@@ -214,15 +257,20 @@ const handleRemove = async () => {
         </el-dialog>
       </el-form-item>
 
-      <el-form-item v-if="showPercentage" label="进度" label-width="80" class="progress">
+      <el-form-item
+        v-if="showPercentage"
+        :label="t('common.uploadProgress')"
+        label-width="80"
+        class="progress"
+      >
         <el-progress type="line" :percentage="uploadPercentage" :color="Colors" />
       </el-form-item>
 
-      <el-form-item label="邮箱" label-width="80" prop="email" class="email">
+      <el-form-item :label="t('auth.email')" label-width="80" prop="email" class="email">
         <el-input v-model="form.email" maxlength="30" />
       </el-form-item>
 
-      <el-form-item label="手机号" label-width="80" prop="phone" class="phone">
+      <el-form-item :label="t('auth.phone')" label-width="80" prop="phone" class="phone">
         <el-input v-model="form.phone" maxlength="30" />
       </el-form-item>
 
@@ -232,7 +280,7 @@ const handleRemove = async () => {
           :loading="saveLoading"
           :disabled="saveLoading"
           @click="submitForm(formRef!)"
-          >Submit</el-button
+          >{{ t('common.submit') }}</el-button
         >
       </div>
     </el-form>

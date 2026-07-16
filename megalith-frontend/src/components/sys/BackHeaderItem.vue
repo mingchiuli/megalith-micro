@@ -23,7 +23,7 @@ const logout = () => {
 <template>
   <div class="header-container">
     <el-text class="header-title" size="large"
-      >后台
+      >{{ $t('admin.backend') }}
       <el-dropdown class="header-dropdown">
         <span class="el-dropdown-link">
           {{ nickname }}
@@ -33,8 +33,8 @@ const logout = () => {
         </span>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item @click="goToHome">回到首页</el-dropdown-item>
-            <el-dropdown-item divided @click="logout">退出登录</el-dropdown-item>
+            <el-dropdown-item @click="goToHome">{{ $t('admin.home') }}</el-dropdown-item>
+            <el-dropdown-item divided @click="logout">{{ $t('admin.logout') }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

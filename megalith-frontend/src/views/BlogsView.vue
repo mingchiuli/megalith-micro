@@ -144,7 +144,9 @@ const { content, totalElements, pageSize } = toRefs(page)
       v-model:blog-id="blogId"
     />
     <div class="search-father">
-      <el-button class="search-button" @click="search" type="success">Search</el-button>
+      <el-button class="search-button" @click="search" type="success">{{
+        $t('common.search')
+      }}</el-button>
       <el-button
         class="theme-button"
         @click="theme.toggleTheme"
@@ -159,16 +161,18 @@ const { content, totalElements, pageSize } = toRefs(page)
         v-model:search-dialog-visible="searchDialogVisible"
       />
     </div>
-    <el-text size="large">共{{ page.totalElements }}篇</el-text>
+    <el-text size="large">{{ $t('blog.articles', { count: page.totalElements }) }}</el-text>
     <el-link
       type="success"
       size="large"
       class="door"
       v-if="login && menuStore().menuTree"
       @click="goToBack"
-      >进入后台</el-link
+      >{{ $t('blog.enterAdmin') }}</el-link
     >
-    <el-link class="door" type="warning" v-if="keywords" link @click="clearSearch">返回</el-link>
+    <el-link class="door" type="warning" v-if="keywords" link @click="clearSearch">{{
+      $t('common.back')
+    }}</el-link>
     <br />
     <div class="description">
       <el-skeleton animated :loading="loading" :throttle="300">
@@ -193,28 +197,28 @@ const { content, totalElements, pageSize } = toRefs(page)
               @load="loadImg"
               @error="loading = false"
             ></el-image>
-            <p v-if="blog.score">{{ 'Search Scores: ' + blog.score }}</p>
+            <p v-if="blog.score">{{ $t('blog.searchScore', { score: blog.score }) }}</p>
             <el-link class="title">{{ blog.title }}</el-link>
             <p v-if="!blog.highlight">{{ blog.description }}</p>
             <template v-if="blog.highlight?.title">
               <p
                 v-for="(title, key) in blog.highlight.title"
                 v-bind:key="key"
-                v-html="highlighted('标题: ', title)"
+                v-html="highlighted(`${$t('common.title')}: `, title)"
               ></p>
             </template>
             <template v-if="blog.highlight?.description">
               <p
                 v-for="(description, key) in blog.highlight.description"
                 v-bind:key="key"
-                v-html="highlighted('摘要: ', description)"
+                v-html="highlighted(`${$t('common.description')}: `, description)"
               ></p>
             </template>
             <template v-if="blog.highlight?.content">
               <p
                 v-for="(content, key) in blog.highlight.content"
                 v-bind:key="key"
-                v-html="highlighted('内容: ', content)"
+                v-html="highlighted(`${$t('common.content')}: `, content)"
               ></p>
             </template>
           </el-card>

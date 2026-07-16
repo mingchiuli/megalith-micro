@@ -21,7 +21,7 @@ const right = ref(10)
 // 主题管理
 const theme = themeStore()
 const { isDark } = storeToRefs(theme)
-const editorTheme = computed(() => isDark.value ? 'dark' : 'light')
+const editorTheme = computed(() => (isDark.value ? 'dark' : 'light'))
 
 const blog = reactive<BlogExhibit>({
   title: '',
@@ -76,9 +76,11 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth))
 ;(async () => {
   let data: BlogExhibit
   if (token) {
-    data = await GET<BlogExhibit>(buildQueryUrl(API_ENDPOINTS.BLOG_PUBLIC.GET_SECRET_BLOG(blogId), {
-      readToken: String(token)
-    }))
+    data = await GET<BlogExhibit>(
+      buildQueryUrl(API_ENDPOINTS.BLOG_PUBLIC.GET_SECRET_BLOG(blogId), {
+        readToken: String(token)
+      })
+    )
   } else {
     data = await GET<BlogExhibit>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOG_INFO(blogId))
   }
@@ -108,9 +110,13 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth))
   <div class="front">
     <div class="exhibit-title">{{ blog.title }}</div>
     <el-avatar class="exhibit-avatar" :src="blog.avatar" />
-    <el-text class="exhibit-author" size="large">作者: {{ blog.nickname }}</el-text>
+    <el-text class="exhibit-author" size="large">{{
+      $t('blog.author', { name: blog.nickname })
+    }}</el-text>
     <el-text class="exhibit-time" size="default">{{ blog.created }}</el-text>
-    <el-text class="exhibit-read-count" size="default">阅读数: {{ blog.readCount }}</el-text>
+    <el-text class="exhibit-read-count" size="default">{{
+      $t('blog.readCount', { count: blog.readCount })
+    }}</el-text>
     <el-skeleton animated :loading="loading" :throttle="300">
       <template #template>
         <el-skeleton :rows="15" />

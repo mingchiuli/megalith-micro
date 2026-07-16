@@ -12,6 +12,9 @@ import {
 } from '@/utils/tools'
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { fixSelection, fix, moreItems } = displayState()
 const input = ref('')
@@ -22,24 +25,24 @@ const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 const dateTimeScope = ref(['', ''])
 const status = ref<string | number>('')
-const statusOptions = [
+const statusOptions = computed(() => [
   {
     value: 0,
-    label: '公开'
+    label: t('common.public')
   },
   {
     value: 1,
-    label: '隐藏'
+    label: t('common.hidden')
   },
   {
     value: 2,
-    label: '打码'
+    label: t('common.masked')
   },
   {
     value: 3,
-    label: '草稿'
+    label: t('common.draft')
   }
-]
+])
 
 const page: PageAdapter<BlogSys> = reactive({
   content: [],
@@ -56,8 +59,8 @@ const delBatch = async () => {
   })
   await POST<null>(API_ENDPOINTS.BLOG_ADMIN.DELETE_BLOGS, args)
   ElNotification({
-    title: '操作成功',
-    message: '批量删除成功',
+    title: t('common.operationSuccess'),
+    message: t('common.batchDeleteSuccess'),
     type: 'success'
   })
   multipleSelection.value = []
@@ -69,8 +72,8 @@ const handleDelete = async (row: BlogSys) => {
   id.push(row.id)
   await POST<null>(API_ENDPOINTS.BLOG_ADMIN.DELETE_BLOGS, id)
   ElNotification({
-    title: '操作成功',
-    message: '删除成功',
+    title: t('common.operationSuccess'),
+    message: t('common.deleteSuccess'),
     type: 'success'
   })
   await searchBlogs()
@@ -88,7 +91,7 @@ const handleEdit = (row: BlogSys) => {
 const handlePassword = async (row: BlogSys) => {
   const token = await GET<string>(API_ENDPOINTS.BLOG_ADMIN.LOCK_BLOG(row.id))
   ElNotification({
-    title: '操作成功',
+    title: t('common.operationSuccess'),
     message: token,
     type: 'success'
   })
@@ -177,7 +180,7 @@ const clearDatePicker = async () => {
     <el-form-item>
       <el-input
         v-model="input"
-        placeholder="Please input"
+        :placeholder="t('common.input')"
         clearable
         maxlength="20"
         size="large"
@@ -193,16 +196,16 @@ const clearDatePicker = async () => {
         size="large"
         type="datetimerange"
         @clear="clearDatePicker"
-        range-separator="To"
-        start-placeholder="Start date"
-        end-placeholder="End date"
+        :range-separator="t('admin.dateSeparator')"
+        :start-placeholder="t('admin.startDate')"
+        :end-placeholder="t('admin.endDate')"
       />
     </el-form-item>
     <el-form-item>
       <el-select
         v-model="status"
         clearable
-        placeholder="状态"
+        :placeholder="t('common.status')"
         size="large"
         @clear="clearSelect"
         style="width: 100px"
@@ -224,7 +227,7 @@ const clearDatePicker = async () => {
       >
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_BATCH_DEL)">
-      <el-popconfirm title="确定批量删除?" @confirm="delBatch">
+      <el-popconfirm :title="t('common.batchDeleteConfirm')" @confirm="delBatch">
         <template #reference>
           <el-button
             :type="getButtonType(ButtonAuth.SYS_BLOG_BATCH_DEL)"
@@ -258,8 +261,8 @@ const clearDatePicker = async () => {
   >
     <el-table-column type="selection" :fixed="fixSelection" />
 
-    <el-table-column label="标题" align="center" prop="title" min-width="180" />
-    <el-table-column label="摘要" align="center" min-width="200">
+    <el-table-column :label="t('common.title')" align="center" prop="title" min-width="180" />
+    <el-table-column :label="t('common.description')" align="center" min-width="200">
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="top" min-width="200">
           <template #default>
@@ -276,7 +279,7 @@ const clearDatePicker = async () => {
       </template>
     </el-table-column>
 
-    <el-table-column label="内容" align="center" min-width="200">
+    <el-table-column :label="t('common.content')" align="center" min-width="200">
       <template #default="scope">
         <el-popover
           effect="light"
@@ -300,7 +303,7 @@ const clearDatePicker = async () => {
       </template>
     </el-table-column>
 
-    <el-table-column label="创建时间" min-width="180" align="center">
+    <el-table-column :label="t('common.createdAt')" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">
           <el-icon>
@@ -311,7 +314,7 @@ const clearDatePicker = async () => {
       </template>
     </el-table-column>
 
-    <el-table-column label="更新时间" min-width="180" align="center">
+    <el-table-column :label="t('common.updatedAt')" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">
           <el-icon>
@@ -322,34 +325,41 @@ const clearDatePicker = async () => {
       </template>
     </el-table-column>
 
-    <el-table-column label="阅读统计" align="center" min-width="180">
+    <el-table-column :label="t('admin.readStats')" align="center" min-width="180">
       <template #default="scope">
-        <div>总阅读数: {{ scope.row.readCount }}</div>
-        <div>本周阅读数: {{ scope.row.recentReadCount }}</div>
+        <div>{{ t('blog.totalReadCount', { count: scope.row.readCount }) }}</div>
+        <div>{{ t('blog.weeklyReadCount', { count: scope.row.recentReadCount }) }}</div>
       </template>
     </el-table-column>
 
-    <el-table-column label="封面" align="center">
+    <el-table-column :label="t('common.cover')" align="center">
       <template #default="scope">
         <el-avatar shape="square" size="default" :src="scope.row.link" />
       </template>
     </el-table-column>
 
-    <el-table-column label="状态" align="center">
+    <el-table-column :label="t('common.status')" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">公开</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger"
-          >隐藏</el-tag
+        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">{{
+          t('common.public')
+        }}</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">{{
+          t('common.hidden')
+        }}</el-tag>
+        <el-tag
+          size="small"
+          v-else-if="scope.row.status === Status.SENSITIVE_FILTER"
+          type="warning"
+          >{{ t('common.masked') }}</el-tag
         >
-        <el-tag size="small" v-else-if="scope.row.status === Status.SENSITIVE_FILTER" type="warning"
-          >打码</el-tag
-        >
-        <el-tag size="small" v-else-if="scope.row.status === Status.DRAFT" type="info">草稿</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.DRAFT" type="info">{{
+          t('common.draft')
+        }}</el-tag>
       </template>
     </el-table-column>
 
     <!-- @vue-generic {BlogSys} -->
-    <el-table-column :fixed="fix" label="操作" min-width="300" align="center">
+    <el-table-column :fixed="fix" :label="t('common.operations')" min-width="300" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_CHECK)">
           <el-button
@@ -381,7 +391,7 @@ const clearDatePicker = async () => {
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_DELETE)">
-          <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
+          <el-popconfirm :title="t('common.deleteConfirm')" @confirm="handleDelete(scope.row)">
             <template #reference>
               <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_DELETE)">{{
                 getButtonTitle(ButtonAuth.SYS_BLOG_DELETE)

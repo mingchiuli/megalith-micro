@@ -29,7 +29,9 @@ import {API_ENDPOINTS, buildQueryUrl} from '@/config/apiConfig'
 import {AI_MODELS} from '@/config/aiConfig'
 import {logger} from '@/utils/logger'
 import {useAiGenerate} from '@/composables'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const imageModel = AI_MODELS.IMAGE_MODEL
 const aiThinkingCollapse = ref<string[]>(['thinking'])
 const thinkingRef = useTemplateRef<HTMLDivElement>('thinkingRef')
@@ -76,8 +78,8 @@ watch(aiThinking, () => {
 
 const aiThinkingContent = computed(() => {
   if (aiThinking.value) return aiThinking.value
-  if (aiError.value) return '模型未返回思考过程'
-  return thinkingSupported.value ? '等待模型思考...' : '当前模型不支持思考过程'
+  if (aiError.value) return t('ai.noThinking')
+  return thinkingSupported.value ? t('ai.waitingThinking') : t('ai.unsupportedThinking')
 })
 const aiThinkingHtml = computed(() => render(aiThinkingContent.value))
 
@@ -126,19 +128,40 @@ const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
 
 const formRef = ref<FormInstance>()
-const formRules = reactive<FormRules<EditForm>>({
-  title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
-  description: [{ required: true, message: '请输入描述', trigger: 'blur' }],
-  content: [{ required: true, message: '请输入内容', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
-})
+const formRules = computed<FormRules<EditForm>>(() => ({
+  title: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('common.title') }),
+      trigger: 'blur'
+    }
+  ],
+  description: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('common.description') }),
+      trigger: 'blur'
+    }
+  ],
+  content: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('common.content') }),
+      trigger: 'blur'
+    }
+  ],
+  status: [
+    {
+      required: true,
+      message: t('validation.select', { field: t('common.status') }),
+      trigger: 'blur'
+    }
+  ]
+}))
 
 const handleAiGenerate = async () => {
   formRef.value?.clearValidate(['title', 'description'])
   await aiGenerate()
-  if (form.title && form.description) {
-    formRef.value?.clearValidate(['title', 'description'])
-  }
 }
 
 const upload = async (image: UploadRequestOptions) => {
@@ -169,8 +192,8 @@ const submitForm = async (ref: FormInstance) => {
         submitLoading.value = true
         await POST<null>(API_ENDPOINTS.BLOG_ADMIN.SAVE_BLOG, form)
         ElNotification({
-          title: '操作成功',
-          message: '编辑成功',
+          title: t('common.operationSuccess'),
+          message: t('common.editSuccess'),
           type: 'success',
           duration: 1000
         })
@@ -244,10 +267,10 @@ const getExhibitWords = (type: SensitiveType, form: EditForm) => {
 
 const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
   if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png') {
-    ElMessage.error('Avatar picture must be JPG/PNG format!')
+    ElMessage.error(t('common.imageFormatError'))
     return false
   } else if (rawFile.size / 1024 / 1024 > 5) {
-    ElMessage.error('Avatar picture size can not exceed 5MB!')
+    ElMessage.error(t('common.imageSizeError'))
     return false
   }
   return true
@@ -372,7 +395,7 @@ const handleConfirmUpload = async () => {
           ref="titleRef"
           @select="handleTitleSelect"
           v-model="form.title"
-          placeholder="标题"
+          :placeholder="t('common.title')"
           maxlength="20"
           :disabled="!owner"
         />
@@ -386,7 +409,7 @@ const handleConfirmUpload = async () => {
             autosize
             type="textarea"
             v-model="form.description"
-            placeholder="摘要"
+            :placeholder="t('common.description')"
             maxlength="60"
             :disabled="!owner"
           />
@@ -395,7 +418,7 @@ const handleConfirmUpload = async () => {
         <div class="ai-actions">
           <el-select
             v-model="aiModel"
-            placeholder="模型"
+            :placeholder="t('ai.model')"
             style="width: 140px"
             :disabled="aiLoading"
           >
@@ -422,14 +445,14 @@ const handleConfirmUpload = async () => {
       <!-- AI 生成面板 -->
       <div v-if="aiPanelVisible" class="ai-panel">
         <el-steps :active="aiStep - 1" align-center finish-status="success">
-          <el-step title="生成标题摘要" :status="failedStep === 1 ? 'error' : undefined" />
+          <el-step :title="t('ai.titleSummary')" :status="failedStep === 1 ? 'error' : undefined" />
           <el-step
-            title="生成图片提示词"
+            :title="t('ai.imagePrompt')"
             :description="imageSkipReason"
             :status="failedStep === 2 ? 'error' : imageSkipReason ? 'wait' : undefined"
           />
           <el-step
-            title="生成封面图片"
+            :title="t('ai.coverImage')"
             :status="failedStep === 3 ? 'error' : imageSkipReason ? 'wait' : undefined"
           />
         </el-steps>
@@ -444,26 +467,26 @@ const handleConfirmUpload = async () => {
         />
 
         <el-collapse v-model="aiThinkingCollapse" class="thinking-collapse">
-          <el-collapse-item title="💭 模型思考过程" name="thinking">
+          <el-collapse-item :title="`💭 ${t('ai.thinking')}`" name="thinking">
             <div class="thinking-content" ref="thinkingRef" v-html="aiThinkingHtml"></div>
           </el-collapse-item>
         </el-collapse>
 
-        <el-form-item v-if="imageGenerating" label="图片生成进度" class="progress">
+        <el-form-item v-if="imageGenerating" :label="t('ai.imageProgress')" class="progress">
           <el-progress type="line" :percentage="imageProgress" :color="Colors" />
         </el-form-item>
       </div>
 
       <el-form-item class="status" prop="status">
         <el-radio-group v-model="form.status" :disabled="!owner">
-          <el-radio :value="Status.NORMAL">公开</el-radio>
-          <el-radio :value="Status.BLOCK">隐藏</el-radio>
-          <el-radio :value="Status.SENSITIVE_FILTER">打码</el-radio>
-          <el-radio :value="Status.DRAFT">草稿</el-radio>
+          <el-radio :value="Status.NORMAL">{{ t('common.public') }}</el-radio>
+          <el-radio :value="Status.BLOCK">{{ t('common.hidden') }}</el-radio>
+          <el-radio :value="Status.SENSITIVE_FILTER">{{ t('common.masked') }}</el-radio>
+          <el-radio :value="Status.DRAFT">{{ t('common.draft') }}</el-radio>
         </el-radio-group>
       </el-form-item>
 
-      <el-form-item v-if="form.status === Status.SENSITIVE_FILTER" label="打码">
+      <el-form-item v-if="form.status === Status.SENSITIVE_FILTER" :label="t('common.masked')">
         <el-popover
           v-for="tag in sensitiveTags"
           :key="`${tag.element.type}-${tag.element.startIndex}`"
@@ -504,12 +527,17 @@ const handleConfirmUpload = async () => {
         <!-- 图片生成预览 dialog -->
         <el-dialog
           v-model="generatedImageDialogVisible"
-          title="封面图片预览"
+          :title="t('ai.coverPreview')"
           width="500px"
           :close-on-click-modal="true"
         >
           <div class="image-preview-container">
-            <img v-if="generatedImageUrl" :src="generatedImageUrl" class="preview-image" alt="预览图片" />
+            <img
+              v-if="generatedImageUrl"
+              :src="generatedImageUrl"
+              class="preview-image"
+              :alt="t('ai.previewAlt')"
+            />
           </div>
           <div class="upload-progress-wrapper">
             <el-progress
@@ -521,13 +549,28 @@ const handleConfirmUpload = async () => {
             />
           </div>
           <template #footer>
-            <el-button v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_AI)" @click="regenerateImage" :loading="imageGenerating">重新生成</el-button>
-            <el-button v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)" type="primary" @click="handleConfirmUpload" :loading="uploadLoading">确认上传</el-button>
+            <el-button
+              v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_AI)"
+              @click="regenerateImage"
+              :loading="imageGenerating"
+              >{{ t('ai.regenerate') }}</el-button
+            >
+            <el-button
+              v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)"
+              type="primary"
+              @click="handleConfirmUpload"
+              :loading="uploadLoading"
+              >{{ t('ai.confirmUpload') }}</el-button
+            >
           </template>
         </el-dialog>
       </el-form-item>
 
-      <el-form-item label="上传进度" class="progress" v-if="showPercentage && !generatedImageDialogVisible">
+      <el-form-item
+        :label="t('common.uploadProgress')"
+        class="progress"
+        v-if="showPercentage && !generatedImageDialogVisible"
+      >
         <el-progress type="line" :percentage="uploadPercentage" :color="Colors" />
       </el-form-item>
 

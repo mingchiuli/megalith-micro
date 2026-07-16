@@ -6,6 +6,9 @@ import { Status, ButtonAuth, AuthStatus } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS } from '@/config/apiConfig'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { fixSelection, fix } = displayState()
 const multipleSelection = ref<AuthoritySys[]>([])
@@ -17,17 +20,67 @@ const showPercentage = ref(false)
 
 const content = ref<AuthoritySys[]>([])
 
-const formRules = reactive<FormRules<Form>>({
-  code: [{ required: true, message: '请输入权限编码', trigger: 'blur' }],
-  remark: [{ required: true, message: '请输入描述', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'blur' }],
-  type: [{ required: true, message: '请选择类型', trigger: 'blur' }],
-  prototype: [{ required: true, message: '请输入协议:http/ws', trigger: 'blur' }],
-  methodType: [{ required: true, message: '请输入方法类型', trigger: 'blur' }],
-  routePattern: [{ required: true, message: '请输入路由匹配', trigger: 'blur' }],
-  serviceHost: [{ required: true, message: '请输入调用域名', trigger: 'blur' }],
-  servicePort: [{ required: true, message: '请输入调用端口', trigger: 'blur' }]
-})
+const formRules = computed<FormRules<Form>>(() => ({
+  code: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('admin.permissionCode') }),
+      trigger: 'blur'
+    }
+  ],
+  remark: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('admin.remark') }),
+      trigger: 'blur'
+    }
+  ],
+  status: [
+    {
+      required: true,
+      message: t('validation.select', { field: t('common.status') }),
+      trigger: 'blur'
+    }
+  ],
+  type: [
+    {
+      required: true,
+      message: t('validation.select', { field: t('common.type') }),
+      trigger: 'blur'
+    }
+  ],
+  prototype: [
+    {
+      required: true,
+      message: t('validation.select', { field: t('admin.protocol') }),
+      trigger: 'blur'
+    }
+  ],
+  methodType: [
+    {
+      required: true,
+      message: t('validation.select', { field: t('admin.methodType') }),
+      trigger: 'blur'
+    }
+  ],
+  routePattern: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('admin.routePattern') }),
+      trigger: 'blur'
+    }
+  ],
+  serviceHost: [
+    {
+      required: true,
+      message: t('validation.select', { field: t('admin.service') }),
+      trigger: 'blur'
+    }
+  ],
+  servicePort: [
+    { required: true, message: t('validation.enter', { field: t('admin.port') }), trigger: 'blur' }
+  ]
+}))
 const formRef = ref<FormInstance>()
 type Form = {
   id?: number
@@ -62,8 +115,8 @@ const delBatch = async () => {
   })
   await POST<null>(API_ENDPOINTS.AUTHORITY_ADMIN.DELETE_AUTHORITIES, args)
   ElNotification({
-    title: '操作成功',
-    message: '批量删除成功',
+    title: t('common.operationSuccess'),
+    message: t('common.batchDeleteSuccess'),
     type: 'success'
   })
   multipleSelection.value = []
@@ -84,8 +137,8 @@ const handleDelete = async (row: AuthoritySys) => {
   id.push(row.id)
   await POST<null>(API_ENDPOINTS.AUTHORITY_ADMIN.DELETE_AUTHORITIES, id)
   ElNotification({
-    title: '操作成功',
-    message: '删除成功',
+    title: t('common.operationSuccess'),
+    message: t('common.deleteSuccess'),
     type: 'success'
   })
   await queryAuthorities()
@@ -121,8 +174,8 @@ const submitForm = async (ref: FormInstance) => {
     if (valid) {
       await POST<null>(API_ENDPOINTS.AUTHORITY_ADMIN.SAVE_AUTHORITY, form)
       ElNotification({
-        title: '操作成功',
-        message: '编辑成功',
+        title: t('common.operationSuccess'),
+        message: t('common.editSuccess'),
         type: 'success'
       })
       clearForm()
@@ -161,7 +214,7 @@ const clearForm = () => {
       >
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_BATCH_DEL)">
-      <el-popconfirm title="确定批量删除?" @confirm="delBatch">
+      <el-popconfirm :title="t('common.batchDeleteConfirm')" @confirm="delBatch">
         <template #reference>
           <el-button
             :type="getButtonType(ButtonAuth.SYS_AUTHORITY_BATCH_DEL)"
@@ -194,37 +247,59 @@ const clearForm = () => {
     v-loading="loading"
   >
     <el-table-column type="selection" :fixed="fixSelection" />
-    <el-table-column label="权限编码" align="center" prop="code" min-width="300" />
+    <el-table-column
+      :label="t('admin.permissionCode')"
+      align="center"
+      prop="code"
+      min-width="300"
+    />
 
-    <el-table-column label="协议" align="center" prop="prototype" min-width="130" />
-    <el-table-column label="方法类型" align="center" prop="methodType" min-width="130" />
-    <el-table-column label="路由匹配" align="center" prop="routePattern" min-width="300" />
-    <el-table-column label="请求服务" align="center" prop="serviceHost" min-width="250" />
-    <el-table-column label="请求端口" align="center" prop="servicePort" min-width="100" />
+    <el-table-column :label="t('admin.protocol')" align="center" prop="prototype" min-width="130" />
+    <el-table-column
+      :label="t('admin.methodType')"
+      align="center"
+      prop="methodType"
+      min-width="130"
+    />
+    <el-table-column
+      :label="t('admin.routePattern')"
+      align="center"
+      prop="routePattern"
+      min-width="300"
+    />
+    <el-table-column
+      :label="t('admin.service')"
+      align="center"
+      prop="serviceHost"
+      min-width="250"
+    />
+    <el-table-column :label="t('admin.port')" align="center" prop="servicePort" min-width="100" />
 
-    <el-table-column label="描述" min-width="300" align="center" prop="remark" />
+    <el-table-column :label="t('admin.remark')" min-width="300" align="center" prop="remark" />
 
-    <el-table-column label="状态" align="center">
+    <el-table-column :label="t('common.status')" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">启用</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger"
-          >停用</el-tag
-        >
+        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">{{
+          t('common.enabled')
+        }}</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">{{
+          t('common.inactive')
+        }}</el-tag>
       </template>
     </el-table-column>
 
-    <el-table-column label="类型" align="center">
+    <el-table-column :label="t('common.type')" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.type === AuthStatus.WHITE_LIST" type="success"
-          >白名单</el-tag
-        >
-        <el-tag size="small" v-else-if="scope.row.type === AuthStatus.NEED_AUTH" type="warning"
-          >需鉴权</el-tag
-        >
+        <el-tag size="small" v-if="scope.row.type === AuthStatus.WHITE_LIST" type="success">{{
+          t('admin.whiteList')
+        }}</el-tag>
+        <el-tag size="small" v-else-if="scope.row.type === AuthStatus.NEED_AUTH" type="warning">{{
+          t('admin.authRequired')
+        }}</el-tag>
       </template>
     </el-table-column>
 
-    <el-table-column label="创建时间" min-width="180" align="center">
+    <el-table-column :label="t('common.createdAt')" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">
           <el-icon>
@@ -235,7 +310,7 @@ const clearForm = () => {
       </template>
     </el-table-column>
 
-    <el-table-column label="更新时间" min-width="180" align="center">
+    <el-table-column :label="t('common.updatedAt')" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">
           <el-icon>
@@ -247,7 +322,7 @@ const clearForm = () => {
     </el-table-column>
 
     <!-- @vue-generic {AuthoritySys} -->
-    <el-table-column :fixed="fix" label="操作" min-width="180" align="center">
+    <el-table-column :fixed="fix" :label="t('common.operations')" min-width="180" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_EDIT)">
           <el-button
@@ -259,7 +334,7 @@ const clearForm = () => {
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DELETE)">
-          <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
+          <el-popconfirm :title="t('common.deleteConfirm')" @confirm="handleDelete(scope.row)">
             <template #reference>
               <el-button size="small" :type="getButtonType(ButtonAuth.SYS_AUTHORITY_DELETE)">{{
                 getButtonTitle(ButtonAuth.SYS_AUTHORITY_DELETE)
@@ -271,37 +346,53 @@ const clearForm = () => {
     </el-table-column>
   </el-table>
 
-  <el-dialog v-model="dialogVisible" title="新增/编辑" width="600px" :before-close="handleClose">
+  <el-dialog
+    v-model="dialogVisible"
+    :title="t('common.addEdit')"
+    width="600px"
+    :before-close="handleClose"
+  >
     <el-form :model="form" :rules="formRules" ref="formRef">
-      <el-form-item label="权限编码" label-width="100px" prop="code">
+      <el-form-item :label="t('admin.permissionCode')" label-width="100px" prop="code">
         <el-input v-model="form.code" maxlength="50" />
       </el-form-item>
 
-      <el-form-item label="描述" label-width="100px" prop="remark">
+      <el-form-item :label="t('admin.remark')" label-width="100px" prop="remark">
         <el-input v-model="form.remark" maxlength="50" />
       </el-form-item>
 
-      <el-form-item label="协议" label-width="100px" prop="prototype">
-        <el-select v-model="form.prototype" placeholder="请选择协议" style="width: 100%">
+      <el-form-item :label="t('admin.protocol')" label-width="100px" prop="prototype">
+        <el-select
+          v-model="form.prototype"
+          :placeholder="t('validation.select', { field: t('admin.protocol') })"
+          style="width: 100%"
+        >
           <el-option label="http" value="http" />
           <el-option label="ws" value="ws" />
         </el-select>
       </el-form-item>
-      
-      <el-form-item label="方法类型" label-width="100px" prop="methodType">
-        <el-select v-model="form.methodType" placeholder="请选择方法类型" style="width: 100%">
+
+      <el-form-item :label="t('admin.methodType')" label-width="100px" prop="methodType">
+        <el-select
+          v-model="form.methodType"
+          :placeholder="t('validation.select', { field: t('admin.methodType') })"
+          style="width: 100%"
+        >
           <el-option label="GET" value="GET" />
           <el-option label="POST" value="POST" />
         </el-select>
       </el-form-item>
 
-
-      <el-form-item label="路由匹配" label-width="100px" prop="routePattern">
+      <el-form-item :label="t('admin.routePattern')" label-width="100px" prop="routePattern">
         <el-input v-model="form.routePattern" maxlength="50" />
       </el-form-item>
 
-      <el-form-item label="请求服务" label-width="100px" prop="serviceHost">
-        <el-select v-model="form.serviceHost" placeholder="请选择服务" style="width: 100%">
+      <el-form-item :label="t('admin.service')" label-width="100px" prop="serviceHost">
+        <el-select
+          v-model="form.serviceHost"
+          :placeholder="t('validation.select', { field: t('admin.service') })"
+          style="width: 100%"
+        >
           <el-option label="micro-blog" value="micro-blog" />
           <el-option label="micro-user" value="micro-user" />
           <el-option label="micro-auth" value="micro-auth" />
@@ -311,22 +402,21 @@ const clearForm = () => {
         </el-select>
       </el-form-item>
 
-
-      <el-form-item label="请求端口" label-width="100px" prop="servicePort">
+      <el-form-item :label="t('admin.port')" label-width="100px" prop="servicePort">
         <el-input v-model="form.servicePort" maxlength="50" />
       </el-form-item>
 
-      <el-form-item label="状态" label-width="100px" prop="status">
+      <el-form-item :label="t('common.status')" label-width="100px" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio :value="Status.NORMAL">启用</el-radio>
-          <el-radio :value="Status.BLOCK">禁用</el-radio>
+          <el-radio :value="Status.NORMAL">{{ t('common.enabled') }}</el-radio>
+          <el-radio :value="Status.BLOCK">{{ t('common.disabled') }}</el-radio>
         </el-radio-group>
       </el-form-item>
 
-      <el-form-item label="类型" label-width="100px" prop="type">
+      <el-form-item :label="t('common.type')" label-width="100px" prop="type">
         <el-radio-group v-model="form.type">
-          <el-radio :value="AuthStatus.WHITE_LIST">白名单</el-radio>
-          <el-radio :value="AuthStatus.NEED_AUTH">需鉴权</el-radio>
+          <el-radio :value="AuthStatus.WHITE_LIST">{{ t('admin.whiteList') }}</el-radio>
+          <el-radio :value="AuthStatus.NEED_AUTH">{{ t('admin.authRequired') }}</el-radio>
         </el-radio-group>
       </el-form-item>
 

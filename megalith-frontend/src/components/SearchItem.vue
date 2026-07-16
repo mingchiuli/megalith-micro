@@ -13,6 +13,8 @@ import type HotItem from '@/components/HotItem.vue'
 import { blogsStore } from '@/stores'
 import { buildCommonUrls } from '@/config/apiConfig'
 import { sanitizeHighlight } from '@/utils/sanitize'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
   refresh: [payload: void]
@@ -79,7 +81,7 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (
           cb(suggestionList.value)
           if (!page.content.length) {
             suggestionList.value = []
-            ElMessage.error('No Records')
+            ElMessage.error(t('common.noRecords'))
             return
           }
 
@@ -227,7 +229,7 @@ defineExpose({ searchAllInfo })
           id="elc"
           v-model="keywords"
           :fetch-suggestions="searchAbstractAsync"
-          placeholder="Please input"
+          :placeholder="t('common.input')"
           placement="bottom"
           @select="handleSelect"
           :trigger-on-focus="false"
@@ -244,14 +246,15 @@ defineExpose({ searchAllInfo })
                 class="value"
                 v-for="(title, key) in item.highlight.title"
                 v-bind:key="key"
-                v-html="highlighted('标题：', title)"/>
+                v-html="highlighted(`${t('common.title')}：`, title)"
+              />
             </template>
             <template v-if="item.highlight.description">
               <div
                 class="value"
                 v-for="(description, key) in item.highlight.description"
                 v-bind:key="key"
-                v-html="highlighted('摘要：', description)"
+                v-html="highlighted(`${t('common.description')}：`, description)"
               />
             </template>
             <template v-if="item.highlight.content">
@@ -260,7 +263,7 @@ defineExpose({ searchAllInfo })
                 class="value"
                 v-for="(content, key) in item.highlight.content"
                 v-bind:key="key"
-                v-html="highlighted('内容：', content)"
+                v-html="highlighted(`${t('common.content')}：`, content)"
               />
             </template>
           </template>
@@ -274,7 +277,9 @@ defineExpose({ searchAllInfo })
     </template>
     <template #footer>
       <div class="dialog-footer">
-        <el-button type="primary" @click="searchAllInfo(keywords!)">Confirm</el-button>
+        <el-button type="primary" @click="searchAllInfo(keywords!)">{{
+          t('common.confirm')
+        }}</el-button>
       </div>
     </template>
   </el-dialog>

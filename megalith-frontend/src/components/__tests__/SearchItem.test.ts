@@ -72,7 +72,7 @@ describe('SearchItem.vue', () => {
     const wrapper = mountSearch()
     // el-dialog 使用 Teleport + 异步渲染，需要等微任务队列清空
     await flushPromises()
-    expect(document.body.textContent).toContain('Confirm')
+    expect(document.body.textContent).toContain('确定')
     wrapper.unmount()
   })
 

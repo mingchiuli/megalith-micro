@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import { Status } from '@/type/entity'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   status: Status
@@ -7,26 +10,29 @@ const props = defineProps<{
 }>()
 
 const getStatusInfo = (status: Status, displayType: string = 'blog') => {
-  const blogLabels: Record<number, { label: string; type: 'success' | 'danger' | 'warning' | 'info' }> = {
-    [Status.NORMAL]: { label: '公开', type: 'success' },
-    [Status.BLOCK]: { label: '隐藏', type: 'danger' },
-    [Status.SENSITIVE_FILTER]: { label: '打码', type: 'warning' },
-    [Status.DRAFT]: { label: '草稿', type: 'info' }
+  const blogLabels: Record<
+    number,
+    { label: string; type: 'success' | 'danger' | 'warning' | 'info' }
+  > = {
+    [Status.NORMAL]: { label: t('common.public'), type: 'success' },
+    [Status.BLOCK]: { label: t('common.hidden'), type: 'danger' },
+    [Status.SENSITIVE_FILTER]: { label: t('common.masked'), type: 'warning' },
+    [Status.DRAFT]: { label: t('common.draft'), type: 'info' }
   }
   const userLabels: Record<number, { label: string; type: 'success' | 'danger' }> = {
-    [Status.NORMAL]: { label: '启用', type: 'success' },
-    [Status.BLOCK]: { label: '停用', type: 'danger' }
+    [Status.NORMAL]: { label: t('common.enabled'), type: 'success' },
+    [Status.BLOCK]: { label: t('common.inactive'), type: 'danger' }
   }
 
   const labels = displayType === 'user' ? userLabels : blogLabels
-  return labels[status] || { label: '未知', type: 'info' }
+  return labels[status] || { label: t('common.unknown'), type: 'info' }
 }
 
-const statusInfo = () => getStatusInfo(props.status, props.type)
+const statusInfo = computed(() => getStatusInfo(props.status, props.type))
 </script>
 
 <template>
-  <el-tag size="small" :type="statusInfo().type">
-    {{ statusInfo().label }}
+  <el-tag size="small" :type="statusInfo.type">
+    {{ statusInfo.label }}
   </el-tag>
 </template>

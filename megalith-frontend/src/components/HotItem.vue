@@ -30,11 +30,11 @@ defineExpose({ load })
 <template>
   <el-card shadow="never" class="hot-blogs" v-loading="loading">
     <div class="title">
-      <el-text>本周阅读排行</el-text>
+      <el-text>{{ $t('blog.weeklyRanking') }}</el-text>
     </div>
     <div class="description" v-for="(hot, key) in hots" v-bind:key="key">
       <el-link @click="to(hot.id)"
-        >{{ hot.title ? hot.title : '匿名文章' }}: {{ hot.readCount }}</el-link
+        >{{ hot.title ? hot.title : $t('blog.anonymousArticle') }}: {{ hot.readCount }}</el-link
       >
       <br />
     </div>
