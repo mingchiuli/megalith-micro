@@ -5,6 +5,9 @@ import { Status, ButtonAuth } from '@/type/entity'
 import { checkButtonAuth, getButtonType, render, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { moreItems, fix } = displayState()
 const loading = ref(false)
@@ -57,8 +60,8 @@ const handleResume = async (row: BlogDelSys) => {
     loading.value = false
   }
   ElNotification({
-    title: '操作成功',
-    message: '恢复成功',
+    title: t('common.operationSuccess'),
+    message: t('common.restoreSuccess'),
     type: 'success'
   })
   await queryDelBLogs()
@@ -78,8 +81,8 @@ const handleResume = async (row: BlogDelSys) => {
     @selection-change="handleSelectionChange"
     v-loading="loading"
   >
-    <el-table-column label="标题" align="center" prop="title" min-width="180" />
-    <el-table-column label="摘要" align="center" min-width="200">
+    <el-table-column :label="t('common.title')" align="center" prop="title" min-width="180" />
+    <el-table-column :label="t('common.description')" align="center" min-width="200">
       <template #default="scope">
         <el-popover effect="light" trigger="hover" placement="top" width="auto">
           <template #default>
@@ -96,7 +99,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="内容" align="center" min-width="200">
+    <el-table-column :label="t('common.content')" align="center" min-width="200">
       <template #default="scope">
         <el-popover
           effect="light"
@@ -120,7 +123,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="创建时间" min-width="180" align="center">
+    <el-table-column :label="t('common.createdAt')" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">
           <el-icon>
@@ -131,7 +134,7 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="更新时间" min-width="180" align="center">
+    <el-table-column :label="t('common.updatedAt')" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">
           <el-icon>
@@ -142,32 +145,37 @@ const handleResume = async (row: BlogDelSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="阅读统计" align="center" min-width="180">
+    <el-table-column :label="t('admin.readStats')" align="center" min-width="180">
       <template #default="scope">
-        <div>总阅读数: {{ scope.row.readCount }}</div>
+        <div>{{ t('blog.totalReadCount', { count: scope.row.readCount }) }}</div>
       </template>
     </el-table-column>
 
-    <el-table-column label="封面" align="center">
+    <el-table-column :label="t('common.cover')" align="center">
       <template #default="scope">
         <el-avatar shape="square" size="default" :src="scope.row.link" />
       </template>
     </el-table-column>
 
-    <el-table-column label="状态" align="center">
+    <el-table-column :label="t('common.status')" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">公开</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger"
-          >隐藏</el-tag
-        >
-        <el-tag size="small" v-else-if="scope.row.status === Status.SENSITIVE_FILTER" type="warning"
-          >打码</el-tag
+        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">{{
+          t('common.public')
+        }}</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">{{
+          t('common.hidden')
+        }}</el-tag>
+        <el-tag
+          size="small"
+          v-else-if="scope.row.status === Status.SENSITIVE_FILTER"
+          type="warning"
+          >{{ t('common.masked') }}</el-tag
         >
       </template>
     </el-table-column>
 
     <!-- @vue-generic {BlogDelSys} -->
-    <el-table-column :fixed="fix" label="操作" min-width="120" align="center">
+    <el-table-column :fixed="fix" :label="t('common.operations')" min-width="120" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_DELETE_RESUME)">
           <el-button

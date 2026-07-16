@@ -5,6 +5,7 @@ import router from '@/router'
 import {loginStateStore} from '@/stores'
 import {API_CONFIG, API_ENDPOINTS} from '@/config/apiConfig'
 import { createTraceParent } from '@/config/otel'
+import { i18n } from '@/i18n'
 
 const httpClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -39,9 +40,9 @@ const responseInterceptor = (response: AxiosResponse) => {
   if (response.status >= 200 && response.status < 300) {
     return response
   }
-  
+
   ElNotification.error({
-    title: 'Request Error',
+    title: i18n.global.t('error.request'),
     message: response.data.msg,
     showClose: true
   })
@@ -55,7 +56,7 @@ const errorInterceptor = (error: AxiosError<Data<unknown>>) => {
     message: error.response?.data.msg ?? error.message,
     showClose: true
   })
-  
+
   if (error.response?.status === 403) {
     clearLoginState()
     router.push({

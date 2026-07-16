@@ -2,12 +2,9 @@ import { aiHttpClient } from '@/http/axios'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 import { cleanJsonResponse } from '@/utils/tools'
 import { logger } from '@/utils/logger'
-import {
-  ollamaStreamRequest,
-  type StreamChunk,
-  type ThinkOption
-} from '@/utils/ollamaStream'
+import { ollamaStreamRequest, type StreamChunk, type ThinkOption } from '@/utils/ollamaStream'
 import type { AiModel, AiModelsResp } from '@/type/entity'
+import { i18n, type AppLocale } from '@/i18n'
 
 type AiGenerateForm = {
   content: string
@@ -22,16 +19,19 @@ type GenerationContext = {
   content: string
   model: string
   think?: ThinkOption
+  locale: AppLocale
 }
 
 const AI_URL = API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT
-const STEP_LABELS: Record<Exclude<FailedStep, null>, string> = {
-  1: '标题摘要',
-  2: '图片提示词',
-  3: '封面图片'
+const STEP_LABEL_KEYS: Record<Exclude<FailedStep, null>, string> = {
+  1: 'ai.titleSummarySubject',
+  2: 'ai.imagePromptSubject',
+  3: 'ai.coverImageSubject'
 }
 
-const titleSummaryPrompt = (content: string) => `请仔细阅读以下文章：\n${content}，根据文章内容生成标题和摘要：
+const titleSummaryPrompt = (content: string, locale: AppLocale) =>
+  locale === 'zh-CN'
+    ? `请仔细阅读以下文章：\n${content}，根据文章内容生成标题和摘要：
 
 输出要求：
 - 格式：严格的JSON字符串
@@ -46,8 +46,20 @@ const titleSummaryPrompt = (content: string) => `请仔细阅读以下文章：\
 - 返回内容必须是可直接解析的JSON
 - 不要包含markdown、代码块等任何格式标记
 - JSON前后不能有空格或其他字符`
+    : `Read the following article carefully:\n${content}\nGenerate an English title and summary.
 
-const imagePrompt = (content: string) => `请仔细阅读以下文章：\n${content}，根据文章内容生成一张图片的英文提示词。
+Output requirements:
+- Return a strict JSON object only
+- title: no more than 10 words
+- description: no more than 50 words
+- Do not include Markdown, code fences, or any surrounding text
+
+Example:
+{"title":"Title","description":"Article summary"}`
+
+const imagePrompt = (content: string, locale: AppLocale) =>
+  locale === 'zh-CN'
+    ? `请仔细阅读以下文章：\n${content}，根据文章内容生成一张图片的英文提示词。
 
 输出要求：
 - 格式：严格的JSON字符串
@@ -61,6 +73,15 @@ const imagePrompt = (content: string) => `请仔细阅读以下文章：\n${cont
 - 返回内容必须是可直接解析的JSON
 - 不要包含markdown、代码块等任何格式标记
 - JSON前后不能有空格或其他字符`
+    : `Read the following article carefully:\n${content}\nGenerate an English prompt for a cover image.
+
+Output requirements:
+- Return a strict JSON object only
+- imagePrompt: no more than 100 words and focused on the article's central scene or idea
+- Do not include Markdown, code fences, or any surrounding text
+
+Example:
+{"imagePrompt":"A clear visual scene representing the article's central idea"}`
 
 const parseJsonResponse = (response: string): Record<string, unknown> =>
   JSON.parse(cleanJsonResponse(response)) as Record<string, unknown>
@@ -88,9 +109,7 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
   const generatedImageBase64 = ref('')
   const generatedImageDialogVisible = ref(false)
 
-  const selectedModel = computed(() =>
-    aiModels.value.find((item) => item.model === aiModel.value)
-  )
+  const selectedModel = computed(() => aiModels.value.find((item) => item.model === aiModel.value))
   const imageModelAvailable = computed(() =>
     aiModels.value.some((item) => item.model === imageModel || item.name === imageModel)
   )
@@ -107,7 +126,8 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
   const createGenerationContext = (): GenerationContext => ({
     content: form.content,
     model: aiModel.value,
-    think: getThinkingOption()
+    think: getThinkingOption(),
+    locale: i18n.global.locale.value as AppLocale
   })
 
   const loadAiModels = async () => {
@@ -125,7 +145,7 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
     await ollamaStreamRequest({
       url: AI_URL,
       model: context.model,
-      prompt: titleSummaryPrompt(context.content),
+      prompt: titleSummaryPrompt(context.content, context.locale),
       think: context.think,
       format: 'json',
       onChunk: (chunk: StreamChunk) => {
@@ -148,7 +168,7 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
     await ollamaStreamRequest({
       url: AI_URL,
       model: context.model,
-      prompt: imagePrompt(context.content),
+      prompt: imagePrompt(context.content, context.locale),
       think: context.think,
       format: 'json',
       onChunk: (chunk: StreamChunk) => {
@@ -204,8 +224,10 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
   const handleWorkflowError = (error: unknown) => {
     failedStep.value =
       aiStep.value === 1 || aiStep.value === 2 || aiStep.value === 3 ? aiStep.value : null
-    const label = failedStep.value ? STEP_LABELS[failedStep.value] : 'AI 内容'
-    aiError.value = `${label}生成失败，请重试`
+    const label = failedStep.value
+      ? i18n.global.t(STEP_LABEL_KEYS[failedStep.value])
+      : i18n.global.t('ai.contentGeneration')
+    aiError.value = i18n.global.t('ai.generationFailed', { step: label })
     logger.warn('AI 生成流程失败:', error)
   }
 
@@ -224,7 +246,9 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
     try {
       await generateTitleSummary(context)
       if (form.link || !imageModelAvailable.value) {
-        imageSkipReason.value = form.link ? '已有封面，已跳过' : '图片模型不可用，已跳过'
+        imageSkipReason.value = form.link
+          ? i18n.global.t('ai.skippedExistingCover')
+          : i18n.global.t('ai.skippedUnavailableModel')
         aiStep.value = 4
         return
       }

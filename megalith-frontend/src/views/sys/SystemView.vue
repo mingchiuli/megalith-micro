@@ -22,9 +22,9 @@ onUnmounted(() => {
         <HeaderTabsItem />
       </el-header>
       <el-main>
-        <el-text class="welcome" v-if="welcomeStateStore().welcomeBackend"
-          >欢迎来到管理系统</el-text
-        >
+        <el-text class="welcome" v-if="welcomeStateStore().welcomeBackend">
+          {{ $t('admin.welcome') }}
+        </el-text>
         <div class="content">
           <router-view />
         </div>

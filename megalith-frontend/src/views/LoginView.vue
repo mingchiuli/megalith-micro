@@ -3,10 +3,12 @@ import type { LoginStruct } from '@/type/entity'
 import { GET } from '@/http/http'
 import { submitLogin } from '@/utils/tools'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
+import { useI18n } from 'vue-i18n'
 
+const { locale, t } = useI18n()
 const mailButtonDisable = ref(false)
 const smsButtonDisable = ref(false)
-const buttonText = ref('')
+const buttonText = ref(t('auth.sendCode'))
 const buttonMiles = ref(120)
 const radioSelect = ref('Password')
 const radioSMS = ref(false)
@@ -31,12 +33,12 @@ const loginType = () => {
     case 'SMS':
       radioSMS.value = true
       radioEmail.value = false
-      buttonText.value = '发送短信'
+      buttonText.value = t('auth.sendSms')
       break
     case 'Email':
       radioEmail.value = true
       radioSMS.value = false
-      buttonText.value = '发送邮件'
+      buttonText.value = t('auth.sendEmail')
       break
     default:
       radioSMS.value = false
@@ -46,6 +48,18 @@ const loginType = () => {
   loginInfo.password = ''
 }
 
+watch(locale, () => {
+  if (buttonMiles.value < 120) {
+    buttonText.value = t('auth.waitSeconds', { seconds: buttonMiles.value })
+  } else if (radioSelect.value === 'Email') {
+    buttonText.value = t('auth.sendEmail')
+  } else if (radioSelect.value === 'SMS') {
+    buttonText.value = t('auth.sendSms')
+  } else {
+    buttonText.value = t('auth.sendCode')
+  }
+})
+
 let interval: NodeJS.Timeout | undefined
 const sendCode = (via: string) => {
   if (!loginInfo.username) return
@@ -53,13 +67,13 @@ const sendCode = (via: string) => {
   mailButtonDisable.value = true
   GET(buildQueryUrl(API_ENDPOINTS.AUTH.SEND_CODE(via), { loginName: loginInfo.username }))
     .then(() => {
-      ElMessage.success('发送成功')
+      ElMessage.success(t('auth.sent'))
       interval = setInterval(() => {
-        buttonText.value = `等待${buttonMiles.value}秒`
+        buttonText.value = t('auth.waitSeconds', { seconds: buttonMiles.value })
         buttonMiles.value--
         if (buttonMiles.value <= -1) {
           clearInterval(interval)
-          buttonText.value = '发送验证码'
+          buttonText.value = t('auth.sendCode')
           mailButtonDisable.value = false
           smsButtonDisable.value = false
           buttonMiles.value = 120
@@ -77,24 +91,29 @@ onBeforeUnmount(() => {
     clearInterval(interval)
   }
 })
+
+const credentialPlaceholder = computed(() => {
+  if (radioSelect.value === 'Password') return t('auth.password')
+  return radioSelect.value === 'Email' ? t('auth.emailCode') : t('auth.smsCode')
+})
 </script>
 
 <template>
   <div class="front">
     <el-radio-group v-model="radioSelect" class="dialog-select" size="small">
-      <el-radio-button @change="loginType" label="Password" value="Password" />
-      <el-radio-button @change="loginType" label="Email" value="Email" />
-      <el-radio-button @change="loginType" label="SMS" value="SMS" />
+      <el-radio-button @change="loginType" :label="t('auth.password')" value="Password" />
+      <el-radio-button @change="loginType" :label="t('auth.email')" value="Email" />
+      <el-radio-button @change="loginType" :label="t('auth.sms')" value="SMS" />
     </el-radio-group>
     <div>
       <div>
-        <el-input v-model="loginInfo.username" placeholder="Login Name" clearable />
+        <el-input v-model="loginInfo.username" :placeholder="t('auth.loginName')" clearable />
       </div>
       <div>
         <el-input
           v-model="loginInfo.password"
           type="text"
-          :placeholder="radioSelect === 'Password' ? radioSelect : radioSelect + ' Code'"
+          :placeholder="credentialPlaceholder"
           @keyup.enter="triggerSubmitLogin(loginInfo.username, loginInfo.password)"
           clearable
           :show-password="radioSelect === 'Password' ? true : false"
@@ -106,7 +125,7 @@ onBeforeUnmount(() => {
           :loading="loginLoading"
           :disabled="loginLoading"
           @click="triggerSubmitLogin(loginInfo.username, loginInfo.password)"
-          >登录</el-button
+          >{{ t('auth.login') }}</el-button
         >
         <el-button
           type="primary"

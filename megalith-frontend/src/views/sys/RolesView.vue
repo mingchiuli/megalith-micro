@@ -6,6 +6,9 @@ import { Status, ButtonAuth } from '@/type/entity'
 import { checkButtonAuth, getButtonType, downloadSQLData, getButtonTitle } from '@/utils/tools'
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { moreItems, fixSelection, fix } = displayState()
 const dialogVisible = ref(false)
@@ -29,12 +32,32 @@ const page: PageAdapter<RoleSys> = reactive({
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
-const formRules = reactive<FormRules<Form>>({
-  name: [{ required: true, message: '请输入名字', trigger: 'blur' }],
-  code: [{ required: true, message: '请输入唯一编码', trigger: 'blur' }],
-  remark: [{ required: true, message: '请输入描述', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
-})
+const formRules = computed<FormRules<Form>>(() => ({
+  name: [
+    { required: true, message: t('validation.enter', { field: t('admin.name') }), trigger: 'blur' }
+  ],
+  code: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('admin.uniqueCode') }),
+      trigger: 'blur'
+    }
+  ],
+  remark: [
+    {
+      required: true,
+      message: t('validation.enter', { field: t('admin.remark') }),
+      trigger: 'blur'
+    }
+  ],
+  status: [
+    {
+      required: true,
+      message: t('validation.select', { field: t('common.status') }),
+      trigger: 'blur'
+    }
+  ]
+}))
 type Form = {
   id?: number
   name: string
@@ -74,8 +97,8 @@ const submitmenuFormHandle = async (ref: InstanceType<typeof ElTree>) => {
     ids.concat(halfCheckedIds)
   )
   ElNotification({
-    title: '操作成功',
-    message: '编辑成功',
+    title: t('common.operationSuccess'),
+    message: t('common.editSuccess'),
     type: 'success'
   })
   menuTreeData.value = []
@@ -95,8 +118,8 @@ const submitForm = async (ref: FormInstance) => {
     if (valid) {
       await POST<null>(API_ENDPOINTS.ROLE_ADMIN.SAVE_ROLE, form)
       ElNotification({
-        title: '操作成功',
-        message: '编辑成功',
+        title: t('common.operationSuccess'),
+        message: t('common.editSuccess'),
         type: 'success'
       })
       clearForm()
@@ -137,8 +160,8 @@ const delBatch = async () => {
   })
   await POST<null>(API_ENDPOINTS.ROLE_ADMIN.DELETE_ROLES, args)
   ElNotification({
-    title: '操作成功',
-    message: '批量删除成功',
+    title: t('common.operationSuccess'),
+    message: t('common.batchDeleteSuccess'),
     type: 'success'
   })
   multipleSelection.value.splice(0)
@@ -198,8 +221,8 @@ const handleDelete = async (row: RoleSys) => {
   id.push(row.id)
   await POST<null>('/sys/role/delete', id)
   ElNotification({
-    title: '操作成功',
-    message: '删除成功',
+    title: t('common.operationSuccess'),
+    message: t('common.deleteSuccess'),
     type: 'success'
   })
   await queryRoles()
@@ -221,7 +244,7 @@ const handleDelete = async (row: RoleSys) => {
       >
     </el-form-item>
     <el-form-item v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_BATCH_DEL)">
-      <el-popconfirm title="确定批量删除?" @confirm="delBatch">
+      <el-popconfirm :title="t('common.batchDeleteConfirm')" @confirm="delBatch">
         <template #reference>
           <el-button
             :type="getButtonType(ButtonAuth.SYS_ROLE_BATCH_DEL)"
@@ -254,21 +277,23 @@ const handleDelete = async (row: RoleSys) => {
     v-loading="loading"
   >
     <el-table-column type="selection" :fixed="fixSelection" />
-    <el-table-column label="名字" align="center" prop="name" min-width="120" />
-    <el-table-column label="唯一编码" align="center" prop="code" min-width="120" />
+    <el-table-column :label="t('admin.name')" align="center" prop="name" min-width="120" />
+    <el-table-column :label="t('admin.uniqueCode')" align="center" prop="code" min-width="120" />
 
-    <el-table-column label="描述" align="center" prop="remark" min-width="200" />
+    <el-table-column :label="t('admin.remark')" align="center" prop="remark" min-width="200" />
 
-    <el-table-column label="状态" align="center">
+    <el-table-column :label="t('common.status')" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">启用</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger"
-          >禁用</el-tag
-        >
+        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">{{
+          t('common.enabled')
+        }}</el-tag>
+        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">{{
+          t('common.disabled')
+        }}</el-tag>
       </template>
     </el-table-column>
 
-    <el-table-column label="创建时间" min-width="180" align="center">
+    <el-table-column :label="t('common.createdAt')" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">
           <el-icon>
@@ -279,7 +304,7 @@ const handleDelete = async (row: RoleSys) => {
       </template>
     </el-table-column>
 
-    <el-table-column label="更新时间" min-width="180" align="center">
+    <el-table-column :label="t('common.updatedAt')" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">
           <el-icon>
@@ -291,7 +316,7 @@ const handleDelete = async (row: RoleSys) => {
     </el-table-column>
 
     <!-- @vue-generic {RoleSys} -->
-    <el-table-column :fixed="fix" label="操作" min-width="250" align="center">
+    <el-table-column :fixed="fix" :label="t('common.operations')" min-width="250" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_EDIT)">
           <el-button
@@ -312,7 +337,7 @@ const handleDelete = async (row: RoleSys) => {
         </template>
 
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_DELETE)">
-          <el-popconfirm title="确定删除?" @confirm="handleDelete(scope.row)">
+          <el-popconfirm :title="t('common.deleteConfirm')" @confirm="handleDelete(scope.row)">
             <template #reference>
               <el-button size="small" :type="getButtonType(ButtonAuth.SYS_ROLE_DELETE)">{{
                 getButtonTitle(ButtonAuth.SYS_ROLE_DELETE)
@@ -334,24 +359,32 @@ const handleDelete = async (row: RoleSys) => {
     :total="totalElements"
   />
 
-  <el-dialog title="新增/编辑" v-model="dialogVisible" width="600px" :before-close="handleClose">
+  <el-dialog
+    :title="t('common.addEdit')"
+    v-model="dialogVisible"
+    width="600px"
+    :before-close="handleClose"
+  >
     <el-form :model="form" :rules="formRules" label-width="100px" ref="formRef">
-      <el-form-item label="名字" prop="name">
+      <el-form-item :label="t('admin.name')" prop="name">
         <el-input v-model="form.name"></el-input>
       </el-form-item>
 
-      <el-form-item label="唯一编码" prop="code">
+      <el-form-item :label="t('admin.uniqueCode')" prop="code">
         <el-input v-model="form.code"></el-input>
       </el-form-item>
 
-      <el-form-item label="描述" prop="remark">
-        <el-input v-model="form.remark" placeholder="文字描述"></el-input>
+      <el-form-item :label="t('admin.remark')" prop="remark">
+        <el-input
+          v-model="form.remark"
+          :placeholder="t('validation.enter', { field: t('admin.remark') })"
+        ></el-input>
       </el-form-item>
 
-      <el-form-item label="状态" prop="status">
+      <el-form-item :label="t('common.status')" prop="status">
         <el-radio-group v-model="form.status">
-          <el-radio :value="Status.NORMAL">启用</el-radio>
-          <el-radio :value="Status.BLOCK">禁用</el-radio>
+          <el-radio :value="Status.NORMAL">{{ t('common.enabled') }}</el-radio>
+          <el-radio :value="Status.BLOCK">{{ t('common.disabled') }}</el-radio>
         </el-radio-group>
       </el-form-item>
 
@@ -367,7 +400,7 @@ const handleDelete = async (row: RoleSys) => {
   </el-dialog>
 
   <el-dialog
-    title="菜单权限"
+    :title="t('admin.menuPermission')"
     v-model="menuDialogVisible"
     width="600px"
     :before-close="menuHandleClose"

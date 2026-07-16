@@ -23,6 +23,9 @@ import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import { themeStore } from '@/stores'
 import { storage } from '@/utils/storage'
 import { sanitizeHtml } from '@/utils/sanitize'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const user = storage.getUserInfo<UserInfo>() || { username: 'Anonymous', id: 0, color: '#30bced' }
@@ -32,7 +35,7 @@ const roomId = blogId ? `${blogId}` : `init:${user.id}`
 // 主题管理
 const theme = themeStore()
 const { isDark } = storeToRefs(theme)
-const editorTheme = computed(() => isDark.value ? 'dark' : 'light')
+const editorTheme = computed(() => (isDark.value ? 'dark' : 'light'))
 
 const toolbars: ToolbarNames[] = [
   'revoke',
@@ -157,7 +160,12 @@ const updateEditorExtension = async () => {
 const onUploadImg = async (files: File[], callback: (urls: string[]) => void) => {
   const formdata = new FormData()
   formdata.append('image', files[0]!, files[0]!.name)
-  const url = await UPLOAD(API_ENDPOINTS.BLOG_ADMIN.OSS_UPLOAD, formdata, uploadPercentage, showPercentage)
+  const url = await UPLOAD(
+    API_ENDPOINTS.BLOG_ADMIN.OSS_UPLOAD,
+    formdata,
+    uploadPercentage,
+    showPercentage
+  )
   callback([url])
 }
 
@@ -208,14 +216,24 @@ onBeforeUnmount(() => {
 <template>
   <el-dialog
     v-model="showSensitiveListDialog"
-    title="选择一个词汇"
+    :title="t('admin.selectWord')"
     width="500"
     :before-close="handleClose"
   >
     <el-table :data="selectSensitiveData" @row-click="selectWord" border stripe>
-      <el-table-column property="startIndex" label="开始位置" align="center" width="100" />
-      <el-table-column property="endIndex" label="结束位置" align="center" width="100" />
-      <el-table-column property="content" label="内容" align="center">
+      <el-table-column
+        property="startIndex"
+        :label="t('admin.startPosition')"
+        align="center"
+        width="100"
+      />
+      <el-table-column
+        property="endIndex"
+        :label="t('admin.endPosition')"
+        align="center"
+        width="100"
+      />
+      <el-table-column property="content" :label="t('common.content')" align="center">
         <template #default="scope">
           <el-text>
             {{ scope.row.startContent }}

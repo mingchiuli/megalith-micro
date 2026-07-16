@@ -2,6 +2,9 @@
 import { GET } from '@/http/http'
 import router from '@/router'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { blogId } = defineProps<{
   blogId: number
@@ -11,9 +14,11 @@ const readTokenDialogVisible = defineModel<boolean>('readTokenDialogVisible')
 const input = ref<string>()
 
 const submit = async () => {
-  const valid = await GET<boolean>(buildQueryUrl(API_ENDPOINTS.BLOG_PUBLIC.VALIDATE_READ_TOKEN(blogId), {
-    readToken: input.value
-  }))
+  const valid = await GET<boolean>(
+    buildQueryUrl(API_ENDPOINTS.BLOG_PUBLIC.VALIDATE_READ_TOKEN(blogId), {
+      readToken: input.value
+    })
+  )
   if (valid) {
     router.push({
       name: 'blog',
@@ -25,7 +30,7 @@ const submit = async () => {
       }
     })
   } else {
-    ElMessage.error('token error')
+    ElMessage.error(t('auth.readCodeError'))
   }
   readTokenDialogVisible.value = false
 }
@@ -39,14 +44,19 @@ const handleClose = () => {
 <template>
   <el-dialog
     v-model="readTokenDialogVisible"
-    title="阅读码"
+    :title="t('auth.readCode')"
     width="300px"
     :before-close="handleClose"
   >
-    <el-input v-model="input" type="password" placeholder="Please input password" show-password />
+    <el-input
+      v-model="input"
+      type="password"
+      :placeholder="t('auth.readCodePlaceholder')"
+      show-password
+    />
     <template #footer>
       <span class="dialog-footer">
-        <el-button type="primary" @click="submit"> 提交 </el-button>
+        <el-button type="primary" @click="submit">{{ t('common.submit') }}</el-button>
       </span>
     </template>
   </el-dialog>
