@@ -638,11 +638,14 @@ const handleConfirmUpload = async () => {
   padding: 20px;
   border: 1px solid var(--el-border-color-light);
   border-radius: 8px;
-  background: var(--el-fill-color-light);
 }
 
 .thinking-collapse {
   margin-top: 16px;
+}
+
+.thinking-collapse :deep(.el-collapse-item__header) {
+  padding: 0 12px;
 }
 
 .ai-error {
