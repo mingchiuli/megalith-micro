@@ -3,7 +3,6 @@ import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 import { cleanJsonResponse } from '@/utils/tools'
 import { logger } from '@/utils/logger'
 import {
-  ollamaRequest,
   ollamaStreamRequest,
   type StreamChunk,
   type ThinkOption
@@ -143,13 +142,26 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
   }
 
   const generateImagePrompt = async (context: GenerationContext) => {
-    const response = await ollamaRequest(
-      AI_URL,
-      context.model,
-      imagePrompt(context.content),
-      { think: context.think, format: 'json' }
-    )
-    const result = parseJsonResponse(response)
+    let fullResponse = ''
+    let thinkingStarted = false
+
+    await ollamaStreamRequest({
+      url: AI_URL,
+      model: context.model,
+      prompt: imagePrompt(context.content),
+      think: context.think,
+      format: 'json',
+      onChunk: (chunk: StreamChunk) => {
+        if (chunk.thinking) {
+          if (!thinkingStarted && aiThinking.value) aiThinking.value += '\n\n'
+          thinkingStarted = true
+          aiThinking.value += chunk.thinking
+        }
+        if (chunk.response) fullResponse += chunk.response
+      }
+    })
+
+    const result = parseJsonResponse(fullResponse)
     return requiredString(result.imagePrompt, 'imagePrompt')
   }
 
