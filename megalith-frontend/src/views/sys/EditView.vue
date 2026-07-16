@@ -133,6 +133,14 @@ const formRules = reactive<FormRules<EditForm>>({
   status: [{ required: true, message: '请选择状态', trigger: 'blur' }]
 })
 
+const handleAiGenerate = async () => {
+  formRef.value?.clearValidate(['title', 'description'])
+  await aiGenerate()
+  if (form.title && form.description) {
+    formRef.value?.clearValidate(['title', 'description'])
+  }
+}
+
 const upload = async (image: UploadRequestOptions) => {
   await uploadFile(image.file)
 }
@@ -370,8 +378,8 @@ const handleConfirmUpload = async () => {
         />
       </el-form-item>
 
-      <el-form-item class="desc" prop="description">
-        <div class="desc-input-group">
+      <div class="desc-input-group">
+        <el-form-item class="desc" prop="description">
           <el-input
             ref="descRef"
             @select="handleDescSelect"
@@ -382,7 +390,9 @@ const handleConfirmUpload = async () => {
             maxlength="60"
             :disabled="!owner"
           />
+        </el-form-item>
 
+        <div class="ai-actions">
           <el-select
             v-model="aiModel"
             placeholder="模型"
@@ -401,13 +411,13 @@ const handleConfirmUpload = async () => {
             v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_AI)"
             color="#626aef"
             size="small"
-            @click="aiGenerate"
+            @click="handleAiGenerate"
             :loading="aiLoading"
             :disabled="!owner || aiLoading || !form.content || !aiModel"
             >✨AI</el-button
           >
         </div>
-      </el-form-item>
+      </div>
 
       <!-- AI 生成面板 -->
       <div v-if="aiPanelVisible" class="ai-panel">
@@ -552,26 +562,37 @@ const handleConfirmUpload = async () => {
 }
 
 .title {
+  display: flex;
+  width: 100%;
+  max-width: 200px;
+  min-width: 0;
   margin-top: 15px;
-  width: 200px;
 }
 
 .desc {
-  margin-top: 25px;
-  width: 500px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
 }
 
 .desc-input-group {
   display: flex;
   gap: 12px;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
-  max-width: 800px; /* 限制最大宽度 */
+  max-width: 800px;
+  margin-top: 25px;
 }
 
 .desc-input-group .el-input {
-  flex: 1;
-  min-width: 350px; /* 设置最小宽度确保输入框足够大 */
+  width: 100%;
+}
+
+.ai-actions {
+  display: flex;
+  flex: none;
+  gap: 12px;
+  align-items: center;
 }
 
 .progress {
@@ -580,8 +601,22 @@ const handleConfirmUpload = async () => {
 }
 
 .status {
+  display: flex;
+  width: 100%;
+  max-width: 300px;
+  min-width: 0;
   margin-top: 25px;
-  width: 300px;
+}
+
+.title :deep(.el-form-item__content),
+.status :deep(.el-form-item__content) {
+  flex: 1;
+  min-width: 0;
+}
+
+.status :deep(.el-radio-group) {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .el-tag {
@@ -635,7 +670,7 @@ const handleConfirmUpload = async () => {
 .ai-panel {
   width: min(100%, 36rem);
   box-sizing: border-box;
-  margin-top: 18px;
+  margin-top: 25px;
   padding: 18px 16px 14px;
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
@@ -645,6 +680,10 @@ const handleConfirmUpload = async () => {
   font-size: 13px;
   font-weight: 500;
   line-height: 20px;
+}
+
+.ai-panel :deep(.el-step__main) {
+  margin-top: 5px;
 }
 
 .ai-panel :deep(.el-step__description) {
@@ -682,7 +721,6 @@ const handleConfirmUpload = async () => {
   padding: 10px;
   font-size: 13px;
   line-height: 1.7;
-  white-space: pre-wrap;
   word-break: break-word;
   color: var(--el-text-color-secondary);
 }
@@ -701,8 +739,16 @@ const handleConfirmUpload = async () => {
 
 .thinking-content :deep(ul),
 .thinking-content :deep(ol) {
-  margin: 6px 0 8px;
+  margin: 4px 0 8px;
   padding-left: 20px;
+}
+
+.thinking-content :deep(li) {
+  margin: 2px 0;
+}
+
+.thinking-content :deep(li > p) {
+  margin: 0;
 }
 
 .thinking-content :deep(pre) {
