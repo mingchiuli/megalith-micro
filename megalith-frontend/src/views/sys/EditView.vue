@@ -24,7 +24,7 @@ import {
 } from '@/type/entity'
 import router from '@/router'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import {checkButtonAuth, getButtonTitle, getButtonType} from '@/utils/tools'
+import {checkButtonAuth, getButtonTitle, getButtonType, render} from '@/utils/tools'
 import {API_ENDPOINTS, buildQueryUrl} from '@/config/apiConfig'
 import {AI_MODELS} from '@/config/aiConfig'
 import {logger} from '@/utils/logger'
@@ -79,6 +79,7 @@ const aiThinkingContent = computed(() => {
   if (aiError.value) return '模型未返回思考过程'
   return thinkingSupported.value ? '等待模型思考...' : '当前模型不支持思考过程'
 })
+const aiThinkingHtml = computed(() => render(aiThinkingContent.value))
 
 const owner = ref(false)
 
@@ -434,9 +435,7 @@ const handleConfirmUpload = async () => {
 
         <el-collapse v-model="aiThinkingCollapse" class="thinking-collapse">
           <el-collapse-item title="💭 模型思考过程" name="thinking">
-            <div class="thinking-content" ref="thinkingRef">
-              {{ aiThinkingContent }}
-            </div>
+            <div class="thinking-content" ref="thinkingRef" v-html="aiThinkingHtml"></div>
           </el-collapse-item>
         </el-collapse>
 
@@ -634,35 +633,109 @@ const handleConfirmUpload = async () => {
 }
 
 .ai-panel {
-  margin-top: 16px;
-  padding: 20px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 8px;
+  width: min(100%, 36rem);
+  box-sizing: border-box;
+  margin-top: 18px;
+  padding: 18px 16px 14px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 6px;
+}
+
+.ai-panel :deep(.el-step__title) {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.ai-panel :deep(.el-step__description) {
+  padding-right: 0;
+  font-size: 12px;
+}
+
+.ai-panel .progress {
+  width: 100%;
+  margin: 14px 0 0;
 }
 
 .thinking-collapse {
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .thinking-collapse :deep(.el-collapse-item__header) {
-  padding: 0 12px;
+  height: 44px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.thinking-collapse :deep(.el-collapse-item__content) {
+  padding-bottom: 0;
 }
 
 .ai-error {
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .thinking-content {
   max-height: 200px;
   overflow-y: auto;
-  padding: 12px;
-  background: var(--el-bg-color);
-  border-radius: 4px;
-  font-family: 'Courier New', Courier, monospace;
+  padding: 10px;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
-  color: var(--el-text-color-regular);
+  color: var(--el-text-color-secondary);
+}
+
+.thinking-content :deep(p) {
+  margin: 0 0 8px;
+}
+
+.thinking-content :deep(p:last-child),
+.thinking-content :deep(ul:last-child),
+.thinking-content :deep(ol:last-child),
+.thinking-content :deep(pre:last-child),
+.thinking-content :deep(blockquote:last-child) {
+  margin-bottom: 0;
+}
+
+.thinking-content :deep(ul),
+.thinking-content :deep(ol) {
+  margin: 6px 0 8px;
+  padding-left: 20px;
+}
+
+.thinking-content :deep(pre) {
+  overflow-x: auto;
+  margin: 8px 0;
+  padding: 10px 12px;
+  border-radius: 4px;
+  background: var(--el-fill-color-lighter);
+}
+
+.thinking-content :deep(code) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+}
+
+.thinking-content :deep(:not(pre) > code) {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--el-fill-color-lighter);
+}
+
+.thinking-content :deep(blockquote) {
+  margin: 8px 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--el-border-color);
+  color: var(--el-text-color-secondary);
+}
+
+.thinking-content :deep(h1),
+.thinking-content :deep(h2),
+.thinking-content :deep(h3) {
+  margin: 10px 0 6px;
+  font-size: 14px;
+  line-height: 1.5;
 }
 </style>
