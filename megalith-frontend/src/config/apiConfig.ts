@@ -156,9 +156,7 @@ export const SEARCH_API = {
 // 实时协作相关API
 export const COLLABORATION_API = {
   // WebSocket房间连接
-  WS_ROOMS: '/rooms',
-  // 检查房间是否存在
-  CHECK_ROOM_EXISTS: (roomId: string) => `/rooms/exist/${roomId}`
+  WS_ROOMS: '/rooms'
 }
 
 // AI服务相关API

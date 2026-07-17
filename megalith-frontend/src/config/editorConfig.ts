@@ -1,11 +1,10 @@
 import { config } from 'md-editor-v3'
-import { Compartment } from '@codemirror/state'
+import { Compartment, type Extension } from '@codemirror/state'
 import * as Y from 'yjs'
 import { yCollab } from 'y-codemirror.next'
 import { WebsocketProvider } from 'y-websocket'
 import * as random from 'lib0/random'
-import type { CheckRoom, UserInfo } from '@/type/entity'
-import { GET } from '@/http/http'
+import type { UserInfo } from '@/type/entity'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 import { logger } from '@/utils/logger'
 import { storage } from '@/utils/storage'
@@ -25,6 +24,28 @@ export const yjsCompartment = new Compartment()
 const user = storage.getUserInfo<UserInfo>() || { nickname: 'Anonymous', avatar: '', id: 0 }
 let currentProvider: WebsocketProvider | null = null
 let currentDoc: Y.Doc | null = null
+
+export const hasYjsDocumentState = (doc: Y.Doc) =>
+  Y.decodeStateVector(Y.encodeStateVector(doc)).size > 0
+
+export const shouldInitializeYjsDocument = (
+  doc: Y.Doc,
+  text: Y.Text,
+  initialContent: string
+) => initialContent.length > 0 && text.length === 0 && !hasYjsDocumentState(doc)
+
+export const createYjsBindingTransaction = (
+  currentDocumentLength: number,
+  syncedContent: string,
+  extension: Extension
+) => ({
+  changes: {
+    from: 0,
+    to: currentDocumentLength,
+    insert: syncedContent
+  },
+  effects: yjsCompartment.reconfigure(extension)
+})
 
 export const cleanupYjs = () => {
   if (currentProvider) {
@@ -58,18 +79,6 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
 
   const userColor = usercolors[random.uint32() % usercolors.length]!
 
-  // 关键修复2: 在建立连接前检查房间是否存在
-  let roomExistsBefore = false
-  try {
-    const data = await GET<CheckRoom>(API_ENDPOINTS.COLLABORATION.CHECK_ROOM_EXISTS(roomId))
-    roomExistsBefore = data.exists
-    logger.log('Room exists before connection:', roomExistsBefore)
-  } catch (error) {
-    logger.warn('Failed to check room existence:', error)
-    // 如果检查失败，保守处理：假设房间已存在
-    roomExistsBefore = true
-  }
-
   const ydoc = new Y.Doc()
   const ytext = ydoc.getText()
 
@@ -97,22 +106,22 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
       }
   )
 
-  // 关键修复5: 只在首次同步且房间为空时插入内容
-  let hasInsertedInitialContent = false
+  let initialSyncResolved = false
+  let resolveInitialSync: (content: string) => void
+  const initialSync = new Promise<string>((resolve) => {
+    resolveInitialSync = resolve
+  })
 
   provider.on('sync', (isSynced: boolean) => {
     logger.log('Sync event fired, isSynced:', isSynced)
     logger.log('Document length after sync:', ytext.length)
 
-    // sync 事件参数说明：
-    // isSynced = true: 文档已与服务器同步
-    // isSynced = false: 文档未同步（通常不会触发这个状态）
+    if (!isSynced || initialSyncResolved) return
 
-    // 只在首次同步、房间原本不存在、文档为空时插入
-    if (!hasInsertedInitialContent && !roomExistsBefore && ytext.length === 0 && isSynced) {
+    // A state-less document is new or was recreated after its in-memory room expired.
+    if (shouldInitializeYjsDocument(ydoc, ytext, initialContent)) {
       logger.log('Inserting initial content:', initialContent.substring(0, 50))
       ytext.insert(0, initialContent)
-      hasInsertedInitialContent = true
 
       ElNotification({
         title: '文档已初始化',
@@ -121,6 +130,9 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
         duration: 2000
       })
     }
+
+    initialSyncResolved = true
+    resolveInitialSync(ytext.toString())
   })
 
   // 关键修复6: 监听连接状态
@@ -208,7 +220,7 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
 
   const config = yCollab(ytext, provider.awareness, { undoManager })
 
-  return { config, provider }
+  return { config, provider, initialSync }
 }
 
 config({
