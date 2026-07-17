@@ -11,7 +11,7 @@ import {
 import { checkAccessToken } from '@/utils/tools'
 import {
   createYjsExtension,
-  yjsCompartment,
+  createYjsBindingTransaction,
   cleanupYjs,
   updateProviderToken
 } from '@/config/editorConfig'
@@ -23,6 +23,7 @@ import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import { themeStore } from '@/stores'
 import { storage } from '@/utils/storage'
 import { sanitizeHtml } from '@/utils/sanitize'
+import { logger } from '@/utils/logger'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -145,15 +146,25 @@ const findAllOccurrences = (text: string, pattern: string) => {
 }
 
 const editorRef = useTemplateRef<ExposeParam>('editorRef')
+const collaborationReady = ref(false)
+let disposed = false
 
 const updateEditorExtension = async () => {
   const view = editorRef.value?.getEditorView()
   if (view) {
-    const { config, provider } = await createYjsExtension(roomId, text.value!)
-    view.dispatch({
-      effects: yjsCompartment.reconfigure(config)
-    })
-    provider.connect()
+    try {
+      const { config, provider, initialSync } = await createYjsExtension(roomId, text.value ?? '')
+      provider.connect()
+      const syncedContent = await initialSync
+      if (disposed) return
+
+      view.dispatch(createYjsBindingTransaction(view.state.doc.length, syncedContent, config))
+      collaborationReady.value = true
+    } catch (error) {
+      cleanupYjs()
+      collaborationReady.value = true
+      logger.error('Failed to initialize collaborative editor:', error)
+    }
   }
 }
 
@@ -206,6 +217,7 @@ const checkTokenTask = setInterval(async () => {
 }, 1000)
 
 onBeforeUnmount(() => {
+  disposed = true
   cleanupYjs()
   if (checkTokenTask) {
     clearInterval(checkTokenTask)
@@ -253,6 +265,7 @@ onBeforeUnmount(() => {
     @on-upload-img="onUploadImg"
     :footers="footers"
     :theme="editorTheme"
+    :read-only="!collaborationReady"
     :sanitize="sanitizeHtml"
     ref="editorRef"
     id="md-editor"
