@@ -56,12 +56,6 @@ impl RoomManager {
         }
     }
 
-    /// 检查房间是否存在
-    pub async fn room_exists(&self, room_id: &str) -> bool {
-        let rooms = self.rooms.read().await;
-        rooms.contains_key(room_id)
-    }
-
     /// 获取或创建房间
     pub async fn get_or_create_room(
         &self,  // 改为 &self，因为用的是 RwLock
@@ -226,13 +220,13 @@ mod tests {
     #[tokio::test]
     async fn new_room_manager_has_no_rooms() {
         let rm = RoomManager::new();
-        assert!(!rm.room_exists("any").await);
+        assert!(rm.rooms.read().await.is_empty());
     }
 
     #[tokio::test]
     async fn default_constructor_has_no_rooms() {
         let rm = RoomManager::default();
-        assert!(!rm.room_exists("x").await);
+        assert!(rm.rooms.read().await.is_empty());
     }
 
     #[tokio::test]
