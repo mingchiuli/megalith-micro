@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Notebook } from '@element-plus/icons-vue'
-import avatarUrl from '@/assets/logo.svg'
+import avatarUrl from '@/assets/logo.png'
 
 const avatar = avatarUrl as string
 
@@ -12,7 +12,15 @@ const toGithub = () => {
 <template>
   <div class="front">
     <div class="into-avatar">
-      <el-avatar shape="square" :size="200" :src="avatar" fit="cover" />
+      <img
+        class="intro-avatar-image"
+        :src="avatar"
+        alt="Megalith"
+        width="200"
+        height="200"
+        decoding="async"
+        fetchpriority="high"
+      />
     </div>
     <div class="into-button">
       <router-link to="/blogs">
@@ -40,6 +48,14 @@ const toGithub = () => {
   width: fit-content;
   margin-top: 5rem;
   margin-bottom: 5rem;
+}
+
+.intro-avatar-image {
+  display: block;
+  width: 200px;
+  height: 200px;
+  border-radius: 4px;
+  object-fit: cover;
 }
 
 .into-button {

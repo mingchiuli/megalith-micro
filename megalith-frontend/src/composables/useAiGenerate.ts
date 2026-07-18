@@ -1,6 +1,6 @@
 import { aiHttpClient } from '@/http/axios'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
-import { cleanJsonResponse } from '@/utils/tools'
+import { cleanJsonResponse } from '@/utils/common'
 import { logger } from '@/utils/logger'
 import { ollamaStreamRequest, type StreamChunk, type ThinkOption } from '@/utils/ollamaStream'
 import type { AiModel, AiModelsResp } from '@/type/entity'

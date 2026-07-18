@@ -1,6 +1,6 @@
 import type { PageAdapter } from '@/type/entity'
 import { POST } from '@/http/http'
-import { downloadSQLData } from '@/utils/tools'
+import { downloadSQLData } from '@/utils/download'
 import { displayState } from '@/utils/position'
 
 /**

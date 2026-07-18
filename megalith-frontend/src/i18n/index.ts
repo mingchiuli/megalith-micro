@@ -1,7 +1,4 @@
 import { createI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
-import 'dayjs/locale/en'
-import 'dayjs/locale/zh-cn'
 import { messages } from './messages'
 
 export type AppLocale = keyof typeof messages
@@ -31,7 +28,6 @@ export const i18n = createI18n({
 
 const applyLocale = (locale: AppLocale) => {
   document.documentElement.lang = locale
-  dayjs.locale(locale === 'zh-CN' ? 'zh-cn' : 'en')
 }
 
 export const setLocale = (locale: AppLocale) => {

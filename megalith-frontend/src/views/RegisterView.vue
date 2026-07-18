@@ -10,7 +10,7 @@ import {
 } from 'element-plus'
 import { GET, POST, UPLOAD } from '@/http/http'
 import router from '@/router'
-import { clearLoginState, submitLogin } from '@/utils/tools'
+import { clearLoginState, submitLogin } from '@/utils/auth'
 import { Colors } from '@/type/entity'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'

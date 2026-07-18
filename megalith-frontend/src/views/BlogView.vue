@@ -73,7 +73,7 @@ onMounted(() => {
   theme.initTheme()
 })
 onUnmounted(() => window.removeEventListener('resize', computeWidth))
-;(async () => {
+const loadBlog = async () => {
   let data: BlogExhibit
   if (token) {
     data = await GET<BlogExhibit>(
@@ -91,7 +91,12 @@ onUnmounted(() => window.removeEventListener('resize', computeWidth))
   blog.nickname = data.nickname
   blog.created = data.created
   blog.content = '>' + data.description + '\n\n' + data.content
-})()
+}
+
+void loadBlog().catch(() => {
+  loading.value = false
+  loadingCatalogue.value = false
+})
 </script>
 
 <template>

@@ -8,7 +8,7 @@ import type {
   AutocompleteInstance
 } from 'element-plus'
 import { ElLoading } from 'element-plus'
-import { debounce } from '@/utils/tools'
+import { debounce } from '@/utils/common'
 import type HotItem from '@/components/HotItem.vue'
 import { blogsStore } from '@/stores'
 import { buildCommonUrls } from '@/config/apiConfig'

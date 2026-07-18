@@ -10,7 +10,7 @@ import type {
   UploadRequestOptions,
   UploadUserFile
 } from 'element-plus'
-import {GET, POST, UPLOAD} from '@/http/http'
+import { GET, POST, UPLOAD } from '@/http/http'
 import {
   type BlogEdit,
   ButtonAuth,
@@ -24,11 +24,12 @@ import {
 } from '@/type/entity'
 import router from '@/router'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import {checkButtonAuth, getButtonTitle, getButtonType, render} from '@/utils/tools'
-import {API_ENDPOINTS, buildQueryUrl} from '@/config/apiConfig'
-import {AI_MODELS} from '@/config/aiConfig'
-import {logger} from '@/utils/logger'
-import {useAiGenerate} from '@/composables'
+import { render } from '@/utils/markdown'
+import { checkButtonAuth, getButtonTitle, getButtonType } from '@/utils/permissions'
+import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
+import { AI_MODELS } from '@/config/aiConfig'
+import { logger } from '@/utils/logger'
+import { useAiGenerate } from '@/composables'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -172,10 +173,10 @@ const uploadFile = async (file: UploadRawFile) => {
   const formData = new FormData()
   formData.append('image', file)
   form.link = await UPLOAD(
-      API_ENDPOINTS.BLOG_ADMIN.OSS_UPLOAD,
-      formData,
-      uploadPercentage,
-      showPercentage
+    API_ENDPOINTS.BLOG_ADMIN.OSS_UPLOAD,
+    formData,
+    uploadPercentage,
+    showPercentage
   )
 }
 
@@ -369,7 +370,9 @@ const handleConfirmUpload = async () => {
     }
     const byteArray = new Uint8Array(byteNumbers)
     const blob = new Blob([byteArray], { type: 'image/png' })
-    const file: UploadRawFile = new File([blob], 'cover.png', { type: 'image/png' }) as UploadRawFile
+    const file: UploadRawFile = new File([blob], 'cover.png', {
+      type: 'image/png'
+    }) as UploadRawFile
     ;(file as UploadRawFile & { uid: number }).uid = Date.now()
 
     await uploadFile(file)
