@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { LoginStruct } from '@/type/entity'
 import { GET } from '@/http/http'
-import { submitLogin } from '@/utils/tools'
+import { submitLogin } from '@/utils/auth'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
 

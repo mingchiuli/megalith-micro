@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, Switch } from '@element-plus/icons-vue'
+import { Switch } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { setLocale, type AppLocale } from '@/i18n'
 
@@ -13,58 +13,37 @@ const options = computed(() => [
   { value: 'en-US' as const, label: t('common.english') }
 ])
 const compactLocaleLabel = computed(() => (locale.value === 'zh-CN' ? '中' : 'EN'))
-
-const handleLocaleCommand = (value: AppLocale) => {
-  setLocale(value)
-}
 </script>
 
 <template>
   <div class="locale-switcher">
-    <el-select
+    <select
       class="desktop-locale-select"
       v-model="selectedLocale"
       :aria-label="t('common.language')"
-      size="small"
-      placement="top"
     >
-      <el-option
-        v-for="option in options"
-        :key="option.value"
-        :label="option.label"
-        :value="option.value"
-      />
-    </el-select>
+      <option v-for="option in options" :key="option.value" :value="option.value">
+        {{ option.label }}
+      </option>
+    </select>
 
-    <el-dropdown
-      class="mobile-locale-dropdown"
-      trigger="click"
-      placement="top-end"
-      @command="handleLocaleCommand"
+    <label
+      class="mobile-locale-control"
+      :aria-label="t('common.language')"
+      :title="t('common.language')"
     >
-      <button
-        class="mobile-locale-trigger"
-        type="button"
+      <Switch class="mobile-locale-icon" aria-hidden="true" />
+      <span>{{ compactLocaleLabel }}</span>
+      <select
+        class="mobile-locale-select"
+        v-model="selectedLocale"
         :aria-label="t('common.language')"
-        :title="t('common.language')"
       >
-        <el-icon :size="20"><Switch /></el-icon>
-        <span>{{ compactLocaleLabel }}</span>
-      </button>
-      <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item
-            v-for="option in options"
-            :key="option.value"
-            :command="option.value"
-            :disabled="option.value === selectedLocale"
-          >
-            <span class="locale-option-label">{{ option.label }}</span>
-            <el-icon v-if="option.value === selectedLocale"><Check /></el-icon>
-          </el-dropdown-item>
-        </el-dropdown-menu>
-      </template>
-    </el-dropdown>
+        <option v-for="option in options" :key="option.value" :value="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </label>
   </div>
 </template>
 
@@ -77,12 +56,28 @@ const handleLocaleCommand = (value: AppLocale) => {
   width: 96px;
 }
 
-.mobile-locale-dropdown {
+.desktop-locale-select {
+  width: 96px;
+  height: 32px;
+  padding: 0 8px;
+  color: var(--el-text-color-regular);
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  font: inherit;
+}
+
+.desktop-locale-select:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: 2px;
+}
+
+.mobile-locale-control {
   display: none;
 }
 
-.mobile-locale-trigger {
-  display: inline-flex;
+.mobile-locale-control {
+  position: relative;
   align-items: center;
   justify-content: center;
   gap: 5px;
@@ -98,13 +93,23 @@ const handleLocaleCommand = (value: AppLocale) => {
   -webkit-tap-highlight-color: transparent;
 }
 
-.mobile-locale-trigger:focus-visible {
+.mobile-locale-control:focus-within {
   outline: 2px solid var(--el-color-primary);
   outline-offset: 2px;
 }
 
-.locale-option-label {
-  min-width: 64px;
+.mobile-locale-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.mobile-locale-select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 
 @media (max-width: 600px) {
@@ -118,7 +123,7 @@ const handleLocaleCommand = (value: AppLocale) => {
     display: none;
   }
 
-  .mobile-locale-dropdown {
+  .mobile-locale-control {
     display: inline-flex;
   }
 }

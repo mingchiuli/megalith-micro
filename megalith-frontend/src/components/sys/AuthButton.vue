@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ButtonAuth } from '@/type/entity'
-import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/tools'
+import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissions'
 import type { ButtonProps } from 'element-plus'
 
 const props = defineProps<{

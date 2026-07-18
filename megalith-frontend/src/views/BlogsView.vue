@@ -67,6 +67,9 @@ const queryBlogs = async (pageNo: number) => {
     page.content = data.content
     page.totalElements = data.totalElements
     if (!imgCount) loading.value = false
+  } catch {
+    page.content = []
+    page.totalElements = 0
   } finally {
     if (!imgCount) loading.value = false
   }

@@ -8,7 +8,7 @@ import {
   type UserInfo,
   Colors
 } from '@/type/entity'
-import { checkAccessToken } from '@/utils/tools'
+import { checkAccessToken } from '@/utils/auth'
 import {
   createYjsExtension,
   createYjsBindingTransaction,

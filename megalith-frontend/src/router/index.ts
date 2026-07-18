@@ -1,5 +1,4 @@
 import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
-import { GET } from '@/http/http'
 import { RoutesEnum, type Button, type Menu, type MenuNode, type Tab } from '@/type/entity'
 import {
   menuStore,
@@ -9,11 +8,16 @@ import {
   tabStore,
   authMarkStore
 } from '@/stores'
-import { diff, findMenuByPath } from '@/utils/tools'
+import { diff, findMenuByPath } from '@/utils/common'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { storage } from '@/utils/storage'
 
 const modules = import.meta.glob('@/views/sys/*.vue')
+
+const getMenuTree = async () => {
+  const { GET } = await import('@/http/http')
+  return GET<Menu>(API_ENDPOINTS.AUTH.MENU_NAV)
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -87,14 +91,14 @@ router.beforeEach(async (to) => {
     if (!to.name || !router.hasRoute(to.name)) {
       if (!authMarkStore().auth) {
         authMarkStore().auth = true
-        menuTree = await GET<Menu>(API_ENDPOINTS.AUTH.MENU_NAV)
+        menuTree = await getMenuTree()
         callBackRequireRoutes(menuTree)
         dealSysTab(to, menuTree)
         return to.fullPath
       }
     } else {
       //正常路由切换diff
-      GET<Menu>(API_ENDPOINTS.AUTH.MENU_NAV).then((resp) => {
+      getMenuTree().then((resp) => {
         menuTree = resp
         callBackRequireRoutes(menuTree)
         dealSysTab(to, menuTree)

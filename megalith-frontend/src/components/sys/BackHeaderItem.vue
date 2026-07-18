@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { UserInfo } from '@/type/entity'
 import { ArrowDown } from '@element-plus/icons-vue'
-import { clearLoginState } from '@/utils/tools'
+import { clearLoginState } from '@/utils/auth'
 import router from '@/router'
 import { storage } from '@/utils/storage'
 

@@ -9,7 +9,7 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd());
+  const env = loadEnv(mode, process.cwd())
   const fileName = env.VITE_APP_NAME
 
   return {
@@ -25,11 +25,11 @@ export default defineConfig(({ mode }) => {
             'vue-router': ['createRouter', 'createWebHistory']
           }
         ],
-        resolvers: [ElementPlusResolver()],
+        resolvers: [ElementPlusResolver()]
       }),
       Components({
-        resolvers: [ElementPlusResolver()],
-      }),
+        resolvers: [ElementPlusResolver()]
+      })
     ],
     resolve: {
       alias: {
@@ -53,60 +53,12 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: fileName,
-      // 提高 chunk 大小警告限制（可选）
-      chunkSizeWarningLimit: 1000,
-      rollupOptions: {
-        output: {
-          // 手动分包策略 (Vite 8.0+ 使用 rolldown，需要函数格式)
-          manualChunks(id) {
-            if (id.includes('node_modules')) {
-              // Vue 核心库
-              if (id.includes('vue') || id.includes('vue-router') || id.includes('pinia')) {
-                return 'vue-vendor';
-              }
-              // Element Plus 组件库
-              if (id.includes('element-plus')) {
-                return 'element-plus';
-              }
-              // Markdown 编辑器相关
-              if (id.includes('md-editor-v3') || id.includes('markdown-it')) {
-                return 'md-editor';
-              }
-              // 代码高亮
-              if (id.includes('highlight.js')) {
-                return 'highlight';
-              }
-              // 协同编辑相关
-              if (id.includes('yjs') || id.includes('y-websocket') || id.includes('y-codemirror')) {
-                return 'yjs-vendor';
-              }
-              // 其他工具库
-              if (id.includes('axios') || id.includes('js-base64') || id.includes('@vavt')) {
-                return 'utils';
-              }
-            }
-          },
-          
-          // 为每个 chunk 生成更小的文件
-          chunkFileNames: (chunkInfo) => {
-            const facadeModuleId = chunkInfo.facadeModuleId 
-              ? chunkInfo.facadeModuleId.split('/').pop() 
-              : 'chunk';
-            return `assets/${facadeModuleId}/[name]-[hash].js`;
-          }
-        }
-      }
+      chunkSizeWarningLimit: 1000
     },
-    
+
     // 优化依赖预构建
     optimizeDeps: {
-      include: [
-        'vue',
-        'vue-router',
-        'pinia',
-        'element-plus',
-        'axios'
-      ]
+      include: ['vue', 'vue-router', 'pinia', 'element-plus', 'axios']
     },
 
     // Vitest 单元测试配置

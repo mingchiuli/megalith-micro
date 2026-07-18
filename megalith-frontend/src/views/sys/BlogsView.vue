@@ -3,13 +3,9 @@ import { GET, POST } from '@/http/http'
 import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
 import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
-import {
-  render,
-  checkButtonAuth,
-  getButtonType,
-  downloadSQLData,
-  getButtonTitle
-} from '@/utils/tools'
+import { downloadSQLData } from '@/utils/download'
+import { render } from '@/utils/markdown'
+import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissions'
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'

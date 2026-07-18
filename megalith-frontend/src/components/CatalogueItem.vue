@@ -2,7 +2,7 @@
 import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
 import type Node from 'element-plus/es/components/tree/src/model/node'
-import { debounce } from '@/utils/tools'
+import { debounce } from '@/utils/common'
 
 defineProps<{
   width: number
