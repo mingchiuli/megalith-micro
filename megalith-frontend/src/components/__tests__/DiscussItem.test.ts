@@ -3,12 +3,13 @@ import { mount } from '@vue/test-utils'
 import ElementPlus from 'element-plus'
 import * as ElIcons from '@element-plus/icons-vue'
 import DiscussItem from '@/components/DiscussItem.vue'
+import { themeStore } from '@/stores'
 
 // 统一的 Element Plus 挂载配置：注册组件库 + 全部图标
-const buildMountOptions = () => ({
+const buildMountOptions = (pinia = createPinia()) => ({
   attachTo: document.body,
   global: {
-    plugins: [ElementPlus],
+    plugins: [pinia, ElementPlus],
     components: { ...ElIcons }
   }
 })
@@ -44,6 +45,22 @@ describe('DiscussItem.vue', () => {
     expect(giscusScript?.getAttribute('data-repo')).toBe(
       'mingchiuli/megalith-talk-repo'
     )
+    expect(giscusScript?.getAttribute('data-theme')).toBe('light')
+
+    wrapper.unmount()
+  })
+
+  it('使用当前暗色主题加载 giscus', async () => {
+    const pinia = createPinia()
+    themeStore(pinia).isDark = true
+    const wrapper = mount(DiscussItem, buildMountOptions(pinia))
+    await nextTick()
+
+    const giscusScript = document
+      .getElementById('giscus_thread')!
+      .querySelector('script')
+
+    expect(giscusScript?.getAttribute('data-theme')).toBe('dark')
 
     wrapper.unmount()
   })

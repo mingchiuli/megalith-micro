@@ -1,6 +1,10 @@
 <script lang="ts" setup>
+import { themeStore } from '@/stores'
 
 const activeName = ref('first')
+const { isDark } = storeToRefs(themeStore())
+
+const getGiscusTheme = () => (isDark.value ? 'dark' : 'light')
 
 const createGiscusScript = (): HTMLScriptElement => {
   const giscus = document.createElement('script')
@@ -15,7 +19,7 @@ const createGiscusScript = (): HTMLScriptElement => {
   giscus.setAttribute('data-reactions-enabled', '1')
   giscus.setAttribute('data-emit-metadata', '0')
   giscus.setAttribute('data-input-position', 'bottom')
-  giscus.setAttribute('data-theme', 'light')
+  giscus.setAttribute('data-theme', getGiscusTheme())
   giscus.setAttribute('data-lang', 'zh-CN')
   giscus.crossOrigin = 'anonymous'
   giscus.src = 'https://giscus.app/client.js'
