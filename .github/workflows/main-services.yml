@@ -20,6 +20,7 @@ on:
       - 'gradlew.bat'
       - 'Cargo.toml'
       - 'Cargo.lock'
+      - '.dockerignore'
       - '.github/workflows/main-services.yml'
   workflow_dispatch:
     inputs:
@@ -155,7 +156,7 @@ jobs:
                 common/*|build.gradle.kts|settings.gradle.kts|gradle/*|gradlew|gradlew.bat)
                   add_all_java
                   ;;
-                Cargo.toml|Cargo.lock)
+                Cargo.toml|Cargo.lock|.dockerignore)
                   add_all_rust
                   ;;
               esac
@@ -282,7 +283,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          targets: x86_64-unknown-linux-musl
 
       - name: Run tests
         run: cargo test --release -p ${{ matrix.service }}
