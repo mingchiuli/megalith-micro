@@ -14,6 +14,7 @@ import { clearLoginState, submitLogin } from '@/utils/auth'
 import { Colors } from '@/type/entity'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
+import { Plus } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
 const saveLoading = ref(false)
