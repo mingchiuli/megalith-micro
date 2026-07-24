@@ -31,6 +31,7 @@ import { AI_MODELS } from '@/config/aiConfig'
 import { logger } from '@/utils/logger'
 import { useAiGenerate } from '@/composables'
 import { useI18n } from 'vue-i18n'
+import { Plus } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
 const imageModel = AI_MODELS.IMAGE_MODEL
