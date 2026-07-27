@@ -8,6 +8,7 @@ import wiki.chiu.micro.auth.token.TokenUtils;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
@@ -18,7 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static wiki.chiu.micro.common.lang.Const.REFRESH;
 import static wiki.chiu.micro.common.lang.Const.TOKEN_PREFIX;
+import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_AUTH;
 
 /**
  * @author mingchiuli
@@ -40,7 +43,11 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public Map<String, String> refreshToken(Long userId) {
+    public Map<String, String> refreshToken(Long userId, List<String> tokenRoles) {
+
+        if (!tokenRoles.contains(REFRESH)) {
+            throw new AccessDeniedException(NO_AUTH.getMsg());
+        }
 
         if (Objects.equals(userId, 0L)) {
             throw new MissException(ExceptionMessage.NO_AUTH);

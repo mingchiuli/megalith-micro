@@ -18,10 +18,12 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static wiki.chiu.micro.common.lang.Const.REFRESH;
 
 @ExtendWith(MockitoExtension.class)
 class TokenControllerTest {
@@ -37,14 +39,14 @@ class TokenControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(tokenController)
-                .setCustomArgumentResolvers(new StubAuthInfoResolver(42L, List.of("ROLE_USER")))
+                .setCustomArgumentResolvers(new StubAuthInfoResolver(42L, List.of(REFRESH)))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
 
     @Test
     void refreshTokenReturnsTokenMap() throws Exception {
-        when(tokenService.refreshToken(42L)).thenReturn(Map.of("token", "newtoken"));
+        when(tokenService.refreshToken(42L, List.of(REFRESH))).thenReturn(Map.of("token", "newtoken"));
 
         mockMvc.perform(get("/token/refresh"))
                 .andExpect(status().isOk())
@@ -54,7 +56,7 @@ class TokenControllerTest {
 
     @Test
     void refreshTokenWhenServiceThrowsReturns400() throws Exception {
-        when(tokenService.refreshToken(anyLong())).thenThrow(new MissException("token missing"));
+        when(tokenService.refreshToken(anyLong(), anyList())).thenThrow(new MissException("token missing"));
 
         mockMvc.perform(get("/token/refresh"))
                 .andExpect(status().isBadRequest())
