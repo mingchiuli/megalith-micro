@@ -27,7 +27,7 @@ public class TokenController {
 
     @GetMapping("/refresh")
     public Result<Map<String, String>> refreshToken(AuthInfo authInfo) {
-        return Result.success(() -> tokenService.refreshToken(authInfo.userId()));
+        return Result.success(() -> tokenService.refreshToken(authInfo.userId(), authInfo.roles()));
     }
 
     @GetMapping("/userinfo")
