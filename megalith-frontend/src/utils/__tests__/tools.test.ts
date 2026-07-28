@@ -170,7 +170,7 @@ describe('utils/tools', () => {
 
   describe('submitLogin', () => {
     it('用户名或密码为空时直接返回', async () => {
-      await submitLogin('', '')
+      await submitLogin('PASSWORD', '', '')
       expect(POST).not.toHaveBeenCalled()
     })
 
@@ -181,9 +181,14 @@ describe('utils/tools', () => {
       } as never)
       vi.mocked(GET).mockResolvedValueOnce({ username: 'tom' } as never)
 
-      await submitLogin('tom', 'pwd')
+      await submitLogin('PASSWORD', 'tom', 'pwd')
 
       expect(POST).toHaveBeenCalledTimes(1)
+      expect(POST).toHaveBeenCalledWith('/login', {
+        loginType: 'PASSWORD',
+        principal: 'tom',
+        credential: 'pwd'
+      })
       expect(localStorage.getItem('accessToken')).toBe('AT')
       expect(localStorage.getItem('refreshToken')).toBe('RT')
       expect(localStorage.getItem('userinfo')).toBe(JSON.stringify({ username: 'tom' }))

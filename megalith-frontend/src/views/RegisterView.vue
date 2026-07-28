@@ -184,7 +184,7 @@ const submitForm = async (ref: FormInstance) => {
           type: 'success'
         })
         clearLoginState()
-        await submitLogin(form.username, form.password)
+        await submitLogin('PASSWORD', form.username, form.password)
       } finally {
         saveLoading.value = false
       }
