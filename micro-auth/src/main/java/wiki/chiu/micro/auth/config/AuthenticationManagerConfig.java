@@ -1,10 +1,10 @@
 package wiki.chiu.micro.auth.config;
 
-import wiki.chiu.micro.auth.component.manager.CustomProviderManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 
 import java.util.List;
 
@@ -23,6 +23,6 @@ public class AuthenticationManagerConfig {
 
     @Bean
     AuthenticationManager authenticationManager() {
-        return new CustomProviderManager(providers);
+        return new ProviderManager(providers);
     }
 }

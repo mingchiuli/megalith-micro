@@ -1,6 +1,8 @@
 package wiki.chiu.micro.auth.config;
 
 
+import wiki.chiu.micro.auth.component.LoginAuthenticationConverter;
+import wiki.chiu.micro.auth.component.LoginAuthenticationFilter;
 import wiki.chiu.micro.auth.component.LoginFailureHandler;
 import wiki.chiu.micro.auth.component.LoginSuccessHandler;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
 @Configuration(proxyBeanMethods = false)
@@ -22,21 +25,30 @@ public class SecurityConfig {
 
     private final AuthenticationManager authenticationManager;
 
-    public SecurityConfig(LoginFailureHandler loginFailureHandler, LoginSuccessHandler loginSuccessHandler, AuthenticationManager authenticationManager) {
+    private final LoginAuthenticationConverter loginAuthenticationConverter;
+
+    public SecurityConfig(LoginFailureHandler loginFailureHandler,
+                          LoginSuccessHandler loginSuccessHandler,
+                          AuthenticationManager authenticationManager,
+                          LoginAuthenticationConverter loginAuthenticationConverter) {
         this.loginFailureHandler = loginFailureHandler;
         this.loginSuccessHandler = loginSuccessHandler;
         this.authenticationManager = authenticationManager;
+        this.loginAuthenticationConverter = loginAuthenticationConverter;
     }
 
     @Bean
     SecurityFilterChain configure(HttpSecurity http) throws Exception {
+        LoginAuthenticationFilter loginAuthenticationFilter = new LoginAuthenticationFilter(
+                authenticationManager,
+                loginAuthenticationConverter,
+                loginSuccessHandler,
+                loginFailureHandler);
+
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(formLogin ->
-                        formLogin
-                                .successHandler(loginSuccessHandler)
-                                .failureHandler(loginFailureHandler))
+                .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(sessionManagement ->
                         sessionManagement
@@ -45,7 +57,7 @@ public class SecurityConfig {
                         authorizeHttpRequests
                                 .anyRequest()
                                 .permitAll())
-                .authenticationManager(authenticationManager)
+                .addFilterAt(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
