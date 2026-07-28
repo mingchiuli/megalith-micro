@@ -1,6 +1,7 @@
 package wiki.chiu.micro.auth.component;
 
 import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
@@ -49,6 +50,15 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         this.tokenUtils = tokenUtils;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.redissonClient = redissonClient;
+    }
+
+    @Override
+    public void onAuthenticationSuccess(
+            @NonNull HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain chain,
+            Authentication authentication) throws IOException {
+        onAuthenticationSuccess(request, response, authentication);
     }
 
     @Override
