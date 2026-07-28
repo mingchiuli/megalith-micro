@@ -2,7 +2,7 @@ import { httpClient } from '@/http/axios'
 import { GET, POST } from '@/http/http'
 import router from '@/router'
 import { authMarkStore, buttonStore, loginStateStore, menuStore, tabStore } from '@/stores'
-import type { Data, JWTStruct, RefreshStruct, Token, UserInfo } from '@/type/entity'
+import type { Data, JWTStruct, LoginType, RefreshStruct, Token, UserInfo } from '@/type/entity'
 import type { AxiosResponse } from 'axios'
 import { Base64 } from 'js-base64'
 import { API_ENDPOINTS } from '@/config/apiConfig'
@@ -97,12 +97,13 @@ export const checkAccessToken = async (): Promise<boolean> => {
   return oldToken !== newToken
 }
 
-export const submitLogin = async (username: string, password: string) => {
+export const submitLogin = async (loginType: LoginType, username: string, password: string) => {
   if (!username || !password) return
-  const form = new FormData()
-  form.append('username', username)
-  form.append('password', password)
-  const token = await POST<Token>(API_ENDPOINTS.AUTH.LOGIN, form)
+  const token = await POST<Token>(API_ENDPOINTS.AUTH.LOGIN, {
+    loginType,
+    principal: username,
+    credential: password
+  })
   storage.setAccessToken(token.accessToken)
   storage.setRefreshToken(token.refreshToken)
   loginStateStore().login = true

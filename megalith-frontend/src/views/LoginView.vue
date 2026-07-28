@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { LoginStruct } from '@/type/entity'
+import type { LoginStruct, LoginType } from '@/type/entity'
 import { GET } from '@/http/http'
 import { submitLogin } from '@/utils/auth'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
@@ -10,7 +10,7 @@ const mailButtonDisable = ref(false)
 const smsButtonDisable = ref(false)
 const buttonText = ref(t('auth.sendCode'))
 const buttonMiles = ref(120)
-const radioSelect = ref('Password')
+const radioSelect = ref<LoginType>('PASSWORD')
 const radioSMS = ref(false)
 const radioEmail = ref(false)
 const loginLoading = ref(false)
@@ -22,20 +22,20 @@ const loginInfo = reactive<LoginStruct>({
 const triggerSubmitLogin = async (username: string, password: string) => {
   try {
     loginLoading.value = true
-    await submitLogin(username, password)
+    await submitLogin(radioSelect.value, username, password)
   } finally {
     loginLoading.value = false
   }
 }
 
-const loginType = () => {
+const handleLoginTypeChange = () => {
   switch (radioSelect.value) {
     case 'SMS':
       radioSMS.value = true
       radioEmail.value = false
       buttonText.value = t('auth.sendSms')
       break
-    case 'Email':
+    case 'EMAIL':
       radioEmail.value = true
       radioSMS.value = false
       buttonText.value = t('auth.sendEmail')
@@ -51,7 +51,7 @@ const loginType = () => {
 watch(locale, () => {
   if (buttonMiles.value < 120) {
     buttonText.value = t('auth.waitSeconds', { seconds: buttonMiles.value })
-  } else if (radioSelect.value === 'Email') {
+  } else if (radioSelect.value === 'EMAIL') {
     buttonText.value = t('auth.sendEmail')
   } else if (radioSelect.value === 'SMS') {
     buttonText.value = t('auth.sendSms')
@@ -93,17 +93,21 @@ onBeforeUnmount(() => {
 })
 
 const credentialPlaceholder = computed(() => {
-  if (radioSelect.value === 'Password') return t('auth.password')
-  return radioSelect.value === 'Email' ? t('auth.emailCode') : t('auth.smsCode')
+  if (radioSelect.value === 'PASSWORD') return t('auth.password')
+  return radioSelect.value === 'EMAIL' ? t('auth.emailCode') : t('auth.smsCode')
 })
 </script>
 
 <template>
   <div class="front">
     <el-radio-group v-model="radioSelect" class="dialog-select" size="small">
-      <el-radio-button @change="loginType" :label="t('auth.password')" value="Password" />
-      <el-radio-button @change="loginType" :label="t('auth.email')" value="Email" />
-      <el-radio-button @change="loginType" :label="t('auth.sms')" value="SMS" />
+      <el-radio-button
+        @change="handleLoginTypeChange"
+        :label="t('auth.password')"
+        value="PASSWORD"
+      />
+      <el-radio-button @change="handleLoginTypeChange" :label="t('auth.email')" value="EMAIL" />
+      <el-radio-button @change="handleLoginTypeChange" :label="t('auth.sms')" value="SMS" />
     </el-radio-group>
     <div>
       <div>
@@ -116,7 +120,7 @@ const credentialPlaceholder = computed(() => {
           :placeholder="credentialPlaceholder"
           @keyup.enter="triggerSubmitLogin(loginInfo.username, loginInfo.password)"
           clearable
-          :show-password="radioSelect === 'Password' ? true : false"
+          :show-password="radioSelect === 'PASSWORD' ? true : false"
         />
       </div>
       <div class="dialog-footer">
