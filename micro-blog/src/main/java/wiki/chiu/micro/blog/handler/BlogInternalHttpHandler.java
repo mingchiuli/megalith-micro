@@ -1,5 +1,8 @@
 package wiki.chiu.micro.blog.handler;
 
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.blog.service.BlogSensitiveService;
 import wiki.chiu.micro.blog.service.BlogService;
 import wiki.chiu.micro.common.lang.Result;
@@ -11,6 +14,11 @@ import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import wiki.chiu.micro.common.web.ValidatedRequest;
+
+import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
+import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
+import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 /**
  * Internal blog HTTP handler.
@@ -21,10 +29,49 @@ public class BlogInternalHttpHandler implements BlogHttpService {
     private final BlogService blogService;
 
     private final BlogSensitiveService blogSensitiveService;
+    private final ValidatedRequest validation;
 
-    public BlogInternalHttpHandler(BlogService blogService, BlogSensitiveService blogSensitiveService) {
+    private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
+            new ParameterizedTypeReference<>() { };
+
+    public BlogInternalHttpHandler(BlogService blogService, BlogSensitiveService blogSensitiveService,
+                                   ValidatedRequest validation) {
         this.blogService = blogService;
         this.blogSensitiveService = blogSensitiveService;
+        this.validation = validation;
+    }
+
+    public ServerResponse count(ServerRequest request) {
+        return ok(count());
+    }
+
+    public ServerResponse countByCreatedGreaterThanEqual(ServerRequest request) {
+        LocalDateTime created = requiredParam(request, "created", LocalDateTime::parse);
+        return ok(countByCreatedGreaterThanEqual(created));
+    }
+
+    public ServerResponse findSensitiveByBlogId(ServerRequest request) {
+        Long blogId = pathVariable(request, "blogId", Long::valueOf);
+        return ok(findSensitiveByBlogId(blogId));
+    }
+
+    public ServerResponse findById(ServerRequest request) {
+        Long blogId = pathVariable(request, "blogId", Long::valueOf);
+        return ok(findById(blogId));
+    }
+
+    public ServerResponse findAllById(ServerRequest request) throws Exception {
+        return ok(findAllById(validation.body(request, LONG_LIST)));
+    }
+
+    public ServerResponse findPage(ServerRequest request) {
+        return ok(findPage(requiredParam(request, "pageNo", Integer::valueOf),
+                requiredParam(request, "pageSize", Integer::valueOf)));
+    }
+
+    public ServerResponse setReadCount(ServerRequest request) {
+        Long blogId = pathVariable(request, "blogId", Long::valueOf);
+        return ok(setReadCount(blogId));
     }
 
     @Override

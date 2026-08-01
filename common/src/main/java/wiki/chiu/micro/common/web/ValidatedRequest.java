@@ -3,6 +3,7 @@ package wiki.chiu.micro.common.web;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.servlet.function.ServerRequest;
 
 import java.util.Collection;
@@ -18,6 +19,10 @@ public final class ValidatedRequest {
 
     public <T> T body(ServerRequest request, Class<T> type, Class<?>... groups) throws Exception {
         return validate(request.body(type), groups);
+    }
+
+    public <T> T body(ServerRequest request, ParameterizedTypeReference<T> type) throws Exception {
+        return request.body(type);
     }
 
     public <T> T validate(T value, Class<?>... groups) {

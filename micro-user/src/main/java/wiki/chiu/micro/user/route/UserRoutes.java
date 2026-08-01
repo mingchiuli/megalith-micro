@@ -5,9 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.servlet.function.RouterFunction;
-import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -34,19 +32,8 @@ import wiki.chiu.micro.user.vo.MenuEntityVo;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
 import wiki.chiu.micro.user.vo.RoleMenuVo;
 import wiki.chiu.micro.user.vo.UserEntityVo;
-import wiki.chiu.micro.common.web.ValidatedRequest;
-
-import java.util.List;
-import java.util.function.Function;
-
 import static org.springframework.web.servlet.function.RouterFunctions.route;
-import static wiki.chiu.micro.common.web.FunctionalWeb.badRequestErrors;
-import static wiki.chiu.micro.common.web.FunctionalWeb.multipartFile;
-import static wiki.chiu.micro.common.web.FunctionalWeb.nullableParam;
-import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
-import static wiki.chiu.micro.common.web.FunctionalWeb.optionalParam;
-import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
-import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
+import static wiki.chiu.micro.common.web.FunctionalWeb.withDefaultErrorHandling;
 
 @Configuration(proxyBeanMethods = false)
 @RegisterReflectionForBinding({
@@ -73,12 +60,6 @@ public class UserRoutes {
 
     private static final Logger log = LoggerFactory.getLogger(UserRoutes.class);
 
-    private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
-            new ParameterizedTypeReference<>() { };
-
-    private static final ParameterizedTypeReference<List<String>> STRING_LIST =
-            new ParameterizedTypeReference<>() { };
-
     @Bean
     RouterFunction<ServerResponse> userRouter(UserHttpHandler userHandler,
                                               RoleHttpHandler roleHandler,
@@ -86,10 +67,9 @@ public class UserRoutes {
                                               AuthorityHttpHandler authorityHandler,
                                               UserInternalHttpHandler userInternalHandler,
                                               MenuInternalHttpHandler menuInternalHandler,
-                                              AuthorityInternalHttpHandler authorityInternalHandler,
-                                              ValidatedRequest validation) {
+                                              AuthorityInternalHttpHandler authorityInternalHandler) {
         return routes(userHandler, roleHandler, menuHandler, authorityHandler,
-                userInternalHandler, menuInternalHandler, authorityInternalHandler, validation);
+                userInternalHandler, menuInternalHandler, authorityInternalHandler);
     }
 
     public static RouterFunction<ServerResponse> routes(UserHttpHandler userHandler,
@@ -98,98 +78,53 @@ public class UserRoutes {
                                                         AuthorityHttpHandler authorityHandler,
                                                         UserInternalHttpHandler userInternalHandler,
                                                         MenuInternalHttpHandler menuInternalHandler,
-                                                        AuthorityInternalHttpHandler authorityInternalHandler,
-                                                        ValidatedRequest validation) {
-        return route()
-                .GET("/sys/user/auth/register/page", request -> ok(userHandler.getRegisterPage(
-                        requiredParam(request, "username"))))
-                .GET("/sys/user/register/check", request -> ok(userHandler.checkRegisterPage(
-                        nullableParam(request, "token", Function.identity()))))
-                .POST("/sys/user/register/save", request -> ok(userHandler.saveRegisterPage(
-                        validation.body(request, UserEntityRegisterReq.class))))
-                .POST("/sys/user/register/image/upload", request -> ok(userHandler.imageUpload(
-                        multipartFile(request, "image"), requiredParam(request, "token"))))
-                .GET("/sys/user/register/image/delete", request -> ok(userHandler.imageDelete(
-                        requiredParam(request, "url"), requiredParam(request, "token"))))
-                .POST("/sys/user/save", request -> ok(userHandler.saveOrUpdate(
-                        validation.body(request, UserEntityReq.class))))
-                .GET("/sys/user/page/{currentPage}", request -> ok(userHandler.page(
-                        pathVariable(request, "currentPage", Integer::valueOf),
-                        optionalParam(request, "size", 5, Integer::valueOf))))
-                .POST("/sys/user/delete", request -> ok(userHandler.delete(
-                        validation.notEmpty(request.body(LONG_LIST), "ids"))))
-                .GET("/sys/user/info/{id}", request -> ok(userHandler.info(
-                        pathVariable(request, "id", Long::valueOf))))
-                .GET("/sys/user/download", request -> userDownload(userHandler))
+                                                        AuthorityInternalHttpHandler authorityInternalHandler) {
+        return withDefaultErrorHandling(route()
+                .GET("/sys/user/auth/register/page", userHandler::getRegisterPage)
+                .GET("/sys/user/register/check", userHandler::checkRegisterPage)
+                .POST("/sys/user/register/save", userHandler::saveRegisterPage)
+                .POST("/sys/user/register/image/upload", userHandler::imageUpload)
+                .GET("/sys/user/register/image/delete", userHandler::imageDelete)
+                .POST("/sys/user/save", userHandler::saveOrUpdate)
+                .GET("/sys/user/page/{currentPage}", userHandler::page)
+                .POST("/sys/user/delete", userHandler::delete)
+                .GET("/sys/user/info/{id}", userHandler::info)
+                .GET("/sys/user/download", userHandler::download)
 
-                .GET("/sys/role/info/{id}", request -> ok(roleHandler.info(
-                        pathVariable(request, "id", Long::valueOf))))
-                .GET("/sys/role/roles", request -> ok(roleHandler.getPage(
-                        optionalParam(request, "currentPage", 1, Integer::valueOf),
-                        optionalParam(request, "size", 5, Integer::valueOf))))
-                .POST("/sys/role/save", request -> ok(roleHandler.saveOrUpdate(
-                        validation.body(request, RoleEntityReq.class))))
-                .POST("/sys/role/delete", request -> ok(roleHandler.delete(
-                        validation.notEmpty(request.body(LONG_LIST), "ids"))))
-                .POST("/sys/role/menu/{roleId}", request -> ok(roleHandler.saveMenu(
-                        pathVariable(request, "roleId", Long::valueOf), request.body(LONG_LIST))))
-                .GET("/sys/role/menu/{roleId}", request -> ok(roleHandler.getMenusInfo(
-                        pathVariable(request, "roleId", Long::valueOf))))
-                .GET("/sys/role/download", request -> ok(roleHandler.download()))
-                .GET("/sys/role/valid/all", request -> ok(roleHandler.getValidAll()))
+                .GET("/sys/role/info/{id}", roleHandler::info)
+                .GET("/sys/role/roles", roleHandler::getPage)
+                .POST("/sys/role/save", roleHandler::saveOrUpdate)
+                .POST("/sys/role/delete", roleHandler::delete)
+                .POST("/sys/role/menu/{roleId}", roleHandler::saveMenu)
+                .GET("/sys/role/menu/{roleId}", roleHandler::getMenusInfo)
+                .GET("/sys/role/download", roleHandler::download)
+                .GET("/sys/role/valid/all", roleHandler::getValidAll)
 
-                .GET("/sys/menu/info/{id}", request -> ok(menuHandler.info(
-                        pathVariable(request, "id", Long::valueOf))))
-                .GET("/sys/menu/list", request -> ok(menuHandler.list()))
-                .POST("/sys/menu/save", request -> ok(menuHandler.saveOrUpdate(
-                        validation.body(request, MenuEntityReq.class))))
-                .POST("/sys/menu/delete/{id}", request -> ok(menuHandler.delete(
-                        pathVariable(request, "id", Long::valueOf))))
-                .GET("/sys/menu/download", request -> ok(menuHandler.download()))
-                .POST("/sys/menu/authority/{menuId}", request -> ok(menuHandler.saveAuthority(
-                        pathVariable(request, "menuId", Long::valueOf), request.body(LONG_LIST))))
-                .GET("/sys/menu/authority/{menuId}", request -> ok(menuHandler.getAuthoritiesInfo(
-                        pathVariable(request, "menuId", Long::valueOf))))
+                .GET("/sys/menu/info/{id}", menuHandler::info)
+                .GET("/sys/menu/list", menuHandler::list)
+                .POST("/sys/menu/save", menuHandler::saveOrUpdate)
+                .POST("/sys/menu/delete/{id}", menuHandler::delete)
+                .GET("/sys/menu/download", menuHandler::download)
+                .POST("/sys/menu/authority/{menuId}", menuHandler::saveAuthority)
+                .GET("/sys/menu/authority/{menuId}", menuHandler::getAuthoritiesInfo)
 
-                .GET("/sys/authority/list", request -> ok(authorityHandler.list()))
-                .GET("/sys/authority/info/{id}", request -> ok(authorityHandler.info(
-                        pathVariable(request, "id", Long::valueOf))))
-                .POST("/sys/authority/save", request -> ok(authorityHandler.saveOrUpdate(
-                        validation.body(request, AuthorityEntityReq.class))))
-                .POST("/sys/authority/delete", request -> ok(authorityHandler.delete(
-                        validation.notEmpty(request.body(LONG_LIST), "ids"))))
-                .GET("/sys/authority/download", request -> ok(authorityHandler.download()))
+                .GET("/sys/authority/list", authorityHandler::list)
+                .GET("/sys/authority/info/{id}", authorityHandler::info)
+                .POST("/sys/authority/save", authorityHandler::saveOrUpdate)
+                .POST("/sys/authority/delete", authorityHandler::delete)
+                .GET("/sys/authority/download", authorityHandler::download)
 
-                .GET("/inner/menu/nav", request -> ok(menuInternalHandler.getCurrentUserNav(
-                        requiredParam(request, "role"))))
-                .GET("/inner/user/status", request -> ok(userInternalHandler.changeUserStatusByUsername(
-                        requiredParam(request, "username"),
-                        requiredParam(request, "status", Integer::valueOf))))
-                .POST("/inner/user/role", request -> ok(userInternalHandler.findByRoleCodeInAndStatus(
-                        request.body(STRING_LIST), requiredParam(request, "status", Integer::valueOf))))
-                .POST("/inner/user/login/time", request -> ok(userInternalHandler.updateLoginTime(
-                        requiredParam(request, "username"))))
-                .GET("/inner/user/email", request -> ok(userInternalHandler.findByEmail(
-                        requiredParam(request, "email"))))
-                .GET("/inner/user/phone", request -> ok(userInternalHandler.findByPhone(
-                        requiredParam(request, "phone"))))
-                .GET("/inner/user/role/{userId}", request -> ok(userInternalHandler.findRoleCodesByUserId(
-                        pathVariable(request, "userId", Long::valueOf))))
-                .GET("/inner/user/login/query", request -> ok(userInternalHandler.findByUsernameOrEmailOrPhone(
-                        requiredParam(request, "username"))))
-                .GET("/inner/user/{userId}", request -> ok(userInternalHandler.findById(
-                        pathVariable(request, "userId", Long::valueOf))))
-                .POST("/inner/authority/list", request -> ok(authorityInternalHandler.getAuthorities()))
-                .GET("/inner/authority/role", request -> ok(authorityInternalHandler.getAuthoritiesByRoleCode(
-                        requiredParam(request, "rawRole"))))
-                .filter(badRequestErrors(log))
+                .GET("/inner/menu/nav", menuInternalHandler::getCurrentUserNav)
+                .GET("/inner/user/status", userInternalHandler::changeUserStatusByUsername)
+                .POST("/inner/user/role", userInternalHandler::findByRoleCodeInAndStatus)
+                .POST("/inner/user/login/time", userInternalHandler::updateLoginTime)
+                .GET("/inner/user/email", userInternalHandler::findByEmail)
+                .GET("/inner/user/phone", userInternalHandler::findByPhone)
+                .GET("/inner/user/role/{userId}", userInternalHandler::findRoleCodesByUserId)
+                .GET("/inner/user/login/query", userInternalHandler::findByUsernameOrEmailOrPhone)
+                .GET("/inner/user/{userId}", userInternalHandler::findById)
+                .POST("/inner/authority/list", authorityInternalHandler::getAuthorities)
+                .GET("/inner/authority/role", authorityInternalHandler::getAuthoritiesByRoleCode), log)
                 .build();
-    }
-
-    private static ServerResponse userDownload(UserHttpHandler handler) {
-        return ServerResponse.ok().build((request, response) -> {
-            handler.download(response);
-            return null;
-        });
     }
 }

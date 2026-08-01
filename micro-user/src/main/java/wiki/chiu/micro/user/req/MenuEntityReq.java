@@ -4,7 +4,6 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import wiki.chiu.micro.user.valid.ListValue;
 
 import java.util.Optional;
 
@@ -39,6 +38,8 @@ public record MenuEntityReq(
         @Max(value = 2, message = "{wiki.chiu.micro.user.valid.MenuValue.message}")
         Integer type,
 
-        @ListValue(values = {0, 1}, message = "{wiki.chiu.micro.user.valid.MenuValue.message}")
+        @NotNull(message = "{wiki.chiu.micro.user.valid.MenuValue.message}")
+        @Min(value = 0, message = "{wiki.chiu.micro.user.valid.MenuValue.message}")
+        @Max(value = 1, message = "{wiki.chiu.micro.user.valid.MenuValue.message}")
         Integer status) {
 }

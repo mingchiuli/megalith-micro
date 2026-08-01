@@ -6,9 +6,7 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
-import wiki.chiu.micro.blog.valid.impl.BlogDownloadConstraintValidator;
-import wiki.chiu.micro.blog.valid.impl.BlogQueryConstraintValidator;
-import wiki.chiu.micro.blog.valid.impl.BlogSaveConstraintValidator;
+import wiki.chiu.micro.blog.valid.impl.DateRangeConstraintValidator;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
@@ -24,11 +22,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 .registerType(BlogDownloadReq.class,
                         MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                         MemberCategory.INVOKE_DECLARED_METHODS)
-                .registerType(BlogSaveConstraintValidator.class,
-                        MemberCategory.INVOKE_DECLARED_CONSTRUCTORS)
-                .registerType(BlogQueryConstraintValidator.class,
-                        MemberCategory.INVOKE_DECLARED_CONSTRUCTORS)
-                .registerType(BlogDownloadConstraintValidator.class,
+                .registerType(DateRangeConstraintValidator.class,
                         MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
 
         // ValidationMessages.properties for Bean Validation

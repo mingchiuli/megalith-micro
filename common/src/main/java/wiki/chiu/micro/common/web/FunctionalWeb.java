@@ -4,14 +4,19 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
-import org.springframework.web.servlet.function.HandlerFilterFunction;
+import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
@@ -90,19 +95,31 @@ public final class FunctionalWeb {
         return ServerResponse.ok().body(body);
     }
 
-    public static HandlerFilterFunction<ServerResponse, ServerResponse> badRequestErrors(Logger log) {
-        return (request, next) -> {
-            try {
-                return next.handle(request);
-            }
-            catch (Exception exception) {
-                log.error("HTTP handler exception", exception);
-                return ServerResponse.badRequest().body(Result.fail(errorMessage(exception)));
-            }
-        };
+    public static RouterFunctions.Builder withDefaultErrorHandling(RouterFunctions.Builder builder, Logger log) {
+        builder.onError(ConstraintViolationException.class,
+                (exception, request) -> error(HttpStatus.BAD_REQUEST, exception, log));
+        builder.onError(HttpMessageNotReadableException.class,
+                (exception, request) -> error(HttpStatus.BAD_REQUEST, exception, log));
+        builder.onError(ServletRequestBindingException.class,
+                (exception, request) -> error(HttpStatus.BAD_REQUEST, exception, log));
+        builder.onError(MultipartException.class,
+                (exception, request) -> error(HttpStatus.BAD_REQUEST, exception, log));
+        builder.onError(IllegalArgumentException.class,
+                (exception, request) -> error(HttpStatus.BAD_REQUEST, exception, log));
+        builder.onError(BaseException.class,
+                (exception, request) -> error(HttpStatus.BAD_REQUEST, exception, log));
+        builder.onError(Exception.class,
+                (exception, request) -> error(HttpStatus.INTERNAL_SERVER_ERROR, exception, log));
+        return builder;
     }
 
-    public static String errorMessage(Exception exception) {
+    public static ServerResponse error(HttpStatus status, Throwable exception, Logger log) {
+        log.error("HTTP handler exception", exception);
+        return ServerResponse.status(status)
+                .body(Result.fail(status.value(), errorMessage(exception)));
+    }
+
+    public static String errorMessage(Throwable exception) {
         if (exception instanceof ConstraintViolationException violationException) {
             return violationException.getConstraintViolations().stream()
                     .map(ConstraintViolation::getMessage)

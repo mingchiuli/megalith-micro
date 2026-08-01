@@ -5,12 +5,15 @@ import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.user.req.MenuEntityReq;
 import wiki.chiu.micro.user.service.MenuAuthorityService;
 import wiki.chiu.micro.user.service.MenuService;
-import wiki.chiu.micro.user.vo.MenuDisplayVo;
-import wiki.chiu.micro.user.vo.MenuEntityVo;
 import org.springframework.stereotype.Component;
-import wiki.chiu.micro.user.vo.MenuAuthorityVo;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import java.util.List;
+
+import static wiki.chiu.micro.common.web.FunctionalWeb.*;
 
 
 /**
@@ -23,38 +26,49 @@ public class MenuHttpHandler {
     private final MenuService menuService;
 
     private final MenuAuthorityService menuAuthorityService;
+    private final ValidatedRequest validation;
 
-    public MenuHttpHandler(MenuService menuService, MenuAuthorityService menuAuthorityService) {
+    private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
+            new ParameterizedTypeReference<>() { };
+
+    public MenuHttpHandler(MenuService menuService, MenuAuthorityService menuAuthorityService,
+                           ValidatedRequest validation) {
         this.menuService = menuService;
         this.menuAuthorityService = menuAuthorityService;
+        this.validation = validation;
     }
 
-    public Result<MenuEntityVo> info(Long id) {
-        return Result.success(() -> menuService.findById(id));
+    public ServerResponse info(ServerRequest request) {
+        Long id = pathVariable(request, "id", Long::valueOf);
+        return ok(Result.success(() -> menuService.findById(id)));
     }
 
-    public Result<List<MenuDisplayVo>> list() {
-        return Result.success(menuService::tree);
+    public ServerResponse list(ServerRequest request) {
+        return ok(Result.success(menuService::tree));
     }
 
-    public Result<Void> saveOrUpdate(MenuEntityReq menu) {
-        return Result.success(() -> menuService.saveOrUpdate(menu));
+    public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
+        MenuEntityReq menu = validation.body(request, MenuEntityReq.class);
+        return ok(Result.success(() -> menuService.saveOrUpdate(menu)));
     }
 
-    public Result<Void> delete(Long id) {
-        return Result.success(() -> menuService.delete(id));
+    public ServerResponse delete(ServerRequest request) {
+        Long id = pathVariable(request, "id", Long::valueOf);
+        return ok(Result.success(() -> menuService.delete(id)));
     }
 
-    public byte[] download() {
-        return menuService.download();
+    public ServerResponse download(ServerRequest request) {
+        return ok(menuService.download());
     }
 
-    public Result<Void> saveAuthority(Long menuId, List<Long> authorityIds) {
-        return Result.success(() -> menuAuthorityService.saveAuthority(menuId, authorityIds));
+    public ServerResponse saveAuthority(ServerRequest request) throws Exception {
+        Long menuId = pathVariable(request, "menuId", Long::valueOf);
+        List<Long> authorityIds = validation.body(request, LONG_LIST);
+        return ok(Result.success(() -> menuAuthorityService.saveAuthority(menuId, authorityIds)));
     }
 
-    public Result<List<MenuAuthorityVo>> getAuthoritiesInfo(Long menuId) {
-        return Result.success(() -> menuAuthorityService.getAuthoritiesInfo(menuId));
+    public ServerResponse getAuthoritiesInfo(ServerRequest request) {
+        Long menuId = pathVariable(request, "menuId", Long::valueOf);
+        return ok(Result.success(() -> menuAuthorityService.getAuthoritiesInfo(menuId)));
     }
-
 }

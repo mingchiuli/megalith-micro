@@ -14,7 +14,6 @@ import wiki.chiu.micro.auth.handler.TokenHttpHandler;
 import wiki.chiu.micro.auth.route.AuthRoutes;
 import wiki.chiu.micro.auth.service.CodeService;
 import wiki.chiu.micro.common.exception.CodeException;
-import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -38,10 +37,7 @@ class CodeControllerTest {
                         org.mockito.Mockito.mock(AuthHttpHandler.class),
                         org.mockito.Mockito.mock(TokenHttpHandler.class),
                         handler,
-                        org.mockito.Mockito.mock(AuthInternalHttpHandler.class),
-                        request -> null,
-                        new ValidatedRequest(jakarta.validation.Validation
-                                .buildDefaultValidatorFactory().getValidator())))
+                        org.mockito.Mockito.mock(AuthInternalHttpHandler.class)))
                 .build();
     }
 

@@ -1,15 +1,18 @@
 package wiki.chiu.micro.user.handler;
 
 import wiki.chiu.micro.common.lang.Result;
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.req.RoleEntityReq;
 import wiki.chiu.micro.user.service.RoleMenuService;
 import wiki.chiu.micro.user.service.RoleService;
-import wiki.chiu.micro.user.vo.RoleEntityVo;
-import wiki.chiu.micro.user.vo.RoleMenuVo;
 import org.springframework.stereotype.Component;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import java.util.List;
+
+import static wiki.chiu.micro.common.web.FunctionalWeb.*;
 
 /**
  * @author mingchiuli
@@ -21,41 +24,55 @@ public class RoleHttpHandler {
     private final RoleService roleService;
 
     private final RoleMenuService roleMenuService;
+    private final ValidatedRequest validation;
 
-    public RoleHttpHandler(RoleService roleService, RoleMenuService roleMenuService) {
+    private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
+            new ParameterizedTypeReference<>() { };
+
+    public RoleHttpHandler(RoleService roleService, RoleMenuService roleMenuService,
+                           ValidatedRequest validation) {
         this.roleService = roleService;
         this.roleMenuService = roleMenuService;
+        this.validation = validation;
     }
 
-    public Result<RoleEntityVo> info(Long id) {
-        return Result.success(() -> roleService.info(id));
+    public ServerResponse info(ServerRequest request) {
+        Long id = pathVariable(request, "id", Long::valueOf);
+        return ok(Result.success(() -> roleService.info(id)));
     }
 
-    public Result<PageAdapter<RoleEntityVo>> getPage(Integer currentPage, Integer size) {
-        return Result.success(() -> roleService.getPage(currentPage, size));
+    public ServerResponse getPage(ServerRequest request) {
+        Integer currentPage = optionalParam(request, "currentPage", 1, Integer::valueOf);
+        Integer size = optionalParam(request, "size", 5, Integer::valueOf);
+        return ok(Result.success(() -> roleService.getPage(currentPage, size)));
     }
 
-    public Result<Void> saveOrUpdate(RoleEntityReq role) {
-        return Result.success(() -> roleService.saveOrUpdate(role));
+    public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
+        RoleEntityReq role = validation.body(request, RoleEntityReq.class);
+        return ok(Result.success(() -> roleService.saveOrUpdate(role)));
     }
 
-    public Result<Void> delete(List<Long> ids) {
-        return Result.success(() -> roleService.delete(ids));
+    public ServerResponse delete(ServerRequest request) throws Exception {
+        List<Long> ids = validation.notEmpty(validation.body(request, LONG_LIST), "ids");
+        return ok(Result.success(() -> roleService.delete(ids)));
     }
 
-    public Result<Void> saveMenu(Long roleId, List<Long> menuIds) {
-        return Result.success(() -> roleMenuService.saveMenu(roleId, menuIds));
+    public ServerResponse saveMenu(ServerRequest request) throws Exception {
+        Long roleId = pathVariable(request, "roleId", Long::valueOf);
+        List<Long> menuIds = validation.body(request, LONG_LIST);
+        return ok(Result.success(() -> roleMenuService.saveMenu(roleId, menuIds)));
     }
 
-    public Result<List<RoleMenuVo>> getMenusInfo(Long roleId) {
-        return Result.success(() -> roleMenuService.getMenusInfo(roleId));
+    public ServerResponse getMenusInfo(ServerRequest request) {
+        Long roleId = pathVariable(request, "roleId", Long::valueOf);
+        return ok(Result.success(() -> roleMenuService.getMenusInfo(roleId)));
     }
 
-    public byte[] download() {
-        return roleService.download();
+    public ServerResponse download(ServerRequest request) {
+        return ok(roleService.download());
     }
 
-    public Result<List<RoleEntityVo>> getValidAll() {
-        return Result.success(roleService::getValidAll);
+    public ServerResponse getValidAll(ServerRequest request) {
+        return ok(Result.success(roleService::getValidAll));
     }
 }

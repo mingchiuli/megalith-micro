@@ -2,7 +2,7 @@ package wiki.chiu.micro.user.valid;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import wiki.chiu.micro.user.valid.impl.UserSaveConstraintValidator;
+import wiki.chiu.micro.user.valid.impl.PasswordRequiredForCreateConstraintValidator;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -13,15 +13,14 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Documented
-@Constraint(validatedBy = {UserSaveConstraintValidator.class})
+@Constraint(validatedBy = PasswordRequiredForCreateConstraintValidator.class)
 @Target({TYPE, ANNOTATION_TYPE})
 @Retention(RUNTIME)
-public @interface UserSave {
-    String message() default "{wiki.chiu.micro.user.valid.UserSave.message}";
+public @interface PasswordRequiredForCreate {
 
-    Class<?>[] groups() default { };
+    String message() default "需要密码";
 
-    Class<? extends Payload>[] payload() default { };
+    Class<?>[] groups() default {};
 
-    int[] values() default {};
+    Class<? extends Payload>[] payload() default {};
 }
