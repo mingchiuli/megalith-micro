@@ -11,7 +11,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.user.exception.GlobalExceptionHandler;
+import wiki.chiu.micro.user.handler.AuthorityHttpHandler;
+import wiki.chiu.micro.user.handler.AuthorityInternalHttpHandler;
+import wiki.chiu.micro.user.handler.MenuHttpHandler;
+import wiki.chiu.micro.user.handler.MenuInternalHttpHandler;
+import wiki.chiu.micro.user.handler.RoleHttpHandler;
+import wiki.chiu.micro.user.handler.UserHttpHandler;
+import wiki.chiu.micro.user.handler.UserInternalHttpHandler;
+import wiki.chiu.micro.user.route.UserRoutes;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.service.UserRoleService;
 import wiki.chiu.micro.user.service.UserService;
 
@@ -20,6 +28,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -40,9 +50,17 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        UserController controller = new UserController(userService, userRoleService);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setControllerAdvice(new GlobalExceptionHandler())
+        UserHttpHandler handler = new UserHttpHandler(userService, userRoleService);
+        mockMvc = MockMvcBuilders.routerFunctions(UserRoutes.routes(
+                        handler,
+                        org.mockito.Mockito.mock(RoleHttpHandler.class),
+                        org.mockito.Mockito.mock(MenuHttpHandler.class),
+                        org.mockito.Mockito.mock(AuthorityHttpHandler.class),
+                        org.mockito.Mockito.mock(UserInternalHttpHandler.class),
+                        org.mockito.Mockito.mock(MenuInternalHttpHandler.class),
+                        org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class),
+                        new ValidatedRequest(jakarta.validation.Validation
+                                .buildDefaultValidatorFactory().getValidator())))
                 .build();
     }
 
@@ -99,6 +117,17 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[1,2]"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void invalidUserBodyIsRejectedBeforeHandler() throws Exception {
+        mockMvc.perform(post("/sys/user/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("args error"));
+
+        verify(userService, never()).saveOrUpdate(any());
     }
 
     @Test

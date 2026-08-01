@@ -23,13 +23,20 @@ import wiki.chiu.micro.user.vo.MenuDisplayVo;
 import wiki.chiu.micro.user.vo.MenuEntityVo;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.user.wrapper.RoleMenuAuthorityWrapper;
+import wiki.chiu.micro.common.lang.TypeEnum;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static wiki.chiu.micro.common.lang.ExceptionMessage.BUTTON_MUST_NOT_PARENT;
+import static wiki.chiu.micro.common.lang.ExceptionMessage.CATALOGUE_CHILD_MUST_NOT_BUTTON;
+import static wiki.chiu.micro.common.lang.ExceptionMessage.CATALOGUE_PARENT_MUST_PARENT;
+import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_CHILDREN_MUST_BE_BUTTON;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_NOT_EXIST;
+import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 
 
 /**
@@ -40,6 +47,8 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_NOT_EXIST;
 public class MenuServiceImpl implements MenuService {
 
     private static final Integer HIDE_STATUS = StatusEnum.HIDE.getCode();
+
+    private static final String DELETE_CHILDREN_FIRST = "please delete sub menu";
 
     private final MenuRepository menuRepository;
 
@@ -72,7 +81,9 @@ public class MenuServiceImpl implements MenuService {
 
 
     @Override
+    @Transactional
     public void saveOrUpdate(MenuEntityReq menu) {
+        validateMenuHierarchy(menu);
         MenuEntity dealMenu = menu.id()
                 .flatMap(menuRepository::findById)
                 .orElseGet(MenuEntity::new);
@@ -116,7 +127,11 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
+        if (menuRepository.existsByParentId(id)) {
+            throw new MissException(DELETE_CHILDREN_FIRST);
+        }
         roleMenuAuthorityWrapper.deleteMenu(id);
         //全部按钮
         taskExecutor.execute(() -> {
@@ -134,5 +149,32 @@ public class MenuServiceImpl implements MenuService {
             menuEntities.add(menu);
             findTargetChildrenMenuId(menu.getId(), menuEntities);
         });
+    }
+
+    private void validateMenuHierarchy(MenuEntityReq menu) {
+        TypeEnum type = TypeEnum.getInstance(menu.type());
+        TypeEnum parentType = getParentType(menu.parentId());
+
+        if (TypeEnum.BUTTON.equals(parentType)) {
+            throw new MissException(BUTTON_MUST_NOT_PARENT);
+        }
+        if (TypeEnum.MENU.equals(parentType) && !TypeEnum.BUTTON.equals(type)) {
+            throw new MissException(MENU_CHILDREN_MUST_BE_BUTTON);
+        }
+        if (TypeEnum.CATALOGUE.equals(parentType) && TypeEnum.BUTTON.equals(type)) {
+            throw new MissException(CATALOGUE_CHILD_MUST_NOT_BUTTON);
+        }
+        if (TypeEnum.CATALOGUE.equals(type) && !TypeEnum.CATALOGUE.equals(parentType)) {
+            throw new MissException(CATALOGUE_PARENT_MUST_PARENT);
+        }
+    }
+
+    private TypeEnum getParentType(Long parentId) {
+        if (Long.valueOf(0).equals(parentId)) {
+            return TypeEnum.CATALOGUE;
+        }
+        MenuEntity parent = menuRepository.findById(parentId)
+                .orElseThrow(() -> new MissException(NO_FOUND.toString()));
+        return TypeEnum.getInstance(parent.getType());
     }
 }

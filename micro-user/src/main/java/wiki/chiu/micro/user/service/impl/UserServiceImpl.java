@@ -40,6 +40,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import wiki.chiu.micro.user.vo.UserEntityVo;
@@ -63,6 +64,8 @@ import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
 public class UserServiceImpl implements UserService {
 
     private static final String IMAGE_JPG = "image/jpg";
+
+    private static final String REGISTER_ARGS_ERROR = "args error";
 
     private final UserRepository userRepository;
 
@@ -219,7 +222,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void saveRegisterPage(UserEntityRegisterReq req) {
+        validateRegistrationPolicy(req);
         String phone = req.phone();
 
         UserEntityRegisterReq dealReq;
@@ -265,7 +270,23 @@ public class UserServiceImpl implements UserService {
 
     private void validateToken(String token) {
         Boolean exist = redisTemplate.hasKey(REGISTER_PREFIX + token);
-        if (!exist) {
+        if (!Boolean.TRUE.equals(exist)) {
+            throw new MissException(NO_AUTH.getMsg());
+        }
+    }
+
+    private void validateRegistrationPolicy(UserEntityRegisterReq req) {
+        validateToken(req.token());
+
+        userRepository.findByUsername(req.username())
+                .filter(user -> StatusEnum.HIDE.getCode().equals(user.getStatus()))
+                .ifPresent(user -> {
+                    throw new MissException(REGISTER_ARGS_ERROR);
+                });
+
+        String registeredUsername = redisTemplate.opsForValue().get(REGISTER_PREFIX + req.token());
+        if (StringUtils.hasLength(registeredUsername) &&
+                !Objects.equals(registeredUsername, req.username())) {
             throw new MissException(NO_AUTH.getMsg());
         }
     }

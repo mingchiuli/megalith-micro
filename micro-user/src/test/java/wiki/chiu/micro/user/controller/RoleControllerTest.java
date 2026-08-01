@@ -10,7 +10,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.user.exception.GlobalExceptionHandler;
+import wiki.chiu.micro.user.handler.AuthorityHttpHandler;
+import wiki.chiu.micro.user.handler.AuthorityInternalHttpHandler;
+import wiki.chiu.micro.user.handler.MenuHttpHandler;
+import wiki.chiu.micro.user.handler.MenuInternalHttpHandler;
+import wiki.chiu.micro.user.handler.RoleHttpHandler;
+import wiki.chiu.micro.user.handler.UserHttpHandler;
+import wiki.chiu.micro.user.handler.UserInternalHttpHandler;
+import wiki.chiu.micro.user.route.UserRoutes;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.service.RoleMenuService;
 import wiki.chiu.micro.user.service.RoleService;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
@@ -21,6 +29,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -41,9 +51,17 @@ class RoleControllerTest {
 
     @BeforeEach
     void setUp() {
-        RoleController controller = new RoleController(roleService, roleMenuService);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setControllerAdvice(new GlobalExceptionHandler())
+        RoleHttpHandler handler = new RoleHttpHandler(roleService, roleMenuService);
+        mockMvc = MockMvcBuilders.routerFunctions(UserRoutes.routes(
+                        org.mockito.Mockito.mock(UserHttpHandler.class),
+                        handler,
+                        org.mockito.Mockito.mock(MenuHttpHandler.class),
+                        org.mockito.Mockito.mock(AuthorityHttpHandler.class),
+                        org.mockito.Mockito.mock(UserInternalHttpHandler.class),
+                        org.mockito.Mockito.mock(MenuInternalHttpHandler.class),
+                        org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class),
+                        new ValidatedRequest(jakarta.validation.Validation
+                                .buildDefaultValidatorFactory().getValidator())))
                 .build();
     }
 
@@ -84,6 +102,18 @@ class RoleControllerTest {
                         .content("[1,2]"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
+    }
+
+    @Test
+    void invalidStatusIsRejectedBeforeHandler() throws Exception {
+        mockMvc.perform(post("/sys/role/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":null,\"name\":\"admin\",\"code\":\"ADMIN\","
+                                + "\"remark\":\"\",\"status\":9}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("must submit 0 or 1"));
+
+        verify(roleService, never()).saveOrUpdate(any());
     }
 
     @Test

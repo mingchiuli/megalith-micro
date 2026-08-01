@@ -3,15 +3,17 @@ package wiki.chiu.micro.search.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.search.exception.GlobalExceptionHandler;
+import wiki.chiu.micro.search.handler.BlogSearchHttpHandler;
+import wiki.chiu.micro.search.handler.SearchInternalHttpHandler;
+import wiki.chiu.micro.search.route.SearchRoutes;
 import wiki.chiu.micro.search.service.BlogSearchService;
 import wiki.chiu.micro.search.vo.BlogDocumentVo;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +21,8 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -30,15 +34,15 @@ class BlogSearchControllerTest {
     @Mock
     private BlogSearchService blogSearchService;
 
-    @InjectMocks
-    private BlogSearchController blogSearchController;
-
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(blogSearchController)
-                .setControllerAdvice(new GlobalExceptionHandler())
+        BlogSearchHttpHandler handler = new BlogSearchHttpHandler(blogSearchService);
+        mockMvc = MockMvcBuilders.routerFunctions(
+                        SearchRoutes.routes(handler, org.mockito.Mockito.mock(SearchInternalHttpHandler.class),
+                                new ValidatedRequest(jakarta.validation.Validation
+                                        .buildDefaultValidatorFactory().getValidator())))
                 .build();
     }
 
@@ -67,6 +71,17 @@ class BlogSearchControllerTest {
                         .param("currentPage", "1")
                         .param("allInfo", "true"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void searchBlogsRejectsKeywordsLongerThanTwentyCharacters() throws Exception {
+        mockMvc.perform(get("/search/public/blog")
+                        .param("currentPage", "1")
+                        .param("allInfo", "true")
+                        .param("keywords", "123456789012345678901"))
+                .andExpect(status().isBadRequest());
+
+        verify(blogSearchService, never()).selectBlogsByES(anyInt(), anyString(), anyBoolean());
     }
 
     @Test

@@ -17,7 +17,7 @@ public class BlogDownloadConstraintValidator implements ConstraintValidator<Blog
 
     @Override
     public boolean isValid(BlogDownloadReq query, ConstraintValidatorContext context) {
-        return isValidKeywords(query.keywords()) &&
+        return query != null && isValidKeywords(query.keywords()) &&
                 isValidStatus(query.status()) &&
                 isValidDateRange(query.createStart(), query.createEnd());
     }

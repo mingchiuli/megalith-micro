@@ -17,6 +17,8 @@ public interface MenuRepository extends JpaRepository<MenuEntity, Long> {
 
     List<MenuEntity> findByParentId(Long id);
 
+    boolean existsByParentId(Long id);
+
     @Query(value = "SELECT menu.id from MenuEntity menu")
     List<Long> findAllIds();
 }

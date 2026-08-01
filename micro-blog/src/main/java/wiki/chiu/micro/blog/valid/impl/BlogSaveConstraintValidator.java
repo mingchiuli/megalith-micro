@@ -22,7 +22,7 @@ public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSave
 
     @Override
     public boolean isValid(BlogEntityReq blog, ConstraintValidatorContext context) {
-        return isValidTitle(blog.title()) &&
+        return blog != null && isValidTitle(blog.title()) &&
                 isValidDescription(blog.description()) &&
                 isValidContent(blog.content()) &&
                 isValidStatus(blog.status()) &&
@@ -51,8 +51,11 @@ public class BlogSaveConstraintValidator implements ConstraintValidator<BlogSave
     }
 
     private boolean isValidSensitiveContentList(List<SensitiveContentReq> sensitiveContentList) {
+        if (sensitiveContentList == null) {
+            return false;
+        }
         for (var sensitive : sensitiveContentList) {
-            if (Objects.isNull(sensitive.startIndex()) ||
+            if (sensitive == null || Objects.isNull(sensitive.startIndex()) ||
                     Objects.isNull(sensitive.endIndex()) ||
                     !SensitiveTypeEnum.SENSITIVE_TYPE_SET.contains(sensitive.type())) {
                 return false;

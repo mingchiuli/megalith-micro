@@ -2,7 +2,9 @@ package wiki.chiu.micro.user.req;
 
 import java.util.List;
 import java.util.Optional;
+import wiki.chiu.micro.user.valid.UserSave;
 
+@UserSave
 public record UserEntityReq(
 
         Optional<Long> id,
