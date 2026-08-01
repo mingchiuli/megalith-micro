@@ -3,16 +3,16 @@ package wiki.chiu.micro.exhibit.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.exhibit.exception.GlobalExceptionHandler;
+import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
+import wiki.chiu.micro.exhibit.handler.BlogExhibitHttpHandler;
+import wiki.chiu.micro.exhibit.route.ExhibitRoutes;
 import wiki.chiu.micro.exhibit.service.BlogService;
-import wiki.chiu.micro.exhibit.support.StubAuthInfoResolver;
 import wiki.chiu.micro.exhibit.vo.BlogExhibitVo;
 import wiki.chiu.micro.exhibit.vo.BlogHotReadVo;
 import wiki.chiu.micro.exhibit.vo.VisitStatisticsVo;
@@ -33,16 +33,13 @@ class BlogControllerTest {
     @Mock
     private BlogService blogService;
 
-    @InjectMocks
-    private BlogController blogController;
-
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(blogController)
-                .setCustomArgumentResolvers(new StubAuthInfoResolver(1L, List.of("ROLE_USER")))
-                .setControllerAdvice(new GlobalExceptionHandler())
+        BlogExhibitHttpHandler handler = new BlogExhibitHttpHandler(blogService);
+        AuthInfo authInfo = new AuthInfo(1L, List.of("ROLE_USER"), List.of());
+        mockMvc = MockMvcBuilders.routerFunctions(ExhibitRoutes.routes(handler, request -> authInfo))
                 .build();
     }
 

@@ -16,7 +16,7 @@ public class BlogQueryConstraintValidator implements ConstraintValidator<BlogSys
 
     @Override
     public boolean isValid(BlogQueryReq query, ConstraintValidatorContext context) {
-        return isValidSize(query.size()) &&
+        return query != null && isValidSize(query.size()) &&
                 isValidCurrentPage(query.currentPage()) &&
                 isValidStatus(query.status()) &&
                 isValidKeywords(query.keywords()) &&

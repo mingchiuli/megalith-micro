@@ -1,6 +1,8 @@
 package wiki.chiu.micro.user.req;
 
+import wiki.chiu.micro.user.valid.RegisterSave;
 
+@RegisterSave
 public record UserEntityRegisterReq(
 
         String username,

@@ -4,7 +4,9 @@ package wiki.chiu.micro.blog.req;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import wiki.chiu.micro.blog.valid.BlogSysQuery;
 
+@BlogSysQuery
 public record BlogQueryReq(
 
         Integer currentPage,

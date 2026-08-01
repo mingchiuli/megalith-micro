@@ -23,7 +23,11 @@ public class UserSaveConstraintValidator implements ConstraintValidator<UserSave
 
     @Override
     public boolean isValid(UserEntityReq req, ConstraintValidatorContext context) {
-        if (!isUsername(req.username()) || !StringUtils.hasLength(req.nickname()) || !Const.URL_PATTERN.matcher(req.avatar()).matches() || !Const.EMAIL_PATTERN.matcher(req.email()).matches() || !Const.PHONE_PATTERN.matcher(req.phone()).matches() || CollectionUtils.isEmpty(req.roles())) {
+        if (req == null || req.id() == null || !isUsername(req.username()) ||
+                !StringUtils.hasLength(req.nickname()) || req.avatar() == null ||
+                !Const.URL_PATTERN.matcher(req.avatar()).matches() || req.email() == null ||
+                !Const.EMAIL_PATTERN.matcher(req.email()).matches() || req.phone() == null ||
+                !Const.PHONE_PATTERN.matcher(req.phone()).matches() || CollectionUtils.isEmpty(req.roles())) {
             return false;
         }
 

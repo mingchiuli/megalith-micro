@@ -3,14 +3,21 @@ package wiki.chiu.micro.user.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.user.exception.GlobalExceptionHandler;
+import wiki.chiu.micro.user.handler.AuthorityHttpHandler;
+import wiki.chiu.micro.user.handler.AuthorityInternalHttpHandler;
+import wiki.chiu.micro.user.handler.MenuHttpHandler;
+import wiki.chiu.micro.user.handler.MenuInternalHttpHandler;
+import wiki.chiu.micro.user.handler.RoleHttpHandler;
+import wiki.chiu.micro.user.handler.UserHttpHandler;
+import wiki.chiu.micro.user.handler.UserInternalHttpHandler;
+import wiki.chiu.micro.user.route.UserRoutes;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.service.AuthorityService;
 import wiki.chiu.micro.user.vo.AuthorityVo;
 
@@ -32,15 +39,21 @@ class AuthorityControllerTest {
     @Mock
     private AuthorityService authorityService;
 
-    @InjectMocks
-    private AuthorityController authorityController;
-
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(authorityController)
-                .setControllerAdvice(new GlobalExceptionHandler())
+        AuthorityHttpHandler handler = new AuthorityHttpHandler(authorityService);
+        mockMvc = MockMvcBuilders.routerFunctions(UserRoutes.routes(
+                        org.mockito.Mockito.mock(UserHttpHandler.class),
+                        org.mockito.Mockito.mock(RoleHttpHandler.class),
+                        org.mockito.Mockito.mock(MenuHttpHandler.class),
+                        handler,
+                        org.mockito.Mockito.mock(UserInternalHttpHandler.class),
+                        org.mockito.Mockito.mock(MenuInternalHttpHandler.class),
+                        org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class),
+                        new ValidatedRequest(jakarta.validation.Validation
+                                .buildDefaultValidatorFactory().getValidator())))
                 .build();
     }
 

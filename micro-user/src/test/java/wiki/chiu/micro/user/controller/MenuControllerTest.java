@@ -9,7 +9,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.user.exception.GlobalExceptionHandler;
+import wiki.chiu.micro.user.handler.AuthorityHttpHandler;
+import wiki.chiu.micro.user.handler.AuthorityInternalHttpHandler;
+import wiki.chiu.micro.user.handler.MenuHttpHandler;
+import wiki.chiu.micro.user.handler.MenuInternalHttpHandler;
+import wiki.chiu.micro.user.handler.RoleHttpHandler;
+import wiki.chiu.micro.user.handler.UserHttpHandler;
+import wiki.chiu.micro.user.handler.UserInternalHttpHandler;
+import wiki.chiu.micro.user.route.UserRoutes;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.service.MenuAuthorityService;
 import wiki.chiu.micro.user.service.MenuService;
 import wiki.chiu.micro.user.vo.MenuEntityVo;
@@ -19,6 +27,9 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -38,9 +49,17 @@ class MenuControllerTest {
 
     @BeforeEach
     void setUp() {
-        MenuController controller = new MenuController(menuService, menuAuthorityService);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setControllerAdvice(new GlobalExceptionHandler())
+        MenuHttpHandler handler = new MenuHttpHandler(menuService, menuAuthorityService);
+        mockMvc = MockMvcBuilders.routerFunctions(UserRoutes.routes(
+                        org.mockito.Mockito.mock(UserHttpHandler.class),
+                        org.mockito.Mockito.mock(RoleHttpHandler.class),
+                        handler,
+                        org.mockito.Mockito.mock(AuthorityHttpHandler.class),
+                        org.mockito.Mockito.mock(UserInternalHttpHandler.class),
+                        org.mockito.Mockito.mock(MenuInternalHttpHandler.class),
+                        org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class),
+                        new ValidatedRequest(jakarta.validation.Validation
+                                .buildDefaultValidatorFactory().getValidator())))
                 .build();
     }
 
@@ -97,6 +116,28 @@ class MenuControllerTest {
         mockMvc.perform(get("/sys/menu/authority/3"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray());
+    }
+
+    @Test
+    void deleteBusinessFailureReturns400() throws Exception {
+        doThrow(new MissException("please delete sub menu")).when(menuService).delete(3L);
+
+        mockMvc.perform(post("/sys/menu/delete/3"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("please delete sub menu"));
+
+        verify(menuService).delete(3L);
+    }
+
+    @Test
+    void invalidMenuBodyIsRejectedBeforeHandler() throws Exception {
+        mockMvc.perform(post("/sys/menu/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("please fill all args"));
+
+        verify(menuService, never()).saveOrUpdate(any());
     }
 
     @Test

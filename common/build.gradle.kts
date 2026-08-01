@@ -8,4 +8,5 @@ dependencies {
     compileOnly("org.springframework.boot:spring-boot-autoconfigure")
     compileOnly("tools.jackson.core:jackson-databind")
     compileOnly("jakarta.servlet:jakarta.servlet-api")
+    compileOnly("jakarta.validation:jakarta.validation-api")
 }

@@ -3,16 +3,20 @@ package wiki.chiu.micro.auth.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import wiki.chiu.micro.auth.exception.GlobalExceptionHandler;
+import wiki.chiu.micro.auth.handler.AuthHttpHandler;
+import wiki.chiu.micro.auth.handler.AuthInternalHttpHandler;
+import wiki.chiu.micro.auth.handler.CodeHttpHandler;
+import wiki.chiu.micro.auth.handler.TokenHttpHandler;
+import wiki.chiu.micro.auth.route.AuthRoutes;
 import wiki.chiu.micro.auth.service.TokenService;
-import wiki.chiu.micro.auth.support.StubAuthInfoResolver;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -31,16 +35,20 @@ class TokenControllerTest {
     @Mock
     private TokenService tokenService;
 
-    @InjectMocks
-    private TokenController tokenController;
-
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(tokenController)
-                .setCustomArgumentResolvers(new StubAuthInfoResolver(42L, List.of(REFRESH)))
-                .setControllerAdvice(new GlobalExceptionHandler())
+        TokenHttpHandler handler = new TokenHttpHandler(tokenService);
+        AuthInfo authInfo = new AuthInfo(42L, List.of(REFRESH), List.of());
+        mockMvc = MockMvcBuilders.routerFunctions(AuthRoutes.routes(
+                        org.mockito.Mockito.mock(AuthHttpHandler.class),
+                        handler,
+                        org.mockito.Mockito.mock(CodeHttpHandler.class),
+                        org.mockito.Mockito.mock(AuthInternalHttpHandler.class),
+                        request -> authInfo,
+                        new ValidatedRequest(jakarta.validation.Validation
+                                .buildDefaultValidatorFactory().getValidator())))
                 .build();
     }
 

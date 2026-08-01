@@ -3,19 +3,21 @@ package wiki.chiu.micro.blog.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import wiki.chiu.micro.blog.exception.GlobalExceptionHandler;
+import wiki.chiu.micro.blog.handler.BlogHttpHandler;
+import wiki.chiu.micro.blog.handler.BlogInternalHttpHandler;
+import wiki.chiu.micro.blog.route.BlogRoutes;
 import wiki.chiu.micro.blog.service.BlogService;
-import wiki.chiu.micro.blog.support.StubAuthInfoResolver;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import java.util.List;
 
@@ -23,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -38,16 +40,16 @@ class BlogControllerTest {
     @Mock
     private BlogService blogService;
 
-    @InjectMocks
-    private BlogController blogController;
-
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(blogController)
-                .setCustomArgumentResolvers(new StubAuthInfoResolver(1L, List.of("ROLE_USER")))
-                .setControllerAdvice(new GlobalExceptionHandler())
+        BlogHttpHandler handler = new BlogHttpHandler(blogService);
+        AuthInfo authInfo = new AuthInfo(1L, List.of("ROLE_USER"), List.of());
+        mockMvc = MockMvcBuilders.routerFunctions(BlogRoutes.routes(
+                        handler, org.mockito.Mockito.mock(BlogInternalHttpHandler.class), request -> authInfo,
+                        new ValidatedRequest(jakarta.validation.Validation
+                                .buildDefaultValidatorFactory().getValidator())))
                 .build();
     }
 
@@ -157,13 +159,23 @@ class BlogControllerTest {
     }
 
     @Test
-    void deleteBlogsWithEmptyListShouldFailIfValidationActive() throws Exception {
-        doThrow(new IllegalArgumentException("ids empty")).when(blogService)
-                .deleteBatch(anyList(), anyLong(), anyList());
-
+    void deleteBlogsWithEmptyListIsRejectedBeforeHandler() throws Exception {
         mockMvc.perform(post("/sys/blog/delete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[]"))
                 .andExpect(status().isBadRequest());
+
+        verify(blogService, never()).deleteBatch(anyList(), anyLong(), anyList());
+    }
+
+    @Test
+    void invalidBlogBodyIsRejectedBeforeHandler() throws Exception {
+        mockMvc.perform(post("/sys/blog/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("param error"));
+
+        verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
     }
 }
