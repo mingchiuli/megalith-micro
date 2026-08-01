@@ -16,7 +16,10 @@ import wiki.chiu.micro.blog.service.BlogService;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
+import wiki.chiu.micro.common.vo.AuthRpcVo;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import java.util.List;
@@ -24,6 +27,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -44,12 +48,15 @@ class BlogControllerTest {
 
     @BeforeEach
     void setUp() {
-        BlogHttpHandler handler = new BlogHttpHandler(blogService);
         AuthInfo authInfo = new AuthInfo(1L, List.of("ROLE_USER"), List.of());
+        AuthHttpService authHttpService = org.mockito.Mockito.mock(AuthHttpService.class);
+        org.mockito.Mockito.lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
+                new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
+        ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
+                .buildDefaultValidatorFactory().getValidator());
+        BlogHttpHandler handler = new BlogHttpHandler(blogService, authHttpService, validation);
         mockMvc = MockMvcBuilders.routerFunctions(BlogRoutes.routes(
-                        handler, org.mockito.Mockito.mock(BlogInternalHttpHandler.class), request -> authInfo,
-                        new ValidatedRequest(jakarta.validation.Validation
-                                .buildDefaultValidatorFactory().getValidator())))
+                        handler, org.mockito.Mockito.mock(BlogInternalHttpHandler.class)))
                 .build();
     }
 
@@ -177,5 +184,33 @@ class BlogControllerTest {
                 .andExpect(jsonPath("$.msg").value("param error"));
 
         verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
+    }
+
+    @Test
+    void invalidSensitiveContentIsRejectedBeforeHandler() throws Exception {
+        String body = "{\"id\":null,\"title\":\"t\",\"description\":\"d\",\"content\":\"c\","
+                + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":["
+                + "{\"startIndex\":0,\"endIndex\":1,\"type\":9}]}";
+
+        mockMvc.perform(post("/sys/blog/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("param error"));
+
+        verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
+    }
+
+    @Test
+    void invalidDateRangeIsRejectedBeforeHandler() throws Exception {
+        mockMvc.perform(get("/sys/blog/blogs")
+                        .param("currentPage", "1")
+                        .param("size", "10")
+                        .param("createStart", "2026-08-02T12:00:00")
+                        .param("createEnd", "2026-08-02T11:00:00"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("param error"));
+
+        verify(blogService, never()).findAllBlogs(any(), anyLong(), anyList());
     }
 }

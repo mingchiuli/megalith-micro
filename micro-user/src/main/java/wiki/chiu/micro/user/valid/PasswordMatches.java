@@ -1,8 +1,8 @@
-package wiki.chiu.micro.blog.valid;
+package wiki.chiu.micro.user.valid;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import wiki.chiu.micro.blog.valid.impl.BlogSaveConstraintValidator;
+import wiki.chiu.micro.user.valid.impl.PasswordMatchesConstraintValidator;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -13,15 +13,14 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Documented
-@Constraint(validatedBy = {BlogSaveConstraintValidator.class})
+@Constraint(validatedBy = PasswordMatchesConstraintValidator.class)
 @Target({TYPE, ANNOTATION_TYPE})
 @Retention(RUNTIME)
-public @interface BlogSaveValue {
+public @interface PasswordMatches {
 
-    String message() default "{wiki.chiu.micro.blog.valid.BlogSave.message}";
+    String message() default "账号密码不一致";
 
+    Class<?>[] groups() default {};
 
-    Class<?>[] groups() default { };
-
-    Class<? extends Payload>[] payload() default { };
+    Class<? extends Payload>[] payload() default {};
 }

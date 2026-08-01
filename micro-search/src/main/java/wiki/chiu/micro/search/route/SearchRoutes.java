@@ -14,12 +14,9 @@ import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.search.handler.BlogSearchHttpHandler;
 import wiki.chiu.micro.search.handler.SearchInternalHttpHandler;
 import wiki.chiu.micro.search.vo.BlogDocumentVo;
-import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import static org.springframework.web.servlet.function.RouterFunctions.route;
-import static wiki.chiu.micro.common.web.FunctionalWeb.badRequestErrors;
-import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
-import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
+import static wiki.chiu.micro.common.web.FunctionalWeb.withDefaultErrorHandling;
 
 @Configuration(proxyBeanMethods = false)
 @RegisterReflectionForBinding({
@@ -35,26 +32,17 @@ public class SearchRoutes {
 
     @Bean
     RouterFunction<ServerResponse> searchRouter(BlogSearchHttpHandler searchHandler,
-                                                SearchInternalHttpHandler internalHandler,
-                                                ValidatedRequest validation) {
-        return routes(searchHandler, internalHandler, validation);
+                                                SearchInternalHttpHandler internalHandler) {
+        return routes(searchHandler, internalHandler);
     }
 
     public static RouterFunction<ServerResponse> routes(BlogSearchHttpHandler searchHandler,
-                                                        SearchInternalHttpHandler internalHandler,
-                                                        ValidatedRequest validation) {
-        return route()
-                .GET("/search/public/blog", request -> ok(searchHandler.searchBlogs(
-                        requiredParam(request, "currentPage", Integer::valueOf),
-                        requiredParam(request, "allInfo", Boolean::valueOf),
-                        validation.size(requiredParam(request, "keywords"), 1, 20, "keywords"))))
-                .POST("/inner/blog/search", request ->
-                        ok(internalHandler.searchBlogs(validation.body(request, BlogSysSearchReq.class))))
-                .POST("/inner/blog/count", request ->
-                        ok(internalHandler.countBlogs(validation.body(request, BlogSysCountSearchReq.class))))
-                .POST("/inner/blog/read", request -> ok(internalHandler.addReadCount(
-                        requiredParam(request, "id", Long::valueOf))))
-                .filter(badRequestErrors(log))
+                                                        SearchInternalHttpHandler internalHandler) {
+        return withDefaultErrorHandling(route()
+                .GET("/search/public/blog", searchHandler::searchBlogs)
+                .POST("/inner/blog/search", internalHandler::searchBlogs)
+                .POST("/inner/blog/count", internalHandler::countBlogs)
+                .POST("/inner/blog/read", internalHandler::addReadCount), log)
                 .build();
     }
 }

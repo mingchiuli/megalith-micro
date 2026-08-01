@@ -1,11 +1,20 @@
 package wiki.chiu.micro.blog.req;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
 public record SensitiveContentReq(
 
+        @NotNull(message = "{wiki.chiu.micro.blog.valid.BlogSave.message}")
         Integer startIndex,
 
+        @NotNull(message = "{wiki.chiu.micro.blog.valid.BlogSave.message}")
         Integer endIndex,
 
+        @NotNull(message = "{wiki.chiu.micro.blog.valid.BlogSave.message}")
+        @Min(value = 1, message = "{wiki.chiu.micro.blog.valid.BlogSave.message}")
+        @Max(value = 3, message = "{wiki.chiu.micro.blog.valid.BlogSave.message}")
         Integer type) {
 
     public static SensitiveContentReqBuilder builder() {

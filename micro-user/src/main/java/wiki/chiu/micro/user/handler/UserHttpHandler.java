@@ -1,66 +1,87 @@
 package wiki.chiu.micro.user.handler;
 
-import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.lang.Result;
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.req.UserEntityRegisterReq;
 import wiki.chiu.micro.user.req.UserEntityReq;
-import wiki.chiu.micro.user.service.UserRoleService;
 import wiki.chiu.micro.user.service.UserService;
-import wiki.chiu.micro.user.vo.UserEntityVo;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.function.Function;
+import wiki.chiu.micro.common.web.ValidatedRequest;
+
+import static wiki.chiu.micro.common.web.FunctionalWeb.*;
 
 @Component
 public class UserHttpHandler {
 
     private final UserService userService;
+    private final ValidatedRequest validation;
 
-    public UserHttpHandler(UserService userService, UserRoleService userRoleService) {
+    private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
+            new ParameterizedTypeReference<>() { };
+
+    public UserHttpHandler(UserService userService, ValidatedRequest validation) {
         this.userService = userService;
+        this.validation = validation;
     }
 
-    public Result<String> getRegisterPage(String username) {
-        return Result.success(() -> userService.getRegisterPage(username));
+    public ServerResponse getRegisterPage(ServerRequest request) {
+        String username = requiredParam(request, "username");
+        return ok(Result.success(() -> userService.getRegisterPage(username)));
     }
 
-    public Result<Boolean> checkRegisterPage(String token) {
-        return Result.success(() -> userService.checkRegisterPage(token));
+    public ServerResponse checkRegisterPage(ServerRequest request) {
+        String token = nullableParam(request, "token", Function.identity());
+        return ok(Result.success(() -> userService.checkRegisterPage(token)));
     }
 
-
-    public Result<Void> saveRegisterPage(UserEntityRegisterReq req) {
-        return Result.success(() -> userService.saveRegisterPage(req));
+    public ServerResponse saveRegisterPage(ServerRequest request) throws Exception {
+        UserEntityRegisterReq registration = validation.body(request, UserEntityRegisterReq.class);
+        return ok(Result.success(() -> userService.saveRegisterPage(registration)));
     }
 
-    public Result<String> imageUpload(MultipartFile image, String token) {
-        return Result.success(() -> userService.imageUpload(token, image));
+    public ServerResponse imageUpload(ServerRequest request) {
+        MultipartFile image = multipartFile(request, "image");
+        String token = requiredParam(request, "token");
+        return ok(Result.success(() -> userService.imageUpload(token, image)));
     }
 
-    public Result<Void> imageDelete(String url, String token) {
-        return Result.success(() -> userService.imageDelete(token, url));
+    public ServerResponse imageDelete(ServerRequest request) {
+        String url = requiredParam(request, "url");
+        String token = requiredParam(request, "token");
+        return ok(Result.success(() -> userService.imageDelete(token, url)));
     }
 
-    public Result<Void> saveOrUpdate(UserEntityReq userEntityReq) {
-        return Result.success(() -> userService.saveOrUpdate(userEntityReq));
+    public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
+        UserEntityReq user = validation.body(request, UserEntityReq.class);
+        return ok(Result.success(() -> userService.saveOrUpdate(user)));
     }
 
-    public Result<PageAdapter<UserEntityVo>> page(Integer currentPage, Integer size) {
-        return Result.success(() -> userService.listPage(currentPage, size));
+    public ServerResponse page(ServerRequest request) {
+        Integer currentPage = pathVariable(request, "currentPage", Integer::valueOf);
+        Integer size = optionalParam(request, "size", 5, Integer::valueOf);
+        return ok(Result.success(() -> userService.listPage(currentPage, size)));
     }
 
-    public Result<Void> delete(List<Long> ids) {
-        return Result.success(() -> userService.deleteUsers(ids));
+    public ServerResponse delete(ServerRequest request) throws Exception {
+        List<Long> ids = validation.notEmpty(validation.body(request, LONG_LIST), "ids");
+        return ok(Result.success(() -> userService.deleteUsers(ids)));
     }
 
-    public Result<UserEntityVo> info(Long id) {
-        return Result.success(() -> userService.findInfo(id));
+    public ServerResponse info(ServerRequest request) {
+        Long id = pathVariable(request, "id", Long::valueOf);
+        return ok(Result.success(() -> userService.findInfo(id)));
     }
 
-    public Result<Void> download(HttpServletResponse response) {
-        userService.download(response);
-        return Result.success();
+    public ServerResponse download(ServerRequest request) {
+        return ServerResponse.ok().build((servletRequest, response) -> {
+            userService.download(response);
+            return null;
+        });
     }
 }

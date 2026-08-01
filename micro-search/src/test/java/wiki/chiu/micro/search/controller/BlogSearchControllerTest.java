@@ -38,11 +38,11 @@ class BlogSearchControllerTest {
 
     @BeforeEach
     void setUp() {
-        BlogSearchHttpHandler handler = new BlogSearchHttpHandler(blogSearchService);
+        ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
+                .buildDefaultValidatorFactory().getValidator());
+        BlogSearchHttpHandler handler = new BlogSearchHttpHandler(blogSearchService, validation);
         mockMvc = MockMvcBuilders.routerFunctions(
-                        SearchRoutes.routes(handler, org.mockito.Mockito.mock(SearchInternalHttpHandler.class),
-                                new ValidatedRequest(jakarta.validation.Validation
-                                        .buildDefaultValidatorFactory().getValidator())))
+                        SearchRoutes.routes(handler, org.mockito.Mockito.mock(SearchInternalHttpHandler.class)))
                 .build();
     }
 
@@ -85,7 +85,7 @@ class BlogSearchControllerTest {
     }
 
     @Test
-    void searchBlogsServiceFailureReturns400() throws Exception {
+    void searchBlogsServiceFailureReturns500() throws Exception {
         when(blogSearchService.selectBlogsByES(anyInt(), anyString(), anyBoolean()))
                 .thenThrow(new RuntimeException("es down"));
 
@@ -93,7 +93,7 @@ class BlogSearchControllerTest {
                         .param("currentPage", "1")
                         .param("allInfo", "true")
                         .param("keywords", "abc"))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.msg").value("es down"));
     }
 

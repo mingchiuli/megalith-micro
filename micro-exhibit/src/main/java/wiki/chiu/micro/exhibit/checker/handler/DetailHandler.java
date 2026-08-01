@@ -5,6 +5,9 @@ import wiki.chiu.micro.cache.handler.CheckerHandler;
 import wiki.chiu.micro.common.exception.MissException;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.function.ServerRequest;
+
+import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
 
 import static wiki.chiu.micro.common.lang.Const.BLOOM_FILTER_BLOG;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
@@ -27,7 +30,7 @@ public class DetailHandler extends CheckerHandler {
             return;
         }
 
-        Long blogId = (Long) args[0];
+        Long blogId = pathVariable((ServerRequest) args[0], "blogId", Long::valueOf);
         boolean bit = bitSet.get(blogId);
         if (!bit) {
             throw new MissException(NO_FOUND.getMsg() + blogId + " blog");

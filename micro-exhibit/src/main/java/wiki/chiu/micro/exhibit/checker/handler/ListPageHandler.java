@@ -6,6 +6,9 @@ import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Const;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.function.ServerRequest;
+
+import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 
@@ -26,7 +29,7 @@ public class ListPageHandler extends CheckerHandler {
             return;
         }
 
-        Integer currentPage = (Integer) args[0];
+        Integer currentPage = pathVariable((ServerRequest) args[0], "currentPage", Integer::valueOf);
         boolean bit = bitSet.get(currentPage);
         if (!bit) {
             throw new MissException(NO_FOUND.getMsg() + currentPage + " page");

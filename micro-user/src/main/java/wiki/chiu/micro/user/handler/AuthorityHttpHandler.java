@@ -3,38 +3,50 @@ package wiki.chiu.micro.user.handler;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.user.req.AuthorityEntityReq;
 import wiki.chiu.micro.user.service.AuthorityService;
-import wiki.chiu.micro.user.vo.AuthorityVo;
 import org.springframework.stereotype.Component;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import java.util.List;
+
+import static wiki.chiu.micro.common.web.FunctionalWeb.*;
 
 @Component
 public class AuthorityHttpHandler {
 
     private final AuthorityService authorityService;
+    private final ValidatedRequest validation;
 
-    public AuthorityHttpHandler(AuthorityService authorityService) {
+    private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
+            new ParameterizedTypeReference<>() { };
+
+    public AuthorityHttpHandler(AuthorityService authorityService, ValidatedRequest validation) {
         this.authorityService = authorityService;
+        this.validation = validation;
     }
 
-    public Result<List<AuthorityVo>> list() {
-        return Result.success(authorityService::findAll);
+    public ServerResponse list(ServerRequest request) {
+        return ok(Result.success(authorityService::findAll));
     }
 
-    public Result<AuthorityVo> info(Long id) {
-        return Result.success(() -> authorityService.findById(id));
+    public ServerResponse info(ServerRequest request) {
+        Long id = pathVariable(request, "id", Long::valueOf);
+        return ok(Result.success(() -> authorityService.findById(id)));
     }
 
-    public Result<Void> saveOrUpdate(AuthorityEntityReq req) {
-        return Result.success(() -> authorityService.saveOrUpdate(req));
+    public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
+        AuthorityEntityReq authority = validation.body(request, AuthorityEntityReq.class);
+        return ok(Result.success(() -> authorityService.saveOrUpdate(authority)));
     }
 
-    public Result<Void> delete(List<Long> ids) {
-        return Result.success(() -> authorityService.deleteAuthorities(ids));
+    public ServerResponse delete(ServerRequest request) throws Exception {
+        List<Long> ids = validation.notEmpty(validation.body(request, LONG_LIST), "ids");
+        return ok(Result.success(() -> authorityService.deleteAuthorities(ids)));
     }
 
-    public byte[] download() {
-        return authorityService.download();
+    public ServerResponse download(ServerRequest request) {
+        return ok(authorityService.download());
     }
-    
 }

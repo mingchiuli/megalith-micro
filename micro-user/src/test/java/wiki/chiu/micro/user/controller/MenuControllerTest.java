@@ -49,7 +49,9 @@ class MenuControllerTest {
 
     @BeforeEach
     void setUp() {
-        MenuHttpHandler handler = new MenuHttpHandler(menuService, menuAuthorityService);
+        ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
+                .buildDefaultValidatorFactory().getValidator());
+        MenuHttpHandler handler = new MenuHttpHandler(menuService, menuAuthorityService, validation);
         mockMvc = MockMvcBuilders.routerFunctions(UserRoutes.routes(
                         org.mockito.Mockito.mock(UserHttpHandler.class),
                         org.mockito.Mockito.mock(RoleHttpHandler.class),
@@ -57,9 +59,7 @@ class MenuControllerTest {
                         org.mockito.Mockito.mock(AuthorityHttpHandler.class),
                         org.mockito.Mockito.mock(UserInternalHttpHandler.class),
                         org.mockito.Mockito.mock(MenuInternalHttpHandler.class),
-                        org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class),
-                        new ValidatedRequest(jakarta.validation.Validation
-                                .buildDefaultValidatorFactory().getValidator())))
+                        org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class)))
                 .build();
     }
 

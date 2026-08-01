@@ -8,9 +8,17 @@ import wiki.chiu.micro.user.service.RoleService;
 import wiki.chiu.micro.user.service.UserRoleService;
 import wiki.chiu.micro.user.service.UserService;
 import org.springframework.stereotype.Component;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
+import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
+import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 
 /**
@@ -24,11 +32,53 @@ public class UserInternalHttpHandler implements UserHttpService {
     private final RoleService roleService;
 
     private final UserRoleService userRoleService;
+    private final ValidatedRequest validation;
 
-    public UserInternalHttpHandler(UserService userService, RoleService roleService, UserRoleService userRoleService) {
+    private static final ParameterizedTypeReference<List<String>> STRING_LIST =
+            new ParameterizedTypeReference<>() { };
+
+    public UserInternalHttpHandler(UserService userService, RoleService roleService,
+                                   UserRoleService userRoleService, ValidatedRequest validation) {
         this.userService = userService;
         this.roleService = roleService;
         this.userRoleService = userRoleService;
+        this.validation = validation;
+    }
+
+    public ServerResponse findById(ServerRequest request) {
+        Long userId = pathVariable(request, "userId", Long::valueOf);
+        return ok(findById(userId));
+    }
+
+    public ServerResponse changeUserStatusByUsername(ServerRequest request) {
+        return ok(changeUserStatusByUsername(requiredParam(request, "username"),
+                requiredParam(request, "status", Integer::valueOf)));
+    }
+
+    public ServerResponse findByRoleCodeInAndStatus(ServerRequest request) throws Exception {
+        return ok(findByRoleCodeInAndStatus(validation.body(request, STRING_LIST),
+                requiredParam(request, "status", Integer::valueOf)));
+    }
+
+    public ServerResponse updateLoginTime(ServerRequest request) {
+        return ok(updateLoginTime(requiredParam(request, "username")));
+    }
+
+    public ServerResponse findByEmail(ServerRequest request) {
+        return ok(findByEmail(requiredParam(request, "email")));
+    }
+
+    public ServerResponse findByPhone(ServerRequest request) {
+        return ok(findByPhone(requiredParam(request, "phone")));
+    }
+
+    public ServerResponse findRoleCodesByUserId(ServerRequest request) {
+        Long userId = pathVariable(request, "userId", Long::valueOf);
+        return ok(findRoleCodesByUserId(userId));
+    }
+
+    public ServerResponse findByUsernameOrEmailOrPhone(ServerRequest request) {
+        return ok(findByUsernameOrEmailOrPhone(requiredParam(request, "username")));
     }
 
 

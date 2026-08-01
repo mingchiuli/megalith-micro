@@ -15,14 +15,17 @@ import wiki.chiu.micro.auth.route.AuthRoutes;
 import wiki.chiu.micro.auth.service.TokenService;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
-import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.common.vo.AuthRpcVo;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,16 +42,16 @@ class TokenControllerTest {
 
     @BeforeEach
     void setUp() {
-        TokenHttpHandler handler = new TokenHttpHandler(tokenService);
         AuthInfo authInfo = new AuthInfo(42L, List.of(REFRESH), List.of());
+        AuthHttpService authHttpService = org.mockito.Mockito.mock(AuthHttpService.class);
+        org.mockito.Mockito.lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
+                new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
+        TokenHttpHandler handler = new TokenHttpHandler(tokenService, authHttpService);
         mockMvc = MockMvcBuilders.routerFunctions(AuthRoutes.routes(
                         org.mockito.Mockito.mock(AuthHttpHandler.class),
                         handler,
                         org.mockito.Mockito.mock(CodeHttpHandler.class),
-                        org.mockito.Mockito.mock(AuthInternalHttpHandler.class),
-                        request -> authInfo,
-                        new ValidatedRequest(jakarta.validation.Validation
-                                .buildDefaultValidatorFactory().getValidator())))
+                        org.mockito.Mockito.mock(AuthInternalHttpHandler.class)))
                 .build();
     }
 

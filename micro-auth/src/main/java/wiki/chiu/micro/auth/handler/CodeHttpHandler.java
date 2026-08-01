@@ -1,8 +1,13 @@
 package wiki.chiu.micro.auth.handler;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.auth.service.CodeService;
 import wiki.chiu.micro.common.lang.Result;
+
+import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
+import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 @Component
 public class CodeHttpHandler {
@@ -13,11 +18,13 @@ public class CodeHttpHandler {
         this.codeService = codeService;
     }
 
-    public Result<Void> createEmailCode(String loginEmail) {
-        return Result.success(() -> codeService.createEmailCode(loginEmail));
+    public ServerResponse createEmailCode(ServerRequest request) {
+        String loginName = requiredParam(request, "loginName");
+        return ok(Result.success(() -> codeService.createEmailCode(loginName)));
     }
 
-    public Result<Void> createSmsCode(String loginSms) {
-        return Result.success(() -> codeService.createSMSCode(loginSms));
+    public ServerResponse createSmsCode(ServerRequest request) {
+        String loginName = requiredParam(request, "loginName");
+        return ok(Result.success(() -> codeService.createSMSCode(loginName)));
     }
 }

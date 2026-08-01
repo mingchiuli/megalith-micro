@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.security.authentication.BadCredentialsException;
 import wiki.chiu.micro.auth.handler.AuthHttpHandler;
 import wiki.chiu.micro.auth.handler.AuthInternalHttpHandler;
 import wiki.chiu.micro.auth.handler.CodeHttpHandler;
@@ -15,12 +16,15 @@ import wiki.chiu.micro.auth.route.AuthRoutes;
 import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.common.exception.BaseException;
+import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
-import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.common.vo.AuthRpcVo;
 
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,20 +36,22 @@ class AuthControllerTest {
     @Mock
     private AuthService authService;
 
+    @Mock
+    private AuthHttpService authHttpService;
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        AuthHttpHandler handler = new AuthHttpHandler(authService);
         AuthInfo authInfo = new AuthInfo(1L, List.of("ROLE_USER"), List.of());
+        org.mockito.Mockito.lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
+                new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
+        AuthHttpHandler handler = new AuthHttpHandler(authService, authHttpService);
         mockMvc = MockMvcBuilders.routerFunctions(AuthRoutes.routes(
                         handler,
                         org.mockito.Mockito.mock(TokenHttpHandler.class),
                         org.mockito.Mockito.mock(CodeHttpHandler.class),
-                        org.mockito.Mockito.mock(AuthInternalHttpHandler.class),
-                        request -> authInfo,
-                        new ValidatedRequest(jakarta.validation.Validation
-                                .buildDefaultValidatorFactory().getValidator())))
+                        org.mockito.Mockito.mock(AuthInternalHttpHandler.class)))
                 .build();
     }
 
@@ -79,6 +85,17 @@ class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.msg").value("forbidden"));
+    }
+
+    @Test
+    void navWithBadCredentialsReturns401() throws Exception {
+        when(authHttpService.getAuthentication(anyString()))
+                .thenThrow(new BadCredentialsException("bad credentials"));
+
+        mockMvc.perform(get("/auth/menu/nav"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(401))
+                .andExpect(jsonPath("$.msg").value("bad credentials"));
     }
 
     @Test

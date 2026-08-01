@@ -20,7 +20,6 @@ import wiki.chiu.micro.user.handler.UserHttpHandler;
 import wiki.chiu.micro.user.handler.UserInternalHttpHandler;
 import wiki.chiu.micro.user.route.UserRoutes;
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.user.service.UserRoleService;
 import wiki.chiu.micro.user.service.UserService;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -43,14 +42,13 @@ class UserControllerTest {
     @Mock
     private UserService userService;
 
-    @Mock
-    private UserRoleService userRoleService;
-
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        UserHttpHandler handler = new UserHttpHandler(userService, userRoleService);
+        ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
+                .buildDefaultValidatorFactory().getValidator());
+        UserHttpHandler handler = new UserHttpHandler(userService, validation);
         mockMvc = MockMvcBuilders.routerFunctions(UserRoutes.routes(
                         handler,
                         org.mockito.Mockito.mock(RoleHttpHandler.class),
@@ -58,9 +56,7 @@ class UserControllerTest {
                         org.mockito.Mockito.mock(AuthorityHttpHandler.class),
                         org.mockito.Mockito.mock(UserInternalHttpHandler.class),
                         org.mockito.Mockito.mock(MenuInternalHttpHandler.class),
-                        org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class),
-                        new ValidatedRequest(jakarta.validation.Validation
-                                .buildDefaultValidatorFactory().getValidator())))
+                        org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class)))
                 .build();
     }
 
@@ -126,6 +122,35 @@ class UserControllerTest {
                         .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.msg").value("args error"));
+
+        verify(userService, never()).saveOrUpdate(any());
+    }
+
+    @Test
+    void registrationWithDifferentPasswordsIsRejectedBeforeHandler() throws Exception {
+        String body = "{\"username\":\"alice\",\"nickname\":\"Alice\",\"password\":\"one\","
+                + "\"confirmPassword\":\"two\",\"email\":\"alice@example.com\",\"token\":\"tk\"}";
+
+        mockMvc.perform(post("/sys/user/register/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("账号密码不一致"));
+
+        verify(userService, never()).saveRegisterPage(any());
+    }
+
+    @Test
+    void newUserWithoutPasswordIsRejectedBeforeHandler() throws Exception {
+        String body = "{\"id\":null,\"username\":\"alice\",\"nickname\":\"Alice\","
+                + "\"avatar\":\"https://example.com/avatar.png\",\"email\":\"alice@example.com\","
+                + "\"phone\":\"13800000000\",\"status\":1,\"roles\":[\"ROLE_USER\"]}";
+
+        mockMvc.perform(post("/sys/user/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("需要密码"));
 
         verify(userService, never()).saveOrUpdate(any());
     }

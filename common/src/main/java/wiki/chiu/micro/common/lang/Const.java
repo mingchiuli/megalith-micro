@@ -80,11 +80,19 @@ public class Const {
 
     public static final String USER_ROLE_TABLE = "m_user_role";
 
-    public static final Pattern URL_PATTERN = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+    public static final String URL_REGEX = "^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
 
-    public static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
+    public static final String PHONE_REGEX = "^1[3-9]\\d{9}$";
 
-    public static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z]{2,}$");
+    public static final String EMAIL_REGEX = "^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z]{2,}$";
+
+    public static final String USERNAME_REGEX = "^(?!1[3-9]\\d{9}$)(?![a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z]{2,}$).+$";
+
+    public static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
+
+    public static final Pattern PHONE_PATTERN = Pattern.compile(PHONE_REGEX);
+
+    public static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
 
     public static final String ES_QUEUE = "blog.change.queue.es";
 
@@ -102,4 +110,3 @@ public class Const {
 
     public static final int SUCCESS_CODE = 200;
 }
-
