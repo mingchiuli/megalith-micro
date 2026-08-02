@@ -1,6 +1,8 @@
 package wiki.chiu.micro.blog.req;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -9,9 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 import wiki.chiu.micro.common.validation.DateRangeRequest;
-import wiki.chiu.micro.common.validation.ValidDateRange;
 
-@ValidDateRange(message = "{wiki.chiu.micro.blog.valid.BlogQuery.message}")
 public record BlogQueryReq(
 
         @NotNull(message = "{wiki.chiu.micro.blog.valid.BlogQuery.message}")
@@ -34,4 +34,10 @@ public record BlogQueryReq(
 
         @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime createEnd) implements DateRangeRequest {
+
+    @JsonIgnore
+    @AssertTrue(message = "{wiki.chiu.micro.blog.valid.BlogQuery.message}")
+    public boolean isDateRangeValid() {
+        return hasValidDateRange();
+    }
 }

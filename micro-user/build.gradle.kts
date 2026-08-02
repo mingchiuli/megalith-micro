@@ -8,7 +8,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.security:spring-security-crypto")
+    runtimeOnly("com.fasterxml.jackson.core:jackson-databind")
     implementation(project(":common"))
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 }
-

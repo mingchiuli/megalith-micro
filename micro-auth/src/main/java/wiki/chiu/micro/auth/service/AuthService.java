@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface AuthService {
 
-    MenuWithChildVo getCurrentUserNav(List<String> role);
+    MenuWithChildVo getCurrentUserNav(Long userId);
 
     AuthorityRouteRpcVo findRoute(AuthorityRouteReq req);
 

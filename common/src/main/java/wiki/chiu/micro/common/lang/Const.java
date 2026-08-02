@@ -24,8 +24,6 @@ public class Const {
 
     public static final String ROLE_PREFIX = "ROLE_";
 
-    public static final String BLOCK_USER = "block_user:";
-
     public static final String DAY_VISIT = "{visit_record}_day";
 
     public static final String WEEK_VISIT = "{visit_record}_week";
@@ -55,8 +53,6 @@ public class Const {
     public static final String REGISTER_PREFIX = "register_prefix:";
 
     public static final String USER = "user";
-
-    public static final String REFRESH = "refresh";
 
     public static final String ALL_SERVICE = "all_service";
 

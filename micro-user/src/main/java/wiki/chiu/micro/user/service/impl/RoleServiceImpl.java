@@ -29,6 +29,8 @@ import wiki.chiu.micro.user.wrapper.UserRoleMenuWrapper;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.ROLE_NOT_EXIST;
 
@@ -87,20 +89,24 @@ public class RoleServiceImpl implements RoleService {
         RoleEntity dealRole = roleReq.id()
                 .flatMap(roleRepository::findById)
                 .orElseGet(RoleEntity::new);
+        String previousCode = dealRole.getCode();
         RoleEntity roleEntity = RoleEntityConvertor.convert(roleReq, dealRole);
         roleRepository.save(roleEntity);
-        executeDelRolesAuthTask(Collections.singletonList(roleEntity.getCode()), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
+        List<String> affectedCodes = Stream.of(previousCode, roleEntity.getCode())
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        executeDelRolesAuthTask(affectedCodes, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
     }
 
     @Override
     public void delete(List<Long> ids) {
-        userRoleMenuWrapper.deleteRole(ids);
         List<String> roles = roleRepository.findAllById(ids).stream()
                 .map(RoleEntity::getCode)
                 .distinct()
                 .toList();
+        userRoleMenuWrapper.deleteRole(ids);
 
-        //多个角色删除
         executeDelRolesAuthTask(roles, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
     }
 

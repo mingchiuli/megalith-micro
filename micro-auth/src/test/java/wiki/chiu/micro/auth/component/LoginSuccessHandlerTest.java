@@ -11,8 +11,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
-import wiki.chiu.micro.auth.token.Claims;
-import wiki.chiu.micro.auth.token.TokenUtils;
+import wiki.chiu.micro.auth.token.JwtTokenService;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -21,7 +20,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 class LoginSuccessHandlerTest {
 
     @Mock
-    private TokenUtils<Claims> tokenUtils;
+    private JwtTokenService jwtTokenService;
 
     @Mock
     private UserHttpServiceWrapper userHttpServiceWrapper;
@@ -38,7 +37,7 @@ class LoginSuccessHandlerTest {
     @Test
     void doesNotContinueFilterChainAfterWritingResponse() throws Exception {
         LoginSuccessHandler handler = new LoginSuccessHandler(
-                JsonMapper.builder().build(), tokenUtils, userHttpServiceWrapper, redissonClient);
+                JsonMapper.builder().build(), jwtTokenService, userHttpServiceWrapper, redissonClient);
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         handler.onAuthenticationSuccess(

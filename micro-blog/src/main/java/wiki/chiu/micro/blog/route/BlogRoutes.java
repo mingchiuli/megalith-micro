@@ -16,6 +16,7 @@ import wiki.chiu.micro.blog.req.SensitiveContentReq;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
+import wiki.chiu.micro.blog.vo.BlogPermissionsVo;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
@@ -35,6 +36,7 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.withDefaultErrorHandling;
         BlogEntityVo.class,
         BlogDeleteVo.class,
         BlogEditVo.class,
+        BlogPermissionsVo.class,
         BlogEntityRpcVo.class,
         BlogSensitiveContentRpcVo.class
 })
@@ -61,6 +63,7 @@ public class BlogRoutes {
                 .GET("/sys/blog/oss/delete", blogHandler::deleteOss)
                 .GET("/sys/blog/download", blogHandler::download)
                 .GET("/sys/blog/edit/pull/echo", blogHandler::getEchoDetail)
+                .POST("/sys/blog/edit/ticket", blogHandler::issueCollaborationTicket)
                 .GET("/inner/blog/count", internalHandler::count)
                 .GET("/inner/blog/count/until", internalHandler::countByCreatedGreaterThanEqual)
                 .GET("/inner/blog/sensitive/{blogId}", internalHandler::findSensitiveByBlogId)

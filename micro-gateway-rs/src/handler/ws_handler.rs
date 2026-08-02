@@ -10,7 +10,7 @@ use tokio_tungstenite::tungstenite::{
 };
 use tracing::{Instrument, instrument};
 
-use crate::exception::HandlerError;
+use crate::exception::{ClientError, HandlerError};
 use crate::{constant, utils};
 
 use tracing::Span;
@@ -19,7 +19,7 @@ use tracing::Span;
     name = "proxy_websocket_request",
     skip(ws),
     fields(
-        http.url = %uri,
+        http.url = %uri.path(),
     )
 )]
 pub async fn ws_route_handler(
@@ -39,7 +39,11 @@ pub async fn ws_route_handler(
     let route_resp = utils::find_route(auth_url, req_body, &token).await?;
 
     // Parse url
-    let new_url = utils::parse_url(route_resp, &uri, constant::WS)?;
+    let downstream_uri = Uri::builder()
+        .path_and_query(uri.path())
+        .build()
+        .map_err(|error| ClientError::Request(error.to_string()))?;
+    let new_url = utils::parse_url(route_resp, &downstream_uri, constant::WS)?;
 
     // 将 WebSocket 升级响应转换为 Response<Body>
     let span = Span::current();

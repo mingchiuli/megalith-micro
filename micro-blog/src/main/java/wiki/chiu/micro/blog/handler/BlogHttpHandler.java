@@ -58,7 +58,7 @@ public class BlogHttpHandler {
     public ServerResponse setBlogToken(ServerRequest request) {
         Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         AuthInfo authInfo = authInfo(request, authHttpService);
-        return ok(Result.success(() -> blogService.setBlogToken(blogId, authInfo.userId())));
+        return ok(Result.success(() -> blogService.setBlogToken(blogId, authInfo.userId(), authInfo.roles())));
     }
 
     public ServerResponse getAllBlogs(ServerRequest request) {
@@ -88,7 +88,18 @@ public class BlogHttpHandler {
 
     public ServerResponse deleteOss(ServerRequest request) {
         String url = validation.notBlank(requiredParam(request, "url"), "url");
-        return ok(Result.success(() -> blogService.deleteOss(url)));
+        AuthInfo authInfo = authInfo(request, authHttpService);
+        return ok(Result.success(() -> blogService.deleteOss(url, authInfo.userId())));
+    }
+
+    public ServerResponse issueCollaborationTicket(ServerRequest request) {
+        Long blogId = nullableParam(request, "blogId", Long::valueOf);
+        if (blogId != null) {
+            positive(blogId, "blogId");
+        }
+        AuthInfo authInfo = authInfo(request, authHttpService);
+        return ok(Result.success(() -> blogService.issueCollaborationTicket(
+                blogId, authInfo.userId(), authInfo.roles())));
     }
 
     public ServerResponse download(ServerRequest request) {

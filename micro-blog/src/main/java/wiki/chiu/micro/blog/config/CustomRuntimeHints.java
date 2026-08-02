@@ -6,7 +6,6 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
-import wiki.chiu.micro.blog.valid.impl.SensitiveContentRangeConstraintValidator;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
@@ -21,9 +20,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                         MemberCategory.INVOKE_DECLARED_METHODS)
                 .registerType(BlogDownloadReq.class,
                         MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                        MemberCategory.INVOKE_DECLARED_METHODS)
-                .registerType(SensitiveContentRangeConstraintValidator.class,
-                        MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
+                        MemberCategory.INVOKE_DECLARED_METHODS);
 
         // ValidationMessages.properties for Bean Validation
         hints.resources()

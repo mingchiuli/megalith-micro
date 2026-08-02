@@ -13,8 +13,8 @@ import wiki.chiu.micro.blog.convertor.*;
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
-import wiki.chiu.micro.blog.utils.EditAuthUtils;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
+import wiki.chiu.micro.blog.service.BlogAccessPolicy;
 import wiki.chiu.micro.common.lang.*;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
@@ -38,6 +38,8 @@ import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.rpc.OssHttpService;
+import wiki.chiu.micro.common.rpc.AuthHttpService;
+import wiki.chiu.micro.common.req.WebSocketTicketReq;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
@@ -93,8 +95,9 @@ public class BlogServiceImpl implements BlogService {
 
     private final JsonMapper jsonMapper;
 
-    @Value("${megalith.blog.highest-role}")
-    private String highestRole;
+    private final BlogAccessPolicy accessPolicy;
+
+    private final AuthHttpService authHttpService;
 
     @Value("${megalith.blog.read.page-prefix}")
     private String readPrefix;
@@ -119,7 +122,19 @@ public class BlogServiceImpl implements BlogService {
 
     private String blogDeleteScript;
 
-    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper, OssHttpService ossHttpService, ApplicationContext applicationContext, BlogRepository blogRepository, StringRedisTemplate redisTemplate, ResourceLoader resourceLoader, BlogWrapper blogWrapper, BlogSensitiveContentRepository blogSensitiveContentRepository, SearchHttpServiceWrapper searchHttpServiceWrapper, @Qualifier("commonExecutor") TaskExecutor taskExecutor, JsonMapper jsonMapper) {
+    public BlogServiceImpl(UserHttpServiceWrapper userHttpServiceWrapper,
+                           OssHttpService ossHttpService,
+                           ApplicationContext applicationContext,
+                           BlogRepository blogRepository,
+                           StringRedisTemplate redisTemplate,
+                           ResourceLoader resourceLoader,
+                           BlogWrapper blogWrapper,
+                           BlogSensitiveContentRepository blogSensitiveContentRepository,
+                           SearchHttpServiceWrapper searchHttpServiceWrapper,
+                           @Qualifier("commonExecutor") TaskExecutor taskExecutor,
+                           JsonMapper jsonMapper,
+                           BlogAccessPolicy accessPolicy,
+                           AuthHttpService authHttpService) {
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.ossHttpService = ossHttpService;
         this.applicationContext = applicationContext;
@@ -131,6 +146,8 @@ public class BlogServiceImpl implements BlogService {
         this.searchHttpServiceWrapper = searchHttpServiceWrapper;
         this.taskExecutor = taskExecutor;
         this.jsonMapper = jsonMapper;
+        this.accessPolicy = accessPolicy;
+        this.authHttpService = authHttpService;
     }
 
     @PostConstruct
@@ -154,25 +171,24 @@ public class BlogServiceImpl implements BlogService {
 
         BlogEntity blog;
         List<BlogEditVo.SensitiveContentVo> sensitiveContentList;
-        Long blogUserId;
         if (id != null) {
             blog = blogRepository.findById(id)
                     .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-            EditAuthUtils.checkEditAuth(blog, userId);
-            blogUserId = blog.getUserId();
+            accessPolicy.requireCollaboration(blog, userId, roles);
             var sensitiveContentRpcList = blogSensitiveContentRepository.findByBlogId(id);
             sensitiveContentList = SensitiveContentVoConvertor.convert(sensitiveContentRpcList);
         } else {
-            blog = createNewBlog();
+            blog = createNewBlog(userId);
             sensitiveContentList = new ArrayList<>();
-            blogUserId = userId;
         }
 
-        return BlogEditVoConvertor.convert(blog, sensitiveContentList, userId, blogUserId, roles, highestRole);
+        return BlogEditVoConvertor.convert(blog, sensitiveContentList,
+                accessPolicy.permissions(blog, userId, roles));
     }
 
-    private BlogEntity createNewBlog() {
+    private BlogEntity createNewBlog(Long userId) {
         return BlogEntity.builder()
+                .userId(userId)
                 .status(BlogStatusEnum.NORMAL.getCode())
                 .content("")
                 .description("")
@@ -281,26 +297,40 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void deleteOss(String url) {
+    public void deleteOss(String url, Long userId) {
         String objectName = url.replace(baseUrl + "/", "");
+        String ownerPrefix = userHttpServiceWrapper.findById(userId).nickname() + "/";
+        if (!objectName.startsWith(ownerPrefix)) {
+            throw new MissException(NO_AUTH.getMsg());
+        }
         Map<String, String> headers = getOssHeaders(objectName, HttpMethod.DELETE.name(), "");
         taskExecutor.execute(() -> ossHttpService.deleteOssObject(objectName, headers));
     }
 
     @Override
-    public String setBlogToken(Long blogId, Long userId) {
-        validateUser(blogId, userId);
+    public String setBlogToken(Long blogId, Long userId, List<String> roles) {
+        BlogEntity blog = blogRepository.findById(blogId)
+                .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+        accessPolicy.requireManagement(blog, userId, roles);
         String token = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set(READ_TOKEN + blogId, token, 24, TimeUnit.HOURS);
         return readPrefix + blogId + "?token=" + token;
     }
 
-
-    private void validateUser(Long blogId, Long userId) {
-        Long dbUserId = blogRepository.findUserIdById(blogId);
-        if (!Objects.equals(userId, dbUserId)) {
-            throw new MissException(USER_MISS.getMsg());
+    @Override
+    public String issueCollaborationTicket(Long blogId, Long userId, List<String> roles) {
+        String roomId;
+        if (blogId == null) {
+            accessPolicy.requireAuthenticated(userId);
+            roomId = "init:" + userId;
+        } else {
+            BlogEntity blog = blogRepository.findById(blogId)
+                    .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+            accessPolicy.requireCollaboration(blog, userId, roles);
+            roomId = blogId.toString();
         }
+        WebSocketTicketReq request = new WebSocketTicketReq(userId, roomId);
+        return Result.handleResult(() -> authHttpService.issueWebSocketTicket(request));
     }
 
     @Override
@@ -333,7 +363,7 @@ public class BlogServiceImpl implements BlogService {
                 .map(blogId -> {
                     BlogEntity blogEntity = blogRepository.findById(blogId)
                             .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-                    EditAuthUtils.checkSaveAuth(blogEntity, userId, roles, highestRole);
+                    accessPolicy.requireManagement(blogEntity, userId, roles);
                     return blogEntity;
                 })
                 .orElseGet(() -> BlogEntity.builder()
@@ -437,7 +467,7 @@ public class BlogServiceImpl implements BlogService {
     public void deleteBatch(List<Long> ids, Long userId, List<String> roles) {
 
         List<BlogEntity> entities = blogRepository.findAllById(ids).stream()
-                .filter(blogEntity -> Objects.equals(blogEntity.getUserId(), userId) || roles.contains(highestRole))
+                .filter(blogEntity -> accessPolicy.canManage(blogEntity, userId, roles))
                 .toList();
 
         List<Long> idList = entities.stream()

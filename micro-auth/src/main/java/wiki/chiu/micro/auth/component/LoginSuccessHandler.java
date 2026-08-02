@@ -7,25 +7,20 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
 import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
-import wiki.chiu.micro.auth.token.Claims;
-import wiki.chiu.micro.auth.token.TokenUtils;
+import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.user.LoginUser;
 import wiki.chiu.micro.auth.vo.LoginSuccessVo;
 import wiki.chiu.micro.common.lang.Result;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-
-import static wiki.chiu.micro.common.lang.Const.*;
+import static wiki.chiu.micro.common.lang.Const.PASSWORD_KEY;
+import static wiki.chiu.micro.common.lang.Const.TOKEN_PREFIX;
 
 
 @Component
@@ -33,21 +28,15 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JsonMapper jsonMapper;
 
-    private final TokenUtils<Claims> tokenUtils;
+    private final JwtTokenService jwtTokenService;
 
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 
     private final RedissonClient redissonClient;
 
-    @Value("${megalith.blog.jwt.access-token-expire}")
-    private long accessExpire;
-
-    @Value("${megalith.blog.jwt.refresh-token-expire}")
-    private long refreshExpire;
-
-    public LoginSuccessHandler(JsonMapper jsonMapper, TokenUtils<Claims> tokenUtils, UserHttpServiceWrapper userHttpServiceWrapper, RedissonClient redissonClient) {
+    public LoginSuccessHandler(JsonMapper jsonMapper, JwtTokenService jwtTokenService, UserHttpServiceWrapper userHttpServiceWrapper, RedissonClient redissonClient) {
         this.jsonMapper = jsonMapper;
-        this.tokenUtils = tokenUtils;
+        this.jwtTokenService = jwtTokenService;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.redissonClient = redissonClient;
     }
@@ -79,20 +68,11 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         }
         Long userId = user.getUserId();
 
-        List<String> keys = List.of(PASSWORD_KEY + username, BLOCK_USER + userId);
-        redissonClient.getKeys().delete(keys.toArray(new String[0]));
+        redissonClient.getKeys().delete(PASSWORD_KEY + username);
 
         userHttpServiceWrapper.updateLoginTime(username);
-        // 生成jwt
-        String accessToken = tokenUtils.generateToken(userId.toString(),
-                authentication.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .toList(),
-                accessExpire);
-
-        String refreshToken = tokenUtils.generateToken(userId.toString(),
-                Collections.singletonList("refresh"),
-                refreshExpire);
+        String accessToken = jwtTokenService.issueAccessToken(userId);
+        String refreshToken = jwtTokenService.issueRefreshToken(userId);
 
         outputStream.write(
                 jsonMapper.writeValueAsString(

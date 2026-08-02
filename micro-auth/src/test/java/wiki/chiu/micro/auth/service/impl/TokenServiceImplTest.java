@@ -5,22 +5,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.access.AccessDeniedException;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
-import wiki.chiu.micro.auth.token.Claims;
-import wiki.chiu.micro.auth.token.TokenUtils;
+import wiki.chiu.micro.auth.token.JwtTokenService;
+import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 
-import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TokenServiceImplTest {
 
     @Mock
-    private TokenUtils<Claims> tokenUtils;
+    private JwtTokenService jwtTokenService;
 
     @Mock
     private UserHttpServiceWrapper userHttpServiceWrapper;
@@ -29,13 +30,27 @@ class TokenServiceImplTest {
     private TokenServiceImpl tokenService;
 
     @Test
-    void refreshTokenRejectsAccessTokenRole() {
-        AccessDeniedException exception = assertThrows(
-                AccessDeniedException.class,
-                () -> tokenService.refreshToken(42L, List.of("user"))
-        );
+    void refreshTokenIssuesAccessTokenForActiveUser() {
+        when(userHttpServiceWrapper.findById(42L)).thenReturn(user(0));
+        when(jwtTokenService.issueAccessToken(42L)).thenReturn("jwt");
+
+        Map<String, String> result = tokenService.refreshToken(42L);
+
+        assertEquals("Bearer jwt", result.get("accessToken"));
+        verify(jwtTokenService).issueAccessToken(42L);
+    }
+
+    @Test
+    void refreshTokenRejectsDisabledUser() {
+        when(userHttpServiceWrapper.findById(42L)).thenReturn(user(1));
+
+        MissException exception = assertThrows(MissException.class,
+                () -> tokenService.refreshToken(42L));
 
         assertEquals("没有权限", exception.getMessage());
-        verifyNoInteractions(tokenUtils, userHttpServiceWrapper);
+    }
+
+    private UserEntityRpcVo user(int status) {
+        return UserEntityRpcVo.builder().id(42L).status(status).build();
     }
 }

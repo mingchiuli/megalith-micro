@@ -21,6 +21,7 @@ import wiki.chiu.micro.common.exception.AuthException;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
 import wiki.chiu.micro.common.req.AuthorityRouteReq;
+import wiki.chiu.micro.common.req.WebSocketTicketReq;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
 import wiki.chiu.micro.common.vo.AuthorityRouteRpcVo;
 
@@ -33,6 +34,7 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.withDefaultErrorHandling;
         Result.class,
         AuthorityRouteReq.class,
         AuthorityRouteCheckReq.class,
+        WebSocketTicketReq.class,
         MenuWithChildVo.class,
         UserInfoVo.class,
         AuthRpcVo.class,
@@ -56,13 +58,14 @@ public class AuthRoutes {
                                                         AuthInternalHttpHandler internalHandler) {
         RouterFunctions.Builder builder = route()
                 .GET("/auth/menu/nav", authHandler::nav)
-                .GET("/token/refresh", tokenHandler::refreshToken)
+                .POST("/token/refresh", tokenHandler::refreshToken)
                 .GET("/token/userinfo", tokenHandler::userinfo)
                 .GET("/code/email", codeHandler::createEmailCode)
                 .GET("/code/sms", codeHandler::createSmsCode)
                 .GET("/inner/auth", internalHandler::getAuthentication)
                 .POST("/inner/auth/route", internalHandler::getAuthorityRoute)
                 .POST("/inner/auth/route/check", internalHandler::routeCheck);
+        builder.POST("/inner/token/websocket", internalHandler::issueWebSocketTicket);
         builder.onError(BadCredentialsException.class,
                 (exception, request) -> error(HttpStatus.UNAUTHORIZED, exception, log));
         builder.onError(AuthException.class,

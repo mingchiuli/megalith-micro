@@ -31,12 +31,15 @@ megalith:
   cache:
     queue-prefix: cache.user.evict.queue.
     fanout-exchange: cache.user.evict.fanout.exchange
+  auth:
+    jwt:
+      access-token-expire: 900
+      refresh-token-expire: 604800
+      websocket-token-expire: 300
+      issuer: micro-auth
+      audience: megalith-api
   blog:
     email-try-count: 3
     password-error-intervalTime: 900000
-    jwt:
-      access-token-expire: 3600
-      refresh-token-expire: 604800
-    highest-role: admin
     sms:
       base-url: https://dysmsapi.aliyuncs.com
