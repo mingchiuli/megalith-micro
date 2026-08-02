@@ -7,11 +7,14 @@ import wiki.chiu.micro.auth.component.LoginFailureHandler;
 import wiki.chiu.micro.auth.component.LoginSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -38,27 +41,56 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain configure(HttpSecurity http) throws Exception {
+    @Order(1)
+    SecurityFilterChain refreshTokenChain(
+            HttpSecurity http,
+            @Qualifier("refreshJwtDecoder") JwtDecoder refreshJwtDecoder) throws Exception {
+        return stateless(http)
+                .securityMatcher("/token/refresh")
+                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(refreshJwtDecoder)))
+                .build();
+    }
+
+    @Bean
+    @Order(2)
+    SecurityFilterChain internalChain(HttpSecurity http) throws Exception {
+        return stateless(http)
+                .securityMatcher("/inner/**")
+                .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+                .build();
+    }
+
+    @Bean
+    @Order(3)
+    SecurityFilterChain applicationChain(
+            HttpSecurity http,
+            @Qualifier("accessJwtDecoder") JwtDecoder accessJwtDecoder) throws Exception {
         LoginAuthenticationFilter loginAuthenticationFilter = new LoginAuthenticationFilter(
                 authenticationManager,
                 loginAuthenticationConverter,
                 loginSuccessHandler,
                 loginFailureHandler);
 
+        return stateless(http)
+                .authorizeHttpRequests(authorizeHttpRequests ->
+                        authorizeHttpRequests
+                                .requestMatchers("/token/userinfo", "/auth/menu/nav")
+                                .authenticated()
+                                .anyRequest()
+                                .permitAll())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(accessJwtDecoder)))
+                .addFilterAt(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
+
+    private HttpSecurity stateless(HttpSecurity http) throws Exception {
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
-                .sessionManagement(sessionManagement ->
-                        sessionManagement
-                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorizeHttpRequests ->
-                        authorizeHttpRequests
-                                .anyRequest()
-                                .permitAll())
-                .addFilterAt(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                .sessionManagement(sessionManagement -> sessionManagement
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
     }
-
 }

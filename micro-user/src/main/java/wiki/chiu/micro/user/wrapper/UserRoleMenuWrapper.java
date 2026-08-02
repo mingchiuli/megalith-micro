@@ -24,8 +24,8 @@ public class UserRoleMenuWrapper {
 
     @Transactional
     public void deleteRole(List<Long> ids) {
-        roleRepository.deleteAllById(ids);
         roleMenuRepository.deleteAllByRoleIdIn(ids);
         userRoleRepository.deleteByRoleIdIn(ids);
+        roleRepository.deleteAllById(ids);
     }
 }

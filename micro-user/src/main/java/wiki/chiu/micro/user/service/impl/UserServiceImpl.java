@@ -4,7 +4,6 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,15 +18,12 @@ import wiki.chiu.micro.common.utils.CodeUtils;
 import wiki.chiu.micro.common.utils.OssSignUtils;
 import wiki.chiu.micro.common.utils.SQLUtils;
 import wiki.chiu.micro.common.vo.UserEntityRpcVo;
-import wiki.chiu.micro.user.constant.UserIndexMessage;
 import wiki.chiu.micro.user.convertor.UserEntityConvertor;
 import wiki.chiu.micro.user.convertor.UserEntityRpcVoConvertor;
 import wiki.chiu.micro.user.convertor.UserEntityVoConvertor;
 import wiki.chiu.micro.user.entity.RoleEntity;
 import wiki.chiu.micro.user.entity.UserEntity;
 import wiki.chiu.micro.user.entity.UserRoleEntity;
-import wiki.chiu.micro.user.event.UserOperateEvent;
-import wiki.chiu.micro.user.lang.UserOperateEnum;
 import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.repository.UserRepository;
 import wiki.chiu.micro.user.repository.UserRoleRepository;
@@ -79,8 +75,6 @@ public class UserServiceImpl implements UserService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final ApplicationContext applicationContext;
-
     private final RoleRepository roleRepository;
 
     private final UserRoleRepository userRoleRepository;
@@ -101,14 +95,13 @@ public class UserServiceImpl implements UserService {
     @Value("${megalith.blog.aliyun.oss.bucket-name}")
     private String bucketName;
 
-    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, @Qualifier("commonExecutor") TaskExecutor taskExecutor, UserRoleWrapper userRoleWrapper, PasswordEncoder passwordEncoder, ApplicationContext applicationContext, RoleRepository roleRepository, UserRoleRepository userRoleRepository) {
+    public UserServiceImpl(UserRepository userRepository, StringRedisTemplate redisTemplate, OssHttpService ossHttpService, @Qualifier("commonExecutor") TaskExecutor taskExecutor, UserRoleWrapper userRoleWrapper, PasswordEncoder passwordEncoder, RoleRepository roleRepository, UserRoleRepository userRoleRepository) {
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
         this.ossHttpService = ossHttpService;
         this.taskExecutor = taskExecutor;
         this.userRoleWrapper = userRoleWrapper;
         this.passwordEncoder = passwordEncoder;
-        this.applicationContext = applicationContext;
         this.roleRepository = roleRepository;
         this.userRoleRepository = userRoleRepository;
     }
@@ -218,7 +211,6 @@ public class UserServiceImpl implements UserService {
 
         userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
 
-        executeTask(dealUser.getId(), userEntityReq.id().isPresent() ? UserOperateEnum.UPDATE : UserOperateEnum.CREATE);
     }
 
     @Override
@@ -263,9 +255,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUsers(List<Long> ids) {
         userRoleWrapper.deleteUsers(ids);
-        for (Long userId : ids) {
-            executeTask(userId, UserOperateEnum.DELETE);
-        }
     }
 
     private void validateToken(String token) {
@@ -343,17 +332,10 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserEntityReq getUserEntityReq(UserEntityRegisterReq req) {
-        List<String> roles = List.of(USER, REFRESH);
+        List<String> roles = List.of(USER);
         return userRepository.findByUsername(req.username())
                 .map(entity -> new UserEntityReq(req, entity.getId(), NORMAL.getCode(), roles))
                 .orElseGet(() -> new UserEntityReq(req, null, NORMAL.getCode(), roles));
-    }
-
-    private void executeTask(Long userId, UserOperateEnum userOperateEnum) {
-        taskExecutor.execute(() -> {
-            var userIndexMessage = new UserIndexMessage(userId, userOperateEnum);
-            applicationContext.publishEvent(new UserOperateEvent(this, userIndexMessage));
-        });
     }
 
     public List<String> findRoleCodesByUserId(Long userId) {

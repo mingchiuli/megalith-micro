@@ -6,19 +6,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtException;
 import wiki.chiu.micro.auth.convertor.MenuDisplayDtoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuRootVoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuWithChildDtoConvertor;
 import wiki.chiu.micro.auth.dto.*;
+import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.service.AuthService;
-import wiki.chiu.micro.auth.token.Claims;
-import wiki.chiu.micro.auth.token.TokenUtils;
+import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.auth.wrapper.AuthWrapper;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
 import wiki.chiu.micro.common.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.common.vo.AuthorityRpcVo;
-import wiki.chiu.micro.common.exception.AuthException;
 import org.redisson.api.RScript.Mode;
 import org.redisson.api.RScript.ReturnType;
 import org.redisson.api.RedissonClient;
@@ -27,18 +28,22 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
+import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthTypeEnum;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
+import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
 import wiki.chiu.micro.common.req.AuthorityRouteReq;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static wiki.chiu.micro.common.lang.Const.*;
+import static wiki.chiu.micro.common.lang.Const.DAY_VISIT;
+import static wiki.chiu.micro.common.lang.Const.MONTH_VISIT;
+import static wiki.chiu.micro.common.lang.Const.WEEK_VISIT;
+import static wiki.chiu.micro.common.lang.Const.YEAR_VISIT;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -52,16 +57,24 @@ public class AuthServiceImpl implements AuthService {
 
     private final ResourceLoader resourceLoader;
 
-    private final TokenUtils<Claims> tokenUtils;
+    private final JwtTokenService jwtTokenService;
+
+    private final UserHttpServiceWrapper userHttpServiceWrapper;
 
     private String script;
 
-    public AuthServiceImpl(AuthWrapper authWrapper, RedissonClient redissonClient, @Qualifier("commonExecutor") TaskExecutor taskExecutor, ResourceLoader resourceLoader, TokenUtils<Claims> tokenUtils) {
+    public AuthServiceImpl(AuthWrapper authWrapper,
+                           RedissonClient redissonClient,
+                           @Qualifier("commonExecutor") TaskExecutor taskExecutor,
+                           ResourceLoader resourceLoader,
+                           JwtTokenService jwtTokenService,
+                           UserHttpServiceWrapper userHttpServiceWrapper) {
         this.authWrapper = authWrapper;
         this.redissonClient = redissonClient;
         this.taskExecutor = taskExecutor;
         this.resourceLoader = resourceLoader;
-        this.tokenUtils = tokenUtils;
+        this.jwtTokenService = jwtTokenService;
+        this.userHttpServiceWrapper = userHttpServiceWrapper;
     }
 
     @PostConstruct
@@ -71,10 +84,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public MenuWithChildVo getCurrentUserNav(List<String> roles) {
+    public MenuWithChildVo getCurrentUserNav(Long userId) {
         List<MenuDto> menus = new ArrayList<>();
 
-        roles.stream()
+        currentRoles(userId).stream()
                 .map(authWrapper::getCurrentUserNav)
                 .forEach(menus::addAll);
 
@@ -90,16 +103,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthorityRouteRpcVo findRoute(AuthorityRouteReq req) {
         recordIp(req.ipAddr());
-        List<AuthorityRpcVo> systemAuthorities = authWrapper.getAllSystemAuthorities();
-        for (AuthorityRpcVo dto : systemAuthorities) {
-            if (routeMatch(dto.routePattern(), dto.methodType(), req.routeMapping(), req.method())) {
-                return AuthorityRouteRpcVo.builder()
-                        .serviceHost(dto.serviceHost())
-                        .servicePort(dto.servicePort())
-                        .build();
-            }
-        }
-        throw new MissException(ExceptionMessage.NO_AUTH);
+        AuthorityRpcVo route = matchingAuthority(req.routeMapping(), req.method())
+                .orElseThrow(() -> new MissException(ExceptionMessage.NO_AUTH));
+        return AuthorityRouteRpcVo.builder()
+                .serviceHost(route.serviceHost())
+                .servicePort(route.servicePort())
+                .build();
     }
 
     private void recordIp(String ipAddr) {
@@ -122,13 +131,17 @@ public class AuthServiceImpl implements AuthService {
         if (routePattern.endsWith("/**")) {
             String prefix = routePattern.replace("/**", "");
 
-            return routeMapping.startsWith(prefix);
+            return routeMapping.equals(prefix) || routeMapping.startsWith(prefix + "/");
         }
 
         if (routePattern.endsWith("/*")) {
             String prefix = routePattern.replace("/*", "");
 
-            return routeMapping.startsWith(prefix) && routeMapping.lastIndexOf("/", prefix.length()) == routeMapping.indexOf("/", prefix.length());
+            if (!routeMapping.startsWith(prefix + "/")) {
+                return false;
+            }
+            String remaining = routeMapping.substring(prefix.length() + 1);
+            return !remaining.isEmpty() && !remaining.contains("/");
         }
 
         return false;
@@ -144,86 +157,121 @@ public class AuthServiceImpl implements AuthService {
                     .build();
         }
 
-        Claims claims;
+        Jwt jwt;
         try {
-            claims = tokenUtils.getVerifierByToken(extractBearerToken(token));
-        } catch (AuthException e) {
-            throw new MissException(e.getMessage());
+            jwt = jwtTokenService.decodeAccessToken(token);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new MissException(ExceptionMessage.TOKEN_INVALID.getMsg());
         }
-        List<String> rawRoles = getRawRoleCodes(claims.roles());
-        List<String> authorities = getAuthorities(rawRoles);
+        Long userId = subject(jwt);
+        requireActiveUser(userId);
+        List<String> roles = currentRoles(userId);
+        List<String> authorities = getAuthorities(roles);
 
         return AuthRpcVo.builder()
-                .userId(Long.parseLong(claims.userId()))
-                .roles(rawRoles)
+                .userId(userId)
+                .roles(roles)
                 .authorities(authorities)
                 .build();
     }
 
     @Override
     public Boolean routeCheck(AuthorityRouteCheckReq req, String token) {
-        Set<String> authorities;
-        try {
-            authorities = getAuthAuthority(token);
-        } catch (AuthException e) {
+        Optional<AuthorityRpcVo> matched = matchingAuthority(req.routeMapping(), req.method());
+        if (matched.isEmpty()) {
+            return false;
+        }
+        AuthorityRpcVo route = matched.get();
+        if (AuthTypeEnum.WHITE_LIST.getCode().equals(route.type())) {
+            return true;
+        }
+        if (!StringUtils.hasLength(token)) {
             return false;
         }
 
-        List<AuthorityRpcVo> systemAuthorities = authWrapper.getAllSystemAuthorities();
-        for (AuthorityRpcVo dto : systemAuthorities) {
-            if (routeMatch(dto.routePattern(), dto.methodType(), req.routeMapping(), req.method())) {
-                return authorities.contains(dto.code());
+        try {
+            Jwt jwt = decodeRouteToken(req.routeMapping(), token);
+            Long userId = subject(jwt);
+            if (!isActiveUser(userId)) {
+                return false;
             }
+            if (isWebSocketRoute(req.routeMapping())) {
+                return true;
+            }
+            return currentRoles(userId).stream()
+                    .map(authWrapper::getAuthoritiesByRoleCode)
+                    .flatMap(Collection::stream)
+                    .anyMatch(route.code()::equals);
+        } catch (JwtException | IllegalArgumentException | BaseException e) {
+            return false;
         }
-        return false;
     }
 
-    private Set<String> getAuthAuthority(String token) throws AuthException {
-
-        Set<String> authorities = authWrapper.getAllSystemAuthorities().stream()
-                .filter(item -> AuthTypeEnum.WHITE_LIST.getCode().equals(item.type()))
-                .map(AuthorityRpcVo::code)
-                .collect(Collectors.toSet());
-
-        if (!StringUtils.hasLength(token)) {
-            return authorities;
-        }
-
-        Claims claims = tokenUtils.getVerifierByToken(extractBearerToken(token));
-        if (redissonClient.getBucket(BLOCK_USER + claims.userId()).isExists()) {
-            return authorities;
-        }
-
-        List<String> rawRoles = getRawRoleCodes(claims.roles());
-        Set<String> authList = rawRoles.stream()
-                .map(authWrapper::getAuthoritiesByRoleCode)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
-
-        authorities.addAll(authList);
-        return authorities;
+    private Optional<AuthorityRpcVo> matchingAuthority(String routeMapping, String method) {
+        return authWrapper.getAllSystemAuthorities().stream()
+                .filter(authority -> routeMatch(authority.routePattern(), authority.methodType(), routeMapping, method))
+                .sorted(Comparator
+                        .comparingInt((AuthorityRpcVo authority) -> routeSpecificity(authority.routePattern()))
+                        .reversed()
+                        .thenComparing(AuthorityRpcVo::routePattern)
+                        .thenComparing(AuthorityRpcVo::code))
+                .findFirst();
     }
 
-    private List<String> getRawRoleCodes(List<String> roles) {
+    private int routeSpecificity(String pattern) {
+        if (pattern.endsWith("/**")) {
+            return 1_000 + pattern.length();
+        }
+        if (pattern.endsWith("/*")) {
+            return 2_000 + pattern.length();
+        }
+        return 3_000 + pattern.length();
+    }
+
+    private Jwt decodeRouteToken(String routeMapping, String token) {
+        if (isWebSocketRoute(routeMapping)) {
+            Jwt jwt = jwtTokenService.decodeWebSocketToken(token);
+            String roomId = routeMapping.substring("/rooms/".length());
+            if (roomId.isEmpty() || !roomId.equals(jwt.getClaimAsString("room_id"))) {
+                throw new IllegalArgumentException("WebSocket ticket does not match the room");
+            }
+            return jwt;
+        }
+        return jwtTokenService.decodeAccessToken(token);
+    }
+
+    private boolean isWebSocketRoute(String routeMapping) {
+        return routeMapping.startsWith("/rooms/");
+    }
+
+    private List<String> getAuthorities(List<String> roles) {
         return roles.stream()
-                .map(role -> role.substring(ROLE_PREFIX.length()))
-                .toList();
-    }
-
-    private List<String> getAuthorities(List<String> rawRoles) {
-
-        return rawRoles.stream()
                 .map(authWrapper::getAuthoritiesByRoleCode)
                 .flatMap(Collection::stream)
                 .distinct()
                 .toList();
     }
 
-    private String extractBearerToken(String token) throws AuthException {
-        if (!StringUtils.hasLength(token) || !token.startsWith(TOKEN_PREFIX) || token.length() == TOKEN_PREFIX.length()) {
-            throw new AuthException(ExceptionMessage.TOKEN_INVALID.getMsg());
+    private List<String> currentRoles(Long userId) {
+        return userHttpServiceWrapper.findRoleCodesByUserId(userId);
+    }
+
+    private Long subject(Jwt jwt) {
+        try {
+            return Long.valueOf(jwt.getSubject());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid JWT subject", e);
         }
-        return token.substring(TOKEN_PREFIX.length());
+    }
+
+    private void requireActiveUser(Long userId) {
+        if (!isActiveUser(userId)) {
+            throw new MissException(ExceptionMessage.NO_AUTH);
+        }
+    }
+
+    private boolean isActiveUser(Long userId) {
+        return StatusEnum.NORMAL.getCode().equals(userHttpServiceWrapper.findById(userId).status());
     }
 
 }

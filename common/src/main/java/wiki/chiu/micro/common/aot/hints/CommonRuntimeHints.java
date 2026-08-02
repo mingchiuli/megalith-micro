@@ -5,7 +5,6 @@ import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.common.lang.UserAuthMenuOperateMessage;
-import wiki.chiu.micro.common.validation.DateRangeConstraintValidator;
 
 
 class CommonRuntimeHints implements RuntimeHintsRegistrar {
@@ -18,9 +17,7 @@ class CommonRuntimeHints implements RuntimeHintsRegistrar {
                         MemberCategory.INVOKE_DECLARED_METHODS)
                 .registerType(UserAuthMenuOperateMessage.class,
                         MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                        MemberCategory.INVOKE_DECLARED_METHODS)
-                .registerType(DateRangeConstraintValidator.class,
-                        MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
+                        MemberCategory.INVOKE_DECLARED_METHODS);
 
         // Lua scripts for Redis operations
         hints.resources()

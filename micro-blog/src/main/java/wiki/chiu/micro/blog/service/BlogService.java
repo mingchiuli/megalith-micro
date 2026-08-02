@@ -28,9 +28,11 @@ public interface BlogService {
 
     String uploadOss(MultipartFile file, Long userId);
 
-    void deleteOss(String url);
+    void deleteOss(String url, Long userId);
 
-    String setBlogToken(Long blogId, Long userId);
+    String setBlogToken(Long blogId, Long userId, List<String> roles);
+
+    String issueCollaborationTicket(Long blogId, Long userId, List<String> roles);
 
     BlogEntityRpcVo findById(Long blogId);
 

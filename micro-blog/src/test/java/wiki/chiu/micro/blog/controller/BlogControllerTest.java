@@ -88,7 +88,7 @@ class BlogControllerTest {
 
     @Test
     void setBlogTokenReturnsToken() throws Exception {
-        when(blogService.setBlogToken(7L, 1L)).thenReturn("xyz-token");
+        when(blogService.setBlogToken(7L, 1L, List.of("ROLE_USER"))).thenReturn("xyz-token");
 
         mockMvc.perform(get("/sys/blog/lock/7"))
                 .andExpect(status().isOk())
@@ -142,7 +142,7 @@ class BlogControllerTest {
 
     @Test
     void deleteOssReturnsSuccess() throws Exception {
-        doNothing().when(blogService).deleteOss("https://oss/x.png");
+        doNothing().when(blogService).deleteOss("https://oss/x.png", 1L);
 
         mockMvc.perform(get("/sys/blog/oss/delete").param("url", "https://oss/x.png"))
                 .andExpect(status().isOk())

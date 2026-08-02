@@ -1,5 +1,7 @@
 package wiki.chiu.micro.common.req;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -7,12 +9,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import wiki.chiu.micro.common.validation.DateRangeRequest;
-import wiki.chiu.micro.common.validation.ValidDateRange;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@ValidDateRange
 public record BlogSysCountSearchReq(
 
         @Size(max = 20)
@@ -33,6 +33,12 @@ public record BlogSysCountSearchReq(
         @NotNull
         List<@NotBlank String> roles
 ) implements DateRangeRequest {
+
+    @JsonIgnore
+    @AssertTrue(message = "createStart and createEnd must both be absent or form an increasing range")
+    public boolean isDateRangeValid() {
+        return hasValidDateRange();
+    }
 
     public static BlogSysCountSearchReq.BLogSysCountSearchReqBuilder builder() {
         return new BlogSysCountSearchReq.BLogSysCountSearchReqBuilder();

@@ -1,6 +1,8 @@
 package wiki.chiu.micro.user.req;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.GroupSequence;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -8,9 +10,9 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
+import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Optional;
-import wiki.chiu.micro.user.valid.PasswordRequiredForCreate;
 import wiki.chiu.micro.user.valid.CrossFieldValidation;
 
 import static wiki.chiu.micro.common.lang.Const.EMAIL_REGEX;
@@ -18,7 +20,6 @@ import static wiki.chiu.micro.common.lang.Const.PHONE_REGEX;
 import static wiki.chiu.micro.common.lang.Const.URL_REGEX;
 import static wiki.chiu.micro.common.lang.Const.USERNAME_REGEX;
 
-@PasswordRequiredForCreate(groups = CrossFieldValidation.class)
 @GroupSequence({UserEntityReq.class, CrossFieldValidation.class})
 public record UserEntityReq(
 
@@ -60,5 +61,11 @@ public record UserEntityReq(
 
         public UserEntityReq(UserEntityRegisterReq req, Long id, Integer status, List<String> roles) {
                 this(Optional.ofNullable(id), req.username(), req.nickname(), req.avatar(), req.password(), req.email(), req.phone(), status, roles);
+        }
+
+        @JsonIgnore
+        @AssertTrue(message = "需要密码", groups = CrossFieldValidation.class)
+        public boolean isPasswordValidForCreate() {
+                return id == null || id.isPresent() || StringUtils.hasText(password);
         }
 }

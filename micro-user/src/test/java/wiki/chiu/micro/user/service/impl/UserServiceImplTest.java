@@ -1,7 +1,6 @@
 package wiki.chiu.micro.user.service.impl;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,7 +33,6 @@ class UserServiceImplTest {
                 mock(TaskExecutor.class),
                 wrapper,
                 mock(PasswordEncoder.class),
-                mock(ApplicationContext.class),
                 mock(RoleRepository.class),
                 mock(UserRoleRepository.class));
         when(redisTemplate.hasKey(anyString())).thenReturn(false);

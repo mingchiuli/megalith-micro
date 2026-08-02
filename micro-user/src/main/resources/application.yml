@@ -38,9 +38,6 @@ server:
 
 megalith:
   blog:
-    jwt:
-      access-token-expire: 21600
-      refresh-token-expire: 604800
     highest-role: admin
     oss:
       base-url: https://${megalith.blog.aliyun.oss.bucket-name}.${megalith.blog.oss.endpoint}

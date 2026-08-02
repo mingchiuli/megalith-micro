@@ -16,6 +16,7 @@ import wiki.chiu.micro.auth.handler.CodeHttpHandler;
 import wiki.chiu.micro.auth.handler.TokenHttpHandler;
 import wiki.chiu.micro.auth.route.AuthRoutes;
 import wiki.chiu.micro.auth.service.AuthService;
+import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.lang.Result;
@@ -27,7 +28,7 @@ import wiki.chiu.micro.common.web.ValidatedRequest;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -53,10 +54,11 @@ class AuthControllerTest {
         AuthInfo authInfo = new AuthInfo(1L, List.of("ROLE_USER"), List.of());
         org.mockito.Mockito.lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
                 new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
-        AuthHttpHandler handler = new AuthHttpHandler(authService, authHttpService);
+        AuthHttpHandler handler = new AuthHttpHandler(authService);
         ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
                 .buildDefaultValidatorFactory().getValidator());
-        AuthInternalHttpHandler internalHandler = new AuthInternalHttpHandler(authService, validation);
+        AuthInternalHttpHandler internalHandler = new AuthInternalHttpHandler(
+                authService, validation, org.mockito.Mockito.mock(JwtTokenService.class));
         mockMvc = MockMvcBuilders.routerFunctions(AuthRoutes.routes(
                         handler,
                         org.mockito.Mockito.mock(TokenHttpHandler.class),
@@ -78,9 +80,9 @@ class AuthControllerTest {
                         .children(List.of())
                         .build()))
                 .build();
-        when(authService.getCurrentUserNav(anyList())).thenReturn(vo);
+        when(authService.getCurrentUserNav(anyLong())).thenReturn(vo);
 
-        mockMvc.perform(get("/auth/menu/nav"))
+        mockMvc.perform(get("/auth/menu/nav").principal(() -> "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.name").value("backend"))
@@ -89,23 +91,12 @@ class AuthControllerTest {
 
     @Test
     void navWhenServiceThrowsBaseExceptionReturns400() throws Exception {
-        when(authService.getCurrentUserNav(anyList())).thenThrow(new BaseException("forbidden"));
+        when(authService.getCurrentUserNav(anyLong())).thenThrow(new BaseException("forbidden"));
 
-        mockMvc.perform(get("/auth/menu/nav"))
+        mockMvc.perform(get("/auth/menu/nav").principal(() -> "1"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.msg").value("forbidden"));
-    }
-
-    @Test
-    void navWithBadCredentialsReturns401() throws Exception {
-        when(authHttpService.getAuthentication(anyString()))
-                .thenThrow(new BadCredentialsException("bad credentials"));
-
-        mockMvc.perform(get("/auth/menu/nav"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value(401))
-                .andExpect(jsonPath("$.msg").value("bad credentials"));
     }
 
     @Test

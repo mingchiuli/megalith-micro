@@ -15,22 +15,14 @@ import wiki.chiu.micro.auth.route.AuthRoutes;
 import wiki.chiu.micro.auth.service.TokenService;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.Result;
-import wiki.chiu.micro.common.rpc.AuthHttpService;
-import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
-import wiki.chiu.micro.common.vo.AuthRpcVo;
-
-import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static wiki.chiu.micro.common.lang.Const.REFRESH;
 
 @ExtendWith(MockitoExtension.class)
 class TokenControllerTest {
@@ -42,11 +34,7 @@ class TokenControllerTest {
 
     @BeforeEach
     void setUp() {
-        AuthInfo authInfo = new AuthInfo(42L, List.of(REFRESH), List.of());
-        AuthHttpService authHttpService = org.mockito.Mockito.mock(AuthHttpService.class);
-        org.mockito.Mockito.lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
-                new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
-        TokenHttpHandler handler = new TokenHttpHandler(tokenService, authHttpService);
+        TokenHttpHandler handler = new TokenHttpHandler(tokenService);
         mockMvc = MockMvcBuilders.routerFunctions(AuthRoutes.routes(
                         org.mockito.Mockito.mock(AuthHttpHandler.class),
                         handler,
@@ -57,19 +45,19 @@ class TokenControllerTest {
 
     @Test
     void refreshTokenReturnsTokenMap() throws Exception {
-        when(tokenService.refreshToken(42L, List.of(REFRESH))).thenReturn(Map.of("token", "newtoken"));
+        when(tokenService.refreshToken(42L)).thenReturn(Map.of("accessToken", "newtoken"));
 
-        mockMvc.perform(get("/token/refresh"))
+        mockMvc.perform(post("/token/refresh").principal(() -> "42"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.token").value("newtoken"));
+                .andExpect(jsonPath("$.data.accessToken").value("newtoken"));
     }
 
     @Test
     void refreshTokenWhenServiceThrowsReturns400() throws Exception {
-        when(tokenService.refreshToken(anyLong(), anyList())).thenThrow(new MissException("token missing"));
+        when(tokenService.refreshToken(anyLong())).thenThrow(new MissException("token missing"));
 
-        mockMvc.perform(get("/token/refresh"))
+        mockMvc.perform(post("/token/refresh").principal(() -> "42"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.msg").value("token missing"));
     }
@@ -83,7 +71,7 @@ class TokenControllerTest {
                 .build();
         when(tokenService.userinfo(42L)).thenReturn(vo);
 
-        mockMvc.perform(get("/token/userinfo"))
+        mockMvc.perform(get("/token/userinfo").principal(() -> "42"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(42))
                 .andExpect(jsonPath("$.data.nickname").value("nick"))
