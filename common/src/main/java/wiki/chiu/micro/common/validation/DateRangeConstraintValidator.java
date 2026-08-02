@@ -1,12 +1,11 @@
-package wiki.chiu.micro.blog.valid.impl;
+package wiki.chiu.micro.common.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import wiki.chiu.micro.blog.req.DateRangeRequest;
 
 import java.time.LocalDateTime;
 
-public class DateRangeConstraintValidator implements ConstraintValidator<wiki.chiu.micro.blog.valid.ValidDateRange, DateRangeRequest> {
+public class DateRangeConstraintValidator implements ConstraintValidator<ValidDateRange, DateRangeRequest> {
 
     @Override
     public boolean isValid(DateRangeRequest request, ConstraintValidatorContext context) {

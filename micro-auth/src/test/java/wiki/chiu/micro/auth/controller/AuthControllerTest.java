@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -20,13 +22,18 @@ import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -47,11 +54,14 @@ class AuthControllerTest {
         org.mockito.Mockito.lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
                 new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
         AuthHttpHandler handler = new AuthHttpHandler(authService, authHttpService);
+        ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
+                .buildDefaultValidatorFactory().getValidator());
+        AuthInternalHttpHandler internalHandler = new AuthInternalHttpHandler(authService, validation);
         mockMvc = MockMvcBuilders.routerFunctions(AuthRoutes.routes(
                         handler,
                         org.mockito.Mockito.mock(TokenHttpHandler.class),
                         org.mockito.Mockito.mock(CodeHttpHandler.class),
-                        org.mockito.Mockito.mock(AuthInternalHttpHandler.class)))
+                        internalHandler))
                 .build();
     }
 
@@ -102,5 +112,16 @@ class AuthControllerTest {
     void navUnknownPathReturns404() throws Exception {
         mockMvc.perform(get("/auth/menu/unknown"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void internalRouteRejectsBlankMethodAndMapping() throws Exception {
+        mockMvc.perform(post("/inner/auth/route")
+                        .header(HttpHeaders.AUTHORIZATION, "token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"method\":\" \",\"routeMapping\":\"\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(authService, never()).findRoute(any());
     }
 }

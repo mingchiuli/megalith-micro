@@ -6,8 +6,10 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
 import java.util.Optional;
+import wiki.chiu.micro.blog.valid.ValidSensitiveContentRange;
 
 import static wiki.chiu.micro.common.lang.Const.URL_REGEX;
 
@@ -16,10 +18,11 @@ import static wiki.chiu.micro.common.lang.Const.URL_REGEX;
  * @author mingchiuli
  * @create 2022-12-01 9:26 pm
  */
+@ValidSensitiveContentRange
 public record BlogEntityReq(
 
         @NotNull(message = "{wiki.chiu.micro.blog.valid.BlogSave.message}")
-        Optional<Long> id,
+        Optional<@Positive(message = "{wiki.chiu.micro.blog.valid.BlogSave.message}") Long> id,
 
         @NotBlank(message = "{wiki.chiu.micro.blog.valid.BlogSave.message}")
         String title,

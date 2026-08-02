@@ -6,7 +6,8 @@ import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import wiki.chiu.micro.blog.valid.ValidDateRange;
+import wiki.chiu.micro.common.validation.DateRangeRequest;
+import wiki.chiu.micro.common.validation.ValidDateRange;
 
 @ValidDateRange(message = "{wiki.chiu.micro.blog.valid.BlogDownload.message}")
 public record BlogDownloadReq(

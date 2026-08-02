@@ -63,18 +63,19 @@ public class UserHttpHandler {
     }
 
     public ServerResponse page(ServerRequest request) {
-        Integer currentPage = pathVariable(request, "currentPage", Integer::valueOf);
-        Integer size = optionalParam(request, "size", 5, Integer::valueOf);
+        Integer currentPage = positive(pathVariable(request, "currentPage", Integer::valueOf), "currentPage");
+        Integer size = positive(optionalParam(request, "size", 5, Integer::valueOf), "size");
         return ok(Result.success(() -> userService.listPage(currentPage, size)));
     }
 
     public ServerResponse delete(ServerRequest request) throws Exception {
-        List<Long> ids = validation.notEmpty(validation.body(request, LONG_LIST), "ids");
+        List<Long> ids = validation.notEmpty(
+                validation.positiveElements(validation.body(request, LONG_LIST), "ids"), "ids");
         return ok(Result.success(() -> userService.deleteUsers(ids)));
     }
 
     public ServerResponse info(ServerRequest request) {
-        Long id = pathVariable(request, "id", Long::valueOf);
+        Long id = positive(pathVariable(request, "id", Long::valueOf), "id");
         return ok(Result.success(() -> userService.findInfo(id)));
     }
 

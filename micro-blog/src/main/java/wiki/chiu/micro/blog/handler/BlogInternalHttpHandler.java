@@ -18,6 +18,7 @@ import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
+import static wiki.chiu.micro.common.web.FunctionalWeb.positive;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 /**
@@ -51,26 +52,26 @@ public class BlogInternalHttpHandler implements BlogHttpService {
     }
 
     public ServerResponse findSensitiveByBlogId(ServerRequest request) {
-        Long blogId = pathVariable(request, "blogId", Long::valueOf);
+        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         return ok(findSensitiveByBlogId(blogId));
     }
 
     public ServerResponse findById(ServerRequest request) {
-        Long blogId = pathVariable(request, "blogId", Long::valueOf);
+        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         return ok(findById(blogId));
     }
 
     public ServerResponse findAllById(ServerRequest request) throws Exception {
-        return ok(findAllById(validation.body(request, LONG_LIST)));
+        return ok(findAllById(validation.positiveElements(validation.body(request, LONG_LIST), "ids")));
     }
 
     public ServerResponse findPage(ServerRequest request) {
-        return ok(findPage(requiredParam(request, "pageNo", Integer::valueOf),
-                requiredParam(request, "pageSize", Integer::valueOf)));
+        return ok(findPage(positive(requiredParam(request, "pageNo", Integer::valueOf), "pageNo"),
+                positive(requiredParam(request, "pageSize", Integer::valueOf), "pageSize")));
     }
 
     public ServerResponse setReadCount(ServerRequest request) {
-        Long blogId = pathVariable(request, "blogId", Long::valueOf);
+        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         return ok(setReadCount(blogId));
     }
 

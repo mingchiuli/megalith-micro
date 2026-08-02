@@ -8,15 +8,18 @@ import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import wiki.chiu.micro.blog.valid.ValidDateRange;
+import wiki.chiu.micro.common.validation.DateRangeRequest;
+import wiki.chiu.micro.common.validation.ValidDateRange;
 
-@ValidDateRange
+@ValidDateRange(message = "{wiki.chiu.micro.blog.valid.BlogQuery.message}")
 public record BlogQueryReq(
 
         @NotNull(message = "{wiki.chiu.micro.blog.valid.BlogQuery.message}")
+        @Min(value = 1, message = "{wiki.chiu.micro.blog.valid.BlogQuery.message}")
         Integer currentPage,
 
         @NotNull(message = "{wiki.chiu.micro.blog.valid.BlogQuery.message}")
+        @Min(value = 1, message = "{wiki.chiu.micro.blog.valid.BlogQuery.message}")
         Integer size,
 
         @Size(max = 20, message = "{wiki.chiu.micro.blog.valid.BlogQuery.message}")

@@ -3,13 +3,16 @@ package wiki.chiu.micro.blog.req;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 
 public record SensitiveContentReq(
 
         @NotNull(message = "{wiki.chiu.micro.blog.valid.BlogSave.message}")
+        @PositiveOrZero(message = "{wiki.chiu.micro.blog.valid.BlogSave.message}")
         Integer startIndex,
 
         @NotNull(message = "{wiki.chiu.micro.blog.valid.BlogSave.message}")
+        @PositiveOrZero(message = "{wiki.chiu.micro.blog.valid.BlogSave.message}")
         Integer endIndex,
 
         @NotNull(message = "{wiki.chiu.micro.blog.valid.BlogSave.message}")

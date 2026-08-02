@@ -1,4 +1,4 @@
-package wiki.chiu.micro.blog.req;
+package wiki.chiu.micro.common.validation;
 
 import java.time.LocalDateTime;
 

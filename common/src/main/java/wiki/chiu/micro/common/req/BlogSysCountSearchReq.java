@@ -1,24 +1,38 @@
 package wiki.chiu.micro.common.req;
 
-
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import wiki.chiu.micro.common.validation.DateRangeRequest;
+import wiki.chiu.micro.common.validation.ValidDateRange;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@ValidDateRange
 public record BlogSysCountSearchReq(
 
+        @Size(max = 20)
         String keywords,
 
+        @Min(0)
+        @Max(3)
         Integer status,
 
         LocalDateTime createStart,
 
         LocalDateTime createEnd,
 
+        @NotNull
+        @PositiveOrZero
         Long userId,
 
-        List<String> roles
-) {
+        @NotNull
+        List<@NotBlank String> roles
+) implements DateRangeRequest {
 
     public static BlogSysCountSearchReq.BLogSysCountSearchReqBuilder builder() {
         return new BlogSysCountSearchReq.BLogSysCountSearchReqBuilder();

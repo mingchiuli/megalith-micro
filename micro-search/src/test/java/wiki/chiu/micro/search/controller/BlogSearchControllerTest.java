@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -18,6 +19,7 @@ import wiki.chiu.micro.common.web.ValidatedRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -25,6 +27,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -41,8 +44,9 @@ class BlogSearchControllerTest {
         ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
                 .buildDefaultValidatorFactory().getValidator());
         BlogSearchHttpHandler handler = new BlogSearchHttpHandler(blogSearchService, validation);
+        SearchInternalHttpHandler internalHandler = new SearchInternalHttpHandler(blogSearchService, validation);
         mockMvc = MockMvcBuilders.routerFunctions(
-                        SearchRoutes.routes(handler, org.mockito.Mockito.mock(SearchInternalHttpHandler.class)))
+                        SearchRoutes.routes(handler, internalHandler))
                 .build();
     }
 
@@ -82,6 +86,51 @@ class BlogSearchControllerTest {
                 .andExpect(status().isBadRequest());
 
         verify(blogSearchService, never()).selectBlogsByES(anyInt(), anyString(), anyBoolean());
+    }
+
+    @Test
+    void searchBlogsRejectsNonPositivePage() throws Exception {
+        mockMvc.perform(get("/search/public/blog")
+                        .param("currentPage", "0")
+                        .param("allInfo", "true")
+                        .param("keywords", "abc"))
+                .andExpect(status().isBadRequest());
+
+        verify(blogSearchService, never()).selectBlogsByES(anyInt(), anyString(), anyBoolean());
+    }
+
+    @Test
+    void searchBlogsRejectsInvalidBoolean() throws Exception {
+        mockMvc.perform(get("/search/public/blog")
+                        .param("currentPage", "1")
+                        .param("allInfo", "anything")
+                        .param("keywords", "abc"))
+                .andExpect(status().isBadRequest());
+
+        verify(blogSearchService, never()).selectBlogsByES(anyInt(), anyString(), anyBoolean());
+    }
+
+    @Test
+    void internalSearchRejectsInvalidBody() throws Exception {
+        mockMvc.perform(post("/inner/blog/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+
+        verify(blogSearchService, never()).searchBlogs(any());
+    }
+
+    @Test
+    void internalCountRejectsInvalidDateRange() throws Exception {
+        String body = "{\"status\":0,\"createStart\":\"2026-08-02T12:00:00\","
+                + "\"createEnd\":\"2026-08-02T11:00:00\",\"userId\":1,\"roles\":[]}";
+
+        mockMvc.perform(post("/inner/blog/count")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+
+        verify(blogSearchService, never()).searchCount(any());
     }
 
     @Test

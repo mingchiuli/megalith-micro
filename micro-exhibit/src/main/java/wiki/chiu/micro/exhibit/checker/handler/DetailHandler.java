@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
+import static wiki.chiu.micro.common.web.FunctionalWeb.positive;
 
 import static wiki.chiu.micro.common.lang.Const.BLOOM_FILTER_BLOG;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
@@ -30,7 +31,7 @@ public class DetailHandler extends CheckerHandler {
             return;
         }
 
-        Long blogId = pathVariable((ServerRequest) args[0], "blogId", Long::valueOf);
+        Long blogId = positive(pathVariable((ServerRequest) args[0], "blogId", Long::valueOf), "blogId");
         boolean bit = bitSet.get(blogId);
         if (!bit) {
             throw new MissException(NO_FOUND.getMsg() + blogId + " blog");

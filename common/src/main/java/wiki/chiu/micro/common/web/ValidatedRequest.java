@@ -22,7 +22,7 @@ public final class ValidatedRequest {
     }
 
     public <T> T body(ServerRequest request, ParameterizedTypeReference<T> type) throws Exception {
-        return request.body(type);
+        return validate(request.body(type));
     }
 
     public <T> T validate(T value, Class<?>... groups) {
@@ -36,6 +36,20 @@ public final class ValidatedRequest {
     public <T extends Collection<?>> T notEmpty(T value, String name) {
         if (value == null || value.isEmpty()) {
             throw new IllegalArgumentException(name + " must not be empty");
+        }
+        return value;
+    }
+
+    public <T extends Collection<? extends Number>> T positiveElements(T value, String name) {
+        if (value == null || value.stream().anyMatch(item -> item == null || item.longValue() <= 0)) {
+            throw new IllegalArgumentException(name + " must contain only positive values");
+        }
+        return value;
+    }
+
+    public <T extends Collection<String>> T notBlankElements(T value, String name) {
+        if (value == null || value.stream().anyMatch(item -> item == null || item.isBlank())) {
+            throw new IllegalArgumentException(name + " must contain only non-blank values");
         }
         return value;
     }

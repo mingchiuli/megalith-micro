@@ -1,8 +1,7 @@
-package wiki.chiu.micro.blog.valid;
+package wiki.chiu.micro.common.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import wiki.chiu.micro.blog.valid.impl.DateRangeConstraintValidator;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -18,7 +17,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface ValidDateRange {
 
-    String message() default "{wiki.chiu.micro.blog.valid.BlogQuery.message}";
+    String message() default "createStart and createEnd must both be absent or form an increasing range";
 
     Class<?>[] groups() default {};
 

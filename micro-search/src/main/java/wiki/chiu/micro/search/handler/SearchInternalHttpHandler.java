@@ -13,6 +13,7 @@ import wiki.chiu.micro.search.service.BlogSearchService;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
+import static wiki.chiu.micro.common.web.FunctionalWeb.positive;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 
@@ -37,7 +38,7 @@ public class SearchInternalHttpHandler implements SearchHttpService {
     }
 
     public ServerResponse addReadCount(ServerRequest request) {
-        Long id = requiredParam(request, "id", Long::valueOf);
+        Long id = positive(requiredParam(request, "id", Long::valueOf), "id");
         return ok(addReadCount(id));
     }
 

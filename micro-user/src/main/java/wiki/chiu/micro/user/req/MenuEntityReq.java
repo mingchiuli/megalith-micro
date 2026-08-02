@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import java.util.Optional;
 
@@ -13,9 +15,11 @@ import java.util.Optional;
  */
 public record MenuEntityReq(
 
-        Optional<Long> id,
+        @NotNull(message = "{wiki.chiu.micro.user.valid.MenuValue.message}")
+        Optional<@Positive(message = "{wiki.chiu.micro.user.valid.MenuValue.message}") Long> id,
 
         @NotNull(message = "{wiki.chiu.micro.user.valid.MenuValue.message}")
+        @PositiveOrZero(message = "{wiki.chiu.micro.user.valid.MenuValue.message}")
         Long parentId,
 
         @NotBlank(message = "{wiki.chiu.micro.user.valid.MenuValue.message}")
@@ -31,6 +35,7 @@ public record MenuEntityReq(
         String icon,
 
         @NotNull(message = "{wiki.chiu.micro.user.valid.MenuValue.message}")
+        @PositiveOrZero(message = "{wiki.chiu.micro.user.valid.MenuValue.message}")
         Integer orderNum,
 
         @NotNull(message = "{wiki.chiu.micro.user.valid.MenuValue.message}")

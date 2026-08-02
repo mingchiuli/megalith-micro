@@ -18,6 +18,8 @@ import java.util.List;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
+import static wiki.chiu.micro.common.web.FunctionalWeb.positive;
+import static wiki.chiu.micro.common.web.FunctionalWeb.range;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 
@@ -46,18 +48,19 @@ public class UserInternalHttpHandler implements UserHttpService {
     }
 
     public ServerResponse findById(ServerRequest request) {
-        Long userId = pathVariable(request, "userId", Long::valueOf);
+        Long userId = positive(pathVariable(request, "userId", Long::valueOf), "userId");
         return ok(findById(userId));
     }
 
     public ServerResponse changeUserStatusByUsername(ServerRequest request) {
         return ok(changeUserStatusByUsername(requiredParam(request, "username"),
-                requiredParam(request, "status", Integer::valueOf)));
+                range(requiredParam(request, "status", Integer::valueOf), 0, 1, "status")));
     }
 
     public ServerResponse findByRoleCodeInAndStatus(ServerRequest request) throws Exception {
-        return ok(findByRoleCodeInAndStatus(validation.body(request, STRING_LIST),
-                requiredParam(request, "status", Integer::valueOf)));
+        return ok(findByRoleCodeInAndStatus(
+                validation.notBlankElements(validation.body(request, STRING_LIST), "roles"),
+                range(requiredParam(request, "status", Integer::valueOf), 0, 1, "status")));
     }
 
     public ServerResponse updateLoginTime(ServerRequest request) {
@@ -73,7 +76,7 @@ public class UserInternalHttpHandler implements UserHttpService {
     }
 
     public ServerResponse findRoleCodesByUserId(ServerRequest request) {
-        Long userId = pathVariable(request, "userId", Long::valueOf);
+        Long userId = positive(pathVariable(request, "userId", Long::valueOf), "userId");
         return ok(findRoleCodesByUserId(userId));
     }
 

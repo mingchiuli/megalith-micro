@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
+import static wiki.chiu.micro.common.web.FunctionalWeb.positive;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 
@@ -29,7 +30,8 @@ public class ListPageHandler extends CheckerHandler {
             return;
         }
 
-        Integer currentPage = pathVariable((ServerRequest) args[0], "currentPage", Integer::valueOf);
+        Integer currentPage = positive(
+                pathVariable((ServerRequest) args[0], "currentPage", Integer::valueOf), "currentPage");
         boolean bit = bitSet.get(currentPage);
         if (!bit) {
             throw new MissException(NO_FOUND.getMsg() + currentPage + " page");

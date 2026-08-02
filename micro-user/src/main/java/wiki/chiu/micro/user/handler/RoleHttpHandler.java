@@ -37,13 +37,13 @@ public class RoleHttpHandler {
     }
 
     public ServerResponse info(ServerRequest request) {
-        Long id = pathVariable(request, "id", Long::valueOf);
+        Long id = positive(pathVariable(request, "id", Long::valueOf), "id");
         return ok(Result.success(() -> roleService.info(id)));
     }
 
     public ServerResponse getPage(ServerRequest request) {
-        Integer currentPage = optionalParam(request, "currentPage", 1, Integer::valueOf);
-        Integer size = optionalParam(request, "size", 5, Integer::valueOf);
+        Integer currentPage = positive(optionalParam(request, "currentPage", 1, Integer::valueOf), "currentPage");
+        Integer size = positive(optionalParam(request, "size", 5, Integer::valueOf), "size");
         return ok(Result.success(() -> roleService.getPage(currentPage, size)));
     }
 
@@ -53,18 +53,19 @@ public class RoleHttpHandler {
     }
 
     public ServerResponse delete(ServerRequest request) throws Exception {
-        List<Long> ids = validation.notEmpty(validation.body(request, LONG_LIST), "ids");
+        List<Long> ids = validation.notEmpty(
+                validation.positiveElements(validation.body(request, LONG_LIST), "ids"), "ids");
         return ok(Result.success(() -> roleService.delete(ids)));
     }
 
     public ServerResponse saveMenu(ServerRequest request) throws Exception {
-        Long roleId = pathVariable(request, "roleId", Long::valueOf);
-        List<Long> menuIds = validation.body(request, LONG_LIST);
+        Long roleId = positive(pathVariable(request, "roleId", Long::valueOf), "roleId");
+        List<Long> menuIds = validation.positiveElements(validation.body(request, LONG_LIST), "menuIds");
         return ok(Result.success(() -> roleMenuService.saveMenu(roleId, menuIds)));
     }
 
     public ServerResponse getMenusInfo(ServerRequest request) {
-        Long roleId = pathVariable(request, "roleId", Long::valueOf);
+        Long roleId = positive(pathVariable(request, "roleId", Long::valueOf), "roleId");
         return ok(Result.success(() -> roleMenuService.getMenusInfo(roleId)));
     }
 

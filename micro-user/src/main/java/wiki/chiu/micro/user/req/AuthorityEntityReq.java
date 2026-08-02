@@ -4,13 +4,15 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 import java.util.Optional;
 
 
 public record AuthorityEntityReq(
 
-        Optional<Long> id,
+        @NotNull
+        Optional<@Positive Long> id,
 
         @NotBlank
         String code,
@@ -31,6 +33,8 @@ public record AuthorityEntityReq(
         String serviceHost,
 
         @NotNull
+        @Min(1)
+        @Max(65535)
         Integer servicePort,
 
         @NotNull(message = "{wiki.chiu.micro.user.valid.ListValue.message}")

@@ -127,6 +127,16 @@ class RoleControllerTest {
     }
 
     @Test
+    void saveMenuRejectsNonPositiveId() throws Exception {
+        mockMvc.perform(post("/sys/role/menu/3")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("[0]"))
+                .andExpect(status().isBadRequest());
+
+        verify(roleMenuService, never()).saveMenu(anyLong(), any());
+    }
+
+    @Test
     void getMenusInfoReturnsList() throws Exception {
         when(roleMenuService.getMenusInfo(3L)).thenReturn(List.of());
 
