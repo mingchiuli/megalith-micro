@@ -59,6 +59,12 @@ class CodeControllerTest {
     }
 
     @Test
+    void createEmailCodeBlankParamReturns400() throws Exception {
+        mockMvc.perform(get("/code/email").param("loginName", "   "))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void createEmailCodeWhenServiceThrowsReturns400() throws Exception {
         doThrow(new CodeException("send failed")).when(codeService).createEmailCode("x@y.com");
 

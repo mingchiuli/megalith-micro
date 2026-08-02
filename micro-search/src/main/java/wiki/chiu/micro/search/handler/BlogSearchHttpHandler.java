@@ -10,7 +10,9 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
+import static wiki.chiu.micro.common.web.FunctionalWeb.positive;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
+import static wiki.chiu.micro.common.web.FunctionalWeb.strictBoolean;
 
 
 /**
@@ -29,8 +31,8 @@ public class BlogSearchHttpHandler {
     }
 
     public ServerResponse searchBlogs(ServerRequest request) {
-        Integer currentPage = requiredParam(request, "currentPage", Integer::valueOf);
-        Boolean allInfo = requiredParam(request, "allInfo", Boolean::valueOf);
+        Integer currentPage = positive(requiredParam(request, "currentPage", Integer::valueOf), "currentPage");
+        Boolean allInfo = requiredParam(request, "allInfo", value -> strictBoolean(value));
         String keywords = validation.size(requiredParam(request, "keywords"), 1, 20, "keywords");
         return ok(Result.success(() -> blogSearchService.selectBlogsByES(currentPage, keywords, allInfo)));
     }

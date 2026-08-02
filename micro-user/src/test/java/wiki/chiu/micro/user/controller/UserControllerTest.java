@@ -96,6 +96,17 @@ class UserControllerTest {
     }
 
     @Test
+    void imageUploadRejectsEmptyFile() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("image", "x.png", "image/png", new byte[0]);
+
+        mockMvc.perform(multipart("/sys/user/register/image/upload")
+                        .file(file).param("token", "tk"))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).imageUpload(anyString(), any());
+    }
+
+    @Test
     void imageDeleteReturnsSuccess() throws Exception {
         doNothing().when(userService).imageDelete("tk", "https://oss/x.png");
 
@@ -141,6 +152,20 @@ class UserControllerTest {
     }
 
     @Test
+    void registrationWithBlankPasswordsIsRejectedBeforeHandler() throws Exception {
+        String body = "{\"username\":\"alice\",\"nickname\":\"Alice\",\"password\":\"   \","
+                + "\"confirmPassword\":\"   \",\"email\":\"alice@example.com\",\"token\":\"tk\"}";
+
+        mockMvc.perform(post("/sys/user/register/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("args error"));
+
+        verify(userService, never()).saveRegisterPage(any());
+    }
+
+    @Test
     void newUserWithoutPasswordIsRejectedBeforeHandler() throws Exception {
         String body = "{\"id\":null,\"username\":\"alice\",\"nickname\":\"Alice\","
                 + "\"avatar\":\"https://example.com/avatar.png\",\"email\":\"alice@example.com\","
@@ -153,6 +178,40 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.msg").value("需要密码"));
 
         verify(userService, never()).saveOrUpdate(any());
+    }
+
+    @Test
+    void newUserWithBlankPasswordIsRejectedBeforeHandler() throws Exception {
+        String body = "{\"id\":null,\"username\":\"alice\",\"nickname\":\"Alice\","
+                + "\"avatar\":\"https://example.com/avatar.png\",\"password\":\"   \","
+                + "\"email\":\"alice@example.com\",\"phone\":\"13800000000\","
+                + "\"status\":1,\"roles\":[\"ROLE_USER\"]}";
+
+        mockMvc.perform(post("/sys/user/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("需要密码"));
+
+        verify(userService, never()).saveOrUpdate(any());
+    }
+
+    @Test
+    void deleteRejectsNullAndNonPositiveIds() throws Exception {
+        mockMvc.perform(post("/sys/user/delete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("[null,0]"))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).deleteUsers(any());
+    }
+
+    @Test
+    void pageRejectsNonPositivePage() throws Exception {
+        mockMvc.perform(get("/sys/user/page/0").param("size", "5"))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, never()).listPage(anyInt(), anyInt());
     }
 
     @Test

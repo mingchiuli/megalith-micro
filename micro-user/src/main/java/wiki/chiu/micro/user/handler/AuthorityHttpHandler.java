@@ -32,7 +32,7 @@ public class AuthorityHttpHandler {
     }
 
     public ServerResponse info(ServerRequest request) {
-        Long id = pathVariable(request, "id", Long::valueOf);
+        Long id = positive(pathVariable(request, "id", Long::valueOf), "id");
         return ok(Result.success(() -> authorityService.findById(id)));
     }
 
@@ -42,7 +42,8 @@ public class AuthorityHttpHandler {
     }
 
     public ServerResponse delete(ServerRequest request) throws Exception {
-        List<Long> ids = validation.notEmpty(validation.body(request, LONG_LIST), "ids");
+        List<Long> ids = validation.notEmpty(
+                validation.positiveElements(validation.body(request, LONG_LIST), "ids"), "ids");
         return ok(Result.success(() -> authorityService.deleteAuthorities(ids)));
     }
 

@@ -13,6 +13,7 @@ import wiki.chiu.micro.exhibit.service.BlogService;
 import static wiki.chiu.micro.common.web.FunctionalWeb.authInfo;
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
+import static wiki.chiu.micro.common.web.FunctionalWeb.positive;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 @Component
@@ -28,7 +29,7 @@ public class BlogExhibitHttpHandler {
 
     @Checker(handler = DetailHandler.class)
     public ServerResponse getBlogDetail(ServerRequest request) {
-        Long blogId = pathVariable(request, "blogId", Long::valueOf);
+        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.getBlogDetail(
                 authInfo.roles(), blogId, authInfo.userId())));
@@ -36,20 +37,20 @@ public class BlogExhibitHttpHandler {
 
     @Checker(handler = ListPageHandler.class)
     public ServerResponse getPage(ServerRequest request) {
-        Integer currentPage = pathVariable(request, "currentPage", Integer::valueOf);
+        Integer currentPage = positive(pathVariable(request, "currentPage", Integer::valueOf), "currentPage");
         return ok(Result.success(() -> blogService.findPage(currentPage)));
     }
 
     @Checker(handler = DetailHandler.class)
     public ServerResponse getLockedBlog(ServerRequest request) {
-        Long blogId = pathVariable(request, "blogId", Long::valueOf);
+        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         String token = requiredParam(request, "readToken");
         return ok(Result.success(blogService.getLockedBlog(blogId, token)));
     }
 
     @Checker(handler = DetailHandler.class)
     public ServerResponse checkReadToken(ServerRequest request) {
-        Long blogId = pathVariable(request, "blogId", Long::valueOf);
+        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         String token = requiredParam(request, "readToken");
         return ok(Result.success(() -> blogService.checkToken(blogId, token)));
     }

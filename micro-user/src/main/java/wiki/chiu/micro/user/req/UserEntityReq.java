@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
 import java.util.Optional;
 import wiki.chiu.micro.user.valid.PasswordRequiredForCreate;
@@ -22,7 +23,7 @@ import static wiki.chiu.micro.common.lang.Const.USERNAME_REGEX;
 public record UserEntityReq(
 
         @NotNull(message = "{wiki.chiu.micro.user.valid.UserSave.message}")
-        Optional<Long> id,
+        Optional<@Positive(message = "{wiki.chiu.micro.user.valid.UserSave.message}") Long> id,
 
         @NotBlank(message = "{wiki.chiu.micro.user.valid.UserSave.message}")
         @Pattern(regexp = USERNAME_REGEX, message = "{wiki.chiu.micro.user.valid.UserSave.message}")
@@ -51,7 +52,7 @@ public record UserEntityReq(
         Integer status,
 
         @NotEmpty(message = "{wiki.chiu.micro.user.valid.UserSave.message}")
-        List<String> roles) {
+        List<@NotBlank(message = "{wiki.chiu.micro.user.valid.UserSave.message}") String> roles) {
 
         public UserEntityReq(UserEntityReq req, String password) {
                 this(req.id, req.username, req.nickname, req.avatar, password, req.email, req.phone, req.status, req.roles);

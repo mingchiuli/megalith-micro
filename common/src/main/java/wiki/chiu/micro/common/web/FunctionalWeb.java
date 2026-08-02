@@ -32,8 +32,12 @@ public final class FunctionalWeb {
     }
 
     public static String requiredParam(ServerRequest request, String name) {
-        return request.param(name)
+        String value = request.param(name)
                 .orElseThrow(() -> new IllegalArgumentException("Missing required parameter: " + name));
+        if (value.isBlank()) {
+            throw new IllegalArgumentException("Parameter must not be blank: " + name);
+        }
+        return value;
     }
 
     public static <T> T requiredParam(ServerRequest request, String name, Function<String, T> converter) {
@@ -74,10 +78,41 @@ public final class FunctionalWeb {
             multipartRequest = new StandardMultipartHttpServletRequest(request.servletRequest());
         }
         MultipartFile file = multipartRequest.getFile(name);
-        if (file == null) {
+        if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Missing required multipart file: " + name);
         }
         return file;
+    }
+
+    public static Boolean strictBoolean(String value) {
+        if ("true".equalsIgnoreCase(value)) {
+            return true;
+        }
+        if ("false".equalsIgnoreCase(value)) {
+            return false;
+        }
+        throw new IllegalArgumentException("Expected true or false");
+    }
+
+    public static <T extends Number> T positive(T value, String name) {
+        if (value == null || value.longValue() <= 0) {
+            throw new IllegalArgumentException(name + " must be positive");
+        }
+        return value;
+    }
+
+    public static <T extends Number> T nonNegative(T value, String name) {
+        if (value == null || value.longValue() < 0) {
+            throw new IllegalArgumentException(name + " must not be negative");
+        }
+        return value;
+    }
+
+    public static <T extends Number> T range(T value, long min, long max, String name) {
+        if (value == null || value.longValue() < min || value.longValue() > max) {
+            throw new IllegalArgumentException(name + " must be between " + min + " and " + max);
+        }
+        return value;
     }
 
     public static AuthInfo authInfo(ServerRequest request, AuthHttpService authHttpService) {
@@ -103,6 +138,8 @@ public final class FunctionalWeb {
         builder.onError(ServletRequestBindingException.class,
                 (exception, request) -> error(HttpStatus.BAD_REQUEST, exception, log));
         builder.onError(MultipartException.class,
+                (exception, request) -> error(HttpStatus.BAD_REQUEST, exception, log));
+        builder.onError(BindException.class,
                 (exception, request) -> error(HttpStatus.BAD_REQUEST, exception, log));
         builder.onError(IllegalArgumentException.class,
                 (exception, request) -> error(HttpStatus.BAD_REQUEST, exception, log));

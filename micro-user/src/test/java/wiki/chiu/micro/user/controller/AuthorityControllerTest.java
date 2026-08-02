@@ -26,6 +26,8 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -94,6 +96,21 @@ class AuthorityControllerTest {
                         .content("[1,2]"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
+    }
+
+    @Test
+    void saveRejectsInvalidServicePort() throws Exception {
+        String body = "{\"id\":null,\"code\":\"READ\",\"remark\":\"read\","
+                + "\"prototype\":\"HTTP\",\"methodType\":\"GET\","
+                + "\"routePattern\":\"/read\",\"serviceHost\":\"localhost\","
+                + "\"servicePort\":70000,\"type\":0,\"status\":1}";
+
+        mockMvc.perform(post("/sys/authority/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+
+        verify(authorityService, never()).saveOrUpdate(any());
     }
 
     @Test

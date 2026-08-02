@@ -49,13 +49,14 @@ public class BlogHttpHandler {
     }
 
     public ServerResponse deleteBlogs(ServerRequest request) throws Exception {
-        List<Long> ids = validation.notEmpty(validation.body(request, LONG_LIST), "ids");
+        List<Long> ids = validation.notEmpty(
+                validation.positiveElements(validation.body(request, LONG_LIST), "ids"), "ids");
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.deleteBatch(ids, authInfo.userId(), authInfo.roles())));
     }
 
     public ServerResponse setBlogToken(ServerRequest request) {
-        Long blogId = pathVariable(request, "blogId", Long::valueOf);
+        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.setBlogToken(blogId, authInfo.userId())));
     }
@@ -67,14 +68,14 @@ public class BlogHttpHandler {
     }
 
     public ServerResponse getDeletedBlogs(ServerRequest request) {
-        Integer currentPage = requiredParam(request, "currentPage", Integer::valueOf);
-        Integer size = requiredParam(request, "size", Integer::valueOf);
+        Integer currentPage = positive(requiredParam(request, "currentPage", Integer::valueOf), "currentPage");
+        Integer size = positive(requiredParam(request, "size", Integer::valueOf), "size");
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.findDeletedBlogs(currentPage, size, authInfo.userId())));
     }
 
     public ServerResponse recoverDeletedBlog(ServerRequest request) {
-        Integer idx = pathVariable(request, "idx", Integer::valueOf);
+        Integer idx = nonNegative(pathVariable(request, "idx", Integer::valueOf), "idx");
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.recoverDeletedBlog(idx, authInfo.userId())));
     }
@@ -101,6 +102,9 @@ public class BlogHttpHandler {
 
     public ServerResponse getEchoDetail(ServerRequest request) {
         Long blogId = nullableParam(request, "blogId", Long::valueOf);
+        if (blogId != null) {
+            positive(blogId, "blogId");
+        }
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.findEdit(blogId, authInfo.userId(), authInfo.roles())));
     }

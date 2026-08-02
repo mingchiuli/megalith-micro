@@ -12,6 +12,6 @@ public class PasswordRequiredForCreateConstraintValidator
     @Override
     public boolean isValid(UserEntityReq request, ConstraintValidatorContext context) {
         return request == null || request.id() == null || request.id().isPresent()
-                || StringUtils.hasLength(request.password());
+                || StringUtils.hasText(request.password());
     }
 }

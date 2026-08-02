@@ -23,8 +23,10 @@ public record UserEntityRegisterReq(
 
         String avatar,
 
+        @NotBlank(message = "{wiki.chiu.micro.user.valid.RegisterSave.message}")
         String password,
 
+        @NotBlank(message = "{wiki.chiu.micro.user.valid.RegisterSave.message}")
         String confirmPassword,
 
         @NotNull(message = "{wiki.chiu.micro.user.valid.RegisterSave.message}")

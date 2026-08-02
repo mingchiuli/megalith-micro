@@ -1,9 +1,13 @@
 package wiki.chiu.micro.common.req;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record AuthorityRouteReq(
 
+        @NotBlank
         String method,
 
+        @NotBlank
         String routeMapping,
 
         String ipAddr) {

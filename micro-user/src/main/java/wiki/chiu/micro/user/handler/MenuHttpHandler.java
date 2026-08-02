@@ -39,7 +39,7 @@ public class MenuHttpHandler {
     }
 
     public ServerResponse info(ServerRequest request) {
-        Long id = pathVariable(request, "id", Long::valueOf);
+        Long id = positive(pathVariable(request, "id", Long::valueOf), "id");
         return ok(Result.success(() -> menuService.findById(id)));
     }
 
@@ -53,7 +53,7 @@ public class MenuHttpHandler {
     }
 
     public ServerResponse delete(ServerRequest request) {
-        Long id = pathVariable(request, "id", Long::valueOf);
+        Long id = positive(pathVariable(request, "id", Long::valueOf), "id");
         return ok(Result.success(() -> menuService.delete(id)));
     }
 
@@ -62,13 +62,14 @@ public class MenuHttpHandler {
     }
 
     public ServerResponse saveAuthority(ServerRequest request) throws Exception {
-        Long menuId = pathVariable(request, "menuId", Long::valueOf);
-        List<Long> authorityIds = validation.body(request, LONG_LIST);
+        Long menuId = positive(pathVariable(request, "menuId", Long::valueOf), "menuId");
+        List<Long> authorityIds = validation.positiveElements(
+                validation.body(request, LONG_LIST), "authorityIds");
         return ok(Result.success(() -> menuAuthorityService.saveAuthority(menuId, authorityIds)));
     }
 
     public ServerResponse getAuthoritiesInfo(ServerRequest request) {
-        Long menuId = pathVariable(request, "menuId", Long::valueOf);
+        Long menuId = positive(pathVariable(request, "menuId", Long::valueOf), "menuId");
         return ok(Result.success(() -> menuAuthorityService.getAuthoritiesInfo(menuId)));
     }
 }

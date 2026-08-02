@@ -202,6 +202,42 @@ class BlogControllerTest {
     }
 
     @Test
+    void sensitiveContentOutsideContentIsRejectedBeforeHandler() throws Exception {
+        String body = "{\"id\":null,\"title\":\"t\",\"description\":\"d\",\"content\":\"abc\","
+                + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":["
+                + "{\"startIndex\":1,\"endIndex\":4,\"type\":1}]}";
+
+        mockMvc.perform(post("/sys/blog/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("param error"));
+
+        verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
+    }
+
+    @Test
+    void deleteBlogsRejectsNonPositiveId() throws Exception {
+        mockMvc.perform(post("/sys/blog/delete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("[0]"))
+                .andExpect(status().isBadRequest());
+
+        verify(blogService, never()).deleteBatch(anyList(), anyLong(), anyList());
+    }
+
+    @Test
+    void nonPositivePageIsRejectedBeforeHandler() throws Exception {
+        mockMvc.perform(get("/sys/blog/blogs")
+                        .param("currentPage", "0")
+                        .param("size", "10"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.msg").value("param error"));
+
+        verify(blogService, never()).findAllBlogs(any(), anyLong(), anyList());
+    }
+
+    @Test
     void invalidDateRangeIsRejectedBeforeHandler() throws Exception {
         mockMvc.perform(get("/sys/blog/blogs")
                         .param("currentPage", "1")
