@@ -104,6 +104,19 @@ class LoginAuthenticationConverterTest {
         assertEquals("非法登录", exception.getMessage());
     }
 
+    @Test
+    void rejectsNonJsonLoginRequest() {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/login");
+        request.setContentType("text/plain");
+        request.setContent("{}".getBytes(StandardCharsets.UTF_8));
+
+        BadCredentialsException exception = assertThrows(
+                BadCredentialsException.class,
+                () -> converter.convert(request));
+
+        assertEquals("非法登录", exception.getMessage());
+    }
+
     private Authentication convert(String body) {
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/login");
         request.setContentType("application/json");

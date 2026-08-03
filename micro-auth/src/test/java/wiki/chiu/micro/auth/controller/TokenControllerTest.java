@@ -13,6 +13,9 @@ import wiki.chiu.micro.auth.handler.CodeHttpHandler;
 import wiki.chiu.micro.auth.handler.TokenHttpHandler;
 import wiki.chiu.micro.auth.route.AuthRoutes;
 import wiki.chiu.micro.auth.service.TokenService;
+import wiki.chiu.micro.auth.token.JwtProperties;
+import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
+import wiki.chiu.micro.auth.token.RefreshTokenCookieProperties;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.exception.MissException;
 import java.util.Map;
@@ -22,6 +25,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,7 +38,12 @@ class TokenControllerTest {
 
     @BeforeEach
     void setUp() {
-        TokenHttpHandler handler = new TokenHttpHandler(tokenService);
+        RefreshTokenCookieManager cookieManager = new RefreshTokenCookieManager(
+                new RefreshTokenCookieProperties("/api/token/refresh"),
+                new JwtProperties(
+                        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                        900, 604800, 300, "micro-auth", "megalith-api"));
+        TokenHttpHandler handler = new TokenHttpHandler(tokenService, cookieManager);
         mockMvc = MockMvcBuilders.routerFunctions(AuthRoutes.routes(
                         org.mockito.Mockito.mock(AuthHttpHandler.class),
                         handler,
@@ -76,6 +85,18 @@ class TokenControllerTest {
                 .andExpect(jsonPath("$.data.id").value(42))
                 .andExpect(jsonPath("$.data.nickname").value("nick"))
                 .andExpect(jsonPath("$.data.avatar").value("avatar.png"));
+    }
+
+    @Test
+    void logoutExpiresRefreshTokenCookie() throws Exception {
+        mockMvc.perform(post("/token/logout"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.allOf(
+                                org.hamcrest.Matchers.containsString("__Secure-refresh_token="),
+                                org.hamcrest.Matchers.containsString("Max-Age=0"),
+                                org.hamcrest.Matchers.containsString("Path=/api/token/refresh"))))
+                .andExpect(jsonPath("$.code").value(200));
     }
 
     @Test

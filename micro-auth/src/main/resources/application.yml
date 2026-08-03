@@ -38,6 +38,8 @@ megalith:
       websocket-token-expire: 300
       issuer: micro-auth
       audience: megalith-api
+    refresh-cookie:
+      path: /api/token/refresh
   blog:
     email-try-count: 3
     password-error-intervalTime: 900000

@@ -1,6 +1,8 @@
 package wiki.chiu.micro.auth.component;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,6 +26,10 @@ final class LoginAuthenticationConverter {
     }
 
     Authentication convert(HttpServletRequest request) {
+        if (!isJson(request)) {
+            throw invalidLogin(null);
+        }
+
         LoginRequest loginRequest;
         try {
             loginRequest = jsonMapper.readValue(request.getInputStream(), LoginRequest.class);
@@ -46,6 +52,16 @@ final class LoginAuthenticationConverter {
             case SMS -> new SMSAuthenticationToken(
                     loginRequest.principal(), loginRequest.credential());
         };
+    }
+
+    private boolean isJson(HttpServletRequest request) {
+        try {
+            return request.getContentType() != null
+                    && MediaType.APPLICATION_JSON.isCompatibleWith(
+                    MediaType.parseMediaType(request.getContentType()));
+        } catch (InvalidMediaTypeException exception) {
+            return false;
+        }
     }
 
     private BadCredentialsException invalidLogin(Exception cause) {

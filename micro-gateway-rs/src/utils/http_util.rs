@@ -161,6 +161,10 @@ pub fn prepare_headers(
             .unwrap_or(HeaderValue::from_static("application/json")),
     );
 
+    if let Some(cookie) = req_headers.get(header::COOKIE) {
+        headers.insert(header::COOKIE, cookie.clone());
+    }
+
     Ok(headers)
 }
 
@@ -311,20 +315,32 @@ mod tests {
     }
 
     #[test]
-    fn prepare_headers_includes_authorization_and_content_type() {
+    fn prepare_headers_includes_authorization_content_type_and_cookie() {
         let mut h = HeaderMap::new();
         h.insert(
             header::CONTENT_TYPE,
             HeaderValue::from_static("application/json"),
         );
+        h.insert(
+            header::COOKIE,
+            HeaderValue::from_static("__Secure-refresh_token=jwt"),
+        );
         let result = prepare_headers(&h, "tok".to_string()).unwrap();
         assert_eq!(
-            result.get(&header::AUTHORIZATION).unwrap().to_str().unwrap(),
+            result
+                .get(&header::AUTHORIZATION)
+                .unwrap()
+                .to_str()
+                .unwrap(),
             "tok"
         );
         assert_eq!(
             result.get(&header::CONTENT_TYPE).unwrap().to_str().unwrap(),
             "application/json"
+        );
+        assert_eq!(
+            result.get(&header::COOKIE).unwrap().to_str().unwrap(),
+            "__Secure-refresh_token=jwt"
         );
     }
 

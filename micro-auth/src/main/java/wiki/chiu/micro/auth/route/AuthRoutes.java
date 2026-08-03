@@ -59,6 +59,7 @@ public class AuthRoutes {
         RouterFunctions.Builder builder = route()
                 .GET("/auth/menu/nav", authHandler::nav)
                 .POST("/token/refresh", tokenHandler::refreshToken)
+                .POST("/token/logout", tokenHandler::logout)
                 .GET("/token/userinfo", tokenHandler::userinfo)
                 .GET("/code/email", codeHandler::createEmailCode)
                 .GET("/code/sms", codeHandler::createSmsCode)
