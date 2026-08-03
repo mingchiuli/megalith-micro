@@ -155,6 +155,8 @@ export const SEARCH_API = {
 
 // 实时协作相关API
 export const COLLABORATION_API = {
+  // 获取绑定协作房间的短期凭证
+  TICKET: '/sys/blog/edit/ticket',
   // WebSocket房间连接
   WS_ROOMS: '/rooms'
 }

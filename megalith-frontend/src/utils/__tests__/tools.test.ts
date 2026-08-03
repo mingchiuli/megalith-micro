@@ -150,7 +150,7 @@ describe('utils/tools', () => {
       const soonExp = Math.floor(Date.now() / 1000) + 60
       localStorage.setItem('accessToken', buildJWT({ exp: soonExp }))
       localStorage.setItem('refreshToken', 'refresh-xyz')
-      vi.mocked(httpClient.get).mockResolvedValueOnce({
+      vi.mocked(httpClient.post).mockResolvedValueOnce({
         data: { data: { accessToken: 'NEW_TOKEN' } }
       } as never)
 
@@ -164,7 +164,7 @@ describe('utils/tools', () => {
       localStorage.setItem('accessToken', buildJWT({ exp: farExp }))
       const refreshed = await checkAccessToken()
       expect(refreshed).toBe(false)
-      expect(httpClient.get).not.toHaveBeenCalled()
+      expect(httpClient.post).not.toHaveBeenCalled()
     })
   })
 
@@ -202,14 +202,14 @@ describe('utils/tools', () => {
       localStorage.setItem('accessToken', buildJWT({ exp: farExp }))
       const token = await updateAccessToken()
       expect(token).toBe(localStorage.getItem('accessToken'))
-      expect(httpClient.get).not.toHaveBeenCalled()
+      expect(httpClient.post).not.toHaveBeenCalled()
     })
 
     it('即将过期时返回刷新后的新 token', async () => {
       const soonExp = Math.floor(Date.now() / 1000) + 60
       localStorage.setItem('accessToken', buildJWT({ exp: soonExp }))
       localStorage.setItem('refreshToken', 'RT')
-      vi.mocked(httpClient.get).mockResolvedValueOnce({
+      vi.mocked(httpClient.post).mockResolvedValueOnce({
         data: { data: { accessToken: 'NEW' } }
       } as never)
       const token = await updateAccessToken()

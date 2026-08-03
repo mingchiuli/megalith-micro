@@ -13,6 +13,7 @@ import type {
 import { GET, POST, UPLOAD } from '@/http/http'
 import {
   type BlogEdit,
+  type BlogPermissions,
   ButtonAuth,
   Colors,
   type EditForm,
@@ -85,7 +86,12 @@ const aiThinkingContent = computed(() => {
 })
 const aiThinkingHtml = computed(() => render(aiThinkingContent.value))
 
-const owner = ref(false)
+const permissions = ref<BlogPermissions>({
+  collaborate: false,
+  commit: false,
+  manageMetadata: false,
+  manageAssets: false
+})
 
 type SensitiveTagsItem = {
   element: SensitiveExhibit
@@ -353,7 +359,7 @@ const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
   form.id = data.id
   form.userId = data.userId
   form.sensitiveContentList = data.sensitiveContentList
-  owner.value = data.owner
+  permissions.value = data.permissions
   loadContent.value = false
 }
 
@@ -401,7 +407,7 @@ const handleConfirmUpload = async () => {
           v-model="form.title"
           :placeholder="t('common.title')"
           maxlength="20"
-          :disabled="!owner"
+          :disabled="!permissions.manageMetadata"
         />
       </el-form-item>
 
@@ -415,7 +421,7 @@ const handleConfirmUpload = async () => {
             v-model="form.description"
             :placeholder="t('common.description')"
             maxlength="60"
-            :disabled="!owner"
+            :disabled="!permissions.manageMetadata"
           />
         </el-form-item>
 
@@ -440,7 +446,7 @@ const handleConfirmUpload = async () => {
             size="small"
             @click="handleAiGenerate"
             :loading="aiLoading"
-            :disabled="!owner || aiLoading || !form.content || !aiModel"
+            :disabled="!permissions.manageMetadata || aiLoading || !form.content || !aiModel"
             >✨AI</el-button
           >
         </div>
@@ -482,7 +488,7 @@ const handleConfirmUpload = async () => {
       </div>
 
       <el-form-item class="status" prop="status">
-        <el-radio-group v-model="form.status" :disabled="!owner">
+        <el-radio-group v-model="form.status" :disabled="!permissions.manageMetadata">
           <el-radio :value="Status.NORMAL">{{ t('common.public') }}</el-radio>
           <el-radio :value="Status.BLOCK">{{ t('common.hidden') }}</el-radio>
           <el-radio :value="Status.SENSITIVE_FILTER">{{ t('common.masked') }}</el-radio>
@@ -517,7 +523,7 @@ const handleConfirmUpload = async () => {
           :http-request="upload"
           :on-remove="handleRemove"
           :on-preview="handlePictureCardPreview"
-          :disabled="!owner"
+          :disabled="!permissions.manageAssets"
         >
           <el-icon>
             <Plus />
@@ -584,13 +590,13 @@ const handleConfirmUpload = async () => {
           v-model:content="form.content"
           @sensitive="dealSensitive"
           :form-status="form.status"
-          :owner="owner"
+          :manage-assets="permissions.manageAssets"
         />
       </el-form-item>
 
       <div class="submit-button">
         <el-button
-          :disabled="submitLoading || !owner"
+          :disabled="submitLoading || !permissions.commit"
           :loading="submitLoading"
           :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)"
           v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)"

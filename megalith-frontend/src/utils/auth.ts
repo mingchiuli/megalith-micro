@@ -54,7 +54,7 @@ export const updateAccessToken = async (): Promise<string> => {
   const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]!))
   const now = Math.floor(Date.now() / 1000)
 
-  if (jwt.exp - now > 600 || now - lastRefreshTime < REFRESH_COOLDOWN_SECONDS) {
+  if (jwt.exp - now > 90 || now - lastRefreshTime < REFRESH_COOLDOWN_SECONDS) {
     return accessToken
   }
 
@@ -69,8 +69,9 @@ export const updateAccessToken = async (): Promise<string> => {
         return accessToken
       }
 
-      const data = await httpClient.get<never, AxiosResponse<Data<RefreshStruct>>>(
+      const data = await httpClient.post<never, AxiosResponse<Data<RefreshStruct>>>(
         API_ENDPOINTS.AUTH.TOKEN_REFRESH,
+        {},
         {
           headers: { Authorization: refreshToken }
         }

@@ -59,15 +59,18 @@ export const cleanupYjs = () => {
   currentDoc = null
 }
 
-export const updateProviderToken = () => {
+export const updateProviderToken = (token: string) => {
   if (!currentProvider) return
-  const token = storage.getAccessToken()
   if (token) {
     currentProvider.params.token = token
   }
 }
 
-export const createYjsExtension = async (roomId: string, initialContent: string) => {
+export const createYjsExtension = async (
+  roomId: string,
+  initialContent: string,
+  collaborationToken: string
+) => {
   // 重要说明：
   // 1. 这个方法只在组件挂载时调用一次
   // 2. Yjs 的断线重连是 WebsocketProvider 自动处理的
@@ -89,7 +92,7 @@ export const createYjsExtension = async (roomId: string, initialContent: string)
       {
         // URL 参数：认证令牌会附加到 WebSocket URL 上
         params: {
-          token: storage.getAccessToken() || ''
+          token: collaborationToken
         },
 
         // 延迟连接：在配置完成后手动调用 provider.connect()
