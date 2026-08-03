@@ -4,8 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.AuthenticationConverter;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
@@ -17,17 +15,15 @@ import java.io.IOException;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.INVALID_LOGIN_OPERATE;
 
-@Component
-public final class LoginAuthenticationConverter implements AuthenticationConverter {
+final class LoginAuthenticationConverter {
 
     private final JsonMapper jsonMapper;
 
-    public LoginAuthenticationConverter(JsonMapper jsonMapper) {
+    LoginAuthenticationConverter(JsonMapper jsonMapper) {
         this.jsonMapper = jsonMapper;
     }
 
-    @Override
-    public Authentication convert(HttpServletRequest request) {
+    Authentication convert(HttpServletRequest request) {
         LoginRequest loginRequest;
         try {
             loginRequest = jsonMapper.readValue(request.getInputStream(), LoginRequest.class);
