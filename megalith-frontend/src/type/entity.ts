@@ -108,7 +108,14 @@ export interface BlogEdit {
   link: string
   status: Status
   sensitiveContentList: SensitiveItem[]
-  owner: boolean
+  permissions: BlogPermissions
+}
+
+export interface BlogPermissions {
+  collaborate: boolean
+  commit: boolean
+  manageMetadata: boolean
+  manageAssets: boolean
 }
 
 export interface BlogExhibit {
@@ -195,9 +202,10 @@ export type MenuNode = MenuRoute | Button
 export type Menu = MenuRoute
 
 export interface JWTStruct {
-  role: string
   sub: string
+  token_use: 'access' | 'refresh' | 'websocket'
   iat: number
+  nbf: number
   exp: number
 }
 

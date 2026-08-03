@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { UPLOAD } from '@/http/http'
+import { POST, UPLOAD } from '@/http/http'
 import {
   SensitiveType,
   Status,
@@ -8,14 +8,13 @@ import {
   type UserInfo,
   Colors
 } from '@/type/entity'
-import { checkAccessToken } from '@/utils/auth'
 import {
   createYjsExtension,
   createYjsBindingTransaction,
   cleanupYjs,
   updateProviderToken
 } from '@/config/editorConfig'
-import { API_ENDPOINTS } from '@/config/apiConfig'
+import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import type { Footers, ToolbarNames, ExposeParam } from 'md-editor-v3'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
@@ -77,9 +76,9 @@ const emit = defineEmits<{
   sensitive: [payload: SensitiveTrans]
 }>()
 
-const { formStatus, owner } = defineProps<{
+const { formStatus, manageAssets } = defineProps<{
   formStatus: number
-  owner: boolean
+  manageAssets: boolean
 }>()
 
 const text = defineModel<string>('content')
@@ -153,7 +152,12 @@ const updateEditorExtension = async () => {
   const view = editorRef.value?.getEditorView()
   if (view) {
     try {
-      const { config, provider, initialSync } = await createYjsExtension(roomId, text.value ?? '')
+      const collaborationToken = await issueCollaborationTicket()
+      const { config, provider, initialSync } = await createYjsExtension(
+        roomId,
+        text.value ?? '',
+        collaborationToken
+      )
       provider.connect()
       const syncedContent = await initialSync
       if (disposed) return
@@ -169,6 +173,7 @@ const updateEditorExtension = async () => {
 }
 
 const onUploadImg = async (files: File[], callback: (urls: string[]) => void) => {
+  if (!manageAssets) return
   const formdata = new FormData()
   formdata.append('image', files[0]!, files[0]!.name)
   const url = await UPLOAD(
@@ -181,7 +186,7 @@ const onUploadImg = async (files: File[], callback: (urls: string[]) => void) =>
 }
 
 const sensitiveListen = () => {
-  if (!owner) return
+  if (!manageAssets) return
 
   const editorElement = document.getElementById('md-editor')
   if (!editorElement) return
@@ -209,18 +214,26 @@ onMounted(async () => {
   updateEditorExtension()
 })
 
-const checkTokenTask = setInterval(async () => {
-  const changed = await checkAccessToken()
-  if (changed) {
-    updateProviderToken()
+const issueCollaborationTicket = () => {
+  const url = blogId
+    ? buildQueryUrl(API_ENDPOINTS.COLLABORATION.TICKET, { blogId })
+    : API_ENDPOINTS.COLLABORATION.TICKET
+  return POST<string>(url, {})
+}
+
+const ticketRefreshTask = setInterval(async () => {
+  try {
+    updateProviderToken(await issueCollaborationTicket())
+  } catch (error) {
+    logger.error('Failed to renew collaboration ticket:', error)
   }
-}, 1000)
+}, 240_000)
 
 onBeforeUnmount(() => {
   disposed = true
   cleanupYjs()
-  if (checkTokenTask) {
-    clearInterval(checkTokenTask)
+  if (ticketRefreshTask) {
+    clearInterval(ticketRefreshTask)
   }
 })
 </script>

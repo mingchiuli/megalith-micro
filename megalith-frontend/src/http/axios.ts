@@ -57,7 +57,7 @@ const errorInterceptor = (error: AxiosError<Data<unknown>>) => {
     showClose: true
   })
 
-  if (error.response?.status === 403) {
+  if (error.response?.status === 401) {
     clearLoginState()
     router.push({
       name: 'login'
