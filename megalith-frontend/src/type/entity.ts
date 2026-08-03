@@ -160,7 +160,6 @@ export type LoginType = 'PASSWORD' | 'EMAIL' | 'SMS'
 
 export interface Token {
   accessToken: string
-  refreshToken: string
 }
 
 export interface UserInfo {

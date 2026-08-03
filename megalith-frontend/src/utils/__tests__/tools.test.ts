@@ -35,6 +35,7 @@ import {
   checkAccessToken,
   updateAccessToken,
   clearLoginState,
+  logout,
   diff,
   findMenuByPath,
   cleanJsonResponse,
@@ -149,7 +150,6 @@ describe('utils/tools', () => {
     it('token 即将过期时刷新并写入 localStorage', async () => {
       const soonExp = Math.floor(Date.now() / 1000) + 60
       localStorage.setItem('accessToken', buildJWT({ exp: soonExp }))
-      localStorage.setItem('refreshToken', 'refresh-xyz')
       vi.mocked(httpClient.post).mockResolvedValueOnce({
         data: { data: { accessToken: 'NEW_TOKEN' } }
       } as never)
@@ -176,8 +176,7 @@ describe('utils/tools', () => {
 
     it('登录成功后写入 token 并更新 store', async () => {
       vi.mocked(POST).mockResolvedValueOnce({
-        accessToken: 'AT',
-        refreshToken: 'RT'
+        accessToken: 'AT'
       } as never)
       vi.mocked(GET).mockResolvedValueOnce({ username: 'tom' } as never)
 
@@ -190,7 +189,7 @@ describe('utils/tools', () => {
         credential: 'pwd'
       })
       expect(localStorage.getItem('accessToken')).toBe('AT')
-      expect(localStorage.getItem('refreshToken')).toBe('RT')
+      expect(localStorage.getItem('refreshToken')).toBeNull()
       expect(localStorage.getItem('userinfo')).toBe(JSON.stringify({ username: 'tom' }))
       expect(loginStateStore().login).toBe(true)
     })
@@ -208,13 +207,37 @@ describe('utils/tools', () => {
     it('即将过期时返回刷新后的新 token', async () => {
       const soonExp = Math.floor(Date.now() / 1000) + 60
       localStorage.setItem('accessToken', buildJWT({ exp: soonExp }))
-      localStorage.setItem('refreshToken', 'RT')
       vi.mocked(httpClient.post).mockResolvedValueOnce({
         data: { data: { accessToken: 'NEW' } }
       } as never)
       const token = await updateAccessToken()
       expect(token).toBe('NEW')
+      expect(httpClient.post).toHaveBeenCalledWith('/token/refresh', {})
       expect(localStorage.getItem('accessToken')).toBe('NEW')
+    })
+  })
+
+  describe('logout', () => {
+    it('服务端清理 Cookie 后清空本地登录状态', async () => {
+      localStorage.setItem('accessToken', 'AT')
+      localStorage.setItem('userinfo', '{}')
+      vi.mocked(POST).mockResolvedValueOnce(null as never)
+
+      await logout()
+
+      expect(POST).toHaveBeenCalledWith('/token/logout', {})
+      expect(localStorage.getItem('accessToken')).toBeNull()
+      expect(localStorage.getItem('userinfo')).toBeNull()
+    })
+
+    it('退出请求失败时仍清空本地登录状态', async () => {
+      localStorage.setItem('accessToken', 'AT')
+      vi.mocked(POST).mockRejectedValueOnce(new Error('network'))
+
+      await expect(logout()).rejects.toThrow('network')
+
+      expect(localStorage.getItem('accessToken')).toBeNull()
+      expect(loginStateStore().login).toBe(false)
     })
   })
 
