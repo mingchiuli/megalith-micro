@@ -1,13 +1,8 @@
 package wiki.chiu.micro.auth.config;
 
-
-import wiki.chiu.micro.auth.component.LoginAuthenticationConverter;
-import wiki.chiu.micro.auth.component.LoginAuthenticationFilter;
-import wiki.chiu.micro.auth.component.LoginFailureHandler;
-import wiki.chiu.micro.auth.component.LoginSuccessHandler;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
@@ -15,9 +10,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+import tools.jackson.databind.json.JsonMapper;
+import wiki.chiu.micro.auth.component.LoginAuthenticationFilter;
+import wiki.chiu.micro.auth.component.LoginFailureHandler;
+import wiki.chiu.micro.auth.component.LoginSuccessHandler;
 
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfig {
@@ -28,16 +27,12 @@ public class SecurityConfig {
 
     private final AuthenticationManager authenticationManager;
 
-    private final LoginAuthenticationConverter loginAuthenticationConverter;
-
     public SecurityConfig(LoginFailureHandler loginFailureHandler,
                           LoginSuccessHandler loginSuccessHandler,
-                          AuthenticationManager authenticationManager,
-                          LoginAuthenticationConverter loginAuthenticationConverter) {
+                          AuthenticationManager authenticationManager) {
         this.loginFailureHandler = loginFailureHandler;
         this.loginSuccessHandler = loginSuccessHandler;
         this.authenticationManager = authenticationManager;
-        this.loginAuthenticationConverter = loginAuthenticationConverter;
     }
 
     @Bean
@@ -48,7 +43,9 @@ public class SecurityConfig {
         return stateless(http)
                 .securityMatcher("/token/refresh")
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(refreshJwtDecoder)))
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .authenticationConverter(new BearerTokenAuthenticationConverter())
+                        .jwt(jwt -> jwt.decoder(refreshJwtDecoder)))
                 .build();
     }
 
@@ -65,10 +62,11 @@ public class SecurityConfig {
     @Order(3)
     SecurityFilterChain applicationChain(
             HttpSecurity http,
-            @Qualifier("accessJwtDecoder") JwtDecoder accessJwtDecoder) throws Exception {
+            @Qualifier("accessJwtDecoder") JwtDecoder accessJwtDecoder,
+            JsonMapper jsonMapper) throws Exception {
         LoginAuthenticationFilter loginAuthenticationFilter = new LoginAuthenticationFilter(
                 authenticationManager,
-                loginAuthenticationConverter,
+                jsonMapper,
                 loginSuccessHandler,
                 loginFailureHandler);
 
@@ -79,7 +77,9 @@ public class SecurityConfig {
                                 .authenticated()
                                 .anyRequest()
                                 .permitAll())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(accessJwtDecoder)))
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .authenticationConverter(new BearerTokenAuthenticationConverter())
+                        .jwt(jwt -> jwt.decoder(accessJwtDecoder)))
                 .addFilterAt(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

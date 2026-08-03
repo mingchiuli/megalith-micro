@@ -5,6 +5,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.AuthenticationConverter;
 import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.auth.component.token.EmailAuthenticationToken;
 import wiki.chiu.micro.auth.component.token.SMSAuthenticationToken;
@@ -12,6 +13,7 @@ import wiki.chiu.micro.auth.component.token.SMSAuthenticationToken;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -19,6 +21,11 @@ class LoginAuthenticationConverterTest {
 
     private final LoginAuthenticationConverter converter =
             new LoginAuthenticationConverter(JsonMapper.builder().build());
+
+    @Test
+    void isNotAResourceServerAuthenticationConverterCandidate() {
+        assertFalse(AuthenticationConverter.class.isAssignableFrom(LoginAuthenticationConverter.class));
+    }
 
     @Test
     void convertsPasswordLogin() {

@@ -3,6 +3,7 @@ package wiki.chiu.micro.auth.component;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.AuthenticationManager;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,7 +13,7 @@ class LoginAuthenticationFilterTest {
 
     private final LoginAuthenticationFilter filter = new LoginAuthenticationFilter(
             mock(AuthenticationManager.class),
-            mock(LoginAuthenticationConverter.class),
+            JsonMapper.builder().build(),
             mock(LoginSuccessHandler.class),
             mock(LoginFailureHandler.class));
 
