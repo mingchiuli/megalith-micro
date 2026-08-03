@@ -17,6 +17,7 @@ import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.auth.component.LoginAuthenticationFilter;
 import wiki.chiu.micro.auth.component.LoginFailureHandler;
 import wiki.chiu.micro.auth.component.LoginSuccessHandler;
+import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
 
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfig {
@@ -39,12 +40,13 @@ public class SecurityConfig {
     @Order(1)
     SecurityFilterChain refreshTokenChain(
             HttpSecurity http,
-            @Qualifier("refreshJwtDecoder") JwtDecoder refreshJwtDecoder) throws Exception {
+            @Qualifier("refreshJwtDecoder") JwtDecoder refreshJwtDecoder,
+            RefreshTokenCookieManager refreshTokenCookieManager) throws Exception {
         return stateless(http)
                 .securityMatcher("/token/refresh")
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .authenticationConverter(new BearerTokenAuthenticationConverter())
+                        .bearerTokenResolver(refreshTokenCookieManager)
                         .jwt(jwt -> jwt.decoder(refreshJwtDecoder)))
                 .build();
     }
@@ -73,7 +75,7 @@ public class SecurityConfig {
         return stateless(http)
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
-                                .requestMatchers("/token/userinfo", "/auth/menu/nav")
+                                .requestMatchers("/token/userinfo", "/token/logout", "/auth/menu/nav")
                                 .authenticated()
                                 .anyRequest()
                                 .permitAll())

@@ -5,9 +5,11 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
+import org.springframework.http.HttpHeaders;
 import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.token.JwtTokenService;
+import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
 import wiki.chiu.micro.auth.user.LoginUser;
 import wiki.chiu.micro.auth.vo.LoginSuccessVo;
 import wiki.chiu.micro.common.lang.Result;
@@ -34,11 +36,18 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final RedissonClient redissonClient;
 
-    public LoginSuccessHandler(JsonMapper jsonMapper, JwtTokenService jwtTokenService, UserHttpServiceWrapper userHttpServiceWrapper, RedissonClient redissonClient) {
+    private final RefreshTokenCookieManager refreshTokenCookieManager;
+
+    public LoginSuccessHandler(JsonMapper jsonMapper,
+                               JwtTokenService jwtTokenService,
+                               UserHttpServiceWrapper userHttpServiceWrapper,
+                               RedissonClient redissonClient,
+                               RefreshTokenCookieManager refreshTokenCookieManager) {
         this.jsonMapper = jsonMapper;
         this.jwtTokenService = jwtTokenService;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.redissonClient = redissonClient;
+        this.refreshTokenCookieManager = refreshTokenCookieManager;
     }
 
     @Override
@@ -73,14 +82,13 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         userHttpServiceWrapper.updateLoginTime(username);
         String accessToken = jwtTokenService.issueAccessToken(userId);
         String refreshToken = jwtTokenService.issueRefreshToken(userId);
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                refreshTokenCookieManager.create(refreshToken).toString());
 
         outputStream.write(
                 jsonMapper.writeValueAsString(
                                 Result.success(
-                                        LoginSuccessVo.builder()
-                                                .accessToken(TOKEN_PREFIX + accessToken)
-                                                .refreshToken(TOKEN_PREFIX + refreshToken)
-                                                .build())
+                                        new LoginSuccessVo(TOKEN_PREFIX + accessToken))
                         )
                         .getBytes(StandardCharsets.UTF_8)
         );

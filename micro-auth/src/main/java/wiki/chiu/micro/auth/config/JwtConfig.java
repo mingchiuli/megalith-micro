@@ -18,12 +18,13 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import wiki.chiu.micro.auth.token.JwtProperties;
+import wiki.chiu.micro.auth.token.RefreshTokenCookieProperties;
 import wiki.chiu.micro.auth.token.TokenType;
 
 import java.nio.charset.StandardCharsets;
 
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(JwtProperties.class)
+@EnableConfigurationProperties({JwtProperties.class, RefreshTokenCookieProperties.class})
 public class JwtConfig {
 
     @Bean
