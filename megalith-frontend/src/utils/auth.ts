@@ -22,6 +22,14 @@ export const clearLoginState = () => {
   tabStore().editableTabsValue = ''
 }
 
+export const logout = async (): Promise<void> => {
+  try {
+    await POST<null>(API_ENDPOINTS.AUTH.TOKEN_LOGOUT, {})
+  } finally {
+    clearLoginState()
+  }
+}
+
 export const getJWTStruct = (): JWTStruct => {
   const accessToken = storage.getAccessToken()
   if (!accessToken) {
@@ -64,17 +72,9 @@ export const updateAccessToken = async (): Promise<string> => {
 
   refreshPromise = (async () => {
     try {
-      const refreshToken = storage.getRefreshToken()
-      if (!refreshToken) {
-        return accessToken
-      }
-
       const data = await httpClient.post<never, AxiosResponse<Data<RefreshStruct>>>(
         API_ENDPOINTS.AUTH.TOKEN_REFRESH,
-        {},
-        {
-          headers: { Authorization: refreshToken }
-        }
+        {}
       )
       const token = data.data.data.accessToken
       storage.setAccessToken(token)
@@ -106,7 +106,6 @@ export const submitLogin = async (loginType: LoginType, username: string, passwo
     credential: password
   })
   storage.setAccessToken(token.accessToken)
-  storage.setRefreshToken(token.refreshToken)
   loginStateStore().login = true
   const info = await GET<UserInfo>(API_ENDPOINTS.AUTH.USER_INFO)
   storage.setUserInfo(info)

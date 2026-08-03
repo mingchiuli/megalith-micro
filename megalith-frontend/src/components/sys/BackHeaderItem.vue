@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { UserInfo } from '@/type/entity'
 import { ArrowDown } from '@element-plus/icons-vue'
-import { clearLoginState } from '@/utils/auth'
+import { logout } from '@/utils/auth'
 import router from '@/router'
 import { storage } from '@/utils/storage'
 
@@ -14,9 +14,12 @@ const goToHome = () => {
   router.push('/blogs')
 }
 
-const logout = () => {
-  clearLoginState()
-  goToHome()
+const handleLogout = async () => {
+  try {
+    await logout()
+  } finally {
+    goToHome()
+  }
 }
 </script>
 
@@ -34,7 +37,7 @@ const logout = () => {
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item @click="goToHome">{{ $t('admin.home') }}</el-dropdown-item>
-            <el-dropdown-item divided @click="logout">{{ $t('admin.logout') }}</el-dropdown-item>
+            <el-dropdown-item divided @click="handleLogout">{{ $t('admin.logout') }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

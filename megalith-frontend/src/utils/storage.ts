@@ -5,11 +5,13 @@
 
 export const STORAGE_KEYS = {
   ACCESS_TOKEN: 'accessToken',
-  REFRESH_TOKEN: 'refreshToken',
   USER_INFO: 'userinfo'
 } as const
 
 type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS]
+
+const LEGACY_REFRESH_TOKEN_KEY = 'refreshToken'
+localStorage.removeItem(LEGACY_REFRESH_TOKEN_KEY)
 
 /**
  * Get access token
@@ -23,20 +25,6 @@ export const getAccessToken = (): string | null => {
  */
 export const setAccessToken = (token: string): void => {
   localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token)
-}
-
-/**
- * Get refresh token
- */
-export const getRefreshToken = (): string | null => {
-  return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
-}
-
-/**
- * Set refresh token
- */
-export const setRefreshToken = (token: string): void => {
-  localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token)
 }
 
 /**
@@ -78,7 +66,7 @@ export const isLoggedIn = (): boolean => {
  */
 export const clearAuth = (): void => {
   localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
-  localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+  localStorage.removeItem(LEGACY_REFRESH_TOKEN_KEY)
   localStorage.removeItem(STORAGE_KEYS.USER_INFO)
 }
 
@@ -116,8 +104,6 @@ export const remove = (key: StorageKey | string): void => {
 export const storage = {
   getAccessToken,
   setAccessToken,
-  getRefreshToken,
-  setRefreshToken,
   getUserInfo,
   getUserInfoRaw,
   setUserInfo,

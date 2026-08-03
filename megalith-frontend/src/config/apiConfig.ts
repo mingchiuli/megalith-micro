@@ -23,6 +23,8 @@ export const AUTH_API = {
   LOGIN: '/login',
   // 刷新token
   TOKEN_REFRESH: '/token/refresh',
+  // 退出登录
+  TOKEN_LOGOUT: '/token/logout',
   // 获取用户信息
   USER_INFO: '/token/userinfo',
   // 获取菜单导航
