@@ -2,12 +2,14 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
+import org.graalvm.buildtools.gradle.dsl.GraalVMReachabilityMetadataRepositoryExtension
+import org.gradle.api.plugins.ExtensionAware
 
 plugins {
     // Only declare plugin versions, don't apply to root project
     id("io.spring.dependency-management") version "1.1.7" apply false
     id("org.springframework.boot") version "4.1.0" apply false
-    id("org.graalvm.buildtools.native") version "0.11.5" apply false
+    id("org.graalvm.buildtools.native") version "1.1.7" apply false
     id("org.hibernate.orm") version "7.4.5.Final" apply false
 }
 
@@ -45,6 +47,10 @@ subprojects {
 
         // Configure GraalVM Native Image compilation (仅用于本地测试)
         configure<GraalVMExtension> {
+            (this as ExtensionAware).extensions
+                .getByType(GraalVMReachabilityMetadataRepositoryExtension::class.java)
+                .version.set("1.0.9")
+
             binaries {
                 named("main") {
                     // 本地测试专用的编译参数
