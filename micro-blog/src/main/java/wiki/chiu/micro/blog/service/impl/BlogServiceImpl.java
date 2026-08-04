@@ -49,6 +49,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -313,7 +314,7 @@ public class BlogServiceImpl implements BlogService {
                 .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
         accessPolicy.requireManagement(blog, userId, roles);
         String token = UUID.randomUUID().toString();
-        redisTemplate.opsForValue().set(READ_TOKEN + blogId, token, 24, TimeUnit.HOURS);
+        redisTemplate.opsForValue().set(READ_TOKEN + blogId, token, Expiration.from(24, TimeUnit.HOURS));
         return readPrefix + blogId + "?token=" + token;
     }
 

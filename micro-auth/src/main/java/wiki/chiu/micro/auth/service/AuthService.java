@@ -7,8 +7,6 @@ import wiki.chiu.micro.common.req.AuthorityRouteReq;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
 import wiki.chiu.micro.common.vo.AuthorityRouteRpcVo;
 
-import java.util.List;
-
 public interface AuthService {
 
     MenuWithChildVo getCurrentUserNav(Long userId);

@@ -32,6 +32,7 @@ import wiki.chiu.micro.user.req.UserEntityReq;
 import wiki.chiu.micro.user.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -119,7 +120,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getRegisterPage(String username) {
         String token = UUID.randomUUID().toString();
-        redisTemplate.opsForValue().set(REGISTER_PREFIX + token, username, 1, TimeUnit.HOURS);
+        redisTemplate.opsForValue().set(REGISTER_PREFIX + token, username, Expiration.from(1, TimeUnit.HOURS));
         return StringUtils.hasLength(username) ? pagePrefix + token + "?username=" + username : pagePrefix + token;
     }
 

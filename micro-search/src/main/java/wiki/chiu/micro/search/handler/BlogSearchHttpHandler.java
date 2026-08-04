@@ -1,9 +1,7 @@
 package wiki.chiu.micro.search.handler;
 
 import wiki.chiu.micro.common.lang.Result;
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.search.service.BlogSearchService;
-import wiki.chiu.micro.search.vo.BlogDocumentVo;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
