@@ -1,11 +1,13 @@
 package wiki.chiu.micro.common.aot.hints;
 
+import javax.net.ssl.SSLParameters;
 import java.util.List;
 
 import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.TypeReference;
 import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.common.lang.UserAuthMenuOperateMessage;
 
@@ -34,6 +36,12 @@ class CommonRuntimeHints implements RuntimeHintsRegistrar {
         hints.reflection().registerTypeIfPresent(classLoader,
                 "com.google.protobuf.ExtensionRegistry",
                 typeHint -> typeHint.withMethod("getEmptyRegistry", List.of(), ExecutableMode.INVOKE));
+
+        hints.reflection().registerType(SSLParameters.class,
+                typeHint -> typeHint
+                        .onReachableType(TypeReference.of("org.apache.hc.core5.http2.ssl.H2TlsSupport"))
+                        .withMethod("setEnableRetransmissions", TypeReference.listOf(boolean.class),
+                                ExecutableMode.INVOKE));
 
         // Lua scripts for Redis operations
         hints.resources()
