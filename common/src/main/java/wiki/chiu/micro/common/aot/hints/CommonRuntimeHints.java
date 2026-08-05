@@ -15,6 +15,14 @@ class CommonRuntimeHints implements RuntimeHintsRegistrar {
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
 
+        // Hibernate Validator discovers its generated JBoss Logging implementations dynamically.
+        hints.reflection().registerTypeIfPresent(classLoader,
+                "org.hibernate.validator.internal.util.logging.Log_$logger",
+                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS)
+                .registerTypeIfPresent(classLoader,
+                        "org.hibernate.validator.internal.util.logging.Messages_$bundle",
+                        MemberCategory.ACCESS_DECLARED_FIELDS);
+
         hints.reflection().registerType(BlogOperateMessage.class,
                         MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                         MemberCategory.INVOKE_DECLARED_METHODS)
