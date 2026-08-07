@@ -10,21 +10,25 @@ import org.springframework.web.util.WebUtils;
 import java.time.Duration;
 
 @Component
-public class RefreshTokenCookieManager implements BearerTokenResolver {
+public class AccessTokenCookieManager implements BearerTokenResolver {
 
-    public static final String COOKIE_NAME = "megalith_refresh_token";
+    public static final String COOKIE_NAME = "megalith_access_token";
+    private static final String TOKEN_PREFIX = "Bearer ";
 
     private final TokenCookieProperties cookieProperties;
     private final JwtProperties jwtProperties;
 
-    public RefreshTokenCookieManager(TokenCookieProperties cookieProperties,
-                                     JwtProperties jwtProperties) {
+    public AccessTokenCookieManager(TokenCookieProperties cookieProperties,
+                                    JwtProperties jwtProperties) {
         this.cookieProperties = cookieProperties;
         this.jwtProperties = jwtProperties;
     }
 
-    public ResponseCookie create(String refreshToken) {
-        return cookie(refreshToken, Duration.ofSeconds(jwtProperties.refreshTokenExpire()));
+    public ResponseCookie create(String accessToken) {
+        String value = accessToken.startsWith(TOKEN_PREFIX)
+                ? accessToken.substring(TOKEN_PREFIX.length())
+                : accessToken;
+        return cookie(value, Duration.ofSeconds(jwtProperties.accessTokenExpire()));
     }
 
     public ResponseCookie expire() {

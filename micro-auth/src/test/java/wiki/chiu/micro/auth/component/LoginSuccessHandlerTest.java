@@ -16,8 +16,9 @@ import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.token.JwtProperties;
 import wiki.chiu.micro.auth.token.JwtTokenService;
+import wiki.chiu.micro.auth.token.AccessTokenCookieManager;
 import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
-import wiki.chiu.micro.auth.token.RefreshTokenCookieProperties;
+import wiki.chiu.micro.auth.token.TokenCookieProperties;
 import wiki.chiu.micro.auth.user.LoginUser;
 
 import java.util.List;
@@ -48,17 +49,28 @@ class LoginSuccessHandlerTest {
 
     private RefreshTokenCookieManager cookieManager() {
         return new RefreshTokenCookieManager(
-                new RefreshTokenCookieProperties("/api/token/refresh"),
+                cookieProperties(),
                 new JwtProperties(
                         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
                         900, 604800, 300, "micro-auth", "megalith-api"));
+    }
+
+    private AccessTokenCookieManager accessCookieManager() {
+        return new AccessTokenCookieManager(cookieProperties(),
+                new JwtProperties(
+                        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                        900, 604800, 300, "micro-auth", "megalith-api"));
+    }
+
+    private TokenCookieProperties cookieProperties() {
+        return new TokenCookieProperties("/", true, "Strict");
     }
 
     @Test
     void doesNotContinueFilterChainAfterWritingResponse() throws Exception {
         LoginSuccessHandler handler = new LoginSuccessHandler(
                 JsonMapper.builder().build(), jwtTokenService, userHttpServiceWrapper,
-                redissonClient, cookieManager());
+                redissonClient, cookieManager(), accessCookieManager());
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         handler.onAuthenticationSuccess(
@@ -85,17 +97,18 @@ class LoginSuccessHandlerTest {
 
         LoginSuccessHandler handler = new LoginSuccessHandler(
                 JsonMapper.builder().build(), jwtTokenService, userHttpServiceWrapper,
-                redissonClient, cookieManager());
+                redissonClient, cookieManager(), accessCookieManager());
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         handler.onAuthenticationSuccess(
                 new MockHttpServletRequest("POST", "/login"), response, authentication);
 
-        String setCookie = response.getHeader(HttpHeaders.SET_COOKIE);
-        assertTrue(setCookie.contains("__Secure-refresh_token=refresh-jwt"));
-        assertTrue(setCookie.contains("HttpOnly"));
-        assertTrue(setCookie.contains("Secure"));
-        assertTrue(setCookie.contains("SameSite=Strict"));
+        List<String> setCookies = response.getHeaders(HttpHeaders.SET_COOKIE);
+        assertTrue(setCookies.stream().anyMatch(value -> value.contains("megalith_access_token=access-jwt")));
+        assertTrue(setCookies.stream().anyMatch(value -> value.contains("megalith_refresh_token=refresh-jwt")));
+        assertTrue(setCookies.stream().allMatch(value -> value.contains("HttpOnly")));
+        assertTrue(setCookies.stream().allMatch(value -> value.contains("Secure")));
+        assertTrue(setCookies.stream().allMatch(value -> value.contains("SameSite=Strict")));
         assertTrue(response.getContentAsString().contains("Bearer access-jwt"));
         assertFalse(response.getContentAsString().contains("refresh-jwt"));
         assertFalse(response.getContentAsString().contains("refreshToken"));

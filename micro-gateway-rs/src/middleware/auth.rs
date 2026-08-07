@@ -1,4 +1,4 @@
-use axum::http::{HeaderName, HeaderValue};
+use axum::http::{HeaderName, HeaderValue, Method, header};
 use axum::{extract::Request, middleware::Next, response::Response};
 use hyper::Uri;
 use serde::Serialize;
@@ -25,6 +25,8 @@ pub async fn process(req: Request, next: Next) -> Result<Response, HandlerError>
         return Ok(next.run(req).await);
     }
 
+    validate_cookie_origin(&req)?;
+
     let method = req.method();
     let path = req.uri().path();
 
@@ -45,6 +47,32 @@ pub async fn process(req: Request, next: Next) -> Result<Response, HandlerError>
     }
     .instrument(span)
     .await
+}
+
+fn validate_cookie_origin(req: &Request) -> Result<(), HandlerError> {
+    if req.method() != Method::POST || !utils::uses_cookie_auth(req) {
+        return Ok(());
+    }
+
+    let origin = req
+        .headers()
+        .get(header::ORIGIN)
+        .and_then(|value| value.to_str().ok())
+        .unwrap_or_default();
+    let allowed = config::get_config(ConfigKey::AllowedOrigins);
+    if is_allowed_origin(origin, &allowed) {
+        return Ok(());
+    }
+
+    Err(HandlerError::forbidden("请求来源不受信任"))
+}
+
+fn is_allowed_origin(origin: &str, allowed_origins: &str) -> bool {
+    !origin.is_empty()
+        && allowed_origins
+            .split(',')
+            .map(str::trim)
+            .any(|value| value == origin)
 }
 
 fn extract_request_param(
@@ -85,6 +113,28 @@ async fn auth(
             _ => Err(AuthError::Unauthorized("鉴权失败".to_string())),
         },
         Err(e) => Err(AuthError::RequestFailed(e.to_string())),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_allowed_origin;
+
+    #[test]
+    fn matches_a_trimmed_origin_from_the_allowlist() {
+        assert!(is_allowed_origin(
+            "https://chiu.wiki",
+            "http://localhost:1919, https://chiu.wiki"
+        ));
+    }
+
+    #[test]
+    fn rejects_empty_and_partial_origins() {
+        assert!(!is_allowed_origin("", "https://chiu.wiki"));
+        assert!(!is_allowed_origin(
+            "https://chiu.wiki.evil",
+            "https://chiu.wiki"
+        ));
     }
 }
 
