@@ -15,7 +15,7 @@ use crate::{
     client::{self, AuthRouteReq, AuthRouteResp},
     config::config::{self, ConfigKey},
     constant::{
-        AUTH_HEADER, CF_CONNECTING_IP, FORWARDED_HEADER, PROXY_CLIENT_IP, UNKNOWN,
+        self, AUTH_HEADER, CF_CONNECTING_IP, FORWARDED_HEADER, PROXY_CLIENT_IP, UNKNOWN,
         WL_PROXY_CLIENT_IP,
     },
     exception::{AuthError, ClientError},
@@ -26,18 +26,29 @@ use opentelemetry::global;
 use opentelemetry_http::HeaderInjector;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
+const ACCESS_TOKEN_COOKIE: &str = "megalith_access_token";
+
 pub fn get_ip_from_headers(headers: &HeaderMap) -> Option<String> {
-    // Check headers in order of preference
     let ip = headers
-        .get(CF_CONNECTING_IP) // Cloudflare
-        .or_else(|| headers.get(AUTH_HEADER)) // Nginx
-        .or_else(|| headers.get(FORWARDED_HEADER)) // General proxy
+        .get(CF_CONNECTING_IP)
+        .or_else(|| headers.get(AUTH_HEADER))
+        .or_else(|| headers.get(FORWARDED_HEADER))
         .or_else(|| headers.get(PROXY_CLIENT_IP))
         .or_else(|| headers.get(WL_PROXY_CLIENT_IP))
         .and_then(|hv| hv.to_str().ok())
         .and_then(|s| s.split(',').next());
 
     ip.map(String::from)
+}
+
+/// 从 URI 查询参数中提取 token。
+pub fn token_from_query(uri: &Uri) -> Option<String> {
+    uri.query()
+        .and_then(|q| {
+            url::form_urlencoded::parse(q.as_bytes())
+                .find(|(key, _)| key == constant::TOKEN)
+                .map(|(_, value)| value.to_string())
+        })
 }
 
 pub fn extract_token(req: &Request) -> String {
@@ -48,23 +59,28 @@ pub fn extract_token(req: &Request) -> String {
             .map(|h| h.to_str().unwrap_or("").to_lowercase() == "websocket")
             .unwrap_or(false)
     {
-        // WebSocket 协议 - 从查询参数获取 token
-        req.uri()
-            .query()
-            .and_then(|q| {
-                url::form_urlencoded::parse(q.as_bytes())
-                    .find(|(key, _)| key == "token")
-                    .map(|(_, value)| value.to_string())
-            })
-            .unwrap_or_default()
+        token_from_query(req.uri()).unwrap_or_default()
     } else {
-        // 其他协议 - 从 Authorization 头获取
-        req.headers()
-            .get("Authorization")
-            .and_then(|h| h.to_str().ok())
-            .unwrap_or("")
-            .to_string()
+        cookie_value(req.headers(), ACCESS_TOKEN_COOKIE)
+            .map(|value| format!("Bearer {value}"))
+            .unwrap_or_default()
     }
+}
+
+pub fn uses_cookie_auth(req: &Request) -> bool {
+    cookie_value(req.headers(), ACCESS_TOKEN_COOKIE).is_some()
+}
+
+fn cookie_value(headers: &HeaderMap, name: &str) -> Option<String> {
+    headers
+        .get(header::COOKIE)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|cookies| {
+            cookies.split(';').find_map(|cookie| {
+                let (cookie_name, value) = cookie.trim().split_once('=')?;
+                (cookie_name == name).then(|| value.to_string())
+            })
+        })
 }
 
 pub fn get_auth_url() -> Result<hyper::Uri, AuthError> {
@@ -246,19 +262,26 @@ mod tests {
     }
 
     #[test]
-    fn extract_token_from_authorization() {
-        let req = Request::builder()
-            .uri("/x")
-            .header("Authorization", "Bearer abc")
-            .body(Body::empty())
-            .unwrap();
-        assert_eq!(extract_token(&req), "Bearer abc");
-    }
-
-    #[test]
     fn extract_token_returns_empty_when_absent() {
         let req = Request::builder().uri("/x").body(Body::empty()).unwrap();
         assert_eq!(extract_token(&req), "");
+    }
+
+    #[test]
+    fn extract_token_from_access_cookie() {
+        let req = Request::builder()
+            .uri("/x")
+            .header("Cookie", "other=1; megalith_access_token=access-jwt")
+            .body(Body::empty())
+            .unwrap();
+        assert_eq!(extract_token(&req), "Bearer access-jwt");
+        assert!(uses_cookie_auth(&req));
+    }
+
+    #[test]
+    fn uses_cookie_auth_false_when_cookie_absent() {
+        let req = Request::builder().uri("/x").body(Body::empty()).unwrap();
+        assert!(!uses_cookie_auth(&req));
     }
 
     #[test]

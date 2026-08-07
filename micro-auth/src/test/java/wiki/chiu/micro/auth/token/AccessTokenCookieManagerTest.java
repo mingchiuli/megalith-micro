@@ -9,13 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class RefreshTokenCookieManagerTest {
+class AccessTokenCookieManagerTest {
 
-    private RefreshTokenCookieManager cookieManager;
+    private AccessTokenCookieManager cookieManager;
 
     @BeforeEach
     void setUp() {
-        cookieManager = new RefreshTokenCookieManager(
+        cookieManager = new AccessTokenCookieManager(
                 new TokenCookieProperties("/", true, "Strict"),
                 new JwtProperties(
                         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -23,21 +23,21 @@ class RefreshTokenCookieManagerTest {
     }
 
     @Test
-    void createsHostOnlyHttpOnlyRefreshCookie() {
-        String cookie = cookieManager.create("refresh-jwt").toString();
+    void storesRawTokenInHttpOnlyCookie() {
+        String cookie = cookieManager.create("Bearer access-jwt").toString();
 
-        assertTrue(cookie.contains("megalith_refresh_token=refresh-jwt"));
-        assertTrue(cookie.contains("Max-Age=604800"));
+        assertTrue(cookie.contains("megalith_access_token=access-jwt"));
+        assertTrue(cookie.contains("Max-Age=900"));
         assertTrue(cookie.contains("Path=/"));
-        assertTrue(cookie.contains("Secure"));
         assertTrue(cookie.contains("HttpOnly"));
+        assertTrue(cookie.contains("Secure"));
         assertTrue(cookie.contains("SameSite=Strict"));
     }
 
     @Test
-    void resolvesOnlyConfiguredCookie() {
+    void resolvesConfiguredCookie() {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setCookies(new Cookie("other", "ignored"), new Cookie("megalith_refresh_token", "jwt"));
+        request.setCookies(new Cookie("megalith_access_token", "jwt"));
 
         assertEquals("jwt", cookieManager.resolve(request));
         assertNull(cookieManager.resolve(new MockHttpServletRequest()));

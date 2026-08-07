@@ -17,6 +17,8 @@ megalith:
   blog:
     auth:
       url: http://127.0.0.1:8081/inner
+    frontend:
+      allowed_origins: https://chiu.wiki,http://127.0.0.1:1919,http://localhost:1919
 
 log:
   level: info

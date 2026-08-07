@@ -27,7 +27,7 @@ pub async fn ws_route_handler(
     uri: Uri,
 ) -> Result<Response<Body>, HandlerError> {
     // Extract authentication token
-    let token = extract_token(&uri);
+    let token = utils::token_from_query(&uri).unwrap_or_default();
 
     // Get authentication URL
     let auth_url = utils::get_auth_url()?;
@@ -56,16 +56,6 @@ pub async fn ws_route_handler(
 
     let (parts, _) = response.into_parts();
     Ok(Response::from_parts(parts, Body::empty()))
-}
-
-fn extract_token(uri: &Uri) -> String {
-    uri.query()
-        .and_then(|q| {
-            url::form_urlencoded::parse(q.as_bytes())
-                .find(|(key, _)| key == constant::TOKEN)
-                .map(|(_, value)| value.to_string())
-        })
-        .unwrap_or("".to_string())
 }
 
 async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {

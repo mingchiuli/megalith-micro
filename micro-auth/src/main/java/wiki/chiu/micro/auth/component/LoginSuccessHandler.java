@@ -10,6 +10,7 @@ import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
+import wiki.chiu.micro.auth.token.AccessTokenCookieManager;
 import wiki.chiu.micro.auth.user.LoginUser;
 import wiki.chiu.micro.auth.vo.LoginSuccessVo;
 import wiki.chiu.micro.common.lang.Result;
@@ -38,16 +39,20 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final RefreshTokenCookieManager refreshTokenCookieManager;
 
+    private final AccessTokenCookieManager accessTokenCookieManager;
+
     public LoginSuccessHandler(JsonMapper jsonMapper,
                                JwtTokenService jwtTokenService,
                                UserHttpServiceWrapper userHttpServiceWrapper,
                                RedissonClient redissonClient,
-                               RefreshTokenCookieManager refreshTokenCookieManager) {
+                               RefreshTokenCookieManager refreshTokenCookieManager,
+                               AccessTokenCookieManager accessTokenCookieManager) {
         this.jsonMapper = jsonMapper;
         this.jwtTokenService = jwtTokenService;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
         this.redissonClient = redissonClient;
         this.refreshTokenCookieManager = refreshTokenCookieManager;
+        this.accessTokenCookieManager = accessTokenCookieManager;
     }
 
     @Override
@@ -82,6 +87,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         userHttpServiceWrapper.updateLoginTime(username);
         String accessToken = jwtTokenService.issueAccessToken(userId);
         String refreshToken = jwtTokenService.issueRefreshToken(userId);
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                accessTokenCookieManager.create(accessToken).toString());
         response.addHeader(HttpHeaders.SET_COOKIE,
                 refreshTokenCookieManager.create(refreshToken).toString());
 

@@ -14,8 +14,9 @@ import wiki.chiu.micro.auth.handler.TokenHttpHandler;
 import wiki.chiu.micro.auth.route.AuthRoutes;
 import wiki.chiu.micro.auth.service.TokenService;
 import wiki.chiu.micro.auth.token.JwtProperties;
+import wiki.chiu.micro.auth.token.AccessTokenCookieManager;
 import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
-import wiki.chiu.micro.auth.token.RefreshTokenCookieProperties;
+import wiki.chiu.micro.auth.token.TokenCookieProperties;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.exception.MissException;
 import java.util.Map;
@@ -38,12 +39,13 @@ class TokenControllerTest {
 
     @BeforeEach
     void setUp() {
-        RefreshTokenCookieManager cookieManager = new RefreshTokenCookieManager(
-                new RefreshTokenCookieProperties("/api/token/refresh"),
-                new JwtProperties(
+        TokenCookieProperties cookieProperties = new TokenCookieProperties("/", true, "Strict");
+        JwtProperties jwtProperties = new JwtProperties(
                         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-                        900, 604800, 300, "micro-auth", "megalith-api"));
-        TokenHttpHandler handler = new TokenHttpHandler(tokenService, cookieManager);
+                        900, 604800, 300, "micro-auth", "megalith-api");
+        RefreshTokenCookieManager cookieManager = new RefreshTokenCookieManager(cookieProperties, jwtProperties);
+        AccessTokenCookieManager accessCookieManager = new AccessTokenCookieManager(cookieProperties, jwtProperties);
+        TokenHttpHandler handler = new TokenHttpHandler(tokenService, cookieManager, accessCookieManager);
         mockMvc = MockMvcBuilders.routerFunctions(AuthRoutes.routes(
                         org.mockito.Mockito.mock(AuthHttpHandler.class),
                         handler,
@@ -59,7 +61,9 @@ class TokenControllerTest {
         mockMvc.perform(post("/token/refresh").principal(() -> "42"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.accessToken").value("newtoken"));
+                .andExpect(jsonPath("$.data.accessToken").value("newtoken"))
+                .andExpect(header().string("Set-Cookie",
+                        org.hamcrest.Matchers.containsString("megalith_access_token=newtoken")));
     }
 
     @Test
@@ -88,14 +92,18 @@ class TokenControllerTest {
     }
 
     @Test
-    void logoutExpiresRefreshTokenCookie() throws Exception {
+    void logoutExpiresTokenCookies() throws Exception {
         mockMvc.perform(post("/token/logout"))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Set-Cookie",
-                        org.hamcrest.Matchers.allOf(
-                                org.hamcrest.Matchers.containsString("__Secure-refresh_token="),
-                                org.hamcrest.Matchers.containsString("Max-Age=0"),
-                                org.hamcrest.Matchers.containsString("Path=/api/token/refresh"))))
+                .andExpect(result -> {
+                    var cookies = result.getResponse().getHeaders("Set-Cookie");
+                    org.junit.jupiter.api.Assertions.assertTrue(cookies.stream()
+                            .anyMatch(value -> value.contains("megalith_access_token=")));
+                    org.junit.jupiter.api.Assertions.assertTrue(cookies.stream()
+                            .anyMatch(value -> value.contains("megalith_refresh_token=")));
+                    org.junit.jupiter.api.Assertions.assertTrue(cookies.stream()
+                            .allMatch(value -> value.contains("Max-Age=0")));
+                })
                 .andExpect(jsonPath("$.code").value(200));
     }
 

@@ -61,11 +61,17 @@ struct MegalithConfig {
 #[derive(Debug, Deserialize)]
 struct BlogConfig {
     auth: AuthConfig,
+    frontend: FrontendConfig,
 }
 
 #[derive(Debug, Deserialize)]
 struct AuthConfig {
     url: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct FrontendConfig {
+    allowed_origins: String,
 }
 
 pub enum ConfigKey {
@@ -75,6 +81,7 @@ pub enum ConfigKey {
     OtelExporterOtlpMetricsEndpoint,
     OtelExporterOtlpLogsEndpoint,
     AuthUrlKey,
+    AllowedOrigins,
     RustLog,
 }
 
@@ -121,6 +128,7 @@ pub fn get_config(key: ConfigKey) -> String {
         }
         ConfigKey::OtelExporterOtlpLogsEndpoint => config.otel.exporter.otlp.logs.endpoint.clone(),
         ConfigKey::AuthUrlKey => config.megalith.blog.auth.url.clone(),
+        ConfigKey::AllowedOrigins => config.megalith.blog.frontend.allowed_origins.clone(),
         ConfigKey::RustLog => config.log.level.clone(),
     }
 }
