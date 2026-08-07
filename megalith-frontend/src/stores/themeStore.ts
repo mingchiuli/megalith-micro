@@ -3,9 +3,8 @@
  * Theme store - dark/light theme with system preference detection
  */
 export const themeStore = defineStore('themeStore', () => {
-  // Get system theme preference
   const getSystemTheme = (): boolean => {
-    if (window.matchMedia) {
+    if (typeof window !== 'undefined' && window.matchMedia) {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
       return prefersDark.matches
     }
@@ -13,27 +12,26 @@ export const themeStore = defineStore('themeStore', () => {
     return false
   }
 
-  const isDark = ref(getSystemTheme())
+  const isDark = ref(false)
+
+  const applyTheme = () => {
+    if (typeof document === 'undefined') return
+    document.documentElement.classList.toggle('dark', isDark.value)
+  }
 
   const toggleTheme = () => {
     isDark.value = !isDark.value
-    const htmlElement = document.documentElement
-
-    if (isDark.value) {
-      htmlElement.classList.add('dark')
-    } else {
-      htmlElement.classList.remove('dark')
-    }
+    applyTheme()
+    document.cookie = `megalith_theme=${isDark.value ? 'dark' : 'light'}; Path=/; SameSite=Lax`
   }
 
   // Initialize theme on app start
   const initTheme = () => {
-    const htmlElement = document.documentElement
-    if (isDark.value) {
-      htmlElement.classList.add('dark')
-    } else {
-      htmlElement.classList.remove('dark')
+    if (typeof document === 'undefined') return
+    if (!document.cookie.includes('megalith_theme=')) {
+      isDark.value = getSystemTheme()
     }
+    applyTheme()
   }
 
   return { isDark, toggleTheme, initTheme }

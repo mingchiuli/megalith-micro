@@ -2,42 +2,23 @@ import { createI18n } from 'vue-i18n'
 import { messages } from './messages'
 
 export type AppLocale = keyof typeof messages
+export const DEFAULT_LOCALE: AppLocale = 'zh-CN'
+export const LOCALE_COOKIE = 'megalith_locale'
+export const supportedLocales: AppLocale[] = ['zh-CN', 'en-US']
 
-const STORAGE_KEY = 'megalith-locale'
-const supportedLocales: AppLocale[] = ['zh-CN', 'en-US']
+export const createAppI18n = (locale: AppLocale = DEFAULT_LOCALE) =>
+  createI18n({
+    legacy: false,
+    globalInjection: true,
+    locale,
+    fallbackLocale: DEFAULT_LOCALE,
+    messages
+  })
 
-const getInitialLocale = (): AppLocale => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY) as AppLocale | null
-    if (saved && supportedLocales.includes(saved)) return saved
-  } catch {
-    // Storage may be unavailable in privacy-restricted contexts.
-  }
-  return navigator.language.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en-US'
-}
+export type AppI18n = ReturnType<typeof createAppI18n>
 
-const initialLocale = getInitialLocale()
-
-export const i18n = createI18n({
-  legacy: false,
-  globalInjection: true,
-  locale: initialLocale,
-  fallbackLocale: 'zh-CN',
-  messages
-})
-
-const applyLocale = (locale: AppLocale) => {
+export const persistLocale = (locale: AppLocale) => {
+  if (typeof document === 'undefined') return
   document.documentElement.lang = locale
+  document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; SameSite=Lax`
 }
-
-export const setLocale = (locale: AppLocale) => {
-  i18n.global.locale.value = locale
-  applyLocale(locale)
-  try {
-    localStorage.setItem(STORAGE_KEY, locale)
-  } catch {
-    // Keep the in-memory locale when persistence is unavailable.
-  }
-}
-
-applyLocale(initialLocale)

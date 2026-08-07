@@ -1,5 +1,13 @@
-import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
-import { RoutesEnum, type Button, type Menu, type MenuNode, type Tab } from '@/type/entity'
+import {
+  createMemoryHistory,
+  createRouter,
+  createWebHistory,
+  type RouteLocationNormalized,
+  type RouteRecordRaw,
+  type Router
+} from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { RoutesEnum, type Button, type Menu, type MenuNode, type Tab, type UserInfo } from '@/type/entity'
 import {
   menuStore,
   loginStateStore,
@@ -10,193 +18,162 @@ import {
 } from '@/stores'
 import { diff, findMenuByPath } from '@/utils/common'
 import { API_ENDPOINTS } from '@/config/apiConfig'
-import { storage } from '@/utils/storage'
+import type { ApiClient } from '@/http/http'
 
 const modules = import.meta.glob('@/views/sys/*.vue')
 
-const getMenuTree = async () => {
-  const { GET } = await import('@/http/http')
-  return GET<Menu>(API_ENDPOINTS.AUTH.MENU_NAV)
+type RouterOptions = {
+  server: boolean
+  api: ApiClient
 }
 
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'intro',
-      component: () => import('@/views/IntroView.vue'),
-      meta: {
-        titleKey: 'admin.intro'
-      }
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/LoginView.vue'),
-      meta: {
-        titleKey: 'auth.login'
-      }
-    },
-    {
-      path: '/register/:token',
-      name: 'register',
-      component: () => import('@/views/RegisterView.vue'),
-      meta: {
-        titleKey: 'admin.register'
-      }
-    },
-    {
-      path: '/blogs',
-      name: 'blogs',
-      component: () => import('@/views/BlogsView.vue'),
-      meta: {
-        titleKey: 'admin.contentList'
-      }
-    },
-    {
-      path: '/blog/:id',
-      name: 'blog',
-      component: () => import('@/views/BlogView.vue')
-    },
-    {
-      path: '/:catchAll(.*)',
-      component: () => import('@/views/404View.vue')
+const publicRoutes: RouteRecordRaw[] = [
+  {
+    path: '/',
+    name: 'intro',
+    component: () => import('@/views/IntroView.vue'),
+    meta: { titleKey: 'admin.intro' }
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('@/views/LoginView.vue'),
+    meta: { titleKey: 'auth.login' }
+  },
+  {
+    path: '/register/:token',
+    name: 'register',
+    component: () => import('@/views/RegisterView.vue'),
+    meta: { titleKey: 'admin.register' }
+  },
+  {
+    path: '/blogs',
+    name: 'blogs',
+    component: () => import('@/views/BlogsView.vue'),
+    meta: { titleKey: 'admin.contentList' }
+  },
+  {
+    path: '/blog/:id',
+    name: 'blog',
+    component: () => import('@/views/BlogView.vue')
+  },
+  {
+    path: '/:catchAll(.*)',
+    name: 'not-found',
+    component: () => import('@/views/404View.vue'),
+    meta: { status: 404 }
+  }
+]
+
+export const createAppRouter = ({ server, api }: RouterOptions): Router => {
+  const router = createRouter({
+    history: server
+      ? createMemoryHistory(import.meta.env.BASE_URL)
+      : createWebHistory(import.meta.env.BASE_URL),
+    routes: publicRoutes
+  })
+
+  const getSession = () =>
+    Promise.all([
+      api.GET<Menu>(API_ENDPOINTS.AUTH.MENU_NAV),
+      api.GET<UserInfo>(API_ENDPOINTS.AUTH.USER_INFO)
+    ])
+
+  router.beforeEach(async (to) => {
+    const privateRoute = to.path.startsWith('/sys') || to.path.startsWith('/backend')
+    if (to.path.startsWith('/sys')) welcomeStateStore().welcomeBackend = false
+
+    if (!loginStateStore().login) {
+      return privateRoute ? { name: 'login', query: { redirect: to.fullPath } } : undefined
     }
-  ]
-})
 
-router.beforeEach(async (to) => {
-  if (to.path.startsWith('/sys')) {
-    welcomeStateStore().welcomeBackend = false
-  }
-
-  if (storage.isLoggedIn() && !loginStateStore().login) {
-    loginStateStore().login = true
-  }
-
-  if (to.path.startsWith('/login') && loginStateStore().login) {
-    return {
-      name: 'blogs'
-    }
-  }
-
-  if (to.meta.title) {
-    document.title = to.meta.title as string
-  }
-
-  if (loginStateStore().login) {
-    let menuTree: Menu
-    //页面被手动刷新
-    if (!to.name || !router.hasRoute(to.name)) {
-      if (!authMarkStore().auth) {
-        authMarkStore().auth = true
-        menuTree = await getMenuTree()
-        callBackRequireRoutes(menuTree)
-        dealSysTab(to, menuTree)
-        return to.fullPath
+    try {
+      let menuTree = menuStore().menuTree
+      const restoredSession = authMarkStore().auth && menuTree && loginStateStore().user
+      if (!restoredSession) {
+        const [fetchedMenu, user] = await getSession()
+        menuTree = fetchedMenu
+        loginStateStore().user = user
       }
-    } else {
-      //正常路由切换diff
-      getMenuTree().then((resp) => {
-        menuTree = resp
-        callBackRequireRoutes(menuTree)
-        dealSysTab(to, menuTree)
-      })
+      if (!menuTree) throw new Error('Authenticated menu is unavailable')
+
+      const addedRoute = applyMenuTree(router, menuTree)
+      dealSysTab(to, menuTree)
+      authMarkStore().auth = true
+      if (to.path.startsWith('/login')) return { name: 'blogs' }
+      if (addedRoute && (!to.name || to.name === 'not-found')) return to.fullPath
+    } catch {
+      clearAuthStores(router)
+      if (privateRoute) return { name: 'login', query: { redirect: to.fullPath } }
     }
-  }
-})
+  })
+
+  return router
+}
+
+export const clearAuthStores = (router: Router) => {
+  const rootName = menuStore().menuTree?.name
+  if (rootName && router.hasRoute(rootName)) router.removeRoute(rootName)
+  authMarkStore().auth = false
+  loginStateStore().login = false
+  loginStateStore().user = undefined
+  menuStore().menuTree = undefined
+  buttonStore().buttonList = []
+  tabStore().editableTabs = []
+  tabStore().editableTabsValue = ''
+}
 
 const dealSysTab = (to: RouteLocationNormalized, menuTree: Menu) => {
-  //处理tab
-  if (to.path.startsWith('/sys')) {
-    const menu = findMenuByPath(menuTree.children, to.path)
-    if (menu) {
-      const tab: Tab = { name: menu.name, title: menu.title }
-      tabStore().addTab(tab)
-    }
-  }
+  if (!to.path.startsWith('/sys')) return
+  const menu = findMenuByPath(menuTree.children, to.path)
+  if (menu) tabStore().addTab({ name: menu.name, title: menu.title })
 }
 
-const callBackRequireRoutes = (rootMenu: Menu) => {
+const applyMenuTree = (router: Router, rootMenu: Menu): boolean => {
   const buttons = collectButtons(rootMenu)
   const { buttonList } = storeToRefs(buttonStore())
-  const difButton = diff(buttonList.value, buttons)
-  if (difButton) {
-    buttonList.value = []
-    buttons.forEach((button) => buttonList.value.push(button))
-  }
+  if (diff(buttonList.value, buttons)) buttonList.value = buttons
 
   const { menuTree } = storeToRefs(menuStore())
+  menuTree.value = rootMenu
 
-  if (menuTree.value) {
-    const difMenu = diff([menuTree.value], [rootMenu])
-    if (difMenu) {
-      menuTree.value = rootMenu
-    }
-  } else {
-    menuTree.value = rootMenu
+  if (router.hasRoute(rootMenu.name)) {
+    return false
   }
-
-  const rootName = rootMenu.name
-  if (router.hasRoute(rootName)) {
-    router.removeRoute(rootName)
-  }
-
-  const rootRoute = buildRoute(rootMenu)
-  router.addRoute(rootRoute)
+  router.addRoute(buildRoute(rootMenu))
+  return true
 }
 
 const collectButtons = (rootMenu: MenuNode): Button[] => {
   const buttons: Button[] = []
-
   const walk = (node: MenuNode) => {
-    if (isButtonNode(node)) {
+    if (node.type === RoutesEnum.BUTTON) {
       buttons.push(node)
       return
     }
-
     node.children.forEach(walk)
   }
-
   walk(rootMenu)
   return buttons
 }
 
-const isButtonNode = (node: MenuNode): node is Button => node.type === RoutesEnum.BUTTON
-const isRouteMenuNode = (node: MenuNode): node is Menu => node.type !== RoutesEnum.BUTTON
-
-//构建路由
-const buildRoute = (rootMenu: Menu): RouteRecordRaw => {
-  const rootRoute = menuToRoute(rootMenu)
-
-  rootMenu.children?.forEach((childMenu) => {
-    if (!isRouteMenuNode(childMenu)) {
-      return
-    }
-
-    const childRoute = buildRoute(childMenu)
-    rootRoute.children?.push(childRoute)
+const buildRoute = (menu: Menu): RouteRecordRaw => {
+  const route = menuToRoute(menu)
+  menu.children.forEach((child) => {
+    if (child.type !== RoutesEnum.BUTTON) route.children?.push(buildRoute(child))
   })
-  return rootRoute
-}
-
-//导航转成路由
-const menuToRoute = (menu: Menu): RouteRecordRaw => {
-  //存在虚假的路由（只是父级菜单
-  //真实的路由
-  const route = {
-    name: menu.name,
-    path: menu.url,
-    children: [],
-    component: modules[`/src/views/${menu.component}.vue`],
-    meta: {
-      icon: menu.icon,
-      title: menu.title
-    }
-  } as RouteRecordRaw
-
   return route
 }
 
-export default router
+const menuToRoute = (menu: Menu): RouteRecordRaw => ({
+  name: menu.name,
+  path: menu.url,
+  children: [],
+  component: modules[`/src/views/${menu.component}.vue`],
+  meta: {
+    icon: menu.icon,
+    title: menu.title
+  }
+})
+
+export type { Tab }

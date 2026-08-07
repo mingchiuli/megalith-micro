@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import type { LoginStruct, LoginType } from '@/type/entity'
-import { GET } from '@/http/http'
-import { submitLogin } from '@/utils/auth'
+import { useHttp } from '@/http/http'
+import { useAuth } from '@/utils/auth'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
 
 const { locale, t } = useI18n()
+const { GET } = useHttp()
+const { submitLogin } = useAuth()
 const mailButtonDisable = ref(false)
 const smsButtonDisable = ref(false)
 const buttonText = ref(t('auth.sendCode'))

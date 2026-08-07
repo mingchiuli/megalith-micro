@@ -43,6 +43,7 @@ describe('stores/store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     document.documentElement.classList.remove('dark')
+    document.cookie = 'megalith_theme=; Max-Age=0; Path=/'
   })
 
   describe('loginStateStore', () => {
@@ -80,9 +81,10 @@ describe('stores/store', () => {
         addEventListener: vi.fn(),
         removeEventListener: vi.fn()
       }))
-      // 重新创建 pinia 触发 store setup
+      // 系统偏好只能在客户端初始化时读取。
       setActivePinia(createPinia())
       const store = themeStore()
+      store.initTheme()
       expect(store.isDark).toBe(true)
     })
 
@@ -99,9 +101,10 @@ describe('stores/store', () => {
       expect(document.documentElement.classList.contains('dark')).toBe(false)
     })
 
-    it('initTheme 根据当前 isDark 写入 class', () => {
+    it('initTheme 将 SSR 恢复的 dark 状态写入 class', () => {
       const store = themeStore()
       store.isDark = true
+      document.cookie = 'megalith_theme=dark; Path=/'
       store.initTheme()
       expect(document.documentElement.classList.contains('dark')).toBe(true)
     })

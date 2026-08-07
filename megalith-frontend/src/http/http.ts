@@ -1,78 +1,73 @@
-import { longHttpClient, httpClient } from '@/http/axios'
+import type { AxiosInstance, AxiosProgressEvent, AxiosResponse } from 'axios'
+import { inject, type InjectionKey, type Ref } from 'vue'
 import type { Data } from '@/type/entity'
-import type { AxiosProgressEvent, AxiosResponse } from 'axios'
-import { type Ref } from 'vue'
+import type { HttpClients } from '@/http/axios'
 
-const GET = async <T>(url: string): Promise<T> => {
-  const response = await httpClient.get<never, AxiosResponse<Data<T>>>(url)
-  return response.data.data
-}
+export type ApiClient = ReturnType<typeof createApiClient>
 
-const POST = async <T>(url: string, params: unknown): Promise<T> => {
-  const response = await httpClient.post<never, AxiosResponse<Data<T>>>(url, params)
-  return response.data.data
-}
+export const API_CLIENT_KEY: InjectionKey<ApiClient> = Symbol('api-client')
 
-const handleProgress = (
-  percentage: Ref<number>,
-  _: Ref<boolean>,
-  progressEvent: AxiosProgressEvent
-) => {
-  const { loaded, total } = progressEvent
-  if (!total) {
-    percentage.value = 0
-    return
+export const createApiClient = ({ httpClient, longHttpClient, aiHttpClient }: HttpClients) => {
+  const GET = async <T>(url: string): Promise<T> => {
+    const response = await httpClient.get<never, AxiosResponse<Data<T>>>(url)
+    return response.data.data
   }
-  percentage.value = Math.min(100, Math.floor((loaded * 100) / total))
-}
 
-const DOWNLOAD = async (
-  url: string,
-  percentage: Ref<number>,
-  percentageShow: Ref<boolean>
-): Promise<AxiosResponse<string> | null> => {
-  let data: AxiosResponse<string> | null = null
-  percentageShow.value = true
-  percentage.value = 0
-  await longHttpClient
-    .get(url, {
-      onDownloadProgress: (progressEvent) =>
-        handleProgress(percentage, percentageShow, progressEvent)
-    })
-    .then((res) => {
-      data = res
-    })
-    .finally(() => {
-      setTimeout(() => {
+  const POST = async <T>(url: string, params: unknown): Promise<T> => {
+    const response = await httpClient.post<never, AxiosResponse<Data<T>>>(url, params)
+    return response.data.data
+  }
+
+  const handleProgress = (percentage: Ref<number>, progressEvent: AxiosProgressEvent) => {
+    const { loaded, total } = progressEvent
+    percentage.value = total ? Math.min(100, Math.floor((loaded * 100) / total)) : 0
+  }
+
+  const DOWNLOAD = async (
+    url: string,
+    percentage: Ref<number>,
+    percentageShow: Ref<boolean>
+  ): Promise<AxiosResponse<string>> => {
+    percentageShow.value = true
+    percentage.value = 0
+    try {
+      return await longHttpClient.get(url, {
+        onDownloadProgress: (event) => handleProgress(percentage, event)
+      })
+    } finally {
+      globalThis.setTimeout(() => {
         percentageShow.value = false
       }, 500)
-    })
+    }
+  }
 
-  return Promise.resolve(data)
-}
-
-const UPLOAD = async (
-  dest: string,
-  formData: FormData,
-  percentage: Ref<number>,
-  percentageShow: Ref<boolean>
-): Promise<string> => {
-  percentageShow.value = true
-  percentage.value = 0
-  let url = ''
-  await longHttpClient
-    .post(dest, formData, {
-      onUploadProgress: (progressEvent) => handleProgress(percentage, percentageShow, progressEvent)
-    })
-    .then((resp: AxiosResponse<Data<string>>) => {
-      url = resp.data.data
-    })
-    .finally(() => {
-      setTimeout(() => {
+  const UPLOAD = async (
+    dest: string,
+    formData: FormData,
+    percentage: Ref<number>,
+    percentageShow: Ref<boolean>
+  ): Promise<string> => {
+    percentageShow.value = true
+    percentage.value = 0
+    try {
+      const response = await longHttpClient.post<never, AxiosResponse<Data<string>>>(dest, formData, {
+        onUploadProgress: (event) => handleProgress(percentage, event)
+      })
+      return response.data.data
+    } finally {
+      globalThis.setTimeout(() => {
         percentageShow.value = false
       }, 500)
-    })
-  return Promise.resolve(url)
+    }
+  }
+
+  return { GET, POST, DOWNLOAD, UPLOAD, httpClient, longHttpClient, aiHttpClient }
 }
 
-export { GET, POST, DOWNLOAD, UPLOAD }
+export const useHttp = (): ApiClient => {
+  const api = inject(API_CLIENT_KEY)
+  if (!api) throw new Error('API client is not available in the current app')
+  return api
+}
+
+export type { AxiosInstance }

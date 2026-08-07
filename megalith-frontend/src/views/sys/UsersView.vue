@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { GET, POST } from '@/http/http'
+import { useHttp } from '@/http/http'
 import type { PageAdapter, RoleSys, UserSys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { Status, ButtonAuth } from '@/type/entity'
@@ -8,8 +8,10 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissi
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls, buildQueryUrl } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
+import { useUniversalData } from '@/composables'
 
 const { t } = useI18n()
+const { GET, POST, DOWNLOAD } = useHttp()
 
 const { moreItems, fixSelection, fix } = displayState()
 const multipleSelection = ref<UserSys[]>([])
@@ -99,6 +101,7 @@ const form: Form = reactive({
 
 const download = async () => {
   await downloadSQLData(
+    DOWNLOAD,
     API_ENDPOINTS.USER_ADMIN.DOWNLOAD_USERS,
     'users',
     uploadPercentage,
@@ -144,16 +147,20 @@ const handleSelectionChange = (val: UserSys[]) => {
   delBtlStatus.value = val.length === 0
 }
 
+const fetchUsers = async () => {
+  const url = buildCommonUrls.userQuery(pageNumber.value, { size: pageSize.value })
+  return GET<PageAdapter<UserSys>>(url)
+}
+
+const applyUsers = (data: PageAdapter<UserSys>) => {
+  content.value = data.content
+  totalElements.value = data.totalElements
+  loading.value = false
+}
+
 const queryUsers = async () => {
   loading.value = true
-  try {
-    const url = buildCommonUrls.userQuery(pageNumber.value, { size: pageSize.value })
-    const data = await GET<PageAdapter<UserSys>>(url)
-    content.value = data.content
-    totalElements.value = data.totalElements
-  } finally {
-    loading.value = false
-  }
+  applyUsers(await fetchUsers())
 }
 
 const handleClose = () => {
@@ -218,11 +225,18 @@ const getRegisterLink = async (username: string) => {
   })
 }
 
-;(async () => {
-  const roles = await GET<RoleSys[]>(API_ENDPOINTS.ROLE_ADMIN.GET_VALID_ROLES)
-  await queryUsers()
-  roleList.value = roles
-})()
+type UsersInitialData = { users: PageAdapter<UserSys>; roles: RoleSys[] }
+useUniversalData<UsersInitialData>(
+  'admin:users',
+  async () => ({
+    users: await fetchUsers(),
+    roles: await GET<RoleSys[]>(API_ENDPOINTS.ROLE_ADMIN.GET_VALID_ROLES)
+  }),
+  ({ users, roles }) => {
+    applyUsers(users)
+    roleList.value = roles
+  }
+)
 </script>
 
 <template>

@@ -7,7 +7,6 @@ import * as random from 'lib0/random'
 import type { UserInfo } from '@/type/entity'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 import { logger } from '@/utils/logger'
-import { storage } from '@/utils/storage'
 
 const usercolors = [
   { color: '#30bced', light: '#30bced33' },
@@ -21,7 +20,6 @@ const usercolors = [
 ]
 
 export const yjsCompartment = new Compartment()
-const user = storage.getUserInfo<UserInfo>() || { nickname: 'Anonymous', avatar: '', id: 0 }
 let currentProvider: WebsocketProvider | null = null
 let currentDoc: Y.Doc | null = null
 
@@ -69,7 +67,8 @@ export const updateProviderToken = (token: string) => {
 export const createYjsExtension = async (
   roomId: string,
   initialContent: string,
-  collaborationToken: string
+  collaborationToken: string,
+  user: UserInfo
 ) => {
   // 重要说明：
   // 1. 这个方法只在组件挂载时调用一次

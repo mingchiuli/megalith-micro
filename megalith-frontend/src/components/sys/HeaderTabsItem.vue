@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import router from '@/router'
 import { welcomeStateStore, tabStore } from '@/stores'
 import type { Tab } from '@/type/entity'
 import type { TabPaneName, TabsPaneContext } from 'element-plus'
 
+const router = useRouter()
 const { editableTabs, editableTabsValue } = storeToRefs(tabStore())
 
 const clickTab = (tab: TabsPaneContext) => router.push({ name: String(tab.props.name) })

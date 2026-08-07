@@ -1,7 +1,8 @@
-import { DOWNLOAD } from '@/http/http'
+import type { ApiClient } from '@/http/http'
 import type { Ref } from 'vue'
 
 export const downloadSQLData = async (
+  DOWNLOAD: ApiClient['DOWNLOAD'],
   url: string,
   fileName: string,
   percentage: Ref<number>,

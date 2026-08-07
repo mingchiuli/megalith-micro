@@ -3,21 +3,15 @@ import { mount, flushPromises } from '@vue/test-utils'
 import ElementPlus from 'element-plus'
 import * as ElIcons from '@element-plus/icons-vue'
 
-vi.mock('@/router', () => ({
-  default: { push: vi.fn(), hasRoute: vi.fn(() => false), removeRoute: vi.fn() }
-}))
+const mocks = vi.hoisted(() => ({ GET: vi.fn(), routerPush: vi.fn() }))
 
 vi.mock('@/http/http', () => ({
-  GET: vi.fn(),
-  POST: vi.fn(),
-  DOWNLOAD: vi.fn(),
-  UPLOAD: vi.fn()
+  useHttp: () => ({ GET: mocks.GET })
 }))
 
-vi.mock('@/http/axios', () => ({
-  httpClient: { get: vi.fn(), post: vi.fn() },
-  longHttpClient: { get: vi.fn(), post: vi.fn() },
-  aiHttpClient: { get: vi.fn(), post: vi.fn() }
+vi.mock('vue-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('vue-router')>()),
+  useRouter: () => ({ push: mocks.routerPush })
 }))
 
 vi.mock('@/config/otel', () => ({ createTraceParent: vi.fn(() => 'tp') }))
@@ -34,7 +28,6 @@ vi.mock('@/components/HotItem.vue', () => ({
 }))
 
 import SearchItem from '@/components/SearchItem.vue'
-import { GET } from '@/http/http'
 import type { SearchPage, BlogDesc } from '@/type/entity'
 
 const buildPage = (content: BlogDesc[]): SearchPage<BlogDesc> => ({
@@ -78,7 +71,7 @@ describe('SearchItem.vue', () => {
 
   it('searchAllInfo 命中结果时 emit transSearchData', async () => {
     const desc = { id: 1, title: 't', description: 'd', created: '', link: '', status: 0 } as BlogDesc
-    vi.mocked(GET).mockResolvedValueOnce(buildPage([desc]) as never)
+    mocks.GET.mockResolvedValueOnce(buildPage([desc]))
 
     const wrapper = mountSearch()
     const exposed = wrapper.vm as unknown as {
@@ -86,7 +79,7 @@ describe('SearchItem.vue', () => {
     }
     await exposed.searchAllInfo('vue', 1)
 
-    expect(GET).toHaveBeenCalledTimes(1)
+    expect(mocks.GET).toHaveBeenCalledTimes(1)
     expect(wrapper.emitted('transSearchData')).toBeTruthy()
     const payload = wrapper.emitted('transSearchData')![0]![0] as SearchPage<BlogDesc>
     expect(payload.content).toHaveLength(1)
@@ -95,7 +88,7 @@ describe('SearchItem.vue', () => {
   })
 
   it('searchAllInfo 无结果时 emit refresh', async () => {
-    vi.mocked(GET).mockResolvedValueOnce(buildPage([]) as never)
+    mocks.GET.mockResolvedValueOnce(buildPage([]))
 
     const wrapper = mountSearch()
     const exposed = wrapper.vm as unknown as {
@@ -115,14 +108,14 @@ describe('SearchItem.vue', () => {
     }
     await exposed.searchAllInfo('', 1)
 
-    expect(GET).not.toHaveBeenCalled()
+    expect(mocks.GET).not.toHaveBeenCalled()
     expect(wrapper.emitted('refresh')).toBeTruthy()
     wrapper.unmount()
   })
 
   it('searchAllInfo 命中结果后会关闭 dialog（更新 v-model）', async () => {
     const desc = { id: 1, title: 't', description: 'd', created: '', link: '', status: 0 } as BlogDesc
-    vi.mocked(GET).mockResolvedValueOnce(buildPage([desc]) as never)
+    mocks.GET.mockResolvedValueOnce(buildPage([desc]))
 
     const wrapper = mountSearch()
     const exposed = wrapper.vm as unknown as {

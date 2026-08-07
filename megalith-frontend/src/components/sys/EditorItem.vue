@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import { POST, UPLOAD } from '@/http/http'
+import { useHttp } from '@/http/http'
 import {
   SensitiveType,
   Status,
   type SensitiveTrans,
   type SensitiveContentItem,
-  type UserInfo,
   Colors
 } from '@/type/entity'
 import {
@@ -20,15 +19,16 @@ import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import { ExportPDF, Emoji } from '@vavt/v3-extension'
 import { themeStore } from '@/stores'
-import { storage } from '@/utils/storage'
+import { loginStateStore } from '@/stores'
 import { sanitizeHtml } from '@/utils/sanitize'
 import { logger } from '@/utils/logger'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+const { POST, UPLOAD } = useHttp()
 
 const route = useRoute()
-const user = storage.getUserInfo<UserInfo>() || { username: 'Anonymous', id: 0, color: '#30bced' }
+const user = loginStateStore().user || { nickname: 'Anonymous', avatar: '', id: 0 }
 const blogId = route.query.id as string | undefined
 const roomId = blogId ? `${blogId}` : `init:${user.id}`
 
@@ -156,7 +156,8 @@ const updateEditorExtension = async () => {
       const { config, provider, initialSync } = await createYjsExtension(
         roomId,
         text.value ?? '',
-        collaborationToken
+        collaborationToken,
+        user
       )
       provider.connect()
       const syncedContent = await initialSync
@@ -211,7 +212,14 @@ const sensitiveListen = () => {
 
 onMounted(async () => {
   sensitiveListen()
-  updateEditorExtension()
+  await updateEditorExtension()
+  ticketRefreshTask = window.setInterval(async () => {
+    try {
+      updateProviderToken(await issueCollaborationTicket())
+    } catch (error) {
+      logger.error('Failed to renew collaboration ticket:', error)
+    }
+  }, 240_000)
 })
 
 const issueCollaborationTicket = () => {
@@ -221,13 +229,7 @@ const issueCollaborationTicket = () => {
   return POST<string>(url, {})
 }
 
-const ticketRefreshTask = setInterval(async () => {
-  try {
-    updateProviderToken(await issueCollaborationTicket())
-  } catch (error) {
-    logger.error('Failed to renew collaboration ticket:', error)
-  }
-}, 240_000)
+let ticketRefreshTask: number | undefined
 
 onBeforeUnmount(() => {
   disposed = true

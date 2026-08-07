@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import type { UserInfo } from '@/type/entity'
 import { ArrowDown } from '@element-plus/icons-vue'
-import { logout } from '@/utils/auth'
-import router from '@/router'
-import { storage } from '@/utils/storage'
+import { useAuth } from '@/utils/auth'
+import { loginStateStore } from '@/stores'
 
-const user = storage.getUserInfo<UserInfo>()
+const router = useRouter()
+const { logout } = useAuth()
+const { user } = storeToRefs(loginStateStore())
 
-const avatar = ref(user?.avatar || '')
-const nickname = ref(user?.nickname || '')
+const avatar = computed(() => user.value?.avatar || '')
+const nickname = computed(() => user.value?.nickname || '')
 
 const goToHome = () => {
   router.push('/blogs')

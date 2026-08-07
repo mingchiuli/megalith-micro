@@ -1,4 +1,4 @@
-import DOMPurify, { type Config } from 'dompurify'
+import DOMPurify, { type Config } from 'isomorphic-dompurify'
 
 const sanitizeConfig: Config = {
   USE_PROFILES: { html: true },

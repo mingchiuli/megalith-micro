@@ -1,27 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { Base64 } from 'js-base64'
-
-// 隔离对外部模块的依赖（router / axios 实例 / 业务 http 封装 / OTEL）
-vi.mock('@/router', () => ({
-  default: {
-    push: vi.fn(),
-    hasRoute: vi.fn(() => false),
-    removeRoute: vi.fn()
-  }
-}))
-
-vi.mock('@/http/axios', () => ({
-  httpClient: { get: vi.fn(), post: vi.fn() },
-  longHttpClient: { get: vi.fn(), post: vi.fn() },
-  aiHttpClient: { get: vi.fn(), post: vi.fn() }
-}))
-
-vi.mock('@/http/http', () => ({
-  GET: vi.fn(),
-  POST: vi.fn(),
-  DOWNLOAD: vi.fn(),
-  UPLOAD: vi.fn()
-}))
 
 vi.mock('@/config/otel', () => ({
   createTraceParent: vi.fn(() => '00-trace-span-01')
@@ -30,37 +7,15 @@ vi.mock('@/config/otel', () => ({
 import {
   debounce,
   render,
-  getJWTStruct,
-  submitLogin,
-  checkAccessToken,
-  updateAccessToken,
-  clearLoginState,
-  logout,
   diff,
   findMenuByPath,
   cleanJsonResponse,
   checkButtonAuth,
   getButtonType,
-  getButtonTitle,
-  resetTokenRefreshState
+  getButtonTitle
 } from '@/utils/tools'
-import { httpClient } from '@/http/axios'
-import { GET, POST } from '@/http/http'
-import router from '@/router'
-import {
-  loginStateStore,
-  authMarkStore,
-  menuStore,
-  tabStore,
-  buttonStore
-} from '@/stores'
+import { buttonStore } from '@/stores'
 import { RoutesEnum, RoutesStatus, type Button, type Menu, type MenuNode } from '@/type/entity'
-
-const buildJWT = (payload: Record<string, unknown>): string => {
-  const header = Base64.toBase64(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
-  const body = Base64.toBase64(JSON.stringify(payload))
-  return `${header}.${body}.signature`
-}
 
 const menuNode = (overrides: Partial<Menu> = {}): Menu => ({
   id: 1,
@@ -92,9 +47,7 @@ const buttonNode = (overrides: Partial<Button> = {}): Button => ({
 describe('utils/tools', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    localStorage.clear()
     vi.clearAllMocks()
-    resetTokenRefreshState()
   })
 
   describe('debounce', () => {
@@ -134,139 +87,6 @@ describe('utils/tools', () => {
       const html = render('```js\nconst a = 1\n```')
       expect(html).toContain('<pre>')
       expect(html).toContain('<code')
-    })
-  })
-
-  describe('getJWTStruct', () => {
-    it('从 localStorage 解析 access token 的 payload', () => {
-      const payload = { userId: 42, exp: 1700000000, role: 'admin' }
-      localStorage.setItem('accessToken', buildJWT(payload))
-      const struct = getJWTStruct()
-      expect(struct).toMatchObject(payload)
-    })
-  })
-
-  describe('checkAccessToken', () => {
-    it('token 即将过期时刷新并写入 localStorage', async () => {
-      const soonExp = Math.floor(Date.now() / 1000) + 60
-      localStorage.setItem('accessToken', buildJWT({ exp: soonExp }))
-      vi.mocked(httpClient.post).mockResolvedValueOnce({
-        data: { data: { accessToken: 'NEW_TOKEN' } }
-      } as never)
-
-      const refreshed = await checkAccessToken()
-      expect(refreshed).toBe(true)
-      expect(localStorage.getItem('accessToken')).toBe('NEW_TOKEN')
-    })
-
-    it('token 仍然有效时不发起刷新', async () => {
-      const farExp = Math.floor(Date.now() / 1000) + 7200
-      localStorage.setItem('accessToken', buildJWT({ exp: farExp }))
-      const refreshed = await checkAccessToken()
-      expect(refreshed).toBe(false)
-      expect(httpClient.post).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('submitLogin', () => {
-    it('用户名或密码为空时直接返回', async () => {
-      await submitLogin('PASSWORD', '', '')
-      expect(POST).not.toHaveBeenCalled()
-    })
-
-    it('登录成功后写入 token 并更新 store', async () => {
-      vi.mocked(POST).mockResolvedValueOnce({
-        accessToken: 'AT'
-      } as never)
-      vi.mocked(GET).mockResolvedValueOnce({ username: 'tom' } as never)
-
-      await submitLogin('PASSWORD', 'tom', 'pwd')
-
-      expect(POST).toHaveBeenCalledTimes(1)
-      expect(POST).toHaveBeenCalledWith('/login', {
-        loginType: 'PASSWORD',
-        principal: 'tom',
-        credential: 'pwd'
-      })
-      expect(localStorage.getItem('accessToken')).toBe('AT')
-      expect(localStorage.getItem('refreshToken')).toBeNull()
-      expect(localStorage.getItem('userinfo')).toBe(JSON.stringify({ username: 'tom' }))
-      expect(loginStateStore().login).toBe(true)
-    })
-  })
-
-  describe('updateAccessToken', () => {
-    it('未过期时返回原 token 且不发起刷新请求', async () => {
-      const farExp = Math.floor(Date.now() / 1000) + 7200
-      localStorage.setItem('accessToken', buildJWT({ exp: farExp }))
-      const token = await updateAccessToken()
-      expect(token).toBe(localStorage.getItem('accessToken'))
-      expect(httpClient.post).not.toHaveBeenCalled()
-    })
-
-    it('即将过期时返回刷新后的新 token', async () => {
-      const soonExp = Math.floor(Date.now() / 1000) + 60
-      localStorage.setItem('accessToken', buildJWT({ exp: soonExp }))
-      vi.mocked(httpClient.post).mockResolvedValueOnce({
-        data: { data: { accessToken: 'NEW' } }
-      } as never)
-      const token = await updateAccessToken()
-      expect(token).toBe('NEW')
-      expect(httpClient.post).toHaveBeenCalledWith('/token/refresh', {})
-      expect(localStorage.getItem('accessToken')).toBe('NEW')
-    })
-  })
-
-  describe('logout', () => {
-    it('服务端清理 Cookie 后清空本地登录状态', async () => {
-      localStorage.setItem('accessToken', 'AT')
-      localStorage.setItem('userinfo', '{}')
-      vi.mocked(POST).mockResolvedValueOnce(null as never)
-
-      await logout()
-
-      expect(POST).toHaveBeenCalledWith('/token/logout', {})
-      expect(localStorage.getItem('accessToken')).toBeNull()
-      expect(localStorage.getItem('userinfo')).toBeNull()
-    })
-
-    it('退出请求失败时仍清空本地登录状态', async () => {
-      localStorage.setItem('accessToken', 'AT')
-      vi.mocked(POST).mockRejectedValueOnce(new Error('network'))
-
-      await expect(logout()).rejects.toThrow('network')
-
-      expect(localStorage.getItem('accessToken')).toBeNull()
-      expect(loginStateStore().login).toBe(false)
-    })
-  })
-
-  describe('clearLoginState', () => {
-    it('清空 localStorage 与登录相关 store 状态', () => {
-      localStorage.setItem('accessToken', 'AT')
-      localStorage.setItem('refreshToken', 'RT')
-      localStorage.setItem('userinfo', '{}')
-
-      authMarkStore().auth = true
-      loginStateStore().login = true
-      menuStore().menuTree = menuNode({ name: 'root' })
-      tabStore().editableTabs = [{ name: 'a', title: 'A' }]
-      tabStore().editableTabsValue = 'a'
-
-      vi.mocked(router.hasRoute).mockReturnValueOnce(true)
-
-      clearLoginState()
-
-      expect(localStorage.getItem('accessToken')).toBeNull()
-      expect(localStorage.getItem('refreshToken')).toBeNull()
-      expect(localStorage.getItem('userinfo')).toBeNull()
-      expect(router.removeRoute).toHaveBeenCalledWith('root')
-      expect(authMarkStore().auth).toBe(false)
-      expect(loginStateStore().login).toBe(false)
-      expect(menuStore().menuTree).toBeUndefined()
-      expect(buttonStore().buttonList).toEqual([])
-      expect(tabStore().editableTabs).toEqual([])
-      expect(tabStore().editableTabsValue).toBe('')
     })
   })
 

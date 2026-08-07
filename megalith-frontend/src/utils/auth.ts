@@ -1,113 +1,36 @@
-import { httpClient } from '@/http/axios'
-import { GET, POST } from '@/http/http'
-import router from '@/router'
-import { authMarkStore, buttonStore, loginStateStore, menuStore, tabStore } from '@/stores'
-import type { Data, JWTStruct, LoginType, RefreshStruct, Token, UserInfo } from '@/type/entity'
-import type { AxiosResponse } from 'axios'
-import { Base64 } from 'js-base64'
+import { useRouter } from 'vue-router'
 import { API_ENDPOINTS } from '@/config/apiConfig'
-import { storage } from '@/utils/storage'
+import { useHttp } from '@/http/http'
+import { clearAuthStores } from '@/router'
+import { loginStateStore } from '@/stores'
+import type { LoginType, UserInfo } from '@/type/entity'
 
-export const clearLoginState = () => {
-  storage.clearAuth()
-  const rootName = menuStore().menuTree?.name
-  if (rootName && router.hasRoute(rootName)) {
-    router.removeRoute(rootName)
-  }
-  authMarkStore().auth = false
-  loginStateStore().login = false
-  menuStore().menuTree = undefined
-  buttonStore().buttonList = []
-  tabStore().editableTabs = []
-  tabStore().editableTabsValue = ''
-}
+export const useAuth = () => {
+  const api = useHttp()
+  const router = useRouter()
 
-export const logout = async (): Promise<void> => {
-  try {
-    await POST<null>(API_ENDPOINTS.AUTH.TOKEN_LOGOUT, {})
-  } finally {
-    clearLoginState()
-  }
-}
+  const clearLoginState = () => clearAuthStores(router)
 
-export const getJWTStruct = (): JWTStruct => {
-  const accessToken = storage.getAccessToken()
-  if (!accessToken) {
-    throw new Error('No access token found')
-  }
-  const tokenArray = accessToken.split('.')
-  return JSON.parse(Base64.fromBase64(tokenArray[1]!))
-}
-
-let refreshPromise: Promise<string> | null = null
-let lastRefreshTime = 0
-const REFRESH_COOLDOWN_SECONDS = 5
-
-export const resetTokenRefreshState = () => {
-  refreshPromise = null
-  lastRefreshTime = 0
-}
-
-export const updateAccessToken = async (): Promise<string> => {
-  const accessToken = storage.getAccessToken()
-  if (!accessToken) {
-    return ''
-  }
-
-  const tokenArray = accessToken.split('.')
-  if (tokenArray.length < 2) {
-    return accessToken
-  }
-
-  const jwt: JWTStruct = JSON.parse(Base64.fromBase64(tokenArray[1]!))
-  const now = Math.floor(Date.now() / 1000)
-
-  if (jwt.exp - now > 90 || now - lastRefreshTime < REFRESH_COOLDOWN_SECONDS) {
-    return accessToken
-  }
-
-  if (refreshPromise) {
-    return refreshPromise
-  }
-
-  refreshPromise = (async () => {
+  const logout = async (): Promise<void> => {
     try {
-      const data = await httpClient.post<never, AxiosResponse<Data<RefreshStruct>>>(
-        API_ENDPOINTS.AUTH.TOKEN_REFRESH,
-        {}
-      )
-      const token = data.data.data.accessToken
-      storage.setAccessToken(token)
-      lastRefreshTime = Math.floor(Date.now() / 1000)
-      return token
-    } catch {
-      return accessToken
+      await api.POST<null>(API_ENDPOINTS.AUTH.TOKEN_LOGOUT, {})
     } finally {
-      setTimeout(() => {
-        refreshPromise = null
-      }, 1000)
+      clearLoginState()
     }
-  })()
+  }
 
-  return refreshPromise
-}
+  const submitLogin = async (loginType: LoginType, username: string, password: string) => {
+    if (!username || !password) return
+    await api.POST<unknown>(API_ENDPOINTS.AUTH.LOGIN, {
+      loginType,
+      principal: username,
+      credential: password
+    })
+    loginStateStore().login = true
+    loginStateStore().user = await api.GET<UserInfo>(API_ENDPOINTS.AUTH.USER_INFO)
+    const redirect = router.currentRoute.value.query.redirect
+    await router.push(typeof redirect === 'string' ? redirect : '/backend')
+  }
 
-export const checkAccessToken = async (): Promise<boolean> => {
-  const oldToken = storage.getAccessToken()
-  const newToken = await updateAccessToken()
-  return oldToken !== newToken
-}
-
-export const submitLogin = async (loginType: LoginType, username: string, password: string) => {
-  if (!username || !password) return
-  const token = await POST<Token>(API_ENDPOINTS.AUTH.LOGIN, {
-    loginType,
-    principal: username,
-    credential: password
-  })
-  storage.setAccessToken(token.accessToken)
-  loginStateStore().login = true
-  const info = await GET<UserInfo>(API_ENDPOINTS.AUTH.USER_INFO)
-  storage.setUserInfo(info)
-  await router.push('/backend')
+  return { clearLoginState, logout, submitLogin }
 }

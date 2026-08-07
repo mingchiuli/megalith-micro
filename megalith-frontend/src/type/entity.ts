@@ -158,10 +158,6 @@ export interface LoginStruct {
 
 export type LoginType = 'PASSWORD' | 'EMAIL' | 'SMS'
 
-export interface Token {
-  accessToken: string
-}
-
 export interface UserInfo {
   nickname: string
   avatar: string
@@ -200,22 +196,10 @@ export interface MenuRoute extends MenuNodeBase, ChildrenFather<MenuNode> {
 export type MenuNode = MenuRoute | Button
 export type Menu = MenuRoute
 
-export interface JWTStruct {
-  sub: string
-  token_use: 'access' | 'refresh' | 'websocket'
-  iat: number
-  nbf: number
-  exp: number
-}
-
 export interface CatalogueLabel extends ChildrenFather<CatalogueLabel> {
   id: string
   label: string
   dist: number
-}
-
-export interface RefreshStruct {
-  accessToken: string
 }
 
 export interface AiContentResp {

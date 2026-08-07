@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { GET } from '@/http/http'
+import { useHttp } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import Catalogue from '@/components/CatalogueItem.vue'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
@@ -7,13 +7,16 @@ import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { themeStore } from '@/stores'
 import { sanitizeHtml } from '@/utils/sanitize'
+import { useUniversalData } from '@/composables'
+import { useHead } from '@unhead/vue'
 
 const route = useRoute()
+const { GET } = useHttp()
 const token = route.query.token
 const blogId = route.params.id as string
 const loading = ref(true)
 const loadingCatalogue = ref(true)
-const affixHeight = ref(document.body.clientWidth > 900 ? '100px' : '0')
+const affixHeight = ref('0')
 const showCatalogue = ref(false)
 const catalogueWidth = ref(200)
 const right = ref(10)
@@ -69,34 +72,44 @@ const computeWidth = () => {
 }
 
 onMounted(() => {
+  affixHeight.value = document.body.clientWidth > 900 ? '100px' : '0'
   window.addEventListener('resize', computeWidth)
   theme.initTheme()
 })
 onUnmounted(() => window.removeEventListener('resize', computeWidth))
-const loadBlog = async () => {
-  let data: BlogExhibit
+const fetchBlog = async () => {
   if (token) {
-    data = await GET<BlogExhibit>(
+    return GET<BlogExhibit>(
       buildQueryUrl(API_ENDPOINTS.BLOG_PUBLIC.GET_SECRET_BLOG(blogId), {
         readToken: String(token)
       })
     )
-  } else {
-    data = await GET<BlogExhibit>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOG_INFO(blogId))
   }
+  return GET<BlogExhibit>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOG_INFO(blogId))
+}
+
+const applyBlog = (data: BlogExhibit) => {
   blog.title = data.title
-  document.title = data.title
+  blog.description = data.description
   blog.avatar = data.avatar
   blog.readCount = data.readCount
   blog.nickname = data.nickname
   blog.created = data.created
   blog.content = '>' + data.description + '\n\n' + data.content
+  loading.value = false
 }
 
-void loadBlog().catch(() => {
-  loading.value = false
-  loadingCatalogue.value = false
-})
+useUniversalData(`blog:${blogId}:${String(token ?? '')}`, fetchBlog, applyBlog)
+useHead(() => ({
+  title: blog.title || undefined,
+  meta: blog.description
+    ? [
+        { name: 'description', content: blog.description },
+        { property: 'og:title', content: blog.title },
+        { property: 'og:description', content: blog.description }
+      ]
+    : []
+}))
 </script>
 
 <template>

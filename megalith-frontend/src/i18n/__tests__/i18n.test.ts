@@ -1,15 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { i18n, setLocale } from '@/i18n'
+import { createAppI18n, persistLocale } from '@/i18n'
 
 describe('i18n', () => {
   it('switches between Chinese and English and persists the selection', () => {
-    setLocale('en-US')
+    const i18n = createAppI18n()
+    i18n.global.locale.value = 'en-US'
+    persistLocale('en-US')
 
     expect(i18n.global.t('common.confirm')).toBe('Confirm')
     expect(document.documentElement.lang).toBe('en-US')
-    expect(localStorage.getItem('megalith-locale')).toBe('en-US')
+    expect(document.cookie).toContain('megalith_locale=en-US')
 
-    setLocale('zh-CN')
+    i18n.global.locale.value = 'zh-CN'
+    persistLocale('zh-CN')
 
     expect(i18n.global.t('common.confirm')).toBe('确定')
     expect(document.documentElement.lang).toBe('zh-CN')

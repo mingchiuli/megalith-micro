@@ -1,9 +1,10 @@
 import { config } from '@vue/test-utils'
 import { beforeEach } from 'vitest'
-import { i18n, setLocale } from '@/i18n'
+import { createAppI18n } from '@/i18n'
 
+const i18n = createAppI18n()
 config.global.plugins = [i18n]
 
 beforeEach(() => {
-  setLocale('zh-CN')
+  i18n.global.locale.value = 'zh-CN'
 })

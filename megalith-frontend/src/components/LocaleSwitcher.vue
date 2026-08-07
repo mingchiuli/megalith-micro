@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { Switch } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
-import { setLocale, type AppLocale } from '@/i18n'
+import { persistLocale, type AppLocale } from '@/i18n'
 
 const { locale, t } = useI18n({ useScope: 'global' })
 const selectedLocale = computed({
   get: () => locale.value as AppLocale,
-  set: (value: AppLocale) => setLocale(value)
+  set: (value: AppLocale) => {
+    locale.value = value
+    persistLocale(value)
+  }
 })
 const options = computed(() => [
   { value: 'zh-CN' as const, label: t('common.chinese') },
