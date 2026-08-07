@@ -1,14 +1,17 @@
 <script lang="ts" setup>
-import type { BlogDesc, PageAdapter } from '@/type/entity'
-import { GET } from '@/http/http'
+import type { BlogDesc, PageAdapter, SearchPage } from '@/type/entity'
+import { useHttp } from '@/http/http'
 import { loginStateStore, tabStore, blogsStore, menuStore, themeStore } from '@/stores'
-import router from '@/router'
 import Search from '@/components/SearchItem.vue'
 import { Status } from '@/type/entity'
-import { API_ENDPOINTS } from '@/config/apiConfig'
+import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
 import { Moon, Sunny } from '@element-plus/icons-vue'
 import { sanitizeHighlight } from '@/utils/sanitize'
+import { useUniversalData } from '@/composables'
 const loading = ref(false)
+const { GET } = useHttp()
+const router = useRouter()
+const route = useRoute()
 const searchDialogVisible = ref(false)
 const searchRef = useTemplateRef<InstanceType<typeof Search>>('searchRef')
 const readTokenDialogVisible = ref(false)
@@ -25,6 +28,9 @@ const page: PageAdapter<BlogDesc> = reactive({
 const { searchPageNum } = storeToRefs(blogsStore())
 const { pageNum } = storeToRefs(blogsStore())
 const { keywords } = storeToRefs(blogsStore())
+const routePage = Number(route.query.page)
+pageNum.value = Number.isInteger(routePage) && routePage > 0 ? routePage : pageNum.value
+if (typeof route.query.q === 'string') keywords.value = route.query.q
 
 const { login } = storeToRefs(loginStateStore())
 const theme = themeStore()
@@ -59,20 +65,20 @@ const refresh = () => {
   getPage(1)
 }
 
-const queryBlogs = async (pageNo: number) => {
-  loading.value = true
-  try {
-    const data = await GET<PageAdapter<BlogDesc>>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOGS_PAGE(pageNo))
+const applyBlogs = (data: PageAdapter<BlogDesc>) => {
     statImg(data.content)
     page.content = data.content
     page.totalElements = data.totalElements
-    if (!imgCount) loading.value = false
-  } catch {
-    page.content = []
-    page.totalElements = 0
-  } finally {
-    if (!imgCount) loading.value = false
-  }
+    loading.value = false
+}
+
+const fetchBlogs = (pageNo: number) =>
+  GET<PageAdapter<BlogDesc>>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOGS_PAGE(pageNo))
+
+const queryBlogs = async (pageNo: number) => {
+  loading.value = true
+  const data = await fetchBlogs(pageNo)
+  applyBlogs(data)
 }
 
 const statImg = (items: BlogDesc[]) => {
@@ -135,9 +141,24 @@ const goToBack = () => {
 
 const { content, totalElements, pageSize } = toRefs(page)
 
-;(async () => {
-  await getPage(keywords.value ? searchPageNum.value : pageNum.value)
-})()
+const initialPage = keywords.value ? searchPageNum.value : pageNum.value
+useUniversalData<PageAdapter<BlogDesc>>(
+  `blogs:${keywords.value}:${initialPage}`,
+  () => {
+    if (!keywords.value) return fetchBlogs(initialPage)
+    return GET<SearchPage<BlogDesc>>(
+      buildCommonUrls.searchQuery({
+        keywords: keywords.value,
+        currentPage: initialPage,
+        allInfo: true
+      })
+    )
+  },
+  (data) => {
+    if (keywords.value) fillSearchData(data)
+    else applyBlogs(data)
+  }
+)
 </script>
 
 <template>

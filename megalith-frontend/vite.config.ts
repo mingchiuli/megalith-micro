@@ -56,6 +56,11 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 1000
     },
 
+    ssr: {
+      // Element Plus component entrypoints import CSS, which Node cannot load when externalized.
+      noExternal: ['element-plus']
+    },
+
     // 优化依赖预构建
     optimizeDeps: {
       include: ['vue', 'vue-router', 'pinia', 'element-plus', 'axios']

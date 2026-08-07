@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { GET, POST } from '@/http/http'
+import { useHttp } from '@/http/http'
 import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
-import router from '@/router'
 import { Timer } from '@element-plus/icons-vue'
 import { downloadSQLData } from '@/utils/download'
 import { render } from '@/utils/markdown'
@@ -9,8 +8,11 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissi
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
+import { useUniversalData } from '@/composables'
 
 const { t } = useI18n()
+const { GET, POST, DOWNLOAD } = useHttp()
+const router = useRouter()
 
 const { fixSelection, fix, moreItems } = displayState()
 const input = ref('')
@@ -99,7 +101,7 @@ const download = async () => {
     createStart: dateTimeScope.value[0],
     createEnd: dateTimeScope.value[1]
   })
-  await downloadSQLData(url, 'blogs', uploadPercentage, showPercentage)
+  await downloadSQLData(DOWNLOAD, url, 'blogs', uploadPercentage, showPercentage)
 }
 
 const handleCheck = (row: BlogSys) => {
@@ -131,23 +133,27 @@ const searchBlogsAction = () => {
   searchBlogs()
 }
 
-const searchBlogs = async () => {
-  loading.value = true
-  try {
-    const url = buildCommonUrls.blogQuery({
+const fetchAdminBlogs = async () => {
+  const url = buildCommonUrls.blogQuery({
       currentPage: pageNumber.value,
       size: pageSize.value,
       keywords: input.value,
       createStart: dateTimeScope.value[0],
       createEnd: dateTimeScope.value[1],
       status: status.value
-    })
-    const data = await GET<PageAdapter<BlogSys>>(url)
-    page.content = data.content
-    page.totalElements = data.totalElements
-  } finally {
-    loading.value = false
-  }
+  })
+  return GET<PageAdapter<BlogSys>>(url)
+}
+
+const applyAdminBlogs = (data: PageAdapter<BlogSys>) => {
+  page.content = data.content
+  page.totalElements = data.totalElements
+  loading.value = false
+}
+
+const searchBlogs = async () => {
+  loading.value = true
+  applyAdminBlogs(await fetchAdminBlogs())
 }
 
 const handleSizeChange = async (val: number) => {
@@ -166,9 +172,7 @@ const clearDatePicker = async () => {
   await searchBlogs()
 }
 
-;(async () => {
-  await searchBlogs()
-})()
+useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs)
 </script>
 
 <template>

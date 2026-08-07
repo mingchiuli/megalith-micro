@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { GET, POST } from '@/http/http'
+import { useHttp } from '@/http/http'
 import type { PageAdapter, RoleSys } from '@/type/entity'
 import type { ElTree, FormInstance, FormRules } from 'element-plus'
 import { Status, ButtonAuth } from '@/type/entity'
@@ -8,8 +8,10 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissi
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
+import { useUniversalData } from '@/composables'
 
 const { t } = useI18n()
+const { GET, POST, DOWNLOAD } = useHttp()
 
 const { moreItems, fixSelection, fix } = displayState()
 const dialogVisible = ref(false)
@@ -82,6 +84,7 @@ type MenuForm = {
 
 const download = async () => {
   await downloadSQLData(
+    DOWNLOAD,
     API_ENDPOINTS.ROLE_ADMIN.DOWNLOAD_ROLES,
     'roles',
     uploadPercentage,
@@ -169,19 +172,23 @@ const delBatch = async () => {
   await queryRoles()
 }
 
+const fetchRoles = async () => {
+  const url = buildCommonUrls.roleQuery({
+    currentPage: pageNumber.value,
+    size: pageSize.value
+  })
+  return GET<PageAdapter<RoleSys>>(url)
+}
+
+const applyRoles = (data: PageAdapter<RoleSys>) => {
+  content.value = data.content
+  totalElements.value = data.totalElements
+  loading.value = false
+}
+
 const queryRoles = async () => {
   loading.value = true
-  try {
-    const url = buildCommonUrls.roleQuery({
-      currentPage: pageNumber.value,
-      size: pageSize.value
-    })
-    const data = await GET<PageAdapter<RoleSys>>(url)
-    content.value = data.content
-    totalElements.value = data.totalElements
-  } finally {
-    loading.value = false
-  }
+  applyRoles(await fetchRoles())
 }
 
 const handleSizeChange = async (val: number) => {
@@ -229,9 +236,7 @@ const handleDelete = async (row: RoleSys) => {
   await queryRoles()
 }
 
-;(async () => {
-  await queryRoles()
-})()
+useUniversalData('admin:roles', fetchRoles, applyRoles)
 </script>
 
 <template>

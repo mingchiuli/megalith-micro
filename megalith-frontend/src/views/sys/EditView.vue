@@ -10,7 +10,7 @@ import type {
   UploadRequestOptions,
   UploadUserFile
 } from 'element-plus'
-import { GET, POST, UPLOAD } from '@/http/http'
+import { useHttp } from '@/http/http'
 import {
   type BlogEdit,
   type BlogPermissions,
@@ -23,7 +23,6 @@ import {
   SensitiveType,
   Status
 } from '@/type/entity'
-import router from '@/router'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
 import { render } from '@/utils/markdown'
 import { checkButtonAuth, getButtonTitle, getButtonType } from '@/utils/permissions'
@@ -33,8 +32,11 @@ import { logger } from '@/utils/logger'
 import { useAiGenerate } from '@/composables'
 import { useI18n } from 'vue-i18n'
 import { Plus } from '@element-plus/icons-vue'
+import { useUniversalData } from '@/composables'
 
 const { t } = useI18n()
+const { GET, POST, UPLOAD } = useHttp()
+const router = useRouter()
 const imageModel = AI_MODELS.IMAGE_MODEL
 const aiThinkingCollapse = ref<string[]>(['thinking'])
 const thinkingRef = useTemplateRef<HTMLDivElement>('thinkingRef')
@@ -345,12 +347,15 @@ const handleDescSelect = () => {
 }
 
 const loadContent = ref(true)
-const loadEditContent = async (form: EditForm, blogId: string | undefined) => {
+const fetchEditContent = async (blogId: string | undefined) => {
   let url = API_ENDPOINTS.BLOG_ADMIN.EDIT_PULL_ECHO
   if (blogId) {
     url = buildQueryUrl(url, { blogId })
   }
-  const data = await GET<BlogEdit>(url)
+  return GET<BlogEdit>(url)
+}
+
+const applyEditContent = (data: BlogEdit) => {
   form.title = data.title
   form.description = data.description
   form.content = data.content
@@ -391,10 +396,8 @@ const handleConfirmUpload = async () => {
   }
 }
 
-;(async () => {
-  await loadEditContent(form, blogId)
-  await loadAiModels()
-})()
+useUniversalData(`admin:edit:${blogId ?? 'new'}`, () => fetchEditContent(blogId), applyEditContent)
+onMounted(() => void loadAiModels())
 </script>
 
 <template>
@@ -585,13 +588,16 @@ const handleConfirmUpload = async () => {
       </el-form-item>
 
       <el-form-item class="content" prop="content">
-        <CustomEditorItem
-          v-if="!loadContent"
-          v-model:content="form.content"
-          @sensitive="dealSensitive"
-          :form-status="form.status"
-          :manage-assets="permissions.manageAssets"
-        />
+        <ClientOnly>
+          <CustomEditorItem
+            v-if="!loadContent"
+            v-model:content="form.content"
+            @sensitive="dealSensitive"
+            :form-status="form.status"
+            :manage-assets="permissions.manageAssets"
+          />
+          <template #fallback><EditorLoadingItem /></template>
+        </ClientOnly>
       </el-form-item>
 
       <div class="submit-button">

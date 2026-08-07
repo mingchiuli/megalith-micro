@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import { GET } from '@/http/http'
-import router from '@/router'
+import { useHttp } from '@/http/http'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+const { GET } = useHttp()
+const router = useRouter()
 
 const { blogId } = defineProps<{
   blogId: number

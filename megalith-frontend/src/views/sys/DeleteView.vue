@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { GET } from '@/http/http'
+import { useHttp } from '@/http/http'
 import type { BlogDelSys, PageAdapter } from '@/type/entity'
 import { Status, ButtonAuth } from '@/type/entity'
 import { render } from '@/utils/markdown'
@@ -7,8 +7,10 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissi
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
+import { useUniversalData } from '@/composables'
 
 const { t } = useI18n()
+const { GET } = useHttp()
 
 const { moreItems, fix } = displayState()
 const loading = ref(false)
@@ -27,19 +29,23 @@ const handleSelectionChange = (val: BlogDelSys[]) => {
   delBtlStatus.value = val.length === 0
 }
 
+const fetchDeletedBlogs = async () => {
+  const url = buildQueryUrl(API_ENDPOINTS.BLOG_ADMIN.GET_DELETED_BLOGS, {
+    currentPage: pageNumber.value,
+    size: pageSize.value
+  })
+  return GET<PageAdapter<BlogDelSys>>(url)
+}
+
+const applyDeletedBlogs = (data: PageAdapter<BlogDelSys>) => {
+  content.value = data.content
+  totalElements.value = data.totalElements
+  loading.value = false
+}
+
 const queryDelBLogs = async () => {
   loading.value = true
-  try {
-    const url = buildQueryUrl(API_ENDPOINTS.BLOG_ADMIN.GET_DELETED_BLOGS, {
-      currentPage: pageNumber.value,
-      size: pageSize.value
-    })
-    const data = await GET<PageAdapter<BlogDelSys>>(url)
-    content.value = data.content
-    totalElements.value = data.totalElements
-  } finally {
-    loading.value = false
-  }
+  applyDeletedBlogs(await fetchDeletedBlogs())
 }
 
 const handleCurrentChange = async (pageNo: number) => {
@@ -68,9 +74,7 @@ const handleResume = async (row: BlogDelSys) => {
   await queryDelBLogs()
 }
 
-;(async () => {
-  await queryDelBLogs()
-})()
+useUniversalData('admin:deleted-blogs', fetchDeletedBlogs, applyDeletedBlogs)
 </script>
 
 <template>

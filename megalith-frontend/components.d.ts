@@ -14,6 +14,7 @@ declare module 'vue' {
     AuthButton: typeof import('./src/components/sys/AuthButton.vue')['default']
     BackHeaderItem: typeof import('./src/components/sys/BackHeaderItem.vue')['default']
     CatalogueItem: typeof import('./src/components/CatalogueItem.vue')['default']
+    ClientOnly: typeof import('./src/components/ClientOnly.vue')['default']
     DiscussItem: typeof import('./src/components/DiscussItem.vue')['default']
     EditorItem: typeof import('./src/components/sys/EditorItem.vue')['default']
     EditorLoadingItem: typeof import('./src/components/sys/EditorLoadingItem.vue')['default']

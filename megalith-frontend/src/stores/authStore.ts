@@ -12,7 +12,8 @@ export const welcomeStateStore = defineStore('welcomeStateStore', () => {
  */
 export const loginStateStore = defineStore('loginStateStore', () => {
   const login = ref(false)
-  return { login }
+  const user = ref<UserInfo>()
+  return { login, user }
 })
 
 /**
@@ -22,3 +23,4 @@ export const authMarkStore = defineStore('authMarkStore', () => {
   const auth = ref(false)
   return { auth }
 })
+import type { UserInfo } from '@/type/entity'

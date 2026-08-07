@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { mount } from '@vue/test-utils'
 
-vi.mock('@/http/axios', () => ({
-  aiHttpClient: { get: vi.fn() }
+vi.mock('@/http/http', () => ({
+  useHttp: () => ({ aiHttpClient: { get: vi.fn() } })
 }))
 
 vi.mock('@/utils/logger', () => ({
@@ -22,7 +23,13 @@ const createWorkflow = () => {
     description: '',
     link: ''
   }
-  const workflow = useAiGenerate(form, 'image-model')
+  let workflow!: ReturnType<typeof useAiGenerate>
+  const wrapper = mount({
+    setup() {
+      workflow = useAiGenerate(form, 'image-model')
+      return () => null
+    }
+  })
   workflow.aiModels.value = [
     {
       name: 'text-model',
@@ -32,7 +39,7 @@ const createWorkflow = () => {
     { name: 'image-model', model: 'image-model', capabilities: ['image'] }
   ]
   workflow.aiModel.value = 'text-model'
-  return { form, workflow }
+  return { form, workflow, wrapper }
 }
 
 const mockTitleSummary = () => {

@@ -1,75 +1,128 @@
-import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
+import axios, {
+  AxiosError,
+  type AxiosInstance,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig
+} from 'axios'
 import type { Data } from '@/type/entity'
-import { clearLoginState, updateAccessToken } from '@/utils/auth'
-import router from '@/router'
-import { loginStateStore } from '@/stores'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 import { createTraceParent } from '@/config/otel'
-import { i18n } from '@/i18n'
 
-const httpClient = axios.create({
-  baseURL: API_CONFIG.BASE_URL,
-  timeout: API_CONFIG.TIMEOUT
-})
-
-const longHttpClient = axios.create({
-  baseURL: API_CONFIG.BASE_URL,
-  timeout: API_CONFIG.LONG_TIMEOUT
-})
-
-const aiHttpClient = axios.create({
-  baseURL: API_CONFIG.AI_BASE_URL,
-  timeout: API_CONFIG.LONG_TIMEOUT
-})
-
-// 请求拦截器
-const requestInterceptor = async (config: InternalAxiosRequestConfig) => {
-  const url = config.url
-  if (url !== API_ENDPOINTS.AUTH.TOKEN_REFRESH && loginStateStore().login) {
-    config.headers.Authorization = await updateAccessToken()
-  }
-  // Inject trace context for non-Ollama requests
-  if (config.baseURL !== API_CONFIG.AI_BASE_URL) {
-    config.headers.traceparent = createTraceParent()
-  }
-  return config
+export type HttpClientOptions = {
+  baseURL?: string
+  cookie?: string
+  origin?: string
+  onSetCookie?: (value: string[]) => void
+  onUnauthorized?: () => void
+  onError?: (error: AxiosError<Data<unknown>>) => void
 }
 
-// 响应拦截器
-const responseInterceptor = (response: AxiosResponse) => {
-  if (response.status >= 200 && response.status < 300) {
+export type HttpClients = {
+  httpClient: AxiosInstance
+  longHttpClient: AxiosInstance
+  aiHttpClient: AxiosInstance
+}
+
+const setCookieValues = (headers: AxiosResponse['headers']): string[] => {
+  const value = headers['set-cookie']
+  if (!value) return []
+  return Array.isArray(value) ? value : [value]
+}
+
+const replaceCookie = (source: string, setCookie: string): string => {
+  const pair = setCookie.split(';', 1)[0]
+  if (!pair) return source
+  const [name] = pair.split('=', 1)
+  const values = source
+    .split(';')
+    .map((value) => value.trim())
+    .filter((value) => value && !value.startsWith(`${name}=`))
+  values.push(pair)
+  return values.join('; ')
+}
+
+export const createHttpClients = (options: HttpClientOptions = {}): HttpClients => {
+  let cookie = options.cookie ?? ''
+  let refreshPromise: Promise<void> | null = null
+  const browser = typeof window !== 'undefined'
+  const baseURL = options.baseURL ?? API_CONFIG.BASE_URL
+
+  const common = {
+    baseURL,
+    withCredentials: true,
+    timeout: API_CONFIG.TIMEOUT
+  }
+  const httpClient = axios.create(common)
+  const longHttpClient = axios.create({ ...common, timeout: API_CONFIG.LONG_TIMEOUT })
+  const aiHttpClient = axios.create({
+    baseURL: API_CONFIG.AI_BASE_URL,
+    timeout: API_CONFIG.LONG_TIMEOUT
+  })
+  const refreshClient = axios.create(common)
+
+  const applyRequestContext = (config: InternalAxiosRequestConfig) => {
+    config.headers.traceparent = createTraceParent()
+    if (!browser && cookie) config.headers.Cookie = cookie
+    if (!browser && options.origin) config.headers.Origin = options.origin
+    return config
+  }
+
+  const captureCookies = (response: AxiosResponse) => {
+    const values = setCookieValues(response.headers)
+    if (values.length) {
+      values.forEach((value) => {
+        cookie = replaceCookie(cookie, value)
+      })
+      options.onSetCookie?.(values)
+    }
     return response
   }
 
-  ElNotification.error({
-    title: i18n.global.t('error.request'),
-    message: response.data.msg,
-    showClose: true
-  })
-  return Promise.reject(new Error(response.data.msg))
-}
-
-// 错误拦截器
-const errorInterceptor = (error: AxiosError<Data<unknown>>) => {
-  ElNotification.error({
-    title: error.code,
-    message: error.response?.data.msg ?? error.message,
-    showClose: true
-  })
-
-  if (error.response?.status === 401) {
-    clearLoginState()
-    router.push({
-      name: 'login'
-    })
+  const refresh = async () => {
+    if (!refreshPromise) {
+      refreshPromise = refreshClient
+        .post(API_ENDPOINTS.AUTH.TOKEN_REFRESH, null, {
+          headers: {
+            ...(cookie ? { Cookie: cookie } : {}),
+            ...(options.origin ? { Origin: options.origin } : {}),
+            traceparent: createTraceParent()
+          }
+        })
+        .then(captureCookies)
+        .then(() => undefined)
+        .finally(() => {
+          refreshPromise = null
+        })
+    }
+    return refreshPromise
   }
-  return Promise.reject(error)
+
+  const responseError = async (error: AxiosError<Data<unknown>>) => {
+    const config = error.config as (InternalAxiosRequestConfig & { _retried?: boolean }) | undefined
+    if (
+      error.response?.status === 401 &&
+      config &&
+      !config._retried &&
+      config.url !== API_ENDPOINTS.AUTH.TOKEN_REFRESH
+    ) {
+      config._retried = true
+      try {
+        await refresh()
+        if (!browser && cookie) config.headers.Cookie = cookie
+        return httpClient.request(config)
+      } catch {
+        options.onUnauthorized?.()
+      }
+    }
+
+    options.onError?.(error)
+    return Promise.reject(error)
+  }
+
+  ;[httpClient, longHttpClient].forEach((client) => {
+    client.interceptors.request.use(applyRequestContext)
+    client.interceptors.response.use(captureCookies, responseError)
+  })
+
+  return { httpClient, longHttpClient, aiHttpClient }
 }
-
-// 应用拦截器
-httpClient.interceptors.request.use(requestInterceptor)
-httpClient.interceptors.response.use(responseInterceptor, errorInterceptor)
-longHttpClient.interceptors.request.use(requestInterceptor)
-longHttpClient.interceptors.response.use(responseInterceptor, errorInterceptor)
-
-export { httpClient, longHttpClient, aiHttpClient }

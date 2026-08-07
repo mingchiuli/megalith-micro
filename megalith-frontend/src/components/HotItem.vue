@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { Hot } from '@/type/entity'
-import { GET } from '@/http/http'
-import router from '@/router'
+import { useHttp } from '@/http/http'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 
+const { GET } = useHttp()
+const router = useRouter()
 const hots = ref<Hot[]>()
 const loading = ref(false)
 

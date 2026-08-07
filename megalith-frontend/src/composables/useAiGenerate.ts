@@ -1,10 +1,11 @@
-import { aiHttpClient } from '@/http/axios'
+import { useHttp } from '@/http/http'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 import { cleanJsonResponse } from '@/utils/common'
 import { logger } from '@/utils/logger'
 import { ollamaStreamRequest, type StreamChunk, type ThinkOption } from '@/utils/ollamaStream'
 import type { AiModel, AiModelsResp } from '@/type/entity'
-import { i18n, type AppLocale } from '@/i18n'
+import type { AppLocale } from '@/i18n'
+import { useI18n } from 'vue-i18n'
 
 type AiGenerateForm = {
   content: string
@@ -94,6 +95,8 @@ const requiredString = (value: unknown, field: string) => {
 }
 
 export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
+  const { aiHttpClient } = useHttp()
+  const { locale, t } = useI18n()
   const aiModels = ref<AiModel[]>([])
   const aiModel = ref('')
   const aiLoading = ref(false)
@@ -127,7 +130,7 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
     content: form.content,
     model: aiModel.value,
     think: getThinkingOption(),
-    locale: i18n.global.locale.value as AppLocale
+    locale: locale.value as AppLocale
   })
 
   const loadAiModels = async () => {
@@ -225,9 +228,9 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
     failedStep.value =
       aiStep.value === 1 || aiStep.value === 2 || aiStep.value === 3 ? aiStep.value : null
     const label = failedStep.value
-      ? i18n.global.t(STEP_LABEL_KEYS[failedStep.value])
-      : i18n.global.t('ai.contentGeneration')
-    aiError.value = i18n.global.t('ai.generationFailed', { step: label })
+      ? t(STEP_LABEL_KEYS[failedStep.value])
+      : t('ai.contentGeneration')
+    aiError.value = t('ai.generationFailed', { step: label })
     logger.warn('AI 生成流程失败:', error)
   }
 
@@ -247,8 +250,8 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
       await generateTitleSummary(context)
       if (form.link || !imageModelAvailable.value) {
         imageSkipReason.value = form.link
-          ? i18n.global.t('ai.skippedExistingCover')
-          : i18n.global.t('ai.skippedUnavailableModel')
+          ? t('ai.skippedExistingCover')
+          : t('ai.skippedUnavailableModel')
         aiStep.value = 4
         return
       }

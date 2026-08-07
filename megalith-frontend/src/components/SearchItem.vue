@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { GET } from '@/http/http'
-import router from '@/router'
+import { useHttp } from '@/http/http'
 import type { BlogDesc, PageAdapter, SearchPage } from '@/type/entity'
 import type {
   AutocompleteFetchSuggestions,
@@ -15,6 +14,8 @@ import { buildCommonUrls } from '@/config/apiConfig'
 import { sanitizeHighlight } from '@/utils/sanitize'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
+const { GET } = useHttp()
+const router = useRouter()
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
   refresh: [payload: void]
@@ -54,7 +55,7 @@ let searchOrder = 1
 let timeout: NodeJS.Timeout
 let suggestionEle: HTMLElement | null = null
 let controller: AbortController | null = null
-const div = document.createElement('div')
+let loadingTarget: HTMLDivElement | null = null
 let loadingInstance: ReturnType<typeof ElLoading.service> | null = null
 
 const searchAbstractAsync: AutocompleteFetchSuggestions = (
@@ -88,7 +89,8 @@ const searchAbstractAsync: AutocompleteFetchSuggestions = (
           if (!suggestionEle) {
             suggestionEle = document.querySelector('.select-list .el-autocomplete-suggestion__wrap')
             if (!suggestionEle) return
-            suggestionEle.append(div)
+            if (!loadingTarget) loadingTarget = document.createElement('div')
+            suggestionEle.append(loadingTarget)
             controller = new AbortController()
             const { signal } = controller
             fin = false
@@ -119,8 +121,9 @@ const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
   if (!lock && keywords.value && e.scrollTop + e.clientHeight >= e.scrollHeight) {
     if (fin) return
     lock = true
-    e.append(div)
-    loadingInstance = ElLoading.service({ target: div })
+    if (!loadingTarget) loadingTarget = document.createElement('div')
+    e.append(loadingTarget)
+    loadingInstance = ElLoading.service({ target: loadingTarget })
     try {
       const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, null)
       if (page.content.length < page.pageSize) {
@@ -130,11 +133,11 @@ const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
         })
         cb(suggestionList.value)
         controller?.abort()
-        if (e.lastChild === div) e.removeChild(div)
+        if (e.lastChild === loadingTarget) e.removeChild(loadingTarget)
         fin = true
         return
       }
-      if (e.lastChild === div) e.removeChild(div)
+      if (e.lastChild === loadingTarget) e.removeChild(loadingTarget)
       currentPage++
       page.content.forEach((blogsDesc: BlogDesc) => {
         blogsDesc.value = keywords.value
@@ -142,7 +145,7 @@ const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
       })
       cb(suggestionList.value)
     } finally {
-      if (e.lastChild === div) e.removeChild(div)
+      if (e.lastChild === loadingTarget) e.removeChild(loadingTarget)
       loadingInstance?.close()
       lock = false
     }

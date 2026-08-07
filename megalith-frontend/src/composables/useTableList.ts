@@ -1,5 +1,5 @@
 import type { PageAdapter } from '@/type/entity'
-import { POST } from '@/http/http'
+import { useHttp } from '@/http/http'
 import { downloadSQLData } from '@/utils/download'
 import { displayState } from '@/utils/position'
 
@@ -34,6 +34,7 @@ export interface TableListOptions<T> {
  * Handles pagination, selection, batch delete, download
  */
 export const useTableList = <T extends { id: number }>(options: TableListOptions<T>) => {
+  const { POST, DOWNLOAD } = useHttp()
   const { moreItems, fixSelection, fix } = displayState()
 
   // State
@@ -129,6 +130,7 @@ export const useTableList = <T extends { id: number }>(options: TableListOptions
    */
   const download = async () => {
     await downloadSQLData(
+      DOWNLOAD,
       options.downloadEndpoint,
       options.downloadFileName,
       uploadPercentage,

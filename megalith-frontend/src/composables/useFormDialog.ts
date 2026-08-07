@@ -1,5 +1,5 @@
 import type { FormInstance, FormRules } from 'element-plus'
-import { POST } from '@/http/http'
+import { useHttp } from '@/http/http'
 
 /**
  * Options for form dialog composable
@@ -32,6 +32,7 @@ export interface FormDialogOptions<T extends object> {
  * Handles dialog visibility, form state, validation, save
  */
 export const useFormDialog = <T extends object>(options: FormDialogOptions<T>) => {
+  const { POST } = useHttp()
   // State
   const dialogVisible = ref(false)
   const formRef = ref<FormInstance>()

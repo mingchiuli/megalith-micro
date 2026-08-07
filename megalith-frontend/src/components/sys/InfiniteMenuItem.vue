@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { tabStore } from '@/stores'
 import type { Menu, MenuNode, Tab } from '@/type/entity'
-import router from '@/router'
 import { RoutesEnum } from '@/type/entity'
 import * as ElementPlusIcons from '@element-plus/icons-vue'
 
+const router = useRouter()
 const props = defineProps<{
   item: Menu
 }>()

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
-import { createTraceParent } from '@/config/otel'
-import type { Data, Visitor } from '@/type/entity'
+import { API_ENDPOINTS } from '@/config/apiConfig'
+import type { Visitor } from '@/type/entity'
+import { useHttp } from '@/http/http'
+import { useUniversalData } from '@/composables'
 
 const blogStat = reactive<Visitor>({
   dayVisit: 0,
@@ -11,36 +12,13 @@ const blogStat = reactive<Visitor>({
 })
 
 const { dayVisit, weekVisit, monthVisit, yearVisit } = toRefs(blogStat)
+const { GET } = useHttp()
 
-let disposed = false
-let cancelScheduledLoad: (() => void) | undefined
-
-const loadStatistics = async () => {
-  const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.BLOG_PUBLIC.GET_BLOG_STAT}`, {
-    headers: { traceparent: createTraceParent() }
-  })
-  if (!response.ok) return
-  const { data } = (await response.json()) as Data<Visitor>
-  if (disposed) return
-  Object.assign(blogStat, data)
-}
-
-onMounted(() => {
-  const run = () => void loadStatistics().catch(() => undefined)
-  if (typeof window.requestIdleCallback === 'function') {
-    const handle = window.requestIdleCallback(run, { timeout: 1500 })
-    cancelScheduledLoad = () => window.cancelIdleCallback(handle)
-    return
-  }
-
-  const handle = globalThis.setTimeout(run, 200)
-  cancelScheduledLoad = () => globalThis.clearTimeout(handle)
-})
-
-onBeforeUnmount(() => {
-  disposed = true
-  cancelScheduledLoad?.()
-})
+useUniversalData(
+  'blog-statistics',
+  () => GET<Visitor>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOG_STAT),
+  (data) => Object.assign(blogStat, data)
+)
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { GET, POST } from '@/http/http'
+import { useHttp } from '@/http/http'
 import type { AuthoritySys } from '@/type/entity'
 import type { FormInstance, FormRules } from 'element-plus'
 import { Status, ButtonAuth, AuthStatus } from '@/type/entity'
@@ -8,8 +8,10 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissi
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
+import { useUniversalData } from '@/composables'
 
 const { t } = useI18n()
+const { GET, POST, DOWNLOAD } = useHttp()
 
 const { fixSelection, fix } = displayState()
 const multipleSelection = ref<AuthoritySys[]>([])
@@ -126,6 +128,7 @@ const delBatch = async () => {
 
 const download = async () => {
   await downloadSQLData(
+    DOWNLOAD,
     API_ENDPOINTS.AUTHORITY_ADMIN.DOWNLOAD_AUTHORITIES,
     'authorities',
     uploadPercentage,
@@ -156,13 +159,15 @@ const handleSelectionChange = (val: AuthoritySys[]) => {
   delBtlStatus.value = val.length === 0
 }
 
+const fetchAuthorities = () => GET<AuthoritySys[]>(API_ENDPOINTS.AUTHORITY_ADMIN.GET_AUTHORITIES)
+const applyAuthorities = (data: AuthoritySys[]) => {
+  content.value = data
+  loading.value = false
+}
+
 const queryAuthorities = async () => {
   loading.value = true
-  try {
-    content.value = await GET<AuthoritySys[]>(API_ENDPOINTS.AUTHORITY_ADMIN.GET_AUTHORITIES)
-  } finally {
-    loading.value = false
-  }
+  applyAuthorities(await fetchAuthorities())
 }
 
 const handleClose = () => {
@@ -199,9 +204,7 @@ const clearForm = () => {
   form.routePattern = ''
 }
 
-;(async () => {
-  await queryAuthorities()
-})()
+useUniversalData('admin:authorities', fetchAuthorities, applyAuthorities)
 </script>
 
 <template>

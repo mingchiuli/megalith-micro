@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { GET, POST } from '@/http/http'
+import { useHttp } from '@/http/http'
 import type { MenuSys } from '@/type/entity'
 import { type FormInstance, type FormRules, type TreeNodeData } from 'element-plus'
 import { Status, ButtonAuth, RoutesStatus, RoutesEnum } from '@/type/entity'
@@ -8,8 +8,10 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissi
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
+import { useUniversalData } from '@/composables'
 
 const { t } = useI18n()
+const { GET, POST, DOWNLOAD } = useHttp()
 
 const { fix } = displayState()
 const dialogVisible = ref(false)
@@ -128,6 +130,7 @@ const handleClose = () => {
 
 const download = async () => {
   await downloadSQLData(
+    DOWNLOAD,
     API_ENDPOINTS.MENU_ADMIN.DOWNLOAD_MENUS,
     'menus',
     uploadPercentage,
@@ -148,13 +151,15 @@ const clearForm = () => {
   form.status = 0
 }
 
+const fetchMenus = () => GET<Array<MenuSys>>(API_ENDPOINTS.MENU_ADMIN.GET_MENUS)
+const applyMenus = (data: MenuSys[]) => {
+  content.value = data
+  loading.value = false
+}
+
 const queryMenus = async () => {
   loading.value = true
-  try {
-    content.value = await GET<Array<MenuSys>>(API_ENDPOINTS.MENU_ADMIN.GET_MENUS)
-  } finally {
-    loading.value = false
-  }
+  applyMenus(await fetchMenus())
 }
 
 const submitAuthorityFormHandle = async () => {
@@ -198,9 +203,7 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
-;(async () => {
-  await queryMenus()
-})()
+useUniversalData('admin:menus', fetchMenus, applyMenus)
 </script>
 
 <template>

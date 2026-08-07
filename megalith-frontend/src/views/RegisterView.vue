@@ -8,15 +8,18 @@ import {
   type UploadRequestOptions,
   type UploadUserFile
 } from 'element-plus'
-import { GET, POST, UPLOAD } from '@/http/http'
-import router from '@/router'
-import { clearLoginState, submitLogin } from '@/utils/auth'
+import { useHttp } from '@/http/http'
+import { useAuth } from '@/utils/auth'
 import { Colors } from '@/type/entity'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
 import { Plus } from '@element-plus/icons-vue'
+import { useUniversalData } from '@/composables'
 
 const { t } = useI18n()
+const { GET, POST, UPLOAD } = useHttp()
+const { clearLoginState, submitLogin } = useAuth()
+const router = useRouter()
 const saveLoading = ref(false)
 
 type Form = {
@@ -54,11 +57,11 @@ if (username) {
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 
-GET<boolean>(buildQueryUrl(API_ENDPOINTS.AUTH.REGISTER_CHECK, { token: registerToken })).then(
-  (res) => {
-    if (!res) {
-      router.push('/blogs')
-    }
+useUniversalData(
+  `register:${registerToken}`,
+  () => GET<boolean>(buildQueryUrl(API_ENDPOINTS.AUTH.REGISTER_CHECK, { token: registerToken })),
+  (valid) => {
+    if (!valid) void router.replace('/blogs')
   }
 )
 
