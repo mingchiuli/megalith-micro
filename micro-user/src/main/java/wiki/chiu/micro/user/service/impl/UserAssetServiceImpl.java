@@ -1,12 +1,14 @@
 package wiki.chiu.micro.user.service.impl;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.UPLOAD_MISS;
-
-import java.util.Optional;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.exception.ValidationException;
+import wiki.chiu.micro.common.rpc.storage.ImageUploadValidator;
+import wiki.chiu.micro.common.rpc.storage.ImageUploadValidator.ValidatedImage;
 import wiki.chiu.micro.common.rpc.storage.ObjectStorageClient;
 import wiki.chiu.micro.user.service.RegistrationTokenStore;
 import wiki.chiu.micro.user.service.UserAssetService;
@@ -28,38 +30,29 @@ public class UserAssetServiceImpl implements UserAssetService {
   @Override
   public String upload(String registrationToken, UserUpload upload) {
     tokens.requireValid(registrationToken);
-    byte[] content = upload.content();
-    if (content.length == 0) {
-      throw new MissException(UPLOAD_MISS);
-    }
-    String filename = safeFilename(upload.originalFilename());
-    String objectName = AVATAR_PREFIX + UUID.randomUUID() + "-" + filename;
-    String contentType =
-        Optional.ofNullable(upload.contentType())
-            .filter(value -> !value.isBlank())
-            .orElse("application/octet-stream");
-    return storage.put(objectName, content, contentType);
+    ValidatedImage image = ImageUploadValidator.validate(upload.content());
+    String objectName =
+        ownerPrefix(registrationToken) + UUID.randomUUID() + "." + image.extension();
+    return storage.put(objectName, image.content(), image.contentType());
   }
 
   @Override
   public void delete(String registrationToken, String url) {
     tokens.requireValid(registrationToken);
     String objectName = storage.objectName(url);
-    if (!objectName.startsWith(AVATAR_PREFIX)) {
-      throw new ValidationException("object is not a registration avatar");
+    if (!objectName.startsWith(ownerPrefix(registrationToken))) {
+      throw new ValidationException("registration avatar belongs to another token");
     }
     storage.delete(objectName);
   }
 
-  private static String safeFilename(String value) {
-    String sanitized =
-        value == null
-            ? ""
-            : value
-                .replace("/", "")
-                .replace("\\", "")
-                .replaceAll("\\p{Cntrl}", "")
-                .replace(" ", "");
-    return sanitized.isBlank() ? UUID.randomUUID().toString() : sanitized;
+  private static String ownerPrefix(String token) {
+    try {
+      byte[] digest =
+          MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8));
+      return AVATAR_PREFIX + HexFormat.of().formatHex(digest) + "/";
+    } catch (NoSuchAlgorithmException exception) {
+      throw new IllegalStateException("SHA-256 is unavailable", exception);
+    }
   }
 }
