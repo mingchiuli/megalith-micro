@@ -8,7 +8,6 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
-import static wiki.chiu.micro.common.web.FunctionalWeb.positive;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 import static wiki.chiu.micro.common.web.FunctionalWeb.strictBoolean;
 
@@ -21,17 +20,17 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.strictBoolean;
 public class BlogSearchHttpHandler {
 
     private final BlogSearchService blogSearchService;
-    private final ValidatedRequest validation;
+    private final ValidatedRequest v;
 
-    public BlogSearchHttpHandler(BlogSearchService blogSearchService, ValidatedRequest validation) {
+    public BlogSearchHttpHandler(BlogSearchService blogSearchService, ValidatedRequest v) {
         this.blogSearchService = blogSearchService;
-        this.validation = validation;
+        this.v = v;
     }
 
     public ServerResponse searchBlogs(ServerRequest request) {
-        Integer currentPage = positive(requiredParam(request, "currentPage", Integer::valueOf), "currentPage");
+        Integer currentPage = v.positive(requiredParam(request, "currentPage", Integer::valueOf), "currentPage");
         Boolean allInfo = requiredParam(request, "allInfo", value -> strictBoolean(value));
-        String keywords = validation.size(requiredParam(request, "keywords"), 1, 20, "keywords");
+        String keywords = v.size(requiredParam(request, "keywords"), 1, 20, "keywords");
         return ok(Result.success(() -> blogSearchService.selectBlogsByES(currentPage, keywords, allInfo)));
     }
 

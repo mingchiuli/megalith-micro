@@ -9,11 +9,11 @@ import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.common.req.BlogSysSearchReq;
 import wiki.chiu.micro.common.rpc.SearchHttpService;
 import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
+import wiki.chiu.micro.search.converter.SearchRequestConverter;
 import wiki.chiu.micro.search.service.BlogSearchService;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
-import static wiki.chiu.micro.common.web.FunctionalWeb.positive;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 
@@ -22,23 +22,24 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 public class SearchInternalHttpHandler implements SearchHttpService {
 
     private final BlogSearchService blogSearchService;
-    private final ValidatedRequest validation;
+    private final ValidatedRequest v;
 
-    public SearchInternalHttpHandler(BlogSearchService blogSearchService, ValidatedRequest validation) {
+    public SearchInternalHttpHandler(BlogSearchService blogSearchService,
+                                     ValidatedRequest v) {
         this.blogSearchService = blogSearchService;
-        this.validation = validation;
+        this.v = v;
     }
 
     public ServerResponse searchBlogs(ServerRequest request) throws Exception {
-        return ok(searchBlogs(validation.body(request, BlogSysSearchReq.class)));
+        return ok(searchBlogs(SearchRequestConverter.toBlogSysSearchReq(request)));
     }
 
     public ServerResponse countBlogs(ServerRequest request) throws Exception {
-        return ok(countBlogs(validation.body(request, BlogSysCountSearchReq.class)));
+        return ok(countBlogs(SearchRequestConverter.toBlogSysCountSearchReq(request)));
     }
 
     public ServerResponse addReadCount(ServerRequest request) {
-        Long id = positive(requiredParam(request, "id", Long::valueOf), "id");
+        Long id = v.positive(requiredParam(request, "id", Long::valueOf), "id");
         return ok(addReadCount(id));
     }
 

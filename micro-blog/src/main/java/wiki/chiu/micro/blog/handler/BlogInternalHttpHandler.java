@@ -18,7 +18,6 @@ import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
-import static wiki.chiu.micro.common.web.FunctionalWeb.positive;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 /**
@@ -30,16 +29,16 @@ public class BlogInternalHttpHandler implements BlogHttpService {
     private final BlogService blogService;
 
     private final BlogSensitiveService blogSensitiveService;
-    private final ValidatedRequest validation;
+    private final ValidatedRequest v;
 
     private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
             new ParameterizedTypeReference<>() { };
 
     public BlogInternalHttpHandler(BlogService blogService, BlogSensitiveService blogSensitiveService,
-                                   ValidatedRequest validation) {
+                                   ValidatedRequest v) {
         this.blogService = blogService;
         this.blogSensitiveService = blogSensitiveService;
-        this.validation = validation;
+        this.v = v;
     }
 
     public ServerResponse count(ServerRequest request) {
@@ -52,26 +51,26 @@ public class BlogInternalHttpHandler implements BlogHttpService {
     }
 
     public ServerResponse findSensitiveByBlogId(ServerRequest request) {
-        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         return ok(findSensitiveByBlogId(blogId));
     }
 
     public ServerResponse findById(ServerRequest request) {
-        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         return ok(findById(blogId));
     }
 
     public ServerResponse findAllById(ServerRequest request) throws Exception {
-        return ok(findAllById(validation.positiveElements(validation.body(request, LONG_LIST), "ids")));
+        return ok(findAllById(v.positiveElements(request.body(LONG_LIST), "ids")));
     }
 
     public ServerResponse findPage(ServerRequest request) {
-        return ok(findPage(positive(requiredParam(request, "pageNo", Integer::valueOf), "pageNo"),
-                positive(requiredParam(request, "pageSize", Integer::valueOf), "pageSize")));
+        return ok(findPage(v.positive(requiredParam(request, "pageNo", Integer::valueOf), "pageNo"),
+                v.positive(requiredParam(request, "pageSize", Integer::valueOf), "pageSize")));
     }
 
     public ServerResponse setReadCount(ServerRequest request) {
-        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         return ok(setReadCount(blogId));
     }
 

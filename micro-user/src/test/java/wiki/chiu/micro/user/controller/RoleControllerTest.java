@@ -51,8 +51,7 @@ class RoleControllerTest {
 
     @BeforeEach
     void setUp() {
-        ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
-                .buildDefaultValidatorFactory().getValidator());
+        ValidatedRequest validation = new ValidatedRequest();
         RoleHttpHandler handler = new RoleHttpHandler(roleService, roleMenuService, validation);
         mockMvc = MockMvcBuilders.routerFunctions(UserRoutes.routes(
                         org.mockito.Mockito.mock(UserHttpHandler.class),

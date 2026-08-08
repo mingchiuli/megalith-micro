@@ -1,6 +1,7 @@
 package wiki.chiu.micro.user.handler;
 
 import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.user.converter.UserRequestConverter;
 import wiki.chiu.micro.user.req.RoleEntityReq;
 import wiki.chiu.micro.user.service.RoleMenuService;
 import wiki.chiu.micro.user.service.RoleService;
@@ -24,48 +25,48 @@ public class RoleHttpHandler {
     private final RoleService roleService;
 
     private final RoleMenuService roleMenuService;
-    private final ValidatedRequest validation;
+    private final ValidatedRequest v;
 
     private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
             new ParameterizedTypeReference<>() { };
 
     public RoleHttpHandler(RoleService roleService, RoleMenuService roleMenuService,
-                           ValidatedRequest validation) {
+                           ValidatedRequest v) {
         this.roleService = roleService;
         this.roleMenuService = roleMenuService;
-        this.validation = validation;
+        this.v = v;
     }
 
     public ServerResponse info(ServerRequest request) {
-        Long id = positive(pathVariable(request, "id", Long::valueOf), "id");
+        Long id = v.positive(pathVariable(request, "id", Long::valueOf), "id");
         return ok(Result.success(() -> roleService.info(id)));
     }
 
     public ServerResponse getPage(ServerRequest request) {
-        Integer currentPage = positive(optionalParam(request, "currentPage", 1, Integer::valueOf), "currentPage");
-        Integer size = positive(optionalParam(request, "size", 5, Integer::valueOf), "size");
+        Integer currentPage = v.positive(optionalParam(request, "currentPage", 1, Integer::valueOf), "currentPage");
+        Integer size = v.positive(optionalParam(request, "size", 5, Integer::valueOf), "size");
         return ok(Result.success(() -> roleService.getPage(currentPage, size)));
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-        RoleEntityReq role = validation.body(request, RoleEntityReq.class);
+        RoleEntityReq role = UserRequestConverter.toRoleEntityReq(request);
         return ok(Result.success(() -> roleService.saveOrUpdate(role)));
     }
 
     public ServerResponse delete(ServerRequest request) throws Exception {
-        List<Long> ids = validation.notEmpty(
-                validation.positiveElements(validation.body(request, LONG_LIST), "ids"), "ids");
+        List<Long> ids = v.notEmpty(
+                v.positiveElements(request.body(LONG_LIST), "ids"), "ids");
         return ok(Result.success(() -> roleService.delete(ids)));
     }
 
     public ServerResponse saveMenu(ServerRequest request) throws Exception {
-        Long roleId = positive(pathVariable(request, "roleId", Long::valueOf), "roleId");
-        List<Long> menuIds = validation.positiveElements(validation.body(request, LONG_LIST), "menuIds");
+        Long roleId = v.positive(pathVariable(request, "roleId", Long::valueOf), "roleId");
+        List<Long> menuIds = v.positiveElements(request.body(LONG_LIST), "menuIds");
         return ok(Result.success(() -> roleMenuService.saveMenu(roleId, menuIds)));
     }
 
     public ServerResponse getMenusInfo(ServerRequest request) {
-        Long roleId = positive(pathVariable(request, "roleId", Long::valueOf), "roleId");
+        Long roleId = v.positive(pathVariable(request, "roleId", Long::valueOf), "roleId");
         return ok(Result.success(() -> roleMenuService.getMenusInfo(roleId)));
     }
 

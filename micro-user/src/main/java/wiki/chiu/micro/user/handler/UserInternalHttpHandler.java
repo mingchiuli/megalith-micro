@@ -18,8 +18,6 @@ import java.util.List;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
-import static wiki.chiu.micro.common.web.FunctionalWeb.positive;
-import static wiki.chiu.micro.common.web.FunctionalWeb.range;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 
@@ -34,33 +32,33 @@ public class UserInternalHttpHandler implements UserHttpService {
     private final RoleService roleService;
 
     private final UserRoleService userRoleService;
-    private final ValidatedRequest validation;
+    private final ValidatedRequest v;
 
     private static final ParameterizedTypeReference<List<String>> STRING_LIST =
             new ParameterizedTypeReference<>() { };
 
     public UserInternalHttpHandler(UserService userService, RoleService roleService,
-                                   UserRoleService userRoleService, ValidatedRequest validation) {
+                                   UserRoleService userRoleService, ValidatedRequest v) {
         this.userService = userService;
         this.roleService = roleService;
         this.userRoleService = userRoleService;
-        this.validation = validation;
+        this.v = v;
     }
 
     public ServerResponse findById(ServerRequest request) {
-        Long userId = positive(pathVariable(request, "userId", Long::valueOf), "userId");
+        Long userId = v.positive(pathVariable(request, "userId", Long::valueOf), "userId");
         return ok(findById(userId));
     }
 
     public ServerResponse changeUserStatusByUsername(ServerRequest request) {
         return ok(changeUserStatusByUsername(requiredParam(request, "username"),
-                range(requiredParam(request, "status", Integer::valueOf), 0, 1, "status")));
+                v.range(requiredParam(request, "status", Integer::valueOf), 0, 1, "status")));
     }
 
     public ServerResponse findByRoleCodeInAndStatus(ServerRequest request) throws Exception {
         return ok(findByRoleCodeInAndStatus(
-                validation.notBlankElements(validation.body(request, STRING_LIST), "roles"),
-                range(requiredParam(request, "status", Integer::valueOf), 0, 1, "status")));
+                v.notBlankElements(request.body(STRING_LIST), "roles"),
+                v.range(requiredParam(request, "status", Integer::valueOf), 0, 1, "status")));
     }
 
     public ServerResponse updateLoginTime(ServerRequest request) {
@@ -76,7 +74,7 @@ public class UserInternalHttpHandler implements UserHttpService {
     }
 
     public ServerResponse findRoleCodesByUserId(ServerRequest request) {
-        Long userId = positive(pathVariable(request, "userId", Long::valueOf), "userId");
+        Long userId = v.positive(pathVariable(request, "userId", Long::valueOf), "userId");
         return ok(findRoleCodesByUserId(userId));
     }
 

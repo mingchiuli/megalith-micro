@@ -1,7 +1,7 @@
 package wiki.chiu.micro.common.web;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
+import java.util.Objects;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,8 +22,6 @@ import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
 
-import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class FunctionalWeb {
@@ -94,27 +92,6 @@ public final class FunctionalWeb {
         throw new IllegalArgumentException("Expected true or false");
     }
 
-    public static <T extends Number> T positive(T value, String name) {
-        if (value == null || value.longValue() <= 0) {
-            throw new IllegalArgumentException(name + " must be positive");
-        }
-        return value;
-    }
-
-    public static <T extends Number> T nonNegative(T value, String name) {
-        if (value == null || value.longValue() < 0) {
-            throw new IllegalArgumentException(name + " must not be negative");
-        }
-        return value;
-    }
-
-    public static <T extends Number> T range(T value, long min, long max, String name) {
-        if (value == null || value.longValue() < min || value.longValue() > max) {
-            throw new IllegalArgumentException(name + " must be between " + min + " and " + max);
-        }
-        return value;
-    }
-
     public static AuthInfo authInfo(ServerRequest request, AuthHttpService authHttpService) {
         String token = Objects.requireNonNullElse(
                 request.headers().firstHeader(HttpHeaders.AUTHORIZATION), "");
@@ -131,8 +108,6 @@ public final class FunctionalWeb {
     }
 
     public static RouterFunctions.Builder withDefaultErrorHandling(RouterFunctions.Builder builder, Logger log) {
-        builder.onError(ConstraintViolationException.class,
-                (exception, request) -> error(HttpStatus.BAD_REQUEST, exception, log));
         builder.onError(HttpMessageNotReadableException.class,
                 (exception, request) -> error(HttpStatus.BAD_REQUEST, exception, log));
         builder.onError(ServletRequestBindingException.class,
@@ -157,12 +132,6 @@ public final class FunctionalWeb {
     }
 
     public static String errorMessage(Throwable exception) {
-        if (exception instanceof ConstraintViolationException violationException) {
-            return violationException.getConstraintViolations().stream()
-                    .map(ConstraintViolation::getMessage)
-                    .distinct()
-                    .collect(Collectors.joining(","));
-        }
         if (exception instanceof BindException bindException) {
             return bindException.getAllErrors().stream()
                     .map(ObjectError::getDefaultMessage)

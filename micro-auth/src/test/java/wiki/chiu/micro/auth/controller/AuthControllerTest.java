@@ -29,6 +29,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,23 +47,29 @@ class AuthControllerTest {
     @Mock
     private AuthHttpService authHttpService;
 
+    @Mock
+    private JwtTokenService jwtTokenService;
+
+    @Mock
+    private TokenHttpHandler tokenHttpHandler;
+
+    @Mock
+    private CodeHttpHandler codeHttpHandler;
+
+    private final ValidatedRequest validation = new ValidatedRequest();
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         AuthInfo authInfo = new AuthInfo(1L, List.of("ROLE_USER"), List.of());
-        org.mockito.Mockito.lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
+        lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
                 new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
         AuthHttpHandler handler = new AuthHttpHandler(authService);
-        ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
-                .buildDefaultValidatorFactory().getValidator());
         AuthInternalHttpHandler internalHandler = new AuthInternalHttpHandler(
-                authService, validation, org.mockito.Mockito.mock(JwtTokenService.class));
+                authService, validation, jwtTokenService);
         mockMvc = MockMvcBuilders.routerFunctions(AuthRoutes.routes(
-                        handler,
-                        org.mockito.Mockito.mock(TokenHttpHandler.class),
-                        org.mockito.Mockito.mock(CodeHttpHandler.class),
-                        internalHandler))
+                        handler, tokenHttpHandler, codeHttpHandler, internalHandler))
                 .build();
     }
 
