@@ -16,14 +16,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install GraalVM
         uses: graalvm/setup-graalvm@v1
         with:
-          version: '25.1'
+          version: '25.2'
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Publish
         run: ./gradlew :cache:publishAndReleaseToMavenCentral
         env:
@@ -38,7 +38,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.get_version.outputs.version }}
           token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
