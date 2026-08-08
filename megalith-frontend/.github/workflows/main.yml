@@ -69,7 +69,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: mingchiuli/megalith-frontend:${{ github.sha }}
+          tags: mingchiuli/megalith-frontend:latest
 
   deploy:
     name: Deploy
@@ -94,7 +94,7 @@ jobs:
           sudo chmod 600 /etc/wireguard/wg0.conf
           sudo wg-quick up wg0
 
-      - name: Deploy immutable image
+      - name: Deploy latest image
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.HOST }}
@@ -104,7 +104,7 @@ jobs:
           script: |
             set -e
 
-            image="mingchiuli/megalith-frontend:${{ github.sha }}"
+            image="mingchiuli/megalith-frontend:latest"
             service="megalith-frontend"
             base_file=""
             for candidate in compose.yaml compose.yml docker-compose.yaml docker-compose.yml; do
@@ -145,6 +145,7 @@ jobs:
               return 1
             }
 
+            previous_image_id=$(docker image inspect "$image" --format '{{.Id}}' 2>/dev/null || true)
             docker pull "$image"
             compose rm -sf "$service"
             compose up -d --no-deps --force-recreate "$service"
@@ -158,12 +159,9 @@ jobs:
             fi
 
             current_image_id=$(docker image inspect "$image" --format '{{.Id}}')
-            docker image ls mingchiuli/megalith-frontend --format '{{.Repository}}:{{.Tag}} {{.ID}}' \
-              | while read -r image_ref image_id; do
-                  if [ "$image_id" != "$current_image_id" ]; then
-                    docker image rm "$image_ref" || true
-                  fi
-                done
+            if [ -n "$previous_image_id" ] && [ "$previous_image_id" != "$current_image_id" ]; then
+              docker image rm "$previous_image_id" || true
+            fi
 
             rm -f "$override_file"
             trap - EXIT
