@@ -1,6 +1,5 @@
 package wiki.chiu.micro.user.service.impl;
 
-import static wiki.chiu.micro.common.lang.Const.*;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
 
 import java.time.LocalDateTime;
