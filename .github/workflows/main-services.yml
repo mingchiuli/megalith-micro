@@ -312,7 +312,7 @@ jobs:
         run: ./gradlew :${{ matrix.service }}:processAot
 
       - name: Build and publish image
-        run: ./gradlew :${{ matrix.service }}:bootBuildImage -PimageTag=${{ github.sha }}
+        run: ./gradlew :${{ matrix.service }}:bootBuildImage
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKER_PWD: ${{ secrets.DOCKERHUB_PWD }}
@@ -338,13 +338,13 @@ jobs:
           toolchain: stable
 
       - name: Build Docker image
-        run: docker build -t mingchiuli/megalith-${{ matrix.service }}:${{ github.sha }} -f ${{ matrix.service }}/Dockerfile .
+        run: docker build -t mingchiuli/megalith-${{ matrix.service }}:latest -f ${{ matrix.service }}/Dockerfile .
 
       - name: Log in to DockerHub
         run: echo "${{ secrets.DOCKERHUB_PWD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Push Docker image
-        run: docker push mingchiuli/megalith-${{ matrix.service }}:${{ github.sha }}
+        run: docker push mingchiuli/megalith-${{ matrix.service }}:latest
 
   deploy:
     name: Deploy
@@ -425,13 +425,14 @@ jobs:
 
             deploy_service() {
               service="$1"
-              image="mingchiuli/megalith-${service}:${{ github.sha }}"
+              image="mingchiuli/megalith-${service}:latest"
               base_file=$(compose_file "$service")
               override_file=$(mktemp)
               trap 'rm -f "$override_file"' EXIT
               printf 'services:\n  %s:\n    image: %s\n' "$service" "$image" > "$override_file"
 
               echo "Deploying ${service}"
+              previous_image_id=$(docker image inspect "$image" --format '{{.Id}}' 2>/dev/null || true)
               docker pull "$image"
               compose "$service" "$base_file" "$override_file" rm -sf "$service"
               compose "$service" "$base_file" "$override_file" up -d --no-deps --force-recreate "$service"
@@ -456,12 +457,9 @@ jobs:
               done
 
               current_image_id=$(docker image inspect "$image" --format '{{.Id}}')
-              docker image ls "mingchiuli/megalith-${service}" --format '{{.Repository}}:{{.Tag}} {{.ID}}' \
-                | while read -r image_ref image_id; do
-                    if [ "$image_id" != "$current_image_id" ]; then
-                      docker image rm "$image_ref" || true
-                    fi
-                  done
+              if [ -n "$previous_image_id" ] && [ "$previous_image_id" != "$current_image_id" ]; then
+                docker image rm "$previous_image_id" || true
+              fi
 
               rm -f "$override_file"
               trap - EXIT
