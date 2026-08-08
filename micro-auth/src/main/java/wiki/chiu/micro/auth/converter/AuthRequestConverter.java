@@ -8,34 +8,35 @@ import wiki.chiu.micro.common.web.ValidatedRequest;
 
 public final class AuthRequestConverter {
 
-    private static final ValidatedRequest v = new ValidatedRequest();
+  private static final ValidatedRequest v = new ValidatedRequest();
 
-    private AuthRequestConverter() {}
+  private AuthRequestConverter() {}
 
-    public static AuthorityRouteReq toAuthorityRouteReq(ServerRequest request) throws Exception {
-        AuthorityRouteReq req = request.body(AuthorityRouteReq.class);
+  public static AuthorityRouteReq toAuthorityRouteReq(ServerRequest request) throws Exception {
+    AuthorityRouteReq req = request.body(AuthorityRouteReq.class);
 
-        v.notBlank(req.method(), "method");
-        v.notBlank(req.routeMapping(), "routeMapping");
+    v.notBlank(req.method(), "method");
+    v.notBlank(req.routeMapping(), "routeMapping");
 
-        return req;
-    }
+    return req;
+  }
 
-    public static AuthorityRouteCheckReq toAuthorityRouteCheckReq(ServerRequest request) throws Exception {
-        AuthorityRouteCheckReq req = request.body(AuthorityRouteCheckReq.class);
+  public static AuthorityRouteCheckReq toAuthorityRouteCheckReq(ServerRequest request)
+      throws Exception {
+    AuthorityRouteCheckReq req = request.body(AuthorityRouteCheckReq.class);
 
-        v.notBlank(req.method(), "method");
-        v.notBlank(req.routeMapping(), "routeMapping");
+    v.notBlank(req.method(), "method");
+    v.notBlank(req.routeMapping(), "routeMapping");
 
-        return req;
-    }
+    return req;
+  }
 
-    public static WebSocketTicketReq toWebSocketTicketReq(ServerRequest request) throws Exception {
-        WebSocketTicketReq req = request.body(WebSocketTicketReq.class);
+  public static WebSocketTicketReq toWebSocketTicketReq(ServerRequest request) throws Exception {
+    WebSocketTicketReq req = request.body(WebSocketTicketReq.class);
 
-        v.positive(req.userId(), "userId");
-        v.notBlank(req.roomId(), "roomId");
+    v.positive(req.userId(), "userId");
+    v.notBlank(req.roomId(), "roomId");
 
-        return req;
-    }
+    return req;
+  }
 }

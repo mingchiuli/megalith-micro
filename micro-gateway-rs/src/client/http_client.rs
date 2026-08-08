@@ -1,4 +1,4 @@
-use std::{collections::HashMap, usize};
+use std::collections::HashMap;
 
 use axum::{
     BoxError,
@@ -164,7 +164,7 @@ pub async fn request<T: DeserializeOwned>(
             let json = serde_json::to_string(&b)
                 .map_err(|e| Box::new(ClientError::Serialization(e.to_string())) as BoxError)?;
             Some(axum::body::Body::from(json))
-        },
+        }
         None => None,
     };
 
@@ -183,7 +183,7 @@ pub async fn request_raw(
 
     let req = match body {
         Some(body) => {
-            let body_bytes = body::to_bytes(body.into(), usize::MAX).await?;
+            let body_bytes = body::to_bytes(body, usize::MAX).await?;
             let body = Full::new(body_bytes)
                 .map_err(|e| Box::new(ClientError::Request(e.to_string())) as BoxError)
                 .boxed();

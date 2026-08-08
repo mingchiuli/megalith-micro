@@ -1,8 +1,15 @@
 package wiki.chiu.micro.auth.component.provider;
 
+import static wiki.chiu.micro.common.lang.ExceptionMessage.PASSWORD_MISMATCH;
+import static wiki.chiu.micro.common.lang.ExceptionMessage.PASSWORD_MISS;
+
+import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import org.jspecify.annotations.NonNull;
-import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
-import wiki.chiu.micro.common.lang.Const;
 import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,18 +23,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
-
-import jakarta.annotation.PostConstruct;
+import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
+import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.lang.StatusEnum;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static wiki.chiu.micro.common.lang.ExceptionMessage.PASSWORD_MISMATCH;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.PASSWORD_MISS;
 
 /**
  * @author mingchiuli
@@ -36,75 +34,90 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.PASSWORD_MISS;
 @Component
 public final class PasswordAuthenticationProvider extends ProviderBase {
 
-    private final PasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
 
-    private final RedissonClient redissonClient;
+  private final RedissonClient redissonClient;
 
-    private final ResourceLoader resourceLoader;
+  private final ResourceLoader resourceLoader;
 
-    @Value("${megalith.blog.password-error-intervalTime}")
-    private long intervalTime;
+  @Value("${megalith.blog.password-error-intervalTime}")
+  private long intervalTime;
 
-    @Value("${megalith.blog.email-try-count}")
-    private int maxTryNum;
+  @Value("${megalith.blog.email-try-count}")
+  private int maxTryNum;
 
-    private String script;
+  private String script;
 
-    @PostConstruct
-    private void init() throws IOException {
-        Resource resource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/password.lua");
-        script = resource.getContentAsString(StandardCharsets.UTF_8);
-    }
+  @PostConstruct
+  private void init() throws IOException {
+    Resource resource =
+        resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/password.lua");
+    script = resource.getContentAsString(StandardCharsets.UTF_8);
+  }
 
-    public PasswordAuthenticationProvider(PasswordEncoder passwordEncoder,
-                                          RedissonClient redissonClient,
-                                          UserDetailsService userDetailsService,
-                                          UserHttpServiceWrapper userHttpServiceWrapper,
-                                          ResourceLoader resourceLoader) {
-        super(userDetailsService, userHttpServiceWrapper);
-        this.passwordEncoder = passwordEncoder;
-        this.redissonClient = redissonClient;
-        this.resourceLoader = resourceLoader;
-    }
+  public PasswordAuthenticationProvider(
+      PasswordEncoder passwordEncoder,
+      RedissonClient redissonClient,
+      UserDetailsService userDetailsService,
+      UserHttpServiceWrapper userHttpServiceWrapper,
+      ResourceLoader resourceLoader) {
+    super(userDetailsService, userHttpServiceWrapper);
+    this.passwordEncoder = passwordEncoder;
+    this.redissonClient = redissonClient;
+    this.resourceLoader = resourceLoader;
+  }
 
-    @Override
-    public boolean supports(@NonNull Class<?> authentication) {
-        return UsernamePasswordAuthenticationToken.class.equals(authentication);
-    }
+  @Override
+  public boolean supports(@NonNull Class<?> authentication) {
+    return UsernamePasswordAuthenticationToken.class.equals(authentication);
+  }
 
-    @Override
-    public void authProcess(UserDetails user, Authentication authentication) {
-        Optional.ofNullable(authentication.getCredentials()).ifPresentOrElse(credentials -> {
-            String presentedPassword = credentials.toString();
-            if (!passwordEncoder.matches(presentedPassword, user.getPassword())) {
+  @Override
+  public void authProcess(UserDetails user, Authentication authentication) {
+    Optional.ofNullable(authentication.getCredentials())
+        .ifPresentOrElse(
+            credentials -> {
+              String presentedPassword = credentials.toString();
+              if (!passwordEncoder.matches(presentedPassword, user.getPassword())) {
                 handlePasswordMismatch(user.getUsername());
-            }
-        }, () -> {
-            throw new BadCredentialsException(PASSWORD_MISS.getMsg());
-        });
+              }
+            },
+            () -> {
+              throw new BadCredentialsException(PASSWORD_MISS.getMsg());
+            });
+  }
+
+  private void handlePasswordMismatch(String username) {
+    String prefix = Const.PASSWORD_KEY + username;
+    List<String> loginFailureTimeStampRecords = redissonClient.<String>getList(prefix).range(0, -1);
+    int len = loginFailureTimeStampRecords.size();
+    int l = 0;
+
+    long currentTimeMillis = System.currentTimeMillis();
+
+    for (String timestamp : loginFailureTimeStampRecords) {
+      if (currentTimeMillis - Long.parseLong(timestamp) >= intervalTime) {
+        l++;
+      } else {
+        break;
+      }
     }
 
-    private void handlePasswordMismatch(String username) {
-        String prefix = Const.PASSWORD_KEY + username;
-        List<String> loginFailureTimeStampRecords = redissonClient.<String>getList(prefix).range(0, -1);
-        int len = loginFailureTimeStampRecords.size();
-        int l = 0;
-
-        long currentTimeMillis = System.currentTimeMillis();
-
-        for (String timestamp : loginFailureTimeStampRecords) {
-            if (currentTimeMillis - Long.parseLong(timestamp) >= intervalTime) {
-                l++;
-            } else {
-                break;
-            }
-        }
-
-        if (len - l + 1 >= maxTryNum) {
-            userHttpServiceWrapper.changeUserStatusByUsername(username, StatusEnum.HIDE.getCode());
-        }
-
-        redissonClient.getScript().eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.VALUE, Collections.singletonList(prefix), String.valueOf(l), "-1", String.valueOf(System.currentTimeMillis()), String.valueOf(intervalTime / 1000));
-        throw new BadCredentialsException(PASSWORD_MISMATCH.getMsg());
+    if (len - l + 1 >= maxTryNum) {
+      userHttpServiceWrapper.changeUserStatusByUsername(username, StatusEnum.HIDE.getCode());
     }
+
+    redissonClient
+        .getScript()
+        .eval(
+            RScript.Mode.READ_WRITE,
+            script,
+            RScript.ReturnType.VALUE,
+            Collections.singletonList(prefix),
+            String.valueOf(l),
+            "-1",
+            String.valueOf(System.currentTimeMillis()),
+            String.valueOf(intervalTime / 1000));
+    throw new BadCredentialsException(PASSWORD_MISMATCH.getMsg());
+  }
 }

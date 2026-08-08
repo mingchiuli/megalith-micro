@@ -10,13 +10,13 @@ import wiki.chiu.micro.cache.handler.CheckerHandler;
 @AutoConfiguration
 public class CheckerAspectConfig {
 
-    @Bean
-    public CheckerAspect checkerAspect(ObjectProvider<@NonNull CheckerHandler> handlersProvider) {
-        var checkerHandlers = handlersProvider.stream().toList();
-        if (checkerHandlers.isEmpty()) {
-            // 不注册 Bean，Spring 容器里不会有 checkerAspect
-            return null;
-        }
-        return new CheckerAspect(checkerHandlers);
+  @Bean
+  public CheckerAspect checkerAspect(ObjectProvider<@NonNull CheckerHandler> handlersProvider) {
+    var checkerHandlers = handlersProvider.stream().toList();
+    if (checkerHandlers.isEmpty()) {
+      // 不注册 Bean，Spring 容器里不会有 checkerAspect
+      return null;
     }
+    return new CheckerAspect(checkerHandlers);
+  }
 }

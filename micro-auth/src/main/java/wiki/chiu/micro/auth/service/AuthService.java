@@ -1,6 +1,5 @@
 package wiki.chiu.micro.auth.service;
 
-
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
 import wiki.chiu.micro.common.req.AuthorityRouteReq;
@@ -9,11 +8,11 @@ import wiki.chiu.micro.common.vo.AuthorityRouteRpcVo;
 
 public interface AuthService {
 
-    MenuWithChildVo getCurrentUserNav(Long userId);
+  MenuWithChildVo getCurrentUserNav(Long userId);
 
-    AuthorityRouteRpcVo findRoute(AuthorityRouteReq req);
+  AuthorityRouteRpcVo findRoute(AuthorityRouteReq req);
 
-    AuthRpcVo getAuthVo(String token);
+  AuthRpcVo getAuthVo(String token);
 
-    Boolean routeCheck(AuthorityRouteCheckReq req, String token);
+  Boolean routeCheck(AuthorityRouteCheckReq req, String token);
 }

@@ -5,21 +5,20 @@ import wiki.chiu.micro.user.vo.MenuEntityVo;
 
 public class MenuEntityVoConvertor {
 
-    private MenuEntityVoConvertor() {
-    }
+  private MenuEntityVoConvertor() {}
 
-    public static MenuEntityVo convert(MenuEntity menuEntity) {
-        return MenuEntityVo.builder()
-                .id(menuEntity.getId())
-                .url(menuEntity.getUrl())
-                .title(menuEntity.getTitle())
-                .type(menuEntity.getType())
-                .name(menuEntity.getName())
-                .component(menuEntity.getComponent())
-                .orderNum(menuEntity.getOrderNum())
-                .parentId(menuEntity.getParentId())
-                .icon(menuEntity.getIcon())
-                .status(menuEntity.getStatus())
-                .build();
-    }
+  public static MenuEntityVo convert(MenuEntity menuEntity) {
+    return MenuEntityVo.builder()
+        .id(menuEntity.getId())
+        .url(menuEntity.getUrl())
+        .title(menuEntity.getTitle())
+        .type(menuEntity.getType())
+        .name(menuEntity.getName())
+        .component(menuEntity.getComponent())
+        .orderNum(menuEntity.getOrderNum())
+        .parentId(menuEntity.getParentId())
+        .icon(menuEntity.getIcon())
+        .status(menuEntity.getStatus())
+        .build();
+  }
 }

@@ -1,8 +1,8 @@
 package wiki.chiu.micro.auth.config;
 
+import java.nio.charset.StandardCharsets;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,49 +20,47 @@ import wiki.chiu.micro.auth.token.JwtProperties;
 import wiki.chiu.micro.auth.token.TokenCookieProperties;
 import wiki.chiu.micro.auth.token.TokenType;
 
-import java.nio.charset.StandardCharsets;
-
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({JwtProperties.class, TokenCookieProperties.class})
 public class JwtConfig {
 
-    @Bean
-    SecretKey jwtSecretKey(JwtProperties properties) {
-        return new SecretKeySpec(properties.secret().getBytes(StandardCharsets.UTF_8), "HmacSHA512");
-    }
+  @Bean
+  SecretKey jwtSecretKey(JwtProperties properties) {
+    return new SecretKeySpec(properties.secret().getBytes(StandardCharsets.UTF_8), "HmacSHA512");
+  }
 
-    @Bean
-    JwtEncoder jwtEncoder(SecretKey jwtSecretKey) {
-        return NimbusJwtEncoder.withSecretKey(jwtSecretKey)
-                .algorithm(MacAlgorithm.HS512)
-                .build();
-    }
+  @Bean
+  JwtEncoder jwtEncoder(SecretKey jwtSecretKey) {
+    return NimbusJwtEncoder.withSecretKey(jwtSecretKey).algorithm(MacAlgorithm.HS512).build();
+  }
 
-    @Bean("accessJwtDecoder")
-    JwtDecoder accessJwtDecoder(SecretKey jwtSecretKey, JwtProperties properties) {
-        return decoder(jwtSecretKey, properties, TokenType.ACCESS);
-    }
+  @Bean("accessJwtDecoder")
+  JwtDecoder accessJwtDecoder(SecretKey jwtSecretKey, JwtProperties properties) {
+    return decoder(jwtSecretKey, properties, TokenType.ACCESS);
+  }
 
-    @Bean("refreshJwtDecoder")
-    JwtDecoder refreshJwtDecoder(SecretKey jwtSecretKey, JwtProperties properties) {
-        return decoder(jwtSecretKey, properties, TokenType.REFRESH);
-    }
+  @Bean("refreshJwtDecoder")
+  JwtDecoder refreshJwtDecoder(SecretKey jwtSecretKey, JwtProperties properties) {
+    return decoder(jwtSecretKey, properties, TokenType.REFRESH);
+  }
 
-    @Bean("websocketJwtDecoder")
-    JwtDecoder websocketJwtDecoder(SecretKey jwtSecretKey, JwtProperties properties) {
-        return decoder(jwtSecretKey, properties, TokenType.WEBSOCKET);
-    }
+  @Bean("websocketJwtDecoder")
+  JwtDecoder websocketJwtDecoder(SecretKey jwtSecretKey, JwtProperties properties) {
+    return decoder(jwtSecretKey, properties, TokenType.WEBSOCKET);
+  }
 
-    private JwtDecoder decoder(SecretKey secretKey, JwtProperties properties, TokenType tokenType) {
-        NimbusJwtDecoder decoder = NimbusJwtDecoder.withSecretKey(secretKey)
-                .macAlgorithm(MacAlgorithm.HS512)
-                .validateType(true)
-                .build();
-        var validator = new DelegatingOAuth2TokenValidator<Jwt>(
-                JwtValidators.createDefaultWithIssuer(properties.issuer()),
-                new JwtAudienceValidator(properties.audience()),
-                new JwtClaimValidator<>("token_use", tokenType.value()::equals));
-        decoder.setJwtValidator(validator);
-        return decoder;
-    }
+  private JwtDecoder decoder(SecretKey secretKey, JwtProperties properties, TokenType tokenType) {
+    NimbusJwtDecoder decoder =
+        NimbusJwtDecoder.withSecretKey(secretKey)
+            .macAlgorithm(MacAlgorithm.HS512)
+            .validateType(true)
+            .build();
+    var validator =
+        new DelegatingOAuth2TokenValidator<Jwt>(
+            JwtValidators.createDefaultWithIssuer(properties.issuer()),
+            new JwtAudienceValidator(properties.audience()),
+            new JwtClaimValidator<>("token_use", tokenType.value()::equals));
+    decoder.setJwtValidator(validator);
+    return decoder;
+  }
 }

@@ -1,4 +1,4 @@
-use crate::config::config::{self, ConfigKey};
+use crate::config::{self, ConfigKey};
 
 use super::{http_handler, ws_handler};
 use axum::extract::FromRequestParts;

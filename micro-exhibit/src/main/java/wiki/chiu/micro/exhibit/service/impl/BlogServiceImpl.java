@@ -1,12 +1,31 @@
 package wiki.chiu.micro.exhibit.service.impl;
 
+import static wiki.chiu.micro.common.lang.Const.*;
+import static wiki.chiu.micro.common.lang.ExceptionMessage.AUTH_EXCEPTION;
+import static wiki.chiu.micro.common.lang.ExceptionMessage.TOKEN_INVALID;
+
 import jakarta.annotation.PostConstruct;
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
-import wiki.chiu.micro.common.vo.SensitiveContentRpcVo;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import org.redisson.api.RScript.Mode;
+import org.redisson.api.RScript.ReturnType;
+import org.redisson.api.RedissonClient;
+import org.redisson.client.protocol.ScoredEntry;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
+import org.springframework.util.StringUtils;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
+import wiki.chiu.micro.common.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.exhibit.convertor.BlogDescriptionVoConvertor;
 import wiki.chiu.micro.exhibit.convertor.BlogExhibitVoConvertor;
 import wiki.chiu.micro.exhibit.convertor.BlogHotReadVoConvertor;
@@ -21,28 +40,6 @@ import wiki.chiu.micro.exhibit.vo.BlogHotReadVo;
 import wiki.chiu.micro.exhibit.vo.VisitStatisticsVo;
 import wiki.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
 import wiki.chiu.micro.exhibit.wrapper.BlogWrapper;
-import org.redisson.api.RScript.Mode;
-import org.redisson.api.RScript.ReturnType;
-import org.redisson.api.RedissonClient;
-import org.redisson.client.protocol.ScoredEntry;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
-import org.springframework.util.StringUtils;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
-import static wiki.chiu.micro.common.lang.Const.*;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.AUTH_EXCEPTION;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.TOKEN_INVALID;
-
 
 /**
  * @author mingchiuli
@@ -51,131 +48,151 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.TOKEN_INVALID;
 @Service
 public class BlogServiceImpl implements BlogService {
 
-    private final BlogSensitiveWrapper blogSensitiveWrapper;
+  private final BlogSensitiveWrapper blogSensitiveWrapper;
 
-    private final BlogHttpServiceWrapper blogHttpServiceWrapper;
+  private final BlogHttpServiceWrapper blogHttpServiceWrapper;
 
-    private final RedissonClient redissonClient;
+  private final RedissonClient redissonClient;
 
-    private final BlogWrapper blogWrapper;
+  private final BlogWrapper blogWrapper;
 
-    private final ResourceLoader resourceLoader;
+  private final ResourceLoader resourceLoader;
 
-    private String visitScript;
+  private String visitScript;
 
-    @Value("${megalith.blog.highest-role}")
-    private String highestRole;
+  private String consumeReadTokenScript;
 
-    public BlogServiceImpl(BlogSensitiveWrapper blogSensitiveWrapper, BlogHttpServiceWrapper blogHttpServiceWrapper, RedissonClient redissonClient, BlogWrapper blogWrapper, ResourceLoader resourceLoader) {
-        this.blogSensitiveWrapper = blogSensitiveWrapper;
-        this.blogHttpServiceWrapper = blogHttpServiceWrapper;
-        this.redissonClient = redissonClient;
-        this.blogWrapper = blogWrapper;
-        this.resourceLoader = resourceLoader;
+  @Value("${megalith.blog.highest-role}")
+  private String highestRole;
+
+  public BlogServiceImpl(
+      BlogSensitiveWrapper blogSensitiveWrapper,
+      BlogHttpServiceWrapper blogHttpServiceWrapper,
+      RedissonClient redissonClient,
+      BlogWrapper blogWrapper,
+      ResourceLoader resourceLoader) {
+    this.blogSensitiveWrapper = blogSensitiveWrapper;
+    this.blogHttpServiceWrapper = blogHttpServiceWrapper;
+    this.redissonClient = redissonClient;
+    this.blogWrapper = blogWrapper;
+    this.resourceLoader = resourceLoader;
+  }
+
+  @PostConstruct
+  private void init() throws IOException {
+    Resource visitResource =
+        resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/multi-pfcount.lua");
+    visitScript = visitResource.getContentAsString(StandardCharsets.UTF_8);
+    Resource consumeReadTokenResource =
+        resourceLoader.getResource(
+            ResourceUtils.CLASSPATH_URL_PREFIX + "script/compare-delete.lua");
+    consumeReadTokenScript = consumeReadTokenResource.getContentAsString(StandardCharsets.UTF_8);
+  }
+
+  @Override
+  public PageAdapter<BlogDescriptionVo> findPage(Integer currentPage) {
+    PageAdapter<BlogDescriptionDto> dtoPageAdapter = blogWrapper.findPage(currentPage);
+    List<BlogDescriptionDto> descList = dtoPageAdapter.content();
+
+    List<BlogDescriptionDto> descSensitiveList =
+        descList.stream().map(this::processSensitiveContent).toList();
+
+    var pageAdapter = new PageAdapter<>(descSensitiveList, dtoPageAdapter);
+    return BlogDescriptionVoConvertor.convert(pageAdapter);
+  }
+
+  private BlogDescriptionDto processSensitiveContent(BlogDescriptionDto desc) {
+    if (!BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(desc.status())) {
+      return desc;
+    }
+    List<SensitiveContentRpcVo> words =
+        blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContent();
+    if (words.isEmpty()) {
+      return desc;
+    }
+    return SensitiveUtils.deal(words, desc);
+  }
+
+  @Override
+  public BlogExhibitVo getLockedBlog(Long blogId, String token) {
+    String normalizedToken = token.trim();
+    if (!StringUtils.hasLength(normalizedToken) || !consumeReadToken(blogId, normalizedToken)) {
+      throw new MissException(TOKEN_INVALID.getMsg());
     }
 
-    @PostConstruct
-    private void init() throws IOException {
-        Resource visitResource = resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/multi-pfcount.lua");
-        visitScript = visitResource.getContentAsString(StandardCharsets.UTF_8);
+    blogWrapper.setReadCount(blogId);
+    BlogExhibitDto blogExhibitDto = blogWrapper.findById(blogId);
+    return BlogExhibitVoConvertor.convert(blogExhibitDto);
+  }
+
+  private boolean consumeReadToken(Long blogId, String token) {
+    Boolean consumed =
+        redissonClient
+            .getScript()
+            .eval(
+                Mode.READ_WRITE,
+                consumeReadTokenScript,
+                ReturnType.BOOLEAN,
+                List.of(READ_TOKEN + blogId),
+                token);
+    return Boolean.TRUE.equals(consumed);
+  }
+
+  @Override
+  public VisitStatisticsVo getVisitStatistics() {
+    List<Long> list =
+        redissonClient
+            .getScript()
+            .eval(
+                Mode.READ_WRITE,
+                visitScript,
+                ReturnType.LIST,
+                List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT));
+    return VisitStatisticsVoConvertor.convert(list);
+  }
+
+  @Override
+  public List<BlogHotReadVo> getScoreBlogs() {
+    Collection<ScoredEntry<String>> scoredEntries =
+        redissonClient.<String>getScoredSortedSet(HOT_READ).entryRangeReversed(0, 4);
+
+    List<Long> ids = scoredEntries.stream().map(ScoredEntry::getValue).map(Long::valueOf).toList();
+
+    List<BlogEntityRpcVo> blogs = blogHttpServiceWrapper.findAllById(ids);
+
+    return BlogHotReadVoConvertor.convert(blogs, scoredEntries);
+  }
+
+  @Override
+  public BlogExhibitVo getBlogDetail(List<String> roles, Long id, Long userId) {
+
+    BlogExhibitDto rawBlog = blogWrapper.findById(id);
+    Integer status = rawBlog.status();
+
+    if (BlogStatusEnum.HIDE.getCode().equals(status)
+        && !roles.contains(highestRole)
+        && !Objects.equals(userId, rawBlog.userId())) {
+      throw new MissException(AUTH_EXCEPTION.getMsg());
     }
 
-    @Override
-    public PageAdapter<BlogDescriptionVo> findPage(Integer currentPage) {
-        PageAdapter<BlogDescriptionDto> dtoPageAdapter = blogWrapper.findPage(currentPage);
-        List<BlogDescriptionDto> descList = dtoPageAdapter.content();
-
-        List<BlogDescriptionDto> descSensitiveList = descList.stream()
-                .map(this::processSensitiveContent)
-                .toList();
-
-        var pageAdapter = new PageAdapter<>(descSensitiveList, dtoPageAdapter);
-        return BlogDescriptionVoConvertor.convert(pageAdapter);
+    if (BlogStatusEnum.DRAFT.getCode().equals(status) && Objects.equals(userId, 0L)) {
+      throw new MissException(AUTH_EXCEPTION.getMsg());
     }
 
-    private BlogDescriptionDto processSensitiveContent(BlogDescriptionDto desc) {
-        if (!BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(desc.status())) {
-            return desc;
-        }
-        List<SensitiveContentRpcVo> words = blogSensitiveWrapper.findSensitiveByBlogId(desc.id()).sensitiveContent();
-        if (words.isEmpty()) {
-            return desc;
-        }
-        return SensitiveUtils.deal(words, desc);
-    }
-
-
-    @Override
-    public Boolean checkToken(Long blogId, String token) {
-        token = token.trim();
-        Object password = redissonClient.getBucket(READ_TOKEN + blogId).get();
-        return StringUtils.hasLength(token) && Objects.equals(password, token);
-    }
-
-
-    @Override
-    public BlogExhibitVo getLockedBlog(Long blogId, String token) {
-        boolean valid = checkToken(blogId, token);
-        if (!valid) {
-            throw new MissException(TOKEN_INVALID.getMsg());
-        }
-
-        blogWrapper.setReadCount(blogId);
-        BlogExhibitDto blogExhibitDto = blogWrapper.findById(blogId);
-        redissonClient.getBucket(READ_TOKEN + blogId).delete();
-        return BlogExhibitVoConvertor.convert(blogExhibitDto);
-    }
-
-    @Override
-    public VisitStatisticsVo getVisitStatistics() {
-        List<Long> list = redissonClient.getScript().eval(Mode.READ_WRITE, visitScript, ReturnType.LIST, List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT));
-        return VisitStatisticsVoConvertor.convert(list);
-    }
-
-    @Override
-    public List<BlogHotReadVo> getScoreBlogs() {
-        Collection<ScoredEntry<String>> scoredEntries = redissonClient.<String>getScoredSortedSet(HOT_READ).entryRangeReversed(0, 4);
-
-        List<Long> ids = scoredEntries.stream()
-                .map(ScoredEntry::getValue)
-                .map(Long::valueOf)
-                .toList();
-
-        List<BlogEntityRpcVo> blogs = blogHttpServiceWrapper.findAllById(ids);
-
-        return BlogHotReadVoConvertor.convert(blogs, scoredEntries);
-    }
-
-    @Override
-    public BlogExhibitVo getBlogDetail(List<String> roles, Long id, Long userId) {
-
-        BlogExhibitDto rawBlog = blogWrapper.findById(id);
-        Integer status = rawBlog.status();
-
-        if (BlogStatusEnum.HIDE.getCode().equals(status) &&
-                !roles.contains(highestRole) &&
-                !Objects.equals(userId, rawBlog.userId())) {
-            throw new MissException(AUTH_EXCEPTION.getMsg());
-        }
-
-        if (BlogStatusEnum.DRAFT.getCode().equals(status) &&
-                Objects.equals(userId, 0L)) {
-            throw new MissException(AUTH_EXCEPTION.getMsg());
-        }
-
-        if (BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(status) &&
-                !roles.contains(highestRole) &&
-                !Objects.equals(userId, rawBlog.userId())) {
-            BlogSensitiveContentRpcVo sensitiveContentDto = blogSensitiveWrapper.findSensitiveByBlogId(id);
-            List<SensitiveContentRpcVo> words = sensitiveContentDto.sensitiveContent();
-            if (!words.isEmpty()) {
-                BlogExhibitDto dealBlog = SensitiveUtils.deal(words, rawBlog);
-                blogWrapper.setReadCount(id);
-                return BlogExhibitVoConvertor.convert(dealBlog);
-            }
-        }
-
+    if (BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(status)
+        && !roles.contains(highestRole)
+        && !Objects.equals(userId, rawBlog.userId())) {
+      BlogSensitiveContentRpcVo sensitiveContentDto =
+          blogSensitiveWrapper.findSensitiveByBlogId(id);
+      List<SensitiveContentRpcVo> words = sensitiveContentDto.sensitiveContent();
+      if (!words.isEmpty()) {
+        BlogExhibitDto dealBlog = SensitiveUtils.deal(words, rawBlog);
         blogWrapper.setReadCount(id);
-        return BlogExhibitVoConvertor.convert(rawBlog);
+        return BlogExhibitVoConvertor.convert(dealBlog);
+      }
     }
+
+    blogWrapper.setReadCount(id);
+    return BlogExhibitVoConvertor.convert(rawBlog);
+  }
 }

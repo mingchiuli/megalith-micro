@@ -11,7 +11,6 @@ pub struct ApiResult<T> {
 }
 
 impl<T> ApiResult<T> {
-
     /// Returns the response code
     pub fn code(&self) -> i32 {
         self.code
@@ -21,7 +20,6 @@ impl<T> ApiResult<T> {
     pub fn into_data(self) -> T {
         self.data
     }
-
 }
 
 #[cfg(test)]

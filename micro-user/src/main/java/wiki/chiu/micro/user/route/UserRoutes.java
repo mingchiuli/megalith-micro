@@ -1,5 +1,8 @@
 package wiki.chiu.micro.user.route;
 
+import static org.springframework.web.servlet.function.RouterFunctions.route;
+import static wiki.chiu.micro.common.web.FunctionalWeb.withDefaultErrorHandling;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
@@ -22,6 +25,7 @@ import wiki.chiu.micro.user.handler.UserHttpHandler;
 import wiki.chiu.micro.user.handler.UserInternalHttpHandler;
 import wiki.chiu.micro.user.req.AuthorityEntityReq;
 import wiki.chiu.micro.user.req.MenuEntityReq;
+import wiki.chiu.micro.user.req.RegisterImageDeleteReq;
 import wiki.chiu.micro.user.req.RoleEntityReq;
 import wiki.chiu.micro.user.req.UserEntityRegisterReq;
 import wiki.chiu.micro.user.req.UserEntityReq;
@@ -32,65 +36,72 @@ import wiki.chiu.micro.user.vo.MenuEntityVo;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
 import wiki.chiu.micro.user.vo.RoleMenuVo;
 import wiki.chiu.micro.user.vo.UserEntityVo;
-import static org.springframework.web.servlet.function.RouterFunctions.route;
-import static wiki.chiu.micro.common.web.FunctionalWeb.withDefaultErrorHandling;
 
 @Configuration(proxyBeanMethods = false)
 @RegisterReflectionForBinding({
-        Result.class,
-        PageAdapter.class,
-        UserEntityRegisterReq.class,
-        UserEntityReq.class,
-        RoleEntityReq.class,
-        MenuEntityReq.class,
-        AuthorityEntityReq.class,
-        UserEntityVo.class,
-        RoleEntityVo.class,
-        RoleMenuVo.class,
-        MenuEntityVo.class,
-        MenuDisplayVo.class,
-        MenuAuthorityVo.class,
-        AuthorityVo.class,
-        UserEntityRpcVo.class,
-        RoleEntityRpcVo.class,
-        MenuRpcVo.class,
-        AuthorityRpcVo.class
+  Result.class,
+  PageAdapter.class,
+  UserEntityRegisterReq.class,
+  UserEntityReq.class,
+  RegisterImageDeleteReq.class,
+  RoleEntityReq.class,
+  MenuEntityReq.class,
+  AuthorityEntityReq.class,
+  UserEntityVo.class,
+  RoleEntityVo.class,
+  RoleMenuVo.class,
+  MenuEntityVo.class,
+  MenuDisplayVo.class,
+  MenuAuthorityVo.class,
+  AuthorityVo.class,
+  UserEntityRpcVo.class,
+  RoleEntityRpcVo.class,
+  MenuRpcVo.class,
+  AuthorityRpcVo.class
 })
 public class UserRoutes {
 
-    private static final Logger log = LoggerFactory.getLogger(UserRoutes.class);
+  private static final Logger log = LoggerFactory.getLogger(UserRoutes.class);
 
-    @Bean
-    RouterFunction<ServerResponse> userRouter(UserHttpHandler userHandler,
-                                              RoleHttpHandler roleHandler,
-                                              MenuHttpHandler menuHandler,
-                                              AuthorityHttpHandler authorityHandler,
-                                              UserInternalHttpHandler userInternalHandler,
-                                              MenuInternalHttpHandler menuInternalHandler,
-                                              AuthorityInternalHttpHandler authorityInternalHandler) {
-        return routes(userHandler, roleHandler, menuHandler, authorityHandler,
-                userInternalHandler, menuInternalHandler, authorityInternalHandler);
-    }
+  @Bean
+  RouterFunction<ServerResponse> userRouter(
+      UserHttpHandler userHandler,
+      RoleHttpHandler roleHandler,
+      MenuHttpHandler menuHandler,
+      AuthorityHttpHandler authorityHandler,
+      UserInternalHttpHandler userInternalHandler,
+      MenuInternalHttpHandler menuInternalHandler,
+      AuthorityInternalHttpHandler authorityInternalHandler) {
+    return routes(
+        userHandler,
+        roleHandler,
+        menuHandler,
+        authorityHandler,
+        userInternalHandler,
+        menuInternalHandler,
+        authorityInternalHandler);
+  }
 
-    public static RouterFunction<ServerResponse> routes(UserHttpHandler userHandler,
-                                                        RoleHttpHandler roleHandler,
-                                                        MenuHttpHandler menuHandler,
-                                                        AuthorityHttpHandler authorityHandler,
-                                                        UserInternalHttpHandler userInternalHandler,
-                                                        MenuInternalHttpHandler menuInternalHandler,
-                                                        AuthorityInternalHttpHandler authorityInternalHandler) {
-        return withDefaultErrorHandling(route()
+  public static RouterFunction<ServerResponse> routes(
+      UserHttpHandler userHandler,
+      RoleHttpHandler roleHandler,
+      MenuHttpHandler menuHandler,
+      AuthorityHttpHandler authorityHandler,
+      UserInternalHttpHandler userInternalHandler,
+      MenuInternalHttpHandler menuInternalHandler,
+      AuthorityInternalHttpHandler authorityInternalHandler) {
+    return withDefaultErrorHandling(
+            route()
                 .GET("/sys/user/auth/register/page", userHandler::getRegisterPage)
                 .GET("/sys/user/register/check", userHandler::checkRegisterPage)
                 .POST("/sys/user/register/save", userHandler::saveRegisterPage)
                 .POST("/sys/user/register/image/upload", userHandler::imageUpload)
-                .GET("/sys/user/register/image/delete", userHandler::imageDelete)
+                .DELETE("/sys/user/register/image/delete", userHandler::imageDelete)
                 .POST("/sys/user/save", userHandler::saveOrUpdate)
                 .GET("/sys/user/page/{currentPage}", userHandler::page)
                 .POST("/sys/user/delete", userHandler::delete)
                 .GET("/sys/user/info/{id}", userHandler::info)
                 .GET("/sys/user/download", userHandler::download)
-
                 .GET("/sys/role/info/{id}", roleHandler::info)
                 .GET("/sys/role/roles", roleHandler::getPage)
                 .POST("/sys/role/save", roleHandler::saveOrUpdate)
@@ -99,7 +110,6 @@ public class UserRoutes {
                 .GET("/sys/role/menu/{roleId}", roleHandler::getMenusInfo)
                 .GET("/sys/role/download", roleHandler::download)
                 .GET("/sys/role/valid/all", roleHandler::getValidAll)
-
                 .GET("/sys/menu/info/{id}", menuHandler::info)
                 .GET("/sys/menu/list", menuHandler::list)
                 .POST("/sys/menu/save", menuHandler::saveOrUpdate)
@@ -107,13 +117,11 @@ public class UserRoutes {
                 .GET("/sys/menu/download", menuHandler::download)
                 .POST("/sys/menu/authority/{menuId}", menuHandler::saveAuthority)
                 .GET("/sys/menu/authority/{menuId}", menuHandler::getAuthoritiesInfo)
-
                 .GET("/sys/authority/list", authorityHandler::list)
                 .GET("/sys/authority/info/{id}", authorityHandler::info)
                 .POST("/sys/authority/save", authorityHandler::saveOrUpdate)
                 .POST("/sys/authority/delete", authorityHandler::delete)
                 .GET("/sys/authority/download", authorityHandler::download)
-
                 .GET("/inner/menu/nav", menuInternalHandler::getCurrentUserNav)
                 .GET("/inner/user/status", userInternalHandler::changeUserStatusByUsername)
                 .POST("/inner/user/role", userInternalHandler::findByRoleCodeInAndStatus)
@@ -124,7 +132,8 @@ public class UserRoutes {
                 .GET("/inner/user/login/query", userInternalHandler::findByUsernameOrEmailOrPhone)
                 .GET("/inner/user/{userId}", userInternalHandler::findById)
                 .POST("/inner/authority/list", authorityInternalHandler::getAuthorities)
-                .GET("/inner/authority/role", authorityInternalHandler::getAuthoritiesByRoleCode), log)
-                .build();
-    }
+                .GET("/inner/authority/role", authorityInternalHandler::getAuthoritiesByRoleCode),
+            log)
+        .build();
+  }
 }

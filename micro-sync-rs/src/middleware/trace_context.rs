@@ -1,8 +1,4 @@
-use axum::{
-    extract::Request,
-    middleware::Next,
-    response::Response,
-};
+use axum::{extract::Request, middleware::Next, response::Response};
 use opentelemetry::global;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 

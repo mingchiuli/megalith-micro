@@ -4,6 +4,7 @@ import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMReachabilityMetadataRepositoryExtension
 import org.gradle.api.plugins.ExtensionAware
+import com.diffplug.gradle.spotless.SpotlessExtension
 
 plugins {
     // Only declare plugin versions, don't apply to root project
@@ -11,6 +12,7 @@ plugins {
     id("org.springframework.boot") version "4.1.0" apply false
     id("org.graalvm.buildtools.native") version "1.1.7" apply false
     id("org.hibernate.orm") version "7.4.5.Final" apply false
+    id("com.diffplug.spotless") version "8.9.0" apply false
 }
 
 subprojects {
@@ -27,6 +29,28 @@ subprojects {
     plugins.apply("java")
     plugins.apply("io.spring.dependency-management")
     plugins.apply("org.springframework.boot")  // Apply to all modules for -parameters and AOT
+    plugins.apply("com.diffplug.spotless")
+
+    configure<SpotlessExtension> {
+        java {
+            target("src/**/*.java")
+            googleJavaFormat()
+            removeUnusedImports()
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+    }
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+    }
+
+    dependencies {
+        add("testImplementation", "org.springframework.boot:spring-boot-starter-test")
+        if (name == "micro-blog" || name == "micro-user") {
+            add("testImplementation", "com.tngtech.archunit:archunit-junit5:1.4.2")
+        }
+    }
 
     // Configure jar tasks based on module type
     if (name.startsWith("micro-")) {
@@ -34,15 +58,6 @@ subprojects {
 
         if (name == "micro-user" || name == "micro-blog") {
             plugins.apply("org.hibernate.orm")
-        }
-
-        // Configure test tasks
-        tasks.withType<Test> {
-            useJUnitPlatform()
-        }
-
-        dependencies {
-            add("testImplementation", "org.springframework.boot:spring-boot-starter-test")
         }
 
         // Configure GraalVM Native Image compilation (仅用于本地测试)
@@ -116,7 +131,6 @@ subprojects {
     configure<DependencyManagementExtension> {
         dependencies {
             dependency("org.redisson:redisson:4.6.1")
-            dependency("wiki.chiu.megalith:cache-spring-boot-starter:4.6.1")
         }
     }
 

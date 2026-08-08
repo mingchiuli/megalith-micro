@@ -24,8 +24,6 @@ megalith:
     user-url: http://127.0.0.1:8086/inner
     register:
       page-prefix: http://127.0.0.1:1919/register/
-    read:
-      page-prefix: http://127.0.0.1:1919/blog/
     aliyun:
       oss:
         bucket-name: blog

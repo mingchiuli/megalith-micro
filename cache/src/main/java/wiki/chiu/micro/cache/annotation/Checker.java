@@ -1,9 +1,7 @@
 package wiki.chiu.micro.cache.annotation;
 
-
-import wiki.chiu.micro.cache.handler.CheckerHandler;
-
 import java.lang.annotation.*;
+import wiki.chiu.micro.cache.handler.CheckerHandler;
 
 /**
  * @author mingchiuli
@@ -13,5 +11,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Checker {
-    Class<? extends CheckerHandler> handler();
+  Class<? extends CheckerHandler> handler();
 }

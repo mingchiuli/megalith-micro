@@ -1,8 +1,9 @@
 package wiki.chiu.micro.user.service.impl;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-
-import org.springframework.core.task.TaskExecutor;
+import java.util.*;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.vo.MenuRpcVo;
@@ -21,10 +22,6 @@ import wiki.chiu.micro.user.service.RoleMenuService;
 import wiki.chiu.micro.user.vo.MenuDisplayVo;
 import wiki.chiu.micro.user.vo.RoleMenuVo;
 import wiki.chiu.micro.user.wrapper.RoleMenuWrapper;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Service;
-
-import java.util.*;
 
 /**
  * @author mingchiuli
@@ -33,85 +30,91 @@ import java.util.*;
 @Service
 public class RoleMenuServiceImpl implements RoleMenuService {
 
-    private final MenuRepository menuRepository;
+  private final MenuRepository menuRepository;
 
-    private final RoleMenuRepository roleMenuRepository;
+  private final RoleMenuRepository roleMenuRepository;
 
-    private final RoleMenuWrapper roleMenuWrapper;
+  private final RoleMenuWrapper roleMenuWrapper;
 
-    private final RoleRepository roleRepository;
+  private final RoleRepository roleRepository;
 
-    private final ApplicationContext applicationContext;
+  private final ApplicationEventPublisher eventPublisher;
 
-    private final TaskExecutor taskExecutor;
+  public RoleMenuServiceImpl(
+      MenuRepository menuRepository,
+      RoleMenuRepository roleMenuRepository,
+      RoleMenuWrapper roleMenuWrapper,
+      RoleRepository roleRepository,
+      ApplicationEventPublisher eventPublisher) {
+    this.menuRepository = menuRepository;
+    this.roleMenuRepository = roleMenuRepository;
+    this.roleMenuWrapper = roleMenuWrapper;
+    this.roleRepository = roleRepository;
+    this.eventPublisher = eventPublisher;
+  }
 
-    public RoleMenuServiceImpl(MenuRepository menuRepository, RoleMenuRepository roleMenuRepository, RoleMenuWrapper roleMenuWrapper, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") TaskExecutor taskExecutor) {
-        this.menuRepository = menuRepository;
-        this.roleMenuRepository = roleMenuRepository;
-        this.roleMenuWrapper = roleMenuWrapper;
-        this.roleRepository = roleRepository;
-        this.applicationContext = applicationContext;
-        this.taskExecutor = taskExecutor;
-    }
+  private List<RoleMenuVo> setCheckMenusInfo(
+      List<MenuDisplayVo> menusInfo, List<Long> menuIdsByRole, List<RoleMenuVo> parentChildren) {
+    menusInfo.forEach(
+        item -> {
+          RoleMenuVo.RoleMenuVoBuilder builder =
+              RoleMenuVo.builder().title(item.title()).menuId(item.id());
 
-    private List<RoleMenuVo> setCheckMenusInfo(List<MenuDisplayVo> menusInfo, List<Long> menuIdsByRole, List<RoleMenuVo> parentChildren) {
-        menusInfo.forEach(item -> {
-            RoleMenuVo.RoleMenuVoBuilder builder = RoleMenuVo.builder()
-                    .title(item.title())
-                    .menuId(item.id());
+          if (menuIdsByRole.contains(item.id())) {
+            builder.check(true);
+          }
 
-            if (menuIdsByRole.contains(item.id())) {
-                builder.check(true);
-            }
-
-            if (!item.children().isEmpty()) {
-                List<RoleMenuVo> children = new ArrayList<>();
-                builder.children(children);
-                setCheckMenusInfo(item.children(), menuIdsByRole, children);
-            }
-            parentChildren.add(builder.build());
+          if (!item.children().isEmpty()) {
+            List<RoleMenuVo> children = new ArrayList<>();
+            builder.children(children);
+            setCheckMenusInfo(item.children(), menuIdsByRole, children);
+          }
+          parentChildren.add(builder.build());
         });
 
-        return parentChildren;
+    return parentChildren;
+  }
+
+  public List<RoleMenuVo> getMenusInfo(Long roleId) {
+    List<Long> menuIds = menuRepository.findAllIds();
+    List<MenuEntity> menus = menuRepository.findAllById(menuIds);
+    List<MenuDisplayVo> menuEntities = MenuDisplayVoConvertor.convert(menus, true);
+    // 转树状结构
+    List<MenuDisplayVo> menusInfo = MenuDisplayVoConvertor.buildTreeMenu(menuEntities);
+
+    List<Long> menuIdsByRole = roleMenuRepository.findMenuIdsByRoleId(roleId);
+    return setCheckMenusInfo(menusInfo, menuIdsByRole, new ArrayList<>());
+  }
+
+  @Override
+  @Transactional
+  public void saveMenu(Long roleId, List<Long> menuIds) {
+    List<RoleMenuEntity> roleMenuEntities = RoleMenuEntityConvertor.convert(roleId, menuIds);
+
+    roleMenuWrapper.saveMenu(roleId, new ArrayList<>(roleMenuEntities));
+    roleRepository
+        .findById(roleId)
+        .map(RoleEntity::getCode)
+        .ifPresent(
+            role -> {
+              var authMenuIndexMessage =
+                  new AuthMenuIndexMessage(
+                      Collections.singletonList(role), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
+              eventPublisher.publishEvent(new AuthMenuOperateEvent(authMenuIndexMessage));
+            });
+  }
+
+  @Override
+  public List<MenuRpcVo> getCurrentRoleNav(String role) {
+    Optional<RoleEntity> roleEntity = roleRepository.findByCode(role);
+
+    if (roleEntity.isEmpty() || StatusEnum.HIDE.getCode().equals(roleEntity.get().getStatus())) {
+      return Collections.emptyList();
     }
 
-    public List<RoleMenuVo> getMenusInfo(Long roleId) {
-        List<Long> menuIds = menuRepository.findAllIds();
-        List<MenuEntity> menus = menuRepository.findAllById(menuIds);
-        List<MenuDisplayVo> menuEntities = MenuDisplayVoConvertor.convert(menus, true);
-        // 转树状结构
-        List<MenuDisplayVo> menusInfo =  MenuDisplayVoConvertor.buildTreeMenu(menuEntities);
+    List<Long> menuIds = roleMenuRepository.findMenuIdsByRoleId(roleEntity.get().getId());
+    List<MenuEntity> allKindsInfo = menuRepository.findAllById(menuIds);
 
-        List<Long> menuIdsByRole = roleMenuRepository.findMenuIdsByRoleId(roleId);
-        return setCheckMenusInfo(menusInfo, menuIdsByRole, new ArrayList<>());
-    }
-
-    @Override
-    public void saveMenu(Long roleId, List<Long> menuIds) {
-        List<RoleMenuEntity> roleMenuEntities = RoleMenuEntityConvertor.convert(roleId, menuIds);
-
-        roleMenuWrapper.saveMenu(roleId, new ArrayList<>(roleMenuEntities));
-        // 按钮
-        taskExecutor.execute(() -> roleRepository.findById(roleId)
-                .map(RoleEntity::getCode)
-                .ifPresent(role -> {
-                    var authMenuIndexMessage = new AuthMenuIndexMessage(Collections.singletonList(role), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
-                    applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-                }));
-    }
-
-    @Override
-    public List<MenuRpcVo> getCurrentRoleNav(String role) {
-        Optional<RoleEntity> roleEntity = roleRepository.findByCode(role);
-
-        if (roleEntity.isEmpty() || StatusEnum.HIDE.getCode().equals(roleEntity.get().getStatus())) {
-            return Collections.emptyList();
-        }
-
-        List<Long> menuIds = roleMenuRepository.findMenuIdsByRoleId(roleEntity.get().getId());
-        List<MenuEntity> allKindsInfo = menuRepository.findAllById(menuIds);
-
-        return MenuRpcVoConvertor.convert(allKindsInfo);
-    }
-
+    return MenuRpcVoConvertor.convert(allKindsInfo);
+  }
 }

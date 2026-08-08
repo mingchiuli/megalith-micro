@@ -1,5 +1,5 @@
 use crate::extractor::AxumHeaderExtractor;
-use crate::room::room::{RoomConnection, RoomManager};
+use crate::room::manager::{RoomConnection, RoomManager};
 use axum::extract::ws::{WebSocket, WebSocketUpgrade};
 use axum::extract::{Path, State};
 use axum::http::HeaderMap;

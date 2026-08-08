@@ -1,11 +1,10 @@
 package wiki.chiu.micro.user.repository;
 
-import wiki.chiu.micro.user.entity.RoleEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import wiki.chiu.micro.user.entity.RoleEntity;
 
 /**
  * @author mingchiuli
@@ -13,12 +12,12 @@ import java.util.Optional;
  */
 public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
 
-    List<RoleEntity> findByCodeIn(List<String> roles);
+  List<RoleEntity> findByCodeIn(List<String> roles);
 
-    List<RoleEntity> findByCodeInAndStatus(List<String> roles, Integer status);
+  List<RoleEntity> findByCodeInAndStatus(List<String> roles, Integer status);
 
-    Optional<RoleEntity> findByCode(String role);
+  Optional<RoleEntity> findByCode(String role);
 
-    @Query(value = "SELECT role.code from RoleEntity role")
-    List<String> findAllCodes();
+  @Query(value = "SELECT role.code from RoleEntity role")
+  List<String> findAllCodes();
 }

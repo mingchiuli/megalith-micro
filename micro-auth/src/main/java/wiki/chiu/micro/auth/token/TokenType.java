@@ -1,20 +1,19 @@
 package wiki.chiu.micro.auth.token;
 
 public enum TokenType {
+  ACCESS("access"),
 
-    ACCESS("access"),
+  REFRESH("refresh"),
 
-    REFRESH("refresh"),
+  WEBSOCKET("websocket");
 
-    WEBSOCKET("websocket");
+  private final String value;
 
-    private final String value;
+  TokenType(String value) {
+    this.value = value;
+  }
 
-    TokenType(String value) {
-        this.value = value;
-    }
-
-    public String value() {
-        return value;
-    }
+  public String value() {
+    return value;
+  }
 }

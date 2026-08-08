@@ -1,4 +1,4 @@
-use axum::body::{Body, Bytes};
+use axum::body::Body;
 use axum::extract::WebSocketUpgrade;
 use axum::extract::ws::{CloseFrame, Message as AxumMessage, Utf8Bytes, WebSocket};
 use axum::response::{IntoResponse, Response};
@@ -99,8 +99,8 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
                     let converted_msg = match msg {
                         AxumMessage::Text(text) => TungsteniteMessage::text(text.as_str()),
                         AxumMessage::Binary(data) => TungsteniteMessage::binary(data.to_vec()),
-                        AxumMessage::Ping(data) => TungsteniteMessage::Ping(data.into()),
-                        AxumMessage::Pong(data) => TungsteniteMessage::Pong(data.into()),
+                        AxumMessage::Ping(data) => TungsteniteMessage::Ping(data),
+                        AxumMessage::Pong(data) => TungsteniteMessage::Pong(data),
                         AxumMessage::Close(Some(frame)) => {
                             // Convert from u16 to CloseCode
                             let code = protocol::frame::coding::CloseCode::from(frame.code);
@@ -146,12 +146,9 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
                             // 将 String 转换为 axum 的 Utf8Bytes
                             AxumMessage::Text(Utf8Bytes::from(text.as_str()))
                         }
-                        TungsteniteMessage::Binary(data) => {
-                            // 从 Vec<u8> 转为 axum 的 Bytes
-                            AxumMessage::Binary(Bytes::from(data))
-                        }
-                        TungsteniteMessage::Ping(data) => AxumMessage::Ping(Bytes::from(data)),
-                        TungsteniteMessage::Pong(data) => AxumMessage::Pong(Bytes::from(data)),
+                        TungsteniteMessage::Binary(data) => AxumMessage::Binary(data),
+                        TungsteniteMessage::Ping(data) => AxumMessage::Ping(data),
+                        TungsteniteMessage::Pong(data) => AxumMessage::Pong(data),
                         TungsteniteMessage::Close(frame) => {
                             match frame {
                                 Some(close_frame) => {

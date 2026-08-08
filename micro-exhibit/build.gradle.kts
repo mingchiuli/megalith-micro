@@ -5,7 +5,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
-    implementation(project(":common"))
-    implementation("wiki.chiu.megalith:cache-spring-boot-starter")
+    implementation(project(":common-contract"))
+    implementation(project(":common-rpc"))
+    implementation(project(":common-web"))
+    implementation(project(":common-observability"))
+    implementation(project(":cache"))
     implementation("org.redisson:redisson")
 }

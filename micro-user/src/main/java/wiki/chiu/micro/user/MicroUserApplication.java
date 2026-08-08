@@ -11,12 +11,16 @@ import wiki.chiu.micro.user.config.CustomRuntimeHints;
 
 @SpringBootApplication(proxyBeanMethods = false)
 @EnableJpaAuditing
-@ImportRuntimeHints({ CustomRuntimeHints.class })
-@ImportHttpServices(group = "oss", types = {OssHttpService.class})
-@ImportHttpServices(group = "auth", types = {AuthHttpService.class})
+@ImportRuntimeHints({CustomRuntimeHints.class})
+@ImportHttpServices(
+    group = "oss",
+    types = {OssHttpService.class})
+@ImportHttpServices(
+    group = "auth",
+    types = {AuthHttpService.class})
 public class MicroUserApplication {
 
-   public static void main(String[] args) {
-        SpringApplication.run(MicroUserApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(MicroUserApplication.class, args);
+  }
 }

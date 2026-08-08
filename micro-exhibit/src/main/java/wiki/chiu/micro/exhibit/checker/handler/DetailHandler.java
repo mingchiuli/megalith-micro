@@ -1,42 +1,42 @@
 package wiki.chiu.micro.exhibit.checker.handler;
 
+import static wiki.chiu.micro.common.lang.Const.BLOOM_FILTER_BLOG;
+import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
+import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
+
 import org.redisson.api.RBitSet;
-import wiki.chiu.micro.cache.handler.CheckerHandler;
-import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.web.ValidatedRequest;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
-
-import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
-
-import static wiki.chiu.micro.common.lang.Const.BLOOM_FILTER_BLOG;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
+import wiki.chiu.micro.cache.handler.CheckerHandler;
+import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 
 @Component
 public class DetailHandler extends CheckerHandler {
 
-    private final RedissonClient redissonClient;
-    private final ValidatedRequest v;
+  private final RedissonClient redissonClient;
+  private final ValidatedRequest v;
 
-    public DetailHandler(RedissonClient redissonClient, ValidatedRequest v) {
-        this.redissonClient = redissonClient;
-        this.v = v;
+  public DetailHandler(RedissonClient redissonClient, ValidatedRequest v) {
+    this.redissonClient = redissonClient;
+    this.v = v;
+  }
+
+  @Override
+  public void handle(Object[] args) {
+
+    RBitSet bitSet = redissonClient.getBitSet(BLOOM_FILTER_BLOG);
+    boolean exists = bitSet.isExists();
+    if (!exists) {
+      return;
     }
 
-    @Override
-    public void handle(Object[] args) {
-
-        RBitSet bitSet = redissonClient.getBitSet(BLOOM_FILTER_BLOG);
-        boolean exists = bitSet.isExists();
-        if (!exists) {
-            return;
-        }
-
-        Long blogId = v.positive(pathVariable((ServerRequest) args[0], "blogId", Long::valueOf), "blogId");
-        boolean bit = bitSet.get(blogId);
-        if (!bit) {
-            throw new MissException(NO_FOUND.getMsg() + blogId + " blog");
-        }
+    Long blogId =
+        v.positive(pathVariable((ServerRequest) args[0], "blogId", Long::valueOf), "blogId");
+    boolean bit = bitSet.get(blogId);
+    if (!bit) {
+      throw new MissException(NO_FOUND.getMsg() + blogId + " blog");
     }
+  }
 }

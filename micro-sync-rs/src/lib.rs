@@ -1,11 +1,11 @@
+pub mod config;
 mod extractor;
 mod middleware;
 mod otel;
 mod room;
 mod route;
-mod shutdown;
 mod schedule;
-pub mod config;
+mod shutdown;
 
 pub use otel::init_logger_provider;
 pub use otel::init_meter_provider;
