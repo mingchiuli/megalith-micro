@@ -13,13 +13,21 @@ import wiki.chiu.micro.common.rpc.UserHttpService;
 
 @SpringBootApplication(proxyBeanMethods = false)
 @EnableJpaAuditing
-@ImportRuntimeHints({ CustomRuntimeHints.class })
-@ImportHttpServices(group = "user", types = {UserHttpService.class})
-@ImportHttpServices(group = "oss", types = {OssHttpService.class})
-@ImportHttpServices(group = "auth", types = {AuthHttpService.class})
-@ImportHttpServices(group = "search", types = {SearchHttpService.class})
+@ImportRuntimeHints({CustomRuntimeHints.class})
+@ImportHttpServices(
+    group = "user",
+    types = {UserHttpService.class})
+@ImportHttpServices(
+    group = "oss",
+    types = {OssHttpService.class})
+@ImportHttpServices(
+    group = "auth",
+    types = {AuthHttpService.class})
+@ImportHttpServices(
+    group = "search",
+    types = {SearchHttpService.class})
 public class MicroBlogApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(MicroBlogApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(MicroBlogApplication.class, args);
+  }
 }

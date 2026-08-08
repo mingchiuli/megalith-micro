@@ -1,15 +1,14 @@
 package wiki.chiu.micro.search.mq;
 
 import com.rabbitmq.client.Channel;
+import java.util.List;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Component;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.search.mq.handler.BlogIndexSupport;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * @author mingchiuli
@@ -18,22 +17,23 @@ import java.util.List;
 @Component
 public class BlogMessageListener {
 
-    private final List<BlogIndexSupport> elasticsearchHandlers;
+  private final List<BlogIndexSupport> elasticsearchHandlers;
 
-    public BlogMessageListener(List<BlogIndexSupport> elasticsearchHandlers) {
-        this.elasticsearchHandlers = elasticsearchHandlers;
-    }
+  public BlogMessageListener(List<BlogIndexSupport> elasticsearchHandlers) {
+    this.elasticsearchHandlers = elasticsearchHandlers;
+  }
 
-    @RabbitListener(queues = Const.ES_QUEUE,
-            concurrency = "10",
-            messageConverter = "jsonMessageConverter",
-            executor = "mqExecutor")
-    public void handler(BlogOperateMessage message, Channel channel, Message msg) {
-        for (BlogIndexSupport handler : elasticsearchHandlers) {
-            if (handler.supports(BlogOperateEnum.of(message.typeEnumCode()))) {
-                handler.handle(message, channel, msg);
-                break;
-            }
-        }
+  @RabbitListener(
+      queues = Const.ES_QUEUE,
+      concurrency = "10",
+      messageConverter = "jsonMessageConverter",
+      executor = "mqExecutor")
+  public void handler(BlogOperateMessage message, Channel channel, Message msg) {
+    for (BlogIndexSupport handler : elasticsearchHandlers) {
+      if (handler.supports(BlogOperateEnum.of(message.typeEnumCode()))) {
+        handler.handle(message, channel, msg);
+        break;
+      }
     }
+  }
 }

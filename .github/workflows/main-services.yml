@@ -12,7 +12,12 @@ on:
       - 'micro-user/**'
       - 'micro-gateway-rs/**'
       - 'micro-sync-rs/**'
-      - 'common/**'
+      - 'common-contract/**'
+      - 'common-rpc/**'
+      - 'common-web/**'
+      - 'common-observability/**'
+      - 'common-export/**'
+      - 'cache/**'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
       - 'gradle/**'
@@ -153,7 +158,7 @@ jobs:
                 micro-sync-rs/*)
                   add_service micro-sync-rs
                   ;;
-                common/*|build.gradle.kts|settings.gradle.kts|gradle/*|gradlew|gradlew.bat)
+                common-contract/*|common-rpc/*|common-web/*|common-observability/*|common-export/*|cache/*|build.gradle.kts|settings.gradle.kts|gradle/*|gradlew|gradlew.bat)
                   add_all_java
                   ;;
                 Cargo.toml|Cargo.lock|.dockerignore)
@@ -228,11 +233,52 @@ jobs:
 
           echo "Selected services: ${deploy_services:-none}"
 
+  quality-java:
+    name: Java Quality Gate
+    runs-on: ubuntu-latest
+    needs:
+      - changes
+    if: ${{ needs.changes.outputs.has-java == 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Prepare GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: '25.2'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Check all Java modules
+        run: ./gradlew check
+
+  quality-rust:
+    name: Rust Quality Gate
+    runs-on: ubuntu-latest
+    needs:
+      - changes
+    if: ${{ needs.changes.outputs.has-rust == 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Run Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Test workspace
+        run: cargo test --workspace
+
   build-java:
     name: Build Java Service
     runs-on: ubuntu-latest
     needs:
       - changes
+      - quality-java
     if: ${{ needs.changes.outputs.has-java == 'true' }}
     strategy:
       fail-fast: false
@@ -256,8 +302,8 @@ jobs:
           java --version
           native-image --version
 
-      - name: Run tests
-        run: ./gradlew :${{ matrix.service }}:test
+      - name: Verify AOT processing
+        run: ./gradlew :${{ matrix.service }}:processAot
 
       - name: Build and publish image
         run: ./gradlew :${{ matrix.service }}:bootBuildImage
@@ -270,6 +316,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - changes
+      - quality-rust
     if: ${{ needs.changes.outputs.has-rust == 'true' }}
     strategy:
       fail-fast: false
@@ -283,9 +330,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-
-      - name: Run tests
-        run: cargo test --release -p ${{ matrix.service }}
 
       - name: Build Docker image
         run: docker build -t mingchiuli/megalith-${{ matrix.service }}:latest -f ${{ matrix.service }}/Dockerfile .

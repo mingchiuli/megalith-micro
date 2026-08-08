@@ -3,7 +3,10 @@ use std::{
     fmt::{Display, Formatter, Result},
 };
 
-use axum::{BoxError, response::{IntoResponse, Response}};
+use axum::{
+    BoxError,
+    response::{IntoResponse, Response},
+};
 use hyper::StatusCode;
 
 #[derive(Debug)]
@@ -194,20 +197,59 @@ mod tests {
 
     #[test]
     fn client_error_display_messages() {
-        assert!(ClientError::Network("net".into()).to_string().contains("Network"));
-        assert!(ClientError::Serialization("s".into()).to_string().contains("Serialization"));
-        assert!(ClientError::Request("r".into()).to_string().contains("Request"));
-        assert!(ClientError::Response("r".into()).to_string().contains("Response"));
-        assert!(ClientError::Deserialize("d".into()).to_string().contains("Deserialize"));
-        assert_eq!(ClientError::Status(404, "not found".into()).to_string(), "not found");
+        assert!(
+            ClientError::Network("net".into())
+                .to_string()
+                .contains("Network")
+        );
+        assert!(
+            ClientError::Serialization("s".into())
+                .to_string()
+                .contains("Serialization")
+        );
+        assert!(
+            ClientError::Request("r".into())
+                .to_string()
+                .contains("Request")
+        );
+        assert!(
+            ClientError::Response("r".into())
+                .to_string()
+                .contains("Response")
+        );
+        assert!(
+            ClientError::Deserialize("d".into())
+                .to_string()
+                .contains("Deserialize")
+        );
+        assert_eq!(
+            ClientError::Status(404, "not found".into()).to_string(),
+            "not found"
+        );
     }
 
     #[test]
     fn auth_error_display_messages() {
-        assert!(AuthError::Unauthorized("x".into()).to_string().contains("Unauthorized"));
-        assert!(AuthError::RequestFailed("x".into()).to_string().contains("RequestFailed"));
-        assert!(AuthError::MissingConfig("x".into()).to_string().contains("MissingConfig"));
-        assert!(AuthError::InvalidUrl("x".into()).to_string().contains("InvalidUrl"));
+        assert!(
+            AuthError::Unauthorized("x".into())
+                .to_string()
+                .contains("Unauthorized")
+        );
+        assert!(
+            AuthError::RequestFailed("x".into())
+                .to_string()
+                .contains("RequestFailed")
+        );
+        assert!(
+            AuthError::MissingConfig("x".into())
+                .to_string()
+                .contains("MissingConfig")
+        );
+        assert!(
+            AuthError::InvalidUrl("x".into())
+                .to_string()
+                .contains("InvalidUrl")
+        );
     }
 
     #[test]

@@ -1,10 +1,8 @@
 package wiki.chiu.micro.user.service;
 
-
+import java.util.List;
 import wiki.chiu.micro.common.vo.MenuRpcVo;
 import wiki.chiu.micro.user.vo.RoleMenuVo;
-
-import java.util.List;
 
 /**
  * @author mingchiuli
@@ -12,10 +10,9 @@ import java.util.List;
  */
 public interface RoleMenuService {
 
-    List<MenuRpcVo> getCurrentRoleNav(String role) ;
+  List<MenuRpcVo> getCurrentRoleNav(String role);
 
-    List<RoleMenuVo> getMenusInfo(Long roleId);
+  List<RoleMenuVo> getMenusInfo(Long roleId);
 
-    void saveMenu(Long roleId, List<Long> menuIds);
-
+  void saveMenu(Long roleId, List<Long> menuIds);
 }

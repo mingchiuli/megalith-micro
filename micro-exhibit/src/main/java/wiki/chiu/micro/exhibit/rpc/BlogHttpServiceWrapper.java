@@ -1,58 +1,50 @@
 package wiki.chiu.micro.exhibit.rpc;
 
-
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
-import wiki.chiu.micro.common.lang.Result;
-import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.rpc.BlogHttpService;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.stereotype.Component;
+import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.rpc.BlogHttpService;
+import wiki.chiu.micro.common.rpc.RemoteResult;
+import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
 
-/**
- * BlogHttpServiceWrapper
- */
+/** BlogHttpServiceWrapper */
 @Component
 public class BlogHttpServiceWrapper {
 
-    private final BlogHttpService blogHttpService;
+  private final BlogHttpService blogHttpService;
 
-    public BlogHttpServiceWrapper(BlogHttpService blogHttpService) {
-        this.blogHttpService = blogHttpService;
-    }
+  public BlogHttpServiceWrapper(BlogHttpService blogHttpService) {
+    this.blogHttpService = blogHttpService;
+  }
 
-    public BlogEntityRpcVo findById(Long blogId) {
-        return Result.handleResult(() -> blogHttpService.findById(blogId));
-    }
+  public BlogEntityRpcVo findById(Long blogId) {
+    return RemoteResult.requireSuccess(() -> blogHttpService.findById(blogId));
+  }
 
-    public List<BlogEntityRpcVo> findAllById(List<Long> ids) {
-        return Result.handleResult(() -> blogHttpService.findAllById(ids));
+  public List<BlogEntityRpcVo> findAllById(List<Long> ids) {
+    return RemoteResult.requireSuccess(() -> blogHttpService.findAllById(ids));
+  }
 
-    }
+  public Long count() {
+    return RemoteResult.requireSuccess(blogHttpService::count);
+  }
 
-    public Long count() {
-        return Result.handleResult(blogHttpService::count);
-    }
+  public void setReadCount(Long id) {
+    blogHttpService.setReadCount(id);
+  }
 
-    public void setReadCount(Long id) {
-        blogHttpService.setReadCount(id);
-    }
+  public PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize) {
+    return RemoteResult.requireSuccess(() -> blogHttpService.findPage(pageNo, pageSize));
+  }
 
-    public PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize) {
-        return Result.handleResult(() -> blogHttpService.findPage(pageNo, pageSize));
+  public long countByCreatedGreaterThanEqual(LocalDateTime created) {
+    return RemoteResult.requireSuccess(
+        () -> blogHttpService.countByCreatedGreaterThanEqual(created));
+  }
 
-    }
-
-    public long countByCreatedGreaterThanEqual(LocalDateTime created) {
-        return Result.handleResult(() -> blogHttpService.countByCreatedGreaterThanEqual(created));
-
-    }
-
-    public BlogSensitiveContentRpcVo findSensitiveByBlogId(Long blogId) {
-        return Result.handleResult(() -> blogHttpService.findSensitiveByBlogId(blogId));
-
-    }
-
+  public BlogSensitiveContentRpcVo findSensitiveByBlogId(Long blogId) {
+    return RemoteResult.requireSuccess(() -> blogHttpService.findSensitiveByBlogId(blogId));
+  }
 }

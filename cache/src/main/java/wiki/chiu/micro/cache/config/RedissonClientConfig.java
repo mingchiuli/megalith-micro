@@ -9,27 +9,26 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
-/**
- * RedissonClientConfig
- */
+/** RedissonClientConfig */
 @AutoConfiguration
 public class RedissonClientConfig {
 
-    @Value("${spring.data.redis.host}")
-    private String host;
-    @Value("${spring.data.redis.port}")
-    private String port;
-    @Value("${spring.data.redis.password}")
-    private String password;
+  @Value("${spring.data.redis.host}")
+  private String host;
 
+  @Value("${spring.data.redis.port}")
+  private String port;
 
-    @Bean("cacheRedissonClient")
-    RedissonClient cacheRedissonClient() {
-        Config config = new Config();
-        SingleServerConfig singleServerConfig = config.useSingleServer();
-        config.setCodec(new StringCodec());
-        config.setPassword(password);
-        singleServerConfig.setAddress("redis://" + host + ":" + port);
-        return Redisson.create(config);
-    }
+  @Value("${spring.data.redis.password}")
+  private String password;
+
+  @Bean("cacheRedissonClient")
+  RedissonClient cacheRedissonClient() {
+    Config config = new Config();
+    SingleServerConfig singleServerConfig = config.useSingleServer();
+    config.setCodec(new StringCodec());
+    config.setPassword(password);
+    singleServerConfig.setAddress("redis://" + host + ":" + port);
+    return Redisson.create(config);
+  }
 }

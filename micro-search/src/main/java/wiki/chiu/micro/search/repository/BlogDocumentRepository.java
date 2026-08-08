@@ -1,7 +1,7 @@
 package wiki.chiu.micro.search.repository;
 
-import wiki.chiu.micro.search.document.BlogDocument;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
+import wiki.chiu.micro.search.document.BlogDocument;
 
 /**
  * @author mingchiuli

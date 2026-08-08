@@ -9,14 +9,22 @@ import wiki.chiu.micro.common.rpc.*;
 import wiki.chiu.micro.exhibit.config.CustomRuntimeHints;
 
 @SpringBootApplication(proxyBeanMethods = false)
-@ImportRuntimeHints({ CustomRuntimeHints.class })
+@ImportRuntimeHints({CustomRuntimeHints.class})
 @EnableScheduling
-@ImportHttpServices(group = "user", types = {UserHttpService.class})
-@ImportHttpServices(group = "blog", types = {BlogHttpService.class})
-@ImportHttpServices(group = "auth", types = {AuthHttpService.class})
-@ImportHttpServices(group = "search", types = {SearchHttpService.class})
+@ImportHttpServices(
+    group = "user",
+    types = {UserHttpService.class})
+@ImportHttpServices(
+    group = "blog",
+    types = {BlogHttpService.class})
+@ImportHttpServices(
+    group = "auth",
+    types = {AuthHttpService.class})
+@ImportHttpServices(
+    group = "search",
+    types = {SearchHttpService.class})
 public class MicroExhibitApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(MicroExhibitApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(MicroExhibitApplication.class, args);
+  }
 }

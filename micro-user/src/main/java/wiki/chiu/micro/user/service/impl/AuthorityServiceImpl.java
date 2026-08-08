@@ -1,7 +1,11 @@
 package wiki.chiu.micro.user.service.impl;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.TaskExecutor;
+import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
+
+import java.util.List;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.Const;
@@ -21,94 +25,89 @@ import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.req.AuthorityEntityReq;
 import wiki.chiu.micro.user.service.AuthorityService;
 import wiki.chiu.micro.user.vo.AuthorityVo;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Service;
 import wiki.chiu.micro.user.wrapper.MenuAuthorityWrapper;
-
-import java.util.List;
-
-import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
-
 
 @Service
 public class AuthorityServiceImpl implements AuthorityService {
 
-    private final MenuAuthorityRepository menuAuthorityRepository;
+  private final MenuAuthorityRepository menuAuthorityRepository;
 
-    private final AuthorityRepository authorityRepository;
+  private final AuthorityRepository authorityRepository;
 
-    private final RoleRepository roleRepository;
+  private final RoleRepository roleRepository;
 
-    private final ApplicationContext applicationContext;
+  private final ApplicationEventPublisher eventPublisher;
 
-    private final TaskExecutor taskExecutor;
+  private final MenuAuthorityWrapper menuAuthorityWrapper;
 
-    private final MenuAuthorityWrapper menuAuthorityWrapper;
+  public AuthorityServiceImpl(
+      AuthorityRepository authorityRepository,
+      RoleRepository roleRepository,
+      ApplicationEventPublisher eventPublisher,
+      MenuAuthorityRepository menuAuthorityRepository,
+      MenuAuthorityWrapper menuAuthorityWrapper) {
+    this.authorityRepository = authorityRepository;
+    this.roleRepository = roleRepository;
+    this.eventPublisher = eventPublisher;
+    this.menuAuthorityRepository = menuAuthorityRepository;
+    this.menuAuthorityWrapper = menuAuthorityWrapper;
+  }
 
-    public AuthorityServiceImpl(AuthorityRepository authorityRepository, RoleRepository roleRepository, ApplicationContext applicationContext, @Qualifier("commonExecutor") TaskExecutor taskExecutor, MenuAuthorityRepository menuAuthorityRepository, MenuAuthorityWrapper menuAuthorityWrapper) {
-        this.authorityRepository = authorityRepository;
-        this.roleRepository = roleRepository;
-        this.applicationContext = applicationContext;
-        this.taskExecutor = taskExecutor;
-        this.menuAuthorityRepository = menuAuthorityRepository;
-        this.menuAuthorityWrapper = menuAuthorityWrapper;
-    }
+  @Override
+  public List<AuthorityRpcVo> findAllByService() {
+    List<AuthorityEntity> authorityEntities =
+        authorityRepository.findAll().stream()
+            .filter(item -> StatusEnum.NORMAL.getCode().equals(item.getStatus()))
+            .toList();
+    return AuthorityRpcVoConvertor.convert(authorityEntities);
+  }
 
-    @Override
-    public List<AuthorityRpcVo> findAllByService() {
-        List<AuthorityEntity> authorityEntities = authorityRepository.findAll().stream()
-                .filter(item -> StatusEnum.NORMAL.getCode().equals(item.getStatus()))
-                .toList();
-        return AuthorityRpcVoConvertor.convert(authorityEntities);
-    }
+  @Override
+  public List<AuthorityVo> findAll() {
+    List<AuthorityEntity> authorityEntities = authorityRepository.findAll();
+    return AuthorityVoConvertor.convert(authorityEntities);
+  }
 
-    @Override
-    public List<AuthorityVo> findAll() {
-        List<AuthorityEntity> authorityEntities = authorityRepository.findAll();
-        return AuthorityVoConvertor.convert(authorityEntities);
-    }
+  @Override
+  public AuthorityVo findById(Long id) {
+    AuthorityEntity authorityEntity =
+        authorityRepository.findById(id).orElseThrow(() -> new MissException(NO_FOUND));
+    return AuthorityVoConvertor.convert(authorityEntity);
+  }
 
-    @Override
-    public AuthorityVo findById(Long id) {
-        AuthorityEntity authorityEntity = authorityRepository.findById(id)
-                .orElseThrow(() -> new MissException(NO_FOUND));
-        return AuthorityVoConvertor.convert(authorityEntity);
-    }
+  @Override
+  @Transactional
+  public void saveOrUpdate(AuthorityEntityReq req) {
+    AuthorityEntity dealAuthority =
+        req.id().flatMap(authorityRepository::findById).orElseGet(AuthorityEntity::new);
 
+    AuthorityEntity authorityEntity = AuthorityEntityConvertor.convert(req, dealAuthority);
+    menuAuthorityWrapper.authorityEntitySave(authorityEntity);
+    executeDelAllRoleAuthTask();
+  }
 
-    @Override
-    public void saveOrUpdate(AuthorityEntityReq req) {
-        AuthorityEntity dealAuthority = req.id()
-                .flatMap(authorityRepository::findById)
-                .orElseGet(AuthorityEntity::new);
+  @Override
+  @Transactional
+  public void deleteAuthorities(List<Long> ids) {
+    menuAuthorityWrapper.deleteAuthorities(ids);
+    executeDelAllRoleAuthTask();
+  }
 
-        AuthorityEntity authorityEntity = AuthorityEntityConvertor.convert(req, dealAuthority);
-        menuAuthorityWrapper.authorityEntitySave(authorityEntity);
-        executeDelAllRoleAuthTask();
-    }
+  @Override
+  public byte[] download() {
+    List<AuthorityEntity> authorityEntities = authorityRepository.findAll();
+    List<MenuAuthorityEntity> menuAuthorityEntities = menuAuthorityRepository.findAll();
 
-    @Override
-    public void deleteAuthorities(List<Long> ids) {
-        menuAuthorityWrapper.deleteAuthorities(ids);
-        executeDelAllRoleAuthTask();
-    }
+    return SQLUtils.compose(
+            SQLUtils.entityToInsertSQL(authorityEntities, Const.AUTHORITY_TABLE),
+            SQLUtils.entityToInsertSQL(menuAuthorityEntities, Const.MENU_AUTHORITY_TABLE))
+        .getBytes();
+  }
 
-    @Override
-    public byte[] download() {
-        List<AuthorityEntity> authorityEntities = authorityRepository.findAll();
-        List<MenuAuthorityEntity> menuAuthorityEntities = menuAuthorityRepository.findAll();
-
-        return SQLUtils.compose(
-                SQLUtils.entityToInsertSQL(authorityEntities, Const.AUTHORITY_TABLE),
-                SQLUtils.entityToInsertSQL(menuAuthorityEntities, Const.MENU_AUTHORITY_TABLE))
-                .getBytes();
-    }
-
-    private void executeDelAllRoleAuthTask() {
-        taskExecutor.execute(() -> {
-            List<String> allRoleCodes = roleRepository.findAllCodes();
-            var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.AUTH.getType());
-            applicationContext.publishEvent(new AuthMenuOperateEvent(this, authMenuIndexMessage));
-        });
-    }
+  private void executeDelAllRoleAuthTask() {
+    List<String> allRoleCodes = roleRepository.findAllCodes();
+    var authMenuIndexMessage =
+        new AuthMenuIndexMessage(allRoleCodes, AuthMenuOperateEnum.AUTH.getType());
+    eventPublisher.publishEvent(new AuthMenuOperateEvent(authMenuIndexMessage));
+  }
 }

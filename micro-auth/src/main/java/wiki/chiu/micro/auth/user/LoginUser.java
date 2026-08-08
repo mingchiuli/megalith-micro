@@ -1,9 +1,8 @@
 package wiki.chiu.micro.auth.user;
 
+import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-
-import java.util.Collection;
 
 /**
  * @author mingchiuli
@@ -11,21 +10,29 @@ import java.util.Collection;
  */
 public class LoginUser extends User {
 
-    private final Long userId;
+  private final Long userId;
 
-    public LoginUser(String username,
-                     String password,
-                     boolean enabled,
-                     boolean accountNonExpired,
-                     boolean credentialsNonExpired,
-                     boolean accountNonLocked,
-                     Collection<? extends GrantedAuthority> authorities,
-                     Long userId) {
-        super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
-        this.userId = userId;
-    }
+  public LoginUser(
+      String username,
+      String password,
+      boolean enabled,
+      boolean accountNonExpired,
+      boolean credentialsNonExpired,
+      boolean accountNonLocked,
+      Collection<? extends GrantedAuthority> authorities,
+      Long userId) {
+    super(
+        username,
+        password,
+        enabled,
+        accountNonExpired,
+        credentialsNonExpired,
+        accountNonLocked,
+        authorities);
+    this.userId = userId;
+  }
 
-    public Long getUserId() {
-        return this.userId;
-    }
+  public Long getUserId() {
+    return this.userId;
+  }
 }

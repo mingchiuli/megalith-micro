@@ -12,12 +12,12 @@ import wiki.chiu.micro.search.vo.BlogDocumentVo;
  */
 public interface BlogSearchService {
 
-    PageAdapter<BlogDocumentVo> selectBlogsByES(Integer currentPage, String keywords, Boolean allInfo);
+  PageAdapter<BlogDocumentVo> selectBlogsByES(
+      Integer currentPage, String keywords, Boolean allInfo);
 
-    BlogSearchRpcVo searchBlogs(BlogSysSearchReq req);
+  BlogSearchRpcVo searchBlogs(BlogSysSearchReq req);
 
-    Long searchCount(BlogSysCountSearchReq req);
+  Long searchCount(BlogSysCountSearchReq req);
 
-    void addReadCount(Long id);
-
+  void addReadCount(Long id);
 }

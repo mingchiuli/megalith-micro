@@ -1,12 +1,11 @@
 package wiki.chiu.micro.exhibit.service;
 
+import java.util.List;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.vo.BlogDescriptionVo;
 import wiki.chiu.micro.exhibit.vo.BlogExhibitVo;
 import wiki.chiu.micro.exhibit.vo.BlogHotReadVo;
 import wiki.chiu.micro.exhibit.vo.VisitStatisticsVo;
-
-import java.util.List;
 
 /**
  * @author mingchiuli
@@ -14,16 +13,13 @@ import java.util.List;
  */
 public interface BlogService {
 
-    PageAdapter<BlogDescriptionVo> findPage(Integer currentPage);
+  PageAdapter<BlogDescriptionVo> findPage(Integer currentPage);
 
-    BlogExhibitVo getLockedBlog(Long blogId, String token);
+  BlogExhibitVo getLockedBlog(Long blogId, String token);
 
-    Boolean checkToken(Long blogId, String token);
+  VisitStatisticsVo getVisitStatistics();
 
-    VisitStatisticsVo getVisitStatistics();
+  List<BlogHotReadVo> getScoreBlogs();
 
-    List<BlogHotReadVo> getScoreBlogs();
-
-    BlogExhibitVo getBlogDetail(List<String> roles, Long id, Long userId);
-
+  BlogExhibitVo getBlogDetail(List<String> roles, Long id, Long userId);
 }

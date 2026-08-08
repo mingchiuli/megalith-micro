@@ -1,4 +1,6 @@
 mod client;
+pub mod config;
+mod constant;
 mod exception;
 mod handler;
 mod middleware;
@@ -6,8 +8,6 @@ mod otel;
 mod result;
 mod shutdown;
 mod utils;
-mod constant;
-pub mod config;
 
 pub use middleware::trace_context_middleware;
 pub use otel::init_logger_provider;

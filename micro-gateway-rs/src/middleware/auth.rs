@@ -5,7 +5,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 
 use crate::client;
-use crate::config::config::{self, ConfigKey};
+use crate::config::{self, ConfigKey};
 use crate::exception::{AuthError, ClientError, HandlerError, handle_api_error};
 use crate::result::ApiResult;
 use crate::utils::{self};
@@ -50,21 +50,28 @@ pub async fn process(req: Request, next: Next) -> Result<Response, HandlerError>
 }
 
 fn validate_cookie_origin(req: &Request) -> Result<(), HandlerError> {
-    if req.method() != Method::POST || !utils::uses_cookie_auth(req) {
-        return Ok(());
-    }
-
     let origin = req
         .headers()
         .get(header::ORIGIN)
-        .and_then(|value| value.to_str().ok())
-        .unwrap_or_default();
+        .and_then(|value| value.to_str().ok());
+
+    if origin.is_none() && !requires_origin(req) {
+        return Ok(());
+    }
+
     let allowed = config::get_config(ConfigKey::AllowedOrigins);
-    if is_allowed_origin(origin, &allowed) {
+    if origin.is_some_and(|value| is_allowed_origin(value, &allowed)) {
         return Ok(());
     }
 
     Err(HandlerError::forbidden("请求来源不受信任"))
+}
+
+fn requires_origin(req: &Request) -> bool {
+    !matches!(
+        req.method(),
+        &Method::GET | &Method::HEAD | &Method::OPTIONS
+    ) || utils::is_websocket_request(req)
 }
 
 fn is_allowed_origin(origin: &str, allowed_origins: &str) -> bool {
@@ -116,28 +123,6 @@ async fn auth(
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::is_allowed_origin;
-
-    #[test]
-    fn matches_a_trimmed_origin_from_the_allowlist() {
-        assert!(is_allowed_origin(
-            "https://chiu.wiki",
-            "http://localhost:1919, https://chiu.wiki"
-        ));
-    }
-
-    #[test]
-    fn rejects_empty_and_partial_origins() {
-        assert!(!is_allowed_origin("", "https://chiu.wiki"));
-        assert!(!is_allowed_origin(
-            "https://chiu.wiki.evil",
-            "https://chiu.wiki"
-        ));
-    }
-}
-
 fn build_auth_uri() -> Result<Uri, ClientError> {
     let mut uri_str = config::get_config(ConfigKey::AuthUrlKey);
     uri_str.push_str("/auth/route/check");
@@ -158,4 +143,52 @@ fn build_headers(auth_token: &str) -> HashMap<HeaderName, HeaderValue> {
             HeaderValue::from_static("application/json"),
         ),
     ])
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{is_allowed_origin, requires_origin};
+    use axum::{body::Body, extract::Request};
+
+    #[test]
+    fn matches_a_trimmed_origin_from_the_allowlist() {
+        assert!(is_allowed_origin(
+            "https://chiu.wiki",
+            "http://localhost:1919, https://chiu.wiki"
+        ));
+    }
+
+    #[test]
+    fn rejects_empty_and_partial_origins() {
+        assert!(!is_allowed_origin("", "https://chiu.wiki"));
+        assert!(!is_allowed_origin(
+            "https://chiu.wiki.evil",
+            "https://chiu.wiki"
+        ));
+    }
+
+    #[test]
+    fn requires_origin_for_unsafe_methods() {
+        for method in ["POST", "PUT", "PATCH", "DELETE"] {
+            let req = Request::builder()
+                .method(method)
+                .uri("/x")
+                .body(Body::empty())
+                .unwrap();
+            assert!(requires_origin(&req));
+        }
+    }
+
+    #[test]
+    fn allows_originless_safe_reads_but_not_websocket_gets() {
+        let get = Request::builder().uri("/x").body(Body::empty()).unwrap();
+        assert!(!requires_origin(&get));
+
+        let websocket = Request::builder()
+            .uri("/rooms")
+            .header("upgrade", "websocket")
+            .body(Body::empty())
+            .unwrap();
+        assert!(requires_origin(&websocket));
+    }
 }

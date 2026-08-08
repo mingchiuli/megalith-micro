@@ -1,19 +1,18 @@
 package wiki.chiu.micro.exhibit.convertor;
 
-import wiki.chiu.micro.exhibit.vo.VisitStatisticsVo;
-
 import java.util.List;
+import wiki.chiu.micro.exhibit.vo.VisitStatisticsVo;
 
 public class VisitStatisticsVoConvertor {
 
-    private VisitStatisticsVoConvertor() {}
+  private VisitStatisticsVoConvertor() {}
 
-    public static VisitStatisticsVo convert(List<Long> items) {
-        return VisitStatisticsVo.builder()
-                .dayVisit(items.get(0))
-                .weekVisit(items.get(1))
-                .monthVisit(items.get(2))
-                .yearVisit(items.get(3))
-                .build();
-    }
+  public static VisitStatisticsVo convert(List<Long> items) {
+    return VisitStatisticsVo.builder()
+        .dayVisit(items.get(0))
+        .weekVisit(items.get(1))
+        .monthVisit(items.get(2))
+        .yearVisit(items.get(3))
+        .build();
+  }
 }

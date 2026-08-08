@@ -1,11 +1,6 @@
-use axum::{
-    extract::Request,
-    http::HeaderMap,
-    middleware::Next,
-    response::Response,
-};
-use opentelemetry::propagation::Extractor;
+use axum::{extract::Request, http::HeaderMap, middleware::Next, response::Response};
 use opentelemetry::global;
+use opentelemetry::propagation::Extractor;
 use tracing::Instrument;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
@@ -36,9 +31,5 @@ pub async fn trace_context_middleware(req: Request, next: Next) -> Response {
     let _ = span.set_parent(parent_context);
 
     // 3. 用 instrument 确保后续 handler 使用这个 span 作为父
-    async move {
-        next.run(req).await
-    }
-    .instrument(span)
-    .await
+    async move { next.run(req).await }.instrument(span).await
 }

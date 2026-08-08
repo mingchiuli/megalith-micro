@@ -1,16 +1,11 @@
 package wiki.chiu.micro.user.service;
 
-import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.vo.UserEntityRpcVo;
-import wiki.chiu.micro.user.req.UserEntityRegisterReq;
-import wiki.chiu.micro.user.req.UserEntityReq;
-import org.springframework.web.multipart.MultipartFile;
-
-import jakarta.servlet.http.HttpServletResponse;
-import wiki.chiu.micro.user.vo.UserEntityVo;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.vo.UserEntityRpcVo;
+import wiki.chiu.micro.user.req.UserEntityReq;
+import wiki.chiu.micro.user.vo.UserEntityVo;
 
 /**
  * @author mingchiuli
@@ -18,35 +13,23 @@ import java.util.List;
  */
 public interface UserService {
 
-    void updateLoginTime(String username, LocalDateTime time);
+  void updateLoginTime(String username, LocalDateTime time);
 
-    void changeUserStatusByUsername(String username, Integer status);
+  void changeUserStatusByUsername(String username, Integer status);
 
-    String getRegisterPage(String username);
+  UserEntityRpcVo findById(Long userId);
 
-    String imageUpload(String token, MultipartFile req);
+  UserEntityRpcVo findByEmail(String email);
 
-    void imageDelete(String token, String url);
+  UserEntityRpcVo findByPhone(String phone);
 
-    Boolean checkRegisterPage(String token);
+  UserEntityRpcVo findByUsernameOrEmailOrPhone(String username);
 
-    void download(HttpServletResponse response);
+  void saveOrUpdate(UserEntityReq userEntityReq);
 
-    UserEntityRpcVo findById(Long userId);
+  PageAdapter<UserEntityVo> listPage(Integer currentPage, Integer size);
 
-    UserEntityRpcVo findByEmail(String email);
+  void deleteUsers(List<Long> ids);
 
-    UserEntityRpcVo findByPhone(String phone);
-
-    UserEntityRpcVo findByUsernameOrEmailOrPhone(String username);
-
-    void saveRegisterPage(UserEntityRegisterReq req);
-
-    void saveOrUpdate(UserEntityReq userEntityReq);
-
-    PageAdapter<UserEntityVo> listPage(Integer currentPage, Integer size);
-
-    void deleteUsers(List<Long> ids);
-
-    UserEntityVo findInfo(Long id);
+  UserEntityVo findInfo(Long id);
 }

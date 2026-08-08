@@ -1,5 +1,22 @@
 package wiki.chiu.micro.blog.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,246 +29,259 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import wiki.chiu.micro.blog.handler.BlogHttpHandler;
 import wiki.chiu.micro.blog.handler.BlogInternalHttpHandler;
 import wiki.chiu.micro.blog.route.BlogRoutes;
+import wiki.chiu.micro.blog.service.BlogAssetService;
+import wiki.chiu.micro.blog.service.BlogCollaborationService;
+import wiki.chiu.micro.blog.service.BlogExportService;
 import wiki.chiu.micro.blog.service.BlogService;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
-import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
+import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
 import wiki.chiu.micro.common.web.ValidatedRequest;
-
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 class BlogControllerTest {
 
-    @Mock
-    private BlogService blogService;
+  @Mock private BlogService blogService;
 
-    @Mock
-    private AuthHttpService authHttpService;
+  @Mock private BlogAssetService assetService;
 
-    @Mock
-    private BlogInternalHttpHandler blogInternalHttpHandler;
+  @Mock private BlogCollaborationService collaborationService;
 
-    private final ValidatedRequest validation = new ValidatedRequest();
+  @Mock private BlogExportService exportService;
 
-    private MockMvc mockMvc;
+  @Mock private AuthHttpService authHttpService;
 
-    @BeforeEach
-    void setUp() {
-        AuthInfo authInfo = new AuthInfo(1L, List.of("ROLE_USER"), List.of());
-        lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
+  @Mock private BlogInternalHttpHandler blogInternalHttpHandler;
+
+  private final ValidatedRequest validation = new ValidatedRequest();
+
+  private MockMvc mockMvc;
+
+  @BeforeEach
+  void setUp() {
+    AuthPrincipal authInfo = new AuthPrincipal(1L, List.of("ROLE_USER"), List.of());
+    lenient()
+        .when(authHttpService.getAuthentication(anyString()))
+        .thenReturn(
+            Result.success(
                 new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
-        BlogHttpHandler handler = new BlogHttpHandler(blogService, authHttpService, validation);
-        mockMvc = MockMvcBuilders.routerFunctions(BlogRoutes.routes(handler, blogInternalHttpHandler))
-                .build();
-    }
+    BlogHttpHandler handler =
+        new BlogHttpHandler(
+            blogService,
+            assetService,
+            collaborationService,
+            exportService,
+            authHttpService,
+            validation);
+    mockMvc =
+        MockMvcBuilders.routerFunctions(BlogRoutes.routes(handler, blogInternalHttpHandler))
+            .build();
+  }
 
-    @Test
-    void saveOrUpdateReturnsSuccess() throws Exception {
-        doNothing().when(blogService).saveOrUpdate(any(), anyLong(), anyList());
+  @Test
+  void saveOrUpdateReturnsSuccess() throws Exception {
+    doNothing().when(blogService).saveOrUpdate(any(), anyLong(), anyList());
 
-        String body = "{\"id\":null,\"title\":\"t\",\"description\":\"d\",\"content\":\"c\","
-                + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":[]}";
-        mockMvc.perform(post("/sys/blog/save")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200));
+    String body =
+        "{\"id\":null,\"title\":\"t\",\"description\":\"d\",\"content\":\"c\","
+            + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":[]}";
+    mockMvc
+        .perform(post("/sys/blog/save").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value(200));
 
-        verify(blogService).saveOrUpdate(any(), anyLong(), anyList());
-    }
+    verify(blogService).saveOrUpdate(any(), anyLong(), anyList());
+  }
 
-    @Test
-    void deleteBlogsReturnsSuccess() throws Exception {
-        doNothing().when(blogService).deleteBatch(anyList(), anyLong(), anyList());
+  @Test
+  void deleteBlogsReturnsSuccess() throws Exception {
+    doNothing().when(blogService).deleteBatch(anyList(), anyLong(), anyList());
 
-        mockMvc.perform(post("/sys/blog/delete")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("[1,2,3]"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200));
-    }
+    mockMvc
+        .perform(
+            post("/sys/blog/delete").contentType(MediaType.APPLICATION_JSON).content("[1,2,3]"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value(200));
+  }
 
-    @Test
-    void setBlogTokenReturnsToken() throws Exception {
-        when(blogService.setBlogToken(7L, 1L, List.of("ROLE_USER"))).thenReturn("xyz-token");
+  @Test
+  void setBlogTokenReturnsToken() throws Exception {
+    when(collaborationService.issueReadToken(7L, 1L, List.of("ROLE_USER"))).thenReturn("xyz-token");
 
-        mockMvc.perform(get("/sys/blog/lock/7"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").value("xyz-token"));
-    }
+    mockMvc
+        .perform(post("/sys/blog/lock/7").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data").value("xyz-token"));
+  }
 
-    @Test
-    void getAllBlogsReturnsPage() throws Exception {
-        BlogEntityVo vo = BlogEntityVo.builder().id(1L).title("t").build();
-        PageAdapter<BlogEntityVo> page = PageAdapter.<BlogEntityVo>builder()
-                .content(List.of(vo)).totalElements(1).pageNumber(1).pageSize(10)
-                .first(true).last(true).empty(false).totalPages(1).build();
-        when(blogService.findAllBlogs(any(), anyLong(), anyList())).thenReturn(page);
+  @Test
+  void getAllBlogsReturnsPage() throws Exception {
+    BlogEntityVo vo = BlogEntityVo.builder().id(1L).title("t").build();
+    PageAdapter<BlogEntityVo> page =
+        PageAdapter.<BlogEntityVo>builder()
+            .content(List.of(vo))
+            .totalElements(1)
+            .pageNumber(1)
+            .pageSize(10)
+            .first(true)
+            .last(true)
+            .empty(false)
+            .totalPages(1)
+            .build();
+    when(blogService.findAllBlogs(any(), anyLong(), anyList())).thenReturn(page);
 
-        mockMvc.perform(get("/sys/blog/blogs")
-                        .param("currentPage", "1")
-                        .param("size", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.content[0].id").value(1));
-    }
+    mockMvc
+        .perform(get("/sys/blog/blogs").param("currentPage", "1").param("size", "10"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.content[0].id").value(1));
+  }
 
-    @Test
-    void getDeletedBlogsReturnsPage() throws Exception {
-        when(blogService.findDeletedBlogs(1, 10, 1L)).thenReturn(PageAdapter.emptyPage());
+  @Test
+  void getDeletedBlogsReturnsPage() throws Exception {
+    when(blogService.findDeletedBlogs(1, 10, 1L)).thenReturn(PageAdapter.emptyPage());
 
-        mockMvc.perform(get("/sys/blog/deleted")
-                        .param("currentPage", "1")
-                        .param("size", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.empty").value(true));
-    }
+    mockMvc
+        .perform(get("/sys/blog/deleted").param("currentPage", "1").param("size", "10"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.empty").value(true));
+  }
 
-    @Test
-    void recoverDeletedBlogReturnsSuccess() throws Exception {
-        doNothing().when(blogService).recoverDeletedBlog(2, 1L);
+  @Test
+  void recoverDeletedBlogReturnsSuccess() throws Exception {
+    doNothing().when(blogService).recoverDeletedBlog(2, 1L);
 
-        mockMvc.perform(get("/sys/blog/recover/2"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200));
-    }
+    mockMvc
+        .perform(post("/sys/blog/recover/2").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value(200));
+  }
 
-    @Test
-    void uploadOssReturnsUrl() throws Exception {
-        when(blogService.uploadOss(any(), anyLong())).thenReturn("https://oss/x.png");
-        MockMultipartFile file = new MockMultipartFile("image", "x.png", "image/png", new byte[]{1, 2, 3});
+  @Test
+  void uploadOssReturnsUrl() throws Exception {
+    when(assetService.upload(any(), anyLong())).thenReturn("https://oss/x.png");
+    MockMultipartFile file =
+        new MockMultipartFile("image", "x.png", "image/png", new byte[] {1, 2, 3});
 
-        mockMvc.perform(multipart("/sys/blog/oss/upload").file(file))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").value("https://oss/x.png"));
-    }
+    mockMvc
+        .perform(multipart("/sys/blog/oss/upload").file(file))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data").value("https://oss/x.png"));
+  }
 
-    @Test
-    void deleteOssReturnsSuccess() throws Exception {
-        doNothing().when(blogService).deleteOss("https://oss/x.png", 1L);
+  @Test
+  void deleteOssReturnsSuccess() throws Exception {
+    doNothing().when(assetService).delete("https://oss/x.png", 1L);
 
-        mockMvc.perform(get("/sys/blog/oss/delete").param("url", "https://oss/x.png"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200));
-    }
+    mockMvc
+        .perform(
+            delete("/sys/blog/oss/delete")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"url\":\"https://oss/x.png\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value(200));
+  }
 
-    @Test
-    void getEchoDetailWhenServiceThrowsReturns400() throws Exception {
-        when(blogService.findEdit(any(), anyLong(), anyList()))
-                .thenThrow(new MissException("not found"));
+  @Test
+  void getEchoDetailWhenMissingReturns404() throws Exception {
+    when(blogService.findEdit(any(), anyLong(), anyList()))
+        .thenThrow(new MissException("not found"));
 
-        mockMvc.perform(get("/sys/blog/edit/pull/echo").param("blogId", "9"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.msg").value("not found"));
-    }
+    mockMvc
+        .perform(get("/sys/blog/edit/pull/echo").param("blogId", "9"))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.code").value(1))
+        .andExpect(jsonPath("$.msg").value("not found"));
+  }
 
-    @Test
-    void unknownPathReturns404() throws Exception {
-        mockMvc.perform(get("/sys/blog/unknown"))
-                .andExpect(status().isNotFound());
-    }
+  @Test
+  void unknownPathReturns404() throws Exception {
+    mockMvc.perform(get("/sys/blog/unknown")).andExpect(status().isNotFound());
+  }
 
-    @Test
-    void deleteBlogsWithEmptyListIsRejectedBeforeHandler() throws Exception {
-        mockMvc.perform(post("/sys/blog/delete")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("[]"))
-                .andExpect(status().isBadRequest());
+  @Test
+  void deleteBlogsWithEmptyListIsRejectedBeforeHandler() throws Exception {
+    mockMvc
+        .perform(post("/sys/blog/delete").contentType(MediaType.APPLICATION_JSON).content("[]"))
+        .andExpect(status().isBadRequest());
 
-        verify(blogService, never()).deleteBatch(anyList(), anyLong(), anyList());
-    }
+    verify(blogService, never()).deleteBatch(anyList(), anyLong(), anyList());
+  }
 
-    @Test
-    void invalidBlogBodyIsRejectedBeforeHandler() throws Exception {
-        mockMvc.perform(post("/sys/blog/save")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.msg").value("param error"));
+  @Test
+  void invalidBlogBodyIsRejectedBeforeHandler() throws Exception {
+    mockMvc
+        .perform(post("/sys/blog/save").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.msg").value("title must not be blank"));
 
-        verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
-    }
+    verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
+  }
 
-    @Test
-    void invalidSensitiveContentIsRejectedBeforeHandler() throws Exception {
-        String body = "{\"id\":null,\"title\":\"t\",\"description\":\"d\",\"content\":\"c\","
-                + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":["
-                + "{\"startIndex\":0,\"endIndex\":1,\"type\":9}]}";
+  @Test
+  void invalidSensitiveContentIsRejectedBeforeHandler() throws Exception {
+    String body =
+        "{\"id\":null,\"title\":\"t\",\"description\":\"d\",\"content\":\"c\","
+            + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":["
+            + "{\"startIndex\":0,\"endIndex\":1,\"type\":9}]}";
 
-        mockMvc.perform(post("/sys/blog/save")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.msg").value("param error"));
+    mockMvc
+        .perform(post("/sys/blog/save").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.msg").value("sensitiveContent type is invalid"));
 
-        verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
-    }
+    verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
+  }
 
-    @Test
-    void sensitiveContentOutsideContentIsRejectedBeforeHandler() throws Exception {
-        String body = "{\"id\":null,\"title\":\"t\",\"description\":\"d\",\"content\":\"abc\","
-                + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":["
-                + "{\"startIndex\":1,\"endIndex\":4,\"type\":1}]}";
+  @Test
+  void sensitiveContentOutsideContentIsRejectedBeforeHandler() throws Exception {
+    String body =
+        "{\"id\":null,\"title\":\"t\",\"description\":\"d\",\"content\":\"abc\","
+            + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":["
+            + "{\"startIndex\":1,\"endIndex\":4,\"type\":1}]}";
 
-        mockMvc.perform(post("/sys/blog/save")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.msg").value("param error"));
+    mockMvc
+        .perform(post("/sys/blog/save").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.msg").value("sensitiveContent start/end indices invalid"));
 
-        verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
-    }
+    verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
+  }
 
-    @Test
-    void deleteBlogsRejectsNonPositiveId() throws Exception {
-        mockMvc.perform(post("/sys/blog/delete")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("[0]"))
-                .andExpect(status().isBadRequest());
+  @Test
+  void deleteBlogsRejectsNonPositiveId() throws Exception {
+    mockMvc
+        .perform(post("/sys/blog/delete").contentType(MediaType.APPLICATION_JSON).content("[0]"))
+        .andExpect(status().isBadRequest());
 
-        verify(blogService, never()).deleteBatch(anyList(), anyLong(), anyList());
-    }
+    verify(blogService, never()).deleteBatch(anyList(), anyLong(), anyList());
+  }
 
-    @Test
-    void nonPositivePageIsRejectedBeforeHandler() throws Exception {
-        mockMvc.perform(get("/sys/blog/blogs")
-                        .param("currentPage", "0")
-                        .param("size", "10"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.msg").value("param error"));
+  @Test
+  void nonPositivePageIsRejectedBeforeHandler() throws Exception {
+    mockMvc
+        .perform(get("/sys/blog/blogs").param("currentPage", "0").param("size", "10"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.msg").value("currentPage must be positive"));
 
-        verify(blogService, never()).findAllBlogs(any(), anyLong(), anyList());
-    }
+    verify(blogService, never()).findAllBlogs(any(), anyLong(), anyList());
+  }
 
-    @Test
-    void invalidDateRangeIsRejectedBeforeHandler() throws Exception {
-        mockMvc.perform(get("/sys/blog/blogs")
-                        .param("currentPage", "1")
-                        .param("size", "10")
-                        .param("createStart", "2026-08-02T12:00:00")
-                        .param("createEnd", "2026-08-02T11:00:00"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.msg").value("param error"));
+  @Test
+  void invalidDateRangeIsRejectedBeforeHandler() throws Exception {
+    mockMvc
+        .perform(
+            get("/sys/blog/blogs")
+                .param("currentPage", "1")
+                .param("size", "10")
+                .param("createStart", "2026-08-02T12:00:00")
+                .param("createEnd", "2026-08-02T11:00:00"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.msg").value("createStart must not be after createEnd"));
 
-        verify(blogService, never()).findAllBlogs(any(), anyLong(), anyList());
-    }
+    verify(blogService, never()).findAllBlogs(any(), anyLong(), anyList());
+  }
 }

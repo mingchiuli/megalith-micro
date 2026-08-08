@@ -13,33 +13,37 @@ import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.cache.handler.impl.RedisCacheEvictHandler;
 import wiki.chiu.micro.cache.listener.RedisCacheEvictMessageListener;
 
-
 @AutoConfiguration
 @ConditionalOnMissingClass("org.springframework.amqp.rabbit.connection.ConnectionFactory")
 public class CacheEvictRedisConfig {
 
-    private static final String CACHE_EVICT_TOPIC = "cacheRedisEvictTopic";
+  private static final String CACHE_EVICT_TOPIC = "cacheRedisEvictTopic";
 
-    private final RedissonClient redissonClient;
+  private final RedissonClient redissonClient;
 
-    private final Cache<@NonNull String, Object> localCache;
+  private final Cache<@NonNull String, Object> localCache;
 
-    private final JsonMapper jsonMapper;
+  private final JsonMapper jsonMapper;
 
-    public CacheEvictRedisConfig(@Qualifier("cacheRedissonClient") RedissonClient redissonClient, @Qualifier("caffeineCache") Cache<@NonNull String, Object> localCache, JsonMapper jsonMapper) {
-        this.redissonClient = redissonClient;
-        this.localCache = localCache;
-        this.jsonMapper = jsonMapper;
-    }
+  public CacheEvictRedisConfig(
+      @Qualifier("cacheRedissonClient") RedissonClient redissonClient,
+      @Qualifier("caffeineCache") Cache<@NonNull String, Object> localCache,
+      JsonMapper jsonMapper) {
+    this.redissonClient = redissonClient;
+    this.localCache = localCache;
+    this.jsonMapper = jsonMapper;
+  }
 
-    @PostConstruct
-    private void init() {
-        var listener = new RedisCacheEvictMessageListener(CACHE_EVICT_TOPIC, redissonClient, jsonMapper, localCache);
-        listener.initListener();
-    }
+  @PostConstruct
+  private void init() {
+    var listener =
+        new RedisCacheEvictMessageListener(
+            CACHE_EVICT_TOPIC, redissonClient, jsonMapper, localCache);
+    listener.initListener();
+  }
 
-    @Bean
-    CacheEvictHandler redisCacheEvictHandler() {
-        return new RedisCacheEvictHandler(redissonClient, jsonMapper, CACHE_EVICT_TOPIC);
-    }
+  @Bean
+  CacheEvictHandler redisCacheEvictHandler() {
+    return new RedisCacheEvictHandler(redissonClient, jsonMapper, CACHE_EVICT_TOPIC);
+  }
 }

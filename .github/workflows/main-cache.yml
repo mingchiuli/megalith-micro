@@ -24,6 +24,8 @@ jobs:
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: gradle/actions/setup-gradle@v6
+      - name: Check
+        run: ./gradlew :cache:check
       - name: Publish
         run: ./gradlew :cache:publishAndReleaseToMavenCentral
         env:

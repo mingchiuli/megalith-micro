@@ -1,24 +1,22 @@
 package wiki.chiu.micro.user.repository;
 
-
-import wiki.chiu.micro.user.entity.MenuEntity;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
-import java.util.List;
+import wiki.chiu.micro.user.entity.MenuEntity;
 
 /**
  * @author mingchiuli
  * @create 2022-11-27 11:50 am
  */
 public interface MenuRepository extends JpaRepository<MenuEntity, Long> {
-    
-    List<MenuEntity> findAllByOrderByOrderNumDesc();
 
-    List<MenuEntity> findByParentId(Long id);
+  List<MenuEntity> findAllByOrderByOrderNumDesc();
 
-    boolean existsByParentId(Long id);
+  List<MenuEntity> findByParentId(Long id);
 
-    @Query(value = "SELECT menu.id from MenuEntity menu")
-    List<Long> findAllIds();
+  boolean existsByParentId(Long id);
+
+  @Query(value = "SELECT menu.id from MenuEntity menu")
+  List<Long> findAllIds();
 }

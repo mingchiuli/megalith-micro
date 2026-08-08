@@ -10,28 +10,27 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-/**
- * RedissonClientConfig
- */
+/** RedissonClientConfig */
 @Configuration(proxyBeanMethods = false)
 public class RedissonClientConfig {
 
-    @Value("${spring.data.redis.host}")
-    private String host;
-    @Value("${spring.data.redis.port}")
-    private String port;
-    @Value("${spring.data.redis.password}")
-    private String password;
+  @Value("${spring.data.redis.host}")
+  private String host;
 
+  @Value("${spring.data.redis.port}")
+  private String port;
 
-    @Primary
-    @Bean
-    RedissonClient redisson() {
-        Config config = new Config();
-        config.setCodec(new StringCodec());
-        config.setPassword(password);
-        SingleServerConfig singleServerConfig = config.useSingleServer();
-        singleServerConfig.setAddress("redis://" + host + ":" + port);
-        return Redisson.create(config);
-    }
+  @Value("${spring.data.redis.password}")
+  private String password;
+
+  @Primary
+  @Bean
+  RedissonClient redisson() {
+    Config config = new Config();
+    config.setCodec(new StringCodec());
+    config.setPassword(password);
+    SingleServerConfig singleServerConfig = config.useSingleServer();
+    singleServerConfig.setAddress("redis://" + host + ":" + port);
+    return Redisson.create(config);
+  }
 }

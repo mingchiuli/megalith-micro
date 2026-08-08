@@ -16,25 +16,22 @@ import wiki.chiu.micro.common.lang.Const;
 @Configuration(proxyBeanMethods = false)
 public class UserAuthMenuChangeRabbitConfig {
 
+  @Bean("authQueue")
+  Queue authQueue() {
+    return new Queue(Const.USER_QUEUE, true, false, false);
+  }
 
+  // ES交换机
+  @Bean("fanoutExchange")
+  FanoutExchange exchange() {
+    return new FanoutExchange(Const.USER_CHANGE_FANOUT_EXCHANGE, true, false);
+  }
 
-    @Bean("authQueue")
-    Queue authQueue() {
-        return new Queue(Const.USER_QUEUE, true, false, false);
-    }
-
-    //ES交换机
-    @Bean("fanoutExchange")
-    FanoutExchange exchange() {
-        return new FanoutExchange(Const.USER_CHANGE_FANOUT_EXCHANGE, true, false);
-    }
-
-    //绑定ES队列和ES交换机
-    @Bean("authBinding")
-    Binding esBinding(@Qualifier("authQueue") Queue authQueue,
-                      @Qualifier("fanoutExchange") FanoutExchange exchange) {
-        return BindingBuilder
-                .bind(authQueue)
-                .to(exchange);
-    }
+  // 绑定ES队列和ES交换机
+  @Bean("authBinding")
+  Binding esBinding(
+      @Qualifier("authQueue") Queue authQueue,
+      @Qualifier("fanoutExchange") FanoutExchange exchange) {
+    return BindingBuilder.bind(authQueue).to(exchange);
+  }
 }

@@ -5,7 +5,7 @@ use axum::{
 };
 use micro_gateway_rs::{
     auth_process,
-    config::config::{self, ConfigKey, init_config},
+    config::{self, ConfigKey, init_config},
     handle_main, init_logger_provider, init_meter_provider, init_tracer_provider, shutdown_signal,
     trace_context_middleware,
 };

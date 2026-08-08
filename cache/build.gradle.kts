@@ -47,4 +47,5 @@ dependencies {
     compileOnly("tools.jackson.core:jackson-databind")
     compileOnly("org.springframework.boot:spring-boot-autoconfigure")
     compileOnly("org.springframework.boot:spring-boot-amqp")
+    testImplementation("tools.jackson.core:jackson-databind")
 }
