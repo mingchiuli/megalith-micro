@@ -46,8 +46,7 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
-                .buildDefaultValidatorFactory().getValidator());
+        ValidatedRequest validation = new ValidatedRequest();
         UserHttpHandler handler = new UserHttpHandler(userService, validation);
         mockMvc = MockMvcBuilders.routerFunctions(UserRoutes.routes(
                         handler,

@@ -1,18 +1,37 @@
 package wiki.chiu.micro.auth.token;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
 @ConfigurationProperties(prefix = "megalith.auth.jwt")
 public record JwtProperties(
-        @NotBlank @Size(min = 64) String secret,
-        @Positive long accessTokenExpire,
-        @Positive long refreshTokenExpire,
-        @Positive long websocketTokenExpire,
-        @NotBlank String issuer,
-        @NotBlank String audience) {
+        String secret,
+        long accessTokenExpire,
+        long refreshTokenExpire,
+        long websocketTokenExpire,
+        String issuer,
+        String audience) {
+
+    public JwtProperties {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalArgumentException("megalith.auth.jwt.secret must not be blank");
+        }
+        if (secret.length() < 64) {
+            throw new IllegalArgumentException("megalith.auth.jwt.secret size must be at least 64");
+        }
+        if (accessTokenExpire <= 0) {
+            throw new IllegalArgumentException("megalith.auth.jwt.access-token-expire must be positive");
+        }
+        if (refreshTokenExpire <= 0) {
+            throw new IllegalArgumentException("megalith.auth.jwt.refresh-token-expire must be positive");
+        }
+        if (websocketTokenExpire <= 0) {
+            throw new IllegalArgumentException("megalith.auth.jwt.websocket-token-expire must be positive");
+        }
+        if (issuer == null || issuer.isBlank()) {
+            throw new IllegalArgumentException("megalith.auth.jwt.issuer must not be blank");
+        }
+        if (audience == null || audience.isBlank()) {
+            throw new IllegalArgumentException("megalith.auth.jwt.audience must not be blank");
+        }
+    }
 }

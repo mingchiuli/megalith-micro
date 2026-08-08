@@ -37,14 +37,15 @@ class BlogSearchControllerTest {
     @Mock
     private BlogSearchService blogSearchService;
 
+    private final ValidatedRequest validation = new ValidatedRequest();
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
-                .buildDefaultValidatorFactory().getValidator());
         BlogSearchHttpHandler handler = new BlogSearchHttpHandler(blogSearchService, validation);
-        SearchInternalHttpHandler internalHandler = new SearchInternalHttpHandler(blogSearchService, validation);
+        SearchInternalHttpHandler internalHandler = new SearchInternalHttpHandler(
+                blogSearchService, validation);
         mockMvc = MockMvcBuilders.routerFunctions(
                         SearchRoutes.routes(handler, internalHandler))
                 .build();

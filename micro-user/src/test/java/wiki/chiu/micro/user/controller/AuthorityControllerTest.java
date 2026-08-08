@@ -45,8 +45,7 @@ class AuthorityControllerTest {
 
     @BeforeEach
     void setUp() {
-        ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
-                .buildDefaultValidatorFactory().getValidator());
+        ValidatedRequest validation = new ValidatedRequest();
         AuthorityHttpHandler handler = new AuthorityHttpHandler(authorityService, validation);
         mockMvc = MockMvcBuilders.routerFunctions(UserRoutes.routes(
                         org.mockito.Mockito.mock(UserHttpHandler.class),

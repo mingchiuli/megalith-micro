@@ -29,6 +29,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,19 +45,23 @@ class BlogControllerTest {
     @Mock
     private BlogService blogService;
 
+    @Mock
+    private AuthHttpService authHttpService;
+
+    @Mock
+    private BlogInternalHttpHandler blogInternalHttpHandler;
+
+    private final ValidatedRequest validation = new ValidatedRequest();
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         AuthInfo authInfo = new AuthInfo(1L, List.of("ROLE_USER"), List.of());
-        AuthHttpService authHttpService = org.mockito.Mockito.mock(AuthHttpService.class);
-        org.mockito.Mockito.lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
+        lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
                 new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
-        ValidatedRequest validation = new ValidatedRequest(jakarta.validation.Validation
-                .buildDefaultValidatorFactory().getValidator());
         BlogHttpHandler handler = new BlogHttpHandler(blogService, authHttpService, validation);
-        mockMvc = MockMvcBuilders.routerFunctions(BlogRoutes.routes(
-                        handler, org.mockito.Mockito.mock(BlogInternalHttpHandler.class)))
+        mockMvc = MockMvcBuilders.routerFunctions(BlogRoutes.routes(handler, blogInternalHttpHandler))
                 .build();
     }
 

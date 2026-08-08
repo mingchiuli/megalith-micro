@@ -10,10 +10,10 @@ import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.exhibit.checker.handler.DetailHandler;
 import wiki.chiu.micro.exhibit.checker.handler.ListPageHandler;
 import wiki.chiu.micro.exhibit.service.BlogService;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 import static wiki.chiu.micro.common.web.FunctionalWeb.authInfo;
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
-import static wiki.chiu.micro.common.web.FunctionalWeb.positive;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 @Component
@@ -21,15 +21,17 @@ public class BlogExhibitHttpHandler {
 
     private final BlogService blogService;
     private final AuthHttpService authHttpService;
+    private final ValidatedRequest v;
 
-    public BlogExhibitHttpHandler(BlogService blogService, AuthHttpService authHttpService) {
+    public BlogExhibitHttpHandler(BlogService blogService, AuthHttpService authHttpService, ValidatedRequest v) {
         this.blogService = blogService;
         this.authHttpService = authHttpService;
+        this.v = v;
     }
 
     @Checker(handler = DetailHandler.class)
     public ServerResponse getBlogDetail(ServerRequest request) {
-        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.getBlogDetail(
                 authInfo.roles(), blogId, authInfo.userId())));
@@ -37,20 +39,20 @@ public class BlogExhibitHttpHandler {
 
     @Checker(handler = ListPageHandler.class)
     public ServerResponse getPage(ServerRequest request) {
-        Integer currentPage = positive(pathVariable(request, "currentPage", Integer::valueOf), "currentPage");
+        Integer currentPage = v.positive(pathVariable(request, "currentPage", Integer::valueOf), "currentPage");
         return ok(Result.success(() -> blogService.findPage(currentPage)));
     }
 
     @Checker(handler = DetailHandler.class)
     public ServerResponse getLockedBlog(ServerRequest request) {
-        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         String token = requiredParam(request, "readToken");
         return ok(Result.success(blogService.getLockedBlog(blogId, token)));
     }
 
     @Checker(handler = DetailHandler.class)
     public ServerResponse checkReadToken(ServerRequest request) {
-        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         String token = requiredParam(request, "readToken");
         return ok(Result.success(() -> blogService.checkToken(blogId, token)));
     }

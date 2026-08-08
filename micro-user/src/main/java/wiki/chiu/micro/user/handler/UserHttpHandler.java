@@ -4,6 +4,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.user.converter.UserRequestConverter;
 import wiki.chiu.micro.user.req.UserEntityRegisterReq;
 import wiki.chiu.micro.user.req.UserEntityReq;
 import wiki.chiu.micro.user.service.UserService;
@@ -20,14 +21,14 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.*;
 public class UserHttpHandler {
 
     private final UserService userService;
-    private final ValidatedRequest validation;
+    private final ValidatedRequest v;
 
     private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
             new ParameterizedTypeReference<>() { };
 
-    public UserHttpHandler(UserService userService, ValidatedRequest validation) {
+    public UserHttpHandler(UserService userService, ValidatedRequest v) {
         this.userService = userService;
-        this.validation = validation;
+        this.v = v;
     }
 
     public ServerResponse getRegisterPage(ServerRequest request) {
@@ -41,7 +42,7 @@ public class UserHttpHandler {
     }
 
     public ServerResponse saveRegisterPage(ServerRequest request) throws Exception {
-        UserEntityRegisterReq registration = validation.body(request, UserEntityRegisterReq.class);
+        UserEntityRegisterReq registration = UserRequestConverter.toUserEntityRegisterReq(request);
         return ok(Result.success(() -> userService.saveRegisterPage(registration)));
     }
 
@@ -58,24 +59,24 @@ public class UserHttpHandler {
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-        UserEntityReq user = validation.body(request, UserEntityReq.class);
+        UserEntityReq user = UserRequestConverter.toUserEntityReq(request);
         return ok(Result.success(() -> userService.saveOrUpdate(user)));
     }
 
     public ServerResponse page(ServerRequest request) {
-        Integer currentPage = positive(pathVariable(request, "currentPage", Integer::valueOf), "currentPage");
-        Integer size = positive(optionalParam(request, "size", 5, Integer::valueOf), "size");
+        Integer currentPage = v.positive(pathVariable(request, "currentPage", Integer::valueOf), "currentPage");
+        Integer size = v.positive(optionalParam(request, "size", 5, Integer::valueOf), "size");
         return ok(Result.success(() -> userService.listPage(currentPage, size)));
     }
 
     public ServerResponse delete(ServerRequest request) throws Exception {
-        List<Long> ids = validation.notEmpty(
-                validation.positiveElements(validation.body(request, LONG_LIST), "ids"), "ids");
+        List<Long> ids = v.notEmpty(
+                v.positiveElements(request.body(LONG_LIST), "ids"), "ids");
         return ok(Result.success(() -> userService.deleteUsers(ids)));
     }
 
     public ServerResponse info(ServerRequest request) {
-        Long id = positive(pathVariable(request, "id", Long::valueOf), "id");
+        Long id = v.positive(pathVariable(request, "id", Long::valueOf), "id");
         return ok(Result.success(() -> userService.findInfo(id)));
     }
 

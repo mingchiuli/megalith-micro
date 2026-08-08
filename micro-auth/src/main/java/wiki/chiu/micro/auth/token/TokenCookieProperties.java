@@ -1,14 +1,22 @@
 package wiki.chiu.micro.auth.token;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
 @ConfigurationProperties(prefix = "megalith.auth.cookie")
 public record TokenCookieProperties(
-        @NotBlank @Pattern(regexp = "/.*") String path,
+        String path,
         boolean secure,
-        @NotBlank String sameSite) {
+        String sameSite) {
+
+    public TokenCookieProperties {
+        if (path == null || path.isBlank()) {
+            throw new IllegalArgumentException("megalith.auth.cookie.path must not be blank");
+        }
+        if (!path.startsWith("/")) {
+            throw new IllegalArgumentException("megalith.auth.cookie.path must start with /");
+        }
+        if (sameSite == null || sameSite.isBlank()) {
+            throw new IllegalArgumentException("megalith.auth.cookie.same-site must not be blank");
+        }
+    }
 }

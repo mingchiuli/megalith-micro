@@ -13,6 +13,7 @@ import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
+import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.exhibit.handler.BlogExhibitHttpHandler;
 import wiki.chiu.micro.exhibit.route.ExhibitRoutes;
 import wiki.chiu.micro.exhibit.service.BlogService;
@@ -26,6 +27,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -37,15 +39,19 @@ class BlogControllerTest {
     @Mock
     private BlogService blogService;
 
+    @Mock
+    private AuthHttpService authHttpService;
+
+    private final ValidatedRequest validation = new ValidatedRequest();
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         AuthInfo authInfo = new AuthInfo(1L, List.of("ROLE_USER"), List.of());
-        AuthHttpService authHttpService = org.mockito.Mockito.mock(AuthHttpService.class);
-        org.mockito.Mockito.lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
+        lenient().when(authHttpService.getAuthentication(anyString())).thenReturn(Result.success(
                 new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
-        BlogExhibitHttpHandler handler = new BlogExhibitHttpHandler(blogService, authHttpService);
+        BlogExhibitHttpHandler handler = new BlogExhibitHttpHandler(blogService, authHttpService, validation);
         mockMvc = MockMvcBuilders.routerFunctions(ExhibitRoutes.routes(handler))
                 .build();
     }

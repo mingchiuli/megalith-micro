@@ -11,7 +11,7 @@ module wiki.chiu.micro.cache {
     requires org.slf4j;
     requires spring.core;
     requires org.aspectj.weaver;
-    requires transitive redisson;
+    requires redisson;
     requires com.github.benmanes.caffeine;
     requires spring.beans;
     requires spring.context;

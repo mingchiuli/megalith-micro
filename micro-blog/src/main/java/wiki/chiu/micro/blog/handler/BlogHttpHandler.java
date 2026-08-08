@@ -3,6 +3,7 @@ package wiki.chiu.micro.blog.handler;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.blog.converter.BlogRequestConverter;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
@@ -14,9 +15,7 @@ import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.function.Function;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.*;
 
@@ -30,52 +29,51 @@ public class BlogHttpHandler {
 
     private final BlogService blogService;
     private final AuthHttpService authHttpService;
-    private final ValidatedRequest validation;
-
+    private final ValidatedRequest v;
     private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
             new ParameterizedTypeReference<>() { };
 
     public BlogHttpHandler(BlogService blogService, AuthHttpService authHttpService,
-                           ValidatedRequest validation) {
+                           ValidatedRequest v) {
         this.blogService = blogService;
         this.authHttpService = authHttpService;
-        this.validation = validation;
+        this.v = v;
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-        BlogEntityReq blog = validation.body(request, BlogEntityReq.class);
+        BlogEntityReq blog = BlogRequestConverter.toBlogEntityReq(request);
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.saveOrUpdate(blog, authInfo.userId(), authInfo.roles())));
     }
 
     public ServerResponse deleteBlogs(ServerRequest request) throws Exception {
-        List<Long> ids = validation.notEmpty(
-                validation.positiveElements(validation.body(request, LONG_LIST), "ids"), "ids");
+        List<Long> ids = v.notEmpty(
+                v.positiveElements(request.body(LONG_LIST), "ids"), "ids");
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.deleteBatch(ids, authInfo.userId(), authInfo.roles())));
     }
 
     public ServerResponse setBlogToken(ServerRequest request) {
-        Long blogId = positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.setBlogToken(blogId, authInfo.userId(), authInfo.roles())));
     }
 
     public ServerResponse getAllBlogs(ServerRequest request) {
-        BlogQueryReq query = validation.validate(blogQuery(request));
+        BlogQueryReq query = BlogRequestConverter.toBlogQueryReq(request);
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.findAllBlogs(query, authInfo.userId(), authInfo.roles())));
     }
 
     public ServerResponse getDeletedBlogs(ServerRequest request) {
-        Integer currentPage = positive(requiredParam(request, "currentPage", Integer::valueOf), "currentPage");
-        Integer size = positive(requiredParam(request, "size", Integer::valueOf), "size");
+        Integer currentPage = v.positive(requiredParam(request, "currentPage", Integer::valueOf), "currentPage");
+        Integer size = v.positive(requiredParam(request, "size", Integer::valueOf), "size");
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.findDeletedBlogs(currentPage, size, authInfo.userId())));
     }
 
     public ServerResponse recoverDeletedBlog(ServerRequest request) {
-        Integer idx = nonNegative(pathVariable(request, "idx", Integer::valueOf), "idx");
+        Integer idx = v.nonNegative(pathVariable(request, "idx", Integer::valueOf), "idx");
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.recoverDeletedBlog(idx, authInfo.userId())));
     }
@@ -87,7 +85,7 @@ public class BlogHttpHandler {
     }
 
     public ServerResponse deleteOss(ServerRequest request) {
-        String url = validation.notBlank(requiredParam(request, "url"), "url");
+        String url = v.notBlank(requiredParam(request, "url"), "url");
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.deleteOss(url, authInfo.userId())));
     }
@@ -95,7 +93,7 @@ public class BlogHttpHandler {
     public ServerResponse issueCollaborationTicket(ServerRequest request) {
         Long blogId = nullableParam(request, "blogId", Long::valueOf);
         if (blogId != null) {
-            positive(blogId, "blogId");
+            v.positive(blogId, "blogId");
         }
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.issueCollaborationTicket(
@@ -103,10 +101,10 @@ public class BlogHttpHandler {
     }
 
     public ServerResponse download(ServerRequest request) {
-        BlogDownloadReq download = validation.validate(blogDownload(request));
+        BlogDownloadReq downloadReq = BlogRequestConverter.toBlogDownloadReq(request);
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ServerResponse.ok().build((servletRequest, response) -> {
-            blogService.download(response, download, authInfo.userId(), authInfo.roles());
+            blogService.download(response, downloadReq, authInfo.userId(), authInfo.roles());
             return null;
         });
     }
@@ -114,28 +112,10 @@ public class BlogHttpHandler {
     public ServerResponse getEchoDetail(ServerRequest request) {
         Long blogId = nullableParam(request, "blogId", Long::valueOf);
         if (blogId != null) {
-            positive(blogId, "blogId");
+            v.positive(blogId, "blogId");
         }
         AuthInfo authInfo = authInfo(request, authHttpService);
         return ok(Result.success(() -> blogService.findEdit(blogId, authInfo.userId(), authInfo.roles())));
-    }
-
-    private static BlogQueryReq blogQuery(ServerRequest request) {
-        return new BlogQueryReq(
-                nullableParam(request, "currentPage", Integer::valueOf),
-                nullableParam(request, "size", Integer::valueOf),
-                nullableParam(request, "keywords", Function.identity()),
-                nullableParam(request, "status", Integer::valueOf),
-                nullableParam(request, "createStart", LocalDateTime::parse),
-                nullableParam(request, "createEnd", LocalDateTime::parse));
-    }
-
-    private static BlogDownloadReq blogDownload(ServerRequest request) {
-        return new BlogDownloadReq(
-                nullableParam(request, "keywords", Function.identity()),
-                nullableParam(request, "status", Integer::valueOf),
-                nullableParam(request, "createStart", LocalDateTime::parse),
-                nullableParam(request, "createEnd", LocalDateTime::parse));
     }
 
 }

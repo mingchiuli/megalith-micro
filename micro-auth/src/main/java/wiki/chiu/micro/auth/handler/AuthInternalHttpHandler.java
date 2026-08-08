@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.auth.converter.AuthRequestConverter;
 import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
@@ -22,13 +23,13 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.requiredHeader;
 public class AuthInternalHttpHandler implements AuthHttpService {
 
     private final AuthService authService;
-    private final ValidatedRequest validation;
+    private final ValidatedRequest v;
     private final JwtTokenService jwtTokenService;
 
-    public AuthInternalHttpHandler(AuthService authService, ValidatedRequest validation,
-                                   JwtTokenService jwtTokenService) {
+    public AuthInternalHttpHandler(AuthService authService,
+                                   ValidatedRequest v, JwtTokenService jwtTokenService) {
         this.authService = authService;
-        this.validation = validation;
+        this.v = v;
         this.jwtTokenService = jwtTokenService;
     }
 
@@ -37,17 +38,17 @@ public class AuthInternalHttpHandler implements AuthHttpService {
     }
 
     public ServerResponse getAuthorityRoute(ServerRequest request) throws Exception {
-        return ok(getAuthorityRoute(validation.body(request, AuthorityRouteReq.class),
+        return ok(getAuthorityRoute(AuthRequestConverter.toAuthorityRouteReq(request),
                 requiredHeader(request, HttpHeaders.AUTHORIZATION)));
     }
 
     public ServerResponse routeCheck(ServerRequest request) throws Exception {
-        return ok(routeCheck(validation.body(request, AuthorityRouteCheckReq.class),
+        return ok(routeCheck(AuthRequestConverter.toAuthorityRouteCheckReq(request),
                 requiredHeader(request, HttpHeaders.AUTHORIZATION)));
     }
 
     public ServerResponse issueWebSocketTicket(ServerRequest request) throws Exception {
-        return ok(issueWebSocketTicket(validation.body(request, WebSocketTicketReq.class)));
+        return ok(issueWebSocketTicket(AuthRequestConverter.toWebSocketTicketReq(request)));
     }
 
     @Override

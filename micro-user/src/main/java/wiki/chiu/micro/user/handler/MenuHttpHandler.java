@@ -2,6 +2,7 @@ package wiki.chiu.micro.user.handler;
 
 
 import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.user.converter.UserRequestConverter;
 import wiki.chiu.micro.user.req.MenuEntityReq;
 import wiki.chiu.micro.user.service.MenuAuthorityService;
 import wiki.chiu.micro.user.service.MenuService;
@@ -26,20 +27,20 @@ public class MenuHttpHandler {
     private final MenuService menuService;
 
     private final MenuAuthorityService menuAuthorityService;
-    private final ValidatedRequest validation;
+    private final ValidatedRequest v;
 
     private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
             new ParameterizedTypeReference<>() { };
 
     public MenuHttpHandler(MenuService menuService, MenuAuthorityService menuAuthorityService,
-                           ValidatedRequest validation) {
+                           ValidatedRequest v) {
         this.menuService = menuService;
         this.menuAuthorityService = menuAuthorityService;
-        this.validation = validation;
+        this.v = v;
     }
 
     public ServerResponse info(ServerRequest request) {
-        Long id = positive(pathVariable(request, "id", Long::valueOf), "id");
+        Long id = v.positive(pathVariable(request, "id", Long::valueOf), "id");
         return ok(Result.success(() -> menuService.findById(id)));
     }
 
@@ -48,12 +49,12 @@ public class MenuHttpHandler {
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-        MenuEntityReq menu = validation.body(request, MenuEntityReq.class);
+        MenuEntityReq menu = UserRequestConverter.toMenuEntityReq(request);
         return ok(Result.success(() -> menuService.saveOrUpdate(menu)));
     }
 
     public ServerResponse delete(ServerRequest request) {
-        Long id = positive(pathVariable(request, "id", Long::valueOf), "id");
+        Long id = v.positive(pathVariable(request, "id", Long::valueOf), "id");
         return ok(Result.success(() -> menuService.delete(id)));
     }
 
@@ -62,14 +63,14 @@ public class MenuHttpHandler {
     }
 
     public ServerResponse saveAuthority(ServerRequest request) throws Exception {
-        Long menuId = positive(pathVariable(request, "menuId", Long::valueOf), "menuId");
-        List<Long> authorityIds = validation.positiveElements(
-                validation.body(request, LONG_LIST), "authorityIds");
+        Long menuId = v.positive(pathVariable(request, "menuId", Long::valueOf), "menuId");
+        List<Long> authorityIds = v.positiveElements(
+                request.body(LONG_LIST), "authorityIds");
         return ok(Result.success(() -> menuAuthorityService.saveAuthority(menuId, authorityIds)));
     }
 
     public ServerResponse getAuthoritiesInfo(ServerRequest request) {
-        Long menuId = positive(pathVariable(request, "menuId", Long::valueOf), "menuId");
+        Long menuId = v.positive(pathVariable(request, "menuId", Long::valueOf), "menuId");
         return ok(Result.success(() -> menuAuthorityService.getAuthoritiesInfo(menuId)));
     }
 }
