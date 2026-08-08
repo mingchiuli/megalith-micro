@@ -22,7 +22,7 @@ subprojects {
 
     // Set default version for all modules (cache module will override this)
     if (name != "cache") {
-        version = "dev"
+        version = "latest"
     }
 
     // Apply plugins to all subprojects
@@ -94,7 +94,6 @@ subprojects {
 
             // Default heap size, can be overridden in individual modules
             val heapSize = project.findProperty("nativeImageHeapSize") as String? ?: "128m"
-            val imageTag = project.findProperty("imageTag") as String? ?: project.version.toString()
 
             environment = mapOf(
                 "BP_NATIVE_IMAGE_BUILD_ARGUMENTS" to """
@@ -112,7 +111,7 @@ subprojects {
             docker {
                 publish.set(true)
                 publishRegistry {
-                    imageName.set("docker.io/mingchiuli/megalith-${project.name}:$imageTag")
+                    imageName.set("docker.io/mingchiuli/megalith-${project.name}:${version}")
                     url.set("https://docker.io")
                     username.set(System.getenv("DOCKER_USERNAME"))
                     password.set(System.getenv("DOCKER_PWD"))
