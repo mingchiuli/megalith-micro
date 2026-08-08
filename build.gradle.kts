@@ -99,7 +99,6 @@ subprojects {
             environment = mapOf(
                 "BP_NATIVE_IMAGE_BUILD_ARGUMENTS" to """
                     -march=compatibility
-                    --gc=serial
                     -R:MaxHeapSize=$heapSize
                     -O3
                     -J-XX:MaxRAMPercentage=80.0
