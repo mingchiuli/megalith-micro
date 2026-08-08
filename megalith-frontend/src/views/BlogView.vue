@@ -2,17 +2,16 @@
 import { useHttp } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import Catalogue from '@/components/CatalogueItem.vue'
-import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
-import { themeStore } from '@/stores'
+import { protectedBlogStore, themeStore } from '@/stores'
 import { sanitizeHtml } from '@/utils/sanitize'
 import { useUniversalData } from '@/composables'
 import { useHead } from '@unhead/vue'
 
 const route = useRoute()
 const { GET } = useHttp()
-const token = route.query.token
 const blogId = route.params.id as string
 const loading = ref(true)
 const loadingCatalogue = ref(true)
@@ -78,13 +77,6 @@ onMounted(() => {
 })
 onUnmounted(() => window.removeEventListener('resize', computeWidth))
 const fetchBlog = async () => {
-  if (token) {
-    return GET<BlogExhibit>(
-      buildQueryUrl(API_ENDPOINTS.BLOG_PUBLIC.GET_SECRET_BLOG(blogId), {
-        readToken: String(token)
-      })
-    )
-  }
   return GET<BlogExhibit>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOG_INFO(blogId))
 }
 
@@ -99,7 +91,9 @@ const applyBlog = (data: BlogExhibit) => {
   loading.value = false
 }
 
-useUniversalData(`blog:${blogId}:${String(token ?? '')}`, fetchBlog, applyBlog)
+const protectedBlog = protectedBlogStore().take(blogId)
+if (protectedBlog) applyBlog(protectedBlog)
+else useUniversalData(`blog:${blogId}`, fetchBlog, applyBlog)
 useHead(() => ({
   title: blog.title || undefined,
   meta: blog.description

@@ -17,7 +17,7 @@ import { Plus } from '@element-plus/icons-vue'
 import { useUniversalData } from '@/composables'
 
 const { t } = useI18n()
-const { GET, POST, UPLOAD } = useHttp()
+const { GET, POST, DELETE, UPLOAD } = useHttp()
 const { clearLoginState, submitLogin } = useAuth()
 const router = useRouter()
 const saveLoading = ref(false)
@@ -65,16 +65,7 @@ useUniversalData(
   }
 )
 
-const fileList = computed(() => {
-  const arr: UploadUserFile[] = []
-  if (form.avatar) {
-    arr.push({
-      name: t('auth.avatar'),
-      url: form.avatar
-    })
-  }
-  return arr
-})
+const fileList = ref<UploadUserFile[]>([])
 
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
@@ -148,10 +139,12 @@ const uploadFile = async (file: UploadRawFile) => {
     uploadPercentage,
     showPercentage
   )
-  fileList.value.push({
-    name: file.name,
-    url: url
-  })
+  fileList.value = [
+    {
+      name: file.name,
+      url: url
+    }
+  ]
   form.avatar = url
   ElNotification({
     title: t('common.operationSuccess'),
@@ -202,13 +195,12 @@ const handlePictureCardPreview = (file: UploadFile) => {
 
 const handleRemove = async () => {
   if (!form.avatar) return
-  await GET<null>(
-    buildQueryUrl(API_ENDPOINTS.AUTH.REGISTER_IMAGE_DELETE, {
-      url: form.avatar,
-      token: registerToken
-    })
-  )
+  await DELETE<null>(API_ENDPOINTS.AUTH.REGISTER_IMAGE_DELETE, {
+    url: form.avatar,
+    token: registerToken
+  })
   form.avatar = ''
+  fileList.value = []
 }
 </script>
 

@@ -1,4 +1,3 @@
-
 /**
  * Blogs store - blog pagination state (pageNum, keywords)
  */

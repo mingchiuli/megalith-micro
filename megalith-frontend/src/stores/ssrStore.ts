@@ -10,5 +10,15 @@ export const ssrDataStore = defineStore('ssrDataStore', () => {
     delete entries.value[key]
   }
 
-  return { entries, has, get, set, remove }
+  const take = <T>(key: string): T | undefined => {
+    const value = get<T>(key)
+    remove(key)
+    return value
+  }
+
+  const clear = () => {
+    entries.value = {}
+  }
+
+  return { entries, has, get, set, remove, take, clear }
 })

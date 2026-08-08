@@ -8,14 +8,15 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissi
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
-import { useUniversalData } from '@/composables'
+import { useLatestRequest, useUniversalData } from '@/composables'
 
 const { t } = useI18n()
 const { GET, POST, DOWNLOAD } = useHttp()
 
 const { fix } = displayState()
 const dialogVisible = ref(false)
-const loading = ref(false)
+const loading = ref(true)
+const { runLatest } = useLatestRequest(loading)
 const content = ref<MenuSys[]>([])
 const formRef = ref<FormInstance>()
 const uploadPercentage = ref(0)
@@ -158,8 +159,7 @@ const applyMenus = (data: MenuSys[]) => {
 }
 
 const queryMenus = async () => {
-  loading.value = true
-  applyMenus(await fetchMenus())
+  await runLatest(fetchMenus, applyMenus)
 }
 
 const submitAuthorityFormHandle = async () => {

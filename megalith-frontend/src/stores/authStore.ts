@@ -1,4 +1,3 @@
-
 /**
  * Welcome state - controls backend welcome message visibility
  */

@@ -2,11 +2,11 @@
 import type { LoginStruct, LoginType } from '@/type/entity'
 import { useHttp } from '@/http/http'
 import { useAuth } from '@/utils/auth'
-import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
 
 const { locale, t } = useI18n()
-const { GET } = useHttp()
+const { POST } = useHttp()
 const { submitLogin } = useAuth()
 const mailButtonDisable = ref(false)
 const smsButtonDisable = ref(false)
@@ -67,7 +67,7 @@ const sendCode = (via: string) => {
   if (!loginInfo.username) return
   smsButtonDisable.value = true
   mailButtonDisable.value = true
-  GET(buildQueryUrl(API_ENDPOINTS.AUTH.SEND_CODE(via), { loginName: loginInfo.username }))
+  POST(API_ENDPOINTS.AUTH.SEND_CODE(via), { loginName: loginInfo.username })
     .then(() => {
       ElMessage.success(t('auth.sent'))
       interval = setInterval(() => {

@@ -3,11 +3,8 @@ import { useHttp } from '@/http/http'
 import type { BlogDesc, PageAdapter, SearchPage } from '@/type/entity'
 import type {
   AutocompleteFetchSuggestions,
-  AutocompleteFetchSuggestionsCallback,
-  AutocompleteInstance
+  AutocompleteFetchSuggestionsCallback
 } from 'element-plus'
-import { ElLoading } from 'element-plus'
-import { debounce } from '@/utils/common'
 import type HotItem from '@/components/HotItem.vue'
 import { blogsStore } from '@/stores'
 import { buildCommonUrls } from '@/config/apiConfig'
@@ -25,131 +22,54 @@ const { keywords } = storeToRefs(blogsStore())
 const loading = defineModel<boolean>('loading')
 const searchDialogVisible = defineModel<boolean>('searchDialogVisible')
 const suggestionList = ref<BlogDesc[]>([])
-let currentPage = 1
 const hotItemRef = useTemplateRef<InstanceType<typeof HotItem>>('hotItem')
 
 const search = async (
   queryString: string,
   currentPage: number,
   allInfo: boolean,
-  searchOrder: number | null
+  signal?: AbortSignal
 ): Promise<SearchPage<BlogDesc>> => {
-  loading.value = true
-  try {
-    const url = buildCommonUrls.searchQuery({
-      keywords: queryString,
-      currentPage,
-      allInfo
-    })
-    const data = await GET<SearchPage<BlogDesc>>(url)
-    data.additional = searchOrder
-    return data
-  } finally {
-    if (!allInfo) {
-      loading.value = false
-    }
-  }
+  const url = buildCommonUrls.searchQuery({
+    keywords: queryString,
+    currentPage,
+    allInfo
+  })
+  return GET<SearchPage<BlogDesc>>(url, { signal })
 }
 
-let searchOrder = 1
-let timeout: NodeJS.Timeout
-let suggestionEle: HTMLElement | null = null
-let controller: AbortController | null = null
-let loadingTarget: HTMLDivElement | null = null
-let loadingInstance: ReturnType<typeof ElLoading.service> | null = null
+let suggestionRequest = 0
+let suggestionController: AbortController | null = null
 
 const searchAbstractAsync: AutocompleteFetchSuggestions = (
   queryString: string,
   cb: AutocompleteFetchSuggestionsCallback
 ) => {
-  if (queryString.trim().length) {
-    searchOrder++
-    search(queryString, currentPage, false, searchOrder)
-      .then((page) => {
-        if (page.additional !== searchOrder) {
-          return
-        }
-        currentPage = 1
-        suggestionList.value = []
-        page.content.forEach((blogsDesc: BlogDesc) => {
-          blogsDesc.value = keywords.value
-          suggestionList.value.push(blogsDesc)
-        })
+  const normalizedQuery = queryString.trim()
+  suggestionController?.abort()
+  const requestId = ++suggestionRequest
 
-        //防止空内容闪烁
-        timeout = setTimeout(() => {
-          //不执行cd 下拉框没数据就不会收回去
-          cb(suggestionList.value)
-          if (!page.content.length) {
-            suggestionList.value = []
-            ElMessage.error(t('common.noRecords'))
-            return
-          }
-
-          if (!suggestionEle) {
-            suggestionEle = document.querySelector('.select-list .el-autocomplete-suggestion__wrap')
-            if (!suggestionEle) return
-            if (!loadingTarget) loadingTarget = document.createElement('div')
-            suggestionEle.append(loadingTarget)
-            controller = new AbortController()
-            const { signal } = controller
-            fin = false
-            suggestionEle.addEventListener(
-              'scroll',
-              debounce(() => {
-                if (suggestionEle) {
-                  load(suggestionEle, cb).catch(() => {
-                    loadingInstance?.close()
-                    lock = false
-                  })
-                }
-              }),
-              { signal }
-            )
-          }
-        }, 1000 * Math.random())
-      })
-      .catch(() => {
-        suggestionList.value = []
-      })
+  if (!normalizedQuery) {
+    suggestionList.value = []
+    cb([])
+    return
   }
-}
 
-let lock = false
-let fin = false
-const load = async (e: Element, cb: AutocompleteFetchSuggestionsCallback) => {
-  if (!lock && keywords.value && e.scrollTop + e.clientHeight >= e.scrollHeight) {
-    if (fin) return
-    lock = true
-    if (!loadingTarget) loadingTarget = document.createElement('div')
-    e.append(loadingTarget)
-    loadingInstance = ElLoading.service({ target: loadingTarget })
-    try {
-      const page: PageAdapter<BlogDesc> = await search(keywords.value, currentPage + 1, false, null)
-      if (page.content.length < page.pageSize) {
-        page.content.forEach((blogsDesc: BlogDesc) => {
-          blogsDesc.value = keywords.value
-          suggestionList.value.push(blogsDesc)
-        })
-        cb(suggestionList.value)
-        controller?.abort()
-        if (e.lastChild === loadingTarget) e.removeChild(loadingTarget)
-        fin = true
-        return
-      }
-      if (e.lastChild === loadingTarget) e.removeChild(loadingTarget)
-      currentPage++
-      page.content.forEach((blogsDesc: BlogDesc) => {
-        blogsDesc.value = keywords.value
-        suggestionList.value.push(blogsDesc)
-      })
+  suggestionController = new AbortController()
+  search(normalizedQuery, 1, false, suggestionController.signal)
+    .then((page) => {
+      if (requestId !== suggestionRequest) return
+      suggestionList.value = page.content.map((blog) => ({
+        ...blog,
+        value: normalizedQuery
+      }))
       cb(suggestionList.value)
-    } finally {
-      if (e.lastChild === loadingTarget) e.removeChild(loadingTarget)
-      loadingInstance?.close()
-      lock = false
-    }
-  }
+    })
+    .catch(() => {
+      if (requestId !== suggestionRequest) return
+      suggestionList.value = []
+      cb([])
+    })
 }
 
 const handleSelect = (item: Record<string, string | number>) => {
@@ -169,7 +89,8 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
   }
   try {
     if (queryString.length) {
-      const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true, null)
+      loading.value = true
+      const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true)
       if (page.content.length) {
         emit('transSearchData', page)
         return
@@ -183,36 +104,37 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
 
 const searchBeforeClose = (close: () => void) => {
   keywords.value = ''
-  refAutocompleteRef.value!.suggestions = []
-  if (controller) controller.abort()
-  suggestionEle = null
+  suggestionController?.abort()
   suggestionList.value = []
   emit('refresh')
   close()
 }
-
-const refAutocompleteRef = useTemplateRef<AutocompleteInstance>('refAutocomplete')
 
 const openDialog = () => {
   hotItemRef.value!.load()
 }
 
 const clearSearch = () => {
-  searchOrder = 1
-  currentPage = 1
   keywords.value = ''
-  if (controller) controller.abort()
-  suggestionEle = null
+  suggestionController?.abort()
+  suggestionList.value = []
 }
 
 const highlighted = (label: string, html: string) => sanitizeHighlight(label + html)
 
 onBeforeUnmount(() => {
-  if (controller) controller.abort()
-  clearTimeout(timeout)
+  suggestionController?.abort()
 })
 
-defineExpose({ searchAllInfo })
+defineExpose({
+  searchAllInfo,
+  searchAbstractAsync,
+  handleSelect,
+  searchBeforeClose,
+  openDialog,
+  clearSearch,
+  highlighted
+})
 </script>
 
 <template>
@@ -232,6 +154,7 @@ defineExpose({ searchAllInfo })
           id="elc"
           v-model="keywords"
           :fetch-suggestions="searchAbstractAsync"
+          :debounce="300"
           :placeholder="t('common.input')"
           placement="bottom"
           @select="handleSelect"
@@ -239,7 +162,6 @@ defineExpose({ searchAllInfo })
           popper-class="select-list"
           clearable
           @keyup.enter="searchAllInfo(keywords!)"
-          ref="refAutocomplete"
           @clear="clearSearch"
           :fit-input-width="true"
         >
@@ -262,7 +184,6 @@ defineExpose({ searchAllInfo })
             </template>
             <template v-if="item.highlight.content">
               <div
-                id="scroll"
                 class="value"
                 v-for="(content, key) in item.highlight.content"
                 v-bind:key="key"

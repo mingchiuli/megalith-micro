@@ -7,26 +7,21 @@ export const useUniversalData = <T>(
   apply: (data: T) => void
 ) => {
   const store = ssrDataStore()
-  const cached = store.get<T>(key)
-  if (store.has(key)) apply(cached as T)
+  const hydrated = import.meta.env.SSR ? undefined : store.take<T>(key)
+  if (hydrated !== undefined) apply(hydrated)
 
-  const execute = async (force = false) => {
-    if (!force && store.has(key)) {
-      const data = store.get<T>(key) as T
-      apply(data)
-      return data
-    }
+  const execute = async () => {
     const data = await loader()
-    store.set(key, data)
+    if (import.meta.env.SSR) store.set(key, data)
     apply(data)
     return data
   }
 
   if (import.meta.env.SSR) onServerPrefetch(() => execute())
-  else if (!store.has(key)) onMounted(() => void execute())
+  else if (hydrated === undefined) onMounted(() => void execute())
 
   return {
-    refresh: () => execute(true),
+    refresh: execute,
     invalidate: () => store.remove(key)
   }
 }

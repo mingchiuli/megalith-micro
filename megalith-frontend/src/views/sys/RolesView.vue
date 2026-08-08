@@ -8,7 +8,7 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissi
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
-import { useUniversalData } from '@/composables'
+import { useLatestRequest, useUniversalData } from '@/composables'
 
 const { t } = useI18n()
 const { GET, POST, DOWNLOAD } = useHttp()
@@ -16,7 +16,8 @@ const { GET, POST, DOWNLOAD } = useHttp()
 const { moreItems, fixSelection, fix } = displayState()
 const dialogVisible = ref(false)
 const delBtlStatus = ref(true)
-const loading = ref(false)
+const loading = ref(true)
+const { runLatest } = useLatestRequest(loading)
 const multipleSelection = ref<RoleSys[]>([])
 const defaultProps = { children: 'children', label: 'title' }
 const formRef = ref<FormInstance>()
@@ -187,8 +188,7 @@ const applyRoles = (data: PageAdapter<RoleSys>) => {
 }
 
 const queryRoles = async () => {
-  loading.value = true
-  applyRoles(await fetchRoles())
+  await runLatest(fetchRoles, applyRoles)
 }
 
 const handleSizeChange = async (val: number) => {

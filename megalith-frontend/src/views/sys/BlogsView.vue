@@ -8,7 +8,7 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissi
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
-import { useUniversalData } from '@/composables'
+import { useLatestRequest, useUniversalData } from '@/composables'
 
 const { t } = useI18n()
 const { GET, POST, DOWNLOAD } = useHttp()
@@ -18,7 +18,8 @@ const { fixSelection, fix, moreItems } = displayState()
 const input = ref('')
 const multipleSelection = ref<BlogSys[]>([])
 const delBtlStatus = ref(true)
-const loading = ref(false)
+const loading = ref(true)
+const { runLatest } = useLatestRequest(loading)
 const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 const dateTimeScope = ref(['', ''])
@@ -87,7 +88,7 @@ const handleEdit = (row: BlogSys) => {
 }
 
 const handlePassword = async (row: BlogSys) => {
-  const token = await GET<string>(API_ENDPOINTS.BLOG_ADMIN.LOCK_BLOG(row.id))
+  const token = await POST<string>(API_ENDPOINTS.BLOG_ADMIN.LOCK_BLOG(row.id), {})
   ElNotification({
     title: t('common.operationSuccess'),
     message: token,
@@ -135,12 +136,12 @@ const searchBlogsAction = () => {
 
 const fetchAdminBlogs = async () => {
   const url = buildCommonUrls.blogQuery({
-      currentPage: pageNumber.value,
-      size: pageSize.value,
-      keywords: input.value,
-      createStart: dateTimeScope.value[0],
-      createEnd: dateTimeScope.value[1],
-      status: status.value
+    currentPage: pageNumber.value,
+    size: pageSize.value,
+    keywords: input.value,
+    createStart: dateTimeScope.value[0],
+    createEnd: dateTimeScope.value[1],
+    status: status.value
   })
   return GET<PageAdapter<BlogSys>>(url)
 }
@@ -152,8 +153,7 @@ const applyAdminBlogs = (data: PageAdapter<BlogSys>) => {
 }
 
 const searchBlogs = async () => {
-  loading.value = true
-  applyAdminBlogs(await fetchAdminBlogs())
+  await runLatest(fetchAdminBlogs, applyAdminBlogs)
 }
 
 const handleSizeChange = async (val: number) => {

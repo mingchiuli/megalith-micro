@@ -51,7 +51,7 @@ describe('createHttpClients SSR context', () => {
   })
 
   it('forwards only the current request cookie and origin', async () => {
-    const requests: AxiosRequestConfig[] = []
+    const requests: InternalAxiosRequestConfig[] = []
     axios.defaults.adapter = vi.fn(async (config) => {
       requests.push(config)
       return response(config)
@@ -70,8 +70,8 @@ describe('createHttpClients SSR context', () => {
 
     await Promise.all([first.httpClient.get('/one'), second.httpClient.get('/two')])
 
-    const firstHeaders = AxiosHeaders.from(requests[0]?.headers)
-    const secondHeaders = AxiosHeaders.from(requests[1]?.headers)
+    const firstHeaders = AxiosHeaders.from(requests[0]!.headers)
+    const secondHeaders = AxiosHeaders.from(requests[1]!.headers)
     expect(firstHeaders.get('Cookie')).toBe('megalith_access_token=first')
     expect(firstHeaders.get('Origin')).toBe('https://first.example')
     expect(secondHeaders.get('Cookie')).toBe('megalith_access_token=second')
@@ -87,9 +87,13 @@ describe('createHttpClients SSR context', () => {
     axios.defaults.adapter = vi.fn(async (config) => {
       if (config.url === '/token/refresh') {
         refreshCalls++
-        return response(config, { data: { accessToken: 'legacy-body' } }, {
-          'set-cookie': ['megalith_access_token=new-token; Path=/; HttpOnly']
-        })
+        return response(
+          config,
+          { data: { accessToken: 'legacy-body' } },
+          {
+            'set-cookie': ['megalith_access_token=new-token; Path=/; HttpOnly']
+          }
+        )
       }
       if (config.url === '/protected') {
         protectedCalls++
@@ -118,8 +122,6 @@ describe('createHttpClients SSR context', () => {
     expect(second.data).toEqual({ data: { ok: true } })
     expect(refreshCalls).toBe(1)
     expect(protectedCalls).toBe(4)
-    expect(setCookies).toHaveBeenCalledWith([
-      'megalith_access_token=new-token; Path=/; HttpOnly'
-    ])
+    expect(setCookies).toHaveBeenCalledWith(['megalith_access_token=new-token; Path=/; HttpOnly'])
   })
 })

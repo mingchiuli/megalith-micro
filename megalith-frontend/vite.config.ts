@@ -79,10 +79,31 @@ export default defineConfig(({ mode }) => {
         }
       },
       coverage: {
-        provider: 'v8',
+        provider: 'istanbul',
         reporter: ['text', 'html'],
         include: ['src/**/*.{ts,vue}'],
-        exclude: ['src/**/__tests__/**', 'src/main.ts', 'src/type/**']
+        exclude: ['src/**/__tests__/**', 'src/main.ts', 'src/type/**'],
+        thresholds: {
+          'src/http/http.ts': { lines: 80, statements: 80, functions: 75, branches: 70 },
+          'src/stores/{ssrStore,protectedBlogStore}.ts': {
+            lines: 80,
+            statements: 80,
+            functions: 75,
+            branches: 70
+          },
+          'src/composables/{useUniversalData,useLatestRequest}.ts': {
+            lines: 80,
+            statements: 80,
+            functions: 75,
+            branches: 70
+          },
+          'src/components/SearchItem.vue': {
+            lines: 80,
+            statements: 80,
+            functions: 75,
+            branches: 70
+          }
+        }
       }
     }
   }

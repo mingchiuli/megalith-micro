@@ -1,4 +1,3 @@
-
 export const displayState = () => {
   const fix = ref<'right' | false>(false)
   const expand = ref(false)

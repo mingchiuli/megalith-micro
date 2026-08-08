@@ -47,10 +47,8 @@ export const BLOG_PUBLIC_API = {
   GET_BLOGS_PAGE: (pageNo: number) => `/public/blog/page/${pageNo}`,
   // 获取博客详情
   GET_BLOG_INFO: (id: number | string) => `/public/blog/info/${id}`,
-  // 通过阅读密码获取博客
-  GET_SECRET_BLOG: (id: number | string) => `/public/blog/secret/${id}`,
-  // 验证阅读密码
-  VALIDATE_READ_TOKEN: (id: number) => `/public/blog/token/${id}`,
+  // 消费阅读密码并获取博客
+  READ_SECRET_BLOG: (id: number | string) => `/public/blog/secret/${id}`,
   // 获取热门博客排行
   GET_HOT_BLOGS: '/public/blog/scores',
   // 获取博客访问统计
@@ -190,7 +188,7 @@ type QueryParamValue = string | number | boolean | null | undefined
 
 export const buildQueryUrl = (baseUrl: string, params: Record<string, QueryParamValue>): string => {
   const url = new URL(baseUrl, 'http://localhost')
-  Object.keys(params).forEach(key => {
+  Object.keys(params).forEach((key) => {
     if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
       url.searchParams.append(key, String(params[key]))
     }
@@ -223,20 +221,12 @@ export const buildCommonUrls = {
   },
 
   // 构建搜索URL
-  searchQuery: (params: {
-    keywords?: string
-    currentPage?: number
-    allInfo?: boolean
-  }) => {
+  searchQuery: (params: { keywords?: string; currentPage?: number; allInfo?: boolean }) => {
     return buildQueryUrl(SEARCH_API.SEARCH_BLOGS, params)
   },
 
   // 构建博客下载URL
-  blogDownload: (params: {
-    keywords?: string
-    createStart?: string
-    createEnd?: string
-  }) => {
+  blogDownload: (params: { keywords?: string; createStart?: string; createEnd?: string }) => {
     return buildQueryUrl(BLOG_ADMIN_API.DOWNLOAD_BLOGS, params)
   }
 }

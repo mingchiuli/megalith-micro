@@ -84,7 +84,9 @@ export const createMegalithApp = (options: CreateMegalithAppOptions): MegalithAp
   app.provide(ZINDEX_INJECTION_KEY, { current: 0 })
 
   if (!options.initialState) {
-    loginStateStore().login = Boolean(cookies.megalith_access_token || cookies.megalith_refresh_token)
+    loginStateStore().login = Boolean(
+      cookies.megalith_access_token || cookies.megalith_refresh_token
+    )
     themeStore().isDark = cookies.megalith_theme === 'dark'
   }
 

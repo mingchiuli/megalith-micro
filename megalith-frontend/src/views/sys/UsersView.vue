@@ -8,7 +8,7 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissi
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls, buildQueryUrl } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
-import { useUniversalData } from '@/composables'
+import { useLatestRequest, useUniversalData } from '@/composables'
 
 const { t } = useI18n()
 const { GET, POST, DOWNLOAD } = useHttp()
@@ -16,7 +16,8 @@ const { GET, POST, DOWNLOAD } = useHttp()
 const { moreItems, fixSelection, fix } = displayState()
 const multipleSelection = ref<UserSys[]>([])
 const dialogVisible = ref(false)
-const loading = ref(false)
+const loading = ref(true)
+const { runLatest } = useLatestRequest(loading)
 const delBtlStatus = ref(true)
 const roleList = ref<RoleSys[]>([])
 const uploadPercentage = ref(0)
@@ -159,8 +160,7 @@ const applyUsers = (data: PageAdapter<UserSys>) => {
 }
 
 const queryUsers = async () => {
-  loading.value = true
-  applyUsers(await fetchUsers())
+  await runLatest(fetchUsers, applyUsers)
 }
 
 const handleClose = () => {
