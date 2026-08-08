@@ -22,7 +22,6 @@ import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.rpc.config.auth.AuthInfo;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
-import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import java.util.List;
 
@@ -56,8 +55,6 @@ class AuthControllerTest {
     @Mock
     private CodeHttpHandler codeHttpHandler;
 
-    private final ValidatedRequest validation = new ValidatedRequest();
-
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -67,7 +64,7 @@ class AuthControllerTest {
                 new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
         AuthHttpHandler handler = new AuthHttpHandler(authService);
         AuthInternalHttpHandler internalHandler = new AuthInternalHttpHandler(
-                authService, validation, jwtTokenService);
+                authService, jwtTokenService);
         mockMvc = MockMvcBuilders.routerFunctions(AuthRoutes.routes(
                         handler, tokenHttpHandler, codeHttpHandler, internalHandler))
                 .build();
