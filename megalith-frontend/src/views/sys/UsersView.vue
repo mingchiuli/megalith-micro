@@ -156,7 +156,6 @@ const fetchUsers = async () => {
 const applyUsers = (data: PageAdapter<UserSys>) => {
   content.value = data.content
   totalElements.value = data.totalElements
-  loading.value = false
 }
 
 const queryUsers = async () => {
@@ -235,7 +234,8 @@ useUniversalData<UsersInitialData>(
   ({ users, roles }) => {
     applyUsers(users)
     roleList.value = roles
-  }
+  },
+  { loading }
 )
 </script>
 

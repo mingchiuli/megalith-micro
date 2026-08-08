@@ -221,10 +221,14 @@ const applyEditContent = (data: BlogEdit) => {
   form.userId = data.userId
   form.sensitiveContentList = data.sensitiveContentList
   permissions.value = data.permissions
-  loadContent.value = false
 }
 
-useUniversalData(`admin:edit:${blogId ?? 'new'}`, () => fetchEditContent(blogId), applyEditContent)
+useUniversalData(
+  `admin:edit:${blogId ?? 'new'}`,
+  () => fetchEditContent(blogId),
+  applyEditContent,
+  { loading: loadContent }
+)
 onMounted(() => void loadAiModels())
 </script>
 

@@ -184,7 +184,6 @@ const fetchRoles = async () => {
 const applyRoles = (data: PageAdapter<RoleSys>) => {
   content.value = data.content
   totalElements.value = data.totalElements
-  loading.value = false
 }
 
 const queryRoles = async () => {
@@ -236,7 +235,7 @@ const handleDelete = async (row: RoleSys) => {
   await queryRoles()
 }
 
-useUniversalData('admin:roles', fetchRoles, applyRoles)
+useUniversalData('admin:roles', fetchRoles, applyRoles, { loading })
 </script>
 
 <template>

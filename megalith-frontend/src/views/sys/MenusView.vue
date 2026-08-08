@@ -155,7 +155,6 @@ const clearForm = () => {
 const fetchMenus = () => GET<Array<MenuSys>>(API_ENDPOINTS.MENU_ADMIN.GET_MENUS)
 const applyMenus = (data: MenuSys[]) => {
   content.value = data
-  loading.value = false
 }
 
 const queryMenus = async () => {
@@ -203,7 +202,7 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
-useUniversalData('admin:menus', fetchMenus, applyMenus)
+useUniversalData('admin:menus', fetchMenus, applyMenus, { loading })
 </script>
 
 <template>

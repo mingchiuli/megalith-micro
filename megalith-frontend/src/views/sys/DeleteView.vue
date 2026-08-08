@@ -40,7 +40,6 @@ const fetchDeletedBlogs = async () => {
 const applyDeletedBlogs = (data: PageAdapter<BlogDelSys>) => {
   content.value = data.content
   totalElements.value = data.totalElements
-  loading.value = false
 }
 
 const queryDelBLogs = async () => {
@@ -73,7 +72,7 @@ const handleResume = async (row: BlogDelSys) => {
   await queryDelBLogs()
 }
 
-useUniversalData('admin:deleted-blogs', fetchDeletedBlogs, applyDeletedBlogs)
+useUniversalData('admin:deleted-blogs', fetchDeletedBlogs, applyDeletedBlogs, { loading })
 </script>
 
 <template>

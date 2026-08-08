@@ -88,12 +88,13 @@ const applyBlog = (data: BlogExhibit) => {
   blog.nickname = data.nickname
   blog.created = data.created
   blog.content = '>' + data.description + '\n\n' + data.content
-  loading.value = false
 }
 
 const protectedBlog = protectedBlogStore().take(blogId)
-if (protectedBlog) applyBlog(protectedBlog)
-else useUniversalData(`blog:${blogId}`, fetchBlog, applyBlog)
+if (protectedBlog) {
+  applyBlog(protectedBlog)
+  loading.value = false
+} else useUniversalData(`blog:${blogId}`, fetchBlog, applyBlog, { loading })
 useHead(() => ({
   title: blog.title || undefined,
   meta: blog.description
