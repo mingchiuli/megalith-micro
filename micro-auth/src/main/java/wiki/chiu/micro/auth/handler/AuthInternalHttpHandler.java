@@ -7,16 +7,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.auth.api.AuthHttpService;
+import wiki.chiu.micro.auth.api.req.AuthorityRouteCheckReq;
+import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
+import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
+import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
+import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.auth.converter.AuthRequestConverter;
 import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.common.lang.Result;
-import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
-import wiki.chiu.micro.common.req.AuthorityRouteReq;
-import wiki.chiu.micro.common.req.WebSocketTicketReq;
-import wiki.chiu.micro.common.rpc.AuthHttpService;
-import wiki.chiu.micro.common.vo.AuthRpcVo;
-import wiki.chiu.micro.common.vo.AuthorityRouteRpcVo;
 
 @Component
 public class AuthInternalHttpHandler implements AuthHttpService {

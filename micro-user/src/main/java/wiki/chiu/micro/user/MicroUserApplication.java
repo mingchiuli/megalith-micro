@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.web.service.registry.ImportHttpServices;
-import wiki.chiu.micro.common.rpc.AuthHttpService;
+import wiki.chiu.micro.auth.api.AuthHttpService;
 import wiki.chiu.micro.common.rpc.OssHttpService;
 import wiki.chiu.micro.user.config.CustomRuntimeHints;
 

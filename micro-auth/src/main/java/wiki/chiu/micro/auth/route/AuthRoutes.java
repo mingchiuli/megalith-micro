@@ -15,6 +15,11 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.auth.api.req.AuthorityRouteCheckReq;
+import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
+import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
+import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
+import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.auth.dto.CodeReq;
 import wiki.chiu.micro.auth.handler.AuthHttpHandler;
 import wiki.chiu.micro.auth.handler.AuthInternalHttpHandler;
@@ -24,11 +29,6 @@ import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.exception.AuthException;
 import wiki.chiu.micro.common.lang.Result;
-import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
-import wiki.chiu.micro.common.req.AuthorityRouteReq;
-import wiki.chiu.micro.common.req.WebSocketTicketReq;
-import wiki.chiu.micro.common.vo.AuthRpcVo;
-import wiki.chiu.micro.common.vo.AuthorityRouteRpcVo;
 
 @Configuration(proxyBeanMethods = false)
 @RegisterReflectionForBinding({

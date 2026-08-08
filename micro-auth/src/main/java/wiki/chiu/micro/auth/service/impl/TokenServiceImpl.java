@@ -7,14 +7,14 @@ import java.util.Map;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
 import wiki.chiu.micro.auth.convertor.UserInfoVoConvertor;
-import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.service.TokenService;
+import wiki.chiu.micro.auth.service.port.UserDirectory;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.lang.StatusEnum;
-import wiki.chiu.micro.common.vo.UserEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 /**
  * @author mingchiuli
@@ -25,12 +25,11 @@ public class TokenServiceImpl implements TokenService {
 
   private final JwtTokenService jwtTokenService;
 
-  private final UserHttpServiceWrapper userHttpServiceWrapper;
+  private final UserDirectory users;
 
-  public TokenServiceImpl(
-      JwtTokenService jwtTokenService, UserHttpServiceWrapper userHttpServiceWrapper) {
+  public TokenServiceImpl(JwtTokenService jwtTokenService, UserDirectory users) {
     this.jwtTokenService = jwtTokenService;
-    this.userHttpServiceWrapper = userHttpServiceWrapper;
+    this.users = users;
   }
 
   @Override
@@ -39,7 +38,7 @@ public class TokenServiceImpl implements TokenService {
       throw new MissException(ExceptionMessage.NO_AUTH);
     }
 
-    if (!StatusEnum.NORMAL.getCode().equals(userHttpServiceWrapper.findById(userId).status())) {
+    if (!StatusEnum.NORMAL.getCode().equals(users.findById(userId).status())) {
       throw new MissException(ExceptionMessage.NO_AUTH);
     }
 
@@ -49,7 +48,7 @@ public class TokenServiceImpl implements TokenService {
 
   @Override
   public UserInfoVo userinfo(Long userId) {
-    UserEntityRpcVo userEntity = userHttpServiceWrapper.findById(userId);
+    UserEntityRpcVo userEntity = users.findById(userId);
     return UserInfoVoConvertor.convert(userEntity);
   }
 }

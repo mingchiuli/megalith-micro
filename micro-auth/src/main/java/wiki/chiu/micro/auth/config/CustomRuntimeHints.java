@@ -5,7 +5,7 @@ import wiki.chiu.micro.auth.dto.LoginRequest;
 import wiki.chiu.micro.auth.dto.LoginType;
 import wiki.chiu.micro.auth.dto.MenuDto;
 import wiki.chiu.micro.auth.vo.LoginSuccessVo;
-import wiki.chiu.micro.common.vo.AuthorityRpcVo;
+import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 

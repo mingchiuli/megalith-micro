@@ -1,8 +1,8 @@
 package wiki.chiu.micro.exhibit.utils;
 
 import java.util.List;
+import wiki.chiu.micro.blog.api.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.common.lang.SensitiveTypeEnum;
-import wiki.chiu.micro.common.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.exhibit.convertor.BlogExhibitDtoConvertor;
 import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;

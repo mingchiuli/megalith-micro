@@ -1,9 +1,9 @@
 package wiki.chiu.micro.search.rpc;
 
 import org.springframework.stereotype.Component;
-import wiki.chiu.micro.common.rpc.BlogHttpService;
+import wiki.chiu.micro.blog.api.BlogHttpService;
+import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.rpc.RemoteResult;
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 
 @Component
 public class BlogHttpServiceWrapper {

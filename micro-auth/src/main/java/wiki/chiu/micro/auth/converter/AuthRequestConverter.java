@@ -1,9 +1,9 @@
 package wiki.chiu.micro.auth.converter;
 
 import org.springframework.web.servlet.function.ServerRequest;
-import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
-import wiki.chiu.micro.common.req.AuthorityRouteReq;
-import wiki.chiu.micro.common.req.WebSocketTicketReq;
+import wiki.chiu.micro.auth.api.req.AuthorityRouteCheckReq;
+import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
+import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
 public final class AuthRequestConverter {

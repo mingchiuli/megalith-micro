@@ -5,11 +5,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
+import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.common.vo.UserEntityRpcVo;
 import wiki.chiu.micro.exhibit.convertor.BlogDescriptionDtoConvertor;
 import wiki.chiu.micro.exhibit.convertor.BlogExhibitDtoConvertor;
 import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
@@ -17,6 +16,7 @@ import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
 import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.rpc.SearchHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.rpc.UserHttpServiceWrapper;
+import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 @Component
 public class BlogWrapper {

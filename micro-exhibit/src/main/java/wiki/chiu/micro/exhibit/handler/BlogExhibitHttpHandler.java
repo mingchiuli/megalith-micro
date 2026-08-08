@@ -1,15 +1,15 @@
 package wiki.chiu.micro.exhibit.handler;
 
-import static wiki.chiu.micro.common.web.FunctionalWeb.authPrincipal;
+import static wiki.chiu.micro.common.auth.web.AuthWeb.authPrincipal;
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.auth.api.AuthHttpService;
 import wiki.chiu.micro.cache.annotation.Checker;
 import wiki.chiu.micro.common.lang.Result;
-import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.exhibit.checker.handler.DetailHandler;

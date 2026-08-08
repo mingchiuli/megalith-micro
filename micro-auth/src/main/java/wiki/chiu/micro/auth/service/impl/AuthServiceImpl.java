@@ -23,12 +23,16 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
+import wiki.chiu.micro.auth.api.req.AuthorityRouteCheckReq;
+import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
+import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
+import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.auth.convertor.MenuDisplayDtoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuRootVoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuWithChildDtoConvertor;
 import wiki.chiu.micro.auth.dto.*;
-import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.service.AuthService;
+import wiki.chiu.micro.auth.service.port.UserDirectory;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.auth.wrapper.AuthWrapper;
@@ -37,11 +41,7 @@ import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthTypeEnum;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.lang.StatusEnum;
-import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
-import wiki.chiu.micro.common.req.AuthorityRouteReq;
-import wiki.chiu.micro.common.vo.AuthRpcVo;
-import wiki.chiu.micro.common.vo.AuthorityRouteRpcVo;
-import wiki.chiu.micro.common.vo.AuthorityRpcVo;
+import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -57,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
 
   private final JwtTokenService jwtTokenService;
 
-  private final UserHttpServiceWrapper userHttpServiceWrapper;
+  private final UserDirectory users;
 
   private String script;
 
@@ -67,13 +67,13 @@ public class AuthServiceImpl implements AuthService {
       @Qualifier("commonExecutor") TaskExecutor taskExecutor,
       ResourceLoader resourceLoader,
       JwtTokenService jwtTokenService,
-      UserHttpServiceWrapper userHttpServiceWrapper) {
+      UserDirectory users) {
     this.authWrapper = authWrapper;
     this.redissonClient = redissonClient;
     this.taskExecutor = taskExecutor;
     this.resourceLoader = resourceLoader;
     this.jwtTokenService = jwtTokenService;
-    this.userHttpServiceWrapper = userHttpServiceWrapper;
+    this.users = users;
   }
 
   @PostConstruct
@@ -260,7 +260,7 @@ public class AuthServiceImpl implements AuthService {
   }
 
   private List<String> currentRoles(Long userId) {
-    return userHttpServiceWrapper.findRoleCodesByUserId(userId);
+    return users.findRoleCodesByUserId(userId);
   }
 
   private Long subject(Jwt jwt) {
@@ -278,6 +278,6 @@ public class AuthServiceImpl implements AuthService {
   }
 
   private boolean isActiveUser(Long userId) {
-    return StatusEnum.NORMAL.getCode().equals(userHttpServiceWrapper.findById(userId).status());
+    return StatusEnum.NORMAL.getCode().equals(users.findById(userId).status());
   }
 }

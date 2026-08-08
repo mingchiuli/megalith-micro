@@ -11,7 +11,7 @@ import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.utils.SQLUtils;
-import wiki.chiu.micro.common.vo.AuthorityRpcVo;
+import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
 import wiki.chiu.micro.user.convertor.AuthorityEntityConvertor;
 import wiki.chiu.micro.user.convertor.AuthorityRpcVoConvertor;

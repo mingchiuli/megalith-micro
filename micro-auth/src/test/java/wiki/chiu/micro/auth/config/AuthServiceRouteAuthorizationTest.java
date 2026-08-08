@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.redisson.api.RedissonClient;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.task.TaskExecutor;
+import wiki.chiu.micro.auth.api.req.AuthorityRouteCheckReq;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.service.impl.AuthServiceImpl;
 import wiki.chiu.micro.auth.token.JwtProperties;
@@ -19,9 +20,8 @@ import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.wrapper.AuthWrapper;
 import wiki.chiu.micro.common.lang.AuthTypeEnum;
 import wiki.chiu.micro.common.lang.StatusEnum;
-import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
-import wiki.chiu.micro.common.vo.AuthorityRpcVo;
-import wiki.chiu.micro.common.vo.UserEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 class AuthServiceRouteAuthorizationTest {
 

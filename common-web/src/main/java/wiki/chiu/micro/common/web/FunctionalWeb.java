@@ -4,7 +4,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -24,10 +23,6 @@ import wiki.chiu.micro.common.lang.ErrorCategory;
 import wiki.chiu.micro.common.lang.ErrorCode;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.lang.Result;
-import wiki.chiu.micro.common.rpc.AuthHttpService;
-import wiki.chiu.micro.common.rpc.RemoteResult;
-import wiki.chiu.micro.common.security.AuthPrincipal;
-import wiki.chiu.micro.common.vo.AuthRpcVo;
 
 public final class FunctionalWeb {
 
@@ -94,19 +89,6 @@ public final class FunctionalWeb {
       return false;
     }
     throw new IllegalArgumentException("Expected true or false");
-  }
-
-  public static AuthPrincipal authPrincipal(
-      ServerRequest request, AuthHttpService authHttpService) {
-    String token =
-        Objects.requireNonNullElse(request.headers().firstHeader(HttpHeaders.AUTHORIZATION), "");
-    AuthRpcVo authRpcVo =
-        RemoteResult.requireSuccess(() -> authHttpService.getAuthentication(token));
-    return AuthPrincipal.builder()
-        .userId(authRpcVo.userId())
-        .roles(authRpcVo.roles())
-        .authorities(authRpcVo.authorities())
-        .build();
   }
 
   public static ServerResponse ok(Object body) {

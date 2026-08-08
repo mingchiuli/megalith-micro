@@ -2,9 +2,9 @@ package wiki.chiu.micro.blog.convertor;
 
 import java.util.List;
 import org.springframework.data.domain.Page;
+import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 
 public class BlogEntityRpcVoConvertor {
 

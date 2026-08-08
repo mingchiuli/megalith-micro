@@ -2,7 +2,7 @@ package wiki.chiu.micro.user.service;
 
 import java.util.List;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.vo.RoleEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
 import wiki.chiu.micro.user.req.RoleEntityReq;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
 

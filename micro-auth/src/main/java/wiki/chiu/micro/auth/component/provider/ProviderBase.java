@@ -14,7 +14,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
-import wiki.chiu.micro.common.vo.RoleEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
 
 /**
  * @author mingchiuli

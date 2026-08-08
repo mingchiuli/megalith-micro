@@ -8,13 +8,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
-import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
@@ -31,9 +27,9 @@ import wiki.chiu.micro.blog.repository.BlogRepository;
 import wiki.chiu.micro.blog.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
-import wiki.chiu.micro.blog.rpc.SearchHttpServiceWrapper;
 import wiki.chiu.micro.blog.service.BlogAccessPolicy;
 import wiki.chiu.micro.blog.service.BlogService;
+import wiki.chiu.micro.blog.service.port.BlogSearchGateway;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
@@ -41,9 +37,8 @@ import wiki.chiu.micro.blog.wrapper.BlogWrapper;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.*;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.req.BlogSysSearchReq;
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
+import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
+import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 
 @Service
 public class BlogServiceImpl implements BlogService {
@@ -60,7 +55,7 @@ public class BlogServiceImpl implements BlogService {
 
   private final BlogSensitiveContentRepository blogSensitiveContentRepository;
 
-  private final SearchHttpServiceWrapper searchHttpServiceWrapper;
+  private final BlogSearchGateway blogSearch;
 
   private final JsonMapper jsonMapper;
 
@@ -81,7 +76,7 @@ public class BlogServiceImpl implements BlogService {
       ResourceLoader resourceLoader,
       BlogWrapper blogWrapper,
       BlogSensitiveContentRepository blogSensitiveContentRepository,
-      SearchHttpServiceWrapper searchHttpServiceWrapper,
+      BlogSearchGateway blogSearch,
       JsonMapper jsonMapper,
       BlogAccessPolicy accessPolicy) {
     this.eventPublisher = eventPublisher;
@@ -90,7 +85,7 @@ public class BlogServiceImpl implements BlogService {
     this.resourceLoader = resourceLoader;
     this.blogWrapper = blogWrapper;
     this.blogSensitiveContentRepository = blogSensitiveContentRepository;
-    this.searchHttpServiceWrapper = searchHttpServiceWrapper;
+    this.blogSearch = blogSearch;
     this.jsonMapper = jsonMapper;
     this.accessPolicy = accessPolicy;
   }
@@ -202,7 +197,7 @@ public class BlogServiceImpl implements BlogService {
       BlogQueryReq blogQueryReq, Long userId, List<String> roles) {
 
     BlogSysSearchReq req = BlogSysSearchReqConvertor.convert(blogQueryReq, userId, roles);
-    BlogSearchRpcVo dto = searchHttpServiceWrapper.searchBlogs(req);
+    BlogSearchRpcVo dto = blogSearch.searchBlogs(req);
     List<Long> ids = dto.ids();
     if (ids.isEmpty()) {
       return PageAdapter.emptyPage();
@@ -322,47 +317,5 @@ public class BlogServiceImpl implements BlogService {
               A_WEEK);
           notifyBlogOperation(BlogOperateEnum.REMOVE, entity);
         });
-  }
-
-  @Override
-  public BlogEntityRpcVo findById(Long blogId) {
-    BlogEntity blogEntity =
-        blogRepository.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-    return BlogEntityRpcVoConvertor.convert(blogEntity);
-  }
-
-  @Override
-  public List<BlogEntityRpcVo> findAllById(List<Long> ids) {
-    List<BlogEntity> blogEntities = blogRepository.findAllById(ids);
-    return BlogEntityRpcVoConvertor.convert(blogEntities);
-  }
-
-  @Override
-  public Long count() {
-    return blogRepository.count();
-  }
-
-  @Override
-  public void setReadCount(Long blogId) {
-    blogRepository.setReadCount(blogId);
-  }
-
-  @Override
-  public PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize) {
-    var pageRequest = PageRequest.of(pageNo - 1, pageSize, Sort.by("created").descending());
-
-    List<Integer> statusList =
-        List.of(
-            BlogStatusEnum.NORMAL.getCode(),
-            BlogStatusEnum.SENSITIVE_FILTER.getCode(),
-            BlogStatusEnum.HIDE.getCode());
-
-    Page<@NonNull BlogEntity> page = blogRepository.findByStatusIn(pageRequest, statusList);
-    return BlogEntityRpcVoConvertor.convert(page);
-  }
-
-  @Override
-  public Long countByCreatedGreaterThanEqual(LocalDateTime created) {
-    return blogRepository.countByCreatedGreaterThanEqual(created);
   }
 }

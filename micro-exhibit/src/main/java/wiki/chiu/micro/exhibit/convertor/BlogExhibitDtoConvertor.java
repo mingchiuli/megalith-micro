@@ -1,9 +1,9 @@
 package wiki.chiu.micro.exhibit.convertor;
 
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.common.vo.UserEntityRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
+import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 public class BlogExhibitDtoConvertor {
 

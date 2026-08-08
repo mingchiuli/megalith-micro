@@ -12,10 +12,10 @@ import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.vo.AuthorityRpcVo;
-import wiki.chiu.micro.common.vo.MenuRpcVo;
-import wiki.chiu.micro.common.vo.RoleEntityRpcVo;
-import wiki.chiu.micro.common.vo.UserEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
+import wiki.chiu.micro.user.api.vo.MenuRpcVo;
+import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.handler.AuthorityHttpHandler;
 import wiki.chiu.micro.user.handler.AuthorityInternalHttpHandler;
 import wiki.chiu.micro.user.handler.MenuHttpHandler;
@@ -123,7 +123,7 @@ public class UserRoutes {
                 .POST("/sys/authority/delete", authorityHandler::delete)
                 .GET("/sys/authority/download", authorityHandler::download)
                 .GET("/inner/menu/nav", menuInternalHandler::getCurrentUserNav)
-                .GET("/inner/user/status", userInternalHandler::changeUserStatusByUsername)
+                .PATCH("/inner/user/status", userInternalHandler::changeUserStatusByUsername)
                 .POST("/inner/user/role", userInternalHandler::findByRoleCodeInAndStatus)
                 .POST("/inner/user/login/time", userInternalHandler::updateLoginTime)
                 .GET("/inner/user/email", userInternalHandler::findByEmail)
@@ -131,7 +131,7 @@ public class UserRoutes {
                 .GET("/inner/user/role/{userId}", userInternalHandler::findRoleCodesByUserId)
                 .GET("/inner/user/login/query", userInternalHandler::findByUsernameOrEmailOrPhone)
                 .GET("/inner/user/{userId}", userInternalHandler::findById)
-                .POST("/inner/authority/list", authorityInternalHandler::getAuthorities)
+                .GET("/inner/authority/list", authorityInternalHandler::getAuthorities)
                 .GET("/inner/authority/role", authorityInternalHandler::getAuthoritiesByRoleCode),
             log)
         .build();

@@ -7,11 +7,11 @@ import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
+import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.common.lang.BlogOperateMessage;
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 
 public abstract sealed class BlogCacheEvictHandler
