@@ -45,7 +45,7 @@ jobs:
       has-services: ${{ steps.detect.outputs.has-services }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -240,7 +240,7 @@ jobs:
         service: ${{ fromJson(needs.changes.outputs.java-services) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Prepare GraalVM
         uses: graalvm/setup-graalvm@v1
@@ -277,7 +277,7 @@ jobs:
         service: ${{ fromJson(needs.changes.outputs.rust-services) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
