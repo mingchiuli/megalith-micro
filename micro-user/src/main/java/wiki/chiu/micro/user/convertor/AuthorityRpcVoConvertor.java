@@ -1,7 +1,7 @@
 package wiki.chiu.micro.user.convertor;
 
 import java.util.List;
-import wiki.chiu.micro.common.vo.AuthorityRpcVo;
+import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.entity.AuthorityEntity;
 
 public class AuthorityRpcVoConvertor {

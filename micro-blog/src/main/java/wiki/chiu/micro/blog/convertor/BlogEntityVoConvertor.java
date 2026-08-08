@@ -10,7 +10,7 @@ import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
+import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 
 public class BlogEntityVoConvertor {
 

@@ -5,10 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.web.service.registry.ImportHttpServices;
 import wiki.chiu.micro.auth.config.CustomRuntimeHints;
-import wiki.chiu.micro.common.rpc.AuthorityHttpService;
-import wiki.chiu.micro.common.rpc.MenuHttpService;
 import wiki.chiu.micro.common.rpc.SmsHttpService;
-import wiki.chiu.micro.common.rpc.UserHttpService;
+import wiki.chiu.micro.user.api.AuthorityHttpService;
+import wiki.chiu.micro.user.api.MenuHttpService;
+import wiki.chiu.micro.user.api.UserHttpService;
 
 @SpringBootApplication(proxyBeanMethods = false)
 @ImportRuntimeHints({CustomRuntimeHints.class})

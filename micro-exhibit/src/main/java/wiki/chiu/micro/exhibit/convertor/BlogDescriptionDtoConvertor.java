@@ -1,8 +1,8 @@
 package wiki.chiu.micro.exhibit.convertor;
 
 import java.util.List;
+import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
 
 /**

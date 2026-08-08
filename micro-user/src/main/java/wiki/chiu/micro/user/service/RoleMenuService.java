@@ -1,7 +1,7 @@
 package wiki.chiu.micro.user.service;
 
 import java.util.List;
-import wiki.chiu.micro.common.vo.MenuRpcVo;
+import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 import wiki.chiu.micro.user.vo.RoleMenuVo;
 
 /**

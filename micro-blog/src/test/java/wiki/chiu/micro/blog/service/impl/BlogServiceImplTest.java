@@ -21,10 +21,10 @@ import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.repository.BlogRepository;
 import wiki.chiu.micro.blog.repository.BlogSensitiveContentRepository;
-import wiki.chiu.micro.blog.rpc.SearchHttpServiceWrapper;
 import wiki.chiu.micro.blog.service.BlogAccessPolicy;
+import wiki.chiu.micro.blog.service.port.BlogSearchGateway;
+import wiki.chiu.micro.blog.service.port.CollaborationTicketGateway;
 import wiki.chiu.micro.blog.wrapper.BlogWrapper;
-import wiki.chiu.micro.common.rpc.AuthHttpService;
 
 class BlogServiceImplTest {
 
@@ -38,7 +38,7 @@ class BlogServiceImplTest {
             mock(ResourceLoader.class),
             mock(BlogWrapper.class),
             mock(BlogSensitiveContentRepository.class),
-            mock(SearchHttpServiceWrapper.class),
+            mock(BlogSearchGateway.class),
             mock(JsonMapper.class),
             new BlogAccessPolicy("admin"));
 
@@ -65,7 +65,7 @@ class BlogServiceImplTest {
             blogRepository,
             new BlogAccessPolicy("admin"),
             redisTemplate,
-            mock(AuthHttpService.class));
+            mock(CollaborationTicketGateway.class));
 
     String token = service.issueReadToken(7L, 42L, List.of("user"));
 

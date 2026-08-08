@@ -174,4 +174,11 @@ class BlogSearchControllerTest {
   void unknownPathReturns404() throws Exception {
     mockMvc.perform(get("/search/unknown")).andExpect(status().isNotFound());
   }
+
+  @Test
+  void internalViewMutationUsesExplicitViewsPath() throws Exception {
+    mockMvc.perform(post("/inner/blog/7/views")).andExpect(status().isOk());
+
+    verify(blogSearchService).addReadCount(7L);
+  }
 }

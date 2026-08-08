@@ -1,7 +1,7 @@
 package wiki.chiu.micro.exhibit.config;
 
 import org.springframework.aot.hint.*;
-import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
 import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
 

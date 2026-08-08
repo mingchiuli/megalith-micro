@@ -1,9 +1,9 @@
 package wiki.chiu.micro.search.service;
 
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
-import wiki.chiu.micro.common.req.BlogSysSearchReq;
-import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
+import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
+import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
+import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 import wiki.chiu.micro.search.vo.BlogDocumentVo;
 
 /**

@@ -5,9 +5,9 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
+import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.common.lang.BlogOperateMessage;
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.search.rpc.BlogHttpServiceWrapper;
 
 public abstract sealed class BlogIndexSupport

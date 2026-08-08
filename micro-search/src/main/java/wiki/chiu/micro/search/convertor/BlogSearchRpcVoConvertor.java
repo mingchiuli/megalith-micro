@@ -4,7 +4,7 @@ import java.util.List;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
-import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
+import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 import wiki.chiu.micro.search.document.BlogDocument;
 
 public class BlogSearchRpcVoConvertor {

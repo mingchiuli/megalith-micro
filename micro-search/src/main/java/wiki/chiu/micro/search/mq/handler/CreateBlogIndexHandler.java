@@ -4,8 +4,8 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.stereotype.Component;
+import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.search.document.BlogDocument;
 import wiki.chiu.micro.search.rpc.BlogHttpServiceWrapper;
 

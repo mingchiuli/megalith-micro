@@ -20,19 +20,19 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
+import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
+import wiki.chiu.micro.blog.api.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
-import wiki.chiu.micro.common.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.exhibit.convertor.BlogDescriptionVoConvertor;
 import wiki.chiu.micro.exhibit.convertor.BlogExhibitVoConvertor;
 import wiki.chiu.micro.exhibit.convertor.BlogHotReadVoConvertor;
 import wiki.chiu.micro.exhibit.convertor.VisitStatisticsVoConvertor;
 import wiki.chiu.micro.exhibit.dto.*;
-import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.service.BlogService;
+import wiki.chiu.micro.exhibit.service.port.BlogCatalog;
 import wiki.chiu.micro.exhibit.utils.SensitiveUtils;
 import wiki.chiu.micro.exhibit.vo.BlogDescriptionVo;
 import wiki.chiu.micro.exhibit.vo.BlogExhibitVo;
@@ -50,7 +50,7 @@ public class BlogServiceImpl implements BlogService {
 
   private final BlogSensitiveWrapper blogSensitiveWrapper;
 
-  private final BlogHttpServiceWrapper blogHttpServiceWrapper;
+  private final BlogCatalog blogCatalog;
 
   private final RedissonClient redissonClient;
 
@@ -67,12 +67,12 @@ public class BlogServiceImpl implements BlogService {
 
   public BlogServiceImpl(
       BlogSensitiveWrapper blogSensitiveWrapper,
-      BlogHttpServiceWrapper blogHttpServiceWrapper,
+      BlogCatalog blogCatalog,
       RedissonClient redissonClient,
       BlogWrapper blogWrapper,
       ResourceLoader resourceLoader) {
     this.blogSensitiveWrapper = blogSensitiveWrapper;
-    this.blogHttpServiceWrapper = blogHttpServiceWrapper;
+    this.blogCatalog = blogCatalog;
     this.redissonClient = redissonClient;
     this.blogWrapper = blogWrapper;
     this.resourceLoader = resourceLoader;
@@ -158,7 +158,7 @@ public class BlogServiceImpl implements BlogService {
 
     List<Long> ids = scoredEntries.stream().map(ScoredEntry::getValue).map(Long::valueOf).toList();
 
-    List<BlogEntityRpcVo> blogs = blogHttpServiceWrapper.findAllById(ids);
+    List<BlogEntityRpcVo> blogs = blogCatalog.findAllById(ids);
 
     return BlogHotReadVoConvertor.convert(blogs, scoredEntries);
   }

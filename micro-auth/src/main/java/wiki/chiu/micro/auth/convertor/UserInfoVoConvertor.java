@@ -1,7 +1,7 @@
 package wiki.chiu.micro.auth.convertor;
 
 import wiki.chiu.micro.auth.vo.UserInfoVo;
-import wiki.chiu.micro.common.vo.UserEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 public class UserInfoVoConvertor {
 

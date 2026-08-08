@@ -1,9 +1,9 @@
 package wiki.chiu.micro.search.converter;
 
 import org.springframework.web.servlet.function.ServerRequest;
-import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
-import wiki.chiu.micro.common.req.BlogSysSearchReq;
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
+import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 
 public final class SearchRequestConverter {
 

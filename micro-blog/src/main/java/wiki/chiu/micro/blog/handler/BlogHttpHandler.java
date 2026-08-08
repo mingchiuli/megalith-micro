@@ -1,5 +1,6 @@
 package wiki.chiu.micro.blog.handler;
 
+import static wiki.chiu.micro.common.auth.web.AuthWeb.authPrincipal;
 import static wiki.chiu.micro.common.web.FunctionalWeb.*;
 
 import java.io.IOException;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.auth.api.AuthHttpService;
 import wiki.chiu.micro.blog.converter.BlogRequestConverter;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
@@ -23,7 +25,6 @@ import wiki.chiu.micro.blog.service.BlogService;
 import wiki.chiu.micro.blog.service.UploadObject;
 import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.common.lang.Result;
-import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 

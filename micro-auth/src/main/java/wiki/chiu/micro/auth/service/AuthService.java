@@ -1,10 +1,10 @@
 package wiki.chiu.micro.auth.service;
 
+import wiki.chiu.micro.auth.api.req.AuthorityRouteCheckReq;
+import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
+import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
+import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
-import wiki.chiu.micro.common.req.AuthorityRouteCheckReq;
-import wiki.chiu.micro.common.req.AuthorityRouteReq;
-import wiki.chiu.micro.common.vo.AuthRpcVo;
-import wiki.chiu.micro.common.vo.AuthorityRouteRpcVo;
 
 public interface AuthService {
 

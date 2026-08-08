@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.blog.handler.BlogHttpHandler;
 import wiki.chiu.micro.blog.handler.BlogInternalHttpHandler;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
@@ -23,8 +25,6 @@ import wiki.chiu.micro.blog.vo.BlogEntityVo;
 import wiki.chiu.micro.blog.vo.BlogPermissionsVo;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
 
 @Configuration(proxyBeanMethods = false)
 @RegisterReflectionForBinding({
@@ -70,10 +70,10 @@ public class BlogRoutes {
                 .GET("/inner/blog/count", internalHandler::count)
                 .GET("/inner/blog/count/until", internalHandler::countByCreatedGreaterThanEqual)
                 .GET("/inner/blog/sensitive/{blogId}", internalHandler::findSensitiveByBlogId)
+                .GET("/inner/blog/page", internalHandler::findPage)
                 .GET("/inner/blog/{blogId}", internalHandler::findById)
                 .POST("/inner/blog/batch", internalHandler::findAllById)
-                .POST("/inner/blog/page", internalHandler::findPage)
-                .POST("/inner/blog/{blogId}", internalHandler::setReadCount),
+                .POST("/inner/blog/{blogId}/views", internalHandler::setReadCount),
             log)
         .build();
   }

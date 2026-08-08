@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.StatusEnum;
-import wiki.chiu.micro.common.vo.MenuRpcVo;
+import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
 import wiki.chiu.micro.user.convertor.MenuDisplayVoConvertor;
 import wiki.chiu.micro.user.convertor.MenuRpcVoConvertor;

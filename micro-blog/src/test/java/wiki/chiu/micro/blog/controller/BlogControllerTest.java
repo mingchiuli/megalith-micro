@@ -26,6 +26,10 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.auth.api.AuthHttpService;
+import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
 import wiki.chiu.micro.blog.handler.BlogHttpHandler;
 import wiki.chiu.micro.blog.handler.BlogInternalHttpHandler;
 import wiki.chiu.micro.blog.route.BlogRoutes;
@@ -37,9 +41,7 @@ import wiki.chiu.micro.blog.vo.BlogEntityVo;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.security.AuthPrincipal;
-import wiki.chiu.micro.common.vo.AuthRpcVo;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
 @ExtendWith(MockitoExtension.class)
@@ -283,5 +285,26 @@ class BlogControllerTest {
         .andExpect(jsonPath("$.msg").value("createStart must not be after createEnd"));
 
     verify(blogService, never()).findAllBlogs(any(), anyLong(), anyList());
+  }
+
+  @Test
+  void internalPageQueryUsesGetAndIsNotCapturedAsBlogId() throws Exception {
+    when(blogInternalHttpHandler.findPage(any())).thenReturn(ServerResponse.ok().build());
+
+    mockMvc
+        .perform(get("/inner/blog/page").param("pageNo", "1").param("pageSize", "10"))
+        .andExpect(status().isOk());
+
+    verify(blogInternalHttpHandler).findPage(any());
+  }
+
+  @Test
+  void internalViewMutationUsesExplicitViewsPath() throws Exception {
+    when(blogInternalHttpHandler.setReadCount(any(ServerRequest.class)))
+        .thenReturn(ServerResponse.ok().build());
+
+    mockMvc.perform(post("/inner/blog/7/views")).andExpect(status().isOk());
+
+    verify(blogInternalHttpHandler).setReadCount(any(ServerRequest.class));
   }
 }

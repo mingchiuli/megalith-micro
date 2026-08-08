@@ -2,11 +2,11 @@ package wiki.chiu.micro.blog.service.impl;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
+import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.blog.convertor.BlogSensitiveContentRpcVoConvertor;
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import wiki.chiu.micro.blog.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.service.BlogSensitiveService;
-import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
 
 @Service
 public class BlogSensitiveServiceImpl implements BlogSensitiveService {

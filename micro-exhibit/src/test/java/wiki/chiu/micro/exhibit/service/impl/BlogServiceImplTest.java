@@ -20,7 +20,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.util.ReflectionTestUtils;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
-import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
+import wiki.chiu.micro.exhibit.service.port.BlogCatalog;
 import wiki.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
 import wiki.chiu.micro.exhibit.wrapper.BlogWrapper;
 
@@ -36,7 +36,7 @@ class BlogServiceImplTest {
     service =
         new BlogServiceImpl(
             mock(BlogSensitiveWrapper.class),
-            mock(BlogHttpServiceWrapper.class),
+            mock(BlogCatalog.class),
             redissonClient,
             blogWrapper,
             mock(ResourceLoader.class));

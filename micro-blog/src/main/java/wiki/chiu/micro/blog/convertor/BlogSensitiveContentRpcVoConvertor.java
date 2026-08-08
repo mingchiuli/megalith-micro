@@ -1,9 +1,9 @@
 package wiki.chiu.micro.blog.convertor;
 
 import java.util.*;
+import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
+import wiki.chiu.micro.blog.api.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
-import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
-import wiki.chiu.micro.common.vo.SensitiveContentRpcVo;
 
 public class BlogSensitiveContentRpcVoConvertor {
 

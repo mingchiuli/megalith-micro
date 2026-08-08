@@ -8,8 +8,8 @@ import wiki.chiu.micro.auth.dto.MenuDto;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.common.vo.AuthorityRpcVo;
-import wiki.chiu.micro.common.vo.MenuRpcVo;
+import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
+import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 
 @Component
 public class AuthWrapper {

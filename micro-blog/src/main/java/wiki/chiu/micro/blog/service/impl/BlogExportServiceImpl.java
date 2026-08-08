@@ -18,12 +18,12 @@ import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
 import wiki.chiu.micro.blog.repository.BlogRepository;
 import wiki.chiu.micro.blog.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
-import wiki.chiu.micro.blog.rpc.SearchHttpServiceWrapper;
 import wiki.chiu.micro.blog.service.BlogExportService;
-import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
-import wiki.chiu.micro.common.req.BlogSysSearchReq;
+import wiki.chiu.micro.blog.service.port.BlogSearchGateway;
 import wiki.chiu.micro.common.utils.SQLUtils;
-import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
+import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
+import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
+import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 
 @Service
 public class BlogExportServiceImpl implements BlogExportService {
@@ -32,12 +32,12 @@ public class BlogExportServiceImpl implements BlogExportService {
 
   private final BlogRepository blogs;
   private final BlogSensitiveContentRepository sensitiveContent;
-  private final SearchHttpServiceWrapper search;
+  private final BlogSearchGateway search;
 
   public BlogExportServiceImpl(
       BlogRepository blogs,
       BlogSensitiveContentRepository sensitiveContent,
-      SearchHttpServiceWrapper search) {
+      BlogSearchGateway search) {
     this.blogs = blogs;
     this.sensitiveContent = sensitiveContent;
     this.search = search;

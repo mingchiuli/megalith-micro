@@ -3,8 +3,8 @@ package wiki.chiu.micro.search;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.service.registry.ImportHttpServices;
-import wiki.chiu.micro.common.rpc.AuthHttpService;
-import wiki.chiu.micro.common.rpc.BlogHttpService;
+import wiki.chiu.micro.auth.api.AuthHttpService;
+import wiki.chiu.micro.blog.api.BlogHttpService;
 
 @SpringBootApplication(proxyBeanMethods = false)
 @ImportHttpServices(

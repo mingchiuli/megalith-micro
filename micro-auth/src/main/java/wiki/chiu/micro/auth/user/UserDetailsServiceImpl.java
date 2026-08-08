@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.common.lang.StatusEnum;
-import wiki.chiu.micro.common.vo.UserEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 @Component
 public final class UserDetailsServiceImpl implements UserDetailsService {

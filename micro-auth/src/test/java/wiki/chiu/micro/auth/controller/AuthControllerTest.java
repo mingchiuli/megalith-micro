@@ -22,6 +22,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import wiki.chiu.micro.auth.api.AuthHttpService;
+import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
 import wiki.chiu.micro.auth.handler.AuthHttpHandler;
 import wiki.chiu.micro.auth.handler.AuthInternalHttpHandler;
 import wiki.chiu.micro.auth.handler.CodeHttpHandler;
@@ -32,9 +34,7 @@ import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.lang.Result;
-import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.security.AuthPrincipal;
-import wiki.chiu.micro.common.vo.AuthRpcVo;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {

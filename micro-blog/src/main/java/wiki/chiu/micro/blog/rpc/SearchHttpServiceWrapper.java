@@ -1,14 +1,15 @@
 package wiki.chiu.micro.blog.rpc;
 
 import org.springframework.stereotype.Component;
-import wiki.chiu.micro.common.req.BlogSysCountSearchReq;
-import wiki.chiu.micro.common.req.BlogSysSearchReq;
+import wiki.chiu.micro.blog.service.port.BlogSearchGateway;
 import wiki.chiu.micro.common.rpc.RemoteResult;
-import wiki.chiu.micro.common.rpc.SearchHttpService;
-import wiki.chiu.micro.common.vo.BlogSearchRpcVo;
+import wiki.chiu.micro.search.api.SearchHttpService;
+import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
+import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
+import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 
 @Component
-public class SearchHttpServiceWrapper {
+public class SearchHttpServiceWrapper implements BlogSearchGateway {
 
   private final SearchHttpService searchHttpService;
 
@@ -16,11 +17,13 @@ public class SearchHttpServiceWrapper {
     this.searchHttpService = searchHttpService;
   }
 
+  @Override
   public BlogSearchRpcVo searchBlogs(BlogSysSearchReq req) {
     return RemoteResult.requireSuccess(() -> searchHttpService.searchBlogs(req));
   }
 
-  public Long countBlogs(BlogSysCountSearchReq req) {
+  @Override
+  public long countBlogs(BlogSysCountSearchReq req) {
     return RemoteResult.requireSuccess(() -> searchHttpService.countBlogs(req));
   }
 }

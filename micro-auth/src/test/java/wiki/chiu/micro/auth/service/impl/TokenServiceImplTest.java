@@ -11,23 +11,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
+import wiki.chiu.micro.auth.service.port.UserDirectory;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.vo.UserEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 @ExtendWith(MockitoExtension.class)
 class TokenServiceImplTest {
 
   @Mock private JwtTokenService jwtTokenService;
 
-  @Mock private UserHttpServiceWrapper userHttpServiceWrapper;
+  @Mock private UserDirectory users;
 
   @InjectMocks private TokenServiceImpl tokenService;
 
   @Test
   void refreshTokenIssuesAccessTokenForActiveUser() {
-    when(userHttpServiceWrapper.findById(42L)).thenReturn(user(0));
+    when(users.findById(42L)).thenReturn(user(0));
     when(jwtTokenService.issueAccessToken(42L)).thenReturn("jwt");
 
     Map<String, String> result = tokenService.refreshToken(42L);
@@ -38,7 +38,7 @@ class TokenServiceImplTest {
 
   @Test
   void refreshTokenRejectsDisabledUser() {
-    when(userHttpServiceWrapper.findById(42L)).thenReturn(user(1));
+    when(users.findById(42L)).thenReturn(user(1));
 
     MissException exception =
         assertThrows(MissException.class, () -> tokenService.refreshToken(42L));

@@ -3,15 +3,16 @@ package wiki.chiu.micro.exhibit.rpc;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Component;
+import wiki.chiu.micro.blog.api.BlogHttpService;
+import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.rpc.BlogHttpService;
 import wiki.chiu.micro.common.rpc.RemoteResult;
-import wiki.chiu.micro.common.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.common.vo.BlogSensitiveContentRpcVo;
+import wiki.chiu.micro.exhibit.service.port.BlogCatalog;
 
 /** BlogHttpServiceWrapper */
 @Component
-public class BlogHttpServiceWrapper {
+public class BlogHttpServiceWrapper implements BlogCatalog {
 
   private final BlogHttpService blogHttpService;
 
@@ -23,6 +24,7 @@ public class BlogHttpServiceWrapper {
     return RemoteResult.requireSuccess(() -> blogHttpService.findById(blogId));
   }
 
+  @Override
   public List<BlogEntityRpcVo> findAllById(List<Long> ids) {
     return RemoteResult.requireSuccess(() -> blogHttpService.findAllById(ids));
   }
@@ -32,7 +34,7 @@ public class BlogHttpServiceWrapper {
   }
 
   public void setReadCount(Long id) {
-    blogHttpService.setReadCount(id);
+    RemoteResult.requireSuccess(() -> blogHttpService.setReadCount(id));
   }
 
   public PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize) {

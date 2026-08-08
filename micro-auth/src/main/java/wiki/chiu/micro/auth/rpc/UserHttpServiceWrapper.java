@@ -3,17 +3,18 @@ package wiki.chiu.micro.auth.rpc;
 import java.util.List;
 import java.util.Set;
 import org.springframework.stereotype.Component;
-import wiki.chiu.micro.common.rpc.AuthorityHttpService;
-import wiki.chiu.micro.common.rpc.MenuHttpService;
+import wiki.chiu.micro.auth.service.port.UserDirectory;
 import wiki.chiu.micro.common.rpc.RemoteResult;
-import wiki.chiu.micro.common.rpc.UserHttpService;
-import wiki.chiu.micro.common.vo.AuthorityRpcVo;
-import wiki.chiu.micro.common.vo.MenuRpcVo;
-import wiki.chiu.micro.common.vo.RoleEntityRpcVo;
-import wiki.chiu.micro.common.vo.UserEntityRpcVo;
+import wiki.chiu.micro.user.api.AuthorityHttpService;
+import wiki.chiu.micro.user.api.MenuHttpService;
+import wiki.chiu.micro.user.api.UserHttpService;
+import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
+import wiki.chiu.micro.user.api.vo.MenuRpcVo;
+import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 @Component
-public class UserHttpServiceWrapper {
+public class UserHttpServiceWrapper implements UserDirectory {
 
   private final UserHttpService userHttpService;
 
@@ -31,7 +32,7 @@ public class UserHttpServiceWrapper {
   }
 
   public void changeUserStatusByUsername(String username, Integer status) {
-    userHttpService.changeUserStatusByUsername(username, status);
+    RemoteResult.requireSuccess(() -> userHttpService.changeUserStatusByUsername(username, status));
   }
 
   public List<RoleEntityRpcVo> findByRoleCodeInAndStatus(List<String> roles, Integer status) {
@@ -43,18 +44,22 @@ public class UserHttpServiceWrapper {
     RemoteResult.requireSuccess(() -> userHttpService.updateLoginTime(username));
   }
 
+  @Override
   public void findByEmail(String loginEmail) {
     RemoteResult.requireSuccess(() -> userHttpService.findByEmail(loginEmail));
   }
 
+  @Override
   public void findByPhone(String loginSMS) {
     RemoteResult.requireSuccess(() -> userHttpService.findByPhone(loginSMS));
   }
 
+  @Override
   public List<String> findRoleCodesByUserId(Long userId) {
     return RemoteResult.requireSuccess(() -> userHttpService.findRoleCodesByUserId(userId));
   }
 
+  @Override
   public UserEntityRpcVo findById(Long userId) {
     return RemoteResult.requireSuccess(() -> userHttpService.findById(userId));
   }

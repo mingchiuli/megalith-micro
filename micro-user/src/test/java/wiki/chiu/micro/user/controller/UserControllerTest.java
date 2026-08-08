@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -24,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.web.ValidatedRequest;
@@ -51,6 +53,8 @@ class UserControllerTest {
 
   @Mock private UserExportService exportService;
 
+  @Mock private UserInternalHttpHandler userInternalHttpHandler;
+
   private MockMvc mockMvc;
 
   @BeforeEach
@@ -66,7 +70,7 @@ class UserControllerTest {
                     org.mockito.Mockito.mock(RoleHttpHandler.class),
                     org.mockito.Mockito.mock(MenuHttpHandler.class),
                     org.mockito.Mockito.mock(AuthorityHttpHandler.class),
-                    org.mockito.Mockito.mock(UserInternalHttpHandler.class),
+                    userInternalHttpHandler,
                     org.mockito.Mockito.mock(MenuInternalHttpHandler.class),
                     org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class)))
             .build();
@@ -252,5 +256,17 @@ class UserControllerTest {
   @Test
   void unknownPathReturns404() throws Exception {
     mockMvc.perform(get("/sys/user/unknown")).andExpect(status().isNotFound());
+  }
+
+  @Test
+  void internalStatusMutationUsesPatch() throws Exception {
+    when(userInternalHttpHandler.changeUserStatusByUsername(any()))
+        .thenReturn(ServerResponse.ok().build());
+
+    mockMvc
+        .perform(patch("/inner/user/status").param("username", "alice").param("status", "1"))
+        .andExpect(status().isOk());
+
+    verify(userInternalHttpHandler).changeUserStatusByUsername(any());
   }
 }

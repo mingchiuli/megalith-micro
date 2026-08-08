@@ -2,7 +2,7 @@ package wiki.chiu.micro.auth.convertor;
 
 import java.util.List;
 import wiki.chiu.micro.auth.dto.MenuDto;
-import wiki.chiu.micro.common.vo.MenuRpcVo;
+import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 
 public class MenuDtoConvertor {
 

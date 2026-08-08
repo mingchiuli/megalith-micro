@@ -13,10 +13,8 @@ import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.repository.BlogRepository;
 import wiki.chiu.micro.blog.service.BlogAccessPolicy;
 import wiki.chiu.micro.blog.service.BlogCollaborationService;
+import wiki.chiu.micro.blog.service.port.CollaborationTicketGateway;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.req.WebSocketTicketReq;
-import wiki.chiu.micro.common.rpc.AuthHttpService;
-import wiki.chiu.micro.common.rpc.RemoteResult;
 
 @Service
 public class BlogCollaborationServiceImpl implements BlogCollaborationService {
@@ -24,17 +22,17 @@ public class BlogCollaborationServiceImpl implements BlogCollaborationService {
   private final BlogRepository blogs;
   private final BlogAccessPolicy accessPolicy;
   private final StringRedisTemplate redisTemplate;
-  private final AuthHttpService authHttpService;
+  private final CollaborationTicketGateway tickets;
 
   public BlogCollaborationServiceImpl(
       BlogRepository blogs,
       BlogAccessPolicy accessPolicy,
       StringRedisTemplate redisTemplate,
-      AuthHttpService authHttpService) {
+      CollaborationTicketGateway tickets) {
     this.blogs = blogs;
     this.accessPolicy = accessPolicy;
     this.redisTemplate = redisTemplate;
-    this.authHttpService = authHttpService;
+    this.tickets = tickets;
   }
 
   @Override
@@ -59,7 +57,6 @@ public class BlogCollaborationServiceImpl implements BlogCollaborationService {
       accessPolicy.requireCollaboration(blog, userId, roles);
       roomId = blogId.toString();
     }
-    return RemoteResult.requireSuccess(
-        () -> authHttpService.issueWebSocketTicket(new WebSocketTicketReq(userId, roomId)));
+    return tickets.issueTicket(userId, roomId);
   }
 }

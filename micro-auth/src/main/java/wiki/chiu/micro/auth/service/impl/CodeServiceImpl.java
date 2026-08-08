@@ -18,13 +18,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import tools.jackson.databind.json.JsonMapper;
-import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.service.CodeService;
+import wiki.chiu.micro.auth.service.port.SmsSender;
+import wiki.chiu.micro.auth.service.port.UserDirectory;
 import wiki.chiu.micro.auth.support.AliyunSmsSigner;
 import wiki.chiu.micro.auth.support.VerificationCodeGenerator;
 import wiki.chiu.micro.common.exception.CodeException;
 import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.common.rpc.SmsHttpService;
 
 /**
  * @author mingchiuli
@@ -37,9 +37,9 @@ public class CodeServiceImpl implements CodeService {
 
   private final RedissonClient redissonClient;
 
-  private final UserHttpServiceWrapper userHttpServiceWrapper;
+  private final UserDirectory users;
 
-  private final SmsHttpService smsHttpService;
+  private final SmsSender smsSender;
 
   private final ResourceLoader resourceLoader;
 
@@ -59,14 +59,14 @@ public class CodeServiceImpl implements CodeService {
   public CodeServiceImpl(
       JavaMailSender javaMailSender,
       RedissonClient redissonClient,
-      UserHttpServiceWrapper userHttpServiceWrapper,
-      SmsHttpService smsHttpService,
+      UserDirectory users,
+      SmsSender smsSender,
       ResourceLoader resourceLoader,
       JsonMapper jsonMapper) {
     this.javaMailSender = javaMailSender;
     this.redissonClient = redissonClient;
-    this.userHttpServiceWrapper = userHttpServiceWrapper;
-    this.smsHttpService = smsHttpService;
+    this.users = users;
+    this.smsSender = smsSender;
     this.resourceLoader = resourceLoader;
     this.jsonMapper = jsonMapper;
   }
@@ -101,11 +101,11 @@ public class CodeServiceImpl implements CodeService {
   }
 
   private void validateUserEmail(String email) {
-    userHttpServiceWrapper.findByEmail(email);
+    users.findByEmail(email);
   }
 
   private void validateUserPhone(String phone) {
-    userHttpServiceWrapper.findByPhone(phone);
+    users.findByPhone(phone);
   }
 
   private void checkCodeExistence(String key) {
@@ -128,7 +128,7 @@ public class CodeServiceImpl implements CodeService {
     String signature =
         AliyunSmsSigner.getSignature(
             phone, jsonMapper.writeValueAsString(codeMap), accessKeyId, accessKeySecret);
-    smsHttpService.sendSms("?Signature=" + signature);
+    smsSender.send("?Signature=" + signature);
   }
 
   private void saveCodeToRedis(String key, String code) {
