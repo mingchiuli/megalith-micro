@@ -22,7 +22,7 @@ subprojects {
 
     // Set default version for all modules (cache module will override this)
     if (name != "cache") {
-        version = "latest"
+        version = "dev"
     }
 
     // Apply plugins to all subprojects
@@ -47,7 +47,7 @@ subprojects {
 
     dependencies {
         add("testImplementation", "org.springframework.boot:spring-boot-starter-test")
-        if (name == "micro-blog" || name == "micro-user") {
+        if (name.startsWith("micro-")) {
             add("testImplementation", "com.tngtech.archunit:archunit-junit5:1.4.2")
         }
     }
@@ -73,7 +73,6 @@ subprojects {
 
                     buildArgs.addAll(
                         "-march=compatibility",
-                        "--gc=serial",
                         "-R:MaxHeapSize=$localHeapSize",
                     )
 
@@ -95,6 +94,7 @@ subprojects {
 
             // Default heap size, can be overridden in individual modules
             val heapSize = project.findProperty("nativeImageHeapSize") as String? ?: "128m"
+            val imageTag = project.findProperty("imageTag") as String? ?: project.version.toString()
 
             environment = mapOf(
                 "BP_NATIVE_IMAGE_BUILD_ARGUMENTS" to """
@@ -102,7 +102,6 @@ subprojects {
                     -R:MaxHeapSize=$heapSize
                     -O3
                     -J-XX:MaxRAMPercentage=80.0
-                    -H:+CompactingOldGen
                     -H:+MLCallCountProfileInference
                     -H:+TrackPrimitiveValues
                     -H:+UsePredicates
@@ -113,7 +112,7 @@ subprojects {
             docker {
                 publish.set(true)
                 publishRegistry {
-                    imageName.set("docker.io/mingchiuli/megalith-${project.name}:${version}")
+                    imageName.set("docker.io/mingchiuli/megalith-${project.name}:$imageTag")
                     url.set("https://docker.io")
                     username.set(System.getenv("DOCKER_USERNAME"))
                     password.set(System.getenv("DOCKER_PWD"))

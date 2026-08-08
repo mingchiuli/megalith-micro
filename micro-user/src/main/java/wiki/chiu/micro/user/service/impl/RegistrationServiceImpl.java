@@ -1,16 +1,15 @@
 package wiki.chiu.micro.user.service.impl;
 
 import static wiki.chiu.micro.common.lang.Const.USER;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_AUTH;
 import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.user.repository.UserRepository;
@@ -42,7 +41,7 @@ public class RegistrationServiceImpl implements RegistrationService {
   public String issuePage(String username) {
     String token = tokens.issue(username);
     return StringUtils.hasLength(username)
-        ? pagePrefix + token + "?username=" + username
+        ? pagePrefix + token + "?username=" + URLEncoder.encode(username, StandardCharsets.UTF_8)
         : pagePrefix + token;
   }
 
@@ -59,12 +58,12 @@ public class RegistrationServiceImpl implements RegistrationService {
         StringUtils.hasLength(request.phone())
             ? request
             : new UserEntityRegisterReq(request, PhonePlaceholderGenerator.generate());
-    userService.saveOrUpdate(toUserRequest(normalized));
-    tokens.consume(request.token());
+    UserEntityReq user = toUserRequest(normalized);
+    tokens.consumeForUsername(request.token(), request.username());
+    userService.saveOrUpdate(user);
   }
 
   private void validatePolicy(UserEntityRegisterReq request) {
-    tokens.requireValid(request.token());
     users
         .findByUsername(request.username())
         .filter(user -> StatusEnum.HIDE.getCode().equals(user.getStatus()))
@@ -72,11 +71,6 @@ public class RegistrationServiceImpl implements RegistrationService {
             user -> {
               throw new ValidationException("registration arguments are invalid");
             });
-    String registeredUsername = tokens.username(request.token());
-    if (StringUtils.hasLength(registeredUsername)
-        && !Objects.equals(registeredUsername, request.username())) {
-      throw new MissException(NO_AUTH);
-    }
   }
 
   private UserEntityReq toUserRequest(UserEntityRegisterReq request) {

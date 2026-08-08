@@ -4,7 +4,6 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.*;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -70,11 +69,7 @@ public class UserHttpHandler {
     MultipartFile image = multipartFile(request, "image");
     String token = requiredParam(request, "token");
     try {
-      UserUpload upload =
-          new UserUpload(
-              image.getOriginalFilename(),
-              Optional.ofNullable(image.getContentType()).orElse("application/octet-stream"),
-              image.getBytes());
+      UserUpload upload = new UserUpload(image.getBytes());
       return ok(Result.success(() -> assetService.upload(token, upload)));
     } catch (IOException exception) {
       throw new ValidationException("failed to read uploaded image");

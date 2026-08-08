@@ -4,7 +4,6 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.*;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -108,11 +107,7 @@ public class BlogHttpHandler {
     MultipartFile image = multipartFile(request, "image");
     AuthPrincipal authInfo = authPrincipal(request, authHttpService);
     try {
-      UploadObject upload =
-          new UploadObject(
-              image.getOriginalFilename(),
-              Optional.ofNullable(image.getContentType()).orElse("application/octet-stream"),
-              image.getBytes());
+      UploadObject upload = new UploadObject(image.getBytes());
       return ok(Result.success(() -> assetService.upload(upload, authInfo.userId())));
     } catch (IOException exception) {
       throw new ValidationException("failed to read uploaded image");
