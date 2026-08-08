@@ -14,7 +14,6 @@ import wiki.chiu.micro.common.rpc.AuthHttpService;
 import wiki.chiu.micro.common.vo.AuthRpcVo;
 import wiki.chiu.micro.common.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.auth.token.JwtTokenService;
-import wiki.chiu.micro.common.web.ValidatedRequest;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredHeader;
@@ -23,13 +22,10 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.requiredHeader;
 public class AuthInternalHttpHandler implements AuthHttpService {
 
     private final AuthService authService;
-    private final ValidatedRequest v;
     private final JwtTokenService jwtTokenService;
 
-    public AuthInternalHttpHandler(AuthService authService,
-                                   ValidatedRequest v, JwtTokenService jwtTokenService) {
+    public AuthInternalHttpHandler(AuthService authService, JwtTokenService jwtTokenService) {
         this.authService = authService;
-        this.v = v;
         this.jwtTokenService = jwtTokenService;
     }
 
