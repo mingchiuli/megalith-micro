@@ -163,7 +163,6 @@ const handleSelectionChange = (val: AuthoritySys[]) => {
 const fetchAuthorities = () => GET<AuthoritySys[]>(API_ENDPOINTS.AUTHORITY_ADMIN.GET_AUTHORITIES)
 const applyAuthorities = (data: AuthoritySys[]) => {
   content.value = data
-  loading.value = false
 }
 
 const queryAuthorities = async () => {
@@ -204,7 +203,7 @@ const clearForm = () => {
   form.routePattern = ''
 }
 
-useUniversalData('admin:authorities', fetchAuthorities, applyAuthorities)
+useUniversalData('admin:authorities', fetchAuthorities, applyAuthorities, { loading })
 </script>
 
 <template>

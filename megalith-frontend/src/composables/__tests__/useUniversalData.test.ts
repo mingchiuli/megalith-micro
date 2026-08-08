@@ -52,4 +52,29 @@ describe('useUniversalData', () => {
     expect(ssrDataStore().has('page')).toBe(false)
     wrapper.unmount()
   })
+
+  it('records initial loading failures and always releases loading state', async () => {
+    const failure = new Error('request failed')
+    const loader = vi.fn().mockRejectedValue(failure)
+    const loading = ref(true)
+    let error!: Readonly<Ref<unknown>>
+    let refresh!: () => Promise<unknown>
+    const component = defineComponent({
+      setup() {
+        const universalData = useUniversalData('page', loader, vi.fn(), { loading })
+        error = universalData.error
+        refresh = universalData.refresh
+        return () => null
+      }
+    })
+
+    const wrapper = mount(component)
+    await flushPromises()
+
+    expect(loading.value).toBe(false)
+    expect(error.value).toBe(failure)
+    await expect(refresh()).rejects.toBe(failure)
+    expect(loading.value).toBe(false)
+    wrapper.unmount()
+  })
 })

@@ -69,7 +69,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: mingchiuli/megalith-frontend:latest
+          tags: mingchiuli/megalith-frontend:${{ github.sha }}
 
   deploy:
     name: Deploy
@@ -94,7 +94,7 @@ jobs:
           sudo chmod 600 /etc/wireguard/wg0.conf
           sudo wg-quick up wg0
 
-      - name: Deploy latest image
+      - name: Deploy immutable image
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.HOST }}
@@ -104,12 +104,30 @@ jobs:
           script: |
             set -e
 
-            image="mingchiuli/megalith-frontend:latest"
+            image="mingchiuli/megalith-frontend:${{ github.sha }}"
             service="megalith-frontend"
-            previous_image=$(docker image inspect "$image" --format '{{.Id}}' 2>/dev/null || true)
+            base_file=""
+            for candidate in compose.yaml compose.yml docker-compose.yaml docker-compose.yml; do
+              if [ -f "$candidate" ]; then
+                base_file="$candidate"
+                break
+              fi
+            done
+            if [ -z "$base_file" ]; then
+              echo "No Compose file found" >&2
+              exit 1
+            fi
+
+            override_file=$(mktemp)
+            trap 'rm -f "$override_file"' EXIT
+            printf 'services:\n  %s:\n    image: %s\n' "$service" "$image" > "$override_file"
+
+            compose() {
+              docker compose -f "$base_file" -f "$override_file" "$@"
+            }
 
             wait_until_healthy() {
-              container_id=$(docker compose ps -q "$service")
+              container_id=$(compose ps -q "$service")
               if [ -z "$container_id" ]; then
                 return 1
               fi
@@ -128,24 +146,27 @@ jobs:
             }
 
             docker pull "$image"
-            docker compose rm -sf "$service"
-            docker compose up -d --no-deps --force-recreate "$service"
+            compose rm -sf "$service"
+            compose up -d --no-deps --force-recreate "$service"
 
             if ! wait_until_healthy; then
-              container_id=$(docker compose ps -q "$service")
+              container_id=$(compose ps -q "$service")
               if [ -n "$container_id" ]; then
                 docker logs --tail=200 "$container_id" || true
               fi
-
-              if [ -n "$previous_image" ]; then
-                echo "Deployment failed; restoring previous local image"
-                docker tag "$previous_image" "$image"
-                docker compose rm -sf "$service"
-                docker compose up -d --no-deps --force-recreate "$service"
-                wait_until_healthy || true
-              fi
               exit 1
             fi
+
+            current_image_id=$(docker image inspect "$image" --format '{{.Id}}')
+            docker image ls mingchiuli/megalith-frontend --format '{{.Repository}}:{{.Tag}} {{.ID}}' \
+              | while read -r image_ref image_id; do
+                  if [ "$image_id" != "$current_image_id" ]; then
+                    docker image rm "$image_ref" || true
+                  fi
+                done
+
+            rm -f "$override_file"
+            trap - EXIT
 
       - name: Disconnect WireGuard
         if: ${{ always() }}

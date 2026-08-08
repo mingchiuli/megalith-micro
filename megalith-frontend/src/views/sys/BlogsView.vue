@@ -149,7 +149,6 @@ const fetchAdminBlogs = async () => {
 const applyAdminBlogs = (data: PageAdapter<BlogSys>) => {
   page.content = data.content
   page.totalElements = data.totalElements
-  loading.value = false
 }
 
 const searchBlogs = async () => {
@@ -172,7 +171,7 @@ const clearDatePicker = async () => {
   await searchBlogs()
 }
 
-useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs)
+useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
 </script>
 
 <template>
