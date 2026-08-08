@@ -37,7 +37,9 @@ const handleLogout = async () => {
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item @click="goToHome">{{ $t('admin.home') }}</el-dropdown-item>
-            <el-dropdown-item divided @click="handleLogout">{{ $t('admin.logout') }}</el-dropdown-item>
+            <el-dropdown-item divided @click="handleLogout">{{
+              $t('admin.logout')
+            }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

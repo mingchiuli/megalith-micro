@@ -4,27 +4,24 @@ import { createAppRouter } from '@/router'
 import { loginStateStore } from '@/stores'
 import type { ApiClient } from '@/http/http'
 
-const apiWithGet = (GET: ReturnType<typeof vi.fn>) =>
-  ({ GET } as unknown as ApiClient)
+vi.mock('@/views/LoginView.vue', () => ({ default: { template: '<div />' } }))
+
+const apiWithGet = (GET: ReturnType<typeof vi.fn>) => ({ GET }) as unknown as ApiClient
 
 describe('authentication routing', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  it(
-    'keeps an invalid cookie session on the login route',
-    async () => {
-      const GET = vi.fn().mockRejectedValue(new Error('expired session'))
-      const router = createAppRouter({ server: true, api: apiWithGet(GET) })
-      loginStateStore().login = true
+  it('keeps an invalid cookie session on the login route', async () => {
+    const GET = vi.fn().mockRejectedValue(new Error('expired session'))
+    const router = createAppRouter({ server: true, api: apiWithGet(GET) })
+    loginStateStore().login = true
 
-      await router.push('/login')
+    await router.push('/login')
 
-      expect(router.currentRoute.value.name).toBe('login')
-      expect(loginStateStore().login).toBe(false)
-      expect(GET).toHaveBeenCalledTimes(2)
-    },
-    15_000
-  )
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(loginStateStore().login).toBe(false)
+    expect(GET).toHaveBeenCalledTimes(2)
+  })
 })

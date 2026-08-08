@@ -10,8 +10,6 @@
   "compilerOptions": {
     "composite": true,
     "module": "NodeNext",
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   }
 }

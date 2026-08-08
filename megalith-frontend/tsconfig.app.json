@@ -1,27 +1,13 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": [
-    "env.d.ts",
-    "src/**/*",
-    "auto-imports.d.ts",
-    "components.d.ts",
-    "declarations.d.ts"
-  ],
-  "exclude": [
-    "src/**/__tests__/*"
-  ],
+  "include": ["env.d.ts", "src/**/*", "auto-imports.d.ts", "components.d.ts", "declarations.d.ts"],
+  "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {
     "composite": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
     "moduleResolution": "Bundler",
-    "types": [
-      "node",
-      "element-plus/global",
-      "vitest/globals"
-    ]
+    "types": ["node", "element-plus/global", "vitest/globals"]
   }
 }

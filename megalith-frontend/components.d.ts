@@ -13,6 +13,9 @@ declare module 'vue' {
   export interface GlobalComponents {
     AuthButton: typeof import('./src/components/sys/AuthButton.vue')['default']
     BackHeaderItem: typeof import('./src/components/sys/BackHeaderItem.vue')['default']
+    BlogAiPanel: typeof import('./src/components/sys/BlogAiPanel.vue')['default']
+    BlogCoverField: typeof import('./src/components/sys/BlogCoverField.vue')['default']
+    BlogMetadataFields: typeof import('./src/components/sys/BlogMetadataFields.vue')['default']
     CatalogueItem: typeof import('./src/components/CatalogueItem.vue')['default']
     ClientOnly: typeof import('./src/components/ClientOnly.vue')['default']
     DiscussItem: typeof import('./src/components/DiscussItem.vue')['default']

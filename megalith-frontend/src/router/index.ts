@@ -7,14 +7,23 @@ import {
   type Router
 } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { RoutesEnum, type Button, type Menu, type MenuNode, type Tab, type UserInfo } from '@/type/entity'
+import {
+  RoutesEnum,
+  type Button,
+  type Menu,
+  type MenuNode,
+  type Tab,
+  type UserInfo
+} from '@/type/entity'
 import {
   menuStore,
   loginStateStore,
   welcomeStateStore,
   buttonStore,
   tabStore,
-  authMarkStore
+  authMarkStore,
+  ssrDataStore,
+  protectedBlogStore
 } from '@/stores'
 import { diff, findMenuByPath } from '@/utils/common'
 import { API_ENDPOINTS } from '@/config/apiConfig'
@@ -121,6 +130,8 @@ export const clearAuthStores = (router: Router) => {
   buttonStore().buttonList = []
   tabStore().editableTabs = []
   tabStore().editableTabsValue = ''
+  ssrDataStore().clear()
+  protectedBlogStore().clear()
 }
 
 const dealSysTab = (to: RouteLocationNormalized, menuTree: Menu) => {

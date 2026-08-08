@@ -293,7 +293,7 @@ export enum ButtonAuth {
   SYS_DELETE_RESUME = 'system-delete-resume',
   SYS_EDIT_COMMIT = 'system-edit-submit',
   SYS_EDIT_AI = 'system-edit-ai',
-  
+
   SYS_AUTHORITY_CREATE = 'system-authorities-create',
   SYS_AUTHORITY_BATCH_DEL = 'system-authorities-batch-del',
   SYS_AUTHORITY_DOWNLOAD = 'system-authorities-download',
@@ -317,7 +317,6 @@ export enum ButtonAuth {
   SYS_ROLE_MENU_SAVE = 'system-roles-menus-save',
   SYS_ROLE_EDIT = 'system-roles-edit',
   SYS_ROLE_SAVE = 'system-roles-save',
-
 
   SYS_USER_CREATE = 'system-users-create',
   SYS_USER_BATCH_DEL = 'system-users-batch-del',

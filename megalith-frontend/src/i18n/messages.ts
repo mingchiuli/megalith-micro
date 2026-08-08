@@ -90,6 +90,17 @@ export const messages = {
       month: '本月 {count}',
       year: '今年 {count}'
     },
+    collaboration: {
+      initializedTitle: '文档已初始化',
+      initializedMessage: '协同编辑已就绪',
+      connectedTitle: '已连接',
+      connectedMessage: '协同编辑连接成功',
+      disconnectedTitle: '连接断开',
+      disconnectedMessage: '连接已断开',
+      errorTitle: '连接错误',
+      errorMessage: '协同编辑连接失败，将继续重试',
+      closedMessage: '关闭码：{code}，原因：{reason}'
+    },
     admin: {
       backend: '后台',
       home: '回到首页',
@@ -244,6 +255,17 @@ export const messages = {
       week: 'Week {count}',
       month: 'Month {count}',
       year: 'Year {count}'
+    },
+    collaboration: {
+      initializedTitle: 'Document initialized',
+      initializedMessage: 'Collaborative editing is ready',
+      connectedTitle: 'Connected',
+      connectedMessage: 'Collaborative editing connected',
+      disconnectedTitle: 'Disconnected',
+      disconnectedMessage: 'The collaboration connection was lost',
+      errorTitle: 'Connection error',
+      errorMessage: 'Collaboration failed to connect and will keep retrying',
+      closedMessage: 'Close code: {code}, reason: {reason}'
     },
     admin: {
       backend: 'Admin',

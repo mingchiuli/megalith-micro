@@ -39,11 +39,11 @@ npm run preview
 
 Production runtime variables:
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `PORT` | `1919` | Node SSR listen port |
-| `SSR_API_BASE_URL` | `http://127.0.0.1:8088` | Gateway URL reachable from the SSR container |
-| `APP_ORIGIN` | incoming request origin | Origin forwarded for cookie-authenticated mutations |
+| Variable           | Default                 | Purpose                                             |
+| ------------------ | ----------------------- | --------------------------------------------------- |
+| `PORT`             | `1919`                  | Node SSR listen port                                |
+| `SSR_API_BASE_URL` | `http://127.0.0.1:8088` | Gateway URL reachable from the SSR container        |
+| `APP_ORIGIN`       | incoming request origin | Origin forwarded for cookie-authenticated mutations |
 
 The production container exposes `/actuator/health` and is published only as `mingchiuli/megalith-frontend:latest`.
 
@@ -59,7 +59,7 @@ services:
       SSR_API_BASE_URL: http://micro-gateway-rs:8088
       APP_ORIGIN: https://chiu.wiki
     ports:
-      - "1919:1919"
+      - '1919:1919'
 ```
 
 See [docs/ssr-architecture.md](docs/ssr-architecture.md) for the request, authentication, prefetch, and rollout design.

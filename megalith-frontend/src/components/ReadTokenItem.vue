@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { useHttp } from '@/http/http'
-import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
+import type { BlogExhibit } from '@/type/entity'
+import { protectedBlogStore } from '@/stores'
 
 const { t } = useI18n()
-const { GET } = useHttp()
+const { POST } = useHttp()
 const router = useRouter()
 
 const { blogId } = defineProps<{
@@ -13,27 +15,27 @@ const { blogId } = defineProps<{
 
 const readTokenDialogVisible = defineModel<boolean>('readTokenDialogVisible')
 const input = ref<string>()
+const submitting = ref(false)
 
 const submit = async () => {
-  const valid = await GET<boolean>(
-    buildQueryUrl(API_ENDPOINTS.BLOG_PUBLIC.VALIDATE_READ_TOKEN(blogId), {
+  if (!input.value?.trim()) return
+  submitting.value = true
+  try {
+    const blog = await POST<BlogExhibit>(API_ENDPOINTS.BLOG_PUBLIC.READ_SECRET_BLOG(blogId), {
       readToken: input.value
     })
-  )
-  if (valid) {
-    router.push({
+    protectedBlogStore().put(blogId, blog)
+    input.value = ''
+    readTokenDialogVisible.value = false
+    await router.push({
       name: 'blog',
       params: {
         id: blogId
-      },
-      query: {
-        token: input.value
       }
     })
-  } else {
-    ElMessage.error(t('auth.readCodeError'))
+  } finally {
+    submitting.value = false
   }
-  readTokenDialogVisible.value = false
 }
 
 const handleClose = () => {
@@ -57,7 +59,9 @@ const handleClose = () => {
     />
     <template #footer>
       <span class="dialog-footer">
-        <el-button type="primary" @click="submit">{{ t('common.submit') }}</el-button>
+        <el-button type="primary" :loading="submitting" :disabled="submitting" @click="submit">{{
+          t('common.submit')
+        }}</el-button>
       </span>
     </template>
   </el-dialog>

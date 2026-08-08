@@ -1,4 +1,3 @@
-
 /**
  * Theme store - dark/light theme with system preference detection
  */

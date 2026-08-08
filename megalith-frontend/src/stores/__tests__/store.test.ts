@@ -8,7 +8,9 @@ import {
   menuStore,
   buttonStore,
   blogsStore,
-  pageStore
+  pageStore,
+  protectedBlogStore,
+  ssrDataStore
 } from '@/stores'
 import { RoutesEnum, RoutesStatus, type Button, type Menu } from '@/type/entity'
 
@@ -61,12 +63,15 @@ describe('stores/store', () => {
   describe('themeStore', () => {
     beforeEach(() => {
       // 默认提供 light 偏好
-      vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
-        matches: false,
-        media: '(prefers-color-scheme: dark)',
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn()
-      }))
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn().mockReturnValue({
+          matches: false,
+          media: '(prefers-color-scheme: dark)',
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn()
+        })
+      )
     })
 
     it('依据系统偏好初始化为 light', () => {
@@ -75,12 +80,15 @@ describe('stores/store', () => {
     })
 
     it('系统偏好为 dark 时初始化为 dark', () => {
-      vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
-        matches: true,
-        media: '(prefers-color-scheme: dark)',
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn()
-      }))
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn().mockReturnValue({
+          matches: true,
+          media: '(prefers-color-scheme: dark)',
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn()
+        })
+      )
       // 系统偏好只能在客户端初始化时读取。
       setActivePinia(createPinia())
       const store = themeStore()
@@ -180,6 +188,34 @@ describe('stores/store', () => {
   describe('pageStore', () => {
     it('默认 front 为 true', () => {
       expect(pageStore().front).toBe(true)
+    })
+  })
+
+  describe('request-scoped stores', () => {
+    it('consumes protected blog data once', () => {
+      const store = protectedBlogStore()
+      const blog = {
+        title: 'Private',
+        description: 'd',
+        content: 'c',
+        avatar: '',
+        readCount: 0,
+        nickname: 'n',
+        created: ''
+      }
+      store.put(7, blog)
+      expect(store.take(7)).toEqual(blog)
+      expect(store.take(7)).toBeUndefined()
+    })
+
+    it('takes and clears hydrated SSR entries', () => {
+      const store = ssrDataStore()
+      store.set('user:1', { name: 'first' })
+      expect(store.take<{ name: string }>('user:1')).toEqual({ name: 'first' })
+      expect(store.has('user:1')).toBe(false)
+      store.set('user:2', { name: 'second' })
+      store.clear()
+      expect(store.entries).toEqual({})
     })
   })
 })

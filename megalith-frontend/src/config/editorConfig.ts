@@ -23,14 +23,15 @@ export const yjsCompartment = new Compartment()
 let currentProvider: WebsocketProvider | null = null
 let currentDoc: Y.Doc | null = null
 
+export type CollaborationEvent =
+  | { type: 'initialized' | 'connected' | 'disconnected' | 'connection-error' }
+  | { type: 'connection-closed'; code: number; reason: string }
+
 export const hasYjsDocumentState = (doc: Y.Doc) =>
   Y.decodeStateVector(Y.encodeStateVector(doc)).size > 0
 
-export const shouldInitializeYjsDocument = (
-  doc: Y.Doc,
-  text: Y.Text,
-  initialContent: string
-) => initialContent.length > 0 && text.length === 0 && !hasYjsDocumentState(doc)
+export const shouldInitializeYjsDocument = (doc: Y.Doc, text: Y.Text, initialContent: string) =>
+  initialContent.length > 0 && text.length === 0 && !hasYjsDocumentState(doc)
 
 export const createYjsBindingTransaction = (
   currentDocumentLength: number,
@@ -68,7 +69,8 @@ export const createYjsExtension = async (
   roomId: string,
   initialContent: string,
   collaborationToken: string,
-  user: UserInfo
+  user: UserInfo,
+  onEvent: (event: CollaborationEvent) => void
 ) => {
   // 重要说明：
   // 1. 这个方法只在组件挂载时调用一次
@@ -85,27 +87,27 @@ export const createYjsExtension = async (
   const ytext = ydoc.getText()
 
   const provider = new WebsocketProvider(
-      `${API_CONFIG.BASE_WS_URL}${API_ENDPOINTS.COLLABORATION.WS_ROOMS}`,
-      roomId,
-      ydoc,
-      {
-        // URL 参数：认证令牌会附加到 WebSocket URL 上
-        params: {
-          token: collaborationToken
-        },
+    `${API_CONFIG.BASE_WS_URL}${API_ENDPOINTS.COLLABORATION.WS_ROOMS}`,
+    roomId,
+    ydoc,
+    {
+      // URL 参数：认证令牌会附加到 WebSocket URL 上
+      params: {
+        token: collaborationToken
+      },
 
-        // 延迟连接：在配置完成后手动调用 provider.connect()
-        connect: false,
+      // 延迟连接：在配置完成后手动调用 provider.connect()
+      connect: false,
 
-        // 定期同步：每3秒向服务器请求一次完整状态，防止增量更新丢失
-        resyncInterval: 3000,
+      // 定期同步：每3秒向服务器请求一次完整状态，防止增量更新丢失
+      resyncInterval: 3000,
 
-        // 重连退避：断线重连时的最大等待时间（采用指数退避策略）
-        maxBackoffTime: 10000,
+      // 重连退避：断线重连时的最大等待时间（采用指数退避策略）
+      maxBackoffTime: 10000,
 
-        // 跨标签页通信：启用 BroadcastChannel（同一浏览器的多个标签页可直接通信）
-        disableBc: false
-      }
+      // 跨标签页通信：启用 BroadcastChannel（同一浏览器的多个标签页可直接通信）
+      disableBc: false
+    }
   )
 
   let initialSyncResolved = false
@@ -125,12 +127,7 @@ export const createYjsExtension = async (
       logger.log('Inserting initial content:', initialContent.substring(0, 50))
       ytext.insert(0, initialContent)
 
-      ElNotification({
-        title: '文档已初始化',
-        message: '协同编辑已就绪',
-        type: 'success',
-        duration: 2000
-      })
+      onEvent({ type: 'initialized' })
     }
 
     initialSyncResolved = true
@@ -143,41 +140,25 @@ export const createYjsExtension = async (
 
     switch (event.status) {
       case 'connected':
-        logger.log('✅ WebSocket 已连接')
-        ElNotification({
-          title: '已连接',
-          message: '协同编辑连接成功',
-          type: 'success',
-          duration: 2000
-        })
+        logger.log('WebSocket connected')
+        onEvent({ type: 'connected' })
         break
 
       case 'disconnected':
-        logger.warn('⚠️ WebSocket 断开连接')
-        // 重要：不要清理 Doc 和 Provider，等待自动重连
-        ElNotification({
-          title: '连接断开',
-          message: '连接已断开',
-          type: 'warning',
-          duration: 2000
-        })
+        logger.warn('WebSocket disconnected')
+        onEvent({ type: 'disconnected' })
         break
 
       case 'connecting':
-        logger.log('🔄 WebSocket 正在连接...')
+        logger.log('WebSocket connecting')
         break
     }
   })
 
   // 关键修复7: 连接错误处理
   provider.on('connection-error', (event: Event) => {
-    logger.error('❌ WebSocket 连接错误:', event)
-    ElNotification({
-      title: '连接错误',
-      message: '协同编辑连接失败，将继续重试',
-      type: 'error',
-      duration: 3000
-    })
+    logger.error('WebSocket connection error:', event)
+    onEvent({ type: 'connection-error' })
   })
 
   // 关键修复8: 连接关闭处理
@@ -200,12 +181,7 @@ export const createYjsExtension = async (
     // 1011: 服务器遇到意外情况
 
     if (event.code !== 1000) {
-      ElNotification({
-        title: '连接已断开',
-        message: `关闭码: ${event.code}, 原因: ${event.reason || '未知'}`,
-        type: 'warning',
-        duration: 3000
-      })
+      onEvent({ type: 'connection-closed', code: event.code, reason: event.reason })
     }
   })
 

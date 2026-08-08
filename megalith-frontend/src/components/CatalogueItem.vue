@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { CatalogueLabel } from '@/type/entity'
 import type { ElTree } from 'element-plus'
-import type Node from 'element-plus/es/components/tree/src/model/node'
 import { debounce } from '@/utils/common'
 
 defineProps<{
@@ -11,7 +10,6 @@ defineProps<{
 const loadingCatalogue = defineModel<boolean>('loadingCatalogue')
 const loading = ref(true)
 const data = ref<CatalogueLabel[]>()
-let allNodes: Node[]
 const defaultProps = { children: 'children', label: 'label' }
 const rollGap = 10
 const treeRef = useTemplateRef<InstanceType<typeof ElTree>>('tree')
@@ -34,8 +32,6 @@ const render = async () => {
   const height = selectAnchorHeight(arrs, location.hash.substring(1))
   window.scrollTo({ top: height + document.documentElement.scrollTop, behavior: 'instant' })
   loading.value = false
-  await nextTick()
-  allNodes = treeRef.value!.store._getAllNodes()
 }
 
 const selectAnchorHeight = (labels: CatalogueLabel[], id: string): number => {
@@ -146,36 +142,14 @@ const extractAndFlushData = async () => {
   }
   const arrs = geneCatalogueArr(labels)
   data.value = arrs
-  await nextTick()
-  //重新获取，否则获取的对象就不一样
-  allNodes = treeRef.value!.store._getAllNodes()
 }
 
 const roll = async () => {
-  if (!allNodes) {
-    return
-  }
-
   const scrolled = document.documentElement.scrollTop
   await extractAndFlushData()
   const temp: CatalogueLabel = rollToTargetLabel(data.value!, scrolled)!
-  //高亮和关闭树节点的逻辑
-  for (const node of allNodes) {
-    const id = node.data.id
-    if (temp?.id === id && !node.expanded) {
-      node.expanded = true
-      treeRef.value?.setCurrentKey(id)
-      history.replaceState(history.state, '', `#${id}`)
-    }
-    if (temp?.id !== id && node.expanded) {
-      node.expanded = false
-    }
-  }
-  //处理顶级节点高亮不符合逻辑的问题
-  if (!temp) {
-    treeRef.value?.setCurrentKey(undefined)
-    history.replaceState(history.state, '', ' ')
-  }
+  treeRef.value?.setCurrentKey(temp?.id)
+  history.replaceState(history.state, '', temp ? `#${temp.id}` : location.pathname)
 }
 
 const throttle = debounce(roll)

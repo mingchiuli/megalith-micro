@@ -66,10 +66,10 @@ const refresh = () => {
 }
 
 const applyBlogs = (data: PageAdapter<BlogDesc>) => {
-    statImg(data.content)
-    page.content = data.content
-    page.totalElements = data.totalElements
-    loading.value = false
+  statImg(data.content)
+  page.content = data.content
+  page.totalElements = data.totalElements
+  loading.value = false
 }
 
 const fetchBlogs = (pageNo: number) =>
@@ -163,10 +163,7 @@ useUniversalData<PageAdapter<BlogDesc>>(
 
 <template>
   <div class="front">
-    <ReadTokenItem
-      v-model:read-token-dialog-visible="readTokenDialogVisible"
-      v-model:blog-id="blogId"
-    />
+    <ReadTokenItem v-model:read-token-dialog-visible="readTokenDialogVisible" :blog-id="blogId" />
     <div class="search-father">
       <el-button class="search-button" @click="search" type="success">{{
         $t('common.search')

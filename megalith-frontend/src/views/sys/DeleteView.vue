@@ -1,19 +1,19 @@
 <script lang="ts" setup>
 import { useHttp } from '@/http/http'
 import type { BlogDelSys, PageAdapter } from '@/type/entity'
-import { Status, ButtonAuth } from '@/type/entity'
+import { ButtonAuth } from '@/type/entity'
 import { render } from '@/utils/markdown'
-import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissions'
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
-import { useUniversalData } from '@/composables'
+import { useLatestRequest, useUniversalData } from '@/composables'
 
 const { t } = useI18n()
-const { GET } = useHttp()
+const { GET, POST } = useHttp()
 
 const { moreItems, fix } = displayState()
-const loading = ref(false)
+const loading = ref(true)
+const { runLatest } = useLatestRequest(loading)
 const multipleSelection = ref<BlogDelSys[]>([])
 const delBtlStatus = ref(false)
 const page: PageAdapter<BlogDelSys> = reactive({
@@ -44,8 +44,7 @@ const applyDeletedBlogs = (data: PageAdapter<BlogDelSys>) => {
 }
 
 const queryDelBLogs = async () => {
-  loading.value = true
-  applyDeletedBlogs(await fetchDeletedBlogs())
+  await runLatest(fetchDeletedBlogs, applyDeletedBlogs)
 }
 
 const handleCurrentChange = async (pageNo: number) => {
@@ -62,7 +61,7 @@ const handleSizeChange = async (val: number) => {
 const handleResume = async (row: BlogDelSys) => {
   loading.value = true
   try {
-    await GET<PageAdapter<BlogDelSys>>(API_ENDPOINTS.BLOG_ADMIN.RECOVER_BLOG(row.idx))
+    await POST<null>(API_ENDPOINTS.BLOG_ADMIN.RECOVER_BLOG(row.idx), {})
   } finally {
     loading.value = false
   }
@@ -130,23 +129,13 @@ useUniversalData('admin:deleted-blogs', fetchDeletedBlogs, applyDeletedBlogs)
 
     <el-table-column :label="t('common.createdAt')" min-width="180" align="center">
       <template #default="scope">
-        <div class="time-icon">
-          <el-icon>
-            <timer />
-          </el-icon>
-          <span style="margin-left: 10px">{{ scope.row.created }}</span>
-        </div>
+        <TimeColumn :time="scope.row.created" />
       </template>
     </el-table-column>
 
     <el-table-column :label="t('common.updatedAt')" min-width="180" align="center">
       <template #default="scope">
-        <div class="time-icon">
-          <el-icon>
-            <timer />
-          </el-icon>
-          <span style="margin-left: 10px">{{ scope.row.updated }}</span>
-        </div>
+        <TimeColumn :time="scope.row.updated" />
       </template>
     </el-table-column>
 
@@ -164,32 +153,18 @@ useUniversalData('admin:deleted-blogs', fetchDeletedBlogs, applyDeletedBlogs)
 
     <el-table-column :label="t('common.status')" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">{{
-          t('common.public')
-        }}</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">{{
-          t('common.hidden')
-        }}</el-tag>
-        <el-tag
-          size="small"
-          v-else-if="scope.row.status === Status.SENSITIVE_FILTER"
-          type="warning"
-          >{{ t('common.masked') }}</el-tag
-        >
+        <StatusTag :status="scope.row.status" />
       </template>
     </el-table-column>
 
     <!-- @vue-generic {BlogDelSys} -->
     <el-table-column :fixed="fix" :label="t('common.operations')" min-width="120" align="center">
       <template #default="scope">
-        <template v-if="checkButtonAuth(ButtonAuth.SYS_DELETE_RESUME)">
-          <el-button
-            size="small"
-            :type="getButtonType(ButtonAuth.SYS_DELETE_RESUME)"
-            @click="handleResume(scope.row)"
-            >{{ getButtonTitle(ButtonAuth.SYS_DELETE_RESUME) }}</el-button
-          >
-        </template>
+        <AuthButton
+          :auth="ButtonAuth.SYS_DELETE_RESUME"
+          size="small"
+          @click="handleResume(scope.row)"
+        />
       </template>
     </el-table-column>
   </el-table>

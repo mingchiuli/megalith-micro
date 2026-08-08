@@ -77,14 +77,13 @@ app.use(async (request, response, next) => {
       .replace('<body>', bodyAttrs ? `<body ${bodyAttrs}>` : '<body>')
       .replace('<!--app-head-->', `${result.headTags}${preloadLinks}`)
       .replace('<!--app-html-->', result.appHtml)
-      .replace('<!--app-state-->', `<script id="__MEGALITH_STATE__" type="application/json">${result.state}</script>`)
+      .replace(
+        '<!--app-state-->',
+        `<script id="__MEGALITH_STATE__" type="application/json">${result.state}</script>`
+      )
       .replace('<!--app-body-tags-->', result.bodyTags)
 
-    response
-      .status(result.status)
-      .set('Cache-Control', 'private, no-store')
-      .type('html')
-      .send(html)
+    response.status(result.status).set('Cache-Control', 'private, no-store').type('html').send(html)
   } catch (error) {
     vite?.ssrFixStacktrace(error)
     next(error)
@@ -92,6 +91,7 @@ app.use(async (request, response, next) => {
 })
 
 app.use((error, _request, response, _next) => {
+  void _next
   console.error(error)
   response.status(500).type('html').send('<h1>Internal Server Error</h1>')
 })

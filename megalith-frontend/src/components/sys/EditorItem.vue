@@ -11,7 +11,8 @@ import {
   createYjsExtension,
   createYjsBindingTransaction,
   cleanupYjs,
-  updateProviderToken
+  updateProviderToken,
+  type CollaborationEvent
 } from '@/config/editorConfig'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import type { Footers, ToolbarNames, ExposeParam } from 'md-editor-v3'
@@ -148,6 +149,49 @@ const editorRef = useTemplateRef<ExposeParam>('editorRef')
 const collaborationReady = ref(false)
 let disposed = false
 
+const notifyCollaborationEvent = (event: CollaborationEvent) => {
+  const notifications = {
+    initialized: {
+      title: t('collaboration.initializedTitle'),
+      message: t('collaboration.initializedMessage'),
+      type: 'success' as const,
+      duration: 2000
+    },
+    connected: {
+      title: t('collaboration.connectedTitle'),
+      message: t('collaboration.connectedMessage'),
+      type: 'success' as const,
+      duration: 2000
+    },
+    disconnected: {
+      title: t('collaboration.disconnectedTitle'),
+      message: t('collaboration.disconnectedMessage'),
+      type: 'warning' as const,
+      duration: 2000
+    },
+    'connection-error': {
+      title: t('collaboration.errorTitle'),
+      message: t('collaboration.errorMessage'),
+      type: 'error' as const,
+      duration: 3000
+    }
+  }
+
+  if (event.type === 'connection-closed') {
+    ElNotification({
+      title: t('collaboration.disconnectedTitle'),
+      message: t('collaboration.closedMessage', {
+        code: event.code,
+        reason: event.reason || t('common.unknown')
+      }),
+      type: 'warning',
+      duration: 3000
+    })
+    return
+  }
+  ElNotification(notifications[event.type])
+}
+
 const updateEditorExtension = async () => {
   const view = editorRef.value?.getEditorView()
   if (view) {
@@ -157,7 +201,8 @@ const updateEditorExtension = async () => {
         roomId,
         text.value ?? '',
         collaborationToken,
-        user
+        user,
+        notifyCollaborationEvent
       )
       provider.connect()
       const syncedContent = await initialSync

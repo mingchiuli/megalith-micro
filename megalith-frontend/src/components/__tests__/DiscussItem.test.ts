@@ -33,18 +33,12 @@ describe('DiscussItem.vue', () => {
     const wrapper = mount(DiscussItem, buildMountOptions())
     await nextTick()
 
-    const disqusScript = document
-      .getElementById('disqus_thread')!
-      .querySelector('script')
-    const giscusScript = document
-      .getElementById('giscus_thread')!
-      .querySelector('script')
+    const disqusScript = document.getElementById('disqus_thread')!.querySelector('script')
+    const giscusScript = document.getElementById('giscus_thread')!.querySelector('script')
 
     expect(disqusScript?.src).toContain('disqus.com/embed.js')
     expect(giscusScript?.src).toContain('giscus.app/client.js')
-    expect(giscusScript?.getAttribute('data-repo')).toBe(
-      'mingchiuli/megalith-talk-repo'
-    )
+    expect(giscusScript?.getAttribute('data-repo')).toBe('mingchiuli/megalith-talk-repo')
     expect(giscusScript?.getAttribute('data-theme')).toBe('light')
 
     wrapper.unmount()
@@ -56,9 +50,7 @@ describe('DiscussItem.vue', () => {
     const wrapper = mount(DiscussItem, buildMountOptions(pinia))
     await nextTick()
 
-    const giscusScript = document
-      .getElementById('giscus_thread')!
-      .querySelector('script')
+    const giscusScript = document.getElementById('giscus_thread')!.querySelector('script')
 
     expect(giscusScript?.getAttribute('data-theme')).toBe('dark')
 

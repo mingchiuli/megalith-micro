@@ -1,45 +1,28 @@
 <script lang="ts" setup>
-import type {
-  ElInput,
-  FormInstance,
-  FormRules,
-  TagProps,
-  UploadFile,
-  UploadProps,
-  UploadRawFile,
-  UploadRequestOptions,
-  UploadUserFile
-} from 'element-plus'
+import type { FormInstance, FormRules, TagProps } from 'element-plus'
 import { useHttp } from '@/http/http'
 import {
   type BlogEdit,
   type BlogPermissions,
   ButtonAuth,
-  Colors,
   type EditForm,
   type SensitiveExhibit,
   type SensitiveItem,
   type SensitiveTrans,
-  SensitiveType,
-  Status
+  SensitiveType
 } from '@/type/entity'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import { render } from '@/utils/markdown'
 import { checkButtonAuth, getButtonTitle, getButtonType } from '@/utils/permissions'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { AI_MODELS } from '@/config/aiConfig'
-import { logger } from '@/utils/logger'
 import { useAiGenerate } from '@/composables'
 import { useI18n } from 'vue-i18n'
-import { Plus } from '@element-plus/icons-vue'
 import { useUniversalData } from '@/composables'
 
 const { t } = useI18n()
-const { GET, POST, UPLOAD } = useHttp()
+const { GET, POST } = useHttp()
 const router = useRouter()
 const imageModel = AI_MODELS.IMAGE_MODEL
-const aiThinkingCollapse = ref<string[]>(['thinking'])
-const thinkingRef = useTemplateRef<HTMLDivElement>('thinkingRef')
 const submitLoading = ref(false)
 const route = useRoute()
 const blogId = route.query.id as string | undefined
@@ -75,19 +58,6 @@ const {
   regenerateImage
 } = useAiGenerate(form, imageModel)
 
-watch(aiThinking, () => {
-  nextTick(() => {
-    if (thinkingRef.value) thinkingRef.value.scrollTop = thinkingRef.value.scrollHeight
-  })
-})
-
-const aiThinkingContent = computed(() => {
-  if (aiThinking.value) return aiThinking.value
-  if (aiError.value) return t('ai.noThinking')
-  return thinkingSupported.value ? t('ai.waitingThinking') : t('ai.unsupportedThinking')
-})
-const aiThinkingHtml = computed(() => render(aiThinkingContent.value))
-
 const permissions = ref<BlogPermissions>({
   collaborate: false,
   commit: false,
@@ -114,28 +84,6 @@ const sensitiveTags = computed(() => {
   })
   return arr
 })
-
-const fileList = computed(() => {
-  const arr: UploadUserFile[] = []
-  if (form.link) {
-    arr.push({
-      name: 'Cover',
-      url: form.link
-    })
-  }
-  return arr
-})
-
-const titleRef = useTemplateRef<InstanceType<typeof ElInput>>('titleRef')
-const descRef = useTemplateRef<InstanceType<typeof ElInput>>('descRef')
-
-//中文输入法的问题
-const uploadPercentage = ref(0)
-const showPercentage = ref(false)
-const uploadLoading = ref(false)
-
-const dialogVisible = ref(false)
-const dialogImageUrl = ref('')
 
 const formRef = ref<FormInstance>()
 const formRules = computed<FormRules<EditForm>>(() => ({
@@ -174,27 +122,6 @@ const handleAiGenerate = async () => {
   await aiGenerate()
 }
 
-const upload = async (image: UploadRequestOptions) => {
-  await uploadFile(image.file)
-}
-
-const uploadFile = async (file: UploadRawFile) => {
-  const formData = new FormData()
-  formData.append('image', file)
-  form.link = await UPLOAD(
-    API_ENDPOINTS.BLOG_ADMIN.OSS_UPLOAD,
-    formData,
-    uploadPercentage,
-    showPercentage
-  )
-}
-
-const handleRemove = async () => {
-  if (!form.link) return
-  await GET<null>(buildQueryUrl(API_ENDPOINTS.BLOG_ADMIN.OSS_DELETE, { url: form.link }))
-  form.link = ''
-}
-
 const submitForm = async (ref: FormInstance) => {
   await ref.validate(async (valid) => {
     if (valid) {
@@ -217,17 +144,9 @@ const submitForm = async (ref: FormInstance) => {
   })
 }
 
-const handlePictureCardPreview = (file: UploadFile) => {
-  dialogImageUrl.value = file.url!
-  dialogVisible.value = true
-}
-
-const handleTagClose = (tag: SensitiveTagsItem) => {
-  const sensitiveItem = tag.element
+const handleTagClose = (type: SensitiveType, startIndex: number) => {
   form.sensitiveContentList = form.sensitiveContentList.filter(
-    (item) =>
-      item.type !== sensitiveItem.type ||
-      (item.startIndex !== sensitiveItem.startIndex && item.type === sensitiveItem.type)
+    (item) => item.type !== type || (item.startIndex !== startIndex && item.type === type)
   )
 }
 
@@ -275,17 +194,6 @@ const getExhibitWords = (type: SensitiveType, form: EditForm) => {
   return words
 }
 
-const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
-  if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png') {
-    ElMessage.error(t('common.imageFormatError'))
-    return false
-  } else if (rawFile.size / 1024 / 1024 > 5) {
-    ElMessage.error(t('common.imageSizeError'))
-    return false
-  }
-  return true
-}
-
 const CustomEditorItem = defineAsyncComponent({
   loader: () => import('@/components/sys/EditorItem.vue'),
   loadingComponent: EditorLoadingItem,
@@ -293,58 +201,6 @@ const CustomEditorItem = defineAsyncComponent({
   errorComponent: EditorLoadingItem,
   timeout: 15000
 })
-
-const handleTitleSelect = () => {
-  if (form.status !== Status.SENSITIVE_FILTER) {
-    return
-  }
-
-  const title = titleRef.value!.input!
-  let start = title.selectionStart!
-  let end = title.selectionEnd!
-
-  if (start > end) {
-    const tmp = start
-    start = end
-    end = tmp
-  }
-
-  const selectedText = form.title?.substring(start, end)
-  if (selectedText) {
-    const sensitive: SensitiveItem = {
-      startIndex: start,
-      endIndex: end,
-      type: SensitiveType.TITLE
-    }
-    dealSensitive(sensitive)
-  }
-}
-
-const handleDescSelect = () => {
-  if (form.status !== Status.SENSITIVE_FILTER) {
-    return
-  }
-  const desc = descRef.value!.textarea!
-
-  let start = desc.selectionStart!
-  let end = desc.selectionEnd!
-
-  if (start > end) {
-    const tmp = start
-    start = end
-    end = tmp
-  }
-
-  const selectedText = form.description?.substring(start, end)
-  if (selectedText) {
-    const sensitive: SensitiveItem = {
-      startIndex: start,
-      endIndex: end,
-      type: SensitiveType.DESCRIPTION
-    }
-    dealSensitive(sensitive)
-  }
-}
 
 const loadContent = ref(true)
 const fetchEditContent = async (blogId: string | undefined) => {
@@ -368,34 +224,6 @@ const applyEditContent = (data: BlogEdit) => {
   loadContent.value = false
 }
 
-const handleConfirmUpload = async () => {
-  if (!generatedImageBase64.value) return
-
-  uploadLoading.value = true
-  try {
-    // 将 base64 转换为 File 对象
-    const base64Data = generatedImageBase64.value.replace(/^data:image\/\w+;base64,/, '')
-    const byteCharacters = atob(base64Data)
-    const byteNumbers = new Array(byteCharacters.length)
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i)
-    }
-    const byteArray = new Uint8Array(byteNumbers)
-    const blob = new Blob([byteArray], { type: 'image/png' })
-    const file: UploadRawFile = new File([blob], 'cover.png', {
-      type: 'image/png'
-    }) as UploadRawFile
-    ;(file as UploadRawFile & { uid: number }).uid = Date.now()
-
-    await uploadFile(file)
-    generatedImageDialogVisible.value = false
-  } catch (e) {
-    logger.warn('图片上传失败:', e)
-  } finally {
-    uploadLoading.value = false
-  }
-}
-
 useUniversalData(`admin:edit:${blogId ?? 'new'}`, () => fetchEditContent(blogId), applyEditContent)
 onMounted(() => void loadAiModels())
 </script>
@@ -403,189 +231,43 @@ onMounted(() => void loadAiModels())
 <template>
   <div class="father">
     <el-form :model="form" :rules="formRules" ref="formRef">
-      <el-form-item class="title" prop="title">
-        <el-input
-          ref="titleRef"
-          @select="handleTitleSelect"
-          v-model="form.title"
-          :placeholder="t('common.title')"
-          maxlength="20"
-          :disabled="!permissions.manageMetadata"
-        />
-      </el-form-item>
+      <BlogMetadataFields
+        v-model:title="form.title"
+        v-model:description="form.description"
+        v-model:status="form.status"
+        :manage-metadata="permissions.manageMetadata"
+        :sensitive-tags="sensitiveTags"
+        @sensitive="dealSensitive"
+        @remove-sensitive="handleTagClose"
+      />
 
-      <div class="desc-input-group">
-        <el-form-item class="desc" prop="description">
-          <el-input
-            ref="descRef"
-            @select="handleDescSelect"
-            autosize
-            type="textarea"
-            v-model="form.description"
-            :placeholder="t('common.description')"
-            maxlength="60"
-            :disabled="!permissions.manageMetadata"
-          />
-        </el-form-item>
+      <BlogAiPanel
+        v-model:model="aiModel"
+        :models="aiModels"
+        :loading="aiLoading"
+        :content-ready="Boolean(form.content)"
+        :manage-metadata="permissions.manageMetadata"
+        :visible="aiPanelVisible"
+        :step="aiStep"
+        :failed-step="failedStep"
+        :error="aiError"
+        :thinking="aiThinking"
+        :image-skip-reason="imageSkipReason"
+        :thinking-supported="thinkingSupported"
+        :image-generating="imageGenerating"
+        :image-progress="imageProgress"
+        @generate="handleAiGenerate"
+      />
 
-        <div class="ai-actions">
-          <el-select
-            v-model="aiModel"
-            :placeholder="t('ai.model')"
-            style="width: 140px"
-            :disabled="aiLoading"
-          >
-            <el-option
-              v-for="item in aiModels"
-              :key="item.name"
-              :label="item.name"
-              :value="item.model"
-            />
-          </el-select>
-
-          <el-button
-            v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_AI)"
-            color="#626aef"
-            size="small"
-            @click="handleAiGenerate"
-            :loading="aiLoading"
-            :disabled="!permissions.manageMetadata || aiLoading || !form.content || !aiModel"
-            >✨AI</el-button
-          >
-        </div>
-      </div>
-
-      <!-- AI 生成面板 -->
-      <div v-if="aiPanelVisible" class="ai-panel">
-        <el-steps :active="aiStep - 1" align-center finish-status="success">
-          <el-step :title="t('ai.titleSummary')" :status="failedStep === 1 ? 'error' : undefined" />
-          <el-step
-            :title="t('ai.imagePrompt')"
-            :description="imageSkipReason"
-            :status="failedStep === 2 ? 'error' : imageSkipReason ? 'wait' : undefined"
-          />
-          <el-step
-            :title="t('ai.coverImage')"
-            :status="failedStep === 3 ? 'error' : imageSkipReason ? 'wait' : undefined"
-          />
-        </el-steps>
-
-        <el-alert
-          v-if="aiError"
-          :title="aiError"
-          type="error"
-          show-icon
-          :closable="false"
-          class="ai-error"
-        />
-
-        <el-collapse v-model="aiThinkingCollapse" class="thinking-collapse">
-          <el-collapse-item :title="`💭 ${t('ai.thinking')}`" name="thinking">
-            <div class="thinking-content" ref="thinkingRef" v-html="aiThinkingHtml"></div>
-          </el-collapse-item>
-        </el-collapse>
-
-        <el-form-item v-if="imageGenerating" :label="t('ai.imageProgress')" class="progress">
-          <el-progress type="line" :percentage="imageProgress" :color="Colors" />
-        </el-form-item>
-      </div>
-
-      <el-form-item class="status" prop="status">
-        <el-radio-group v-model="form.status" :disabled="!permissions.manageMetadata">
-          <el-radio :value="Status.NORMAL">{{ t('common.public') }}</el-radio>
-          <el-radio :value="Status.BLOCK">{{ t('common.hidden') }}</el-radio>
-          <el-radio :value="Status.SENSITIVE_FILTER">{{ t('common.masked') }}</el-radio>
-          <el-radio :value="Status.DRAFT">{{ t('common.draft') }}</el-radio>
-        </el-radio-group>
-      </el-form-item>
-
-      <el-form-item v-if="form.status === Status.SENSITIVE_FILTER" :label="t('common.masked')">
-        <el-popover
-          v-for="tag in sensitiveTags"
-          :key="`${tag.element.type}-${tag.element.startIndex}`"
-          placement="top-start"
-          trigger="hover"
-          :content="`${tag.element.content}`"
-        >
-          <template #reference>
-            <el-tag closable :type="tag.type" @close="handleTagClose(tag)">
-              {{ tag.element.startIndex }}
-            </el-tag>
-          </template>
-        </el-popover>
-      </el-form-item>
-
-      <el-form-item class="cover" :label="getButtonTitle(ButtonAuth.SYS_BLOG_UPLOAD)">
-        <el-upload
-          v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)"
-          v-model:file-list="fileList"
-          action="#"
-          list-type="picture-card"
-          :before-upload="beforeUpload"
-          :limit="1"
-          :http-request="upload"
-          :on-remove="handleRemove"
-          :on-preview="handlePictureCardPreview"
-          :disabled="!permissions.manageAssets"
-        >
-          <el-icon>
-            <Plus />
-          </el-icon>
-        </el-upload>
-
-        <el-dialog v-model="dialogVisible">
-          <img style="width: 100%" :src="dialogImageUrl" alt="" />
-        </el-dialog>
-
-        <!-- 图片生成预览 dialog -->
-        <el-dialog
-          v-model="generatedImageDialogVisible"
-          :title="t('ai.coverPreview')"
-          width="500px"
-          :close-on-click-modal="true"
-        >
-          <div class="image-preview-container">
-            <img
-              v-if="generatedImageUrl"
-              :src="generatedImageUrl"
-              class="preview-image"
-              :alt="t('ai.previewAlt')"
-            />
-          </div>
-          <div class="upload-progress-wrapper">
-            <el-progress
-              v-if="generatedImageDialogVisible && showPercentage"
-              type="line"
-              :percentage="uploadPercentage"
-              :color="Colors"
-              class="dialog-progress"
-            />
-          </div>
-          <template #footer>
-            <el-button
-              v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_AI)"
-              @click="regenerateImage"
-              :loading="imageGenerating"
-              >{{ t('ai.regenerate') }}</el-button
-            >
-            <el-button
-              v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)"
-              type="primary"
-              @click="handleConfirmUpload"
-              :loading="uploadLoading"
-              >{{ t('ai.confirmUpload') }}</el-button
-            >
-          </template>
-        </el-dialog>
-      </el-form-item>
-
-      <el-form-item
-        :label="t('common.uploadProgress')"
-        class="progress"
-        v-if="showPercentage && !generatedImageDialogVisible"
-      >
-        <el-progress type="line" :percentage="uploadPercentage" :color="Colors" />
-      </el-form-item>
+      <BlogCoverField
+        v-model:link="form.link"
+        v-model:generated-dialog-visible="generatedImageDialogVisible"
+        :manage-assets="permissions.manageAssets"
+        :generated-image-url="generatedImageUrl"
+        :generated-image-base64="generatedImageBase64"
+        :image-generating="imageGenerating"
+        @regenerate="regenerateImage"
+      />
 
       <el-form-item class="content" prop="content">
         <ClientOnly>
@@ -620,73 +302,6 @@ onMounted(() => void loadAiModels())
   margin: 0 auto;
 }
 
-.title {
-  display: flex;
-  width: 100%;
-  max-width: 200px;
-  min-width: 0;
-  margin-top: 15px;
-}
-
-.desc {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-}
-
-.desc-input-group {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  width: 100%;
-  max-width: 800px;
-  margin-top: 25px;
-}
-
-.desc-input-group .el-input {
-  width: 100%;
-}
-
-.ai-actions {
-  display: flex;
-  flex: none;
-  gap: 12px;
-  align-items: center;
-}
-
-.progress {
-  margin-top: 25px;
-  width: 300px;
-}
-
-.status {
-  display: flex;
-  width: 100%;
-  max-width: 300px;
-  min-width: 0;
-  margin-top: 25px;
-}
-
-.title :deep(.el-form-item__content),
-.status :deep(.el-form-item__content) {
-  flex: 1;
-  min-width: 0;
-}
-
-.status :deep(.el-radio-group) {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.el-tag {
-  margin: 5px;
-}
-
-.el-upload__text {
-  margin-top: 25px;
-  width: 290px;
-}
-
 .submit-button {
   margin: 10px auto;
   text-align: center;
@@ -694,153 +309,5 @@ onMounted(() => void loadAiModels())
 
 .content {
   margin: 25px auto;
-}
-
-.el-progress {
-  width: 150px;
-}
-
-.image-preview-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
-.preview-image {
-  max-width: 100%;
-  max-height: 400px;
-  object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.dialog-progress {
-  margin-top: 16px;
-}
-
-.upload-progress-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-}
-
-.ai-panel {
-  width: min(100%, 36rem);
-  box-sizing: border-box;
-  margin-top: 25px;
-  padding: 18px 16px 14px;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 6px;
-}
-
-.ai-panel :deep(.el-step__title) {
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 20px;
-}
-
-.ai-panel :deep(.el-step__main) {
-  margin-top: 5px;
-}
-
-.ai-panel :deep(.el-step__description) {
-  padding-right: 0;
-  font-size: 12px;
-}
-
-.ai-panel .progress {
-  width: 100%;
-  margin: 14px 0 0;
-}
-
-.thinking-collapse {
-  margin-top: 14px;
-}
-
-.thinking-collapse :deep(.el-collapse-item__header) {
-  height: 44px;
-  padding: 0 10px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.thinking-collapse :deep(.el-collapse-item__content) {
-  padding-bottom: 0;
-}
-
-.ai-error {
-  margin-top: 12px;
-}
-
-.thinking-content {
-  max-height: 200px;
-  overflow-y: auto;
-  padding: 10px;
-  font-size: 13px;
-  line-height: 1.7;
-  word-break: break-word;
-  color: var(--el-text-color-secondary);
-}
-
-.thinking-content :deep(p) {
-  margin: 0 0 8px;
-}
-
-.thinking-content :deep(p:last-child),
-.thinking-content :deep(ul:last-child),
-.thinking-content :deep(ol:last-child),
-.thinking-content :deep(pre:last-child),
-.thinking-content :deep(blockquote:last-child) {
-  margin-bottom: 0;
-}
-
-.thinking-content :deep(ul),
-.thinking-content :deep(ol) {
-  margin: 4px 0 8px;
-  padding-left: 20px;
-}
-
-.thinking-content :deep(li) {
-  margin: 2px 0;
-}
-
-.thinking-content :deep(li > p) {
-  margin: 0;
-}
-
-.thinking-content :deep(pre) {
-  overflow-x: auto;
-  margin: 8px 0;
-  padding: 10px 12px;
-  border-radius: 4px;
-  background: var(--el-fill-color-lighter);
-}
-
-.thinking-content :deep(code) {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px;
-}
-
-.thinking-content :deep(:not(pre) > code) {
-  padding: 1px 4px;
-  border-radius: 3px;
-  background: var(--el-fill-color-lighter);
-}
-
-.thinking-content :deep(blockquote) {
-  margin: 8px 0;
-  padding-left: 10px;
-  border-left: 2px solid var(--el-border-color);
-  color: var(--el-text-color-secondary);
-}
-
-.thinking-content :deep(h1),
-.thinking-content :deep(h2),
-.thinking-content :deep(h3) {
-  margin: 10px 0 6px;
-  font-size: 14px;
-  line-height: 1.5;
 }
 </style>
