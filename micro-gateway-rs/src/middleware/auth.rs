@@ -3,6 +3,7 @@ use axum::{extract::Request, middleware::Next, response::Response};
 use hyper::Uri;
 use serde::Serialize;
 use std::collections::HashMap;
+use url::Url;
 
 use crate::client;
 use crate::config::{self, ConfigKey};
@@ -50,28 +51,42 @@ pub async fn process(req: Request, next: Next) -> Result<Response, HandlerError>
 }
 
 fn validate_cookie_origin(req: &Request) -> Result<(), HandlerError> {
-    let origin = req
-        .headers()
-        .get(header::ORIGIN)
-        .and_then(|value| value.to_str().ok());
+    let origin = request_origin(req);
 
-    if origin.is_none() && !requires_origin(req) {
+    if origin.is_none() && !requires_trusted_source(req) && !has_source_header(req) {
         return Ok(());
     }
 
     let allowed = config::get_config(ConfigKey::AllowedOrigins);
-    if origin.is_some_and(|value| is_allowed_origin(value, &allowed)) {
+    if origin.is_some_and(|value| is_allowed_origin(&value, &allowed)) {
         return Ok(());
     }
 
     Err(HandlerError::forbidden("请求来源不受信任"))
 }
 
-fn requires_origin(req: &Request) -> bool {
+fn requires_trusted_source(req: &Request) -> bool {
     !matches!(
         req.method(),
         &Method::GET | &Method::HEAD | &Method::OPTIONS
     ) || utils::is_websocket_request(req)
+        || utils::has_auth_cookie(req.headers())
+}
+
+fn has_source_header(req: &Request) -> bool {
+    req.headers().contains_key(header::ORIGIN) || req.headers().contains_key(header::REFERER)
+}
+
+fn request_origin(req: &Request) -> Option<String> {
+    if let Some(origin) = req.headers().get(header::ORIGIN) {
+        return origin.to_str().ok().map(String::from);
+    }
+
+    req.headers()
+        .get(header::REFERER)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| Url::parse(value).ok())
+        .map(|url| url.origin().ascii_serialization())
 }
 
 fn is_allowed_origin(origin: &str, allowed_origins: &str) -> bool {
@@ -147,7 +162,7 @@ fn build_headers(auth_token: &str) -> HashMap<HeaderName, HeaderValue> {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_allowed_origin, requires_origin};
+    use super::{is_allowed_origin, request_origin, requires_trusted_source};
     use axum::{body::Body, extract::Request};
 
     #[test]
@@ -168,27 +183,51 @@ mod tests {
     }
 
     #[test]
-    fn requires_origin_for_unsafe_methods() {
+    fn requires_trusted_source_for_unsafe_methods() {
         for method in ["POST", "PUT", "PATCH", "DELETE"] {
             let req = Request::builder()
                 .method(method)
                 .uri("/x")
                 .body(Body::empty())
                 .unwrap();
-            assert!(requires_origin(&req));
+            assert!(requires_trusted_source(&req));
         }
     }
 
     #[test]
-    fn allows_originless_safe_reads_but_not_websocket_gets() {
-        let get = Request::builder().uri("/x").body(Body::empty()).unwrap();
-        assert!(!requires_origin(&get));
+    fn authenticated_safe_reads_require_a_trusted_source() {
+        let authenticated = Request::builder()
+            .uri("/x")
+            .header("Cookie", "megalith_access_token=access-jwt")
+            .body(Body::empty())
+            .unwrap();
+        let public = Request::builder().uri("/x").body(Body::empty()).unwrap();
 
+        assert!(requires_trusted_source(&authenticated));
+        assert!(!requires_trusted_source(&public));
+    }
+
+    #[test]
+    fn derives_an_exact_origin_from_referer() {
+        let request = Request::builder()
+            .uri("/x")
+            .header("Referer", "https://chiu.wiki/blog?id=1")
+            .body(Body::empty())
+            .unwrap();
+
+        assert_eq!(
+            request_origin(&request).as_deref(),
+            Some("https://chiu.wiki")
+        );
+    }
+
+    #[test]
+    fn websocket_gets_require_a_trusted_source() {
         let websocket = Request::builder()
             .uri("/rooms")
             .header("upgrade", "websocket")
             .body(Body::empty())
             .unwrap();
-        assert!(requires_origin(&websocket));
+        assert!(requires_trusted_source(&websocket));
     }
 }

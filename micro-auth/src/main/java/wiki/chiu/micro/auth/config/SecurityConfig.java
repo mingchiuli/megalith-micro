@@ -4,14 +4,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -19,7 +17,6 @@ import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.auth.component.LoginAuthenticationFilter;
 import wiki.chiu.micro.auth.component.LoginFailureHandler;
 import wiki.chiu.micro.auth.component.LoginSuccessHandler;
-import wiki.chiu.micro.auth.token.AccessTokenCookieManager;
 import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
 
 @Configuration(proxyBeanMethods = false)
@@ -72,14 +69,11 @@ public class SecurityConfig {
   SecurityFilterChain applicationChain(
       HttpSecurity http,
       @Qualifier("accessJwtDecoder") JwtDecoder accessJwtDecoder,
-      AccessTokenCookieManager accessTokenCookieManager,
       JsonMapper jsonMapper)
       throws Exception {
     LoginAuthenticationFilter loginAuthenticationFilter =
         new LoginAuthenticationFilter(
             authenticationManager, jsonMapper, loginSuccessHandler, loginFailureHandler);
-    DefaultBearerTokenResolver headerTokenResolver = new DefaultBearerTokenResolver();
-
     return stateless(http)
         .authorizeHttpRequests(
             authorizeHttpRequests ->
@@ -91,14 +85,6 @@ public class SecurityConfig {
         .oauth2ResourceServer(
             oauth2 ->
                 oauth2
-                    .bearerTokenResolver(
-                        request -> {
-                          String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-                          if (authorization != null && !authorization.isBlank()) {
-                            return headerTokenResolver.resolve(request);
-                          }
-                          return accessTokenCookieManager.resolve(request);
-                        })
                     .authenticationConverter(new BearerTokenAuthenticationConverter())
                     .jwt(jwt -> jwt.decoder(accessJwtDecoder)))
         .addFilterAt(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
