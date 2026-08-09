@@ -1,8 +1,9 @@
 import { useHttp } from '@/http/http'
-import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
+import { API_ENDPOINTS } from '@/config/apiConfig'
 import { cleanJsonResponse } from '@/utils/common'
 import { logger } from '@/utils/logger'
-import { ollamaStreamRequest, type StreamChunk, type ThinkOption } from '@/utils/ollamaStream'
+import { generate } from '@/utils/ollama'
+import type { GenerateRequest } from 'ollama/browser'
 import type { AiModel, AiModelsResp } from '@/type/entity'
 import type { AppLocale } from '@/i18n'
 import { useI18n } from 'vue-i18n'
@@ -19,11 +20,10 @@ type FailedStep = 1 | 2 | 3 | null
 type GenerationContext = {
   content: string
   model: string
-  think?: ThinkOption
+  think?: GenerateRequest['think']
   locale: AppLocale
 }
 
-const AI_URL = API_CONFIG.AI_BASE_URL + API_ENDPOINTS.AI.GENERATE_CONTENT
 const STEP_LABEL_KEYS: Record<Exclude<FailedStep, null>, string> = {
   1: 'ai.titleSummarySubject',
   2: 'ai.imagePromptSubject',
@@ -120,7 +120,7 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
     Boolean(selectedModel.value?.capabilities?.includes('thinking'))
   )
 
-  const getThinkingOption = (): ThinkOption | undefined => {
+  const getThinkingOption = (): GenerateRequest['think'] => {
     const model = selectedModel.value
     if (!model?.capabilities?.includes('thinking')) return undefined
     return model.model.toLowerCase().startsWith('gpt-oss') ? 'medium' : true
@@ -145,17 +145,17 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
   const generateTitleSummary = async (context: GenerationContext) => {
     let fullResponse = ''
 
-    await ollamaStreamRequest({
-      url: AI_URL,
+    const stream = await generate({
       model: context.model,
       prompt: titleSummaryPrompt(context.content, context.locale),
+      stream: true,
       think: context.think,
-      format: 'json',
-      onChunk: (chunk: StreamChunk) => {
-        if (chunk.thinking) aiThinking.value += chunk.thinking
-        if (chunk.response) fullResponse += chunk.response
-      }
+      format: 'json'
     })
+    for await (const chunk of stream) {
+      if (chunk.thinking) aiThinking.value += chunk.thinking
+      if (chunk.response) fullResponse += chunk.response
+    }
 
     const result = parseJsonResponse(fullResponse)
     const title = requiredString(result.title, 'title')
@@ -168,21 +168,21 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
     let fullResponse = ''
     let thinkingStarted = false
 
-    await ollamaStreamRequest({
-      url: AI_URL,
+    const stream = await generate({
       model: context.model,
       prompt: imagePrompt(context.content, context.locale),
+      stream: true,
       think: context.think,
-      format: 'json',
-      onChunk: (chunk: StreamChunk) => {
-        if (chunk.thinking) {
-          if (!thinkingStarted && aiThinking.value) aiThinking.value += '\n\n'
-          thinkingStarted = true
-          aiThinking.value += chunk.thinking
-        }
-        if (chunk.response) fullResponse += chunk.response
-      }
+      format: 'json'
     })
+    for await (const chunk of stream) {
+      if (chunk.thinking) {
+        if (!thinkingStarted && aiThinking.value) aiThinking.value += '\n\n'
+        thinkingStarted = true
+        aiThinking.value += chunk.thinking
+      }
+      if (chunk.response) fullResponse += chunk.response
+    }
 
     const result = parseJsonResponse(fullResponse)
     return requiredString(result.imagePrompt, 'imagePrompt')
@@ -194,17 +194,17 @@ export const useAiGenerate = (form: AiGenerateForm, imageModel: string) => {
     imageProgress.value = 0
 
     try {
-      await ollamaStreamRequest({
-        url: AI_URL,
+      const stream = await generate({
         model: imageModel,
         prompt,
-        onChunk: (chunk: StreamChunk) => {
-          if (chunk.completed !== undefined && chunk.total) {
-            imageProgress.value = Math.round((chunk.completed / chunk.total) * 100)
-          }
-          if (chunk.image) base64Image = chunk.image
-        }
+        stream: true
       })
+      for await (const chunk of stream) {
+        if (chunk.completed !== undefined && chunk.total) {
+          imageProgress.value = Math.round((chunk.completed / chunk.total) * 100)
+        }
+        if (chunk.image) base64Image = chunk.image
+      }
 
       if (!base64Image) throw new Error('AI response is missing an image')
       generatedImageUrl.value = `data:image/png;base64,${base64Image}`
