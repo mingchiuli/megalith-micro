@@ -5,7 +5,7 @@
 1. The Node server receives the browser request and creates a request-scoped application.
 2. The incoming `Cookie`, `Accept-Language`, and origin are passed to that application only.
 3. Vue Router resolves the route. Protected routes load the menu and current user before rendering.
-4. Route components run `onServerPrefetch`, call the gateway, and place results in `ssrDataStore`.
+4. Route components run `onServerPrefetch`, call `micro-gateway-rs` over the shared Docker network, and place results in `ssrDataStore`.
 5. Vue renders HTML; Unhead renders metadata; Pinia state is serialized with `devalue`.
 6. The browser restores that state and hydrates the existing HTML without repeating initial API calls.
 
@@ -23,7 +23,7 @@ The editor shell can be rendered by the server, but CodeMirror, Yjs, WebSocket t
 
 Login and refresh responses contain no token data. Access and refresh tokens are transported only through HttpOnly cookies and are never persisted in `localStorage`.
 
-Cookie-authenticated POST requests are checked against the configured frontend origin at the gateway. Production cookies default to `Secure` and `SameSite=Strict`; local HTTP development must set `MEGALITH_AUTH_COOKIE_SECURE=false` for `micro-auth`.
+Cookie-authenticated requests are checked against the configured frontend origin at the gateway. Production cookies default to `Secure` and `SameSite=Strict`; local HTTP development must set `MEGALITH_AUTH_COOKIE_SECURE=false` for `micro-auth`.
 
 ## Status, caching, and failure behavior
 
@@ -35,6 +35,6 @@ Cookie-authenticated POST requests are checked against the configured frontend o
 
 ## Deployment
 
-The multi-stage Docker build produces a Node 24 runtime with production dependencies, `dist/client`, `dist/server`, and the Express SSR server. CI verifies lint, unit tests, and both Vite builds before publishing `mingchiuli/megalith-frontend:latest`.
+The multi-stage Docker build produces a Node 24 runtime with production dependencies, `dist/client`, `dist/server`, and the Express SSR server. Deployment injects `SSR_API_BASE_URL=http://micro-gateway-rs:8088`; the frontend and gateway Compose services must share a Docker network. CI verifies lint, unit tests, and both Vite builds before publishing `mingchiuli/megalith-frontend:latest`.
 
 Deployment records the previous local image ID, pulls `latest`, recreates the Compose service, and waits for its container health check. If the health check fails or times out, the workflow prints the container logs and exits with a failure; it does not restore the previous image or container. After a successful health check, the previous local image is removed when its ID differs from the current image. No SHA image tag is pushed.

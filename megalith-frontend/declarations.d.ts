@@ -2,7 +2,6 @@
 
 // Environment variable type definitions
 interface ImportMetaEnv {
-  readonly VITE_APP_NAME: string
   readonly VITE_BASE_URL: string
   readonly VITE_BASE_WS_URL: string
   readonly VITE_AI_BASE_URL: string
