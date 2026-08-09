@@ -19,9 +19,9 @@ The editor shell can be rendered by the server, but CodeMirror, Yjs, WebSocket t
 
 ## Authentication
 
-`micro-auth` issues `megalith_access_token` and `megalith_refresh_token` as HttpOnly cookies. The gateway accepts the access cookie when an `Authorization` header is absent. The frontend forwards cookies during SSR, captures refreshed `Set-Cookie` headers, and sends them back with the HTML response.
+`micro-auth` issues `megalith_access_token` and `megalith_refresh_token` as HttpOnly cookies. For browser HTTP requests, the gateway derives the internal Bearer credential exclusively from the access cookie. The frontend forwards cookies during SSR, captures refreshed `Set-Cookie` headers, and sends them back with the HTML response.
 
-The legacy login and refresh response bodies remain temporarily compatible, but the SSR frontend does not persist tokens in `localStorage`. Existing sessions may require one login after deployment because the cookie names and paths have changed.
+Login and refresh responses contain no token data. Access and refresh tokens are transported only through HttpOnly cookies and are never persisted in `localStorage`.
 
 Cookie-authenticated POST requests are checked against the configured frontend origin at the gateway. Production cookies default to `Secure` and `SameSite=Strict`; local HTTP development must set `MEGALITH_AUTH_COOKIE_SECURE=false` for `micro-auth`.
 
@@ -37,4 +37,4 @@ Cookie-authenticated POST requests are checked against the configured frontend o
 
 The multi-stage Docker build produces a Node 24 runtime with production dependencies, `dist/client`, `dist/server`, and the Express SSR server. CI verifies lint, unit tests, and both Vite builds before publishing `mingchiuli/megalith-frontend:latest`.
 
-Deployment records the previous local image ID, pulls `latest`, recreates the Compose service, and waits for its container health check. If health fails, the prior local image is retagged as `latest` and recreated. No SHA image tag is pushed.
+Deployment records the previous local image ID, pulls `latest`, recreates the Compose service, and waits for its container health check. If the health check fails or times out, the workflow prints the container logs and exits with a failure; it does not restore the previous image or container. After a successful health check, the previous local image is removed when its ID differs from the current image. No SHA image tag is pushed.

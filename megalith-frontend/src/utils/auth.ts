@@ -21,7 +21,7 @@ export const useAuth = () => {
 
   const submitLogin = async (loginType: LoginType, username: string, password: string) => {
     if (!username || !password) return
-    await api.POST<unknown>(API_ENDPOINTS.AUTH.LOGIN, {
+    await api.POST<void>(API_ENDPOINTS.AUTH.LOGIN, {
       loginType,
       principal: username,
       credential: password

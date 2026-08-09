@@ -9,6 +9,7 @@ Vue 3 + Vite SSR frontend for Megalith. Public and administration routes render 
 - `src/entry-client.ts` restores the serialized Pinia state and hydrates the server HTML.
 - `useUniversalData` fetches route data during SSR and reuses it on the first client render.
 - Access and refresh tokens are HttpOnly cookies. Browser code does not read or persist either token.
+- Login and refresh response bodies never contain token data.
 
 ## Local development
 
