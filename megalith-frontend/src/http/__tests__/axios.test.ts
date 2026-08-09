@@ -89,7 +89,7 @@ describe('createHttpClients SSR context', () => {
         refreshCalls++
         return response(
           config,
-          { data: { accessToken: 'legacy-body' } },
+          { data: null },
           {
             'set-cookie': ['megalith_access_token=new-token; Path=/; HttpOnly']
           }
