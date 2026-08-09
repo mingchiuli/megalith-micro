@@ -9,12 +9,16 @@ vi.mock('@/utils/logger', () => ({
   logger: { warn: vi.fn() }
 }))
 
-vi.mock('@/utils/ollamaStream', () => ({
-  ollamaStreamRequest: vi.fn()
+vi.mock('@/utils/ollama', () => ({
+  generate: vi.fn()
 }))
 
 import { useAiGenerate } from '@/composables/useAiGenerate'
-import { ollamaStreamRequest } from '@/utils/ollamaStream'
+import { generate, type GenerateChunk } from '@/utils/ollama'
+
+const chunkStream = async function* (chunks: GenerateChunk[]) {
+  yield* chunks
+}
 
 const createWorkflow = () => {
   const form = {
@@ -43,25 +47,29 @@ const createWorkflow = () => {
 }
 
 const mockTitleSummary = () => {
-  vi.mocked(ollamaStreamRequest).mockImplementationOnce(async (options) => {
-    options.onChunk({ model: 'text-model', thinking: '分析正文', done: false })
-    options.onChunk({
-      model: 'text-model',
-      response: '{"title":"新标题","description":"新摘要"}',
-      done: true
-    })
-  })
+  vi.mocked(generate).mockResolvedValueOnce(
+    chunkStream([
+      { model: 'text-model', thinking: '分析正文', done: false },
+      {
+        model: 'text-model',
+        response: '{"title":"新标题","description":"新摘要"}',
+        done: true
+      }
+    ])
+  )
 }
 
 const mockImagePrompt = () => {
-  vi.mocked(ollamaStreamRequest).mockImplementationOnce(async (options) => {
-    options.onChunk({ model: 'text-model', thinking: '构思封面', done: false })
-    options.onChunk({
-      model: 'text-model',
-      response: '{"imagePrompt":"cover prompt"}',
-      done: true
-    })
-  })
+  vi.mocked(generate).mockResolvedValueOnce(
+    chunkStream([
+      { model: 'text-model', thinking: '构思封面', done: false },
+      {
+        model: 'text-model',
+        response: '{"imagePrompt":"cover prompt"}',
+        done: true
+      }
+    ])
+  )
 }
 
 describe('useAiGenerate', () => {
@@ -73,9 +81,9 @@ describe('useAiGenerate', () => {
     const { form, workflow } = createWorkflow()
     mockTitleSummary()
     mockImagePrompt()
-    vi.mocked(ollamaStreamRequest).mockImplementationOnce(async (options) => {
-      options.onChunk({ model: 'image-model', image: 'base64-image', done: true })
-    })
+    vi.mocked(generate).mockResolvedValueOnce(
+      chunkStream([{ model: 'image-model', image: 'base64-image', done: true }])
+    )
 
     await workflow.aiGenerate()
 
@@ -86,13 +94,15 @@ describe('useAiGenerate', () => {
     expect(workflow.failedStep.value).toBeNull()
     expect(workflow.generatedImageUrl.value).toBe('data:image/png;base64,base64-image')
     expect(workflow.generatedImageDialogVisible.value).toBe(true)
-    expect(vi.mocked(ollamaStreamRequest).mock.calls[0]?.[0]).toMatchObject({
+    expect(vi.mocked(generate).mock.calls[0]?.[0]).toMatchObject({
       model: 'text-model',
+      stream: true,
       think: true,
       format: 'json'
     })
-    expect(vi.mocked(ollamaStreamRequest).mock.calls[1]?.[0]).toMatchObject({
+    expect(vi.mocked(generate).mock.calls[1]?.[0]).toMatchObject({
       model: 'text-model',
+      stream: true,
       think: true,
       format: 'json'
     })
@@ -101,7 +111,7 @@ describe('useAiGenerate', () => {
   it('stops on the failed step and exposes an error', async () => {
     const { workflow } = createWorkflow()
     mockTitleSummary()
-    vi.mocked(ollamaStreamRequest).mockRejectedValueOnce(new Error('prompt failed'))
+    vi.mocked(generate).mockRejectedValueOnce(new Error('prompt failed'))
 
     await workflow.aiGenerate()
 
@@ -109,14 +119,14 @@ describe('useAiGenerate', () => {
     expect(workflow.failedStep.value).toBe(2)
     expect(workflow.aiError.value).toBe('图片提示词生成失败，请重试')
     expect(workflow.aiLoading.value).toBe(false)
-    expect(ollamaStreamRequest).toHaveBeenCalledTimes(2)
+    expect(generate).toHaveBeenCalledTimes(2)
   })
 
   it('always resets image loading after an image error', async () => {
     const { workflow } = createWorkflow()
     mockTitleSummary()
     mockImagePrompt()
-    vi.mocked(ollamaStreamRequest).mockRejectedValueOnce(new Error('image failed'))
+    vi.mocked(generate).mockRejectedValueOnce(new Error('image failed'))
 
     await workflow.aiGenerate()
 
@@ -135,20 +145,22 @@ describe('useAiGenerate', () => {
 
     expect(workflow.aiStep.value).toBe(4)
     expect(workflow.imageSkipReason.value).toBe('已有封面，已跳过')
-    expect(ollamaStreamRequest).toHaveBeenCalledTimes(1)
+    expect(generate).toHaveBeenCalledTimes(1)
   })
 
   it('does not partially update the form when structured output is incomplete', async () => {
     const { form, workflow } = createWorkflow()
     form.title = '原标题'
     form.description = '原摘要'
-    vi.mocked(ollamaStreamRequest).mockImplementationOnce(async (options) => {
-      options.onChunk({
-        model: 'text-model',
-        response: '{"title":"新标题"}',
-        done: true
-      })
-    })
+    vi.mocked(generate).mockResolvedValueOnce(
+      chunkStream([
+        {
+          model: 'text-model',
+          response: '{"title":"新标题"}',
+          done: true
+        }
+      ])
+    )
 
     await workflow.aiGenerate()
 

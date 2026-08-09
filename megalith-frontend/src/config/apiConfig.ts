@@ -164,9 +164,7 @@ export const COLLABORATION_API = {
 // AI服务相关API
 export const AI_API = {
   // 获取AI模型列表
-  GET_MODELS: '/api/tags',
-  // AI内容生成
-  GENERATE_CONTENT: '/api/generate'
+  GET_MODELS: '/api/tags'
 }
 
 // API端点分类导出
