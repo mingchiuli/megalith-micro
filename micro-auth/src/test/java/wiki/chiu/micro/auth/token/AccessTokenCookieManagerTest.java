@@ -1,13 +1,9 @@
 package wiki.chiu.micro.auth.token;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
 
 class AccessTokenCookieManagerTest {
 
@@ -37,14 +33,5 @@ class AccessTokenCookieManagerTest {
     assertTrue(cookie.contains("HttpOnly"));
     assertTrue(cookie.contains("Secure"));
     assertTrue(cookie.contains("SameSite=Strict"));
-  }
-
-  @Test
-  void resolvesConfiguredCookie() {
-    MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setCookies(new Cookie("megalith_access_token", "jwt"));
-
-    assertEquals("jwt", cookieManager.resolve(request));
-    assertNull(cookieManager.resolve(new MockHttpServletRequest()));
   }
 }

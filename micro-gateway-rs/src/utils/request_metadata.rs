@@ -5,7 +5,8 @@ use crate::constant::{
     self, AUTH_HEADER, CF_CONNECTING_IP, FORWARDED_HEADER, PROXY_CLIENT_IP, WL_PROXY_CLIENT_IP,
 };
 
-const ACCESS_TOKEN_COOKIE: &str = "megalith_access_token";
+pub(crate) const ACCESS_TOKEN_COOKIE: &str = "megalith_access_token";
+pub(crate) const REFRESH_TOKEN_COOKIE: &str = "megalith_refresh_token";
 
 pub fn get_ip_from_headers(headers: &HeaderMap) -> Option<String> {
     headers
@@ -46,7 +47,7 @@ pub fn is_websocket_request(req: &Request) -> bool {
             .is_some_and(|value| value.eq_ignore_ascii_case("websocket"))
 }
 
-fn cookie_value(headers: &HeaderMap, name: &str) -> Option<String> {
+pub(crate) fn cookie_value(headers: &HeaderMap, name: &str) -> Option<String> {
     headers
         .get(header::COOKIE)
         .and_then(|value| value.to_str().ok())
@@ -56,6 +57,11 @@ fn cookie_value(headers: &HeaderMap, name: &str) -> Option<String> {
                 (cookie_name == name).then(|| value.to_string())
             })
         })
+}
+
+pub(crate) fn has_auth_cookie(headers: &HeaderMap) -> bool {
+    cookie_value(headers, ACCESS_TOKEN_COOKIE).is_some()
+        || cookie_value(headers, REFRESH_TOKEN_COOKIE).is_some()
 }
 
 #[cfg(test)]
@@ -87,6 +93,29 @@ mod tests {
             .body(Body::empty())
             .unwrap();
         assert_eq!(extract_token(&request), "Bearer access-jwt");
+    }
+
+    #[test]
+    fn detects_access_and_refresh_cookies() {
+        let access = Request::builder()
+            .uri("/x")
+            .header("Cookie", "megalith_access_token=access-jwt")
+            .body(Body::empty())
+            .unwrap();
+        let refresh = Request::builder()
+            .uri("/x")
+            .header("Cookie", "megalith_refresh_token=refresh-jwt")
+            .body(Body::empty())
+            .unwrap();
+        let unrelated = Request::builder()
+            .uri("/x")
+            .header("Cookie", "megalith_theme=dark")
+            .body(Body::empty())
+            .unwrap();
+
+        assert!(has_auth_cookie(access.headers()));
+        assert!(has_auth_cookie(refresh.headers()));
+        assert!(!has_auth_cookie(unrelated.headers()));
     }
 
     #[test]

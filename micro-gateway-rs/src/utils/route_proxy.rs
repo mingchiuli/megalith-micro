@@ -22,7 +22,9 @@ use opentelemetry::global;
 use opentelemetry_http::HeaderInjector;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
-use super::request_metadata::get_ip_from_headers;
+use super::request_metadata::{REFRESH_TOKEN_COOKIE, cookie_value, get_ip_from_headers};
+
+const REFRESH_TOKEN_PATH: &str = "/token/refresh";
 
 pub fn get_auth_url() -> Result<hyper::Uri, AuthError> {
     let mut auth_url = config::get_config(ConfigKey::AuthUrlKey);
@@ -96,6 +98,7 @@ pub fn parse_url(route_resp: AuthRouteResp, uri: &Uri, protocol: &str) -> Result
 pub fn prepare_headers(
     req_headers: &hyper::HeaderMap,
     token: String,
+    request_path: &str,
 ) -> std::result::Result<HashMap<HeaderName, HeaderValue>, ClientError> {
     let mut headers = HashMap::new();
 
@@ -117,8 +120,15 @@ pub fn prepare_headers(
             .unwrap_or(HeaderValue::from_static("application/json")),
     );
 
-    if let Some(cookie) = req_headers.get(header::COOKIE) {
-        headers.insert(header::COOKIE, cookie.clone());
+    if request_path == REFRESH_TOKEN_PATH
+        && let Some(refresh_token) = cookie_value(req_headers, REFRESH_TOKEN_COOKIE)
+    {
+        let cookie = format!("{REFRESH_TOKEN_COOKIE}={refresh_token}");
+        headers.insert(
+            header::COOKIE,
+            HeaderValue::from_str(&cookie)
+                .map_err(|e| ClientError::Request(format!("invalid refresh cookie: {e}")))?,
+        );
     }
 
     Ok(headers)
@@ -207,7 +217,7 @@ mod tests {
     }
 
     #[test]
-    fn prepare_headers_includes_authorization_content_type_and_cookie() {
+    fn prepare_headers_for_refresh_forwards_only_the_refresh_cookie() {
         let mut h = HeaderMap::new();
         h.insert(
             header::CONTENT_TYPE,
@@ -215,9 +225,11 @@ mod tests {
         );
         h.insert(
             header::COOKIE,
-            HeaderValue::from_static("__Secure-refresh_token=jwt"),
+            HeaderValue::from_static(
+                "other=1; megalith_access_token=access-jwt; megalith_refresh_token=refresh-jwt",
+            ),
         );
-        let result = prepare_headers(&h, "tok".to_string()).unwrap();
+        let result = prepare_headers(&h, "tok".to_string(), "/token/refresh").unwrap();
         assert_eq!(
             result
                 .get(&header::AUTHORIZATION)
@@ -232,8 +244,23 @@ mod tests {
         );
         assert_eq!(
             result.get(&header::COOKIE).unwrap().to_str().unwrap(),
-            "__Secure-refresh_token=jwt"
+            "megalith_refresh_token=refresh-jwt"
         );
+    }
+
+    #[test]
+    fn prepare_headers_does_not_forward_cookies_to_business_routes() {
+        let mut h = HeaderMap::new();
+        h.insert(
+            header::COOKIE,
+            HeaderValue::from_static(
+                "megalith_access_token=access-jwt; megalith_refresh_token=refresh-jwt",
+            ),
+        );
+
+        let result = prepare_headers(&h, "Bearer access-jwt".to_string(), "/blog/list").unwrap();
+
+        assert!(!result.contains_key(&header::COOKIE));
     }
 
     #[test]

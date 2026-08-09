@@ -56,7 +56,7 @@ async fn forward_to_target_service(
 ) -> Result<Response<BoxBody<Bytes, BoxError>>, ClientError> {
     let target_uri = utils::parse_url(route_resp, req.uri(), constant::HTTP)?;
 
-    let headers = utils::prepare_headers(req.headers(), token)?;
+    let headers = utils::prepare_headers(req.headers(), token, req.uri().path())?;
 
     let resp = timeout(REQUEST_TIMEOUT, async {
         match *req.method() {
