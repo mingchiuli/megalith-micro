@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosProgressEvent, AxiosRequestConfig, AxiosResponse } from 'axios'
+import type { AxiosProgressEvent, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { inject, type InjectionKey, type Ref } from 'vue'
 import type { Data } from '@/type/entity'
 import type { HttpClients } from '@/http/axios'
@@ -78,5 +78,3 @@ export const useHttp = (): ApiClient => {
   if (!api) throw new Error('API client is not available in the current app')
   return api
 }
-
-export type { AxiosInstance }

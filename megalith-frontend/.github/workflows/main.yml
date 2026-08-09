@@ -106,6 +106,7 @@ jobs:
 
             image="mingchiuli/megalith-frontend:latest"
             service="megalith-frontend"
+            gateway_url="http://micro-gateway-rs:8088"
             base_file=""
             for candidate in compose.yaml compose.yml docker-compose.yaml docker-compose.yml; do
               if [ -f "$candidate" ]; then
@@ -120,7 +121,8 @@ jobs:
 
             override_file=$(mktemp)
             trap 'rm -f "$override_file"' EXIT
-            printf 'services:\n  %s:\n    image: %s\n' "$service" "$image" > "$override_file"
+            printf 'services:\n  %s:\n    image: %s\n    environment:\n      SSR_API_BASE_URL: %s\n' \
+              "$service" "$image" "$gateway_url" > "$override_file"
 
             compose() {
               docker compose -f "$base_file" -f "$override_file" "$@"

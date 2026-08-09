@@ -40,15 +40,15 @@ npm run preview
 
 Production runtime variables:
 
-| Variable           | Default                 | Purpose                                             |
-| ------------------ | ----------------------- | --------------------------------------------------- |
-| `PORT`             | `1919`                  | Node SSR listen port                                |
-| `SSR_API_BASE_URL` | `http://127.0.0.1:8088` | Gateway URL reachable from the SSR container        |
-| `APP_ORIGIN`       | incoming request origin | Origin forwarded for cookie-authenticated mutations |
+| Variable           | Production deployment value    | Purpose                                             |
+| ------------------ | ------------------------------ | --------------------------------------------------- |
+| `PORT`             | `1919`                         | Node SSR listen port                                |
+| `SSR_API_BASE_URL` | `http://micro-gateway-rs:8088` | Gateway URL on the shared Compose network           |
+| `APP_ORIGIN`       | incoming public request origin | Origin forwarded for cookie-authenticated mutations |
 
 The production container exposes `/actuator/health` and is published only as `mingchiuli/megalith-frontend:latest`.
 
-The deployment host must define a Compose service named `megalith-frontend` using that image, publish or proxy port `1919`, and set `SSR_API_BASE_URL` to a gateway address reachable from the container. Example service fragment:
+The deployment host must define Compose services named `megalith-frontend` and `micro-gateway-rs` on the same Docker network. SSR traffic stays on that network through `http://micro-gateway-rs:8088`; only browser traffic uses the public `/api` endpoint. The deployment workflow is the single source of the production internal URL. Example service fragment:
 
 ```yaml
 services:

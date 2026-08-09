@@ -14,10 +14,7 @@ declare global {
   const ElNotification: typeof import('element-plus/es').ElNotification
   const acceptHMRUpdate: typeof import('pinia').acceptHMRUpdate
   const computed: typeof import('vue').computed
-  const createApp: typeof import('vue').createApp
   const createPinia: typeof import('pinia').createPinia
-  const createRouter: typeof import('vue-router').createRouter
-  const createWebHistory: typeof import('vue-router').createWebHistory
   const customRef: typeof import('vue').customRef
   const defineAsyncComponent: typeof import('vue').defineAsyncComponent
   const defineComponent: typeof import('vue').defineComponent
