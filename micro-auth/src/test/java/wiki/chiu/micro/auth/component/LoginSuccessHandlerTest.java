@@ -89,7 +89,7 @@ class LoginSuccessHandlerTest {
   }
 
   @Test
-  void storesRefreshTokenOnlyInHttpOnlyCookie() throws Exception {
+  void storesTokensOnlyInHttpOnlyCookies() throws Exception {
     LoginUser user =
         new LoginUser(
             "tom",
@@ -129,8 +129,12 @@ class LoginSuccessHandlerTest {
     assertTrue(setCookies.stream().allMatch(value -> value.contains("HttpOnly")));
     assertTrue(setCookies.stream().allMatch(value -> value.contains("Secure")));
     assertTrue(setCookies.stream().allMatch(value -> value.contains("SameSite=Strict")));
-    assertTrue(response.getContentAsString().contains("Bearer access-jwt"));
-    assertFalse(response.getContentAsString().contains("refresh-jwt"));
-    assertFalse(response.getContentAsString().contains("refreshToken"));
+    String body = response.getContentAsString();
+    assertTrue(body.contains("\"code\":200"));
+    assertTrue(body.contains("\"data\":null"));
+    assertFalse(body.contains("access-jwt"));
+    assertFalse(body.contains("refresh-jwt"));
+    assertFalse(body.contains("accessToken"));
+    assertFalse(body.contains("refreshToken"));
   }
 }

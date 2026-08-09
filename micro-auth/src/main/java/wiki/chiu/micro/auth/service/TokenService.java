@@ -1,6 +1,5 @@
 package wiki.chiu.micro.auth.service;
 
-import java.util.Map;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
 
 /**
@@ -9,7 +8,7 @@ import wiki.chiu.micro.auth.vo.UserInfoVo;
  */
 public interface TokenService {
 
-  Map<String, String> refreshToken(Long userId);
+  String refreshAccessToken(Long userId);
 
   UserInfoVo userinfo(Long userId);
 }

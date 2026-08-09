@@ -4,7 +4,6 @@ import org.springframework.aot.hint.*;
 import wiki.chiu.micro.auth.dto.LoginRequest;
 import wiki.chiu.micro.auth.dto.LoginType;
 import wiki.chiu.micro.auth.dto.MenuDto;
-import wiki.chiu.micro.auth.vo.LoginSuccessVo;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
@@ -15,10 +14,6 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
     hints
         .reflection()
-        .registerType(
-            LoginSuccessVo.class,
-            MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-            MemberCategory.INVOKE_DECLARED_METHODS)
         .registerType(
             LoginRequest.class,
             MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,

@@ -29,7 +29,7 @@ class AccessTokenCookieManagerTest {
 
   @Test
   void storesRawTokenInHttpOnlyCookie() {
-    String cookie = cookieManager.create("Bearer access-jwt").toString();
+    String cookie = cookieManager.create("access-jwt").toString();
 
     assertTrue(cookie.contains("megalith_access_token=access-jwt"));
     assertTrue(cookie.contains("Max-Age=900"));

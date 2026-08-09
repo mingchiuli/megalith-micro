@@ -1,9 +1,5 @@
 package wiki.chiu.micro.auth.service.impl;
 
-import static wiki.chiu.micro.common.lang.Const.TOKEN_PREFIX;
-
-import java.util.Collections;
-import java.util.Map;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
 import wiki.chiu.micro.auth.convertor.UserInfoVoConvertor;
@@ -33,7 +29,7 @@ public class TokenServiceImpl implements TokenService {
   }
 
   @Override
-  public Map<String, String> refreshToken(Long userId) {
+  public String refreshAccessToken(Long userId) {
     if (Objects.equals(userId, 0L)) {
       throw new MissException(ExceptionMessage.NO_AUTH);
     }
@@ -42,8 +38,7 @@ public class TokenServiceImpl implements TokenService {
       throw new MissException(ExceptionMessage.NO_AUTH);
     }
 
-    String accessToken = jwtTokenService.issueAccessToken(userId);
-    return Collections.singletonMap("accessToken", TOKEN_PREFIX + accessToken);
+    return jwtTokenService.issueAccessToken(userId);
   }
 
   @Override
