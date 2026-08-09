@@ -1,7 +1,6 @@
 package wiki.chiu.micro.auth.component;
 
 import static wiki.chiu.micro.common.lang.Const.PASSWORD_KEY;
-import static wiki.chiu.micro.common.lang.Const.TOKEN_PREFIX;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletOutputStream;
@@ -22,7 +21,6 @@ import wiki.chiu.micro.auth.token.AccessTokenCookieManager;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
 import wiki.chiu.micro.auth.user.LoginUser;
-import wiki.chiu.micro.auth.vo.LoginSuccessVo;
 import wiki.chiu.micro.common.lang.Result;
 
 @Component
@@ -95,9 +93,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         HttpHeaders.SET_COOKIE, refreshTokenCookieManager.create(refreshToken).toString());
 
     outputStream.write(
-        jsonMapper
-            .writeValueAsString(Result.success(new LoginSuccessVo(TOKEN_PREFIX + accessToken)))
-            .getBytes(StandardCharsets.UTF_8));
+        jsonMapper.writeValueAsString(Result.success()).getBytes(StandardCharsets.UTF_8));
 
     outputStream.flush();
     outputStream.close();

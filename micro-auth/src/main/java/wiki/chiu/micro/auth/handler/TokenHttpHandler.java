@@ -3,7 +3,6 @@ package wiki.chiu.micro.auth.handler;
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 
 import java.security.Principal;
-import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -32,12 +31,10 @@ public class TokenHttpHandler {
   }
 
   public ServerResponse refreshToken(ServerRequest request) {
-    Map<String, String> token = tokenService.refreshToken(authenticatedUserId(request));
+    String accessToken = tokenService.refreshAccessToken(authenticatedUserId(request));
     return ServerResponse.ok()
-        .header(
-            HttpHeaders.SET_COOKIE,
-            accessTokenCookieManager.create(token.get("accessToken")).toString())
-        .body(Result.success(token));
+        .header(HttpHeaders.SET_COOKIE, accessTokenCookieManager.create(accessToken).toString())
+        .body(Result.success());
   }
 
   public ServerResponse userinfo(ServerRequest request) {

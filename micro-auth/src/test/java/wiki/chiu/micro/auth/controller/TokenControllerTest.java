@@ -4,11 +4,11 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,14 +64,18 @@ class TokenControllerTest {
   }
 
   @Test
-  void refreshTokenReturnsTokenMap() throws Exception {
-    when(tokenService.refreshToken(42L)).thenReturn(Map.of("accessToken", "newtoken"));
+  void refreshTokenReturnsAccessCookieWithoutTokenBody() throws Exception {
+    when(tokenService.refreshAccessToken(42L)).thenReturn("newtoken");
 
     mockMvc
         .perform(post("/token/refresh").principal(() -> "42"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.code").value(200))
-        .andExpect(jsonPath("$.data.accessToken").value("newtoken"))
+        .andExpect(jsonPath("$.data").value(org.hamcrest.Matchers.nullValue()))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("newtoken"))))
         .andExpect(
             header()
                 .string(
@@ -81,7 +85,7 @@ class TokenControllerTest {
 
   @Test
   void refreshTokenWhenServiceCannotFindTokenReturns404() throws Exception {
-    when(tokenService.refreshToken(anyLong())).thenThrow(new MissException("token missing"));
+    when(tokenService.refreshAccessToken(anyLong())).thenThrow(new MissException("token missing"));
 
     mockMvc
         .perform(post("/token/refresh").principal(() -> "42"))

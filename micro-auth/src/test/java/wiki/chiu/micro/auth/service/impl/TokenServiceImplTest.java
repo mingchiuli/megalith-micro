@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,22 +25,22 @@ class TokenServiceImplTest {
   @InjectMocks private TokenServiceImpl tokenService;
 
   @Test
-  void refreshTokenIssuesAccessTokenForActiveUser() {
+  void refreshAccessTokenIssuesRawTokenForActiveUser() {
     when(users.findById(42L)).thenReturn(user(0));
     when(jwtTokenService.issueAccessToken(42L)).thenReturn("jwt");
 
-    Map<String, String> result = tokenService.refreshToken(42L);
+    String result = tokenService.refreshAccessToken(42L);
 
-    assertEquals("Bearer jwt", result.get("accessToken"));
+    assertEquals("jwt", result);
     verify(jwtTokenService).issueAccessToken(42L);
   }
 
   @Test
-  void refreshTokenRejectsDisabledUser() {
+  void refreshAccessTokenRejectsDisabledUser() {
     when(users.findById(42L)).thenReturn(user(1));
 
     MissException exception =
-        assertThrows(MissException.class, () -> tokenService.refreshToken(42L));
+        assertThrows(MissException.class, () -> tokenService.refreshAccessToken(42L));
 
     assertEquals("没有权限", exception.getMessage());
   }

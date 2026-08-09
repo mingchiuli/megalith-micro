@@ -12,7 +12,6 @@ import org.springframework.web.util.WebUtils;
 public class AccessTokenCookieManager implements BearerTokenResolver {
 
   public static final String COOKIE_NAME = "megalith_access_token";
-  private static final String TOKEN_PREFIX = "Bearer ";
 
   private final TokenCookieProperties cookieProperties;
   private final JwtProperties jwtProperties;
@@ -24,11 +23,7 @@ public class AccessTokenCookieManager implements BearerTokenResolver {
   }
 
   public ResponseCookie create(String accessToken) {
-    String value =
-        accessToken.startsWith(TOKEN_PREFIX)
-            ? accessToken.substring(TOKEN_PREFIX.length())
-            : accessToken;
-    return cookie(value, Duration.ofSeconds(jwtProperties.accessTokenExpire()));
+    return cookie(accessToken, Duration.ofSeconds(jwtProperties.accessTokenExpire()));
   }
 
   public ResponseCookie expire() {
