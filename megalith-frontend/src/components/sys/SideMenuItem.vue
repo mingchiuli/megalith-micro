@@ -1,29 +1,66 @@
 <script lang="ts" setup>
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
+import type { MenuInstance } from 'element-plus'
 import { menuStore, tabStore } from '@/stores'
 import { displayState } from '@/utils/position'
 import { RoutesEnum, type Menu, type MenuNode } from '@/type/entity'
 
 const { expand } = displayState()
 const { menuTree } = storeToRefs(menuStore())
-const arrow = shallowRef(expand.value ? ArrowLeft : ArrowRight)
+const menuRef = ref<MenuInstance>()
+const openCollapsedCatalogues = new Set<string>()
+const arrow = computed(() => (expand.value ? ArrowLeft : ArrowRight))
 const isRouteMenuNode = (node: MenuNode): node is Menu => node.type !== RoutesEnum.BUTTON
 const visibleMenuItems = computed(() => menuTree.value?.children.filter(isRouteMenuNode) ?? [])
 const reverseCollapse = (): void => {
   expand.value = !expand.value
-  arrow.value = expand.value ? ArrowLeft : ArrowRight
 }
+
+const toggleCollapsedCatalogue = (index: string): void => {
+  if (expand.value) return
+  if (openCollapsedCatalogues.has(index)) {
+    menuRef.value?.close(index)
+  } else {
+    menuRef.value?.open(index)
+  }
+}
+
+const trackOpenCatalogue = (index: string): void => {
+  if (!expand.value) openCollapsedCatalogues.add(index)
+}
+
+const trackClosedCatalogue = (index: string): void => {
+  openCollapsedCatalogues.delete(index)
+}
+
+const closeCataloguePopups = (): void => {
+  for (const index of openCollapsedCatalogues) menuRef.value?.close(index)
+  openCollapsedCatalogues.clear()
+}
+
+watch(expand, closeCataloguePopups)
 </script>
 
 <template>
   <el-button class="collapse-button" circle :icon="arrow" @click="reverseCollapse"></el-button>
   <el-menu
+    ref="menuRef"
     :default-active="tabStore().editableTabsValue"
     class="el-menu-vertical"
     :collapse="!expand"
+    :close-on-click-outside="!expand"
     active-text-color="#ffd04b"
+    @open="trackOpenCatalogue"
+    @close="trackClosedCatalogue"
+    @select="closeCataloguePopups"
   >
-    <InfiniteMenuItem v-for="item in visibleMenuItems" v-bind:key="item.id" :item="item" />
+    <InfiniteMenuItem
+      v-for="item in visibleMenuItems"
+      v-bind:key="item.id"
+      :item="item"
+      :collapsed="!expand"
+      @open-catalogue="toggleCollapsedCatalogue"
+    />
   </el-menu>
 </template>
 

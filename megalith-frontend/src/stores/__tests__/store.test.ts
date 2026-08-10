@@ -3,7 +3,6 @@ import {
   loginStateStore,
   themeStore,
   tabStore,
-  welcomeStateStore,
   authMarkStore,
   menuStore,
   buttonStore,
@@ -126,12 +125,6 @@ describe('stores/store', () => {
       store.addTab({ name: 'about', title: 'About' })
       expect(store.editableTabs).toHaveLength(2)
       expect(store.editableTabsValue).toBe('about')
-    })
-  })
-
-  describe('welcomeStateStore', () => {
-    it('默认 welcomeBackend 为 true', () => {
-      expect(welcomeStateStore().welcomeBackend).toBe(true)
     })
   })
 

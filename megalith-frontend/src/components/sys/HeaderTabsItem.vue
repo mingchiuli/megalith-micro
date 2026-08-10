@@ -1,35 +1,36 @@
 <script lang="ts" setup>
-import { welcomeStateStore, tabStore } from '@/stores'
-import type { Tab } from '@/type/entity'
+import { menuStore, tabStore } from '@/stores'
 import type { TabPaneName, TabsPaneContext } from 'element-plus'
 
 const router = useRouter()
-const { editableTabs, editableTabsValue } = storeToRefs(tabStore())
+const tabs = tabStore()
+const { editableTabs, editableTabsValue } = storeToRefs(tabs)
 
 const clickTab = (tab: TabsPaneContext) => router.push({ name: String(tab.props.name) })
-const removeTab = (name: TabPaneName) => {
-  let changed = false
-  const tabs: Tab[] = editableTabs.value
-  if (tabs.length === 1) {
-    editableTabs.value = tabs.filter((tab) => tab.name !== name)
-    welcomeStateStore().welcomeBackend = true
-    router.push({ name: 'system' })
+const removeTab = async (name: TabPaneName) => {
+  const tabName = String(name)
+  const currentTabs = editableTabs.value
+
+  if (currentTabs.length === 1 && currentTabs[0]?.name === tabName) {
+    tabs.removeTab(tabName)
+    tabs.editableTabsValue = ''
+    const rootName = menuStore().menuTree?.name
+    if (rootName) await router.push({ name: rootName })
     return
   }
 
-  if (editableTabsValue.value === name) {
-    tabs.forEach((tab, idx) => {
-      if (tab.name === name) {
-        const nextTab = tabs[idx + 1] || tabs[idx - 1]
-        if (nextTab) {
-          tabStore().editableTabsValue = nextTab.name
-          changed = true
-        }
-      }
-    })
+  if (editableTabsValue.value !== tabName) {
+    tabs.removeTab(tabName)
+    return
   }
-  editableTabs.value = tabs.filter((tab) => tab.name !== name)
-  if (changed) router.push({ name: editableTabsValue.value })
+
+  const currentIndex = currentTabs.findIndex((tab) => tab.name === tabName)
+  const nextTab = currentTabs[currentIndex + 1] ?? currentTabs[currentIndex - 1]
+  tabs.removeTab(tabName)
+  if (!nextTab) return
+
+  tabs.editableTabsValue = nextTab.name
+  await router.push({ name: nextTab.name })
 }
 </script>
 
