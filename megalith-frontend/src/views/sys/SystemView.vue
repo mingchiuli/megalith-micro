@@ -1,7 +1,10 @@
 <script lang="ts" setup>
-import { pageStore, welcomeStateStore } from '@/stores'
+import { menuStore, pageStore } from '@/stores'
 
 const page = pageStore()
+const route = useRoute()
+const isSystemRoot = computed(() => route.name === menuStore().menuTree?.name)
+
 page.front = false
 
 onUnmounted(() => {
@@ -22,10 +25,10 @@ onUnmounted(() => {
         <HeaderTabsItem />
       </el-header>
       <el-main>
-        <el-text class="welcome" v-if="welcomeStateStore().welcomeBackend">
+        <el-text v-if="isSystemRoot" class="welcome">
           {{ $t('admin.welcome') }}
         </el-text>
-        <div class="content">
+        <div v-else class="content">
           <router-view />
         </div>
       </el-main>

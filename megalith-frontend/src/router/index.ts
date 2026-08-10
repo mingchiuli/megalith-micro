@@ -18,7 +18,6 @@ import {
 import {
   menuStore,
   loginStateStore,
-  welcomeStateStore,
   buttonStore,
   tabStore,
   authMarkStore,
@@ -90,7 +89,6 @@ export const createAppRouter = ({ server, api }: RouterOptions): Router => {
 
   router.beforeEach(async (to) => {
     const privateRoute = to.path.startsWith('/sys') || to.path.startsWith('/backend')
-    if (to.path.startsWith('/sys')) welcomeStateStore().welcomeBackend = false
 
     if (!loginStateStore().login) {
       return privateRoute ? { name: 'login', query: { redirect: to.fullPath } } : undefined

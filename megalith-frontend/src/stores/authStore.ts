@@ -1,12 +1,4 @@
 /**
- * Welcome state - controls backend welcome message visibility
- */
-export const welcomeStateStore = defineStore('welcomeStateStore', () => {
-  const welcomeBackend = ref(true)
-  return { welcomeBackend }
-})
-
-/**
  * Login state - tracks user login status
  */
 export const loginStateStore = defineStore('loginStateStore', () => {

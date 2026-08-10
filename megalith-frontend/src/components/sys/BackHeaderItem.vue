@@ -27,7 +27,7 @@ const handleLogout = async () => {
   <div class="header-container">
     <el-text class="header-title" size="large"
       >{{ $t('admin.backend') }}
-      <el-dropdown class="header-dropdown">
+      <el-dropdown class="header-dropdown" :trigger="['click', 'hover']">
         <span class="el-dropdown-link">
           {{ nickname }}
           <el-icon class="el-icon--right">
