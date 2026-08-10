@@ -11,7 +11,6 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
   @Override // Register method for reflection
   public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
     // Register method for reflection
-
     hints
         .reflection()
         .registerType(
