@@ -110,7 +110,7 @@ const confirmGeneratedImage = async () => {
     </el-upload>
 
     <el-dialog v-model="previewVisible">
-      <img class="preview-image" :src="previewUrl" :alt="t('ai.previewAlt')" />
+      <img class="cover-preview-image" :src="previewUrl" :alt="t('ai.previewAlt')" />
     </el-dialog>
 
     <el-dialog
@@ -127,12 +127,15 @@ const confirmGeneratedImage = async () => {
           :alt="t('ai.previewAlt')"
         />
       </div>
-      <el-progress
-        v-if="showPercentage"
-        type="line"
-        :percentage="uploadPercentage"
-        :color="Colors"
-      />
+      <div class="upload-progress-wrapper">
+        <el-progress
+          v-if="generatedDialogVisible && showPercentage"
+          type="line"
+          :percentage="uploadPercentage"
+          :color="Colors"
+          class="dialog-progress"
+        />
+      </div>
       <template #footer>
         <el-button
           v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_AI)"
@@ -156,26 +159,49 @@ const confirmGeneratedImage = async () => {
   <el-form-item
     v-if="showPercentage && !generatedDialogVisible"
     :label="t('common.uploadProgress')"
+    class="progress"
   >
     <el-progress type="line" :percentage="uploadPercentage" :color="Colors" />
   </el-form-item>
 </template>
 
 <style scoped>
-.preview-image {
-  display: block;
-  max-width: 100%;
-  max-height: 400px;
-  margin: 0 auto;
-  object-fit: contain;
-  border-radius: 6px;
+.cover-preview-image {
+  width: 100%;
 }
 
-.image-preview-container {
-  padding: 20px;
+.progress {
+  width: 300px;
+  margin-top: 25px;
 }
 
 .el-progress {
   width: 150px;
+}
+
+.image-preview-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dialog-progress {
+  margin-top: 16px;
+}
+
+.upload-progress-wrapper {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
 }
 </style>
