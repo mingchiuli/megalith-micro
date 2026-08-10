@@ -36,7 +36,6 @@ import wiki.chiu.micro.auth.service.port.UserDirectory;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.auth.wrapper.AuthWrapper;
-import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthTypeEnum;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
@@ -190,25 +189,28 @@ public class AuthServiceImpl implements AuthService {
       return true;
     }
     if (!StringUtils.hasLength(token)) {
-      return false;
+      throw new MissException(ExceptionMessage.TOKEN_INVALID);
     }
 
+    Jwt jwt;
+    Long userId;
     try {
-      Jwt jwt = decodeRouteToken(req.routeMapping(), token);
-      Long userId = subject(jwt);
-      if (!isActiveUser(userId)) {
-        return false;
-      }
-      if (isWebSocketRoute(req.routeMapping())) {
-        return true;
-      }
-      return currentRoles(userId).stream()
-          .map(authWrapper::getAuthoritiesByRoleCode)
-          .flatMap(Collection::stream)
-          .anyMatch(route.code()::equals);
-    } catch (JwtException | IllegalArgumentException | BaseException e) {
+      jwt = decodeRouteToken(req.routeMapping(), token);
+      userId = subject(jwt);
+    } catch (JwtException | IllegalArgumentException e) {
+      throw new MissException(ExceptionMessage.TOKEN_INVALID);
+    }
+
+    if (!isActiveUser(userId)) {
       return false;
     }
+    if (isWebSocketRoute(req.routeMapping())) {
+      return true;
+    }
+    return currentRoles(userId).stream()
+        .map(authWrapper::getAuthoritiesByRoleCode)
+        .flatMap(Collection::stream)
+        .anyMatch(route.code()::equals);
   }
 
   private Optional<AuthorityRpcVo> matchingAuthority(String routeMapping, String method) {
