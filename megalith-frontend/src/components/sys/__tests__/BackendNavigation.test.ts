@@ -3,6 +3,7 @@ import { defineComponent, h } from 'vue'
 import { flushPromises, mount, shallowMount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import { loginStateStore, menuStore, tabStore } from '@/stores'
 import { RoutesEnum, RoutesStatus, type Menu } from '@/type/entity'
 import BackHeaderItem from '@/components/sys/BackHeaderItem.vue'
@@ -295,5 +296,52 @@ describe('backend navigation', () => {
 
     await wrapper.get('.catalogue-trigger').trigger('click')
     expect(close).toHaveBeenCalledWith('1')
+  })
+
+  it('keeps the arrow aligned with the actual side-menu state', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    vi.spyOn(document.body, 'clientWidth', 'get').mockReturnValue(600)
+
+    const ElButtonStub = defineComponent({
+      name: 'ElButton',
+      props: { icon: { default: undefined } },
+      emits: ['click'],
+      setup:
+        (_, { emit }) =>
+        () =>
+          h('button', { onClick: () => emit('click') })
+    })
+    const ElMenuStub = defineComponent({
+      name: 'ElMenu',
+      props: { collapse: Boolean },
+      setup: () => () => h('div')
+    })
+
+    const wrapper = mount(SideMenuItem, {
+      global: {
+        plugins: [pinia],
+        stubs: {
+          ElButton: ElButtonStub,
+          ElMenu: ElMenuStub,
+          InfiniteMenuItem: true
+        }
+      }
+    })
+    await flushPromises()
+
+    const button = wrapper.getComponent(ElButtonStub)
+    const menu = wrapper.getComponent(ElMenuStub)
+    expect(menu.props('collapse')).toBe(true)
+    expect(button.props('icon')).toBe(ArrowRight)
+
+    await button.trigger('click')
+    expect(menu.props('collapse')).toBe(false)
+    expect(button.props('icon')).toBe(ArrowLeft)
+
+    window.dispatchEvent(new Event('resize'))
+    await flushPromises()
+    expect(menu.props('collapse')).toBe(false)
+    expect(button.props('icon')).toBe(ArrowLeft)
   })
 })
