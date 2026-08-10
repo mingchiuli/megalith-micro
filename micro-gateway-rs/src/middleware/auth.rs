@@ -140,9 +140,7 @@ fn map_auth_response(resp: Result<ApiResult<bool>, ClientError>) -> Result<bool,
                 "鉴权服务返回异常状态码: {code}"
             ))),
         },
-        Err(ClientError::Status(code, message)) if code == 401 => {
-            Err(AuthError::Unauthorized(message))
-        }
+        Err(ClientError::Status(401, message)) => Err(AuthError::Unauthorized(message)),
         Err(e) => Err(AuthError::RequestFailed(e.to_string())),
     }
 }
