@@ -37,6 +37,21 @@ const unauthorized = (config: AxiosRequestConfig) => {
   )
 }
 
+const forbidden = (config: AxiosRequestConfig) => {
+  const result = {
+    ...response(config, { msg: 'forbidden' }),
+    status: 403,
+    statusText: 'Forbidden'
+  }
+  return new AxiosError(
+    'Forbidden',
+    AxiosError.ERR_BAD_REQUEST,
+    config as InternalAxiosRequestConfig,
+    undefined,
+    result
+  )
+}
+
 describe('createHttpClients SSR context', () => {
   const originalAdapter = axios.defaults.adapter
 
@@ -123,5 +138,21 @@ describe('createHttpClients SSR context', () => {
     expect(refreshCalls).toBe(1)
     expect(protectedCalls).toBe(4)
     expect(setCookies).toHaveBeenCalledWith(['megalith_access_token=new-token; Path=/; HttpOnly'])
+  })
+
+  it('does not refresh a valid session that lacks permission', async () => {
+    let refreshCalls = 0
+    axios.defaults.adapter = vi.fn(async (config) => {
+      if (config.url === '/token/refresh') {
+        refreshCalls++
+        return response(config)
+      }
+      throw forbidden(config)
+    }) as AxiosAdapter
+
+    const { httpClient } = createHttpClients({ baseURL: 'http://gateway' })
+
+    await expect(httpClient.get('/forbidden')).rejects.toMatchObject({ response: { status: 403 } })
+    expect(refreshCalls).toBe(0)
   })
 })

@@ -20,6 +20,8 @@ const usercolors = [
 ]
 
 export const yjsCompartment = new Compartment()
+export const COLLABORATION_TICKET_REFRESH_INTERVAL_MS = 240_000
+export const COLLABORATION_TICKET_RECONNECT_MAX_AGE_MS = 30_000
 let currentProvider: WebsocketProvider | null = null
 let currentDoc: Y.Doc | null = null
 
@@ -32,6 +34,12 @@ export const hasYjsDocumentState = (doc: Y.Doc) =>
 
 export const shouldInitializeYjsDocument = (doc: Y.Doc, text: Y.Text, initialContent: string) =>
   initialContent.length > 0 && text.length === 0 && !hasYjsDocumentState(doc)
+
+export const shouldRefreshCollaborationTicket = (
+  issuedAt: number,
+  maxAge: number,
+  now = Date.now()
+) => issuedAt <= 0 || now - issuedAt >= maxAge
 
 export const createYjsBindingTransaction = (
   currentDocumentLength: number,
