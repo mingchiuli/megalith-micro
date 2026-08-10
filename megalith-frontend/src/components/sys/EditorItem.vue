@@ -12,6 +12,9 @@ import {
   createYjsBindingTransaction,
   cleanupYjs,
   updateProviderToken,
+  COLLABORATION_TICKET_REFRESH_INTERVAL_MS,
+  COLLABORATION_TICKET_RECONNECT_MAX_AGE_MS,
+  shouldRefreshCollaborationTicket,
   type CollaborationEvent
 } from '@/config/editorConfig'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
@@ -148,6 +151,52 @@ const findAllOccurrences = (text: string, pattern: string) => {
 const editorRef = useTemplateRef<ExposeParam>('editorRef')
 const collaborationReady = ref(false)
 let disposed = false
+let collaborationTicketIssuedAt = 0
+let ticketRefreshPromise: Promise<void> | undefined
+let ticketRefreshTask: number | undefined
+
+const issueCollaborationTicket = () => {
+  const url = blogId
+    ? buildQueryUrl(API_ENDPOINTS.COLLABORATION.TICKET, { blogId })
+    : API_ENDPOINTS.COLLABORATION.TICKET
+  return POST<string>(url, {})
+}
+
+const refreshCollaborationTicket = (
+  maxAge = COLLABORATION_TICKET_RECONNECT_MAX_AGE_MS
+): Promise<void> => {
+  if (disposed || !shouldRefreshCollaborationTicket(collaborationTicketIssuedAt, maxAge)) {
+    return Promise.resolve()
+  }
+
+  if (!ticketRefreshPromise) {
+    ticketRefreshPromise = issueCollaborationTicket()
+      .then((token) => {
+        if (disposed) return
+        updateProviderToken(token)
+        collaborationTicketIssuedAt = Date.now()
+      })
+      .finally(() => {
+        ticketRefreshPromise = undefined
+      })
+  }
+  return ticketRefreshPromise
+}
+
+const startTicketRefresh = () => {
+  if (ticketRefreshTask !== undefined) return
+  ticketRefreshTask = window.setInterval(() => {
+    void refreshCollaborationTicket(COLLABORATION_TICKET_REFRESH_INTERVAL_MS).catch((error) => {
+      logger.error('Failed to renew collaboration ticket:', error)
+    })
+  }, COLLABORATION_TICKET_REFRESH_INTERVAL_MS)
+}
+
+const stopTicketRefresh = () => {
+  if (ticketRefreshTask === undefined) return
+  window.clearInterval(ticketRefreshTask)
+  ticketRefreshTask = undefined
+}
 
 const notifyCollaborationEvent = (event: CollaborationEvent) => {
   const notifications = {
@@ -189,6 +238,11 @@ const notifyCollaborationEvent = (event: CollaborationEvent) => {
     })
     return
   }
+  if (event.type === 'disconnected') {
+    void refreshCollaborationTicket().catch((error) => {
+      logger.error('Failed to renew collaboration ticket after disconnect:', error)
+    })
+  }
   ElNotification(notifications[event.type])
 }
 
@@ -197,6 +251,7 @@ const updateEditorExtension = async () => {
   if (view) {
     try {
       const collaborationToken = await issueCollaborationTicket()
+      collaborationTicketIssuedAt = Date.now()
       const { config, provider, initialSync } = await createYjsExtension(
         roomId,
         text.value ?? '',
@@ -205,12 +260,14 @@ const updateEditorExtension = async () => {
         notifyCollaborationEvent
       )
       provider.connect()
+      startTicketRefresh()
       const syncedContent = await initialSync
       if (disposed) return
 
       view.dispatch(createYjsBindingTransaction(view.state.doc.length, syncedContent, config))
       collaborationReady.value = true
     } catch (error) {
+      stopTicketRefresh()
       cleanupYjs()
       collaborationReady.value = true
       logger.error('Failed to initialize collaborative editor:', error)
@@ -255,33 +312,15 @@ const sensitiveListen = () => {
   }
 }
 
-onMounted(async () => {
+onMounted(() => {
   sensitiveListen()
-  await updateEditorExtension()
-  ticketRefreshTask = window.setInterval(async () => {
-    try {
-      updateProviderToken(await issueCollaborationTicket())
-    } catch (error) {
-      logger.error('Failed to renew collaboration ticket:', error)
-    }
-  }, 240_000)
+  void updateEditorExtension()
 })
-
-const issueCollaborationTicket = () => {
-  const url = blogId
-    ? buildQueryUrl(API_ENDPOINTS.COLLABORATION.TICKET, { blogId })
-    : API_ENDPOINTS.COLLABORATION.TICKET
-  return POST<string>(url, {})
-}
-
-let ticketRefreshTask: number | undefined
 
 onBeforeUnmount(() => {
   disposed = true
+  stopTicketRefresh()
   cleanupYjs()
-  if (ticketRefreshTask) {
-    clearInterval(ticketRefreshTask)
-  }
 })
 </script>
 

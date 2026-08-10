@@ -5,8 +5,10 @@ import * as Y from 'yjs'
 vi.mock('md-editor-v3', () => ({ config: vi.fn() }))
 
 import {
+  COLLABORATION_TICKET_REFRESH_INTERVAL_MS,
   createYjsBindingTransaction,
   hasYjsDocumentState,
+  shouldRefreshCollaborationTicket,
   shouldInitializeYjsDocument,
   yjsCompartment
 } from '@/config/editorConfig'
@@ -40,5 +42,27 @@ describe('editorConfig', () => {
     const transaction = state.update(createYjsBindingTransaction(1, 'remote content', extension))
 
     expect(transaction.state.doc.toString()).toBe('remote content')
+  })
+
+  it('refreshes missing or stale collaboration tickets', () => {
+    const now = 1_000_000
+
+    expect(shouldRefreshCollaborationTicket(0, COLLABORATION_TICKET_REFRESH_INTERVAL_MS, now)).toBe(
+      true
+    )
+    expect(
+      shouldRefreshCollaborationTicket(
+        now - COLLABORATION_TICKET_REFRESH_INTERVAL_MS + 1,
+        COLLABORATION_TICKET_REFRESH_INTERVAL_MS,
+        now
+      )
+    ).toBe(false)
+    expect(
+      shouldRefreshCollaborationTicket(
+        now - COLLABORATION_TICKET_REFRESH_INTERVAL_MS,
+        COLLABORATION_TICKET_REFRESH_INTERVAL_MS,
+        now
+      )
+    ).toBe(true)
   })
 })
