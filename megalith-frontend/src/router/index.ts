@@ -89,23 +89,23 @@ export const createAppRouter = ({ server, api }: RouterOptions): Router => {
 
   router.beforeEach(async (to) => {
     const privateRoute = to.path.startsWith('/sys') || to.path.startsWith('/backend')
+    const loginState = loginStateStore()
 
-    if (!loginStateStore().login) {
-      return privateRoute ? { name: 'login', query: { redirect: to.fullPath } } : undefined
-    }
+    if (!loginState.login && !privateRoute) return
 
     try {
       let menuTree = menuStore().menuTree
-      const restoredSession = authMarkStore().auth && menuTree && loginStateStore().user
+      const restoredSession = authMarkStore().auth && menuTree && loginState.user
       if (!restoredSession) {
         const [fetchedMenu, user] = await getSession()
         menuTree = fetchedMenu
-        loginStateStore().user = user
+        loginState.user = user
       }
       if (!menuTree) throw new Error('Authenticated menu is unavailable')
 
       const addedRoute = applyMenuTree(router, menuTree)
       dealSysTab(to, menuTree)
+      loginState.login = true
       authMarkStore().auth = true
       if (to.path.startsWith('/login')) return { name: 'blogs' }
       if (addedRoute && (!to.name || to.name === 'not-found')) return to.fullPath
