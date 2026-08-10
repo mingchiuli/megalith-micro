@@ -128,7 +128,7 @@ subprojects {
 
     configure<DependencyManagementExtension> {
         dependencies {
-            dependency("org.redisson:redisson:4.6.1")
+            dependency("org.redisson:redisson:4.7.0")
         }
     }
 
