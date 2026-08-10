@@ -243,25 +243,32 @@ onMounted(() => void loadAiModels())
         :sensitive-tags="sensitiveTags"
         @sensitive="dealSensitive"
         @remove-sensitive="handleTagClose"
-      />
+      >
+        <template #description-actions>
+          <BlogAiActions
+            v-model:model="aiModel"
+            :models="aiModels"
+            :loading="aiLoading"
+            :content-ready="Boolean(form.content)"
+            :manage-metadata="permissions.manageMetadata"
+            @generate="handleAiGenerate"
+          />
+        </template>
 
-      <BlogAiPanel
-        v-model:model="aiModel"
-        :models="aiModels"
-        :loading="aiLoading"
-        :content-ready="Boolean(form.content)"
-        :manage-metadata="permissions.manageMetadata"
-        :visible="aiPanelVisible"
-        :step="aiStep"
-        :failed-step="failedStep"
-        :error="aiError"
-        :thinking="aiThinking"
-        :image-skip-reason="imageSkipReason"
-        :thinking-supported="thinkingSupported"
-        :image-generating="imageGenerating"
-        :image-progress="imageProgress"
-        @generate="handleAiGenerate"
-      />
+        <template #after-description>
+          <BlogAiPanel
+            :visible="aiPanelVisible"
+            :step="aiStep"
+            :failed-step="failedStep"
+            :error="aiError"
+            :thinking="aiThinking"
+            :image-skip-reason="imageSkipReason"
+            :thinking-supported="thinkingSupported"
+            :image-generating="imageGenerating"
+            :image-progress="imageProgress"
+          />
+        </template>
+      </BlogMetadataFields>
 
       <BlogCoverField
         v-model:link="form.link"

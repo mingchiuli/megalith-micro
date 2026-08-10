@@ -41,18 +41,24 @@ const emitSelection = (input: HTMLInputElement | HTMLTextAreaElement, type: Sens
     />
   </el-form-item>
 
-  <el-form-item class="desc" prop="description">
-    <el-input
-      ref="descRef"
-      v-model="description"
-      autosize
-      type="textarea"
-      :placeholder="t('common.description')"
-      maxlength="60"
-      :disabled="!manageMetadata"
-      @select="emitSelection(descRef!.textarea!, SensitiveType.DESCRIPTION)"
-    />
-  </el-form-item>
+  <div class="desc-input-group">
+    <el-form-item class="desc" prop="description">
+      <el-input
+        ref="descRef"
+        v-model="description"
+        autosize
+        type="textarea"
+        :placeholder="t('common.description')"
+        maxlength="60"
+        :disabled="!manageMetadata"
+        @select="emitSelection(descRef!.textarea!, SensitiveType.DESCRIPTION)"
+      />
+    </el-form-item>
+
+    <slot name="description-actions" />
+  </div>
+
+  <slot name="after-description" />
 
   <el-form-item class="status" prop="status">
     <el-radio-group v-model="status" :disabled="!manageMetadata">
@@ -86,6 +92,7 @@ const emitSelection = (input: HTMLInputElement | HTMLTextAreaElement, type: Sens
 
 <style scoped>
 .title {
+  display: flex;
   width: 100%;
   max-width: 200px;
   min-width: 0;
@@ -93,11 +100,26 @@ const emitSelection = (input: HTMLInputElement | HTMLTextAreaElement, type: Sens
 }
 
 .desc {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.desc-input-group {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
   width: 100%;
+  max-width: 800px;
   margin-top: 25px;
 }
 
+.desc-input-group .el-input {
+  width: 100%;
+}
+
 .status {
+  display: flex;
   width: 100%;
   max-width: 300px;
   min-width: 0;
