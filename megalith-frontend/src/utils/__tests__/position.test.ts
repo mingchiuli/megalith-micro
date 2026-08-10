@@ -34,26 +34,24 @@ describe('utils/position#displayState', () => {
     removeSpy.mockRestore()
   })
 
-  it('宽度大于 900 时启用展开布局', () => {
+  it('宽度大于 900 时启用宽屏布局', () => {
     setWidth(1280)
     const wrapper = mount(Host)
     const { state } = wrapper.vm as unknown as {
       state: ReturnType<typeof displayState>
     }
-    expect(state.expand.value).toBe(true)
     expect(state.fix.value).toBe('right')
     expect(state.fixSelection.value).toBe('left')
     expect(state.moreItems.value).toBe(false)
     wrapper.unmount()
   })
 
-  it('宽度小于 900 时收起', () => {
+  it('宽度小于 900 时禁用宽屏布局', () => {
     setWidth(600)
     const wrapper = mount(Host)
     const { state } = wrapper.vm as unknown as {
       state: ReturnType<typeof displayState>
     }
-    expect(state.expand.value).toBe(false)
     expect(state.fix.value).toBe(false)
     expect(state.fixSelection.value).toBe(false)
     wrapper.unmount()
@@ -83,7 +81,7 @@ describe('utils/position#displayState', () => {
     const { state } = wrapper.vm as unknown as {
       state: ReturnType<typeof displayState>
     }
-    expect(state.expand.value).toBe(true)
+    expect(state.fix.value).toBe('right')
 
     // 找到本次 mount 注册的 resize 处理函数并手动触发
     const handler = addSpy.mock.calls.find((call: unknown[]) => call[0] === 'resize')?.[1] as
@@ -92,7 +90,6 @@ describe('utils/position#displayState', () => {
 
     setWidth(600)
     handler!(new Event('resize'))
-    expect(state.expand.value).toBe(false)
     expect(state.fix.value).toBe(false)
 
     wrapper.unmount()
