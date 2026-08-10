@@ -1,11 +1,14 @@
 package wiki.chiu.micro.auth.config;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
 import javax.crypto.SecretKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +21,9 @@ import wiki.chiu.micro.auth.service.impl.AuthServiceImpl;
 import wiki.chiu.micro.auth.token.JwtProperties;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.wrapper.AuthWrapper;
+import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthTypeEnum;
+import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
@@ -75,8 +80,10 @@ class AuthServiceRouteAuthorizationTest {
     String accessToken = "Bearer " + tokens.issueAccessToken(42L);
 
     assertTrue(authService.routeCheck(route("/rooms/blog-7"), roomTicket));
-    assertFalse(authService.routeCheck(route("/rooms/blog-8"), roomTicket));
-    assertFalse(authService.routeCheck(route("/rooms/blog-7"), accessToken));
+    assertThrows(
+        MissException.class, () -> authService.routeCheck(route("/rooms/blog-8"), roomTicket));
+    assertThrows(
+        MissException.class, () -> authService.routeCheck(route("/rooms/blog-7"), accessToken));
   }
 
   @Test
@@ -87,9 +94,39 @@ class AuthServiceRouteAuthorizationTest {
                 authority("public_api", "/api/**", AuthTypeEnum.WHITE_LIST),
                 authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
 
-    assertFalse(authService.routeCheck(route("/api/private"), null));
+    assertThrows(MissException.class, () -> authService.routeCheck(route("/api/private"), null));
     assertTrue(authService.routeCheck(route("/api/public"), null));
     assertFalse(authService.routeCheck(route("/apix/public"), null));
+  }
+
+  @Test
+  void invalidAccessTokenIsUnauthenticatedButMissingAuthorityIsForbidden() {
+    when(authWrapper.getAllSystemAuthorities())
+        .thenReturn(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
+    when(authWrapper.getAuthoritiesByRoleCode("user")).thenReturn(Set.of("other_api"));
+
+    assertThrows(
+        MissException.class,
+        () -> authService.routeCheck(route("/api/private"), "Bearer invalid-token"));
+    assertFalse(
+        authService.routeCheck(route("/api/private"), "Bearer " + tokens.issueAccessToken(42L)));
+  }
+
+  @Test
+  void userLookupFailureIsNotCollapsedIntoForbidden() {
+    when(authWrapper.getAllSystemAuthorities())
+        .thenReturn(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
+    MissException failure = new MissException(ExceptionMessage.USER_NOT_EXIST);
+    when(userHttpServiceWrapper.findById(42L)).thenThrow(failure);
+
+    MissException actual =
+        assertThrows(
+            MissException.class,
+            () ->
+                authService.routeCheck(
+                    route("/api/private"), "Bearer " + tokens.issueAccessToken(42L)));
+
+    assertSame(failure, actual);
   }
 
   private AuthorityRouteCheckReq route(String path) {

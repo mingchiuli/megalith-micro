@@ -33,6 +33,8 @@ import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.common.exception.BaseException;
+import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 
@@ -121,5 +123,20 @@ class AuthControllerTest {
         .andExpect(status().isBadRequest());
 
     verify(authService, never()).findRoute(any());
+  }
+
+  @Test
+  void internalRouteCheckReturnsUnauthorizedForInvalidToken() throws Exception {
+    when(authService.routeCheck(any(), anyString()))
+        .thenThrow(new MissException(ExceptionMessage.TOKEN_INVALID));
+
+    mockMvc
+        .perform(
+            post("/inner/auth/route/check")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer expired-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"method\":\"GET\",\"routeMapping\":\"/api/private\"}"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value(ExceptionMessage.TOKEN_INVALID.getCode()));
   }
 }

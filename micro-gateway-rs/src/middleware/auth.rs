@@ -129,11 +129,20 @@ async fn auth(
         .await
         .map_err(handle_api_error);
 
+    map_auth_response(resp)
+}
+
+fn map_auth_response(resp: Result<ApiResult<bool>, ClientError>) -> Result<bool, AuthError> {
     match resp {
         Ok(resp) => match resp.code() {
             200 => Ok(resp.into_data()),
-            _ => Err(AuthError::Unauthorized("鉴权失败".to_string())),
+            code => Err(AuthError::RequestFailed(format!(
+                "鉴权服务返回异常状态码: {code}"
+            ))),
         },
+        Err(ClientError::Status(code, message)) if code == 401 => {
+            Err(AuthError::Unauthorized(message))
+        }
         Err(e) => Err(AuthError::RequestFailed(e.to_string())),
     }
 }
@@ -162,7 +171,9 @@ fn build_headers(auth_token: &str) -> HashMap<HeaderName, HeaderValue> {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_allowed_origin, request_origin, requires_trusted_source};
+    use super::{is_allowed_origin, map_auth_response, request_origin, requires_trusted_source};
+    use crate::exception::{AuthError, ClientError};
+    use crate::result::ApiResult;
     use axum::{body::Body, extract::Request};
 
     #[test]
@@ -229,5 +240,26 @@ mod tests {
             .body(Body::empty())
             .unwrap();
         assert!(requires_trusted_source(&websocket));
+    }
+
+    #[test]
+    fn preserves_unauthorized_status_from_auth_service() {
+        let result = map_auth_response(Err(ClientError::Status(401, "token expired".into())));
+
+        assert!(matches!(
+            result,
+            Err(AuthError::Unauthorized(message)) if message == "token expired"
+        ));
+    }
+
+    #[test]
+    fn rejects_body_level_unauthorized_as_a_protocol_error() {
+        let body: ApiResult<bool> =
+            serde_json::from_str(r#"{"code":401,"msg":"unauthorized","data":false}"#).unwrap();
+
+        assert!(matches!(
+            map_auth_response(Ok(body)),
+            Err(AuthError::RequestFailed(message)) if message.contains("401")
+        ));
     }
 }
