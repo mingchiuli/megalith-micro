@@ -1,11 +1,8 @@
 name: Release Cache Maven Package
 on:
   push:
-    branches:
-      - "main"
-    paths:
-      - "cache/**"
-      - ".github/workflows/main-cache.yml"
+    tags:
+      - "*"
 
 permissions:
   contents: read
