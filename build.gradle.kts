@@ -2,8 +2,6 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
-import org.graalvm.buildtools.gradle.dsl.GraalVMReachabilityMetadataRepositoryExtension
-import org.gradle.api.plugins.ExtensionAware
 import com.diffplug.gradle.spotless.SpotlessExtension
 
 plugins {
@@ -62,10 +60,6 @@ subprojects {
 
         // Configure GraalVM Native Image compilation (仅用于本地测试)
         configure<GraalVMExtension> {
-            (this as ExtensionAware).extensions
-                .getByType(GraalVMReachabilityMetadataRepositoryExtension::class.java)
-                .version.set("1.0.9")
-
             binaries {
                 named("main") {
                     // 本地测试专用的编译参数
