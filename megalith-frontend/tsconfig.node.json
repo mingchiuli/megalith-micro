@@ -5,8 +5,11 @@
     "vitest.config.*",
     "cypress.config.*",
     "nightwatch.conf.*",
-    "playwright.config.*"
+    "playwright.config.*",
+    "server/**/*.ts",
+    "scripts/**/*.ts"
   ],
+  "exclude": ["dist", "node_modules"],
   "compilerOptions": {
     "composite": true,
     "module": "NodeNext",

@@ -6,7 +6,6 @@ import axios, {
 } from 'axios'
 import type { Data } from '@/type/entity'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
-import { createTraceParent } from '@/config/otel'
 
 export type HttpClientOptions = {
   baseURL?: string
@@ -61,7 +60,6 @@ export const createHttpClients = (options: HttpClientOptions = {}): HttpClients 
   const refreshClient = axios.create(common)
 
   const applyRequestContext = (config: InternalAxiosRequestConfig) => {
-    config.headers.traceparent = createTraceParent()
     if (!browser && cookie) config.headers.Cookie = cookie
     if (!browser && options.origin) config.headers.Origin = options.origin
     return config
@@ -84,8 +82,7 @@ export const createHttpClients = (options: HttpClientOptions = {}): HttpClients 
         .post(API_ENDPOINTS.AUTH.TOKEN_REFRESH, null, {
           headers: {
             ...(cookie ? { Cookie: cookie } : {}),
-            ...(options.origin ? { Origin: options.origin } : {}),
-            traceparent: createTraceParent()
+            ...(options.origin ? { Origin: options.origin } : {})
           }
         })
         .then(captureCookies)

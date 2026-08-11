@@ -1,9 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/config/otel', () => ({
-  createTraceParent: vi.fn(() => '00-trace-span-01')
-}))
-
 import {
   debounce,
   render,

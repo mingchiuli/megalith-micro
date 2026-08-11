@@ -91,7 +91,7 @@ describe('createHttpClients SSR context', () => {
     expect(firstHeaders.get('Origin')).toBe('https://first.example')
     expect(secondHeaders.get('Cookie')).toBe('megalith_access_token=second')
     expect(secondHeaders.get('Origin')).toBe('https://second.example')
-    expect(firstHeaders.get('traceparent')).toMatch(/^00-[\da-f]{32}-[\da-f]{16}-01$/)
+    expect(firstHeaders.has('traceparent')).toBe(false)
   })
 
   it('refreshes once, retries with the new cookie, and exposes Set-Cookie', async () => {
