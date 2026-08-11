@@ -3,8 +3,9 @@ use micro_sync_rs::{
     init_logger_provider, init_meter_provider, init_tracer_provider, set_route, shutdown_signal,
     trace_context_middleware,
 };
-use opentelemetry::{global, trace::TracerProvider};
+use opentelemetry::{global, propagation::TextMapCompositePropagator, trace::TracerProvider};
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
+use opentelemetry_sdk::propagation::{BaggagePropagator, TraceContextPropagator};
 use std::env;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
@@ -39,7 +40,10 @@ fn main() {
     let meter_provider = init_meter_provider(&http_client);
     global::set_meter_provider(meter_provider.clone());
 
-    global::set_text_map_propagator(opentelemetry_sdk::propagation::TraceContextPropagator::new());
+    global::set_text_map_propagator(TextMapCompositePropagator::new(vec![
+        Box::new(TraceContextPropagator::new()),
+        Box::new(BaggagePropagator::new()),
+    ]));
 
     let logger_provider = init_logger_provider(&http_client);
 
