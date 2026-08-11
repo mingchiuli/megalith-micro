@@ -53,6 +53,10 @@ const avatar = avatarUrl as string
 }
 
 .into-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   margin: 0 auto;
   width: fit-content;
   margin-top: 5rem;
@@ -66,7 +70,7 @@ const avatar = avatarUrl as string
   justify-content: center;
   width: 40px;
   height: 40px;
-  margin: 5px;
+  margin: 0;
   padding: 4px;
   color: var(--el-text-color-regular, #606266);
   text-decoration: none;
@@ -98,8 +102,8 @@ const avatar = avatarUrl as string
 
 .intro-github-icon {
   display: block;
-  width: 35px;
-  height: 35px;
+  width: 30px;
+  height: 30px;
   fill: currentColor;
 }
 </style>
