@@ -54,6 +54,7 @@ jobs:
         run: |
           npm run build
           npm run test:ssr
+          npm run test:otel
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v4
@@ -107,6 +108,8 @@ jobs:
             image="mingchiuli/megalith-frontend:latest"
             service="megalith-frontend"
             gateway_url="http://micro-gateway-rs:8088"
+            service_version="${{ github.sha }}"
+            otel_endpoint="http://apm-server:8200"
             base_file=""
             for candidate in compose.yaml compose.yml docker-compose.yaml docker-compose.yml; do
               if [ -f "$candidate" ]; then
@@ -121,8 +124,8 @@ jobs:
 
             override_file=$(mktemp)
             trap 'rm -f "$override_file"' EXIT
-            printf 'services:\n  %s:\n    image: %s\n    environment:\n      SSR_API_BASE_URL: %s\n' \
-              "$service" "$image" "$gateway_url" > "$override_file"
+            printf 'services:\n  %s:\n    image: %s\n    environment:\n      SSR_API_BASE_URL: %s\n      OTEL_SERVICE_VERSION: %s\n      OTEL_EXPORTER_OTLP_ENDPOINT: %s\n      OTEL_TRACES_SAMPLER: parentbased_traceidratio\n      OTEL_TRACES_SAMPLER_ARG: "0.5"\n' \
+              "$service" "$image" "$gateway_url" "$service_version" "$otel_endpoint" > "$override_file"
 
             compose() {
               docker compose -f "$base_file" -f "$override_file" "$@"

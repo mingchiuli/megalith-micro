@@ -15,8 +15,6 @@ vi.mock('vue-router', async (importOriginal) => ({
   useRouter: () => ({ push: mocks.routerPush })
 }))
 
-vi.mock('@/config/otel', () => ({ createTraceParent: vi.fn(() => 'tp') }))
-
 // HotItem 子组件存根：仅暴露 load 方法
 vi.mock('@/components/HotItem.vue', () => ({
   default: {

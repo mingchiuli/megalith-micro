@@ -11,6 +11,7 @@ export type RenderResult = {
   bodyTags: string
   state: string
   status: number
+  route: string
   redirect?: string
   modules: Set<string>
   setCookies: string[]
@@ -41,6 +42,7 @@ export const render = async (url: string, request: AppRequestContext): Promise<R
     bodyTags: renderedHead.bodyTags,
     state: stringify(pinia.state.value),
     status: redirect ? 302 : ((finalRoute.meta.status as number | undefined) ?? 200),
+    route: finalRoute.matched.at(-1)?.path ?? finalRoute.path,
     redirect,
     modules: context.modules ?? new Set<string>(),
     setCookies: responseCookies

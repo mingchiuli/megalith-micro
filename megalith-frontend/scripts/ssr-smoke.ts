@@ -1,6 +1,27 @@
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
-import { render } from '../dist/server/entry-server.js'
+import path from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+
+type RenderResult = {
+  appHtml: string
+  headTags: string
+  status: number
+}
+
+type Render = (
+  url: string,
+  request: {
+    origin: string
+    apiBaseURL: string
+    acceptLanguage: string
+  }
+) => Promise<RenderResult>
+
+const root = fileURLToPath(new URL('../../..', import.meta.url))
+const { render } = (await import(
+  pathToFileURL(path.join(root, 'dist/server/entry-server.js')).href
+)) as { render: Render }
 
 const apiServer = createServer((request, response) => {
   response.setHeader('Content-Type', 'application/json')
@@ -16,7 +37,7 @@ const apiServer = createServer((request, response) => {
   response.statusCode = 404
   response.end(JSON.stringify({ msg: 'Not Found', data: null }))
 })
-await new Promise((resolve) => apiServer.listen(0, '127.0.0.1', resolve))
+await new Promise<void>((resolve) => apiServer.listen(0, '127.0.0.1', () => resolve()))
 const apiAddress = apiServer.address()
 assert.ok(apiAddress && typeof apiAddress === 'object')
 
@@ -43,7 +64,7 @@ try {
 
   console.log('Production SSR bundle rendered successfully')
 } finally {
-  await new Promise((resolve, reject) =>
+  await new Promise<void>((resolve, reject) =>
     apiServer.close((error) => (error ? reject(error) : resolve()))
   )
 }
