@@ -2,17 +2,24 @@
 
 [![Java Version](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.java.net/)
 [![Rust Version](https://img.shields.io/badge/Rust-2024-edb974.svg)](https://www.rust-lang.org/)
+[![Node.js Version](https://img.shields.io/badge/Node.js-24-5fa04e.svg)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A hybrid Java/Rust microservices platform providing multi-level caching, distributed tracing, and real-time collaboration capabilities.
+A Java, Rust, and Node.js microservices platform providing multi-level caching, distributed tracing, server-side rendering, and real-time collaboration capabilities.
 
 ## 🏗️ Architecture
 
 ```mermaid
 graph TD
     %% Layer Definitions
+    subgraph ClientLayer[Client Layer]
+        Browser["Browser<br/>Vue 3 Hydrated Client"]
+    end
     subgraph ExternalLayer[External Layer]
-        Nginx["nginx<br/>External Gateway + Frontend Proxy"]
+        Nginx["nginx<br/>Reverse Proxy"]
+    end
+    subgraph FrontendLayer[Frontend Layer]
+        Frontend["frontend service Node.js<br/>Express + Vue 3 SSR<br/>Static Assets + Server Prefetch"]
     end
     subgraph GatewayLayer[Gateway Layer]
         Gateway["gateway service Rust<br/>Request Auth & Routing"]
@@ -37,8 +44,11 @@ graph TD
     subgraph LocalMachine[Local Machine - Developer Laptop]
         Kibana["kibana<br/>Monitoring Visualization<br/>(Local Install)"]
     end
-    %% Traffic Flow Sync uses WS others HTTP
-    Nginx --> Gateway
+    %% Traffic Flow: page requests use SSR; browser API calls bypass Node
+    Browser -->|Page / Asset / API / WS Requests| Nginx
+    Nginx -->|Page Routes + Static Assets| Frontend
+    Nginx -->|/api HTTP + /wsapi WS| Gateway
+    Frontend -->|SSR Prefetch HTTP<br/>Docker Internal Network| Gateway
     Gateway -->|HTTP/WS Auth Call Route Selection| Auth
     Gateway -->|HTTP| User
     Gateway -->|HTTP| Blog
@@ -59,10 +69,10 @@ graph TD
     RabbitMQ -->|Update Cache| Exhibit
     RabbitMQ -->|Update ES| Search
     RabbitMQ -->|Update Cache| Auth
-    Exhibit -->|L1 Cache| Redis
-    Auth -->|L1 Cache| Redis
+    Exhibit -->|L2 Cache| Redis
+    Auth -->|L2 Cache| Redis
     %% Monitoring Flow
-    User & Blog & Auth & Exhibit & Search & Sync & Gateway -->|OTel Data| APMServer
+    Frontend & User & Blog & Auth & Exhibit & Search & Sync & Gateway -->|OTel Traces / Metrics / Logs| APMServer
     APMServer --> ES
     ES -->|Encrypted WireGuard VPN| Kibana
 ```
@@ -111,6 +121,10 @@ graph TD
 - Tokio (Async runtime)
 - YRS (CRDT)
 - OpenTelemetry
+
+**Node.js:**
+- Express 5 + Vue 3 SSR
+- OpenTelemetry traces, metrics, and logs
 
 **Infrastructure:**
 - Nginx (External Gateway + Frontend Proxy)

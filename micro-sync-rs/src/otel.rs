@@ -31,7 +31,9 @@ pub fn init_tracer_provider(http_client: &reqwest::blocking::Client) -> SdkTrace
 
     SdkTracerProvider::builder()
         .with_batch_exporter(exporter)
-        .with_sampler(Sampler::TraceIdRatioBased(0.5))
+        .with_sampler(Sampler::ParentBased(Box::new(Sampler::TraceIdRatioBased(
+            0.5,
+        ))))
         .with_resource(resource())
         .build()
 }
