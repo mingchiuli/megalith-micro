@@ -55,7 +55,7 @@
     "@types/compression": "^1.8.1",
     "@types/express": "^5.0.6",
     "@types/markdown-it": "^14.1.2",
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.2.0",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vitest/coverage-istanbul": "^4.1.10",
     "@vue/eslint-config-prettier": "^10.2.0",
