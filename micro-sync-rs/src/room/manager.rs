@@ -1,322 +1,293 @@
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::time::{Duration, Instant};
-use tokio::sync::{Mutex, RwLock};
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use super::sync_protocol::BroadcastGroup;
+use tokio::sync::{Mutex, Notify, RwLock, broadcast};
 
-// 房间连接包装器
-pub struct RoomConnection {
-    room_id: String,
-    room_info: Arc<RoomInfo>,
-    room_manager: Arc<RoomManager>,
+use super::store::{RedisEvent, RedisSessionStore};
+
+#[derive(Clone, Debug)]
+pub enum RelayMessage {
+    Event(RedisEvent),
+    RedisUnavailable,
 }
 
-impl RoomConnection {
-    pub fn new(room_id: String, room_info: Arc<RoomInfo>, room_manager: Arc<RoomManager>) -> Self {
-        RoomConnection {
-            room_id,
-            room_info,
-            room_manager,
-        }
-    }
+struct RelayRoom {
+    sender: broadcast::Sender<RelayMessage>,
+    cursor: Mutex<String>,
+    subscribers: AtomicUsize,
+}
 
+pub struct RoomSubscription {
+    room_id: String,
+    room: Arc<RelayRoom>,
+    pub receiver: broadcast::Receiver<RelayMessage>,
+}
+
+impl RoomSubscription {
     pub fn room_id(&self) -> &str {
         &self.room_id
     }
-
-    pub async fn cleanup(self) {
-        self.room_manager
-            .leave_room(&self.room_id, &self.room_info)
-            .await;
-    }
 }
 
-// 房间信息结构
-pub struct RoomInfo {
-    broadcast_group: Arc<BroadcastGroup>,
-    connection_count: AtomicUsize,
-    empty_since: Mutex<Option<Instant>>,
-}
-
-impl RoomInfo {
-    async fn join(&self, room_id: &str) {
-        self.connection_count.fetch_add(1, Ordering::SeqCst);
-        if self.empty_since.lock().await.take().is_some() {
-            tracing::info!("房间 {} 在被删除前有新用户加入，取消删除", room_id);
-        }
-    }
-}
-
-// 房间管理器
 pub struct RoomManager {
-    rooms: RwLock<HashMap<String, Arc<RoomInfo>>>,
+    store: RedisSessionStore,
+    rooms: RwLock<HashMap<String, Arc<RelayRoom>>>,
+    wake_relay: Notify,
+    node_id: String,
+    next_connection_id: AtomicU64,
 }
 
 impl RoomManager {
-    pub fn new() -> Self {
-        RoomManager {
+    pub fn new(store: RedisSessionStore) -> Arc<Self> {
+        let manager = Arc::new(Self {
+            store,
             rooms: RwLock::new(HashMap::new()),
-        }
-    }
-
-    /// 获取或创建房间
-    pub async fn get_or_create_room(
-        &self, // 改为 &self，因为用的是 RwLock
-        room_id: &str,
-    ) -> (Arc<RoomInfo>, Arc<BroadcastGroup>) {
-        // 先尝试读锁获取房间
-        {
-            let rooms = self.rooms.read().await;
-            if let Some(room) = rooms.get(room_id) {
-                room.join(room_id).await;
-
-                tracing::info!(
-                    "用户加入已存在房间 {}. 当前连接数: {}",
-                    room_id,
-                    room.connection_count.load(Ordering::SeqCst)
-                );
-
-                return (room.clone(), room.broadcast_group.clone());
-            }
-        } // 释放读锁
-
-        // 房间不存在，获取写锁创建新房间
-        let mut rooms = self.rooms.write().await;
-
-        // Double-check：可能其他线程已经创建了
-        if let Some(room) = rooms.get(room_id) {
-            room.join(room_id).await;
-
-            tracing::info!(
-                "用户加入已存在房间 {} (double-check). 当前连接数: {}",
-                room_id,
-                room.connection_count.load(Ordering::SeqCst)
-            );
-
-            return (room.clone(), room.broadcast_group.clone());
-        }
-
-        // 确认不存在，创建新房间
-        tracing::info!("创建新房间: {}", room_id);
-
-        let broadcast_group = Arc::new(BroadcastGroup::new(32));
-
-        let room_info = Arc::new(RoomInfo {
-            broadcast_group: broadcast_group.clone(),
-            connection_count: AtomicUsize::new(1),
-            empty_since: Mutex::new(None),
+            wake_relay: Notify::new(),
+            node_id: format!("{}-{}", std::process::id(), now_nanos()),
+            next_connection_id: AtomicU64::new(1),
         });
-
-        rooms.insert(room_id.to_string(), room_info.clone());
-
-        tracing::info!("创建新房间完成: {}. 当前连接数: 1", room_id);
-
-        (room_info, broadcast_group)
+        manager.start_background_tasks();
+        manager
     }
 
-    /// 用户离开房间
-    async fn leave_room(&self, room_id: &str, room_info: &Arc<RoomInfo>) -> bool {
-        let previous_count =
-            room_info
-                .connection_count
-                .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |count| {
-                    count.checked_sub(1)
-                });
-        let Ok(previous_count) = previous_count else {
-            tracing::warn!("忽略房间 {} 的重复离开请求", room_id);
-            return false;
-        };
-        let current_count = previous_count - 1;
+    pub fn store(&self) -> &RedisSessionStore {
+        &self.store
+    }
 
-        tracing::info!("用户离开房间 {}. 剩余连接数: {}", room_id, current_count);
+    pub fn next_connection_id(&self) -> String {
+        format!(
+            "{}-{}",
+            self.node_id,
+            self.next_connection_id.fetch_add(1, Ordering::Relaxed)
+        )
+    }
 
-        if current_count == 0 {
-            // 不立即删除，标记删除时间
-            let mut empty_since = room_info.empty_since.lock().await;
-            *empty_since = Some(Instant::now());
-
-            tracing::info!(
-                "房间 {} 已无用户，标记为待删除（将在 5 分钟后删除）",
-                room_id
-            );
-
-            return false;
+    pub async fn join(&self, room_id: &str) -> redis::RedisResult<RoomSubscription> {
+        if let Some(room) = self.rooms.read().await.get(room_id).cloned() {
+            room.subscribers.fetch_add(1, Ordering::Relaxed);
+            return Ok(RoomSubscription {
+                room_id: room_id.to_string(),
+                receiver: room.sender.subscribe(),
+                room,
+            });
         }
 
-        false
+        let cursor = self.store.latest_event_id(room_id).await?;
+        let mut rooms = self.rooms.write().await;
+        let room = if let Some(room) = rooms.get(room_id).cloned() {
+            room.subscribers.fetch_add(1, Ordering::Relaxed);
+            room
+        } else {
+            let (sender, _) = broadcast::channel(self.store.sync_config().connection_buffer.max(1));
+            let room = Arc::new(RelayRoom {
+                sender,
+                cursor: Mutex::new(cursor),
+                subscribers: AtomicUsize::new(1),
+            });
+            rooms.insert(room_id.to_string(), room.clone());
+            self.wake_relay.notify_one();
+            room
+        };
+        Ok(RoomSubscription {
+            room_id: room_id.to_string(),
+            receiver: room.sender.subscribe(),
+            room,
+        })
     }
 
-    /// 定期清理过期的空房间
-    pub async fn cleanup_expired_rooms(&self) -> usize {
-        let now = Instant::now();
-        let mut to_remove = Vec::new();
+    pub async fn leave(&self, subscription: RoomSubscription) {
+        let previous = subscription.room.subscribers.fetch_update(
+            Ordering::Relaxed,
+            Ordering::Relaxed,
+            |count| count.checked_sub(1),
+        );
+        if previous != Ok(1) {
+            return;
+        }
+        let mut rooms = self.rooms.write().await;
+        if rooms.get(subscription.room_id()).is_some_and(|current| {
+            Arc::ptr_eq(current, &subscription.room)
+                && current.subscribers.load(Ordering::Relaxed) == 0
+        }) {
+            rooms.remove(subscription.room_id());
+        }
+    }
 
-        // 先用读锁检查
-        {
-            let rooms = self.rooms.read().await;
+    pub fn is_ready(&self) -> bool {
+        self.store.is_healthy()
+    }
 
-            for (room_id, room_info) in rooms.iter() {
-                let count = room_info.connection_count.load(Ordering::SeqCst);
+    fn start_background_tasks(self: &Arc<Self>) {
+        tokio::spawn(self.clone().relay_loop());
+        tokio::spawn(self.clone().health_loop());
+        tokio::spawn(self.clone().expired_connection_loop());
+        tokio::spawn(self.clone().worker_supervisor());
+    }
 
-                if count == 0 {
-                    let empty_since = room_info.empty_since.lock().await;
+    async fn relay_loop(self: Arc<Self>) {
+        let mut connection = loop {
+            match self.store.dedicated_connection().await {
+                Ok(connection) => break connection,
+                Err(error) => {
+                    tracing::error!(%error, "failed to connect Redis room relay");
+                    tokio::time::sleep(Duration::from_secs(1)).await;
+                }
+            }
+        };
+        loop {
+            let rooms: Vec<(String, Arc<RelayRoom>)> = self
+                .rooms
+                .read()
+                .await
+                .iter()
+                .map(|(id, room)| (id.clone(), room.clone()))
+                .collect();
+            if rooms.is_empty() {
+                self.wake_relay.notified().await;
+                continue;
+            }
+            let query = {
+                let mut query = Vec::with_capacity(rooms.len());
+                for (room_id, room) in &rooms {
+                    query.push((room_id.clone(), room.cursor.lock().await.clone()));
+                }
+                query
+            };
 
-                    if let Some(empty_time) = *empty_since {
-                        let duration = now.duration_since(empty_time);
-                        // 超过 5 分钟才删除
-                        if duration >= Duration::from_secs(300) {
-                            tracing::info!("房间 {} 已空闲 {:?}，准备清理", room_id, duration);
-                            to_remove.push((room_id.clone(), room_info.clone(), empty_time));
+            match self.store.read_rooms(&mut connection, &query).await {
+                Ok(events_by_room) => {
+                    for (room_id, events) in events_by_room {
+                        let Some(room) = rooms
+                            .iter()
+                            .find_map(|(id, room)| (id == &room_id).then_some(room))
+                        else {
+                            continue;
+                        };
+                        for event in events {
+                            *room.cursor.lock().await = event.id.clone();
+                            let _ = room.sender.send(RelayMessage::Event(event));
                         }
                     }
                 }
-            }
-        }
-
-        self.remove_expired_candidates(now, to_remove).await
-    }
-
-    async fn remove_expired_candidates(
-        &self,
-        now: Instant,
-        candidates: Vec<(String, Arc<RoomInfo>, Instant)>,
-    ) -> usize {
-        if !candidates.is_empty() {
-            let mut rooms = self.rooms.write().await;
-            let mut removed_count = 0;
-
-            for (room_id, candidate, observed_empty_since) in candidates {
-                let should_remove = if let Some(current) = rooms.get(&room_id) {
-                    if !Arc::ptr_eq(current, &candidate)
-                        || current.connection_count.load(Ordering::SeqCst) != 0
-                    {
-                        false
-                    } else {
-                        let empty_since = current.empty_since.lock().await;
-                        empty_since.is_some_and(|empty_time| {
-                            empty_time == observed_empty_since
-                                && now.duration_since(empty_time) >= Duration::from_secs(300)
-                        })
+                Err(error) => {
+                    tracing::error!(%error, "Redis room relay failed");
+                    self.broadcast_redis_failure(&rooms);
+                    tokio::time::sleep(Duration::from_secs(1)).await;
+                    if let Ok(new_connection) = self.store.dedicated_connection().await {
+                        connection = new_connection;
                     }
-                } else {
-                    false
-                };
-
-                if should_remove {
-                    rooms.remove(&room_id);
-                    removed_count += 1;
-                    tracing::info!("已删除房间: {}", room_id);
                 }
             }
-
-            tracing::info!(
-                "清理完成：删除了 {} 个过期房间，当前剩余 {} 个房间",
-                removed_count,
-                rooms.len()
-            );
-
-            return removed_count;
         }
-
-        0
-    }
-}
-
-impl Default for RoomManager {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn new_room_manager_has_no_rooms() {
-        let rm = RoomManager::new();
-        assert!(rm.rooms.read().await.is_empty());
     }
 
-    #[tokio::test]
-    async fn default_constructor_has_no_rooms() {
-        let rm = RoomManager::default();
-        assert!(rm.rooms.read().await.is_empty());
+    fn broadcast_redis_failure(&self, rooms: &[(String, Arc<RelayRoom>)]) {
+        for (_, room) in rooms {
+            let _ = room.sender.send(RelayMessage::RedisUnavailable);
+        }
     }
 
-    #[tokio::test]
-    async fn cleanup_returns_zero_when_no_rooms() {
-        let rm = RoomManager::new();
-        assert_eq!(rm.cleanup_expired_rooms().await, 0);
+    async fn health_loop(self: Arc<Self>) {
+        let mut interval = tokio::time::interval(Duration::from_secs(2));
+        loop {
+            interval.tick().await;
+            if let Err(error) = self.store.ping().await {
+                tracing::warn!(%error, "Redis health check failed");
+            }
+        }
     }
 
-    #[tokio::test]
-    async fn cleanup_removes_an_expired_empty_room() {
-        let rm = Arc::new(RoomManager::new());
-        let (room, _) = rm.get_or_create_room("expired").await;
-        rm.leave_room("expired", &room).await;
-        *room.empty_since.lock().await = Some(Instant::now() - Duration::from_secs(301));
-
-        assert_eq!(rm.cleanup_expired_rooms().await, 1);
-        assert!(!rm.rooms.read().await.contains_key("expired"));
+    async fn expired_connection_loop(self: Arc<Self>) {
+        let interval_seconds = self.store.sync_config().lease_heartbeat_seconds.max(1);
+        let mut interval = tokio::time::interval(Duration::from_secs(interval_seconds));
+        loop {
+            interval.tick().await;
+            let expired = match self.store.expired_connections(500).await {
+                Ok(expired) => expired,
+                Err(error) => {
+                    tracing::warn!(%error, "failed to query expired collaboration connections");
+                    continue;
+                }
+            };
+            for (connection_id, room_id) in expired {
+                if let Err(error) = self.store.disconnect(&room_id, &connection_id, true).await {
+                    tracing::warn!(%error, %room_id, %connection_id, "failed to expire collaboration connection");
+                }
+            }
+        }
     }
 
-    #[tokio::test]
-    async fn cleanup_keeps_a_room_that_was_rejoined() {
-        let rm = Arc::new(RoomManager::new());
-        let (room, _) = rm.get_or_create_room("rejoined").await;
-        rm.leave_room("rejoined", &room).await;
-        *room.empty_since.lock().await = Some(Instant::now() - Duration::from_secs(301));
-
-        let (rejoined, _) = rm.get_or_create_room("rejoined").await;
-
-        assert!(Arc::ptr_eq(&room, &rejoined));
-        assert_eq!(rm.cleanup_expired_rooms().await, 0);
-        assert!(rm.rooms.read().await.contains_key("rejoined"));
+    async fn worker_supervisor(self: Arc<Self>) {
+        for index in 0..self.store.worker_config().concurrency.max(1) {
+            tokio::spawn(
+                self.clone()
+                    .worker_loop(format!("{}-{index}", self.node_id)),
+            );
+        }
     }
 
-    #[tokio::test]
-    async fn duplicate_leave_does_not_underflow_connection_count() {
-        let rm = Arc::new(RoomManager::new());
-        let (room, _) = rm.get_or_create_room("duplicate-leave").await;
-
-        rm.leave_room("duplicate-leave", &room).await;
-        rm.leave_room("duplicate-leave", &room).await;
-
-        assert_eq!(room.connection_count.load(Ordering::SeqCst), 0);
-    }
-
-    #[tokio::test]
-    async fn cleanup_does_not_remove_a_replacement_with_the_same_room_id() {
-        let rm = Arc::new(RoomManager::new());
-        let (candidate, _) = rm.get_or_create_room("replaced").await;
-        rm.leave_room("replaced", &candidate).await;
-        let expired_at = Instant::now() - Duration::from_secs(301);
-        *candidate.empty_since.lock().await = Some(expired_at);
-
-        let replacement = Arc::new(RoomInfo {
-            broadcast_group: Arc::new(BroadcastGroup::new(4)),
-            connection_count: AtomicUsize::new(1),
-            empty_since: Mutex::new(None),
-        });
-        rm.rooms
-            .write()
-            .await
-            .insert("replaced".to_string(), replacement.clone());
-
-        let removed = rm
-            .remove_expired_candidates(
-                Instant::now(),
-                vec![("replaced".to_string(), candidate, expired_at)],
-            )
-            .await;
-
-        assert_eq!(removed, 0);
-        assert!(Arc::ptr_eq(
-            rm.rooms.read().await.get("replaced").unwrap(),
-            &replacement
+    async fn worker_loop(self: Arc<Self>, consumer: String) {
+        let mut claim_interval = tokio::time::interval(Duration::from_secs(
+            self.store.worker_config().task_timeout_seconds.max(2) / 2,
         ));
+        let mut connection = loop {
+            match self.store.dedicated_connection().await {
+                Ok(connection) => break connection,
+                Err(error) => {
+                    tracing::warn!(%error, %consumer, "failed to connect Redis compaction worker");
+                    tokio::time::sleep(Duration::from_secs(1)).await;
+                }
+            }
+        };
+        loop {
+            let tasks = tokio::select! {
+                _ = claim_interval.tick() => self.store.claim_worker_tasks(
+                    &consumer,
+                    1,
+                ).await,
+                tasks = self.store.read_worker_tasks(
+                    &mut connection,
+                    &consumer,
+                    1,
+                ) => tasks,
+            };
+            let tasks = match tasks {
+                Ok(tasks) => tasks,
+                Err(error) => {
+                    tracing::warn!(%error, %consumer, "Redis compaction worker read failed");
+                    tokio::time::sleep(Duration::from_secs(1)).await;
+                    match self.store.dedicated_connection().await {
+                        Ok(new_connection) => connection = new_connection,
+                        Err(_) => continue,
+                    }
+                    continue;
+                }
+            };
+            for (task_id, room_id) in tasks {
+                tokio::time::sleep(Duration::from_secs(
+                    self.store.worker_config().task_debounce_seconds,
+                ))
+                .await;
+                match self.store.compact_room(&room_id).await {
+                    Ok(()) => {
+                        if let Err(error) = self.store.acknowledge_worker_task(&task_id).await {
+                            tracing::warn!(%error, %task_id, "failed to acknowledge compaction task");
+                        }
+                    }
+                    Err(error) => {
+                        tracing::error!(%error, %room_id, %task_id, "room compaction failed")
+                    }
+                }
+            }
+        }
     }
+}
+
+fn now_nanos() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos()
 }

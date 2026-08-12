@@ -3,6 +3,25 @@ server:
   name: micro-sync-rs
   port: 8089
 
+redis:
+  url: redis://:123456@127.0.0.1:6379/
+  prefix: msync
+
+sync:
+  session_retention_seconds: 300
+  lease_heartbeat_seconds: 15
+  lease_timeout_seconds: 45
+  stream_safety_seconds: 60
+  relay_block_millis: 200
+  relay_batch_size: 5000
+  connection_buffer: 256
+  initial_sync_timeout_seconds: 15
+
+worker:
+  task_debounce_seconds: 5
+  task_timeout_seconds: 60
+  concurrency: 4
+
 otel:
   exporter:
     otlp:

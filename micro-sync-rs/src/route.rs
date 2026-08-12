@@ -1,20 +1,29 @@
-use axum::Router;
+use axum::extract::State;
+use axum::http::StatusCode;
 use axum::routing::get;
+use axum::{Router, response::IntoResponse};
 use std::sync::Arc;
 
 use crate::{
-    room::{RoomManager, ws_handler},
-    schedule::task::start_cleanup_task,
+    config::{redis_config, sync_config, worker_config},
+    room::{RedisSessionStore, RoomManager, ws_handler},
 };
 
-pub fn set_route() -> Router {
-    let room_manager = Arc::new(RoomManager::new());
-    start_cleanup_task(room_manager.clone());
+pub async fn set_route() -> redis::RedisResult<Router> {
+    let store = RedisSessionStore::connect(redis_config(), sync_config(), worker_config()).await?;
+    store.ensure_worker_group().await?;
+    let room_manager = RoomManager::new(store);
 
-    Router::new()
-        // WebSocket 路由
+    Ok(Router::new()
         .route("/rooms/{room_id}", get(ws_handler))
-        .with_state(room_manager)
-        // 健康检查路由
-        .route("/actuator/health", get(|| async { "OK" }))
+        .route("/actuator/health", get(health))
+        .with_state(room_manager))
+}
+
+async fn health(State(room_manager): State<Arc<RoomManager>>) -> impl IntoResponse {
+    if room_manager.is_ready() {
+        (StatusCode::OK, "OK")
+    } else {
+        (StatusCode::SERVICE_UNAVAILABLE, "Redis unavailable")
+    }
 }

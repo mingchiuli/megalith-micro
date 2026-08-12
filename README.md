@@ -28,7 +28,7 @@ graph TD
         Auth["auth service<br/>Permission L2 Cache / Login API + Cache Update"]
         User["user service<br/>User & Permission Management"]
         Blog["blog service<br/>Blog Content Management"]
-        Sync["sync service Rust<br/>Collaborative Editing WS Single Point"]
+        Sync["sync service Rust replicas<br/>Stateless Collaborative Editing WS"]
         Exhibit["exhibit service<br/>Blog L2 Cache"]
         Search["search service<br/>Search Functionality"]
     end
@@ -71,6 +71,7 @@ graph TD
     RabbitMQ -->|Update Cache| Auth
     Exhibit -->|L2 Cache| Redis
     Auth -->|L2 Cache| Redis
+    Sync -->|Session Streams / Snapshots / Presence| Redis
     %% Monitoring Flow
     Frontend & User & Blog & Auth & Exhibit & Search & Sync & Gateway -->|OTel Traces / Metrics / Logs| APMServer
     APMServer --> ES
@@ -104,6 +105,7 @@ graph TD
 - **Distributed Tracing**: Full OpenTelemetry integration across all services
 - **GraalVM Native Support**: All Java microservices support native compilation
 - **Real-time Collaboration**: CRDT-based sync via WebSocket (YRS)
+- **Stateless Sync Replicas**: Collaboration sessions are relayed and compacted through shared Redis; load balancers do not need sticky sessions
 - **JWT Authentication**: Secure token-based auth across services
 - **JPMS Module**: Proper Java Platform Module System support
 
@@ -166,6 +168,15 @@ cargo build --manifest-path micro-sync-rs/Cargo.toml
 cargo run --manifest-path micro-gateway-rs/Cargo.toml
 cargo run --manifest-path micro-sync-rs/Cargo.toml
 ```
+
+`micro-sync-rs` requires Redis 6.2 or newer. Every replica must use the same
+single-node Redis endpoint through `REDIS_URL`; Redis Cluster is intentionally
+not supported. Redis stores the transient collaboration draft for five minutes
+after the final connection lease expires. Explicit saves continue to use the
+blog service and MariaDB as the source of truth.
+
+Nested sync settings use a double underscore in environment variables, for
+example `SYNC__SESSION_RETENTION_SECONDS=300` and `WORKER__CONCURRENCY=4`.
 
 ## 📁 Project Structure
 
