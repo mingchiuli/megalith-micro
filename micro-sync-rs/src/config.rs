@@ -2,52 +2,80 @@ use config::{Config, ConfigError, Environment};
 use serde::Deserialize;
 use std::sync::OnceLock;
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 struct AppConfig {
     server: ServerConfig,
+    redis: RedisConfig,
+    sync: SyncConfig,
+    worker: WorkerConfig,
     otel: OtelConfig,
     log: LogConfig,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 struct ServerConfig {
     name: String,
     port: u16,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
+pub struct RedisConfig {
+    pub url: String,
+    pub prefix: String,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct SyncConfig {
+    pub session_retention_seconds: u64,
+    pub lease_heartbeat_seconds: u64,
+    pub lease_timeout_seconds: u64,
+    pub stream_safety_seconds: u64,
+    pub relay_block_millis: usize,
+    pub relay_batch_size: usize,
+    pub connection_buffer: usize,
+    pub initial_sync_timeout_seconds: u64,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct WorkerConfig {
+    pub task_debounce_seconds: u64,
+    pub task_timeout_seconds: u64,
+    pub concurrency: usize,
+}
+
+#[derive(Clone, Deserialize)]
 struct OtelConfig {
     exporter: ExporterConfig,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 struct ExporterConfig {
     otlp: OtlpConfig,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 struct OtlpConfig {
     traces: TracesConfig,
     metrics: MetricsConfig,
     logs: LogsConfig,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 struct TracesConfig {
     endpoint: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 struct MetricsConfig {
     endpoint: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 struct LogsConfig {
     endpoint: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 struct LogConfig {
     level: String,
 }
@@ -75,6 +103,7 @@ pub fn init_config() -> Result<(), ConfigError> {
             config::FileFormat::Yaml,
         ))
         .add_source(Environment::default().separator("_").try_parsing(true))
+        .add_source(Environment::default().separator("__").try_parsing(true))
         .build()?;
 
     let app_config: AppConfig = config.try_deserialize()?;
@@ -110,4 +139,16 @@ pub fn get_config(key: ConfigKey) -> String {
 /// 获取静态字符串引用
 pub fn get_static_value(key: ConfigKey) -> &'static str {
     Box::leak(get_config(key).into_boxed_str())
+}
+
+pub fn redis_config() -> RedisConfig {
+    get_app_config().redis.clone()
+}
+
+pub fn sync_config() -> SyncConfig {
+    get_app_config().sync.clone()
+}
+
+pub fn worker_config() -> WorkerConfig {
+    get_app_config().worker.clone()
 }

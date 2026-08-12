@@ -9,6 +9,7 @@ repository.workspace = true
 [dependencies]
 # CRDT specific
 yrs.workspace = true
+redis.workspace = true
 
 # Inherit from workspace
 axum.workspace = true

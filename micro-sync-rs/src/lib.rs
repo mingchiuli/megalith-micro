@@ -4,7 +4,6 @@ mod middleware;
 mod otel;
 mod room;
 mod route;
-mod schedule;
 mod shutdown;
 
 pub use otel::init_logger_provider;

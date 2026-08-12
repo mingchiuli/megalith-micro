@@ -77,10 +77,13 @@ fn main() {
 
         axum::serve(
             listener,
-            set_route().layer(axum::middleware::from_fn_with_state(
-                (),
-                trace_context_middleware,
-            )),
+            set_route()
+                .await
+                .expect("Failed to initialize Redis session store")
+                .layer(axum::middleware::from_fn_with_state(
+                    (),
+                    trace_context_middleware,
+                )),
         )
         .with_graceful_shutdown(shutdown_signal())
         .await

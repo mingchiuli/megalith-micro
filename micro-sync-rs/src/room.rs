@@ -1,7 +1,8 @@
 mod broadcast;
-mod document_actor;
 mod manager;
-mod sync_protocol;
+mod protocol;
+mod store;
 
 pub use broadcast::ws_handler;
 pub use manager::RoomManager;
+pub use store::RedisSessionStore;
