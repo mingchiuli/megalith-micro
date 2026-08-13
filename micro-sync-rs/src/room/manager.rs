@@ -5,22 +5,31 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use tokio::sync::{Mutex, Notify, RwLock, broadcast};
 
-use super::store::{RedisEvent, RedisSessionStore};
+use super::protocol::{encode_awareness, encode_document_update};
+use super::store::{EventKind, RedisSessionStore, StreamOffset};
 
 #[derive(Clone, Debug)]
 pub enum RelayMessage {
-    Event(RedisEvent),
+    Event(Arc<RelayEvent>),
     RedisUnavailable,
 }
 
+#[derive(Debug)]
+pub struct RelayEvent {
+    pub id: StreamOffset,
+    pub origin: String,
+    pub frame: bytes::Bytes,
+}
+
 struct RelayRoom {
+    room_id: Arc<str>,
     sender: broadcast::Sender<RelayMessage>,
-    cursor: Mutex<String>,
+    cursor: Mutex<StreamOffset>,
     subscribers: AtomicUsize,
 }
 
 pub struct RoomSubscription {
-    room_id: String,
+    room_id: Arc<str>,
     room: Arc<RelayRoom>,
     pub receiver: broadcast::Receiver<RelayMessage>,
 }
@@ -29,11 +38,15 @@ impl RoomSubscription {
     pub fn room_id(&self) -> &str {
         &self.room_id
     }
+
+    pub fn shared_room_id(&self) -> Arc<str> {
+        Arc::clone(&self.room_id)
+    }
 }
 
 pub struct RoomManager {
     store: RedisSessionStore,
-    rooms: RwLock<HashMap<String, Arc<RelayRoom>>>,
+    rooms: RwLock<HashMap<Arc<str>, Arc<RelayRoom>>>,
     wake_relay: Notify,
     node_id: String,
     next_connection_id: AtomicU64,
@@ -64,34 +77,35 @@ impl RoomManager {
         )
     }
 
-    pub async fn join(&self, room_id: &str) -> redis::RedisResult<RoomSubscription> {
-        if let Some(room) = self.rooms.read().await.get(room_id).cloned() {
+    pub async fn join(&self, room_id: Arc<str>) -> redis::RedisResult<RoomSubscription> {
+        if let Some(room) = self.rooms.read().await.get(room_id.as_ref()).cloned() {
             room.subscribers.fetch_add(1, Ordering::Relaxed);
             return Ok(RoomSubscription {
-                room_id: room_id.to_string(),
+                room_id: Arc::clone(&room.room_id),
                 receiver: room.sender.subscribe(),
                 room,
             });
         }
 
-        let cursor = self.store.latest_event_id(room_id).await?;
+        let cursor = self.store.latest_event_id(&room_id).await?;
         let mut rooms = self.rooms.write().await;
-        let room = if let Some(room) = rooms.get(room_id).cloned() {
+        let room = if let Some(room) = rooms.get(room_id.as_ref()).cloned() {
             room.subscribers.fetch_add(1, Ordering::Relaxed);
             room
         } else {
             let (sender, _) = broadcast::channel(self.store.sync_config().connection_buffer.max(1));
             let room = Arc::new(RelayRoom {
+                room_id: Arc::clone(&room_id),
                 sender,
                 cursor: Mutex::new(cursor),
                 subscribers: AtomicUsize::new(1),
             });
-            rooms.insert(room_id.to_string(), room.clone());
+            rooms.insert(Arc::clone(&room_id), Arc::clone(&room));
             self.wake_relay.notify_one();
             room
         };
         Ok(RoomSubscription {
-            room_id: room_id.to_string(),
+            room_id: Arc::clone(&room.room_id),
             receiver: room.sender.subscribe(),
             room,
         })
@@ -137,12 +151,12 @@ impl RoomManager {
             }
         };
         loop {
-            let rooms: Vec<(String, Arc<RelayRoom>)> = self
+            let rooms: Vec<(Arc<str>, Arc<RelayRoom>)> = self
                 .rooms
                 .read()
                 .await
                 .iter()
-                .map(|(id, room)| (id.clone(), room.clone()))
+                .map(|(id, room)| (Arc::clone(id), Arc::clone(room)))
                 .collect();
             if rooms.is_empty() {
                 self.wake_relay.notified().await;
@@ -151,23 +165,29 @@ impl RoomManager {
             let query = {
                 let mut query = Vec::with_capacity(rooms.len());
                 for (room_id, room) in &rooms {
-                    query.push((room_id.clone(), room.cursor.lock().await.clone()));
+                    query.push((room_id.as_ref(), room.cursor.lock().await.clone()));
                 }
                 query
             };
 
             match self.store.read_rooms(&mut connection, &query).await {
                 Ok(events_by_room) => {
-                    for (room_id, events) in events_by_room {
-                        let Some(room) = rooms
-                            .iter()
-                            .find_map(|(id, room)| (id == &room_id).then_some(room))
-                        else {
+                    for (room_index, events) in events_by_room {
+                        let Some((_, room)) = rooms.get(room_index) else {
                             continue;
                         };
                         for event in events {
-                            *room.cursor.lock().await = event.id.clone();
-                            let _ = room.sender.send(RelayMessage::Event(event));
+                            let frame = match event.kind {
+                                EventKind::Document => encode_document_update(&event.payload),
+                                EventKind::Awareness => encode_awareness(&event.payload),
+                            };
+                            let relay_event = Arc::new(RelayEvent {
+                                id: event.id,
+                                origin: event.origin,
+                                frame,
+                            });
+                            *room.cursor.lock().await = relay_event.id.clone();
+                            let _ = room.sender.send(RelayMessage::Event(relay_event));
                         }
                     }
                 }
@@ -183,7 +203,7 @@ impl RoomManager {
         }
     }
 
-    fn broadcast_redis_failure(&self, rooms: &[(String, Arc<RelayRoom>)]) {
+    fn broadcast_redis_failure(&self, rooms: &[(Arc<str>, Arc<RelayRoom>)]) {
         for (_, room) in rooms {
             let _ = room.sender.send(RelayMessage::RedisUnavailable);
         }
@@ -290,4 +310,26 @@ fn now_nanos() -> u128 {
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_nanos()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn relay_clones_share_the_encoded_frame() {
+        let event = Arc::new(RelayEvent {
+            id: StreamOffset::zero(),
+            origin: "origin".to_string(),
+            frame: bytes::Bytes::from(vec![1, 2, 3]),
+        });
+        let first = RelayMessage::Event(Arc::clone(&event));
+        let second = first.clone();
+        let (RelayMessage::Event(first), RelayMessage::Event(second)) = (first, second) else {
+            panic!("expected relay events");
+        };
+
+        assert!(Arc::ptr_eq(&first, &second));
+        assert_eq!(first.frame.as_ptr(), second.frame.as_ptr());
+    }
 }

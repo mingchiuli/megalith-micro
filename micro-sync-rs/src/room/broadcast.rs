@@ -15,10 +15,10 @@ use crate::extractor::AxumHeaderExtractor;
 
 use super::manager::{RelayMessage, RoomManager, RoomSubscription};
 use super::protocol::{
-    ClientMessage, decode_client_message, encode_awareness, encode_document_update,
-    initial_messages, merge_awareness_updates, sync_step2,
+    ClientMessage, decode_client_message, encode_awareness, initial_messages,
+    merge_awareness_updates, sync_step2,
 };
-use super::store::{EventKind, stream_id_is_after};
+use super::store::EventKind;
 
 const CLOSE_PROTOCOL_ERROR: u16 = 1002;
 const CLOSE_TRY_AGAIN_LATER: u16 = 1013;
@@ -42,15 +42,17 @@ pub async fn ws_handler(
 }
 
 async fn peer(mut socket: WebSocket, room_manager: Arc<RoomManager>, room_id: String) {
+    let requested_room_id: Arc<str> = room_id.into();
     let connection_id = room_manager.next_connection_id();
-    let mut subscription = match room_manager.join(&room_id).await {
+    let mut subscription = match room_manager.join(requested_room_id).await {
         Ok(subscription) => subscription,
         Err(error) => {
-            tracing::error!(%error, %room_id, "failed to subscribe room relay");
+            tracing::error!(%error, "failed to subscribe room relay");
             close(&mut socket, CLOSE_TRY_AGAIN_LATER, "Redis unavailable").await;
             return;
         }
     };
+    let room_id = subscription.shared_room_id();
     if let Err(error) = room_manager
         .store()
         .register_connection(&room_id, &connection_id)
@@ -107,7 +109,7 @@ async fn run_session(
     };
     for message in initial_messages(&state.document, &state.awareness)? {
         socket
-            .send(Message::Binary(message.into()))
+            .send(Message::Binary(message))
             .await
             .map_err(|error| error.to_string())?;
     }
@@ -133,13 +135,13 @@ async fn run_session(
                         match message {
                             ClientMessage::SyncStep1(state_vector) => {
                                 let state = redis_or_close(socket, store.load_room(room_id).await).await?;
-                                let response = sync_step2(&state.document, &state_vector)?;
-                                socket.send(Message::Binary(response.into())).await.map_err(|error| error.to_string())?;
+                                let response = sync_step2(&state.document, state_vector)?;
+                                socket.send(Message::Binary(response)).await.map_err(|error| error.to_string())?;
                             }
                             ClientMessage::DocumentUpdate(update) => {
                                 redis_or_close(
                                     socket,
-                                    store.append_event(room_id, EventKind::Document, connection_id, &update).await,
+                                    store.append_event(room_id, EventKind::Document, connection_id, update).await,
                                 ).await?;
                             }
                             ClientMessage::Awareness(awareness) => {
@@ -157,7 +159,7 @@ async fn run_session(
                             ClientMessage::QueryAwareness => {
                                 let updates = redis_or_close(socket, store.read_awareness(room_id).await).await?;
                                 let update = merge_awareness_updates(&updates)?;
-                                socket.send(Message::Binary(encode_awareness(&update).into())).await.map_err(|error| error.to_string())?;
+                                socket.send(Message::Binary(encode_awareness(&update))).await.map_err(|error| error.to_string())?;
                             }
                             ClientMessage::Ignored => {}
                         }
@@ -173,14 +175,10 @@ async fn run_session(
             relay = subscription.receiver.recv() => {
                 match relay {
                     Ok(RelayMessage::Event(event)) => {
-                        if event.origin == connection_id || !stream_id_is_after(&event.id, &initial_highwater) {
+                        if event.origin == connection_id || !event.id.is_after(&initial_highwater) {
                             continue;
                         }
-                        let data = match event.kind {
-                            EventKind::Document => encode_document_update(&event.payload),
-                            EventKind::Awareness => encode_awareness(&event.payload),
-                        };
-                        socket.send(Message::Binary(data.into())).await.map_err(|error| error.to_string())?;
+                        socket.send(Message::Binary(event.frame.clone())).await.map_err(|error| error.to_string())?;
                     }
                     Ok(RelayMessage::RedisUnavailable) => {
                         close(socket, CLOSE_TRY_AGAIN_LATER, "Redis unavailable").await;

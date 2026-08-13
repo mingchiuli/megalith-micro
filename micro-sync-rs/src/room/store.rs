@@ -2,9 +2,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use bytes::Bytes;
 use redis::aio::{ConnectionManager, MultiplexedConnection};
 use redis::streams::{StreamId, StreamRangeReply, StreamReadReply};
-use redis::{AsyncCommands, RedisError, RedisResult, Script};
+use redis::{AsyncCommands, FromRedisValue, RedisError, RedisResult, Script, Value};
 
 use crate::config::{RedisConfig, SyncConfig, WorkerConfig};
 use crate::room::protocol::AwarenessClient;
@@ -32,36 +33,75 @@ impl EventKind {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StreamOffset {
+    value: Arc<str>,
+    timestamp: u64,
+    sequence: u64,
+}
+
+impl StreamOffset {
+    pub(super) fn new(value: String) -> Self {
+        let (timestamp, sequence) = parse_stream_id(&value).unwrap_or_default();
+        Self {
+            value: value.into(),
+            timestamp,
+            sequence,
+        }
+    }
+
+    pub(super) fn zero() -> Self {
+        Self {
+            value: Arc::from("0-0"),
+            timestamp: 0,
+            sequence: 0,
+        }
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.value
+    }
+
+    pub fn is_after(&self, other: &Self) -> bool {
+        (self.timestamp, self.sequence) > (other.timestamp, other.sequence)
+    }
+}
+
+#[derive(Debug)]
 pub struct RedisEvent {
-    pub id: String,
+    pub id: StreamOffset,
     pub kind: EventKind,
     pub origin: String,
-    pub payload: Vec<u8>,
+    pub payload: Bytes,
 }
 
 #[derive(Debug)]
 pub struct RoomState {
-    pub document: Vec<u8>,
-    pub awareness: Vec<Vec<u8>>,
-    pub highwater: String,
+    pub document: Bytes,
+    pub awareness: Vec<Bytes>,
+    pub highwater: StreamOffset,
 }
 
-#[derive(Clone)]
 pub struct RedisSessionStore {
     client: redis::Client,
     connection: ConnectionManager,
     prefix: Arc<str>,
     sync: SyncConfig,
     worker: WorkerConfig,
-    healthy: Arc<AtomicBool>,
+    healthy: AtomicBool,
 }
 
 #[derive(Debug)]
 struct Snapshot {
     revision: u64,
-    through: String,
-    update: Vec<u8>,
+    through: StreamOffset,
+    update: Bytes,
+}
+
+#[derive(Debug)]
+struct DocumentBatch {
+    highwater: Option<StreamOffset>,
+    updates: Vec<Bytes>,
 }
 
 impl RedisSessionStore {
@@ -81,7 +121,7 @@ impl RedisSessionStore {
             prefix: redis.prefix.into(),
             sync,
             worker,
-            healthy: Arc::new(AtomicBool::new(true)),
+            healthy: AtomicBool::new(true),
         })
     }
 
@@ -111,7 +151,7 @@ impl RedisSessionStore {
         self.client.get_multiplexed_async_connection().await
     }
 
-    pub async fn latest_event_id(&self, room_id: &str) -> RedisResult<String> {
+    pub async fn latest_event_id(&self, room_id: &str) -> RedisResult<StreamOffset> {
         let mut connection = self.connection.clone();
         let result = redis::cmd("XREVRANGE")
             .arg(self.room_stream(room_id))
@@ -126,11 +166,11 @@ impl RedisSessionStore {
                 self.healthy.store(true, Ordering::Relaxed);
                 Ok(reply
                     .ids
-                    .first()
-                    .map_or("0-0", |entry| entry.id.as_str())
-                    .to_string())
+                    .into_iter()
+                    .next()
+                    .map_or_else(StreamOffset::zero, |entry| StreamOffset::new(entry.id)))
             }
-            Err(error) if is_missing_key_error(&error) => Ok("0-0".to_string()),
+            Err(error) if is_missing_key_error(&error) => Ok(StreamOffset::zero()),
             Err(error) => {
                 self.healthy.store(false, Ordering::Relaxed);
                 Err(error)
@@ -139,47 +179,53 @@ impl RedisSessionStore {
     }
 
     pub async fn load_room(&self, room_id: &str) -> RedisResult<RoomState> {
-        for _ in 0..4 {
-            let before = self.read_snapshot(room_id).await?;
-            let events = self.events_after(room_id, &before.through).await?;
-            let after = self.read_snapshot(room_id).await?;
-            if before.revision != after.revision || before.through != after.through {
-                continue;
-            }
-
-            let mut updates = Vec::new();
-            if !before.update.is_empty() {
-                updates.push(before.update.as_slice());
-            }
-            for event in &events {
-                if event.kind == EventKind::Document {
-                    updates.push(event.payload.as_slice());
-                }
-            }
-            let document = if updates.is_empty() {
-                Vec::new()
-            } else {
-                yrs::merge_updates_v1(updates).map_err(document_error)?
-            };
-            let awareness = self.read_awareness(room_id).await?;
-            let highwater = events
-                .last()
-                .map_or(before.through, |event| event.id.clone());
-            return Ok(RoomState {
-                document,
-                awareness,
-                highwater,
-            });
+        let script = Script::new(
+            r#"
+local snapshot = redis.call('HMGET', KEYS[1], 'through', 'update')
+local through = snapshot[1] or '0-0'
+local update = snapshot[2] or ''
+local events = redis.call('XRANGE', KEYS[2], '(' .. through, '+')
+local awareness = redis.call('HVALS', KEYS[3])
+return {through, update, events, awareness}
+"#,
+        );
+        let mut connection = self.connection.clone();
+        let result = script
+            .key(self.snapshot_key(room_id))
+            .key(self.room_stream(room_id))
+            .key(self.presence_key(room_id))
+            .invoke_async::<(String, Bytes, StreamRangeReply, Vec<Bytes>)>(&mut connection)
+            .await;
+        self.record_health(&result);
+        let (through, snapshot, events, awareness) = result?;
+        let through = StreamOffset::new(through);
+        let batch = document_batch(events);
+        let highwater = batch.highwater.unwrap_or(through);
+        let mut updates = batch.updates;
+        if !snapshot.is_empty() {
+            updates.insert(0, snapshot);
         }
-        Err(RedisError::from((
-            redis::ErrorKind::TryAgain,
-            "room snapshot changed repeatedly while loading",
-        )))
+        let document = match updates.len() {
+            0 => Bytes::new(),
+            1 => updates.pop().expect("length checked"),
+            _ => Bytes::from(
+                yrs::merge_updates_v1(updates.iter().map(Bytes::as_ref)).map_err(document_error)?,
+            ),
+        };
+        Ok(RoomState {
+            document,
+            awareness,
+            highwater,
+        })
     }
 
-    pub async fn events_after(&self, room_id: &str, cursor: &str) -> RedisResult<Vec<RedisEvent>> {
+    async fn document_batch_after(
+        &self,
+        room_id: &str,
+        cursor: &StreamOffset,
+    ) -> RedisResult<DocumentBatch> {
         let mut connection = self.connection.clone();
-        let start = format!("({cursor}");
+        let start = format!("({}", cursor.as_str());
         let result = redis::cmd("XRANGE")
             .arg(self.room_stream(room_id))
             .arg(start)
@@ -189,9 +235,12 @@ impl RedisSessionStore {
         match result {
             Ok(reply) => {
                 self.healthy.store(true, Ordering::Relaxed);
-                Ok(reply.ids.iter().filter_map(parse_event).collect())
+                Ok(document_batch(reply))
             }
-            Err(error) if is_missing_key_error(&error) => Ok(Vec::new()),
+            Err(error) if is_missing_key_error(&error) => Ok(DocumentBatch {
+                highwater: None,
+                updates: Vec::new(),
+            }),
             Err(error) => {
                 self.healthy.store(false, Ordering::Relaxed);
                 Err(error)
@@ -202,8 +251,8 @@ impl RedisSessionStore {
     pub async fn read_rooms(
         &self,
         connection: &mut MultiplexedConnection,
-        rooms: &[(String, String)],
-    ) -> RedisResult<Vec<(String, Vec<RedisEvent>)>> {
+        rooms: &[(&str, StreamOffset)],
+    ) -> RedisResult<Vec<(usize, Vec<RedisEvent>)>> {
         if rooms.is_empty() {
             return Ok(Vec::new());
         }
@@ -220,19 +269,23 @@ impl RedisSessionStore {
             .arg("STREAMS")
             .arg(&keys);
         for (_, cursor) in rooms {
-            command.arg(cursor);
+            command.arg(cursor.as_str());
         }
         let result = command.query_async::<StreamReadReply>(connection).await;
         match result {
             Ok(reply) => {
                 self.healthy.store(true, Ordering::Relaxed);
-                let room_by_key: HashMap<_, _> = keys.iter().zip(rooms).collect();
+                let room_by_key: HashMap<_, _> = keys
+                    .iter()
+                    .enumerate()
+                    .map(|(index, key)| (key.as_str(), index))
+                    .collect();
                 Ok(reply
                     .keys
                     .into_iter()
                     .filter_map(|stream| {
-                        let room = room_by_key.get(&stream.key)?.0.clone();
-                        let events = stream.ids.iter().filter_map(parse_event).collect();
+                        let room = *room_by_key.get(stream.key.as_str())?;
+                        let events = stream.ids.into_iter().filter_map(parse_event).collect();
                         Some((room, events))
                     })
                     .collect())
@@ -250,10 +303,10 @@ impl RedisSessionStore {
         kind: EventKind,
         origin: &str,
         payload: &[u8],
-    ) -> RedisResult<String> {
+    ) -> RedisResult<()> {
         let script = Script::new(
             r#"
-local id = redis.call('XADD', KEYS[1], '*', 'kind', ARGV[1], 'origin', ARGV[2], 'payload', ARGV[3])
+redis.call('XADD', KEYS[1], '*', 'kind', ARGV[1], 'origin', ARGV[2], 'payload', ARGV[3])
 redis.call('PEXPIRE', KEYS[1], ARGV[4])
 redis.call('PEXPIRE', KEYS[2], ARGV[4])
 redis.call('PEXPIRE', KEYS[3], ARGV[4])
@@ -261,7 +314,7 @@ redis.call('PEXPIRE', KEYS[4], ARGV[4])
 if ARGV[1] == 'd' and redis.call('SET', KEYS[5], '1', 'NX', 'PX', ARGV[5]) then
   redis.call('XADD', KEYS[6], '*', 'room', ARGV[6])
 end
-return id
+return 1
 "#,
         );
         let mut connection = self.connection.clone();
@@ -278,8 +331,9 @@ return id
             .arg(self.active_ttl_millis())
             .arg(self.pending_ttl_millis())
             .arg(room_id)
-            .invoke_async::<String>(&mut connection)
-            .await;
+            .invoke_async::<i32>(&mut connection)
+            .await
+            .map(|_| ());
         self.record_health(&result);
         result
     }
@@ -336,7 +390,7 @@ return 1
         room_id: &str,
         connection_id: &str,
         client: &AwarenessClient,
-    ) -> RedisResult<Option<String>> {
+    ) -> RedisResult<bool> {
         let script = Script::new(
             r#"
 local previous_clock = tonumber(redis.call('HGET', KEYS[3], ARGV[2]) or '-1')
@@ -344,7 +398,7 @@ local incoming_clock = tonumber(ARGV[3])
 if incoming_clock < previous_clock or
    (incoming_clock == previous_clock and
     (ARGV[4] ~= '1' or redis.call('HEXISTS', KEYS[1], ARGV[2]) == 0)) then
-  return ''
+  return 0
 end
 redis.call('HSET', KEYS[3], ARGV[2], incoming_clock)
 if ARGV[4] == '1' then
@@ -358,14 +412,14 @@ else
   redis.call('HSET', KEYS[4], ARGV[2], ARGV[2])
   redis.call('HSET', KEYS[5], ARGV[2], ARGV[6])
 end
-local id = redis.call('XADD', KEYS[6], '*', 'kind', 'a', 'origin', ARGV[1], 'payload', ARGV[5])
+redis.call('XADD', KEYS[6], '*', 'kind', 'a', 'origin', ARGV[1], 'payload', ARGV[5])
 redis.call('PEXPIRE', KEYS[1], ARGV[7])
 redis.call('PEXPIRE', KEYS[2], ARGV[7])
 redis.call('PEXPIRE', KEYS[3], ARGV[7])
 redis.call('PEXPIRE', KEYS[4], ARGV[7])
 redis.call('PEXPIRE', KEYS[5], ARGV[7])
 redis.call('PEXPIRE', KEYS[6], ARGV[7])
-return id
+return 1
 "#,
         );
         let mut connection = self.connection.clone();
@@ -383,14 +437,14 @@ return id
             .arg(&client.update)
             .arg(&client.disconnect_update)
             .arg(self.active_ttl_millis())
-            .invoke_async::<String>(&mut connection)
+            .invoke_async::<i32>(&mut connection)
             .await
-            .map(|id| (!id.is_empty()).then_some(id));
+            .map(|updated| updated != 0);
         self.record_health(&result);
         result
     }
 
-    pub async fn read_awareness(&self, room_id: &str) -> RedisResult<Vec<Vec<u8>>> {
+    pub async fn read_awareness(&self, room_id: &str) -> RedisResult<Vec<Bytes>> {
         let mut connection = self.connection.clone();
         let result = connection.hvals(self.presence_key(room_id)).await;
         self.record_health(&result);
@@ -409,10 +463,9 @@ local score = redis.call('ZSCORE', KEYS[1], ARGV[1])
 local redis_time = redis.call('TIME')
 local now_ms = tonumber(redis_time[1]) * 1000 + math.floor(tonumber(redis_time[2]) / 1000)
 if ARGV[2] == '1' and score and tonumber(score) > now_ms then
-  return {}
+  return 0
 end
 local owned = redis.call('HKEYS', KEYS[3])
-local event_ids = {}
 for _, field in ipairs(owned) do
   local client = redis.call('HGET', KEYS[3], field)
   local payload = redis.call('HGET', KEYS[4], field)
@@ -421,7 +474,7 @@ for _, field in ipairs(owned) do
     redis.call('HDEL', KEYS[6], client)
     local current_clock = tonumber(redis.call('HGET', KEYS[7], client) or '-1')
     redis.call('HSET', KEYS[7], client, math.min(current_clock + 1, 4294967295))
-    table.insert(event_ids, redis.call('XADD', KEYS[8], '*', 'kind', 'a', 'origin', ARGV[1], 'payload', payload))
+    redis.call('XADD', KEYS[8], '*', 'kind', 'a', 'origin', ARGV[1], 'payload', payload)
   end
 end
 redis.call('DEL', KEYS[3])
@@ -436,7 +489,7 @@ if remaining == 0 then
 else
   for i = 5, 10 do redis.call('PEXPIRE', KEYS[i], ARGV[4]) end
 end
-return event_ids
+return 1
 "#,
         );
         let mut connection = self.connection.clone();
@@ -455,10 +508,11 @@ return event_ids
             .arg(if require_expired { 1 } else { 0 })
             .arg(self.sync.session_retention_seconds.max(1) * 1000)
             .arg(self.active_ttl_millis())
-            .invoke_async::<Vec<String>>(&mut connection)
-            .await;
+            .invoke_async::<i32>(&mut connection)
+            .await
+            .map(|_| ());
         self.record_health(&result);
-        result.map(|_| ())
+        result
     }
 
     pub async fn expired_connections(&self, limit: usize) -> RedisResult<Vec<(String, String)>> {
@@ -488,10 +542,8 @@ return result
             .invoke_async::<Vec<String>>(&mut connection)
             .await?;
         self.healthy.store(true, Ordering::Relaxed);
-        Ok(values
-            .chunks_exact(2)
-            .map(|pair| (pair[0].clone(), pair[1].clone()))
-            .collect())
+        let mut values = values.into_iter();
+        Ok(std::iter::from_fn(|| Some((values.next()?, values.next()?))).collect())
     }
 
     pub async fn ensure_worker_group(&self) -> RedisResult<()> {
@@ -554,38 +606,40 @@ return result
         Ok(reply
             .claimed
             .into_iter()
-            .filter_map(|entry| entry.get::<String>("room").map(|room| (entry.id, room)))
+            .filter_map(|mut entry| {
+                take_field::<String>(&mut entry.map, "room").map(|room| (entry.id, room))
+            })
             .collect())
     }
 
     pub async fn compact_room(&self, room_id: &str) -> RedisResult<()> {
         let snapshot = self.read_snapshot(room_id).await?;
-        let events = self.events_after(room_id, &snapshot.through).await?;
-        let Some(highwater) = events.last().map(|event| event.id.clone()) else {
+        let batch = self
+            .document_batch_after(room_id, &snapshot.through)
+            .await?;
+        let Some(highwater) = batch.highwater else {
             self.clear_pending(room_id).await?;
             if self
-                .events_after(room_id, &snapshot.through)
+                .document_batch_after(room_id, &snapshot.through)
                 .await?
-                .iter()
-                .any(|event| event.kind == EventKind::Document)
+                .updates
+                .is_empty()
             {
-                self.enqueue_compaction(room_id).await?;
+                return Ok(());
             }
+            self.enqueue_compaction(room_id).await?;
             return Ok(());
         };
-        let mut updates = Vec::new();
+        let mut updates = batch.updates;
         if !snapshot.update.is_empty() {
-            updates.push(snapshot.update.as_slice());
+            updates.insert(0, snapshot.update);
         }
-        for event in &events {
-            if event.kind == EventKind::Document {
-                updates.push(event.payload.as_slice());
-            }
-        }
-        let merged = if updates.is_empty() {
-            snapshot.update
-        } else {
-            yrs::merge_updates_v1(updates).map_err(document_error)?
+        let merged = match updates.len() {
+            0 => Bytes::new(),
+            1 => updates.pop().expect("length checked"),
+            _ => Bytes::from(
+                yrs::merge_updates_v1(updates.iter().map(Bytes::as_ref)).map_err(document_error)?,
+            ),
         };
 
         let script = Script::new(
@@ -625,8 +679,8 @@ return 1
             .key(self.room_stream(room_id))
             .key(self.room_leases_key(room_id))
             .arg(snapshot.revision)
-            .arg(&highwater)
-            .arg(&merged)
+            .arg(highwater.as_str())
+            .arg(merged.as_ref())
             .arg(self.sync.session_retention_seconds.max(1) * 1000)
             .arg(self.active_ttl_millis())
             .arg(self.sync.stream_safety_seconds * 1000)
@@ -637,13 +691,14 @@ return 1
             return Ok(());
         }
         if self
-            .events_after(room_id, &highwater)
+            .document_batch_after(room_id, &highwater)
             .await?
-            .iter()
-            .any(|event| event.kind == EventKind::Document)
+            .updates
+            .is_empty()
         {
-            self.enqueue_compaction(room_id).await?;
+            return Ok(());
         }
+        self.enqueue_compaction(room_id).await?;
         Ok(())
     }
 
@@ -693,7 +748,7 @@ return 0
 
     async fn read_snapshot(&self, room_id: &str) -> RedisResult<Snapshot> {
         let mut connection = self.connection.clone();
-        let (revision, through, update): (Option<u64>, Option<String>, Option<Vec<u8>>) =
+        let (revision, through, update): (Option<u64>, Option<String>, Option<Bytes>) =
             redis::cmd("HMGET")
                 .arg(self.snapshot_key(room_id))
                 .arg(&["revision", "through", "update"])
@@ -702,7 +757,7 @@ return 0
         self.healthy.store(true, Ordering::Relaxed);
         Ok(Snapshot {
             revision: revision.unwrap_or(0),
-            through: through.unwrap_or_else(|| "0-0".to_string()),
+            through: through.map_or_else(StreamOffset::zero, StreamOffset::new),
             update: update.unwrap_or_default(),
         })
     }
@@ -784,13 +839,27 @@ return 0
     }
 }
 
-fn parse_event(entry: &StreamId) -> Option<RedisEvent> {
+fn parse_event(mut entry: StreamId) -> Option<RedisEvent> {
     Some(RedisEvent {
-        id: entry.id.clone(),
-        kind: EventKind::from_code(&entry.get::<String>("kind")?)?,
-        origin: entry.get("origin")?,
-        payload: entry.get("payload")?,
+        id: StreamOffset::new(entry.id),
+        kind: EventKind::from_code(&take_field::<String>(&mut entry.map, "kind")?)?,
+        origin: take_field(&mut entry.map, "origin")?,
+        payload: take_field(&mut entry.map, "payload")?,
     })
+}
+
+fn document_batch(reply: StreamRangeReply) -> DocumentBatch {
+    let mut highwater = None;
+    let mut updates = Vec::new();
+    for mut entry in reply.ids {
+        highwater = Some(StreamOffset::new(entry.id));
+        if take_field::<String>(&mut entry.map, "kind").as_deref() == Some("d")
+            && let Some(payload) = take_field(&mut entry.map, "payload")
+        {
+            updates.push(payload);
+        }
+    }
+    DocumentBatch { highwater, updates }
 }
 
 fn worker_tasks(reply: StreamReadReply) -> Vec<(String, String)> {
@@ -798,20 +867,27 @@ fn worker_tasks(reply: StreamReadReply) -> Vec<(String, String)> {
         .keys
         .into_iter()
         .flat_map(|stream| stream.ids)
-        .filter_map(|entry| entry.get::<String>("room").map(|room| (entry.id, room)))
+        .filter_map(|mut entry| {
+            take_field::<String>(&mut entry.map, "room").map(|room| (entry.id, room))
+        })
         .collect()
+}
+
+fn take_field<T: FromRedisValue>(map: &mut HashMap<String, Value>, key: &str) -> Option<T> {
+    redis::from_redis_value(map.remove(key)?).ok()
 }
 
 fn document_error(error: yrs::encoding::read::Error) -> RedisError {
     RedisError::from((
-        redis::ErrorKind::TypeError,
+        redis::ErrorKind::UnexpectedReturnType,
         "invalid Yjs update in Redis",
         error.to_string(),
     ))
 }
 
 fn is_missing_key_error(error: &RedisError) -> bool {
-    error.kind() == redis::ErrorKind::ResponseError && error.to_string().contains("no such key")
+    error.kind() == redis::ErrorKind::Server(redis::ServerErrorKind::ResponseError)
+        && error.to_string().contains("no such key")
 }
 
 fn encode_key(value: &str) -> String {
@@ -824,15 +900,9 @@ fn encode_key(value: &str) -> String {
     encoded
 }
 
-pub fn stream_id_is_after(id: &str, cursor: &str) -> bool {
-    fn parts(value: &str) -> Option<(u64, u64)> {
-        let (timestamp, sequence) = value.split_once('-')?;
-        Some((timestamp.parse().ok()?, sequence.parse().ok()?))
-    }
-    match (parts(id), parts(cursor)) {
-        (Some(left), Some(right)) => left > right,
-        _ => id > cursor,
-    }
+fn parse_stream_id(value: &str) -> Option<(u64, u64)> {
+    let (timestamp, sequence) = value.split_once('-')?;
+    Some((timestamp.parse().ok()?, sequence.parse().ok()?))
 }
 
 #[cfg(test)]
@@ -854,9 +924,31 @@ mod tests {
 
     #[test]
     fn stream_ids_are_compared_numerically() {
-        assert!(stream_id_is_after("10-0", "9-99"));
-        assert!(stream_id_is_after("10-2", "10-1"));
-        assert!(!stream_id_is_after("10-1", "10-1"));
+        assert!(StreamOffset::new("10-0".into()).is_after(&StreamOffset::new("9-99".into())));
+        assert!(StreamOffset::new("10-2".into()).is_after(&StreamOffset::new("10-1".into())));
+        assert!(!StreamOffset::new("10-1".into()).is_after(&StreamOffset::new("10-1".into())));
+    }
+
+    #[test]
+    fn stream_parser_moves_payload_into_shared_bytes() {
+        let payload = vec![1, 2, 3, 4];
+        let payload_ptr = payload.as_ptr();
+        let entry = StreamId {
+            id: "10-1".to_string(),
+            map: HashMap::from([
+                ("kind".to_string(), Value::BulkString(b"d".to_vec())),
+                (
+                    "origin".to_string(),
+                    Value::BulkString(b"connection".to_vec()),
+                ),
+                ("payload".to_string(), Value::BulkString(payload)),
+            ]),
+            ..Default::default()
+        };
+
+        let event = parse_event(entry).unwrap();
+        assert_eq!(event.payload.as_ptr(), payload_ptr);
+        assert_eq!(event.payload.as_ref(), &[1, 2, 3, 4]);
     }
 
     #[tokio::test]
@@ -904,11 +996,38 @@ mod tests {
             .await
             .unwrap();
 
+        let mut connection = first.connection.clone();
+        assert!(
+            redis::cmd("EXISTS")
+                .arg(first.pending_key("room"))
+                .query_async::<bool>(&mut connection)
+                .await
+                .unwrap()
+        );
+        let tasks = redis::cmd("XLEN")
+            .arg(first.worker_stream())
+            .query_async::<usize>(&mut connection)
+            .await
+            .unwrap();
+        assert_eq!(tasks, 1);
+
         let before_compaction = second.load_room("room").await.unwrap();
         assert_eq!(before_compaction.document, update);
         first.compact_room("room").await.unwrap();
         let after_compaction = second.load_room("room").await.unwrap();
         assert_eq!(after_compaction.document, update);
+
+        let state_vector = doc.transact().state_vector();
+        doc.get_or_insert_text("content")
+            .push(&mut doc.transact_mut(), " increment");
+        let incremental = doc.transact().encode_state_as_update_v1(&state_vector);
+        first
+            .append_event("room", EventKind::Document, "first", &incremental)
+            .await
+            .unwrap();
+        let expected = yrs::merge_updates_v1([update.as_slice(), incremental.as_slice()]).unwrap();
+        let snapshot_plus_incremental = second.load_room("room").await.unwrap();
+        assert_eq!(snapshot_plus_incremental.document, expected);
 
         first
             .register_connection("room", "presence-connection")
@@ -920,26 +1039,38 @@ mod tests {
                 .update_awareness("room", "presence-connection", &online)
                 .await
                 .unwrap()
-                .is_some()
         );
         let stale = awareness_client(42, 1, "{\"name\":\"stale\"}");
         assert!(
-            second
+            !second
                 .update_awareness("room", "stale-connection", &stale)
                 .await
                 .unwrap()
-                .is_none()
         );
         assert_eq!(
             second.read_awareness("room").await.unwrap(),
             vec![online.update]
         );
+        assert_eq!(second.load_room("room").await.unwrap().awareness.len(), 1);
 
         first
             .disconnect("room", "presence-connection", false)
             .await
             .unwrap();
         assert!(second.read_awareness("room").await.unwrap().is_empty());
+
+        let keys = redis::cmd("KEYS")
+            .arg(format!("{}:*", first.prefix))
+            .query_async::<Vec<String>>(&mut connection)
+            .await
+            .unwrap();
+        if !keys.is_empty() {
+            redis::cmd("DEL")
+                .arg(keys)
+                .query_async::<usize>(&mut connection)
+                .await
+                .unwrap();
+        }
     }
 
     fn awareness_client(client_id: u64, clock: u32, json: &str) -> AwarenessClient {

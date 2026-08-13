@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use bytes::{BufMut, Bytes, BytesMut};
 use yrs::sync::{AwarenessUpdate, awareness::AwarenessUpdateEntry};
 use yrs::updates::decoder::Decode;
 use yrs::updates::encoder::Encode;
@@ -15,9 +16,9 @@ const SYNC_STEP2: u64 = 1;
 const SYNC_UPDATE: u64 = 2;
 
 #[derive(Debug, PartialEq)]
-pub enum ClientMessage {
-    SyncStep1(Vec<u8>),
-    DocumentUpdate(Vec<u8>),
+pub enum ClientMessage<'a> {
+    SyncStep1(&'a [u8]),
+    DocumentUpdate(&'a [u8]),
     Awareness(AwarenessMessage),
     QueryAwareness,
     Ignored,
@@ -37,7 +38,7 @@ pub struct AwarenessClient {
     pub disconnect_update: Vec<u8>,
 }
 
-pub fn decode_client_message(data: &[u8]) -> Result<ClientMessage, &'static str> {
+pub fn decode_client_message(data: &[u8]) -> Result<ClientMessage<'_>, &'static str> {
     let (message_type, consumed) = read_var_uint(data).ok_or("invalid message type")?;
     let payload = &data[consumed..];
     match message_type {
@@ -49,17 +50,17 @@ pub fn decode_client_message(data: &[u8]) -> Result<ClientMessage, &'static str>
     }
 }
 
-fn decode_sync_message(payload: &[u8]) -> Result<ClientMessage, &'static str> {
+fn decode_sync_message(payload: &[u8]) -> Result<ClientMessage<'_>, &'static str> {
     let (sync_type, consumed) = read_var_uint(payload).ok_or("invalid sync type")?;
     let (content, _) = read_var_uint8_array(&payload[consumed..]).ok_or("invalid sync payload")?;
     match sync_type {
         SYNC_STEP1 => {
             StateVector::decode_v1(content).map_err(|_| "invalid state vector")?;
-            Ok(ClientMessage::SyncStep1(content.to_vec()))
+            Ok(ClientMessage::SyncStep1(content))
         }
         SYNC_STEP2 | SYNC_UPDATE => {
             Update::decode_v1(content).map_err(|_| "invalid document update")?;
-            Ok(ClientMessage::DocumentUpdate(content.to_vec()))
+            Ok(ClientMessage::DocumentUpdate(content))
         }
         _ => Err("unsupported sync type"),
     }
@@ -88,30 +89,27 @@ fn decode_awareness_message(payload: &[u8]) -> Result<AwarenessMessage, &'static
 
 pub fn initial_messages(
     document: &[u8],
-    awareness_updates: &[Vec<u8>],
-) -> Result<Vec<Vec<u8>>, String> {
+    awareness_updates: &[Bytes],
+) -> Result<Vec<Bytes>, String> {
     let state_vector = if document.is_empty() {
         StateVector::default().encode_v1()
     } else {
         yrs::encode_state_vector_from_update_v1(document)
             .map_err(|error| format!("failed to build state vector: {error}"))?
     };
-    let full_update = if document.is_empty() {
-        empty_document_update()
+    let mut messages = vec![encode_sync(SYNC_STEP1, &state_vector)];
+    messages.push(if document.is_empty() {
+        encode_sync(SYNC_STEP2, &empty_document_update())
     } else {
-        document.to_vec()
-    };
-    let mut messages = vec![
-        encode_sync(SYNC_STEP1, &state_vector),
-        encode_sync(SYNC_STEP2, &full_update),
-    ];
+        encode_sync(SYNC_STEP2, document)
+    });
     messages.push(encode_awareness(&merge_awareness_updates(
         awareness_updates,
     )?));
     Ok(messages)
 }
 
-pub fn sync_step2(document: &[u8], remote_state_vector: &[u8]) -> Result<Vec<u8>, String> {
+pub fn sync_step2(document: &[u8], remote_state_vector: &[u8]) -> Result<Bytes, String> {
     let diff = if document.is_empty() {
         empty_document_update()
     } else {
@@ -121,21 +119,21 @@ pub fn sync_step2(document: &[u8], remote_state_vector: &[u8]) -> Result<Vec<u8>
     Ok(encode_sync(SYNC_STEP2, &diff))
 }
 
-pub fn encode_document_update(update: &[u8]) -> Vec<u8> {
+pub fn encode_document_update(update: &[u8]) -> Bytes {
     encode_sync(SYNC_UPDATE, update)
 }
 
-pub fn encode_awareness(update: &[u8]) -> Vec<u8> {
-    let mut message = Vec::with_capacity(update.len() + 8);
+pub fn encode_awareness(update: &[u8]) -> Bytes {
+    let mut message = BytesMut::with_capacity(update.len() + 8);
     write_var_uint(&mut message, MSG_AWARENESS);
     write_var_uint8_array(&mut message, update);
-    message
+    message.freeze()
 }
 
-pub fn merge_awareness_updates(updates: &[Vec<u8>]) -> Result<Vec<u8>, String> {
+pub fn merge_awareness_updates<T: AsRef<[u8]>>(updates: &[T]) -> Result<Vec<u8>, String> {
     let mut clients = HashMap::new();
     for encoded in updates {
-        let update = AwarenessUpdate::decode_v1(encoded)
+        let update = AwarenessUpdate::decode_v1(encoded.as_ref())
             .map_err(|error| format!("failed to decode stored awareness: {error}"))?;
         for (client_id, entry) in update.clients {
             let replace = clients
@@ -169,12 +167,12 @@ fn empty_document_update() -> Vec<u8> {
         .encode_state_as_update_v1(&StateVector::default())
 }
 
-fn encode_sync(sync_type: u64, payload: &[u8]) -> Vec<u8> {
-    let mut message = Vec::with_capacity(payload.len() + 8);
+fn encode_sync(sync_type: u64, payload: &[u8]) -> Bytes {
+    let mut message = BytesMut::with_capacity(payload.len() + 8);
     write_var_uint(&mut message, MSG_SYNC);
     write_var_uint(&mut message, sync_type);
     write_var_uint8_array(&mut message, payload);
-    message
+    message.freeze()
 }
 
 fn read_var_uint(data: &[u8]) -> Option<(u64, usize)> {
@@ -193,14 +191,14 @@ fn read_var_uint(data: &[u8]) -> Option<(u64, usize)> {
     None
 }
 
-fn write_var_uint(buffer: &mut Vec<u8>, mut value: u64) {
+fn write_var_uint(buffer: &mut BytesMut, mut value: u64) {
     loop {
         let mut byte = (value & 0x7f) as u8;
         value >>= 7;
         if value != 0 {
             byte |= 0x80;
         }
-        buffer.push(byte);
+        buffer.put_u8(byte);
         if value == 0 {
             break;
         }
@@ -218,7 +216,7 @@ fn read_var_uint8_array(data: &[u8]) -> Option<(&[u8], usize)> {
     }
 }
 
-fn write_var_uint8_array(buffer: &mut Vec<u8>, data: &[u8]) {
+fn write_var_uint8_array(buffer: &mut BytesMut, data: &[u8]) {
     write_var_uint(buffer, data.len() as u64);
     buffer.extend_from_slice(data);
 }
@@ -239,10 +237,14 @@ mod tests {
             .encode_state_as_update_v1(&StateVector::default());
         let wire = encode_document_update(&update);
 
-        assert_eq!(
-            decode_client_message(&wire),
-            Ok(ClientMessage::DocumentUpdate(update))
-        );
+        let decoded = decode_client_message(&wire).unwrap();
+        let ClientMessage::DocumentUpdate(decoded_update) = decoded else {
+            panic!("expected document update");
+        };
+        assert_eq!(decoded_update, update);
+        let wire_range = wire.as_ptr_range();
+        assert!(decoded_update.as_ptr() >= wire_range.start);
+        assert!(decoded_update.as_ptr_range().end <= wire_range.end);
     }
 
     #[test]
@@ -318,7 +320,7 @@ mod tests {
     fn awareness_merge_keeps_the_newest_clock() {
         let older = awareness_update(7, 1, "{\"name\":\"old\"}");
         let newer = awareness_update(7, 2, "{\"name\":\"new\"}");
-        let merged = merge_awareness_updates(&[newer.clone(), older]).unwrap();
+        let merged = merge_awareness_updates(&[newer, older]).unwrap();
         let update = AwarenessUpdate::decode_v1(&merged).unwrap();
         let entry = update.clients.get(&ClientID::new(7)).unwrap();
         assert_eq!(entry.clock, 2);
