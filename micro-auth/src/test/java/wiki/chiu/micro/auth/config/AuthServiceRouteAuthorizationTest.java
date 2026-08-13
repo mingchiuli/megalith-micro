@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -25,8 +28,9 @@ import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthTypeEnum;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
-import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
 
 class AuthServiceRouteAuthorizationTest {
 
@@ -66,9 +70,8 @@ class AuthServiceRouteAuthorizationTest {
             tokens,
             userHttpServiceWrapper);
 
-    when(userHttpServiceWrapper.findById(42L))
-        .thenReturn(UserEntityRpcVo.builder().id(42L).status(StatusEnum.NORMAL.getCode()).build());
-    when(userHttpServiceWrapper.findRoleCodesByUserId(42L)).thenReturn(List.of("user"));
+    when(userHttpServiceWrapper.findAuthContext(42L))
+        .thenReturn(new UserAuthContextRpcVo(42L, StatusEnum.NORMAL.getCode(), List.of("user")));
   }
 
   @Test
@@ -82,6 +85,7 @@ class AuthServiceRouteAuthorizationTest {
     AuthorityRouteRpcVo route = authService.authorizeRoute(route("/rooms/blog-7"), roomTicket);
     assertEquals("sync", route.serviceHost());
     assertEquals(Integer.valueOf(8089), route.servicePort());
+    assertEquals(42L, route.principal().userId());
     assertThrows(
         MissException.class, () -> authService.authorizeRoute(route("/rooms/blog-8"), roomTicket));
     assertThrows(
@@ -99,8 +103,50 @@ class AuthServiceRouteAuthorizationTest {
     assertThrows(
         MissException.class, () -> authService.authorizeRoute(route("/api/private"), null));
     assertEquals("service", authService.authorizeRoute(route("/api/public"), null).serviceHost());
+    assertEquals(
+        AuthPrincipal.anonymous(),
+        authService.authorizeRoute(route("/api/public"), null).principal());
     assertThrows(
         MissException.class, () -> authService.authorizeRoute(route("/apix/public"), null));
+    verify(userHttpServiceWrapper, never()).findAuthContext(42L);
+  }
+
+  @Test
+  void whitelistUsesValidatedIdentityWhenTokenIsPresent() {
+    when(authWrapper.getAllSystemAuthorities())
+        .thenReturn(List.of(authority("public_api", "/api/public", AuthTypeEnum.WHITE_LIST)));
+
+    AuthorityRouteRpcVo route =
+        authService.authorizeRoute(route("/api/public"), "Bearer " + tokens.issueAccessToken(42L));
+
+    assertEquals(new AuthPrincipal(42L, List.of("user")), route.principal());
+    verify(userHttpServiceWrapper, times(1)).findAuthContext(42L);
+  }
+
+  @Test
+  void whitelistRejectsInvalidTokenInsteadOfDowngradingToAnonymous() {
+    when(authWrapper.getAllSystemAuthorities())
+        .thenReturn(List.of(authority("public_api", "/api/public", AuthTypeEnum.WHITE_LIST)));
+
+    assertThrows(
+        MissException.class,
+        () -> authService.authorizeRoute(route("/api/public"), "Bearer invalid-token"));
+    verify(userHttpServiceWrapper, never()).findAuthContext(42L);
+  }
+
+  @Test
+  void disabledUserIsRejectedBeforeAuthorityLookup() {
+    when(authWrapper.getAllSystemAuthorities())
+        .thenReturn(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
+    when(userHttpServiceWrapper.findAuthContext(42L))
+        .thenReturn(new UserAuthContextRpcVo(42L, StatusEnum.HIDE.getCode(), List.of("user")));
+
+    assertThrows(
+        MissException.class,
+        () ->
+            authService.authorizeRoute(
+                route("/api/private"), "Bearer " + tokens.issueAccessToken(42L)));
+    verify(authWrapper, never()).getAuthoritiesByRoleCode("user");
   }
 
   @Test
@@ -135,6 +181,8 @@ class AuthServiceRouteAuthorizationTest {
 
     assertEquals("service", route.serviceHost());
     assertEquals(Integer.valueOf(8080), route.servicePort());
+    assertEquals(List.of("user"), route.principal().roles());
+    verify(userHttpServiceWrapper, times(1)).findAuthContext(42L);
   }
 
   @Test
@@ -142,7 +190,7 @@ class AuthServiceRouteAuthorizationTest {
     when(authWrapper.getAllSystemAuthorities())
         .thenReturn(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
     MissException failure = new MissException(ExceptionMessage.USER_NOT_EXIST);
-    when(userHttpServiceWrapper.findById(42L)).thenThrow(failure);
+    when(userHttpServiceWrapper.findAuthContext(42L)).thenThrow(failure);
 
     MissException actual =
         assertThrows(

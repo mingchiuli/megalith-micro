@@ -17,7 +17,6 @@ import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
-import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.auth.dto.CodeReq;
 import wiki.chiu.micro.auth.handler.AuthHttpHandler;
@@ -28,6 +27,7 @@ import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.exception.AuthException;
 import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.security.AuthPrincipal;
 
 @Configuration(proxyBeanMethods = false)
 @RegisterReflectionForBinding({
@@ -36,8 +36,8 @@ import wiki.chiu.micro.common.lang.Result;
   WebSocketTicketReq.class,
   MenuWithChildVo.class,
   UserInfoVo.class,
-  AuthRpcVo.class,
   AuthorityRouteRpcVo.class,
+  AuthPrincipal.class,
   CodeReq.class
 })
 public class AuthRoutes {
@@ -66,7 +66,6 @@ public class AuthRoutes {
             .GET("/token/userinfo", tokenHandler::userinfo)
             .POST("/code/email", codeHandler::createEmailCode)
             .POST("/code/sms", codeHandler::createSmsCode)
-            .GET("/inner/auth", internalHandler::getAuthentication)
             .POST("/inner/auth/route", internalHandler::getAuthorityRoute);
     builder.POST("/inner/token/websocket", internalHandler::issueWebSocketTicket);
     builder.onError(

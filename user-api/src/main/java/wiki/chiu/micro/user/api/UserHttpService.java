@@ -9,6 +9,7 @@ import org.springframework.web.service.annotation.PatchExchange;
 import org.springframework.web.service.annotation.PostExchange;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 public interface UserHttpService {
@@ -30,8 +31,8 @@ public interface UserHttpService {
   @GetExchange("/user/phone")
   Result<UserEntityRpcVo> findByPhone(@RequestParam String phone);
 
-  @GetExchange("/user/role/{userId}")
-  Result<List<String>> findRoleCodesByUserId(@PathVariable Long userId);
+  @GetExchange("/user/auth-context/{userId}")
+  Result<UserAuthContextRpcVo> findAuthContext(@PathVariable Long userId);
 
   @GetExchange("/user/{userId}")
   Result<UserEntityRpcVo> findById(@PathVariable Long userId);

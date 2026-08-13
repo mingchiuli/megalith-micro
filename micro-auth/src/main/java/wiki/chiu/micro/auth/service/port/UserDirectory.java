@@ -1,6 +1,6 @@
 package wiki.chiu.micro.auth.service.port;
 
-import java.util.List;
+import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 public interface UserDirectory {
@@ -9,7 +9,7 @@ public interface UserDirectory {
 
   void findByPhone(String phone);
 
-  List<String> findRoleCodesByUserId(Long userId);
+  UserAuthContextRpcVo findAuthContext(Long userId);
 
   UserEntityRpcVo findById(Long userId);
 }

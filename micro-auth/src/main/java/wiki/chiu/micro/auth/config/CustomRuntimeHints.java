@@ -5,6 +5,7 @@ import wiki.chiu.micro.auth.dto.LoginRequest;
 import wiki.chiu.micro.auth.dto.LoginType;
 import wiki.chiu.micro.auth.dto.MenuDto;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
@@ -20,6 +21,10 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
         .registerType(LoginType.class, MemberCategory.INVOKE_DECLARED_METHODS)
         .registerType(
             AuthorityRpcVo.class,
+            MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+            MemberCategory.INVOKE_DECLARED_METHODS)
+        .registerType(
+            UserAuthContextRpcVo.class,
             MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
             MemberCategory.INVOKE_DECLARED_METHODS)
         .registerType(

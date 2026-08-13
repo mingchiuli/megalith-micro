@@ -23,4 +23,16 @@ class UserHttpServiceContractTest {
 
     assertThat(method.getAnnotation(GetExchange.class).value()).isEqualTo("/authority/list");
   }
+
+  @Test
+  void authContextReplacesTheSeparateRoleLookup() throws NoSuchMethodException {
+    var method = UserHttpService.class.getMethod("findAuthContext", Long.class);
+
+    assertThat(method.getAnnotation(GetExchange.class).value())
+        .isEqualTo("/user/auth-context/{userId}");
+    assertThat(
+            java.util.Arrays.stream(UserHttpService.class.getMethods())
+                .map(java.lang.reflect.Method::getName))
+        .doesNotContain("findRoleCodesByUserId");
+  }
 }

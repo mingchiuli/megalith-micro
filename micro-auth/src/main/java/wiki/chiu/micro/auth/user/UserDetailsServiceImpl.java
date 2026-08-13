@@ -28,7 +28,7 @@ public final class UserDetailsServiceImpl implements UserDetailsService {
     UserEntityRpcVo user = userHttpServiceWrapper.findByUsernameOrEmailOrPhone(username);
 
     Long userId = user.id();
-    List<String> roleCodes = userHttpServiceWrapper.findRoleCodesByUserId(userId);
+    List<String> roleCodes = userHttpServiceWrapper.findAuthContext(userId).roles();
 
     // 通过User去自动比较用户名和密码
     return new LoginUser(

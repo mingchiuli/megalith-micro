@@ -1,6 +1,9 @@
 package wiki.chiu.micro.auth.api.vo;
 
-public record AuthorityRouteRpcVo(String serviceHost, Integer servicePort) {
+import wiki.chiu.micro.common.security.AuthPrincipal;
+
+public record AuthorityRouteRpcVo(
+    String serviceHost, Integer servicePort, AuthPrincipal principal) {
 
   public static AuthorityRouteRpcVoBuilder builder() {
     return new AuthorityRouteRpcVoBuilder();
@@ -9,6 +12,7 @@ public record AuthorityRouteRpcVo(String serviceHost, Integer servicePort) {
   public static class AuthorityRouteRpcVoBuilder {
     private String serviceHost;
     private Integer servicePort;
+    private AuthPrincipal principal;
 
     public AuthorityRouteRpcVoBuilder serviceHost(String serviceHost) {
       this.serviceHost = serviceHost;
@@ -20,8 +24,13 @@ public record AuthorityRouteRpcVo(String serviceHost, Integer servicePort) {
       return this;
     }
 
+    public AuthorityRouteRpcVoBuilder principal(AuthPrincipal principal) {
+      this.principal = principal;
+      return this;
+    }
+
     public AuthorityRouteRpcVo build() {
-      return new AuthorityRouteRpcVo(serviceHost, servicePort);
+      return new AuthorityRouteRpcVo(serviceHost, servicePort, principal);
     }
   }
 }

@@ -1,14 +1,23 @@
 use axum::http::{Method, header};
-use axum::{extract::Request, middleware::Next, response::Response};
+use axum::{
+    extract::{Request, State},
+    middleware::Next,
+    response::Response,
+};
 use url::Url;
 
+use crate::GatewayState;
 use crate::config::{self, ConfigKey};
 use crate::exception::HandlerError;
 use crate::utils;
 
 use tracing::Instrument;
 
-pub async fn process(mut req: Request, next: Next) -> Result<Response, HandlerError> {
+pub async fn process(
+    State(state): State<GatewayState>,
+    mut req: Request,
+    next: Next,
+) -> Result<Response, HandlerError> {
     // Skip authentication for actuator endpoints
     if req.uri().path() == "/actuator/health" {
         return Ok(next.run(req).await);
@@ -28,10 +37,14 @@ pub async fn process(mut req: Request, next: Next) -> Result<Response, HandlerEr
     );
 
     async move {
-        let token = utils::extract_token(&req);
+        let token = if req.uri().path() == "/token/refresh" {
+            String::new()
+        } else {
+            utils::extract_token(&req)
+        };
         let auth_url = utils::get_auth_url()?;
         let route_request = utils::prepare_route_request(req.method(), req.headers(), req.uri());
-        let route = utils::find_route(auth_url, route_request, &token).await?;
+        let route = utils::find_route(state.client(), auth_url, route_request, &token).await?;
         req.extensions_mut().insert(route);
         Ok(next.run(req).await)
     }

@@ -23,7 +23,6 @@ public final class AuthRequestConverter {
   public static WebSocketTicketReq toWebSocketTicketReq(ServerRequest request) throws Exception {
     WebSocketTicketReq req = request.body(WebSocketTicketReq.class);
 
-    v.positive(req.userId(), "userId");
     v.notBlank(req.roomId(), "roomId");
 
     return req;

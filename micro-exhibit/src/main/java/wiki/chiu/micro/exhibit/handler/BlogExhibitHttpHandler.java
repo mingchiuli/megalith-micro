@@ -7,7 +7,6 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
-import wiki.chiu.micro.auth.api.AuthHttpService;
 import wiki.chiu.micro.cache.annotation.Checker;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.security.AuthPrincipal;
@@ -21,20 +20,17 @@ import wiki.chiu.micro.exhibit.service.BlogService;
 public class BlogExhibitHttpHandler {
 
   private final BlogService blogService;
-  private final AuthHttpService authHttpService;
   private final ValidatedRequest v;
 
-  public BlogExhibitHttpHandler(
-      BlogService blogService, AuthHttpService authHttpService, ValidatedRequest v) {
+  public BlogExhibitHttpHandler(BlogService blogService, ValidatedRequest v) {
     this.blogService = blogService;
-    this.authHttpService = authHttpService;
     this.v = v;
   }
 
   @Checker(handler = DetailHandler.class)
   public ServerResponse getBlogDetail(ServerRequest request) {
     Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
-    AuthPrincipal authInfo = authPrincipal(request, authHttpService);
+    AuthPrincipal authInfo = authPrincipal(request);
     return ok(
         Result.success(
             () -> blogService.getBlogDetail(authInfo.roles(), blogId, authInfo.userId())));

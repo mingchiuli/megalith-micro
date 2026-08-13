@@ -22,10 +22,10 @@ graph TD
         Frontend["megalith-frontend separate repository<br/>Node.js + Express + Vue 3 SSR<br/>Static Assets + Server Prefetch"]
     end
     subgraph GatewayLayer[Gateway Layer]
-        Gateway["gateway service Rust<br/>Origin Check + Single Auth/Route Resolution<br/>HTTP and WebSocket Proxy"]
+        Gateway["gateway service Rust<br/>Origin Check + Single Auth/Route Resolution<br/>Pooled Streaming HTTP / WebSocket Proxy"]
     end
     subgraph ServiceLayer[Service Layer]
-        Auth["auth service<br/>Permission L2 Cache / Login API + Cache Update"]
+        Auth["auth service<br/>Route and Role Permission Cache<br/>Login API + Principal Resolution"]
         User["user service<br/>User & Permission Management"]
         Blog["blog service<br/>Blog Content Management"]
         Sync["sync service Rust replicas<br/>Stateless Collaborative Editing WS"]
@@ -60,7 +60,7 @@ graph TD
     Blog --> MariaDB
     Exhibit -->|Fetch Data| User
     Exhibit -->|Fetch Data| Blog
-    Auth -->|Fetch Data| User
+    Auth -->|One Real-Time Auth Context Lookup| User
     Search --> ES
     Blog -->|Complex Query ES Query ID then Fetch| Search
     %% Messages & Cache Auth receives RabbitMQ messages to update cache
@@ -118,9 +118,10 @@ gateway, and hydrates the application in the browser.
 - **GraalVM Native Support**: All Java microservices support native compilation
 - **Real-time Collaboration**: CRDT-based sync via WebSocket (YRS)
 - **Stateless Sync Replicas**: Collaboration sessions are relayed and compacted through shared Redis; load balancers do not need sticky sessions
-- **Single-Pass Gateway Authorization**: Auth validates the method/path and token, then returns the target service in one synchronous call
-- **Method-Preserving Proxy**: The Rust gateway forwards the original HTTP method, query, body, response status, and response body, including DELETE and PATCH requests
-- **JWT Authentication**: Secure token-based auth across services
+- **Single-Pass Gateway Authorization**: Auth validates the method/path and token, then returns the target service and resolved principal in one synchronous call
+- **Trusted Internal Principal**: The gateway replaces any client-supplied identity header and propagates a Base64URL JSON principal containing only `userId` and roles
+- **Pooled Streaming Proxy**: The Rust gateway reuses downstream HTTP connections and streams request/response bodies while preserving methods including DELETE and PATCH
+- **JWT Edge Authentication**: Access and WebSocket tokens are validated at the gateway/auth boundary instead of being re-evaluated by business handlers
 - **JPMS Cache Module**: The reusable cache starter exports only its public API packages
 
 ## Gateway Request Flow
@@ -128,13 +129,21 @@ gateway, and hydrates the application in the browser.
 1. nginx sends `/api` HTTP requests and `/wsapi` WebSocket upgrades to `micro-gateway-rs`.
 2. The gateway validates the request origin when the request carries credentials or uses an unsafe method.
 3. The gateway calls `POST /inner/auth/route` once with the original HTTP method, path, client IP, and credential.
-4. `micro-auth` selects the most specific registered route, validates whitelist or user/role access, and returns the target host and port only when authorized.
-5. The gateway forwards the request with its original method, query, and body. WebSocket upgrades use the same resolved route and do not call auth again.
+4. `micro-auth` selects the most specific registered route. Anonymous whitelist requests require no user lookup; requests with a credential decode it and call `GET /inner/user/auth-context/{userId}` once to obtain the current status and active roles.
+5. Auth returns the target address and `AuthPrincipal(userId, roles)`. Route and role-to-authority data use the existing Caffeine + Redis cache; user status and user roles remain real-time so disable and revocation operations take effect immediately.
+6. The gateway removes client cookies, access authorization, hop-by-hop headers, and any forged `X-Megalith-Principal`, then injects the trusted principal as unpadded Base64URL JSON. Java services decode it locally and synchronous internal RPCs propagate the same header without another auth call.
+7. HTTP requests and responses are streamed through a shared Hyper connection pool. WebSocket upgrades use the same resolved route and principal and do not call auth again.
+
+The normal protected request path is therefore
+`gateway -> auth -> user auth-context -> business`. Public anonymous requests are
+`gateway -> auth -> business`. The refresh endpoint forwards only the refresh cookie and validates
+it inside auth; ordinary business services never receive browser access or refresh credentials.
 
 Only method/path pairs registered in the authority data can be routed. The gateway fails closed
-when auth is unavailable. Deploy `micro-auth` and `micro-gateway-rs` together in a coordinated
-maintenance window when this internal route contract changes; external browser and frontend URLs
-remain unchanged.
+when auth is unavailable. The Docker internal network is the trust boundary for
+`X-Megalith-Principal`; internal service ports must not be exposed publicly. Deploy `micro-user`,
+`micro-auth`, Java consumers, and `micro-gateway-rs` together in a coordinated maintenance window
+when this internal contract changes; external browser and frontend URLs remain unchanged.
 
 ## 🛠️ Tech Stack
 
@@ -147,6 +156,7 @@ remain unchanged.
 
 **Rust:**
 - Axum 0.8 (Web framework)
+- Hyper / hyper-util (pooled streaming gateway client)
 - Tokio (Async runtime)
 - YRS (CRDT)
 - OpenTelemetry

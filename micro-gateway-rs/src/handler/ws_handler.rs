@@ -33,14 +33,15 @@ pub async fn ws_route_handler(
         .path_and_query(uri.path())
         .build()
         .map_err(|error| ClientError::Request(error.to_string()))?;
-    let new_url = utils::parse_url(route, &downstream_uri, constant::WS)?;
+    let new_url = utils::parse_url(&route, &downstream_uri, constant::WS)?;
+    let principal = route.principal().clone();
 
     // 将 WebSocket 升级响应转换为 Response<Body>
     let span = Span::current();
     let response = ws
         .on_upgrade(|socket| {
             // 使用 instrument 将 span 附加到 future 上
-            handle_websocket_request(socket, new_url).instrument(span)
+            handle_websocket_request(socket, new_url, principal).instrument(span)
         })
         .into_response();
 
@@ -48,7 +49,11 @@ pub async fn ws_route_handler(
     Ok(Response::from_parts(parts, Body::empty()))
 }
 
-async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
+async fn handle_websocket_request(
+    ws: WebSocket,
+    target_uri: Uri,
+    principal: crate::client::AuthPrincipal,
+) {
     // 1. 构建 WebSocket 客户端请求（利用 IntoClientRequest 特性）
     let mut ws_request = match target_uri.into_client_request() {
         Ok(req) => req,
@@ -61,6 +66,15 @@ async fn handle_websocket_request(ws: WebSocket, target_uri: Uri) {
     // 2. 获取请求头并注入 Trace Context（核心步骤）
     let headers = ws_request.headers_mut(); // 直接操作 tungstenite 的头
     utils::inject_trace_context(headers); // 复用 HTTP 的注入逻辑
+    match utils::principal_header_value(&principal) {
+        Ok(value) => {
+            headers.insert(utils::PRINCIPAL_HEADER, value);
+        }
+        Err(error) => {
+            tracing::error!("Failed to encode WebSocket principal: {}", error);
+            return;
+        }
+    }
 
     // 3. 连接下游 WebSocket 服务（带 traceparent 头）
     let (server_ws, response) = match connect_async(ws_request).await {

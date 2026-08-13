@@ -1,29 +1,59 @@
-use std::collections::HashMap;
+use std::time::Duration;
 
 use axum::{
     BoxError,
-    body::{self, Bytes},
+    body::Body,
     extract::Request,
-    http::{HeaderName, HeaderValue, request::Builder},
+    http::{HeaderMap, HeaderValue, request::Builder},
 };
-use http_body_util::{BodyExt, combinators::BoxBody};
-use http_body_util::{Empty, Full};
-use hyper::{
-    Method, Response, Uri,
-    body::Buf,
-    client::conn::http1::{self, SendRequest},
-    header,
+use http_body_util::{BodyExt, Limited};
+use hyper::{Method, Response, Uri, body::Incoming, header};
+use hyper_util::{
+    client::legacy::{Client, connect::HttpConnector},
+    rt::TokioExecutor,
 };
-use hyper_util::rt::TokioIo;
 use opentelemetry::global;
 use opentelemetry_http::HeaderInjector;
-use serde::{Serialize, de::DeserializeOwned};
-use tokio::net::TcpStream;
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
-use crate::{exception::ClientError, utils::set_headers};
+use crate::exception::ClientError;
 
-use serde::Deserialize;
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(3);
+const POOL_IDLE_TIMEOUT: Duration = Duration::from_secs(90);
+const POOL_MAX_IDLE_PER_HOST: usize = 32;
+const CONTROL_RESPONSE_LIMIT: usize = 1024 * 1024;
+
+pub type HttpClient = Client<HttpConnector, Body>;
+
+#[derive(Clone)]
+pub struct GatewayState {
+    client: HttpClient,
+}
+
+impl GatewayState {
+    pub fn new() -> Self {
+        let mut connector = HttpConnector::new();
+        connector.set_connect_timeout(Some(CONNECT_TIMEOUT));
+        connector.set_nodelay(true);
+
+        let client = Client::builder(TokioExecutor::new())
+            .pool_idle_timeout(POOL_IDLE_TIMEOUT)
+            .pool_max_idle_per_host(POOL_MAX_IDLE_PER_HOST)
+            .build(connector);
+        Self { client }
+    }
+
+    pub fn client(&self) -> &HttpClient {
+        &self.client
+    }
+}
+
+impl Default for GatewayState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -35,7 +65,7 @@ pub struct AuthRouteReq {
 
 impl AuthRouteReq {
     pub fn new(method: &Method, route_mapping: String, ip_addr: String) -> Self {
-        AuthRouteReq {
+        Self {
             method: method.to_string(),
             route_mapping,
             ip_addr,
@@ -43,11 +73,19 @@ impl AuthRouteReq {
     }
 }
 
+#[derive(Clone, Deserialize, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AuthPrincipal {
+    user_id: u64,
+    roles: Vec<String>,
+}
+
 #[derive(Clone, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthRouteResp {
     service_host: String,
     service_port: u32,
+    principal: AuthPrincipal,
 }
 
 impl AuthRouteResp {
@@ -58,54 +96,46 @@ impl AuthRouteResp {
     pub fn service_port(&self) -> &u32 {
         &self.service_port
     }
+
+    pub fn principal(&self) -> &AuthPrincipal {
+        &self.principal
+    }
 }
 
 async fn parse_req(
-    url: hyper::Uri,
+    url: Uri,
     method: Method,
-    mut headers: HashMap<HeaderName, HeaderValue>,
+    mut headers: HeaderMap,
 ) -> Result<Builder, ClientError> {
-    // 注入 Trace Context
     inject_trace_context_hashmap(&mut headers);
-
     let host = parse_host(&url)?;
-
     let mut req = Request::builder()
         .method(method)
         .uri(url)
         .header(header::HOST, host);
-    req = set_headers(req, headers);
+    if let Some(request_headers) = req.headers_mut() {
+        request_headers.extend(headers);
+    }
     Ok(req)
 }
 
-/// 注入 Trace Context 到 HashMap headers
-fn inject_trace_context_hashmap(headers: &mut HashMap<HeaderName, HeaderValue>) {
-    use hyper::HeaderMap;
-    use std::iter::FromIterator;
-
-    // 1. 将 HashMap 转换为 hyper::HeaderMap
-    let mut hyper_headers: HeaderMap<HeaderValue> = HeaderMap::from_iter(headers.drain());
-
-    // 2. 注入 Trace Context
+fn inject_trace_context_hashmap(headers: &mut HeaderMap) {
     global::get_text_map_propagator(|propagator| {
         let current_context = tracing::Span::current().context();
-        propagator.inject_context(&current_context, &mut HeaderInjector(&mut hyper_headers));
+        propagator.inject_context(&current_context, &mut HeaderInjector(headers));
     });
-
-    // 3. 转换回 HashMap
-    *headers = hyper_headers
-        .into_iter()
-        .filter_map(|(opt_name, value)| opt_name.map(|name| (name, value)))
-        .collect();
 }
 
-//这个方法阻塞响应的
 pub async fn post<T: DeserializeOwned>(
+    client: &HttpClient,
     url: Uri,
     body: impl Serialize,
-    headers: HashMap<HeaderName, HeaderValue>,
+    headers: HeaderMap,
 ) -> Result<T, BoxError> {
-    request(Method::POST, url, Some(body), headers).await
+    let json =
+        serde_json::to_vec(&body).map_err(|error| ClientError::Serialization(error.to_string()))?;
+    let response = request_raw(client, Method::POST, url, Body::from(json), headers).await?;
+    parse_response(response).await
 }
 
 fn parse_host(url: &Uri) -> Result<HeaderValue, ClientError> {
@@ -113,125 +143,59 @@ fn parse_host(url: &Uri) -> Result<HeaderValue, ClientError> {
         .authority()
         .ok_or(ClientError::Request("No authority found".to_string()))?
         .as_str();
-
     HeaderValue::from_str(host).map_err(|_| ClientError::Request("Invalid host".to_string()))
 }
 
-async fn parse_response<T>(response: Response<BoxBody<Bytes, BoxError>>) -> Result<T, BoxError>
+async fn parse_response<T>(response: Response<Incoming>) -> Result<T, BoxError>
 where
     T: DeserializeOwned,
 {
     let status = response.status();
-
-    // 从流式 body 收集完整数据
-    let body = response.into_body().collect().await?.to_bytes();
-
-    // 检查状态码（可选但推荐）
+    let body = Limited::new(response.into_body(), CONTROL_RESPONSE_LIMIT)
+        .collect()
+        .await
+        .map_err(|error| ClientError::Response(error.to_string()))?
+        .to_bytes();
     if !status.is_success() {
         return Err(Box::new(ClientError::Status(
             status.as_u16(),
             String::from_utf8_lossy(&body).to_string(),
         )));
     }
-
-    Ok(serde_json::from_reader(body.reader())
-        .map_err(|e| ClientError::Deserialize(e.to_string()))?)
-}
-
-pub async fn request<T: DeserializeOwned>(
-    method: Method,
-    url: Uri,
-    body: Option<impl Serialize>,
-    headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<T, BoxError> {
-    let body = match body {
-        Some(b) => {
-            let json = serde_json::to_string(&b)
-                .map_err(|e| Box::new(ClientError::Serialization(e.to_string())) as BoxError)?;
-            Some(axum::body::Body::from(json))
-        }
-        None => None,
-    };
-
-    let response = request_raw(method, url, body, headers).await?;
-    parse_response(response).await
+    serde_json::from_slice::<T>(&body)
+        .map_err(|error| Box::new(ClientError::Deserialize(error.to_string())) as BoxError)
 }
 
 pub async fn request_raw(
+    client: &HttpClient,
     method: Method,
-    url: hyper::Uri,
-    body: Option<axum::body::Body>,
-    headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<Response<BoxBody<Bytes, BoxError>>, BoxError> {
-    let sender = create_connection::<BoxBody<Bytes, BoxError>>(&url).await?;
-    let req = parse_req(url, method, headers).await?;
+    url: Uri,
+    body: Body,
+    headers: HeaderMap,
+) -> Result<Response<Incoming>, BoxError> {
+    let req = parse_req(url, method, headers)
+        .await?
+        .body(body)
+        .map_err(|error| ClientError::Request(error.to_string()))?;
+    client
+        .request(req)
+        .await
+        .map_err(|error| Box::new(ClientError::Network(error.to_string())) as BoxError)
+}
 
-    let req = match body {
-        Some(body) => {
-            let body_bytes = body::to_bytes(body, usize::MAX).await?;
-            let body = Full::new(body_bytes)
-                .map_err(|e| Box::new(ClientError::Request(e.to_string())) as BoxError)
-                .boxed();
-            req.body(body)
-        }
-        None => {
-            let body = Empty::<Bytes>::new()
-                .map_err(|e| Box::new(ClientError::Request(e.to_string())) as BoxError)
-                .boxed();
-            req.body(body)
-        }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn principal_serializes_as_the_java_contract() {
+        let principal = AuthPrincipal {
+            user_id: 42,
+            roles: vec!["user".to_string()],
+        };
+        assert_eq!(
+            serde_json::to_string(&principal).unwrap(),
+            r#"{"userId":42,"roles":["user"]}"#
+        );
     }
-    .map_err(|e| ClientError::Request(e.to_string()))?;
-
-    invoke(sender, req).await
-}
-
-async fn create_connection<B>(url: &hyper::Uri) -> Result<SendRequest<B>, BoxError>
-where
-    B: hyper::body::Body<Data = Bytes, Error = BoxError> + Send + 'static,
-{
-    let host = url
-        .host()
-        .ok_or(ClientError::Request("No host found".to_string()))?;
-    let port = url.port_u16().unwrap_or(8080);
-
-    let stream = TcpStream::connect(format!("{}:{}", host, port))
-        .await
-        .map_err(|e| ClientError::Network(e.to_string()))?;
-    let io = TokioIo::new(stream);
-
-    let (sender, conn) = http1::handshake(io)
-        .await
-        .map_err(|e| ClientError::Network(e.to_string()))?;
-
-    tokio::task::spawn(async move {
-        if let Err(e) = conn.await {
-            tracing::error!("Connection error: {}", e);
-        }
-    });
-
-    Ok(sender)
-}
-
-// 流式 invoke - 修复版
-async fn invoke<B>(
-    mut sender: SendRequest<B>,
-    req: Request<B>,
-) -> Result<Response<BoxBody<Bytes, BoxError>>, BoxError>
-where
-    B: hyper::body::Body + Send + 'static,
-    B::Data: Send,
-    B::Error: Into<BoxError>,
-{
-    let res = sender.send_request(req).await?;
-
-    // ✅ 不要过滤状态码，让所有响应都能正常转发
-    // 将 body 转换为 BoxBody 并返回完整的响应
-    let (parts, body) = res.into_parts();
-
-    let boxed_body = body
-        .map_err(|e| Box::new(ClientError::Network(e.to_string())) as BoxError)
-        .boxed();
-
-    Ok(Response::from_parts(parts, boxed_body))
 }

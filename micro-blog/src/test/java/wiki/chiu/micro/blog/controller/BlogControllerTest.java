@@ -3,9 +3,7 @@ package wiki.chiu.micro.blog.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,8 +26,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
-import wiki.chiu.micro.auth.api.AuthHttpService;
-import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
 import wiki.chiu.micro.blog.handler.BlogHttpHandler;
 import wiki.chiu.micro.blog.handler.BlogInternalHttpHandler;
 import wiki.chiu.micro.blog.route.BlogRoutes;
@@ -38,8 +34,8 @@ import wiki.chiu.micro.blog.service.BlogCollaborationService;
 import wiki.chiu.micro.blog.service.BlogExportService;
 import wiki.chiu.micro.blog.service.BlogService;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
+import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
@@ -55,8 +51,6 @@ class BlogControllerTest {
 
   @Mock private BlogExportService exportService;
 
-  @Mock private AuthHttpService authHttpService;
-
   @Mock private BlogInternalHttpHandler blogInternalHttpHandler;
 
   private final ValidatedRequest validation = new ValidatedRequest();
@@ -65,22 +59,15 @@ class BlogControllerTest {
 
   @BeforeEach
   void setUp() {
-    AuthPrincipal authInfo = new AuthPrincipal(1L, List.of("ROLE_USER"), List.of());
-    lenient()
-        .when(authHttpService.getAuthentication(anyString()))
-        .thenReturn(
-            Result.success(
-                new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
+    AuthPrincipal authInfo = new AuthPrincipal(1L, List.of("ROLE_USER"));
     BlogHttpHandler handler =
         new BlogHttpHandler(
-            blogService,
-            assetService,
-            collaborationService,
-            exportService,
-            authHttpService,
-            validation);
+            blogService, assetService, collaborationService, exportService, validation);
     mockMvc =
         MockMvcBuilders.routerFunctions(BlogRoutes.routes(handler, blogInternalHttpHandler))
+            .defaultRequest(
+                get("/")
+                    .header(AuthPrincipalCodec.HEADER_NAME, AuthPrincipalCodec.encode(authInfo)))
             .build();
   }
 

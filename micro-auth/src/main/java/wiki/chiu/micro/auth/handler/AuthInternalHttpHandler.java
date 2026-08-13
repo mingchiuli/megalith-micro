@@ -7,18 +7,18 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
-import wiki.chiu.micro.auth.api.AuthHttpService;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
-import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.auth.converter.AuthRequestConverter;
 import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.auth.token.JwtTokenService;
+import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
 import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.security.AuthPrincipal;
 
 @Component
-public class AuthInternalHttpHandler implements AuthHttpService {
+public class AuthInternalHttpHandler {
 
   private final AuthService authService;
   private final JwtTokenService jwtTokenService;
@@ -26,10 +26,6 @@ public class AuthInternalHttpHandler implements AuthHttpService {
   public AuthInternalHttpHandler(AuthService authService, JwtTokenService jwtTokenService) {
     this.authService = authService;
     this.jwtTokenService = jwtTokenService;
-  }
-
-  public ServerResponse getAuthentication(ServerRequest request) {
-    return ok(getAuthentication(requiredHeader(request, HttpHeaders.AUTHORIZATION)));
   }
 
   public ServerResponse getAuthorityRoute(ServerRequest request) throws Exception {
@@ -40,22 +36,18 @@ public class AuthInternalHttpHandler implements AuthHttpService {
   }
 
   public ServerResponse issueWebSocketTicket(ServerRequest request) throws Exception {
-    return ok(issueWebSocketTicket(AuthRequestConverter.toWebSocketTicketReq(request)));
+    String encodedPrincipal = request.headers().firstHeader(AuthPrincipalCodec.HEADER_NAME);
+    return ok(
+        issueWebSocketTicket(AuthRequestConverter.toWebSocketTicketReq(request), encodedPrincipal));
   }
 
-  @Override
-  public Result<AuthRpcVo> getAuthentication(String token) {
-    return Result.success(authService.getAuthVo(token));
-  }
-
-  @Override
   public Result<AuthorityRouteRpcVo> getAuthorityRoute(AuthorityRouteReq req, String token) {
     return Result.success(() -> authService.authorizeRoute(req, token));
   }
 
-  @Override
-  public Result<String> issueWebSocketTicket(WebSocketTicketReq req) {
+  public Result<String> issueWebSocketTicket(WebSocketTicketReq req, String encodedPrincipal) {
+    AuthPrincipal principal = AuthPrincipalCodec.decodeRequired(encodedPrincipal);
     return Result.success(
-        "Bearer " + jwtTokenService.issueWebSocketToken(req.userId(), req.roomId()));
+        "Bearer " + jwtTokenService.issueWebSocketToken(principal.userId(), req.roomId()));
   }
 }

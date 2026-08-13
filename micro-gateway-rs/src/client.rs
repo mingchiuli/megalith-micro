@@ -1,3 +1,5 @@
 mod http_client;
 
-pub use http_client::{AuthRouteReq, AuthRouteResp, post, request_raw};
+pub use http_client::{
+    AuthPrincipal, AuthRouteReq, AuthRouteResp, GatewayState, HttpClient, post, request_raw,
+};

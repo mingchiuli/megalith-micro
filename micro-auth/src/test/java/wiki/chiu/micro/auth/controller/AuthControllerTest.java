@@ -1,9 +1,8 @@
 package wiki.chiu.micro.auth.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,8 +21,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import wiki.chiu.micro.auth.api.AuthHttpService;
-import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
 import wiki.chiu.micro.auth.handler.AuthHttpHandler;
 import wiki.chiu.micro.auth.handler.AuthInternalHttpHandler;
 import wiki.chiu.micro.auth.handler.CodeHttpHandler;
@@ -32,18 +29,16 @@ import wiki.chiu.micro.auth.route.AuthRoutes;
 import wiki.chiu.micro.auth.service.AuthService;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
+import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
-import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
 
   @Mock private AuthService authService;
-
-  @Mock private AuthHttpService authHttpService;
 
   @Mock private JwtTokenService jwtTokenService;
 
@@ -55,18 +50,16 @@ class AuthControllerTest {
 
   @BeforeEach
   void setUp() {
-    AuthPrincipal authInfo = new AuthPrincipal(1L, List.of("ROLE_USER"), List.of());
-    lenient()
-        .when(authHttpService.getAuthentication(anyString()))
-        .thenReturn(
-            Result.success(
-                new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
+    AuthPrincipal authInfo = new AuthPrincipal(1L, List.of("ROLE_USER"));
     AuthHttpHandler handler = new AuthHttpHandler(authService);
     AuthInternalHttpHandler internalHandler =
         new AuthInternalHttpHandler(authService, jwtTokenService);
     mockMvc =
         MockMvcBuilders.routerFunctions(
                 AuthRoutes.routes(handler, tokenHttpHandler, codeHttpHandler, internalHandler))
+            .defaultRequest(
+                get("/")
+                    .header(AuthPrincipalCodec.HEADER_NAME, AuthPrincipalCodec.encode(authInfo)))
             .build();
   }
 
@@ -86,7 +79,7 @@ class AuthControllerTest {
                         .children(List.of())
                         .build()))
             .build();
-    when(authService.getCurrentUserNav(anyLong())).thenReturn(vo);
+    when(authService.getCurrentUserNav(anyList())).thenReturn(vo);
 
     mockMvc
         .perform(get("/auth/menu/nav").principal(() -> "1"))
@@ -98,7 +91,7 @@ class AuthControllerTest {
 
   @Test
   void navWhenServiceThrowsUnclassifiedBaseExceptionReturns500() throws Exception {
-    when(authService.getCurrentUserNav(anyLong())).thenThrow(new BaseException("forbidden"));
+    when(authService.getCurrentUserNav(anyList())).thenThrow(new BaseException("forbidden"));
 
     mockMvc
         .perform(get("/auth/menu/nav").principal(() -> "1"))

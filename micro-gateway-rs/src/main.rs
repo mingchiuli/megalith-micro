@@ -4,7 +4,7 @@ use axum::{
     routing::{any, get},
 };
 use micro_gateway_rs::{
-    auth_process,
+    GatewayState, auth_process,
     config::{self, ConfigKey, init_config},
     handle_main, init_logger_provider, init_meter_provider, init_tracer_provider, shutdown_signal,
     trace_context_middleware,
@@ -83,11 +83,13 @@ async fn async_main() -> Result<(), BoxError> {
     tracing::info!("{}", LOGO);
 
     // build our application with a single route
+    let state = GatewayState::new();
     let app = Router::new()
         .route("/actuator/health", get(|| async { "OK" }))
         .route("/{*wildcard}", any(handle_main))
-        .layer(middleware::from_fn(auth_process))
-        .layer(middleware::from_fn_with_state((), trace_context_middleware));
+        .layer(middleware::from_fn_with_state(state.clone(), auth_process))
+        .layer(middleware::from_fn_with_state((), trace_context_middleware))
+        .with_state(state);
 
     // run our app with hyper, listening globally on port 8008
     let port = config::get_config(ConfigKey::ServerPort);

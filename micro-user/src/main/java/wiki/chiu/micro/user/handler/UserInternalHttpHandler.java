@@ -14,10 +14,10 @@ import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.api.UserHttpService;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.service.RoleService;
 import wiki.chiu.micro.user.service.UserIdentityService;
-import wiki.chiu.micro.user.service.UserRoleService;
 
 /** Internal user HTTP handler. */
 @Component
@@ -27,20 +27,15 @@ public class UserInternalHttpHandler implements UserHttpService {
 
   private final RoleService roleService;
 
-  private final UserRoleService userRoleService;
   private final ValidatedRequest v;
 
   private static final ParameterizedTypeReference<List<String>> STRING_LIST =
       new ParameterizedTypeReference<>() {};
 
   public UserInternalHttpHandler(
-      UserIdentityService userIdentityService,
-      RoleService roleService,
-      UserRoleService userRoleService,
-      ValidatedRequest v) {
+      UserIdentityService userIdentityService, RoleService roleService, ValidatedRequest v) {
     this.userIdentityService = userIdentityService;
     this.roleService = roleService;
-    this.userRoleService = userRoleService;
     this.v = v;
   }
 
@@ -75,9 +70,9 @@ public class UserInternalHttpHandler implements UserHttpService {
     return ok(findByPhone(requiredParam(request, "phone")));
   }
 
-  public ServerResponse findRoleCodesByUserId(ServerRequest request) {
+  public ServerResponse findAuthContext(ServerRequest request) {
     Long userId = v.positive(pathVariable(request, "userId", Long::valueOf), "userId");
-    return ok(findRoleCodesByUserId(userId));
+    return ok(findAuthContext(userId));
   }
 
   public ServerResponse findByUsernameOrEmailOrPhone(ServerRequest request) {
@@ -116,8 +111,8 @@ public class UserInternalHttpHandler implements UserHttpService {
   }
 
   @Override
-  public Result<List<String>> findRoleCodesByUserId(Long userId) {
-    return Result.success(() -> userRoleService.findRoleCodesByUserId(userId));
+  public Result<UserAuthContextRpcVo> findAuthContext(Long userId) {
+    return Result.success(() -> userIdentityService.findAuthContext(userId));
   }
 
   @Override

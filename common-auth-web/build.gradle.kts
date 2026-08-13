@@ -4,8 +4,7 @@ plugins {
 
 dependencies {
     api(project(":common-web"))
-    implementation(project(":auth-api"))
-    implementation(project(":common-rpc"))
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("tools.jackson.core:jackson-databind")
     compileOnly("org.springframework.boot:spring-boot-autoconfigure")
 }

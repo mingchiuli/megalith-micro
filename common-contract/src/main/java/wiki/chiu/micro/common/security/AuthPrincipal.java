@@ -2,7 +2,11 @@ package wiki.chiu.micro.common.security;
 
 import java.util.List;
 
-public record AuthPrincipal(Long userId, List<String> roles, List<String> authorities) {
+public record AuthPrincipal(Long userId, List<String> roles) {
+
+  public static AuthPrincipal anonymous() {
+    return new AuthPrincipal(0L, List.of());
+  }
 
   public static AuthPrincipalBuilder builder() {
     return new AuthPrincipalBuilder();
@@ -11,7 +15,6 @@ public record AuthPrincipal(Long userId, List<String> roles, List<String> author
   public static class AuthPrincipalBuilder {
     private Long userId;
     private List<String> roles;
-    private List<String> authorities;
 
     public AuthPrincipalBuilder userId(Long userId) {
       this.userId = userId;
@@ -23,13 +26,8 @@ public record AuthPrincipal(Long userId, List<String> roles, List<String> author
       return this;
     }
 
-    public AuthPrincipalBuilder authorities(List<String> authorities) {
-      this.authorities = authorities;
-      return this;
-    }
-
     public AuthPrincipal build() {
-      return new AuthPrincipal(userId, roles, authorities);
+      return new AuthPrincipal(userId, roles);
     }
   }
 }
