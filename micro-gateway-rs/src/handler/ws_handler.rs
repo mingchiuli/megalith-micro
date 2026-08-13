@@ -3,13 +3,14 @@ use axum::extract::WebSocketUpgrade;
 use axum::extract::ws::{CloseFrame, Message as AxumMessage, Utf8Bytes, WebSocket};
 use axum::response::{IntoResponse, Response};
 use futures_util::{SinkExt, StreamExt, stream};
-use hyper::{HeaderMap, Method, Uri};
+use hyper::Uri;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::{
     Message as TungsteniteMessage, client::IntoClientRequest, protocol,
 };
 use tracing::{Instrument, instrument};
 
+use crate::client::AuthRouteResp;
 use crate::exception::{ClientError, HandlerError};
 use crate::{constant, utils};
 
@@ -25,25 +26,14 @@ use tracing::Span;
 pub async fn ws_route_handler(
     ws: WebSocketUpgrade,
     uri: Uri,
+    route: AuthRouteResp,
 ) -> Result<Response<Body>, HandlerError> {
-    // Extract authentication token
-    let token = utils::token_from_query(&uri).unwrap_or_default();
-
-    // Get authentication URL
-    let auth_url = utils::get_auth_url()?;
-
-    // Prepare route request
-    let req_body = utils::prepare_route_request(&Method::GET, &HeaderMap::new(), &uri);
-
-    // Forward to route service
-    let route_resp = utils::find_route(auth_url, req_body, &token).await?;
-
     // Parse url
     let downstream_uri = Uri::builder()
         .path_and_query(uri.path())
         .build()
         .map_err(|error| ClientError::Request(error.to_string()))?;
-    let new_url = utils::parse_url(route_resp, &downstream_uri, constant::WS)?;
+    let new_url = utils::parse_url(route, &downstream_uri, constant::WS)?;
 
     // 将 WebSocket 升级响应转换为 Response<Body>
     let span = Span::current();

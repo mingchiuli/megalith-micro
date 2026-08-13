@@ -19,10 +19,10 @@ graph TD
         Nginx["nginx<br/>Reverse Proxy"]
     end
     subgraph FrontendLayer[Frontend Layer]
-        Frontend["frontend service Node.js<br/>Express + Vue 3 SSR<br/>Static Assets + Server Prefetch"]
+        Frontend["megalith-frontend separate repository<br/>Node.js + Express + Vue 3 SSR<br/>Static Assets + Server Prefetch"]
     end
     subgraph GatewayLayer[Gateway Layer]
-        Gateway["gateway service Rust<br/>Request Auth & Routing"]
+        Gateway["gateway service Rust<br/>Origin Check + Single Auth/Route Resolution<br/>HTTP and WebSocket Proxy"]
     end
     subgraph ServiceLayer[Service Layer]
         Auth["auth service<br/>Permission L2 Cache / Login API + Cache Update"]
@@ -49,7 +49,7 @@ graph TD
     Nginx -->|Page Routes + Static Assets| Frontend
     Nginx -->|/api HTTP + /wsapi WS| Gateway
     Frontend -->|SSR Prefetch HTTP<br/>Docker Internal Network| Gateway
-    Gateway -->|HTTP/WS Auth Call Route Selection| Auth
+    Gateway -->|Single HTTP/WS Authorize + Route Resolution| Auth
     Gateway -->|HTTP| User
     Gateway -->|HTTP| Blog
     Gateway -->|WS| Sync
@@ -85,7 +85,12 @@ graph TD
 | Module | Description |
 |--------|-------------|
 | `cache` | Megalith Cache Spring Boot Starter - Multi-level caching (L1 Caffeine + L2 Redis) with distributed eviction |
-| `common` | Shared utilities, DTOs, and converters |
+| `auth-api`, `user-api`, `blog-api`, `search-api` | Typed HTTP service contracts and RPC request/response models |
+| `common-contract` | Shared result, error, paging, validation, and security contracts |
+| `common-rpc` | HTTP client groups, authentication propagation, and external storage/SMS clients |
+| `common-web`, `common-auth-web` | Functional WebMVC support, validation, error handling, and authenticated principals |
+| `common-observability` | OpenTelemetry propagation, logging, metrics, and runtime hints |
+| `common-export` | Shared export utilities |
 | `micro-auth` | Authentication service - JWT, Email/SMS authentication |
 | `micro-blog` | Blog content management with sensitive content handling |
 | `micro-user` | User management with Hibernate ORM |
@@ -96,8 +101,15 @@ graph TD
 
 | Module | Description |
 |--------|-------------|
-| `micro-gateway-rs` | High-performance API gateway built with Axum, JWT auth, OpenTelemetry tracing |
+| `micro-gateway-rs` | High-performance Axum gateway with centralized authorization, dynamic routing, and OpenTelemetry tracing |
 | `micro-sync-rs` | Real-time collaboration sync service using WebSocket and YRS CRDT |
+
+### Related Repository
+
+[`megalith-frontend`](https://github.com/mingchiuli/megalith-frontend) is the separately
+versioned Vue 3 + Vite SSR application shown in the architecture diagram. Its Node.js runtime
+renders public and administration routes, prefetches initial data through this repository's
+gateway, and hydrates the application in the browser.
 
 ## ✨ Features
 
@@ -106,15 +118,30 @@ graph TD
 - **GraalVM Native Support**: All Java microservices support native compilation
 - **Real-time Collaboration**: CRDT-based sync via WebSocket (YRS)
 - **Stateless Sync Replicas**: Collaboration sessions are relayed and compacted through shared Redis; load balancers do not need sticky sessions
+- **Single-Pass Gateway Authorization**: Auth validates the method/path and token, then returns the target service in one synchronous call
+- **Method-Preserving Proxy**: The Rust gateway forwards the original HTTP method, query, body, response status, and response body, including DELETE and PATCH requests
 - **JWT Authentication**: Secure token-based auth across services
-- **JPMS Module**: Proper Java Platform Module System support
+- **JPMS Cache Module**: The reusable cache starter exports only its public API packages
+
+## Gateway Request Flow
+
+1. nginx sends `/api` HTTP requests and `/wsapi` WebSocket upgrades to `micro-gateway-rs`.
+2. The gateway validates the request origin when the request carries credentials or uses an unsafe method.
+3. The gateway calls `POST /inner/auth/route` once with the original HTTP method, path, client IP, and credential.
+4. `micro-auth` selects the most specific registered route, validates whitelist or user/role access, and returns the target host and port only when authorized.
+5. The gateway forwards the request with its original method, query, and body. WebSocket upgrades use the same resolved route and do not call auth again.
+
+Only method/path pairs registered in the authority data can be routed. The gateway fails closed
+when auth is unavailable. Deploy `micro-auth` and `micro-gateway-rs` together in a coordinated
+maintenance window when this internal route contract changes; external browser and frontend URLs
+remain unchanged.
 
 ## 🛠️ Tech Stack
 
 **Java:**
 - Spring Boot 4.1.0
-- Hibernate ORM 7.4.1
-- Redisson 4.5.0 (Redis)
+- Hibernate ORM 7.4.5.Final
+- Redisson 4.7.0 (Redis)
 - Caffeine Cache
 - Elasticsearch
 
@@ -144,7 +171,8 @@ graph TD
 - JDK 25
 - Rust 2024 edition
 - Redis
-- RabbitMQ (optional, for distributed cache eviction)
+- RabbitMQ (required for domain events, search indexing, and the default distributed cache eviction path)
+- Elasticsearch
 
 ### Build
 
@@ -178,12 +206,24 @@ blog service and MariaDB as the source of truth.
 Nested sync settings use a double underscore in environment variables, for
 example `SYNC__SESSION_RETENTION_SECONDS=300` and `WORKER__CONCURRENCY=4`.
 
+The `cache` starter can use Redis Pub/Sub for cache eviction when Spring AMQP is absent. The
+deployed platform still requires RabbitMQ for blog/user domain events and Elasticsearch indexing.
+
 ## 📁 Project Structure
 
 ```
 megalith-micro/
-├── cache/                    # Cache Spring Boot Starter
-├── common/                   # Shared utilities
+├── auth-api/                 # Authentication HTTP contract
+├── blog-api/                 # Blog HTTP contract
+├── search-api/               # Search HTTP contract
+├── user-api/                 # User HTTP contract
+├── common-contract/          # Shared wire and error contracts
+├── common-rpc/               # HTTP clients and remote adapters
+├── common-web/               # Functional WebMVC support
+├── common-auth-web/          # Authenticated web support
+├── common-observability/     # OpenTelemetry integration
+├── common-export/            # Export utilities
+├── cache/                    # Multi-level cache starter
 ├── micro-auth/               # Authentication service
 ├── micro-blog/               # Blog service
 ├── micro-exhibit/            # Blog display service

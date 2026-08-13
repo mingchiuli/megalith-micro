@@ -11,6 +11,9 @@ use axum::{
 };
 use opentelemetry::{KeyValue, global};
 
+use crate::client::AuthRouteResp;
+use crate::exception::HandlerError;
+
 pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
     // Record metrics
     let meter = global::meter(config::get_static_value(ConfigKey::ServerName));
@@ -20,6 +23,14 @@ pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
         .with_description("Total number of HTTP requests")
         .build();
     counter.add(1, &[KeyValue::new("path", uri.path().to_string())]);
+
+    let Some(route) = req.extensions().get::<AuthRouteResp>().cloned() else {
+        return HandlerError::new(
+            hyper::StatusCode::INTERNAL_SERVER_ERROR,
+            "authorized route is missing",
+        )
+        .into_response();
+    };
 
     // 检查是否是 WebSocket 请求
     if is_websocket_request(&req) {
@@ -31,7 +42,7 @@ pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
         match WebSocketUpgrade::from_request_parts(&mut parts, &()).await {
             Ok(ws_upgrade) => {
                 // 处理 WebSocket 请求
-                return match ws_handler::ws_route_handler(ws_upgrade, uri).await {
+                return match ws_handler::ws_route_handler(ws_upgrade, uri, route).await {
                     Ok(response) => response.into_response(),
                     Err(err) => {
                         // 根据错误类型返回适当的响应
@@ -47,7 +58,7 @@ pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
     }
 
     // 否则作为普通 HTTP 请求处理
-    match http_handler::handle_request(req).await {
+    match http_handler::handle_request(req, route).await {
         Ok(response) => response.into_response(),
         Err(err) => err.into_response(),
     }

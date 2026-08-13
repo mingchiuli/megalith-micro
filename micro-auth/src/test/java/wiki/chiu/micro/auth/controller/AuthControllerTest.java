@@ -122,20 +122,21 @@ class AuthControllerTest {
                 .content("{\"method\":\" \",\"routeMapping\":\"\"}"))
         .andExpect(status().isBadRequest());
 
-    verify(authService, never()).findRoute(any());
+    verify(authService, never()).authorizeRoute(any(), anyString());
   }
 
   @Test
-  void internalRouteCheckReturnsUnauthorizedForInvalidToken() throws Exception {
-    when(authService.routeCheck(any(), anyString()))
+  void internalRouteReturnsUnauthorizedForInvalidToken() throws Exception {
+    when(authService.authorizeRoute(any(), anyString()))
         .thenThrow(new MissException(ExceptionMessage.TOKEN_INVALID));
 
     mockMvc
         .perform(
-            post("/inner/auth/route/check")
+            post("/inner/auth/route")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer expired-token")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"method\":\"GET\",\"routeMapping\":\"/api/private\"}"))
+                .content(
+                    "{\"method\":\"GET\",\"routeMapping\":\"/api/private\",\"ipAddr\":\"unknown\"}"))
         .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.code").value(ExceptionMessage.TOKEN_INVALID.getCode()));
   }

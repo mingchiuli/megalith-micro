@@ -15,7 +15,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
-import wiki.chiu.micro.auth.api.req.AuthorityRouteCheckReq;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
 import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
@@ -34,7 +33,6 @@ import wiki.chiu.micro.common.lang.Result;
 @RegisterReflectionForBinding({
   Result.class,
   AuthorityRouteReq.class,
-  AuthorityRouteCheckReq.class,
   WebSocketTicketReq.class,
   MenuWithChildVo.class,
   UserInfoVo.class,
@@ -69,8 +67,7 @@ public class AuthRoutes {
             .POST("/code/email", codeHandler::createEmailCode)
             .POST("/code/sms", codeHandler::createSmsCode)
             .GET("/inner/auth", internalHandler::getAuthentication)
-            .POST("/inner/auth/route", internalHandler::getAuthorityRoute)
-            .POST("/inner/auth/route/check", internalHandler::routeCheck);
+            .POST("/inner/auth/route", internalHandler::getAuthorityRoute);
     builder.POST("/inner/token/websocket", internalHandler::issueWebSocketTicket);
     builder.onError(
         BadCredentialsException.class,

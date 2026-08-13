@@ -14,7 +14,7 @@ use crate::{
     client::{self, AuthRouteReq, AuthRouteResp},
     config::{self, ConfigKey},
     constant::UNKNOWN,
-    exception::{AuthError, ClientError},
+    exception::{ClientError, handle_api_error},
     result::ApiResult,
 };
 
@@ -26,13 +26,13 @@ use super::request_metadata::{REFRESH_TOKEN_COOKIE, cookie_value, get_ip_from_he
 
 const REFRESH_TOKEN_PATH: &str = "/token/refresh";
 
-pub fn get_auth_url() -> Result<hyper::Uri, AuthError> {
+pub fn get_auth_url() -> Result<hyper::Uri, ClientError> {
     let mut auth_url = config::get_config(ConfigKey::AuthUrlKey);
 
     auth_url.push_str("/auth/route");
     auth_url
         .parse::<hyper::Uri>()
-        .map_err(|e| AuthError::InvalidUrl(e.to_string()))
+        .map_err(|e| ClientError::Request(format!("invalid auth URL: {e}")))
 }
 
 pub fn set_headers(mut builder: Builder, headers: HashMap<HeaderName, HeaderValue>) -> Builder {
@@ -67,7 +67,13 @@ pub async fn find_route(
 
     let resp: ApiResult<AuthRouteResp> = client::post(auth_url, req_body, headers)
         .await
-        .map_err(|e| ClientError::Status(StatusCode::BAD_GATEWAY.as_u16(), e.to_string()))?;
+        .map_err(handle_api_error)?;
+    if resp.code() != i32::from(StatusCode::OK.as_u16()) {
+        return Err(ClientError::Status(
+            StatusCode::BAD_GATEWAY.as_u16(),
+            format!("auth service returned body code {}", resp.code()),
+        ));
+    }
     Ok(resp.into_data())
 }
 
