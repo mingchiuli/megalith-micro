@@ -7,19 +7,23 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.USER_MISS;
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.convertor.UserEntityRpcVoConvertor;
 import wiki.chiu.micro.user.entity.UserEntity;
 import wiki.chiu.micro.user.repository.UserRepository;
 import wiki.chiu.micro.user.service.UserIdentityService;
+import wiki.chiu.micro.user.service.UserRoleService;
 
 @Service
 public class UserIdentityServiceImpl implements UserIdentityService {
 
   private final UserRepository users;
+  private final UserRoleService userRoles;
 
-  public UserIdentityServiceImpl(UserRepository users) {
+  public UserIdentityServiceImpl(UserRepository users, UserRoleService userRoles) {
     this.users = users;
+    this.userRoles = userRoles;
   }
 
   @Override
@@ -37,6 +41,14 @@ public class UserIdentityServiceImpl implements UserIdentityService {
     UserEntity user =
         users.findById(userId).orElseThrow(() -> new MissException(USER_MISS.getMsg()));
     return UserEntityRpcVoConvertor.convert(user);
+  }
+
+  @Override
+  public UserAuthContextRpcVo findAuthContext(Long userId) {
+    UserEntity user =
+        users.findById(userId).orElseThrow(() -> new MissException(USER_MISS.getMsg()));
+    return new UserAuthContextRpcVo(
+        user.getId(), user.getStatus(), userRoles.findRoleCodesByUserId(userId));
   }
 
   @Override

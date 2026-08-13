@@ -2,8 +2,6 @@ package wiki.chiu.micro.exhibit.controller;
 
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -20,10 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import wiki.chiu.micro.auth.api.AuthHttpService;
-import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
+import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
@@ -39,23 +35,20 @@ class BlogControllerTest {
 
   @Mock private BlogService blogService;
 
-  @Mock private AuthHttpService authHttpService;
-
   private final ValidatedRequest validation = new ValidatedRequest();
 
   private MockMvc mockMvc;
 
   @BeforeEach
   void setUp() {
-    AuthPrincipal authInfo = new AuthPrincipal(1L, List.of("ROLE_USER"), List.of());
-    lenient()
-        .when(authHttpService.getAuthentication(anyString()))
-        .thenReturn(
-            Result.success(
-                new AuthRpcVo(authInfo.userId(), authInfo.roles(), authInfo.authorities())));
-    BlogExhibitHttpHandler handler =
-        new BlogExhibitHttpHandler(blogService, authHttpService, validation);
-    mockMvc = MockMvcBuilders.routerFunctions(ExhibitRoutes.routes(handler)).build();
+    AuthPrincipal authInfo = new AuthPrincipal(1L, List.of("ROLE_USER"));
+    BlogExhibitHttpHandler handler = new BlogExhibitHttpHandler(blogService, validation);
+    mockMvc =
+        MockMvcBuilders.routerFunctions(ExhibitRoutes.routes(handler))
+            .defaultRequest(
+                get("/")
+                    .header(AuthPrincipalCodec.HEADER_NAME, AuthPrincipalCodec.encode(authInfo)))
+            .build();
   }
 
   private BlogExhibitVo sampleBlog() {

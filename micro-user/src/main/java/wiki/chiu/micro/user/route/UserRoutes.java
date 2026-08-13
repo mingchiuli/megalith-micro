@@ -15,6 +15,7 @@ import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.handler.AuthorityHttpHandler;
 import wiki.chiu.micro.user.handler.AuthorityInternalHttpHandler;
@@ -55,6 +56,7 @@ import wiki.chiu.micro.user.vo.UserEntityVo;
   MenuAuthorityVo.class,
   AuthorityVo.class,
   UserEntityRpcVo.class,
+  UserAuthContextRpcVo.class,
   RoleEntityRpcVo.class,
   MenuRpcVo.class,
   AuthorityRpcVo.class
@@ -128,7 +130,7 @@ public class UserRoutes {
                 .POST("/inner/user/login/time", userInternalHandler::updateLoginTime)
                 .GET("/inner/user/email", userInternalHandler::findByEmail)
                 .GET("/inner/user/phone", userInternalHandler::findByPhone)
-                .GET("/inner/user/role/{userId}", userInternalHandler::findRoleCodesByUserId)
+                .GET("/inner/user/auth-context/{userId}", userInternalHandler::findAuthContext)
                 .GET("/inner/user/login/query", userInternalHandler::findByUsernameOrEmailOrPhone)
                 .GET("/inner/user/{userId}", userInternalHandler::findById)
                 .GET("/inner/authority/list", authorityInternalHandler::getAuthorities)

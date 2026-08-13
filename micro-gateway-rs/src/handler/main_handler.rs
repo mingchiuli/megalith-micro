@@ -1,7 +1,7 @@
 use crate::config::{self, ConfigKey};
 
 use super::{http_handler, ws_handler};
-use axum::extract::FromRequestParts;
+use axum::extract::{FromRequestParts, State};
 use axum::http::header;
 use axum::{
     body::Body,
@@ -11,10 +11,14 @@ use axum::{
 };
 use opentelemetry::{KeyValue, global};
 
-use crate::client::AuthRouteResp;
+use crate::client::{AuthRouteResp, GatewayState};
 use crate::exception::HandlerError;
 
-pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
+pub async fn handle(
+    State(state): State<GatewayState>,
+    uri: Uri,
+    mut req: Request<Body>,
+) -> impl IntoResponse {
     // Record metrics
     let meter = global::meter(config::get_static_value(ConfigKey::ServerName));
 
@@ -58,7 +62,7 @@ pub async fn handle(uri: Uri, mut req: Request<Body>) -> impl IntoResponse {
     }
 
     // 否则作为普通 HTTP 请求处理
-    match http_handler::handle_request(req, route).await {
+    match http_handler::handle_request(state.client(), req, route).await {
         Ok(response) => response.into_response(),
         Err(err) => err.into_response(),
     }

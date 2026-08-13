@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":common-contract"))
     implementation(project(":common-rpc"))
     implementation(project(":common-web"))
+    implementation(project(":common-auth-web"))
     implementation(project(":common-observability"))
     implementation(project(":cache"))
 }

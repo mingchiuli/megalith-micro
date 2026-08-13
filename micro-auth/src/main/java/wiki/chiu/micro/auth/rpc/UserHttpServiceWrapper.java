@@ -11,6 +11,7 @@ import wiki.chiu.micro.user.api.UserHttpService;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 @Component
@@ -55,8 +56,8 @@ public class UserHttpServiceWrapper implements UserDirectory {
   }
 
   @Override
-  public List<String> findRoleCodesByUserId(Long userId) {
-    return RemoteResult.requireSuccess(() -> userHttpService.findRoleCodesByUserId(userId));
+  public UserAuthContextRpcVo findAuthContext(Long userId) {
+    return RemoteResult.requireSuccess(() -> userHttpService.findAuthContext(userId));
   }
 
   @Override

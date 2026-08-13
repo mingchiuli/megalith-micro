@@ -5,7 +5,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
-    implementation(project(":auth-api"))
     implementation(project(":user-api"))
     implementation(project(":blog-api"))
     implementation(project(":search-api"))

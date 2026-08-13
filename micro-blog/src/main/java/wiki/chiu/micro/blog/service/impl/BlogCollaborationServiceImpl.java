@@ -57,6 +57,6 @@ public class BlogCollaborationServiceImpl implements BlogCollaborationService {
       accessPolicy.requireCollaboration(blog, userId, roles);
       roomId = blogId.toString();
     }
-    return tickets.issueTicket(userId, roomId);
+    return tickets.issueTicket(roomId);
   }
 }

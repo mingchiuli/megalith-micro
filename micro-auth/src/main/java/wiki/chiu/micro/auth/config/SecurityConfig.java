@@ -10,7 +10,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import tools.jackson.databind.json.JsonMapper;
@@ -66,27 +65,13 @@ public class SecurityConfig {
 
   @Bean
   @Order(3)
-  SecurityFilterChain applicationChain(
-      HttpSecurity http,
-      @Qualifier("accessJwtDecoder") JwtDecoder accessJwtDecoder,
-      JsonMapper jsonMapper)
-      throws Exception {
+  SecurityFilterChain applicationChain(HttpSecurity http, JsonMapper jsonMapper) throws Exception {
     LoginAuthenticationFilter loginAuthenticationFilter =
         new LoginAuthenticationFilter(
             authenticationManager, jsonMapper, loginSuccessHandler, loginFailureHandler);
     return stateless(http)
         .authorizeHttpRequests(
-            authorizeHttpRequests ->
-                authorizeHttpRequests
-                    .requestMatchers("/token/userinfo", "/token/logout", "/auth/menu/nav")
-                    .authenticated()
-                    .anyRequest()
-                    .permitAll())
-        .oauth2ResourceServer(
-            oauth2 ->
-                oauth2
-                    .authenticationConverter(new BearerTokenAuthenticationConverter())
-                    .jwt(jwt -> jwt.decoder(accessJwtDecoder)))
+            authorizeHttpRequests -> authorizeHttpRequests.anyRequest().permitAll())
         .addFilterAt(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .build();
   }

@@ -16,8 +16,8 @@ public class AuthHttpServiceWrapper implements CollaborationTicketGateway {
   }
 
   @Override
-  public String issueTicket(Long userId, String roomId) {
+  public String issueTicket(String roomId) {
     return RemoteResult.requireSuccess(
-        () -> authHttpService.issueWebSocketTicket(new WebSocketTicketReq(userId, roomId)));
+        () -> authHttpService.issueWebSocketTicket(new WebSocketTicketReq(roomId)));
   }
 }

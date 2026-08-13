@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +28,9 @@ import wiki.chiu.micro.auth.token.JwtProperties;
 import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
 import wiki.chiu.micro.auth.token.TokenCookieProperties;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
+import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
 import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.security.AuthPrincipal;
 
 @ExtendWith(MockitoExtension.class)
 class TokenControllerTest {
@@ -60,6 +63,11 @@ class TokenControllerTest {
                     handler,
                     org.mockito.Mockito.mock(CodeHttpHandler.class),
                     org.mockito.Mockito.mock(AuthInternalHttpHandler.class)))
+            .defaultRequest(
+                get("/")
+                    .header(
+                        AuthPrincipalCodec.HEADER_NAME,
+                        AuthPrincipalCodec.encode(new AuthPrincipal(42L, List.of("ROLE_USER")))))
             .build();
   }
 
@@ -100,7 +108,7 @@ class TokenControllerTest {
     when(tokenService.userinfo(42L)).thenReturn(vo);
 
     mockMvc
-        .perform(get("/token/userinfo").principal(() -> "42"))
+        .perform(get("/token/userinfo"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.id").value(42))
         .andExpect(jsonPath("$.data.nickname").value("nick"))

@@ -1,6 +1,7 @@
 package wiki.chiu.micro.user.service;
 
 import java.time.LocalDateTime;
+import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 public interface UserIdentityService {
@@ -10,6 +11,8 @@ public interface UserIdentityService {
   void changeStatus(String username, Integer status);
 
   UserEntityRpcVo findById(Long userId);
+
+  UserAuthContextRpcVo findAuthContext(Long userId);
 
   UserEntityRpcVo findByEmail(String email);
 

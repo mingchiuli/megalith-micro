@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
-import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.auth.convertor.MenuDisplayDtoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuRootVoConvertor;
@@ -39,7 +38,9 @@ import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthTypeEnum;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -82,10 +83,10 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public MenuWithChildVo getCurrentUserNav(Long userId) {
+  public MenuWithChildVo getCurrentUserNav(List<String> roles) {
     List<MenuDto> menus = new ArrayList<>();
 
-    currentRoles(userId).stream().map(authWrapper::getCurrentUserNav).forEach(menus::addAll);
+    roles.stream().map(authWrapper::getCurrentUserNav).forEach(menus::addAll);
 
     return MenuRootVoConvertor.convert(
         MenuWithChildDtoConvertor.convert(
@@ -97,11 +98,12 @@ public class AuthServiceImpl implements AuthService {
     AuthorityRpcVo route =
         matchingAuthority(req.routeMapping(), req.method())
             .orElseThrow(() -> new MissException(ExceptionMessage.NO_AUTH));
-    requireRouteAuthorization(req.routeMapping(), route, token);
+    AuthPrincipal principal = authorizePrincipal(req.routeMapping(), route, token);
     recordIp(req.ipAddr());
     return AuthorityRouteRpcVo.builder()
         .serviceHost(route.serviceHost())
         .servicePort(route.servicePort())
+        .principal(principal)
         .build();
   }
 
@@ -154,59 +156,42 @@ public class AuthServiceImpl implements AuthService {
     return false;
   }
 
-  @Override
-  public AuthRpcVo getAuthVo(String token) {
+  private AuthPrincipal authorizePrincipal(
+      String routeMapping, AuthorityRpcVo route, String token) {
     if (!StringUtils.hasLength(token)) {
-      return AuthRpcVo.builder()
-          .userId(0L)
-          .roles(Collections.emptyList())
-          .authorities(Collections.emptyList())
-          .build();
-    }
-
-    Jwt jwt;
-    try {
-      jwt = jwtTokenService.decodeAccessToken(token);
-    } catch (JwtException | IllegalArgumentException e) {
-      throw new MissException(ExceptionMessage.TOKEN_INVALID.getMsg());
-    }
-    Long userId = subject(jwt);
-    requireActiveUser(userId);
-    List<String> roles = currentRoles(userId);
-    List<String> authorities = getAuthorities(roles);
-
-    return AuthRpcVo.builder().userId(userId).roles(roles).authorities(authorities).build();
-  }
-
-  private void requireRouteAuthorization(String routeMapping, AuthorityRpcVo route, String token) {
-    if (AuthTypeEnum.WHITE_LIST.getCode().equals(route.type())) {
-      return;
-    }
-    if (!StringUtils.hasLength(token)) {
+      if (AuthTypeEnum.WHITE_LIST.getCode().equals(route.type())) {
+        return AuthPrincipal.anonymous();
+      }
       throw new MissException(ExceptionMessage.TOKEN_INVALID);
     }
 
-    Jwt jwt;
     Long userId;
     try {
-      jwt = decodeRouteToken(routeMapping, token);
-      userId = subject(jwt);
+      userId = subject(decodeRouteToken(routeMapping, token));
     } catch (JwtException | IllegalArgumentException e) {
       throw new MissException(ExceptionMessage.TOKEN_INVALID);
     }
 
-    requireActiveUser(userId);
+    UserAuthContextRpcVo context = users.findAuthContext(userId);
+    if (!StatusEnum.NORMAL.getCode().equals(context.status())) {
+      throw new MissException(ExceptionMessage.NO_AUTH);
+    }
+    AuthPrincipal principal = new AuthPrincipal(context.userId(), context.roles());
     if (isWebSocketRoute(routeMapping)) {
-      return;
+      return principal;
+    }
+    if (AuthTypeEnum.WHITE_LIST.getCode().equals(route.type())) {
+      return principal;
     }
     boolean authorized =
-        currentRoles(userId).stream()
+        context.roles().stream()
             .map(authWrapper::getAuthoritiesByRoleCode)
             .flatMap(Collection::stream)
             .anyMatch(route.code()::equals);
     if (!authorized) {
       throw new MissException(ExceptionMessage.NO_AUTH);
     }
+    return principal;
   }
 
   private Optional<AuthorityRpcVo> matchingAuthority(String routeMapping, String method) {
@@ -249,33 +234,11 @@ public class AuthServiceImpl implements AuthService {
     return routeMapping.startsWith("/rooms/");
   }
 
-  private List<String> getAuthorities(List<String> roles) {
-    return roles.stream()
-        .map(authWrapper::getAuthoritiesByRoleCode)
-        .flatMap(Collection::stream)
-        .distinct()
-        .toList();
-  }
-
-  private List<String> currentRoles(Long userId) {
-    return users.findRoleCodesByUserId(userId);
-  }
-
   private Long subject(Jwt jwt) {
     try {
       return Long.valueOf(jwt.getSubject());
     } catch (NumberFormatException e) {
       throw new IllegalArgumentException("Invalid JWT subject", e);
     }
-  }
-
-  private void requireActiveUser(Long userId) {
-    if (!isActiveUser(userId)) {
-      throw new MissException(ExceptionMessage.NO_AUTH);
-    }
-  }
-
-  private boolean isActiveUser(Long userId) {
-    return StatusEnum.NORMAL.getCode().equals(users.findById(userId).status());
   }
 }
