@@ -5,10 +5,11 @@ import java.util.List;
 import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.common.security.AuthPrincipal;
+import wiki.chiu.micro.common.security.InternalHttpHeaders;
 
 public final class AuthPrincipalCodec {
 
-  public static final String HEADER_NAME = "X-Megalith-Principal";
+  public static final String HEADER_NAME = InternalHttpHeaders.PRINCIPAL;
   private static final JsonMapper JSON = JsonMapper.builder().build();
 
   private AuthPrincipalCodec() {}

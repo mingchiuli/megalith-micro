@@ -1,12 +1,20 @@
 package wiki.chiu.micro.auth.architecture;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import org.junit.jupiter.api.Test;
+import wiki.chiu.micro.auth.api.AuthHttpService;
+import wiki.chiu.micro.auth.handler.AuthInternalHttpHandler;
 
 class LayeringArchitectureTest {
+
+  @Test
+  void internalHttpHandlerImplementsThePublishedContract() {
+    assertThat(AuthHttpService.class).isAssignableFrom(AuthInternalHttpHandler.class);
+  }
 
   @Test
   void applicationServicesDependOnPortsInsteadOfRpcAdapters() {

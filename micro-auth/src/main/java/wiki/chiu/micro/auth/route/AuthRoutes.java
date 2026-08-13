@@ -15,6 +15,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.auth.api.AuthHttpPaths;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
@@ -66,8 +67,8 @@ public class AuthRoutes {
             .GET("/token/userinfo", tokenHandler::userinfo)
             .POST("/code/email", codeHandler::createEmailCode)
             .POST("/code/sms", codeHandler::createSmsCode)
-            .POST("/inner/auth/route", internalHandler::getAuthorityRoute);
-    builder.POST("/inner/token/websocket", internalHandler::issueWebSocketTicket);
+            .POST("/inner" + AuthHttpPaths.AUTH_ROUTE, internalHandler::getAuthorityRoute);
+    builder.POST("/inner" + AuthHttpPaths.WEBSOCKET_TOKEN, internalHandler::issueWebSocketTicket);
     builder.onError(
         BadCredentialsException.class,
         (exception, request) -> error(HttpStatus.UNAUTHORIZED, exception, log));
