@@ -23,7 +23,6 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
-import wiki.chiu.micro.auth.api.req.AuthorityRouteCheckReq;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
@@ -94,11 +93,12 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public AuthorityRouteRpcVo findRoute(AuthorityRouteReq req) {
-    recordIp(req.ipAddr());
+  public AuthorityRouteRpcVo authorizeRoute(AuthorityRouteReq req, String token) {
     AuthorityRpcVo route =
         matchingAuthority(req.routeMapping(), req.method())
             .orElseThrow(() -> new MissException(ExceptionMessage.NO_AUTH));
+    requireRouteAuthorization(req.routeMapping(), route, token);
+    recordIp(req.ipAddr());
     return AuthorityRouteRpcVo.builder()
         .serviceHost(route.serviceHost())
         .servicePort(route.servicePort())
@@ -178,15 +178,9 @@ public class AuthServiceImpl implements AuthService {
     return AuthRpcVo.builder().userId(userId).roles(roles).authorities(authorities).build();
   }
 
-  @Override
-  public Boolean routeCheck(AuthorityRouteCheckReq req, String token) {
-    Optional<AuthorityRpcVo> matched = matchingAuthority(req.routeMapping(), req.method());
-    if (matched.isEmpty()) {
-      return false;
-    }
-    AuthorityRpcVo route = matched.get();
+  private void requireRouteAuthorization(String routeMapping, AuthorityRpcVo route, String token) {
     if (AuthTypeEnum.WHITE_LIST.getCode().equals(route.type())) {
-      return true;
+      return;
     }
     if (!StringUtils.hasLength(token)) {
       throw new MissException(ExceptionMessage.TOKEN_INVALID);
@@ -195,22 +189,24 @@ public class AuthServiceImpl implements AuthService {
     Jwt jwt;
     Long userId;
     try {
-      jwt = decodeRouteToken(req.routeMapping(), token);
+      jwt = decodeRouteToken(routeMapping, token);
       userId = subject(jwt);
     } catch (JwtException | IllegalArgumentException e) {
       throw new MissException(ExceptionMessage.TOKEN_INVALID);
     }
 
-    if (!isActiveUser(userId)) {
-      return false;
+    requireActiveUser(userId);
+    if (isWebSocketRoute(routeMapping)) {
+      return;
     }
-    if (isWebSocketRoute(req.routeMapping())) {
-      return true;
+    boolean authorized =
+        currentRoles(userId).stream()
+            .map(authWrapper::getAuthoritiesByRoleCode)
+            .flatMap(Collection::stream)
+            .anyMatch(route.code()::equals);
+    if (!authorized) {
+      throw new MissException(ExceptionMessage.NO_AUTH);
     }
-    return currentRoles(userId).stream()
-        .map(authWrapper::getAuthoritiesByRoleCode)
-        .flatMap(Collection::stream)
-        .anyMatch(route.code()::equals);
   }
 
   private Optional<AuthorityRpcVo> matchingAuthority(String routeMapping, String method) {

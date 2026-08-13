@@ -43,7 +43,7 @@ impl AuthRouteReq {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthRouteResp {
     service_host: String,
@@ -97,21 +97,6 @@ fn inject_trace_context_hashmap(headers: &mut HashMap<HeaderName, HeaderValue>) 
         .into_iter()
         .filter_map(|(opt_name, value)| opt_name.map(|name| (name, value)))
         .collect();
-}
-
-pub async fn get_raw(
-    url: Uri,
-    headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<Response<BoxBody<Bytes, BoxError>>, BoxError> {
-    request_raw(Method::GET, url, None, headers).await
-}
-
-pub async fn post_raw(
-    url: Uri,
-    body: axum::body::Body,
-    headers: HashMap<HeaderName, HeaderValue>,
-) -> Result<Response<BoxBody<Bytes, BoxError>>, BoxError> {
-    request_raw(Method::POST, url, Some(body), headers).await
 }
 
 //这个方法阻塞响应的

@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.auth.api.AuthHttpService;
-import wiki.chiu.micro.auth.api.req.AuthorityRouteCheckReq;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
 import wiki.chiu.micro.auth.api.vo.AuthRpcVo;
@@ -40,13 +39,6 @@ public class AuthInternalHttpHandler implements AuthHttpService {
             requiredHeader(request, HttpHeaders.AUTHORIZATION)));
   }
 
-  public ServerResponse routeCheck(ServerRequest request) throws Exception {
-    return ok(
-        routeCheck(
-            AuthRequestConverter.toAuthorityRouteCheckReq(request),
-            requiredHeader(request, HttpHeaders.AUTHORIZATION)));
-  }
-
   public ServerResponse issueWebSocketTicket(ServerRequest request) throws Exception {
     return ok(issueWebSocketTicket(AuthRequestConverter.toWebSocketTicketReq(request)));
   }
@@ -58,12 +50,7 @@ public class AuthInternalHttpHandler implements AuthHttpService {
 
   @Override
   public Result<AuthorityRouteRpcVo> getAuthorityRoute(AuthorityRouteReq req, String token) {
-    return Result.success(() -> authService.findRoute(req));
-  }
-
-  @Override
-  public Result<Boolean> routeCheck(AuthorityRouteCheckReq req, String token) {
-    return Result.success(() -> authService.routeCheck(req, token));
+    return Result.success(() -> authService.authorizeRoute(req, token));
   }
 
   @Override

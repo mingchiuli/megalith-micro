@@ -97,63 +97,6 @@ impl From<ClientError> for HandlerError {
     }
 }
 
-// 实现从 AuthError 到 HandlerError 的转换
-impl From<AuthError> for HandlerError {
-    fn from(error: AuthError) -> Self {
-        match error {
-            AuthError::MissingConfig(msg) => {
-                tracing::error!("AuthError::MissingConfig:{}", msg);
-                HandlerError {
-                    status: StatusCode::INTERNAL_SERVER_ERROR,
-                    message: msg,
-                }
-            }
-            AuthError::InvalidUrl(msg) => {
-                tracing::error!("AuthError::InvalidUrl:{}", msg);
-                HandlerError {
-                    status: StatusCode::INTERNAL_SERVER_ERROR,
-                    message: format!("无效URL: {}", msg),
-                }
-            }
-            AuthError::RequestFailed(msg) => {
-                tracing::error!("AuthError::RequestFailed:{}", msg);
-                HandlerError {
-                    status: StatusCode::INTERNAL_SERVER_ERROR,
-                    message: msg,
-                }
-            }
-            AuthError::Unauthorized(msg) => {
-                tracing::error!("AuthError::Unauthorized:{}", msg);
-                HandlerError {
-                    status: StatusCode::UNAUTHORIZED,
-                    message: format!("未授权: {}", msg),
-                }
-            }
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum AuthError {
-    RequestFailed(String),
-    Unauthorized(String),
-    MissingConfig(String),
-    InvalidUrl(String),
-}
-
-impl Error for AuthError {}
-
-impl Display for AuthError {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        match self {
-            AuthError::RequestFailed(msg) => write!(f, "RequestFailed error: {}", msg),
-            AuthError::Unauthorized(msg) => write!(f, "Unauthorized error: {}", msg),
-            AuthError::MissingConfig(msg) => write!(f, "MissingConfig error: {}", msg),
-            AuthError::InvalidUrl(msg) => write!(f, "InvalidUrl error: {}", msg),
-        }
-    }
-}
-
 /// Client error types
 #[derive(Debug)]
 pub enum ClientError {
@@ -229,30 +172,6 @@ mod tests {
     }
 
     #[test]
-    fn auth_error_display_messages() {
-        assert!(
-            AuthError::Unauthorized("x".into())
-                .to_string()
-                .contains("Unauthorized")
-        );
-        assert!(
-            AuthError::RequestFailed("x".into())
-                .to_string()
-                .contains("RequestFailed")
-        );
-        assert!(
-            AuthError::MissingConfig("x".into())
-                .to_string()
-                .contains("MissingConfig")
-        );
-        assert!(
-            AuthError::InvalidUrl("x".into())
-                .to_string()
-                .contains("InvalidUrl")
-        );
-    }
-
-    #[test]
     fn client_error_to_handler_error_status_codes() {
         let h: HandlerError = ClientError::Network("e".into()).into();
         assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
@@ -274,21 +193,6 @@ mod tests {
         assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
 
         let h: HandlerError = ClientError::Deserialize("e".into()).into();
-        assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
-    }
-
-    #[test]
-    fn auth_error_to_handler_error_status_codes() {
-        let h: HandlerError = AuthError::Unauthorized("u".into()).into();
-        assert_eq!(h.status(), StatusCode::UNAUTHORIZED);
-
-        let h: HandlerError = AuthError::MissingConfig("c".into()).into();
-        assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
-
-        let h: HandlerError = AuthError::InvalidUrl("u".into()).into();
-        assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
-
-        let h: HandlerError = AuthError::RequestFailed("r".into()).into();
         assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
     }
 

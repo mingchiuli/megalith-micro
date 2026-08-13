@@ -1,3 +1,3 @@
 mod error;
 
-pub use error::{AuthError, ClientError, HandlerError, handle_api_error};
+pub use error::{ClientError, HandlerError, handle_api_error};
