@@ -2,6 +2,7 @@ package wiki.chiu.micro.auth.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -34,6 +35,7 @@ import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.security.AuthPrincipal;
+import wiki.chiu.micro.common.security.InternalHttpHeaders;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
@@ -132,5 +134,73 @@ class AuthControllerTest {
                     "{\"method\":\"GET\",\"routeMapping\":\"/api/private\",\"ipAddr\":\"unknown\"}"))
         .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.code").value(ExceptionMessage.TOKEN_INVALID.getCode()));
+  }
+
+  @Test
+  void internalWebSocketTicketUsesThePrincipalHeader() throws Exception {
+    when(jwtTokenService.issueWebSocketToken(1L, "blog-7")).thenReturn("ticket");
+
+    mockMvc
+        .perform(
+            post("/inner/token/websocket")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"roomId\":\"blog-7\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data").value("Bearer ticket"));
+
+    verify(jwtTokenService).issueWebSocketToken(1L, "blog-7");
+  }
+
+  @Test
+  void internalWebSocketTicketRejectsMissingPrincipal() throws Exception {
+    internalMockMvc()
+        .perform(
+            post("/inner/token/websocket")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"roomId\":\"blog-7\"}"))
+        .andExpect(status().isBadRequest());
+
+    verify(jwtTokenService, never()).issueWebSocketToken(anyLong(), anyString());
+  }
+
+  @Test
+  void internalWebSocketTicketRejectsInvalidPrincipal() throws Exception {
+    internalMockMvc()
+        .perform(
+            post("/inner/token/websocket")
+                .header(InternalHttpHeaders.PRINCIPAL, "not-base64")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"roomId\":\"blog-7\"}"))
+        .andExpect(status().isBadRequest());
+
+    verify(jwtTokenService, never()).issueWebSocketToken(anyLong(), anyString());
+  }
+
+  @Test
+  void internalWebSocketTicketRejectsBlankPrincipal() throws Exception {
+    internalMockMvc()
+        .perform(
+            post("/inner/token/websocket")
+                .header(InternalHttpHeaders.PRINCIPAL, " ")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"roomId\":\"blog-7\"}"))
+        .andExpect(status().isBadRequest());
+
+    verify(jwtTokenService, never()).issueWebSocketToken(anyLong(), anyString());
+  }
+
+  @Test
+  void internalWebSocketTicketRejectsTheWrongHttpMethod() throws Exception {
+    mockMvc.perform(get("/inner/token/websocket")).andExpect(status().isNotFound());
+  }
+
+  private MockMvc internalMockMvc() {
+    return MockMvcBuilders.routerFunctions(
+            AuthRoutes.routes(
+                new AuthHttpHandler(authService),
+                tokenHttpHandler,
+                codeHttpHandler,
+                new AuthInternalHttpHandler(authService, jwtTokenService)))
+        .build();
   }
 }

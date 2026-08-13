@@ -12,10 +12,10 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import wiki.chiu.micro.common.security.InternalHttpHeaders;
 
 public class AuthHttpInterceptor implements ClientHttpRequestInterceptor {
 
-  private static final String PRINCIPAL_HEADER = "X-Megalith-Principal";
   private static final Logger log = LoggerFactory.getLogger(AuthHttpInterceptor.class);
 
   @Override
@@ -28,9 +28,9 @@ public class AuthHttpInterceptor implements ClientHttpRequestInterceptor {
       HttpServletRequest req =
           ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes()))
               .getRequest();
-      String principal = req.getHeader(PRINCIPAL_HEADER);
+      String principal = req.getHeader(InternalHttpHeaders.PRINCIPAL);
       if (principal != null && !principal.isBlank()) {
-        request.getHeaders().putIfAbsent(PRINCIPAL_HEADER, List.of(principal));
+        request.getHeaders().putIfAbsent(InternalHttpHeaders.PRINCIPAL, List.of(principal));
       }
     } catch (IllegalStateException e) {
       log.debug("Request context not available, proceeding without principal propagation", e);

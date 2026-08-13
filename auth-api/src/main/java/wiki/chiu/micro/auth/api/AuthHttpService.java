@@ -8,14 +8,22 @@ import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.security.InternalHttpHeaders;
 
 public interface AuthHttpService {
 
-  @PostExchange("/auth/route")
+  @PostExchange(AuthHttpPaths.AUTH_ROUTE)
   Result<AuthorityRouteRpcVo> getAuthorityRoute(
       @RequestBody AuthorityRouteReq req,
       @RequestHeader(value = HttpHeaders.AUTHORIZATION) String token);
 
-  @PostExchange("/token/websocket")
-  Result<String> issueWebSocketTicket(@RequestBody WebSocketTicketReq req);
+  @PostExchange(AuthHttpPaths.WEBSOCKET_TOKEN)
+  Result<String> issueWebSocketTicket(
+      @RequestBody WebSocketTicketReq req,
+      @RequestHeader(value = InternalHttpHeaders.PRINCIPAL, required = false)
+          String encodedPrincipal);
+
+  default Result<String> issueWebSocketTicket(WebSocketTicketReq req) {
+    return issueWebSocketTicket(req, null);
+  }
 }
