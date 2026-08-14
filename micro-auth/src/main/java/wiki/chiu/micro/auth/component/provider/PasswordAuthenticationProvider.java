@@ -7,12 +7,11 @@ import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.jspecify.annotations.NonNull;
 import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -23,9 +22,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
+import wiki.chiu.micro.auth.config.PasswordFailureProperties;
 import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
+import wiki.chiu.micro.auth.user.LoginUser;
 import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.common.lang.StatusEnum;
 
 /**
  * @author mingchiuli
@@ -39,12 +39,7 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
   private final RedissonClient redissonClient;
 
   private final ResourceLoader resourceLoader;
-
-  @Value("${megalith.blog.password-error-intervalTime}")
-  private long intervalTime;
-
-  @Value("${megalith.blog.email-try-count}")
-  private int maxTryNum;
+  private final PasswordFailureProperties properties;
 
   private String script;
 
@@ -60,11 +55,13 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
       RedissonClient redissonClient,
       UserDetailsService userDetailsService,
       UserHttpServiceWrapper userHttpServiceWrapper,
-      ResourceLoader resourceLoader) {
+      ResourceLoader resourceLoader,
+      PasswordFailureProperties properties) {
     super(userDetailsService, userHttpServiceWrapper);
     this.passwordEncoder = passwordEncoder;
     this.redissonClient = redissonClient;
     this.resourceLoader = resourceLoader;
+    this.properties = properties;
   }
 
   @Override
@@ -79,7 +76,7 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
             credentials -> {
               String presentedPassword = credentials.toString();
               if (!passwordEncoder.matches(presentedPassword, user.getPassword())) {
-                handlePasswordMismatch(user.getUsername());
+                handlePasswordMismatch(((LoginUser) user).getUserId());
               }
             },
             () -> {
@@ -87,37 +84,24 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
             });
   }
 
-  private void handlePasswordMismatch(String username) {
-    String prefix = Const.PASSWORD_KEY + username;
-    List<String> loginFailureTimeStampRecords = redissonClient.<String>getList(prefix).range(0, -1);
-    int len = loginFailureTimeStampRecords.size();
-    int l = 0;
-
-    long currentTimeMillis = System.currentTimeMillis();
-
-    for (String timestamp : loginFailureTimeStampRecords) {
-      if (currentTimeMillis - Long.parseLong(timestamp) >= intervalTime) {
-        l++;
-      } else {
-        break;
-      }
+  private void handlePasswordMismatch(Long userId) {
+    long now = System.currentTimeMillis();
+    long window = properties.getWindow().toMillis();
+    Number failures =
+        redissonClient
+            .getScript()
+            .eval(
+                RScript.Mode.READ_WRITE,
+                script,
+                RScript.ReturnType.LONG,
+                Collections.singletonList(Const.PASSWORD_KEY + userId),
+                String.valueOf(now - window),
+                String.valueOf(now),
+                now + ":" + UUID.randomUUID(),
+                String.valueOf(window));
+    if (failures.longValue() >= properties.getMaxAttempts()) {
+      userHttpServiceWrapper.lockAfterPasswordFailures(userId);
     }
-
-    if (len - l + 1 >= maxTryNum) {
-      userHttpServiceWrapper.changeUserStatusByUsername(username, StatusEnum.HIDE.getCode());
-    }
-
-    redissonClient
-        .getScript()
-        .eval(
-            RScript.Mode.READ_WRITE,
-            script,
-            RScript.ReturnType.VALUE,
-            Collections.singletonList(prefix),
-            String.valueOf(l),
-            "-1",
-            String.valueOf(System.currentTimeMillis()),
-            String.valueOf(intervalTime / 1000));
     throw new BadCredentialsException(PASSWORD_MISMATCH.getMsg());
   }
 }

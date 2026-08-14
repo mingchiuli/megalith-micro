@@ -12,6 +12,20 @@ import wiki.chiu.micro.auth.handler.AuthInternalHttpHandler;
 class LayeringArchitectureTest {
 
   @Test
+  void applicationServicesDoNotOwnTransactions() {
+    noClasses()
+        .that()
+        .resideInAPackage("..service..")
+        .should()
+        .dependOnClassesThat()
+        .resideInAPackage("org.springframework.transaction..")
+        .check(
+            new ClassFileImporter()
+                .withImportOption(new ImportOption.DoNotIncludeTests())
+                .importPackages("wiki.chiu.micro.auth"));
+  }
+
+  @Test
   void internalHttpHandlerImplementsThePublishedContract() {
     assertThat(AuthHttpService.class).isAssignableFrom(AuthInternalHttpHandler.class);
   }

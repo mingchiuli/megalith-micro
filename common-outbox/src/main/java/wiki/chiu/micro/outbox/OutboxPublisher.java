@@ -12,8 +12,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -23,6 +21,7 @@ import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import wiki.chiu.micro.outbox.config.OutboxProperties;
+import wiki.chiu.micro.scheduling.RedisTaskLock;
 
 public class OutboxPublisher {
 
@@ -30,7 +29,7 @@ public class OutboxPublisher {
 
   private final OutboxStore store;
   private final RabbitTemplate rabbitTemplate;
-  private final RedissonClient redissonClient;
+  private final RedisTaskLock taskLock;
   private final OutboxProperties properties;
   private final ExecutorService publisherExecutor;
   private final Counter published;
@@ -40,12 +39,12 @@ public class OutboxPublisher {
   public OutboxPublisher(
       OutboxStore store,
       RabbitTemplate rabbitTemplate,
-      RedissonClient redissonClient,
+      RedisTaskLock taskLock,
       OutboxProperties properties,
       MeterRegistry meterRegistry) {
     this.store = store;
     this.rabbitTemplate = rabbitTemplate;
-    this.redissonClient = redissonClient;
+    this.taskLock = taskLock;
     this.properties = properties;
     this.publisherExecutor =
         Executors.newFixedThreadPool(
@@ -66,31 +65,28 @@ public class OutboxPublisher {
 
   @Scheduled(fixedDelayString = "${megalith.outbox.poll-interval:200}")
   public void publishReady() {
-    RLock lock = redissonClient.getLock(OutboxLockNames.publisher(properties));
-    boolean acquired = false;
     try {
-      acquired = lock.tryLock();
+      boolean acquired =
+          taskLock.tryRun(OutboxLockNames.publisher(properties), this::publishReadyUnderLock);
       if (!acquired) {
         lockMisses.increment();
-        return;
       }
-      List<OutboxRecord> records =
-          store.findReady(properties.getProducer(), properties.getBatchSize());
-      CompletableFuture.allOf(
-              records.stream()
-                  .map(
-                      record ->
-                          CompletableFuture.runAsync(() -> publishOne(record), publisherExecutor))
-                  .toArray(CompletableFuture[]::new))
-          .join();
     } catch (RuntimeException e) {
       failures.increment();
       log.error("Outbox publishing cycle failed for {}", properties.getProducer(), e);
-    } finally {
-      if (acquired && lock.isHeldByCurrentThread()) {
-        lock.unlock();
-      }
     }
+  }
+
+  private void publishReadyUnderLock() {
+    List<OutboxRecord> records =
+        store.findReady(properties.getProducer(), properties.getBatchSize());
+    CompletableFuture.allOf(
+            records.stream()
+                .map(
+                    record ->
+                        CompletableFuture.runAsync(() -> publishOne(record), publisherExecutor))
+                .toArray(CompletableFuture[]::new))
+        .join();
   }
 
   private void publishOne(OutboxRecord record) {

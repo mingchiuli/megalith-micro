@@ -15,9 +15,8 @@ import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 public interface UserHttpService {
 
-  @PatchExchange("/user/status")
-  Result<Void> changeUserStatusByUsername(
-      @RequestParam String username, @RequestParam Integer status);
+  @PatchExchange("/user/{userId}/password-lock")
+  Result<Void> lockAfterPasswordFailures(@PathVariable Long userId);
 
   @PostExchange("/user/role")
   Result<List<RoleEntityRpcVo>> findByRoleCodeInAndStatus(

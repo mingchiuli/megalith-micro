@@ -18,7 +18,10 @@ import wiki.chiu.micro.common.lang.Const;
 @EntityListeners(AuditingEntityListener.class)
 @Table(
     name = Const.USER_TABLE,
-    indexes = {@Index(columnList = "created")},
+    indexes = {
+      @Index(columnList = "created"),
+      @Index(name = "idx_user_password_unlock", columnList = "status,password_locked_until,id")
+    },
     uniqueConstraints = {
       @UniqueConstraint(columnNames = {"username"}),
       @UniqueConstraint(columnNames = {"email"}),
@@ -52,6 +55,9 @@ public class UserEntity {
   @Column(name = "status")
   private Integer status;
 
+  @Column(name = "password_locked_until")
+  private LocalDateTime passwordLockedUntil;
+
   @Column(name = "created", updatable = false)
   @CreatedDate
   private LocalDateTime created;
@@ -78,6 +84,7 @@ public class UserEntity {
       String phone,
       String password,
       Integer status,
+      LocalDateTime passwordLockedUntil,
       LocalDateTime created,
       LocalDateTime updated,
       LocalDateTime lastLogin) {
@@ -89,6 +96,7 @@ public class UserEntity {
     this.phone = phone;
     this.password = password;
     this.status = status;
+    this.passwordLockedUntil = passwordLockedUntil;
     this.created = created;
     this.updated = updated;
     this.lastLogin = lastLogin;
@@ -130,6 +138,10 @@ public class UserEntity {
 
   public Integer getStatus() {
     return this.status;
+  }
+
+  public LocalDateTime getPasswordLockedUntil() {
+    return passwordLockedUntil;
   }
 
   public LocalDateTime getCreated() {
@@ -176,6 +188,10 @@ public class UserEntity {
     this.status = status;
   }
 
+  public void setPasswordLockedUntil(LocalDateTime passwordLockedUntil) {
+    this.passwordLockedUntil = passwordLockedUntil;
+  }
+
   public void setCreated(LocalDateTime created) {
     this.created = created;
   }
@@ -210,6 +226,7 @@ public class UserEntity {
     private String phone;
     private String password;
     private Integer status;
+    private LocalDateTime passwordLockedUntil;
     private LocalDateTime created;
     private LocalDateTime updated;
     private LocalDateTime lastLogin;
@@ -256,6 +273,11 @@ public class UserEntity {
       return this;
     }
 
+    public UserEntityBuilder passwordLockedUntil(LocalDateTime passwordLockedUntil) {
+      this.passwordLockedUntil = passwordLockedUntil;
+      return this;
+    }
+
     public UserEntityBuilder created(LocalDateTime created) {
       this.created = created;
       return this;
@@ -273,7 +295,17 @@ public class UserEntity {
 
     public UserEntity build() {
       return new UserEntity(
-          id, username, nickname, avatar, email, phone, password, status, created, updated,
+          id,
+          username,
+          nickname,
+          avatar,
+          email,
+          phone,
+          password,
+          status,
+          passwordLockedUntil,
+          created,
+          updated,
           lastLogin);
     }
   }

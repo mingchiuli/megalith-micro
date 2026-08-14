@@ -7,9 +7,6 @@ final class OutboxLockNames {
   private OutboxLockNames() {}
 
   static String publisher(OutboxProperties properties) {
-    return "megalith:"
-        + properties.getEnvironment()
-        + ":outbox:publisher:"
-        + properties.getProducer().name();
+    return "outbox:publisher:" + properties.getProducer().name();
   }
 }

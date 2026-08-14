@@ -13,7 +13,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.json.JsonMapper;
@@ -35,8 +34,6 @@ import wiki.chiu.micro.blog.wrapper.BlogWrapper;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.*;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.outbox.OutboxProducer;
-import wiki.chiu.micro.outbox.OutboxService;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 
@@ -59,15 +56,9 @@ public class BlogServiceImpl implements BlogService {
 
   private final BlogAccessPolicy accessPolicy;
 
-  private final OutboxService outboxService;
-
   private String hotBlogsScript;
 
   private String listDeleteScript;
-
-  private String recoverDeleteScript;
-
-  private String blogDeleteScript;
 
   public BlogServiceImpl(
       BlogRepository blogRepository,
@@ -77,8 +68,7 @@ public class BlogServiceImpl implements BlogService {
       BlogSensitiveContentRepository blogSensitiveContentRepository,
       BlogSearchGateway blogSearch,
       JsonMapper jsonMapper,
-      BlogAccessPolicy accessPolicy,
-      OutboxService outboxService) {
+      BlogAccessPolicy accessPolicy) {
     this.blogRepository = blogRepository;
     this.redisTemplate = redisTemplate;
     this.resourceLoader = resourceLoader;
@@ -87,7 +77,6 @@ public class BlogServiceImpl implements BlogService {
     this.blogSearch = blogSearch;
     this.jsonMapper = jsonMapper;
     this.accessPolicy = accessPolicy;
-    this.outboxService = outboxService;
   }
 
   @PostConstruct
@@ -99,13 +88,6 @@ public class BlogServiceImpl implements BlogService {
         resourceLoader.getResource(
             ResourceUtils.CLASSPATH_URL_PREFIX + "script/blog-delete-list.lua");
     listDeleteScript = listDeleteResource.getContentAsString(StandardCharsets.UTF_8);
-    Resource recoverDeleteResource =
-        resourceLoader.getResource(
-            ResourceUtils.CLASSPATH_URL_PREFIX + "script/recover-delete.lua");
-    recoverDeleteScript = recoverDeleteResource.getContentAsString(StandardCharsets.UTF_8);
-    Resource blogDeleteResource =
-        resourceLoader.getResource(ResourceUtils.CLASSPATH_URL_PREFIX + "script/rpush-expire.lua");
-    blogDeleteScript = blogDeleteResource.getContentAsString(StandardCharsets.UTF_8);
   }
 
   @Override
@@ -139,12 +121,8 @@ public class BlogServiceImpl implements BlogService {
   }
 
   @Override
-  @Transactional
   public void saveOrUpdate(
       BlogEntityReq blog, Long userId, List<DataPermissionEnum> dataPermissions) {
-    BlogEntity dealBlog = getBlogEntity(blog, userId, dataPermissions);
-    BlogEntity blogEntity = BlogEntityConvertor.convert(blog, dealBlog);
-
     List<BlogSensitiveContentEntity> blogSensitiveContentEntityList =
         blog.sensitiveContentList().stream()
             .distinct()
@@ -156,69 +134,7 @@ public class BlogServiceImpl implements BlogService {
                         .type(item.type())
                         .build())
             .toList();
-
-    List<Long> existedSensitiveIds =
-        blog.id()
-            .map(
-                blogId ->
-                    blogSensitiveContentRepository.findByBlogId(blogId).stream()
-                        .map(BlogSensitiveContentEntity::getId)
-                        .toList())
-            .orElse(Collections.emptyList());
-
-    BlogEntity saved =
-        blogWrapper.saveOrUpdate(blogEntity, blogSensitiveContentEntityList, existedSensitiveIds);
-
-    enqueueBlogOperation(
-        blog.id().isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE, saved);
-  }
-
-  private BlogEntity getBlogEntity(
-      BlogEntityReq blog, Long userId, List<DataPermissionEnum> dataPermissions) {
-    return blog.id()
-        .map(
-            blogId -> {
-              BlogEntity blogEntity =
-                  blogRepository
-                      .findByIdForUpdate(blogId)
-                      .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-              accessPolicy.requireEdit(blogEntity, userId, dataPermissions);
-              return blogEntity;
-            })
-        .orElseGet(() -> BlogEntity.builder().userId(userId).readCount(0L).build());
-  }
-
-  private void enqueueBlogOperation(BlogOperateEnum type, BlogEntity blogEntity) {
-    BlogSnapshot snapshot =
-        new BlogSnapshot(
-            blogEntity.getId(),
-            blogEntity.getUserId(),
-            blogEntity.getTitle(),
-            blogEntity.getDescription(),
-            blogEntity.getContent(),
-            blogEntity.getCreated(),
-            blogEntity.getUpdated(),
-            blogEntity.getStatus(),
-            blogEntity.getLink(),
-            blogEntity.getReadCount(),
-            blogEntity.getEventRevision());
-    long totalCount = blogRepository.count();
-    Long newerOrSameCount =
-        BlogOperateEnum.UPDATE.equals(type)
-            ? blogRepository.countByCreatedGreaterThanEqual(blogEntity.getCreated())
-            : null;
-    outboxService.enqueue(
-        OutboxProducer.BLOG,
-        "BLOG",
-        blogEntity.getId(),
-        eventId ->
-            new BlogChangedMessage(
-                eventId,
-                type.getCode(),
-                blogEntity.getEventRevision(),
-                snapshot,
-                totalCount,
-                newerOrSameCount));
+    blogWrapper.saveOrUpdate(blog, userId, dataPermissions, blogSensitiveContentEntityList);
   }
 
   @Override
@@ -303,56 +219,21 @@ public class BlogServiceImpl implements BlogService {
   }
 
   @Override
-  @Transactional
   public void recoverDeletedBlog(Integer idx, Long userId) {
-
-    String str =
-        redisTemplate.execute(
-            RedisScript.of(recoverDeleteScript, String.class),
-            Collections.singletonList(QUERY_DELETED + userId),
-            String.valueOf(idx));
+    String recycleKey = QUERY_DELETED + userId;
+    String str = redisTemplate.opsForList().index(recycleKey, idx);
 
     if (!StringUtils.hasLength(str)) {
       return;
     }
 
     BlogDeleteDto delBlog = jsonMapper.readValue(str, BlogDeleteDto.class);
-    BlogEntity tempBlog = BlogEntityConvertor.convertRecover(delBlog);
-    BlogEntity blog = blogRepository.save(tempBlog);
-
-    enqueueBlogOperation(BlogOperateEnum.CREATE, blog);
+    blogWrapper.recoverDeletedBlog(delBlog, userId);
+    redisTemplate.opsForList().remove(recycleKey, 1, str);
   }
 
   @Override
-  @Transactional
   public void deleteBatch(List<Long> ids, Long userId, List<DataPermissionEnum> dataPermissions) {
-
-    List<BlogEntity> entities =
-        blogRepository.findAllByIdForUpdate(ids).stream()
-            .filter(blogEntity -> accessPolicy.canDelete(blogEntity, userId, dataPermissions))
-            .toList();
-
-    entities.forEach(
-        entity ->
-            entity.setEventRevision(Optional.ofNullable(entity.getEventRevision()).orElse(0L) + 1));
-
-    List<Long> idList = entities.stream().map(BlogEntity::getId).toList();
-
-    List<Long> sensitiveIds =
-        blogSensitiveContentRepository.findByBlogIdIn(idList).stream()
-            .map(BlogSensitiveContentEntity::getId)
-            .toList();
-    blogWrapper.deleteByIds(idList, sensitiveIds);
-    blogRepository.flush();
-
-    entities.forEach(
-        entity -> {
-          redisTemplate.execute(
-              RedisScript.of(blogDeleteScript),
-              Collections.singletonList(QUERY_DELETED + userId),
-              jsonMapper.writeValueAsString(BlogDeleteDtoConvertor.convert(entity)),
-              A_WEEK);
-          enqueueBlogOperation(BlogOperateEnum.REMOVE, entity);
-        });
+    blogWrapper.deleteByIds(ids, userId, dataPermissions);
   }
 }

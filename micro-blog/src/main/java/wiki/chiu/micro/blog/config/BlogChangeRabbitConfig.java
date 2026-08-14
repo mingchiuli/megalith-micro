@@ -26,6 +26,11 @@ public class BlogChangeRabbitConfig {
     return new Queue(Const.CACHE_QUEUE, true, false, false);
   }
 
+  @Bean("recycleQueue")
+  Queue recycleQueue() {
+    return new Queue(Const.RECYCLE_QUEUE, true, false, false);
+  }
+
   // ES交换机
   @Bean("fanoutExchange")
   FanoutExchange exchange() {
@@ -44,5 +49,12 @@ public class BlogChangeRabbitConfig {
       @Qualifier("cacheQueue") Queue cacheQueue,
       @Qualifier("fanoutExchange") FanoutExchange exchange) {
     return BindingBuilder.bind(cacheQueue).to(exchange);
+  }
+
+  @Bean("recycleBinding")
+  Binding recycleBinding(
+      @Qualifier("recycleQueue") Queue recycleQueue,
+      @Qualifier("fanoutExchange") FanoutExchange exchange) {
+    return BindingBuilder.bind(recycleQueue).to(exchange);
   }
 }

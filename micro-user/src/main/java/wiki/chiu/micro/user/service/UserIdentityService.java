@@ -8,7 +8,7 @@ public interface UserIdentityService {
 
   void updateLoginTime(String username, LocalDateTime time);
 
-  void changeStatus(String username, Integer status);
+  void lockAfterPasswordFailures(Long userId);
 
   UserEntityRpcVo findById(Long userId);
 

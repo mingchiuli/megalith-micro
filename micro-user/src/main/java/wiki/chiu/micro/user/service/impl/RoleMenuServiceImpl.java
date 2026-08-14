@@ -2,7 +2,6 @@ package wiki.chiu.micro.user.service.impl;
 
 import java.util.*;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 import wiki.chiu.micro.user.convertor.MenuDisplayVoConvertor;
@@ -15,7 +14,6 @@ import wiki.chiu.micro.user.repository.MenuRepository;
 import wiki.chiu.micro.user.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.service.RoleMenuService;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.vo.MenuDisplayVo;
 import wiki.chiu.micro.user.vo.RoleMenuVo;
 import wiki.chiu.micro.user.wrapper.RoleMenuWrapper;
@@ -35,19 +33,15 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
   private final RoleRepository roleRepository;
 
-  private final AuthCacheEvictionOutbox cacheEvictions;
-
   public RoleMenuServiceImpl(
       MenuRepository menuRepository,
       RoleMenuRepository roleMenuRepository,
       RoleMenuWrapper roleMenuWrapper,
-      RoleRepository roleRepository,
-      AuthCacheEvictionOutbox cacheEvictions) {
+      RoleRepository roleRepository) {
     this.menuRepository = menuRepository;
     this.roleMenuRepository = roleMenuRepository;
     this.roleMenuWrapper = roleMenuWrapper;
     this.roleRepository = roleRepository;
-    this.cacheEvictions = cacheEvictions;
   }
 
   private List<RoleMenuVo> setCheckMenusInfo(
@@ -84,18 +78,10 @@ public class RoleMenuServiceImpl implements RoleMenuService {
   }
 
   @Override
-  @Transactional
   public void saveMenu(Long roleId, List<Long> menuIds) {
     List<RoleMenuEntity> roleMenuEntities = RoleMenuEntityConvertor.convert(roleId, menuIds);
 
     roleMenuWrapper.saveMenu(roleId, new ArrayList<>(roleMenuEntities));
-    roleRepository
-        .findById(roleId)
-        .map(RoleEntity::getCode)
-        .ifPresent(
-            role -> {
-              cacheEvictions.enqueue(List.of(), List.of(roleId), List.of(role), true, false);
-            });
   }
 
   @Override

@@ -25,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -259,14 +260,12 @@ class UserControllerTest {
   }
 
   @Test
-  void internalStatusMutationUsesPatch() throws Exception {
-    when(userInternalHttpHandler.changeUserStatusByUsername(any()))
+  void internalPasswordLockUsesPatch() throws Exception {
+    when(userInternalHttpHandler.lockAfterPasswordFailures(any(ServerRequest.class)))
         .thenReturn(ServerResponse.ok().build());
 
-    mockMvc
-        .perform(patch("/inner/user/status").param("username", "alice").param("status", "1"))
-        .andExpect(status().isOk());
+    mockMvc.perform(patch("/inner/user/42/password-lock")).andExpect(status().isOk());
 
-    verify(userInternalHttpHandler).changeUserStatusByUsername(any());
+    verify(userInternalHttpHandler).lockAfterPasswordFailures(any(ServerRequest.class));
   }
 }

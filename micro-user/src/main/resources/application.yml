@@ -40,7 +40,14 @@ megalith:
   outbox:
     producer: USER
     exchange: user.auth.menu.change.fanout.exchange
+  task-lock:
     environment: ${spring.profiles.active:default}
+  user:
+    password-lock:
+      duration: 15m
+      poll-interval: 30s
+      batch-size: 100
+      max-batches-per-run: 10
   blog:
     oss:
       base-url: https://${megalith.blog.aliyun.oss.bucket-name}.${megalith.blog.oss.endpoint}

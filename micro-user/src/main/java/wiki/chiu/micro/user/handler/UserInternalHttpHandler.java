@@ -48,11 +48,9 @@ public class UserInternalHttpHandler implements UserHttpService {
     return ok(findById(userId));
   }
 
-  public ServerResponse changeUserStatusByUsername(ServerRequest request) {
-    return ok(
-        changeUserStatusByUsername(
-            requiredParam(request, "username"),
-            v.range(requiredParam(request, "status", Integer::valueOf), 0, 1, "status")));
+  public ServerResponse lockAfterPasswordFailures(ServerRequest request) {
+    Long userId = v.positive(pathVariable(request, "userId", Long::valueOf), "userId");
+    return ok(lockAfterPasswordFailures(userId));
   }
 
   public ServerResponse findByRoleCodeInAndStatus(ServerRequest request) throws Exception {
@@ -98,8 +96,8 @@ public class UserInternalHttpHandler implements UserHttpService {
   }
 
   @Override
-  public Result<Void> changeUserStatusByUsername(String username, Integer status) {
-    return Result.success(() -> userIdentityService.changeStatus(username, status));
+  public Result<Void> lockAfterPasswordFailures(Long userId) {
+    return Result.success(() -> userIdentityService.lockAfterPasswordFailures(userId));
   }
 
   @Override

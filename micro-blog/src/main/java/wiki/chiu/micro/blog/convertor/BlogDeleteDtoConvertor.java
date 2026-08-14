@@ -2,6 +2,7 @@ package wiki.chiu.micro.blog.convertor;
 
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
 import wiki.chiu.micro.blog.entity.BlogEntity;
+import wiki.chiu.micro.common.lang.BlogSnapshot;
 
 public class BlogDeleteDtoConvertor {
 
@@ -20,6 +21,22 @@ public class BlogDeleteDtoConvertor {
         .eventRevision(blogEntity.getEventRevision())
         .updated(blogEntity.getUpdated())
         .created(blogEntity.getCreated())
+        .build();
+  }
+
+  public static BlogDeleteDto convert(BlogSnapshot snapshot) {
+    return BlogDeleteDto.builder()
+        .id(snapshot.id())
+        .title(snapshot.title())
+        .description(snapshot.description())
+        .content(snapshot.content())
+        .status(snapshot.status())
+        .link(snapshot.link())
+        .userId(snapshot.userId())
+        .readCount(snapshot.readCount())
+        .eventRevision(snapshot.revision())
+        .updated(snapshot.updated())
+        .created(snapshot.created())
         .build();
   }
 }

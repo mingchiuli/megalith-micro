@@ -40,6 +40,11 @@ megalith:
     queue-prefix: cache.user.evict.queue.
     fanout-exchange: cache.user.evict.fanout.exchange
   auth:
+    code:
+      max-attempts: 3
+    password-failures:
+      max-attempts: 3
+      window: 15m
     jwt:
       access-token-expire: 900
       refresh-token-expire: 604800
@@ -51,7 +56,5 @@ megalith:
       secure: ${MEGALITH_AUTH_COOKIE_SECURE:true}
       same-site: Strict
   blog:
-    email-try-count: 3
-    password-error-intervalTime: 900000
     sms:
       base-url: https://dysmsapi.aliyuncs.com

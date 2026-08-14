@@ -24,7 +24,6 @@ import wiki.chiu.micro.blog.service.BlogAccessPolicy;
 import wiki.chiu.micro.blog.service.port.BlogSearchGateway;
 import wiki.chiu.micro.blog.service.port.CollaborationTicketGateway;
 import wiki.chiu.micro.blog.wrapper.BlogWrapper;
-import wiki.chiu.micro.outbox.OutboxService;
 
 class BlogServiceImplTest {
 
@@ -39,8 +38,7 @@ class BlogServiceImplTest {
             mock(BlogSensitiveContentRepository.class),
             mock(BlogSearchGateway.class),
             mock(JsonMapper.class),
-            new BlogAccessPolicy(),
-            mock(OutboxService.class));
+            new BlogAccessPolicy());
 
     var edit = service.findEdit(null, 42L, List.of());
 

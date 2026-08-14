@@ -12,7 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.lang.DataPermissionEnum;
@@ -28,9 +27,8 @@ import wiki.chiu.micro.user.entity.*;
 import wiki.chiu.micro.user.repository.*;
 import wiki.chiu.micro.user.req.RoleEntityReq;
 import wiki.chiu.micro.user.service.RoleService;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
-import wiki.chiu.micro.user.wrapper.UserRoleMenuWrapper;
+import wiki.chiu.micro.user.wrapper.RoleWrapper;
 
 /**
  * @author mingchiuli
@@ -47,23 +45,19 @@ public class RoleServiceImpl implements RoleService {
 
   private final RoleDataPermissionRepository roleDataPermissionRepository;
 
-  private final AuthCacheEvictionOutbox cacheEvictions;
-
-  private final UserRoleMenuWrapper userRoleMenuWrapper;
+  private final RoleWrapper roleWrapper;
 
   public RoleServiceImpl(
       RoleRepository roleRepository,
       RoleMenuRepository roleMenuRepository,
       UserRoleRepository userRoleRepository,
       RoleDataPermissionRepository roleDataPermissionRepository,
-      AuthCacheEvictionOutbox cacheEvictions,
-      UserRoleMenuWrapper userRoleMenuWrapper) {
+      RoleWrapper roleWrapper) {
     this.roleRepository = roleRepository;
     this.roleMenuRepository = roleMenuRepository;
     this.userRoleRepository = userRoleRepository;
     this.roleDataPermissionRepository = roleDataPermissionRepository;
-    this.cacheEvictions = cacheEvictions;
-    this.userRoleMenuWrapper = userRoleMenuWrapper;
+    this.roleWrapper = roleWrapper;
   }
 
   @Override
@@ -93,34 +87,21 @@ public class RoleServiceImpl implements RoleService {
   }
 
   @Override
-  @Transactional
   public void saveOrUpdate(RoleEntityReq roleReq) {
 
     RoleEntity dealRole = roleReq.id().flatMap(roleRepository::findById).orElseGet(RoleEntity::new);
     String previousCode = dealRole.getCode();
     RoleEntity roleEntity = RoleEntityConvertor.convert(roleReq, dealRole);
-    RoleEntity savedRole = roleRepository.save(roleEntity);
-    roleDataPermissionRepository.deleteByRoleId(savedRole.getId());
-    roleDataPermissionRepository.flush();
-    roleDataPermissionRepository.saveAll(
-        roleReq.dataPermissions().stream()
-            .distinct()
-            .sorted()
-            .map(permission -> new RoleDataPermissionEntity(savedRole.getId(), permission))
-            .toList());
     List<String> affectedCodes =
         Stream.of(previousCode, roleEntity.getCode()).filter(Objects::nonNull).distinct().toList();
-    cacheEvictions.enqueue(List.of(), List.of(savedRole.getId()), affectedCodes, true, false);
+    roleWrapper.saveOrUpdate(roleEntity, roleReq.dataPermissions(), affectedCodes);
   }
 
   @Override
-  @Transactional
   public void delete(List<Long> ids) {
     List<String> roles =
         roleRepository.findAllById(ids).stream().map(RoleEntity::getCode).distinct().toList();
-    userRoleMenuWrapper.deleteRole(ids);
-
-    cacheEvictions.enqueue(List.of(), ids, roles, true, false);
+    roleWrapper.delete(ids, roles);
   }
 
   @Override

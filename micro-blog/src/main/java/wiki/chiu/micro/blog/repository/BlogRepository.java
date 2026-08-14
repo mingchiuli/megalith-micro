@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 
 /**
@@ -31,7 +30,6 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
   @Query(
       value = "UPDATE BlogEntity blog SET blog.readCount = blog.readCount + 1 WHERE blog.id = ?1")
   @Modifying
-  @Transactional
   void setReadCount(Long id);
 
   @Query(value = "SELECT blog.userId from BlogEntity blog where blog.id = ?1")
