@@ -94,7 +94,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         .map(RoleEntity::getCode)
         .ifPresent(
             role -> {
-              cacheEvictions.enqueue(List.of(), List.of(roleId), List.of(role), true, true, false);
+              cacheEvictions.enqueue(List.of(), List.of(roleId), List.of(role), true, false);
             });
   }
 

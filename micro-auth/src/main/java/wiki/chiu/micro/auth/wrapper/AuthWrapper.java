@@ -1,7 +1,6 @@
 package wiki.chiu.micro.auth.wrapper;
 
 import java.util.List;
-import java.util.Set;
 import org.springframework.stereotype.Component;
 import wiki.chiu.micro.auth.convertor.MenuDtoConvertor;
 import wiki.chiu.micro.auth.dto.MenuDto;
@@ -36,11 +35,6 @@ public class AuthWrapper {
   public List<MenuDto> getCurrentUserNav(String rawRole) {
     List<MenuRpcVo> dto = userHttpServiceWrapper.getCurrentUserNav(rawRole);
     return MenuDtoConvertor.convert(dto);
-  }
-
-  @Cache(prefix = Const.ROLE_AUTHORITY)
-  public Set<String> getAuthoritiesByRoleCode(String rawRole) {
-    return userHttpServiceWrapper.getAuthoritiesByRoleCode(rawRole);
   }
 
   @Cache(prefix = Const.ALL_SERVICE)

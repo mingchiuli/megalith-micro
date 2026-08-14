@@ -58,9 +58,8 @@ public class MenuAuthorityServiceImpl implements MenuAuthorityService {
     cacheEvictions.enqueue(
         List.of(),
         roles.stream().map(wiki.chiu.micro.user.entity.RoleEntity::getId).toList(),
-        roles.stream().map(wiki.chiu.micro.user.entity.RoleEntity::getCode).toList(),
+        List.of(),
         false,
-        true,
         false);
   }
 

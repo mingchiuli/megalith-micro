@@ -8,7 +8,6 @@ public record AuthCacheEvictMessage(
     List<Long> roleIds,
     List<String> roleCodes,
     boolean evictMenus,
-    boolean evictAuthorities,
     boolean evictRoutes) {
 
   public AuthCacheEvictMessage {

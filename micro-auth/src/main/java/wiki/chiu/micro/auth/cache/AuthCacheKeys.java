@@ -30,10 +30,6 @@ public class AuthCacheKeys {
         Method nav = AuthWrapper.class.getMethod("getCurrentUserNav", String.class);
         message.roleCodes().forEach(code -> keys.add(keyGenerator.generateKey(nav, code)));
       }
-      if (message.evictAuthorities()) {
-        Method authorities = AuthWrapper.class.getMethod("getAuthoritiesByRoleCode", String.class);
-        message.roleCodes().forEach(code -> keys.add(keyGenerator.generateKey(authorities, code)));
-      }
       if (message.evictRoutes()) {
         Method routes = AuthWrapper.class.getMethod("getAllSystemAuthorities");
         keys.add(keyGenerator.generateKey(routes));

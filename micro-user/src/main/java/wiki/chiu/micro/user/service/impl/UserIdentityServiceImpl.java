@@ -43,7 +43,7 @@ public class UserIdentityServiceImpl implements UserIdentityService {
             .map(UserEntity::getId)
             .orElseThrow(() -> new MissException(USER_MISS.getMsg()));
     users.updateUserStatusByUsername(username, status);
-    cacheEvictions.enqueue(List.of(userId), List.of(), List.of(), false, false, false);
+    cacheEvictions.enqueue(List.of(userId), List.of(), List.of(), false, false);
   }
 
   @Override

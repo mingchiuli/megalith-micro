@@ -141,8 +141,7 @@ public class UserRoutes {
                 .POST("/inner/role/authorizations", userInternalHandler::findRoleAuthorizations)
                 .GET("/inner/user/login/query", userInternalHandler::findByUsernameOrEmailOrPhone)
                 .GET("/inner/user/{userId}", userInternalHandler::findById)
-                .GET("/inner/authority/list", authorityInternalHandler::getAuthorities)
-                .GET("/inner/authority/role", authorityInternalHandler::getAuthoritiesByRoleCode),
+                .GET("/inner/authority/list", authorityInternalHandler::getAuthorities),
             log)
         .build();
   }
