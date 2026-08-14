@@ -15,6 +15,7 @@ import wiki.chiu.micro.blog.service.BlogAccessPolicy;
 import wiki.chiu.micro.blog.service.BlogCollaborationService;
 import wiki.chiu.micro.blog.service.port.CollaborationTicketGateway;
 import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.lang.DataPermissionEnum;
 
 @Service
 public class BlogCollaborationServiceImpl implements BlogCollaborationService {
@@ -36,9 +37,9 @@ public class BlogCollaborationServiceImpl implements BlogCollaborationService {
   }
 
   @Override
-  public String issueReadToken(Long blogId, Long userId, List<String> roles) {
+  public String issueReadToken(Long blogId, Long userId, List<DataPermissionEnum> dataPermissions) {
     BlogEntity blog = blogs.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND));
-    accessPolicy.requireManagement(blog, userId, roles);
+    accessPolicy.requireEdit(blog, userId, dataPermissions);
     String token = UUID.randomUUID().toString();
     redisTemplate
         .opsForValue()
@@ -47,14 +48,15 @@ public class BlogCollaborationServiceImpl implements BlogCollaborationService {
   }
 
   @Override
-  public String issueWebSocketTicket(Long blogId, Long userId, List<String> roles) {
+  public String issueWebSocketTicket(
+      Long blogId, Long userId, List<DataPermissionEnum> dataPermissions) {
     String roomId;
     if (blogId == null) {
       accessPolicy.requireAuthenticated(userId);
       roomId = "init:" + userId;
     } else {
       BlogEntity blog = blogs.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND));
-      accessPolicy.requireCollaboration(blog, userId, roles);
+      accessPolicy.requireCollaboration(blog, userId, dataPermissions);
       roomId = blogId.toString();
     }
     return tickets.issueTicket(roomId);

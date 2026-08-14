@@ -70,6 +70,8 @@ public class Const {
 
   public static final String ROLE_MENU_TABLE = "m_role_menu";
 
+  public static final String ROLE_DATA_PERMISSION_TABLE = "m_role_data_permission";
+
   public static final String ROLE_TABLE = "m_role";
 
   public static final String USER_TABLE = "m_user";

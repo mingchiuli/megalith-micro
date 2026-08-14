@@ -1,7 +1,6 @@
 package wiki.chiu.micro.search.api.req;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public record BlogSysCountSearchReq(
     String keywords,
@@ -9,7 +8,7 @@ public record BlogSysCountSearchReq(
     LocalDateTime createStart,
     LocalDateTime createEnd,
     Long userId,
-    List<String> roles) {
+    Boolean allData) {
 
   public static BlogSysCountSearchReq.BLogSysCountSearchReqBuilder builder() {
     return new BlogSysCountSearchReq.BLogSysCountSearchReqBuilder();
@@ -27,7 +26,7 @@ public record BlogSysCountSearchReq(
 
     private Long userId;
 
-    private List<String> roles;
+    private Boolean allData;
 
     public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder keywords(String keywords) {
       this.keywords = keywords;
@@ -55,13 +54,13 @@ public record BlogSysCountSearchReq(
       return this;
     }
 
-    public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder roles(List<String> roles) {
-      this.roles = roles;
+    public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder allData(Boolean allData) {
+      this.allData = allData;
       return this;
     }
 
     public BlogSysCountSearchReq build() {
-      return new BlogSysCountSearchReq(keywords, status, createStart, createEnd, userId, roles);
+      return new BlogSysCountSearchReq(keywords, status, createStart, createEnd, userId, allData);
     }
   }
 }

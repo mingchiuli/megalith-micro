@@ -14,19 +14,24 @@ public class UserRoleMenuWrapper {
 
   private final UserRoleRepository userRoleRepository;
 
+  private final RoleDataPermissionRepository roleDataPermissionRepository;
+
   public UserRoleMenuWrapper(
       RoleRepository roleRepository,
       RoleMenuRepository roleMenuRepository,
-      UserRoleRepository userRoleRepository) {
+      UserRoleRepository userRoleRepository,
+      RoleDataPermissionRepository roleDataPermissionRepository) {
     this.roleRepository = roleRepository;
     this.roleMenuRepository = roleMenuRepository;
     this.userRoleRepository = userRoleRepository;
+    this.roleDataPermissionRepository = roleDataPermissionRepository;
   }
 
   @Transactional
   public void deleteRole(List<Long> ids) {
     roleMenuRepository.deleteAllByRoleIdIn(ids);
     userRoleRepository.deleteByRoleIdIn(ids);
+    roleDataPermissionRepository.deleteByRoleIdIn(ids);
     roleRepository.deleteAllById(ids);
   }
 }

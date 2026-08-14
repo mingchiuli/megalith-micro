@@ -34,9 +34,6 @@ public class BlogSearchServiceImpl implements BlogSearchService {
   @Value("${megalith.blog.blog-page-size}")
   private int blogPageSize;
 
-  @Value("${megalith.blog.highest-role}")
-  private String highestRole;
-
   public BlogSearchServiceImpl(ElasticsearchTemplate elasticsearchTemplate) {
     this.elasticsearchTemplate = elasticsearchTemplate;
   }
@@ -64,8 +61,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
             req.createStart(),
             req.createEnd(),
             req.userId(),
-            req.roles(),
-            highestRole,
+            req.allData(),
             currentPage,
             size);
     SearchHits<@NonNull BlogDocument> searchResp =
@@ -83,8 +79,7 @@ public class BlogSearchServiceImpl implements BlogSearchService {
             req.createStart(),
             req.createEnd(),
             req.userId(),
-            req.roles(),
-            highestRole);
+            req.allData());
     return elasticsearchTemplate.count(countQuery, BlogDocument.class);
   }
 

@@ -59,14 +59,16 @@ public class BlogHttpHandler {
     BlogEntityReq blog = BlogRequestConverter.toBlogEntityReq(request);
     AuthPrincipal authInfo = authPrincipal(request);
     return ok(
-        Result.success(() -> blogService.saveOrUpdate(blog, authInfo.userId(), authInfo.roles())));
+        Result.success(
+            () -> blogService.saveOrUpdate(blog, authInfo.userId(), authInfo.dataPermissions())));
   }
 
   public ServerResponse deleteBlogs(ServerRequest request) throws Exception {
     List<Long> ids = v.notEmpty(v.positiveElements(request.body(LONG_LIST), "ids"), "ids");
     AuthPrincipal authInfo = authPrincipal(request);
     return ok(
-        Result.success(() -> blogService.deleteBatch(ids, authInfo.userId(), authInfo.roles())));
+        Result.success(
+            () -> blogService.deleteBatch(ids, authInfo.userId(), authInfo.dataPermissions())));
   }
 
   public ServerResponse setBlogToken(ServerRequest request) {
@@ -75,14 +77,16 @@ public class BlogHttpHandler {
     return ok(
         Result.success(
             () ->
-                collaborationService.issueReadToken(blogId, authInfo.userId(), authInfo.roles())));
+                collaborationService.issueReadToken(
+                    blogId, authInfo.userId(), authInfo.dataPermissions())));
   }
 
   public ServerResponse getAllBlogs(ServerRequest request) {
     BlogQueryReq query = BlogRequestConverter.toBlogQueryReq(request);
     AuthPrincipal authInfo = authPrincipal(request);
     return ok(
-        Result.success(() -> blogService.findAllBlogs(query, authInfo.userId(), authInfo.roles())));
+        Result.success(
+            () -> blogService.findAllBlogs(query, authInfo.userId(), authInfo.dataPermissions())));
   }
 
   public ServerResponse getDeletedBlogs(ServerRequest request) {
@@ -102,10 +106,18 @@ public class BlogHttpHandler {
 
   public ServerResponse uploadOss(ServerRequest request) {
     MultipartFile image = multipartFile(request, "image");
+    Long blogId = nullableParam(request, "blogId", Long::valueOf);
+    if (blogId != null) {
+      v.positive(blogId, "blogId");
+    }
     AuthPrincipal authInfo = authPrincipal(request);
     try {
       UploadObject upload = new UploadObject(image.getBytes());
-      return ok(Result.success(() -> assetService.upload(upload, authInfo.userId())));
+      return ok(
+          Result.success(
+              () ->
+                  assetService.upload(
+                      upload, blogId, authInfo.userId(), authInfo.dataPermissions())));
     } catch (IOException exception) {
       throw new ValidationException("failed to read uploaded image");
     }
@@ -114,8 +126,14 @@ public class BlogHttpHandler {
   public ServerResponse deleteOss(ServerRequest request) throws Exception {
     OssDeleteReq body = request.body(OssDeleteReq.class);
     String url = v.notBlank(body.url(), "url");
+    Long blogId = body.blogId();
+    if (blogId != null) {
+      v.positive(blogId, "blogId");
+    }
     AuthPrincipal authInfo = authPrincipal(request);
-    return ok(Result.success(() -> assetService.delete(url, authInfo.userId())));
+    return ok(
+        Result.success(
+            () -> assetService.delete(url, blogId, authInfo.userId(), authInfo.dataPermissions())));
   }
 
   public ServerResponse issueCollaborationTicket(ServerRequest request) {
@@ -128,7 +146,7 @@ public class BlogHttpHandler {
         Result.success(
             () ->
                 collaborationService.issueWebSocketTicket(
-                    blogId, authInfo.userId(), authInfo.roles())));
+                    blogId, authInfo.userId(), authInfo.dataPermissions())));
   }
 
   public ServerResponse download(ServerRequest request) {
@@ -140,7 +158,10 @@ public class BlogHttpHandler {
         .build(
             (servletRequest, response) -> {
               exportService.write(
-                  downloadReq, authInfo.userId(), authInfo.roles(), response.getOutputStream());
+                  downloadReq,
+                  authInfo.userId(),
+                  authInfo.dataPermissions(),
+                  response.getOutputStream());
               return null;
             });
   }
@@ -152,6 +173,7 @@ public class BlogHttpHandler {
     }
     AuthPrincipal authInfo = authPrincipal(request);
     return ok(
-        Result.success(() -> blogService.findEdit(blogId, authInfo.userId(), authInfo.roles())));
+        Result.success(
+            () -> blogService.findEdit(blogId, authInfo.userId(), authInfo.dataPermissions())));
   }
 }

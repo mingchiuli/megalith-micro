@@ -22,6 +22,9 @@ public final class UserRequestConverter {
     v.notNull(req.remark(), "remark");
     v.notNull(req.status(), "status");
     v.range(req.status(), 0, 1, "status");
+    if (req.dataPermissions().stream().anyMatch(java.util.Objects::isNull)) {
+      throw new IllegalArgumentException("dataPermissions must not contain null");
+    }
 
     return req;
   }

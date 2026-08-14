@@ -33,7 +33,8 @@ public class BlogExhibitHttpHandler {
     AuthPrincipal authInfo = authPrincipal(request);
     return ok(
         Result.success(
-            () -> blogService.getBlogDetail(authInfo.roles(), blogId, authInfo.userId())));
+            () ->
+                blogService.getBlogDetail(authInfo.dataPermissions(), blogId, authInfo.userId())));
   }
 
   @Checker(handler = ListPageHandler.class)

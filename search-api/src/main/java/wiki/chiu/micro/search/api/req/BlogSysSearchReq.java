@@ -1,7 +1,6 @@
 package wiki.chiu.micro.search.api.req;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public record BlogSysSearchReq(
     Integer page,
@@ -11,7 +10,7 @@ public record BlogSysSearchReq(
     LocalDateTime createStart,
     LocalDateTime createEnd,
     Long userId,
-    List<String> roles) {
+    Boolean allData) {
 
   public static BlogSysSearchReq.BlogSearchReqBuilder builder() {
     return new BlogSysSearchReq.BlogSearchReqBuilder();
@@ -25,7 +24,7 @@ public record BlogSysSearchReq(
     private LocalDateTime createStart;
     private LocalDateTime createEnd;
     private Long userId;
-    private List<String> roles;
+    private Boolean allData;
 
     public BlogSysSearchReq.BlogSearchReqBuilder page(Integer page) {
       this.page = page;
@@ -62,14 +61,14 @@ public record BlogSysSearchReq(
       return this;
     }
 
-    public BlogSysSearchReq.BlogSearchReqBuilder roles(List<String> roles) {
-      this.roles = roles;
+    public BlogSysSearchReq.BlogSearchReqBuilder allData(Boolean allData) {
+      this.allData = allData;
       return this;
     }
 
     public BlogSysSearchReq build() {
       return new BlogSysSearchReq(
-          page, pageSize, keywords, status, createStart, createEnd, userId, roles);
+          page, pageSize, keywords, status, createStart, createEnd, userId, allData);
     }
   }
 }

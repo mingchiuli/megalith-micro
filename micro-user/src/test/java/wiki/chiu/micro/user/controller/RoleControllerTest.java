@@ -121,6 +121,21 @@ class RoleControllerTest {
   }
 
   @Test
+  void saveAcceptsDataPermissions() throws Exception {
+    mockMvc
+        .perform(
+            post("/sys/role/save")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"id\":null,\"name\":\"editor\",\"code\":\"editor\","
+                        + "\"remark\":\"edit blogs\",\"status\":0,"
+                        + "\"dataPermissions\":[\"BLOG_VIEW_ALL\",\"BLOG_EDIT_ALL\"]}"))
+        .andExpect(status().isOk());
+
+    verify(roleService).saveOrUpdate(any());
+  }
+
+  @Test
   void saveMenuReturnsSuccess() throws Exception {
     doNothing().when(roleMenuService).saveMenu(anyLong(), any());
 

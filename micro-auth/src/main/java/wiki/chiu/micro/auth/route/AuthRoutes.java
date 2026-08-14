@@ -27,6 +27,7 @@ import wiki.chiu.micro.auth.handler.TokenHttpHandler;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.exception.AuthException;
+import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 
@@ -39,6 +40,7 @@ import wiki.chiu.micro.common.security.AuthPrincipal;
   UserInfoVo.class,
   AuthorityRouteRpcVo.class,
   AuthPrincipal.class,
+  DataPermissionEnum.class,
   CodeReq.class
 })
 public class AuthRoutes {

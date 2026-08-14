@@ -1,3 +1,3 @@
 package wiki.chiu.micro.blog.req;
 
-public record OssDeleteReq(String url) {}
+public record OssDeleteReq(String url, Long blogId) {}

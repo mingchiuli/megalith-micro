@@ -4,6 +4,7 @@ import java.util.Base64;
 import java.util.List;
 import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.common.exception.ValidationException;
+import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.security.InternalHttpHeaders;
 
@@ -55,6 +56,14 @@ public final class AuthPrincipalCodec {
     if (principal.userId() == 0L && !roles.isEmpty()) {
       throw new ValidationException("anonymous internal principal cannot have roles");
     }
-    return new AuthPrincipal(principal.userId(), List.copyOf(roles));
+    List<DataPermissionEnum> dataPermissions =
+        principal.dataPermissions() == null ? List.of() : principal.dataPermissions();
+    if (dataPermissions.stream().anyMatch(java.util.Objects::isNull)) {
+      throw new ValidationException("invalid internal principal dataPermissions");
+    }
+    if (principal.userId() == 0L && !dataPermissions.isEmpty()) {
+      throw new ValidationException("anonymous internal principal cannot have data permissions");
+    }
+    return new AuthPrincipal(principal.userId(), List.copyOf(roles), List.copyOf(dataPermissions));
   }
 }

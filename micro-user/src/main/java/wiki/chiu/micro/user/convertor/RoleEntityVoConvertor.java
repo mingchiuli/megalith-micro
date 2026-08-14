@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.data.domain.Page;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.user.entity.RoleDataPermissionEntity;
 import wiki.chiu.micro.user.entity.RoleEntity;
 import wiki.chiu.micro.user.entity.RoleMenuEntity;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
@@ -16,18 +17,23 @@ public class RoleEntityVoConvertor {
 
   private RoleEntityVoConvertor() {}
 
-  public static RoleEntityVo convert(RoleEntity roleEntity) {
+  public static RoleEntityVo convert(
+      RoleEntity roleEntity, List<RoleDataPermissionEntity> dataPermissions) {
     return RoleEntityVo.builder()
         .code(roleEntity.getCode())
         .name(roleEntity.getName())
         .remark(roleEntity.getRemark())
         .status(roleEntity.getStatus())
         .id(roleEntity.getId())
+        .dataPermissions(
+            dataPermissions.stream().map(RoleDataPermissionEntity::permission).sorted().toList())
         .build();
   }
 
   public static PageAdapter<RoleEntityVo> convert(
-      Page<RoleEntity> page, List<RoleMenuEntity> roleMenus) {
+      Page<RoleEntity> page,
+      List<RoleMenuEntity> roleMenus,
+      List<RoleDataPermissionEntity> dataPermissions) {
 
     Map<Long, LocalDateTime> roleMenusDate =
         roleMenus.stream()
@@ -40,8 +46,27 @@ public class RoleEntityVoConvertor {
     Map<Long, LocalDateTime> roleDate =
         page.get().collect(Collectors.toMap(RoleEntity::getId, RoleEntity::getUpdated));
 
+    Map<Long, LocalDateTime> roleDataPermissionDate =
+        dataPermissions.stream()
+            .collect(
+                Collectors.toMap(
+                    RoleDataPermissionEntity::getRoleId,
+                    RoleDataPermissionEntity::getUpdated,
+                    (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
+
+    Map<Long, List<wiki.chiu.micro.common.lang.DataPermissionEnum>> permissionsByRole =
+        dataPermissions.stream()
+            .collect(
+                Collectors.groupingBy(
+                    RoleDataPermissionEntity::getRoleId,
+                    Collectors.mapping(
+                        RoleDataPermissionEntity::permission,
+                        Collectors.collectingAndThen(
+                            Collectors.toList(),
+                            permissions -> permissions.stream().sorted().toList()))));
+
     Map<Long, LocalDateTime> mergedMap =
-        Stream.of(roleMenusDate, roleDate)
+        Stream.of(roleMenusDate, roleDataPermissionDate, roleDate)
             .flatMap(map -> map.entrySet().stream())
             .collect(
                 HashMap::new,
@@ -60,6 +85,7 @@ public class RoleEntityVoConvertor {
                         .updated(mergedMap.get(role.getId()))
                         .created(role.getCreated())
                         .id(role.getId())
+                        .dataPermissions(permissionsByRole.getOrDefault(role.getId(), List.of()))
                         .build())
             .toList();
 
@@ -85,6 +111,7 @@ public class RoleEntityVoConvertor {
                     .id(item.getId())
                     .status(item.getStatus())
                     .name(item.getName())
+                    .dataPermissions(List.of())
                     .build())
         .toList();
   }

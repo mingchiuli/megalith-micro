@@ -109,13 +109,13 @@ public class BlogServiceImpl implements BlogService {
   }
 
   @Override
-  public BlogEditVo findEdit(Long id, Long userId, List<String> roles) {
+  public BlogEditVo findEdit(Long id, Long userId, List<DataPermissionEnum> dataPermissions) {
 
     BlogEntity blog;
     List<BlogEditVo.SensitiveContentVo> sensitiveContentList;
     if (id != null) {
       blog = blogRepository.findById(id).orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-      accessPolicy.requireCollaboration(blog, userId, roles);
+      accessPolicy.requireCollaboration(blog, userId, dataPermissions);
       var sensitiveContentRpcList = blogSensitiveContentRepository.findByBlogId(id);
       sensitiveContentList = SensitiveContentVoConvertor.convert(sensitiveContentRpcList);
     } else {
@@ -124,7 +124,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     return BlogEditVoConvertor.convert(
-        blog, sensitiveContentList, accessPolicy.permissions(blog, userId, roles));
+        blog, sensitiveContentList, accessPolicy.permissions(blog, userId, dataPermissions));
   }
 
   private BlogEntity createNewBlog(Long userId) {
@@ -140,8 +140,9 @@ public class BlogServiceImpl implements BlogService {
 
   @Override
   @Transactional
-  public void saveOrUpdate(BlogEntityReq blog, Long userId, List<String> roles) {
-    BlogEntity dealBlog = getBlogEntity(blog, userId, roles);
+  public void saveOrUpdate(
+      BlogEntityReq blog, Long userId, List<DataPermissionEnum> dataPermissions) {
+    BlogEntity dealBlog = getBlogEntity(blog, userId, dataPermissions);
     BlogEntity blogEntity = BlogEntityConvertor.convert(blog, dealBlog);
 
     List<BlogSensitiveContentEntity> blogSensitiveContentEntityList =
@@ -172,7 +173,8 @@ public class BlogServiceImpl implements BlogService {
         blog.id().isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE, saved);
   }
 
-  private BlogEntity getBlogEntity(BlogEntityReq blog, Long userId, List<String> roles) {
+  private BlogEntity getBlogEntity(
+      BlogEntityReq blog, Long userId, List<DataPermissionEnum> dataPermissions) {
     return blog.id()
         .map(
             blogId -> {
@@ -180,7 +182,7 @@ public class BlogServiceImpl implements BlogService {
                   blogRepository
                       .findById(blogId)
                       .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-              accessPolicy.requireManagement(blogEntity, userId, roles);
+              accessPolicy.requireEdit(blogEntity, userId, dataPermissions);
               return blogEntity;
             })
         .orElseGet(() -> BlogEntity.builder().userId(userId).readCount(0L).build());
@@ -194,9 +196,11 @@ public class BlogServiceImpl implements BlogService {
   @Override
   @SuppressWarnings("unchecked")
   public PageAdapter<BlogEntityVo> findAllBlogs(
-      BlogQueryReq blogQueryReq, Long userId, List<String> roles) {
+      BlogQueryReq blogQueryReq, Long userId, List<DataPermissionEnum> dataPermissions) {
 
-    BlogSysSearchReq req = BlogSysSearchReqConvertor.convert(blogQueryReq, userId, roles);
+    BlogSysSearchReq req =
+        BlogSysSearchReqConvertor.convert(
+            blogQueryReq, userId, dataPermissions.contains(DataPermissionEnum.BLOG_VIEW_ALL));
     BlogSearchRpcVo dto = blogSearch.searchBlogs(req);
     List<Long> ids = dto.ids();
     if (ids.isEmpty()) {
@@ -293,11 +297,11 @@ public class BlogServiceImpl implements BlogService {
 
   @Override
   @Transactional
-  public void deleteBatch(List<Long> ids, Long userId, List<String> roles) {
+  public void deleteBatch(List<Long> ids, Long userId, List<DataPermissionEnum> dataPermissions) {
 
     List<BlogEntity> entities =
         blogRepository.findAllById(ids).stream()
-            .filter(blogEntity -> accessPolicy.canManage(blogEntity, userId, roles))
+            .filter(blogEntity -> accessPolicy.canDelete(blogEntity, userId, dataPermissions))
             .toList();
 
     List<Long> idList = entities.stream().map(BlogEntity::getId).toList();

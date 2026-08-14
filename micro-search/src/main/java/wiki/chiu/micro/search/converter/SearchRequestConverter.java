@@ -22,10 +22,7 @@ public final class SearchRequestConverter {
     v.range(req.status(), 0, 3, "status");
     v.notNull(req.userId(), "userId");
     v.nonNegative(req.userId(), "userId");
-    v.notNull(req.roles(), "roles");
-    for (String role : req.roles()) {
-      v.notBlank(role, "roles element");
-    }
+    v.notNull(req.allData(), "allData");
     v.dateRange(req.createStart(), req.createEnd(), "createStart", "createEnd");
 
     return req;
@@ -39,10 +36,7 @@ public final class SearchRequestConverter {
     v.range(req.status(), 0, 3, "status");
     v.notNull(req.userId(), "userId");
     v.nonNegative(req.userId(), "userId");
-    v.notNull(req.roles(), "roles");
-    for (String role : req.roles()) {
-      v.notBlank(role, "roles element");
-    }
+    v.notNull(req.allData(), "allData");
     v.dateRange(req.createStart(), req.createEnd(), "createStart", "createEnd");
 
     return req;

@@ -2,6 +2,8 @@ package wiki.chiu.micro.user.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
+import java.util.List;
+import wiki.chiu.micro.common.lang.DataPermissionEnum;
 
 public record RoleEntityVo(
     Long id,
@@ -10,7 +12,8 @@ public record RoleEntityVo(
     String remark,
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime created,
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime updated,
-    Integer status) {
+    Integer status,
+    List<DataPermissionEnum> dataPermissions) {
 
   public static RoleEntityVoBuilder builder() {
     return new RoleEntityVoBuilder();
@@ -24,6 +27,7 @@ public record RoleEntityVo(
     private LocalDateTime created;
     private LocalDateTime updated;
     private Integer status;
+    private List<DataPermissionEnum> dataPermissions;
 
     public RoleEntityVoBuilder id(Long id) {
       this.id = id;
@@ -60,8 +64,13 @@ public record RoleEntityVo(
       return this;
     }
 
+    public RoleEntityVoBuilder dataPermissions(List<DataPermissionEnum> dataPermissions) {
+      this.dataPermissions = dataPermissions;
+      return this;
+    }
+
     public RoleEntityVo build() {
-      return new RoleEntityVo(id, name, code, remark, created, updated, status);
+      return new RoleEntityVo(id, name, code, remark, created, updated, status, dataPermissions);
     }
   }
 }

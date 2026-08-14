@@ -14,7 +14,6 @@ import org.redisson.api.RScript.Mode;
 import org.redisson.api.RScript.ReturnType;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.protocol.ScoredEntry;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -25,6 +24,7 @@ import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.blog.api.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.BlogStatusEnum;
+import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.convertor.BlogDescriptionVoConvertor;
 import wiki.chiu.micro.exhibit.convertor.BlogExhibitVoConvertor;
@@ -61,9 +61,6 @@ public class BlogServiceImpl implements BlogService {
   private String visitScript;
 
   private String consumeReadTokenScript;
-
-  @Value("${megalith.blog.highest-role}")
-  private String highestRole;
 
   public BlogServiceImpl(
       BlogSensitiveWrapper blogSensitiveWrapper,
@@ -164,13 +161,14 @@ public class BlogServiceImpl implements BlogService {
   }
 
   @Override
-  public BlogExhibitVo getBlogDetail(List<String> roles, Long id, Long userId) {
+  public BlogExhibitVo getBlogDetail(
+      List<DataPermissionEnum> dataPermissions, Long id, Long userId) {
 
     BlogExhibitDto rawBlog = blogWrapper.findById(id);
     Integer status = rawBlog.status();
 
     if (BlogStatusEnum.HIDE.getCode().equals(status)
-        && !roles.contains(highestRole)
+        && !dataPermissions.contains(DataPermissionEnum.BLOG_VIEW_ALL)
         && !Objects.equals(userId, rawBlog.userId())) {
       throw new MissException(AUTH_EXCEPTION.getMsg());
     }
@@ -180,7 +178,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     if (BlogStatusEnum.SENSITIVE_FILTER.getCode().equals(status)
-        && !roles.contains(highestRole)
+        && !dataPermissions.contains(DataPermissionEnum.BLOG_VIEW_ALL)
         && !Objects.equals(userId, rawBlog.userId())) {
       BlogSensitiveContentRpcVo sensitiveContentDto =
           blogSensitiveWrapper.findSensitiveByBlogId(id);
