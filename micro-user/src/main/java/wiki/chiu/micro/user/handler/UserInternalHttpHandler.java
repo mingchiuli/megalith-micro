@@ -13,8 +13,9 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.api.UserHttpService;
+import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.service.RoleService;
 import wiki.chiu.micro.user.service.UserIdentityService;
@@ -30,6 +31,9 @@ public class UserInternalHttpHandler implements UserHttpService {
   private final ValidatedRequest v;
 
   private static final ParameterizedTypeReference<List<String>> STRING_LIST =
+      new ParameterizedTypeReference<>() {};
+
+  private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
       new ParameterizedTypeReference<>() {};
 
   public UserInternalHttpHandler(
@@ -70,9 +74,18 @@ public class UserInternalHttpHandler implements UserHttpService {
     return ok(findByPhone(requiredParam(request, "phone")));
   }
 
-  public ServerResponse findAuthContext(ServerRequest request) {
+  public ServerResponse findUserAccess(ServerRequest request) {
     Long userId = v.positive(pathVariable(request, "userId", Long::valueOf), "userId");
-    return ok(findAuthContext(userId));
+    return ok(findUserAccess(userId));
+  }
+
+  public ServerResponse findRoleAuthorization(ServerRequest request) {
+    Long roleId = v.positive(pathVariable(request, "roleId", Long::valueOf), "roleId");
+    return ok(findRoleAuthorization(roleId));
+  }
+
+  public ServerResponse findRoleAuthorizations(ServerRequest request) throws Exception {
+    return ok(findRoleAuthorizations(v.positiveElements(request.body(LONG_LIST), "roleIds")));
   }
 
   public ServerResponse findByUsernameOrEmailOrPhone(ServerRequest request) {
@@ -111,8 +124,18 @@ public class UserInternalHttpHandler implements UserHttpService {
   }
 
   @Override
-  public Result<UserAuthContextRpcVo> findAuthContext(Long userId) {
-    return Result.success(() -> userIdentityService.findAuthContext(userId));
+  public Result<UserAccessRpcVo> findUserAccess(Long userId) {
+    return Result.success(() -> userIdentityService.findUserAccess(userId));
+  }
+
+  @Override
+  public Result<RoleAuthorizationRpcVo> findRoleAuthorization(Long roleId) {
+    return Result.success(() -> roleService.findRoleAuthorization(roleId));
+  }
+
+  @Override
+  public Result<List<RoleAuthorizationRpcVo>> findRoleAuthorizations(List<Long> roleIds) {
+    return Result.success(() -> roleService.findRoleAuthorizations(roleIds));
   }
 
   @Override

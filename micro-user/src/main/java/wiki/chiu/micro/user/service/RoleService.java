@@ -2,6 +2,7 @@ package wiki.chiu.micro.user.service;
 
 import java.util.List;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
 import wiki.chiu.micro.user.req.RoleEntityReq;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
@@ -25,4 +26,8 @@ public interface RoleService {
   List<RoleEntityVo> getValidAll();
 
   List<RoleEntityRpcVo> findByRoleCodeInAndStatus(List<String> roles, Integer status);
+
+  RoleAuthorizationRpcVo findRoleAuthorization(Long roleId);
+
+  List<RoleAuthorizationRpcVo> findRoleAuthorizations(List<Long> roleIds);
 }

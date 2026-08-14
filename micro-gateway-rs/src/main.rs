@@ -83,7 +83,7 @@ async fn async_main() -> Result<(), BoxError> {
     tracing::info!("{}", LOGO);
 
     // build our application with a single route
-    let state = GatewayState::new();
+    let state = GatewayState::from_config();
     let app = Router::new()
         .route("/actuator/health", get(|| async { "OK" }))
         .route("/{*wildcard}", any(handle_main))

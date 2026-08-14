@@ -58,6 +58,10 @@ public class Const {
 
   public static final String ROLE_AUTHORITY = "role_authority";
 
+  public static final String USER_ACCESS = "user_access";
+
+  public static final String ROLE_AUTHORIZATION = "role_authorization";
+
   public static final String BLOG_TABLE = "m_blog";
 
   public static final String BLOG_SENSITIVE_TABLE = "m_blog_sensitive_content";

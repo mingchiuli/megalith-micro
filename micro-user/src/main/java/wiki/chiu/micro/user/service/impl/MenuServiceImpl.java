@@ -11,28 +11,25 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.lang.TypeEnum;
 import wiki.chiu.micro.common.utils.SQLUtils;
-import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
 import wiki.chiu.micro.user.convertor.MenuDisplayVoConvertor;
 import wiki.chiu.micro.user.convertor.MenuEntityConvertor;
 import wiki.chiu.micro.user.convertor.MenuEntityVoConvertor;
 import wiki.chiu.micro.user.entity.MenuEntity;
 import wiki.chiu.micro.user.entity.RoleMenuEntity;
-import wiki.chiu.micro.user.event.AuthMenuOperateEvent;
 import wiki.chiu.micro.user.repository.MenuRepository;
 import wiki.chiu.micro.user.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.req.MenuEntityReq;
 import wiki.chiu.micro.user.service.MenuService;
+import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.vo.MenuDisplayVo;
 import wiki.chiu.micro.user.vo.MenuEntityVo;
 import wiki.chiu.micro.user.wrapper.RoleMenuAuthorityWrapper;
@@ -50,7 +47,7 @@ public class MenuServiceImpl implements MenuService {
 
   private final RoleRepository roleRepository;
 
-  private final ApplicationEventPublisher eventPublisher;
+  private final AuthCacheEvictionOutbox cacheEvictions;
 
   private final RoleMenuRepository roleMenuRepository;
 
@@ -59,12 +56,12 @@ public class MenuServiceImpl implements MenuService {
   public MenuServiceImpl(
       MenuRepository menuRepository,
       RoleRepository roleRepository,
-      ApplicationEventPublisher eventPublisher,
+      AuthCacheEvictionOutbox cacheEvictions,
       RoleMenuRepository roleMenuRepository,
       RoleMenuAuthorityWrapper roleMenuAuthorityWrapper) {
     this.menuRepository = menuRepository;
     this.roleRepository = roleRepository;
-    this.eventPublisher = eventPublisher;
+    this.cacheEvictions = cacheEvictions;
     this.roleMenuRepository = roleMenuRepository;
     this.roleMenuAuthorityWrapper = roleMenuAuthorityWrapper;
   }
@@ -93,13 +90,18 @@ public class MenuServiceImpl implements MenuService {
       menuRepository.save(menuEntity);
     }
 
-    executeDelAllRoleMenuTask(AuthMenuOperateEnum.MENU.getType());
+    enqueueAllRoleEviction(true, false);
   }
 
-  private void executeDelAllRoleMenuTask(Integer type) {
-    List<String> allRoleCodes = roleRepository.findAllCodes();
-    var authMenuIndexMessage = new AuthMenuIndexMessage(allRoleCodes, type);
-    eventPublisher.publishEvent(new AuthMenuOperateEvent(authMenuIndexMessage));
+  private void enqueueAllRoleEviction(boolean menus, boolean authorities) {
+    var roles = roleRepository.findAll();
+    cacheEvictions.enqueue(
+        List.of(),
+        roles.stream().map(wiki.chiu.micro.user.entity.RoleEntity::getId).toList(),
+        roles.stream().map(wiki.chiu.micro.user.entity.RoleEntity::getCode).toList(),
+        menus,
+        authorities,
+        false);
   }
 
   @Override
@@ -126,7 +128,7 @@ public class MenuServiceImpl implements MenuService {
       throw new BaseException(MENU_INVALID_OPERATE);
     }
     roleMenuAuthorityWrapper.deleteMenu(id);
-    executeDelAllRoleMenuTask(AuthMenuOperateEnum.AUTH_AND_MENU.getType());
+    enqueueAllRoleEviction(true, true);
   }
 
   private void findTargetChildrenMenuId(Long menuId, List<MenuEntity> menuEntities) {

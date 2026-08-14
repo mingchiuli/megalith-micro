@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":common-web"))
     implementation(project(":common-auth-web"))
     implementation(project(":common-observability"))
+    implementation(project(":common-messaging"))
     implementation(project(":cache"))
     implementation("org.redisson:redisson")
 }

@@ -4,10 +4,10 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.stereotype.Component;
-import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
+import wiki.chiu.micro.common.lang.BlogSnapshot;
 import wiki.chiu.micro.search.document.BlogDocument;
-import wiki.chiu.micro.search.rpc.BlogHttpServiceWrapper;
 
 /**
  * @author mingchiuli
@@ -18,9 +18,7 @@ public final class UpdateBlogIndexHandler extends BlogIndexSupport {
 
   private final ElasticsearchTemplate elasticsearchTemplate;
 
-  public UpdateBlogIndexHandler(
-      BlogHttpServiceWrapper blogHttpServiceWrapper, ElasticsearchTemplate elasticsearchTemplate) {
-    super(blogHttpServiceWrapper);
+  public UpdateBlogIndexHandler(ElasticsearchTemplate elasticsearchTemplate) {
     this.elasticsearchTemplate = elasticsearchTemplate;
   }
 
@@ -30,7 +28,8 @@ public final class UpdateBlogIndexHandler extends BlogIndexSupport {
   }
 
   @Override
-  protected void elasticSearchProcess(BlogEntityRpcVo blog) {
+  protected void elasticSearchProcess(BlogChangedMessage message) {
+    BlogSnapshot blog = message.blogSnapshot();
     var blogDocument =
         BlogDocument.builder()
             .id(blog.id())
@@ -42,8 +41,10 @@ public final class UpdateBlogIndexHandler extends BlogIndexSupport {
             .status(blog.status())
             .created(ZonedDateTime.of(blog.created(), ZoneId.of("Asia/Shanghai")))
             .updated(ZonedDateTime.of(blog.updated(), ZoneId.of("Asia/Shanghai")))
+            .revision(message.revision())
+            .deleted(false)
             .build();
 
-    elasticsearchTemplate.update(blogDocument);
+    indexVersioned(elasticsearchTemplate, blogDocument, message.revision());
   }
 }

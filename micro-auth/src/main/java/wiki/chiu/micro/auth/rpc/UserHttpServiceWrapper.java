@@ -10,8 +10,9 @@ import wiki.chiu.micro.user.api.MenuHttpService;
 import wiki.chiu.micro.user.api.UserHttpService;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
+import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 @Component
@@ -56,8 +57,17 @@ public class UserHttpServiceWrapper implements UserDirectory {
   }
 
   @Override
-  public UserAuthContextRpcVo findAuthContext(Long userId) {
-    return RemoteResult.requireSuccess(() -> userHttpService.findAuthContext(userId));
+  public UserAccessRpcVo findUserAccess(Long userId) {
+    return RemoteResult.requireSuccess(() -> userHttpService.findUserAccess(userId));
+  }
+
+  @Override
+  public RoleAuthorizationRpcVo findRoleAuthorization(Long roleId) {
+    return RemoteResult.requireSuccess(() -> userHttpService.findRoleAuthorization(roleId));
+  }
+
+  public List<RoleAuthorizationRpcVo> findRoleAuthorizations(List<Long> roleIds) {
+    return RemoteResult.requireSuccess(() -> userHttpService.findRoleAuthorizations(roleIds));
   }
 
   @Override

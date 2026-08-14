@@ -13,7 +13,7 @@ import wiki.chiu.micro.search.lang.IndexConst;
  * @author mingchiuli
  * @create 2022-11-30 8:55 pm
  */
-@Document(indexName = IndexConst.indexName)
+@Document(indexName = IndexConst.indexName, versionType = Document.VersionType.EXTERNAL_GTE)
 public class BlogDocument {
 
   @Id private Long id;
@@ -26,6 +26,12 @@ public class BlogDocument {
 
   @Field(type = FieldType.Long)
   private Long readCount;
+
+  @Field(type = FieldType.Long)
+  private Long revision;
+
+  @Field(type = FieldType.Boolean)
+  private Boolean deleted;
 
   @Field(type = FieldType.Text, searchAnalyzer = "ik_smart", analyzer = "ik_max_word")
   private String title;
@@ -51,7 +57,9 @@ public class BlogDocument {
       String description,
       String content,
       ZonedDateTime created,
-      ZonedDateTime updated) {
+      ZonedDateTime updated,
+      Long revision,
+      Boolean deleted) {
     this.id = id;
     this.userId = userId;
     this.status = status;
@@ -61,6 +69,8 @@ public class BlogDocument {
     this.content = content;
     this.created = created;
     this.updated = updated;
+    this.revision = revision;
+    this.deleted = deleted;
   }
 
   public static BlogDocumentBuilder builder() {
@@ -105,6 +115,14 @@ public class BlogDocument {
 
   public ZonedDateTime getUpdated() {
     return this.updated;
+  }
+
+  public Long getRevision() {
+    return revision;
+  }
+
+  public Boolean getDeleted() {
+    return deleted;
   }
 
   public void setId(Long id) {
@@ -179,6 +197,8 @@ public class BlogDocument {
     private String content;
     private ZonedDateTime created;
     private ZonedDateTime updated;
+    private Long revision;
+    private Boolean deleted;
 
     public BlogDocumentBuilder id(Long id) {
       this.id = id;
@@ -225,9 +245,29 @@ public class BlogDocument {
       return this;
     }
 
+    public BlogDocumentBuilder revision(Long revision) {
+      this.revision = revision;
+      return this;
+    }
+
+    public BlogDocumentBuilder deleted(Boolean deleted) {
+      this.deleted = deleted;
+      return this;
+    }
+
     public BlogDocument build() {
       return new BlogDocument(
-          id, userId, status, readCount, title, description, content, created, updated);
+          id,
+          userId,
+          status,
+          readCount,
+          title,
+          description,
+          content,
+          created,
+          updated,
+          revision,
+          deleted);
     }
   }
 }

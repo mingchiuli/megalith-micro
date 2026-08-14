@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -22,7 +21,6 @@ import wiki.chiu.micro.blog.convertor.*;
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
-import wiki.chiu.micro.blog.event.BlogOperateEvent;
 import wiki.chiu.micro.blog.repository.BlogRepository;
 import wiki.chiu.micro.blog.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
@@ -37,13 +35,13 @@ import wiki.chiu.micro.blog.wrapper.BlogWrapper;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.*;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.outbox.OutboxProducer;
+import wiki.chiu.micro.outbox.OutboxService;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 
 @Service
 public class BlogServiceImpl implements BlogService {
-
-  private final ApplicationEventPublisher eventPublisher;
 
   private final BlogRepository blogRepository;
 
@@ -61,6 +59,8 @@ public class BlogServiceImpl implements BlogService {
 
   private final BlogAccessPolicy accessPolicy;
 
+  private final OutboxService outboxService;
+
   private String hotBlogsScript;
 
   private String listDeleteScript;
@@ -70,7 +70,6 @@ public class BlogServiceImpl implements BlogService {
   private String blogDeleteScript;
 
   public BlogServiceImpl(
-      ApplicationEventPublisher eventPublisher,
       BlogRepository blogRepository,
       StringRedisTemplate redisTemplate,
       ResourceLoader resourceLoader,
@@ -78,8 +77,8 @@ public class BlogServiceImpl implements BlogService {
       BlogSensitiveContentRepository blogSensitiveContentRepository,
       BlogSearchGateway blogSearch,
       JsonMapper jsonMapper,
-      BlogAccessPolicy accessPolicy) {
-    this.eventPublisher = eventPublisher;
+      BlogAccessPolicy accessPolicy,
+      OutboxService outboxService) {
     this.blogRepository = blogRepository;
     this.redisTemplate = redisTemplate;
     this.resourceLoader = resourceLoader;
@@ -88,6 +87,7 @@ public class BlogServiceImpl implements BlogService {
     this.blogSearch = blogSearch;
     this.jsonMapper = jsonMapper;
     this.accessPolicy = accessPolicy;
+    this.outboxService = outboxService;
   }
 
   @PostConstruct
@@ -169,7 +169,7 @@ public class BlogServiceImpl implements BlogService {
     BlogEntity saved =
         blogWrapper.saveOrUpdate(blogEntity, blogSensitiveContentEntityList, existedSensitiveIds);
 
-    notifyBlogOperation(
+    enqueueBlogOperation(
         blog.id().isPresent() ? BlogOperateEnum.UPDATE : BlogOperateEnum.CREATE, saved);
   }
 
@@ -180,7 +180,7 @@ public class BlogServiceImpl implements BlogService {
             blogId -> {
               BlogEntity blogEntity =
                   blogRepository
-                      .findById(blogId)
+                      .findByIdForUpdate(blogId)
                       .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
               accessPolicy.requireEdit(blogEntity, userId, dataPermissions);
               return blogEntity;
@@ -188,9 +188,37 @@ public class BlogServiceImpl implements BlogService {
         .orElseGet(() -> BlogEntity.builder().userId(userId).readCount(0L).build());
   }
 
-  private void notifyBlogOperation(BlogOperateEnum type, BlogEntity blogEntity) {
-    var blogSearchIndexMessage = new BlogOperateMessage(blogEntity.getId(), type.getCode());
-    eventPublisher.publishEvent(new BlogOperateEvent(blogSearchIndexMessage));
+  private void enqueueBlogOperation(BlogOperateEnum type, BlogEntity blogEntity) {
+    BlogSnapshot snapshot =
+        new BlogSnapshot(
+            blogEntity.getId(),
+            blogEntity.getUserId(),
+            blogEntity.getTitle(),
+            blogEntity.getDescription(),
+            blogEntity.getContent(),
+            blogEntity.getCreated(),
+            blogEntity.getUpdated(),
+            blogEntity.getStatus(),
+            blogEntity.getLink(),
+            blogEntity.getReadCount(),
+            blogEntity.getEventRevision());
+    long totalCount = blogRepository.count();
+    Long newerOrSameCount =
+        BlogOperateEnum.UPDATE.equals(type)
+            ? blogRepository.countByCreatedGreaterThanEqual(blogEntity.getCreated())
+            : null;
+    outboxService.enqueue(
+        OutboxProducer.BLOG,
+        "BLOG",
+        blogEntity.getId(),
+        eventId ->
+            new BlogChangedMessage(
+                eventId,
+                type.getCode(),
+                blogEntity.getEventRevision(),
+                snapshot,
+                totalCount,
+                newerOrSameCount));
   }
 
   @Override
@@ -292,7 +320,7 @@ public class BlogServiceImpl implements BlogService {
     BlogEntity tempBlog = BlogEntityConvertor.convertRecover(delBlog);
     BlogEntity blog = blogRepository.save(tempBlog);
 
-    notifyBlogOperation(BlogOperateEnum.CREATE, blog);
+    enqueueBlogOperation(BlogOperateEnum.CREATE, blog);
   }
 
   @Override
@@ -300,9 +328,13 @@ public class BlogServiceImpl implements BlogService {
   public void deleteBatch(List<Long> ids, Long userId, List<DataPermissionEnum> dataPermissions) {
 
     List<BlogEntity> entities =
-        blogRepository.findAllById(ids).stream()
+        blogRepository.findAllByIdForUpdate(ids).stream()
             .filter(blogEntity -> accessPolicy.canDelete(blogEntity, userId, dataPermissions))
             .toList();
+
+    entities.forEach(
+        entity ->
+            entity.setEventRevision(Optional.ofNullable(entity.getEventRevision()).orElse(0L) + 1));
 
     List<Long> idList = entities.stream().map(BlogEntity::getId).toList();
 
@@ -311,6 +343,7 @@ public class BlogServiceImpl implements BlogService {
             .map(BlogSensitiveContentEntity::getId)
             .toList();
     blogWrapper.deleteByIds(idList, sensitiveIds);
+    blogRepository.flush();
 
     entities.forEach(
         entity -> {
@@ -319,7 +352,7 @@ public class BlogServiceImpl implements BlogService {
               Collections.singletonList(QUERY_DELETED + userId),
               jsonMapper.writeValueAsString(BlogDeleteDtoConvertor.convert(entity)),
               A_WEEK);
-          notifyBlogOperation(BlogOperateEnum.REMOVE, entity);
+          enqueueBlogOperation(BlogOperateEnum.REMOVE, entity);
         });
   }
 }

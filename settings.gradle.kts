@@ -15,6 +15,8 @@ include(
         "common-web",
         "common-auth-web",
         "common-observability",
+        "common-messaging",
+        "common-outbox",
         "common-export",
         "cache"
 )

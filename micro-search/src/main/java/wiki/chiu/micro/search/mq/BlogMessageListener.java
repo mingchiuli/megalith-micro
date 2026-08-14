@@ -5,9 +5,10 @@ import java.util.List;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.messaging.RetryingMessageRecoverer;
 import wiki.chiu.micro.search.mq.handler.BlogIndexSupport;
 
 /**
@@ -18,9 +19,12 @@ import wiki.chiu.micro.search.mq.handler.BlogIndexSupport;
 public class BlogMessageListener {
 
   private final List<BlogIndexSupport> elasticsearchHandlers;
+  private final RetryingMessageRecoverer recoverer;
 
-  public BlogMessageListener(List<BlogIndexSupport> elasticsearchHandlers) {
+  public BlogMessageListener(
+      List<BlogIndexSupport> elasticsearchHandlers, RetryingMessageRecoverer recoverer) {
     this.elasticsearchHandlers = elasticsearchHandlers;
+    this.recoverer = recoverer;
   }
 
   @RabbitListener(
@@ -28,12 +32,19 @@ public class BlogMessageListener {
       concurrency = "10",
       messageConverter = "jsonMessageConverter",
       executor = "mqExecutor")
-  public void handler(BlogOperateMessage message, Channel channel, Message msg) {
-    for (BlogIndexSupport handler : elasticsearchHandlers) {
-      if (handler.supports(BlogOperateEnum.of(message.typeEnumCode()))) {
-        handler.handle(message, channel, msg);
-        break;
-      }
+  public void handler(BlogChangedMessage message, Channel channel, Message msg) {
+    try {
+      BlogOperateEnum operation = BlogOperateEnum.of(message.operation());
+      BlogIndexSupport handler =
+          elasticsearchHandlers.stream()
+              .filter(candidate -> candidate.supports(operation))
+              .findFirst()
+              .orElseThrow(
+                  () -> new IllegalArgumentException("Unsupported operation: " + operation));
+      handler.process(message);
+      channel.basicAck(msg.getMessageProperties().getDeliveryTag(), false);
+    } catch (Exception failure) {
+      recoverer.recover(msg, channel, failure);
     }
   }
 }

@@ -5,10 +5,11 @@ import java.util.List;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.common.lang.BlogOperateMessage;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.exhibit.consumer.cache.handler.BlogCacheEvictHandler;
+import wiki.chiu.micro.messaging.RetryingMessageRecoverer;
 
 /**
  * @author mingchiuli
@@ -18,9 +19,12 @@ import wiki.chiu.micro.exhibit.consumer.cache.handler.BlogCacheEvictHandler;
 public class BlogRedisCacheEvictMessageListener {
 
   private final List<BlogCacheEvictHandler> blogCacheEvictHandlers;
+  private final RetryingMessageRecoverer recoverer;
 
-  public BlogRedisCacheEvictMessageListener(List<BlogCacheEvictHandler> blogCacheEvictHandlers) {
+  public BlogRedisCacheEvictMessageListener(
+      List<BlogCacheEvictHandler> blogCacheEvictHandlers, RetryingMessageRecoverer recoverer) {
     this.blogCacheEvictHandlers = blogCacheEvictHandlers;
+    this.recoverer = recoverer;
   }
 
   @RabbitListener(
@@ -28,12 +32,19 @@ public class BlogRedisCacheEvictMessageListener {
       concurrency = "10",
       messageConverter = "jsonMessageConverter",
       executor = "mqExecutor")
-  public void handler(BlogOperateMessage message, Channel channel, Message msg) {
-    for (BlogCacheEvictHandler handler : blogCacheEvictHandlers) {
-      if (handler.supports(BlogOperateEnum.of(message.typeEnumCode()))) {
-        handler.handle(message, channel, msg);
-        break;
-      }
+  public void handler(BlogChangedMessage message, Channel channel, Message msg) {
+    try {
+      BlogOperateEnum operation = BlogOperateEnum.of(message.operation());
+      BlogCacheEvictHandler handler =
+          blogCacheEvictHandlers.stream()
+              .filter(candidate -> candidate.supports(operation))
+              .findFirst()
+              .orElseThrow(
+                  () -> new IllegalArgumentException("Unsupported operation: " + operation));
+      handler.process(message);
+      channel.basicAck(msg.getMessageProperties().getDeliveryTag(), false);
+    } catch (Exception failure) {
+      recoverer.recover(msg, channel, failure);
     }
   }
 }

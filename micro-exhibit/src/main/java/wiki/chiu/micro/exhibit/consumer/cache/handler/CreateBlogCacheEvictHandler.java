@@ -8,9 +8,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
+import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.exhibit.consumer.cache.CacheKeyGenerator;
-import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 
 @Component
 public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
@@ -22,10 +22,9 @@ public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
   public CreateBlogCacheEvictHandler(
       RedissonClient redissonClient,
-      BlogHttpServiceWrapper blogHttpServiceWrapper,
       CacheKeyGenerator cacheKeyGenerator,
       CacheEvictHandler cacheEvictHandler) {
-    super(redissonClient, blogHttpServiceWrapper, cacheEvictHandler);
+    super(redissonClient, cacheEvictHandler);
     this.cacheKeyGenerator = cacheKeyGenerator;
   }
 
@@ -35,9 +34,10 @@ public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
   }
 
   @Override
-  public void redisProcess(BlogEntityRpcVo blogEntity) {
+  public void redisProcess(BlogChangedMessage message) {
+    BlogEntityRpcVo blogEntity = blogEntity(message.blogSnapshot());
     Long id = blogEntity.id();
-    long count = blogHttpServiceWrapper.count();
+    long count = message.totalCount();
 
     evictCaches(count);
     rebuildPageBloom(count);

@@ -60,12 +60,13 @@ graph TD
     Blog --> MariaDB
     Exhibit -->|Fetch Data| User
     Exhibit -->|Fetch Data| Blog
-    Auth -->|One Real-Time Auth Context Lookup| User
+    Auth -->|Batch Snapshot Misses| User
     Search --> ES
     Blog -->|Complex Query ES Query ID then Fetch| Search
     %% Messages & Cache Auth receives RabbitMQ messages to update cache
-    User -->|Message| RabbitMQ
-    Blog -->|Message| RabbitMQ
+    User -->|Transactional Outbox| MariaDB
+    Blog -->|Transactional Outbox| MariaDB
+    MariaDB -->|Confirmed Publish| RabbitMQ
     RabbitMQ -->|Update Cache| Exhibit
     RabbitMQ -->|Update ES| Search
     RabbitMQ -->|Update Cache| Auth
@@ -90,6 +91,8 @@ graph TD
 | `common-rpc` | HTTP client groups, authentication propagation, and external storage/SMS clients |
 | `common-web`, `common-auth-web` | Functional WebMVC support, validation, error handling, and authenticated principals |
 | `common-observability` | OpenTelemetry propagation, logging, metrics, and runtime hints |
+| `common-messaging` | Confirmed delayed consumer retries and dead-letter topology |
+| `common-outbox` | Shared transactional outbox publisher with Redis leader locks and metrics |
 | `common-export` | Shared export utilities |
 | `micro-auth` | Authentication service - JWT, Email/SMS authentication |
 | `micro-blog` | Blog content management with sensitive content handling |
@@ -114,6 +117,8 @@ gateway, and hydrates the application in the browser.
 ## ✨ Features
 
 - **Multi-Level Caching**: L1 (Caffeine) + L2 (Redis) with automatic eviction via RabbitMQ or Redis pub/sub
+- **Bounded Auth Reads**: Protected requests read route/user snapshots and all role snapshots in at most two Redis `MGET` operations; L2 entries expire after 30 minutes
+- **Transactional Messaging**: Blog and authorization changes commit their event in the same MariaDB transaction, then publish with RabbitMQ confirms and automatic retry
 - **Distributed Tracing**: Full OpenTelemetry integration across all services
 - **GraalVM Native Support**: All Java microservices support native compilation
 - **Real-time Collaboration**: CRDT-based sync via WebSocket (YRS)
@@ -129,15 +134,34 @@ gateway, and hydrates the application in the browser.
 1. nginx sends `/api` HTTP requests and `/wsapi` WebSocket upgrades to `micro-gateway-rs`.
 2. The gateway validates the request origin when the request carries credentials or uses an unsafe method.
 3. The gateway calls `POST /inner/auth/route` once with the original HTTP method, path, client IP, and credential.
-4. `micro-auth` selects the most specific registered route. Anonymous whitelist requests require no user lookup; requests with a credential decode it and call `GET /inner/user/auth-context/{userId}` once to obtain the current status, active roles, and their merged data permissions.
-5. Auth returns the target address and `AuthPrincipal(userId, roles, dataPermissions)`. Route and role-to-authority data use the existing Caffeine + Redis cache; user status, user roles, and data permissions remain real-time so disable and revocation operations take effect immediately.
+4. `micro-auth` decodes a supplied credential, then reads the route snapshot and user-access snapshot in one Redis `MGET`. After route resolution it reads every referenced role-authorization snapshot in one second `MGET`.
+5. Cache misses use one native user/access query and one batch role/authority query through `micro-user`; results are written to Caffeine and Redis with a 30-minute L2 TTL. User and permission mutations emit targeted cache-eviction events, so normal revocation is event-driven while TTL bounds stale data if messaging is unavailable.
 6. The gateway removes client cookies, access authorization, hop-by-hop headers, and any forged `X-Megalith-Principal`, then injects the trusted principal as unpadded Base64URL JSON. Java services decode it locally and synchronous internal RPCs propagate the same header without another auth call.
 7. HTTP requests and responses are streamed through a shared Hyper connection pool. WebSocket upgrades use the same resolved route and principal and do not call auth again.
 
-The normal protected request path is therefore
-`gateway -> auth -> user auth-context -> business`. Public anonymous requests are
-`gateway -> auth -> business`. The refresh endpoint forwards only the refresh cookie and validates
+The normal cache-hit request path is therefore `gateway -> auth -> business`; `micro-user` is only
+on the cache-miss path. Public anonymous requests need only the route snapshot. The refresh endpoint forwards only the refresh cookie and validates
 it inside auth; ordinary business services never receive browser access or refresh credentials.
+
+## Reliable Messaging
+
+`micro-blog` and `micro-user` share `m_outbox_event`; the `producer` discriminator lets each
+service poll only its own rows. Every replica runs the scheduler, but a producer-specific Redis
+lock allows only one active publisher for `BLOG` and one for `USER`, so both producers can publish
+in parallel. Rows are ordered per aggregate. RabbitMQ confirms and unroutable returns are checked
+before success is physically deleted. Failures retry after approximately 1s, 5s, 30s, 2m, then
+5m indefinitely with jitter.
+
+Blog events carry a full snapshot and monotonically increasing revision. Elasticsearch uses
+`EXTERNAL_GTE` versioning and deletion tombstones; the exhibit cache stores the last applied
+revision. Consumers retry after 5s, 30s, and 5m, then retain the message in a 14-day DLQ. Outbox
+status is exposed at `GET /actuator/outbox`; `POST /actuator/outbox/{eventId}` accepts an `action`
+of `pause`, `resume`, `retry`, or `discard`. Successful and discarded rows are physically deleted;
+there is no outbox history table.
+
+The gateway caps concurrent auth calls at 512, applies a 1.2-second deadline to the complete auth
+response, and opens a short circuit after repeated infrastructure failures. Both limits are
+configurable through `megalith.blog.auth.timeout_ms` and `megalith.blog.auth.max_inflight`.
 
 Only method/path pairs registered in the authority data can be routed. The gateway fails closed
 when auth is unavailable. The Docker internal network is the trust boundary for
@@ -219,6 +243,14 @@ example `SYNC__SESSION_RETENTION_SECONDS=300` and `WORKER__CONCURRENCY=4`.
 The `cache` starter can use Redis Pub/Sub for cache eviction when Spring AMQP is absent. The
 deployed platform still requires RabbitMQ for blog/user domain events and Elasticsearch indexing.
 
+### Breaking Upgrade
+
+This release intentionally has no compatibility bridge and assumes the shared `m_outbox_event`
+table and `m_blog.event_revision` column have already been provisioned. Deploy `micro-auth`,
+`micro-user`, `micro-search`, `micro-exhibit`, `micro-blog`, and `micro-gateway-rs` together, and
+start the consumers before reopening traffic so the durable main, retry, and DLQ topology is
+present.
+
 ## 📁 Project Structure
 
 ```
@@ -232,6 +264,8 @@ megalith-micro/
 ├── common-web/               # Functional WebMVC support
 ├── common-auth-web/          # Authenticated web support
 ├── common-observability/     # OpenTelemetry integration
+├── common-messaging/         # Consumer retry/DLQ support
+├── common-outbox/            # Transactional outbox support
 ├── common-export/            # Export utilities
 ├── cache/                    # Multi-level cache starter
 ├── micro-auth/               # Authentication service

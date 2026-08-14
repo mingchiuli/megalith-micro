@@ -157,6 +157,7 @@ public class PrivateSearchQueryConvertor {
     BoolQuery.Builder boolQryBuilder = new BoolQuery.Builder();
 
     boolQryBuilder
+        .mustNot(mustNot -> mustNot.term(term -> term.field("deleted").value(true)))
         .filter(
             filter ->
                 filter.range(

@@ -8,8 +8,9 @@ import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PatchExchange;
 import org.springframework.web.service.annotation.PostExchange;
 import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 public interface UserHttpService {
@@ -31,8 +32,14 @@ public interface UserHttpService {
   @GetExchange("/user/phone")
   Result<UserEntityRpcVo> findByPhone(@RequestParam String phone);
 
-  @GetExchange("/user/auth-context/{userId}")
-  Result<UserAuthContextRpcVo> findAuthContext(@PathVariable Long userId);
+  @GetExchange("/user/access/{userId}")
+  Result<UserAccessRpcVo> findUserAccess(@PathVariable Long userId);
+
+  @GetExchange("/role/authorization/{roleId}")
+  Result<RoleAuthorizationRpcVo> findRoleAuthorization(@PathVariable Long roleId);
+
+  @PostExchange("/role/authorizations")
+  Result<List<RoleAuthorizationRpcVo>> findRoleAuthorizations(@RequestBody List<Long> roleIds);
 
   @GetExchange("/user/{userId}")
   Result<UserEntityRpcVo> findById(@PathVariable Long userId);

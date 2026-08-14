@@ -85,6 +85,11 @@ public class PublicSearchQueryConvertor {
                                                                     .field(CONTENT.getField())
                                                                     .query(keywords)))
                                                 .minimumShouldMatch("1")
+                                                .mustNot(
+                                                    mustNot ->
+                                                        mustNot.term(
+                                                            term ->
+                                                                term.field("deleted").value(true)))
                                                 .filter(
                                                     filter ->
                                                         filter.term(

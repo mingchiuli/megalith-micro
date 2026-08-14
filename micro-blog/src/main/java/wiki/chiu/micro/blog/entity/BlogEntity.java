@@ -55,6 +55,9 @@ public class BlogEntity {
   @Column(name = "read_count")
   private Long readCount;
 
+  @Column(name = "event_revision", nullable = false)
+  private Long eventRevision;
+
   public BlogEntity(
       Long id,
       Long userId,
@@ -65,7 +68,8 @@ public class BlogEntity {
       LocalDateTime updated,
       Integer status,
       String link,
-      Long readCount) {
+      Long readCount,
+      Long eventRevision) {
     this.id = id;
     this.userId = userId;
     this.title = title;
@@ -76,6 +80,7 @@ public class BlogEntity {
     this.status = status;
     this.link = link;
     this.readCount = readCount;
+    this.eventRevision = eventRevision;
   }
 
   public BlogEntity() {}
@@ -124,6 +129,10 @@ public class BlogEntity {
     return this.readCount;
   }
 
+  public Long getEventRevision() {
+    return eventRevision;
+  }
+
   public void setId(Long id) {
     this.id = id;
   }
@@ -164,6 +173,10 @@ public class BlogEntity {
     this.readCount = readCount;
   }
 
+  public void setEventRevision(Long eventRevision) {
+    this.eventRevision = eventRevision;
+  }
+
   @Override
   public final boolean equals(Object o) {
     if (this == o) return true;
@@ -189,6 +202,7 @@ public class BlogEntity {
     private Integer status;
     private String link;
     private Long readCount;
+    private Long eventRevision;
 
     public BlogEntityBuilder id(Long id) {
       this.id = id;
@@ -240,6 +254,11 @@ public class BlogEntity {
       return this;
     }
 
+    public BlogEntityBuilder eventRevision(Long eventRevision) {
+      this.eventRevision = eventRevision;
+      return this;
+    }
+
     public BlogEntity build() {
       return new BlogEntity(
           this.id,
@@ -251,7 +270,8 @@ public class BlogEntity {
           this.updated,
           this.status,
           this.link,
-          this.readCount);
+          this.readCount,
+          this.eventRevision);
     }
   }
 }

@@ -3,31 +3,32 @@ package wiki.chiu.micro.user.service.impl;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.ROLE_NOT_EXIST;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jspecify.annotations.NonNull;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.utils.SQLUtils;
+import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
-import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
 import wiki.chiu.micro.user.convertor.RoleEntityConvertor;
 import wiki.chiu.micro.user.convertor.RoleEntityRpcVoConvertor;
 import wiki.chiu.micro.user.convertor.RoleEntityVoConvertor;
 import wiki.chiu.micro.user.entity.*;
-import wiki.chiu.micro.user.event.AuthMenuOperateEvent;
 import wiki.chiu.micro.user.repository.*;
 import wiki.chiu.micro.user.req.RoleEntityReq;
 import wiki.chiu.micro.user.service.RoleService;
+import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
 import wiki.chiu.micro.user.wrapper.UserRoleMenuWrapper;
 
@@ -46,7 +47,7 @@ public class RoleServiceImpl implements RoleService {
 
   private final RoleDataPermissionRepository roleDataPermissionRepository;
 
-  private final ApplicationEventPublisher eventPublisher;
+  private final AuthCacheEvictionOutbox cacheEvictions;
 
   private final UserRoleMenuWrapper userRoleMenuWrapper;
 
@@ -55,13 +56,13 @@ public class RoleServiceImpl implements RoleService {
       RoleMenuRepository roleMenuRepository,
       UserRoleRepository userRoleRepository,
       RoleDataPermissionRepository roleDataPermissionRepository,
-      ApplicationEventPublisher eventPublisher,
+      AuthCacheEvictionOutbox cacheEvictions,
       UserRoleMenuWrapper userRoleMenuWrapper) {
     this.roleRepository = roleRepository;
     this.roleMenuRepository = roleMenuRepository;
     this.userRoleRepository = userRoleRepository;
     this.roleDataPermissionRepository = roleDataPermissionRepository;
-    this.eventPublisher = eventPublisher;
+    this.cacheEvictions = cacheEvictions;
     this.userRoleMenuWrapper = userRoleMenuWrapper;
   }
 
@@ -109,7 +110,7 @@ public class RoleServiceImpl implements RoleService {
             .toList());
     List<String> affectedCodes =
         Stream.of(previousCode, roleEntity.getCode()).filter(Objects::nonNull).distinct().toList();
-    executeDelRolesAuthTask(affectedCodes, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
+    cacheEvictions.enqueue(List.of(), List.of(savedRole.getId()), affectedCodes, true, true, false);
   }
 
   @Override
@@ -119,12 +120,7 @@ public class RoleServiceImpl implements RoleService {
         roleRepository.findAllById(ids).stream().map(RoleEntity::getCode).distinct().toList();
     userRoleMenuWrapper.deleteRole(ids);
 
-    executeDelRolesAuthTask(roles, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
-  }
-
-  private void executeDelRolesAuthTask(List<String> roles, Integer type) {
-    var authMenuIndexMessage = new AuthMenuIndexMessage(roles, type);
-    eventPublisher.publishEvent(new AuthMenuOperateEvent(authMenuIndexMessage));
+    cacheEvictions.enqueue(List.of(), ids, roles, true, true, false);
   }
 
   @Override
@@ -153,5 +149,48 @@ public class RoleServiceImpl implements RoleService {
   public List<RoleEntityRpcVo> findByRoleCodeInAndStatus(List<String> roles, Integer status) {
     List<RoleEntity> entities = roleRepository.findByCodeInAndStatus(roles, status);
     return RoleEntityRpcVoConvertor.convert(entities);
+  }
+
+  @Override
+  public RoleAuthorizationRpcVo findRoleAuthorization(Long roleId) {
+    return toAuthorization(roleId, roleRepository.findAuthorizationRows(roleId));
+  }
+
+  @Override
+  public List<RoleAuthorizationRpcVo> findRoleAuthorizations(List<Long> roleIds) {
+    List<Long> distinctRoleIds = roleIds.stream().distinct().toList();
+    if (distinctRoleIds.isEmpty()) {
+      return List.of();
+    }
+    Map<Long, List<RoleRepository.RoleAuthorizationRow>> rowsByRole =
+        roleRepository.findAuthorizationRowsByRoleIds(distinctRoleIds).stream()
+            .collect(Collectors.groupingBy(RoleRepository.RoleAuthorizationRow::getRoleId));
+    return distinctRoleIds.stream()
+        .map(roleId -> toAuthorization(roleId, rowsByRole.getOrDefault(roleId, List.of())))
+        .toList();
+  }
+
+  private RoleAuthorizationRpcVo toAuthorization(
+      Long roleId, List<RoleRepository.RoleAuthorizationRow> rows) {
+    if (rows.isEmpty()) {
+      return RoleAuthorizationRpcVo.missing(roleId);
+    }
+    RoleRepository.RoleAuthorizationRow first = rows.getFirst();
+    return new RoleAuthorizationRpcVo(
+        first.getRoleId(),
+        true,
+        first.getCode(),
+        first.getStatus(),
+        rows.stream()
+            .map(RoleRepository.RoleAuthorizationRow::getAuthorityCode)
+            .filter(Objects::nonNull)
+            .collect(java.util.stream.Collectors.toUnmodifiableSet()),
+        rows.stream()
+            .map(RoleRepository.RoleAuthorizationRow::getPermissionCode)
+            .filter(Objects::nonNull)
+            .map(DataPermissionEnum::valueOf)
+            .distinct()
+            .sorted()
+            .toList());
   }
 }

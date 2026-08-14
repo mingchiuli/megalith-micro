@@ -25,12 +25,12 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
+import wiki.chiu.micro.auth.cache.AuthSnapshotCache;
 import wiki.chiu.micro.auth.convertor.MenuDisplayDtoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuRootVoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuWithChildDtoConvertor;
 import wiki.chiu.micro.auth.dto.*;
 import wiki.chiu.micro.auth.service.AuthService;
-import wiki.chiu.micro.auth.service.port.UserDirectory;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.auth.wrapper.AuthWrapper;
@@ -40,7 +40,8 @@ import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
+import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -56,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
 
   private final JwtTokenService jwtTokenService;
 
-  private final UserDirectory users;
+  private final AuthSnapshotCache snapshotCache;
 
   private String script;
 
@@ -66,13 +67,13 @@ public class AuthServiceImpl implements AuthService {
       @Qualifier("commonExecutor") TaskExecutor taskExecutor,
       ResourceLoader resourceLoader,
       JwtTokenService jwtTokenService,
-      UserDirectory users) {
+      AuthSnapshotCache snapshotCache) {
     this.authWrapper = authWrapper;
     this.redissonClient = redissonClient;
     this.taskExecutor = taskExecutor;
     this.resourceLoader = resourceLoader;
     this.jwtTokenService = jwtTokenService;
-    this.users = users;
+    this.snapshotCache = snapshotCache;
   }
 
   @PostConstruct
@@ -95,10 +96,13 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public AuthorityRouteRpcVo authorizeRoute(AuthorityRouteReq req, String token) {
+    Long userId = resolveUserId(req.routeMapping(), token);
+    AuthSnapshotCache.InitialSnapshots snapshots = snapshotCache.loadInitial(userId);
     AuthorityRpcVo route =
-        matchingAuthority(req.routeMapping(), req.method())
+        matchingAuthority(snapshots.routes(), req.routeMapping(), req.method())
             .orElseThrow(() -> new MissException(ExceptionMessage.NO_AUTH));
-    AuthPrincipal principal = authorizePrincipal(req.routeMapping(), route, token);
+    AuthPrincipal principal =
+        authorizePrincipal(req.routeMapping(), route, userId, snapshots.userAccess());
     recordIp(req.ipAddr());
     return AuthorityRouteRpcVo.builder()
         .serviceHost(route.serviceHost())
@@ -157,30 +161,34 @@ public class AuthServiceImpl implements AuthService {
   }
 
   private AuthPrincipal authorizePrincipal(
-      String routeMapping, AuthorityRpcVo route, String token) {
-    if (!StringUtils.hasLength(token)) {
+      String routeMapping, AuthorityRpcVo route, Long userId, UserAccessRpcVo access) {
+    if (userId == null) {
       if (AuthTypeEnum.WHITE_LIST.getCode().equals(route.type())) {
         return AuthPrincipal.anonymous();
       }
       throw new MissException(ExceptionMessage.TOKEN_INVALID);
     }
 
-    Long userId;
-    try {
-      userId = subject(decodeRouteToken(routeMapping, token));
-    } catch (JwtException | IllegalArgumentException e) {
-      throw new MissException(ExceptionMessage.TOKEN_INVALID);
-    }
-
-    UserAuthContextRpcVo context = users.findAuthContext(userId);
-    if (!StatusEnum.NORMAL.getCode().equals(context.status())) {
+    if (access == null
+        || !access.exists()
+        || !StatusEnum.NORMAL.getCode().equals(access.status())) {
       throw new MissException(ExceptionMessage.NO_AUTH);
     }
-    AuthPrincipal principal =
-        new AuthPrincipal(
-            context.userId(),
-            context.roles(),
-            Optional.ofNullable(context.dataPermissions()).orElse(List.of()));
+    List<RoleAuthorizationRpcVo> authorizations =
+        snapshotCache.loadRoleAuthorizations(access.roleIds()).stream()
+            .filter(RoleAuthorizationRpcVo::exists)
+            .filter(item -> StatusEnum.NORMAL.getCode().equals(item.status()))
+            .toList();
+    List<String> roles =
+        authorizations.stream().map(RoleAuthorizationRpcVo::code).distinct().toList();
+    List<wiki.chiu.micro.common.lang.DataPermissionEnum> dataPermissions =
+        authorizations.stream()
+            .map(RoleAuthorizationRpcVo::dataPermissions)
+            .flatMap(Collection::stream)
+            .distinct()
+            .sorted()
+            .toList();
+    AuthPrincipal principal = new AuthPrincipal(access.userId(), roles, dataPermissions);
     if (isWebSocketRoute(routeMapping)) {
       return principal;
     }
@@ -188,8 +196,8 @@ public class AuthServiceImpl implements AuthService {
       return principal;
     }
     boolean authorized =
-        context.roles().stream()
-            .map(authWrapper::getAuthoritiesByRoleCode)
+        authorizations.stream()
+            .map(RoleAuthorizationRpcVo::authorityCodes)
             .flatMap(Collection::stream)
             .anyMatch(route.code()::equals);
     if (!authorized) {
@@ -198,8 +206,9 @@ public class AuthServiceImpl implements AuthService {
     return principal;
   }
 
-  private Optional<AuthorityRpcVo> matchingAuthority(String routeMapping, String method) {
-    return authWrapper.getAllSystemAuthorities().stream()
+  private Optional<AuthorityRpcVo> matchingAuthority(
+      List<AuthorityRpcVo> routes, String routeMapping, String method) {
+    return routes.stream()
         .filter(
             authority ->
                 routeMatch(authority.routePattern(), authority.methodType(), routeMapping, method))
@@ -232,6 +241,17 @@ public class AuthServiceImpl implements AuthService {
       return jwt;
     }
     return jwtTokenService.decodeAccessToken(token);
+  }
+
+  private Long resolveUserId(String routeMapping, String token) {
+    if (!StringUtils.hasLength(token)) {
+      return null;
+    }
+    try {
+      return subject(decodeRouteToken(routeMapping, token));
+    } catch (JwtException | IllegalArgumentException e) {
+      throw new MissException(ExceptionMessage.TOKEN_INVALID);
+    }
   }
 
   private boolean isWebSocketRoute(String routeMapping) {

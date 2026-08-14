@@ -2,10 +2,9 @@ package wiki.chiu.micro.search.mq.handler;
 
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.stereotype.Component;
-import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.search.document.BlogDocument;
-import wiki.chiu.micro.search.rpc.BlogHttpServiceWrapper;
 
 /**
  * @author mingchiuli
@@ -15,9 +14,7 @@ import wiki.chiu.micro.search.rpc.BlogHttpServiceWrapper;
 public final class RemoveBlogIndexHandler extends BlogIndexSupport {
   private final ElasticsearchTemplate elasticsearchTemplate;
 
-  public RemoveBlogIndexHandler(
-      BlogHttpServiceWrapper blogHttpServiceWrapper, ElasticsearchTemplate elasticsearchTemplate) {
-    super(blogHttpServiceWrapper);
+  public RemoveBlogIndexHandler(ElasticsearchTemplate elasticsearchTemplate) {
     this.elasticsearchTemplate = elasticsearchTemplate;
   }
 
@@ -27,7 +24,13 @@ public final class RemoveBlogIndexHandler extends BlogIndexSupport {
   }
 
   @Override
-  protected void elasticSearchProcess(BlogEntityRpcVo blog) {
-    elasticsearchTemplate.delete(blog.id().toString(), BlogDocument.class);
+  protected void elasticSearchProcess(BlogChangedMessage message) {
+    BlogDocument tombstone =
+        BlogDocument.builder()
+            .id(message.blogSnapshot().id())
+            .revision(message.revision())
+            .deleted(true)
+            .build();
+    indexVersioned(elasticsearchTemplate, tombstone, message.revision());
   }
 }

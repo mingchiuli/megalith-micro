@@ -1,5 +1,6 @@
 package wiki.chiu.micro.blog.convertor;
 
+import java.util.Optional;
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
@@ -18,6 +19,7 @@ public class BlogEntityConvertor {
         .link(blogDeleteDto.link())
         .userId(blogDeleteDto.userId())
         .readCount(blogDeleteDto.readCount())
+        .eventRevision(blogDeleteDto.eventRevision())
         .updated(blogDeleteDto.updated())
         .created(blogDeleteDto.created())
         .build();
@@ -33,6 +35,7 @@ public class BlogEntityConvertor {
         .created(blogDeleteDto.created())
         .userId(blogDeleteDto.userId())
         .readCount(blogDeleteDto.readCount())
+        .eventRevision(Optional.ofNullable(blogDeleteDto.eventRevision()).orElse(0L) + 1)
         .build();
   }
 
@@ -48,6 +51,8 @@ public class BlogEntityConvertor {
     blogEntity.setUserId(dealBlog.getUserId());
     blogEntity.setReadCount(dealBlog.getReadCount());
     blogEntity.setCreated(dealBlog.getCreated());
+    blogEntity.setEventRevision(
+        dealBlog.getEventRevision() == null ? 1L : dealBlog.getEventRevision() + 1);
 
     return blogEntity;
   }

@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -23,6 +24,7 @@ import wiki.chiu.micro.user.repository.UserRoleRepository;
 import wiki.chiu.micro.user.req.UserEntityReq;
 import wiki.chiu.micro.user.service.UserRoleService;
 import wiki.chiu.micro.user.service.UserService;
+import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.vo.UserEntityVo;
 import wiki.chiu.micro.user.wrapper.UserRoleWrapper;
 
@@ -44,6 +46,7 @@ public class UserServiceImpl implements UserService {
   private final UserRoleRepository userRoleRepository;
 
   private final UserRoleService userRoleService;
+  private final AuthCacheEvictionOutbox cacheEvictions;
 
   public UserServiceImpl(
       UserRepository userRepository,
@@ -51,13 +54,15 @@ public class UserServiceImpl implements UserService {
       PasswordEncoder passwordEncoder,
       RoleRepository roleRepository,
       UserRoleRepository userRoleRepository,
-      UserRoleService userRoleService) {
+      UserRoleService userRoleService,
+      AuthCacheEvictionOutbox cacheEvictions) {
     this.userRepository = userRepository;
     this.userRoleWrapper = userRoleWrapper;
     this.passwordEncoder = passwordEncoder;
     this.roleRepository = roleRepository;
     this.userRoleRepository = userRoleRepository;
     this.userRoleService = userRoleService;
+    this.cacheEvictions = cacheEvictions;
   }
 
   @Override
@@ -70,6 +75,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional
   public void saveOrUpdate(UserEntityReq userEntityReq) {
 
     UserEntity dealUser = getUserEntity(userEntityReq);
@@ -87,6 +93,7 @@ public class UserServiceImpl implements UserService {
             .toList();
 
     userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
+    cacheEvictions.enqueue(List.of(userEntity.getId()), List.of(), List.of(), false, false, false);
   }
 
   @Override
@@ -104,8 +111,10 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional
   public void deleteUsers(List<Long> ids) {
     userRoleWrapper.deleteUsers(ids);
+    cacheEvictions.enqueue(ids, List.of(), List.of(), false, false, false);
   }
 
   private UserEntity getUserEntity(UserEntityReq userEntityReq) {
