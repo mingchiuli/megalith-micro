@@ -5,25 +5,28 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.PHONE_NOT_EXIST;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.USER_MISS;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.convertor.UserEntityRpcVoConvertor;
 import wiki.chiu.micro.user.entity.UserEntity;
 import wiki.chiu.micro.user.repository.UserRepository;
 import wiki.chiu.micro.user.service.UserIdentityService;
-import wiki.chiu.micro.user.service.UserRoleService;
+import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 
 @Service
 public class UserIdentityServiceImpl implements UserIdentityService {
 
   private final UserRepository users;
-  private final UserRoleService userRoles;
+  private final AuthCacheEvictionOutbox cacheEvictions;
 
-  public UserIdentityServiceImpl(UserRepository users, UserRoleService userRoles) {
+  public UserIdentityServiceImpl(UserRepository users, AuthCacheEvictionOutbox cacheEvictions) {
     this.users = users;
-    this.userRoles = userRoles;
+    this.cacheEvictions = cacheEvictions;
   }
 
   @Override
@@ -32,8 +35,15 @@ public class UserIdentityServiceImpl implements UserIdentityService {
   }
 
   @Override
+  @Transactional
   public void changeStatus(String username, Integer status) {
+    Long userId =
+        users
+            .findByUsername(username)
+            .map(UserEntity::getId)
+            .orElseThrow(() -> new MissException(USER_MISS.getMsg()));
     users.updateUserStatusByUsername(username, status);
+    cacheEvictions.enqueue(List.of(userId), List.of(), List.of(), false, false, false);
   }
 
   @Override
@@ -44,14 +54,19 @@ public class UserIdentityServiceImpl implements UserIdentityService {
   }
 
   @Override
-  public UserAuthContextRpcVo findAuthContext(Long userId) {
-    UserEntity user =
-        users.findById(userId).orElseThrow(() -> new MissException(USER_MISS.getMsg()));
-    return new UserAuthContextRpcVo(
-        user.getId(),
-        user.getStatus(),
-        userRoles.findRoleCodesByUserId(userId),
-        userRoles.findDataPermissionsByUserId(userId));
+  public UserAccessRpcVo findUserAccess(Long userId) {
+    List<UserRepository.UserAccessRow> rows = users.findAccessRows(userId);
+    if (rows.isEmpty()) {
+      return UserAccessRpcVo.missing(userId);
+    }
+    UserRepository.UserAccessRow first = rows.getFirst();
+    List<Long> roleIds =
+        rows.stream()
+            .map(UserRepository.UserAccessRow::getRoleId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+    return new UserAccessRpcVo(first.getUserId(), true, first.getStatus(), roleIds);
   }
 
   @Override

@@ -6,8 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.retry.RetryPolicy;
-import org.springframework.core.retry.RetryTemplate;
 
 /**
  * @author mingchiuli
@@ -41,7 +39,5 @@ public class RabbitTemplateConfig {
         returned -> log.info("message not come to queue {}", returned));
 
     rabbitTemplate.setMessageConverter(jsonMessageConverter);
-
-    rabbitTemplate.setRetryTemplate(new RetryTemplate(RetryPolicy.withDefaults()));
   }
 }

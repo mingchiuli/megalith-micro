@@ -1,57 +1,75 @@
 package wiki.chiu.micro.user.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.user.entity.UserEntity;
 import wiki.chiu.micro.user.repository.UserRepository;
-import wiki.chiu.micro.user.service.UserRoleService;
+import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 
 @ExtendWith(MockitoExtension.class)
 class UserIdentityServiceImplTest {
 
   @Mock private UserRepository users;
-  @Mock private UserRoleService userRoles;
+  @Mock private AuthCacheEvictionOutbox cacheEvictions;
   @InjectMocks private UserIdentityServiceImpl service;
 
   @Test
-  void authContextCombinesStatusAndActiveRoles() {
-    when(users.findById(42L))
-        .thenReturn(Optional.of(UserEntity.builder().id(42L).status(0).build()));
-    when(userRoles.findRoleCodesByUserId(42L)).thenReturn(List.of("user", "editor"));
+  void accessSnapshotCombinesStatusAndRoleIds() {
+    var first = accessRow(42L, 0, 7L);
+    var second = accessRow(42L, 0, 8L);
+    when(users.findAccessRows(42L)).thenReturn(List.of(first, second));
 
-    var context = service.findAuthContext(42L);
+    var context = service.findUserAccess(42L);
 
     assertEquals(42L, context.userId());
     assertEquals(0, context.status());
-    assertEquals(List.of("user", "editor"), context.roles());
+    assertEquals(List.of(7L, 8L), context.roleIds());
+    assertEquals(true, context.exists());
   }
 
   @Test
-  void authContextPreservesDisabledStatusAndEmptyRoles() {
-    when(users.findById(42L))
-        .thenReturn(Optional.of(UserEntity.builder().id(42L).status(1).build()));
-    when(userRoles.findRoleCodesByUserId(42L)).thenReturn(List.of());
+  void accessSnapshotPreservesDisabledStatusAndEmptyRoles() {
+    var row = accessRow(42L, 1, null);
+    when(users.findAccessRows(42L)).thenReturn(List.of(row));
 
-    var context = service.findAuthContext(42L);
+    var context = service.findUserAccess(42L);
 
     assertEquals(1, context.status());
-    assertEquals(List.of(), context.roles());
+    assertEquals(List.of(), context.roleIds());
   }
 
   @Test
-  void authContextRejectsMissingUser() {
-    when(users.findById(42L)).thenReturn(Optional.empty());
+  void accessSnapshotRepresentsMissingUser() {
+    when(users.findAccessRows(42L)).thenReturn(List.of());
 
-    assertThrows(MissException.class, () -> service.findAuthContext(42L));
+    var context = service.findUserAccess(42L);
+
+    assertEquals(false, context.exists());
+    assertEquals(List.of(), context.roleIds());
+  }
+
+  private UserRepository.UserAccessRow accessRow(Long userId, Integer status, Long roleId) {
+    return new UserRepository.UserAccessRow() {
+      @Override
+      public Long getUserId() {
+        return userId;
+      }
+
+      @Override
+      public Integer getStatus() {
+        return status;
+      }
+
+      @Override
+      public Long getRoleId() {
+        return roleId;
+      }
+    };
   }
 }

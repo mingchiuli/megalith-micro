@@ -3,6 +3,7 @@ package wiki.chiu.micro.auth.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -19,7 +20,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.task.TaskExecutor;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
-import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
+import wiki.chiu.micro.auth.cache.AuthSnapshotCache;
 import wiki.chiu.micro.auth.service.impl.AuthServiceImpl;
 import wiki.chiu.micro.auth.token.JwtProperties;
 import wiki.chiu.micro.auth.token.JwtTokenService;
@@ -30,12 +31,13 @@ import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
+import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 
 class AuthServiceRouteAuthorizationTest {
 
   private AuthWrapper authWrapper;
-  private UserHttpServiceWrapper userHttpServiceWrapper;
+  private AuthSnapshotCache snapshotCache;
   private JwtTokenService tokens;
   private AuthServiceImpl authService;
 
@@ -60,7 +62,7 @@ class AuthServiceRouteAuthorizationTest {
             properties);
 
     authWrapper = mock(AuthWrapper.class);
-    userHttpServiceWrapper = mock(UserHttpServiceWrapper.class);
+    snapshotCache = mock(AuthSnapshotCache.class);
     authService =
         new AuthServiceImpl(
             authWrapper,
@@ -68,16 +70,14 @@ class AuthServiceRouteAuthorizationTest {
             mock(TaskExecutor.class),
             mock(ResourceLoader.class),
             tokens,
-            userHttpServiceWrapper);
+            snapshotCache);
 
-    when(userHttpServiceWrapper.findAuthContext(42L))
-        .thenReturn(new UserAuthContextRpcVo(42L, StatusEnum.NORMAL.getCode(), List.of("user")));
+    when(snapshotCache.loadRoleAuthorizations(List.of(7L))).thenReturn(List.of(role(Set.of())));
   }
 
   @Test
   void websocketTicketOnlyAuthorizesItsBoundRoom() {
-    when(authWrapper.getAllSystemAuthorities())
-        .thenReturn(List.of(authority("sync_room", "/rooms/**", AuthTypeEnum.NEED_AUTH)));
+    givenRoutes(List.of(authority("sync_room", "/rooms/**", AuthTypeEnum.NEED_AUTH)));
 
     String roomTicket = "Bearer " + tokens.issueWebSocketToken(42L, "blog-7");
     String accessToken = "Bearer " + tokens.issueAccessToken(42L);
@@ -94,11 +94,10 @@ class AuthServiceRouteAuthorizationTest {
 
   @Test
   void exactProtectedRouteTakesPrecedenceOverWildcardWhitelist() {
-    when(authWrapper.getAllSystemAuthorities())
-        .thenReturn(
-            List.of(
-                authority("public_api", "/api/**", AuthTypeEnum.WHITE_LIST),
-                authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
+    givenRoutes(
+        List.of(
+            authority("public_api", "/api/**", AuthTypeEnum.WHITE_LIST),
+            authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
 
     assertThrows(
         MissException.class, () -> authService.authorizeRoute(route("/api/private"), null));
@@ -108,52 +107,51 @@ class AuthServiceRouteAuthorizationTest {
         authService.authorizeRoute(route("/api/public"), null).principal());
     assertThrows(
         MissException.class, () -> authService.authorizeRoute(route("/apix/public"), null));
-    verify(userHttpServiceWrapper, never()).findAuthContext(42L);
+    verify(snapshotCache, never()).loadInitial(42L);
   }
 
   @Test
   void whitelistUsesValidatedIdentityWhenTokenIsPresent() {
-    when(authWrapper.getAllSystemAuthorities())
-        .thenReturn(List.of(authority("public_api", "/api/public", AuthTypeEnum.WHITE_LIST)));
+    givenRoutes(List.of(authority("public_api", "/api/public", AuthTypeEnum.WHITE_LIST)));
 
     AuthorityRouteRpcVo route =
         authService.authorizeRoute(route("/api/public"), "Bearer " + tokens.issueAccessToken(42L));
 
     assertEquals(new AuthPrincipal(42L, List.of("user")), route.principal());
-    verify(userHttpServiceWrapper, times(1)).findAuthContext(42L);
+    verify(snapshotCache, times(1)).loadInitial(42L);
   }
 
   @Test
   void whitelistRejectsInvalidTokenInsteadOfDowngradingToAnonymous() {
-    when(authWrapper.getAllSystemAuthorities())
-        .thenReturn(List.of(authority("public_api", "/api/public", AuthTypeEnum.WHITE_LIST)));
+    givenRoutes(List.of(authority("public_api", "/api/public", AuthTypeEnum.WHITE_LIST)));
 
     assertThrows(
         MissException.class,
         () -> authService.authorizeRoute(route("/api/public"), "Bearer invalid-token"));
-    verify(userHttpServiceWrapper, never()).findAuthContext(42L);
+    verify(snapshotCache, never()).loadInitial(42L);
   }
 
   @Test
   void disabledUserIsRejectedBeforeAuthorityLookup() {
-    when(authWrapper.getAllSystemAuthorities())
-        .thenReturn(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
-    when(userHttpServiceWrapper.findAuthContext(42L))
-        .thenReturn(new UserAuthContextRpcVo(42L, StatusEnum.HIDE.getCode(), List.of("user")));
+    var routes = List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH));
+    when(snapshotCache.loadInitial(42L))
+        .thenReturn(
+            new AuthSnapshotCache.InitialSnapshots(
+                routes, new UserAccessRpcVo(42L, true, StatusEnum.HIDE.getCode(), List.of(7L))));
 
     assertThrows(
         MissException.class,
         () ->
             authService.authorizeRoute(
                 route("/api/private"), "Bearer " + tokens.issueAccessToken(42L)));
-    verify(authWrapper, never()).getAuthoritiesByRoleCode("user");
+    verify(snapshotCache, never()).loadRoleAuthorizations(List.of(7L));
   }
 
   @Test
   void invalidAccessTokenIsUnauthenticatedButMissingAuthorityIsForbidden() {
-    when(authWrapper.getAllSystemAuthorities())
-        .thenReturn(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
-    when(authWrapper.getAuthoritiesByRoleCode("user")).thenReturn(Set.of("other_api"));
+    givenRoutes(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
+    when(snapshotCache.loadRoleAuthorizations(List.of(7L)))
+        .thenReturn(List.of(role(Set.of("other_api"))));
 
     MissException invalidToken =
         assertThrows(
@@ -172,9 +170,9 @@ class AuthServiceRouteAuthorizationTest {
 
   @Test
   void authorizedRoleReceivesTheResolvedRoute() {
-    when(authWrapper.getAllSystemAuthorities())
-        .thenReturn(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
-    when(authWrapper.getAuthoritiesByRoleCode("user")).thenReturn(Set.of("private_api"));
+    givenRoutes(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
+    when(snapshotCache.loadRoleAuthorizations(List.of(7L)))
+        .thenReturn(List.of(role(Set.of("private_api"))));
 
     AuthorityRouteRpcVo route =
         authService.authorizeRoute(route("/api/private"), "Bearer " + tokens.issueAccessToken(42L));
@@ -182,15 +180,13 @@ class AuthServiceRouteAuthorizationTest {
     assertEquals("service", route.serviceHost());
     assertEquals(Integer.valueOf(8080), route.servicePort());
     assertEquals(List.of("user"), route.principal().roles());
-    verify(userHttpServiceWrapper, times(1)).findAuthContext(42L);
+    verify(snapshotCache, times(1)).loadInitial(42L);
   }
 
   @Test
   void userLookupFailureIsNotCollapsedIntoForbidden() {
-    when(authWrapper.getAllSystemAuthorities())
-        .thenReturn(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
     MissException failure = new MissException(ExceptionMessage.USER_NOT_EXIST);
-    when(userHttpServiceWrapper.findAuthContext(42L)).thenThrow(failure);
+    when(snapshotCache.loadInitial(42L)).thenThrow(failure);
 
     MissException actual =
         assertThrows(
@@ -204,6 +200,22 @@ class AuthServiceRouteAuthorizationTest {
 
   private AuthorityRouteReq route(String path) {
     return new AuthorityRouteReq("GET", path, null);
+  }
+
+  private void givenRoutes(List<AuthorityRpcVo> routes) {
+    lenient()
+        .when(snapshotCache.loadInitial(null))
+        .thenReturn(new AuthSnapshotCache.InitialSnapshots(routes, null));
+    lenient()
+        .when(snapshotCache.loadInitial(42L))
+        .thenReturn(
+            new AuthSnapshotCache.InitialSnapshots(
+                routes, new UserAccessRpcVo(42L, true, StatusEnum.NORMAL.getCode(), List.of(7L))));
+  }
+
+  private RoleAuthorizationRpcVo role(Set<String> authorities) {
+    return new RoleAuthorizationRpcVo(
+        7L, true, "user", StatusEnum.NORMAL.getCode(), authorities, List.of());
   }
 
   private AuthorityRpcVo authority(String code, String pattern, AuthTypeEnum type) {

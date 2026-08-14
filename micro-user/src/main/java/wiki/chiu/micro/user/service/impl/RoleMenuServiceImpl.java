@@ -1,24 +1,21 @@
 package wiki.chiu.micro.user.service.impl;
 
 import java.util.*;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import wiki.chiu.micro.common.lang.AuthMenuOperateEnum;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
-import wiki.chiu.micro.user.constant.AuthMenuIndexMessage;
 import wiki.chiu.micro.user.convertor.MenuDisplayVoConvertor;
 import wiki.chiu.micro.user.convertor.MenuRpcVoConvertor;
 import wiki.chiu.micro.user.convertor.RoleMenuEntityConvertor;
 import wiki.chiu.micro.user.entity.MenuEntity;
 import wiki.chiu.micro.user.entity.RoleEntity;
 import wiki.chiu.micro.user.entity.RoleMenuEntity;
-import wiki.chiu.micro.user.event.AuthMenuOperateEvent;
 import wiki.chiu.micro.user.repository.MenuRepository;
 import wiki.chiu.micro.user.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.service.RoleMenuService;
+import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.vo.MenuDisplayVo;
 import wiki.chiu.micro.user.vo.RoleMenuVo;
 import wiki.chiu.micro.user.wrapper.RoleMenuWrapper;
@@ -38,19 +35,19 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
   private final RoleRepository roleRepository;
 
-  private final ApplicationEventPublisher eventPublisher;
+  private final AuthCacheEvictionOutbox cacheEvictions;
 
   public RoleMenuServiceImpl(
       MenuRepository menuRepository,
       RoleMenuRepository roleMenuRepository,
       RoleMenuWrapper roleMenuWrapper,
       RoleRepository roleRepository,
-      ApplicationEventPublisher eventPublisher) {
+      AuthCacheEvictionOutbox cacheEvictions) {
     this.menuRepository = menuRepository;
     this.roleMenuRepository = roleMenuRepository;
     this.roleMenuWrapper = roleMenuWrapper;
     this.roleRepository = roleRepository;
-    this.eventPublisher = eventPublisher;
+    this.cacheEvictions = cacheEvictions;
   }
 
   private List<RoleMenuVo> setCheckMenusInfo(
@@ -97,10 +94,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         .map(RoleEntity::getCode)
         .ifPresent(
             role -> {
-              var authMenuIndexMessage =
-                  new AuthMenuIndexMessage(
-                      Collections.singletonList(role), AuthMenuOperateEnum.AUTH_AND_MENU.getType());
-              eventPublisher.publishEvent(new AuthMenuOperateEvent(authMenuIndexMessage));
+              cacheEvictions.enqueue(List.of(), List.of(roleId), List.of(role), true, true, false);
             });
   }
 

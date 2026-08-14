@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -25,6 +24,7 @@ import wiki.chiu.micro.blog.service.BlogAccessPolicy;
 import wiki.chiu.micro.blog.service.port.BlogSearchGateway;
 import wiki.chiu.micro.blog.service.port.CollaborationTicketGateway;
 import wiki.chiu.micro.blog.wrapper.BlogWrapper;
+import wiki.chiu.micro.outbox.OutboxService;
 
 class BlogServiceImplTest {
 
@@ -32,7 +32,6 @@ class BlogServiceImplTest {
   void newBlogIsOwnedAndManageableByCurrentUser() {
     BlogServiceImpl service =
         new BlogServiceImpl(
-            mock(ApplicationContext.class),
             mock(BlogRepository.class),
             mock(StringRedisTemplate.class),
             mock(ResourceLoader.class),
@@ -40,7 +39,8 @@ class BlogServiceImplTest {
             mock(BlogSensitiveContentRepository.class),
             mock(BlogSearchGateway.class),
             mock(JsonMapper.class),
-            new BlogAccessPolicy());
+            new BlogAccessPolicy(),
+            mock(OutboxService.class));
 
     var edit = service.findEdit(null, 42L, List.of());
 

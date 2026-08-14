@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PatchExchange;
+import org.springframework.web.service.annotation.PostExchange;
 
 class UserHttpServiceContractTest {
 
@@ -25,14 +26,16 @@ class UserHttpServiceContractTest {
   }
 
   @Test
-  void authContextReplacesTheSeparateRoleLookup() throws NoSuchMethodException {
-    var method = UserHttpService.class.getMethod("findAuthContext", Long.class);
+  void accessAndRoleAuthorizationAreSeparateCacheableResources() throws NoSuchMethodException {
+    var method = UserHttpService.class.getMethod("findUserAccess", Long.class);
 
-    assertThat(method.getAnnotation(GetExchange.class).value())
-        .isEqualTo("/user/auth-context/{userId}");
-    assertThat(
-            java.util.Arrays.stream(UserHttpService.class.getMethods())
-                .map(java.lang.reflect.Method::getName))
-        .doesNotContain("findRoleCodesByUserId");
+    assertThat(method.getAnnotation(GetExchange.class).value()).isEqualTo("/user/access/{userId}");
+    var roleMethod = UserHttpService.class.getMethod("findRoleAuthorization", Long.class);
+    assertThat(roleMethod.getAnnotation(GetExchange.class).value())
+        .isEqualTo("/role/authorization/{roleId}");
+    var batchRoleMethod =
+        UserHttpService.class.getMethod("findRoleAuthorizations", java.util.List.class);
+    assertThat(batchRoleMethod.getAnnotation(PostExchange.class).value())
+        .isEqualTo("/role/authorizations");
   }
 }

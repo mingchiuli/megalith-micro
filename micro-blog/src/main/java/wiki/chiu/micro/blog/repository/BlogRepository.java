@@ -6,6 +6,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,14 @@ import wiki.chiu.micro.blog.entity.BlogEntity;
  * @create 2022-11-27 1:30 am
  */
 public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonNull Long> {
+
+  @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT blog FROM BlogEntity blog WHERE blog.id = ?1")
+  java.util.Optional<BlogEntity> findByIdForUpdate(Long id);
+
+  @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT blog FROM BlogEntity blog WHERE blog.id IN ?1")
+  List<BlogEntity> findAllByIdForUpdate(List<Long> ids);
 
   Long countByCreatedGreaterThanEqual(LocalDateTime created);
 

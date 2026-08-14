@@ -10,7 +10,7 @@ use opentelemetry_http::HeaderInjector;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use crate::{
-    client::{self, AuthPrincipal, AuthRouteReq, AuthRouteResp, HttpClient},
+    client::{self, AuthPrincipal, AuthRouteReq, AuthRouteResp, GatewayState},
     config::{self, ConfigKey},
     constant::UNKNOWN,
     exception::{ClientError, handle_api_error},
@@ -32,15 +32,16 @@ pub fn get_auth_url() -> Result<Uri, ClientError> {
 
 #[tracing::instrument(
     name = "find_target_address",
-    skip(client, req_body, token),
+    skip(state, req_body, token),
     fields(http.url = %auth_url)
 )]
 pub async fn find_route(
-    client: &HttpClient,
+    state: &GatewayState,
     auth_url: Uri,
     req_body: AuthRouteReq,
     token: &str,
 ) -> Result<AuthRouteResp, ClientError> {
+    let guard = state.acquire_auth()?;
     let mut headers = HeaderMap::new();
     headers.insert(
         header::AUTHORIZATION,
@@ -51,15 +52,49 @@ pub async fn find_route(
         HeaderValue::from_static("application/json"),
     );
 
-    let resp: ApiResult<AuthRouteResp> = client::post(client, auth_url, req_body, headers)
-        .await
-        .map_err(handle_api_error)?;
+    let response = tokio::time::timeout(
+        state.auth_timeout(),
+        client::post(state.client(), auth_url, req_body, headers),
+    )
+    .await;
+    let resp: ApiResult<AuthRouteResp> = match response {
+        Err(_) => {
+            guard.failure();
+            return Err(ClientError::Status(
+                StatusCode::SERVICE_UNAVAILABLE.as_u16(),
+                "auth service timed out".to_string(),
+            ));
+        }
+        Ok(Err(error)) => {
+            let error = handle_api_error(error);
+            if matches!(&error, ClientError::Status(code, _) if *code >= 500) {
+                guard.failure();
+                return Err(ClientError::Status(
+                    StatusCode::SERVICE_UNAVAILABLE.as_u16(),
+                    error.to_string(),
+                ));
+            }
+            guard.success();
+            return Err(error);
+        }
+        Ok(Ok(resp)) => resp,
+    };
     if resp.code() != i32::from(StatusCode::OK.as_u16()) {
+        let code = u16::try_from(resp.code()).unwrap_or(StatusCode::BAD_GATEWAY.as_u16());
+        if code >= 500 {
+            guard.failure();
+            return Err(ClientError::Status(
+                StatusCode::SERVICE_UNAVAILABLE.as_u16(),
+                format!("auth service returned body code {}", resp.code()),
+            ));
+        }
+        guard.success();
         return Err(ClientError::Status(
-            StatusCode::BAD_GATEWAY.as_u16(),
+            code,
             format!("auth service returned body code {}", resp.code()),
         ));
     }
+    guard.success();
     Ok(resp.into_data())
 }
 

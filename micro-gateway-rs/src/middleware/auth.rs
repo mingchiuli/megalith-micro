@@ -44,7 +44,7 @@ pub async fn process(
         };
         let auth_url = utils::get_auth_url()?;
         let route_request = utils::prepare_route_request(req.method(), req.headers(), req.uri());
-        let route = utils::find_route(state.client(), auth_url, route_request, &token).await?;
+        let route = utils::find_route(&state, auth_url, route_request, &token).await?;
         req.extensions_mut().insert(route);
         Ok(next.run(req).await)
     }

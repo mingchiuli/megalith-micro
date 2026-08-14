@@ -8,11 +8,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationEventPublisher;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.user.repository.MenuRepository;
 import wiki.chiu.micro.user.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.repository.RoleRepository;
+import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.wrapper.RoleMenuAuthorityWrapper;
 
 class MenuServiceImplTest {
@@ -25,7 +25,7 @@ class MenuServiceImplTest {
         new MenuServiceImpl(
             menuRepository,
             mock(RoleRepository.class),
-            mock(ApplicationEventPublisher.class),
+            mock(AuthCacheEvictionOutbox.class),
             mock(RoleMenuRepository.class),
             wrapper);
     when(menuRepository.existsByParentId(3L)).thenReturn(true);

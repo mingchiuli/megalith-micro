@@ -17,6 +17,7 @@ public class BlogDeleteDtoConvertor {
         .link(blogEntity.getLink())
         .userId(blogEntity.getUserId())
         .readCount(blogEntity.getReadCount())
+        .eventRevision(blogEntity.getEventRevision())
         .updated(blogEntity.getUpdated())
         .created(blogEntity.getCreated())
         .build();

@@ -10,6 +10,8 @@ import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
+import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 
 @Component
 public class AuthWrapper {
@@ -18,6 +20,16 @@ public class AuthWrapper {
 
   public AuthWrapper(UserHttpServiceWrapper userHttpServiceWrapper) {
     this.userHttpServiceWrapper = userHttpServiceWrapper;
+  }
+
+  @Cache(prefix = Const.USER_ACCESS)
+  public UserAccessRpcVo getUserAccess(Long userId) {
+    return userHttpServiceWrapper.findUserAccess(userId);
+  }
+
+  @Cache(prefix = Const.ROLE_AUTHORIZATION)
+  public RoleAuthorizationRpcVo getRoleAuthorization(Long roleId) {
+    return userHttpServiceWrapper.findRoleAuthorization(roleId);
   }
 
   @Cache(prefix = Const.ROLE_AUTHORITY)

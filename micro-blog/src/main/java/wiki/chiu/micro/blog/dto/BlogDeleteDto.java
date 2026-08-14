@@ -12,7 +12,8 @@ public record BlogDeleteDto(
     LocalDateTime updated,
     Integer status,
     String link,
-    Long readCount) {
+    Long readCount,
+    Long eventRevision) {
 
   public static BlogEntityDtoBuilder builder() {
     return new BlogEntityDtoBuilder();
@@ -29,6 +30,7 @@ public record BlogDeleteDto(
     private Integer status;
     private String link;
     private Long readCount;
+    private Long eventRevision;
 
     public BlogEntityDtoBuilder id(Long id) {
       this.id = id;
@@ -80,9 +82,24 @@ public record BlogDeleteDto(
       return this;
     }
 
+    public BlogEntityDtoBuilder eventRevision(Long eventRevision) {
+      this.eventRevision = eventRevision;
+      return this;
+    }
+
     public BlogDeleteDto build() {
       return new BlogDeleteDto(
-          id, userId, title, description, content, created, updated, status, link, readCount);
+          id,
+          userId,
+          title,
+          description,
+          content,
+          created,
+          updated,
+          status,
+          link,
+          readCount,
+          eventRevision);
     }
   }
 }

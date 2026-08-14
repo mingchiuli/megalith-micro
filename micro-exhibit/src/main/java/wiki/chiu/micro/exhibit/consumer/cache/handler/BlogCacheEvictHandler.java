@@ -1,68 +1,61 @@
 package wiki.chiu.micro.exhibit.consumer.cache.handler;
 
-import com.rabbitmq.client.Channel;
-import java.io.IOException;
-import java.util.Objects;
+import java.time.Duration;
+import org.redisson.api.RBucket;
+import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.Message;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
-import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.common.lang.BlogOperateMessage;
-import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
+import wiki.chiu.micro.common.lang.BlogSnapshot;
 
 public abstract sealed class BlogCacheEvictHandler
     permits CreateBlogCacheEvictHandler, DeleteBlogCacheEvictHandler, UpdateBlogCacheEvictHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(BlogCacheEvictHandler.class);
   protected final RedissonClient redissonClient;
-
-  protected final BlogHttpServiceWrapper blogHttpServiceWrapper;
 
   protected final CacheEvictHandler cacheEvictHandler;
 
   protected BlogCacheEvictHandler(
-      RedissonClient redissonClient,
-      BlogHttpServiceWrapper blogHttpServiceWrapper,
-      CacheEvictHandler cacheEvictHandler) {
+      RedissonClient redissonClient, CacheEvictHandler cacheEvictHandler) {
     this.redissonClient = redissonClient;
-    this.blogHttpServiceWrapper = blogHttpServiceWrapper;
     this.cacheEvictHandler = cacheEvictHandler;
   }
 
   public abstract boolean supports(BlogOperateEnum blogOperateEnum);
 
-  protected abstract void redisProcess(BlogEntityRpcVo blog);
+  protected abstract void redisProcess(BlogChangedMessage message);
 
-  public void handle(BlogOperateMessage message, Channel channel, Message msg) {
-    long deliveryTag = msg.getMessageProperties().getDeliveryTag();
+  public void process(BlogChangedMessage message) {
+    Long blogId = message.blogSnapshot().id();
+    RLock lock = redissonClient.getLock("blog:event-revision:lock:" + blogId);
     try {
-      BlogEntityRpcVo blogEntity = getBlogEntity(message);
-      redisProcess(blogEntity);
-      channel.basicAck(deliveryTag, false);
-    } catch (Exception e) {
-      log.error("consume failure", e);
-      handleNack(channel, deliveryTag, e);
+      lock.lock();
+      RBucket<String> revisionBucket = redissonClient.getBucket("blog:event-revision:" + blogId);
+      String applied = revisionBucket.get();
+      if (applied == null || Long.parseLong(applied) < message.revision()) {
+        redisProcess(message);
+        revisionBucket.set(message.revision().toString(), Duration.ofDays(30));
+      }
+    } finally {
+      if (lock.isHeldByCurrentThread()) {
+        lock.unlock();
+      }
     }
   }
 
-  private BlogEntityRpcVo getBlogEntity(BlogOperateMessage message) {
-    Long blogId = message.blogId();
-    if (Objects.equals(message.typeEnumCode(), BlogOperateEnum.REMOVE.getCode())) {
-      return BlogEntityRpcVo.builder().id(blogId).build();
-    } else {
-      return blogHttpServiceWrapper.findById(blogId);
-    }
-  }
-
-  private void handleNack(Channel channel, long deliveryTag, Exception e) {
-    try {
-      channel.basicNack(deliveryTag, false, true);
-    } catch (IOException ex) {
-      throw new MissException(ex.getMessage());
-    }
+  protected BlogEntityRpcVo blogEntity(BlogSnapshot blog) {
+    return new BlogEntityRpcVo(
+        blog.id(),
+        blog.userId(),
+        blog.title(),
+        blog.description(),
+        blog.content(),
+        blog.created(),
+        blog.updated(),
+        blog.status(),
+        blog.link(),
+        blog.readCount());
   }
 }

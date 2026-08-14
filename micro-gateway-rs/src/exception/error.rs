@@ -5,6 +5,7 @@ use std::{
 
 use axum::{
     BoxError,
+    http::header,
     response::{IntoResponse, Response},
 };
 use hyper::StatusCode;
@@ -43,7 +44,14 @@ impl HandlerError {
 // 实现 IntoResponse 使其可以直接用作 Axum 响应
 impl IntoResponse for HandlerError {
     fn into_response(self) -> Response {
-        (self.status, self.message).into_response()
+        let retryable = self.status == StatusCode::SERVICE_UNAVAILABLE;
+        let mut response = (self.status, self.message).into_response();
+        if retryable {
+            response
+                .headers_mut()
+                .insert(header::RETRY_AFTER, "1".parse().expect("valid retry-after"));
+        }
+        response
     }
 }
 
@@ -54,7 +62,7 @@ impl From<ClientError> for HandlerError {
             ClientError::Network(msg) => {
                 tracing::error!("ClientError::Network:{}", msg);
                 HandlerError {
-                    status: StatusCode::INTERNAL_SERVER_ERROR,
+                    status: StatusCode::SERVICE_UNAVAILABLE,
                     message: msg,
                 }
             }
@@ -174,7 +182,7 @@ mod tests {
     #[test]
     fn client_error_to_handler_error_status_codes() {
         let h: HandlerError = ClientError::Network("e".into()).into();
-        assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);
+        assert_eq!(h.status(), StatusCode::SERVICE_UNAVAILABLE);
 
         let h: HandlerError = ClientError::Serialization("e".into()).into();
         assert_eq!(h.status(), StatusCode::INTERNAL_SERVER_ERROR);

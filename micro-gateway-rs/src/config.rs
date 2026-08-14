@@ -67,6 +67,8 @@ struct BlogConfig {
 #[derive(Debug, Deserialize)]
 struct AuthConfig {
     url: String,
+    timeout_ms: u64,
+    max_inflight: usize,
 }
 
 #[derive(Debug, Deserialize)]
@@ -81,6 +83,8 @@ pub enum ConfigKey {
     OtelExporterOtlpMetricsEndpoint,
     OtelExporterOtlpLogsEndpoint,
     AuthUrlKey,
+    AuthTimeoutMs,
+    AuthMaxInflight,
     AllowedOrigins,
     RustLog,
 }
@@ -128,6 +132,8 @@ pub fn get_config(key: ConfigKey) -> String {
         }
         ConfigKey::OtelExporterOtlpLogsEndpoint => config.otel.exporter.otlp.logs.endpoint.clone(),
         ConfigKey::AuthUrlKey => config.megalith.blog.auth.url.clone(),
+        ConfigKey::AuthTimeoutMs => config.megalith.blog.auth.timeout_ms.to_string(),
+        ConfigKey::AuthMaxInflight => config.megalith.blog.auth.max_inflight.to_string(),
         ConfigKey::AllowedOrigins => config.megalith.blog.frontend.allowed_origins.clone(),
         ConfigKey::RustLog => config.log.level.clone(),
     }

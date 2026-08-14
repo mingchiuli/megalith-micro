@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.cache.handler.CacheEvictHandler;
 import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
+import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.exhibit.consumer.cache.CacheKeyGenerator;
-import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.support.ExhibitCacheKeys;
 import wiki.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
 import wiki.chiu.micro.exhibit.wrapper.BlogWrapper;
@@ -29,11 +29,10 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
   public UpdateBlogCacheEvictHandler(
       RedissonClient redissonClient,
-      BlogHttpServiceWrapper blogHttpServiceWrapper,
       CacheKeyGenerator cacheKeyGenerator,
       CacheEvictHandler cacheEvictHandler,
       CommonCacheKeyGenerator commonCacheKeyGenerator) {
-    super(redissonClient, blogHttpServiceWrapper, cacheEvictHandler);
+    super(redissonClient, cacheEvictHandler);
     this.cacheKeyGenerator = cacheKeyGenerator;
     this.commonCacheKeyGenerator = commonCacheKeyGenerator;
   }
@@ -44,13 +43,14 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
   }
 
   @Override
-  public void redisProcess(BlogEntityRpcVo blogEntity) {
+  public void redisProcess(BlogChangedMessage message) {
+    BlogEntityRpcVo blogEntity = blogEntity(message.blogSnapshot());
     Long id = blogEntity.id();
     Integer status = blogEntity.status();
     Long userId = blogEntity.userId();
 
     // 保守处理，前面的全删
-    long countAfter = blogHttpServiceWrapper.countByCreatedGreaterThanEqual(blogEntity.created());
+    long countAfter = message.newerOrSameCount();
     evictCaches(id, countAfter);
     clearKeys(id, status, userId);
   }

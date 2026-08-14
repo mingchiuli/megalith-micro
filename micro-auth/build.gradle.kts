@@ -7,6 +7,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     implementation("org.redisson:redisson")
+    implementation("com.github.ben-manes.caffeine:caffeine")
     implementation(project(":auth-api"))
     implementation(project(":user-api"))
     implementation(project(":common-contract"))
@@ -14,5 +15,6 @@ dependencies {
     implementation(project(":common-web"))
     implementation(project(":common-auth-web"))
     implementation(project(":common-observability"))
+    implementation(project(":common-messaging"))
     implementation(project(":cache"))
 }

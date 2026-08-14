@@ -1,6 +1,7 @@
 package wiki.chiu.micro.auth.service.port;
 
-import wiki.chiu.micro.user.api.vo.UserAuthContextRpcVo;
+import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 public interface UserDirectory {
@@ -9,7 +10,9 @@ public interface UserDirectory {
 
   void findByPhone(String phone);
 
-  UserAuthContextRpcVo findAuthContext(Long userId);
+  UserAccessRpcVo findUserAccess(Long userId);
+
+  RoleAuthorizationRpcVo findRoleAuthorization(Long roleId);
 
   UserEntityRpcVo findById(Long userId);
 }

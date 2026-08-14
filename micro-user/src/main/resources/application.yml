@@ -37,6 +37,10 @@ server:
   max-http-request-header-size: 10MB
 
 megalith:
+  outbox:
+    producer: USER
+    exchange: user.auth.menu.change.fanout.exchange
+    environment: ${spring.profiles.active:default}
   blog:
     oss:
       base-url: https://${megalith.blog.aliyun.oss.bucket-name}.${megalith.blog.oss.endpoint}

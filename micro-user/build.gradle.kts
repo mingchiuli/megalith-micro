@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":common-rpc"))
     implementation(project(":common-web"))
     implementation(project(":common-observability"))
+    implementation(project(":common-outbox"))
     implementation(project(":common-export"))
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 }
