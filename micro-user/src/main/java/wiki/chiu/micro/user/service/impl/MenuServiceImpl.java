@@ -90,17 +90,16 @@ public class MenuServiceImpl implements MenuService {
       menuRepository.save(menuEntity);
     }
 
-    enqueueAllRoleEviction(true, false);
+    enqueueAllRoleEviction();
   }
 
-  private void enqueueAllRoleEviction(boolean menus, boolean authorities) {
+  private void enqueueAllRoleEviction() {
     var roles = roleRepository.findAll();
     cacheEvictions.enqueue(
         List.of(),
         roles.stream().map(wiki.chiu.micro.user.entity.RoleEntity::getId).toList(),
         roles.stream().map(wiki.chiu.micro.user.entity.RoleEntity::getCode).toList(),
-        menus,
-        authorities,
+        true,
         false);
   }
 
@@ -128,7 +127,7 @@ public class MenuServiceImpl implements MenuService {
       throw new BaseException(MENU_INVALID_OPERATE);
     }
     roleMenuAuthorityWrapper.deleteMenu(id);
-    enqueueAllRoleEviction(true, true);
+    enqueueAllRoleEviction();
   }
 
   private void findTargetChildrenMenuId(Long menuId, List<MenuEntity> menuEntities) {

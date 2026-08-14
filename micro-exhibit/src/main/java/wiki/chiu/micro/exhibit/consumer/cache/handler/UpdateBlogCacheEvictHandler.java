@@ -15,7 +15,6 @@ import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.exhibit.consumer.cache.CacheKeyGenerator;
-import wiki.chiu.micro.exhibit.support.ExhibitCacheKeys;
 import wiki.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
 import wiki.chiu.micro.exhibit.wrapper.BlogWrapper;
 
@@ -47,12 +46,11 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
     BlogEntityRpcVo blogEntity = blogEntity(message.blogSnapshot());
     Long id = blogEntity.id();
     Integer status = blogEntity.status();
-    Long userId = blogEntity.userId();
 
     // 保守处理，前面的全删
     long countAfter = message.newerOrSameCount();
     evictCaches(id, countAfter);
-    clearKeys(id, status, userId);
+    clearReadToken(id, status);
   }
 
   private void evictCaches(Long id, long countAfter) {
@@ -79,13 +77,9 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
     cacheEvictHandler.evictCache(keys);
   }
 
-  private void clearKeys(Long id, Integer status, Long userId) {
-    var clearKeys = new HashSet<String>();
+  private void clearReadToken(Long id, Integer status) {
     if (NORMAL.getCode().equals(status)) {
-      clearKeys.add(READ_TOKEN + id);
+      redissonClient.getKeys().delete(READ_TOKEN + id);
     }
-    // 暂存区
-    clearKeys.add(ExhibitCacheKeys.createBlogEditRedisKey(userId, id));
-    redissonClient.getKeys().delete(clearKeys.toArray(new String[0]));
   }
 }

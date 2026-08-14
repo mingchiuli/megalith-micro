@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
             .toList();
 
     userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
-    cacheEvictions.enqueue(List.of(userEntity.getId()), List.of(), List.of(), false, false, false);
+    cacheEvictions.enqueue(List.of(userEntity.getId()), List.of(), List.of(), false, false);
   }
 
   @Override
@@ -114,7 +114,7 @@ public class UserServiceImpl implements UserService {
   @Transactional
   public void deleteUsers(List<Long> ids) {
     userRoleWrapper.deleteUsers(ids);
-    cacheEvictions.enqueue(ids, List.of(), List.of(), false, false, false);
+    cacheEvictions.enqueue(ids, List.of(), List.of(), false, false);
   }
 
   private UserEntity getUserEntity(UserEntityReq userEntityReq) {

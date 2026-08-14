@@ -40,8 +40,6 @@ public class Const {
 
   public static final String READ_TOKEN = "read_token:";
 
-  public static final String TEMP_EDIT_BLOG = "temp_edit_blog:";
-
   public static final String HOT_BLOGS = "hot_blogs";
 
   public static final String HOT_BLOG = "hot_blog";

@@ -20,7 +20,6 @@ public class AuthCacheEvictionOutbox {
       List<Long> roleIds,
       List<String> roleCodes,
       boolean evictMenus,
-      boolean evictAuthorities,
       boolean evictRoutes) {
     Object aggregateId =
         !userIds.isEmpty()
@@ -32,6 +31,6 @@ public class AuthCacheEvictionOutbox {
         aggregateId,
         eventId ->
             new AuthCacheEvictMessage(
-                eventId, userIds, roleIds, roleCodes, evictMenus, evictAuthorities, evictRoutes));
+                eventId, userIds, roleIds, roleCodes, evictMenus, evictRoutes));
   }
 }

@@ -15,7 +15,6 @@ import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
 import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.exhibit.consumer.cache.CacheKeyGenerator;
-import wiki.chiu.micro.exhibit.support.ExhibitCacheKeys;
 import wiki.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
 import wiki.chiu.micro.exhibit.wrapper.BlogWrapper;
 
@@ -50,12 +49,11 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
   public void redisProcess(BlogChangedMessage message) {
     BlogEntityRpcVo blogEntity = blogEntity(message.blogSnapshot());
     Long id = blogEntity.id();
-    Long userId = blogEntity.userId();
 
     long count = message.totalCount();
 
     evictCaches(id, count);
-    clearKeys(id, userId);
+    clearKeys(id);
     setDetailBloom(id);
     rebuildPageBloom(count);
     deleteHotRead(id);
@@ -77,13 +75,11 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
     redissonClient.getBitSet(BLOOM_FILTER_BLOG).set(id, false);
   }
 
-  private void clearKeys(Long id, Long userId) {
+  private void clearKeys(Long id) {
     HashSet<String> clearKeys = new HashSet<>();
     clearKeys.add(READ_TOKEN + id);
     // 删除该年份的页面bloom，listPage的bloom，getCountByYear的bloom，后面逻辑重建
     clearKeys.add(BLOOM_FILTER_PAGE);
-    // 暂存区
-    clearKeys.add(ExhibitCacheKeys.createBlogEditRedisKey(userId, id));
     redissonClient.getKeys().delete(clearKeys.toArray(new String[0]));
   }
 

@@ -1,7 +1,6 @@
 package wiki.chiu.micro.auth.rpc;
 
 import java.util.List;
-import java.util.Set;
 import org.springframework.stereotype.Component;
 import wiki.chiu.micro.auth.service.port.UserDirectory;
 import wiki.chiu.micro.common.rpc.RemoteResult;
@@ -78,11 +77,6 @@ public class UserHttpServiceWrapper implements UserDirectory {
   public UserEntityRpcVo findByUsernameOrEmailOrPhone(String username) {
     return RemoteResult.requireSuccess(
         () -> userHttpService.findByUsernameOrEmailOrPhone(username));
-  }
-
-  public Set<String> getAuthoritiesByRoleCode(String rawRole) {
-    return RemoteResult.requireSuccess(
-        () -> authorityHttpService.getAuthoritiesByRoleCode(rawRole));
   }
 
   public List<MenuRpcVo> getCurrentUserNav(String rawRole) {

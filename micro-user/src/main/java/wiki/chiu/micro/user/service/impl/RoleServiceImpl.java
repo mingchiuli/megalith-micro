@@ -110,7 +110,7 @@ public class RoleServiceImpl implements RoleService {
             .toList());
     List<String> affectedCodes =
         Stream.of(previousCode, roleEntity.getCode()).filter(Objects::nonNull).distinct().toList();
-    cacheEvictions.enqueue(List.of(), List.of(savedRole.getId()), affectedCodes, true, true, false);
+    cacheEvictions.enqueue(List.of(), List.of(savedRole.getId()), affectedCodes, true, false);
   }
 
   @Override
@@ -120,7 +120,7 @@ public class RoleServiceImpl implements RoleService {
         roleRepository.findAllById(ids).stream().map(RoleEntity::getCode).distinct().toList();
     userRoleMenuWrapper.deleteRole(ids);
 
-    cacheEvictions.enqueue(List.of(), ids, roles, true, true, false);
+    cacheEvictions.enqueue(List.of(), ids, roles, true, false);
   }
 
   @Override
