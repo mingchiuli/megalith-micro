@@ -3,7 +3,6 @@ package wiki.chiu.micro.user.repository;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.user.entity.RoleMenuEntity;
 
 /**
@@ -21,12 +20,9 @@ public interface RoleMenuRepository extends JpaRepository<RoleMenuEntity, Long> 
 
   List<RoleMenuEntity> findByRoleIdIn(List<Long> ids);
 
-  @Transactional
   void deleteByRoleId(Long roleId);
 
-  @Transactional
   void deleteByMenuId(Long menuId);
 
-  @Transactional
   void deleteAllByRoleIdIn(List<Long> ids);
 }

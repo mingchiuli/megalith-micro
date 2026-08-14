@@ -32,8 +32,8 @@ public class UserHttpServiceWrapper implements UserDirectory {
     this.authorityHttpService = authorityHttpService;
   }
 
-  public void changeUserStatusByUsername(String username, Integer status) {
-    RemoteResult.requireSuccess(() -> userHttpService.changeUserStatusByUsername(username, status));
+  public void lockAfterPasswordFailures(Long userId) {
+    RemoteResult.requireSuccess(() -> userHttpService.lockAfterPasswordFailures(userId));
   }
 
   public List<RoleEntityRpcVo> findByRoleCodeInAndStatus(List<String> roles, Integer status) {

@@ -10,13 +10,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import wiki.chiu.micro.user.repository.UserRepository;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.wrapper.UserIdentityWrapper;
 
 @ExtendWith(MockitoExtension.class)
 class UserIdentityServiceImplTest {
 
   @Mock private UserRepository users;
-  @Mock private AuthCacheEvictionOutbox cacheEvictions;
+  @Mock private UserIdentityWrapper identityWrapper;
   @InjectMocks private UserIdentityServiceImpl service;
 
   @Test

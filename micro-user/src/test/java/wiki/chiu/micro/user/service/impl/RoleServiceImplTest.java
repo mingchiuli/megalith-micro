@@ -18,8 +18,7 @@ import wiki.chiu.micro.user.repository.RoleDataPermissionRepository;
 import wiki.chiu.micro.user.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.repository.UserRoleRepository;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
-import wiki.chiu.micro.user.wrapper.UserRoleMenuWrapper;
+import wiki.chiu.micro.user.wrapper.RoleWrapper;
 
 @ExtendWith(MockitoExtension.class)
 class RoleServiceImplTest {
@@ -28,8 +27,7 @@ class RoleServiceImplTest {
   @Mock private RoleMenuRepository roleMenus;
   @Mock private UserRoleRepository userRoles;
   @Mock private RoleDataPermissionRepository dataPermissions;
-  @Mock private AuthCacheEvictionOutbox cacheEvictions;
-  @Mock private UserRoleMenuWrapper userRoleMenus;
+  @Mock private RoleWrapper roleWrapper;
   @InjectMocks private RoleServiceImpl service;
 
   @Test

@@ -14,12 +14,13 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import wiki.chiu.micro.outbox.config.OutboxProperties;
+import wiki.chiu.micro.scheduling.RedisTaskLock;
+import wiki.chiu.micro.scheduling.TaskLockProperties;
 
 class OutboxPublisherTest {
 
@@ -35,12 +36,13 @@ class OutboxPublisherTest {
     properties.setExchange("blog.exchange");
     properties.setPublisherConcurrency(1);
     properties.setConfirmTimeoutMillis(100);
-    RLock lock = mock(RLock.class);
-    when(redisson.getLock("megalith:default:outbox:publisher:BLOG")).thenReturn(lock);
+    org.redisson.api.RLock lock = mock(org.redisson.api.RLock.class);
+    when(redisson.getLock("megalith:default:task:outbox:publisher:BLOG")).thenReturn(lock);
     when(lock.tryLock()).thenReturn(true);
     when(lock.isHeldByCurrentThread()).thenReturn(true);
+    RedisTaskLock taskLock = new RedisTaskLock(redisson, new TaskLockProperties());
     publisher =
-        new OutboxPublisher(store, rabbitTemplate, redisson, properties, new SimpleMeterRegistry());
+        new OutboxPublisher(store, rabbitTemplate, taskLock, properties, new SimpleMeterRegistry());
   }
 
   @AfterEach

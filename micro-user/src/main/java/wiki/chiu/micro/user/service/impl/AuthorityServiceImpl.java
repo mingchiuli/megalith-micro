@@ -4,7 +4,6 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.lang.StatusEnum;
@@ -17,10 +16,8 @@ import wiki.chiu.micro.user.entity.AuthorityEntity;
 import wiki.chiu.micro.user.entity.MenuAuthorityEntity;
 import wiki.chiu.micro.user.repository.AuthorityRepository;
 import wiki.chiu.micro.user.repository.MenuAuthorityRepository;
-import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.req.AuthorityEntityReq;
 import wiki.chiu.micro.user.service.AuthorityService;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.vo.AuthorityVo;
 import wiki.chiu.micro.user.wrapper.MenuAuthorityWrapper;
 
@@ -31,21 +28,13 @@ public class AuthorityServiceImpl implements AuthorityService {
 
   private final AuthorityRepository authorityRepository;
 
-  private final RoleRepository roleRepository;
-
-  private final AuthCacheEvictionOutbox cacheEvictions;
-
   private final MenuAuthorityWrapper menuAuthorityWrapper;
 
   public AuthorityServiceImpl(
       AuthorityRepository authorityRepository,
-      RoleRepository roleRepository,
-      AuthCacheEvictionOutbox cacheEvictions,
       MenuAuthorityRepository menuAuthorityRepository,
       MenuAuthorityWrapper menuAuthorityWrapper) {
     this.authorityRepository = authorityRepository;
-    this.roleRepository = roleRepository;
-    this.cacheEvictions = cacheEvictions;
     this.menuAuthorityRepository = menuAuthorityRepository;
     this.menuAuthorityWrapper = menuAuthorityWrapper;
   }
@@ -73,21 +62,17 @@ public class AuthorityServiceImpl implements AuthorityService {
   }
 
   @Override
-  @Transactional
   public void saveOrUpdate(AuthorityEntityReq req) {
     AuthorityEntity dealAuthority =
         req.id().flatMap(authorityRepository::findById).orElseGet(AuthorityEntity::new);
 
     AuthorityEntity authorityEntity = AuthorityEntityConvertor.convert(req, dealAuthority);
     menuAuthorityWrapper.authorityEntitySave(authorityEntity);
-    executeDelAllRoleAuthTask();
   }
 
   @Override
-  @Transactional
   public void deleteAuthorities(List<Long> ids) {
     menuAuthorityWrapper.deleteAuthorities(ids);
-    executeDelAllRoleAuthTask();
   }
 
   @Override
@@ -99,15 +84,5 @@ public class AuthorityServiceImpl implements AuthorityService {
             SQLUtils.entityToInsertSQL(authorityEntities, Const.AUTHORITY_TABLE),
             SQLUtils.entityToInsertSQL(menuAuthorityEntities, Const.MENU_AUTHORITY_TABLE))
         .getBytes();
-  }
-
-  private void executeDelAllRoleAuthTask() {
-    var roles = roleRepository.findAll();
-    cacheEvictions.enqueue(
-        List.of(),
-        roles.stream().map(wiki.chiu.micro.user.entity.RoleEntity::getId).toList(),
-        List.of(),
-        false,
-        true);
   }
 }

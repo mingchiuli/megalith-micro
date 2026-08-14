@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
@@ -16,34 +15,27 @@ import wiki.chiu.micro.user.convertor.UserEntityRpcVoConvertor;
 import wiki.chiu.micro.user.entity.UserEntity;
 import wiki.chiu.micro.user.repository.UserRepository;
 import wiki.chiu.micro.user.service.UserIdentityService;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.wrapper.UserIdentityWrapper;
 
 @Service
 public class UserIdentityServiceImpl implements UserIdentityService {
 
   private final UserRepository users;
-  private final AuthCacheEvictionOutbox cacheEvictions;
+  private final UserIdentityWrapper identityWrapper;
 
-  public UserIdentityServiceImpl(UserRepository users, AuthCacheEvictionOutbox cacheEvictions) {
+  public UserIdentityServiceImpl(UserRepository users, UserIdentityWrapper identityWrapper) {
     this.users = users;
-    this.cacheEvictions = cacheEvictions;
+    this.identityWrapper = identityWrapper;
   }
 
   @Override
   public void updateLoginTime(String username, LocalDateTime time) {
-    users.updateLoginTime(username, time);
+    identityWrapper.updateLoginTime(username, time);
   }
 
   @Override
-  @Transactional
-  public void changeStatus(String username, Integer status) {
-    Long userId =
-        users
-            .findByUsername(username)
-            .map(UserEntity::getId)
-            .orElseThrow(() -> new MissException(USER_MISS.getMsg()));
-    users.updateUserStatusByUsername(username, status);
-    cacheEvictions.enqueue(List.of(userId), List.of(), List.of(), false, false);
+  public void lockAfterPasswordFailures(Long userId) {
+    identityWrapper.lockAfterPasswordFailures(userId);
   }
 
   @Override

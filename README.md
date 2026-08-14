@@ -92,7 +92,8 @@ graph TD
 | `common-web`, `common-auth-web` | Functional WebMVC support, validation, error handling, and authenticated principals |
 | `common-observability` | OpenTelemetry propagation, logging, metrics, and runtime hints |
 | `common-messaging` | Confirmed delayed consumer retries and dead-letter topology |
-| `common-outbox` | Shared transactional outbox publisher with Redis leader locks and metrics |
+| `common-scheduling` | Shared environment-scoped Redis task lock for multi-replica schedulers |
+| `common-outbox` | Shared transactional outbox publisher with confirmed delivery and metrics |
 | `common-export` | Shared export utilities |
 | `micro-auth` | Authentication service - JWT, Email/SMS authentication |
 | `micro-blog` | Blog content management with sensitive content handling |
@@ -119,6 +120,7 @@ gateway, and hydrates the application in the browser.
 - **Multi-Level Caching**: L1 (Caffeine) + L2 (Redis) with automatic eviction via RabbitMQ or Redis pub/sub
 - **Bounded Auth Reads**: Protected requests read route/user snapshots and all role snapshots in at most two Redis `MGET` operations; L2 entries expire after 30 minutes
 - **Transactional Messaging**: Blog and authorization changes commit their event in the same MariaDB transaction, then publish with RabbitMQ confirms and automatic retry
+- **Bounded Password Locking**: Three password failures in a rolling 15-minute window lock the account for 15 minutes; a distributed scheduler restores eligible accounts within 30 seconds
 - **Distributed Tracing**: Full OpenTelemetry integration across all services
 - **GraalVM Native Support**: All Java microservices support native compilation
 - **Real-time Collaboration**: CRDT-based sync via WebSocket (YRS)
@@ -143,6 +145,17 @@ The normal cache-hit request path is therefore `gateway -> auth -> business`; `m
 on the cache-miss path. Public anonymous requests need only the route snapshot. The refresh endpoint forwards only the refresh cookie and validates
 it inside auth; ordinary business services never receive browser access or refresh credentials.
 
+Application services only orchestrate reads, validation, and calls into wrappers. Database writes,
+association replacement, and the corresponding outbox insert are owned by a short wrapper-level
+transaction. ArchUnit rules reject Spring transaction dependencies from every service package.
+
+Password failures are counted atomically in a Redis sorted set keyed by user ID. The third failure
+inside the rolling 15-minute window conditionally sets `m_user.status` and
+`password_locked_until` in one database update. Every `micro-user` replica runs the 30-second
+unlock scheduler, while the shared Redis task lock permits only one replica to drain pessimistically
+locked batches. Administrator status changes clear the temporary deadline and therefore override
+the automatic unlock policy.
+
 ## Reliable Messaging
 
 `micro-blog` and `micro-user` share `m_outbox_event`; the `producer` discriminator lets each
@@ -158,6 +171,11 @@ revision. Consumers retry after 5s, 30s, and 5m, then retain the message in a 14
 status is exposed at `GET /actuator/outbox`; `POST /actuator/outbox/{eventId}` accepts an `action`
 of `pause`, `resume`, `retry`, or `discard`. Successful and discarded rows are physically deleted;
 there is no outbox history table.
+
+The blog recycle bin is another consumer of the durable delete event instead of a best-effort
+post-commit Redis write. Its Lua operation uses the outbox `eventId` as an idempotency key, appends
+the deleted snapshot, and applies the seven-day TTL atomically. Failed deliveries use the shared
+retry and DLQ topology, so a committed delete cannot silently disappear from the recycle bin.
 
 The gateway caps concurrent auth calls at 512, applies a 1.2-second deadline to the complete auth
 response, and opens a short circuit after repeated infrastructure failures. Both limits are
@@ -246,7 +264,8 @@ deployed platform still requires RabbitMQ for blog/user domain events and Elasti
 ### Breaking Upgrade
 
 This release intentionally has no compatibility bridge and assumes the shared `m_outbox_event`
-table and `m_blog.event_revision` column have already been provisioned. Deploy `micro-auth`,
+table, `m_blog.event_revision`, and `m_user.password_locked_until` columns have already been
+provisioned, including the `idx_user_password_unlock(status,password_locked_until,id)` index. Deploy `micro-auth`,
 `micro-user`, `micro-search`, `micro-exhibit`, `micro-blog`, and `micro-gateway-rs` together, and
 start the consumers before reopening traffic so the durable main, retry, and DLQ topology is
 present.
@@ -265,6 +284,7 @@ megalith-micro/
 ├── common-auth-web/          # Authenticated web support
 ├── common-observability/     # OpenTelemetry integration
 ├── common-messaging/         # Consumer retry/DLQ support
+├── common-scheduling/        # Distributed scheduler task locks
 ├── common-outbox/            # Transactional outbox support
 ├── common-export/            # Export utilities
 ├── cache/                    # Multi-level cache starter

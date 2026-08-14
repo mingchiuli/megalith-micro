@@ -9,6 +9,20 @@ import org.junit.jupiter.api.Test;
 class LayeringArchitectureTest {
 
   @Test
+  void applicationServicesDoNotOwnTransactions() {
+    noClasses()
+        .that()
+        .resideInAPackage("..service..")
+        .should()
+        .dependOnClassesThat()
+        .resideInAPackage("org.springframework.transaction..")
+        .check(
+            new ClassFileImporter()
+                .withImportOption(new ImportOption.DoNotIncludeTests())
+                .importPackages("wiki.chiu.micro.exhibit"));
+  }
+
+  @Test
   void applicationServicesDependOnPortsInsteadOfRpcAdapters() {
     var classes =
         new ClassFileImporter()

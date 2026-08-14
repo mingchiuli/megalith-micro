@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.common.lang.StatusEnum;
@@ -51,7 +50,6 @@ public class RegistrationServiceImpl implements RegistrationService {
   }
 
   @Override
-  @Transactional
   public void register(UserEntityRegisterReq request) {
     validatePolicy(request);
     UserEntityRegisterReq normalized =

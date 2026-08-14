@@ -14,6 +14,7 @@ import wiki.chiu.micro.blog.convertor.BlogEntityRpcVoConvertor;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.repository.BlogRepository;
 import wiki.chiu.micro.blog.service.BlogQueryService;
+import wiki.chiu.micro.blog.wrapper.BlogWrapper;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -22,9 +23,11 @@ import wiki.chiu.micro.common.page.PageAdapter;
 public class BlogQueryServiceImpl implements BlogQueryService {
 
   private final BlogRepository blogs;
+  private final BlogWrapper blogWrapper;
 
-  public BlogQueryServiceImpl(BlogRepository blogs) {
+  public BlogQueryServiceImpl(BlogRepository blogs, BlogWrapper blogWrapper) {
     this.blogs = blogs;
+    this.blogWrapper = blogWrapper;
   }
 
   @Override
@@ -46,7 +49,7 @@ public class BlogQueryServiceImpl implements BlogQueryService {
 
   @Override
   public void incrementViews(Long blogId) {
-    blogs.setReadCount(blogId);
+    blogWrapper.incrementViews(blogId);
   }
 
   @Override

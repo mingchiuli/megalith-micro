@@ -82,7 +82,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     }
     Long userId = user.getUserId();
 
-    redissonClient.getKeys().delete(PASSWORD_KEY + username);
+    redissonClient.getKeys().delete(PASSWORD_KEY + userId);
 
     userHttpServiceWrapper.updateLoginTime(username);
     String accessToken = jwtTokenService.issueAccessToken(userId);

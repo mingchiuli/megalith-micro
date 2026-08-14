@@ -10,11 +10,11 @@ import org.springframework.web.service.annotation.PostExchange;
 class UserHttpServiceContractTest {
 
   @Test
-  void statusMutationUsesPatch() throws NoSuchMethodException {
-    var method =
-        UserHttpService.class.getMethod("changeUserStatusByUsername", String.class, Integer.class);
+  void passwordLockUsesPatch() throws NoSuchMethodException {
+    var method = UserHttpService.class.getMethod("lockAfterPasswordFailures", Long.class);
 
-    assertThat(method.getAnnotation(PatchExchange.class).value()).isEqualTo("/user/status");
+    assertThat(method.getAnnotation(PatchExchange.class).value())
+        .isEqualTo("/user/{userId}/password-lock");
     assertThat(method.getAnnotation(GetExchange.class)).isNull();
   }
 

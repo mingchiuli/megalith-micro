@@ -14,6 +14,7 @@ public class UserEntityConvertor {
     userEntity.setPhone(userEntityReq.phone());
     userEntity.setPassword(userEntityReq.password());
     userEntity.setStatus(userEntityReq.status());
+    userEntity.setPasswordLockedUntil(null);
 
     userEntity.setCreated(dealUser.getCreated());
     userEntity.setLastLogin(dealUser.getLastLogin());

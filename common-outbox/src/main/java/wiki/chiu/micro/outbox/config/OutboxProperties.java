@@ -8,7 +8,6 @@ public class OutboxProperties {
 
   private OutboxProducer producer;
   private String exchange;
-  private String environment = "default";
   private int batchSize = 50;
   private int publisherConcurrency = 16;
   private long confirmTimeoutMillis = 5000;
@@ -27,14 +26,6 @@ public class OutboxProperties {
 
   public void setExchange(String exchange) {
     this.exchange = exchange;
-  }
-
-  public String getEnvironment() {
-    return environment;
-  }
-
-  public void setEnvironment(String environment) {
-    this.environment = environment;
   }
 
   public int getBatchSize() {

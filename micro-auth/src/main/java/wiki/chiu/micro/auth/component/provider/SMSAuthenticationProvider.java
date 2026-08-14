@@ -33,7 +33,7 @@ public final class SMSAuthenticationProvider extends ProviderBase {
 
   private final RedissonClient redissonClient;
 
-  @Value("${megalith.blog.email-try-count}")
+  @Value("${megalith.auth.code.max-attempts:3}")
   private int maxTryNum;
 
   private final ResourceLoader resourceLoader;

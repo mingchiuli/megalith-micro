@@ -44,7 +44,6 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
         .registerPattern("ValidationMessages.properties")
         .registerPattern("script/hot-blogs.lua")
         .registerPattern("script/blog-delete-list.lua")
-        .registerPattern("script/recover-delete.lua")
-        .registerPattern("script/rpush-expire.lua");
+        .registerPattern("script/blog-recycle.lua");
   }
 }

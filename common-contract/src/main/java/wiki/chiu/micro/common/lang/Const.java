@@ -18,7 +18,7 @@ public class Const {
 
   public static final String PHONE_KEY = "phone_validation:";
 
-  public static final String PASSWORD_KEY = "password_validation:";
+  public static final String PASSWORD_KEY = "password_failures:";
 
   public static final String TOKEN_PREFIX = "Bearer ";
 
@@ -100,6 +100,10 @@ public class Const {
   public static final String ES_QUEUE = "blog.change.queue.es";
 
   public static final String CACHE_QUEUE = "blog.change.queue.cache";
+
+  public static final String RECYCLE_QUEUE = "blog.change.queue.recycle";
+
+  public static final String RECYCLE_EVENT_PREFIX = "blog:recycle:event:";
 
   public static final String BLOG_CHANGE_FANOUT_EXCHANGE = "blog.change.fanout.exchange";
 
