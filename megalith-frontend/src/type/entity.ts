@@ -97,6 +97,14 @@ export interface RoleSys {
   created: string
   updated: string
   status: Status
+  dataPermissions: DataPermission[]
+}
+
+export enum DataPermission {
+  BLOG_VIEW_ALL = 'BLOG_VIEW_ALL',
+  BLOG_EDIT_ALL = 'BLOG_EDIT_ALL',
+  BLOG_DELETE_ALL = 'BLOG_DELETE_ALL',
+  BLOG_EXPORT_ALL = 'BLOG_EXPORT_ALL'
 }
 
 export interface BlogEdit {
@@ -275,10 +283,6 @@ export enum SensitiveType {
   TITLE = 1,
   DESCRIPTION = 2,
   CONTENT = 3
-}
-
-export enum Role {
-  ADMIN = 'admin'
 }
 
 export enum ButtonAuth {
