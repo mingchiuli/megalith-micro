@@ -28,5 +28,4 @@ megalith:
     queue-prefix: cache.blog.evict.queue.
     fanout-exchange: cache.blog.evict.fanout.exchange
   blog:
-    highest-role: admin
     blog-page-size: 5

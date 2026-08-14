@@ -40,9 +40,9 @@ class BlogServiceImplTest {
             mock(BlogSensitiveContentRepository.class),
             mock(BlogSearchGateway.class),
             mock(JsonMapper.class),
-            new BlogAccessPolicy("admin"));
+            new BlogAccessPolicy());
 
-    var edit = service.findEdit(null, 42L, List.of("user"));
+    var edit = service.findEdit(null, 42L, List.of());
 
     assertEquals(42L, edit.userId());
     assertTrue(edit.permissions().collaborate());
@@ -63,11 +63,11 @@ class BlogServiceImplTest {
     BlogCollaborationServiceImpl service =
         new BlogCollaborationServiceImpl(
             blogRepository,
-            new BlogAccessPolicy("admin"),
+            new BlogAccessPolicy(),
             redisTemplate,
             mock(CollaborationTicketGateway.class));
 
-    String token = service.issueReadToken(7L, 42L, List.of("user"));
+    String token = service.issueReadToken(7L, 42L, List.of());
 
     assertFalse(token.contains("?token="));
     assertFalse(token.contains("/blog/"));

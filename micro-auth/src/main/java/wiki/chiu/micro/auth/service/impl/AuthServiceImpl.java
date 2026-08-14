@@ -176,7 +176,11 @@ public class AuthServiceImpl implements AuthService {
     if (!StatusEnum.NORMAL.getCode().equals(context.status())) {
       throw new MissException(ExceptionMessage.NO_AUTH);
     }
-    AuthPrincipal principal = new AuthPrincipal(context.userId(), context.roles());
+    AuthPrincipal principal =
+        new AuthPrincipal(
+            context.userId(),
+            context.roles(),
+            Optional.ofNullable(context.dataPermissions()).orElse(List.of()));
     if (isWebSocketRoute(routeMapping)) {
       return principal;
     }

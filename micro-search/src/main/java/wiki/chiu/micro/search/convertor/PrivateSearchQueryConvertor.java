@@ -34,10 +34,8 @@ public class PrivateSearchQueryConvertor {
       LocalDateTime createStart,
       LocalDateTime createEnd,
       Long userId,
-      List<String> roles,
-      String highestRole) {
-    var boolQuery =
-        getSysBoolQuery(keywords, status, createStart, createEnd, userId, roles, highestRole);
+      boolean allData) {
+    var boolQuery = getSysBoolQuery(keywords, status, createStart, createEnd, userId, allData);
 
     return NativeQuery.builder().withQuery(query -> query.bool(boolQuery)).build();
   }
@@ -48,15 +46,14 @@ public class PrivateSearchQueryConvertor {
       LocalDateTime createStart,
       LocalDateTime createEnd,
       Long userId,
-      List<String> roles,
-      String highestRole,
+      boolean allData,
       Integer currentPage,
       Integer size) {
 
     boolean search = StringUtils.hasText(keywords);
 
     BoolQuery boolQuery =
-        getSysBoolQuery(keywords, status, createStart, createEnd, userId, roles, highestRole);
+        getSysBoolQuery(keywords, status, createStart, createEnd, userId, allData);
 
     var nativeQueryBuilder = NativeQuery.builder();
     if (search) {
@@ -156,8 +153,7 @@ public class PrivateSearchQueryConvertor {
       LocalDateTime createStart,
       LocalDateTime createEnd,
       Long userId,
-      List<String> roles,
-      String highestRole) {
+      boolean allData) {
     BoolQuery.Builder boolQryBuilder = new BoolQuery.Builder();
 
     boolQryBuilder
@@ -221,28 +217,9 @@ public class PrivateSearchQueryConvertor {
           .minimumShouldMatch("1");
     }
 
-    if (!roles.contains(highestRole)) {
-      var boolQry =
-          BoolQuery.of(
-              bool ->
-                  bool.should(
-                          should ->
-                              should.term(term -> term.field(USERID.getField()).value(userId)))
-                      .should(
-                          should ->
-                              should.terms(
-                                  term ->
-                                      term.field(STATUS.getField())
-                                          .terms(
-                                              termsValue ->
-                                                  termsValue.value(
-                                                      List.of(
-                                                          FieldValue.of(
-                                                              BlogStatusEnum.NORMAL.getCode()),
-                                                          FieldValue.of(
-                                                              BlogStatusEnum.DRAFT.getCode()))))))
-                      .minimumShouldMatch("1"));
-      boolQryBuilder.filter(filter -> filter.bool(boolQry));
+    if (!allData) {
+      boolQryBuilder.filter(
+          filter -> filter.term(term -> term.field(USERID.getField()).value(userId)));
     }
 
     return boolQryBuilder.build();

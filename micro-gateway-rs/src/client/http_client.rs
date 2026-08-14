@@ -78,6 +78,8 @@ impl AuthRouteReq {
 pub struct AuthPrincipal {
     user_id: u64,
     roles: Vec<String>,
+    #[serde(default)]
+    data_permissions: Vec<String>,
 }
 
 #[derive(Clone, Deserialize, Debug)]
@@ -192,10 +194,11 @@ mod tests {
         let principal = AuthPrincipal {
             user_id: 42,
             roles: vec!["user".to_string()],
+            data_permissions: vec!["BLOG_VIEW_ALL".to_string()],
         };
         assert_eq!(
             serde_json::to_string(&principal).unwrap(),
-            r#"{"userId":42,"roles":["user"]}"#
+            r#"{"userId":42,"roles":["user"],"dataPermissions":["BLOG_VIEW_ALL"]}"#
         );
     }
 }

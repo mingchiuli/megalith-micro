@@ -204,7 +204,10 @@ mod tests {
         assert!(!result.contains_key(header::AUTHORIZATION));
         let encoded = result.get(PRINCIPAL_HEADER).unwrap().to_str().unwrap();
         let json = String::from_utf8(URL_SAFE_NO_PAD.decode(encoded).unwrap()).unwrap();
-        assert_eq!(json, r#"{"userId":42,"roles":["user"]}"#);
+        assert_eq!(
+            json,
+            r#"{"userId":42,"roles":["user"],"dataPermissions":[]}"#
+        );
     }
 
     #[test]

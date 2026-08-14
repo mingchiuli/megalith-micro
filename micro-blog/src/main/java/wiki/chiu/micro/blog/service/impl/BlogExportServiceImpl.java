@@ -20,6 +20,7 @@ import wiki.chiu.micro.blog.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.service.BlogExportService;
 import wiki.chiu.micro.blog.service.port.BlogSearchGateway;
+import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.utils.SQLUtils;
 import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
@@ -45,9 +46,13 @@ public class BlogExportServiceImpl implements BlogExportService {
 
   @Override
   public void write(
-      BlogDownloadReq request, Long userId, List<String> roles, OutputStream outputStream) {
+      BlogDownloadReq request,
+      Long userId,
+      List<DataPermissionEnum> dataPermissions,
+      OutputStream outputStream) {
+    boolean allData = dataPermissions.contains(DataPermissionEnum.BLOG_EXPORT_ALL);
     BlogSysCountSearchReq countRequest =
-        BlogSysCountSearchReqConvertor.convert(request, userId, roles);
+        BlogSysCountSearchReqConvertor.convert(request, userId, allData);
     long total = search.countBlogs(countRequest);
     long pageCount = (total + PAGE_SIZE - 1) / PAGE_SIZE;
 
@@ -55,7 +60,7 @@ public class BlogExportServiceImpl implements BlogExportService {
       OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
       for (int page = 1; page <= pageCount; page++) {
         BlogSysSearchReq searchRequest =
-            BlogSysSearchReqConvertor.convert(request, page, PAGE_SIZE, userId, roles);
+            BlogSysSearchReqConvertor.convert(request, page, PAGE_SIZE, userId, allData);
         writePage(search.searchBlogs(searchRequest), writer);
       }
       writer.flush();

@@ -38,7 +38,6 @@ server:
 
 megalith:
   blog:
-    highest-role: admin
     oss:
       base-url: https://${megalith.blog.aliyun.oss.bucket-name}.${megalith.blog.oss.endpoint}
       endpoint: oss-cn-hangzhou.aliyuncs.com

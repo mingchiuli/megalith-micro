@@ -146,7 +146,7 @@ class BlogSearchControllerTest {
   void internalCountRejectsInvalidDateRange() throws Exception {
     String body =
         "{\"status\":0,\"createStart\":\"2026-08-02T12:00:00\","
-            + "\"createEnd\":\"2026-08-02T11:00:00\",\"userId\":1,\"roles\":[]}";
+            + "\"createEnd\":\"2026-08-02T11:00:00\",\"userId\":1,\"allData\":false}";
 
     mockMvc
         .perform(post("/inner/blog/count").contentType(MediaType.APPLICATION_JSON).content(body))

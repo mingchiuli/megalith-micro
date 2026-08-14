@@ -20,5 +20,4 @@ server:
 
 megalith:
   blog:
-    highest-role: admin
     blog-page-size: 5

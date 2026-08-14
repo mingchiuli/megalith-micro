@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
+import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
@@ -59,7 +60,8 @@ import wiki.chiu.micro.user.vo.UserEntityVo;
   UserAuthContextRpcVo.class,
   RoleEntityRpcVo.class,
   MenuRpcVo.class,
-  AuthorityRpcVo.class
+  AuthorityRpcVo.class,
+  DataPermissionEnum.class
 })
 public class UserRoutes {
 

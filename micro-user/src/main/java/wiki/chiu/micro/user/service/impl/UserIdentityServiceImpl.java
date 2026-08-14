@@ -48,7 +48,10 @@ public class UserIdentityServiceImpl implements UserIdentityService {
     UserEntity user =
         users.findById(userId).orElseThrow(() -> new MissException(USER_MISS.getMsg()));
     return new UserAuthContextRpcVo(
-        user.getId(), user.getStatus(), userRoles.findRoleCodesByUserId(userId));
+        user.getId(),
+        user.getStatus(),
+        userRoles.findRoleCodesByUserId(userId),
+        userRoles.findDataPermissionsByUserId(userId));
   }
 
   @Override

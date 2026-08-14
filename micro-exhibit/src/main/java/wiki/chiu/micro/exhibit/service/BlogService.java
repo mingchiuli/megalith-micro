@@ -1,6 +1,7 @@
 package wiki.chiu.micro.exhibit.service;
 
 import java.util.List;
+import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.vo.BlogDescriptionVo;
 import wiki.chiu.micro.exhibit.vo.BlogExhibitVo;
@@ -21,5 +22,5 @@ public interface BlogService {
 
   List<BlogHotReadVo> getScoreBlogs();
 
-  BlogExhibitVo getBlogDetail(List<String> roles, Long id, Long userId);
+  BlogExhibitVo getBlogDetail(List<DataPermissionEnum> dataPermissions, Long id, Long userId);
 }

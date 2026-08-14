@@ -44,6 +44,8 @@ public class RoleServiceImpl implements RoleService {
 
   private final UserRoleRepository userRoleRepository;
 
+  private final RoleDataPermissionRepository roleDataPermissionRepository;
+
   private final ApplicationEventPublisher eventPublisher;
 
   private final UserRoleMenuWrapper userRoleMenuWrapper;
@@ -52,11 +54,13 @@ public class RoleServiceImpl implements RoleService {
       RoleRepository roleRepository,
       RoleMenuRepository roleMenuRepository,
       UserRoleRepository userRoleRepository,
+      RoleDataPermissionRepository roleDataPermissionRepository,
       ApplicationEventPublisher eventPublisher,
       UserRoleMenuWrapper userRoleMenuWrapper) {
     this.roleRepository = roleRepository;
     this.roleMenuRepository = roleMenuRepository;
     this.userRoleRepository = userRoleRepository;
+    this.roleDataPermissionRepository = roleDataPermissionRepository;
     this.eventPublisher = eventPublisher;
     this.userRoleMenuWrapper = userRoleMenuWrapper;
   }
@@ -66,7 +70,8 @@ public class RoleServiceImpl implements RoleService {
     RoleEntity roleEntity =
         roleRepository.findById(id).orElseThrow(() -> new MissException(ROLE_NOT_EXIST));
 
-    return RoleEntityVoConvertor.convert(roleEntity);
+    return RoleEntityVoConvertor.convert(
+        roleEntity, roleDataPermissionRepository.findByRoleId(roleEntity.getId()));
   }
 
   @Override
@@ -76,8 +81,14 @@ public class RoleServiceImpl implements RoleService {
 
     List<Long> ids = page.get().map(RoleEntity::getId).toList();
 
+    if (ids.isEmpty()) {
+      return RoleEntityVoConvertor.convert(page, List.of(), List.of());
+    }
+
     List<RoleMenuEntity> roleMenus = roleMenuRepository.findByRoleIdIn(ids);
-    return RoleEntityVoConvertor.convert(page, roleMenus);
+    List<RoleDataPermissionEntity> dataPermissions =
+        roleDataPermissionRepository.findByRoleIdIn(ids);
+    return RoleEntityVoConvertor.convert(page, roleMenus, dataPermissions);
   }
 
   @Override
@@ -87,7 +98,15 @@ public class RoleServiceImpl implements RoleService {
     RoleEntity dealRole = roleReq.id().flatMap(roleRepository::findById).orElseGet(RoleEntity::new);
     String previousCode = dealRole.getCode();
     RoleEntity roleEntity = RoleEntityConvertor.convert(roleReq, dealRole);
-    roleRepository.save(roleEntity);
+    RoleEntity savedRole = roleRepository.save(roleEntity);
+    roleDataPermissionRepository.deleteByRoleId(savedRole.getId());
+    roleDataPermissionRepository.flush();
+    roleDataPermissionRepository.saveAll(
+        roleReq.dataPermissions().stream()
+            .distinct()
+            .sorted()
+            .map(permission -> new RoleDataPermissionEntity(savedRole.getId(), permission))
+            .toList());
     List<String> affectedCodes =
         Stream.of(previousCode, roleEntity.getCode()).filter(Objects::nonNull).distinct().toList();
     executeDelRolesAuthTask(affectedCodes, AuthMenuOperateEnum.AUTH_AND_MENU.getType());
@@ -112,10 +131,12 @@ public class RoleServiceImpl implements RoleService {
   public byte[] download() {
     List<RoleEntity> roleEntities = roleRepository.findAll();
     List<UserRoleEntity> userRoleEntities = userRoleRepository.findAll();
+    List<RoleDataPermissionEntity> dataPermissions = roleDataPermissionRepository.findAll();
 
     return SQLUtils.compose(
             SQLUtils.entityToInsertSQL(roleEntities, Const.ROLE_TABLE),
-            SQLUtils.entityToInsertSQL(userRoleEntities, Const.USER_ROLE_TABLE))
+            SQLUtils.entityToInsertSQL(userRoleEntities, Const.USER_ROLE_TABLE),
+            SQLUtils.entityToInsertSQL(dataPermissions, Const.ROLE_DATA_PERMISSION_TABLE))
         .getBytes();
   }
 

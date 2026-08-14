@@ -119,7 +119,7 @@ gateway, and hydrates the application in the browser.
 - **Real-time Collaboration**: CRDT-based sync via WebSocket (YRS)
 - **Stateless Sync Replicas**: Collaboration sessions are relayed and compacted through shared Redis; load balancers do not need sticky sessions
 - **Single-Pass Gateway Authorization**: Auth validates the method/path and token, then returns the target service and resolved principal in one synchronous call
-- **Trusted Internal Principal**: The gateway replaces any client-supplied identity header and propagates a Base64URL JSON principal containing only `userId` and roles
+- **Trusted Internal Principal**: The gateway replaces any client-supplied identity header and propagates a Base64URL JSON principal containing `userId`, roles, and role-derived data permissions
 - **Pooled Streaming Proxy**: The Rust gateway reuses downstream HTTP connections and streams request/response bodies while preserving methods including DELETE and PATCH
 - **JWT Edge Authentication**: Access and WebSocket tokens are validated at the gateway/auth boundary instead of being re-evaluated by business handlers
 - **JPMS Cache Module**: The reusable cache starter exports only its public API packages
@@ -129,8 +129,8 @@ gateway, and hydrates the application in the browser.
 1. nginx sends `/api` HTTP requests and `/wsapi` WebSocket upgrades to `micro-gateway-rs`.
 2. The gateway validates the request origin when the request carries credentials or uses an unsafe method.
 3. The gateway calls `POST /inner/auth/route` once with the original HTTP method, path, client IP, and credential.
-4. `micro-auth` selects the most specific registered route. Anonymous whitelist requests require no user lookup; requests with a credential decode it and call `GET /inner/user/auth-context/{userId}` once to obtain the current status and active roles.
-5. Auth returns the target address and `AuthPrincipal(userId, roles)`. Route and role-to-authority data use the existing Caffeine + Redis cache; user status and user roles remain real-time so disable and revocation operations take effect immediately.
+4. `micro-auth` selects the most specific registered route. Anonymous whitelist requests require no user lookup; requests with a credential decode it and call `GET /inner/user/auth-context/{userId}` once to obtain the current status, active roles, and their merged data permissions.
+5. Auth returns the target address and `AuthPrincipal(userId, roles, dataPermissions)`. Route and role-to-authority data use the existing Caffeine + Redis cache; user status, user roles, and data permissions remain real-time so disable and revocation operations take effect immediately.
 6. The gateway removes client cookies, access authorization, hop-by-hop headers, and any forged `X-Megalith-Principal`, then injects the trusted principal as unpadded Base64URL JSON. Java services decode it locally and synchronous internal RPCs propagate the same header without another auth call.
 7. HTTP requests and responses are streamed through a shared Hyper connection pool. WebSocket upgrades use the same resolved route and principal and do not call auth again.
 

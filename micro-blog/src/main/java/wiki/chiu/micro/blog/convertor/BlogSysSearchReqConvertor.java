@@ -1,13 +1,11 @@
 package wiki.chiu.micro.blog.convertor;
 
-import java.util.List;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 
 public class BlogSysSearchReqConvertor {
-  public static BlogSysSearchReq convert(
-      BlogQueryReq blogQueryReq, Long userId, List<String> roles) {
+  public static BlogSysSearchReq convert(BlogQueryReq blogQueryReq, Long userId, boolean allData) {
     return BlogSysSearchReq.builder()
         .page(blogQueryReq.currentPage())
         .pageSize(blogQueryReq.size())
@@ -16,12 +14,12 @@ public class BlogSysSearchReqConvertor {
         .createStart(blogQueryReq.createStart())
         .createEnd(blogQueryReq.createEnd())
         .userId(userId)
-        .roles(roles)
+        .allData(allData)
         .build();
   }
 
   public static BlogSysSearchReq convert(
-      BlogDownloadReq downloadReq, Integer page, Integer pagSize, Long userId, List<String> roles) {
+      BlogDownloadReq downloadReq, Integer page, Integer pagSize, Long userId, boolean allData) {
     return BlogSysSearchReq.builder()
         .page(page)
         .pageSize(pagSize)
@@ -30,7 +28,7 @@ public class BlogSysSearchReqConvertor {
         .createStart(downloadReq.createStart())
         .createEnd(downloadReq.createEnd())
         .userId(userId)
-        .roles(roles)
+        .allData(allData)
         .build();
   }
 }

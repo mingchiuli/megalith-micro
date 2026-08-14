@@ -99,7 +99,7 @@ class BlogControllerTest {
 
   @Test
   void setBlogTokenReturnsToken() throws Exception {
-    when(collaborationService.issueReadToken(7L, 1L, List.of("ROLE_USER"))).thenReturn("xyz-token");
+    when(collaborationService.issueReadToken(7L, 1L, List.of())).thenReturn("xyz-token");
 
     mockMvc
         .perform(post("/sys/blog/lock/7").contentType(MediaType.APPLICATION_JSON).content("{}"))
@@ -151,7 +151,7 @@ class BlogControllerTest {
 
   @Test
   void uploadOssReturnsUrl() throws Exception {
-    when(assetService.upload(any(), anyLong())).thenReturn("https://oss/x.png");
+    when(assetService.upload(any(), any(), anyLong(), anyList())).thenReturn("https://oss/x.png");
     MockMultipartFile file =
         new MockMultipartFile("image", "x.png", "image/png", new byte[] {1, 2, 3});
 
@@ -163,7 +163,7 @@ class BlogControllerTest {
 
   @Test
   void deleteOssReturnsSuccess() throws Exception {
-    doNothing().when(assetService).delete("https://oss/x.png", 1L);
+    doNothing().when(assetService).delete("https://oss/x.png", null, 1L, List.of());
 
     mockMvc
         .perform(
