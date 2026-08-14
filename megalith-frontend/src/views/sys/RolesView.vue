@@ -2,7 +2,7 @@
 import { useHttp } from '@/http/http'
 import type { PageAdapter, RoleSys } from '@/type/entity'
 import type { ElTree, FormInstance, FormRules } from 'element-plus'
-import { Status, ButtonAuth } from '@/type/entity'
+import { Status, ButtonAuth, DataPermission } from '@/type/entity'
 import { downloadSQLData } from '@/utils/download'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissions'
 import { displayState } from '@/utils/position'
@@ -68,14 +68,24 @@ type Form = {
   code: string
   remark: string
   status: Status
+  dataPermissions: DataPermission[]
 }
 const form: Form = reactive({
   id: undefined,
   name: '',
   code: '',
   remark: '',
-  status: 0
+  status: 0,
+  dataPermissions: []
 })
+const dataPermissionOptions = computed(() => [
+  { value: DataPermission.BLOG_VIEW_ALL, label: t('admin.blogViewAll') },
+  { value: DataPermission.BLOG_EDIT_ALL, label: t('admin.blogEditAll') },
+  { value: DataPermission.BLOG_DELETE_ALL, label: t('admin.blogDeleteAll') },
+  { value: DataPermission.BLOG_EXPORT_ALL, label: t('admin.blogExportAll') }
+])
+const dataPermissionLabel = (permission: DataPermission) =>
+  dataPermissionOptions.value.find((item) => item.value === permission)?.label ?? permission
 type MenuForm = {
   menuId: number
   title: string
@@ -116,6 +126,7 @@ const clearForm = () => {
   form.code = ''
   form.remark = ''
   form.status = 0
+  form.dataPermissions = []
 }
 
 const submitForm = async (ref: FormInstance) => {
@@ -148,6 +159,7 @@ const menuHandleClose = () => {
 const handleEdit = async (row: RoleSys) => {
   const data = await GET<RoleSys>(API_ENDPOINTS.ROLE_ADMIN.GET_ROLE_INFO(row.id))
   Object.assign(form, data)
+  form.dataPermissions = data.dataPermissions ?? []
   dialogVisible.value = true
 }
 
@@ -298,6 +310,24 @@ useUniversalData('admin:roles', fetchRoles, applyRoles, { loading })
       </template>
     </el-table-column>
 
+    <el-table-column :label="t('admin.dataPermission')" min-width="240" align="center">
+      <template #default="scope">
+        <div class="permission-tags">
+          <el-tag
+            v-for="permission in scope.row.dataPermissions ?? []"
+            :key="permission"
+            size="small"
+            type="info"
+          >
+            {{ dataPermissionLabel(permission) }}
+          </el-tag>
+          <span v-if="(scope.row.dataPermissions ?? []).length === 0">{{
+            t('admin.ownDataOnly')
+          }}</span>
+        </div>
+      </template>
+    </el-table-column>
+
     <el-table-column :label="t('common.createdAt')" min-width="180" align="center">
       <template #default="scope">
         <div class="time-icon">
@@ -370,7 +400,7 @@ useUniversalData('admin:roles', fetchRoles, applyRoles, { loading })
     width="600px"
     :before-close="handleClose"
   >
-    <el-form :model="form" :rules="formRules" label-width="100px" ref="formRef">
+    <el-form :model="form" :rules="formRules" label-width="130px" ref="formRef">
       <el-form-item :label="t('admin.name')" prop="name">
         <el-input v-model="form.name"></el-input>
       </el-form-item>
@@ -391,6 +421,14 @@ useUniversalData('admin:roles', fetchRoles, applyRoles, { loading })
           <el-radio :value="Status.NORMAL">{{ t('common.enabled') }}</el-radio>
           <el-radio :value="Status.BLOCK">{{ t('common.disabled') }}</el-radio>
         </el-radio-group>
+      </el-form-item>
+
+      <el-form-item :label="t('admin.dataPermission')" prop="dataPermissions">
+        <el-checkbox-group v-model="form.dataPermissions" class="data-permission-options">
+          <el-checkbox v-for="item in dataPermissionOptions" :key="item.value" :value="item.value">
+            {{ item.label }}
+          </el-checkbox>
+        </el-checkbox-group>
       </el-form-item>
 
       <el-form-item label-width="400px">
@@ -442,5 +480,18 @@ useUniversalData('admin:roles', fetchRoles, applyRoles, { loading })
 
 .el-pagination {
   margin-top: 10px;
+}
+
+.permission-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.data-permission-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
 }
 </style>

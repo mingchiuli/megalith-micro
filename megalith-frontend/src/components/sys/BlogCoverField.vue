@@ -8,7 +8,7 @@ import type {
 } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { ButtonAuth, Colors } from '@/type/entity'
-import { API_ENDPOINTS } from '@/config/apiConfig'
+import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { useHttp } from '@/http/http'
 import { checkButtonAuth, getButtonTitle } from '@/utils/permissions'
 import { useI18n } from 'vue-i18n'
@@ -18,6 +18,7 @@ const props = defineProps<{
   generatedImageUrl: string
   generatedImageBase64: string
   imageGenerating: boolean
+  blogId?: number
 }>()
 
 const emit = defineEmits<{ regenerate: [] }>()
@@ -43,19 +44,20 @@ watch(
 const uploadFile = async (file: UploadRawFile) => {
   const formData = new FormData()
   formData.append('image', file)
-  link.value = await UPLOAD(
-    API_ENDPOINTS.BLOG_ADMIN.OSS_UPLOAD,
-    formData,
-    uploadPercentage,
-    showPercentage
-  )
+  const uploadUrl = props.blogId
+    ? buildQueryUrl(API_ENDPOINTS.BLOG_ADMIN.OSS_UPLOAD, { blogId: props.blogId })
+    : API_ENDPOINTS.BLOG_ADMIN.OSS_UPLOAD
+  link.value = await UPLOAD(uploadUrl, formData, uploadPercentage, showPercentage)
 }
 
 const upload = (image: UploadRequestOptions) => uploadFile(image.file)
 
 const remove = async () => {
   if (!link.value) return
-  await DELETE<null>(API_ENDPOINTS.BLOG_ADMIN.OSS_DELETE, { url: link.value })
+  await DELETE<null>(API_ENDPOINTS.BLOG_ADMIN.OSS_DELETE, {
+    url: link.value,
+    blogId: props.blogId || undefined
+  })
   link.value = ''
 }
 

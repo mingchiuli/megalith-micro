@@ -277,6 +277,7 @@ onMounted(() => void loadAiModels())
         :generated-image-url="generatedImageUrl"
         :generated-image-base64="generatedImageBase64"
         :image-generating="imageGenerating"
+        :blog-id="form.id || undefined"
         @regenerate="regenerateImage"
       />
 
