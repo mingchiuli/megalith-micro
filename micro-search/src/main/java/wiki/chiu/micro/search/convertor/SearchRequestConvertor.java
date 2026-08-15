@@ -1,15 +1,15 @@
-package wiki.chiu.micro.search.converter;
+package wiki.chiu.micro.search.convertor;
 
 import org.springframework.web.servlet.function.ServerRequest;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 
-public final class SearchRequestConverter {
+public final class SearchRequestConvertor {
 
   private static final ValidatedRequest v = new ValidatedRequest();
 
-  private SearchRequestConverter() {}
+  private SearchRequestConvertor() {}
 
   public static BlogSysSearchReq toBlogSysSearchReq(ServerRequest request) throws Exception {
     BlogSysSearchReq req = request.body(BlogSysSearchReq.class);

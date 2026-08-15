@@ -9,7 +9,7 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.user.converter.UserRequestConverter;
+import wiki.chiu.micro.user.convertor.UserRequestConvertor;
 import wiki.chiu.micro.user.req.MenuEntityReq;
 import wiki.chiu.micro.user.service.MenuAuthorityService;
 import wiki.chiu.micro.user.service.MenuService;
@@ -46,7 +46,7 @@ public class MenuHttpHandler {
   }
 
   public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-    MenuEntityReq menu = UserRequestConverter.toMenuEntityReq(request);
+    MenuEntityReq menu = UserRequestConvertor.toMenuEntityReq(request);
     return ok(Result.success(() -> menuService.saveOrUpdate(menu)));
   }
 

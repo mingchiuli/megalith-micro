@@ -9,7 +9,7 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.user.converter.UserRequestConverter;
+import wiki.chiu.micro.user.convertor.UserRequestConvertor;
 import wiki.chiu.micro.user.req.AuthorityEntityReq;
 import wiki.chiu.micro.user.service.AuthorityService;
 
@@ -37,7 +37,7 @@ public class AuthorityHttpHandler {
   }
 
   public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-    AuthorityEntityReq authority = UserRequestConverter.toAuthorityEntityReq(request);
+    AuthorityEntityReq authority = UserRequestConvertor.toAuthorityEntityReq(request);
     return ok(Result.success(() -> authorityService.saveOrUpdate(authority)));
   }
 

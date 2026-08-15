@@ -7,8 +7,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import wiki.chiu.micro.common.exception.MissException;
@@ -16,7 +19,13 @@ import wiki.chiu.micro.common.exception.MissException;
 class RegistrationTokenStoreTest {
 
   private final StringRedisTemplate redis = mock(StringRedisTemplate.class);
-  private final RegistrationTokenStore tokens = new RegistrationTokenStore(redis);
+  private final RegistrationTokenStore tokens =
+      new RegistrationTokenStore(redis, new DefaultResourceLoader());
+
+  @BeforeEach
+  void loadScript() throws IOException {
+    tokens.loadScript();
+  }
 
   @Test
   @SuppressWarnings("unchecked")

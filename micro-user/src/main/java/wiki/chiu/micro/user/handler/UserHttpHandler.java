@@ -15,7 +15,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.user.converter.UserRequestConverter;
+import wiki.chiu.micro.user.convertor.UserRequestConvertor;
 import wiki.chiu.micro.user.req.RegisterImageDeleteReq;
 import wiki.chiu.micro.user.req.UserEntityRegisterReq;
 import wiki.chiu.micro.user.req.UserEntityReq;
@@ -61,7 +61,7 @@ public class UserHttpHandler {
   }
 
   public ServerResponse saveRegisterPage(ServerRequest request) throws Exception {
-    UserEntityRegisterReq registration = UserRequestConverter.toUserEntityRegisterReq(request);
+    UserEntityRegisterReq registration = UserRequestConvertor.toUserEntityRegisterReq(request);
     return ok(Result.success(() -> registrationService.register(registration)));
   }
 
@@ -84,7 +84,7 @@ public class UserHttpHandler {
   }
 
   public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-    UserEntityReq user = UserRequestConverter.toUserEntityReq(request);
+    UserEntityReq user = UserRequestConvertor.toUserEntityReq(request);
     return ok(Result.success(() -> userService.saveOrUpdate(user)));
   }
 

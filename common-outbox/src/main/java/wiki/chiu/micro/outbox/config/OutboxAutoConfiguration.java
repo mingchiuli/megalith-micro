@@ -5,9 +5,9 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.jdbc.core.JdbcTemplate;
 import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.outbox.OutboxEndpoint;
+import wiki.chiu.micro.outbox.OutboxEventRepository;
 import wiki.chiu.micro.outbox.OutboxPublisher;
 import wiki.chiu.micro.outbox.OutboxService;
 import wiki.chiu.micro.outbox.OutboxStore;
@@ -21,8 +21,8 @@ import wiki.chiu.micro.scheduling.RedisTaskLock;
 public class OutboxAutoConfiguration {
 
   @Bean
-  OutboxStore outboxStore(JdbcTemplate jdbcTemplate) {
-    return new OutboxStore(jdbcTemplate);
+  OutboxStore outboxStore(OutboxEventRepository repository) {
+    return new OutboxStore(repository);
   }
 
   @Bean

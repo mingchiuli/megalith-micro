@@ -9,7 +9,7 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.user.converter.UserRequestConverter;
+import wiki.chiu.micro.user.convertor.UserRequestConvertor;
 import wiki.chiu.micro.user.req.RoleEntityReq;
 import wiki.chiu.micro.user.service.RoleMenuService;
 import wiki.chiu.micro.user.service.RoleService;
@@ -49,7 +49,7 @@ public class RoleHttpHandler {
   }
 
   public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-    RoleEntityReq role = UserRequestConverter.toRoleEntityReq(request);
+    RoleEntityReq role = UserRequestConvertor.toRoleEntityReq(request);
     return ok(Result.success(() -> roleService.saveOrUpdate(role)));
   }
 
