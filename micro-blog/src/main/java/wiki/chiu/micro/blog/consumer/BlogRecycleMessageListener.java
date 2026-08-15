@@ -55,7 +55,7 @@ public class BlogRecycleMessageListener {
       queues = Const.RECYCLE_QUEUE,
       concurrency = "2",
       messageConverter = "jsonMessageConverter",
-      executor = "commonExecutor")
+      executor = "mqExecutor")
   public void handle(BlogChangedMessage event, Channel channel, Message message) {
     try {
       if (BlogOperateEnum.REMOVE.equals(BlogOperateEnum.of(event.operation()))) {
