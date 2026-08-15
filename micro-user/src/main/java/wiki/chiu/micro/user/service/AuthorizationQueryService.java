@@ -69,15 +69,7 @@ public class AuthorizationQueryService {
         .orElseGet(() -> UserAccessRpcVo.missing(userId));
   }
 
-  public RoleAuthorizationRpcVo findRoleAuthorization(Long roleId) {
-    return findRoleAuthorizationsInternal(List.of(roleId)).getFirst();
-  }
-
   public List<RoleAuthorizationRpcVo> findRoleAuthorizations(List<Long> roleIds) {
-    return findRoleAuthorizationsInternal(roleIds);
-  }
-
-  private List<RoleAuthorizationRpcVo> findRoleAuthorizationsInternal(List<Long> roleIds) {
     List<Long> distinctRoleIds = roleIds.stream().distinct().toList();
     if (distinctRoleIds.isEmpty()) {
       return List.of();
@@ -86,6 +78,23 @@ public class AuthorizationQueryService {
     Map<Long, RoleEntity> rolesById =
         roles.findAllById(distinctRoleIds).stream()
             .collect(Collectors.toMap(RoleEntity::getId, Function.identity()));
+    return findRoleAuthorizationsInternal(distinctRoleIds, rolesById);
+  }
+
+  public List<RoleAuthorizationRpcVo> findAllRoleAuthorizations() {
+    List<RoleEntity> allRoles = roles.findAll();
+    List<Long> distinctRoleIds = allRoles.stream().map(RoleEntity::getId).distinct().toList();
+    if (distinctRoleIds.isEmpty()) {
+      return List.of();
+    }
+
+    Map<Long, RoleEntity> rolesById =
+        allRoles.stream().collect(Collectors.toMap(RoleEntity::getId, Function.identity()));
+    return findRoleAuthorizationsInternal(distinctRoleIds, rolesById);
+  }
+
+  private List<RoleAuthorizationRpcVo> findRoleAuthorizationsInternal(
+      List<Long> distinctRoleIds, Map<Long, RoleEntity> rolesById) {
     List<Long> existingRoleIds = distinctRoleIds.stream().filter(rolesById::containsKey).toList();
     if (existingRoleIds.isEmpty()) {
       return distinctRoleIds.stream().map(RoleAuthorizationRpcVo::missing).toList();

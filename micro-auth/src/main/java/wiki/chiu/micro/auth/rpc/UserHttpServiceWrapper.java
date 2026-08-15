@@ -60,9 +60,8 @@ public class UserHttpServiceWrapper implements UserDirectory {
     return RemoteResult.requireSuccess(() -> userHttpService.findUserAccess(userId));
   }
 
-  @Override
-  public RoleAuthorizationRpcVo findRoleAuthorization(Long roleId) {
-    return RemoteResult.requireSuccess(() -> userHttpService.findRoleAuthorization(roleId));
+  public List<RoleAuthorizationRpcVo> findAllRoleAuthorizations() {
+    return RemoteResult.requireSuccess(userHttpService::findAllRoleAuthorizations);
   }
 
   public List<RoleAuthorizationRpcVo> findRoleAuthorizations(List<Long> roleIds) {

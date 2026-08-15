@@ -30,9 +30,9 @@ class UserHttpServiceContractTest {
     var method = UserHttpService.class.getMethod("findUserAccess", Long.class);
 
     assertThat(method.getAnnotation(GetExchange.class).value()).isEqualTo("/user/access/{userId}");
-    var roleMethod = UserHttpService.class.getMethod("findRoleAuthorization", Long.class);
-    assertThat(roleMethod.getAnnotation(GetExchange.class).value())
-        .isEqualTo("/role/authorization/{roleId}");
+    var allRoleMethod = UserHttpService.class.getMethod("findAllRoleAuthorizations");
+    assertThat(allRoleMethod.getAnnotation(GetExchange.class).value())
+        .isEqualTo("/role/authorizations");
     var batchRoleMethod =
         UserHttpService.class.getMethod("findRoleAuthorizations", java.util.List.class);
     assertThat(batchRoleMethod.getAnnotation(PostExchange.class).value())

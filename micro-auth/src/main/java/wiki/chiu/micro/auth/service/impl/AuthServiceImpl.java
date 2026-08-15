@@ -9,6 +9,8 @@ import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.redisson.api.RScript.Mode;
 import org.redisson.api.RScript.ReturnType;
 import org.redisson.api.RedissonClient;
@@ -25,7 +27,6 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
-import wiki.chiu.micro.auth.cache.AuthSnapshotCache;
 import wiki.chiu.micro.auth.convertor.MenuDisplayDtoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuRootVoConvertor;
 import wiki.chiu.micro.auth.convertor.MenuWithChildDtoConvertor;
@@ -57,8 +58,6 @@ public class AuthServiceImpl implements AuthService {
 
   private final JwtTokenService jwtTokenService;
 
-  private final AuthSnapshotCache snapshotCache;
-
   private String script;
 
   public AuthServiceImpl(
@@ -66,14 +65,12 @@ public class AuthServiceImpl implements AuthService {
       RedissonClient redissonClient,
       @Qualifier("commonExecutor") TaskExecutor taskExecutor,
       ResourceLoader resourceLoader,
-      JwtTokenService jwtTokenService,
-      AuthSnapshotCache snapshotCache) {
+      JwtTokenService jwtTokenService) {
     this.authWrapper = authWrapper;
     this.redissonClient = redissonClient;
     this.taskExecutor = taskExecutor;
     this.resourceLoader = resourceLoader;
     this.jwtTokenService = jwtTokenService;
-    this.snapshotCache = snapshotCache;
   }
 
   @PostConstruct
@@ -97,18 +94,31 @@ public class AuthServiceImpl implements AuthService {
   @Override
   public AuthorityRouteRpcVo authorizeRoute(AuthorityRouteReq req, String token) {
     Long userId = resolveUserId(req.routeMapping(), token);
-    AuthSnapshotCache.InitialSnapshots snapshots = snapshotCache.loadInitial(userId);
+    List<AuthorityRpcVo> routes = authWrapper.getAllSystemAuthorities();
+    UserAccessRpcVo access = userId == null ? null : authWrapper.getUserAccess(userId);
     AuthorityRpcVo route =
-        matchingAuthority(snapshots.routes(), req.routeMapping(), req.method())
+        matchingAuthority(routes, req.routeMapping(), req.method())
             .orElseThrow(() -> new MissException(ExceptionMessage.NO_AUTH));
-    AuthPrincipal principal =
-        authorizePrincipal(req.routeMapping(), route, userId, snapshots.userAccess());
+    AuthPrincipal principal = authorizePrincipal(req.routeMapping(), route, userId, access);
     recordIp(req.ipAddr());
     return AuthorityRouteRpcVo.builder()
         .serviceHost(route.serviceHost())
         .servicePort(route.servicePort())
         .principal(principal)
         .build();
+  }
+
+  private List<RoleAuthorizationRpcVo> roleAuthorizations(List<Long> roleIds) {
+    List<Long> distinctRoleIds = roleIds.stream().distinct().toList();
+    if (distinctRoleIds.isEmpty()) {
+      return List.of();
+    }
+    Map<Long, RoleAuthorizationRpcVo> byId =
+        authWrapper.getAllRoleAuthorizations().stream()
+            .collect(Collectors.toMap(RoleAuthorizationRpcVo::roleId, Function.identity()));
+    return distinctRoleIds.stream()
+        .map(roleId -> byId.getOrDefault(roleId, RoleAuthorizationRpcVo.missing(roleId)))
+        .toList();
   }
 
   private void recordIp(String ipAddr) {
@@ -175,7 +185,7 @@ public class AuthServiceImpl implements AuthService {
       throw new MissException(ExceptionMessage.NO_AUTH);
     }
     List<RoleAuthorizationRpcVo> authorizations =
-        snapshotCache.loadRoleAuthorizations(access.roleIds()).stream()
+        roleAuthorizations(access.roleIds()).stream()
             .filter(RoleAuthorizationRpcVo::exists)
             .filter(item -> StatusEnum.NORMAL.getCode().equals(item.status()))
             .toList();

@@ -135,8 +135,8 @@ public class RoleServiceImpl implements RoleService {
   }
 
   @Override
-  public RoleAuthorizationRpcVo findRoleAuthorization(Long roleId) {
-    return authorizationQueries.findRoleAuthorization(roleId);
+  public List<RoleAuthorizationRpcVo> findAllRoleAuthorizations() {
+    return authorizationQueries.findAllRoleAuthorizations();
   }
 
   @Override

@@ -126,12 +126,40 @@ class AuthorizationQueryServiceTest {
     when(roleMenus.findByRoleIdIn(List.of(9L))).thenReturn(List.of());
     when(dataPermissions.findByRoleIdIn(List.of(9L))).thenReturn(List.of());
 
-    var result = queries.findRoleAuthorization(9L);
+    var result = queries.findRoleAuthorizations(List.of(9L)).getFirst();
 
     assertTrue(result.exists());
     assertEquals(Set.of(), result.authorityCodes());
     verify(menuAuthorities, never()).findByMenuIdIn(anyList());
     verify(authorities, never()).findByIdInAndStatus(anyList(), eq(StatusEnum.NORMAL.getCode()));
+  }
+
+  @Test
+  void allRoleAuthorizationsComposesSingleTableResults() {
+    when(roles.findAll()).thenReturn(List.of(role(7L, "editor"), role(8L, "reader")));
+    when(roleMenus.findByRoleIdIn(List.of(7L, 8L))).thenReturn(List.of(roleMenu(7L, 100L)));
+    when(menuAuthorities.findByMenuIdIn(List.of(100L)))
+        .thenReturn(List.of(menuAuthority(100L, 1L)));
+    when(authorities.findByIdInAndStatus(List.of(1L), StatusEnum.NORMAL.getCode()))
+        .thenReturn(List.of(authority(1L, "blog_read")));
+    when(dataPermissions.findByRoleIdIn(List.of(7L, 8L))).thenReturn(List.of());
+
+    var result = queries.findAllRoleAuthorizations();
+
+    assertEquals(List.of(7L, 8L), result.stream().map(item -> item.roleId()).toList());
+    assertTrue(result.getFirst().exists());
+    assertEquals(Set.of("blog_read"), result.getFirst().authorityCodes());
+    assertTrue(result.getLast().exists());
+    assertEquals(Set.of(), result.getLast().authorityCodes());
+  }
+
+  @Test
+  void emptyRoleTableReturnsNoAuthorizations() {
+    when(roles.findAll()).thenReturn(List.of());
+
+    assertEquals(List.of(), queries.findAllRoleAuthorizations());
+
+    verify(roleMenus, never()).findByRoleIdIn(anyList());
   }
 
   @Test

@@ -27,7 +27,7 @@ public interface RoleService {
 
   List<RoleEntityRpcVo> findByRoleCodeInAndStatus(List<String> roles, Integer status);
 
-  RoleAuthorizationRpcVo findRoleAuthorization(Long roleId);
+  List<RoleAuthorizationRpcVo> findAllRoleAuthorizations();
 
   List<RoleAuthorizationRpcVo> findRoleAuthorizations(List<Long> roleIds);
 }

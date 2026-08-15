@@ -77,9 +77,8 @@ public class UserInternalHttpHandler implements UserHttpService {
     return ok(findUserAccess(userId));
   }
 
-  public ServerResponse findRoleAuthorization(ServerRequest request) {
-    Long roleId = v.positive(pathVariable(request, "roleId", Long::valueOf), "roleId");
-    return ok(findRoleAuthorization(roleId));
+  public ServerResponse findAllRoleAuthorizations(ServerRequest request) {
+    return ok(findAllRoleAuthorizations());
   }
 
   public ServerResponse findRoleAuthorizations(ServerRequest request) throws Exception {
@@ -127,8 +126,8 @@ public class UserInternalHttpHandler implements UserHttpService {
   }
 
   @Override
-  public Result<RoleAuthorizationRpcVo> findRoleAuthorization(Long roleId) {
-    return Result.success(() -> roleService.findRoleAuthorization(roleId));
+  public Result<List<RoleAuthorizationRpcVo>> findAllRoleAuthorizations() {
+    return Result.success(roleService::findAllRoleAuthorizations);
   }
 
   @Override
