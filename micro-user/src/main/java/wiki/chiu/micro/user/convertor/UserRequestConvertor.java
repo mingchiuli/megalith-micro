@@ -1,4 +1,4 @@
-package wiki.chiu.micro.user.converter;
+package wiki.chiu.micro.user.convertor;
 
 import static wiki.chiu.micro.common.lang.Const.*;
 
@@ -6,11 +6,11 @@ import org.springframework.web.servlet.function.ServerRequest;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.req.*;
 
-public final class UserRequestConverter {
+public final class UserRequestConvertor {
 
   private static final ValidatedRequest v = new ValidatedRequest();
 
-  private UserRequestConverter() {}
+  private UserRequestConvertor() {}
 
   public static RoleEntityReq toRoleEntityReq(ServerRequest request) throws Exception {
     RoleEntityReq req = request.body(RoleEntityReq.class);

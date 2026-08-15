@@ -12,7 +12,7 @@ import wiki.chiu.micro.search.api.SearchHttpService;
 import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
-import wiki.chiu.micro.search.converter.SearchRequestConverter;
+import wiki.chiu.micro.search.convertor.SearchRequestConvertor;
 import wiki.chiu.micro.search.service.BlogSearchService;
 
 @Component
@@ -27,11 +27,11 @@ public class SearchInternalHttpHandler implements SearchHttpService {
   }
 
   public ServerResponse searchBlogs(ServerRequest request) throws Exception {
-    return ok(searchBlogs(SearchRequestConverter.toBlogSysSearchReq(request)));
+    return ok(searchBlogs(SearchRequestConvertor.toBlogSysSearchReq(request)));
   }
 
   public ServerResponse countBlogs(ServerRequest request) throws Exception {
-    return ok(countBlogs(SearchRequestConverter.toBlogSysCountSearchReq(request)));
+    return ok(countBlogs(SearchRequestConvertor.toBlogSysCountSearchReq(request)));
   }
 
   public ServerResponse addReadCount(ServerRequest request) {
