@@ -138,9 +138,10 @@ gateway, and hydrates the application in the browser.
 3. The gateway calls `POST /inner/auth/route` once with the original HTTP method, path, client IP, and credential.
 4. `micro-auth` decodes a supplied credential, then reads the route snapshot and user-access snapshot in one Redis `MGET`. After route resolution it reads every referenced role-authorization snapshot in one second `MGET`.
 5. Cache misses compose user, role, menu, authority, and data-permission repository reads in a
-   dedicated query service in `micro-user`; results are written to Caffeine and Redis with a
-   30-minute L2 TTL. User and permission mutations emit targeted cache-eviction events, so normal
-   revocation is event-driven while TTL bounds stale data if messaging is unavailable.
+   dedicated query service in `micro-user`, without a service-level read transaction spanning the
+   queries. Results are written to Caffeine and Redis with a 30-minute L2 TTL. User and permission
+   mutations emit targeted cache-eviction events, so normal revocation is event-driven while TTL
+   bounds stale data if messaging is unavailable.
 6. The gateway removes client cookies, access authorization, hop-by-hop headers, and any forged `X-Megalith-Principal`, then injects the trusted principal as unpadded Base64URL JSON. Java services decode it locally and synchronous internal RPCs propagate the same header without another auth call.
 7. HTTP requests and responses are streamed through a shared Hyper connection pool. WebSocket upgrades use the same resolved route and principal and do not call auth again.
 
@@ -149,10 +150,11 @@ on the cache-miss path. Public anonymous requests need only the route snapshot. 
 it inside auth; ordinary business services never receive browser access or refresh credentials.
 
 Application services own every database, RPC, and cache read, perform validation, and prepare the
-complete write input. Wrappers perform only database writes, association replacement, and the
-corresponding outbox insert in one short transaction; they never query repositories or delegate
-reads back to services. ArchUnit rules enforce both the service transaction boundary and the
-wrapper read boundary.
+complete write input. They do not open a transaction across those reads and never own a write
+transaction. After all inputs are prepared, wrappers perform only database writes, association
+replacement, and the corresponding outbox insert in one short transaction; they never query
+repositories or delegate reads back to services. ArchUnit rejects Spring transaction dependencies
+from service packages and repository read calls from wrappers.
 
 Password failures are counted atomically in a Redis sorted set keyed by user ID. The third failure
 inside the rolling 15-minute window conditionally sets `m_user.status` and
