@@ -129,7 +129,7 @@ class AuthServiceRouteAuthorizationTest {
 
   @Test
   void disabledUserIsRejectedBeforeAuthorityLookup() {
-    var routes = List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH));
+    List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH));
     when(authWrapper.getUserAccess(42L))
         .thenReturn(new UserAccessRpcVo(42L, true, StatusEnum.HIDE.getCode(), List.of(7L)));
 
