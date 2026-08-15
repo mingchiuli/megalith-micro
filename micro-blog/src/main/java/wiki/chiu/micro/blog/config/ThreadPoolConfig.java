@@ -2,6 +2,7 @@ package wiki.chiu.micro.blog.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.ContextPropagatingTaskDecorator;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -14,6 +15,17 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @Configuration(proxyBeanMethods = false)
 @EnableAsync
 public class ThreadPoolConfig {
+
+  @Bean("mqExecutor")
+  TaskExecutor simpleAsyncTaskExecutor(
+      ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
+    SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+    executor.setVirtualThreads(true);
+    executor.setTaskTerminationTimeout(60000);
+    executor.setCancelRemainingTasksOnClose(true);
+    executor.setTaskDecorator(contextPropagatingTaskDecorator);
+    return executor;
+  }
 
   @Bean("commonExecutor")
   TaskExecutor taskExecutor(ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
