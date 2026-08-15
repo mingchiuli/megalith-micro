@@ -4,7 +4,6 @@ import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.config.Config;
-import org.redisson.config.SingleServerConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -34,9 +33,9 @@ public class TaskLockAutoConfiguration {
     Config config = new Config();
     config.setCodec(new StringCodec());
     config.setLockWatchdogTimeout(30_000);
-    SingleServerConfig server = config.useSingleServer().setAddress("redis://" + host + ":" + port);
+    config.useSingleServer().setAddress("redis://" + host + ":" + port);
     if (StringUtils.hasText(password)) {
-      server.setPassword(password);
+      config.setPassword(password);
     }
     return Redisson.create(config);
   }
