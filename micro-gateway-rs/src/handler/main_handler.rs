@@ -1,4 +1,4 @@
-use crate::config::{self, ConfigKey};
+use crate::config;
 
 use super::{http_handler, ws_handler};
 use axum::extract::{FromRequestParts, State};
@@ -9,10 +9,19 @@ use axum::{
     http::{Request, Uri},
     response::IntoResponse,
 };
+use opentelemetry::metrics::Counter;
 use opentelemetry::{KeyValue, global};
+use std::sync::LazyLock;
 
 use crate::client::{AuthRouteResp, GatewayState};
 use crate::exception::HandlerError;
+
+static HTTP_REQUESTS: LazyLock<Counter<u64>> = LazyLock::new(|| {
+    global::meter(config::server_name())
+        .u64_counter("http_requests_total")
+        .with_description("Total number of HTTP requests")
+        .build()
+});
 
 pub async fn handle(
     State(state): State<GatewayState>,
@@ -20,13 +29,7 @@ pub async fn handle(
     mut req: Request<Body>,
 ) -> impl IntoResponse {
     // Record metrics
-    let meter = global::meter(config::get_static_value(ConfigKey::ServerName));
-
-    let counter = meter
-        .u64_counter("http_requests_total")
-        .with_description("Total number of HTTP requests")
-        .build();
-    counter.add(1, &[KeyValue::new("path", uri.path().to_string())]);
+    HTTP_REQUESTS.add(1, &[KeyValue::new("path", uri.path().to_string())]);
 
     let Some(route) = req.extensions().get::<AuthRouteResp>().cloned() else {
         return HandlerError::new(
