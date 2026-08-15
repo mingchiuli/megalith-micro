@@ -6,9 +6,9 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import wiki.chiu.micro.blog.entity.BlogEntity;
 
 /**
@@ -17,20 +17,43 @@ import wiki.chiu.micro.blog.entity.BlogEntity;
  */
 public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonNull Long> {
 
-  @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
-  @Query("SELECT blog FROM BlogEntity blog WHERE blog.id = ?1")
-  java.util.Optional<BlogEntity> findByIdForUpdate(Long id);
-
-  @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
-  @Query("SELECT blog FROM BlogEntity blog WHERE blog.id IN ?1")
-  List<BlogEntity> findAllByIdForUpdate(List<Long> ids);
-
   Long countByCreatedGreaterThanEqual(LocalDateTime created);
 
   @Query(
       value = "UPDATE BlogEntity blog SET blog.readCount = blog.readCount + 1 WHERE blog.id = ?1")
   @Modifying
   void setReadCount(Long id);
+
+  @Modifying
+  @Query(
+      """
+      UPDATE BlogEntity blog
+      SET blog.title = :title,
+          blog.description = :description,
+          blog.content = :content,
+          blog.status = :status,
+          blog.link = :link,
+          blog.updated = :updated,
+          blog.eventRevision = :nextRevision
+      WHERE blog.id = :id
+        AND blog.eventRevision = :expectedRevision
+      """)
+  int updateByIdAndEventRevision(
+      @Param("id") Long id,
+      @Param("expectedRevision") Long expectedRevision,
+      @Param("nextRevision") Long nextRevision,
+      @Param("title") String title,
+      @Param("description") String description,
+      @Param("content") String content,
+      @Param("status") Integer status,
+      @Param("link") String link,
+      @Param("updated") LocalDateTime updated);
+
+  @Modifying
+  @Query(
+      "DELETE FROM BlogEntity blog WHERE blog.id = :id AND blog.eventRevision = :expectedRevision")
+  int deleteByIdAndEventRevision(
+      @Param("id") Long id, @Param("expectedRevision") Long expectedRevision);
 
   @Query(value = "SELECT blog.userId from BlogEntity blog where blog.id = ?1")
   Long findUserIdById(Long id);

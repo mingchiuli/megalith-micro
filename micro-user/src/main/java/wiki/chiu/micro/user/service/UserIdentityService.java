@@ -10,6 +10,8 @@ public interface UserIdentityService {
 
   void lockAfterPasswordFailures(Long userId);
 
+  int unlockExpiredBatch();
+
   UserEntityRpcVo findById(Long userId);
 
   UserAccessRpcVo findUserAccess(Long userId);

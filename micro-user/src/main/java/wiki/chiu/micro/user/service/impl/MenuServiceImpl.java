@@ -4,6 +4,7 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.BUTTON_MUST_NOT_PAREN
 import static wiki.chiu.micro.common.lang.ExceptionMessage.CATALOGUE_CHILD_MUST_NOT_BUTTON;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.CATALOGUE_PARENT_MUST_PARENT;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_CHILDREN_MUST_BE_BUTTON;
+import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_INVALID_OPERATE;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_NOT_EXIST;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 
@@ -21,9 +22,11 @@ import wiki.chiu.micro.user.convertor.MenuDisplayVoConvertor;
 import wiki.chiu.micro.user.convertor.MenuEntityConvertor;
 import wiki.chiu.micro.user.convertor.MenuEntityVoConvertor;
 import wiki.chiu.micro.user.entity.MenuEntity;
+import wiki.chiu.micro.user.entity.RoleEntity;
 import wiki.chiu.micro.user.entity.RoleMenuEntity;
 import wiki.chiu.micro.user.repository.MenuRepository;
 import wiki.chiu.micro.user.repository.RoleMenuRepository;
+import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.req.MenuEntityReq;
 import wiki.chiu.micro.user.service.MenuService;
 import wiki.chiu.micro.user.vo.MenuDisplayVo;
@@ -44,14 +47,17 @@ public class MenuServiceImpl implements MenuService {
   private final RoleMenuRepository roleMenuRepository;
 
   private final RoleMenuAuthorityWrapper roleMenuAuthorityWrapper;
+  private final RoleRepository roleRepository;
 
   public MenuServiceImpl(
       MenuRepository menuRepository,
       RoleMenuRepository roleMenuRepository,
-      RoleMenuAuthorityWrapper roleMenuAuthorityWrapper) {
+      RoleMenuAuthorityWrapper roleMenuAuthorityWrapper,
+      RoleRepository roleRepository) {
     this.menuRepository = menuRepository;
     this.roleMenuRepository = roleMenuRepository;
     this.roleMenuAuthorityWrapper = roleMenuAuthorityWrapper;
+    this.roleRepository = roleRepository;
   }
 
   @Override
@@ -67,14 +73,15 @@ public class MenuServiceImpl implements MenuService {
     validateMenuHierarchy(menu);
     MenuEntity dealMenu = menu.id().flatMap(menuRepository::findById).orElseGet(MenuEntity::new);
     MenuEntity menuEntity = MenuEntityConvertor.convert(menu, dealMenu);
+    List<RoleEntity> roles = roleRepository.findAll();
 
     if (HIDE_STATUS.equals(menu.status()) && menu.id().isPresent()) {
       List<MenuEntity> menuEntities = new ArrayList<>();
       menuEntities.add(menuEntity);
       findTargetChildrenMenuId(menu.id().get(), menuEntities);
-      roleMenuAuthorityWrapper.saveMenu(menuEntities);
+      roleMenuAuthorityWrapper.saveMenu(menuEntities, roleIds(roles), roleCodes(roles));
     } else {
-      roleMenuAuthorityWrapper.saveMenu(List.of(menuEntity));
+      roleMenuAuthorityWrapper.saveMenu(List.of(menuEntity), roleIds(roles), roleCodes(roles));
     }
   }
 
@@ -97,7 +104,19 @@ public class MenuServiceImpl implements MenuService {
 
   @Override
   public void delete(Long id) {
-    roleMenuAuthorityWrapper.deleteMenu(id);
+    if (menuRepository.existsByParentId(id)) {
+      throw new BaseException(MENU_INVALID_OPERATE);
+    }
+    List<RoleEntity> roles = roleRepository.findAll();
+    roleMenuAuthorityWrapper.deleteMenu(id, roleIds(roles), roleCodes(roles));
+  }
+
+  private List<Long> roleIds(List<RoleEntity> roles) {
+    return roles.stream().map(RoleEntity::getId).toList();
+  }
+
+  private List<String> roleCodes(List<RoleEntity> roles) {
+    return roles.stream().map(RoleEntity::getCode).toList();
   }
 
   private void findTargetChildrenMenuId(Long menuId, List<MenuEntity> menuEntities) {

@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import wiki.chiu.micro.scheduling.RedisTaskLock;
 import wiki.chiu.micro.user.config.PasswordLockProperties;
-import wiki.chiu.micro.user.wrapper.UserIdentityWrapper;
+import wiki.chiu.micro.user.service.UserIdentityService;
 
 @Component
 public class PasswordUnlockScheduler {
@@ -17,14 +17,14 @@ public class PasswordUnlockScheduler {
   private static final String TASK_NAME = "user:password-unlock";
 
   private final RedisTaskLock taskLock;
-  private final UserIdentityWrapper identities;
+  private final UserIdentityService identities;
   private final PasswordLockProperties properties;
   private final Counter lockMisses;
   private final Counter failures;
 
   public PasswordUnlockScheduler(
       RedisTaskLock taskLock,
-      UserIdentityWrapper identities,
+      UserIdentityService identities,
       PasswordLockProperties properties,
       MeterRegistry meterRegistry) {
     this.taskLock = taskLock;

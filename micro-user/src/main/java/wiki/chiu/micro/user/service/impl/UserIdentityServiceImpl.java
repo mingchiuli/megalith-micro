@@ -5,15 +5,16 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.PHONE_NOT_EXIST;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.USER_MISS;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
+import wiki.chiu.micro.user.config.PasswordLockProperties;
 import wiki.chiu.micro.user.convertor.UserEntityRpcVoConvertor;
 import wiki.chiu.micro.user.entity.UserEntity;
 import wiki.chiu.micro.user.repository.UserRepository;
+import wiki.chiu.micro.user.service.AuthorizationQueryService;
 import wiki.chiu.micro.user.service.UserIdentityService;
 import wiki.chiu.micro.user.wrapper.UserIdentityWrapper;
 
@@ -22,10 +23,18 @@ public class UserIdentityServiceImpl implements UserIdentityService {
 
   private final UserRepository users;
   private final UserIdentityWrapper identityWrapper;
+  private final AuthorizationQueryService authorizationQueries;
+  private final PasswordLockProperties passwordLockProperties;
 
-  public UserIdentityServiceImpl(UserRepository users, UserIdentityWrapper identityWrapper) {
+  public UserIdentityServiceImpl(
+      UserRepository users,
+      UserIdentityWrapper identityWrapper,
+      AuthorizationQueryService authorizationQueries,
+      PasswordLockProperties passwordLockProperties) {
     this.users = users;
     this.identityWrapper = identityWrapper;
+    this.authorizationQueries = authorizationQueries;
+    this.passwordLockProperties = passwordLockProperties;
   }
 
   @Override
@@ -39,6 +48,16 @@ public class UserIdentityServiceImpl implements UserIdentityService {
   }
 
   @Override
+  public int unlockExpiredBatch() {
+    var userIds =
+        users.findExpiredPasswordLockIds(
+            StatusEnum.HIDE.getCode(),
+            org.springframework.data.domain.PageRequest.of(
+                0, passwordLockProperties.getBatchSize()));
+    return identityWrapper.unlockExpired(userIds);
+  }
+
+  @Override
   public UserEntityRpcVo findById(Long userId) {
     UserEntity user =
         users.findById(userId).orElseThrow(() -> new MissException(USER_MISS.getMsg()));
@@ -47,18 +66,7 @@ public class UserIdentityServiceImpl implements UserIdentityService {
 
   @Override
   public UserAccessRpcVo findUserAccess(Long userId) {
-    List<UserRepository.UserAccessRow> rows = users.findAccessRows(userId);
-    if (rows.isEmpty()) {
-      return UserAccessRpcVo.missing(userId);
-    }
-    UserRepository.UserAccessRow first = rows.getFirst();
-    List<Long> roleIds =
-        rows.stream()
-            .map(UserRepository.UserAccessRow::getRoleId)
-            .filter(Objects::nonNull)
-            .distinct()
-            .toList();
-    return new UserAccessRpcVo(first.getUserId(), true, first.getStatus(), roleIds);
+    return authorizationQueries.findUserAccess(userId);
   }
 
   @Override

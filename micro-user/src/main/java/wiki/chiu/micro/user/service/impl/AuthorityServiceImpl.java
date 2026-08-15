@@ -16,6 +16,7 @@ import wiki.chiu.micro.user.entity.AuthorityEntity;
 import wiki.chiu.micro.user.entity.MenuAuthorityEntity;
 import wiki.chiu.micro.user.repository.AuthorityRepository;
 import wiki.chiu.micro.user.repository.MenuAuthorityRepository;
+import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.req.AuthorityEntityReq;
 import wiki.chiu.micro.user.service.AuthorityService;
 import wiki.chiu.micro.user.vo.AuthorityVo;
@@ -29,14 +30,17 @@ public class AuthorityServiceImpl implements AuthorityService {
   private final AuthorityRepository authorityRepository;
 
   private final MenuAuthorityWrapper menuAuthorityWrapper;
+  private final RoleRepository roleRepository;
 
   public AuthorityServiceImpl(
       AuthorityRepository authorityRepository,
       MenuAuthorityRepository menuAuthorityRepository,
-      MenuAuthorityWrapper menuAuthorityWrapper) {
+      MenuAuthorityWrapper menuAuthorityWrapper,
+      RoleRepository roleRepository) {
     this.authorityRepository = authorityRepository;
     this.menuAuthorityRepository = menuAuthorityRepository;
     this.menuAuthorityWrapper = menuAuthorityWrapper;
+    this.roleRepository = roleRepository;
   }
 
   @Override
@@ -67,12 +71,12 @@ public class AuthorityServiceImpl implements AuthorityService {
         req.id().flatMap(authorityRepository::findById).orElseGet(AuthorityEntity::new);
 
     AuthorityEntity authorityEntity = AuthorityEntityConvertor.convert(req, dealAuthority);
-    menuAuthorityWrapper.authorityEntitySave(authorityEntity);
+    menuAuthorityWrapper.authorityEntitySave(authorityEntity, findAllRoleIds());
   }
 
   @Override
   public void deleteAuthorities(List<Long> ids) {
-    menuAuthorityWrapper.deleteAuthorities(ids);
+    menuAuthorityWrapper.deleteAuthorities(ids, findAllRoleIds());
   }
 
   @Override
@@ -84,5 +88,9 @@ public class AuthorityServiceImpl implements AuthorityService {
             SQLUtils.entityToInsertSQL(authorityEntities, Const.AUTHORITY_TABLE),
             SQLUtils.entityToInsertSQL(menuAuthorityEntities, Const.MENU_AUTHORITY_TABLE))
         .getBytes();
+  }
+
+  private List<Long> findAllRoleIds() {
+    return roleRepository.findAll().stream().map(role -> role.getId()).toList();
   }
 }

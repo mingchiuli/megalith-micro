@@ -7,11 +7,9 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.user.config.PasswordLockProperties;
-import wiki.chiu.micro.user.entity.UserEntity;
 import wiki.chiu.micro.user.repository.UserRepository;
 import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 
@@ -53,22 +51,15 @@ public class UserIdentityWrapper {
   }
 
   @Transactional
-  public int unlockExpiredBatch() {
-    List<UserEntity> expired =
-        users.findExpiredPasswordLocks(
-            HIDE.getCode(), PageRequest.of(0, properties.getBatchSize()));
-    if (expired.isEmpty()) {
+  public int unlockExpired(List<Long> userIds) {
+    if (userIds.isEmpty()) {
       return 0;
     }
-    expired.forEach(
-        user -> {
-          user.setStatus(NORMAL.getCode());
-          user.setPasswordLockedUntil(null);
-        });
-    users.saveAll(expired);
-    cacheEvictions.enqueue(
-        expired.stream().map(UserEntity::getId).toList(), List.of(), List.of(), false, false);
-    unlocked.increment(expired.size());
-    return expired.size();
+    int updated = users.unlockExpiredPasswordLocks(userIds, HIDE.getCode(), NORMAL.getCode());
+    if (updated > 0) {
+      cacheEvictions.enqueue(userIds, List.of(), List.of(), false, false);
+      unlocked.increment(updated);
+    }
+    return updated;
   }
 }

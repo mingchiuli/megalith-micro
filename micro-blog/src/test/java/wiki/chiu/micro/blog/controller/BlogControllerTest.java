@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,7 +36,9 @@ import wiki.chiu.micro.blog.service.BlogExportService;
 import wiki.chiu.micro.blog.service.BlogService;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
 import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
+import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.lang.CommonErrorCode;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
@@ -84,6 +87,21 @@ class BlogControllerTest {
         .andExpect(jsonPath("$.code").value(200));
 
     verify(blogService).saveOrUpdate(any(), anyLong(), anyList());
+  }
+
+  @Test
+  void concurrentUpdateReturnsConflict() throws Exception {
+    doThrow(new BaseException(CommonErrorCode.CONFLICT, "blog revision conflict: 7"))
+        .when(blogService)
+        .saveOrUpdate(any(), anyLong(), anyList());
+
+    String body =
+        "{\"id\":7,\"title\":\"t\",\"description\":\"d\",\"content\":\"c\","
+            + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":[]}";
+    mockMvc
+        .perform(post("/sys/blog/save").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value(CommonErrorCode.CONFLICT.code()));
   }
 
   @Test

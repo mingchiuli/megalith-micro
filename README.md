@@ -137,7 +137,10 @@ gateway, and hydrates the application in the browser.
 2. The gateway validates the request origin when the request carries credentials or uses an unsafe method.
 3. The gateway calls `POST /inner/auth/route` once with the original HTTP method, path, client IP, and credential.
 4. `micro-auth` decodes a supplied credential, then reads the route snapshot and user-access snapshot in one Redis `MGET`. After route resolution it reads every referenced role-authorization snapshot in one second `MGET`.
-5. Cache misses use one native user/access query and one batch role/authority query through `micro-user`; results are written to Caffeine and Redis with a 30-minute L2 TTL. User and permission mutations emit targeted cache-eviction events, so normal revocation is event-driven while TTL bounds stale data if messaging is unavailable.
+5. Cache misses compose user, role, menu, authority, and data-permission repository reads in a
+   dedicated query service in `micro-user`; results are written to Caffeine and Redis with a
+   30-minute L2 TTL. User and permission mutations emit targeted cache-eviction events, so normal
+   revocation is event-driven while TTL bounds stale data if messaging is unavailable.
 6. The gateway removes client cookies, access authorization, hop-by-hop headers, and any forged `X-Megalith-Principal`, then injects the trusted principal as unpadded Base64URL JSON. Java services decode it locally and synchronous internal RPCs propagate the same header without another auth call.
 7. HTTP requests and responses are streamed through a shared Hyper connection pool. WebSocket upgrades use the same resolved route and principal and do not call auth again.
 
@@ -145,16 +148,19 @@ The normal cache-hit request path is therefore `gateway -> auth -> business`; `m
 on the cache-miss path. Public anonymous requests need only the route snapshot. The refresh endpoint forwards only the refresh cookie and validates
 it inside auth; ordinary business services never receive browser access or refresh credentials.
 
-Application services only orchestrate reads, validation, and calls into wrappers. Database writes,
-association replacement, and the corresponding outbox insert are owned by a short wrapper-level
-transaction. ArchUnit rules reject Spring transaction dependencies from every service package.
+Application services own every database, RPC, and cache read, perform validation, and prepare the
+complete write input. Wrappers perform only database writes, association replacement, and the
+corresponding outbox insert in one short transaction; they never query repositories or delegate
+reads back to services. ArchUnit rules enforce both the service transaction boundary and the
+wrapper read boundary.
 
 Password failures are counted atomically in a Redis sorted set keyed by user ID. The third failure
 inside the rolling 15-minute window conditionally sets `m_user.status` and
 `password_locked_until` in one database update. Every `micro-user` replica runs the 30-second
-unlock scheduler, while the shared Redis task lock permits only one replica to drain pessimistically
-locked batches. Administrator status changes clear the temporary deadline and therefore override
-the automatic unlock policy.
+unlock scheduler, while the shared Redis task lock permits only one replica to select expired IDs.
+Each selected batch is unlocked with a conditional bulk update that rechecks the locked status and
+deadline, then writes the cache-eviction outbox record in the same transaction. Administrator
+status changes clear the temporary deadline and therefore override the automatic unlock policy.
 
 ## Reliable Messaging
 
@@ -167,7 +173,9 @@ before success is physically deleted. Failures retry after approximately 1s, 5s,
 
 Blog events carry a full snapshot and monotonically increasing revision. Elasticsearch uses
 `EXTERNAL_GTE` versioning and deletion tombstones; the exhibit cache stores the last applied
-revision. Consumers retry after 5s, 30s, and 5m, then retain the message in a 14-day DLQ. Outbox
+revision. Blog updates and deletes use that revision as an optimistic condition; a stale write
+returns HTTP 409, and any stale row in a batch delete rolls back the complete batch before an
+outbox event is inserted. Consumers retry after 5s, 30s, and 5m, then retain the message in a 14-day DLQ. Outbox
 status is exposed at `GET /actuator/outbox`; `POST /actuator/outbox/{eventId}` accepts an `action`
 of `pause`, `resume`, `retry`, or `discard`. Successful and discarded rows are physically deleted;
 there is no outbox history table.
