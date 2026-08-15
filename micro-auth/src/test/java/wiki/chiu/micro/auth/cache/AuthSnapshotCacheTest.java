@@ -30,7 +30,6 @@ class AuthSnapshotCacheTest {
     JsonMapper jsonMapper = JsonMapper.builder().build();
     CommonCacheKeyGenerator keys = new CommonCacheKeyGenerator(jsonMapper);
     RedissonClient redisson = mock(RedissonClient.class);
-    @SuppressWarnings("unchecked")
     RBuckets buckets = mock(RBuckets.class);
     UserHttpServiceWrapper users = mock(UserHttpServiceWrapper.class);
     when(redisson.getBuckets()).thenReturn(buckets);
@@ -56,18 +55,19 @@ class AuthSnapshotCacheTest {
         new UserAccessRpcVo(42L, true, StatusEnum.NORMAL.getCode(), List.of(7L, 8L));
     RoleAuthorizationRpcVo role7 = role(7L, "user");
     RoleAuthorizationRpcVo role8 = role(8L, "editor");
-    when(buckets.get(any(String[].class)))
-        .thenReturn(
-            Map.of(
-                routesKey,
-                jsonMapper.writeValueAsString(routes),
-                accessKey,
-                jsonMapper.writeValueAsString(access)),
-            Map.of(
-                role7Key,
-                jsonMapper.writeValueAsString(role7),
-                role8Key,
-                jsonMapper.writeValueAsString(role8)));
+    Map<String, Object> initialBatch =
+        Map.of(
+            routesKey,
+            jsonMapper.writeValueAsString(routes),
+            accessKey,
+            jsonMapper.writeValueAsString(access));
+    Map<String, Object> roleBatch =
+        Map.of(
+            role7Key,
+            jsonMapper.writeValueAsString(role7),
+            role8Key,
+            jsonMapper.writeValueAsString(role8));
+    when(buckets.get(any(String[].class))).thenReturn(initialBatch).thenReturn(roleBatch);
 
     AuthSnapshotCache cache =
         new AuthSnapshotCache(redisson, Caffeine.newBuilder().build(), keys, jsonMapper, users);
