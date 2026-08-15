@@ -164,8 +164,7 @@ class AuthServiceRouteAuthorizationTest {
   @Test
   void authorizedRoleReceivesTheResolvedRoute() {
     givenRoutes(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
-    when(authWrapper.getAllRoleAuthorizations())
-        .thenReturn(List.of(role(Set.of("private_api"))));
+    when(authWrapper.getAllRoleAuthorizations()).thenReturn(List.of(role(Set.of("private_api"))));
 
     AuthorityRouteRpcVo route =
         authService.authorizeRoute(route("/api/private"), "Bearer " + tokens.issueAccessToken(42L));

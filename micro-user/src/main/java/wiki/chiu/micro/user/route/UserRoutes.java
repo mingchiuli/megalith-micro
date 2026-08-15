@@ -137,9 +137,7 @@ public class UserRoutes {
                 .GET("/inner/user/email", userInternalHandler::findByEmail)
                 .GET("/inner/user/phone", userInternalHandler::findByPhone)
                 .GET("/inner/user/access/{userId}", userInternalHandler::findUserAccess)
-                .GET(
-                    "/inner/role/authorizations",
-                    userInternalHandler::findAllRoleAuthorizations)
+                .GET("/inner/role/authorizations", userInternalHandler::findAllRoleAuthorizations)
                 .POST("/inner/role/authorizations", userInternalHandler::findRoleAuthorizations)
                 .GET("/inner/user/login/query", userInternalHandler::findByUsernameOrEmailOrPhone)
                 .GET("/inner/user/{userId}", userInternalHandler::findById)

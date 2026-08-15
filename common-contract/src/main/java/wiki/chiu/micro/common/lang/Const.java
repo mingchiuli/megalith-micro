@@ -10,8 +10,6 @@ public class Const {
 
   public static final String EMAIL_CODE = "email_code";
 
-  public static final String PHONE_CODE = "phone_code";
-
   public static final String SMS_CODE = "sms_code";
 
   public static final String EMAIL_KEY = "email_validation:";
@@ -19,10 +17,6 @@ public class Const {
   public static final String PHONE_KEY = "phone_validation:";
 
   public static final String PASSWORD_KEY = "password_failures:";
-
-  public static final String TOKEN_PREFIX = "Bearer ";
-
-  public static final String ROLE_PREFIX = "ROLE_";
 
   public static final String DAY_VISIT = "{visit_record}_day";
 
@@ -114,6 +108,4 @@ public class Const {
   public static final String CODE_KEY = "code";
 
   public static final String TRY_COUNT_KEY = "try_count";
-
-  public static final int SUCCESS_CODE = 200;
 }
