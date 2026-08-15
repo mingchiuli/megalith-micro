@@ -1,6 +1,7 @@
 package wiki.chiu.micro.auth.consumer;
 
 import com.rabbitmq.client.Channel;
+import java.util.HashSet;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
@@ -38,7 +39,7 @@ public class UserRedisCacheEvictMessageListener {
       executor = "mqExecutor")
   public void handler(AuthCacheEvictMessage message, Channel channel, Message msg) {
     try {
-      cacheEvictHandler.evictRemote(authCacheKeys.from(message));
+      cacheEvictHandler.evictCache(new HashSet<>(authCacheKeys.from(message)));
 
       channel.basicAck(msg.getMessageProperties().getDeliveryTag(), false);
     } catch (Exception e) {
