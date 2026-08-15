@@ -1,6 +1,9 @@
 package wiki.chiu.micro.auth.config;
 
+import static org.springframework.util.ReflectionUtils.findMethod;
+
 import org.springframework.aot.hint.*;
+import wiki.chiu.micro.auth.consumer.UserLocalCacheEvictMessageListener;
 import wiki.chiu.micro.auth.dto.LoginRequest;
 import wiki.chiu.micro.auth.dto.LoginType;
 import wiki.chiu.micro.auth.dto.MenuDto;
@@ -16,6 +19,12 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
     // Register method for reflection
     hints
         .reflection()
+        .registerMethod(
+            findMethod(
+                UserLocalCacheEvictMessageListener.class,
+                "handleMessage",
+                AuthCacheEvictMessage.class),
+            ExecutableMode.INVOKE)
         .registerType(
             LoginRequest.class,
             MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
