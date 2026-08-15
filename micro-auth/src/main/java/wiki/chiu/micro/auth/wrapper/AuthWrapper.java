@@ -27,8 +27,8 @@ public class AuthWrapper {
   }
 
   @Cache(prefix = Const.ROLE_AUTHORIZATION)
-  public RoleAuthorizationRpcVo getRoleAuthorization(Long roleId) {
-    return userHttpServiceWrapper.findRoleAuthorization(roleId);
+  public List<RoleAuthorizationRpcVo> getAllRoleAuthorizations() {
+    return userHttpServiceWrapper.findAllRoleAuthorizations();
   }
 
   @Cache(prefix = Const.ROLE_AUTHORITY)

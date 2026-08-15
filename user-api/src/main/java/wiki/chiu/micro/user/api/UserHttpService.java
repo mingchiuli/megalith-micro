@@ -34,8 +34,8 @@ public interface UserHttpService {
   @GetExchange("/user/access/{userId}")
   Result<UserAccessRpcVo> findUserAccess(@PathVariable Long userId);
 
-  @GetExchange("/role/authorization/{roleId}")
-  Result<RoleAuthorizationRpcVo> findRoleAuthorization(@PathVariable Long roleId);
+  @GetExchange("/role/authorizations")
+  Result<List<RoleAuthorizationRpcVo>> findAllRoleAuthorizations();
 
   @PostExchange("/role/authorizations")
   Result<List<RoleAuthorizationRpcVo>> findRoleAuthorizations(@RequestBody List<Long> roleIds);

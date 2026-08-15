@@ -118,7 +118,7 @@ gateway, and hydrates the application in the browser.
 ## ✨ Features
 
 - **Multi-Level Caching**: L1 (Caffeine) + L2 (Redis) with automatic eviction via RabbitMQ or Redis pub/sub
-- **Bounded Auth Reads**: Protected requests read route/user snapshots and all role snapshots in at most two Redis `MGET` operations; L2 entries expire after 30 minutes
+- **Bounded Auth Reads**: Auth reads the route, user-access, and all-role snapshots through `@Cache`-backed methods and filters roles in memory; L2 entries expire after 30 minutes
 - **Transactional Messaging**: Blog and authorization changes commit their event in the same MariaDB transaction, then publish with RabbitMQ confirms and automatic retry
 - **Bounded Password Locking**: Three password failures in a rolling 15-minute window lock the account for 15 minutes; a distributed scheduler restores eligible accounts within 30 seconds
 - **Distributed Tracing**: Full OpenTelemetry integration across all services
@@ -136,7 +136,7 @@ gateway, and hydrates the application in the browser.
 1. nginx sends `/api` HTTP requests and `/wsapi` WebSocket upgrades to `micro-gateway-rs`.
 2. The gateway validates the request origin when the request carries credentials or uses an unsafe method.
 3. The gateway calls `POST /inner/auth/route` once with the original HTTP method, path, client IP, and credential.
-4. `micro-auth` decodes a supplied credential, then reads the route snapshot and user-access snapshot in one Redis `MGET`. After route resolution it reads every referenced role-authorization snapshot in one second `MGET`.
+4. `micro-auth` decodes a supplied credential, then reads the route and user-access snapshots through the `@Cache` starter. After route resolution it reads the full role-authorization snapshot through a single `@Cache` method and filters the requested roles in memory.
 5. Cache misses compose user, role, menu, authority, and data-permission repository reads in a
    dedicated query service in `micro-user`, without a service-level read transaction spanning the
    queries. Results are written to Caffeine and Redis with a 30-minute L2 TTL. User and permission

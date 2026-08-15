@@ -23,8 +23,10 @@ public class AuthCacheKeys {
       Method userAccess = AuthWrapper.class.getMethod("getUserAccess", Long.class);
       message.userIds().forEach(id -> keys.add(keyGenerator.generateKey(userAccess, id)));
 
-      Method roleAuthorization = AuthWrapper.class.getMethod("getRoleAuthorization", Long.class);
-      message.roleIds().forEach(id -> keys.add(keyGenerator.generateKey(roleAuthorization, id)));
+      if (!message.roleIds().isEmpty()) {
+        Method roleAuthorization = AuthWrapper.class.getMethod("getAllRoleAuthorizations");
+        keys.add(keyGenerator.generateKey(roleAuthorization));
+      }
 
       if (message.evictMenus()) {
         Method nav = AuthWrapper.class.getMethod("getCurrentUserNav", String.class);
