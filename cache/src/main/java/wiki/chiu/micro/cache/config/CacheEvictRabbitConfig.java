@@ -17,7 +17,6 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
@@ -53,11 +52,6 @@ public class CacheEvictRabbitConfig {
   }
 
   @Bean("cacheEvictQueue")
-  @ConditionalOnProperty(
-      prefix = "megalith.cache",
-      name = "local-listener-enabled",
-      havingValue = "true",
-      matchIfMissing = true)
   Queue evictQueue() {
     String evictNodeMark = UUID.randomUUID().toString();
     cacheEvictQueue += evictNodeMark;
@@ -70,11 +64,6 @@ public class CacheEvictRabbitConfig {
   }
 
   @Bean("cacheEvictBinding")
-  @ConditionalOnProperty(
-      prefix = "megalith.cache",
-      name = "local-listener-enabled",
-      havingValue = "true",
-      matchIfMissing = true)
   Binding evictBinding(
       @Qualifier("cacheEvictQueue") Queue cacheQueue,
       @Qualifier("cacheEvictFanoutExchange") FanoutExchange cacheExchange) {
@@ -82,11 +71,6 @@ public class CacheEvictRabbitConfig {
   }
 
   @Bean("cacheEvictMessageListenerAdapter")
-  @ConditionalOnProperty(
-      prefix = "megalith.cache",
-      name = "local-listener-enabled",
-      havingValue = "true",
-      matchIfMissing = true)
   MessageListenerAdapter coopMessageListener() {
     RabbitCacheEvictMessageListener rabbitCacheEvictMessageListener =
         new RabbitCacheEvictMessageListener(localCache);
@@ -94,11 +78,6 @@ public class CacheEvictRabbitConfig {
   }
 
   @Bean("cacheEvictMessageListenerContainer")
-  @ConditionalOnProperty(
-      prefix = "megalith.cache",
-      name = "local-listener-enabled",
-      havingValue = "true",
-      matchIfMissing = true)
   SimpleMessageListenerContainer cacheEvictMessageListenerContainer(
       ConnectionFactory connectionFactory,
       @Qualifier("cacheEvictMessageListenerAdapter") MessageListenerAdapter listenerAdapter,
