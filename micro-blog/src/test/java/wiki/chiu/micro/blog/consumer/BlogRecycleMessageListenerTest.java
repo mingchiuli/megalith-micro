@@ -1,6 +1,5 @@
 package wiki.chiu.micro.blog.consumer;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -12,6 +11,7 @@ import com.rabbitmq.client.Channel;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -46,7 +46,7 @@ class BlogRecycleMessageListenerTest {
 
     verify(redis)
         .execute(
-            any(RedisScript.class),
+            ArgumentMatchers.<RedisScript<Long>>any(),
             eq(List.of(QUERY_DELETED + 42L, RECYCLE_EVENT_PREFIX + "event-7")),
             anyString(),
             eq(A_WEEK));

@@ -43,7 +43,6 @@ class PasswordAuthenticationProviderTest {
     verify(context.users, never()).lockAfterPasswordFailures(42L);
   }
 
-  @SuppressWarnings("unchecked")
   private TestContext context(long failureCount) {
     PasswordEncoder encoder = org.mockito.Mockito.mock(PasswordEncoder.class);
     RedissonClient redisson = org.mockito.Mockito.mock(RedissonClient.class);
