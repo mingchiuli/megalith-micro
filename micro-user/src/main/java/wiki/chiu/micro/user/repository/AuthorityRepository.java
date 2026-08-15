@@ -7,4 +7,6 @@ import wiki.chiu.micro.user.entity.AuthorityEntity;
 public interface AuthorityRepository extends JpaRepository<AuthorityEntity, Long> {
 
   List<AuthorityEntity> findByServiceHostIn(List<String> service);
+
+  List<AuthorityEntity> findByIdInAndStatus(List<Long> ids, Integer status);
 }

@@ -54,7 +54,7 @@ public class RoleWrapper {
     roleMenus.deleteAllByRoleIdIn(ids);
     userRoles.deleteByRoleIdIn(ids);
     dataPermissions.deleteByRoleIdIn(ids);
-    roles.deleteAllById(ids);
+    roles.deleteAllByIdInBatch(ids);
     cacheEvictions.enqueue(List.of(), ids, roleCodes, true, false);
   }
 }

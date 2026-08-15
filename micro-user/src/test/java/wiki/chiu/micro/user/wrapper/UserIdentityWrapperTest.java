@@ -1,7 +1,6 @@
 package wiki.chiu.micro.user.wrapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -11,12 +10,9 @@ import static wiki.chiu.micro.common.lang.StatusEnum.HIDE;
 import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Pageable;
 import wiki.chiu.micro.user.config.PasswordLockProperties;
-import wiki.chiu.micro.user.entity.UserEntity;
 import wiki.chiu.micro.user.repository.UserRepository;
 import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 
@@ -50,30 +46,21 @@ class UserIdentityWrapperTest {
   }
 
   @Test
-  void unlocksOnlyRowsSelectedAsExpiredAndInvalidatesTheirSnapshots() {
-    UserEntity first =
-        UserEntity.builder()
-            .id(7L)
-            .status(HIDE.getCode())
-            .passwordLockedUntil(LocalDateTime.now().minusMinutes(1))
-            .build();
-    UserEntity second =
-        UserEntity.builder()
-            .id(8L)
-            .status(HIDE.getCode())
-            .passwordLockedUntil(LocalDateTime.now().minusMinutes(1))
-            .build();
-    when(users.findExpiredPasswordLocks(eq(HIDE.getCode()), any(Pageable.class)))
-        .thenReturn(List.of(first, second));
+  void conditionallyUnlocksPreparedIdsAndInvalidatesTheirSnapshots() {
+    when(users.unlockExpiredPasswordLocks(List.of(7L, 8L), HIDE.getCode(), NORMAL.getCode()))
+        .thenReturn(2);
 
-    int unlocked = wrapper.unlockExpiredBatch();
+    int unlocked = wrapper.unlockExpired(List.of(7L, 8L));
 
     assertEquals(2, unlocked);
-    assertEquals(NORMAL.getCode(), first.getStatus());
-    assertEquals(NORMAL.getCode(), second.getStatus());
-    assertNull(first.getPasswordLockedUntil());
-    assertNull(second.getPasswordLockedUntil());
-    verify(users).saveAll(List.of(first, second));
     verify(cacheEvictions).enqueue(List.of(7L, 8L), List.of(), List.of(), false, false);
+  }
+
+  @Test
+  void emptyUnlockBatchDoesNotTouchPersistence() {
+    assertEquals(0, wrapper.unlockExpired(List.of()));
+
+    verify(users, never()).unlockExpiredPasswordLocks(any(), any(), any());
+    verify(cacheEvictions, never()).enqueue(any(), any(), any(), eq(false), eq(false));
   }
 }

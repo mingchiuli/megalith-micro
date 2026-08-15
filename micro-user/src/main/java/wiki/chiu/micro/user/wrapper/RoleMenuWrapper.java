@@ -11,27 +11,18 @@ import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
 public class RoleMenuWrapper {
 
   private final RoleMenuRepository roleMenuRepository;
-  private final RoleRepository roleRepository;
   private final AuthCacheEvictionOutbox cacheEvictions;
 
   public RoleMenuWrapper(
-      RoleMenuRepository roleMenuRepository,
-      RoleRepository roleRepository,
-      AuthCacheEvictionOutbox cacheEvictions) {
+      RoleMenuRepository roleMenuRepository, AuthCacheEvictionOutbox cacheEvictions) {
     this.roleMenuRepository = roleMenuRepository;
-    this.roleRepository = roleRepository;
     this.cacheEvictions = cacheEvictions;
   }
 
   @Transactional
-  public void saveMenu(Long roleId, List<RoleMenuEntity> roleMenuEntities) {
+  public void saveMenu(Long roleId, String roleCode, List<RoleMenuEntity> roleMenuEntities) {
     roleMenuRepository.deleteByRoleId(roleId);
     roleMenuRepository.saveAll(roleMenuEntities);
-    roleRepository
-        .findById(roleId)
-        .ifPresent(
-            role ->
-                cacheEvictions.enqueue(
-                    List.of(), List.of(roleId), List.of(role.getCode()), true, false));
+    cacheEvictions.enqueue(List.of(), List.of(roleId), List.of(roleCode), true, false);
   }
 }

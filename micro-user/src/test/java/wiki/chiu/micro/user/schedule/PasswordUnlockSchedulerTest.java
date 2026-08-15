@@ -11,14 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import wiki.chiu.micro.scheduling.RedisTaskLock;
 import wiki.chiu.micro.user.config.PasswordLockProperties;
-import wiki.chiu.micro.user.wrapper.UserIdentityWrapper;
+import wiki.chiu.micro.user.service.UserIdentityService;
 
 class PasswordUnlockSchedulerTest {
 
   @Test
   void skipsWorkWhenAnotherNodeOwnsTheTaskLock() {
     RedisTaskLock taskLock = Mockito.mock(RedisTaskLock.class);
-    UserIdentityWrapper identities = Mockito.mock(UserIdentityWrapper.class);
+    UserIdentityService identities = Mockito.mock(UserIdentityService.class);
     PasswordLockProperties properties = new PasswordLockProperties();
     PasswordUnlockScheduler scheduler =
         new PasswordUnlockScheduler(taskLock, identities, properties, new SimpleMeterRegistry());
@@ -32,7 +32,7 @@ class PasswordUnlockSchedulerTest {
   @Test
   void drainsFullBatchesWhileHoldingTheTaskLock() {
     RedisTaskLock taskLock = Mockito.mock(RedisTaskLock.class);
-    UserIdentityWrapper identities = Mockito.mock(UserIdentityWrapper.class);
+    UserIdentityService identities = Mockito.mock(UserIdentityService.class);
     PasswordLockProperties properties = new PasswordLockProperties();
     properties.setBatchSize(2);
     properties.setMaxBatchesPerRun(3);

@@ -30,6 +30,7 @@ import wiki.chiu.micro.blog.service.port.BlogSearchGateway;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
+import wiki.chiu.micro.blog.wrapper.BlogEventContext;
 import wiki.chiu.micro.blog.wrapper.BlogWrapper;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.*;
@@ -123,6 +124,21 @@ public class BlogServiceImpl implements BlogService {
   @Override
   public void saveOrUpdate(
       BlogEntityReq blog, Long userId, List<DataPermissionEnum> dataPermissions) {
+    BlogEntity current = getBlogEntity(blog, userId, dataPermissions);
+    Long expectedRevision = blog.id().isPresent() ? current.getEventRevision() : null;
+    BlogEntity candidate = BlogEntityConvertor.convert(blog, current);
+    if (expectedRevision != null) {
+      candidate.setUpdated(LocalDateTime.now());
+    }
+
+    List<Long> existingSensitiveIds =
+        blog.id()
+            .map(
+                blogId ->
+                    blogSensitiveContentRepository.findByBlogId(blogId).stream()
+                        .map(BlogSensitiveContentEntity::getId)
+                        .toList())
+            .orElseGet(List::of);
     List<BlogSensitiveContentEntity> blogSensitiveContentEntityList =
         blog.sensitiveContentList().stream()
             .distinct()
@@ -134,7 +150,35 @@ public class BlogServiceImpl implements BlogService {
                         .type(item.type())
                         .build())
             .toList();
-    blogWrapper.saveOrUpdate(blog, userId, dataPermissions, blogSensitiveContentEntityList);
+    long totalCount = blogRepository.count() + (expectedRevision == null ? 1 : 0);
+    Long newerOrSameCount =
+        expectedRevision == null
+            ? null
+            : blogRepository.countByCreatedGreaterThanEqual(candidate.getCreated());
+    BlogOperateEnum operation =
+        expectedRevision == null ? BlogOperateEnum.CREATE : BlogOperateEnum.UPDATE;
+
+    blogWrapper.saveOrUpdate(
+        candidate,
+        expectedRevision,
+        existingSensitiveIds,
+        blogSensitiveContentEntityList,
+        new BlogEventContext(operation, userId, totalCount, newerOrSameCount));
+  }
+
+  private BlogEntity getBlogEntity(
+      BlogEntityReq blog, Long userId, List<DataPermissionEnum> dataPermissions) {
+    return blog.id()
+        .map(
+            blogId -> {
+              BlogEntity existing =
+                  blogRepository
+                      .findById(blogId)
+                      .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+              accessPolicy.requireEdit(existing, userId, dataPermissions);
+              return existing;
+            })
+        .orElseGet(() -> BlogEntity.builder().userId(userId).readCount(0L).build());
   }
 
   @Override
@@ -228,12 +272,30 @@ public class BlogServiceImpl implements BlogService {
     }
 
     BlogDeleteDto delBlog = jsonMapper.readValue(str, BlogDeleteDto.class);
-    blogWrapper.recoverDeletedBlog(delBlog, userId);
+    BlogEntity recovered = BlogEntityConvertor.convertRecover(delBlog);
+    blogWrapper.recoverDeletedBlog(
+        recovered,
+        new BlogEventContext(BlogOperateEnum.CREATE, userId, blogRepository.count() + 1, null));
     redisTemplate.opsForList().remove(recycleKey, 1, str);
   }
 
   @Override
   public void deleteBatch(List<Long> ids, Long userId, List<DataPermissionEnum> dataPermissions) {
-    blogWrapper.deleteByIds(ids, userId, dataPermissions);
+    List<BlogEntity> deleted =
+        blogRepository.findAllById(ids).stream()
+            .filter(blog -> accessPolicy.canDelete(blog, userId, dataPermissions))
+            .toList();
+    deleted.forEach(blog -> blog.setEventRevision(blog.getEventRevision() + 1));
+    List<Long> deletedIds = deleted.stream().map(BlogEntity::getId).toList();
+    List<Long> sensitiveIds =
+        blogSensitiveContentRepository.findByBlogIdIn(deletedIds).stream()
+            .map(BlogSensitiveContentEntity::getId)
+            .toList();
+    long totalCount = Math.max(0, blogRepository.count() - deleted.size());
+
+    blogWrapper.deleteByIds(
+        deleted,
+        sensitiveIds,
+        new BlogEventContext(BlogOperateEnum.REMOVE, userId, totalCount, null));
   }
 }

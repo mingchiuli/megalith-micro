@@ -10,6 +10,7 @@ import wiki.chiu.micro.user.convertor.MenuAuthorityVoConvertor;
 import wiki.chiu.micro.user.entity.MenuAuthorityEntity;
 import wiki.chiu.micro.user.repository.AuthorityRepository;
 import wiki.chiu.micro.user.repository.MenuAuthorityRepository;
+import wiki.chiu.micro.user.repository.RoleRepository;
 import wiki.chiu.micro.user.service.MenuAuthorityService;
 import wiki.chiu.micro.user.vo.MenuAuthorityVo;
 import wiki.chiu.micro.user.wrapper.MenuAuthorityWrapper;
@@ -22,21 +23,25 @@ public class MenuAuthorityServiceImpl implements MenuAuthorityService {
   private final MenuAuthorityRepository menuAuthorityRepository;
 
   private final AuthorityRepository authorityRepository;
+  private final RoleRepository roleRepository;
 
   public MenuAuthorityServiceImpl(
       MenuAuthorityWrapper menuAuthorityWrapper,
       MenuAuthorityRepository menuAuthorityRepository,
-      AuthorityRepository authorityRepository) {
+      AuthorityRepository authorityRepository,
+      RoleRepository roleRepository) {
     this.menuAuthorityWrapper = menuAuthorityWrapper;
     this.menuAuthorityRepository = menuAuthorityRepository;
     this.authorityRepository = authorityRepository;
+    this.roleRepository = roleRepository;
   }
 
   @Override
   public void saveAuthority(Long menuId, List<Long> authorityIds) {
     List<MenuAuthorityEntity> roleAuthorityEntities =
         MenuAuthorityEntityConvertor.convert(menuId, authorityIds);
-    menuAuthorityWrapper.saveAuthority(menuId, roleAuthorityEntities);
+    List<Long> roleIds = roleRepository.findAll().stream().map(role -> role.getId()).toList();
+    menuAuthorityWrapper.saveAuthority(menuId, roleAuthorityEntities, roleIds);
   }
 
   @Override

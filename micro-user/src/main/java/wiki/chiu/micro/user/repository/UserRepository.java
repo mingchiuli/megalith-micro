@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import wiki.chiu.micro.user.entity.UserEntity;
@@ -15,25 +14,6 @@ import wiki.chiu.micro.user.entity.UserEntity;
  * @create 2022-11-27 11:53 am
  */
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-
-  interface UserAccessRow {
-    Long getUserId();
-
-    Integer getStatus();
-
-    Long getRoleId();
-  }
-
-  @Query(
-      value =
-          """
-          SELECT u.id AS userId, u.status AS status, user_role.role_id AS roleId
-          FROM m_user u
-          LEFT JOIN m_user_role user_role ON user_role.user_id = u.id
-          WHERE u.id = :userId
-          """,
-      nativeQuery = true)
-  List<UserAccessRow> findAccessRows(Long userId);
 
   Optional<UserEntity> findByEmail(String email);
 
@@ -61,16 +41,28 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
   @Modifying
   int lockAfterPasswordFailures(Long userId, int normalStatus, int lockedStatus, long lockSeconds);
 
-  @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
   @Query(
       """
-      SELECT user
+      SELECT user.id
       FROM UserEntity user
       WHERE user.status = :lockedStatus
         AND user.passwordLockedUntil <= CURRENT_TIMESTAMP
       ORDER BY user.passwordLockedUntil, user.id
       """)
-  List<UserEntity> findExpiredPasswordLocks(Integer lockedStatus, Pageable pageable);
+  List<Long> findExpiredPasswordLockIds(Integer lockedStatus, Pageable pageable);
+
+  @Query(
+      """
+      UPDATE UserEntity user
+      SET user.status = :normalStatus,
+          user.passwordLockedUntil = NULL
+      WHERE user.id IN :userIds
+        AND user.status = :lockedStatus
+        AND user.passwordLockedUntil IS NOT NULL
+        AND user.passwordLockedUntil <= CURRENT_TIMESTAMP
+      """)
+  @Modifying
+  int unlockExpiredPasswordLocks(List<Long> userIds, Integer lockedStatus, Integer normalStatus);
 
   Optional<UserEntity> findByPhone(String loginSMS);
 }

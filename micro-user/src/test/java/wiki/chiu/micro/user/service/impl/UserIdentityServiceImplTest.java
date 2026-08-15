@@ -1,6 +1,9 @@
 package wiki.chiu.micro.user.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -9,7 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
+import wiki.chiu.micro.user.config.PasswordLockProperties;
 import wiki.chiu.micro.user.repository.UserRepository;
+import wiki.chiu.micro.user.service.AuthorizationQueryService;
 import wiki.chiu.micro.user.wrapper.UserIdentityWrapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -17,59 +23,26 @@ class UserIdentityServiceImplTest {
 
   @Mock private UserRepository users;
   @Mock private UserIdentityWrapper identityWrapper;
+  @Mock private AuthorizationQueryService authorizationQueries;
+  @Mock private PasswordLockProperties passwordLockProperties;
   @InjectMocks private UserIdentityServiceImpl service;
 
   @Test
-  void accessSnapshotCombinesStatusAndRoleIds() {
-    var first = accessRow(42L, 0, 7L);
-    var second = accessRow(42L, 0, 8L);
-    when(users.findAccessRows(42L)).thenReturn(List.of(first, second));
+  void delegatesAccessSnapshotQuery() {
+    var expected = new UserAccessRpcVo(42L, true, 0, List.of(7L, 8L));
+    when(authorizationQueries.findUserAccess(42L)).thenReturn(expected);
 
-    var context = service.findUserAccess(42L);
-
-    assertEquals(42L, context.userId());
-    assertEquals(0, context.status());
-    assertEquals(List.of(7L, 8L), context.roleIds());
-    assertEquals(true, context.exists());
+    assertSame(expected, service.findUserAccess(42L));
   }
 
   @Test
-  void accessSnapshotPreservesDisabledStatusAndEmptyRoles() {
-    var row = accessRow(42L, 1, null);
-    when(users.findAccessRows(42L)).thenReturn(List.of(row));
+  void selectsExpiredIdsBeforeDelegatingTheConditionalWrite() {
+    when(passwordLockProperties.getBatchSize()).thenReturn(100);
+    when(users.findExpiredPasswordLockIds(any(), any())).thenReturn(List.of(7L, 8L));
+    when(identityWrapper.unlockExpired(List.of(7L, 8L))).thenReturn(2);
 
-    var context = service.findUserAccess(42L);
+    assertEquals(2, service.unlockExpiredBatch());
 
-    assertEquals(1, context.status());
-    assertEquals(List.of(), context.roleIds());
-  }
-
-  @Test
-  void accessSnapshotRepresentsMissingUser() {
-    when(users.findAccessRows(42L)).thenReturn(List.of());
-
-    var context = service.findUserAccess(42L);
-
-    assertEquals(false, context.exists());
-    assertEquals(List.of(), context.roleIds());
-  }
-
-  private UserRepository.UserAccessRow accessRow(Long userId, Integer status, Long roleId) {
-    return new UserRepository.UserAccessRow() {
-      @Override
-      public Long getUserId() {
-        return userId;
-      }
-
-      @Override
-      public Integer getStatus() {
-        return status;
-      }
-
-      @Override
-      public Long getRoleId() {
-        return roleId;
-      }
-    };
+    verify(identityWrapper).unlockExpired(List.of(7L, 8L));
   }
 }

@@ -10,6 +10,8 @@ public interface MenuAuthorityRepository extends JpaRepository<MenuAuthorityEnti
 
   List<MenuAuthorityEntity> findByMenuId(Long menuId);
 
+  List<MenuAuthorityEntity> findByMenuIdIn(List<Long> menuIds);
+
   void deleteByAuthorityIdIn(List<Long> ids);
 
   void deleteByAuthorityId(Long authorityId);

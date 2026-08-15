@@ -40,8 +40,8 @@ public class UserRoleWrapper {
 
   @Transactional
   public void deleteUsers(List<Long> ids) {
-    userRepository.deleteAllById(ids);
     userRoleRepository.deleteByUserIdIn(ids);
+    userRepository.deleteAllByIdInBatch(ids);
     cacheEvictions.enqueue(ids, List.of(), List.of(), false, false);
   }
 }

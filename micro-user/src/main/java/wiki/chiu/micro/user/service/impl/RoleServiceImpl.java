@@ -3,9 +3,7 @@ package wiki.chiu.micro.user.service.impl;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.ROLE_NOT_EXIST;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
@@ -14,7 +12,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.utils.SQLUtils;
@@ -26,6 +23,7 @@ import wiki.chiu.micro.user.convertor.RoleEntityVoConvertor;
 import wiki.chiu.micro.user.entity.*;
 import wiki.chiu.micro.user.repository.*;
 import wiki.chiu.micro.user.req.RoleEntityReq;
+import wiki.chiu.micro.user.service.AuthorizationQueryService;
 import wiki.chiu.micro.user.service.RoleService;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
 import wiki.chiu.micro.user.wrapper.RoleWrapper;
@@ -47,17 +45,21 @@ public class RoleServiceImpl implements RoleService {
 
   private final RoleWrapper roleWrapper;
 
+  private final AuthorizationQueryService authorizationQueries;
+
   public RoleServiceImpl(
       RoleRepository roleRepository,
       RoleMenuRepository roleMenuRepository,
       UserRoleRepository userRoleRepository,
       RoleDataPermissionRepository roleDataPermissionRepository,
-      RoleWrapper roleWrapper) {
+      RoleWrapper roleWrapper,
+      AuthorizationQueryService authorizationQueries) {
     this.roleRepository = roleRepository;
     this.roleMenuRepository = roleMenuRepository;
     this.userRoleRepository = userRoleRepository;
     this.roleDataPermissionRepository = roleDataPermissionRepository;
     this.roleWrapper = roleWrapper;
+    this.authorizationQueries = authorizationQueries;
   }
 
   @Override
@@ -134,44 +136,11 @@ public class RoleServiceImpl implements RoleService {
 
   @Override
   public RoleAuthorizationRpcVo findRoleAuthorization(Long roleId) {
-    return toAuthorization(roleId, roleRepository.findAuthorizationRows(roleId));
+    return authorizationQueries.findRoleAuthorization(roleId);
   }
 
   @Override
   public List<RoleAuthorizationRpcVo> findRoleAuthorizations(List<Long> roleIds) {
-    List<Long> distinctRoleIds = roleIds.stream().distinct().toList();
-    if (distinctRoleIds.isEmpty()) {
-      return List.of();
-    }
-    Map<Long, List<RoleRepository.RoleAuthorizationRow>> rowsByRole =
-        roleRepository.findAuthorizationRowsByRoleIds(distinctRoleIds).stream()
-            .collect(Collectors.groupingBy(RoleRepository.RoleAuthorizationRow::getRoleId));
-    return distinctRoleIds.stream()
-        .map(roleId -> toAuthorization(roleId, rowsByRole.getOrDefault(roleId, List.of())))
-        .toList();
-  }
-
-  private RoleAuthorizationRpcVo toAuthorization(
-      Long roleId, List<RoleRepository.RoleAuthorizationRow> rows) {
-    if (rows.isEmpty()) {
-      return RoleAuthorizationRpcVo.missing(roleId);
-    }
-    RoleRepository.RoleAuthorizationRow first = rows.getFirst();
-    return new RoleAuthorizationRpcVo(
-        first.getRoleId(),
-        true,
-        first.getCode(),
-        first.getStatus(),
-        rows.stream()
-            .map(RoleRepository.RoleAuthorizationRow::getAuthorityCode)
-            .filter(Objects::nonNull)
-            .collect(java.util.stream.Collectors.toUnmodifiableSet()),
-        rows.stream()
-            .map(RoleRepository.RoleAuthorizationRow::getPermissionCode)
-            .filter(Objects::nonNull)
-            .map(DataPermissionEnum::valueOf)
-            .distinct()
-            .sorted()
-            .toList());
+    return authorizationQueries.findRoleAuthorizations(roleIds);
   }
 }

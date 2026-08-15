@@ -1,7 +1,10 @@
 package wiki.chiu.micro.user.service.impl;
 
+import static wiki.chiu.micro.common.lang.ExceptionMessage.ROLE_NOT_EXIST;
+
 import java.util.*;
 import org.springframework.stereotype.Service;
+import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 import wiki.chiu.micro.user.convertor.MenuDisplayVoConvertor;
@@ -79,9 +82,11 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
   @Override
   public void saveMenu(Long roleId, List<Long> menuIds) {
+    RoleEntity role =
+        roleRepository.findById(roleId).orElseThrow(() -> new MissException(ROLE_NOT_EXIST));
     List<RoleMenuEntity> roleMenuEntities = RoleMenuEntityConvertor.convert(roleId, menuIds);
 
-    roleMenuWrapper.saveMenu(roleId, new ArrayList<>(roleMenuEntities));
+    roleMenuWrapper.saveMenu(roleId, role.getCode(), new ArrayList<>(roleMenuEntities));
   }
 
   @Override
