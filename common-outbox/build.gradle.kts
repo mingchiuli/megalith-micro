@@ -11,7 +11,4 @@ dependencies {
     implementation("io.micrometer:micrometer-core")
     implementation("tools.jackson.core:jackson-databind")
 
-    testImplementation("org.testcontainers:junit-jupiter:1.21.4")
-    testImplementation("org.testcontainers:mariadb:1.21.4")
-    testImplementation("org.mariadb.jdbc:mariadb-java-client")
 }
