@@ -139,7 +139,7 @@ pub fn get_config(key: ConfigKey) -> String {
     }
 }
 
-/// 获取静态字符串引用
-pub fn get_static_value(key: ConfigKey) -> &'static str {
-    Box::leak(get_config(key).into_boxed_str())
+/// 服务名静态引用，直接从全局配置借用，无需 clone 或泄漏
+pub fn server_name() -> &'static str {
+    get_app_config().server.name.as_str()
 }
