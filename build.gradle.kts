@@ -3,6 +3,11 @@ import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
 import com.diffplug.gradle.spotless.SpotlessExtension
+import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.plugins.ide.eclipse.model.Classpath
+import org.gradle.plugins.ide.eclipse.model.EclipseModel
+import org.gradle.plugins.ide.eclipse.model.SourceFolder
 
 plugins {
     // Only declare plugin versions, don't apply to root project
@@ -28,6 +33,7 @@ subprojects {
     plugins.apply("io.spring.dependency-management")
     plugins.apply("org.springframework.boot")  // Apply to all modules for -parameters and AOT
     plugins.apply("com.diffplug.spotless")
+    plugins.apply("eclipse")
 
     configure<SpotlessExtension> {
         java {
@@ -41,6 +47,10 @@ subprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
+    }
+
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
     }
 
     dependencies {
@@ -117,6 +127,20 @@ subprojects {
         // Library modules: generate plain jar
         tasks.named<BootJar>("bootJar") {
             enabled = false
+        }
+    }
+
+    configure<EclipseModel> {
+        classpath {
+            val javaSourceSets = project.extensions.getByType<SourceSetContainer>()
+            sourceSets = javaSourceSets.matching { it.name != "aot" && it.name != "aotTest" }
+            file {
+                whenMerged(Action<Classpath> {
+                    entries.removeAll { entry ->
+                        entry is SourceFolder && entry.path.startsWith("build/generated/aot")
+                    }
+                })
+            }
         }
     }
 
