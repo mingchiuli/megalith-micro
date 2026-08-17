@@ -37,7 +37,7 @@
     "@opentelemetry/resources": "^2.10.0",
     "@opentelemetry/sdk-node": "^0.221.0",
     "@opentelemetry/semantic-conventions": "^1.43.0",
-    "@unhead/vue": "^3.3.1",
+    "@unhead/vue": "^3.3.2",
     "@vavt/v3-extension": "^5.0.0",
     "@vue/server-renderer": "^3.5.41",
     "axios": "^1.19.0",
