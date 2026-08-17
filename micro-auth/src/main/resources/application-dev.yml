@@ -29,6 +29,9 @@ management:
     web:
       exposure:
         include: "*"
+  health:
+    mail:
+      enabled: false # 本地 163 SMTP 无授权码，认证必失败；禁用 mail 健康指标避免聚合 health DOWN
   tracing:
     sampling:
       probability: 1.0
