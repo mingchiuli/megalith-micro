@@ -12,7 +12,6 @@ import {
   type Button,
   type Menu,
   type MenuNode,
-  type Tab,
   type UserInfo
 } from '@/type/entity'
 import {
@@ -184,5 +183,3 @@ const menuToRoute = (menu: Menu): RouteRecordRaw => ({
     title: menu.title
   }
 })
-
-export type { Tab }

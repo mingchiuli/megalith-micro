@@ -18,7 +18,7 @@ export const API_CONFIG = {
 }
 
 // 认证相关API
-export const AUTH_API = {
+const AUTH_API = {
   // 登录
   LOGIN: '/login',
   // 刷新token
@@ -42,7 +42,7 @@ export const AUTH_API = {
 }
 
 // 博客相关API - 公开接口
-export const BLOG_PUBLIC_API = {
+const BLOG_PUBLIC_API = {
   // 分页获取博客列表
   GET_BLOGS_PAGE: (pageNo: number) => `/public/blog/page/${pageNo}`,
   // 获取博客详情
@@ -56,7 +56,7 @@ export const BLOG_PUBLIC_API = {
 }
 
 // 博客相关API - 管理员接口
-export const BLOG_ADMIN_API = {
+const BLOG_ADMIN_API = {
   // 获取博客列表（管理员）
   GET_BLOGS: '/sys/blog/blogs',
   // 删除博客（批量）
@@ -80,7 +80,7 @@ export const BLOG_ADMIN_API = {
 }
 
 // 用户管理API
-export const USER_ADMIN_API = {
+const USER_ADMIN_API = {
   // 用户分页查询
   GET_USERS_PAGE: (pageNumber: number) => `/sys/user/page/${pageNumber}`,
   // 获取用户详情
@@ -96,7 +96,7 @@ export const USER_ADMIN_API = {
 }
 
 // 角色管理API
-export const ROLE_ADMIN_API = {
+const ROLE_ADMIN_API = {
   // 角色分页查询
   GET_ROLES: '/sys/role/roles',
   // 获取角色详情
@@ -116,7 +116,7 @@ export const ROLE_ADMIN_API = {
 }
 
 // 菜单管理API
-export const MENU_ADMIN_API = {
+const MENU_ADMIN_API = {
   // 获取菜单列表
   GET_MENUS: '/sys/menu/list',
   // 获取菜单详情
@@ -134,7 +134,7 @@ export const MENU_ADMIN_API = {
 }
 
 // 权限管理API
-export const AUTHORITY_ADMIN_API = {
+const AUTHORITY_ADMIN_API = {
   // 获取权限列表
   GET_AUTHORITIES: '/sys/authority/list',
   // 获取权限详情
@@ -148,13 +148,13 @@ export const AUTHORITY_ADMIN_API = {
 }
 
 // 搜索相关API
-export const SEARCH_API = {
+const SEARCH_API = {
   // 搜索博客
   SEARCH_BLOGS: '/search/public/blog'
 }
 
 // 实时协作相关API
-export const COLLABORATION_API = {
+const COLLABORATION_API = {
   // 获取绑定协作房间的短期凭证
   TICKET: '/sys/blog/edit/ticket',
   // WebSocket房间连接
@@ -162,7 +162,7 @@ export const COLLABORATION_API = {
 }
 
 // AI服务相关API
-export const AI_API = {
+const AI_API = {
   // 获取AI模型列表
   GET_MODELS: '/api/tags'
 }
@@ -227,12 +227,4 @@ export const buildCommonUrls = {
   blogDownload: (params: { keywords?: string; createStart?: string; createEnd?: string }) => {
     return buildQueryUrl(BLOG_ADMIN_API.DOWNLOAD_BLOGS, params)
   }
-}
-
-// 默认导出所有配置
-export default {
-  API_CONFIG,
-  API_ENDPOINTS,
-  buildQueryUrl,
-  buildCommonUrls
 }

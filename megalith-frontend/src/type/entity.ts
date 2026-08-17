@@ -142,23 +142,6 @@ interface SearchBlogsHighlightStruct {
   content: string[]
 }
 
-export interface SearchFavors {
-  id: string
-  status: Status
-  title: string
-  description: string
-  link: string
-  created: string
-  updated: string
-  score: string
-  highlight: SearchFavorsHighlightStruct
-}
-
-interface SearchFavorsHighlightStruct {
-  title: string[]
-  description: string[]
-}
-
 export interface LoginStruct {
   username: string
   password: string
@@ -172,7 +155,7 @@ export interface UserInfo {
   id: number
 }
 
-export interface ChildrenFather<TChild> {
+interface ChildrenFather<TChild> {
   children: TChild[]
 }
 
@@ -195,7 +178,7 @@ export interface Button extends MenuNodeBase {
   component?: string
 }
 
-export interface MenuRoute extends MenuNodeBase, ChildrenFather<MenuNode> {
+interface MenuRoute extends MenuNodeBase, ChildrenFather<MenuNode> {
   type: RoutesEnum.CATALOGUE | RoutesEnum.MENU
   url: string
   component: string
@@ -208,12 +191,6 @@ export interface CatalogueLabel extends ChildrenFather<CatalogueLabel> {
   id: string
   label: string
   dist: number
-}
-
-export interface AiContentResp {
-  model: string
-  response: string
-  context: number[]
 }
 
 export interface AiModelsResp {
@@ -268,15 +245,6 @@ export enum RoutesEnum {
   CATALOGUE = 0,
   MENU,
   BUTTON
-}
-
-export enum FieldName {
-  DESCRIPTION = 'description',
-  CONTENT = 'content',
-  STATUS = 'status',
-  LINK = 'link',
-  TITLE = 'title',
-  SENSITIVE_CONTENT_LIST = 'sensitiveContentList'
 }
 
 export enum SensitiveType {
