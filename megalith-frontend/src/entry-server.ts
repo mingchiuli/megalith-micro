@@ -1,9 +1,9 @@
 import { renderToString, type SSRContext } from '@vue/server-renderer'
-import { createHead, renderSSRHead } from '@unhead/vue/server'
+import { createHead } from '@unhead/vue/server'
 import { stringify } from 'devalue'
 import { createMegalithApp, type AppRequestContext } from './app'
 
-export type RenderResult = {
+type RenderResult = {
   appHtml: string
   headTags: string
   htmlAttrs: string
@@ -30,7 +30,7 @@ export const render = async (url: string, request: AppRequestContext): Promise<R
   await router.isReady()
   const context: SSRContext = {}
   const appHtml = await renderToString(app, context)
-  const renderedHead = await renderSSRHead(head)
+  const renderedHead = head.render()
   const finalRoute = router.currentRoute.value
   const redirect = finalRoute.path !== requestedPath ? finalRoute.fullPath : undefined
 

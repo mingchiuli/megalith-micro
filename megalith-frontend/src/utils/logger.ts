@@ -16,9 +16,6 @@ export const logger = {
     // Always log errors, even in production
     console.error(...args)
   },
-  debug: (...args: unknown[]): void => {
-    if (isDev) console.debug(...args)
-  },
   info: (...args: unknown[]): void => {
     if (isDev) console.info(...args)
   }

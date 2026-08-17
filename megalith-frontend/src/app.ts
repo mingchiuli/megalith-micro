@@ -23,7 +23,7 @@ export type CreateMegalithAppOptions = {
   request?: AppRequestContext
 }
 
-export type MegalithApp = {
+type MegalithApp = {
   app: VueApp
   pinia: Pinia
   router: ReturnType<typeof createAppRouter>

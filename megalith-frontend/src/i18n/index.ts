@@ -3,7 +3,7 @@ import { messages } from './messages'
 
 export type AppLocale = keyof typeof messages
 export const DEFAULT_LOCALE: AppLocale = 'zh-CN'
-export const LOCALE_COOKIE = 'megalith_locale'
+const LOCALE_COOKIE = 'megalith_locale'
 export const supportedLocales: AppLocale[] = ['zh-CN', 'en-US']
 
 export const createAppI18n = (locale: AppLocale = DEFAULT_LOCALE) =>
@@ -14,8 +14,6 @@ export const createAppI18n = (locale: AppLocale = DEFAULT_LOCALE) =>
     fallbackLocale: DEFAULT_LOCALE,
     messages
   })
-
-export type AppI18n = ReturnType<typeof createAppI18n>
 
 export const persistLocale = (locale: AppLocale) => {
   if (typeof document === 'undefined') return

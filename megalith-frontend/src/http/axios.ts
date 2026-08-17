@@ -7,7 +7,7 @@ import axios, {
 import type { Data } from '@/type/entity'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 
-export type HttpClientOptions = {
+type HttpClientOptions = {
   baseURL?: string
   cookie?: string
   origin?: string
