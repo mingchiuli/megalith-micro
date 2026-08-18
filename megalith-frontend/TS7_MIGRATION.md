@@ -4,14 +4,14 @@
 
 ## 当前状态快照
 
-| 项 | 值 |
-|---|---|
-| typescript | `~6.0.3`（JS 版 `tsc`） |
-| vue-tsc | `^3.3.9` |
-| 包管理 | npm 单仓（无 workspaces） |
-| 构建 | Vite 8（client + SSR），`tsc -p tsconfig.server.json`（server emit） |
-| 类型检查 | `vue-tsc`（app/test）、`tsc`（node） |
-| 编辑器 | JetBrains 环境（`IdeaProjects/`） |
+| 项         | 值                                                                   |
+| ---------- | -------------------------------------------------------------------- |
+| typescript | `~6.0.3`（JS 版 `tsc`）                                              |
+| vue-tsc    | `^3.3.9`                                                             |
+| 包管理     | npm 单仓（无 workspaces）                                            |
+| 构建       | Vite 8（client + SSR），`tsc -p tsconfig.server.json`（server emit） |
+| 类型检查   | `vue-tsc`（app/test）、`tsc`（node）                                 |
+| 编辑器     | JetBrains 环境（`IdeaProjects/`）                                    |
 
 ## 评估结论（2026-08-17）
 
@@ -41,12 +41,12 @@
 
 ## 预期要处理的新严格默认值
 
-| 新默认 | 本项目影响 |
-|---|---|
-| `strictBuiltinIteratorReturn` | 迭代器返回类型从 `IteratorResult<T, any>` 变 `IteratorResult<T, undefined>`，可能有个别报错 |
-| `noUncheckedSideEffectImports` | 副作用导入需可解析；本项目 CSS 已由 `vite/client` 覆盖，预计无报错 |
-| `isolatedModules` 默认 true | 本项目已用 `verbatimModuleSyntax: true`，等效覆盖，无影响 |
-| 移除的 tsconfig 选项 | 扫描确认全链零命中 |
+| 新默认                         | 本项目影响                                                                                  |
+| ------------------------------ | ------------------------------------------------------------------------------------------- |
+| `strictBuiltinIteratorReturn`  | 迭代器返回类型从 `IteratorResult<T, any>` 变 `IteratorResult<T, undefined>`，可能有个别报错 |
+| `noUncheckedSideEffectImports` | 副作用导入需可解析；本项目 CSS 已由 `vite/client` 覆盖，预计无报错                          |
+| `isolatedModules` 默认 true    | 本项目已用 `verbatimModuleSyntax: true`，等效覆盖，无影响                                   |
+| 移除的 tsconfig 选项           | 扫描确认全链零命中                                                                          |
 
 另外注意 tsgo 已知边界：`skipLibCheck` 不压制第三方 `.d.ts` 的解析级错误（TS1540）、
 JSDoc `@typedef`+`@template` 声明生成会丢泛型参数（本项目非 `.js`，风险低）。
