@@ -7,13 +7,7 @@ import {
   type Router
 } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import {
-  RoutesEnum,
-  type Button,
-  type Menu,
-  type MenuNode,
-  type UserInfo
-} from '@/type/entity'
+import { RoutesEnum, type Button, type Menu, type MenuNode, type UserInfo } from '@/type/entity'
 import {
   menuStore,
   loginStateStore,
