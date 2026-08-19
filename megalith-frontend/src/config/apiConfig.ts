@@ -111,6 +111,10 @@ const ROLE_ADMIN_API = {
   GET_ROLE_MENUS: (id: number) => `/sys/role/menu/${id}`,
   // 设置角色菜单权限
   SET_ROLE_MENUS: (id: number) => `/sys/role/menu/${id}`,
+  // 获取角色数据权限
+  GET_ROLE_DATA_PERMISSIONS: (id: number) => `/sys/role/data-permission/${id}`,
+  // 设置角色数据权限
+  SET_ROLE_DATA_PERMISSIONS: (id: number) => `/sys/role/data-permission/${id}`,
   // 获取所有有效角色
   GET_VALID_ROLES: '/sys/role/valid/all'
 }

@@ -27,6 +27,9 @@ const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 const menuTreeData = ref<MenuForm[]>([])
 const roleId = ref<number>()
+const dataPermissionDialogVisible = ref(false)
+const dataPermissionRoleId = ref<number>()
+const selectedDataPermissions = ref<DataPermission[]>([])
 
 const page: PageAdapter<RoleSys> = reactive({
   content: [],
@@ -68,15 +71,13 @@ type Form = {
   code: string
   remark: string
   status: Status
-  dataPermissions: DataPermission[]
 }
 const form: Form = reactive({
   id: undefined,
   name: '',
   code: '',
   remark: '',
-  status: 0,
-  dataPermissions: []
+  status: 0
 })
 const dataPermissionOptions = computed(() => [
   { value: DataPermission.BLOG_VIEW_ALL, label: t('admin.blogViewAll') },
@@ -126,7 +127,6 @@ const clearForm = () => {
   form.code = ''
   form.remark = ''
   form.status = 0
-  form.dataPermissions = []
 }
 
 const submitForm = async (ref: FormInstance) => {
@@ -156,10 +156,19 @@ const menuHandleClose = () => {
   menuDialogVisible.value = false
 }
 
+const dataPermissionHandleClose = () => {
+  selectedDataPermissions.value = []
+  dataPermissionRoleId.value = undefined
+  dataPermissionDialogVisible.value = false
+}
+
 const handleEdit = async (row: RoleSys) => {
   const data = await GET<RoleSys>(API_ENDPOINTS.ROLE_ADMIN.GET_ROLE_INFO(row.id))
-  Object.assign(form, data)
-  form.dataPermissions = data.dataPermissions ?? []
+  form.id = data.id
+  form.name = data.name
+  form.code = data.code
+  form.remark = data.remark
+  form.status = data.status
   dialogVisible.value = true
 }
 
@@ -168,6 +177,28 @@ const handleMenu = async (row: RoleSys) => {
   menuTreeData.value = data
   roleId.value = row.id
   menuDialogVisible.value = true
+}
+
+const handleDataPermission = async (row: RoleSys) => {
+  selectedDataPermissions.value = await GET<DataPermission[]>(
+    API_ENDPOINTS.ROLE_ADMIN.GET_ROLE_DATA_PERMISSIONS(row.id)
+  )
+  dataPermissionRoleId.value = row.id
+  dataPermissionDialogVisible.value = true
+}
+
+const submitDataPermission = async () => {
+  await POST<null>(
+    API_ENDPOINTS.ROLE_ADMIN.SET_ROLE_DATA_PERMISSIONS(dataPermissionRoleId.value!),
+    selectedDataPermissions.value
+  )
+  ElNotification({
+    title: t('common.operationSuccess'),
+    message: t('common.editSuccess'),
+    type: 'success'
+  })
+  dataPermissionHandleClose()
+  await queryRoles()
 }
 
 const delBatch = async () => {
@@ -351,7 +382,7 @@ useUniversalData('admin:roles', fetchRoles, applyRoles, { loading })
     </el-table-column>
 
     <!-- @vue-generic {RoleSys} -->
-    <el-table-column :fixed="fix" :label="t('common.operations')" min-width="250" align="center">
+    <el-table-column :fixed="fix" :label="t('common.operations')" min-width="330" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_EDIT)">
           <el-button
@@ -368,6 +399,15 @@ useUniversalData('admin:roles', fetchRoles, applyRoles, { loading })
             :type="getButtonType(ButtonAuth.SYS_ROLE_MENU_PERM)"
             @click="handleMenu(scope.row)"
             >{{ getButtonTitle(ButtonAuth.SYS_ROLE_MENU_PERM) }}</el-button
+          >
+        </template>
+
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_DATA_PERM)">
+          <el-button
+            size="small"
+            :type="getButtonType(ButtonAuth.SYS_ROLE_DATA_PERM)"
+            @click="handleDataPermission(scope.row)"
+            >{{ getButtonTitle(ButtonAuth.SYS_ROLE_DATA_PERM) }}</el-button
           >
         </template>
 
@@ -423,14 +463,6 @@ useUniversalData('admin:roles', fetchRoles, applyRoles, { loading })
         </el-radio-group>
       </el-form-item>
 
-      <el-form-item :label="t('admin.dataPermission')" prop="dataPermissions">
-        <el-checkbox-group v-model="form.dataPermissions" class="data-permission-options">
-          <el-checkbox v-for="item in dataPermissionOptions" :key="item.value" :value="item.value">
-            {{ item.label }}
-          </el-checkbox>
-        </el-checkbox-group>
-      </el-form-item>
-
       <el-form-item label-width="400px">
         <el-button
           v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_SAVE)"
@@ -465,6 +497,31 @@ useUniversalData('admin:roles', fetchRoles, applyRoles, { loading })
           :type="getButtonType(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)"
           @click="submitmenuFormHandle(menuTreeRef!)"
           >{{ getButtonTitle(ButtonAuth.SYS_MENU_AUTHORITY_SAVE) }}</el-button
+        >
+      </el-form-item>
+    </el-form>
+  </el-dialog>
+
+  <el-dialog
+    :title="t('admin.dataPermission')"
+    v-model="dataPermissionDialogVisible"
+    width="600px"
+    :before-close="dataPermissionHandleClose"
+  >
+    <el-form>
+      <el-form-item :label="t('admin.dataPermission')" label-width="130px">
+        <el-checkbox-group v-model="selectedDataPermissions" class="data-permission-options">
+          <el-checkbox v-for="item in dataPermissionOptions" :key="item.value" :value="item.value">
+            {{ item.label }}
+          </el-checkbox>
+        </el-checkbox-group>
+      </el-form-item>
+      <el-form-item label-width="450px">
+        <el-button
+          v-if="checkButtonAuth(ButtonAuth.SYS_ROLE_DATA_SAVE)"
+          :type="getButtonType(ButtonAuth.SYS_ROLE_DATA_SAVE)"
+          @click="submitDataPermission"
+          >{{ getButtonTitle(ButtonAuth.SYS_ROLE_DATA_SAVE) }}</el-button
         >
       </el-form-item>
     </el-form>
