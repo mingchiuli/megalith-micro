@@ -3,8 +3,6 @@ package wiki.chiu.micro.user.wrapper;
 import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
-import wiki.chiu.micro.user.entity.RoleDataPermissionEntity;
 import wiki.chiu.micro.user.entity.RoleEntity;
 import wiki.chiu.micro.user.repository.RoleDataPermissionRepository;
 import wiki.chiu.micro.user.repository.RoleMenuRepository;
@@ -35,17 +33,8 @@ public class RoleWrapper {
   }
 
   @Transactional
-  public void saveOrUpdate(
-      RoleEntity role, List<DataPermissionEnum> permissions, List<String> affectedCodes) {
+  public void saveOrUpdate(RoleEntity role, List<String> affectedCodes) {
     RoleEntity saved = roles.save(role);
-    dataPermissions.deleteByRoleId(saved.getId());
-    dataPermissions.flush();
-    dataPermissions.saveAll(
-        permissions.stream()
-            .distinct()
-            .sorted()
-            .map(permission -> new RoleDataPermissionEntity(saved.getId(), permission))
-            .toList());
     cacheEvictions.enqueue(List.of(), List.of(saved.getId()), affectedCodes, true, false);
   }
 

@@ -96,7 +96,7 @@ public class RoleServiceImpl implements RoleService {
     RoleEntity roleEntity = RoleEntityConvertor.convert(roleReq, dealRole);
     List<String> affectedCodes =
         Stream.of(previousCode, roleEntity.getCode()).filter(Objects::nonNull).distinct().toList();
-    roleWrapper.saveOrUpdate(roleEntity, roleReq.dataPermissions(), affectedCodes);
+    roleWrapper.saveOrUpdate(roleEntity, affectedCodes);
   }
 
   @Override
