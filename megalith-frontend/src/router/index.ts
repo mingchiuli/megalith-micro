@@ -79,10 +79,13 @@ export const createAppRouter = ({ server, api }: RouterOptions): Router => {
       api.GET<Menu>(API_ENDPOINTS.AUTH.MENU_NAV),
       api.GET<UserInfo>(API_ENDPOINTS.AUTH.USER_INFO)
     ])
+  let rematchingPath: string | undefined
 
   router.beforeEach(async (to) => {
     const privateRoute = to.path.startsWith('/sys') || to.path.startsWith('/backend')
     const loginState = loginStateStore()
+    const isRouteRematch = rematchingPath === to.fullPath
+    rematchingPath = undefined
 
     if (!loginState.login && !privateRoute) return
 
@@ -93,6 +96,8 @@ export const createAppRouter = ({ server, api }: RouterOptions): Router => {
         const [fetchedMenu, user] = await getSession()
         menuTree = fetchedMenu
         loginState.user = user
+      } else if (privateRoute && !isRouteRematch) {
+        menuTree = await api.GET<Menu>(API_ENDPOINTS.AUTH.MENU_NAV)
       }
       if (!menuTree) throw new Error('Authenticated menu is unavailable')
 
@@ -101,7 +106,10 @@ export const createAppRouter = ({ server, api }: RouterOptions): Router => {
       loginState.login = true
       authMarkStore().auth = true
       if (to.path.startsWith('/login')) return { name: 'blogs' }
-      if (addedRoute && (!to.name || to.name === 'not-found')) return to.fullPath
+      if (addedRoute && (!to.name || to.name === 'not-found')) {
+        rematchingPath = to.fullPath
+        return to.fullPath
+      }
     } catch {
       clearAuthStores(router)
       if (privateRoute) return { name: 'login', query: { redirect: to.fullPath } }
@@ -132,18 +140,21 @@ const dealSysTab = (to: RouteLocationNormalized, menuTree: Menu) => {
 }
 
 const applyMenuTree = (router: Router, rootMenu: Menu): boolean => {
+  const currentMenu = menuStore().menuTree
   const buttons = collectButtons(rootMenu)
   const { buttonList } = storeToRefs(buttonStore())
   if (diff(buttonList.value, buttons)) buttonList.value = buttons
 
   const { menuTree } = storeToRefs(menuStore())
-  menuTree.value = rootMenu
+  if (!currentMenu || diff([currentMenu], [rootMenu])) menuTree.value = rootMenu
 
-  if (router.hasRoute(rootMenu.name)) {
-    return false
+  if (currentMenu?.name !== rootMenu.name && currentMenu && router.hasRoute(currentMenu.name)) {
+    router.removeRoute(currentMenu.name)
   }
+  const addedRoute = !router.hasRoute(rootMenu.name)
+  if (!addedRoute) router.removeRoute(rootMenu.name)
   router.addRoute(buildRoute(rootMenu))
-  return true
+  return addedRoute
 }
 
 const collectButtons = (rootMenu: MenuNode): Button[] => {

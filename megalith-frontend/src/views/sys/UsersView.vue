@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useHttp } from '@/http/http'
 import type { PageAdapter, RoleSys, UserSys } from '@/type/entity'
-import type { FormInstance, FormRules } from 'element-plus'
+import type { FormInstance, FormRules, TableInstance } from 'element-plus'
 import { Status, ButtonAuth } from '@/type/entity'
 import { downloadSQLData } from '@/utils/download'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissions'
@@ -13,7 +13,8 @@ import { useLatestRequest, useUniversalData } from '@/composables'
 const { t } = useI18n()
 const { GET, POST, DOWNLOAD } = useHttp()
 
-const { moreItems, fixSelection, fix } = displayState()
+const tableRef = useTemplateRef<TableInstance>('tableRef')
+const { moreItems, fixSelection, fix } = displayState(tableRef)
 const multipleSelection = ref<UserSys[]>([])
 const dialogVisible = ref(false)
 const loading = ref(true)
@@ -283,6 +284,7 @@ useUniversalData<UsersInitialData>(
   </el-form>
 
   <el-table
+    ref="tableRef"
     :data="content"
     :style="{ width: '100%' }"
     border

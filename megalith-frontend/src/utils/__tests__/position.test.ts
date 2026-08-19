@@ -1,11 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { TableInstance } from 'element-plus'
+import { shallowRef } from 'vue'
 import { displayState } from '@/utils/position'
+
+const tableRef = shallowRef<TableInstance | null>(null)
 
 // 通过宿主组件让 onMounted / onUnmounted 生效
 const Host = defineComponent({
   setup() {
-    const state = displayState()
+    const state = displayState(tableRef)
     return { state }
   },
   render() {
@@ -25,6 +29,7 @@ describe('utils/position#displayState', () => {
   let removeSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
+    tableRef.value = null
     addSpy = vi.spyOn(window, 'addEventListener')
     removeSpy = vi.spyOn(window, 'removeEventListener')
   })
@@ -92,6 +97,29 @@ describe('utils/position#displayState', () => {
     handler!(new Event('resize'))
     expect(state.fix.value).toBe(false)
 
+    wrapper.unmount()
+  })
+
+  it('更新断点状态后刷新表格布局', async () => {
+    setWidth(1024)
+    const wrapper = mount(Host)
+    const doLayout = vi.fn()
+    tableRef.value = { doLayout } as unknown as TableInstance
+    const handler = addSpy.mock.calls.find(
+      (call: unknown[]) => call[0] === 'resize'
+    )?.[1] as EventListener
+    await nextTick()
+    expect(doLayout).toHaveBeenCalledOnce()
+    doLayout.mockClear()
+
+    handler(new Event('resize'))
+    await nextTick()
+    expect(doLayout).not.toHaveBeenCalled()
+
+    setWidth(600)
+    handler(new Event('resize'))
+    await nextTick()
+    expect(doLayout).toHaveBeenCalledOnce()
     wrapper.unmount()
   })
 })

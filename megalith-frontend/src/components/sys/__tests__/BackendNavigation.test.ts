@@ -78,6 +78,14 @@ const SlotStub = defineComponent({
       h('div', slots.default?.())
 })
 
+const ElTextStub = defineComponent({
+  name: 'ElText',
+  setup:
+    (_, { slots }) =>
+    () =>
+      h('span', slots.default?.())
+})
+
 const ElDropdownStub = defineComponent({
   name: 'ElDropdown',
   props: {
@@ -171,7 +179,7 @@ describe('backend navigation', () => {
     expect(wrapper.find('.content').exists()).toBe(true)
   })
 
-  it('opens the user dropdown by click as well as hover', async () => {
+  it('renders valid dropdown markup and supports click as well as hover', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
     const router = createBackendRouter()
@@ -182,12 +190,16 @@ describe('backend navigation', () => {
       global: {
         plugins: [pinia, router],
         stubs: {
-          ElText: SlotStub,
+          ElText: ElTextStub,
           ElDropdown: ElDropdownStub
         }
       }
     })
 
+    expect(wrapper.get('.header-content').element.tagName).toBe('DIV')
+    expect(wrapper.get('.header-title').element.tagName).toBe('SPAN')
+    expect(wrapper.get('.header-title').findComponent(ElDropdownStub).exists()).toBe(false)
+    expect(wrapper.get('.header-actions').findComponent(ElDropdownStub).exists()).toBe(true)
     expect(wrapper.getComponent(ElDropdownStub).props('trigger')).toEqual(['click', 'hover'])
   })
 

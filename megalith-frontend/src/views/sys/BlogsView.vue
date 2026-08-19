@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { TableInstance } from 'element-plus'
 import { useHttp } from '@/http/http'
 import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
 import { Timer } from '@element-plus/icons-vue'
@@ -14,7 +15,8 @@ const { t } = useI18n()
 const { GET, POST, DOWNLOAD } = useHttp()
 const router = useRouter()
 
-const { fixSelection, fix, moreItems } = displayState()
+const tableRef = useTemplateRef<TableInstance>('tableRef')
+const { fixSelection, fix, moreItems } = displayState(tableRef)
 const input = ref('')
 const multipleSelection = ref<BlogSys[]>([])
 const delBtlStatus = ref(true)
@@ -251,6 +253,7 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
   </el-form>
 
   <el-table
+    ref="tableRef"
     :data="content"
     :style="{ width: '100%' }"
     border
