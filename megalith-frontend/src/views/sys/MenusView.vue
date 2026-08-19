@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { TableInstance } from 'element-plus'
 import { useHttp } from '@/http/http'
 import type { MenuSys } from '@/type/entity'
 import { type FormInstance, type FormRules, type TreeNodeData } from 'element-plus'
@@ -13,7 +14,8 @@ import { useLatestRequest, useUniversalData } from '@/composables'
 const { t } = useI18n()
 const { GET, POST, DOWNLOAD } = useHttp()
 
-const { fix } = displayState()
+const tableRef = useTemplateRef<TableInstance>('tableRef')
+const { fix } = displayState(tableRef)
 const dialogVisible = ref(false)
 const loading = ref(true)
 const { runLatest } = useLatestRequest(loading)
@@ -228,7 +230,15 @@ useUniversalData('admin:menus', fetchMenus, applyMenus, { loading })
     </el-form-item>
   </el-form>
 
-  <el-table v-loading="loading" :data="content" row-key="id" border stripe default-expand-all>
+  <el-table
+    ref="tableRef"
+    v-loading="loading"
+    :data="content"
+    row-key="id"
+    border
+    stripe
+    default-expand-all
+  >
     <el-table-column
       prop="title"
       :label="t('common.title')"

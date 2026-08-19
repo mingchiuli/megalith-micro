@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { TableInstance } from 'element-plus'
 import { useHttp } from '@/http/http'
 import type { BlogDelSys, PageAdapter } from '@/type/entity'
 import { ButtonAuth } from '@/type/entity'
@@ -11,7 +12,8 @@ import { useLatestRequest, useUniversalData } from '@/composables'
 const { t } = useI18n()
 const { GET, POST } = useHttp()
 
-const { moreItems, fix } = displayState()
+const tableRef = useTemplateRef<TableInstance>('tableRef')
+const { moreItems, fix } = displayState(tableRef)
 const loading = ref(true)
 const { runLatest } = useLatestRequest(loading)
 const multipleSelection = ref<BlogDelSys[]>([])
@@ -77,6 +79,7 @@ useUniversalData('admin:deleted-blogs', fetchDeletedBlogs, applyDeletedBlogs, { 
 
 <template>
   <el-table
+    ref="tableRef"
     :data="content"
     :style="{ width: '100%' }"
     border

@@ -110,6 +110,15 @@ describe('RolesView data permissions', () => {
 
     expect(mocks.GET).toHaveBeenCalledWith('/sys/role/data-permission/7')
     expect(document.body.textContent).toContain('查看全部博客')
+    const dataPermissionDialog = Array.from(document.body.querySelectorAll('.el-dialog')).find(
+      (dialog) => dialog.querySelector('.el-dialog__title')?.textContent === '数据权限'
+    )
+    expect(dataPermissionDialog).toBeDefined()
+    expect(
+      Array.from(dataPermissionDialog!.querySelectorAll('.el-form-item__label')).some(
+        (label) => label.textContent?.trim() === '数据权限'
+      )
+    ).toBe(false)
 
     findButton('Save data permissions').click()
     await flushPromises()

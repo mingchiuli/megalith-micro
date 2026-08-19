@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { createAppRouter } from '@/router'
-import { loginStateStore } from '@/stores'
+import { loginStateStore, menuStore } from '@/stores'
 import { RoutesEnum, RoutesStatus, type Menu, type UserInfo } from '@/type/entity'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import type { ApiClient } from '@/http/http'
@@ -58,6 +58,28 @@ describe('authentication routing', () => {
     expect(loginStateStore().login).toBe(true)
     expect(loginStateStore().user).toEqual(user)
     expect(GET).toHaveBeenCalledTimes(2)
+  })
+
+  it('refreshes navigation on every private route without reloading the user', async () => {
+    const refreshedMenu = { ...backendMenu, title: 'Refreshed backend' }
+    let menuRequests = 0
+    const GET = vi.fn((url: string) => {
+      if (url === API_ENDPOINTS.AUTH.MENU_NAV) {
+        menuRequests += 1
+        return Promise.resolve(menuRequests === 1 ? backendMenu : refreshedMenu)
+      }
+      if (url === API_ENDPOINTS.AUTH.USER_INFO) return Promise.resolve(user)
+      return Promise.reject(new Error(`Unexpected URL: ${url}`))
+    })
+    const router = createAppRouter({ server: true, api: apiWithGet(GET) })
+
+    await router.push('/backend')
+    await router.push('/backend?view=roles')
+    await router.push('/backend?view=menus')
+
+    expect(GET.mock.calls.filter(([url]) => url === API_ENDPOINTS.AUTH.MENU_NAV)).toHaveLength(3)
+    expect(GET.mock.calls.filter(([url]) => url === API_ENDPOINTS.AUTH.USER_INFO)).toHaveLength(1)
+    expect(menuStore().menuTree?.title).toBe('Refreshed backend')
   })
 
   it('redirects a private route only after session restoration fails', async () => {

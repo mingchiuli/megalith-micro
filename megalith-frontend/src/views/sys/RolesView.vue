@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useHttp } from '@/http/http'
 import type { PageAdapter, RoleSys } from '@/type/entity'
-import type { ElTree, FormInstance, FormRules } from 'element-plus'
+import type { ElTree, FormInstance, FormRules, TableInstance } from 'element-plus'
 import { Status, ButtonAuth, DataPermission } from '@/type/entity'
 import { downloadSQLData } from '@/utils/download'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissions'
@@ -13,7 +13,8 @@ import { useLatestRequest, useUniversalData } from '@/composables'
 const { t } = useI18n()
 const { GET, POST, DOWNLOAD } = useHttp()
 
-const { moreItems, fixSelection, fix } = displayState()
+const tableRef = useTemplateRef<TableInstance>('tableRef')
+const { moreItems, fixSelection, fix } = displayState(tableRef)
 const dialogVisible = ref(false)
 const delBtlStatus = ref(true)
 const loading = ref(true)
@@ -317,6 +318,7 @@ useUniversalData('admin:roles', fetchRoles, applyRoles, { loading })
   </el-form>
 
   <el-table
+    ref="tableRef"
     :data="content"
     :style="{ width: '100%' }"
     border
@@ -509,7 +511,7 @@ useUniversalData('admin:roles', fetchRoles, applyRoles, { loading })
     :before-close="dataPermissionHandleClose"
   >
     <el-form>
-      <el-form-item :label="t('admin.dataPermission')" label-width="130px">
+      <el-form-item>
         <el-checkbox-group v-model="selectedDataPermissions" class="data-permission-options">
           <el-checkbox v-for="item in dataPermissionOptions" :key="item.value" :value="item.value">
             {{ item.label }}

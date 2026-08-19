@@ -25,26 +25,28 @@ const handleLogout = async () => {
 
 <template>
   <div class="header-container">
-    <el-text class="header-title" size="large"
-      >{{ $t('admin.backend') }}
-      <el-dropdown class="header-dropdown" :trigger="['click', 'hover']">
-        <span class="el-dropdown-link">
-          {{ nickname }}
-          <el-icon class="el-icon--right">
-            <arrow-down />
-          </el-icon>
-        </span>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item @click="goToHome">{{ $t('admin.home') }}</el-dropdown-item>
-            <el-dropdown-item divided @click="handleLogout">{{
-              $t('admin.logout')
-            }}</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-      <el-avatar class="header-avatar" size="default" :src="avatar"></el-avatar>
-    </el-text>
+    <div class="header-content">
+      <el-text class="header-title" size="large">{{ $t('admin.backend') }}</el-text>
+      <div class="header-actions">
+        <el-dropdown class="header-dropdown" :trigger="['click', 'hover']">
+          <span class="el-dropdown-link">
+            {{ nickname }}
+            <el-icon class="el-icon--right">
+              <arrow-down />
+            </el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="goToHome">{{ $t('admin.home') }}</el-dropdown-item>
+              <el-dropdown-item divided @click="handleLogout">{{
+                $t('admin.logout')
+              }}</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-avatar class="header-avatar" size="default" :src="avatar"></el-avatar>
+      </div>
+    </div>
   </div>
 </template>
 <style scoped>
@@ -53,25 +55,36 @@ const handleLogout = async () => {
   padding-bottom: 8px;
 }
 
-.header-title {
+.header-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
   text-align: center;
-  line-height: 60px;
-  display: inline-block;
   width: 100%;
+  min-height: 60px;
   border-bottom: 1px solid var(--el-border-color);
 }
 
-/* 用line-height对于图片时失效 */
-.header-avatar {
-  margin-top: 10px;
-  height: 40px;
-  position: absolute;
-  right: 10px;
+.header-title {
+  grid-column: 2;
+}
+
+.header-actions {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 10px;
 }
 
 .header-dropdown {
-  line-height: 60px;
-  position: absolute;
-  right: 60px;
+  line-height: normal;
+}
+
+.el-dropdown-link {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
 }
 </style>
