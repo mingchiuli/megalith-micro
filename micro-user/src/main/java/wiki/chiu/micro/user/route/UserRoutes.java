@@ -114,6 +114,8 @@ public class UserRoutes {
                 .POST("/sys/role/delete", roleHandler::delete)
                 .POST("/sys/role/menu/{roleId}", roleHandler::saveMenu)
                 .GET("/sys/role/menu/{roleId}", roleHandler::getMenusInfo)
+                .POST("/sys/role/data-permission/{roleId}", roleHandler::saveDataPermissions)
+                .GET("/sys/role/data-permission/{roleId}", roleHandler::getDataPermissions)
                 .GET("/sys/role/download", roleHandler::download)
                 .GET("/sys/role/valid/all", roleHandler::getValidAll)
                 .GET("/sys/menu/info/{id}", menuHandler::info)

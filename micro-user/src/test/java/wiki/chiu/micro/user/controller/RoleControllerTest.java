@@ -23,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.handler.AuthorityHttpHandler;
@@ -33,6 +34,7 @@ import wiki.chiu.micro.user.handler.RoleHttpHandler;
 import wiki.chiu.micro.user.handler.UserHttpHandler;
 import wiki.chiu.micro.user.handler.UserInternalHttpHandler;
 import wiki.chiu.micro.user.route.UserRoutes;
+import wiki.chiu.micro.user.service.RoleDataPermissionService;
 import wiki.chiu.micro.user.service.RoleMenuService;
 import wiki.chiu.micro.user.service.RoleService;
 import wiki.chiu.micro.user.vo.RoleEntityVo;
@@ -44,12 +46,15 @@ class RoleControllerTest {
 
   @Mock private RoleMenuService roleMenuService;
 
+  @Mock private RoleDataPermissionService roleDataPermissionService;
+
   private MockMvc mockMvc;
 
   @BeforeEach
   void setUp() {
     ValidatedRequest validation = new ValidatedRequest();
-    RoleHttpHandler handler = new RoleHttpHandler(roleService, roleMenuService, validation);
+    RoleHttpHandler handler =
+        new RoleHttpHandler(roleService, roleMenuService, roleDataPermissionService, validation);
     mockMvc =
         MockMvcBuilders.routerFunctions(
                 UserRoutes.routes(
@@ -121,15 +126,14 @@ class RoleControllerTest {
   }
 
   @Test
-  void saveAcceptsDataPermissions() throws Exception {
+  void saveRoleReturnsSuccess() throws Exception {
     mockMvc
         .perform(
             post("/sys/role/save")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     "{\"id\":null,\"name\":\"editor\",\"code\":\"editor\","
-                        + "\"remark\":\"edit blogs\",\"status\":0,"
-                        + "\"dataPermissions\":[\"BLOG_VIEW_ALL\",\"BLOG_EDIT_ALL\"]}"))
+                        + "\"remark\":\"edit blogs\",\"status\":0}"))
         .andExpect(status().isOk());
 
     verify(roleService).saveOrUpdate(any());
@@ -162,6 +166,56 @@ class RoleControllerTest {
         .perform(get("/sys/role/menu/3"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data").isArray());
+  }
+
+  @Test
+  void saveDataPermissionsReturnsSuccess() throws Exception {
+    mockMvc
+        .perform(
+            post("/sys/role/data-permission/3")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[\"BLOG_VIEW_ALL\",\"BLOG_EDIT_ALL\"]"))
+        .andExpect(status().isOk());
+
+    verify(roleDataPermissionService)
+        .saveDataPermissions(
+            3L, List.of(DataPermissionEnum.BLOG_VIEW_ALL, DataPermissionEnum.BLOG_EDIT_ALL));
+  }
+
+  @Test
+  void saveDataPermissionsAcceptsEmptyList() throws Exception {
+    mockMvc
+        .perform(
+            post("/sys/role/data-permission/3")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[]"))
+        .andExpect(status().isOk());
+
+    verify(roleDataPermissionService).saveDataPermissions(3L, List.of());
+  }
+
+  @Test
+  void saveDataPermissionsRejectsNullElements() throws Exception {
+    mockMvc
+        .perform(
+            post("/sys/role/data-permission/3")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[null]"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.msg").value("dataPermissions must not contain null"));
+
+    verify(roleDataPermissionService, never()).saveDataPermissions(anyLong(), any());
+  }
+
+  @Test
+  void getDataPermissionsReturnsList() throws Exception {
+    when(roleDataPermissionService.getDataPermissions(3L))
+        .thenReturn(List.of(DataPermissionEnum.BLOG_VIEW_ALL));
+
+    mockMvc
+        .perform(get("/sys/role/data-permission/3"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0]").value("BLOG_VIEW_ALL"));
   }
 
   @Test
