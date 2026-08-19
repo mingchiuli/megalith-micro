@@ -61,7 +61,7 @@
     "yjs": "^13.6.32"
   },
   "devDependencies": {
-    "@tsconfig/node24": "^24.0.4",
+    "@tsconfig/node24": "^24.0.5",
     "@types/compression": "^1.8.1",
     "@types/express": "^5.0.6",
     "@types/markdown-it": "^14.1.2",
