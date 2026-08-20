@@ -48,7 +48,12 @@ class AuthHttpServiceContractTest {
   }
 
   @Test
-  void convenienceMethodDelegatesToTheHttpExchangeMethod() {
+  void httpServiceDoesNotDeclareDefaultMethods() {
+    assertThat(AuthHttpService.class.getDeclaredMethods()).noneMatch(method -> method.isDefault());
+  }
+
+  @Test
+  void websocketTicketUsesTheHttpExchangeMethodDirectly() {
     var restClientBuilder =
         RestClient.builder()
             .baseUrl("https://auth.test")
@@ -69,7 +74,7 @@ class AuthHttpServiceContractTest {
                 "{\"msg\":\"success\",\"code\":200,\"data\":\"ticket\"}",
                 MediaType.APPLICATION_JSON));
 
-    assertThat(client.issueWebSocketTicket(new WebSocketTicketReq("blog-7")).data())
+    assertThat(client.issueWebSocketTicket(new WebSocketTicketReq("blog-7"), null).data())
         .isEqualTo("ticket");
     server.verify();
   }

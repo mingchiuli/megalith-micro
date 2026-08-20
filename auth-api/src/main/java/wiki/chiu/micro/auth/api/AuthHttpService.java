@@ -22,8 +22,4 @@ public interface AuthHttpService {
       @RequestBody WebSocketTicketReq req,
       @RequestHeader(value = InternalHttpHeaders.PRINCIPAL, required = false)
           String encodedPrincipal);
-
-  default Result<String> issueWebSocketTicket(WebSocketTicketReq req) {
-    return issueWebSocketTicket(req, null);
-  }
 }
