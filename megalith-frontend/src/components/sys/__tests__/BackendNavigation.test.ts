@@ -205,7 +205,7 @@ describe('backend navigation', () => {
     expect(wrapper.getComponent(ElDropdownStub).props('teleported')).toBe(false)
   })
 
-  it('emits an explicit catalogue toggle only while the side menu is collapsed', async () => {
+  it('keeps the native submenu title structure for collapsed menu styling', () => {
     const router = createBackendRouter()
     const catalogue = menuNode({
       type: RoutesEnum.CATALOGUE,
@@ -218,98 +218,23 @@ describe('backend navigation', () => {
       setup:
         (_, { slots }) =>
         () =>
-          h('div', [slots.title?.(), slots.default?.()])
+          h('div', [h('div', { class: 'submenu-title' }, slots.title?.()), slots.default?.()])
     })
 
     const wrapper = mount(InfiniteMenuItem, {
-      props: { item: catalogue, collapsed: true },
+      props: { item: catalogue },
       global: {
         plugins: [router],
         stubs: { ElSubMenu: ElSubMenuStub }
       }
     })
 
-    await wrapper.get('.catalogue-title').trigger('click')
-    expect(wrapper.emitted('openCatalogue')).toEqual([[String(catalogue.id)]])
-
-    await wrapper.setProps({ collapsed: false })
-    await wrapper.get('.catalogue-title').trigger('click')
-    expect(wrapper.emitted('openCatalogue')).toHaveLength(1)
-  })
-
-  it('toggles the right-side catalogue popup from the collapsed menu', async () => {
-    const pinia = createPinia()
-    setActivePinia(pinia)
-    const router = createBackendRouter()
-    await router.push({ name: 'backend-root' })
-    menuStore().menuTree = menuNode({
-      name: 'backend-root',
-      type: RoutesEnum.CATALOGUE,
-      url: '/backend',
-      children: [menuNode({ type: RoutesEnum.CATALOGUE, name: 'catalogue' })]
-    })
-    vi.spyOn(document.body, 'clientWidth', 'get').mockReturnValue(600)
-
-    const open = vi.fn()
-    const close = vi.fn()
-    const ElMenuStub = defineComponent({
-      name: 'ElMenu',
-      props: {
-        collapse: Boolean,
-        closeOnClickOutside: Boolean,
-        defaultActive: { type: String, default: '' }
-      },
-      emits: ['open', 'close', 'select'],
-      setup: (_, { emit, expose, slots }) => {
-        const openMenu = (index: string) => {
-          open(index)
-          emit('open', index, [])
-        }
-        const closeMenu = (index: string) => {
-          close(index)
-          emit('close', index, [])
-        }
-        expose({ open: openMenu, close: closeMenu })
-        return () => h('div', slots.default?.())
-      }
-    })
-    const InfiniteMenuItemStub = defineComponent({
-      name: 'InfiniteMenuItem',
-      props: {
-        item: { type: Object, required: true },
-        collapsed: Boolean
-      },
-      emits: ['open-catalogue'],
-      setup:
-        (props, { emit }) =>
-        () =>
-          h('button', {
-            class: 'catalogue-trigger',
-            onClick: () => emit('open-catalogue', String((props.item as Menu).id))
-          })
-    })
-
-    const wrapper = mount(SideMenuItem, {
-      global: {
-        plugins: [pinia, router],
-        stubs: {
-          ElButton: true,
-          ElMenu: ElMenuStub,
-          InfiniteMenuItem: InfiniteMenuItemStub
-        }
-      }
-    })
-    await flushPromises()
-
-    const menu = wrapper.getComponent(ElMenuStub)
-    expect(menu.props('collapse')).toBe(true)
-    expect(menu.props('closeOnClickOutside')).toBe(true)
-
-    await wrapper.get('.catalogue-trigger').trigger('click')
-    expect(open).toHaveBeenCalledWith('1')
-
-    await wrapper.get('.catalogue-trigger').trigger('click')
-    expect(close).toHaveBeenCalledWith('1')
+    const title = wrapper.get('.submenu-title')
+    expect(Array.from(title.element.children).map((element) => element.tagName)).toEqual([
+      'I',
+      'SPAN'
+    ])
+    expect(title.text()).toBe('Catalogue')
   })
 
   it('keeps the arrow aligned with the actual side-menu state', async () => {
