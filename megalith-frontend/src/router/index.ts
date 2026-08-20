@@ -80,6 +80,19 @@ export const createAppRouter = ({ server, api }: RouterOptions): Router => {
       api.GET<UserInfo>(API_ENDPOINTS.AUTH.USER_INFO)
     ])
   let rematchingPath: string | undefined
+  let latestNavigationRequest = 0
+
+  const refreshNavigation = () => {
+    const request = ++latestNavigationRequest
+    void api
+      .GET<Menu>(API_ENDPOINTS.AUTH.MENU_NAV)
+      .then((menuTree) => {
+        if (request !== latestNavigationRequest) return
+        if (!loginStateStore().login || !authMarkStore().auth) return
+        applyMenuTree(router, menuTree)
+      })
+      .catch(() => undefined)
+  }
 
   router.beforeEach(async (to) => {
     const privateRoute = to.path.startsWith('/sys') || to.path.startsWith('/backend')
@@ -93,11 +106,10 @@ export const createAppRouter = ({ server, api }: RouterOptions): Router => {
       let menuTree = menuStore().menuTree
       const restoredSession = authMarkStore().auth && menuTree && loginState.user
       if (!restoredSession) {
+        latestNavigationRequest += 1
         const [fetchedMenu, user] = await getSession()
         menuTree = fetchedMenu
         loginState.user = user
-      } else if (privateRoute && !isRouteRematch) {
-        menuTree = await api.GET<Menu>(API_ENDPOINTS.AUTH.MENU_NAV)
       }
       if (!menuTree) throw new Error('Authenticated menu is unavailable')
 
@@ -106,6 +118,7 @@ export const createAppRouter = ({ server, api }: RouterOptions): Router => {
       loginState.login = true
       authMarkStore().auth = true
       if (to.path.startsWith('/login')) return { name: 'blogs' }
+      if (privateRoute && restoredSession && !isRouteRematch) refreshNavigation()
       if (addedRoute && (!to.name || to.name === 'not-found')) {
         rematchingPath = to.fullPath
         return to.fullPath
@@ -141,19 +154,22 @@ const dealSysTab = (to: RouteLocationNormalized, menuTree: Menu) => {
 
 const applyMenuTree = (router: Router, rootMenu: Menu): boolean => {
   const currentMenu = menuStore().menuTree
+  const menuChanged = !currentMenu || diff([currentMenu], [rootMenu])
   const buttons = collectButtons(rootMenu)
   const { buttonList } = storeToRefs(buttonStore())
   if (diff(buttonList.value, buttons)) buttonList.value = buttons
 
   const { menuTree } = storeToRefs(menuStore())
-  if (!currentMenu || diff([currentMenu], [rootMenu])) menuTree.value = rootMenu
+  if (menuChanged) menuTree.value = rootMenu
 
   if (currentMenu?.name !== rootMenu.name && currentMenu && router.hasRoute(currentMenu.name)) {
     router.removeRoute(currentMenu.name)
   }
   const addedRoute = !router.hasRoute(rootMenu.name)
-  if (!addedRoute) router.removeRoute(rootMenu.name)
-  router.addRoute(buildRoute(rootMenu))
+  if (menuChanged || addedRoute) {
+    if (!addedRoute) router.removeRoute(rootMenu.name)
+    router.addRoute(buildRoute(rootMenu))
+  }
   return addedRoute
 }
 
