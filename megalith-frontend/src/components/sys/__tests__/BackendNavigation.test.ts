@@ -92,7 +92,8 @@ const ElDropdownStub = defineComponent({
     trigger: {
       type: [String, Array],
       default: 'hover'
-    }
+    },
+    teleported: { type: Boolean, default: true }
   },
   setup:
     (_, { slots }) =>
@@ -179,7 +180,7 @@ describe('backend navigation', () => {
     expect(wrapper.find('.content').exists()).toBe(true)
   })
 
-  it('renders valid dropdown markup and supports click as well as hover', async () => {
+  it('keeps the user dropdown in the SSR tree and supports click as well as hover', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
     const router = createBackendRouter()
@@ -201,6 +202,7 @@ describe('backend navigation', () => {
     expect(wrapper.get('.header-title').findComponent(ElDropdownStub).exists()).toBe(false)
     expect(wrapper.get('.header-actions').findComponent(ElDropdownStub).exists()).toBe(true)
     expect(wrapper.getComponent(ElDropdownStub).props('trigger')).toEqual(['click', 'hover'])
+    expect(wrapper.getComponent(ElDropdownStub).props('teleported')).toBe(false)
   })
 
   it('emits an explicit catalogue toggle only while the side menu is collapsed', async () => {
