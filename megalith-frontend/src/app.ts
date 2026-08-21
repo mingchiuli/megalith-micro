@@ -4,7 +4,7 @@ import type { VueHeadClient } from '@unhead/vue'
 import { ElNotification, ID_INJECTION_KEY, ZINDEX_INJECTION_KEY } from 'element-plus'
 import App from './App.vue'
 import { createAppRouter, clearAuthStores } from '@/router'
-import { createAppI18n, DEFAULT_LOCALE, supportedLocales, type AppLocale } from '@/i18n'
+import { createAppI18n, resolveAppLocale, type AppLocale } from '@/i18n'
 import { createHttpClients } from '@/http/axios'
 import { API_CLIENT_KEY, createApiClient, type ApiClient } from '@/http/http'
 import { loginStateStore, themeStore } from '@/stores'
@@ -20,6 +20,7 @@ export type CreateMegalithAppOptions = {
   server: boolean
   head: VueHeadClient
   initialState?: StateTree
+  locale?: AppLocale
   request?: AppRequestContext
 }
 
@@ -41,9 +42,7 @@ const parseCookies = (header = ''): Record<string, string> =>
   )
 
 const resolveLocale = (cookies: Record<string, string>, acceptLanguage = ''): AppLocale => {
-  const cookieLocale = cookies.megalith_locale as AppLocale | undefined
-  if (cookieLocale && supportedLocales.includes(cookieLocale)) return cookieLocale
-  return acceptLanguage.toLowerCase().startsWith('en') ? 'en-US' : DEFAULT_LOCALE
+  return resolveAppLocale(cookies.megalith_locale, acceptLanguage)
 }
 
 export const createMegalithApp = (options: CreateMegalithAppOptions): MegalithApp => {
@@ -75,7 +74,9 @@ export const createMegalithApp = (options: CreateMegalithAppOptions): MegalithAp
   const api = createApiClient(clients)
   const router = createAppRouter({ server: options.server, api })
   appContext.router = router
-  const i18n = createAppI18n(resolveLocale(cookies, options.request?.acceptLanguage))
+  const i18n = createAppI18n(
+    options.locale ?? resolveLocale(cookies, options.request?.acceptLanguage)
+  )
   const app = createSSRApp(App)
 
   app.use(pinia).use(router).use(i18n).use(options.head)

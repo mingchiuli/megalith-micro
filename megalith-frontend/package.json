@@ -4,13 +4,6 @@
   "private": true,
   "type": "module",
   "packageManager": "bun@1.4.0",
-  "imports": {
-    "#sanitize-runtime": {
-      "browser": "./src/utils/sanitize.client.ts",
-      "node": "./src/utils/sanitize.server.ts",
-      "default": "./src/utils/sanitize.server.ts"
-    }
-  },
   "scripts": {
     "dev": "bun --bun vite",
     "build": "bun run type-check && bun run build-only",
@@ -47,7 +40,6 @@
     "@vue/server-renderer": "^3.5.41",
     "axios": "^1.19.0",
     "devalue": "^5.9.1",
-    "dompurify": "^3.4.14",
     "element-plus": "^2.14.4",
     "highlight.js": "^11.12.0",
     "lib0": "^0.2.117",

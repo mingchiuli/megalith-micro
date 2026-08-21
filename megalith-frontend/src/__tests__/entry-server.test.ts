@@ -19,6 +19,13 @@ describe('SSR entry', () => {
     expect(result.state).toContain('loginStateStore')
   })
 
+  it('renders the request locale into the document hydration contract', async () => {
+    const result = await render('/login', { ...request, acceptLanguage: 'en-US,en;q=0.9' })
+
+    expect(result.headTags).toContain('<title>Log in</title>')
+    expect(result.htmlAttrs).toContain('lang="en-US"')
+  })
+
   it('returns rendered HTML with a 404 status for unknown routes', async () => {
     const result = await render('/does-not-exist', request)
 
