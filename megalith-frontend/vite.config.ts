@@ -60,7 +60,17 @@ export default defineConfig({
   // Vitest 单元测试配置
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
+    environmentOptions: {
+      happyDOM: {
+        settings: {
+          disableCSSFileLoading: true,
+          disableIframePageLoading: true,
+          disableJavaScriptFileLoading: true,
+          handleDisabledFileLoadingAsSuccess: true
+        }
+      }
+    },
     include: ['src/**/__tests__/*.test.ts'],
     setupFiles: ['src/test/setup.ts'],
     // 让 Vite 内联处理 element-plus，避免 SSR 运行时解析 .css 报错
