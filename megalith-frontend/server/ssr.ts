@@ -93,11 +93,20 @@ export const renderSsrPage = async (
       '<!--app-state-->',
       `<script id="__MEGALITH_STATE__" type="application/json">${result.state}</script>`
     )
-    .replace('<!--app-teleports-->', result.teleports['#el-popper-container-0'] ?? '')
+    .replace('<!--app-teleports-->', renderTeleports(result.teleports))
     .replace('<!--app-body-tags-->', result.bodyTags)
 
   headers.push(['Cache-Control', 'private, no-store'], ['Content-Type', 'text/html; charset=utf-8'])
   return { status: result.status, route: result.route, headers, body: html }
+}
+
+function renderTeleports(teleports: Record<string, string>): string {
+  return Object.entries(teleports).reduce((html, [target, content]) => {
+    if (target.startsWith('#el-popper-container-')) {
+      return `${html}<div id="${target.slice(1)}">${content}</div>`
+    }
+    return html
+  }, teleports.body ?? '')
 }
 
 function renderPreloadLinks(modules: Set<string>, manifest: Record<string, string[]>): string {

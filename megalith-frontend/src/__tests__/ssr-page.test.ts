@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { renderSsrPage } from '../../server/ssr'
 
 describe('SSR page template', () => {
-  it('renders Vue teleports into the Element Plus popper container', async () => {
+  it('renders body and Element Plus teleports into their target containers', async () => {
     const response = await renderSsrPage(
       {
         method: 'GET',
@@ -14,7 +14,7 @@ describe('SSR page template', () => {
           <html lang="en"><head><!--app-head--></head><body>
           <div id="app"><!--app-html--></div>
           <!--app-state--><!--app-body-tags-->
-          <div id="el-popper-container-0"><!--app-teleports--></div>
+          <!--app-teleports-->
           </body></html>`,
         loadRender: async () => async () => ({
           appHtml: '<main>Roles</main>',
@@ -23,7 +23,9 @@ describe('SSR page template', () => {
           bodyAttrs: '',
           bodyTags: '',
           teleports: {
-            '#el-popper-container-0': '<!--teleport start anchor--><div>Options</div>'
+            body: '<aside>Body teleport</aside>',
+            '#el-popper-container-0': '<!--teleport start anchor--><div>Options</div>',
+            '#el-popper-container-7': '<!--teleport start anchor--><div>More options</div>'
           },
           state: '[]',
           status: 200,
@@ -35,8 +37,12 @@ describe('SSR page template', () => {
       }
     )
 
+    expect(response.body).toContain('<aside>Body teleport</aside>')
     expect(response.body).toContain(
       '<div id="el-popper-container-0"><!--teleport start anchor--><div>Options</div></div>'
+    )
+    expect(response.body).toContain(
+      '<div id="el-popper-container-7"><!--teleport start anchor--><div>More options</div></div>'
     )
     expect(response.body).not.toContain('<!--app-teleports-->')
   })
