@@ -2,10 +2,10 @@
 
 [![Java Version](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.java.net/)
 [![Rust Version](https://img.shields.io/badge/Rust-2024-edb974.svg)](https://www.rust-lang.org/)
-[![Node.js Version](https://img.shields.io/badge/Node.js-24-5fa04e.svg)](https://nodejs.org/)
+[![Bun Version](https://img.shields.io/badge/Bun-1.4.0-fbf0df.svg)](https://bun.sh/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A Java, Rust, and Node.js microservices platform providing multi-level caching, distributed tracing, server-side rendering, and real-time collaboration capabilities.
+A Java, Rust, and Bun microservices platform providing multi-level caching, distributed tracing, server-side rendering, and real-time collaboration capabilities.
 
 ## 🏗️ Architecture
 
@@ -19,7 +19,7 @@ graph TD
         Nginx["nginx<br/>Reverse Proxy"]
     end
     subgraph FrontendLayer[Frontend Layer]
-        Frontend["megalith-frontend separate repository<br/>Node.js + Express + Vue 3 SSR<br/>Static Assets + Server Prefetch"]
+        Frontend["megalith-frontend separate repository<br/>Bun 1.4 + Vue 3 SSR<br/>Embedded Static Assets + Server Prefetch"]
     end
     subgraph GatewayLayer[Gateway Layer]
         Gateway["gateway service Rust<br/>Origin Check + Single Auth/Route Resolution<br/>Pooled Streaming HTTP / WebSocket Proxy"]
@@ -44,7 +44,7 @@ graph TD
     subgraph LocalMachine[Local Machine - Developer Laptop]
         Kibana["kibana<br/>Monitoring Visualization<br/>(Local Install)"]
     end
-    %% Traffic Flow: page requests use SSR; browser API calls bypass Node
+    %% Traffic Flow: page requests use SSR; browser API calls bypass the frontend server
     Browser -->|Page / Asset / API / WS Requests| Nginx
     Nginx -->|Page Routes + Static Assets| Frontend
     Nginx -->|/api HTTP + /wsapi WS| Gateway
@@ -111,9 +111,10 @@ graph TD
 ### Related Repository
 
 [`megalith-frontend`](https://github.com/mingchiuli/megalith-frontend) is the separately
-versioned Vue 3 + Vite SSR application shown in the architecture diagram. Its Node.js runtime
-renders public and administration routes, prefetches initial data through this repository's
-gateway, and hydrates the application in the browser.
+versioned Vue 3 + Vite SSR application shown in the architecture diagram. Its Bun server renders
+public and administration routes with `Bun.serve`, prefetches initial data through this
+repository's gateway, and hydrates the application in the browser. Production builds package the
+server, SSR bundle, and client assets into a standalone executable.
 
 ## ✨ Features
 
@@ -213,8 +214,9 @@ when this internal contract changes; external browser and frontend URLs remain u
 - YRS (CRDT)
 - OpenTelemetry
 
-**Node.js:**
-- Express 5 + Vue 3 SSR
+**Bun / Vue:**
+- Bun 1.4 + Vue 3 SSR with `Bun.serve`
+- Vite 8 client and SSR builds packaged as a standalone executable
 - OpenTelemetry traces, metrics, and logs
 
 **Infrastructure:**
