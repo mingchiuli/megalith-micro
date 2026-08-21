@@ -38,6 +38,20 @@ const gateway = Bun.serve({
         data: { dayVisit: 1, weekVisit: 2, monthVisit: 3, yearVisit: 4 }
       })
     }
+    if (url.pathname === '/public/blog/info/standalone-smoke') {
+      return Response.json({
+        msg: 'OK',
+        data: {
+          title: 'Standalone SSR blog',
+          description: 'Standalone sanitizer smoke test',
+          content: '**Rendered by the standalone server**',
+          avatar: '',
+          readCount: 1,
+          nickname: 'SSR',
+          created: '2026-08-21'
+        }
+      })
+    }
     return Response.json({ msg: 'Not Found', data: null }, { status: 404 })
   }
 })
@@ -73,6 +87,10 @@ try {
   const login = await fetch(`${baseUrl}/login`)
   assert.equal(login.status, 200)
   assert.match(await login.text(), /<title>登录<\/title>/)
+
+  const blog = await fetch(`${baseUrl}/blog/standalone-smoke`)
+  assert.equal(blog.status, 200)
+  assert.match(await blog.text(), /<title>Standalone SSR blog<\/title>/)
 
   const notFound = await fetch(`${baseUrl}/production-ssr-smoke-not-found`)
   assert.equal(notFound.status, 404)
