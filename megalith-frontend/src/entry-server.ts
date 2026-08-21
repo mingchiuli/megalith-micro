@@ -9,6 +9,7 @@ type RenderResult = {
   htmlAttrs: string
   bodyAttrs: string
   bodyTags: string
+  teleports: Record<string, string>
   state: string
   status: number
   route: string
@@ -40,6 +41,7 @@ export const render = async (url: string, request: AppRequestContext): Promise<R
     htmlAttrs: renderedHead.htmlAttrs,
     bodyAttrs: renderedHead.bodyAttrs,
     bodyTags: renderedHead.bodyTags,
+    teleports: context.teleports ?? {},
     state: stringify(pinia.state.value),
     status: redirect ? 302 : ((finalRoute.meta.status as number | undefined) ?? 200),
     route: finalRoute.matched.at(-1)?.path ?? finalRoute.path,

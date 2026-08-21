@@ -65,6 +65,7 @@ describe('authentication routing', () => {
     await router.push('/backend')
 
     expect(router.currentRoute.value.name).toBe('system')
+    expect(router.currentRoute.value.meta.layout).toBe('system')
     expect(loginStateStore().login).toBe(true)
     expect(loginStateStore().user).toEqual(user)
     expect(GET).toHaveBeenCalledTimes(2)

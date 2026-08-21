@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { pageStore, themeStore } from '@/stores'
+import { themeStore } from '@/stores'
 import { useI18n } from 'vue-i18n'
 import { useHead } from '@unhead/vue'
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
@@ -9,6 +9,7 @@ const { locale, t } = useI18n({ useScope: 'global' })
 const route = useRoute()
 const elementLocale = computed(() => (locale.value === 'zh-CN' ? zhCn : en))
 const { isDark } = storeToRefs(themeStore())
+const showGlobalFooter = computed(() => route.meta.layout !== 'system')
 
 useHead(() => {
   const titleKey = route.meta.titleKey as string | undefined
@@ -23,7 +24,7 @@ useHead(() => {
 <template>
   <el-config-provider :locale="elementLocale">
     <router-view />
-    <MyFooterItem v-if="pageStore().front" />
+    <MyFooterItem v-if="showGlobalFooter" />
     <LocaleSwitcher />
   </el-config-provider>
 </template>

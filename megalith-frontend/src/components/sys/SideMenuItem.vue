@@ -4,7 +4,9 @@ import { menuStore, tabStore } from '@/stores'
 import { RoutesEnum, type Menu, type MenuNode } from '@/type/entity'
 
 const { menuTree } = storeToRefs(menuStore())
-const collapsed = ref(true)
+// Collapsed menus render teleported tooltips. Keep the hydration tree stable,
+// then adapt the menu to the viewport after the client has mounted.
+const collapsed = ref(false)
 const arrow = computed(() => (collapsed.value ? ArrowRight : ArrowLeft))
 const isRouteMenuNode = (node: MenuNode): node is Menu => node.type !== RoutesEnum.BUTTON
 const visibleMenuItems = computed(() => menuTree.value?.children.filter(isRouteMenuNode) ?? [])

@@ -1,15 +1,8 @@
 <script lang="ts" setup>
-import { menuStore, pageStore } from '@/stores'
+import { menuStore } from '@/stores'
 
-const page = pageStore()
 const route = useRoute()
 const isSystemRoot = computed(() => route.name === menuStore().menuTree?.name)
-
-page.front = false
-
-onUnmounted(() => {
-  page.front = true
-})
 </script>
 
 <template>

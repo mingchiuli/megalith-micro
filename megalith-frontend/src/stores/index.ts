@@ -5,7 +5,7 @@
 
 export * from './authStore'
 export * from './navigationStore'
-export * from './pageStore'
+export * from './blogsStore'
 export * from './themeStore'
 export * from './ssrStore'
 export * from './protectedBlogStore'
