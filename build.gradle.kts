@@ -15,7 +15,7 @@ plugins {
     id("org.springframework.boot") version "4.1.0" apply false
     id("org.graalvm.buildtools.native") version "1.1.9" apply false
     id("org.hibernate.orm") version "7.4.5.Final" apply false
-    id("com.diffplug.spotless") version "8.9.0" apply false
+    id("com.diffplug.spotless") version "8.10.0" apply false
 }
 
 subprojects {
