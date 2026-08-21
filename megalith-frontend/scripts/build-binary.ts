@@ -1,6 +1,7 @@
 import { mkdir, unlink } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { BunPlugin } from 'bun'
 
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)))
 const clientRoot = path.join(root, 'dist/client')
@@ -8,6 +9,29 @@ const binaryRoot = path.join(root, 'dist/bin')
 const binaryPath = path.join(binaryRoot, 'megalith-frontend')
 const generatedEntry = path.join(root, 'dist/standalone-entry.ts')
 const publicAssetsPath = path.join(clientRoot, '.vite/public-assets.json')
+const runtimeAssets = ['node_modules/jsdom/lib/jsdom/browser/default-stylesheet.css']
+const cssTreeRoot = path.join(root, 'node_modules/css-tree')
+
+const cssTreeStandalonePlugin: BunPlugin = {
+  name: 'css-tree-standalone-data',
+  setup(build) {
+    build.onLoad(
+      {
+        filter:
+          /[\\/]node_modules[\\/]css-tree[\\/](?:lib[\\/](?:data|version)\.js|cjs[\\/](?:data|version)\.cjs)$/
+      },
+      async ({ path: modulePath }) => {
+        const relativePath = path.relative(cssTreeRoot, modulePath).replaceAll(path.sep, '/')
+        const bundledPath = relativePath.replace(/^lib\//, 'dist/').replace(/^cjs\//, 'dist/')
+
+        return {
+          contents: await Bun.file(path.join(cssTreeRoot, bundledPath)).text(),
+          loader: 'js'
+        }
+      }
+    )
+  }
+}
 
 const files: string[] = []
 const glob = new Bun.Glob('**/*')
@@ -43,9 +67,10 @@ try {
     format: 'esm',
     sourcemap: 'inline',
     minify: { syntax: true, whitespace: true, identifiers: false },
+    plugins: [cssTreeStandalonePlugin],
     compile: {
       outfile: binaryPath,
-      assets: [clientRoot]
+      assets: [clientRoot, ...runtimeAssets]
     }
   })
 
