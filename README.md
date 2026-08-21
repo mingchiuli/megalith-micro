@@ -31,30 +31,77 @@ runtime files, with no source code, build toolchain, or Java runtime.
 ## Architecture
 
 ```mermaid
-flowchart TB
-    Browser[Browser] --> Nginx[nginx]
-    Nginx -->|Pages and static assets| Frontend[megalith-frontend<br/>Bun standalone executable]
-    Nginx -->|/api and /wsapi| Gateway[micro-gateway-rs<br/>Rust binary]
-    Frontend -->|SSR data prefetch| Gateway
+graph TD
+    %% Layer Definitions
+    subgraph ClientLayer[Client Layer]
+        Browser["Browser<br/>Vue 3 Hydrated Client"]
+    end
+    subgraph ExternalLayer[External Layer]
+        Nginx["nginx<br/>Reverse Proxy"]
+    end
+    subgraph FrontendLayer[Frontend Layer]
+        Frontend["megalith-frontend - Bun Standalone Executable<br/>Vue 3 SSR + Embedded Static Assets<br/>Server Prefetch + Client Hydration"]
+    end
+    subgraph GatewayLayer[Gateway Layer]
+        Gateway["micro-gateway-rs - Native Rust Binary<br/>Origin Check + Single Auth/Route Resolution<br/>Pooled Streaming HTTP / WebSocket Proxy"]
+    end
+    subgraph ServiceLayer[Service Layer - Native Executables]
+        Auth["micro-auth - GraalVM Native Image<br/>Route and Role Permission Cache<br/>Login API + Principal Resolution"]
+        User["micro-user - GraalVM Native Image<br/>User and Permission Management"]
+        Blog["micro-blog - GraalVM Native Image<br/>Blog Content Management"]
+        Sync["micro-sync-rs - Native Rust Binary<br/>Stateless Collaborative Editing WebSocket"]
+        Exhibit["micro-exhibit - GraalVM Native Image<br/>Content Presentation + L2 Cache"]
+        Search["micro-search - GraalVM Native Image<br/>Full-Text Search + Index Consumer"]
+    end
+    subgraph StorageLayer[Storage and Middleware Layer]
+        MariaDB["MariaDB<br/>User / Blog Storage"]
+        Redis["Redis<br/>Distributed Cache + Sync State"]
+        RabbitMQ["RabbitMQ<br/>Domain Events"]
+        ES["Elasticsearch<br/>Search + APM Storage"]
+    end
+    subgraph MonitoringLayer[Monitoring Layer - Server]
+        APMServer["APM Server<br/>OpenTelemetry Receiver"]
+    end
+    subgraph LocalMachine[Local Machine - Developer]
+        Kibana["Kibana<br/>Monitoring Visualization"]
+    end
 
-    Gateway -->|Single auth and route resolution| Auth[micro-auth<br/>GraalVM Native Image]
-    Gateway --> User[micro-user<br/>GraalVM Native Image]
-    Gateway --> Blog[micro-blog<br/>GraalVM Native Image]
-    Gateway --> Exhibit[micro-exhibit<br/>GraalVM Native Image]
-    Gateway --> Search[micro-search<br/>GraalVM Native Image]
-    Gateway -->|WebSocket| Sync[micro-sync-rs<br/>Rust binary]
+    %% Page requests use SSR; browser API calls bypass the frontend server.
+    Browser -->|Page / Asset / API / WS Requests| Nginx
+    Nginx -->|Page Routes + Static Assets| Frontend
+    Nginx -->|/api HTTP + /wsapi WS| Gateway
+    Frontend -->|SSR Prefetch HTTP<br/>Internal Network| Gateway
+    Gateway -->|Single HTTP/WS Auth + Route Resolution| Auth
+    Gateway -->|HTTP| User
+    Gateway -->|HTTP| Blog
+    Gateway -->|WS| Sync
+    Gateway -->|HTTP| Exhibit
+    Gateway -->|HTTP| Search
 
-    User --> MariaDB[(MariaDB)]
+    %% Business dependencies.
+    User --> MariaDB
     Blog --> MariaDB
-    Auth --> Redis[(Redis)]
-    Exhibit --> Redis
-    Sync --> Redis
-    User -->|Transactional Outbox| RabbitMQ[(RabbitMQ)]
-    Blog -->|Transactional Outbox| RabbitMQ
-    RabbitMQ --> Auth
-    RabbitMQ --> Exhibit
-    RabbitMQ --> Search
-    Search --> Elasticsearch[(Elasticsearch)]
+    Exhibit -->|Fetch Data| User
+    Exhibit -->|Fetch Data| Blog
+    Auth -->|Batch Snapshot Misses| User
+    Search --> ES
+    Blog -->|Query IDs, Then Fetch| Search
+
+    %% Durable events and distributed caches.
+    User -->|Transactional Outbox| MariaDB
+    Blog -->|Transactional Outbox| MariaDB
+    MariaDB -->|Confirmed Publish| RabbitMQ
+    RabbitMQ -->|Invalidate Auth Cache| Auth
+    RabbitMQ -->|Invalidate Exhibit Cache| Exhibit
+    RabbitMQ -->|Update Search Index| Search
+    Auth -->|L2 Cache| Redis
+    Exhibit -->|L2 Cache| Redis
+    Sync -->|Streams / Snapshots / Presence| Redis
+
+    %% Observability.
+    Frontend & User & Blog & Auth & Exhibit & Search & Sync & Gateway -->|OTel Traces / Metrics / Logs| APMServer
+    APMServer --> ES
+    ES -->|Encrypted WireGuard VPN| Kibana
 ```
 
 All external traffic enters through nginx. The Rust gateway proxies HTTP and WebSocket requests,
