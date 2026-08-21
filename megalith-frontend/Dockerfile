@@ -27,7 +27,4 @@ USER megalith
 EXPOSE 1919
 STOPSIGNAL SIGTERM
 
-HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=6 \
-  CMD curl --fail --silent --show-error http://127.0.0.1:1919/actuator/health >/dev/null || exit 1
-
 CMD ["/app/megalith-frontend"]
