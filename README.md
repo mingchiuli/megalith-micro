@@ -96,7 +96,7 @@ graph TD
     RabbitMQ -->|Update Search Index| Search
     Auth -->|L2 Cache| Redis
     Exhibit -->|L2 Cache| Redis
-    Sync -->|Streams / Snapshots / Presence| Redis
+    Sync <-->|Replica Coordination<br/>Event Streams / Snapshots<br/>Presence / Leases / Compaction| Redis
 
     %% Observability.
     Frontend & User & Blog & Auth & Exhibit & Search & Sync & Gateway -->|OTel Traces / Metrics / Logs| APMServer
@@ -107,6 +107,12 @@ graph TD
 All external traffic enters through nginx. The Rust gateway proxies HTTP and WebSocket requests,
 calls `micro-auth` once for authorization and route resolution, and passes a trusted principal to
 the target service. Business services never re-parse browser credentials.
+
+`micro-sync-rs` replicas coordinate through Redis. Document and awareness updates are appended to
+shared Redis Streams and relayed to connections on every replica, while snapshots, presence
+ownership, connection leases, and compaction work remain in shared Redis state. Any replica can
+therefore accept a connection for any room without sticky sessions or assigning that room to a
+single process.
 
 ## Applications and Modules
 
