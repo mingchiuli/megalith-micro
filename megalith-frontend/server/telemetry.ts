@@ -1,24 +1,15 @@
-import { createRequire } from 'node:module'
-import { fileURLToPath } from 'node:url'
-import process from 'node:process'
-import { ExpressInstrumentation, ExpressLayerType } from '@opentelemetry/instrumentation-express'
+import { logs, SeverityNumber } from '@opentelemetry/api-logs'
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
-import { RuntimeNodeInstrumentation } from '@opentelemetry/instrumentation-runtime-node'
 import { defaultResource, resourceFromAttributes } from '@opentelemetry/resources'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import {
   ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
-  ATTR_HTTP_ROUTE,
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_NAMESPACE,
-  ATTR_SERVICE_VERSION,
-  ATTR_URL_PATH,
-  ATTR_URL_QUERY
+  ATTR_SERVICE_VERSION
 } from '@opentelemetry/semantic-conventions'
-
-const require = createRequire(import.meta.url)
-const packageJsonPath = fileURLToPath(new URL('../../../package.json', import.meta.url))
-const { version } = require(packageJsonPath) as { version: string }
+import packageJson from '../package.json' with { type: 'json' }
+import { registerBunRuntimeMetrics } from './runtime-metrics.js'
 
 process.env.OTEL_EXPORTER_OTLP_ENDPOINT ||= 'http://127.0.0.1:8200'
 process.env.OTEL_EXPORTER_OTLP_PROTOCOL ||= 'http/protobuf'
@@ -26,7 +17,7 @@ process.env.OTEL_TRACES_SAMPLER ||= 'parentbased_traceidratio'
 process.env.OTEL_TRACES_SAMPLER_ARG ||= '0.5'
 
 export const serviceName = process.env.OTEL_SERVICE_NAME || 'megalith-frontend'
-export const serviceVersion = process.env.OTEL_SERVICE_VERSION || version
+export const serviceVersion = process.env.OTEL_SERVICE_VERSION || packageJson.version
 
 const sdk = new NodeSDK({
   resource: defaultResource().merge(
@@ -39,7 +30,7 @@ const sdk = new NodeSDK({
   ),
   instrumentations: [
     new HttpInstrumentation({
-      ignoreIncomingRequestHook: (request) => request.url?.split('?', 1)[0] === '/actuator/health',
+      disableIncomingRequestInstrumentation: true,
       redactedQueryParams: [
         'sig',
         'Signature',
@@ -51,31 +42,34 @@ const sdk = new NodeSDK({
         'code',
         'password',
         'keywords'
-      ],
-      applyCustomAttributesOnSpan: (span, request, response) => {
-        const expressResponse = response as { locals?: Record<string, unknown> }
-        const route = expressResponse.locals?.otelRoute
-        if (typeof route !== 'string') return
-        const httpRequest = request as { url?: string; path?: string }
-        span.updateName(`${request.method || 'HTTP'} ${route}`)
-        span.setAttribute(ATTR_HTTP_ROUTE, route)
-        span.setAttribute(ATTR_URL_PATH, route)
-        if ((httpRequest.url || httpRequest.path)?.includes('?')) {
-          span.setAttribute(ATTR_URL_QUERY, 'REDACTED')
-        }
-      }
-    }),
-    new ExpressInstrumentation({
-      ignoreLayersType: [ExpressLayerType.MIDDLEWARE]
-    }),
-    new RuntimeNodeInstrumentation({
-      monitoringPrecision: 5000,
-      captureUncaughtException: true
+      ]
     })
   ]
 })
 
 sdk.start()
+registerBunRuntimeMetrics(serviceName, serviceVersion)
+
+const runtimeLogger = logs.getLogger(`${serviceName}.runtime`, serviceVersion)
+process.on('uncaughtExceptionMonitor', (error, origin) => {
+  const attributes = { 'exception.origin': origin }
+  console.error(
+    JSON.stringify({
+      timestamp: new Date().toISOString(),
+      severity: 'FATAL',
+      message: 'Uncaught exception',
+      ...attributes,
+      error: { type: error.name, message: error.message, stack: error.stack }
+    })
+  )
+  runtimeLogger.emit({
+    severityNumber: SeverityNumber.FATAL,
+    severityText: 'FATAL',
+    body: 'Uncaught exception',
+    attributes,
+    exception: error
+  })
+})
 
 let shutdownPromise: Promise<void> | undefined
 

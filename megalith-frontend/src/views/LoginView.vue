@@ -62,7 +62,7 @@ watch(locale, () => {
   }
 })
 
-let interval: NodeJS.Timeout | undefined
+let interval: ReturnType<typeof setInterval> | undefined
 const sendCode = (via: string) => {
   if (!loginInfo.username) return
   smsButtonDisable.value = true

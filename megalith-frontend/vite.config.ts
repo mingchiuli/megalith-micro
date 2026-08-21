@@ -6,10 +6,12 @@ import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import { megalithSsrDevPlugin } from './server/dev.ts'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    megalithSsrDevPlugin(),
     vue(),
     AutoImport({
       imports: ['vue', 'vue-router', 'pinia'],
@@ -40,12 +42,13 @@ export default defineConfig({
       }
     }
   },
+  appType: 'custom',
   build: {
     chunkSizeWarningLimit: 1000
   },
 
   ssr: {
-    // Element Plus component entrypoints import CSS, which Node cannot load when externalized.
+    // Element Plus component entrypoints import CSS, which the SSR runtime cannot externalize.
     noExternal: ['element-plus']
   },
 
@@ -60,7 +63,7 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['src/**/__tests__/*.test.ts'],
     setupFiles: ['src/test/setup.ts'],
-    // 让 Vite 内联处理 element-plus，避免 Node ESM 解析 .css 报错
+    // 让 Vite 内联处理 element-plus，避免 SSR 运行时解析 .css 报错
     server: {
       deps: {
         inline: ['element-plus']

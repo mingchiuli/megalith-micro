@@ -8,6 +8,6 @@
       "@/*": ["./src/*"]
     },
     "moduleResolution": "Bundler",
-    "types": ["node", "element-plus/global", "vitest/globals"]
+    "types": ["element-plus/global", "vitest/globals"]
   }
 }
