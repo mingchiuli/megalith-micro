@@ -9,12 +9,37 @@ const binaryRoot = path.join(root, 'dist/bin')
 const binaryPath = path.join(binaryRoot, 'megalith-frontend')
 const generatedEntry = path.join(root, 'dist/standalone-entry.ts')
 const publicAssetsPath = path.join(clientRoot, '.vite/public-assets.json')
-const runtimeAssets = ['node_modules/jsdom/lib/jsdom/browser/default-stylesheet.css']
 const cssTreeRoot = path.join(root, 'node_modules/css-tree')
+const jsdomRoot = path.join(root, 'node_modules/jsdom/lib/jsdom')
+const jsdomDefaultStyleSheet = await Bun.file(
+  path.join(jsdomRoot, 'browser/default-stylesheet.css')
+).text()
+let jsdomDefaultStyleSheetInlined = false
 
-const cssTreeStandalonePlugin: BunPlugin = {
-  name: 'css-tree-standalone-data',
+const standaloneRuntimePlugin: BunPlugin = {
+  name: 'standalone-runtime-data',
   setup(build) {
+    build.onLoad(
+      {
+        filter:
+          /[\\/]node_modules[\\/]jsdom[\\/]lib[\\/]jsdom[\\/]living[\\/]css[\\/]helpers[\\/]computed-style\.js$/
+      },
+      async ({ path: modulePath }) => {
+        const source = await Bun.file(modulePath).text()
+        const contents = source.replace(
+          /const defaultStyleSheet = fs\.readFileSync\(\s*path\.resolve\(__dirname,\s*["']\.\.\/\.\.\/\.\.\/browser\/default-stylesheet\.css["']\),\s*\{\s*encoding:\s*["']utf-8["']\s*\}\s*\);/,
+          `const defaultStyleSheet = ${JSON.stringify(jsdomDefaultStyleSheet)};`
+        )
+
+        if (contents === source) {
+          throw new Error('Unable to inline the jsdom default stylesheet')
+        }
+
+        jsdomDefaultStyleSheetInlined = true
+        return { contents, loader: 'js' }
+      }
+    )
+
     build.onLoad(
       {
         filter:
@@ -67,16 +92,18 @@ try {
     format: 'esm',
     sourcemap: 'inline',
     minify: { syntax: true, whitespace: true, identifiers: false },
-    plugins: [cssTreeStandalonePlugin],
+    plugins: [standaloneRuntimePlugin],
     compile: {
       outfile: binaryPath,
-      assets: [clientRoot, ...runtimeAssets]
+      assets: [clientRoot]
     }
   })
 
   if (!result.success) {
     for (const log of result.logs) console.error(log)
     process.exitCode = 1
+  } else if (!jsdomDefaultStyleSheetInlined) {
+    throw new Error('The jsdom default stylesheet module was not included in the standalone build')
   } else {
     console.log(`Standalone executable created at ${path.relative(root, binaryPath)}`)
   }

@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -57,8 +59,9 @@ const gateway = Bun.serve({
 })
 
 const frontendPort = await reservePort()
+const runtimeRoot = await mkdtemp(path.join(tmpdir(), 'megalith-frontend-ssr-'))
 const child = Bun.spawn([binary], {
-  cwd: root,
+  cwd: runtimeRoot,
   env: {
     ...process.env,
     NODE_ENV: 'production',
@@ -139,4 +142,5 @@ try {
     await child.exited
   }
   await gateway.stop(true)
+  await rm(runtimeRoot, { recursive: true, force: true })
 }
