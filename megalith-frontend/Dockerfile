@@ -1,28 +1,33 @@
-FROM node:24-alpine AS build
+FROM oven/bun:1.4.0 AS build
 
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
 COPY . .
-RUN npm run build
+RUN bun run build
 
-FROM node:24-alpine AS runtime
+FROM debian:bookworm-slim AS runtime
 
+ARG DEBIAN_FRONTEND=noninteractive
 ENV NODE_ENV=production \
     PORT=1919
 
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends ca-certificates curl tzdata \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system megalith \
+    && useradd --system --gid megalith --home-dir /app --no-create-home megalith
+
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+COPY --from=build --chown=megalith:megalith --chmod=0755 \
+  /app/dist/bin/megalith-frontend /app/megalith-frontend
 
-COPY --from=build /app/dist ./dist
-
-USER node
+USER megalith
 EXPOSE 1919
 STOPSIGNAL SIGTERM
 
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=6 \
-  CMD node -e "fetch('http://127.0.0.1:1919/actuator/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+  CMD curl --fail --silent --show-error http://127.0.0.1:1919/actuator/health >/dev/null || exit 1
 
-CMD ["node", "--enable-source-maps", "--import", "./dist/node/server/register-hooks.js", "--import", "./dist/node/server/telemetry.js", "./dist/node/server/index.js"]
+CMD ["/app/megalith-frontend"]
