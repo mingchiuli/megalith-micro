@@ -6,6 +6,7 @@ export type RenderResult = {
   htmlAttrs: string
   bodyAttrs: string
   bodyTags: string
+  teleports: Record<string, string>
   state: string
   status: number
   route: string
@@ -92,6 +93,7 @@ export const renderSsrPage = async (
       '<!--app-state-->',
       `<script id="__MEGALITH_STATE__" type="application/json">${result.state}</script>`
     )
+    .replace('<!--app-teleports-->', result.teleports['#el-popper-container-0'] ?? '')
     .replace('<!--app-body-tags-->', result.bodyTags)
 
   headers.push(['Cache-Control', 'private, no-store'], ['Content-Type', 'text/html; charset=utf-8'])

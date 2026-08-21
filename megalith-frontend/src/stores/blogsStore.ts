@@ -7,11 +7,3 @@ export const blogsStore = defineStore('blogsPageStore', () => {
   const keywords = ref('')
   return { pageNum, searchPageNum, keywords }
 })
-
-/**
- * Page store - front/backend page context
- */
-export const pageStore = defineStore('pageStore', () => {
-  const front = ref(true)
-  return { front }
-})

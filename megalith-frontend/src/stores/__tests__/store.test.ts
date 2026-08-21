@@ -7,7 +7,6 @@ import {
   menuStore,
   buttonStore,
   blogsStore,
-  pageStore,
   protectedBlogStore,
   ssrDataStore
 } from '@/stores'
@@ -175,12 +174,6 @@ describe('stores/store', () => {
       store.pageNum = 3
       expect(blogsStore().keywords).toBe('vue')
       expect(blogsStore().pageNum).toBe(3)
-    })
-  })
-
-  describe('pageStore', () => {
-    it('默认 front 为 true', () => {
-      expect(pageStore().front).toBe(true)
     })
   })
 

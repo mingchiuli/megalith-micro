@@ -186,21 +186,25 @@ const collectButtons = (rootMenu: MenuNode): Button[] => {
   return buttons
 }
 
-const buildRoute = (menu: Menu): RouteRecordRaw => {
-  const route = menuToRoute(menu)
+const buildRoute = (
+  menu: Menu,
+  layout: 'system' | undefined = menu.component === 'sys/SystemView' ? 'system' : undefined
+): RouteRecordRaw => {
+  const route = menuToRoute(menu, layout)
   menu.children.forEach((child) => {
-    if (child.type !== RoutesEnum.BUTTON) route.children?.push(buildRoute(child))
+    if (child.type !== RoutesEnum.BUTTON) route.children?.push(buildRoute(child, layout))
   })
   return route
 }
 
-const menuToRoute = (menu: Menu): RouteRecordRaw => ({
+const menuToRoute = (menu: Menu, layout?: 'system'): RouteRecordRaw => ({
   name: menu.name,
   path: menu.url,
   children: [],
   component: modules[`/src/views/${menu.component}.vue`],
   meta: {
     icon: menu.icon,
-    title: menu.title
+    title: menu.title,
+    ...(layout ? { layout } : {})
   }
 })
