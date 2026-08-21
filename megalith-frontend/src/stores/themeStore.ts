@@ -3,8 +3,8 @@
  */
 export const themeStore = defineStore('themeStore', () => {
   const getSystemTheme = (): boolean => {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
+    if (typeof globalThis.matchMedia === 'function') {
+      const prefersDark = globalThis.matchMedia('(prefers-color-scheme: dark)')
       return prefersDark.matches
     }
     // Default to light mode
@@ -27,7 +27,12 @@ export const themeStore = defineStore('themeStore', () => {
   // Initialize theme on app start
   const initTheme = () => {
     if (typeof document === 'undefined') return
-    if (!document.cookie.includes('megalith_theme=')) {
+    const persistedTheme = document.cookie.match(
+      /(?:^|;\s*)megalith_theme=(dark|light)(?:;|$)/
+    )?.[1]
+    if (persistedTheme) {
+      isDark.value = persistedTheme === 'dark'
+    } else {
       isDark.value = getSystemTheme()
     }
     applyTheme()

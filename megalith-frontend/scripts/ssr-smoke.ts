@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)))
 const binary = path.join(root, 'dist/bin/megalith-frontend')
+const sourceMap = path.join(root, 'dist/bin/standalone-entry.js.map')
+const browserOnlyPackages = ['dompurify', 'happy-dom', 'isomorphic-dompurify', 'jsdom']
 
 const waitForHealth = async (url: string, timeoutMillis: number): Promise<void> => {
   const deadline = Date.now() + timeoutMillis
@@ -79,6 +81,14 @@ const stderr = new Response(child.stderr).text()
 const baseUrl = `http://127.0.0.1:${frontendPort}`
 
 try {
+  const { sources } = (await Bun.file(sourceMap).json()) as { sources: string[] }
+  for (const packageName of browserOnlyPackages) {
+    assert.ok(
+      sources.every((source) => !source.includes(`/node_modules/${packageName}/`)),
+      `${packageName} must not be included in the standalone server`
+    )
+  }
+
   await waitForHealth(`${baseUrl}/actuator/health`, 10_000)
 
   const intro = await fetch(`${baseUrl}/`)
