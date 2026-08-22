@@ -10,6 +10,7 @@ build
 .classpath
 .project
 .idea
+node_modules
 */target
 target
 .luarc.json

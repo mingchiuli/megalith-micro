@@ -1,0 +1,18 @@
+{
+  "name": "megalith-micro",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "bun@1.4.0",
+  "workspaces": [
+    "megalith-frontend"
+  ],
+  "scripts": {
+    "frontend:dev": "bun run --filter megalith-frontend dev",
+    "frontend:quality": "bun run --filter megalith-frontend lint && bun run --filter megalith-frontend format:check && bun run --filter megalith-frontend type-check && bun run --filter megalith-frontend test:coverage",
+    "frontend:check": "bun run --filter megalith-frontend check",
+    "frontend:build": "bun run --filter megalith-frontend build",
+    "frontend:test:ssr": "bun run --filter megalith-frontend test:ssr",
+    "frontend:test:otel": "bun run --filter megalith-frontend test:otel",
+    "frontend:preview": "bun run --filter megalith-frontend preview"
+  }
+}

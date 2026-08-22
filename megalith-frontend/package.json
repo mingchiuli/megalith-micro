@@ -3,7 +3,6 @@
   "version": "latest",
   "private": true,
   "type": "module",
-  "packageManager": "bun@1.4.0",
   "scripts": {
     "dev": "bun --bun vite",
     "build": "bun run type-check && bun run build-only",
