@@ -8,8 +8,8 @@ dependencies {
 
     implementation("org.redisson:redisson")
     implementation("com.github.ben-manes.caffeine:caffeine")
-    implementation(project(":auth-api"))
-    implementation(project(":user-api"))
+    implementation(project(":api-auth"))
+    implementation(project(":api-user"))
     implementation(project(":common-contract"))
     implementation(project(":common-rpc"))
     implementation(project(":common-web"))

@@ -44,7 +44,7 @@ bun run frontend:check
 | Module | Purpose |
 |--------|---------|
 | `cache` | JPMS **cache starter**: `@Cache` aspect, L1 Caffeine + L2 Redis, distributed eviction |
-| `*-api` (`auth-api`, `user-api`, `blog-api`, `search-api`) | Typed HTTP interface contracts + RPC VOs (records) |
+| `api-*` (`api-auth`, `api-user`, `api-blog`, `api-search`) | Typed HTTP interface contracts + RPC VOs (records) |
 | `common-*` | Contract, rpc, web, auth-web, observability, messaging, scheduling, outbox, export |
 | `micro-auth` | JWT / route authorization; owns the auth snapshot caches |
 | `micro-user` | User & permission management (Hibernate) |
@@ -64,7 +64,7 @@ bun run frontend:check
 3. **Eviction is by exact key + broadcast.** `AuthCacheKeys`/`CacheEvictHandler` delete Redis keys
    and fan out to every replica (RabbitMQ fanout, or Redis pub/sub when AMQP is absent) to invalidate
    L1 Caffeine. If you rename/remove a `@Cache` method, update the reflective `getMethod(...)` lookups
-   in `AuthCacheKeys` and any `-api` contract — a stale lookup breaks eviction or the auth listener.
+   in `AuthCacheKeys` and any `api-*` contract — a stale lookup breaks eviction or the auth listener.
 4. **Port / wrapper pattern.** Services depend on ports (e.g. `UserDirectory`); concrete
    `*Wrapper`/`*HttpServiceWrapper` classes adapt to remote HTTP interfaces. Wrappers unwrap
    `RemoteResult.requireSuccess(...)`.
@@ -90,12 +90,12 @@ bun run frontend:check
 
 - **Spotless = google-java-format**, 4-space indent, imports sorted + unused removed. Match
   surrounding style exactly (method-order, comment density, Chinese javadoc in `micro-user`).
-- RPC models are **records** in `*-api` modules; some VOs keep a hand-written builder
+- RPC models are **records** in `api-*` modules; some VOs keep a hand-written builder
   (`AuthorityRpcVo.builder()`).
 - Nullability uses **org.jspecify** `@NonNull`. Jackson mapper is the `tools.jackson.databind`
   (`JsonMapper`) from Jackson 3 — not `com.fasterxml.jackson`.
 - Functional WebMVC on the server side: `*Handler` + `RouterFunctions` routes (internal routes under
-  `/inner/...`); HTTP interface annotations (`@GetExchange`/`@PostExchange`) in the `-api` module.
+  `/inner/...`); HTTP interface annotations (`@GetExchange`/`@PostExchange`) in the `api-*` module.
   Path conventions: client `@GetExchange("/role/authorizations")` ↔ server route
   `/inner/role/authorizations`.
 - Frontend TypeScript and Vue files use ESLint and Prettier. Run `bun run frontend:check` from the

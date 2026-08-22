@@ -22,10 +22,10 @@ on:
       - 'common-messaging/**'
       - 'common-scheduling/**'
       - 'common-auth-web/**'
-      - 'auth-api/**'
-      - 'user-api/**'
-      - 'blog-api/**'
-      - 'search-api/**'
+      - 'api-auth/**'
+      - 'api-user/**'
+      - 'api-blog/**'
+      - 'api-search/**'
       - 'cache/**'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
@@ -175,7 +175,7 @@ jobs:
                 micro-frontend/*)
                   add_service megalith-frontend
                   ;;
-                auth-api/*|user-api/*|blog-api/*|search-api/*|common-contract/*|common-rpc/*|common-web/*|common-auth-web/*|common-observability/*|common-export/*|common-outbox/*|common-messaging/*|common-scheduling/*|cache/*|build.gradle.kts|settings.gradle.kts|gradle/*|gradlew|gradlew.bat|gradle.properties)
+                api-auth/*|api-user/*|api-blog/*|api-search/*|common-contract/*|common-rpc/*|common-web/*|common-auth-web/*|common-observability/*|common-export/*|common-outbox/*|common-messaging/*|common-scheduling/*|cache/*|build.gradle.kts|settings.gradle.kts|gradle/*|gradlew|gradlew.bat|gradle.properties)
                   add_all_java
                   ;;
                 Cargo.toml|Cargo.lock)

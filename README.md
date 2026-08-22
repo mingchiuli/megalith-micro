@@ -132,7 +132,7 @@ single process.
 
 | Module | Responsibility |
 | --- | --- |
-| `auth-api`, `user-api`, `blog-api`, `search-api` | Typed HTTP contracts and RPC records |
+| `api-auth`, `api-user`, `api-blog`, `api-search` | Typed HTTP contracts and RPC records |
 | `cache` | Caffeine L1 + Redis L2 caching, exact eviction, and replica-wide invalidation |
 | `common-contract` | Result, error, paging, validation, and security contracts |
 | `common-rpc` | HTTP clients, principal propagation, and external service adapters |
