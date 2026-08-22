@@ -222,7 +222,7 @@ bun install --frozen-lockfile
 bun run frontend:check
 ```
 
-The Java build includes Spotless, unit tests, ArchUnit, and Spring AOT test processing.
+The Java build includes unit tests, ArchUnit, and Spring AOT test processing.
 
 ### Native Executables
 
