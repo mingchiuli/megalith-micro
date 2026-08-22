@@ -22,7 +22,7 @@ runtime files, with no source code, build toolchain, or separate language runtim
 | --- | --- | --- |
 | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot, GraalVM | GraalVM Native Image executable |
 | `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
-| [`micro-frontend`](micro-frontend/docs/ssr-architecture.md) | Bun 1.4.0, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
+| `micro-frontend` | Bun 1.4.0, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
 > MariaDB, Redis, RabbitMQ, Elasticsearch, and other infrastructure components continue to use
 > their standard images. "Single binary" describes how the platform applications are built and
