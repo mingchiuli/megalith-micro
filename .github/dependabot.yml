@@ -22,3 +22,12 @@ updates:
       interval: "daily"
       time: "09:30"
       timezone: "Asia/Shanghai"
+
+  # Bun：前端保留独立的包清单和锁文件
+  - package-ecosystem: "bun"
+    directories:
+      - "/megalith-frontend"
+    schedule:
+      interval: "daily"
+      time: "09:40"
+      timezone: "Asia/Shanghai"
