@@ -22,10 +22,8 @@ to work correctly without breaking the project's invariants.
 ## Common Commands
 
 ```bash
-./gradlew build                      # full Java build: Spotless check + tests + AOT test compile
+./gradlew build                      # full Java build: tests + AOT test compile
 ./gradlew :micro-auth:test           # test one module (replace module name)
-./gradlew spotlessApply              # format Java: google-java-format + removeUnusedImports
-./gradlew spotlessCheck              # verify formatting only
 ./gradlew compileJava compileTestJava
 ./gradlew :micro-auth:bootRun        # run a service
 cargo build --manifest-path micro-gateway-rs/Cargo.toml
@@ -36,8 +34,6 @@ bun run frontend:check
 - Every `micro-*` module also runs **ArchUnit** tests and Spring AOT test compilation
   (`processTestAot`) during `test` — keep AOT reflection hints (`@RegisterReflectionForBinding`,
   `CustomRuntimeHints`) in sync when you add types touched by reflection.
-- `spotlessCheck` runs during `build` and **fails the build** on violations. Run
-  `./gradlew spotlessApply` before committing; then `spotlessCheck` again.
 
 ## Module Map
 
@@ -88,8 +84,8 @@ bun run frontend:check
 
 ## Code Style
 
-- **Spotless = google-java-format**, 4-space indent, imports sorted + unused removed. Match
-  surrounding style exactly (method-order, comment density, Chinese javadoc in `micro-user`).
+- Java uses 4-space indentation. Keep imports sorted and unused imports removed, and match the
+  surrounding style exactly (method order, comment density, Chinese javadoc in `micro-user`).
 - RPC models are **records** in `api-*` modules; some VOs keep a hand-written builder
   (`AuthorityRpcVo.builder()`).
 - Nullability uses **org.jspecify** `@NonNull`. Jackson mapper is the `tools.jackson.databind`

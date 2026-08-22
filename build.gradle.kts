@@ -2,7 +2,6 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
-import com.diffplug.gradle.spotless.SpotlessExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.plugins.ide.eclipse.model.Classpath
@@ -15,7 +14,6 @@ plugins {
     id("org.springframework.boot") version "4.1.1" apply false
     id("org.graalvm.buildtools.native") version "1.1.9" apply false
     id("org.hibernate.orm") version "7.4.5.Final" apply false
-    id("com.diffplug.spotless") version "8.10.0" apply false
 }
 
 subprojects {
@@ -32,18 +30,7 @@ subprojects {
     plugins.apply("java")
     plugins.apply("io.spring.dependency-management")
     plugins.apply("org.springframework.boot")  // Apply to all modules for -parameters and AOT
-    plugins.apply("com.diffplug.spotless")
     plugins.apply("eclipse")
-
-    configure<SpotlessExtension> {
-        java {
-            target("src/**/*.java")
-            googleJavaFormat()
-            removeUnusedImports()
-            trimTrailingWhitespace()
-            endWithNewline()
-        }
-    }
 
     tasks.withType<Test> {
         useJUnitPlatform()
