@@ -2,6 +2,8 @@
 
 Vue 3 + Vite SSR frontend for Megalith. Public and administration routes render on the Bun server, prefetch their initial API data, and then hydrate into the existing interactive application in the browser. The collaborative editor, Yjs provider, AI workflow, comments, and other DOM-only integrations start after hydration.
 
+This application is maintained inside the Megalith Micro monorepo. Run the commands below from the `megalith-frontend` directory; it remains an independently built and deployed service.
+
 ## Runtime model
 
 - `server/production.ts` serves embedded assets and renders every application route with `Bun.serve`.

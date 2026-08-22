@@ -5,14 +5,13 @@
 [![Rust](https://img.shields.io/badge/Rust-2024-000000.svg)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-Megalith Micro is a microservice backend designed to ship every application as a **single native
+Megalith Micro is a platform monorepo designed to ship every application as a **single native
 executable**.
 
 **The Java services are not deployed as JVM applications or JARs.** All five Spring Boot services
 use Java 25 and GraalVM Native Image for ahead-of-time compilation, so their production images do
 not require a JVM or JRE. The gateway and collaboration service compile to native Rust binaries;
-the frontend service in its separate repository is also compiled to a standalone executable by
-Bun.
+the frontend service is compiled to a standalone executable by Bun.
 
 The entire platform therefore follows the same model: **one application, one native executable,
 one independent OCI image**. Application images contain the executable and only the minimal
@@ -22,7 +21,7 @@ runtime files, with no source code, build toolchain, or Java runtime.
 | --- | --- | --- |
 | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot, GraalVM | GraalVM Native Image executable |
 | `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
-| [`megalith-frontend`](https://github.com/mingchiuli/megalith-frontend) | Bun, Vue 3 SSR | Bun standalone executable |
+| [`megalith-frontend`](megalith-frontend/) | Bun, Vue 3 SSR | Bun standalone executable |
 
 > MariaDB, Redis, RabbitMQ, Elasticsearch, and other infrastructure components continue to use
 > their standard images. "Single binary" describes how the platform applications are built and
@@ -127,6 +126,7 @@ single process.
 | `micro-exhibit` | Content presentation, visit statistics, and presentation caches |
 | `micro-search` | Elasticsearch full-text search and index event consumption |
 | `micro-sync-rs` | Stateless real-time collaboration backed by YRS CRDT and Redis |
+| `megalith-frontend` | Vue 3 SSR, server prefetch, client hydration, and embedded static assets |
 
 ### Shared Java Modules
 
@@ -166,6 +166,7 @@ single process.
 - GraalVM for JDK 25 using the HotSpot JVM, not the Espresso JVM
 - Gradle 9.7 through the included Wrapper
 - Rust stable with 2024 edition support
+- Bun 1.4.0
 - Docker for OCI image builds
 
 Example on macOS:
@@ -181,6 +182,7 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.2.4+7.1/Contents/H
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
+(cd megalith-frontend && bun install --frozen-lockfile && bun run check)
 ```
 
 The Java build includes Spotless, unit tests, ArchUnit, and Spring AOT test processing.
@@ -193,10 +195,14 @@ The Java build includes Spotless, unit tests, ArchUnit, and Spring AOT test proc
 
 # Rust
 cargo build --workspace --release
+
+# Bun frontend
+(cd megalith-frontend && bun run build)
 ```
 
 Java artifacts are written to each module's `build/native/nativeCompile/` directory. Rust artifacts
-are written to `target/release/`.
+are written to `target/release/`; the frontend executable is written to
+`megalith-frontend/dist/bin/megalith-frontend`.
 
 ### Application Images
 
@@ -213,11 +219,13 @@ and required runtime files:
 ```bash
 docker build -t megalith-micro-gateway-rs:latest -f micro-gateway-rs/Dockerfile .
 docker build -t megalith-micro-sync-rs:latest -f micro-sync-rs/Dockerfile .
+docker build -t mingchiuli/megalith-frontend:latest megalith-frontend
 ```
 
 CI validates AOT processing and builds a separate GraalVM Native Image for each of the five Java
-services. It formats, lints, and tests the two Rust services before building their release images.
-Every service is published and deployed independently.
+services. It formats, lints, and tests the two Rust services and the Bun frontend before building
+their release images. Changed services are published independently and deployed in platform order,
+with the frontend after the gateway.
 
 ### Development
 
@@ -226,6 +234,7 @@ Native compilation can be skipped when running a single service during developme
 ```bash
 ./gradlew :micro-auth:bootRun
 cargo run -p micro-gateway-rs
+(cd megalith-frontend && bun run dev)
 ```
 
 A complete local deployment also requires MariaDB, Redis, RabbitMQ, and Elasticsearch. Connection,
