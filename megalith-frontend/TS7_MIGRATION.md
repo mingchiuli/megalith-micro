@@ -32,7 +32,7 @@
    ```bash
    bun add -d typescript@npm:@typescript/typescript6@^6.0.2
    ```
-2. 新增原生编译器（用于 `type-check:bun`）：
+2. 新增原生编译器（用于 `type-check` 的 Bun 服务端检查）：
    ```bash
    bun add -d @typescript/native@npm:typescript@^7.0.2
    ```
@@ -55,7 +55,7 @@ JSDoc `@typedef`+`@template` 声明生成会丢泛型参数（本项目非 `.js`
 
 1. 升级依赖（按上面双装或直装 TS7）
 2. `bun run type-check` —— 修 `strictBuiltinIteratorReturn` 等新报错
-3. `bun run build:binary` —— 验证 Bun standalone 编译
+3. `bun run build` —— 验证客户端、SSR 和 Bun standalone 编译
 4. `bun run check` —— 全量 lint + format + type-check + test + build + SSR/OTel smoke
 5. 编辑器冒烟：JetBrains 打开项目确认语言服务仍用 TS6 垫片（`typescript.tsdk` 指向 workspace 安装）
 
