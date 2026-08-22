@@ -10,7 +10,7 @@ dependencies {
     implementation("org.springframework.security:spring-security-crypto")
     implementation("io.micrometer:micrometer-core")
     runtimeOnly("com.fasterxml.jackson.core:jackson-databind")
-    implementation(project(":user-api"))
+    implementation(project(":api-user"))
     implementation(project(":common-contract"))
     implementation(project(":common-rpc"))
     implementation(project(":common-web"))
