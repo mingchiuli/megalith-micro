@@ -1,0 +1,60 @@
+<script lang="ts" setup>
+import type { Hot } from '@/type/entity'
+import { useHttp } from '@/http/http'
+import { API_ENDPOINTS } from '@/config/apiConfig'
+
+const { GET } = useHttp()
+const router = useRouter()
+const hots = ref<Hot[]>()
+const loading = ref(false)
+
+const to = (id: number) =>
+  router.push({
+    name: 'blog',
+    params: {
+      id: id
+    }
+  })
+
+const load = async () => {
+  loading.value = true
+  try {
+    hots.value = await GET<Hot[]>(API_ENDPOINTS.BLOG_PUBLIC.GET_HOT_BLOGS)
+  } finally {
+    loading.value = false
+  }
+}
+
+defineExpose({ load })
+</script>
+
+<template>
+  <el-card shadow="never" class="hot-blogs" v-loading="loading">
+    <div class="title">
+      <el-text>{{ $t('blog.weeklyRanking') }}</el-text>
+    </div>
+    <div class="description" v-for="(hot, key) in hots" v-bind:key="key">
+      <el-link @click="to(hot.id)"
+        >{{ hot.title ? hot.title : $t('blog.anonymousArticle') }}: {{ hot.readCount }}</el-link
+      >
+      <br />
+    </div>
+  </el-card>
+</template>
+
+<style scoped>
+.hot-blogs {
+  max-width: 250px;
+  margin-bottom: 20px;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.description {
+  text-align: left;
+  margin-bottom: 10px;
+}
+</style>

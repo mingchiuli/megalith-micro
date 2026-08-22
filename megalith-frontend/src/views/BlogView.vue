@@ -1,0 +1,199 @@
+<script lang="ts" setup>
+import { useHttp } from '@/http/http'
+import type { BlogExhibit } from '@/type/entity'
+import Catalogue from '@/components/CatalogueItem.vue'
+import { API_ENDPOINTS } from '@/config/apiConfig'
+import { MdPreview } from 'md-editor-v3'
+import 'md-editor-v3/lib/preview.css'
+import { protectedBlogStore, themeStore } from '@/stores'
+import { sanitizeHtml } from '@/utils/sanitize'
+import { useUniversalData } from '@/composables'
+import { useHead } from '@unhead/vue'
+
+const route = useRoute()
+const { GET } = useHttp()
+const blogId = route.params.id as string
+const loading = ref(true)
+const loadingCatalogue = ref(true)
+const affixHeight = ref('0')
+const showCatalogue = ref(false)
+const catalogueWidth = ref(200)
+const right = ref(10)
+
+// 主题管理
+const theme = themeStore()
+const { isDark } = storeToRefs(theme)
+const editorTheme = computed(() => (isDark.value ? 'dark' : 'light'))
+
+const blog = reactive<BlogExhibit>({
+  title: '',
+  description: '',
+  content: '',
+  avatar: '',
+  readCount: 0,
+  nickname: '',
+  created: ''
+})
+
+const catalogueRef = useTemplateRef<InstanceType<typeof Catalogue>>('catalogue')
+
+let renderCatalogueCount = 0
+const renderCatalogue = async (html: string) => {
+  if (html && !renderCatalogueCount) {
+    loading.value = false
+    await nextTick()
+    computeWidth()
+    renderCatalogueCount++
+    await catalogueRef.value?.render()
+  }
+}
+
+const computeWidth = () => {
+  //计算距离
+  const screenWidth = window.innerWidth
+  const label = document.querySelector<HTMLElement>('.content')
+  const width = (screenWidth - label!.offsetWidth) / 2
+
+  const halfWidth = width / 2
+
+  if (halfWidth > catalogueWidth.value + 10) {
+    right.value = halfWidth
+    showCatalogue.value = true
+  } else if (width > catalogueWidth.value + 110) {
+    right.value = 100
+    showCatalogue.value = true
+  } else if (width > catalogueWidth.value + 20) {
+    right.value = 10
+    showCatalogue.value = true
+  } else {
+    showCatalogue.value = false
+  }
+}
+
+onMounted(() => {
+  affixHeight.value = document.body.clientWidth > 900 ? '100px' : '0'
+  window.addEventListener('resize', computeWidth)
+  theme.initTheme()
+})
+onUnmounted(() => window.removeEventListener('resize', computeWidth))
+const fetchBlog = async () => {
+  return GET<BlogExhibit>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOG_INFO(blogId))
+}
+
+const applyBlog = (data: BlogExhibit) => {
+  blog.title = data.title
+  blog.description = data.description
+  blog.avatar = data.avatar
+  blog.readCount = data.readCount
+  blog.nickname = data.nickname
+  blog.created = data.created
+  blog.content = '>' + data.description + '\n\n' + data.content
+}
+
+const protectedBlog = protectedBlogStore().take(blogId)
+if (protectedBlog) {
+  applyBlog(protectedBlog)
+  loading.value = false
+} else useUniversalData(`blog:${blogId}`, fetchBlog, applyBlog, { loading })
+useHead(() => ({
+  title: blog.title || undefined,
+  meta: blog.description
+    ? [
+        { name: 'description', content: blog.description },
+        { property: 'og:title', content: blog.title },
+        { property: 'og:description', content: blog.description }
+      ]
+    : []
+}))
+</script>
+
+<template>
+  <div class="father">
+    <div class="affix">
+      <CatalogueItem
+        v-if="loadingCatalogue"
+        v-show="showCatalogue"
+        ref="catalogue"
+        v-model:loading-catalogue="loadingCatalogue"
+        :width="catalogueWidth"
+      />
+    </div>
+  </div>
+
+  <div class="front">
+    <div class="exhibit-title">{{ blog.title }}</div>
+    <el-avatar class="exhibit-avatar" :src="blog.avatar" />
+    <el-text class="exhibit-author" size="large">{{
+      $t('blog.author', { name: blog.nickname })
+    }}</el-text>
+    <el-text class="exhibit-time" size="default">{{ blog.created }}</el-text>
+    <el-text class="exhibit-read-count" size="default">{{
+      $t('blog.readCount', { count: blog.readCount })
+    }}</el-text>
+    <el-skeleton animated :loading="loading" :throttle="300">
+      <template #template>
+        <el-skeleton :rows="15" />
+      </template>
+    </el-skeleton>
+    <el-card shadow="never" class="content" v-show="!loading">
+      <md-preview
+        id="preview-only"
+        v-model="blog.content"
+        :showCodeRowNumber="true"
+        :theme="editorTheme"
+        :sanitize="sanitizeHtml"
+        @on-html-changed="renderCatalogue"
+      />
+    </el-card>
+    <DiscussItem />
+  </div>
+</template>
+
+<style scoped>
+@import '@/assets/front.css';
+
+.exhibit-title {
+  text-align: center;
+  font-size: xx-large;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.exhibit-mavon-editor {
+  padding: 20px;
+}
+
+.exhibit-avatar {
+  margin: 0 auto;
+  display: block;
+}
+
+.exhibit-author {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.exhibit-time {
+  margin-top: 10px;
+  display: block;
+  margin-left: 10px;
+}
+
+.exhibit-read-count {
+  display: block;
+  margin-left: 10px;
+  margin-bottom: 5px;
+}
+
+.affix {
+  right: v-bind(right + 'px');
+  position: fixed;
+  margin-top: 30px;
+  display: block;
+}
+
+.father {
+  height: v-bind(affixHeight);
+}
+</style>

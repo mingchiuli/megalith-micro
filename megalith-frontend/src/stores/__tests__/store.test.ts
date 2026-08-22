@@ -1,0 +1,207 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  loginStateStore,
+  themeStore,
+  tabStore,
+  authMarkStore,
+  menuStore,
+  buttonStore,
+  blogsStore,
+  protectedBlogStore,
+  ssrDataStore
+} from '@/stores'
+import { RoutesEnum, RoutesStatus, type Button, type Menu } from '@/type/entity'
+
+const menuNode = (overrides: Partial<Menu> = {}): Menu => ({
+  id: 1,
+  parentId: 0,
+  title: 'Menu',
+  name: 'Menu',
+  icon: '',
+  orderNum: 0,
+  status: RoutesStatus.NORMAL,
+  type: RoutesEnum.MENU,
+  url: '/menu',
+  component: 'MenuView',
+  children: [],
+  ...overrides
+})
+
+const buttonNode = (overrides: Partial<Button> = {}): Button => ({
+  id: 1,
+  parentId: 0,
+  title: 'Button',
+  name: 'Button',
+  icon: '',
+  orderNum: 0,
+  status: RoutesStatus.NORMAL,
+  type: RoutesEnum.BUTTON,
+  ...overrides
+})
+
+describe('stores/store', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    document.documentElement.classList.remove('dark')
+    document.cookie = 'megalith_theme=; Max-Age=0; Path=/'
+  })
+
+  describe('loginStateStore', () => {
+    it('初始 login 状态为 false', () => {
+      expect(loginStateStore().login).toBe(false)
+    })
+
+    it('可被 action / 直接赋值修改', () => {
+      const store = loginStateStore()
+      store.login = true
+      expect(loginStateStore().login).toBe(true)
+    })
+  })
+
+  describe('themeStore', () => {
+    beforeEach(() => {
+      // 默认提供 light 偏好
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn().mockReturnValue({
+          matches: false,
+          media: '(prefers-color-scheme: dark)',
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn()
+        })
+      )
+    })
+
+    it('依据系统偏好初始化为 light', () => {
+      const store = themeStore()
+      expect(store.isDark).toBe(false)
+    })
+
+    it('系统偏好为 dark 时初始化为 dark', () => {
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn().mockReturnValue({
+          matches: true,
+          media: '(prefers-color-scheme: dark)',
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn()
+        })
+      )
+      // 系统偏好只能在客户端初始化时读取。
+      setActivePinia(createPinia())
+      const store = themeStore()
+      store.initTheme()
+      expect(store.isDark).toBe(true)
+    })
+
+    it('toggleTheme 翻转状态并同步到 <html> class', () => {
+      const store = themeStore()
+      expect(document.documentElement.classList.contains('dark')).toBe(false)
+
+      store.toggleTheme()
+      expect(store.isDark).toBe(true)
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+
+      store.toggleTheme()
+      expect(store.isDark).toBe(false)
+      expect(document.documentElement.classList.contains('dark')).toBe(false)
+    })
+
+    it('initTheme 将 SSR 恢复的 dark 状态写入 class', () => {
+      const store = themeStore()
+      store.isDark = true
+      document.cookie = 'megalith_theme=dark; Path=/'
+      store.initTheme()
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+    })
+  })
+
+  describe('tabStore', () => {
+    it('addTab 新增唯一 tab 并切换 active 值', () => {
+      const store = tabStore()
+      store.addTab({ name: 'home', title: 'Home' })
+      store.addTab({ name: 'home', title: 'Home' })
+      store.addTab({ name: 'about', title: 'About' })
+      expect(store.editableTabs).toHaveLength(2)
+      expect(store.editableTabsValue).toBe('about')
+    })
+  })
+
+  describe('authMarkStore', () => {
+    it('默认 auth 为 false 且可被修改', () => {
+      const store = authMarkStore()
+      expect(store.auth).toBe(false)
+      store.auth = true
+      expect(authMarkStore().auth).toBe(true)
+    })
+  })
+
+  describe('menuStore', () => {
+    it('默认 menuTree 为 undefined，可写入与重置', () => {
+      const store = menuStore()
+      expect(store.menuTree).toBeUndefined()
+      store.menuTree = menuNode({ name: 'root' })
+      expect(menuStore().menuTree?.name).toBe('root')
+      store.menuTree = undefined
+      expect(menuStore().menuTree).toBeUndefined()
+    })
+  })
+
+  describe('buttonStore', () => {
+    it('默认 buttonList 为空数组', () => {
+      expect(buttonStore().buttonList).toEqual([])
+    })
+
+    it('可批量赋值并被读取', () => {
+      const list = [buttonNode({ name: 'save', title: 'Save', icon: 'primary' })]
+      buttonStore().buttonList = list
+      expect(buttonStore().buttonList).toHaveLength(1)
+      expect(buttonStore().buttonList[0]?.name).toBe('save')
+    })
+  })
+
+  describe('blogsStore', () => {
+    it('页码与关键词的初始值', () => {
+      const store = blogsStore()
+      expect(store.pageNum).toBe(1)
+      expect(store.searchPageNum).toBe(1)
+      expect(store.keywords).toBe('')
+    })
+
+    it('支持修改 keywords / pageNum', () => {
+      const store = blogsStore()
+      store.keywords = 'vue'
+      store.pageNum = 3
+      expect(blogsStore().keywords).toBe('vue')
+      expect(blogsStore().pageNum).toBe(3)
+    })
+  })
+
+  describe('request-scoped stores', () => {
+    it('consumes protected blog data once', () => {
+      const store = protectedBlogStore()
+      const blog = {
+        title: 'Private',
+        description: 'd',
+        content: 'c',
+        avatar: '',
+        readCount: 0,
+        nickname: 'n',
+        created: ''
+      }
+      store.put(7, blog)
+      expect(store.take(7)).toEqual(blog)
+      expect(store.take(7)).toBeUndefined()
+    })
+
+    it('takes and clears hydrated SSR entries', () => {
+      const store = ssrDataStore()
+      store.set('user:1', { name: 'first' })
+      expect(store.take<{ name: string }>('user:1')).toEqual({ name: 'first' })
+      expect(store.has('user:1')).toBe(false)
+      store.set('user:2', { name: 'second' })
+      store.clear()
+      expect(store.entries).toEqual({})
+    })
+  })
+})

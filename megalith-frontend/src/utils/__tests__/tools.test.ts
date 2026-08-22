@@ -1,0 +1,178 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import {
+  debounce,
+  render,
+  diff,
+  findMenuByPath,
+  cleanJsonResponse,
+  checkButtonAuth,
+  getButtonType,
+  getButtonTitle
+} from '@/utils/tools'
+import { buttonStore } from '@/stores'
+import { RoutesEnum, RoutesStatus, type Button, type Menu, type MenuNode } from '@/type/entity'
+
+const menuNode = (overrides: Partial<Menu> = {}): Menu => ({
+  id: 1,
+  parentId: 0,
+  title: 'Menu',
+  name: 'Menu',
+  icon: '',
+  orderNum: 0,
+  status: RoutesStatus.NORMAL,
+  type: RoutesEnum.MENU,
+  url: '/menu',
+  component: 'MenuView',
+  children: [],
+  ...overrides
+})
+
+const buttonNode = (overrides: Partial<Button> = {}): Button => ({
+  id: 10,
+  parentId: 1,
+  title: 'Button',
+  name: 'Button',
+  icon: '',
+  orderNum: 0,
+  status: RoutesStatus.NORMAL,
+  type: RoutesEnum.BUTTON,
+  ...overrides
+})
+
+describe('utils/tools', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+  })
+
+  describe('debounce', () => {
+    it('在间隔内多次调用只触发最后一次', () => {
+      vi.useFakeTimers()
+      const spy = vi.fn()
+      const debounced = debounce(spy, 200)
+      debounced()
+      debounced()
+      debounced()
+      expect(spy).not.toHaveBeenCalled()
+      vi.advanceTimersByTime(200)
+      expect(spy).toHaveBeenCalledTimes(1)
+      vi.useRealTimers()
+    })
+
+    it('保留最后一次调用的参数', () => {
+      vi.useFakeTimers()
+      const spy = vi.fn()
+      const debounced = debounce(spy as (...args: unknown[]) => unknown, 50)
+      debounced('a')
+      debounced('b')
+      vi.advanceTimersByTime(50)
+      expect(spy).toHaveBeenCalledWith('b')
+      vi.useRealTimers()
+    })
+  })
+
+  describe('render', () => {
+    it('将 markdown 渲染为 HTML', () => {
+      const html = render('# Title\n\nhello')
+      expect(html).toContain('<h1>Title</h1>')
+      expect(html).toContain('<p>hello</p>')
+    })
+
+    it('支持 fenced code 高亮', () => {
+      const html = render('```js\nconst a = 1\n```')
+      expect(html).toContain('<pre>')
+      expect(html).toContain('<code')
+    })
+  })
+
+  describe('diff', () => {
+    it('长度不一致返回 true', () => {
+      expect(diff([{ a: 1 }], [{ a: 1 }, { a: 2 }])).toBe(true)
+    })
+
+    it('完全相同返回 false', () => {
+      expect(diff([{ a: 1, b: 2 }], [{ a: 1, b: 2 }])).toBe(false)
+    })
+
+    it('字段值不同返回 true', () => {
+      expect(diff([{ a: 1 }], [{ a: 2 }])).toBe(true)
+    })
+
+    it('递归比较 children', () => {
+      const oldArr = [{ a: 1, children: [{ a: 1 }] }]
+      const newArr = [{ a: 1, children: [{ a: 2 }] }]
+      expect(diff(oldArr, newArr)).toBe(true)
+    })
+  })
+
+  describe('findMenuByPath', () => {
+    const tree: MenuNode[] = [
+      menuNode({
+        id: 1,
+        url: '/a',
+        name: 'A',
+        children: [menuNode({ id: 2, parentId: 1, url: '/a/b', name: 'AB' })]
+      }),
+      menuNode({ id: 3, url: '/c', name: 'C' })
+    ]
+
+    it('命中顶层节点', () => {
+      expect(findMenuByPath(tree, '/c')?.name).toBe('C')
+    })
+
+    it('命中嵌套节点', () => {
+      expect(findMenuByPath(tree, '/a/b')?.name).toBe('AB')
+    })
+
+    it('未命中返回 undefined', () => {
+      expect(findMenuByPath(tree, '/none')).toBeUndefined()
+    })
+
+    it('忽略按钮节点', () => {
+      const menuTree: MenuNode[] = [
+        menuNode({
+          url: '/system',
+          name: 'System',
+          type: RoutesEnum.CATALOGUE,
+          children: [buttonNode({ url: '/system/save', name: 'Save' })]
+        })
+      ]
+
+      expect(findMenuByPath(menuTree, '/system/save')).toBeUndefined()
+    })
+  })
+
+  describe('cleanJsonResponse', () => {
+    it('剥离 fenced code 标记并裁剪到大括号边界', () => {
+      const raw = '```json\n  {"a":1, "b":2}  \n```'
+      expect(cleanJsonResponse(raw)).toBe('{"a":1, "b":2}')
+    })
+
+    it('丢弃首个 { 之前与最后一个 } 之后的噪声', () => {
+      expect(cleanJsonResponse('noise{"x":1}tail')).toBe('{"x":1}')
+    })
+  })
+
+  describe('button helpers', () => {
+    const seed = (list: Partial<Button>[]) => {
+      buttonStore().buttonList = list as Button[]
+    }
+
+    it('checkButtonAuth 按 name 命中', () => {
+      seed([{ name: 'save', title: 'Save', icon: 'primary' }])
+      expect(checkButtonAuth('save')).toBe(true)
+      expect(checkButtonAuth('delete')).toBe(false)
+    })
+
+    it('getButtonType 返回 icon 字段', () => {
+      seed([{ name: 'del', title: 'Del', icon: 'danger' }])
+      expect(getButtonType('del')).toBe('danger')
+    })
+
+    it('getButtonTitle 返回 title 字段', () => {
+      seed([{ name: 'edit', title: '编辑', icon: 'primary' }])
+      expect(getButtonTitle('edit')).toBe('编辑')
+    })
+  })
+})

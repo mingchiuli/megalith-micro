@@ -1,0 +1,176 @@
+name: Build and Deploy SSR Frontend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate source and tests
+        run: |
+          bun run lint
+          bun run format:check
+          bun run type-check
+          bun run test:coverage
+
+  build:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build and smoke test
+        run: |
+          bun run build
+          bun run test:ssr
+          bun run test:otel
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PWD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push SSR image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: mingchiuli/megalith-frontend:latest
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    environment: main
+    concurrency:
+      group: megalith-frontend-production-deploy
+      cancel-in-progress: false
+    steps:
+      - name: Connect to WireGuard
+        shell: bash
+        env:
+          WIREGUARD_CONFIG: ${{ secrets.WIREGUARD_CONFIG }}
+        run: |
+          set -euo pipefail
+
+          sudo apt-get update
+          sudo apt-get install --yes wireguard-tools
+          sudo install -d -m 700 /etc/wireguard
+          printf '%s\n' "$WIREGUARD_CONFIG" | sudo tee /etc/wireguard/wg0.conf >/dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf
+          sudo wg-quick up wg0
+
+      - name: Deploy latest image
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            set -e
+
+            image="mingchiuli/megalith-frontend:latest"
+            service="megalith-frontend"
+            gateway_url="http://micro-gateway-rs:8088"
+            service_version="${{ github.sha }}"
+            otel_endpoint="http://apm-server:8200"
+            base_file=""
+            for candidate in compose.yaml compose.yml docker-compose.yaml docker-compose.yml; do
+              if [ -f "$candidate" ]; then
+                base_file="$candidate"
+                break
+              fi
+            done
+            if [ -z "$base_file" ]; then
+              echo "No Compose file found" >&2
+              exit 1
+            fi
+
+            override_file=$(mktemp)
+            trap 'rm -f "$override_file"' EXIT
+            printf 'services:\n  %s:\n    image: %s\n    environment:\n      SSR_API_BASE_URL: %s\n      OTEL_SERVICE_VERSION: %s\n      OTEL_EXPORTER_OTLP_ENDPOINT: %s\n      OTEL_TRACES_SAMPLER: parentbased_traceidratio\n      OTEL_TRACES_SAMPLER_ARG: "0.5"\n' \
+              "$service" "$image" "$gateway_url" "$service_version" "$otel_endpoint" > "$override_file"
+
+            compose() {
+              docker compose -f "$base_file" -f "$override_file" "$@"
+            }
+
+            wait_until_healthy() {
+              container_id=$(compose ps -q "$service")
+              if [ -z "$container_id" ]; then
+                return 1
+              fi
+
+              for attempt in $(seq 1 60); do
+                health_status=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$container_id")
+                if [ "$health_status" = "healthy" ]; then
+                  return 0
+                fi
+                if [ "$health_status" = "unhealthy" ]; then
+                  return 1
+                fi
+                sleep 2
+              done
+              return 1
+            }
+
+            previous_image_id=$(docker image inspect "$image" --format '{{.Id}}' 2>/dev/null || true)
+            docker pull "$image"
+            compose rm -sf "$service"
+            compose up -d --no-deps --force-recreate "$service"
+
+            if ! wait_until_healthy; then
+              container_id=$(compose ps -q "$service")
+              if [ -n "$container_id" ]; then
+                docker logs --tail=200 "$container_id" || true
+              fi
+              exit 1
+            fi
+
+            current_image_id=$(docker image inspect "$image" --format '{{.Id}}')
+            if [ -n "$previous_image_id" ] && [ "$previous_image_id" != "$current_image_id" ]; then
+              docker image rm "$previous_image_id" || true
+            fi
+
+            rm -f "$override_file"
+            trap - EXIT
+
+      - name: Disconnect WireGuard
+        if: ${{ always() }}
+        run: |
+          sudo wg-quick down wg0 || true
+          sudo rm -f /etc/wireguard/wg0.conf
