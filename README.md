@@ -158,6 +158,8 @@ single process.
   snapshots, and presence. Replicas do not require sticky sessions.
 - **Native observability:** Java Native Image, Rust, and Bun applications export OpenTelemetry
   traces, metrics, and logs.
+- **Centralized workspace versions:** the root Bun catalog owns JavaScript dependency versions;
+  each frontend declares only the packages it uses through the `catalog:` protocol.
 
 ## Build
 

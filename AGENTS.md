@@ -80,10 +80,11 @@ bun run frontend:check
    JPMS modules must `requires wiki.chiu.micro.cache`.
 8. **GraalVM native / AOT.** All `micro-*` modules compile to native images. Types reachable via
    reflection, HTTP interfaces, or serialization need AOT hints.
-9. **Bun workspace, independent frontend service.** Root `package.json` and `bun.lock` own all
-   JavaScript dependencies; run install and `frontend:*` scripts from the repository root. The
-   frontend remains outside Gradle/Cargo and deploys independently. Browser API/WebSocket traffic
-   goes through nginx and `micro-gateway-rs`; SSR prefetch uses `SSR_API_BASE_URL` internally.
+9. **Bun workspace, independent frontend service.** Root `package.json` catalogs all JavaScript
+   dependency versions and `bun.lock` pins their resolution; workspace packages declare usage with
+   `catalog:`. Run install and `frontend:*` scripts from the repository root. The frontend remains
+   outside Gradle/Cargo and deploys independently. Browser API/WebSocket traffic goes through nginx
+   and `micro-gateway-rs`; SSR prefetch uses `SSR_API_BASE_URL` internally.
 
 ## Code Style
 
