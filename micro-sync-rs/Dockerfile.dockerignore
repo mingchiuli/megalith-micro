@@ -1,0 +1,7 @@
+*
+!Cargo.toml
+!Cargo.lock
+!micro-gateway-rs/
+!micro-gateway-rs/**
+!micro-sync-rs/
+!micro-sync-rs/**
