@@ -1,0 +1,6 @@
+.front {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem;
+  min-height: calc(100vh - 120px);
+}
