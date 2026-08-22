@@ -6,6 +6,11 @@
 [![Bun](https://img.shields.io/badge/Bun-1.4.0-000000.svg?logo=bun&logoColor=white)](https://bun.sh/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
+> **Inspired by Zhiming Zhou's _The Phoenix Architecture_ (《凤凰架构》), this project is a
+> hands-on exploration of the ideas presented in the book. Its lifecycle has followed the broader
+> evolution of software architecture, from a monolith through distributed systems and
+> microservices, and it is now in its cloud-native stage.**
+
 Megalith Micro is a platform monorepo designed to ship every application as a **single native
 executable**.
 
