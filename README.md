@@ -3,6 +3,7 @@
 [![GraalVM](https://img.shields.io/badge/GraalVM-Java%2025-f29111.svg)](https://www.graalvm.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-6db33f.svg)](https://spring.io/projects/spring-boot)
 [![Rust](https://img.shields.io/badge/Rust-2024-000000.svg)](https://www.rust-lang.org/)
+[![Bun](https://img.shields.io/badge/Bun-1.4.0-000000.svg?logo=bun&logoColor=white)](https://bun.sh/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 Megalith Micro is a platform monorepo designed to ship every application as a **single native
@@ -21,7 +22,7 @@ runtime files, with no source code, build toolchain, or separate language runtim
 | --- | --- | --- |
 | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot, GraalVM | GraalVM Native Image executable |
 | `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
-| [`micro-frontend`](micro-frontend/docs/ssr-architecture.md) | Bun 1.4, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
+| [`micro-frontend`](micro-frontend/docs/ssr-architecture.md) | Bun 1.4.0, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
 > MariaDB, Redis, RabbitMQ, Elasticsearch, and other infrastructure components continue to use
 > their standard images. "Single binary" describes how the platform applications are built and
