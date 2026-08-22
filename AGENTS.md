@@ -11,7 +11,7 @@ to work correctly without breaking the project's invariants.
 - **Gradle 9.7** (Kotlin DSL), root `build.gradle.kts` configures all subprojects.
 - **Rust 2024 edition** for `micro-gateway-rs` and `micro-sync-rs`.
 - **Bun 1.4.0** workspace at the repository root; Vue 3 and Vite for the SSR frontend in
-  `megalith-frontend`.
+  `micro-frontend`.
 
 > ⚠️ **JAVA_HOME must be a GraalVM HotSpot JDK, not the Espresso JVM.**
 > `espresso-java25` (which macOS may select by default) makes Gradle configuration crash with a
@@ -50,7 +50,7 @@ bun run frontend:check
 | `micro-user` | User & permission management (Hibernate) |
 | `micro-blog` / `micro-exhibit` / `micro-search` | Content, display/visit stats, search |
 | `micro-gateway-rs` / `micro-sync-rs` | Gateway proxy and Redis-backed collaborative editing |
-| `megalith-frontend` | Bun standalone service: Vue 3 SSR, hydration, and embedded static assets |
+| `micro-frontend` | Bun standalone service: Vue 3 SSR, hydration, and embedded static assets |
 
 ## Architecture Invariants
 
