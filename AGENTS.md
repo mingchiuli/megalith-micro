@@ -10,7 +10,8 @@ to work correctly without breaking the project's invariants.
 - **Java 25 (GraalVM)**, Spring Boot 4.1.0, Hibernate ORM 7.4.5, Redisson 4.7.0, Caffeine.
 - **Gradle 9.7** (Kotlin DSL), root `build.gradle.kts` configures all subprojects.
 - **Rust 2024 edition** for `micro-gateway-rs` and `micro-sync-rs`.
-- **Bun 1.4.0**, Vue 3, and Vite for the SSR frontend in `megalith-frontend`.
+- **Bun 1.4.0** workspace at the repository root; Vue 3 and Vite for the SSR frontend in
+  `megalith-frontend`.
 
 > ⚠️ **JAVA_HOME must be a GraalVM HotSpot JDK, not the Espresso JVM.**
 > `espresso-java25` (which macOS may select by default) makes Gradle configuration crash with a
@@ -28,8 +29,8 @@ to work correctly without breaking the project's invariants.
 ./gradlew compileJava compileTestJava
 ./gradlew :micro-auth:bootRun        # run a service
 cargo build --manifest-path micro-gateway-rs/Cargo.toml
-(cd megalith-frontend && bun install --frozen-lockfile)
-(cd megalith-frontend && bun run check)
+bun install --frozen-lockfile
+bun run frontend:check
 ```
 
 - Every `micro-*` module also runs **ArchUnit** tests and Spring AOT test compilation
@@ -79,9 +80,10 @@ cargo build --manifest-path micro-gateway-rs/Cargo.toml
    JPMS modules must `requires wiki.chiu.micro.cache`.
 8. **GraalVM native / AOT.** All `micro-*` modules compile to native images. Types reachable via
    reflection, HTTP interfaces, or serialization need AOT hints.
-9. **Frontend remains an independent service.** Run Bun commands from `megalith-frontend`; do not
-   add it to the Gradle or Cargo workspaces. Browser API/WebSocket traffic goes through nginx and
-   `micro-gateway-rs`, while SSR prefetch uses `SSR_API_BASE_URL` on the internal network.
+9. **Bun workspace, independent frontend service.** Root `package.json` and `bun.lock` own all
+   JavaScript dependencies; run install and `frontend:*` scripts from the repository root. The
+   frontend remains outside Gradle/Cargo and deploys independently. Browser API/WebSocket traffic
+   goes through nginx and `micro-gateway-rs`; SSR prefetch uses `SSR_API_BASE_URL` internally.
 
 ## Code Style
 
@@ -95,8 +97,8 @@ cargo build --manifest-path micro-gateway-rs/Cargo.toml
   `/inner/...`); HTTP interface annotations (`@GetExchange`/`@PostExchange`) in the `-api` module.
   Path conventions: client `@GetExchange("/role/authorizations")` ↔ server route
   `/inner/role/authorizations`.
-- Frontend TypeScript and Vue files use ESLint and Prettier. Run `bun run check` in
-  `megalith-frontend` before committing frontend changes.
+- Frontend TypeScript and Vue files use ESLint and Prettier. Run `bun run frontend:check` from the
+  repository root before committing frontend changes.
 
 ## Committing
 

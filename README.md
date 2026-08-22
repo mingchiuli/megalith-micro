@@ -182,7 +182,8 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.2.4+7.1/Contents/H
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
-(cd megalith-frontend && bun install --frozen-lockfile && bun run check)
+bun install --frozen-lockfile
+bun run frontend:check
 ```
 
 The Java build includes Spotless, unit tests, ArchUnit, and Spring AOT test processing.
@@ -196,8 +197,8 @@ The Java build includes Spotless, unit tests, ArchUnit, and Spring AOT test proc
 # Rust
 cargo build --workspace --release
 
-# Bun frontend
-(cd megalith-frontend && bun run build)
+# Bun workspace / frontend
+bun run frontend:build
 ```
 
 Java artifacts are written to each module's `build/native/nativeCompile/` directory. Rust artifacts
@@ -219,7 +220,7 @@ and required runtime files:
 ```bash
 docker build -t megalith-micro-gateway-rs:latest -f micro-gateway-rs/Dockerfile .
 docker build -t megalith-micro-sync-rs:latest -f micro-sync-rs/Dockerfile .
-docker build -t mingchiuli/megalith-frontend:latest megalith-frontend
+docker build -t mingchiuli/megalith-frontend:latest -f megalith-frontend/Dockerfile .
 ```
 
 CI validates AOT processing and builds a separate GraalVM Native Image for each of the five Java
@@ -234,7 +235,7 @@ Native compilation can be skipped when running a single service during developme
 ```bash
 ./gradlew :micro-auth:bootRun
 cargo run -p micro-gateway-rs
-(cd megalith-frontend && bun run dev)
+bun run frontend:dev
 ```
 
 A complete local deployment also requires MariaDB, Redis, RabbitMQ, and Elasticsearch. Connection,

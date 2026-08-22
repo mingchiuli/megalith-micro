@@ -2,9 +2,11 @@ FROM oven/bun:1.4.0 AS build
 
 WORKDIR /app
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+COPY megalith-frontend/package.json megalith-frontend/package.json
+RUN bun install --frozen-lockfile --filter megalith-frontend
 
-COPY . .
+COPY megalith-frontend megalith-frontend
+WORKDIR /app/megalith-frontend
 RUN bun run build
 
 FROM debian:bookworm-slim AS runtime
@@ -21,7 +23,7 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY --from=build --chown=megalith:megalith --chmod=0755 \
-  /app/dist/bin/megalith-frontend /app/megalith-frontend
+  /app/megalith-frontend/dist/bin/megalith-frontend /app/megalith-frontend
 
 USER megalith
 EXPOSE 1919

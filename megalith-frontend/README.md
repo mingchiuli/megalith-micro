@@ -2,7 +2,7 @@
 
 Vue 3 + Vite SSR frontend for Megalith. Public and administration routes render on the Bun server, prefetch their initial API data, and then hydrate into the existing interactive application in the browser. The collaborative editor, Yjs provider, AI workflow, comments, and other DOM-only integrations start after hydration.
 
-This application is maintained inside the Megalith Micro monorepo. Run the commands below from the `megalith-frontend` directory; it remains an independently built and deployed service.
+This application is maintained as a Bun workspace inside the Megalith Micro monorepo. Run install and the root `frontend:*` scripts from the repository root; the frontend remains an independently built and deployed service.
 
 ## Runtime model
 
@@ -18,9 +18,11 @@ This application is maintained inside the Megalith Micro monorepo. Run the comma
 
 Requirements: Bun 1.4.0 and the Megalith gateway on `127.0.0.1:8088`.
 
+From the repository root:
+
 ```bash
 bun install --frozen-lockfile
-bun run dev
+bun run frontend:dev
 ```
 
 Open `http://127.0.0.1:1919`. Vite proxies browser `/api` and `/wsapi` traffic; server prefetch calls the gateway directly.
@@ -33,13 +35,14 @@ MEGALITH_AUTH_COOKIE_SECURE=false
 
 ## Verification and production
 
+From the repository root:
+
 ```bash
-bun run lint
-bun run test:unit:run
-bun run build
-bun run test:ssr
-bun run test:otel
-bun run preview
+bun run frontend:quality
+bun run frontend:build
+bun run frontend:test:ssr
+bun run frontend:test:otel
+bun run frontend:preview
 ```
 
 Production runtime variables:
