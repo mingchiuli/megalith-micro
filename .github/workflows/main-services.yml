@@ -12,7 +12,7 @@ on:
       - 'micro-user/**'
       - 'micro-gateway-rs/**'
       - 'micro-sync-rs/**'
-      - 'megalith-frontend/**'
+      - 'micro-frontend/**'
       - 'common-contract/**'
       - 'common-rpc/**'
       - 'common-web/**'
@@ -172,7 +172,7 @@ jobs:
                 micro-sync-rs/*)
                   add_service micro-sync-rs
                   ;;
-                megalith-frontend/*)
+                micro-frontend/*)
                   add_service megalith-frontend
                   ;;
                 auth-api/*|user-api/*|blog-api/*|search-api/*|common-contract/*|common-rpc/*|common-web/*|common-auth-web/*|common-observability/*|common-export/*|common-outbox/*|common-messaging/*|common-scheduling/*|cache/*|build.gradle.kts|settings.gradle.kts|gradle/*|gradlew|gradlew.bat|gradle.properties)
@@ -426,7 +426,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ./megalith-frontend/Dockerfile
+          file: ./micro-frontend/Dockerfile
           push: true
           tags: mingchiuli/megalith-frontend:latest
 

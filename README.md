@@ -15,13 +15,13 @@ the frontend service is compiled to a standalone executable by Bun.
 
 The entire platform therefore follows the same model: **one application, one native executable,
 one independent OCI image**. Application images contain the executable and only the minimal
-runtime files, with no source code, build toolchain, or Java runtime.
+runtime files, with no source code, build toolchain, or separate language runtime.
 
 | Applications | Technology | Production artifact |
 | --- | --- | --- |
 | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot, GraalVM | GraalVM Native Image executable |
 | `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
-| [`megalith-frontend`](megalith-frontend/) | Bun, Vue 3 SSR | Bun standalone executable |
+| [`micro-frontend`](micro-frontend/docs/ssr-architecture.md) | Bun 1.4, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
 > MariaDB, Redis, RabbitMQ, Elasticsearch, and other infrastructure components continue to use
 > their standard images. "Single binary" describes how the platform applications are built and
@@ -39,7 +39,7 @@ graph TD
         Nginx["nginx<br/>Reverse Proxy"]
     end
     subgraph FrontendLayer[Frontend Layer]
-        Frontend["megalith-frontend - Bun Standalone Executable<br/>Vue 3 SSR + Embedded Static Assets<br/>Server Prefetch + Client Hydration"]
+        Frontend["micro-frontend - Bun Standalone Executable<br/>Vue 3 SSR + Embedded Static Assets<br/>Server Prefetch + Client Hydration"]
     end
     subgraph GatewayLayer[Gateway Layer]
         Gateway["micro-gateway-rs - Native Rust Binary<br/>Origin Check + Single Auth/Route Resolution<br/>Pooled Streaming HTTP / WebSocket Proxy"]
@@ -126,7 +126,7 @@ single process.
 | `micro-exhibit` | Content presentation, visit statistics, and presentation caches |
 | `micro-search` | Elasticsearch full-text search and index event consumption |
 | `micro-sync-rs` | Stateless real-time collaboration backed by YRS CRDT and Redis |
-| `megalith-frontend` | Vue 3 SSR, server prefetch, client hydration, and embedded static assets |
+| `micro-frontend` | Vue 3 SSR, server prefetch, client hydration, and embedded static assets |
 
 ### Shared Java Modules
 
@@ -140,6 +140,40 @@ single process.
 | `common-observability` | OpenTelemetry integration and GraalVM runtime hints |
 | `common-messaging`, `common-outbox` | Consumer retries, dead-letter queues, and the transactional outbox |
 | `common-scheduling`, `common-export` | Distributed scheduler locks and export utilities |
+
+## Frontend
+
+`micro-frontend` is the Bun workspace for the production `megalith-frontend` service. JavaScript
+dependency versions are defined once in the root `package.json` catalog, while the workspace
+declares the packages it uses through the `catalog:` protocol. The service remains independently
+built and deployed outside the Gradle and Cargo workspaces.
+
+Public and administration routes are rendered on the Bun server and hydrated by Vue in the
+browser. Each SSR request creates isolated Vue Router, Pinia, i18n, head-management, and HTTP
+state; route data prefetched through `micro-gateway-rs` is serialized into the page and reused
+during hydration. Subsequent browser API and WebSocket traffic goes directly through nginx to the
+gateway instead of passing through the frontend server.
+
+Authentication tokens are transported only in HttpOnly cookies. The SSR server forwards request
+cookies to the gateway and propagates refreshed `Set-Cookie` headers, while browser code never
+reads or persists access or refresh tokens.
+
+Vite builds the client and SSR bundles, then Bun compiles the server, runtime, and assets into
+`micro-frontend/dist/bin/megalith-frontend`. The runtime image contains only that executable and
+minimal OS runtime files. It exposes `/actuator/health`, performs graceful shutdown, and exports
+correlated OpenTelemetry traces, metrics, and logs.
+
+| Variable | Default / production value | Purpose |
+| --- | --- | --- |
+| `PORT` | `1919` | Bun SSR listen port |
+| `SSR_API_BASE_URL` | `http://127.0.0.1:8088` / `http://micro-gateway-rs:8088` | Gateway used for SSR prefetch |
+| `APP_ORIGIN` | Incoming request origin | Origin forwarded for cookie-authenticated requests |
+| `OTEL_SERVICE_VERSION` | Package version / deployed Git SHA | Frontend release identifier |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://127.0.0.1:8200` / `http://apm-server:8200` | Base OTLP endpoint for traces, metrics, and logs |
+| `LOG_LEVEL` | `info` | Console and OTLP application log threshold |
+
+See the [SSR architecture](micro-frontend/docs/ssr-architecture.md) for request flow,
+authentication, caching, observability, failure behavior, and deployment details.
 
 ## Core Design
 
@@ -205,7 +239,7 @@ bun run frontend:build
 
 Java artifacts are written to each module's `build/native/nativeCompile/` directory. Rust artifacts
 are written to `target/release/`; the frontend executable is written to
-`megalith-frontend/dist/bin/megalith-frontend`.
+`micro-frontend/dist/bin/megalith-frontend`.
 
 ### Application Images
 
@@ -216,13 +250,13 @@ Spring Boot Buildpacks compile and publish each Java service as a GraalVM Native
 ./gradlew :micro-auth:bootBuildImage
 ```
 
-The Rust services use multi-stage Dockerfiles. Their final images copy only the release executable
-and required runtime files:
+The Rust and Bun services use multi-stage Dockerfiles. Their final images contain only the release
+executable and required runtime files:
 
 ```bash
 docker build -t megalith-micro-gateway-rs:latest -f micro-gateway-rs/Dockerfile .
 docker build -t megalith-micro-sync-rs:latest -f micro-sync-rs/Dockerfile .
-docker build -t mingchiuli/megalith-frontend:latest -f megalith-frontend/Dockerfile .
+docker build -t mingchiuli/megalith-frontend:latest -f micro-frontend/Dockerfile .
 ```
 
 CI validates AOT processing and builds a separate GraalVM Native Image for each of the five Java
@@ -239,6 +273,10 @@ Native compilation can be skipped when running a single service during developme
 cargo run -p micro-gateway-rs
 bun run frontend:dev
 ```
+
+The frontend development server listens on `http://127.0.0.1:1919` and expects the gateway at
+`http://127.0.0.1:8088`. For local HTTP login, run `micro-auth` with
+`MEGALITH_AUTH_COOKIE_SECURE=false`.
 
 A complete local deployment also requires MariaDB, Redis, RabbitMQ, and Elasticsearch. Connection,
 port, and OpenTelemetry settings are defined in each module's `application.yml`.
