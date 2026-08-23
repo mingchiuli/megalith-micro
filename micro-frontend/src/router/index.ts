@@ -6,7 +6,7 @@ import {
   type RouteRecordRaw,
   type Router
 } from 'vue-router'
-import { storeToRefs } from 'pinia'
+import { storeToRefs, type Pinia } from 'pinia'
 import { RoutesEnum, type Button, type Menu, type MenuNode, type UserInfo } from '@/type/entity'
 import {
   menuStore,
@@ -26,6 +26,7 @@ const modules = import.meta.glob('@/views/sys/*.vue')
 type RouterOptions = {
   server: boolean
   api: ApiClient
+  pinia: Pinia
 }
 
 const publicRoutes: RouteRecordRaw[] = [
@@ -66,7 +67,7 @@ const publicRoutes: RouteRecordRaw[] = [
   }
 ]
 
-export const createAppRouter = ({ server, api }: RouterOptions): Router => {
+export const createAppRouter = ({ server, api, pinia }: RouterOptions): Router => {
   const router = createRouter({
     history: server
       ? createMemoryHistory(import.meta.env.BASE_URL)
@@ -88,23 +89,23 @@ export const createAppRouter = ({ server, api }: RouterOptions): Router => {
       .GET<Menu>(API_ENDPOINTS.AUTH.MENU_NAV)
       .then((menuTree) => {
         if (request !== latestNavigationRequest) return
-        if (!loginStateStore().login || !authMarkStore().auth) return
-        applyMenuTree(router, menuTree)
+        if (!loginStateStore(pinia).login || !authMarkStore(pinia).auth) return
+        applyMenuTree(router, menuTree, pinia)
       })
       .catch(() => undefined)
   }
 
   router.beforeEach(async (to) => {
     const privateRoute = to.path.startsWith('/sys') || to.path.startsWith('/backend')
-    const loginState = loginStateStore()
+    const loginState = loginStateStore(pinia)
     const isRouteRematch = rematchingPath === to.fullPath
     rematchingPath = undefined
 
     if (!loginState.login && !privateRoute) return
 
     try {
-      let menuTree = menuStore().menuTree
-      const restoredSession = authMarkStore().auth && menuTree && loginState.user
+      let menuTree = menuStore(pinia).menuTree
+      const restoredSession = authMarkStore(pinia).auth && menuTree && loginState.user
       if (!restoredSession) {
         latestNavigationRequest += 1
         const [fetchedMenu, user] = await getSession()
@@ -113,10 +114,10 @@ export const createAppRouter = ({ server, api }: RouterOptions): Router => {
       }
       if (!menuTree) throw new Error('Authenticated menu is unavailable')
 
-      const addedRoute = applyMenuTree(router, menuTree)
-      dealSysTab(to, menuTree)
+      const addedRoute = applyMenuTree(router, menuTree, pinia)
+      dealSysTab(to, menuTree, pinia)
       loginState.login = true
-      authMarkStore().auth = true
+      authMarkStore(pinia).auth = true
       if (to.path.startsWith('/login')) return { name: 'blogs' }
       if (privateRoute && restoredSession && !isRouteRematch) refreshNavigation()
       if (addedRoute && (!to.name || to.name === 'not-found')) {
@@ -124,7 +125,7 @@ export const createAppRouter = ({ server, api }: RouterOptions): Router => {
         return to.fullPath
       }
     } catch {
-      clearAuthStores(router)
+      clearAuthStores(router, pinia)
       if (privateRoute) return { name: 'login', query: { redirect: to.fullPath } }
     }
   })
@@ -132,34 +133,34 @@ export const createAppRouter = ({ server, api }: RouterOptions): Router => {
   return router
 }
 
-export const clearAuthStores = (router: Router) => {
-  const rootName = menuStore().menuTree?.name
+export const clearAuthStores = (router: Router, pinia: Pinia) => {
+  const rootName = menuStore(pinia).menuTree?.name
   if (rootName && router.hasRoute(rootName)) router.removeRoute(rootName)
-  authMarkStore().auth = false
-  loginStateStore().login = false
-  loginStateStore().user = undefined
-  menuStore().menuTree = undefined
-  buttonStore().buttonList = []
-  tabStore().editableTabs = []
-  tabStore().editableTabsValue = ''
-  ssrDataStore().clear()
-  protectedBlogStore().clear()
+  authMarkStore(pinia).auth = false
+  loginStateStore(pinia).login = false
+  loginStateStore(pinia).user = undefined
+  menuStore(pinia).menuTree = undefined
+  buttonStore(pinia).buttonList = []
+  tabStore(pinia).editableTabs = []
+  tabStore(pinia).editableTabsValue = ''
+  ssrDataStore(pinia).clear()
+  protectedBlogStore(pinia).clear()
 }
 
-const dealSysTab = (to: RouteLocationNormalized, menuTree: Menu) => {
+const dealSysTab = (to: RouteLocationNormalized, menuTree: Menu, pinia: Pinia) => {
   if (!to.path.startsWith('/sys')) return
   const menu = findMenuByPath(menuTree.children, to.path)
-  if (menu) tabStore().addTab({ name: menu.name, title: menu.title })
+  if (menu) tabStore(pinia).addTab({ name: menu.name, title: menu.title })
 }
 
-const applyMenuTree = (router: Router, rootMenu: Menu): boolean => {
-  const currentMenu = menuStore().menuTree
+const applyMenuTree = (router: Router, rootMenu: Menu, pinia: Pinia): boolean => {
+  const currentMenu = menuStore(pinia).menuTree
   const menuChanged = !currentMenu || diff([currentMenu], [rootMenu])
   const buttons = collectButtons(rootMenu)
-  const { buttonList } = storeToRefs(buttonStore())
+  const { buttonList } = storeToRefs(buttonStore(pinia))
   if (diff(buttonList.value, buttons)) buttonList.value = buttons
 
-  const { menuTree } = storeToRefs(menuStore())
+  const { menuTree } = storeToRefs(menuStore(pinia))
   if (menuChanged) menuTree.value = rootMenu
 
   if (currentMenu?.name !== rootMenu.name && currentMenu && router.hasRoute(currentMenu.name)) {

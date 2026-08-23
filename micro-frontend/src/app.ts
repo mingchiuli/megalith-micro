@@ -1,5 +1,5 @@
 import { createSSRApp, type App as VueApp } from 'vue'
-import { createPinia, setActivePinia, type Pinia, type StateTree } from 'pinia'
+import { createPinia, type Pinia, type StateTree } from 'pinia'
 import type { VueHeadClient } from '@unhead/vue'
 import { ElNotification, ID_INJECTION_KEY, ZINDEX_INJECTION_KEY } from 'element-plus'
 import App from './App.vue'
@@ -50,7 +50,6 @@ export const createMegalithApp = (options: CreateMegalithAppOptions): MegalithAp
   const cookies = parseCookies(options.request?.cookie)
   const pinia = createPinia()
   if (options.initialState) pinia.state.value = options.initialState
-  setActivePinia(pinia)
 
   const appContext: { router?: ReturnType<typeof createAppRouter> } = {}
   const clients = createHttpClients({
@@ -59,7 +58,7 @@ export const createMegalithApp = (options: CreateMegalithAppOptions): MegalithAp
     origin: options.request?.origin,
     onSetCookie: (values) => responseCookies.push(...values),
     onUnauthorized: () => {
-      if (appContext.router) clearAuthStores(appContext.router)
+      if (appContext.router) clearAuthStores(appContext.router, pinia)
     },
     onError: (error) => {
       if (!options.server) {
@@ -72,7 +71,7 @@ export const createMegalithApp = (options: CreateMegalithAppOptions): MegalithAp
     }
   })
   const api = createApiClient(clients)
-  const router = createAppRouter({ server: options.server, api })
+  const router = createAppRouter({ server: options.server, api, pinia })
   appContext.router = router
   const i18n = createAppI18n(
     options.locale ?? resolveLocale(cookies, options.request?.acceptLanguage)
@@ -85,10 +84,10 @@ export const createMegalithApp = (options: CreateMegalithAppOptions): MegalithAp
   app.provide(ZINDEX_INJECTION_KEY, { current: 0 })
 
   if (!options.initialState) {
-    loginStateStore().login = Boolean(
+    loginStateStore(pinia).login = Boolean(
       cookies.megalith_access_token || cookies.megalith_refresh_token
     )
-    themeStore().isDark = cookies.megalith_theme === 'dark'
+    themeStore(pinia).isDark = cookies.megalith_theme === 'dark'
   }
 
   return { app, pinia, router, api, responseCookies }

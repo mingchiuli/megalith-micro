@@ -38,13 +38,16 @@ const deferred = <T>() => {
 }
 
 describe('authentication routing', () => {
+  let pinia: ReturnType<typeof createPinia>
+
   beforeEach(() => {
-    setActivePinia(createPinia())
+    pinia = createPinia()
+    setActivePinia(pinia)
   })
 
   it('keeps an invalid cookie session on the login route', async () => {
     const GET = vi.fn().mockRejectedValue(new Error('expired session'))
-    const router = createAppRouter({ server: true, api: apiWithGet(GET) })
+    const router = createAppRouter({ server: true, api: apiWithGet(GET), pinia })
     loginStateStore().login = true
 
     await router.push('/login')
@@ -60,7 +63,7 @@ describe('authentication routing', () => {
       if (url === API_ENDPOINTS.AUTH.USER_INFO) return Promise.resolve(user)
       return Promise.reject(new Error(`Unexpected URL: ${url}`))
     })
-    const router = createAppRouter({ server: true, api: apiWithGet(GET) })
+    const router = createAppRouter({ server: true, api: apiWithGet(GET), pinia })
 
     await router.push('/backend')
 
@@ -69,6 +72,26 @@ describe('authentication routing', () => {
     expect(loginStateStore().login).toBe(true)
     expect(loginStateStore().user).toEqual(user)
     expect(GET).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps route state isolated from another active Pinia instance', async () => {
+    const routerPinia = createPinia()
+    const otherPinia = createPinia()
+    const GET = vi.fn((url: string) => {
+      if (url === API_ENDPOINTS.AUTH.MENU_NAV) return Promise.resolve(backendMenu)
+      if (url === API_ENDPOINTS.AUTH.USER_INFO) return Promise.resolve(user)
+      return Promise.reject(new Error(`Unexpected URL: ${url}`))
+    })
+    loginStateStore(routerPinia).login = true
+    setActivePinia(otherPinia)
+    const router = createAppRouter({ server: true, api: apiWithGet(GET), pinia: routerPinia })
+
+    await router.push('/backend')
+
+    expect(loginStateStore(routerPinia).user).toEqual(user)
+    expect(loginStateStore(otherPinia).user).toBeUndefined()
+    expect(menuStore(routerPinia).menuTree).toEqual(backendMenu)
+    expect(menuStore(otherPinia).menuTree).toBeUndefined()
   })
 
   it('refreshes navigation on every private route without reloading the user', async () => {
@@ -82,7 +105,7 @@ describe('authentication routing', () => {
       if (url === API_ENDPOINTS.AUTH.USER_INFO) return Promise.resolve(user)
       return Promise.reject(new Error(`Unexpected URL: ${url}`))
     })
-    const router = createAppRouter({ server: true, api: apiWithGet(GET) })
+    const router = createAppRouter({ server: true, api: apiWithGet(GET), pinia })
 
     await router.push('/backend')
     await router.push('/backend?view=roles')
@@ -103,7 +126,7 @@ describe('authentication routing', () => {
     loginStateStore().user = user
     menuStore().menuTree = backendMenu
     authMarkStore().auth = true
-    const router = createAppRouter({ server: true, api: apiWithGet(GET) })
+    const router = createAppRouter({ server: true, api: apiWithGet(GET), pinia })
 
     await router.push('/backend')
 
@@ -127,7 +150,7 @@ describe('authentication routing', () => {
       if (url === API_ENDPOINTS.AUTH.USER_INFO) return Promise.resolve(user)
       return Promise.reject(new Error(`Unexpected URL: ${url}`))
     })
-    const router = createAppRouter({ server: true, api: apiWithGet(GET) })
+    const router = createAppRouter({ server: true, api: apiWithGet(GET), pinia })
 
     await router.push('/backend')
     await router.push('/backend?view=roles')
@@ -152,7 +175,7 @@ describe('authentication routing', () => {
     loginStateStore().user = user
     menuStore().menuTree = backendMenu
     authMarkStore().auth = true
-    const router = createAppRouter({ server: true, api: apiWithGet(GET) })
+    const router = createAppRouter({ server: true, api: apiWithGet(GET), pinia })
 
     await router.push('/backend')
     refresh.reject(new Error('navigation unavailable'))
@@ -166,7 +189,7 @@ describe('authentication routing', () => {
 
   it('redirects a private route only after session restoration fails', async () => {
     const GET = vi.fn().mockRejectedValue(new Error('missing session'))
-    const router = createAppRouter({ server: true, api: apiWithGet(GET) })
+    const router = createAppRouter({ server: true, api: apiWithGet(GET), pinia })
 
     await router.push('/backend')
 
@@ -177,7 +200,7 @@ describe('authentication routing', () => {
 
   it('does not probe authentication on a public route without memory login state', async () => {
     const GET = vi.fn()
-    const router = createAppRouter({ server: true, api: apiWithGet(GET) })
+    const router = createAppRouter({ server: true, api: apiWithGet(GET), pinia })
 
     await router.push('/login')
 
