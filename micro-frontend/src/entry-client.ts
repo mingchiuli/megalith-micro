@@ -13,8 +13,8 @@ const initialState = stateElement?.textContent
   : undefined
 const head = createHead()
 const locale = resolveAppLocale(document.documentElement.lang, navigator.language)
-const { app, router } = createMegalithApp({ server: false, head, initialState, locale })
+const { app, router, pinia } = createMegalithApp({ server: false, head, initialState, locale })
 
 await router.isReady()
 app.mount('#app')
-themeStore().initTheme()
+themeStore(pinia).initTheme()

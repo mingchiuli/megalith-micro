@@ -1,4 +1,5 @@
 import { useRouter } from 'vue-router'
+import { getActivePinia } from 'pinia'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { useHttp } from '@/http/http'
 import { clearAuthStores } from '@/router'
@@ -8,8 +9,10 @@ import type { LoginType, UserInfo } from '@/type/entity'
 export const useAuth = () => {
   const api = useHttp()
   const router = useRouter()
+  const pinia = getActivePinia()
+  if (!pinia) throw new Error('Pinia is not available in the current app')
 
-  const clearLoginState = () => clearAuthStores(router)
+  const clearLoginState = () => clearAuthStores(router, pinia)
 
   const logout = async (): Promise<void> => {
     try {
@@ -26,8 +29,9 @@ export const useAuth = () => {
       principal: username,
       credential: password
     })
-    loginStateStore().login = true
-    loginStateStore().user = await api.GET<UserInfo>(API_ENDPOINTS.AUTH.USER_INFO)
+    const loginState = loginStateStore(pinia)
+    loginState.login = true
+    loginState.user = await api.GET<UserInfo>(API_ENDPOINTS.AUTH.USER_INFO)
     const redirect = router.currentRoute.value.query.redirect
     await router.push(typeof redirect === 'string' ? redirect : '/backend')
   }
