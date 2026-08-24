@@ -100,10 +100,7 @@ bun run frontend:check
 ## Committing
 
 - Conventional Commits, matching repo history: `feat`, `fix`, `refactor`, `test`, `chore`, `build`.
-- Write in the imperative mood, one short subject line, then a body paragraph. End with:
-
-```text
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
+- Write in the imperative mood, one short subject line, then a body paragraph.
+- Do not add AI attribution or co-author trailers to commit messages.
 
 - Do not push unless asked; the branch may be intentionally ahead of `origin/main`.
