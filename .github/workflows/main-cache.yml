@@ -52,11 +52,11 @@ jobs:
             exit 1
           fi
           if [[ "$HTTP_STATUS" == "404" ]]; then
-            if [[ "$CACHE_VERSION" != "1.0.0" ]]; then
-              echo "The first release of the new artifact must be 1.0.0, not $CACHE_VERSION." >&2
+            if [[ "$CACHE_VERSION" != "0.1.0" ]]; then
+              echo "The first release of the new artifact must be 0.1.0, not $CACHE_VERSION." >&2
               exit 1
             fi
-            echo "No existing artifact metadata found; allowing initial 1.0.0 release."
+            echo "No existing artifact metadata found; allowing initial 0.1.0 release."
             exit 0
           fi
           if [[ "$HTTP_STATUS" != "200" ]]; then
