@@ -46,6 +46,12 @@ class CacheRuntimeHints implements RuntimeHintsRegistrar {
               MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
               MemberCategory.INVOKE_DECLARED_METHODS);
 
+      hints
+          .reflection()
+          .registerType(
+              TypeReference.of("com.github.benmanes.caffeine.cache.PSAMS"),
+              MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
+
       TypeReference ssmsaType = TypeReference.of("com.github.benmanes.caffeine.cache.SSMSA");
       hints
           .reflection()
