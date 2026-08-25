@@ -1,106 +1,114 @@
-# AGENTS.md — Megalith Micro
+# AGENTS.md - Megalith Micro
 
-Operating notes for AI coding agents working in this repository. Read the
-[README.md](README.md) for the full architecture diagram and feature list; this file
-records the non-obvious environment, command, and code-architecture facts an agent needs
-to work correctly without breaking the project's invariants.
+Operating notes for AI coding agents working in this repository. Read [README.md](README.md) for
+the complete architecture, application responsibilities, deployment model, and frontend SSR flow;
+this file records the implementation constraints that are easy to miss.
 
 ## Toolchain
 
-- **Java 25 (GraalVM)**, Spring Boot 4.1.0, Hibernate ORM 7.4.5, Redisson 4.7.0, Caffeine.
-- **Gradle 9.7** (Kotlin DSL), root `build.gradle.kts` configures all subprojects.
-- **Rust 2024 edition** for `micro-gateway-rs` and `micro-sync-rs`.
-- **Bun 1.4.0** workspace at the repository root; Vue 3 and Vite for the SSR frontend in
-  `micro-frontend`.
+- Java 25 (GraalVM HotSpot), Spring Boot 4.1.0, Hibernate ORM 7.4.5, Redisson 4.7.0, and Caffeine.
+- Gradle 9.7 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
+- Rust 2024 for `micro-gateway-rs` and `micro-sync-rs`.
+- Bun 1.4.0, Vue 3, and Vite for the standalone `micro-frontend` service.
 
-> ⚠️ **JAVA_HOME must be a GraalVM HotSpot JDK, not the Espresso JVM.**
-> `espresso-java25` (which macOS may select by default) makes Gradle configuration crash with a
-> `StackOverflow` during `createJavaToolchainResolverRegistry`. Use e.g.
-> `export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.2.4+7.1/Contents/Home`
-> before running any Gradle command.
-
-## Common Commands
+`JAVA_HOME` must point to a GraalVM HotSpot JDK, not the Espresso JVM. On macOS, for example:
 
 ```bash
-./gradlew build                      # full Java build: tests + AOT test compile
-./gradlew :micro-auth:test           # test one module (replace module name)
-./gradlew compileJava compileTestJava
-./gradlew :micro-auth:bootRun        # run a service
-cargo build --manifest-path micro-gateway-rs/Cargo.toml
-bun install --frozen-lockfile
-bun run frontend:check
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.2.4+7.1/Contents/Home
 ```
 
-- Every `micro-*` module also runs **ArchUnit** tests and Spring AOT test compilation
-  (`processTestAot`) during `test` — keep AOT reflection hints (`@RegisterReflectionForBinding`,
-  `CustomRuntimeHints`) in sync when you add types touched by reflection.
+## Checks and Commands
 
-## Module Map
+```bash
+./gradlew build
+./gradlew :micro-auth:test
+./gradlew :micro-auth:nativeCompile
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+bun install --frozen-lockfile
+bun run frontend:check
+bun run frontend:build
+```
 
-| Module | Purpose |
-|--------|---------|
-| `cache` | JPMS **cache starter**: `@Cache` aspect, L1 Caffeine + L2 Redis, distributed eviction |
-| `api-*` (`api-auth`, `api-user`, `api-blog`, `api-search`) | Typed HTTP interface contracts + RPC VOs (records) |
-| `common-*` | Contract, rpc, web, auth-web, observability, messaging, scheduling, outbox, export |
-| `micro-auth` | JWT / route authorization; owns the auth snapshot caches |
-| `micro-user` | User & permission management (Hibernate) |
-| `micro-blog` / `micro-exhibit` / `micro-search` | Content, display/visit stats, search |
-| `micro-gateway-rs` / `micro-sync-rs` | Gateway proxy and Redis-backed collaborative editing |
-| `micro-frontend` | Bun standalone service: Vue 3 SSR, hydration, and embedded static assets |
+Java tests include ArchUnit and Spring AOT processing; keep reflection and runtime hints in sync.
+Java production artifacts are GraalVM Native Images, Rust services are release binaries, and the
+frontend is a Bun standalone executable. Do not add deployment assumptions that require a JVM, JRE,
+Rust toolchain, Bun runtime, or source tree in a production image.
+
+## Repository Shape
+
+| Area | Modules | Responsibility |
+| --- | --- | --- |
+| Applications | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java native services |
+| Rust applications | `micro-gateway-rs`, `micro-sync-rs` | Gateway proxy and Redis-backed collaboration |
+| Frontend | `micro-frontend` | Vue SSR, hydration, and embedded static assets |
+| Contracts | `api-auth`, `api-user`, `api-blog`, `api-search` | Typed HTTP interfaces and RPC models |
+| Shared Java | `common-*` | Contract, RPC, web, auth, observability, messaging, scheduling, outbox, export |
+| Cache | `cache` | Caffeine L1, Redis L2, and distributed eviction |
+
+The frontend is an independent Bun workspace outside Gradle and Cargo. Dependency versions belong
+in the root `package.json` catalog and `bun.lock`; workspace packages use `catalog:` references.
 
 ## Architecture Invariants
 
-1. **Gateway authorization is single-pass.** `micro-gateway-rs` calls `POST /inner/auth/route`
-   once; `micro-auth` returns the target host/port and a Base64URL principal (`X-Megalith-Principal`).
-   Business services trust that header — never re-derive identity from cookies.
-2. **`@Cache` owns cache keys.** Key = `{prefix}:{SimpleClassName}:{methodName}[:serializedArg...]`
-   via `CommonCacheKeyGenerator`. `@Cache` methods must go through the Spring proxy (self-invocation
-   bypasses the aspect). Cache reads are Caffeine L1 → Redis L2; miss runs the method body and writes
-   both with the annotation TTL.
-3. **Eviction is by exact key + broadcast.** `AuthCacheKeys`/`CacheEvictHandler` delete Redis keys
-   and fan out to every replica (RabbitMQ fanout, or Redis pub/sub when AMQP is absent) to invalidate
-   L1 Caffeine. If you rename/remove a `@Cache` method, update the reflective `getMethod(...)` lookups
-   in `AuthCacheKeys` and any `api-*` contract — a stale lookup breaks eviction or the auth listener.
-4. **Port / wrapper pattern.** Services depend on ports (e.g. `UserDirectory`); concrete
-   `*Wrapper`/`*HttpServiceWrapper` classes adapt to remote HTTP interfaces. Wrappers unwrap
-   `RemoteResult.requireSuccess(...)`.
-5. **Transaction boundary.** Services prepare inputs across many reads **without** a transaction;
-   `*Wrapper` classes perform only writes + outbox insert in one short transaction and never query
-   back. ArchUnit enforces both directions — do not add `@Transactional` to services or repository
-   reads to wrappers.
-6. **Transactional outbox.** `micro-user`/`micro-blog` commit domain events to `m_outbox_event`
-   (producer-discriminated) and a shared scheduler publishes to RabbitMQ with confirms + retry.
-   Cache eviction and ES indexing consume those events. Never publish an event outside the outbox.
-7. **JPMS.** `cache` is a JPMS module (`module-info.java`) exporting only its public API packages
-   (`annotation`, `handler`, `utils`). Adding a public class requires an `exports` line; downstream
-   JPMS modules must `requires wiki.chiu.micro.cache`.
-8. **GraalVM native / AOT.** All `micro-*` modules compile to native images. Types reachable via
-   reflection, HTTP interfaces, or serialization need AOT hints.
-9. **Bun workspace, independent frontend service.** Root `package.json` catalogs all JavaScript
-   dependency versions and `bun.lock` pins their resolution; workspace packages declare usage with
-   `catalog:`. Run install and `frontend:*` scripts from the repository root. The frontend remains
-   outside Gradle/Cargo and deploys independently. Browser API/WebSocket traffic goes through nginx
-   and `micro-gateway-rs`; SSR prefetch uses `SSR_API_BASE_URL` internally.
+1. **Single-pass authorization.** `micro-gateway-rs` calls `POST /inner/auth/route` once. The auth
+   service returns the target host/port and a Base64URL principal in `X-Megalith-Principal`; business
+   services trust that header and never re-derive identity from cookies.
+2. **SSR and browser traffic are separate.** SSR prefetch uses `SSR_API_BASE_URL` through the gateway.
+   Browser API and WebSocket traffic goes through nginx and the gateway. Tokens stay in HttpOnly
+   cookies; browser code must not read or persist access or refresh tokens. SSR requests must create
+   isolated Router, Pinia, i18n, head-management, and HTTP state.
+3. **Stateless collaboration.** `micro-sync-rs` replicas coordinate through shared Redis Streams and
+   state for documents, awareness, snapshots, presence, leases, and compaction. Do not add sticky
+   session or room ownership assumptions.
+4. **`@Cache` owns cache keys.** Keys are `{prefix}:{SimpleClassName}:{methodName}[:serializedArg...]`
+   from `CommonCacheKeyGenerator`. Cache methods must go through the Spring proxy. Reads are Caffeine
+   L1 then Redis L2; misses execute the method and write both levels with the annotation TTL.
+5. **Eviction is exact and broadcast.** `AuthCacheKeys`/`CacheEvictHandler` delete exact Redis keys
+   and broadcast invalidation through RabbitMQ fanout or Redis pub/sub. Rename/remove a cached method
+   only after updating reflective lookups and related `api-*` contracts.
+6. **Ports and wrappers.** Services depend on ports such as `UserDirectory`; `*Wrapper` and
+   `*HttpServiceWrapper` adapt remote HTTP interfaces and unwrap `RemoteResult.requireSuccess(...)`.
+7. **Transaction boundary.** Services prepare inputs across reads without a transaction. Wrappers do
+   only writes and the matching outbox insert in one short transaction and never query back. Do not
+   add `@Transactional` to services or repository reads to wrappers.
+8. **Transactional outbox.** User and blog changes commit to `m_outbox_event` before confirmed
+   RabbitMQ publication. Cache eviction and Elasticsearch indexing consume those events. Never publish
+   domain events outside the outbox.
+9. **JPMS.** `cache` exports only its public `annotation`, `handler`, and `utils` packages. A new
+   public package needs an `exports` entry; downstream JPMS modules require `wiki.chiu.micro.cache`.
+10. **Native and AOT reachability.** Types used through reflection, serialization, HTTP interfaces, or
+    native-image initialization need the matching Spring AOT/runtime hints.
+11. **Observability.** Java, Rust, Bun, gateway, and sync services export correlated OpenTelemetry
+    traces, metrics, and logs; preserve existing trace-context propagation when adding boundaries.
+12. **CI and rewritten history.** A force-push event may provide a `github.event.before` SHA that is
+    no longer reachable. `fetch-depth: 0` does not fetch deleted objects. Workflows diffing event SHAs
+    must verify `git cat-file -e "$BEFORE^{commit}"` and use a conservative full-build path when it
+    is missing. Do not rewrite shared history without explicit approval, a complete `git bundle` backup,
+    and `--force-with-lease`; old commit URLs, PR refs, caches, and local stashes may retain old objects.
 
 ## Code Style
 
-- Java uses 4-space indentation. Keep imports sorted and unused imports removed, and match the
-  surrounding style exactly (method order, comment density, Chinese javadoc in `micro-user`).
-- RPC models are **records** in `api-*` modules; some VOs keep a hand-written builder
-  (`AuthorityRpcVo.builder()`).
-- Nullability uses **org.jspecify** `@NonNull`. Jackson mapper is the `tools.jackson.databind`
-  (`JsonMapper`) from Jackson 3 — not `com.fasterxml.jackson`.
-- Functional WebMVC on the server side: `*Handler` + `RouterFunctions` routes (internal routes under
-  `/inner/...`); HTTP interface annotations (`@GetExchange`/`@PostExchange`) in the `api-*` module.
-  Path conventions: client `@GetExchange("/role/authorizations")` ↔ server route
-  `/inner/role/authorizations`.
-- Frontend TypeScript and Vue files use ESLint and Prettier. Run `bun run frontend:check` from the
-  repository root before committing frontend changes.
+- Java uses 4-space indentation, sorted imports, no unused imports, and the surrounding method and
+  comment order. Preserve Chinese Javadoc conventions in `micro-user`.
+- RPC models are records in `api-*`; preserve established hand-written builders such as
+  `AuthorityRpcVo.builder()`.
+- Nullability uses `org.jspecify` `@NonNull`. Jackson is Jackson 3's `tools.jackson.databind.JsonMapper`,
+  not `com.fasterxml.jackson`.
+- Server WebMVC is functional: use `*Handler` with `RouterFunctions`, keep internal routes under
+  `/inner/...`, and declare HTTP contracts in `api-*` with `@GetExchange`/`@PostExchange`. Keep client
+  paths such as `/role/authorizations` aligned with server routes such as `/inner/role/authorizations`.
+- Rust changes follow Rust 2024 conventions and must pass `rustfmt`; preserve existing async, error,
+  and tracing patterns.
+- Frontend TypeScript and Vue changes follow existing patterns, Prettier, and ESLint. Run
+  `bun run frontend:check` before committing frontend changes.
+- Keep comments short and explain non-obvious decisions only. Avoid unrelated refactors.
 
-## Committing
+## Commits
 
-- Conventional Commits, matching repo history: `feat`, `fix`, `refactor`, `test`, `chore`, `build`.
-- Write in the imperative mood, one short subject line, then a body paragraph.
-- Do not add AI attribution or co-author trailers to commit messages.
-
-- Do not push unless asked; the branch may be intentionally ahead of `origin/main`.
+- Use Conventional Commits: `feat`, `fix`, `refactor`, `test`, `chore`, or `build`.
+- Write an imperative, concise subject followed by a short body when needed.
+- Do not add AI attribution or `Co-Authored-By` trailers. Claude Code attribution stays disabled in
+  the ignored `.claude/settings.local.json` with empty `attribution.commit` and `attribution.pr`.
+- Do not push or rewrite shared history unless explicitly requested.
