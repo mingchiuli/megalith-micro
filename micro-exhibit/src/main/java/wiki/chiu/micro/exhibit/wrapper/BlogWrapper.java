@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.convertor.BlogDescriptionDtoConvertor;
 import wiki.chiu.micro.exhibit.convertor.BlogExhibitDtoConvertor;
@@ -47,7 +48,9 @@ public class BlogWrapper {
     this.redissonClient = redissonClient;
   }
 
-  @Cache(prefix = Const.HOT_BLOG)
+  @Cache(
+      namespace = BlogCacheDescriptors.DETAIL_NAMESPACE,
+      version = BlogCacheDescriptors.VERSION)
   public BlogExhibitDto findById(Long id) {
     BlogEntityRpcVo blogEntity = blogHttpServiceWrapper.findById(id);
 
@@ -64,7 +67,9 @@ public class BlogWrapper {
         });
   }
 
-  @Cache(prefix = Const.HOT_BLOGS)
+  @Cache(
+      namespace = BlogCacheDescriptors.PAGE_NAMESPACE,
+      version = BlogCacheDescriptors.VERSION)
   public PageAdapter<BlogDescriptionDto> findPage(Integer currentPage) {
     PageAdapter<BlogEntityRpcVo> page = blogHttpServiceWrapper.findPage(currentPage, blogPageSize);
     return BlogDescriptionDtoConvertor.convert(page);

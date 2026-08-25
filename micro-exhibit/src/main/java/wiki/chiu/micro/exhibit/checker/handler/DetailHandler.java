@@ -2,38 +2,27 @@ package wiki.chiu.micro.exhibit.checker.handler;
 
 import static wiki.chiu.micro.common.lang.Const.BLOOM_FILTER_BLOG;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
-import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
 
 import org.redisson.api.RBitSet;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.function.ServerRequest;
-import wiki.chiu.micro.cache.handler.CheckerHandler;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.web.ValidatedRequest;
 
 @Component
-public class DetailHandler extends CheckerHandler {
+public class DetailHandler {
 
   private final RedissonClient redissonClient;
-  private final ValidatedRequest v;
 
-  public DetailHandler(RedissonClient redissonClient, ValidatedRequest v) {
+  public DetailHandler(RedissonClient redissonClient) {
     this.redissonClient = redissonClient;
-    this.v = v;
   }
 
-  @Override
-  public void handle(Object[] args) {
-
+  public void check(Long blogId) {
     RBitSet bitSet = redissonClient.getBitSet(BLOOM_FILTER_BLOG);
     boolean exists = bitSet.isExists();
     if (!exists) {
       return;
     }
-
-    Long blogId =
-        v.positive(pathVariable((ServerRequest) args[0], "blogId", Long::valueOf), "blogId");
     boolean bit = bitSet.get(blogId);
     if (!bit) {
       throw new MissException(NO_FOUND.getMsg() + blogId + " blog");

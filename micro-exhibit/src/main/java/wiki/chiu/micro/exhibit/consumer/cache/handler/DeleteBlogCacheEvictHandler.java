@@ -2,30 +2,24 @@ package wiki.chiu.micro.exhibit.consumer.cache.handler;
 
 import static wiki.chiu.micro.common.lang.Const.*;
 
-import java.lang.reflect.Method;
 import java.util.HashSet;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.cache.handler.CacheEvictHandler;
-import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
+import wiki.chiu.micro.cache.handler.CacheEvictor;
+import wiki.chiu.micro.cache.key.CacheKeyFactory;
 import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
+import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;
 import wiki.chiu.micro.exhibit.consumer.cache.CacheKeyGenerator;
-import wiki.chiu.micro.exhibit.wrapper.BlogSensitiveWrapper;
-import wiki.chiu.micro.exhibit.wrapper.BlogWrapper;
 
 @Component
 public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(DeleteBlogCacheEvictHandler.class);
-
   private final CacheKeyGenerator cacheKeyGenerator;
 
-  private final CommonCacheKeyGenerator commonCacheKeyGenerator;
+  private final CacheKeyFactory cacheKeyFactory;
 
   @Value("${megalith.blog.blog-page-size}")
   private int blogPageSize;
@@ -33,11 +27,11 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
   public DeleteBlogCacheEvictHandler(
       RedissonClient redissonClient,
       CacheKeyGenerator cacheKeyGenerator,
-      CacheEvictHandler cacheEvictHandler,
-      CommonCacheKeyGenerator commonCacheKeyGenerator) {
-    super(redissonClient, cacheEvictHandler);
+      CacheEvictor cacheEvictor,
+      CacheKeyFactory cacheKeyFactory) {
+    super(redissonClient, cacheEvictor);
     this.cacheKeyGenerator = cacheKeyGenerator;
-    this.commonCacheKeyGenerator = commonCacheKeyGenerator;
+    this.cacheKeyFactory = cacheKeyFactory;
   }
 
   @Override
@@ -86,25 +80,9 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
   private void evictCaches(Long id, long count) {
     HashSet<String> keys = new HashSet<>();
 
-    // 博客对象本身缓存
-    try {
-      Method findByIdMethod = BlogWrapper.class.getMethod("findById", Long.class);
-      String findById = commonCacheKeyGenerator.generateKey(findByIdMethod, id);
-      keys.add(findById);
-    } catch (NoSuchMethodException e) {
-      log.error(e.getMessage());
-    }
-
-    try {
-      Method sensitiveMethod =
-          BlogSensitiveWrapper.class.getMethod("findSensitiveByBlogId", Long.class);
-      String sensitive = commonCacheKeyGenerator.generateKey(sensitiveMethod, id);
-      keys.add(sensitive);
-    } catch (NoSuchMethodException e) {
-      log.error(e.getMessage());
-    }
-
+    keys.add(cacheKeyFactory.generate(BlogCacheDescriptors.DETAIL, id));
+    keys.add(cacheKeyFactory.generate(BlogCacheDescriptors.SENSITIVE, id));
     keys.addAll(cacheKeyGenerator.generateHotBlogsKeys(count));
-    cacheEvictHandler.evictCache(keys);
+    cacheEvictor.evict(keys);
   }
 }

@@ -1,10 +1,9 @@
 package wiki.chiu.micro.exhibit.wrapper;
 
-import static wiki.chiu.micro.common.lang.Const.HOT_BLOG;
-
 import org.springframework.stereotype.Component;
 import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.cache.annotation.Cache;
+import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;
 import wiki.chiu.micro.exhibit.rpc.BlogHttpServiceWrapper;
 
 @Component
@@ -16,7 +15,9 @@ public class BlogSensitiveWrapper {
     this.blogHttpServiceWrapper = blogHttpServiceWrapper;
   }
 
-  @Cache(prefix = HOT_BLOG)
+  @Cache(
+      namespace = BlogCacheDescriptors.SENSITIVE_NAMESPACE,
+      version = BlogCacheDescriptors.VERSION)
   public BlogSensitiveContentRpcVo findSensitiveByBlogId(Long blogId) {
     return blogHttpServiceWrapper.findSensitiveByBlogId(blogId);
   }

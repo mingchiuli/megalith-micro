@@ -1,7 +1,11 @@
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.tasks.Jar
+import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
+    `java-library`
     `maven-publish`
     signing
 }
@@ -35,8 +39,28 @@ java {
     withSourcesJar()
 }
 
+val integrationTest = sourceSets.create("integrationTest")
+integrationTest.compileClasspath += sourceSets.main.get().output
+integrationTest.runtimeClasspath += sourceSets.main.get().output
+
+configurations[integrationTest.implementationConfigurationName].extendsFrom(
+    configurations.testImplementation.get()
+)
+configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(
+    configurations.testRuntimeOnly.get()
+)
+
 tasks.named<Jar>("jar") {
     archiveClassifier.set("")
+}
+
+tasks.named<Javadoc>("javadoc") {
+    include(
+        "wiki/chiu/micro/cache/annotation/**",
+        "wiki/chiu/micro/cache/handler/**",
+        "wiki/chiu/micro/cache/key/**",
+    )
+    exclude("wiki/chiu/micro/cache/handler/impl/**", "wiki/chiu/micro/cache/key/impl/**")
 }
 
 publishing {
@@ -99,14 +123,81 @@ signing {
     sign(publishing.publications["mavenJava"])
 }
 
+val generatedPom = layout.buildDirectory.file("publications/mavenJava/pom-default.xml")
+val validateCachePublication = tasks.register("validateCachePublication") {
+    group = "verification"
+    description = "Checks that the published starter POM exposes all required runtime APIs."
+    dependsOn(tasks.named("generatePomFileForMavenJavaPublication"))
+    inputs.file(generatedPom)
+
+    doLast {
+        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(generatedPom.get().asFile)
+        val dependencies = document.getElementsByTagName("dependency")
+        val scopes = buildMap {
+            for (index in 0 until dependencies.length) {
+                val dependency = dependencies.item(index)
+                val children = dependency.childNodes
+                var artifactId: String? = null
+                var scope = "compile"
+                for (childIndex in 0 until children.length) {
+                    val child = children.item(childIndex)
+                    when (child.nodeName) {
+                        "artifactId" -> artifactId = child.textContent
+                        "scope" -> scope = child.textContent
+                    }
+                }
+                artifactId?.let { put(it, scope) }
+            }
+        }
+        val requiredCompileDependencies = setOf(
+            "spring-boot-starter",
+            "spring-boot-starter-jackson",
+            "redisson",
+            "caffeine",
+            "aspectjweaver",
+            "micrometer-core",
+        )
+        requiredCompileDependencies.forEach { artifactId ->
+            check(scopes[artifactId] == "compile") {
+                "Published dependency $artifactId must have compile scope, but was ${scopes[artifactId] ?: "missing"}."
+            }
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn(validateCachePublication)
+}
+
+tasks.register<Test>("integrationTest") {
+    group = "verification"
+    description = "Runs cache integration tests against Redis and RabbitMQ containers."
+    testClassesDirs = integrationTest.output.classesDirs
+    classpath = integrationTest.runtimeClasspath
+    shouldRunAfter(tasks.test)
+    useJUnitPlatform()
+}
+
 dependencies {
-    implementation("org.redisson:redisson:4.7.0")
-    implementation("com.github.ben-manes.caffeine:caffeine")
-    implementation("org.aspectj:aspectjweaver")
-    compileOnly("jakarta.servlet:jakarta.servlet-api")
-    compileOnly("jakarta.annotation:jakarta.annotation-api")
-    compileOnly("tools.jackson.core:jackson-databind")
-    compileOnly("org.springframework.boot:spring-boot-autoconfigure")
+    api("org.springframework.boot:spring-boot-starter")
+    api("org.springframework.boot:spring-boot-starter-jackson")
+    api("org.redisson:redisson:4.7.0")
+    api("com.github.ben-manes.caffeine:caffeine")
+    api("org.aspectj:aspectjweaver")
+    api("io.micrometer:micrometer-core")
     compileOnly("org.springframework.boot:spring-boot-amqp")
-    testImplementation("tools.jackson.core:jackson-databind")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    testImplementation("org.springframework.boot:spring-boot-amqp")
+    add(
+        integrationTest.implementationConfigurationName,
+        platform("org.testcontainers:testcontainers-bom:2.0.5"),
+    )
+    add(
+        integrationTest.implementationConfigurationName,
+        "org.testcontainers:testcontainers-junit-jupiter",
+    )
+    add(
+        integrationTest.implementationConfigurationName,
+        "org.testcontainers:testcontainers-rabbitmq",
+    )
 }

@@ -23,6 +23,8 @@ import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.exhibit.checker.handler.DetailHandler;
+import wiki.chiu.micro.exhibit.checker.handler.ListPageHandler;
 import wiki.chiu.micro.exhibit.handler.BlogExhibitHttpHandler;
 import wiki.chiu.micro.exhibit.route.ExhibitRoutes;
 import wiki.chiu.micro.exhibit.service.BlogService;
@@ -34,6 +36,8 @@ import wiki.chiu.micro.exhibit.vo.VisitStatisticsVo;
 class BlogControllerTest {
 
   @Mock private BlogService blogService;
+  @Mock private DetailHandler detailHandler;
+  @Mock private ListPageHandler listPageHandler;
 
   private final ValidatedRequest validation = new ValidatedRequest();
 
@@ -42,7 +46,8 @@ class BlogControllerTest {
   @BeforeEach
   void setUp() {
     AuthPrincipal authInfo = new AuthPrincipal(1L, List.of("ROLE_USER"));
-    BlogExhibitHttpHandler handler = new BlogExhibitHttpHandler(blogService, validation);
+    BlogExhibitHttpHandler handler =
+        new BlogExhibitHttpHandler(blogService, validation, detailHandler, listPageHandler);
     mockMvc =
         MockMvcBuilders.routerFunctions(ExhibitRoutes.routes(handler))
             .defaultRequest(

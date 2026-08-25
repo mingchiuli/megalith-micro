@@ -1,12 +1,11 @@
 package wiki.chiu.micro.auth.consumer;
 
 import com.rabbitmq.client.Channel;
-import java.util.HashSet;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 import wiki.chiu.micro.auth.cache.AuthCacheKeys;
-import wiki.chiu.micro.cache.handler.CacheEvictHandler;
+import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.common.lang.AuthCacheEvictMessage;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.messaging.RetryingMessageRecoverer;
@@ -18,16 +17,16 @@ import wiki.chiu.micro.messaging.RetryingMessageRecoverer;
 @Component
 public class UserRedisCacheEvictMessageListener {
 
-  private final CacheEvictHandler cacheEvictHandler;
+  private final CacheEvictor cacheEvictor;
 
   private final AuthCacheKeys authCacheKeys;
   private final RetryingMessageRecoverer recoverer;
 
   public UserRedisCacheEvictMessageListener(
-      CacheEvictHandler cacheEvictHandler,
+      CacheEvictor cacheEvictor,
       AuthCacheKeys authCacheKeys,
       RetryingMessageRecoverer recoverer) {
-    this.cacheEvictHandler = cacheEvictHandler;
+    this.cacheEvictor = cacheEvictor;
     this.authCacheKeys = authCacheKeys;
     this.recoverer = recoverer;
   }
@@ -39,7 +38,7 @@ public class UserRedisCacheEvictMessageListener {
       executor = "mqExecutor")
   public void handler(AuthCacheEvictMessage message, Channel channel, Message msg) {
     try {
-      cacheEvictHandler.evictCache(new HashSet<>(authCacheKeys.from(message)));
+      cacheEvictor.evict(authCacheKeys.from(message));
 
       channel.basicAck(msg.getMessageProperties().getDeliveryTag(), false);
     } catch (Exception e) {

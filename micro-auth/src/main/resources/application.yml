@@ -37,8 +37,11 @@ server:
 
 megalith:
   cache:
-    queue-prefix: cache.user.evict.queue.
-    fanout-exchange: cache.user.evict.fanout.exchange
+    eviction:
+      transport: RABBIT
+      rabbit:
+        queue-prefix: cache.user.evict.queue.
+        exchange: cache.user.evict.fanout.exchange
   auth:
     code:
       max-attempts: 3

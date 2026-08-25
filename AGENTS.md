@@ -62,12 +62,14 @@ in the root `package.json` catalog and `bun.lock`; workspace packages use `catal
 3. **Stateless collaboration.** `micro-sync-rs` replicas coordinate through shared Redis Streams and
    state for documents, awareness, snapshots, presence, leases, and compaction. Do not add sticky
    session or room ownership assumptions.
-4. **`@Cache` owns cache keys.** Keys are `{prefix}:{SimpleClassName}:{methodName}[:serializedArg...]`
-   from `CommonCacheKeyGenerator`. Cache methods must go through the Spring proxy. Reads are Caffeine
-   L1 then Redis L2; misses execute the method and write both levels with the annotation TTL.
-5. **Eviction is exact and broadcast.** `AuthCacheKeys`/`CacheEvictHandler` delete exact Redis keys
-   and broadcast invalidation through RabbitMQ fanout or Redis pub/sub. Rename/remove a cached method
-   only after updating reflective lookups and related `api-*` contracts.
+4. **`@Cache` owns cache keys.** Keys are
+   `<namespace>:v<version>:<sha256(canonicalTypedArgs)>` from `CacheKeyFactory`. Cache methods must go
+   through the Spring proxy. Reads are Caffeine L1 then Redis L2; misses execute the method and write
+   both levels with the annotation TTL. Increase the explicit version for incompatible contracts.
+5. **Eviction is exact and broadcast.** `AuthCacheKeys`/`CacheEvictor` use shared
+   `CacheDescriptor` constants, acquire the same distributed key locks as reads, delete exact Redis
+   keys, invalidate local L1, and broadcast through confirmed RabbitMQ fanout or a Redis reliable
+   topic. There are no reflective method lookups in eviction.
 6. **Ports and wrappers.** Services depend on ports such as `UserDirectory`; `*Wrapper` and
    `*HttpServiceWrapper` adapt remote HTTP interfaces and unwrap `RemoteResult.requireSuccess(...)`.
 7. **Transaction boundary.** Services prepare inputs across reads without a transaction. Wrappers do
@@ -76,7 +78,7 @@ in the root `package.json` catalog and `bun.lock`; workspace packages use `catal
 8. **Transactional outbox.** User and blog changes commit to `m_outbox_event` before confirmed
    RabbitMQ publication. Cache eviction and Elasticsearch indexing consume those events. Never publish
    domain events outside the outbox.
-9. **JPMS.** `cache` exports only its public `annotation`, `handler`, and `utils` packages. A new
+9. **JPMS.** `cache` exports only its public `annotation`, `handler`, and `key` packages. A new
    public package needs an `exports` entry; downstream JPMS modules require `wiki.chiu.micro.cache`.
 10. **Native and AOT reachability.** Types used through reflection, serialization, HTTP interfaces, or
     native-image initialization need the matching Spring AOT/runtime hints.

@@ -186,8 +186,9 @@ authentication, caching, observability, failure behavior, and deployment details
 - **Single-pass authorization:** the gateway calls `POST /inner/auth/route` once to resolve both
   the target service and trusted principal. Business services trust only the
   `X-Megalith-Principal` injected by the gateway.
-- **Two-level caching:** `@Cache` owns cache key generation and reads through Caffeine L1 followed
-  by Redis L2. Eviction events are broadcast to every replica to clear local entries.
+- **Two-level caching:** `@Cache` uses explicit versioned namespaces and canonical argument hashes,
+  then reads through Caffeine L1 followed by Redis L2. Exact eviction waits on the same distributed
+  locks and broadcasts to every replica to clear local entries.
 - **Short write transactions:** services perform reads, validation, and input preparation outside
   a transaction. Wrappers perform only writes and the matching outbox insert inside one short
   transaction. ArchUnit enforces this boundary.

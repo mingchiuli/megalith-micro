@@ -2,14 +2,17 @@ package wiki.chiu.micro.cache.aot.hints;
 
 import static org.springframework.util.ReflectionUtils.findMethod;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.aot.hint.*;
+import org.springframework.aot.hint.ExecutableMode;
+import org.springframework.aot.hint.MemberCategory;
+import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.TypeReference;
 import wiki.chiu.micro.cache.listener.RabbitCacheEvictMessageListener;
+import wiki.chiu.micro.cache.message.CacheEvictionMessage;
 
 class CacheRuntimeHints implements RuntimeHintsRegistrar {
 
@@ -19,40 +22,49 @@ class CacheRuntimeHints implements RuntimeHintsRegistrar {
   @Override
   public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {
     try {
-      // 1. 注册RabbitMQ消息处理方法
       hints
           .reflection()
           .registerMethod(
-              findMethod(RabbitCacheEvictMessageListener.class, "handleMessage", Set.class),
+              findMethod(
+                  RabbitCacheEvictMessageListener.class,
+                  "handleMessage",
+                  CacheEvictionMessage.class),
               ExecutableMode.INVOKE);
 
-      // 2. 注册HashSet构造函数
       hints
           .reflection()
-          .registerConstructor(HashSet.class.getDeclaredConstructor(), ExecutableMode.INVOKE);
+          .registerType(
+              CacheEvictionMessage.class,
+              MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+              MemberCategory.INVOKE_PUBLIC_METHODS);
 
-      // 3. 注册SSMSA类及其关键成员（针对static final字段和VarHandle访问）
+      hints
+          .reflection()
+          .registerType(
+              TypeReference.of(
+                  "wiki.chiu.micro.cache.key.impl.JacksonCacheKeyFactory$KeyArgument"),
+              MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+              MemberCategory.INVOKE_DECLARED_METHODS);
+
       TypeReference ssmsaType = TypeReference.of("com.github.benmanes.caffeine.cache.SSMSA");
       hints
           .reflection()
-          // 注册类及基础成员类别
           .registerType(
               ssmsaType,
               MemberCategory.ACCESS_DECLARED_FIELDS,
               MemberCategory.ACCESS_PUBLIC_FIELDS,
               MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
               MemberCategory.INVOKE_PUBLIC_METHODS)
-          // 显式注册static final的FACTORY字段
           .registerType(
               ssmsaType,
               typeHint -> {
-                typeHint.withField("FACTORY"); // 关键：显式声明FACTORY字段
-                typeHint.withField("EXPIRES_AFTER_ACCESS_NANOS"); // VarHandle访问的静态字段
+                typeHint.withField("FACTORY");
+                typeHint.withField("EXPIRES_AFTER_ACCESS_NANOS");
               });
 
     } catch (Exception e) {
       log.error("Failed to register runtime hints", e);
-      throw new RuntimeException("Application start failed: " + e.getMessage(), e);
+      throw new IllegalStateException("Application start failed: " + e.getMessage(), e);
     }
   }
 }

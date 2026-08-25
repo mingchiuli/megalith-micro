@@ -7,7 +7,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.cache.handler.CacheEvictHandler;
+import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.exhibit.consumer.cache.CacheKeyGenerator;
@@ -23,8 +23,8 @@ public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
   public CreateBlogCacheEvictHandler(
       RedissonClient redissonClient,
       CacheKeyGenerator cacheKeyGenerator,
-      CacheEvictHandler cacheEvictHandler) {
-    super(redissonClient, cacheEvictHandler);
+      CacheEvictor cacheEvictor) {
+    super(redissonClient, cacheEvictor);
     this.cacheKeyGenerator = cacheKeyGenerator;
   }
 
@@ -46,7 +46,7 @@ public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
   private void evictCaches(long count) {
     HashSet<String> keys = cacheKeyGenerator.generateHotBlogsKeys(count);
-    cacheEvictHandler.evictCache(keys);
+    cacheEvictor.evict(keys);
   }
 
   private void rebuildPageBloom(long count) {

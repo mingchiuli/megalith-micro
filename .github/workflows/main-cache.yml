@@ -76,7 +76,7 @@ jobs:
       - name: Check
         env:
           CACHE_VERSION: ${{ steps.release_version.outputs.version }}
-        run: ./gradlew :cache:check -PcacheVersion="$CACHE_VERSION"
+        run: ./gradlew :cache:check :cache:integrationTest -PcacheVersion="$CACHE_VERSION"
       - name: Publish
         env:
           CACHE_VERSION: ${{ steps.release_version.outputs.version }}

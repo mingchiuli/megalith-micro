@@ -1,63 +1,37 @@
 package wiki.chiu.micro.exhibit.consumer.cache;
 
-import java.lang.reflect.Method;
 import java.util.HashSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import wiki.chiu.micro.cache.utils.CommonCacheKeyGenerator;
-import wiki.chiu.micro.exhibit.wrapper.BlogWrapper;
+import wiki.chiu.micro.cache.key.CacheKeyFactory;
+import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;
 
-/**
- * @author mingchiuli
- * @create 2023-04-02 11:12 pm
- */
 @Component
 public class CacheKeyGenerator {
 
-  private static final Logger log = LoggerFactory.getLogger(CacheKeyGenerator.class);
-
-  private final CommonCacheKeyGenerator commonCacheKeyGenerator;
-
-  public CacheKeyGenerator(CommonCacheKeyGenerator commonCacheKeyGenerator) {
-    this.commonCacheKeyGenerator = commonCacheKeyGenerator;
-  }
+  private final CacheKeyFactory cacheKeyFactory;
 
   @Value("${megalith.blog.blog-page-size}")
   private int blogPageSize;
 
+  public CacheKeyGenerator(CacheKeyFactory cacheKeyFactory) {
+    this.cacheKeyFactory = cacheKeyFactory;
+  }
+
   public HashSet<String> generateHotBlogsKeys(Long count) {
-    HashSet<String> keys = new HashSet<>();
-    long pageNo = count % blogPageSize == 0 ? count / blogPageSize : count / blogPageSize + 1;
-
-    for (long i = 1; i <= pageNo; i++) {
-      Method method;
-      try {
-        method = BlogWrapper.class.getMethod("findPage", Integer.class);
-        String key = commonCacheKeyGenerator.generateKey(method, i);
-        keys.add(key);
-      } catch (NoSuchMethodException e) {
-        log.error("some exception happen...", e);
-      }
-    }
-
-    return keys;
+    long pages = count % blogPageSize == 0 ? count / blogPageSize : count / blogPageSize + 1;
+    return generatePageKeys(Math.toIntExact(pages));
   }
 
   public HashSet<String> generateBlogKey(long countAfter) {
-    HashSet<String> keys = new HashSet<>();
-    long pageBeforeNo = countAfter / blogPageSize + 1;
+    long pages = countAfter / blogPageSize + 1;
+    return generatePageKeys(Math.toIntExact(pages));
+  }
 
-    for (long i = 1; i <= pageBeforeNo; i++) {
-      Method method;
-      try {
-        method = BlogWrapper.class.getMethod("findPage", Integer.class);
-        String key = commonCacheKeyGenerator.generateKey(method, i);
-        keys.add(key);
-      } catch (NoSuchMethodException e) {
-        log.error("some exception happen...", e);
-      }
+  private HashSet<String> generatePageKeys(int pageCount) {
+    HashSet<String> keys = new HashSet<>();
+    for (int page = 1; page <= pageCount; page++) {
+      keys.add(cacheKeyFactory.generate(BlogCacheDescriptors.PAGE, page));
     }
     return keys;
   }

@@ -5,7 +5,7 @@ import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.cache.handler.CacheEvictHandler;
+import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.common.lang.BlogSnapshot;
@@ -15,12 +15,12 @@ public abstract sealed class BlogCacheEvictHandler
 
   protected final RedissonClient redissonClient;
 
-  protected final CacheEvictHandler cacheEvictHandler;
+  protected final CacheEvictor cacheEvictor;
 
   protected BlogCacheEvictHandler(
-      RedissonClient redissonClient, CacheEvictHandler cacheEvictHandler) {
+      RedissonClient redissonClient, CacheEvictor cacheEvictor) {
     this.redissonClient = redissonClient;
-    this.cacheEvictHandler = cacheEvictHandler;
+    this.cacheEvictor = cacheEvictor;
   }
 
   public abstract boolean supports(BlogOperateEnum blogOperateEnum);

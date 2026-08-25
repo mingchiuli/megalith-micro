@@ -1,28 +1,49 @@
 package wiki.chiu.micro.cache.listener;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import java.util.Set;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.jspecify.annotations.NonNull;
+import org.redisson.api.RReliableTopic;
 import org.redisson.api.RedissonClient;
-import tools.jackson.core.type.TypeReference;
+import org.redisson.client.codec.StringCodec;
 import tools.jackson.databind.json.JsonMapper;
+import wiki.chiu.micro.cache.message.CacheEvictionMessage;
+import wiki.chiu.micro.cache.store.LocalCacheEntry;
 
-public record RedisCacheEvictMessageListener(
-    String CACHE_EVICT_TOPIC,
-    RedissonClient redissonClient,
-    JsonMapper jsonMapper,
-    Cache<@NonNull String, Object> localCache) {
+public final class RedisCacheEvictMessageListener {
 
-  private static final TypeReference<Set<String>> type = new TypeReference<>() {};
+  private final RReliableTopic reliableTopic;
+  private final JsonMapper jsonMapper;
+  private final Cache<@NonNull String, LocalCacheEntry> localCache;
+  private String listenerId;
 
-  public void initListener() {
-    redissonClient
-        .getReliableTopic(CACHE_EVICT_TOPIC)
-        .addListener(
+  public RedisCacheEvictMessageListener(
+      String topic,
+      RedissonClient redissonClient,
+      JsonMapper jsonMapper,
+      Cache<@NonNull String, LocalCacheEntry> localCache) {
+    this.reliableTopic = redissonClient.getReliableTopic(topic, StringCodec.INSTANCE);
+    this.jsonMapper = jsonMapper;
+    this.localCache = localCache;
+  }
+
+  @PostConstruct
+  void start() {
+    listenerId =
+        reliableTopic.addListener(
             String.class,
             (_, message) -> {
-              Set<String> keys = jsonMapper.readValue(message, type);
-              localCache.invalidateAll(keys);
+              CacheEvictionMessage eviction =
+                  jsonMapper.readValue(message, CacheEvictionMessage.class);
+              localCache.invalidateAll(eviction.keys());
             });
+  }
+
+  @PreDestroy
+  void stop() {
+    if (listenerId != null) {
+      reliableTopic.removeListener(listenerId);
+    }
   }
 }
