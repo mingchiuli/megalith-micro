@@ -33,7 +33,10 @@ export const useAuth = () => {
     loginState.login = true
     loginState.user = await api.GET<UserInfo>(API_ENDPOINTS.AUTH.USER_INFO)
     const redirect = router.currentRoute.value.query.redirect
-    await router.push(typeof redirect === 'string' ? redirect : '/backend')
+    const target =
+      typeof redirect === 'string' ? redirect : (loginState.sessionExpiredRedirect ?? '/backend')
+    loginState.clearSessionExpired()
+    await router.push(target)
   }
 
   return { clearLoginState, logout, submitLogin }

@@ -145,6 +145,7 @@ export const clearAuthStores = (router: Router, pinia: Pinia) => {
   tabStore(pinia).editableTabsValue = ''
   ssrDataStore(pinia).clear()
   protectedBlogStore(pinia).clear()
+  loginStateStore(pinia).clearSessionExpired()
 }
 
 const dealSysTab = (to: RouteLocationNormalized, menuTree: Menu, pinia: Pinia) => {

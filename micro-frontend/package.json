@@ -45,6 +45,7 @@
     "vue-i18n": "catalog:",
     "vue-router": "catalog:",
     "y-codemirror.next": "catalog:",
+    "y-indexeddb": "catalog:",
     "y-websocket": "catalog:",
     "yjs": "catalog:"
   },

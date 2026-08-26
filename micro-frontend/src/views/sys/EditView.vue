@@ -18,6 +18,17 @@ import { AI_MODELS } from '@/config/aiConfig'
 import { useAiGenerate } from '@/composables'
 import { useI18n } from 'vue-i18n'
 import { useUniversalData } from '@/composables'
+import {
+  clearEditorMetadataDraft,
+  createEditorMetadataDraftKey,
+  createEditorYjsPersistenceKey,
+  loadEditorMetadataDraft,
+  saveEditorMetadataDraft,
+  toEditorMetadataDraft
+} from '@/config/editorDraft'
+import { clearYjsDraft } from '@/config/editorConfig'
+import { loginStateStore } from '@/stores'
+import { logger } from '@/utils/logger'
 
 const { t } = useI18n()
 const { GET, POST } = useHttp()
@@ -26,6 +37,12 @@ const imageModel = AI_MODELS.IMAGE_MODEL
 const submitLoading = ref(false)
 const route = useRoute()
 const blogId = route.query.id as string | undefined
+const loginState = loginStateStore()
+const { sessionExpired } = storeToRefs(loginState)
+const collaborationReady = ref(false)
+const draftUserId = loginState.user?.id ?? 0
+const metadataDraftKey = createEditorMetadataDraftKey(draftUserId, blogId)
+const yjsPersistenceKey = createEditorYjsPersistenceKey(draftUserId, blogId)
 const form: EditForm = reactive({
   id: 0,
   userId: 0,
@@ -123,11 +140,23 @@ const handleAiGenerate = async () => {
 }
 
 const submitForm = async (ref: FormInstance) => {
+  if (sessionExpired.value) return
   await ref.validate(async (valid) => {
     if (valid) {
       try {
         submitLoading.value = true
         await POST<null>(API_ENDPOINTS.BLOG_ADMIN.SAVE_BLOG, form)
+        metadataDraftReady = false
+        if (metadataDraftSaveTask !== undefined) {
+          globalThis.clearTimeout(metadataDraftSaveTask)
+          metadataDraftSaveTask = undefined
+        }
+        await Promise.all([
+          clearEditorMetadataDraft(metadataDraftKey),
+          clearYjsDraft(yjsPersistenceKey)
+        ]).catch((error) => {
+          logger.warn('Failed to clear the saved editor draft:', error)
+        })
         ElNotification({
           title: t('common.operationSuccess'),
           message: t('common.editSuccess'),
@@ -203,6 +232,48 @@ const CustomEditorItem = defineAsyncComponent({
 })
 
 const loadContent = ref(true)
+const editorReady = ref(false)
+let metadataDraftReady = false
+let metadataDraftRestored = false
+let metadataDraftSaveTask: ReturnType<typeof setTimeout> | undefined
+
+const restoreMetadataDraft = async () => {
+  if (metadataDraftRestored) return
+  metadataDraftRestored = true
+  try {
+    const draft = await loadEditorMetadataDraft(metadataDraftKey)
+    if (draft) {
+      form.title = draft.title
+      form.description = draft.description
+      form.status = draft.status
+      form.link = draft.link
+      form.sensitiveContentList = draft.sensitiveContentList.map((item) => ({ ...item }))
+    }
+  } catch (error) {
+    logger.warn('Failed to restore the editor metadata draft:', error)
+  } finally {
+    metadataDraftReady = true
+    editorReady.value = true
+  }
+}
+
+const scheduleMetadataDraftSave = () => {
+  if (!metadataDraftReady || sessionExpired.value) return
+  if (metadataDraftSaveTask !== undefined) globalThis.clearTimeout(metadataDraftSaveTask)
+  metadataDraftSaveTask = globalThis.setTimeout(() => {
+    metadataDraftSaveTask = undefined
+    void saveEditorMetadataDraft(toEditorMetadataDraft(metadataDraftKey, form)).catch((error) => {
+      logger.warn('Failed to persist the editor metadata draft:', error)
+    })
+  }, 300)
+}
+
+watch(
+  () => [form.title, form.description, form.status, form.link, form.sensitiveContentList],
+  scheduleMetadataDraftSave,
+  { deep: true }
+)
+
 const fetchEditContent = async (blogId: string | undefined) => {
   let url = API_ENDPOINTS.BLOG_ADMIN.EDIT_PULL_ECHO
   if (blogId) {
@@ -229,6 +300,15 @@ useUniversalData(
   applyEditContent,
   { loading: loadContent }
 )
+
+watch(
+  loadContent,
+  (loading) => {
+    if (!loading) void restoreMetadataDraft()
+  },
+  { immediate: true }
+)
+
 onMounted(() => void loadAiModels())
 </script>
 
@@ -239,7 +319,7 @@ onMounted(() => void loadAiModels())
         v-model:title="form.title"
         v-model:description="form.description"
         v-model:status="form.status"
-        :manage-metadata="permissions.manageMetadata"
+        :manage-metadata="permissions.manageMetadata && !sessionExpired"
         :sensitive-tags="sensitiveTags"
         @sensitive="dealSensitive"
         @remove-sensitive="handleTagClose"
@@ -250,7 +330,7 @@ onMounted(() => void loadAiModels())
             :models="aiModels"
             :loading="aiLoading"
             :content-ready="Boolean(form.content)"
-            :manage-metadata="permissions.manageMetadata"
+            :manage-metadata="permissions.manageMetadata && !sessionExpired"
             @generate="handleAiGenerate"
           />
         </template>
@@ -273,7 +353,7 @@ onMounted(() => void loadAiModels())
       <BlogCoverField
         v-model:link="form.link"
         v-model:generated-dialog-visible="generatedImageDialogVisible"
-        :manage-assets="permissions.manageAssets"
+        :manage-assets="permissions.manageAssets && !sessionExpired"
         :generated-image-url="generatedImageUrl"
         :generated-image-base64="generatedImageBase64"
         :image-generating="imageGenerating"
@@ -284,11 +364,12 @@ onMounted(() => void loadAiModels())
       <el-form-item class="content" prop="content">
         <ClientOnly>
           <CustomEditorItem
-            v-if="!loadContent"
+            v-if="!loadContent && editorReady"
             v-model:content="form.content"
+            @ready="collaborationReady = true"
             @sensitive="dealSensitive"
             :form-status="form.status"
-            :manage-assets="permissions.manageAssets"
+            :manage-assets="permissions.manageAssets && !sessionExpired"
           />
           <template #fallback><EditorLoadingItem /></template>
         </ClientOnly>
@@ -296,7 +377,7 @@ onMounted(() => void loadAiModels())
 
       <div class="submit-button">
         <el-button
-          :disabled="submitLoading || !permissions.commit"
+          :disabled="submitLoading || !permissions.commit || !collaborationReady || sessionExpired"
           :loading="submitLoading"
           :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)"
           v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)"

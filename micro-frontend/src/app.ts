@@ -58,7 +58,17 @@ export const createMegalithApp = (options: CreateMegalithAppOptions): MegalithAp
     origin: options.request?.origin,
     onSetCookie: (values) => responseCookies.push(...values),
     onUnauthorized: () => {
-      if (appContext.router) clearAuthStores(appContext.router, pinia)
+      if (!appContext.router) return
+      const loginState = loginStateStore(pinia)
+      if (loginState.sessionExpired) return
+
+      const currentRoute = appContext.router.currentRoute.value
+      const redirect =
+        currentRoute.path.startsWith('/sys') || currentRoute.path.startsWith('/backend')
+          ? currentRoute.fullPath
+          : undefined
+      clearAuthStores(appContext.router, pinia)
+      if (!options.server) loginState.markSessionExpired(redirect)
     },
     onError: (error) => {
       if (!options.server) {

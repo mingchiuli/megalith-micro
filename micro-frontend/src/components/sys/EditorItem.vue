@@ -11,6 +11,8 @@ import {
   createYjsExtension,
   createYjsBindingTransaction,
   cleanupYjs,
+  disconnectYjs,
+  reconnectYjs,
   updateProviderToken,
   COLLABORATION_TICKET_REFRESH_INTERVAL_MS,
   COLLABORATION_TICKET_RECONNECT_MAX_AGE_MS,
@@ -32,7 +34,9 @@ const { t } = useI18n()
 const { POST, UPLOAD } = useHttp()
 
 const route = useRoute()
-const user = loginStateStore().user || { nickname: 'Anonymous', avatar: '', id: 0 }
+const loginState = loginStateStore()
+const { sessionExpired } = storeToRefs(loginState)
+const user = loginState.user || { nickname: 'Anonymous', avatar: '', id: 0 }
 const blogId = route.query.id as string | undefined
 const roomId = blogId ? `${blogId}` : `init:${user.id}`
 
@@ -78,6 +82,7 @@ const footers: Footers[] = ['markdownTotal', 0, '=', 1, 'scrollSwitch']
 
 const emit = defineEmits<{
   sensitive: [payload: SensitiveTrans]
+  ready: []
 }>()
 
 const { formStatus, manageAssets } = defineProps<{
@@ -198,7 +203,21 @@ const stopTicketRefresh = () => {
   ticketRefreshTask = undefined
 }
 
+const handleVisibilityChange = () => {
+  if (document.visibilityState !== 'visible' || disposed || sessionExpired.value) return
+
+  void refreshCollaborationTicket(0)
+    .then(() => {
+      if (!disposed && !sessionExpired.value) reconnectYjs()
+    })
+    .catch((error) => {
+      logger.error('Failed to recover collaboration after tab became visible:', error)
+    })
+}
+
 const notifyCollaborationEvent = (event: CollaborationEvent) => {
+  if (sessionExpired.value) return
+
   const notifications = {
     initialized: {
       title: t('collaboration.initializedTitle'),
@@ -223,6 +242,12 @@ const notifyCollaborationEvent = (event: CollaborationEvent) => {
       message: t('collaboration.errorMessage'),
       type: 'error' as const,
       duration: 3000
+    },
+    'persistence-error': {
+      title: t('collaboration.persistenceErrorTitle'),
+      message: t('collaboration.persistenceErrorMessage'),
+      type: 'warning' as const,
+      duration: 5000
     }
   }
 
@@ -259,6 +284,10 @@ const updateEditorExtension = async () => {
         user,
         notifyCollaborationEvent
       )
+      if (disposed || sessionExpired.value) {
+        cleanupYjs()
+        return
+      }
       provider.connect()
       startTicketRefresh()
       const syncedContent = await initialSync
@@ -266,10 +295,12 @@ const updateEditorExtension = async () => {
 
       view.dispatch(createYjsBindingTransaction(view.state.doc.length, syncedContent, config))
       collaborationReady.value = true
+      emit('ready')
     } catch (error) {
       stopTicketRefresh()
       cleanupYjs()
       collaborationReady.value = true
+      emit('ready')
       logger.error('Failed to initialize collaborative editor:', error)
     }
   }
@@ -313,12 +344,20 @@ const sensitiveListen = () => {
 }
 
 onMounted(() => {
+  document.addEventListener('visibilitychange', handleVisibilityChange)
   sensitiveListen()
   void updateEditorExtension()
 })
 
+watch(sessionExpired, (expired) => {
+  if (!expired) return
+  stopTicketRefresh()
+  disconnectYjs()
+})
+
 onBeforeUnmount(() => {
   disposed = true
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
   stopTicketRefresh()
   cleanupYjs()
 })
@@ -364,7 +403,7 @@ onBeforeUnmount(() => {
     @on-upload-img="onUploadImg"
     :footers="footers"
     :theme="editorTheme"
-    :disabled="!collaborationReady"
+    :disabled="!collaborationReady || sessionExpired"
     :sanitize="sanitizeHtml"
     ref="editorRef"
     id="md-editor"

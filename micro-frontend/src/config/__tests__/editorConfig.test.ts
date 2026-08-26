@@ -7,11 +7,14 @@ vi.mock('md-editor-v3', () => ({ config: vi.fn() }))
 import {
   COLLABORATION_TICKET_REFRESH_INTERVAL_MS,
   createYjsBindingTransaction,
+  createYjsExtension,
+  cleanupYjs,
   hasYjsDocumentState,
   shouldRefreshCollaborationTicket,
   shouldInitializeYjsDocument,
   yjsCompartment
 } from '@/config/editorConfig'
+import { createEditorYjsPersistenceKey } from '@/config/editorDraft'
 
 describe('editorConfig', () => {
   it('recognizes a recreated empty Y.Doc as state-less', () => {
@@ -64,5 +67,43 @@ describe('editorConfig', () => {
         now
       )
     ).toBe(true)
+  })
+
+  it('uses a user-isolated persistence key for every collaboration room', () => {
+    expect(createEditorYjsPersistenceKey(7, '42')).toBe('megalith:editor:yjs:v1:7:42')
+    expect(createEditorYjsPersistenceKey(7)).toBe('megalith:editor:yjs:v1:7:new')
+    expect(createEditorYjsPersistenceKey(8, '42')).not.toBe(createEditorYjsPersistenceKey(7, '42'))
+  })
+
+  it('merges locally persisted and remote Yjs updates in one document model', () => {
+    const persisted = new Y.Doc()
+    const remote = new Y.Doc()
+    persisted.getText().insert(0, 'local')
+    remote.getText().insert(0, 'remote')
+
+    Y.applyUpdate(persisted, Y.encodeStateAsUpdate(remote))
+    Y.applyUpdate(remote, Y.encodeStateAsUpdate(persisted))
+
+    expect(persisted.getText().toString()).toContain('local')
+    expect(persisted.getText().toString()).toContain('remote')
+    expect(remote.getText().toString()).toBe(persisted.getText().toString())
+
+    persisted.destroy()
+    remote.destroy()
+  })
+
+  it('falls back to online editing when IndexedDB is unavailable', async () => {
+    const events: string[] = []
+    const { provider } = await createYjsExtension(
+      '42',
+      'server content',
+      'ticket',
+      { id: 7, nickname: 'Chiu', avatar: '' },
+      (event) => events.push(event.type)
+    )
+
+    expect(events).toContain('persistence-error')
+    cleanupYjs()
+    expect(provider.shouldConnect).toBe(false)
   })
 })

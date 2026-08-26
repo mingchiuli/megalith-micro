@@ -56,6 +56,19 @@ describe('stores/store', () => {
       store.login = true
       expect(loginStateStore().login).toBe(true)
     })
+
+    it('只保留一次会话过期提示并支持清理', () => {
+      const store = loginStateStore()
+
+      expect(store.markSessionExpired('/backend?view=edit&id=42')).toBe(true)
+      expect(store.markSessionExpired('/other')).toBe(false)
+      expect(store.sessionExpired).toBe(true)
+      expect(store.sessionExpiredRedirect).toBe('/backend?view=edit&id=42')
+
+      store.clearSessionExpired()
+      expect(store.sessionExpired).toBe(false)
+      expect(store.sessionExpiredRedirect).toBeUndefined()
+    })
   })
 
   describe('themeStore', () => {

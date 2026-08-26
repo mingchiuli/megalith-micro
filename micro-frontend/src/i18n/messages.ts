@@ -71,7 +71,10 @@ export const messages = {
       imageUploadSuccess: '图片上传成功',
       readCode: '阅读码',
       readCodePlaceholder: '请输入阅读码',
-      readCodeError: '阅读码错误'
+      readCodeError: '阅读码错误',
+      sessionExpiredTitle: '登录已过期',
+      sessionExpiredMessage: '登录状态已过期，请重新登录后继续编辑。当前草稿已保留。',
+      loginAgain: '重新登录'
     },
     blog: {
       articles: '共 {count} 篇',
@@ -99,7 +102,9 @@ export const messages = {
       disconnectedMessage: '连接已断开',
       errorTitle: '连接错误',
       errorMessage: '协同编辑连接失败，将继续重试',
-      closedMessage: '关闭码：{code}，原因：{reason}'
+      closedMessage: '关闭码：{code}，原因：{reason}',
+      persistenceErrorTitle: '本地草稿不可用',
+      persistenceErrorMessage: '无法使用浏览器本地存储，将继续在线编辑。'
     },
     admin: {
       backend: '后台',
@@ -243,7 +248,11 @@ export const messages = {
       imageUploadSuccess: 'Image uploaded successfully',
       readCode: 'Access code',
       readCodePlaceholder: 'Enter access code',
-      readCodeError: 'Invalid access code'
+      readCodeError: 'Invalid access code',
+      sessionExpiredTitle: 'Session expired',
+      sessionExpiredMessage:
+        'Your session has expired. Log in again to continue editing. Your draft is preserved.',
+      loginAgain: 'Log in again'
     },
     blog: {
       articles: '{count} articles',
@@ -271,7 +280,9 @@ export const messages = {
       disconnectedMessage: 'The collaboration connection was lost',
       errorTitle: 'Connection error',
       errorMessage: 'Collaboration failed to connect and will keep retrying',
-      closedMessage: 'Close code: {code}, reason: {reason}'
+      closedMessage: 'Close code: {code}, reason: {reason}',
+      persistenceErrorTitle: 'Local draft unavailable',
+      persistenceErrorMessage: 'Browser storage is unavailable. Editing will continue online.'
     },
     admin: {
       backend: 'Admin',

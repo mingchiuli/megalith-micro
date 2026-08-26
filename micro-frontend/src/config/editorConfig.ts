@@ -3,10 +3,12 @@ import { Compartment, type Extension } from '@codemirror/state'
 import * as Y from 'yjs'
 import { yCollab } from 'y-codemirror.next'
 import { WebsocketProvider } from 'y-websocket'
+import { clearDocument, IndexeddbPersistence } from 'y-indexeddb'
 import * as random from 'lib0/random'
 import type { UserInfo } from '@/type/entity'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 import { logger } from '@/utils/logger'
+import { createEditorYjsPersistenceKey } from '@/config/editorDraft'
 
 const usercolors = [
   { color: '#30bced', light: '#30bced33' },
@@ -24,9 +26,13 @@ export const COLLABORATION_TICKET_REFRESH_INTERVAL_MS = 240_000
 export const COLLABORATION_TICKET_RECONNECT_MAX_AGE_MS = 30_000
 let currentProvider: WebsocketProvider | null = null
 let currentDoc: Y.Doc | null = null
+let currentPersistence: IndexeddbPersistence | null = null
+const INDEXEDDB_SYNC_TIMEOUT_MS = 5000
 
 export type CollaborationEvent =
-  | { type: 'initialized' | 'connected' | 'disconnected' | 'connection-error' }
+  | {
+      type: 'initialized' | 'connected' | 'disconnected' | 'connection-error' | 'persistence-error'
+    }
   | { type: 'connection-closed'; code: number; reason: string }
 
 export const hasYjsDocumentState = (doc: Y.Doc) =>
@@ -55,21 +61,60 @@ export const createYjsBindingTransaction = (
 })
 
 export const cleanupYjs = () => {
+  const persistence = currentPersistence
   if (currentProvider) {
     currentProvider.disconnect()
     currentProvider.destroy()
   }
   if (currentDoc) {
     currentDoc.destroy()
+  } else {
+    persistence?.destroy().catch(() => undefined)
   }
   currentProvider = null
   currentDoc = null
+  currentPersistence = null
+}
+
+export const disconnectYjs = () => {
+  currentProvider?.disconnect()
+}
+
+export const reconnectYjs = () => {
+  currentProvider?.connect()
 }
 
 export const updateProviderToken = (token: string) => {
   if (!currentProvider) return
   if (token) {
     currentProvider.params.token = token
+  }
+}
+
+export const clearYjsDraft = async (persistenceKey?: string) => {
+  const persistence = currentPersistence
+  if (persistence && (!persistenceKey || persistence.name === persistenceKey)) {
+    currentPersistence = null
+    await persistence.clearData()
+    return
+  }
+  if (persistenceKey) await clearDocument(persistenceKey)
+}
+
+const waitForIndexedDb = async (persistence: IndexeddbPersistence) => {
+  let timeout: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      persistence.whenSynced,
+      new Promise<never>((_, reject) => {
+        timeout = globalThis.setTimeout(
+          () => reject(new Error('IndexedDB synchronization timed out')),
+          INDEXEDDB_SYNC_TIMEOUT_MS
+        )
+      })
+    ])
+  } finally {
+    if (timeout !== undefined) globalThis.clearTimeout(timeout)
   }
 }
 
@@ -93,6 +138,24 @@ export const createYjsExtension = async (
 
   const ydoc = new Y.Doc()
   const ytext = ydoc.getText()
+
+  let persistence: IndexeddbPersistence | null = null
+  try {
+    if (typeof globalThis.indexedDB === 'undefined') {
+      throw new Error('IndexedDB is unavailable')
+    }
+    persistence = new IndexeddbPersistence(
+      createEditorYjsPersistenceKey(user.id, roomId === `init:${user.id}` ? undefined : roomId),
+      ydoc
+    )
+    persistence._db?.catch(() => undefined)
+    await waitForIndexedDb(persistence)
+    currentPersistence = persistence
+  } catch (error) {
+    persistence?.destroy().catch(() => undefined)
+    logger.warn('IndexedDB persistence is unavailable; continuing online:', error)
+    onEvent({ type: 'persistence-error' })
+  }
 
   const provider = new WebsocketProvider(
     `${API_CONFIG.BASE_WS_URL}${API_ENDPOINTS.COLLABORATION.WS_ROOMS}`,
@@ -203,6 +266,7 @@ export const createYjsExtension = async (
 
   currentDoc = ydoc
   currentProvider = provider
+  if (persistence) currentPersistence = persistence
 
   const config = yCollab(ytext, provider.awareness, { undoManager })
 

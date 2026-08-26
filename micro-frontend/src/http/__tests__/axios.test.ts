@@ -155,4 +155,28 @@ describe('createHttpClients SSR context', () => {
     await expect(httpClient.get('/forbidden')).rejects.toMatchObject({ response: { status: 403 } })
     expect(refreshCalls).toBe(0)
   })
+
+  it('notifies the app once when the refresh token is rejected', async () => {
+    let refreshCalls = 0
+    const onUnauthorized = vi.fn()
+    axios.defaults.adapter = vi.fn(async (config) => {
+      if (config.url === '/token/refresh') {
+        refreshCalls++
+        throw unauthorized(config)
+      }
+      throw unauthorized(config)
+    }) as AxiosAdapter
+
+    const { httpClient } = createHttpClients({
+      baseURL: 'http://gateway',
+      cookie: 'megalith_access_token=expired; megalith_refresh_token=expired',
+      onUnauthorized
+    })
+
+    await expect(httpClient.get('/protected')).rejects.toMatchObject({
+      response: { status: 401 }
+    })
+    expect(refreshCalls).toBe(1)
+    expect(onUnauthorized).toHaveBeenCalledOnce()
+  })
 })
