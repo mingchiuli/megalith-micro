@@ -40,6 +40,7 @@ graph TD
     %% Layer Definitions
     subgraph ClientLayer[Client Layer]
         Browser["Browser<br/>Vue 3 Hydrated Client"]
+        BrowserDB["Browser IndexedDB<br/>Yjs Document + Editor Metadata Drafts"]
     end
     subgraph ExternalLayer[External Layer]
         Nginx["nginx<br/>Reverse Proxy"]
@@ -72,6 +73,7 @@ graph TD
     end
 
     %% Page requests use SSR; browser API calls bypass the frontend server.
+    Browser <-->|Local Draft Persistence| BrowserDB
     Browser -->|Page / Asset / API / WS Requests| Nginx
     Nginx -->|Page Routes + Static Assets| Frontend
     Nginx -->|/api HTTP + /wsapi WS| Gateway
@@ -163,6 +165,26 @@ gateway instead of passing through the frontend server.
 Authentication tokens are transported only in HttpOnly cookies. The SSR server forwards request
 cookies to the gateway and propagates refreshed `Set-Cookie` headers, while browser code never
 reads or persists access or refresh tokens.
+
+### Editor collaboration and drafts
+
+The administration editor uses Yjs for real-time collaboration. In the browser, `y-indexeddb`
+persists the Yjs document locally, while editor metadata such as the title, description, status,
+cover, and sensitive-word selections is stored separately in IndexedDB. Persistence keys include
+the authenticated user ID and blog ID, so drafts are isolated between users and editing sessions.
+
+When an editor room opens, the local Yjs document is restored before the WebSocket connection is
+started. The same Yjs document then synchronizes with `micro-sync-rs`; local and remote updates are
+merged by Yjs, and a persisted local document is never treated as an authoritative replacement for
+the remote document. For a new document, the initial server content is inserted only when the
+synced Yjs document has no existing state.
+
+IndexedDB and WebSocket collaboration are browser-only and do not participate in SSR. If IndexedDB
+is unavailable, the editor falls back to online collaboration without local persistence. When a
+backgrounded tab becomes visible again, the editor refreshes its short-lived collaboration ticket
+before reconnecting. If the login session has expired, editing is paused, the local draft is kept,
+and the user is prompted to log in again and returned to the original edit route. A successful save
+clears both the Yjs document draft and the metadata draft.
 
 Vite builds the client and SSR bundles, then Bun compiles the server, runtime, and assets into
 `micro-frontend/dist/bin/megalith-frontend`. The runtime image contains only that executable and
