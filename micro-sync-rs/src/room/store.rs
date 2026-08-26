@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
 
 use bytes::Bytes;
 use redis::aio::{ConnectionManager, MultiplexedConnection};
@@ -9,6 +10,9 @@ use redis::{AsyncCommands, FromRedisValue, RedisError, RedisResult, Script, Valu
 
 use crate::config::{RedisConfig, SyncConfig, WorkerConfig};
 use crate::room::protocol::AwarenessClient;
+
+const WORKER_READ_BLOCK_MILLIS: usize = 1_000;
+const BLOCKING_RESPONSE_TIMEOUT_GRACE: Duration = Duration::from_secs(1);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EventKind {
@@ -271,6 +275,7 @@ return {through, update, events, awareness}
         for (_, cursor) in rooms {
             command.arg(cursor.as_str());
         }
+        connection.set_response_timeout(blocking_response_timeout(self.sync.relay_block_millis));
         let result = command.query_async::<StreamReadReply>(connection).await;
         match result {
             Ok(reply) => {
@@ -569,19 +574,20 @@ return result
         consumer: &str,
         count: usize,
     ) -> RedisResult<Vec<(String, String)>> {
-        let reply = redis::cmd("XREADGROUP")
+        let mut command = redis::cmd("XREADGROUP");
+        command
             .arg("GROUP")
             .arg(self.worker_group())
             .arg(consumer)
             .arg("COUNT")
             .arg(count)
             .arg("BLOCK")
-            .arg(1000)
+            .arg(WORKER_READ_BLOCK_MILLIS)
             .arg("STREAMS")
             .arg(self.worker_stream())
-            .arg(">")
-            .query_async::<StreamReadReply>(connection)
-            .await?;
+            .arg(">");
+        connection.set_response_timeout(blocking_response_timeout(WORKER_READ_BLOCK_MILLIS));
+        let reply = command.query_async::<StreamReadReply>(connection).await?;
         self.healthy.store(true, Ordering::Relaxed);
         Ok(worker_tasks(reply))
     }
@@ -905,11 +911,16 @@ fn parse_stream_id(value: &str) -> Option<(u64, u64)> {
     Some((timestamp.parse().ok()?, sequence.parse().ok()?))
 }
 
+fn blocking_response_timeout(block_millis: usize) -> Duration {
+    let block_timeout = Duration::from_millis(u64::try_from(block_millis).unwrap_or(u64::MAX));
+    block_timeout.saturating_add(BLOCKING_RESPONSE_TIMEOUT_GRACE)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::config::{RedisConfig, SyncConfig, WorkerConfig};
     use crate::room::protocol::AwarenessClient;
-    use std::time::{SystemTime, UNIX_EPOCH};
+    use std::time::{Instant, SystemTime, UNIX_EPOCH};
     use yrs::sync::{AwarenessUpdate, awareness::AwarenessUpdateEntry};
     use yrs::updates::encoder::Encode;
     use yrs::{ClientID, Doc, ReadTxn, StateVector, Text, Transact};
@@ -927,6 +938,15 @@ mod tests {
         assert!(StreamOffset::new("10-0".into()).is_after(&StreamOffset::new("9-99".into())));
         assert!(StreamOffset::new("10-2".into()).is_after(&StreamOffset::new("10-1".into())));
         assert!(!StreamOffset::new("10-1".into()).is_after(&StreamOffset::new("10-1".into())));
+    }
+
+    #[test]
+    fn blocking_reads_outlast_the_redis_block_window() {
+        assert_eq!(
+            blocking_response_timeout(WORKER_READ_BLOCK_MILLIS),
+            Duration::from_secs(2)
+        );
+        assert_eq!(blocking_response_timeout(200), Duration::from_millis(1_200));
     }
 
     #[test]
@@ -984,6 +1004,18 @@ mod tests {
         let second = RedisSessionStore::connect(RedisConfig { url, prefix }, sync, worker)
             .await
             .unwrap();
+
+        first.ensure_worker_group().await.unwrap();
+        let mut worker_connection = first.dedicated_connection().await.unwrap();
+        let read_started = Instant::now();
+        assert!(
+            first
+                .read_worker_tasks(&mut worker_connection, "idle-worker", 1)
+                .await
+                .unwrap()
+                .is_empty()
+        );
+        assert!(read_started.elapsed() >= Duration::from_millis(900));
 
         let doc = Doc::new();
         doc.get_or_insert_text("content")
