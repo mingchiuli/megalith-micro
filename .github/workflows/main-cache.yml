@@ -21,7 +21,7 @@ jobs:
       - name: Install GraalVM
         uses: graalvm/setup-graalvm@v1
         with:
-          version: '25.2'
+          version: '25.3.4.1'
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: gradle/actions/setup-gradle@v6
