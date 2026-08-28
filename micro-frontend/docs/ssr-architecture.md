@@ -31,7 +31,7 @@ The Bun process initializes OpenTelemetry before `Bun.serve`. A native request w
 
 The service exports OTLP/HTTP Protobuf traces, metrics, and logs. Metrics include HTTP client/server durations, Bun CPU/RSS/uptime, JavaScriptCore heap measurements, event-loop delay, plus `ssr.render.duration`, `ssr.render.requests`, `ssr.render.errors`, and `ssr.render.active`. Bun does not expose the V8 GC and Node event-loop-utilization semantics, so those metrics are intentionally absent. Application logs are written as structured JSON to stdout and exported with active trace and span identifiers. Cookies, tokens, request bodies, and serialized Pinia state are not recorded. Dynamic SSR paths are normalized to Vue route patterns, and inbound query values are redacted.
 
-`OTEL_EXPORTER_OTLP_ENDPOINT` configures the base endpoint for all signals, while `OTEL_SERVICE_VERSION` identifies the deployed Git commit. New root traces default to the parent-based trace ID ratio sampler at `0.5`; standard signal-specific `OTEL_*` variables can override the endpoint, exporter, sampler, batching, and export intervals. `/actuator/health` is excluded from tracing.
+`OTEL_EXPORTER_OTLP_ENDPOINT` configures the base endpoint for all signals, while `OTEL_SERVICE_VERSION` identifies the deployed Git commit. New root traces default to the parent-based trace ID ratio sampler at `0.05`; standard signal-specific `OTEL_*` variables can override the endpoint, exporter, sampler, batching, and export intervals. `/actuator/health` is excluded from tracing.
 
 On `SIGTERM` or `SIGINT`, readiness changes to 503, `Bun.serve` stops accepting requests, active connections receive up to ten seconds to finish, and all three OTel providers shut down and flush before the process exits.
 

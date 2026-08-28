@@ -525,7 +525,7 @@ jobs:
               override_file=$(mktemp)
               trap 'rm -f "$override_file"' EXIT
               if [ "$service" = "megalith-frontend" ]; then
-                printf 'services:\n  %s:\n    image: %s\n    environment:\n      SSR_API_BASE_URL: http://micro-gateway-rs:8088\n      OTEL_SERVICE_VERSION: %s\n      OTEL_EXPORTER_OTLP_ENDPOINT: http://apm-server:8200\n      OTEL_TRACES_SAMPLER: parentbased_traceidratio\n      OTEL_TRACES_SAMPLER_ARG: "0.5"\n' \
+                printf 'services:\n  %s:\n    image: %s\n    environment:\n      SSR_API_BASE_URL: http://micro-gateway-rs:8088\n      OTEL_SERVICE_VERSION: %s\n      OTEL_EXPORTER_OTLP_ENDPOINT: http://apm-server:8200\n' \
                   "$service" "$image" "$service_version" > "$override_file"
               else
                 printf 'services:\n  %s:\n    image: %s\n' "$service" "$image" > "$override_file"
