@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
+import wiki.chiu.micro.auth.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;

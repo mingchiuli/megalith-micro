@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,11 +28,11 @@ class OutboxPublisherTest {
   private final OutboxStore store = mock(OutboxStore.class);
   private final RabbitTemplate rabbitTemplate = mock(RabbitTemplate.class);
   private final RedissonClient redisson = mock(RedissonClient.class);
+  private final OutboxProperties properties = new OutboxProperties();
   private OutboxPublisher publisher;
 
   @BeforeEach
   void setUp() {
-    OutboxProperties properties = new OutboxProperties();
     properties.setProducer(OutboxProducer.BLOG);
     properties.setExchange("blog.exchange");
     properties.setPublisherConcurrency(1);
@@ -81,7 +82,33 @@ class OutboxPublisherTest {
             eq("broker nack: broker unavailable"));
   }
 
+  @Test
+  void eventTypeCanUseADedicatedExchange() {
+    properties.setEventExchanges(Map.of("UserDeletedMessage", "user.deleted.exchange"));
+    OutboxRecord record =
+        new OutboxRecord(
+            2L,
+            "event-2",
+            OutboxProducer.BLOG,
+            "USER_DELETION",
+            "42",
+            "UserDeletedMessage",
+            "{}",
+            0,
+            LocalDateTime.now());
+    when(store.findReady(OutboxProducer.BLOG, 50)).thenReturn(List.of(record));
+    completeConfirm("user.deleted.exchange", true, null);
+
+    publisher.publishReady();
+
+    verify(store).delete(record.id(), OutboxProducer.BLOG);
+  }
+
   private void completeConfirm(boolean ack, String reason) {
+    completeConfirm("blog.exchange", ack, reason);
+  }
+
+  private void completeConfirm(String exchange, boolean ack, String reason) {
     doAnswer(
             invocation -> {
               CorrelationData correlation = invocation.getArgument(3);
@@ -89,7 +116,7 @@ class OutboxPublisherTest {
               return null;
             })
         .when(rabbitTemplate)
-        .send(eq("blog.exchange"), eq(""), any(Message.class), any(CorrelationData.class));
+        .send(eq(exchange), eq(""), any(Message.class), any(CorrelationData.class));
   }
 
   private OutboxRecord record() {

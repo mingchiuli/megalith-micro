@@ -23,15 +23,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.user.handler.AuthorityHttpHandler;
-import wiki.chiu.micro.user.handler.AuthorityInternalHttpHandler;
-import wiki.chiu.micro.user.handler.MenuHttpHandler;
-import wiki.chiu.micro.user.handler.MenuInternalHttpHandler;
-import wiki.chiu.micro.user.handler.RoleHttpHandler;
-import wiki.chiu.micro.user.handler.UserHttpHandler;
-import wiki.chiu.micro.user.handler.UserInternalHttpHandler;
-import wiki.chiu.micro.user.route.UserRoutes;
-import wiki.chiu.micro.user.service.AuthorityService;
+import wiki.chiu.micro.user.adapter.in.http.AuthorityHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.AuthorityInternalHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.MenuHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.MenuInternalHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.RoleHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.UserHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.UserInternalHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.UserRoutes;
+import wiki.chiu.micro.user.application.port.in.AuthorityService;
 import wiki.chiu.micro.user.vo.AuthorityVo;
 
 @ExtendWith(MockitoExtension.class)

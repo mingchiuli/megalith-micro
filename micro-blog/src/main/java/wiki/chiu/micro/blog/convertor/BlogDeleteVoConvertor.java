@@ -2,7 +2,7 @@ package wiki.chiu.micro.blog.convertor;
 
 import java.util.ArrayList;
 import java.util.List;
-import wiki.chiu.micro.blog.entity.BlogEntity;
+import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
 import wiki.chiu.micro.common.page.PageAdapter;
 

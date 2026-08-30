@@ -1,0 +1,277 @@
+package wiki.chiu.micro.blog.domain;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import org.hibernate.Hibernate;
+import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import wiki.chiu.micro.common.lang.Const;
+
+/**
+ * @author mingchiuli
+ * @create 2022-11-27 12:56 am
+ */
+@Entity
+@DynamicUpdate
+@EntityListeners(AuditingEntityListener.class)
+@Table(
+    name = Const.BLOG_TABLE,
+    indexes = {@Index(columnList = "status,created")})
+public class BlogEntity {
+
+  @Id
+  @Column(name = "id")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+
+  @Column(name = "user_id")
+  private Long userId;
+
+  @Column(name = "title")
+  private String title;
+
+  @Column(name = "description")
+  private String description;
+
+  @Column(name = "content", length = 65535)
+  private String content;
+
+  @Column(name = "created", updatable = false)
+  @CreatedDate
+  private LocalDateTime created;
+
+  @Column(name = "updated")
+  @LastModifiedDate
+  private LocalDateTime updated;
+
+  @Column(name = "status")
+  private Integer status;
+
+  @Column(name = "link")
+  private String link;
+
+  @Column(name = "read_count")
+  private Long readCount;
+
+  @Column(name = "event_revision", nullable = false)
+  private Long eventRevision;
+
+  public BlogEntity(
+      Long id,
+      Long userId,
+      String title,
+      String description,
+      String content,
+      LocalDateTime created,
+      LocalDateTime updated,
+      Integer status,
+      String link,
+      Long readCount,
+      Long eventRevision) {
+    this.id = id;
+    this.userId = userId;
+    this.title = title;
+    this.description = description;
+    this.content = content;
+    this.created = created;
+    this.updated = updated;
+    this.status = status;
+    this.link = link;
+    this.readCount = readCount;
+    this.eventRevision = eventRevision;
+  }
+
+  public BlogEntity() {}
+
+  public static BlogEntityBuilder builder() {
+    return new BlogEntityBuilder();
+  }
+
+  public Long getId() {
+    return this.id;
+  }
+
+  public Long getUserId() {
+    return this.userId;
+  }
+
+  public String getTitle() {
+    return this.title;
+  }
+
+  public String getDescription() {
+    return this.description;
+  }
+
+  public String getContent() {
+    return this.content;
+  }
+
+  public LocalDateTime getCreated() {
+    return this.created;
+  }
+
+  public LocalDateTime getUpdated() {
+    return this.updated;
+  }
+
+  public Integer getStatus() {
+    return this.status;
+  }
+
+  public String getLink() {
+    return this.link;
+  }
+
+  public Long getReadCount() {
+    return this.readCount;
+  }
+
+  public Long getEventRevision() {
+    return eventRevision;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public void setUserId(Long userId) {
+    this.userId = userId;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public void setContent(String content) {
+    this.content = content;
+  }
+
+  public void setCreated(LocalDateTime created) {
+    this.created = created;
+  }
+
+  public void setUpdated(LocalDateTime updated) {
+    this.updated = updated;
+  }
+
+  public void setStatus(Integer status) {
+    this.status = status;
+  }
+
+  public void setLink(String link) {
+    this.link = link;
+  }
+
+  public void setReadCount(Long readCount) {
+    this.readCount = readCount;
+  }
+
+  public void setEventRevision(Long eventRevision) {
+    this.eventRevision = eventRevision;
+  }
+
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+    BlogEntity that = (BlogEntity) o;
+    return id != null && id.equals(that.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return Hibernate.getClass(this).hashCode();
+  }
+
+  public static class BlogEntityBuilder {
+
+    private Long id;
+    private Long userId;
+    private String title;
+    private String description;
+    private String content;
+    private LocalDateTime created;
+    private LocalDateTime updated;
+    private Integer status;
+    private String link;
+    private Long readCount;
+    private Long eventRevision;
+
+    public BlogEntityBuilder id(Long id) {
+      this.id = id;
+      return this;
+    }
+
+    public BlogEntityBuilder userId(Long userId) {
+      this.userId = userId;
+      return this;
+    }
+
+    public BlogEntityBuilder title(String title) {
+      this.title = title;
+      return this;
+    }
+
+    public BlogEntityBuilder description(String description) {
+      this.description = description;
+      return this;
+    }
+
+    public BlogEntityBuilder content(String content) {
+      this.content = content;
+      return this;
+    }
+
+    public BlogEntityBuilder created(LocalDateTime created) {
+      this.created = created;
+      return this;
+    }
+
+    public BlogEntityBuilder updated(LocalDateTime updated) {
+      this.updated = updated;
+      return this;
+    }
+
+    public BlogEntityBuilder status(Integer status) {
+      this.status = status;
+      return this;
+    }
+
+    public BlogEntityBuilder link(String link) {
+      this.link = link;
+      return this;
+    }
+
+    public BlogEntityBuilder readCount(Long readCount) {
+      this.readCount = readCount;
+      return this;
+    }
+
+    public BlogEntityBuilder eventRevision(Long eventRevision) {
+      this.eventRevision = eventRevision;
+      return this;
+    }
+
+    public BlogEntity build() {
+      return new BlogEntity(
+          this.id,
+          this.userId,
+          this.title,
+          this.description,
+          this.content,
+          this.created,
+          this.updated,
+          this.status,
+          this.link,
+          this.readCount,
+          this.eventRevision);
+    }
+  }
+}

@@ -1,6 +1,7 @@
 mod broadcast;
 mod manager;
 mod protocol;
+mod scripts;
 mod store;
 
 pub use broadcast::ws_handler;

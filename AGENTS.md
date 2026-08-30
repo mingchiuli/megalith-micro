@@ -6,7 +6,7 @@ this file records the implementation constraints that are easy to miss.
 
 ## Toolchain
 
-- Java 25 (GraalVM HotSpot), Spring Boot 4.1.0, Hibernate ORM 7.4.5, Redisson 4.7.0, and Caffeine.
+- Java 25 (GraalVM HotSpot), Spring Boot 4.1.1, Hibernate ORM 7.4.6.Final, Redisson 4.7.0, and Caffeine.
 - Gradle 9.7 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
 - Rust 2024 for `micro-gateway-rs` and `micro-sync-rs`.
 - Bun 1.4.0, Vue 3, and Vite for the standalone `micro-frontend` service.
@@ -14,7 +14,7 @@ this file records the implementation constraints that are easy to miss.
 `JAVA_HOME` must point to a GraalVM HotSpot JDK, not the Espresso JVM. On macOS, for example:
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.2.4+7.1/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.3.4.1+1.1/Contents/Home
 ```
 
 ## Checks and Commands
@@ -26,6 +26,9 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.2.4+7.1/Contents/H
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
+# Requires Redis 8 on 127.0.0.1:6379.
+MICRO_SYNC_TEST_REDIS_URL=redis://127.0.0.1:6379/ \
+  cargo test -p micro-sync-rs redis_store_round_trip_when_configured -- --ignored
 bun install --frozen-lockfile
 bun run frontend:check
 bun run frontend:build
@@ -70,21 +73,31 @@ in the root `package.json` catalog and `bun.lock`; workspace packages use `catal
    `CacheDescriptor` constants, acquire the same distributed key locks as reads, delete exact Redis
    keys, invalidate local L1, and broadcast through confirmed RabbitMQ fanout or a Redis reliable
    topic. There are no reflective method lookups in eviction.
-6. **Ports and wrappers.** Services depend on ports such as `UserDirectory`; `*Wrapper` and
-   `*HttpServiceWrapper` adapt remote HTTP interfaces and unwrap `RemoteResult.requireSuccess(...)`.
-7. **Transaction boundary.** Services prepare inputs across reads without a transaction. Wrappers do
-   only writes and the matching outbox insert in one short transaction and never query back. Do not
-   add `@Transactional` to services or repository reads to wrappers.
+6. **Ports and adapters.** Core Java code uses `domain`, `application.model`,
+   `application.port.in`, `application.port.out`, `application.service`, `adapter.in.*`,
+   `adapter.out.*`, and `config`. Input adapters call input ports; application services depend on
+   output ports, never concrete HTTP, persistence, Redis, Elasticsearch, or storage adapters.
+   `*HttpServiceWrapper` classes unwrap `RemoteResult.requireSuccess(...)` behind directory/gateway
+   ports. Spring Data repositories belong under `adapter.out.persistence.repository`.
+7. **Transaction boundary.** Services prepare inputs across reads without a transaction.
+   Transactional persistence adapters (including existing `*Wrapper` classes) do only writes and
+   the matching outbox insert in one short transaction and never query back. Do not add
+   `@Transactional` to services or repository reads to transactional writers.
 8. **Transactional outbox.** User and blog changes commit to `m_outbox_event` before confirmed
-   RabbitMQ publication. Cache eviction and Elasticsearch indexing consume those events. Never publish
-   domain events outside the outbox.
+   RabbitMQ publication. Cache eviction and Elasticsearch indexing consume those events. User
+   deletion uses `UserDeletedMessage` on its dedicated fanout exchange; `micro-blog` consumes it to
+   delete blogs owned by the deleted users. Never publish domain events outside the outbox.
 9. **JPMS.** `cache` exports only its public `annotation`, `handler`, and `key` packages. A new
    public package needs an `exports` entry; downstream JPMS modules require `wiki.chiu.micro.cache`.
 10. **Native and AOT reachability.** Types used through reflection, serialization, HTTP interfaces, or
     native-image initialization need the matching Spring AOT/runtime hints.
 11. **Observability.** Java, Rust, Bun, gateway, and sync services export correlated OpenTelemetry
     traces, metrics, and logs; preserve existing trace-context propagation when adding boundaries.
-12. **CI and rewritten history.** A force-push event may provide a `github.event.before` SHA that is
+12. **External Lua sources.** Redis scripts live in standalone `.lua` files. Java reads them as
+    classpath resources and registers the required Native Image resource hints; Rust loads them with
+    `include_str!`. Never embed Lua bodies in Java or Rust string literals, and do not require a
+    source tree beside a production executable.
+13. **CI and rewritten history.** A force-push event may provide a `github.event.before` SHA that is
     no longer reachable. `fetch-depth: 0` does not fetch deleted objects. Workflows diffing event SHAs
     must verify `git cat-file -e "$BEFORE^{commit}"` and use a conservative full-build path when it
     is missing. Do not rewrite shared history without explicit approval, a complete `git bundle` backup,
@@ -94,6 +107,8 @@ in the root `package.json` catalog and `bun.lock`; workspace packages use `catal
 
 - Java uses 4-space indentation, sorted imports, no unused imports, and the surrounding method and
   comment order. Preserve Chinese Javadoc conventions in `micro-user`.
+- A Java source file's physical directory must match its declared package in both `src/main/java`
+  and `src/test/java`; Gradle may compile mismatches, but JDTLS reports them as errors.
 - RPC models are records in `api-*`; preserve established hand-written builders such as
   `AuthorityRpcVo.builder()`.
 - Nullability uses `org.jspecify` `@NonNull`. Jackson is Jackson 3's `tools.jackson.databind.JsonMapper`,

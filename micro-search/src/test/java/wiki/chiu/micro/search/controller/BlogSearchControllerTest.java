@@ -1,9 +1,6 @@
 package wiki.chiu.micro.search.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,18 +19,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.search.handler.BlogSearchHttpHandler;
-import wiki.chiu.micro.search.handler.SearchInternalHttpHandler;
-import wiki.chiu.micro.search.route.SearchRoutes;
-import wiki.chiu.micro.search.service.BlogSearchService;
-import wiki.chiu.micro.search.vo.BlogDocumentVo;
+import wiki.chiu.micro.search.adapter.in.http.BlogDocumentVo;
+import wiki.chiu.micro.search.adapter.in.http.BlogSearchHttpHandler;
+import wiki.chiu.micro.search.adapter.in.http.SearchInternalHttpHandler;
+import wiki.chiu.micro.search.adapter.in.http.SearchRoutes;
+import wiki.chiu.micro.search.application.model.BlogSearchHit;
+import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
+import wiki.chiu.micro.search.application.model.SearchPage;
+import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
 
 @ExtendWith(MockitoExtension.class)
 class BlogSearchControllerTest {
 
-  @Mock private BlogSearchService blogSearchService;
+  @Mock private SearchBlogsUseCase searchBlogs;
 
   private final ValidatedRequest validation = new ValidatedRequest();
 
@@ -41,9 +40,9 @@ class BlogSearchControllerTest {
 
   @BeforeEach
   void setUp() {
-    BlogSearchHttpHandler handler = new BlogSearchHttpHandler(blogSearchService, validation);
+    BlogSearchHttpHandler handler = new BlogSearchHttpHandler(searchBlogs, validation);
     SearchInternalHttpHandler internalHandler =
-        new SearchInternalHttpHandler(blogSearchService, validation);
+        new SearchInternalHttpHandler(searchBlogs, validation);
     mockMvc =
         MockMvcBuilders.routerFunctions(SearchRoutes.routes(handler, internalHandler)).build();
   }
@@ -63,18 +62,27 @@ class BlogSearchControllerTest {
             .score(1.0f)
             .highlight(null)
             .build();
-    PageAdapter<BlogDocumentVo> page =
-        PageAdapter.<BlogDocumentVo>builder()
-            .content(List.of(vo))
-            .totalElements(1)
-            .pageNumber(1)
-            .pageSize(10)
-            .first(true)
-            .last(true)
-            .empty(false)
-            .totalPages(1)
-            .build();
-    when(blogSearchService.selectBlogsByES(anyInt(), anyString(), anyBoolean())).thenReturn(page);
+    SearchPage<BlogSearchHit> page =
+        new SearchPage<>(
+            List.of(
+                new BlogSearchHit(
+                    vo.id(),
+                    vo.userId(),
+                    vo.status(),
+                    vo.title(),
+                    vo.description(),
+                    vo.content(),
+                    vo.created(),
+                    vo.score(),
+                    vo.highlight())),
+            1,
+            1,
+            10,
+            true,
+            true,
+            false,
+            1);
+    when(searchBlogs.searchPublic(any(PublicBlogSearchQuery.class))).thenReturn(page);
 
     mockMvc
         .perform(
@@ -104,7 +112,7 @@ class BlogSearchControllerTest {
                 .param("keywords", "123456789012345678901"))
         .andExpect(status().isBadRequest());
 
-    verify(blogSearchService, never()).selectBlogsByES(anyInt(), anyString(), anyBoolean());
+    verify(searchBlogs, never()).searchPublic(any());
   }
 
   @Test
@@ -117,7 +125,7 @@ class BlogSearchControllerTest {
                 .param("keywords", "abc"))
         .andExpect(status().isBadRequest());
 
-    verify(blogSearchService, never()).selectBlogsByES(anyInt(), anyString(), anyBoolean());
+    verify(searchBlogs, never()).searchPublic(any());
   }
 
   @Test
@@ -130,7 +138,7 @@ class BlogSearchControllerTest {
                 .param("keywords", "abc"))
         .andExpect(status().isBadRequest());
 
-    verify(blogSearchService, never()).selectBlogsByES(anyInt(), anyString(), anyBoolean());
+    verify(searchBlogs, never()).searchPublic(any());
   }
 
   @Test
@@ -139,7 +147,7 @@ class BlogSearchControllerTest {
         .perform(post("/inner/blog/search").contentType(MediaType.APPLICATION_JSON).content("{}"))
         .andExpect(status().isBadRequest());
 
-    verify(blogSearchService, never()).searchBlogs(any());
+    verify(searchBlogs, never()).searchPrivate(any());
   }
 
   @Test
@@ -152,12 +160,12 @@ class BlogSearchControllerTest {
         .perform(post("/inner/blog/count").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isBadRequest());
 
-    verify(blogSearchService, never()).searchCount(any());
+    verify(searchBlogs, never()).countPrivate(any());
   }
 
   @Test
   void searchBlogsServiceFailureReturns500() throws Exception {
-    when(blogSearchService.selectBlogsByES(anyInt(), anyString(), anyBoolean()))
+    when(searchBlogs.searchPublic(any()))
         .thenThrow(new RuntimeException("es down"));
 
     mockMvc
@@ -179,6 +187,6 @@ class BlogSearchControllerTest {
   void internalViewMutationUsesExplicitViewsPath() throws Exception {
     mockMvc.perform(post("/inner/blog/7/views")).andExpect(status().isOk());
 
-    verify(blogSearchService).addReadCount(7L);
+    verify(searchBlogs).incrementViews(7L);
   }
 }

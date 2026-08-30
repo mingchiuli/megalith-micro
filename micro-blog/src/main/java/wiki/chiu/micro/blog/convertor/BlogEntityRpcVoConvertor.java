@@ -3,7 +3,7 @@ package wiki.chiu.micro.blog.convertor;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.blog.entity.BlogEntity;
+import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.common.page.PageAdapter;
 
 public class BlogEntityRpcVoConvertor {
@@ -73,6 +73,19 @@ public class BlogEntityRpcVoConvertor {
         .last(page.isLast())
         .empty(page.isEmpty())
         .totalPages(page.getTotalPages())
+        .build();
+  }
+
+  public static PageAdapter<BlogEntityRpcVo> convert(PageAdapter<BlogEntity> page) {
+    return PageAdapter.<BlogEntityRpcVo>builder()
+        .content(convert(page.content()))
+        .totalElements(page.totalElements())
+        .pageNumber(page.pageNumber())
+        .pageSize(page.pageSize())
+        .first(page.first())
+        .last(page.last())
+        .empty(page.empty())
+        .totalPages(page.totalPages())
         .build();
   }
 }

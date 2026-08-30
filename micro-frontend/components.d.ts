@@ -12,11 +12,13 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AuthButton: typeof import('./src/components/sys/AuthButton.vue')['default']
+    AuthorityEditorDialog: typeof import('./src/components/sys/AuthorityEditorDialog.vue')['default']
     BackHeaderItem: typeof import('./src/components/sys/BackHeaderItem.vue')['default']
     BlogAiActions: typeof import('./src/components/sys/BlogAiActions.vue')['default']
     BlogAiPanel: typeof import('./src/components/sys/BlogAiPanel.vue')['default']
     BlogCoverField: typeof import('./src/components/sys/BlogCoverField.vue')['default']
     BlogMetadataFields: typeof import('./src/components/sys/BlogMetadataFields.vue')['default']
+    BlogTextPreview: typeof import('./src/components/sys/BlogTextPreview.vue')['default']
     CatalogueItem: typeof import('./src/components/CatalogueItem.vue')['default']
     ClientOnly: typeof import('./src/components/ClientOnly.vue')['default']
     DiscussItem: typeof import('./src/components/DiscussItem.vue')['default']
@@ -81,8 +83,10 @@ declare module 'vue' {
     HotItem: typeof import('./src/components/HotItem.vue')['default']
     InfiniteMenuItem: typeof import('./src/components/sys/InfiniteMenuItem.vue')['default']
     LocaleSwitcher: typeof import('./src/components/LocaleSwitcher.vue')['default']
+    MenuDialogs: typeof import('./src/components/sys/MenuDialogs.vue')['default']
     MyFooterItem: typeof import('./src/components/MyFooterItem.vue')['default']
     ReadTokenItem: typeof import('./src/components/ReadTokenItem.vue')['default']
+    RoleDialogs: typeof import('./src/components/sys/RoleDialogs.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SearchItem: typeof import('./src/components/SearchItem.vue')['default']
@@ -90,6 +94,7 @@ declare module 'vue' {
     StatItem: typeof import('./src/components/StatItem.vue')['default']
     StatusTag: typeof import('./src/components/sys/StatusTag.vue')['default']
     TimeColumn: typeof import('./src/components/sys/TimeColumn.vue')['default']
+    UserEditorDialog: typeof import('./src/components/sys/UserEditorDialog.vue')['default']
   }
   export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

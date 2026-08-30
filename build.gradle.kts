@@ -4,9 +4,9 @@ import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
-import org.gradle.plugins.ide.eclipse.model.SourceFolder
 
 plugins {
     // Only declare plugin versions, don't apply to root project
@@ -124,7 +124,9 @@ subprojects {
             file {
                 whenMerged(Action<Classpath> {
                     entries.removeAll { entry ->
-                        entry is SourceFolder && entry.path.startsWith("build/generated/aot")
+                        entry is AbstractClasspathEntry &&
+                                (entry.path.startsWith("build/generated/aot") ||
+                                        entry.path.contains("/build/generated/aot"))
                     }
                 })
             }

@@ -15,15 +15,13 @@ import java.util.Set;
 import javax.crypto.SecretKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.redisson.api.RedissonClient;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.task.TaskExecutor;
+import wiki.chiu.micro.auth.adapter.out.composite.AuthWrapper;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
-import wiki.chiu.micro.auth.service.impl.AuthServiceImpl;
+import wiki.chiu.micro.auth.application.port.out.VisitRecorder;
+import wiki.chiu.micro.auth.application.service.AuthServiceImpl;
 import wiki.chiu.micro.auth.token.JwtProperties;
 import wiki.chiu.micro.auth.token.JwtTokenService;
-import wiki.chiu.micro.auth.wrapper.AuthWrapper;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.lang.AuthTypeEnum;
 import wiki.chiu.micro.common.lang.ExceptionMessage;
@@ -61,12 +59,7 @@ class AuthServiceRouteAuthorizationTest {
 
     authWrapper = mock(AuthWrapper.class);
     authService =
-        new AuthServiceImpl(
-            authWrapper,
-            mock(RedissonClient.class),
-            mock(TaskExecutor.class),
-            mock(ResourceLoader.class),
-            tokens);
+        new AuthServiceImpl(authWrapper, mock(VisitRecorder.class), tokens);
 
     when(authWrapper.getAllRoleAuthorizations()).thenReturn(List.of(role(Set.of())));
   }

@@ -2,9 +2,7 @@
 import type { TableInstance } from 'element-plus'
 import { useHttp } from '@/http/http'
 import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
-import { Timer } from '@element-plus/icons-vue'
 import { downloadSQLData } from '@/utils/download'
-import { render } from '@/utils/markdown'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissions'
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
@@ -266,64 +264,25 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
     <el-table-column :label="t('common.title')" align="center" prop="title" min-width="180" />
     <el-table-column :label="t('common.description')" align="center" min-width="200">
       <template #default="scope">
-        <el-popover effect="light" trigger="hover" placement="top" min-width="200">
-          <template #default>
-            <span> {{ scope.row.description }}</span>
-          </template>
-          <template #reference>
-            <span>{{
-              scope.row.description.length > 20
-                ? scope.row.description.substring(0, 20) + '...'
-                : scope.row.description
-            }}</span>
-          </template>
-        </el-popover>
+        <BlogTextPreview :text="scope.row.description" :max-length="20" />
       </template>
     </el-table-column>
 
     <el-table-column :label="t('common.content')" align="center" min-width="200">
       <template #default="scope">
-        <el-popover
-          effect="light"
-          trigger="hover"
-          placement="bottom"
-          width="500px"
-          :show-after="1000"
-          popper-style="height: 300px;overflow: auto;"
-        >
-          <template #default>
-            <span v-html="render(scope.row.content)" />
-          </template>
-          <template #reference>
-            <span>{{
-              scope.row.content.length > 30
-                ? scope.row.content.substring(0, 30) + '...'
-                : scope.row.content
-            }}</span>
-          </template>
-        </el-popover>
+        <BlogTextPreview :text="scope.row.content" :max-length="30" markdown />
       </template>
     </el-table-column>
 
     <el-table-column :label="t('common.createdAt')" min-width="180" align="center">
       <template #default="scope">
-        <div class="time-icon">
-          <el-icon>
-            <timer />
-          </el-icon>
-          <span style="margin-left: 10px">{{ scope.row.created }}</span>
-        </div>
+        <TimeColumn :time="scope.row.created" />
       </template>
     </el-table-column>
 
     <el-table-column :label="t('common.updatedAt')" min-width="180" align="center">
       <template #default="scope">
-        <div class="time-icon">
-          <el-icon>
-            <timer />
-          </el-icon>
-          <span style="margin-left: 10px">{{ scope.row.updated }}</span>
-        </div>
+        <TimeColumn :time="scope.row.updated" />
       </template>
     </el-table-column>
 
@@ -342,21 +301,7 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
 
     <el-table-column :label="t('common.status')" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">{{
-          t('common.public')
-        }}</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">{{
-          t('common.hidden')
-        }}</el-tag>
-        <el-tag
-          size="small"
-          v-else-if="scope.row.status === Status.SENSITIVE_FILTER"
-          type="warning"
-          >{{ t('common.masked') }}</el-tag
-        >
-        <el-tag size="small" v-else-if="scope.row.status === Status.DRAFT" type="info">{{
-          t('common.draft')
-        }}</el-tag>
+        <StatusTag :status="scope.row.status" />
       </template>
     </el-table-column>
 

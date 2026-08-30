@@ -2,10 +2,11 @@ package wiki.chiu.micro.exhibit.convertor;
 
 import static wiki.chiu.micro.common.lang.BlogStatusEnum.HIDE;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import org.redisson.client.protocol.ScoredEntry;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
+import wiki.chiu.micro.exhibit.application.model.BlogScore;
 import wiki.chiu.micro.exhibit.vo.BlogHotReadVo;
 
 public class BlogHotReadVoConvertor {
@@ -15,12 +16,12 @@ public class BlogHotReadVoConvertor {
   private static final String UNKNOWN_TITLE = "未知标题";
 
   public static List<BlogHotReadVo> convert(
-      List<BlogEntityRpcVo> blogs, Collection<ScoredEntry<String>> scoredEntries) {
+      List<BlogEntityRpcVo> blogs, List<BlogScore> scores) {
     Map<Long, String> idTitleMap = createIdTitleMap(blogs);
     List<Long> ids = filterVisibleBlogIds(blogs);
 
-    return scoredEntries.stream()
-        .filter(item -> ids.contains(Long.valueOf(item.getValue())))
+    return scores.stream()
+        .filter(item -> ids.contains(item.blogId()))
         .map(item -> createBlogHotReadVo(item, idTitleMap))
         .toList();
   }
@@ -37,9 +38,9 @@ public class BlogHotReadVoConvertor {
   }
 
   private static BlogHotReadVo createBlogHotReadVo(
-      ScoredEntry<String> item, Map<Long, String> idTitleMap) {
-    Long id = Long.valueOf(item.getValue());
-    Long readCount = Optional.ofNullable(item.getScore()).orElse(0d).longValue();
+      BlogScore item, Map<Long, String> idTitleMap) {
+    Long id = item.blogId();
+    Long readCount = item.readCount();
     String title = idTitleMap.getOrDefault(id, UNKNOWN_TITLE);
 
     return BlogHotReadVo.builder().id(id).readCount(readCount).title(title).build();

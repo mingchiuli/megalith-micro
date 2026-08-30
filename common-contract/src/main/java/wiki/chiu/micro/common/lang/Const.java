@@ -40,8 +40,6 @@ public class Const {
 
   public static final String BLOOM_FILTER_BLOG = "bloom_filter_blog";
 
-  public static final String BLOOM_FILTER_PAGE = "bloom_filter_page";
-
   public static final String REGISTER_PREFIX = "register_prefix:";
 
   public static final String USER = "user";
@@ -104,6 +102,10 @@ public class Const {
   public static final String USER_QUEUE = "user.auth.menu.change.queue.auth";
 
   public static final String USER_CHANGE_FANOUT_EXCHANGE = "user.auth.menu.change.fanout.exchange";
+
+  public static final String USER_DELETED_QUEUE = "user.deleted.queue.blog";
+
+  public static final String USER_DELETED_FANOUT_EXCHANGE = "user.deleted.fanout.exchange";
 
   public static final String CODE_KEY = "code";
 

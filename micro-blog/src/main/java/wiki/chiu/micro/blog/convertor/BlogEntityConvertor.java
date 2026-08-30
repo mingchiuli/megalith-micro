@@ -1,8 +1,8 @@
 package wiki.chiu.micro.blog.convertor;
 
 import java.util.Optional;
+import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
-import wiki.chiu.micro.blog.entity.BlogEntity;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 
 public class BlogEntityConvertor {

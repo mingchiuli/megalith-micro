@@ -40,6 +40,8 @@ megalith:
   outbox:
     producer: USER
     exchange: user.auth.menu.change.fanout.exchange
+    event-exchanges:
+      UserDeletedMessage: user.deleted.fanout.exchange
   task-lock:
     environment: ${spring.profiles.active:default}
   user:

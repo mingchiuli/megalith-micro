@@ -8,39 +8,63 @@ import org.junit.jupiter.api.Test;
 
 class LayeringArchitectureTest {
 
+  private static final String ROOT = "wiki.chiu.micro.search";
+
   @Test
-  void applicationServicesDoNotOwnTransactions() {
+  void domainAndApplicationAreFrameworkIndependent() {
+    var classes = productionClasses();
     noClasses()
         .that()
-        .resideInAPackage("..service..")
+        .resideInAnyPackage("..domain..", "..application..")
         .should()
         .dependOnClassesThat()
-        .resideInAPackage("org.springframework.transaction..")
-        .check(
-            new ClassFileImporter()
-                .withImportOption(new ImportOption.DoNotIncludeTests())
-                .importPackages("wiki.chiu.micro.search"));
+        .resideInAnyPackage(
+            "org.springframework..",
+            "jakarta.persistence..",
+            "co.elastic.clients..",
+            "tools.jackson..",
+            "com.fasterxml.jackson..")
+        .check(classes);
   }
 
   @Test
-  void applicationServicesDependOnPortsInsteadOfRpcAdapters() {
-    var classes =
-        new ClassFileImporter()
-            .withImportOption(new ImportOption.DoNotIncludeTests())
-            .importPackages("wiki.chiu.micro.search");
+  void applicationDoesNotDependOnAdaptersOrHttpContracts() {
+    var classes = productionClasses();
     noClasses()
         .that()
-        .resideInAPackage("..service..")
+        .resideInAPackage("..application..")
         .should()
         .dependOnClassesThat()
-        .resideInAPackage("wiki.chiu.micro.search.rpc..")
+        .resideInAnyPackage(
+            "..adapter..", "..repository..", "wiki.chiu.micro.search.api..")
         .check(classes);
+  }
+
+  @Test
+  void inputAdaptersDoNotCallOutputAdaptersDirectly() {
     noClasses()
         .that()
-        .resideInAPackage("..service..")
+        .resideInAPackage("..adapter.in..")
         .should()
         .dependOnClassesThat()
-        .haveSimpleNameEndingWith("HttpService")
-        .check(classes);
+        .resideInAPackage("..adapter.out..")
+        .check(productionClasses());
+  }
+
+  @Test
+  void outputPortsAreOwnedByTheApplication() {
+    noClasses()
+        .that()
+        .resideInAPackage("..application.port.out..")
+        .should()
+        .dependOnClassesThat()
+        .resideOutsideOfPackages("..domain..", "..application..", "java..")
+        .check(productionClasses());
+  }
+
+  private static com.tngtech.archunit.core.domain.JavaClasses productionClasses() {
+    return new ClassFileImporter()
+        .withImportOption(new ImportOption.DoNotIncludeTests())
+        .importPackages(ROOT);
   }
 }

@@ -1,5 +1,7 @@
 package wiki.chiu.micro.outbox.config;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import wiki.chiu.micro.outbox.OutboxProducer;
 
@@ -8,6 +10,7 @@ public class OutboxProperties {
 
   private OutboxProducer producer;
   private String exchange;
+  private Map<String, String> eventExchanges = new HashMap<>();
   private int batchSize = 50;
   private int publisherConcurrency = 16;
   private long confirmTimeoutMillis = 5000;
@@ -26,6 +29,18 @@ public class OutboxProperties {
 
   public void setExchange(String exchange) {
     this.exchange = exchange;
+  }
+
+  public Map<String, String> getEventExchanges() {
+    return eventExchanges;
+  }
+
+  public void setEventExchanges(Map<String, String> eventExchanges) {
+    this.eventExchanges = eventExchanges == null ? new HashMap<>() : new HashMap<>(eventExchanges);
+  }
+
+  public String exchangeFor(String eventType) {
+    return eventExchanges.getOrDefault(eventType, exchange);
   }
 
   public int getBatchSize() {

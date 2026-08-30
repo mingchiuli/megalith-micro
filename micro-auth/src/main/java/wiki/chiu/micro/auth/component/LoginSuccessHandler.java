@@ -16,7 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.json.JsonMapper;
-import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
+import wiki.chiu.micro.auth.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.token.AccessTokenCookieManager;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;

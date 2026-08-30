@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import wiki.chiu.micro.scheduling.RedisTaskLock;
+import wiki.chiu.micro.user.application.port.in.UserIdentityService;
 import wiki.chiu.micro.user.config.PasswordLockProperties;
-import wiki.chiu.micro.user.service.UserIdentityService;
 
 @Component
 public class PasswordUnlockScheduler {

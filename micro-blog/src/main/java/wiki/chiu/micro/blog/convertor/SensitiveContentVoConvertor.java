@@ -1,7 +1,7 @@
 package wiki.chiu.micro.blog.convertor;
 
 import java.util.List;
-import wiki.chiu.micro.blog.entity.BlogSensitiveContentEntity;
+import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
 
 public class SensitiveContentVoConvertor {

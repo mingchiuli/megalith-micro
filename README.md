@@ -25,7 +25,7 @@ runtime files, with no source code, build toolchain, or separate language runtim
 
 | Applications | Technology | Production artifact |
 | --- | --- | --- |
-| `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot, GraalVM | GraalVM Native Image executable |
+| `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot 4.1.1, GraalVM | GraalVM Native Image executable |
 | `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
 | `micro-frontend` | Bun 1.4.0, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
@@ -99,6 +99,7 @@ graph TD
     Blog -->|Transactional Outbox| MariaDB
     MariaDB -->|Confirmed Publish| RabbitMQ
     RabbitMQ -->|Invalidate Auth Cache| Auth
+    RabbitMQ -->|Delete Blogs Owned by Deleted Users| Blog
     RabbitMQ -->|Invalidate Exhibit Cache| Exhibit
     RabbitMQ -->|Update Search Index| Search
     Auth -->|L2 Cache| Redis
@@ -119,7 +120,8 @@ the target service. Business services never re-parse browser credentials.
 shared Redis Streams and relayed to connections on every replica, while snapshots, presence
 ownership, connection leases, and compaction work remain in shared Redis state. Any replica can
 therefore accept a connection for any room without sticky sessions or assigning that room to a
-single process.
+single process. The Redis store keeps its presence and compaction implementations in focused
+submodules, and loads multi-step atomic Redis operations from standalone `.lua` source files.
 
 ## Applications and Modules
 
@@ -130,7 +132,7 @@ single process.
 | `micro-gateway-rs` | Streaming HTTP/WebSocket proxy, origin checks, centralized authorization entry point, and dynamic routing |
 | `micro-auth` | JWT, login, route authorization, and authorization snapshot caches |
 | `micro-user` | Users, roles, menus, authorities, and data permissions |
-| `micro-blog` | Blog content, recycle bin, and domain events |
+| `micro-blog` | Blog content, recycle bin, domain events, and user-deletion cleanup |
 | `micro-exhibit` | Content presentation, visit statistics, and presentation caches |
 | `micro-search` | Elasticsearch full-text search and index event consumption |
 | `micro-sync-rs` | Stateless real-time collaboration backed by YRS CRDT and Redis |
@@ -142,12 +144,33 @@ single process.
 | --- | --- |
 | `api-auth`, `api-user`, `api-blog`, `api-search` | Typed HTTP contracts and RPC records |
 | `cache` | Caffeine L1 + Redis L2 caching, exact eviction, and replica-wide invalidation |
-| `common-contract` | Result, error, paging, validation, and security contracts |
+| `common-contract` | Result, error, paging, validation, security, and message contracts |
 | `common-rpc` | HTTP clients, principal propagation, and external service adapters |
 | `common-web`, `common-auth-web` | Functional WebMVC, error handling, validation, and trusted principal resolution |
 | `common-observability` | OpenTelemetry integration and GraalVM runtime hints |
 | `common-messaging`, `common-outbox` | Consumer retries, dead-letter queues, and the transactional outbox |
 | `common-scheduling`, `common-export` | Distributed scheduler locks and export utilities |
+
+### Java application boundaries
+
+The five Java applications use the same ports-and-adapters layout for their core code:
+
+| Package | Responsibility |
+| --- | --- |
+| `domain` | Business entities and domain state without delivery or infrastructure dependencies |
+| `application.model` | Use-case-specific inputs, outputs, and event context |
+| `application.port.in` | Use cases exposed to HTTP, messaging, and schedulers |
+| `application.port.out` | Persistence, remote service, Redis, search, and object-storage capabilities required by use cases |
+| `application.service` | Use-case orchestration; depends on domain types and ports rather than adapters |
+| `adapter.in.*` | Functional WebMVC handlers/routes and RabbitMQ consumers |
+| `adapter.out.*` | HTTP clients, Spring Data repositories, transactional writers, Redis, Elasticsearch, and object storage |
+| `config` | Spring wiring, RabbitMQ topology, AOT hints, and application configuration |
+
+Input adapters call input ports, and application services call output ports. Spring Data,
+Redisson, remote HTTP contracts, and storage clients stay behind output adapters. Some
+transactional persistence adapters retain historical `*Wrapper` class names, but services depend
+on their writer ports rather than those concrete classes. ArchUnit checks these boundaries and
+also keeps transaction ownership out of application services.
 
 ## Frontend
 
@@ -212,13 +235,19 @@ authentication, caching, observability, failure behavior, and deployment details
   then reads through Caffeine L1 followed by Redis L2. Exact eviction waits on the same distributed
   locks and broadcasts to every replica to clear local entries.
 - **Short write transactions:** services perform reads, validation, and input preparation outside
-  a transaction. Wrappers perform only writes and the matching outbox insert inside one short
-  transaction. ArchUnit enforces this boundary.
+  a transaction. Transactional persistence adapters perform only writes and the matching outbox
+  insert inside one short transaction. ArchUnit enforces this boundary.
 - **Reliable domain events:** user and blog changes commit to a MariaDB transactional outbox before
   confirmed publication through RabbitMQ. Cache eviction and Elasticsearch indexing consume these
   durable events.
+- **User-deletion cleanup:** deleting users writes a `UserDeletedMessage` to the user outbox and
+  routes it through a dedicated fanout exchange. `micro-blog` consumes the event and deletes blogs
+  owned by those users; cascade deletions do not create recycle-bin entries for a missing operator.
 - **Stateless collaboration:** `micro-sync-rs` uses YRS CRDT and shared Redis for session streams,
   snapshots, and presence. Replicas do not require sticky sessions.
+- **External Lua sources:** Redis Lua is stored only in `.lua` files. Java adapters read classpath
+  resources registered for Native Image, while Rust uses `include_str!` so the release binary does
+  not require the source tree at runtime. Lua bodies are never embedded in Java or Rust strings.
 - **Native observability:** Java Native Image, Rust, and Bun applications export OpenTelemetry
   traces, metrics, and logs.
 - **Centralized workspace versions:** the root Bun catalog owns JavaScript dependency versions;
@@ -237,7 +266,7 @@ authentication, caching, observability, failure behavior, and deployment details
 Example on macOS:
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.2.4+7.1/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.3.4.1+1.1/Contents/Home
 ```
 
 ### Checks and Tests
@@ -247,6 +276,9 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.2.4+7.1/Contents/H
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
+# Requires a Redis 8 instance on localhost.
+MICRO_SYNC_TEST_REDIS_URL=redis://127.0.0.1:6379/ \
+  cargo test -p micro-sync-rs redis_store_round_trip_when_configured -- --ignored
 bun install --frozen-lockfile
 bun run frontend:check
 ```
@@ -289,9 +321,10 @@ docker build -t mingchiuli/megalith-frontend:latest -f micro-frontend/Dockerfile
 ```
 
 CI validates AOT processing and builds a separate GraalVM Native Image for each of the five Java
-services. It formats, lints, and tests the two Rust services and the Bun frontend before building
-their release images. Changed services are published independently and deployed in platform order,
-with the frontend after the gateway.
+services. It formats, lints, and tests the two Rust services, runs the ignored collaboration store
+integration test against Redis 8, and checks the Bun frontend before building release images.
+Changed services are published independently and deployed in platform order, with the frontend
+after the gateway.
 
 ### Development
 

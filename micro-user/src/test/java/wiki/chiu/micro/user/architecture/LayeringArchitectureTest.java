@@ -55,7 +55,7 @@ class LayeringArchitectureTest {
         .resideInAPackage("..service..")
         .should()
         .dependOnClassesThat()
-        .resideInAPackage("wiki.chiu.micro.user.rpc..")
+        .resideInAPackage("wiki.chiu.micro.user.adapter.out..")
         .check(classes);
     noClasses()
         .that()
@@ -64,13 +64,50 @@ class LayeringArchitectureTest {
         .dependOnClassesThat()
         .haveSimpleNameEndingWith("HttpService")
         .check(classes);
+    noClasses()
+        .that()
+        .resideInAPackage("..application.service..")
+        .should()
+        .dependOnClassesThat()
+        .resideInAnyPackage("..adapter.out..", "..repository..", "..rpc..", "..wrapper..")
+        .check(classes);
+    noClasses()
+        .that()
+        .resideInAPackage("..application.service..")
+        .should()
+        .dependOnClassesThat()
+        .haveSimpleNameEndingWith("Wrapper")
+        .check(classes);
+  }
+
+  @Test
+  void portsAreFrameworkIndependentAndInputAdaptersUseInputPorts() {
+    var classes =
+        new ClassFileImporter()
+            .withImportOption(new ImportOption.DoNotIncludeTests())
+            .importPackages("wiki.chiu.micro.user");
+    noClasses()
+        .that()
+        .resideInAPackage("..application.port..")
+        .should()
+        .dependOnClassesThat()
+        .resideInAnyPackage(
+            "..adapter..", "org.springframework..", "org.redisson..", "tools.jackson..")
+        .check(classes);
+    noClasses()
+        .that()
+        .resideInAPackage("..adapter.in..")
+        .should()
+        .dependOnClassesThat()
+        .resideInAPackage("..adapter.out..")
+        .check(classes);
   }
 
   @Test
   void repositoryQueriesDoNotUseJoins() {
     new ClassFileImporter()
             .withImportOption(new ImportOption.DoNotIncludeTests())
-            .importPackages("wiki.chiu.micro.user.repository")
+            .importPackages("wiki.chiu.micro.user.adapter.out.persistence.repository")
             .stream()
             .flatMap(repository -> repository.getMethods().stream())
             .filter(method -> method.isAnnotatedWith(Query.class))
@@ -89,7 +126,7 @@ class LayeringArchitectureTest {
                 .withImportOption(new ImportOption.DoNotIncludeTests())
                 .importPackages("wiki.chiu.micro.user")
                 .stream()
-                .filter(type -> type.getPackageName().contains(".wrapper"))
+                .filter(type -> type.getSimpleName().endsWith("Wrapper"))
                 .flatMap(type -> type.getMethodCallsFromSelf().stream())
                 .filter(call -> call.getTargetOwner().getPackageName().contains(".repository"))
                 .filter(
@@ -107,7 +144,7 @@ class LayeringArchitectureTest {
   void wrappersDoNotDelegateToApplicationServices() {
     noClasses()
         .that()
-        .resideInAPackage("..wrapper..")
+        .resideInAPackage("..adapter.out.persistence..")
         .should()
         .dependOnClassesThat()
         .resideInAPackage("..service..")

@@ -1,15 +1,15 @@
 <script lang="ts" setup>
 import { useHttp } from '@/http/http'
 import type { PageAdapter, RoleSys, UserSys } from '@/type/entity'
-import type { FormInstance, FormRules, TableInstance } from 'element-plus'
-import { Status, ButtonAuth } from '@/type/entity'
+import type { FormInstance, TableInstance } from 'element-plus'
+import { ButtonAuth } from '@/type/entity'
 import { downloadSQLData } from '@/utils/download'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissions'
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls, buildQueryUrl } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
-import { Timer } from '@element-plus/icons-vue'
 import { useLatestRequest, useUniversalData } from '@/composables'
+import { useUserEditor } from '@/composables/admin/useUserEditor'
 
 const { t } = useI18n()
 const { GET, POST, DOWNLOAD } = useHttp()
@@ -32,75 +32,7 @@ const page: PageAdapter<UserSys> = reactive({
 })
 const { content, totalElements, pageSize, pageNumber } = toRefs(page)
 
-const formRules = computed<FormRules<Form>>(() => ({
-  username: [
-    {
-      required: true,
-      message: t('validation.enter', { field: t('auth.username') }),
-      trigger: 'blur'
-    }
-  ],
-  nickname: [
-    {
-      required: true,
-      message: t('validation.enter', { field: t('auth.nickname') }),
-      trigger: 'blur'
-    }
-  ],
-  password: [
-    {
-      required: false,
-      message: t('validation.enter', { field: t('auth.password') }),
-      trigger: 'blur'
-    }
-  ],
-  avatar: [
-    {
-      required: true,
-      message: t('validation.enter', { field: t('auth.avatarUrl') }),
-      trigger: 'blur'
-    }
-  ],
-  email: [
-    { required: true, message: t('validation.enter', { field: t('auth.email') }), trigger: 'blur' }
-  ],
-  phone: [
-    { required: true, message: t('validation.enter', { field: t('auth.phone') }), trigger: 'blur' }
-  ],
-  roles: [
-    { required: true, message: t('validation.select', { field: t('auth.role') }), trigger: 'blur' }
-  ],
-  status: [
-    {
-      required: true,
-      message: t('validation.select', { field: t('common.status') }),
-      trigger: 'blur'
-    }
-  ]
-}))
-const formRef = ref<FormInstance>()
-type Form = {
-  id?: number
-  username: string
-  nickname: string
-  password: string
-  avatar: string
-  email: string
-  phone: string
-  status: Status
-  roles: string[]
-}
-const form: Form = reactive({
-  id: undefined,
-  username: '',
-  nickname: '',
-  password: '',
-  avatar: '',
-  email: '',
-  phone: '',
-  status: 0,
-  roles: []
-})
+const { form, formRules, clearForm } = useUserEditor()
 
 const download = async () => {
   await downloadSQLData(
@@ -184,18 +116,6 @@ const submitForm = async (ref: FormInstance) => {
       await queryUsers()
     }
   })
-}
-
-const clearForm = () => {
-  form.id = undefined
-  form.username = ''
-  form.nickname = ''
-  form.password = ''
-  form.avatar = ''
-  form.email = ''
-  form.phone = ''
-  form.roles = []
-  form.status = 0
 }
 
 const getRoleName = (item: string) => {
@@ -308,12 +228,7 @@ useUniversalData<UsersInitialData>(
 
     <el-table-column :label="t('common.status')" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">{{
-          t('common.enabled')
-        }}</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">{{
-          t('common.inactive')
-        }}</el-tag>
+        <StatusTag :status="scope.row.status" type="user" />
       </template>
     </el-table-column>
 
@@ -327,34 +242,19 @@ useUniversalData<UsersInitialData>(
 
     <el-table-column :label="t('common.createdAt')" min-width="180" align="center">
       <template #default="scope">
-        <div class="time-icon">
-          <el-icon>
-            <timer />
-          </el-icon>
-          <span style="margin-left: 10px">{{ scope.row.created }}</span>
-        </div>
+        <TimeColumn :time="scope.row.created" />
       </template>
     </el-table-column>
 
     <el-table-column :label="t('common.updatedAt')" min-width="180" align="center">
       <template #default="scope">
-        <div class="time-icon">
-          <el-icon>
-            <timer />
-          </el-icon>
-          <span style="margin-left: 10px">{{ scope.row.updated }}</span>
-        </div>
+        <TimeColumn :time="scope.row.updated" />
       </template>
     </el-table-column>
 
     <el-table-column :label="t('admin.lastLogin')" min-width="180" align="center">
       <template #default="scope">
-        <div class="time-icon">
-          <el-icon>
-            <timer />
-          </el-icon>
-          <span style="margin-left: 10px">{{ scope.row.lastLogin }}</span>
-        </div>
+        <TimeColumn :time="scope.row.lastLogin" />
       </template>
     </el-table-column>
 
@@ -402,94 +302,18 @@ useUniversalData<UsersInitialData>(
     :total="totalElements"
   />
 
-  <el-dialog
-    v-model="dialogVisible"
-    :title="t('common.addEdit')"
-    width="600px"
-    :before-close="handleClose"
-  >
-    <el-form :model="form" :rules="formRules" ref="formRef">
-      <el-form-item
-        :label="t('auth.username')"
-        label-width="100px"
-        prop="username"
-        class="username"
-      >
-        <el-input v-model="form.username" maxlength="30" />
-      </el-form-item>
-
-      <el-form-item
-        :label="t('auth.nickname')"
-        label-width="100px"
-        prop="nickname"
-        class="nickname"
-      >
-        <el-input v-model="form.nickname" maxlength="30" />
-      </el-form-item>
-
-      <el-form-item
-        :label="t('auth.password')"
-        label-width="100px"
-        prop="password"
-        class="password"
-      >
-        <el-input v-model="form.password" type="password" maxlength="30" />
-      </el-form-item>
-
-      <el-form-item :label="t('auth.avatarUrl')" label-width="100px" prop="avatar" class="avatar">
-        <el-input v-model="form.avatar" />
-      </el-form-item>
-
-      <el-form-item :label="t('auth.email')" label-width="100px" prop="email" class="email">
-        <el-input v-model="form.email" maxlength="30" />
-      </el-form-item>
-
-      <el-form-item :label="t('auth.phone')" label-width="100px" prop="phone" class="phone">
-        <el-input v-model="form.phone" maxlength="30" />
-      </el-form-item>
-
-      <el-form-item :label="t('auth.role')" label-width="100px" prop="roles" class="role">
-        <el-select
-          multiple
-          class="role-option"
-          v-model="form.roles"
-          :placeholder="t('common.select')"
-        >
-          <el-option
-            v-for="item in roleList"
-            :key="item.code"
-            :label="item.name"
-            :value="item.code"
-          >
-          </el-option>
-        </el-select>
-      </el-form-item>
-
-      <el-form-item :label="t('common.status')" label-width="100px" prop="status" class="status">
-        <el-radio-group v-model="form.status">
-          <el-radio :value="Status.NORMAL">{{ t('common.enabled') }}</el-radio>
-          <el-radio :value="Status.BLOCK">{{ t('common.disabled') }}</el-radio>
-        </el-radio-group>
-      </el-form-item>
-
-      <el-form-item label-width="450px">
-        <el-button
-          v-if="checkButtonAuth(ButtonAuth.SYS_USER_SAVE)"
-          :type="getButtonType(ButtonAuth.SYS_USER_SAVE)"
-          @click="submitForm(formRef!)"
-          >{{ getButtonTitle(ButtonAuth.SYS_USER_SAVE) }}</el-button
-        >
-      </el-form-item>
-    </el-form>
-  </el-dialog>
+  <UserEditorDialog
+    v-model:visible="dialogVisible"
+    :form="form"
+    :rules="formRules"
+    :roles="roleList"
+    @close="handleClose"
+    @save="submitForm"
+  />
 </template>
 
 <style scoped>
 @import '@/assets/main.css';
-
-.role-option {
-  width: 150px;
-}
 
 .button-form .el-form-item {
   margin-right: 10px;
@@ -501,29 +325,5 @@ useUniversalData<UsersInitialData>(
 
 .el-tag {
   margin: 5px;
-}
-
-.username {
-  width: 300px;
-}
-
-.nickname {
-  width: 300px;
-}
-
-.password {
-  width: 400px;
-}
-
-.avatar {
-  width: 500px;
-}
-
-.email {
-  width: 400px;
-}
-
-.phone {
-  width: 400px;
 }
 </style>

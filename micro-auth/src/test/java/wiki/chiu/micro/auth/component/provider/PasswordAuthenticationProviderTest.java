@@ -18,8 +18,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
+import wiki.chiu.micro.auth.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.config.PasswordFailureProperties;
-import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.user.LoginUser;
 import wiki.chiu.micro.common.lang.Const;
 

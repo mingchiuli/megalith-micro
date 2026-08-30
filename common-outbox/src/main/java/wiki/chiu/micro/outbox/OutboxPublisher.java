@@ -101,7 +101,7 @@ public class OutboxPublisher {
           new Message(record.payload().getBytes(StandardCharsets.UTF_8), messageProperties);
       CorrelationData correlationData = new CorrelationData(record.eventId());
 
-      rabbitTemplate.send(properties.getExchange(), "", message, correlationData);
+      rabbitTemplate.send(properties.exchangeFor(record.eventType()), "", message, correlationData);
       CorrelationData.Confirm confirm =
           correlationData
               .getFuture()

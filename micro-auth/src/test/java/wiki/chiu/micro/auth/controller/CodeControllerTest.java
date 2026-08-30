@@ -16,12 +16,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import wiki.chiu.micro.auth.handler.AuthHttpHandler;
-import wiki.chiu.micro.auth.handler.AuthInternalHttpHandler;
-import wiki.chiu.micro.auth.handler.CodeHttpHandler;
-import wiki.chiu.micro.auth.handler.TokenHttpHandler;
-import wiki.chiu.micro.auth.route.AuthRoutes;
-import wiki.chiu.micro.auth.service.CodeService;
+import wiki.chiu.micro.auth.adapter.in.http.AuthHttpHandler;
+import wiki.chiu.micro.auth.adapter.in.http.AuthInternalHttpHandler;
+import wiki.chiu.micro.auth.adapter.in.http.AuthRoutes;
+import wiki.chiu.micro.auth.adapter.in.http.CodeHttpHandler;
+import wiki.chiu.micro.auth.adapter.in.http.TokenHttpHandler;
+import wiki.chiu.micro.auth.application.port.in.CodeService;
 import wiki.chiu.micro.common.exception.CodeException;
 
 @ExtendWith(MockitoExtension.class)

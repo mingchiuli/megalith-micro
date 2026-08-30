@@ -20,8 +20,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
+import wiki.chiu.micro.auth.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.component.token.SMSAuthenticationToken;
-import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
 import wiki.chiu.micro.common.lang.Const;
 
 /**

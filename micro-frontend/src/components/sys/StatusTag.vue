@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { Status } from '@/type/entity'
+import { RoutesStatus, Status } from '@/type/entity'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
 const props = defineProps<{
-  status: Status
-  type?: 'blog' | 'user'
+  status: Status | RoutesStatus
+  type?: 'blog' | 'user' | 'route'
 }>()
 
 const getStatusInfo = (status: Status, displayType: string = 'blog') => {
@@ -23,8 +23,13 @@ const getStatusInfo = (status: Status, displayType: string = 'blog') => {
     [Status.NORMAL]: { label: t('common.enabled'), type: 'success' },
     [Status.BLOCK]: { label: t('common.inactive'), type: 'danger' }
   }
+  const routeLabels: Record<number, { label: string; type: 'success' | 'danger' }> = {
+    [Status.NORMAL]: { label: t('common.active'), type: 'success' },
+    [Status.BLOCK]: { label: t('common.disabled'), type: 'danger' }
+  }
 
-  const labels = displayType === 'user' ? userLabels : blogLabels
+  const labels =
+    displayType === 'user' ? userLabels : displayType === 'route' ? routeLabels : blogLabels
   return labels[status] || { label: t('common.unknown'), type: 'info' }
 }
 

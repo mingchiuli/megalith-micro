@@ -8,7 +8,6 @@ import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissi
 import { displayState } from '@/utils/position'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
-import { Timer } from '@element-plus/icons-vue'
 import { useLatestRequest, useUniversalData } from '@/composables'
 
 const { t } = useI18n()
@@ -87,7 +86,6 @@ const formRules = computed<FormRules<Form>>(() => ({
     { required: true, message: t('validation.enter', { field: t('admin.port') }), trigger: 'blur' }
   ]
 }))
-const formRef = ref<FormInstance>()
 type Form = {
   id?: number
   code: string
@@ -285,12 +283,7 @@ useUniversalData('admin:authorities', fetchAuthorities, applyAuthorities, { load
 
     <el-table-column :label="t('common.status')" align="center">
       <template #default="scope">
-        <el-tag size="small" v-if="scope.row.status === Status.NORMAL" type="success">{{
-          t('common.enabled')
-        }}</el-tag>
-        <el-tag size="small" v-else-if="scope.row.status === Status.BLOCK" type="danger">{{
-          t('common.inactive')
-        }}</el-tag>
+        <StatusTag :status="scope.row.status" type="user" />
       </template>
     </el-table-column>
 
@@ -307,23 +300,13 @@ useUniversalData('admin:authorities', fetchAuthorities, applyAuthorities, { load
 
     <el-table-column :label="t('common.createdAt')" min-width="180" align="center">
       <template #default="scope">
-        <div class="time-icon">
-          <el-icon>
-            <timer />
-          </el-icon>
-          <span style="margin-left: 10px">{{ scope.row.created }}</span>
-        </div>
+        <TimeColumn :time="scope.row.created" />
       </template>
     </el-table-column>
 
     <el-table-column :label="t('common.updatedAt')" min-width="180" align="center">
       <template #default="scope">
-        <div class="time-icon">
-          <el-icon>
-            <timer />
-          </el-icon>
-          <span style="margin-left: 10px">{{ scope.row.updated }}</span>
-        </div>
+        <TimeColumn :time="scope.row.updated" />
       </template>
     </el-table-column>
 
@@ -352,90 +335,13 @@ useUniversalData('admin:authorities', fetchAuthorities, applyAuthorities, { load
     </el-table-column>
   </el-table>
 
-  <el-dialog
-    v-model="dialogVisible"
-    :title="t('common.addEdit')"
-    width="600px"
-    :before-close="handleClose"
-  >
-    <el-form :model="form" :rules="formRules" ref="formRef">
-      <el-form-item :label="t('admin.permissionCode')" label-width="100px" prop="code">
-        <el-input v-model="form.code" maxlength="50" />
-      </el-form-item>
-
-      <el-form-item :label="t('admin.remark')" label-width="100px" prop="remark">
-        <el-input v-model="form.remark" maxlength="50" />
-      </el-form-item>
-
-      <el-form-item :label="t('admin.protocol')" label-width="100px" prop="prototype">
-        <el-select
-          v-model="form.prototype"
-          :placeholder="t('validation.select', { field: t('admin.protocol') })"
-          style="width: 100%"
-        >
-          <el-option label="http" value="http" />
-          <el-option label="ws" value="ws" />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item :label="t('admin.methodType')" label-width="100px" prop="methodType">
-        <el-select
-          v-model="form.methodType"
-          :placeholder="t('validation.select', { field: t('admin.methodType') })"
-          style="width: 100%"
-        >
-          <el-option label="GET" value="GET" />
-          <el-option label="POST" value="POST" />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item :label="t('admin.routePattern')" label-width="100px" prop="routePattern">
-        <el-input v-model="form.routePattern" maxlength="50" />
-      </el-form-item>
-
-      <el-form-item :label="t('admin.service')" label-width="100px" prop="serviceHost">
-        <el-select
-          v-model="form.serviceHost"
-          :placeholder="t('validation.select', { field: t('admin.service') })"
-          style="width: 100%"
-        >
-          <el-option label="micro-blog" value="micro-blog" />
-          <el-option label="micro-user" value="micro-user" />
-          <el-option label="micro-auth" value="micro-auth" />
-          <el-option label="micro-search" value="micro-search" />
-          <el-option label="micro-sync-rs" value="micro-sync-rs" />
-          <el-option label="micro-exhibit" value="micro-exhibit" />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item :label="t('admin.port')" label-width="100px" prop="servicePort">
-        <el-input v-model="form.servicePort" maxlength="50" />
-      </el-form-item>
-
-      <el-form-item :label="t('common.status')" label-width="100px" prop="status">
-        <el-radio-group v-model="form.status">
-          <el-radio :value="Status.NORMAL">{{ t('common.enabled') }}</el-radio>
-          <el-radio :value="Status.BLOCK">{{ t('common.disabled') }}</el-radio>
-        </el-radio-group>
-      </el-form-item>
-
-      <el-form-item :label="t('common.type')" label-width="100px" prop="type">
-        <el-radio-group v-model="form.type">
-          <el-radio :value="AuthStatus.WHITE_LIST">{{ t('admin.whiteList') }}</el-radio>
-          <el-radio :value="AuthStatus.NEED_AUTH">{{ t('admin.authRequired') }}</el-radio>
-        </el-radio-group>
-      </el-form-item>
-
-      <el-form-item label-width="450px">
-        <el-button
-          v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_SAVE)"
-          :type="getButtonType(ButtonAuth.SYS_AUTHORITY_SAVE)"
-          @click="submitForm(formRef!)"
-          >{{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_SAVE) }}</el-button
-        >
-      </el-form-item>
-    </el-form>
-  </el-dialog>
+  <AuthorityEditorDialog
+    v-model:visible="dialogVisible"
+    :form="form"
+    :rules="formRules"
+    @close="handleClose"
+    @save="submitForm"
+  />
 </template>
 
 <style scoped>

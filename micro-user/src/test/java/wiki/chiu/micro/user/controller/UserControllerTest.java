@@ -30,18 +30,18 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.user.handler.AuthorityHttpHandler;
-import wiki.chiu.micro.user.handler.AuthorityInternalHttpHandler;
-import wiki.chiu.micro.user.handler.MenuHttpHandler;
-import wiki.chiu.micro.user.handler.MenuInternalHttpHandler;
-import wiki.chiu.micro.user.handler.RoleHttpHandler;
-import wiki.chiu.micro.user.handler.UserHttpHandler;
-import wiki.chiu.micro.user.handler.UserInternalHttpHandler;
-import wiki.chiu.micro.user.route.UserRoutes;
-import wiki.chiu.micro.user.service.RegistrationService;
-import wiki.chiu.micro.user.service.UserAssetService;
-import wiki.chiu.micro.user.service.UserExportService;
-import wiki.chiu.micro.user.service.UserService;
+import wiki.chiu.micro.user.adapter.in.http.AuthorityHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.AuthorityInternalHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.MenuHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.MenuInternalHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.RoleHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.UserHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.UserInternalHttpHandler;
+import wiki.chiu.micro.user.adapter.in.http.UserRoutes;
+import wiki.chiu.micro.user.application.port.in.RegistrationService;
+import wiki.chiu.micro.user.application.port.in.UserAssetService;
+import wiki.chiu.micro.user.application.port.in.UserExportService;
+import wiki.chiu.micro.user.application.port.in.UserService;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {

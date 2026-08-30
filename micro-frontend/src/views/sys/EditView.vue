@@ -29,6 +29,7 @@ import {
 import { clearYjsDraft } from '@/config/editorConfig'
 import { loginStateStore } from '@/stores'
 import { logger } from '@/utils/logger'
+import { getSensitiveTagType, getSensitiveText } from '@/utils/sensitive'
 
 const { t } = useI18n()
 const { GET, POST } = useHttp()
@@ -90,13 +91,13 @@ type SensitiveTagsItem = {
 const sensitiveTags = computed(() => {
   const arr: SensitiveTagsItem[] = []
   form.sensitiveContentList.forEach((item) => {
-    const str = getExhibitWords(item.type, form)
+    const str = getSensitiveText(item.type, form)
     const element: SensitiveExhibit = {
       content: str.substring(item.startIndex, item.endIndex),
       startIndex: item.startIndex,
       type: item.type
     }
-    const type = getSensitiveType(item.type)
+    const type = getSensitiveTagType(item.type)
     arr.push({ element: element, type: type })
   })
   return arr
@@ -197,30 +198,6 @@ const dealSensitive = (payload: SensitiveTrans) => {
     }
     form.sensitiveContentList.push(element)
   }
-}
-
-const getSensitiveType = (type: SensitiveType) => {
-  let typeProp: TagProps['type']
-  if (SensitiveType.TITLE === type) {
-    typeProp = 'success'
-  } else if (SensitiveType.DESCRIPTION === type) {
-    typeProp = 'primary'
-  } else {
-    typeProp = 'warning'
-  }
-  return typeProp
-}
-
-const getExhibitWords = (type: SensitiveType, form: EditForm) => {
-  let words: string
-  if (SensitiveType.TITLE === type) {
-    words = form.title!
-  } else if (SensitiveType.DESCRIPTION === type) {
-    words = form.description!
-  } else {
-    words = form.content!
-  }
-  return words
 }
 
 const CustomEditorItem = defineAsyncComponent({

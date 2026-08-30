@@ -20,7 +20,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import tools.jackson.databind.json.JsonMapper;
-import wiki.chiu.micro.auth.rpc.UserHttpServiceWrapper;
+import wiki.chiu.micro.auth.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.token.AccessTokenCookieManager;
 import wiki.chiu.micro.auth.token.JwtProperties;
 import wiki.chiu.micro.auth.token.JwtTokenService;

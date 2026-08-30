@@ -4,7 +4,7 @@ import wiki.chiu.micro.cache.key.CacheDescriptor;
 
 public final class BlogCacheDescriptors {
 
-  public static final int VERSION = 1;
+  public static final int VERSION = 2;
   public static final String DETAIL_NAMESPACE = "blog-detail";
   public static final String PAGE_NAMESPACE = "blog-page";
   public static final String SENSITIVE_NAMESPACE = "blog-sensitive";
