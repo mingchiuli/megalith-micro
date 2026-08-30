@@ -16,10 +16,8 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
             MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
             MemberCategory.INVOKE_DECLARED_METHODS);
 
-    // ValidationMessages.properties for Bean Validation
     hints
         .resources()
-        .registerPattern("ValidationMessages.properties")
         .registerPattern("script/consume-registration-token.lua");
   }
 }

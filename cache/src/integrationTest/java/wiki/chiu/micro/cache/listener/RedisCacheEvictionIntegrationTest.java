@@ -26,8 +26,14 @@ import wiki.chiu.micro.cache.store.LocalCacheEntry;
 class RedisCacheEvictionIntegrationTest {
 
   @Container
-  private static final GenericContainer<?> REDIS =
-      new GenericContainer<>(DockerImageName.parse("redis:8.10.0")).withExposedPorts(6379);
+  private static final GenericContainer<?> REDIS = redisContainer();
+
+  private static GenericContainer<?> redisContainer() {
+    GenericContainer<?> result =
+        new GenericContainer<>(DockerImageName.parse("redis:8.10.0"));
+    result.addExposedPort(6379);
+    return result;
+  }
 
   @Test
   void broadcastsExactEvictionToEveryReplica() {

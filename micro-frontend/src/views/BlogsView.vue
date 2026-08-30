@@ -8,7 +8,11 @@ import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
 import { Moon, Sunny } from '@element-plus/icons-vue'
 import { sanitizeHighlight } from '@/utils/sanitize'
 import { useUniversalData } from '@/composables'
-const loading = ref(false)
+
+const IMAGE_LOAD_TIMEOUT_MS = 10_000
+const requestLoading = ref(true)
+const imageLoading = ref(false)
+const loading = computed(() => requestLoading.value || imageLoading.value)
 const { GET } = useHttp()
 const router = useRouter()
 const route = useRoute()
@@ -41,16 +45,48 @@ onMounted(() => {
   theme.initTheme()
 })
 
+let pendingImageIds = new Set<number>()
+let imageLoadTimeout: ReturnType<typeof globalThis.setTimeout> | undefined
+
+const clearImageLoadTimeout = () => {
+  if (imageLoadTimeout === undefined) return
+  globalThis.clearTimeout(imageLoadTimeout)
+  imageLoadTimeout = undefined
+}
+
+const finishImageBatch = () => {
+  clearImageLoadTimeout()
+  pendingImageIds.clear()
+  imageLoading.value = false
+}
+
+const startImageBatch = (items: BlogDesc[]) => {
+  clearImageLoadTimeout()
+  pendingImageIds = new Set(items.filter((item) => item.link).map((item) => item.id))
+  imageLoading.value = pendingImageIds.size > 0
+  if (import.meta.env.SSR || !imageLoading.value) return
+  imageLoadTimeout = globalThis.setTimeout(finishImageBatch, IMAGE_LOAD_TIMEOUT_MS)
+}
+
+const settleImage = (id: number) => {
+  if (!pendingImageIds.delete(id) || pendingImageIds.size) return
+  finishImageBatch()
+}
+
+onUnmounted(clearImageLoadTimeout)
+
+const applyBlogs = (data: PageAdapter<BlogDesc>) => {
+  startImageBatch(data.content)
+  page.content = data.content
+  page.totalElements = data.totalElements
+}
+
 const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
-  initImgCount()
   if (payload.content.length) {
-    statImg(payload.content)
-    if (!imgCount) loading.value = false
-    content.value = payload.content
-    totalElements.value = payload.totalElements
-    loading.value = false
+    applyBlogs(payload)
+    requestLoading.value = false
   } else {
-    queryBlogs(1)
+    void queryBlogs(1).catch(() => undefined)
   }
 }
 
@@ -60,35 +96,38 @@ const clearSearch = () => {
 }
 
 const refresh = () => {
+  finishImageBatch()
   page.content = []
   page.totalElements = 0
-  getPage(1)
-}
-
-const applyBlogs = (data: PageAdapter<BlogDesc>) => {
-  statImg(data.content)
-  page.content = data.content
-  page.totalElements = data.totalElements
-  loading.value = false
+  void getPage(1).catch(() => undefined)
 }
 
 const fetchBlogs = (pageNo: number) =>
   GET<PageAdapter<BlogDesc>>(API_ENDPOINTS.BLOG_PUBLIC.GET_BLOGS_PAGE(pageNo))
 
-const queryBlogs = async (pageNo: number) => {
-  loading.value = true
-  const data = await fetchBlogs(pageNo)
-  applyBlogs(data)
+const fetchInitialBlogs = async (pageNo: number) => {
+  if (!keywords.value) return fetchBlogs(pageNo)
+  const data = await GET<SearchPage<BlogDesc>>(
+    buildCommonUrls.searchQuery({
+      keywords: keywords.value,
+      currentPage: pageNo,
+      allInfo: true
+    })
+  )
+  return data.content.length ? data : fetchBlogs(1)
 }
 
-const statImg = (items: BlogDesc[]) => {
-  items.forEach((item) => {
-    if (item.link) imgCount++
-  })
+const queryBlogs = async (pageNo: number) => {
+  requestLoading.value = true
+  try {
+    const data = await fetchBlogs(pageNo)
+    applyBlogs(data)
+  } finally {
+    requestLoading.value = false
+  }
 }
 
 const getPage = async (pageNo: number) => {
-  initImgCount()
   if (!keywords.value) {
     pageNum.value = pageNo
     await queryBlogs(pageNo)
@@ -96,20 +135,6 @@ const getPage = async (pageNo: number) => {
     searchPageNum.value = pageNo
     await nextTick()
     searchRef.value!.searchAllInfo(keywords.value, pageNo)
-  }
-}
-
-const initImgCount = () => {
-  imgCount = 0
-  count = 0
-}
-
-let count = 0
-let imgCount = 0
-const loadImg = () => {
-  count++
-  if (imgCount <= count) {
-    loading.value = false
   }
 }
 
@@ -144,20 +169,9 @@ const { content, totalElements, pageSize } = toRefs(page)
 const initialPage = keywords.value ? searchPageNum.value : pageNum.value
 useUniversalData<PageAdapter<BlogDesc>>(
   `blogs:${keywords.value}:${initialPage}`,
-  () => {
-    if (!keywords.value) return fetchBlogs(initialPage)
-    return GET<SearchPage<BlogDesc>>(
-      buildCommonUrls.searchQuery({
-        keywords: keywords.value,
-        currentPage: initialPage,
-        allInfo: true
-      })
-    )
-  },
-  (data) => {
-    if (keywords.value) fillSearchData(data)
-    else applyBlogs(data)
-  }
+  () => fetchInitialBlogs(initialPage),
+  applyBlogs,
+  { loading: requestLoading }
 )
 </script>
 
@@ -178,7 +192,7 @@ useUniversalData<PageAdapter<BlogDesc>>(
         ref="searchRef"
         @trans-search-data="fillSearchData"
         @refresh="refresh"
-        v-model:loading="loading"
+        v-model:loading="requestLoading"
         v-model:search-dialog-visible="searchDialogVisible"
       />
     </div>
@@ -196,7 +210,7 @@ useUniversalData<PageAdapter<BlogDesc>>(
     }}</el-link>
     <br />
     <div class="description">
-      <el-skeleton animated :loading="loading" :throttle="300">
+      <el-skeleton class="blogs-skeleton" animated :loading="loading">
         <template #template>
           <el-skeleton v-for="i in page.pageSize" v-bind:key="i" :rows="10" animated />
         </template>
@@ -215,8 +229,8 @@ useUniversalData<PageAdapter<BlogDesc>>(
               v-if="blog.link"
               :key="blog.link"
               :src="blog.link"
-              @load="loadImg"
-              @error="loading = false"
+              @load="settleImage(blog.id)"
+              @error="settleImage(blog.id)"
             ></el-image>
             <p v-if="blog.score">{{ $t('blog.searchScore', { score: blog.score }) }}</p>
             <el-link class="title">{{ blog.title }}</el-link>

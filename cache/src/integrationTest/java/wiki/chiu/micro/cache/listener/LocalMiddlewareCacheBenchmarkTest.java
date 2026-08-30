@@ -19,15 +19,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.config.Config;
-import org.redisson.config.SingleServerConfig;
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
@@ -64,7 +63,13 @@ class LocalMiddlewareCacheBenchmarkTest {
 
   private final JsonMapper jsonMapper = JsonMapper.builder().build();
   private final CacheKeyFactory keyFactory = new JacksonCacheKeyFactory(jsonMapper);
+  private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
   private volatile Object sink;
+
+  @AfterEach
+  void closeMeterRegistry() {
+    meterRegistry.close();
+  }
 
   @Test
   void measuresTheCompleteLocalCachePath() throws Exception {
@@ -234,7 +239,7 @@ class LocalMiddlewareCacheBenchmarkTest {
             jsonMapper,
             loadingReplica.localCache(),
             properties,
-            new CacheMetrics(new SimpleMeterRegistry()));
+            new CacheMetrics(meterRegistry));
     String key =
         keyFactory.generate(new CacheDescriptor(CacheFixture.RACE_NAMESPACE, 1), "shared");
     listener.start();
@@ -287,7 +292,7 @@ class LocalMiddlewareCacheBenchmarkTest {
               jsonMapper,
               publisherLocal,
               properties,
-              new CacheMetrics(new SimpleMeterRegistry()));
+              new CacheMetrics(meterRegistry));
       Metric metric =
           measure(
               "eviction.redis_reliable_topic_e2e",
@@ -343,7 +348,7 @@ class LocalMiddlewareCacheBenchmarkTest {
               redisson,
               publisherLocal,
               properties,
-              new CacheMetrics(new SimpleMeterRegistry()));
+              new CacheMetrics(meterRegistry));
       Metric metric =
           measure(
               "eviction.rabbit_confirmed_fanout_e2e",
@@ -373,7 +378,6 @@ class LocalMiddlewareCacheBenchmarkTest {
 
   private Replica replica(RedissonClient redisson, CacheFixture target) {
     Cache<String, LocalCacheEntry> local = localCache();
-    SimpleMeterRegistry registry = new SimpleMeterRegistry();
     CacheAspect aspect =
         new CacheAspect(
             redisson,
@@ -382,10 +386,10 @@ class LocalMiddlewareCacheBenchmarkTest {
             local,
             Caffeine.newBuilder().maximumSize(10_000).build(),
             properties(),
-            new CacheMetrics(registry));
+            new CacheMetrics(meterRegistry));
     AspectJProxyFactory factory = new AspectJProxyFactory(target);
     factory.addAspect(aspect);
-    return new Replica(factory.getProxy(), target, local, registry);
+    return new Replica(factory.getProxy(), target, local);
   }
 
   private Cache<String, LocalCacheEntry> localCache() {
@@ -406,10 +410,10 @@ class LocalMiddlewareCacheBenchmarkTest {
     String host = environment("CACHE_LOCAL_REDIS_HOST", "127.0.0.1");
     String port = environment("CACHE_LOCAL_REDIS_PORT", "6379");
     Config config = new Config();
-    SingleServerConfig server = config.useSingleServer().setAddress("redis://" + host + ":" + port);
+    config.useSingleServer().setAddress("redis://" + host + ":" + port);
     String password = environment("CACHE_LOCAL_REDIS_PASSWORD", "");
     if (!password.isBlank()) {
-      server.setPassword(password);
+      config.setPassword(password);
     }
     return Redisson.create(config);
   }
@@ -522,10 +526,7 @@ class LocalMiddlewareCacheBenchmarkTest {
   }
 
   private record Replica(
-      CacheFixture proxy,
-      CacheFixture target,
-      Cache<String, LocalCacheEntry> localCache,
-      SimpleMeterRegistry registry) {}
+      CacheFixture proxy, CacheFixture target, Cache<String, LocalCacheEntry> localCache) {}
 
   private record Metric(
       String name,

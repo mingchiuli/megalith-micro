@@ -42,6 +42,26 @@ const gateway = Bun.serve({
         data: { dayVisit: 1, weekVisit: 2, monthVisit: 3, yearVisit: 4 }
       })
     }
+    if (url.pathname === '/public/blog/page/1') {
+      return Response.json({
+        msg: 'OK',
+        data: {
+          content: [
+            {
+              id: 1,
+              title: 'Standalone SSR blog list',
+              description: 'Prefetched list content hidden behind the skeleton',
+              created: '2026-08-30',
+              link: '/standalone-cover.webp',
+              status: 0
+            }
+          ],
+          totalElements: 1,
+          pageSize: 5,
+          pageNumber: 1
+        }
+      })
+    }
     if (url.pathname === '/public/blog/info/standalone-smoke') {
       return Response.json({
         msg: 'OK',
@@ -104,6 +124,13 @@ try {
   const blog = await fetch(`${baseUrl}/blog/standalone-smoke`)
   assert.equal(blog.status, 200)
   assert.match(await blog.text(), /<title>Standalone SSR blog<\/title>/)
+
+  const blogs = await fetch(`${baseUrl}/blogs`)
+  assert.equal(blogs.status, 200)
+  const blogsHtml = await blogs.text()
+  assert.match(blogsHtml, /Standalone SSR blog list/)
+  assert.match(blogsHtml, /blogs-skeleton/)
+  assert.match(blogsHtml, /style="display:\s*none;?"/)
 
   const notFound = await fetch(`${baseUrl}/production-ssr-smoke-not-found`)
   assert.equal(notFound.status, 404)
