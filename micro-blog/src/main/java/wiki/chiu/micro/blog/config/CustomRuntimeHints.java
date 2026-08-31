@@ -5,6 +5,8 @@ import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
+import wiki.chiu.micro.common.lang.BlogChangedMessage;
+import wiki.chiu.micro.common.lang.BlogSnapshot;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
@@ -14,6 +16,14 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
             .reflection()
             .registerType(
                 BlogDeleteDto.class,
+                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                MemberCategory.INVOKE_DECLARED_METHODS)
+            .registerType(
+                BlogChangedMessage.class,
+                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                MemberCategory.INVOKE_DECLARED_METHODS)
+            .registerType(
+                BlogSnapshot.class,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS);
 
