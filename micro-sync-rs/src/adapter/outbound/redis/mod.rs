@@ -8,107 +8,51 @@ use redis::aio::{ConnectionManager, MultiplexedConnection};
 use redis::streams::{StreamId, StreamRangeReply, StreamReadReply};
 use redis::{AsyncCommands, FromRedisValue, RedisError, RedisResult, Script, Value};
 
+use crate::application::error::{StoreError, StoreResult};
+use crate::application::port::{
+    CompactionStore, CompactionTaskReader, PresenceStore, RoomEventReader, RoomEventStore,
+    StoreHealth,
+};
 use crate::config::{RedisConfig, SyncConfig, WorkerConfig};
-use crate::room::protocol::AwarenessClient;
-use crate::room::scripts;
+use crate::domain::model::{
+    CompactionTask, EventCursor, EventKind, RoomCursor, RoomEvent, RoomState,
+};
+use crate::domain::protocol::AwarenessClient;
 
 mod compaction;
 mod presence;
+mod scripts;
 
 const WORKER_READ_BLOCK_MILLIS: usize = 1_000;
 const BLOCKING_RESPONSE_TIMEOUT_GRACE: Duration = Duration::from_secs(1);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum EventKind {
-    Document,
-    Awareness,
-}
-
-impl EventKind {
-    fn code(self) -> &'static str {
-        match self {
-            Self::Document => "d",
-            Self::Awareness => "a",
-        }
-    }
-
-    fn from_code(code: &str) -> Option<Self> {
-        match code {
-            "d" => Some(Self::Document),
-            "a" => Some(Self::Awareness),
-            _ => None,
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct StreamOffset {
-    value: Arc<str>,
-    timestamp: u64,
-    sequence: u64,
-}
-
-impl StreamOffset {
-    pub(super) fn new(value: String) -> Self {
-        let (timestamp, sequence) = parse_stream_id(&value).unwrap_or_default();
-        Self {
-            value: value.into(),
-            timestamp,
-            sequence,
-        }
-    }
-
-    pub(super) fn zero() -> Self {
-        Self {
-            value: Arc::from("0-0"),
-            timestamp: 0,
-            sequence: 0,
-        }
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.value
-    }
-
-    pub fn is_after(&self, other: &Self) -> bool {
-        (self.timestamp, self.sequence) > (other.timestamp, other.sequence)
-    }
-}
-
-#[derive(Debug)]
-pub struct RedisEvent {
-    pub id: StreamOffset,
-    pub kind: EventKind,
-    pub origin: String,
-    pub payload: Bytes,
-}
-
-#[derive(Debug)]
-pub struct RoomState {
-    pub document: Bytes,
-    pub awareness: Vec<Bytes>,
-    pub highwater: StreamOffset,
-}
-
-pub struct RedisSessionStore {
+pub(crate) struct RedisSessionStore {
     client: redis::Client,
     connection: ConnectionManager,
     prefix: Arc<str>,
     sync: SyncConfig,
     worker: WorkerConfig,
-    healthy: AtomicBool,
+    healthy: Arc<AtomicBool>,
+}
+
+pub(crate) struct RedisEventReader {
+    connection: MultiplexedConnection,
+    prefix: Arc<str>,
+    relay_block_millis: usize,
+    relay_batch_size: usize,
+    healthy: Arc<AtomicBool>,
 }
 
 #[derive(Debug)]
 struct Snapshot {
     revision: u64,
-    through: StreamOffset,
+    through: EventCursor,
     update: Bytes,
 }
 
 #[derive(Debug)]
 struct DocumentBatch {
-    highwater: Option<StreamOffset>,
+    highwater: Option<EventCursor>,
     updates: Vec<Bytes>,
 }
 
@@ -129,20 +73,8 @@ impl RedisSessionStore {
             prefix: redis.prefix.into(),
             sync,
             worker,
-            healthy: AtomicBool::new(true),
+            healthy: Arc::new(AtomicBool::new(true)),
         })
-    }
-
-    pub fn sync_config(&self) -> &SyncConfig {
-        &self.sync
-    }
-
-    pub fn worker_config(&self) -> &WorkerConfig {
-        &self.worker
-    }
-
-    pub fn is_healthy(&self) -> bool {
-        self.healthy.load(Ordering::Relaxed)
     }
 
     pub async fn ping(&self) -> RedisResult<()> {
@@ -159,7 +91,7 @@ impl RedisSessionStore {
         self.client.get_multiplexed_async_connection().await
     }
 
-    pub async fn latest_event_id(&self, room_id: &str) -> RedisResult<StreamOffset> {
+    async fn latest_event_id(&self, room_id: &str) -> RedisResult<EventCursor> {
         let mut connection = self.connection.clone();
         let result = redis::cmd("XREVRANGE")
             .arg(self.room_stream(room_id))
@@ -176,9 +108,9 @@ impl RedisSessionStore {
                     .ids
                     .into_iter()
                     .next()
-                    .map_or_else(StreamOffset::zero, |entry| StreamOffset::new(entry.id)))
+                    .map_or_else(EventCursor::default, |entry| parse_event_cursor(&entry.id)))
             }
-            Err(error) if is_missing_key_error(&error) => Ok(StreamOffset::zero()),
+            Err(error) if is_missing_key_error(&error) => Ok(EventCursor::default()),
             Err(error) => {
                 self.healthy.store(false, Ordering::Relaxed);
                 Err(error)
@@ -186,7 +118,7 @@ impl RedisSessionStore {
         }
     }
 
-    pub async fn load_room(&self, room_id: &str) -> RedisResult<RoomState> {
+    async fn load_room(&self, room_id: &str) -> RedisResult<RoomState> {
         let script = Script::new(scripts::LOAD_ROOM);
         let mut connection = self.connection.clone();
         let result = script
@@ -197,7 +129,7 @@ impl RedisSessionStore {
             .await;
         self.record_health(&result);
         let (through, snapshot, events, awareness) = result?;
-        let through = StreamOffset::new(through);
+        let through = parse_event_cursor(&through);
         let batch = document_batch(events);
         let highwater = batch.highwater.unwrap_or(through);
         let mut updates = batch.updates;
@@ -221,10 +153,10 @@ impl RedisSessionStore {
     async fn document_batch_after(
         &self,
         room_id: &str,
-        cursor: &StreamOffset,
+        cursor: &EventCursor,
     ) -> RedisResult<DocumentBatch> {
         let mut connection = self.connection.clone();
-        let start = format!("({}", cursor.as_str());
+        let start = format!("({}", format_event_cursor(cursor));
         let result = redis::cmd("XRANGE")
             .arg(self.room_stream(room_id))
             .arg(start)
@@ -247,57 +179,7 @@ impl RedisSessionStore {
         }
     }
 
-    pub async fn read_rooms(
-        &self,
-        connection: &mut MultiplexedConnection,
-        rooms: &[(&str, StreamOffset)],
-    ) -> RedisResult<Vec<(usize, Vec<RedisEvent>)>> {
-        if rooms.is_empty() {
-            return Ok(Vec::new());
-        }
-        let keys: Vec<String> = rooms
-            .iter()
-            .map(|(room, _)| self.room_stream(room))
-            .collect();
-        let mut command = redis::cmd("XREAD");
-        command
-            .arg("COUNT")
-            .arg(self.sync.relay_batch_size.max(1))
-            .arg("BLOCK")
-            .arg(self.sync.relay_block_millis)
-            .arg("STREAMS")
-            .arg(&keys);
-        for (_, cursor) in rooms {
-            command.arg(cursor.as_str());
-        }
-        connection.set_response_timeout(blocking_response_timeout(self.sync.relay_block_millis));
-        let result = command.query_async::<StreamReadReply>(connection).await;
-        match result {
-            Ok(reply) => {
-                self.healthy.store(true, Ordering::Relaxed);
-                let room_by_key: HashMap<_, _> = keys
-                    .iter()
-                    .enumerate()
-                    .map(|(index, key)| (key.as_str(), index))
-                    .collect();
-                Ok(reply
-                    .keys
-                    .into_iter()
-                    .filter_map(|stream| {
-                        let room = *room_by_key.get(stream.key.as_str())?;
-                        let events = stream.ids.into_iter().filter_map(parse_event).collect();
-                        Some((room, events))
-                    })
-                    .collect())
-            }
-            Err(error) => {
-                self.healthy.store(false, Ordering::Relaxed);
-                Err(error)
-            }
-        }
-    }
-
-    pub async fn append_event(
+    async fn append_event(
         &self,
         room_id: &str,
         kind: EventKind,
@@ -313,7 +195,7 @@ impl RedisSessionStore {
             .key(self.presence_owners_key(room_id))
             .key(self.pending_key(room_id))
             .key(self.worker_stream())
-            .arg(kind.code())
+            .arg(event_kind_code(kind))
             .arg(origin)
             .arg(payload)
             .arg(self.active_ttl_millis())
@@ -403,10 +285,110 @@ impl RedisSessionStore {
     }
 }
 
-fn parse_event(mut entry: StreamId) -> Option<RedisEvent> {
-    Some(RedisEvent {
-        id: StreamOffset::new(entry.id),
-        kind: EventKind::from_code(&take_field::<String>(&mut entry.map, "kind")?)?,
+impl RoomEventStore for RedisSessionStore {
+    type Reader = RedisEventReader;
+
+    async fn event_reader(&self) -> StoreResult<Self::Reader> {
+        let connection = self.dedicated_connection().await.map_err(store_error)?;
+        Ok(RedisEventReader {
+            connection,
+            prefix: Arc::clone(&self.prefix),
+            relay_block_millis: self.sync.relay_block_millis,
+            relay_batch_size: self.sync.relay_batch_size,
+            healthy: Arc::clone(&self.healthy),
+        })
+    }
+
+    async fn latest_event_id(&self, room_id: &str) -> StoreResult<EventCursor> {
+        RedisSessionStore::latest_event_id(self, room_id)
+            .await
+            .map_err(store_error)
+    }
+
+    async fn load_room(&self, room_id: &str) -> StoreResult<RoomState> {
+        RedisSessionStore::load_room(self, room_id)
+            .await
+            .map_err(store_error)
+    }
+
+    async fn append_event(
+        &self,
+        room_id: &str,
+        kind: EventKind,
+        origin: &str,
+        payload: &[u8],
+    ) -> StoreResult<()> {
+        RedisSessionStore::append_event(self, room_id, kind, origin, payload)
+            .await
+            .map_err(store_error)
+    }
+}
+
+impl RoomEventReader for RedisEventReader {
+    async fn read(&mut self, rooms: &[RoomCursor]) -> StoreResult<Vec<(usize, Vec<RoomEvent>)>> {
+        if rooms.is_empty() {
+            return Ok(Vec::new());
+        }
+        let keys: Vec<String> = rooms
+            .iter()
+            .map(|room| room_stream(&self.prefix, &room.room_id))
+            .collect();
+        let mut command = redis::cmd("XREAD");
+        command
+            .arg("COUNT")
+            .arg(self.relay_batch_size.max(1))
+            .arg("BLOCK")
+            .arg(self.relay_block_millis)
+            .arg("STREAMS")
+            .arg(&keys);
+        for room in rooms {
+            command.arg(format_event_cursor(&room.cursor));
+        }
+        self.connection
+            .set_response_timeout(blocking_response_timeout(self.relay_block_millis));
+        let result = command
+            .query_async::<StreamReadReply>(&mut self.connection)
+            .await;
+        match result {
+            Ok(reply) => {
+                self.healthy.store(true, Ordering::Relaxed);
+                let room_by_key: HashMap<_, _> = keys
+                    .iter()
+                    .enumerate()
+                    .map(|(index, key)| (key.as_str(), index))
+                    .collect();
+                Ok(reply
+                    .keys
+                    .into_iter()
+                    .filter_map(|stream| {
+                        let room = *room_by_key.get(stream.key.as_str())?;
+                        let events = stream.ids.into_iter().filter_map(parse_event).collect();
+                        Some((room, events))
+                    })
+                    .collect())
+            }
+            Err(error) => {
+                self.healthy.store(false, Ordering::Relaxed);
+                Err(store_error(error))
+            }
+        }
+    }
+}
+
+impl StoreHealth for RedisSessionStore {
+    fn is_ready(&self) -> bool {
+        self.healthy.load(Ordering::Relaxed)
+    }
+
+    async fn ping(&self) -> StoreResult<()> {
+        RedisSessionStore::ping(self).await.map_err(store_error)
+    }
+}
+
+fn parse_event(mut entry: StreamId) -> Option<RoomEvent> {
+    Some(RoomEvent {
+        id: parse_event_cursor(&entry.id),
+        kind: event_kind_from_code(&take_field::<String>(&mut entry.map, "kind")?)?,
         origin: take_field(&mut entry.map, "origin")?,
         payload: take_field(&mut entry.map, "payload")?,
     })
@@ -416,7 +398,7 @@ fn document_batch(reply: StreamRangeReply) -> DocumentBatch {
     let mut highwater = None;
     let mut updates = Vec::new();
     for mut entry in reply.ids {
-        highwater = Some(StreamOffset::new(entry.id));
+        highwater = Some(parse_event_cursor(&entry.id));
         if take_field::<String>(&mut entry.map, "kind").as_deref() == Some("d")
             && let Some(payload) = take_field(&mut entry.map, "payload")
         {
@@ -424,17 +406,6 @@ fn document_batch(reply: StreamRangeReply) -> DocumentBatch {
         }
     }
     DocumentBatch { highwater, updates }
-}
-
-fn worker_tasks(reply: StreamReadReply) -> Vec<(String, String)> {
-    reply
-        .keys
-        .into_iter()
-        .flat_map(|stream| stream.ids)
-        .filter_map(|mut entry| {
-            take_field::<String>(&mut entry.map, "room").map(|room| (entry.id, room))
-        })
-        .collect()
 }
 
 fn take_field<T: FromRedisValue>(map: &mut HashMap<String, Value>, key: &str) -> Option<T> {
@@ -469,6 +440,39 @@ fn parse_stream_id(value: &str) -> Option<(u64, u64)> {
     Some((timestamp.parse().ok()?, sequence.parse().ok()?))
 }
 
+fn parse_event_cursor(value: &str) -> EventCursor {
+    let (timestamp, sequence) = parse_stream_id(value).unwrap_or_default();
+    EventCursor::new(timestamp, sequence)
+}
+
+fn format_event_cursor(cursor: &EventCursor) -> String {
+    let (timestamp, sequence) = cursor.parts();
+    format!("{timestamp}-{sequence}")
+}
+
+fn event_kind_code(kind: EventKind) -> &'static str {
+    match kind {
+        EventKind::Document => "d",
+        EventKind::Awareness => "a",
+    }
+}
+
+fn event_kind_from_code(code: &str) -> Option<EventKind> {
+    match code {
+        "d" => Some(EventKind::Document),
+        "a" => Some(EventKind::Awareness),
+        _ => None,
+    }
+}
+
+fn room_stream(prefix: &str, room_id: &str) -> String {
+    format!("{prefix}:events:{}", encode_key(room_id))
+}
+
+fn store_error(error: RedisError) -> StoreError {
+    StoreError::new(error.to_string())
+}
+
 fn blocking_response_timeout(block_millis: usize) -> Duration {
     let block_timeout = Duration::from_millis(u64::try_from(block_millis).unwrap_or(u64::MAX));
     block_timeout.saturating_add(BLOCKING_RESPONSE_TIMEOUT_GRACE)
@@ -477,7 +481,7 @@ fn blocking_response_timeout(block_millis: usize) -> Duration {
 #[cfg(test)]
 mod tests {
     use crate::config::{RedisConfig, SyncConfig, WorkerConfig};
-    use crate::room::protocol::AwarenessClient;
+    use crate::domain::protocol::AwarenessClient;
     use std::time::{Instant, SystemTime, UNIX_EPOCH};
     use yrs::sync::{AwarenessUpdate, awareness::AwarenessUpdateEntry};
     use yrs::updates::encoder::Encode;
@@ -493,9 +497,9 @@ mod tests {
 
     #[test]
     fn stream_ids_are_compared_numerically() {
-        assert!(StreamOffset::new("10-0".into()).is_after(&StreamOffset::new("9-99".into())));
-        assert!(StreamOffset::new("10-2".into()).is_after(&StreamOffset::new("10-1".into())));
-        assert!(!StreamOffset::new("10-1".into()).is_after(&StreamOffset::new("10-1".into())));
+        assert!(parse_event_cursor("10-0").is_after(&parse_event_cursor("9-99")));
+        assert!(parse_event_cursor("10-2").is_after(&parse_event_cursor("10-1")));
+        assert!(!parse_event_cursor("10-1").is_after(&parse_event_cursor("10-1")));
     }
 
     #[test]

@@ -5,10 +5,10 @@ use tokio::time::timeout;
 use tracing::instrument;
 
 use crate::{
-    client::{self, AuthRouteResp, HttpClient},
+    client::{self, HttpClient},
     constant,
     exception::{ClientError, HandlerError, handle_api_error},
-    utils,
+    proxy::{self, AuthorizedRoute},
 };
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(300);
@@ -17,11 +17,11 @@ const REQUEST_TIMEOUT: Duration = Duration::from_secs(300);
 pub async fn handle_request(
     client: &HttpClient,
     req: Request<Body>,
-    route: AuthRouteResp,
+    route: AuthorizedRoute,
 ) -> Result<Response<Body>, HandlerError> {
     let response = forward_to_target_service(client, route, req).await?;
 
-    Ok(utils::prepare_response(response))
+    Ok(proxy::prepare_response(response))
 }
 
 #[tracing::instrument(
@@ -36,12 +36,12 @@ pub async fn handle_request(
 )]
 async fn forward_to_target_service(
     client: &HttpClient,
-    route_resp: AuthRouteResp,
+    route_resp: AuthorizedRoute,
     req: Request<Body>,
 ) -> Result<Response<hyper::body::Incoming>, ClientError> {
-    let target_uri = utils::parse_url(&route_resp, req.uri(), constant::HTTP)?;
+    let target_uri = proxy::parse_url(&route_resp, req.uri(), constant::HTTP)?;
 
-    let headers = utils::prepare_headers(req.headers(), route_resp.principal(), req.uri().path())?;
+    let headers = proxy::prepare_headers(req.headers(), route_resp.principal(), req.uri().path())?;
     let method = req.method().clone();
     let body = req.into_body();
 
@@ -86,7 +86,7 @@ mod tests {
         )
     }
 
-    fn route(port: u16) -> AuthRouteResp {
+    fn route(port: u16) -> AuthorizedRoute {
         serde_json::from_value(serde_json::json!({
             "serviceHost": "127.0.0.1",
             "servicePort": port,

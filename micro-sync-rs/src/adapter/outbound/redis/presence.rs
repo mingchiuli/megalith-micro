@@ -110,3 +110,51 @@ impl RedisSessionStore {
         Ok(std::iter::from_fn(|| Some((values.next()?, values.next()?))).collect())
     }
 }
+
+impl PresenceStore for RedisSessionStore {
+    async fn register_connection(&self, room_id: &str, connection_id: &str) -> StoreResult<()> {
+        RedisSessionStore::register_connection(self, room_id, connection_id)
+            .await
+            .map_err(store_error)
+    }
+
+    async fn refresh_connection(&self, room_id: &str, connection_id: &str) -> StoreResult<()> {
+        RedisSessionStore::refresh_connection(self, room_id, connection_id)
+            .await
+            .map_err(store_error)
+    }
+
+    async fn update_awareness(
+        &self,
+        room_id: &str,
+        connection_id: &str,
+        client: &AwarenessClient,
+    ) -> StoreResult<bool> {
+        RedisSessionStore::update_awareness(self, room_id, connection_id, client)
+            .await
+            .map_err(store_error)
+    }
+
+    async fn read_awareness(&self, room_id: &str) -> StoreResult<Vec<Bytes>> {
+        RedisSessionStore::read_awareness(self, room_id)
+            .await
+            .map_err(store_error)
+    }
+
+    async fn disconnect(
+        &self,
+        room_id: &str,
+        connection_id: &str,
+        require_expired: bool,
+    ) -> StoreResult<()> {
+        RedisSessionStore::disconnect(self, room_id, connection_id, require_expired)
+            .await
+            .map_err(store_error)
+    }
+
+    async fn expired_connections(&self, limit: usize) -> StoreResult<Vec<(String, String)>> {
+        RedisSessionStore::expired_connections(self, limit)
+            .await
+            .map_err(store_error)
+    }
+}

@@ -4,106 +4,33 @@ use axum::{
     response::Response,
 };
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
-use hyper::{HeaderMap, Method, StatusCode, Uri, body::Incoming, header};
+use hyper::{HeaderMap, Method, Uri, body::Incoming, header};
 use opentelemetry::global;
 use opentelemetry_http::HeaderInjector;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
-use crate::{
-    client::{self, AuthPrincipal, AuthRouteReq, AuthRouteResp, GatewayState},
-    config::{self, ConfigKey},
-    constant::UNKNOWN,
-    exception::{ClientError, handle_api_error},
-    result::ApiResult,
-};
-
-use super::request_metadata::{REFRESH_TOKEN_COOKIE, cookie_value, get_ip_from_headers};
+use super::model::{AuthPrincipal, AuthRouteRequest, AuthorizedRoute};
+use super::request::{REFRESH_TOKEN_COOKIE, cookie_value, get_ip_from_headers};
+use crate::constant::UNKNOWN;
+use crate::exception::ClientError;
 
 const REFRESH_TOKEN_PATH: &str = "/token/refresh";
-pub const PRINCIPAL_HEADER: &str = "x-megalith-principal";
+pub(crate) const PRINCIPAL_HEADER: &str = "x-megalith-principal";
 
-pub fn get_auth_url() -> Result<Uri, ClientError> {
-    let mut auth_url = config::get_config(ConfigKey::AuthUrlKey);
-    auth_url.push_str("/auth/route");
-    auth_url
-        .parse::<Uri>()
-        .map_err(|error| ClientError::Request(format!("invalid auth URL: {error}")))
-}
-
-#[tracing::instrument(
-    name = "find_target_address",
-    skip(state, req_body, token),
-    fields(http.url = %auth_url)
-)]
-pub async fn find_route(
-    state: &GatewayState,
-    auth_url: Uri,
-    req_body: AuthRouteReq,
-    token: &str,
-) -> Result<AuthRouteResp, ClientError> {
-    let guard = state.acquire_auth()?;
-    let mut headers = HeaderMap::new();
-    headers.insert(
-        header::AUTHORIZATION,
-        HeaderValue::from_str(token).unwrap_or(HeaderValue::from_static("")),
-    );
-    headers.insert(
-        header::CONTENT_TYPE,
-        HeaderValue::from_static("application/json"),
-    );
-
-    let response = tokio::time::timeout(
-        state.auth_timeout(),
-        client::post(state.client(), auth_url, req_body, headers),
-    )
-    .await;
-    let resp: ApiResult<AuthRouteResp> = match response {
-        Err(_) => {
-            guard.failure();
-            return Err(ClientError::Status(
-                StatusCode::SERVICE_UNAVAILABLE.as_u16(),
-                "auth service timed out".to_string(),
-            ));
-        }
-        Ok(Err(error)) => {
-            let error = handle_api_error(error);
-            if matches!(&error, ClientError::Status(code, _) if *code >= 500) {
-                guard.failure();
-                return Err(ClientError::Status(
-                    StatusCode::SERVICE_UNAVAILABLE.as_u16(),
-                    error.to_string(),
-                ));
-            }
-            guard.success();
-            return Err(error);
-        }
-        Ok(Ok(resp)) => resp,
-    };
-    if resp.code() != i32::from(StatusCode::OK.as_u16()) {
-        let code = u16::try_from(resp.code()).unwrap_or(StatusCode::BAD_GATEWAY.as_u16());
-        if code >= 500 {
-            guard.failure();
-            return Err(ClientError::Status(
-                StatusCode::SERVICE_UNAVAILABLE.as_u16(),
-                format!("auth service returned body code {}", resp.code()),
-            ));
-        }
-        guard.success();
-        return Err(ClientError::Status(
-            code,
-            format!("auth service returned body code {}", resp.code()),
-        ));
-    }
-    guard.success();
-    Ok(resp.into_data())
-}
-
-pub fn prepare_route_request(method: &Method, headers: &HeaderMap, uri: &Uri) -> AuthRouteReq {
+pub(crate) fn prepare_route_request(
+    method: &Method,
+    headers: &HeaderMap,
+    uri: &Uri,
+) -> AuthRouteRequest {
     let ip_addr = get_ip_from_headers(headers).unwrap_or_else(|| UNKNOWN.to_string());
-    AuthRouteReq::new(method, uri.path().to_string(), ip_addr)
+    AuthRouteRequest::new(method, uri.path().to_string(), ip_addr)
 }
 
-pub fn parse_url(route: &AuthRouteResp, uri: &Uri, protocol: &str) -> Result<Uri, ClientError> {
+pub(crate) fn parse_url(
+    route: &AuthorizedRoute,
+    uri: &Uri,
+    protocol: &str,
+) -> Result<Uri, ClientError> {
     let path_and_query = uri
         .path_and_query()
         .ok_or_else(|| ClientError::Request("Invalid URI".to_string()))?;
@@ -118,7 +45,7 @@ pub fn parse_url(route: &AuthRouteResp, uri: &Uri, protocol: &str) -> Result<Uri
     .map_err(|error| ClientError::Request(format!("parse: {error}")))
 }
 
-pub fn prepare_headers(
+pub(crate) fn prepare_headers(
     request_headers: &HeaderMap,
     principal: &AuthPrincipal,
     request_path: &str,
@@ -148,15 +75,17 @@ pub fn prepare_headers(
     Ok(headers)
 }
 
-pub fn principal_header_value(principal: &AuthPrincipal) -> Result<HeaderValue, ClientError> {
+pub(crate) fn principal_header_value(
+    principal: &AuthPrincipal,
+) -> Result<HeaderValue, ClientError> {
     let json = serde_json::to_vec(principal)
         .map_err(|error| ClientError::Serialization(error.to_string()))?;
     HeaderValue::from_str(&URL_SAFE_NO_PAD.encode(json))
         .map_err(|error| ClientError::Request(error.to_string()))
 }
 
-pub fn prepare_response(resp: Response<Incoming>) -> Response<Body> {
-    let (mut parts, body) = resp.into_parts();
+pub(crate) fn prepare_response(response: Response<Incoming>) -> Response<Body> {
+    let (mut parts, body) = response.into_parts();
     remove_hop_by_hop_headers(&mut parts.headers);
     Response::from_parts(parts, Body::new(body))
 }
@@ -186,7 +115,7 @@ fn remove_hop_by_hop_headers(headers: &mut HeaderMap) {
     }
 }
 
-pub fn inject_trace_context(headers: &mut HeaderMap) {
+pub(crate) fn inject_trace_context(headers: &mut HeaderMap) {
     global::get_text_map_propagator(|propagator| {
         let current_context = tracing::Span::current().context();
         propagator.inject_context(&current_context, &mut HeaderInjector(headers));
@@ -198,7 +127,7 @@ mod tests {
     use super::*;
     use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 
-    fn route() -> AuthRouteResp {
+    fn route() -> AuthorizedRoute {
         serde_json::from_str(
             r#"{"serviceHost":"example.com","servicePort":8080,"principal":{"userId":42,"roles":["user"]}}"#,
         )
@@ -210,8 +139,8 @@ mod tests {
         let mut headers = HeaderMap::new();
         headers.insert("CF-Connecting-IP", "8.8.8.8".parse().unwrap());
         let uri = "/api/v1/foo".parse::<Uri>().unwrap();
-        let req = prepare_route_request(&Method::GET, &headers, &uri);
-        let json = serde_json::to_string(&req).unwrap();
+        let request = prepare_route_request(&Method::GET, &headers, &uri);
+        let json = serde_json::to_string(&request).unwrap();
         assert!(json.contains("8.8.8.8"));
         assert!(json.contains("/api/v1/foo"));
     }

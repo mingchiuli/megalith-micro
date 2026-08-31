@@ -98,10 +98,16 @@ in the root `package.json` catalog and `bun.lock`; workspace packages use `catal
     `include_str!`. Never embed Lua bodies in Java or Rust string literals, and do not require a
     source tree beside a production executable.
 13. **CI and rewritten history.** A force-push event may provide a `github.event.before` SHA that is
-    no longer reachable. `fetch-depth: 0` does not fetch deleted objects. Workflows diffing event SHAs
-    must verify `git cat-file -e "$BEFORE^{commit}"` and use a conservative full-build path when it
-    is missing. Do not rewrite shared history without explicit approval, a complete `git bundle` backup,
-    and `--force-with-lease`; old commit URLs, PR refs, caches, and local stashes may retain old objects.
+   no longer reachable. `fetch-depth: 0` does not fetch deleted objects. Workflows diffing event SHAs
+   must verify `git cat-file -e "$BEFORE^{commit}"` and use a conservative full-build path when it
+   is missing. Do not rewrite shared history without explicit approval, a complete `git bundle` backup,
+   and `--force-with-lease`; old commit URLs, PR refs, caches, and local stashes may retain old objects.
+14. **Rust boundaries match service responsibilities.** `micro-sync-rs` keeps protocol and state in
+    `domain`, orchestration and store traits in `application`, Axum delivery in `adapter.inbound`, and
+    Redis connections, errors, keys, Stream IDs, workers, and Lua calls in `adapter.outbound.redis`.
+    Inbound adapters call `RoomManager` rather than the concrete store. `micro-gateway-rs` remains a
+    transport-oriented edge service: authentication belongs to `client`, no-I/O forwarding rules
+    belong to `proxy`, and handlers/middleware coordinate them without an artificial domain layer.
 
 ## Code Style
 

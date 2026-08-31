@@ -13,8 +13,9 @@ use opentelemetry::metrics::Counter;
 use opentelemetry::{KeyValue, global};
 use std::sync::LazyLock;
 
-use crate::client::{AuthRouteResp, GatewayState};
+use crate::client::GatewayState;
 use crate::exception::HandlerError;
+use crate::proxy::AuthorizedRoute;
 
 static HTTP_REQUESTS: LazyLock<Counter<u64>> = LazyLock::new(|| {
     global::meter(config::server_name())
@@ -31,7 +32,7 @@ pub async fn handle(
     // Record metrics
     HTTP_REQUESTS.add(1, &[KeyValue::new("path", uri.path().to_string())]);
 
-    let Some(route) = req.extensions().get::<AuthRouteResp>().cloned() else {
+    let Some(route) = req.extensions().get::<AuthorizedRoute>().cloned() else {
         return HandlerError::new(
             hyper::StatusCode::INTERNAL_SERVER_ERROR,
             "authorized route is missing",

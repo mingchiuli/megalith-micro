@@ -1,198 +1,125 @@
 use axum::body::Body;
 use axum::extract::WebSocketUpgrade;
-use axum::extract::ws::{CloseFrame, Message as AxumMessage, Utf8Bytes, WebSocket};
+use axum::extract::ws::WebSocket;
 use axum::response::{IntoResponse, Response};
-use futures_util::{SinkExt, StreamExt, stream};
+use futures_util::{SinkExt, StreamExt};
 use hyper::Uri;
 use tokio_tungstenite::connect_async;
-use tokio_tungstenite::tungstenite::{
-    Message as TungsteniteMessage, client::IntoClientRequest, protocol,
-};
-use tracing::{Instrument, instrument};
+use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+use tracing::{Instrument, Span, instrument};
 
-use crate::client::AuthRouteResp;
+use crate::constant;
 use crate::exception::{ClientError, HandlerError};
-use crate::{constant, utils};
-
-use tracing::Span;
+use crate::proxy::{
+    AuthorizedRoute, inject_trace_context, parse_url, principal_header_value, to_axum_message,
+    to_tungstenite_message,
+};
 
 #[instrument(
     name = "proxy_websocket_request",
     skip(ws),
-    fields(
-        http.url = %uri.path(),
-    )
+    fields(http.url = %uri.path())
 )]
 pub async fn ws_route_handler(
     ws: WebSocketUpgrade,
     uri: Uri,
-    route: AuthRouteResp,
+    route: AuthorizedRoute,
 ) -> Result<Response<Body>, HandlerError> {
-    // Parse url
     let downstream_uri = Uri::builder()
         .path_and_query(uri.path())
         .build()
         .map_err(|error| ClientError::Request(error.to_string()))?;
-    let new_url = utils::parse_url(&route, &downstream_uri, constant::WS)?;
+    let target_uri = parse_url(&route, &downstream_uri, constant::WS)?;
     let principal = route.principal().clone();
-
-    // 将 WebSocket 升级响应转换为 Response<Body>
     let span = Span::current();
     let response = ws
-        .on_upgrade(|socket| {
-            // 使用 instrument 将 span 附加到 future 上
-            handle_websocket_request(socket, new_url, principal).instrument(span)
-        })
+        .on_upgrade(|socket| proxy_websocket(socket, target_uri, principal).instrument(span))
         .into_response();
 
     let (parts, _) = response.into_parts();
     Ok(Response::from_parts(parts, Body::empty()))
 }
 
-async fn handle_websocket_request(
-    ws: WebSocket,
+async fn proxy_websocket(
+    socket: WebSocket,
     target_uri: Uri,
-    principal: crate::client::AuthPrincipal,
+    principal: crate::proxy::AuthPrincipal,
 ) {
-    // 1. 构建 WebSocket 客户端请求（利用 IntoClientRequest 特性）
-    let mut ws_request = match target_uri.into_client_request() {
-        Ok(req) => req,
-        Err(e) => {
-            tracing::error!("Failed to build websocket request: {}", e);
+    let mut request = match target_uri.into_client_request() {
+        Ok(request) => request,
+        Err(error) => {
+            tracing::error!(%error, "failed to build downstream WebSocket request");
             return;
         }
     };
 
-    // 2. 获取请求头并注入 Trace Context（核心步骤）
-    let headers = ws_request.headers_mut(); // 直接操作 tungstenite 的头
-    utils::inject_trace_context(headers); // 复用 HTTP 的注入逻辑
-    match utils::principal_header_value(&principal) {
+    inject_trace_context(request.headers_mut());
+    match principal_header_value(&principal) {
         Ok(value) => {
-            headers.insert(utils::PRINCIPAL_HEADER, value);
+            request
+                .headers_mut()
+                .insert(crate::proxy::PRINCIPAL_HEADER, value);
         }
         Err(error) => {
-            tracing::error!("Failed to encode WebSocket principal: {}", error);
+            tracing::error!(%error, "failed to encode WebSocket principal");
             return;
         }
     }
 
-    // 3. 连接下游 WebSocket 服务（带 traceparent 头）
-    let (server_ws, response) = match connect_async(ws_request).await {
-        Ok((stream, resp)) => (stream, resp),
-        Err(e) => {
-            tracing::error!("Failed to connect to websocket service: {}", e);
+    let (downstream, response) = match connect_async(request).await {
+        Ok(connection) => connection,
+        Err(error) => {
+            tracing::error!(%error, "failed to connect downstream WebSocket");
             return;
         }
     };
+    tracing::info!(status = %response.status(), "downstream WebSocket connected");
 
-    tracing::info!(
-        "WebSocket connected to downstream, status: {}",
-        response.status()
-    );
+    let (mut client_sender, mut client_receiver) = socket.split();
+    let (mut downstream_sender, mut downstream_receiver) = downstream.split();
 
-    // 使用 futures_util 的 split 方法
-    let (mut client_sender, mut client_receiver) = stream::StreamExt::split(ws);
-    let (mut server_sender, mut server_receiver) = stream::StreamExt::split(server_ws);
-
-    // 从客户端到服务端的消息转发
-    let client_to_server = async {
-        while let Some(msg) = client_receiver.next().await {
-            match msg {
-                Ok(msg) => {
-                    // 将 axum WebSocket 消息转换为 tungstenite 消息
-                    let converted_msg = match msg {
-                        AxumMessage::Text(text) => TungsteniteMessage::text(text.as_str()),
-                        AxumMessage::Binary(data) => TungsteniteMessage::binary(data.to_vec()),
-                        AxumMessage::Ping(data) => TungsteniteMessage::Ping(data),
-                        AxumMessage::Pong(data) => TungsteniteMessage::Pong(data),
-                        AxumMessage::Close(Some(frame)) => {
-                            // Convert from u16 to CloseCode
-                            let code = protocol::frame::coding::CloseCode::from(frame.code);
-
-                            // If there's a way to create a CloseFrame from a reason string
-                            let reason_string = frame.reason.as_str().to_string();
-
-                            // Try using a builder pattern or other constructor
-                            // Without seeing the full API, we can attempt a few approaches:
-
-                            // Option 1: If there's a with_reason or similar method
-                            let close_frame = protocol::CloseFrame {
-                                code,
-                                reason: reason_string.into(), // Try with bytes directly
-                            };
-
-                            TungsteniteMessage::Close(Some(close_frame))
-                        }
-                        AxumMessage::Close(None) => TungsteniteMessage::Close(None),
-                    };
-
-                    if let Err(e) = server_sender.send(converted_msg).await {
-                        tracing::error!("Error forwarding message to server: {}", e);
+    let client_to_downstream = async {
+        while let Some(message) = client_receiver.next().await {
+            match message {
+                Ok(message) => {
+                    if let Err(error) = downstream_sender
+                        .send(to_tungstenite_message(message))
+                        .await
+                    {
+                        tracing::error!(%error, "failed to forward WebSocket message downstream");
                         break;
                     }
                 }
-                Err(e) => {
-                    tracing::error!("Error receiving message from client: {}", e);
+                Err(error) => {
+                    tracing::error!(%error, "failed to receive client WebSocket message");
                     break;
                 }
             }
         }
     };
 
-    // 从服务端到客户端的消息转发
-    let server_to_client = async {
-        while let Some(msg) = server_receiver.next().await {
-            match msg {
-                Ok(msg) => {
-                    // 将 tungstenite 消息转换为 axum WebSocket 消息
-                    let converted_msg = match msg {
-                        TungsteniteMessage::Text(text) => {
-                            // 将 String 转换为 axum 的 Utf8Bytes
-                            AxumMessage::Text(Utf8Bytes::from(text.as_str()))
-                        }
-                        TungsteniteMessage::Binary(data) => AxumMessage::Binary(data),
-                        TungsteniteMessage::Ping(data) => AxumMessage::Ping(data),
-                        TungsteniteMessage::Pong(data) => AxumMessage::Pong(data),
-                        TungsteniteMessage::Close(frame) => {
-                            match frame {
-                                Some(close_frame) => {
-                                    let code: u16 = close_frame.code.into();
-
-                                    // Try to use methods on close_frame or reason to get a string or bytes
-                                    // If reason is a custom UTF-8 type, it likely has methods to get the string content
-
-                                    // Option 1: Try using the Display implementation if it exists
-                                    let reason_str = format!("{}", close_frame.reason);
-
-                                    // Option 2: If this is a tungstenite::protocol::CloseFrame
-                                    // This might work directly
-                                    AxumMessage::Close(Some(CloseFrame {
-                                        code,
-                                        reason: reason_str.into(),
-                                    }))
-                                }
-                                None => AxumMessage::Close(None),
-                            }
-                        }
-                        TungsteniteMessage::Frame(_) => continue, // 忽略原始帧消息
+    let downstream_to_client = async {
+        while let Some(message) = downstream_receiver.next().await {
+            match message {
+                Ok(message) => {
+                    let Some(message) = to_axum_message(message) else {
+                        continue;
                     };
-
-                    if let Err(e) = client_sender.send(converted_msg).await {
-                        tracing::error!("Error forwarding message to client: {}", e);
+                    if let Err(error) = client_sender.send(message).await {
+                        tracing::error!(%error, "failed to forward WebSocket message to client");
                         break;
                     }
                 }
-                Err(e) => {
-                    tracing::error!("Error receiving message from server: {}", e);
+                Err(error) => {
+                    tracing::error!(%error, "failed to receive downstream WebSocket message");
                     break;
                 }
             }
         }
     };
 
-    // 同时处理两个方向的消息转发
     tokio::select! {
-        _ = client_to_server => tracing::info!("Client to server connection closed"),
-        _ = server_to_client => tracing::info!("Server to client connection closed"),
+        _ = client_to_downstream => tracing::info!("client WebSocket connection closed"),
+        _ = downstream_to_client => tracing::info!("downstream WebSocket connection closed"),
     }
 }

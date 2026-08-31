@@ -1,5 +1,12 @@
 use super::*;
 
+pub(crate) struct RedisCompactionTaskReader {
+    connection: MultiplexedConnection,
+    worker_stream: String,
+    worker_group: String,
+    healthy: Arc<AtomicBool>,
+}
+
 impl RedisSessionStore {
     pub async fn ensure_worker_group(&self) -> RedisResult<()> {
         let mut connection = self.connection.clone();
@@ -18,7 +25,8 @@ impl RedisSessionStore {
         }
     }
 
-    pub async fn read_worker_tasks(
+    #[cfg(test)]
+    pub(super) async fn read_worker_tasks(
         &self,
         connection: &mut MultiplexedConnection,
         consumer: &str,
@@ -39,7 +47,10 @@ impl RedisSessionStore {
         connection.set_response_timeout(blocking_response_timeout(WORKER_READ_BLOCK_MILLIS));
         let reply = command.query_async::<StreamReadReply>(connection).await?;
         self.healthy.store(true, Ordering::Relaxed);
-        Ok(worker_tasks(reply))
+        Ok(compaction_tasks(reply)
+            .into_iter()
+            .map(|task| (task.id, task.room_id))
+            .collect())
     }
 
     pub async fn claim_worker_tasks(
@@ -106,7 +117,7 @@ impl RedisSessionStore {
             .key(self.room_stream(room_id))
             .key(self.room_leases_key(room_id))
             .arg(snapshot.revision)
-            .arg(highwater.as_str())
+            .arg(format_event_cursor(&highwater))
             .arg(merged.as_ref())
             .arg(self.sync.session_retention_seconds.max(1) * 1000)
             .arg(self.active_ttl_millis())
@@ -170,8 +181,92 @@ impl RedisSessionStore {
         self.healthy.store(true, Ordering::Relaxed);
         Ok(Snapshot {
             revision: revision.unwrap_or(0),
-            through: through.map_or_else(StreamOffset::zero, StreamOffset::new),
+            through: through.map_or_else(EventCursor::default, |value| parse_event_cursor(&value)),
             update: update.unwrap_or_default(),
         })
     }
+}
+
+impl CompactionTaskReader for RedisCompactionTaskReader {
+    async fn read(&mut self, consumer: &str, count: usize) -> StoreResult<Vec<CompactionTask>> {
+        let mut command = redis::cmd("XREADGROUP");
+        command
+            .arg("GROUP")
+            .arg(&self.worker_group)
+            .arg(consumer)
+            .arg("COUNT")
+            .arg(count)
+            .arg("BLOCK")
+            .arg(WORKER_READ_BLOCK_MILLIS)
+            .arg("STREAMS")
+            .arg(&self.worker_stream)
+            .arg(">");
+        self.connection
+            .set_response_timeout(blocking_response_timeout(WORKER_READ_BLOCK_MILLIS));
+        match command
+            .query_async::<StreamReadReply>(&mut self.connection)
+            .await
+        {
+            Ok(reply) => {
+                self.healthy.store(true, Ordering::Relaxed);
+                Ok(compaction_tasks(reply))
+            }
+            Err(error) => {
+                self.healthy.store(false, Ordering::Relaxed);
+                Err(store_error(error))
+            }
+        }
+    }
+}
+
+impl CompactionStore for RedisSessionStore {
+    type Reader = RedisCompactionTaskReader;
+
+    async fn task_reader(&self) -> StoreResult<Self::Reader> {
+        let connection = self.dedicated_connection().await.map_err(store_error)?;
+        Ok(RedisCompactionTaskReader {
+            connection,
+            worker_stream: self.worker_stream(),
+            worker_group: self.worker_group(),
+            healthy: Arc::clone(&self.healthy),
+        })
+    }
+
+    async fn claim_tasks(&self, consumer: &str, count: usize) -> StoreResult<Vec<CompactionTask>> {
+        self.claim_worker_tasks(consumer, count)
+            .await
+            .map(|tasks| {
+                tasks
+                    .into_iter()
+                    .map(|(id, room_id)| CompactionTask { id, room_id })
+                    .collect()
+            })
+            .map_err(store_error)
+    }
+
+    async fn compact_room(&self, room_id: &str) -> StoreResult<()> {
+        RedisSessionStore::compact_room(self, room_id)
+            .await
+            .map_err(store_error)
+    }
+
+    async fn acknowledge_task(&self, task_id: &str) -> StoreResult<()> {
+        self.acknowledge_worker_task(task_id)
+            .await
+            .map_err(store_error)
+    }
+}
+
+fn compaction_tasks(reply: StreamReadReply) -> Vec<CompactionTask> {
+    reply
+        .keys
+        .into_iter()
+        .flat_map(|stream| stream.ids)
+        .filter_map(|mut entry| {
+            take_field::<String>(&mut entry.map, "room").map(|room_id| CompactionTask {
+                id: entry.id,
+                room_id,
+            })
+        })
+        .collect()
 }

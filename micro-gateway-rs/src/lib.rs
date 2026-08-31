@@ -5,9 +5,9 @@ mod exception;
 mod handler;
 mod middleware;
 mod otel;
+mod proxy;
 mod result;
 mod shutdown;
-mod utils;
 
 pub use middleware::trace_context_middleware;
 pub use otel::init_logger_provider;

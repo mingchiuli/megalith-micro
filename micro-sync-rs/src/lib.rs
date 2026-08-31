@@ -1,8 +1,10 @@
+mod adapter;
+mod application;
 pub mod config;
+mod domain;
 mod extractor;
 mod middleware;
 mod otel;
-mod room;
 mod route;
 mod shutdown;
 

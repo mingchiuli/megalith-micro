@@ -49,13 +49,13 @@ graph TD
         Frontend["micro-frontend - Bun Standalone Executable<br/>Vue 3 SSR + Embedded Static Assets<br/>Server Prefetch + Client Hydration"]
     end
     subgraph GatewayLayer[Gateway Layer]
-        Gateway["micro-gateway-rs - Native Rust Binary<br/>Origin Check + Single Auth/Route Resolution<br/>Pooled Streaming HTTP / WebSocket Proxy"]
+        Gateway["micro-gateway-rs - Native Rust Binary<br/>Origin Policy + Auth Client<br/>Pooled Streaming HTTP / WebSocket Proxy"]
     end
     subgraph ServiceLayer[Service Layer - Native Executables]
         Auth["micro-auth - GraalVM Native Image<br/>Route and Role Permission Cache<br/>Login API + Principal Resolution"]
         User["micro-user - GraalVM Native Image<br/>User and Permission Management"]
         Blog["micro-blog - GraalVM Native Image<br/>Blog Content Management"]
-        Sync["micro-sync-rs - Native Rust Binary<br/>Stateless Collaborative Editing WebSocket"]
+        Sync["micro-sync-rs - Native Rust Binary<br/>Collaboration Application Ports<br/>Stateless WebSocket + Redis Adapter"]
         Exhibit["micro-exhibit - GraalVM Native Image<br/>Content Presentation + L2 Cache"]
         Search["micro-search - GraalVM Native Image<br/>Full-Text Search + Index Consumer"]
     end
@@ -228,6 +228,26 @@ Redisson, remote HTTP contracts, and storage clients stay behind output adapters
 transactional persistence adapters retain historical `*Wrapper` class names, but services depend
 on their writer ports rather than those concrete classes. ArchUnit checks these boundaries and
 also keeps transaction ownership out of application services.
+
+### Rust application boundaries
+
+The Rust services use boundaries suited to their responsibilities rather than sharing a directory
+template mechanically:
+
+| Service area | Responsibility |
+| --- | --- |
+| `micro-sync-rs/domain` | Yjs protocol handling and collaboration event/state models |
+| `micro-sync-rs/application` | Room, relay, lease, presence, and compaction orchestration through store ports |
+| `micro-sync-rs/adapter/inbound` | Axum WebSocket and health delivery |
+| `micro-sync-rs/adapter/outbound/redis` | Redis Streams, snapshots, presence, workers, connections, and external Lua scripts |
+| `micro-gateway-rs/client` | Pooled downstream HTTP and the bounded auth control-plane client |
+| `micro-gateway-rs/proxy` | Authorized-route models and no-I/O origin, header, URI, and WebSocket-frame policies |
+| `micro-gateway-rs/handler`, `middleware` | Axum HTTP/WebSocket delivery and single-pass authorization flow |
+
+`micro-sync-rs` application code depends on store traits and application-level errors; Redis
+connections, result types, keys, and Stream ID strings remain inside the outbound adapter. The
+gateway is itself an edge adapter, so it keeps transport-oriented modules instead of introducing an
+artificial domain and application hierarchy.
 
 ## Frontend
 
