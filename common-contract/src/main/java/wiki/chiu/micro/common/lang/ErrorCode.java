@@ -2,9 +2,9 @@ package wiki.chiu.micro.common.lang;
 
 public interface ErrorCode {
 
-  int code();
+    int code();
 
-  String defaultMessage();
+    String defaultMessage();
 
-  ErrorCategory category();
+    ErrorCategory category();
 }

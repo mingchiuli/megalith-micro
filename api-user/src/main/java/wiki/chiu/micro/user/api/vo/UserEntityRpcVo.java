@@ -15,92 +15,92 @@ public record UserEntityRpcVo(
     LocalDateTime updated,
     LocalDateTime lastLogin) {
 
-  public static UserEntityRpcVo.UserEntityRpcVoBuilder builder() {
-    return new UserEntityRpcVo.UserEntityRpcVoBuilder();
-  }
-
-  public static class UserEntityRpcVoBuilder {
-    private Long id;
-
-    private String username;
-
-    private String password;
-
-    private String nickname;
-
-    private String avatar;
-
-    private String email;
-
-    private String phone;
-
-    private Integer status;
-
-    private LocalDateTime created;
-
-    private LocalDateTime updated;
-
-    private LocalDateTime lastLogin;
-
-    public UserEntityRpcVo.UserEntityRpcVoBuilder id(Long id) {
-      this.id = id;
-      return this;
+    public static UserEntityRpcVo.UserEntityRpcVoBuilder builder() {
+        return new UserEntityRpcVo.UserEntityRpcVoBuilder();
     }
 
-    public UserEntityRpcVo.UserEntityRpcVoBuilder username(String username) {
-      this.username = username;
-      return this;
-    }
+    public static class UserEntityRpcVoBuilder {
+        private Long id;
 
-    public UserEntityRpcVo.UserEntityRpcVoBuilder password(String password) {
-      this.password = password;
-      return this;
-    }
+        private String username;
 
-    public UserEntityRpcVo.UserEntityRpcVoBuilder nickname(String nickname) {
-      this.nickname = nickname;
-      return this;
-    }
+        private String password;
 
-    public UserEntityRpcVo.UserEntityRpcVoBuilder avatar(String avatar) {
-      this.avatar = avatar;
-      return this;
-    }
+        private String nickname;
 
-    public UserEntityRpcVo.UserEntityRpcVoBuilder email(String email) {
-      this.email = email;
-      return this;
-    }
+        private String avatar;
 
-    public UserEntityRpcVo.UserEntityRpcVoBuilder phone(String phone) {
-      this.phone = phone;
-      return this;
-    }
+        private String email;
 
-    public UserEntityRpcVo.UserEntityRpcVoBuilder status(Integer status) {
-      this.status = status;
-      return this;
-    }
+        private String phone;
 
-    public UserEntityRpcVo.UserEntityRpcVoBuilder created(LocalDateTime created) {
-      this.created = created;
-      return this;
-    }
+        private Integer status;
 
-    public UserEntityRpcVo.UserEntityRpcVoBuilder updated(LocalDateTime updated) {
-      this.updated = updated;
-      return this;
-    }
+        private LocalDateTime created;
 
-    public UserEntityRpcVo.UserEntityRpcVoBuilder lastLogin(LocalDateTime lastLogin) {
-      this.lastLogin = lastLogin;
-      return this;
-    }
+        private LocalDateTime updated;
 
-    public UserEntityRpcVo build() {
-      return new UserEntityRpcVo(
-          id, username, password, nickname, avatar, email, phone, status, created, updated,
-          lastLogin);
+        private LocalDateTime lastLogin;
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder id(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder username(String username) {
+            this.username = username;
+            return this;
+        }
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder password(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder nickname(String nickname) {
+            this.nickname = nickname;
+            return this;
+        }
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder avatar(String avatar) {
+            this.avatar = avatar;
+            return this;
+        }
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder email(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder phone(String phone) {
+            this.phone = phone;
+            return this;
+        }
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder status(Integer status) {
+            this.status = status;
+            return this;
+        }
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder created(LocalDateTime created) {
+            this.created = created;
+            return this;
+        }
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder updated(LocalDateTime updated) {
+            this.updated = updated;
+            return this;
+        }
+
+        public UserEntityRpcVo.UserEntityRpcVoBuilder lastLogin(LocalDateTime lastLogin) {
+            this.lastLogin = lastLogin;
+            return this;
+        }
+
+        public UserEntityRpcVo build() {
+            return new UserEntityRpcVo(
+                id, username, password, nickname, avatar, email, phone, status, created, updated,
+                lastLogin);
+        }
     }
-  }
 }

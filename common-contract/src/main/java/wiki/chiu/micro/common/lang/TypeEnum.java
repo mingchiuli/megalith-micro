@@ -1,35 +1,35 @@
 package wiki.chiu.micro.common.lang;
 
 public enum TypeEnum {
-  CATALOGUE(0, "分类"),
+    CATALOGUE(0, "分类"),
 
-  MENU(1, "菜单"),
+    MENU(1, "菜单"),
 
-  BUTTON(2, "按钮");
+    BUTTON(2, "按钮");
 
-  private final Integer code;
+    private final Integer code;
 
-  private final String description;
+    private final String description;
 
-  TypeEnum(Integer code, String description) {
-    this.code = code;
-    this.description = description;
-  }
-
-  public static TypeEnum getInstance(Integer code) {
-    for (TypeEnum value : TypeEnum.values()) {
-      if (value.code.equals(code)) {
-        return value;
-      }
+    TypeEnum(Integer code, String description) {
+        this.code = code;
+        this.description = description;
     }
-    throw new IllegalArgumentException();
-  }
 
-  public Integer getCode() {
-    return this.code;
-  }
+    public static TypeEnum getInstance(Integer code) {
+        for (TypeEnum value : TypeEnum.values()) {
+            if (value.code.equals(code)) {
+                return value;
+            }
+        }
+        throw new IllegalArgumentException();
+    }
 
-  public String getDescription() {
-    return this.description;
-  }
+    public Integer getCode() {
+        return this.code;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
 }

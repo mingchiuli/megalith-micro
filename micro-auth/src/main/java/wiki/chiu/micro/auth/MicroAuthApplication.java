@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.web.service.registry.ImportHttpServices;
+
 import wiki.chiu.micro.auth.config.CustomRuntimeHints;
 import wiki.chiu.micro.common.rpc.SmsHttpService;
 import wiki.chiu.micro.user.api.AuthorityHttpService;
@@ -20,7 +21,7 @@ import wiki.chiu.micro.user.api.UserHttpService;
     types = {UserHttpService.class, MenuHttpService.class, AuthorityHttpService.class})
 public class MicroAuthApplication {
 
-  public static void main(String[] args) {
-    SpringApplication.run(MicroAuthApplication.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(MicroAuthApplication.class, args);
+    }
 }

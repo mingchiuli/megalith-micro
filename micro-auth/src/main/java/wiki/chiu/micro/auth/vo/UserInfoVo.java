@@ -6,32 +6,32 @@ package wiki.chiu.micro.auth.vo;
  */
 public record UserInfoVo(Long id, String nickname, String avatar) {
 
-  public static UserInfoVoBuilder builder() {
-    return new UserInfoVoBuilder();
-  }
-
-  public static class UserInfoVoBuilder {
-    private Long id;
-    private String nickname;
-    private String avatar;
-
-    public UserInfoVoBuilder nickname(String nickname) {
-      this.nickname = nickname;
-      return this;
+    public static UserInfoVoBuilder builder() {
+        return new UserInfoVoBuilder();
     }
 
-    public UserInfoVoBuilder avatar(String avatar) {
-      this.avatar = avatar;
-      return this;
-    }
+    public static class UserInfoVoBuilder {
+        private Long id;
+        private String nickname;
+        private String avatar;
 
-    public UserInfoVoBuilder id(Long id) {
-      this.id = id;
-      return this;
-    }
+        public UserInfoVoBuilder nickname(String nickname) {
+            this.nickname = nickname;
+            return this;
+        }
 
-    public UserInfoVo build() {
-      return new UserInfoVo(id, nickname, avatar);
+        public UserInfoVoBuilder avatar(String avatar) {
+            this.avatar = avatar;
+            return this;
+        }
+
+        public UserInfoVoBuilder id(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public UserInfoVo build() {
+            return new UserInfoVo(id, nickname, avatar);
+        }
     }
-  }
 }

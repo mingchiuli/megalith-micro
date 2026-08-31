@@ -15,13 +15,13 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableAsync
 public class ThreadPoolConfig {
 
-  @Bean("commonExecutor")
-  TaskExecutor taskExecutor(ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
-    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setVirtualThreads(true);
-    executor.setWaitForTasksToCompleteOnShutdown(true);
-    executor.setAwaitTerminationSeconds(60);
-    executor.setTaskDecorator(contextPropagatingTaskDecorator);
-    return executor;
-  }
+    @Bean("commonExecutor")
+    TaskExecutor taskExecutor(ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setVirtualThreads(true);
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
+        executor.setTaskDecorator(contextPropagatingTaskDecorator);
+        return executor;
+    }
 }

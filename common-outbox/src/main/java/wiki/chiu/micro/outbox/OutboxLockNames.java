@@ -4,9 +4,10 @@ import wiki.chiu.micro.outbox.config.OutboxProperties;
 
 final class OutboxLockNames {
 
-  private OutboxLockNames() {}
+    private OutboxLockNames() {
+    }
 
-  static String publisher(OutboxProperties properties) {
-    return "outbox:publisher:" + properties.getProducer().name();
-  }
+    static String publisher(OutboxProperties properties) {
+        return "outbox:publisher:" + properties.getProducer().name();
+    }
 }

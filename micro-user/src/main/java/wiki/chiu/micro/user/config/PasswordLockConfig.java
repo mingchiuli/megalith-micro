@@ -5,4 +5,5 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(PasswordLockProperties.class)
-public class PasswordLockConfig {}
+public class PasswordLockConfig {
+}

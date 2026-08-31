@@ -10,57 +10,57 @@ public record BlogSysCountSearchReq(
     Long userId,
     Boolean allData) {
 
-  public static BlogSysCountSearchReq.BLogSysCountSearchReqBuilder builder() {
-    return new BlogSysCountSearchReq.BLogSysCountSearchReqBuilder();
-  }
-
-  public static class BLogSysCountSearchReqBuilder {
-
-    private String keywords;
-
-    private Integer status;
-
-    private LocalDateTime createStart;
-
-    private LocalDateTime createEnd;
-
-    private Long userId;
-
-    private Boolean allData;
-
-    public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder keywords(String keywords) {
-      this.keywords = keywords;
-      return this;
+    public static BlogSysCountSearchReq.BLogSysCountSearchReqBuilder builder() {
+        return new BlogSysCountSearchReq.BLogSysCountSearchReqBuilder();
     }
 
-    public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder status(Integer status) {
-      this.status = status;
-      return this;
-    }
+    public static class BLogSysCountSearchReqBuilder {
 
-    public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder createStart(
-        LocalDateTime createStart) {
-      this.createStart = createStart;
-      return this;
-    }
+        private String keywords;
 
-    public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder createEnd(LocalDateTime createEnd) {
-      this.createEnd = createEnd;
-      return this;
-    }
+        private Integer status;
 
-    public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder userId(Long userId) {
-      this.userId = userId;
-      return this;
-    }
+        private LocalDateTime createStart;
 
-    public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder allData(Boolean allData) {
-      this.allData = allData;
-      return this;
-    }
+        private LocalDateTime createEnd;
 
-    public BlogSysCountSearchReq build() {
-      return new BlogSysCountSearchReq(keywords, status, createStart, createEnd, userId, allData);
+        private Long userId;
+
+        private Boolean allData;
+
+        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder keywords(String keywords) {
+            this.keywords = keywords;
+            return this;
+        }
+
+        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder status(Integer status) {
+            this.status = status;
+            return this;
+        }
+
+        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder createStart(
+            LocalDateTime createStart) {
+            this.createStart = createStart;
+            return this;
+        }
+
+        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder createEnd(LocalDateTime createEnd) {
+            this.createEnd = createEnd;
+            return this;
+        }
+
+        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder userId(Long userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public BlogSysCountSearchReq.BLogSysCountSearchReqBuilder allData(Boolean allData) {
+            this.allData = allData;
+            return this;
+        }
+
+        public BlogSysCountSearchReq build() {
+            return new BlogSysCountSearchReq(keywords, status, createStart, createEnd, userId, allData);
+        }
     }
-  }
 }

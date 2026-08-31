@@ -7,6 +7,7 @@ import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.service.registry.ImportHttpServices;
+
 import wiki.chiu.micro.auth.api.AuthHttpService;
 import wiki.chiu.micro.blog.config.CustomRuntimeHints;
 import wiki.chiu.micro.common.rpc.OssHttpService;
@@ -33,7 +34,7 @@ import wiki.chiu.micro.user.api.UserHttpService;
     group = "search",
     types = {SearchHttpService.class})
 public class MicroBlogApplication {
-  public static void main(String[] args) {
-    SpringApplication.run(MicroBlogApplication.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(MicroBlogApplication.class, args);
+    }
 }

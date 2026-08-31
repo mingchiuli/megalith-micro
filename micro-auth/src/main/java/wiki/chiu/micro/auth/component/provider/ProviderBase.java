@@ -5,6 +5,7 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.ROLE_DISABLED;
 import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
 
 import java.util.List;
+
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -13,6 +14,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+
 import wiki.chiu.micro.auth.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
 
@@ -22,49 +24,49 @@ import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
  */
 public abstract sealed class ProviderBase extends DaoAuthenticationProvider
     permits EmailAuthenticationProvider, PasswordAuthenticationProvider, SMSAuthenticationProvider {
-  protected UserDetailsService userDetailsService;
+    protected UserDetailsService userDetailsService;
 
-  protected UserHttpServiceWrapper userHttpServiceWrapper;
+    protected UserHttpServiceWrapper userHttpServiceWrapper;
 
-  protected ProviderBase(
-      UserDetailsService userDetailsService, UserHttpServiceWrapper userHttpServiceWrapper) {
-    super(userDetailsService);
-    setHideUserNotFoundExceptions(false);
-    this.userDetailsService = userDetailsService;
-    this.userHttpServiceWrapper = userHttpServiceWrapper;
-  }
-
-  protected abstract void authProcess(UserDetails user, Authentication authentication);
-
-  private void checkRoleStatus(UserDetails user) {
-    List<String> roles =
-        user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-
-    List<RoleEntityRpcVo> roleEntities =
-        userHttpServiceWrapper.findByRoleCodeInAndStatus(roles, NORMAL.getCode());
-    if (roleEntities.isEmpty()) {
-      throw new BadCredentialsException(ROLE_DISABLED.getMsg());
+    protected ProviderBase(
+        UserDetailsService userDetailsService, UserHttpServiceWrapper userHttpServiceWrapper) {
+        super(userDetailsService);
+        setHideUserNotFoundExceptions(false);
+        this.userDetailsService = userDetailsService;
+        this.userHttpServiceWrapper = userHttpServiceWrapper;
     }
-  }
 
-  @Override
-  protected void additionalAuthenticationChecks(
-      @NonNull UserDetails userDetails, @NonNull UsernamePasswordAuthenticationToken authentication)
-      throws AuthenticationException {
-    authProcess(userDetails, authentication);
-  }
+    protected abstract void authProcess(UserDetails user, Authentication authentication);
 
-  @Override
-  @NonNull
-  public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-    UserDetails user =
-        retrieveUser(
-            authentication.getName(), (UsernamePasswordAuthenticationToken) authentication);
-    if (!user.isAccountNonLocked()) {
-      throw new LockedException(ACCOUNT_LOCKED.getMsg());
+    private void checkRoleStatus(UserDetails user) {
+        List<String> roles =
+            user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        List<RoleEntityRpcVo> roleEntities =
+            userHttpServiceWrapper.findByRoleCodeInAndStatus(roles, NORMAL.getCode());
+        if (roleEntities.isEmpty()) {
+            throw new BadCredentialsException(ROLE_DISABLED.getMsg());
+        }
     }
-    checkRoleStatus(user);
-    additionalAuthenticationChecks(user, (UsernamePasswordAuthenticationToken) authentication);
-    return createSuccessAuthentication(user, authentication, user);
-  }
+
+    @Override
+    protected void additionalAuthenticationChecks(
+        @NonNull UserDetails userDetails, @NonNull UsernamePasswordAuthenticationToken authentication)
+        throws AuthenticationException {
+        authProcess(userDetails, authentication);
+    }
+
+    @Override
+    @NonNull
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        UserDetails user =
+            retrieveUser(
+                authentication.getName(), (UsernamePasswordAuthenticationToken) authentication);
+        if (!user.isAccountNonLocked()) {
+            throw new LockedException(ACCOUNT_LOCKED.getMsg());
+        }
+        checkRoleStatus(user);
+        additionalAuthenticationChecks(user, (UsernamePasswordAuthenticationToken) authentication);
+        return createSuccessAuthentication(user, authentication, user);
+    }
 }

@@ -6,12 +6,12 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 
 final class CacheRedisTransportCondition implements Condition {
 
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    String transport =
-        context
-            .getEnvironment()
-            .getProperty("megalith.cache.eviction.transport", "AUTO");
-    return "AUTO".equalsIgnoreCase(transport) || "REDIS".equalsIgnoreCase(transport);
-  }
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        String transport =
+            context
+                .getEnvironment()
+                .getProperty("megalith.cache.eviction.transport", "AUTO");
+        return "AUTO".equalsIgnoreCase(transport) || "REDIS".equalsIgnoreCase(transport);
+    }
 }

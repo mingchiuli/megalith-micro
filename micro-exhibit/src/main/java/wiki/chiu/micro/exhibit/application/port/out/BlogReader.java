@@ -6,9 +6,9 @@ import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
 
 public interface BlogReader {
 
-  BlogExhibitDto findById(Long id);
+    BlogExhibitDto findById(Long id);
 
-  void incrementViews(Long id);
+    void incrementViews(Long id);
 
-  PageAdapter<BlogDescriptionDto> findPage(Integer currentPage);
+    PageAdapter<BlogDescriptionDto> findPage(Integer currentPage);
 }

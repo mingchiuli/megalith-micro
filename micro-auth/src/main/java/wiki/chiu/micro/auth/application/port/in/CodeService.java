@@ -6,7 +6,7 @@ package wiki.chiu.micro.auth.application.port.in;
  */
 public interface CodeService {
 
-  void createEmailCode(String loginName);
+    void createEmailCode(String loginName);
 
-  void createSMSCode(String loginSMS);
+    void createSMSCode(String loginSMS);
 }

@@ -1,6 +1,7 @@
 package wiki.chiu.micro.user.application.port.in;
 
 import java.util.List;
+
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
@@ -13,21 +14,21 @@ import wiki.chiu.micro.user.vo.RoleEntityVo;
  */
 public interface RoleService {
 
-  RoleEntityVo info(Long id);
+    RoleEntityVo info(Long id);
 
-  PageAdapter<RoleEntityVo> getPage(Integer current, Integer size);
+    PageAdapter<RoleEntityVo> getPage(Integer current, Integer size);
 
-  void saveOrUpdate(RoleEntityReq role);
+    void saveOrUpdate(RoleEntityReq role);
 
-  void delete(List<Long> ids);
+    void delete(List<Long> ids);
 
-  byte[] download();
+    byte[] download();
 
-  List<RoleEntityVo> getValidAll();
+    List<RoleEntityVo> getValidAll();
 
-  List<RoleEntityRpcVo> findByRoleCodeInAndStatus(List<String> roles, Integer status);
+    List<RoleEntityRpcVo> findByRoleCodeInAndStatus(List<String> roles, Integer status);
 
-  List<RoleAuthorizationRpcVo> findAllRoleAuthorizations();
+    List<RoleAuthorizationRpcVo> findAllRoleAuthorizations();
 
-  List<RoleAuthorizationRpcVo> findRoleAuthorizations(List<Long> roleIds);
+    List<RoleAuthorizationRpcVo> findRoleAuthorizations(List<Long> roleIds);
 }

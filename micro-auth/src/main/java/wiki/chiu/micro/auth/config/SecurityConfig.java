@@ -12,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.auth.component.LoginAuthenticationFilter;
 import wiki.chiu.micro.auth.component.LoginFailureHandler;
@@ -21,68 +22,68 @@ import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfig {
 
-  private final LoginFailureHandler loginFailureHandler;
+    private final LoginFailureHandler loginFailureHandler;
 
-  private final LoginSuccessHandler loginSuccessHandler;
+    private final LoginSuccessHandler loginSuccessHandler;
 
-  private final AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
-  public SecurityConfig(
-      LoginFailureHandler loginFailureHandler,
-      LoginSuccessHandler loginSuccessHandler,
-      AuthenticationManager authenticationManager) {
-    this.loginFailureHandler = loginFailureHandler;
-    this.loginSuccessHandler = loginSuccessHandler;
-    this.authenticationManager = authenticationManager;
-  }
+    public SecurityConfig(
+        LoginFailureHandler loginFailureHandler,
+        LoginSuccessHandler loginSuccessHandler,
+        AuthenticationManager authenticationManager) {
+        this.loginFailureHandler = loginFailureHandler;
+        this.loginSuccessHandler = loginSuccessHandler;
+        this.authenticationManager = authenticationManager;
+    }
 
-  @Bean
-  @Order(1)
-  SecurityFilterChain refreshTokenChain(
-      HttpSecurity http,
-      @Qualifier("refreshJwtDecoder") JwtDecoder refreshJwtDecoder,
-      RefreshTokenCookieManager refreshTokenCookieManager)
-      throws Exception {
-    return stateless(http)
-        .securityMatcher("/token/refresh")
-        .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-        .oauth2ResourceServer(
-            oauth2 ->
-                oauth2
-                    .bearerTokenResolver(refreshTokenCookieManager)
-                    .jwt(jwt -> jwt.decoder(refreshJwtDecoder)))
-        .build();
-  }
+    @Bean
+    @Order(1)
+    SecurityFilterChain refreshTokenChain(
+        HttpSecurity http,
+        @Qualifier("refreshJwtDecoder") JwtDecoder refreshJwtDecoder,
+        RefreshTokenCookieManager refreshTokenCookieManager)
+        throws Exception {
+        return stateless(http)
+            .securityMatcher("/token/refresh")
+            .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+            .oauth2ResourceServer(
+                oauth2 ->
+                    oauth2
+                        .bearerTokenResolver(refreshTokenCookieManager)
+                        .jwt(jwt -> jwt.decoder(refreshJwtDecoder)))
+            .build();
+    }
 
-  @Bean
-  @Order(2)
-  SecurityFilterChain internalChain(HttpSecurity http) throws Exception {
-    return stateless(http)
-        .securityMatcher("/inner/**")
-        .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
-        .build();
-  }
+    @Bean
+    @Order(2)
+    SecurityFilterChain internalChain(HttpSecurity http) throws Exception {
+        return stateless(http)
+            .securityMatcher("/inner/**")
+            .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+            .build();
+    }
 
-  @Bean
-  @Order(3)
-  SecurityFilterChain applicationChain(HttpSecurity http, JsonMapper jsonMapper) throws Exception {
-    LoginAuthenticationFilter loginAuthenticationFilter =
-        new LoginAuthenticationFilter(
-            authenticationManager, jsonMapper, loginSuccessHandler, loginFailureHandler);
-    return stateless(http)
-        .authorizeHttpRequests(
-            authorizeHttpRequests -> authorizeHttpRequests.anyRequest().permitAll())
-        .addFilterAt(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-        .build();
-  }
+    @Bean
+    @Order(3)
+    SecurityFilterChain applicationChain(HttpSecurity http, JsonMapper jsonMapper) throws Exception {
+        LoginAuthenticationFilter loginAuthenticationFilter =
+            new LoginAuthenticationFilter(
+                authenticationManager, jsonMapper, loginSuccessHandler, loginFailureHandler);
+        return stateless(http)
+            .authorizeHttpRequests(
+                authorizeHttpRequests -> authorizeHttpRequests.anyRequest().permitAll())
+            .addFilterAt(loginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .build();
+    }
 
-  private HttpSecurity stateless(HttpSecurity http) throws Exception {
-    return http.cors(Customizer.withDefaults())
-        .csrf(AbstractHttpConfigurer::disable)
-        .formLogin(AbstractHttpConfigurer::disable)
-        .logout(AbstractHttpConfigurer::disable)
-        .sessionManagement(
-            sessionManagement ->
-                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-  }
+    private HttpSecurity stateless(HttpSecurity http) throws Exception {
+        return http.cors(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .logout(AbstractHttpConfigurer::disable)
+            .sessionManagement(
+                sessionManagement ->
+                    sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+    }
 }

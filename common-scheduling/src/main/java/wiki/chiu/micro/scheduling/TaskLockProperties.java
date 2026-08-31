@@ -5,13 +5,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("megalith.task-lock")
 public class TaskLockProperties {
 
-  private String environment = "default";
+    private String environment = "default";
 
-  public String getEnvironment() {
-    return environment;
-  }
+    public String getEnvironment() {
+        return environment;
+    }
 
-  public void setEnvironment(String environment) {
-    this.environment = environment;
-  }
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
 }

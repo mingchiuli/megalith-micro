@@ -4,5 +4,5 @@ import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 
 public interface SensitiveContentReader {
 
-  BlogSensitiveContentRpcVo findSensitiveByBlogId(Long blogId);
+    BlogSensitiveContentRpcVo findSensitiveByBlogId(Long blogId);
 }

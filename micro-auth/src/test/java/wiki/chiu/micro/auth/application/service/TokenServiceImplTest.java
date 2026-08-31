@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import wiki.chiu.micro.auth.application.port.out.UserDirectory;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.common.exception.MissException;
@@ -18,34 +19,37 @@ import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 @ExtendWith(MockitoExtension.class)
 class TokenServiceImplTest {
 
-  @Mock private JwtTokenService jwtTokenService;
+    @Mock
+    private JwtTokenService jwtTokenService;
 
-  @Mock private UserDirectory users;
+    @Mock
+    private UserDirectory users;
 
-  @InjectMocks private TokenServiceImpl tokenService;
+    @InjectMocks
+    private TokenServiceImpl tokenService;
 
-  @Test
-  void refreshAccessTokenIssuesRawTokenForActiveUser() {
-    when(users.findById(42L)).thenReturn(user(0));
-    when(jwtTokenService.issueAccessToken(42L)).thenReturn("jwt");
+    @Test
+    void refreshAccessTokenIssuesRawTokenForActiveUser() {
+        when(users.findById(42L)).thenReturn(user(0));
+        when(jwtTokenService.issueAccessToken(42L)).thenReturn("jwt");
 
-    String result = tokenService.refreshAccessToken(42L);
+        String result = tokenService.refreshAccessToken(42L);
 
-    assertEquals("jwt", result);
-    verify(jwtTokenService).issueAccessToken(42L);
-  }
+        assertEquals("jwt", result);
+        verify(jwtTokenService).issueAccessToken(42L);
+    }
 
-  @Test
-  void refreshAccessTokenRejectsDisabledUser() {
-    when(users.findById(42L)).thenReturn(user(1));
+    @Test
+    void refreshAccessTokenRejectsDisabledUser() {
+        when(users.findById(42L)).thenReturn(user(1));
 
-    MissException exception =
-        assertThrows(MissException.class, () -> tokenService.refreshAccessToken(42L));
+        MissException exception =
+            assertThrows(MissException.class, () -> tokenService.refreshAccessToken(42L));
 
-    assertEquals("没有权限", exception.getMessage());
-  }
+        assertEquals("没有权限", exception.getMessage());
+    }
 
-  private UserEntityRpcVo user(int status) {
-    return UserEntityRpcVo.builder().id(42L).status(status).build();
-  }
+    private UserEntityRpcVo user(int status) {
+        return UserEntityRpcVo.builder().id(42L).status(status).build();
+    }
 }

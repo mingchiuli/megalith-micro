@@ -7,8 +7,8 @@ import org.springframework.core.task.support.ContextPropagatingTaskDecorator;
 @AutoConfiguration
 public class TracePropagateConfig {
 
-  @Bean
-  public ContextPropagatingTaskDecorator contextPropagatingTaskDecorator() {
-    return new ContextPropagatingTaskDecorator();
-  }
+    @Bean
+    public ContextPropagatingTaskDecorator contextPropagatingTaskDecorator() {
+        return new ContextPropagatingTaskDecorator();
+    }
 }

@@ -14,4 +14,5 @@ public record BlogEntityReq(
     String content,
     Integer status,
     String link,
-    List<SensitiveContentReq> sensitiveContentList) {}
+    List<SensitiveContentReq> sensitiveContentList) {
+}

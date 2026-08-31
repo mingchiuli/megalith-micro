@@ -1,27 +1,29 @@
 package wiki.chiu.micro.user.config.convertor;
 
 import java.util.List;
+
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
 import wiki.chiu.micro.user.domain.RoleEntity;
 
 public class RoleEntityRpcVoConvertor {
 
-  private RoleEntityRpcVoConvertor() {}
+    private RoleEntityRpcVoConvertor() {
+    }
 
-  public static List<RoleEntityRpcVo> convert(List<RoleEntity> entities) {
+    public static List<RoleEntityRpcVo> convert(List<RoleEntity> entities) {
 
-    return entities.stream()
-        .map(
-            item ->
-                RoleEntityRpcVo.builder()
-                    .id(item.getId())
-                    .name(item.getName())
-                    .code(item.getCode())
-                    .remark(item.getRemark())
-                    .status(item.getStatus())
-                    .created(item.getCreated())
-                    .updated(item.getUpdated())
-                    .build())
-        .toList();
-  }
+        return entities.stream()
+            .map(
+                item ->
+                    RoleEntityRpcVo.builder()
+                        .id(item.getId())
+                        .name(item.getName())
+                        .code(item.getCode())
+                        .remark(item.getRemark())
+                        .status(item.getStatus())
+                        .created(item.getCreated())
+                        .updated(item.getUpdated())
+                        .build())
+            .toList();
+    }
 }

@@ -5,6 +5,7 @@ import static wiki.chiu.micro.common.lang.Const.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
+
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,68 +21,68 @@ import org.springframework.stereotype.Component;
 @Component
 public class BlogSchedule {
 
-  @Qualifier("commonExecutor")
-  private final ThreadPoolTaskExecutor taskExecutor;
+    @Qualifier("commonExecutor")
+    private final ThreadPoolTaskExecutor taskExecutor;
 
-  private final RedissonClient redissonClient;
+    private final RedissonClient redissonClient;
 
-  @Value("${megalith.blog.blog-page-size}")
-  private int blogPageSize;
+    @Value("${megalith.blog.blog-page-size}")
+    private int blogPageSize;
 
-  public BlogSchedule(
-      @Qualifier("commonExecutor") ThreadPoolTaskExecutor taskExecutor,
-      RedissonClient redissonClient) {
-    this.taskExecutor = taskExecutor;
-    this.redissonClient = redissonClient;
-  }
-
-  private void buildExecutor(Runnable task, String key, String finishKey) {
-    RLock rLock = redissonClient.getLock(key);
-    if (!rLock.tryLock()) {
-      return;
+    public BlogSchedule(
+        @Qualifier("commonExecutor") ThreadPoolTaskExecutor taskExecutor,
+        RedissonClient redissonClient) {
+        this.taskExecutor = taskExecutor;
+        this.redissonClient = redissonClient;
     }
 
-    try {
-      boolean executed = redissonClient.getBucket(finishKey).isExists();
-      if (!executed) {
-        CompletableFuture.runAsync(task, taskExecutor.getThreadPoolExecutor());
-        redissonClient.getBucket(finishKey).set("flag", Duration.ofSeconds(10));
-      }
-    } finally {
-      rLock.unlock();
+    private void buildExecutor(Runnable task, String key, String finishKey) {
+        RLock rLock = redissonClient.getLock(key);
+        if (!rLock.tryLock()) {
+            return;
+        }
+
+        try {
+            boolean executed = redissonClient.getBucket(finishKey).isExists();
+            if (!executed) {
+                CompletableFuture.runAsync(task, taskExecutor.getThreadPoolExecutor());
+                redissonClient.getBucket(finishKey).set("flag", Duration.ofSeconds(10));
+            }
+        } finally {
+            rLock.unlock();
+        }
     }
-  }
 
-  @Scheduled(cron = "0 0 0 * * ?")
-  public void statisticExec() {
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void statisticExec() {
 
-    String statisticsKey = "statisticsKey";
-    String statisticsFinishKey = "statisticsFinishKey";
+        String statisticsKey = "statisticsKey";
+        String statisticsFinishKey = "statisticsFinishKey";
 
-    buildExecutor(
-        () -> {
-          var now = LocalDateTime.now();
+        buildExecutor(
+            () -> {
+                var now = LocalDateTime.now();
 
-          int hourOfDay = now.getHour();
-          int dayOfWeek = now.getDayOfWeek().getValue();
-          int dayOfMonth = now.getDayOfMonth();
-          int dayOfYear = now.getDayOfYear();
+                int hourOfDay = now.getHour();
+                int dayOfWeek = now.getDayOfWeek().getValue();
+                int dayOfMonth = now.getDayOfMonth();
+                int dayOfYear = now.getDayOfYear();
 
-          if (hourOfDay == 0) {
-            redissonClient.getBucket(DAY_VISIT).delete();
-            if (dayOfWeek == 1) {
-              redissonClient.getBucket(WEEK_VISIT).delete();
-              redissonClient.getBucket(HOT_READ).unlink();
-            }
-            if (dayOfMonth == 1) {
-              redissonClient.getBucket(MONTH_VISIT).delete();
-            }
-            if (dayOfYear == 1) {
-              redissonClient.getBucket(YEAR_VISIT).delete();
-            }
-          }
-        },
-        statisticsKey,
-        statisticsFinishKey);
-  }
+                if (hourOfDay == 0) {
+                    redissonClient.getBucket(DAY_VISIT).delete();
+                    if (dayOfWeek == 1) {
+                        redissonClient.getBucket(WEEK_VISIT).delete();
+                        redissonClient.getBucket(HOT_READ).unlink();
+                    }
+                    if (dayOfMonth == 1) {
+                        redissonClient.getBucket(MONTH_VISIT).delete();
+                    }
+                    if (dayOfYear == 1) {
+                        redissonClient.getBucket(YEAR_VISIT).delete();
+                    }
+                }
+            },
+            statisticsKey,
+            statisticsFinishKey);
+    }
 }

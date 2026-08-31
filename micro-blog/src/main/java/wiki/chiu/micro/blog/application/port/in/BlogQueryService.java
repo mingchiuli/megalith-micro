@@ -2,20 +2,21 @@ package wiki.chiu.micro.blog.application.port.in;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.page.PageAdapter;
 
 public interface BlogQueryService {
 
-  BlogEntityRpcVo findById(Long blogId);
+    BlogEntityRpcVo findById(Long blogId);
 
-  List<BlogEntityRpcVo> findAllById(List<Long> ids);
+    List<BlogEntityRpcVo> findAllById(List<Long> ids);
 
-  long count();
+    long count();
 
-  void incrementViews(Long blogId);
+    void incrementViews(Long blogId);
 
-  PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize);
+    PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize);
 
-  long countCreatedSince(LocalDateTime created);
+    long countCreatedSince(LocalDateTime created);
 }

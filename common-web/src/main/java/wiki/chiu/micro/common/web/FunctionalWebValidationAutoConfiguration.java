@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Bean;
 @AutoConfiguration
 public class FunctionalWebValidationAutoConfiguration {
 
-  @Bean
-  @ConditionalOnMissingBean
-  ValidatedRequest validatedRequest() {
-    return new ValidatedRequest();
-  }
+    @Bean
+    @ConditionalOnMissingBean
+    ValidatedRequest validatedRequest() {
+        return new ValidatedRequest();
+    }
 }

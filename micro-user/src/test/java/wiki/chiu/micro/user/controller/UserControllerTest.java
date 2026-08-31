@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.web.ValidatedRequest;
@@ -46,226 +47,231 @@ import wiki.chiu.micro.user.application.port.in.UserService;
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
 
-  @Mock private UserService userService;
+    @Mock
+    private UserService userService;
 
-  @Mock private RegistrationService registrationService;
+    @Mock
+    private RegistrationService registrationService;
 
-  @Mock private UserAssetService assetService;
+    @Mock
+    private UserAssetService assetService;
 
-  @Mock private UserExportService exportService;
+    @Mock
+    private UserExportService exportService;
 
-  @Mock private UserInternalHttpHandler userInternalHttpHandler;
+    @Mock
+    private UserInternalHttpHandler userInternalHttpHandler;
 
-  private MockMvc mockMvc;
+    private MockMvc mockMvc;
 
-  @BeforeEach
-  void setUp() {
-    ValidatedRequest validation = new ValidatedRequest();
-    UserHttpHandler handler =
-        new UserHttpHandler(
-            userService, registrationService, assetService, exportService, validation);
-    mockMvc =
-        MockMvcBuilders.routerFunctions(
-                UserRoutes.routes(
-                    handler,
-                    org.mockito.Mockito.mock(RoleHttpHandler.class),
-                    org.mockito.Mockito.mock(MenuHttpHandler.class),
-                    org.mockito.Mockito.mock(AuthorityHttpHandler.class),
-                    userInternalHttpHandler,
-                    org.mockito.Mockito.mock(MenuInternalHttpHandler.class),
-                    org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class)))
-            .build();
-  }
+    @BeforeEach
+    void setUp() {
+        ValidatedRequest validation = new ValidatedRequest();
+        UserHttpHandler handler =
+            new UserHttpHandler(
+                userService, registrationService, assetService, exportService, validation);
+        mockMvc =
+            MockMvcBuilders.routerFunctions(
+                    UserRoutes.routes(
+                        handler,
+                        org.mockito.Mockito.mock(RoleHttpHandler.class),
+                        org.mockito.Mockito.mock(MenuHttpHandler.class),
+                        org.mockito.Mockito.mock(AuthorityHttpHandler.class),
+                        userInternalHttpHandler,
+                        org.mockito.Mockito.mock(MenuInternalHttpHandler.class),
+                        org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class)))
+                .build();
+    }
 
-  @Test
-  void getRegisterPageReturnsToken() throws Exception {
-    when(registrationService.issuePage("alice")).thenReturn("token-x");
+    @Test
+    void getRegisterPageReturnsToken() throws Exception {
+        when(registrationService.issuePage("alice")).thenReturn("token-x");
 
-    mockMvc
-        .perform(get("/sys/user/auth/register/page").param("username", "alice"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data").value("token-x"));
-  }
+        mockMvc
+            .perform(get("/sys/user/auth/register/page").param("username", "alice"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data").value("token-x"));
+    }
 
-  @Test
-  void getRegisterPageMissingParamReturns400() throws Exception {
-    mockMvc.perform(get("/sys/user/auth/register/page")).andExpect(status().isBadRequest());
-  }
+    @Test
+    void getRegisterPageMissingParamReturns400() throws Exception {
+        mockMvc.perform(get("/sys/user/auth/register/page")).andExpect(status().isBadRequest());
+    }
 
-  @Test
-  void checkRegisterPageReturnsBoolean() throws Exception {
-    when(registrationService.isPageValid("tk")).thenReturn(true);
+    @Test
+    void checkRegisterPageReturnsBoolean() throws Exception {
+        when(registrationService.isPageValid("tk")).thenReturn(true);
 
-    mockMvc
-        .perform(get("/sys/user/register/check").param("token", "tk"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data").value(true));
-  }
+        mockMvc
+            .perform(get("/sys/user/register/check").param("token", "tk"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data").value(true));
+    }
 
-  @Test
-  void imageUploadReturnsUrl() throws Exception {
-    when(assetService.upload(anyString(), any())).thenReturn("https://oss/x.png");
-    MockMultipartFile file = new MockMultipartFile("image", "x.png", "image/png", new byte[] {1});
+    @Test
+    void imageUploadReturnsUrl() throws Exception {
+        when(assetService.upload(anyString(), any())).thenReturn("https://oss/x.png");
+        MockMultipartFile file = new MockMultipartFile("image", "x.png", "image/png", new byte[]{1});
 
-    mockMvc
-        .perform(multipart("/sys/user/register/image/upload").file(file).param("token", "tk"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data").value("https://oss/x.png"));
-  }
+        mockMvc
+            .perform(multipart("/sys/user/register/image/upload").file(file).param("token", "tk"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data").value("https://oss/x.png"));
+    }
 
-  @Test
-  void imageUploadRejectsEmptyFile() throws Exception {
-    MockMultipartFile file = new MockMultipartFile("image", "x.png", "image/png", new byte[0]);
+    @Test
+    void imageUploadRejectsEmptyFile() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("image", "x.png", "image/png", new byte[0]);
 
-    mockMvc
-        .perform(multipart("/sys/user/register/image/upload").file(file).param("token", "tk"))
-        .andExpect(status().isBadRequest());
+        mockMvc
+            .perform(multipart("/sys/user/register/image/upload").file(file).param("token", "tk"))
+            .andExpect(status().isBadRequest());
 
-    verify(assetService, never()).upload(anyString(), any());
-  }
+        verify(assetService, never()).upload(anyString(), any());
+    }
 
-  @Test
-  void imageDeleteReturnsSuccess() throws Exception {
-    doNothing().when(assetService).delete("tk", "https://oss/x.png");
+    @Test
+    void imageDeleteReturnsSuccess() throws Exception {
+        doNothing().when(assetService).delete("tk", "https://oss/x.png");
 
-    mockMvc
-        .perform(
-            delete("/sys/user/register/image/delete")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"url\":\"https://oss/x.png\",\"token\":\"tk\"}"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.code").value(200));
-  }
+        mockMvc
+            .perform(
+                delete("/sys/user/register/image/delete")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"url\":\"https://oss/x.png\",\"token\":\"tk\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(200));
+    }
 
-  @Test
-  void deleteReturnsSuccess() throws Exception {
-    doNothing().when(userService).deleteUsers(any());
+    @Test
+    void deleteReturnsSuccess() throws Exception {
+        doNothing().when(userService).deleteUsers(any());
 
-    mockMvc
-        .perform(post("/sys/user/delete").contentType(MediaType.APPLICATION_JSON).content("[1,2]"))
-        .andExpect(status().isOk());
-  }
+        mockMvc
+            .perform(post("/sys/user/delete").contentType(MediaType.APPLICATION_JSON).content("[1,2]"))
+            .andExpect(status().isOk());
+    }
 
-  @Test
-  void invalidUserBodyIsRejectedBeforeHandler() throws Exception {
-    mockMvc
-        .perform(post("/sys/user/save").contentType(MediaType.APPLICATION_JSON).content("{}"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.msg").value("username must not be blank"));
+    @Test
+    void invalidUserBodyIsRejectedBeforeHandler() throws Exception {
+        mockMvc
+            .perform(post("/sys/user/save").contentType(MediaType.APPLICATION_JSON).content("{}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.msg").value("username must not be blank"));
 
-    verify(userService, never()).saveOrUpdate(any());
-  }
+        verify(userService, never()).saveOrUpdate(any());
+    }
 
-  @Test
-  void registrationWithDifferentPasswordsIsRejectedBeforeHandler() throws Exception {
-    String body =
-        "{\"username\":\"alice\",\"nickname\":\"Alice\",\"password\":\"one\","
-            + "\"confirmPassword\":\"two\",\"email\":\"alice@example.com\",\"token\":\"tk\"}";
+    @Test
+    void registrationWithDifferentPasswordsIsRejectedBeforeHandler() throws Exception {
+        String body =
+            "{\"username\":\"alice\",\"nickname\":\"Alice\",\"password\":\"one\","
+                + "\"confirmPassword\":\"two\",\"email\":\"alice@example.com\",\"token\":\"tk\"}";
 
-    mockMvc
-        .perform(
-            post("/sys/user/register/save").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.msg").value("passwords do not match"));
+        mockMvc
+            .perform(
+                post("/sys/user/register/save").contentType(MediaType.APPLICATION_JSON).content(body))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.msg").value("passwords do not match"));
 
-    verify(registrationService, never()).register(any());
-  }
+        verify(registrationService, never()).register(any());
+    }
 
-  @Test
-  void registrationWithBlankPasswordsIsRejectedBeforeHandler() throws Exception {
-    String body =
-        "{\"username\":\"alice\",\"nickname\":\"Alice\",\"password\":\"   \","
-            + "\"confirmPassword\":\"   \",\"email\":\"alice@example.com\",\"token\":\"tk\"}";
+    @Test
+    void registrationWithBlankPasswordsIsRejectedBeforeHandler() throws Exception {
+        String body =
+            "{\"username\":\"alice\",\"nickname\":\"Alice\",\"password\":\"   \","
+                + "\"confirmPassword\":\"   \",\"email\":\"alice@example.com\",\"token\":\"tk\"}";
 
-    mockMvc
-        .perform(
-            post("/sys/user/register/save").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.msg").value("password must not be blank"));
+        mockMvc
+            .perform(
+                post("/sys/user/register/save").contentType(MediaType.APPLICATION_JSON).content(body))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.msg").value("password must not be blank"));
 
-    verify(registrationService, never()).register(any());
-  }
+        verify(registrationService, never()).register(any());
+    }
 
-  @Test
-  void newUserWithoutPasswordIsRejectedBeforeHandler() throws Exception {
-    String body =
-        "{\"id\":null,\"username\":\"alice\",\"nickname\":\"Alice\","
-            + "\"avatar\":\"https://example.com/avatar.png\",\"email\":\"alice@example.com\","
-            + "\"phone\":\"13800000000\",\"status\":1,\"roles\":[\"ROLE_USER\"]}";
+    @Test
+    void newUserWithoutPasswordIsRejectedBeforeHandler() throws Exception {
+        String body =
+            "{\"id\":null,\"username\":\"alice\",\"nickname\":\"Alice\","
+                + "\"avatar\":\"https://example.com/avatar.png\",\"email\":\"alice@example.com\","
+                + "\"phone\":\"13800000000\",\"status\":1,\"roles\":[\"ROLE_USER\"]}";
 
-    mockMvc
-        .perform(post("/sys/user/save").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.msg").value("password required when creating user"));
+        mockMvc
+            .perform(post("/sys/user/save").contentType(MediaType.APPLICATION_JSON).content(body))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.msg").value("password required when creating user"));
 
-    verify(userService, never()).saveOrUpdate(any());
-  }
+        verify(userService, never()).saveOrUpdate(any());
+    }
 
-  @Test
-  void newUserWithBlankPasswordIsRejectedBeforeHandler() throws Exception {
-    String body =
-        "{\"id\":null,\"username\":\"alice\",\"nickname\":\"Alice\","
-            + "\"avatar\":\"https://example.com/avatar.png\",\"password\":\"   \","
-            + "\"email\":\"alice@example.com\",\"phone\":\"13800000000\","
-            + "\"status\":1,\"roles\":[\"ROLE_USER\"]}";
+    @Test
+    void newUserWithBlankPasswordIsRejectedBeforeHandler() throws Exception {
+        String body =
+            "{\"id\":null,\"username\":\"alice\",\"nickname\":\"Alice\","
+                + "\"avatar\":\"https://example.com/avatar.png\",\"password\":\"   \","
+                + "\"email\":\"alice@example.com\",\"phone\":\"13800000000\","
+                + "\"status\":1,\"roles\":[\"ROLE_USER\"]}";
 
-    mockMvc
-        .perform(post("/sys/user/save").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.msg").value("password required when creating user"));
+        mockMvc
+            .perform(post("/sys/user/save").contentType(MediaType.APPLICATION_JSON).content(body))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.msg").value("password required when creating user"));
 
-    verify(userService, never()).saveOrUpdate(any());
-  }
+        verify(userService, never()).saveOrUpdate(any());
+    }
 
-  @Test
-  void deleteRejectsNullAndNonPositiveIds() throws Exception {
-    mockMvc
-        .perform(
-            post("/sys/user/delete").contentType(MediaType.APPLICATION_JSON).content("[null,0]"))
-        .andExpect(status().isBadRequest());
+    @Test
+    void deleteRejectsNullAndNonPositiveIds() throws Exception {
+        mockMvc
+            .perform(
+                post("/sys/user/delete").contentType(MediaType.APPLICATION_JSON).content("[null,0]"))
+            .andExpect(status().isBadRequest());
 
-    verify(userService, never()).deleteUsers(any());
-  }
+        verify(userService, never()).deleteUsers(any());
+    }
 
-  @Test
-  void pageRejectsNonPositivePage() throws Exception {
-    mockMvc.perform(get("/sys/user/page/0").param("size", "5")).andExpect(status().isBadRequest());
+    @Test
+    void pageRejectsNonPositivePage() throws Exception {
+        mockMvc.perform(get("/sys/user/page/0").param("size", "5")).andExpect(status().isBadRequest());
 
-    verify(userService, never()).listPage(anyInt(), anyInt());
-  }
+        verify(userService, never()).listPage(anyInt(), anyInt());
+    }
 
-  @Test
-  void pageReturnsPage() throws Exception {
-    when(userService.listPage(anyInt(), anyInt())).thenReturn(PageAdapter.emptyPage());
+    @Test
+    void pageReturnsPage() throws Exception {
+        when(userService.listPage(anyInt(), anyInt())).thenReturn(PageAdapter.emptyPage());
 
-    mockMvc
-        .perform(get("/sys/user/page/1").param("size", "5"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.empty").value(true));
-  }
+        mockMvc
+            .perform(get("/sys/user/page/1").param("size", "5"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.empty").value(true));
+    }
 
-  @Test
-  void infoNotFoundReturns404() throws Exception {
-    when(userService.findInfo(anyLong())).thenThrow(new MissException("not found"));
+    @Test
+    void infoNotFoundReturns404() throws Exception {
+        when(userService.findInfo(anyLong())).thenThrow(new MissException("not found"));
 
-    mockMvc
-        .perform(get("/sys/user/info/9"))
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.msg").value("not found"));
-  }
+        mockMvc
+            .perform(get("/sys/user/info/9"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.msg").value("not found"));
+    }
 
-  @Test
-  void unknownPathReturns404() throws Exception {
-    mockMvc.perform(get("/sys/user/unknown")).andExpect(status().isNotFound());
-  }
+    @Test
+    void unknownPathReturns404() throws Exception {
+        mockMvc.perform(get("/sys/user/unknown")).andExpect(status().isNotFound());
+    }
 
-  @Test
-  void internalPasswordLockUsesPatch() throws Exception {
-    when(userInternalHttpHandler.lockAfterPasswordFailures(any(ServerRequest.class)))
-        .thenReturn(ServerResponse.ok().build());
+    @Test
+    void internalPasswordLockUsesPatch() throws Exception {
+        when(userInternalHttpHandler.lockAfterPasswordFailures(any(ServerRequest.class)))
+            .thenReturn(ServerResponse.ok().build());
 
-    mockMvc.perform(patch("/inner/user/42/password-lock")).andExpect(status().isOk());
+        mockMvc.perform(patch("/inner/user/42/password-lock")).andExpect(status().isOk());
 
-    verify(userInternalHttpHandler).lockAfterPasswordFailures(any(ServerRequest.class));
-  }
+        verify(userInternalHttpHandler).lockAfterPasswordFailures(any(ServerRequest.class));
+    }
 }

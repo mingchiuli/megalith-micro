@@ -1,7 +1,7 @@
 package wiki.chiu.micro.auth.dto;
 
 public enum LoginType {
-  PASSWORD,
-  EMAIL,
-  SMS
+    PASSWORD,
+    EMAIL,
+    SMS
 }

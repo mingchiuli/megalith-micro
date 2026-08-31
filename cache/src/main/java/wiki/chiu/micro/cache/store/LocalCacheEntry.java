@@ -5,11 +5,11 @@ import java.util.Objects;
 
 public record LocalCacheEntry(Object value, Duration ttl) {
 
-  public LocalCacheEntry {
-    Objects.requireNonNull(value, "value");
-    Objects.requireNonNull(ttl, "ttl");
-    if (ttl.isZero() || ttl.isNegative()) {
-      throw new IllegalArgumentException("Local cache TTL must be positive");
+    public LocalCacheEntry {
+        Objects.requireNonNull(value, "value");
+        Objects.requireNonNull(ttl, "ttl");
+        if (ttl.isZero() || ttl.isNegative()) {
+            throw new IllegalArgumentException("Local cache TTL must be positive");
+        }
     }
-  }
 }

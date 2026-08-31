@@ -4,5 +4,5 @@ import wiki.chiu.micro.search.application.model.BlogIndexChange;
 
 public interface ApplyBlogIndexChangeUseCase {
 
-  void apply(BlogIndexChange change);
+    void apply(BlogIndexChange change);
 }

@@ -9,8 +9,8 @@ public record BlogEventContext(
     Long newerOrSameCount,
     Long previousTotalCount) {
 
-  public BlogEventContext(
-      BlogOperateEnum operation, Long operatorUserId, long totalCount, Long newerOrSameCount) {
-    this(operation, operatorUserId, totalCount, newerOrSameCount, null);
-  }
+    public BlogEventContext(
+        BlogOperateEnum operation, Long operatorUserId, long totalCount, Long newerOrSameCount) {
+        this(operation, operatorUserId, totalCount, newerOrSameCount, null);
+    }
 }

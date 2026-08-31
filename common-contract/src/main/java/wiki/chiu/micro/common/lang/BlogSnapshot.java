@@ -13,4 +13,5 @@ public record BlogSnapshot(
     Integer status,
     String link,
     Long readCount,
-    Long revision) {}
+    Long revision) {
+}

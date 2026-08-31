@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class MessageConverterConfig {
 
-  @Bean(name = "jsonMessageConverter")
-  JacksonJsonMessageConverter jsonMessageConverter() {
-    return new JacksonJsonMessageConverter();
-  }
+    @Bean(name = "jsonMessageConverter")
+    JacksonJsonMessageConverter jsonMessageConverter() {
+        return new JacksonJsonMessageConverter();
+    }
 }

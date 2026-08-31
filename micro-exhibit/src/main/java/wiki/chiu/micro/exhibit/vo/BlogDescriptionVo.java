@@ -1,6 +1,7 @@
 package wiki.chiu.micro.exhibit.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDateTime;
 
 /**
@@ -15,50 +16,50 @@ public record BlogDescriptionVo(
     String link,
     Integer status) {
 
-  public static BlogDescriptionVoBuilder builder() {
-    return new BlogDescriptionVoBuilder();
-  }
-
-  public static class BlogDescriptionVoBuilder {
-    private Long id;
-    private String title;
-    private String description;
-    private LocalDateTime created;
-    private String link;
-    private Integer status;
-
-    public BlogDescriptionVoBuilder id(Long id) {
-      this.id = id;
-      return this;
+    public static BlogDescriptionVoBuilder builder() {
+        return new BlogDescriptionVoBuilder();
     }
 
-    public BlogDescriptionVoBuilder title(String title) {
-      this.title = title;
-      return this;
-    }
+    public static class BlogDescriptionVoBuilder {
+        private Long id;
+        private String title;
+        private String description;
+        private LocalDateTime created;
+        private String link;
+        private Integer status;
 
-    public BlogDescriptionVoBuilder description(String description) {
-      this.description = description;
-      return this;
-    }
+        public BlogDescriptionVoBuilder id(Long id) {
+            this.id = id;
+            return this;
+        }
 
-    public BlogDescriptionVoBuilder created(LocalDateTime created) {
-      this.created = created;
-      return this;
-    }
+        public BlogDescriptionVoBuilder title(String title) {
+            this.title = title;
+            return this;
+        }
 
-    public BlogDescriptionVoBuilder link(String link) {
-      this.link = link;
-      return this;
-    }
+        public BlogDescriptionVoBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
 
-    public BlogDescriptionVoBuilder status(Integer status) {
-      this.status = status;
-      return this;
-    }
+        public BlogDescriptionVoBuilder created(LocalDateTime created) {
+            this.created = created;
+            return this;
+        }
 
-    public BlogDescriptionVo build() {
-      return new BlogDescriptionVo(id, title, description, created, link, status);
+        public BlogDescriptionVoBuilder link(String link) {
+            this.link = link;
+            return this;
+        }
+
+        public BlogDescriptionVoBuilder status(Integer status) {
+            this.status = status;
+            return this;
+        }
+
+        public BlogDescriptionVo build() {
+            return new BlogDescriptionVo(id, title, description, created, link, status);
+        }
     }
-  }
 }

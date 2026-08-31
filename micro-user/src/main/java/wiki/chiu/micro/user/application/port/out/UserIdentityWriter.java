@@ -5,9 +5,9 @@ import java.util.List;
 
 public interface UserIdentityWriter {
 
-  void updateLoginTime(String login, LocalDateTime time);
+    void updateLoginTime(String login, LocalDateTime time);
 
-  void lockAfterPasswordFailures(Long userId);
+    void lockAfterPasswordFailures(Long userId);
 
-  int unlockExpired(List<Long> userIds);
+    int unlockExpired(List<Long> userIds);
 }

@@ -6,7 +6,7 @@ import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 
 public interface BlogSearchGateway {
 
-  BlogSearchRpcVo searchBlogs(BlogSysSearchReq request);
+    BlogSearchRpcVo searchBlogs(BlogSysSearchReq request);
 
-  long countBlogs(BlogSysCountSearchReq request);
+    long countBlogs(BlogSysCountSearchReq request);
 }

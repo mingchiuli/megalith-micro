@@ -8,11 +8,11 @@ import wiki.chiu.micro.search.application.model.SearchPage;
 
 public interface SearchBlogsUseCase {
 
-  SearchPage<BlogSearchHit> searchPublic(PublicBlogSearchQuery query);
+    SearchPage<BlogSearchHit> searchPublic(PublicBlogSearchQuery query);
 
-  BlogSearchResult searchPrivate(PrivateBlogSearchQuery query);
+    BlogSearchResult searchPrivate(PrivateBlogSearchQuery query);
 
-  long countPrivate(PrivateBlogSearchQuery query);
+    long countPrivate(PrivateBlogSearchQuery query);
 
-  void incrementViews(long blogId);
+    void incrementViews(long blogId);
 }

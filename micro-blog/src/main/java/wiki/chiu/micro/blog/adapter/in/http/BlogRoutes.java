@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
+
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
@@ -26,33 +27,33 @@ import wiki.chiu.micro.common.page.PageAdapter;
 
 @Configuration(proxyBeanMethods = false)
 @RegisterReflectionForBinding({
-  Result.class,
-  PageAdapter.class,
-  BlogEntityReq.class,
-  SensitiveContentReq.class,
-  BlogQueryReq.class,
-  BlogDownloadReq.class,
-  OssDeleteReq.class,
-  BlogEntityVo.class,
-  BlogDeleteVo.class,
-  BlogEditVo.class,
-  BlogPermissionsVo.class,
-  BlogEntityRpcVo.class,
-  BlogSensitiveContentRpcVo.class
+    Result.class,
+    PageAdapter.class,
+    BlogEntityReq.class,
+    SensitiveContentReq.class,
+    BlogQueryReq.class,
+    BlogDownloadReq.class,
+    OssDeleteReq.class,
+    BlogEntityVo.class,
+    BlogDeleteVo.class,
+    BlogEditVo.class,
+    BlogPermissionsVo.class,
+    BlogEntityRpcVo.class,
+    BlogSensitiveContentRpcVo.class
 })
 public class BlogRoutes {
 
-  private static final Logger log = LoggerFactory.getLogger(BlogRoutes.class);
+    private static final Logger log = LoggerFactory.getLogger(BlogRoutes.class);
 
-  @Bean
-  RouterFunction<ServerResponse> blogRouter(
-      BlogHttpHandler blogHandler, BlogInternalHttpHandler internalHandler) {
-    return routes(blogHandler, internalHandler);
-  }
+    @Bean
+    RouterFunction<ServerResponse> blogRouter(
+        BlogHttpHandler blogHandler, BlogInternalHttpHandler internalHandler) {
+        return routes(blogHandler, internalHandler);
+    }
 
-  public static RouterFunction<ServerResponse> routes(
-      BlogHttpHandler blogHandler, BlogInternalHttpHandler internalHandler) {
-    return withDefaultErrorHandling(
+    public static RouterFunction<ServerResponse> routes(
+        BlogHttpHandler blogHandler, BlogInternalHttpHandler internalHandler) {
+        return withDefaultErrorHandling(
             route()
                 .POST("/sys/blog/save", blogHandler::saveOrUpdate)
                 .POST("/sys/blog/delete", blogHandler::deleteBlogs)
@@ -73,6 +74,6 @@ public class BlogRoutes {
                 .POST("/inner/blog/batch", internalHandler::findAllById)
                 .POST("/inner/blog/{blogId}/views", internalHandler::setReadCount),
             log)
-        .build();
-  }
+            .build();
+    }
 }

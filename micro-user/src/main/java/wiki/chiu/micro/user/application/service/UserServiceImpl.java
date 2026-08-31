@@ -3,9 +3,11 @@ package wiki.chiu.micro.user.application.service;
 import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
 
 import java.util.*;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.application.port.in.UserRoleService;
@@ -29,81 +31,81 @@ import wiki.chiu.micro.user.vo.UserEntityVo;
 @Service
 public class UserServiceImpl implements UserService {
 
-  private final UserReader userRepository;
+    private final UserReader userRepository;
 
-  private final UserWriter userRoleWrapper;
+    private final UserWriter userRoleWrapper;
 
-  private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-  private final RoleReader roleRepository;
+    private final RoleReader roleRepository;
 
-  private final UserRoleReader userRoleReader;
+    private final UserRoleReader userRoleReader;
 
-  private final UserRoleService userRoleService;
+    private final UserRoleService userRoleService;
 
-  public UserServiceImpl(
-      UserReader userRepository,
-      UserWriter userRoleWrapper,
-      PasswordEncoder passwordEncoder,
-      RoleReader roleRepository,
-      UserRoleReader userRoleReader,
-      UserRoleService userRoleService) {
-    this.userRepository = userRepository;
-    this.userRoleWrapper = userRoleWrapper;
-    this.passwordEncoder = passwordEncoder;
-    this.roleRepository = roleRepository;
-    this.userRoleReader = userRoleReader;
-    this.userRoleService = userRoleService;
-  }
+    public UserServiceImpl(
+        UserReader userRepository,
+        UserWriter userRoleWrapper,
+        PasswordEncoder passwordEncoder,
+        RoleReader roleRepository,
+        UserRoleReader userRoleReader,
+        UserRoleService userRoleService) {
+        this.userRepository = userRepository;
+        this.userRoleWrapper = userRoleWrapper;
+        this.passwordEncoder = passwordEncoder;
+        this.roleRepository = roleRepository;
+        this.userRoleReader = userRoleReader;
+        this.userRoleService = userRoleService;
+    }
 
-  @Override
-  public UserEntityVo findInfo(Long userId) {
-    UserEntity userEntity =
-        userRepository.findById(userId).orElseThrow(() -> new MissException(USER_NOT_EXIST));
+    @Override
+    public UserEntityVo findInfo(Long userId) {
+        UserEntity userEntity =
+            userRepository.findById(userId).orElseThrow(() -> new MissException(USER_NOT_EXIST));
 
-    List<String> roleCodes = userRoleService.findRoleCodesByUserId(userId);
-    return UserEntityVoConvertor.convert(userEntity, roleCodes);
-  }
+        List<String> roleCodes = userRoleService.findRoleCodesByUserId(userId);
+        return UserEntityVoConvertor.convert(userEntity, roleCodes);
+    }
 
-  @Override
-  public void saveOrUpdate(UserEntityReq userEntityReq) {
+    @Override
+    public void saveOrUpdate(UserEntityReq userEntityReq) {
 
-    UserEntity dealUser = getUserEntity(userEntityReq);
+        UserEntity dealUser = getUserEntity(userEntityReq);
 
-    UserEntityReq userReq =
-        userEntityReq.id().isPresent() && !StringUtils.hasLength(userEntityReq.password())
-            ? new UserEntityReq(userEntityReq, dealUser.getPassword())
-            : new UserEntityReq(userEntityReq, passwordEncoder.encode(userEntityReq.password()));
+        UserEntityReq userReq =
+            userEntityReq.id().isPresent() && !StringUtils.hasLength(userEntityReq.password())
+                ? new UserEntityReq(userEntityReq, dealUser.getPassword())
+                : new UserEntityReq(userEntityReq, passwordEncoder.encode(userEntityReq.password()));
 
-    UserEntity userEntity = UserEntityConvertor.convert(userReq, dealUser);
+        UserEntity userEntity = UserEntityConvertor.convert(userReq, dealUser);
 
-    List<UserRoleEntity> userRoleEntities =
-        roleRepository.findByCodeIn(userEntityReq.roles()).stream()
-            .map(role -> UserRoleEntity.builder().roleId(role.getId()).build())
-            .toList();
+        List<UserRoleEntity> userRoleEntities =
+            roleRepository.findByCodeIn(userEntityReq.roles()).stream()
+                .map(role -> UserRoleEntity.builder().roleId(role.getId()).build())
+                .toList();
 
-    userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
-  }
+        userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
+    }
 
-  @Override
-  public PageAdapter<UserEntityVo> listPage(Integer currentPage, Integer size) {
-    PageAdapter<UserEntity> page = userRepository.findPage(currentPage, size);
+    @Override
+    public PageAdapter<UserEntityVo> listPage(Integer currentPage, Integer size) {
+        PageAdapter<UserEntity> page = userRepository.findPage(currentPage, size);
 
-    List<Long> userIds = page.content().stream().map(UserEntity::getId).toList();
-    List<UserRoleEntity> userRoleEntities = userRoleReader.findByUserIdIn(userIds);
+        List<Long> userIds = page.content().stream().map(UserEntity::getId).toList();
+        List<UserRoleEntity> userRoleEntities = userRoleReader.findByUserIdIn(userIds);
 
-    List<Long> roleIds = userRoleEntities.stream().map(UserRoleEntity::getRoleId).toList();
-    List<RoleEntity> roleEntities = roleRepository.findAllById(roleIds);
+        List<Long> roleIds = userRoleEntities.stream().map(UserRoleEntity::getRoleId).toList();
+        List<RoleEntity> roleEntities = roleRepository.findAllById(roleIds);
 
-    return UserEntityVoConvertor.convert(page, userRoleEntities, roleEntities);
-  }
+        return UserEntityVoConvertor.convert(page, userRoleEntities, roleEntities);
+    }
 
-  @Override
-  public void deleteUsers(List<Long> ids) {
-    userRoleWrapper.deleteUsers(ids);
-  }
+    @Override
+    public void deleteUsers(List<Long> ids) {
+        userRoleWrapper.deleteUsers(ids);
+    }
 
-  private UserEntity getUserEntity(UserEntityReq userEntityReq) {
-    return userEntityReq.id().flatMap(userRepository::findById).orElseGet(UserEntity::new);
-  }
+    private UserEntity getUserEntity(UserEntityReq userEntityReq) {
+        return userEntityReq.id().flatMap(userRepository::findById).orElseGet(UserEntity::new);
+    }
 }

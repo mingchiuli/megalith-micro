@@ -11,6 +11,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.util.StringUtils;
+
 import wiki.chiu.micro.scheduling.RedisTaskLock;
 import wiki.chiu.micro.scheduling.TaskLockProperties;
 
@@ -19,24 +20,24 @@ import wiki.chiu.micro.scheduling.TaskLockProperties;
 @EnableConfigurationProperties(TaskLockProperties.class)
 public class TaskLockAutoConfiguration {
 
-  @Bean
-  RedisTaskLock redisTaskLock(RedissonClient redissonClient, TaskLockProperties properties) {
-    return new RedisTaskLock(redissonClient, properties);
-  }
-
-  @Bean(destroyMethod = "shutdown")
-  @ConditionalOnMissingBean(RedissonClient.class)
-  RedissonClient taskLockRedissonClient(
-      @Value("${spring.data.redis.host}") String host,
-      @Value("${spring.data.redis.port}") int port,
-      @Value("${spring.data.redis.password:}") String password) {
-    Config config = new Config();
-    config.setCodec(new StringCodec());
-    config.setLockWatchdogTimeout(30_000);
-    config.useSingleServer().setAddress("redis://" + host + ":" + port);
-    if (StringUtils.hasText(password)) {
-      config.setPassword(password);
+    @Bean
+    RedisTaskLock redisTaskLock(RedissonClient redissonClient, TaskLockProperties properties) {
+        return new RedisTaskLock(redissonClient, properties);
     }
-    return Redisson.create(config);
-  }
+
+    @Bean(destroyMethod = "shutdown")
+    @ConditionalOnMissingBean(RedissonClient.class)
+    RedissonClient taskLockRedissonClient(
+        @Value("${spring.data.redis.host}") String host,
+        @Value("${spring.data.redis.port}") int port,
+        @Value("${spring.data.redis.password:}") String password) {
+        Config config = new Config();
+        config.setCodec(new StringCodec());
+        config.setLockWatchdogTimeout(30_000);
+        config.useSingleServer().setAddress("redis://" + host + ":" + port);
+        if (StringUtils.hasText(password)) {
+            config.setPassword(password);
+        }
+        return Redisson.create(config);
+    }
 }

@@ -10,9 +10,9 @@ public record AuthCacheEvictMessage(
     boolean evictMenus,
     boolean evictRoutes) {
 
-  public AuthCacheEvictMessage {
-    userIds = userIds == null ? List.of() : List.copyOf(userIds);
-    roleIds = roleIds == null ? List.of() : List.copyOf(roleIds);
-    roleCodes = roleCodes == null ? List.of() : List.copyOf(roleCodes);
-  }
+    public AuthCacheEvictMessage {
+        userIds = userIds == null ? List.of() : List.copyOf(userIds);
+        roleIds = roleIds == null ? List.of() : List.copyOf(roleIds);
+        roleCodes = roleCodes == null ? List.of() : List.copyOf(roleCodes);
+    }
 }

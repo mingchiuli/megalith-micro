@@ -10,11 +10,11 @@ import wiki.chiu.micro.common.lang.ExceptionMessage;
  */
 public class CodeException extends BaseException {
 
-  public CodeException(String message) {
-    super(ErrorCodes.findByMessage(message).orElse(CommonErrorCode.VALIDATION_ERROR), message);
-  }
+    public CodeException(String message) {
+        super(ErrorCodes.findByMessage(message).orElse(CommonErrorCode.VALIDATION_ERROR), message);
+    }
 
-  public CodeException(ExceptionMessage exceptionMessage) {
-    super(exceptionMessage);
-  }
+    public CodeException(ExceptionMessage exceptionMessage) {
+        super(exceptionMessage);
+    }
 }

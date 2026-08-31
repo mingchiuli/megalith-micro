@@ -1,6 +1,7 @@
 package wiki.chiu.micro.blog.config;
 
 import jakarta.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -14,30 +15,30 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class RabbitTemplateConfig {
 
-  private static final Logger log = LoggerFactory.getLogger(RabbitTemplateConfig.class);
-  private final RabbitTemplate rabbitTemplate;
+    private static final Logger log = LoggerFactory.getLogger(RabbitTemplateConfig.class);
+    private final RabbitTemplate rabbitTemplate;
 
-  private final JacksonJsonMessageConverter jsonMessageConverter;
+    private final JacksonJsonMessageConverter jsonMessageConverter;
 
-  public RabbitTemplateConfig(
-      RabbitTemplate rabbitTemplate, JacksonJsonMessageConverter jsonMessageConverter) {
-    this.rabbitTemplate = rabbitTemplate;
-    this.jsonMessageConverter = jsonMessageConverter;
-  }
+    public RabbitTemplateConfig(
+        RabbitTemplate rabbitTemplate, JacksonJsonMessageConverter jsonMessageConverter) {
+        this.rabbitTemplate = rabbitTemplate;
+        this.jsonMessageConverter = jsonMessageConverter;
+    }
 
-  @PostConstruct
-  public void initRabbitTemplate() {
-    // 设置抵达broker服务器的回掉
-    // 当前消息的唯一关联数据、服务器对消息是否成功收到、失败的原因
-    rabbitTemplate.setConfirmCallback(
-        (correlationData, ack, cause) ->
-            log.debug("message come to mq or not {}, {}, {}", correlationData, ack, cause));
+    @PostConstruct
+    public void initRabbitTemplate() {
+        // 设置抵达broker服务器的回掉
+        // 当前消息的唯一关联数据、服务器对消息是否成功收到、失败的原因
+        rabbitTemplate.setConfirmCallback(
+            (correlationData, ack, cause) ->
+                log.debug("message come to mq or not {}, {}, {}", correlationData, ack, cause));
 
-    // 设置抵达消息队列的确认回调
-    // 只要消息没有投递给指定的队列，就触发这个失败回调
-    rabbitTemplate.setReturnsCallback(
-        returned -> log.info("message not come to queue {}", returned));
+        // 设置抵达消息队列的确认回调
+        // 只要消息没有投递给指定的队列，就触发这个失败回调
+        rabbitTemplate.setReturnsCallback(
+            returned -> log.info("message not come to queue {}", returned));
 
-    rabbitTemplate.setMessageConverter(jsonMessageConverter);
-  }
+        rabbitTemplate.setMessageConverter(jsonMessageConverter);
+    }
 }

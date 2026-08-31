@@ -11,4 +11,5 @@ public record BlogIndexEntry(
     String description,
     String content,
     LocalDateTime created,
-    LocalDateTime updated) {}
+    LocalDateTime updated) {
+}

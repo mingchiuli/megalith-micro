@@ -1,7 +1,9 @@
 package wiki.chiu.micro.auth.adapter.out.http;
 
 import java.util.List;
+
 import org.springframework.stereotype.Component;
+
 import wiki.chiu.micro.auth.application.port.out.UserDirectory;
 import wiki.chiu.micro.common.rpc.RemoteResult;
 import wiki.chiu.micro.user.api.AuthorityHttpService;
@@ -17,72 +19,72 @@ import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 @Component
 public class UserHttpServiceWrapper implements UserDirectory {
 
-  private final UserHttpService userHttpService;
+    private final UserHttpService userHttpService;
 
-  private final MenuHttpService menuHttpService;
+    private final MenuHttpService menuHttpService;
 
-  private final AuthorityHttpService authorityHttpService;
+    private final AuthorityHttpService authorityHttpService;
 
-  public UserHttpServiceWrapper(
-      UserHttpService userHttpService,
-      MenuHttpService menuHttpService,
-      AuthorityHttpService authorityHttpService) {
-    this.userHttpService = userHttpService;
-    this.menuHttpService = menuHttpService;
-    this.authorityHttpService = authorityHttpService;
-  }
+    public UserHttpServiceWrapper(
+        UserHttpService userHttpService,
+        MenuHttpService menuHttpService,
+        AuthorityHttpService authorityHttpService) {
+        this.userHttpService = userHttpService;
+        this.menuHttpService = menuHttpService;
+        this.authorityHttpService = authorityHttpService;
+    }
 
-  public void lockAfterPasswordFailures(Long userId) {
-    RemoteResult.requireSuccess(() -> userHttpService.lockAfterPasswordFailures(userId));
-  }
+    public void lockAfterPasswordFailures(Long userId) {
+        RemoteResult.requireSuccess(() -> userHttpService.lockAfterPasswordFailures(userId));
+    }
 
-  public List<RoleEntityRpcVo> findByRoleCodeInAndStatus(List<String> roles, Integer status) {
-    return RemoteResult.requireSuccess(
-        () -> userHttpService.findByRoleCodeInAndStatus(roles, status));
-  }
+    public List<RoleEntityRpcVo> findByRoleCodeInAndStatus(List<String> roles, Integer status) {
+        return RemoteResult.requireSuccess(
+            () -> userHttpService.findByRoleCodeInAndStatus(roles, status));
+    }
 
-  public void updateLoginTime(String username) {
-    RemoteResult.requireSuccess(() -> userHttpService.updateLoginTime(username));
-  }
+    public void updateLoginTime(String username) {
+        RemoteResult.requireSuccess(() -> userHttpService.updateLoginTime(username));
+    }
 
-  @Override
-  public void findByEmail(String loginEmail) {
-    RemoteResult.requireSuccess(() -> userHttpService.findByEmail(loginEmail));
-  }
+    @Override
+    public void findByEmail(String loginEmail) {
+        RemoteResult.requireSuccess(() -> userHttpService.findByEmail(loginEmail));
+    }
 
-  @Override
-  public void findByPhone(String loginSMS) {
-    RemoteResult.requireSuccess(() -> userHttpService.findByPhone(loginSMS));
-  }
+    @Override
+    public void findByPhone(String loginSMS) {
+        RemoteResult.requireSuccess(() -> userHttpService.findByPhone(loginSMS));
+    }
 
-  @Override
-  public UserAccessRpcVo findUserAccess(Long userId) {
-    return RemoteResult.requireSuccess(() -> userHttpService.findUserAccess(userId));
-  }
+    @Override
+    public UserAccessRpcVo findUserAccess(Long userId) {
+        return RemoteResult.requireSuccess(() -> userHttpService.findUserAccess(userId));
+    }
 
-  public List<RoleAuthorizationRpcVo> findAllRoleAuthorizations() {
-    return RemoteResult.requireSuccess(userHttpService::findAllRoleAuthorizations);
-  }
+    public List<RoleAuthorizationRpcVo> findAllRoleAuthorizations() {
+        return RemoteResult.requireSuccess(userHttpService::findAllRoleAuthorizations);
+    }
 
-  public List<RoleAuthorizationRpcVo> findRoleAuthorizations(List<Long> roleIds) {
-    return RemoteResult.requireSuccess(() -> userHttpService.findRoleAuthorizations(roleIds));
-  }
+    public List<RoleAuthorizationRpcVo> findRoleAuthorizations(List<Long> roleIds) {
+        return RemoteResult.requireSuccess(() -> userHttpService.findRoleAuthorizations(roleIds));
+    }
 
-  @Override
-  public UserEntityRpcVo findById(Long userId) {
-    return RemoteResult.requireSuccess(() -> userHttpService.findById(userId));
-  }
+    @Override
+    public UserEntityRpcVo findById(Long userId) {
+        return RemoteResult.requireSuccess(() -> userHttpService.findById(userId));
+    }
 
-  public UserEntityRpcVo findByUsernameOrEmailOrPhone(String username) {
-    return RemoteResult.requireSuccess(
-        () -> userHttpService.findByUsernameOrEmailOrPhone(username));
-  }
+    public UserEntityRpcVo findByUsernameOrEmailOrPhone(String username) {
+        return RemoteResult.requireSuccess(
+            () -> userHttpService.findByUsernameOrEmailOrPhone(username));
+    }
 
-  public List<MenuRpcVo> getCurrentUserNav(String rawRole) {
-    return RemoteResult.requireSuccess(() -> menuHttpService.getCurrentUserNav(rawRole));
-  }
+    public List<MenuRpcVo> getCurrentUserNav(String rawRole) {
+        return RemoteResult.requireSuccess(() -> menuHttpService.getCurrentUserNav(rawRole));
+    }
 
-  public List<AuthorityRpcVo> getSystemAuthorities() {
-    return RemoteResult.requireSuccess(authorityHttpService::getAuthorities);
-  }
+    public List<AuthorityRpcVo> getSystemAuthorities() {
+        return RemoteResult.requireSuccess(authorityHttpService::getAuthorities);
+    }
 }

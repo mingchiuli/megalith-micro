@@ -13,4 +13,5 @@ public record BlogSearchHit(
     String content,
     LocalDateTime created,
     Float score,
-    Map<String, List<String>> highlight) {}
+    Map<String, List<String>> highlight) {
+}

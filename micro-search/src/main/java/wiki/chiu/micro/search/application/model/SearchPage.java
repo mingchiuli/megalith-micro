@@ -12,7 +12,7 @@ public record SearchPage<T>(
     boolean empty,
     int totalPages) {
 
-  public SearchPage {
-    content = List.copyOf(content);
-  }
+    public SearchPage {
+        content = List.copyOf(content);
+    }
 }

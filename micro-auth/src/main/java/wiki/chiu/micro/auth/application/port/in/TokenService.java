@@ -8,7 +8,7 @@ import wiki.chiu.micro.auth.vo.UserInfoVo;
  */
 public interface TokenService {
 
-  String refreshAccessToken(Long userId);
+    String refreshAccessToken(Long userId);
 
-  UserInfoVo userinfo(Long userId);
+    UserInfoVo userinfo(Long userId);
 }

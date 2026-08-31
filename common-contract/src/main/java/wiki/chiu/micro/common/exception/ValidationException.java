@@ -4,7 +4,7 @@ import wiki.chiu.micro.common.lang.CommonErrorCode;
 
 public final class ValidationException extends BaseException {
 
-  public ValidationException(String message) {
-    super(CommonErrorCode.VALIDATION_ERROR, message);
-  }
+    public ValidationException(String message) {
+        super(CommonErrorCode.VALIDATION_ERROR, message);
+    }
 }

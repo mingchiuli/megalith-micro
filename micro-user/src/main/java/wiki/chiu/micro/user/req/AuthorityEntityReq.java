@@ -12,4 +12,5 @@ public record AuthorityEntityReq(
     String serviceHost,
     Integer servicePort,
     Integer type,
-    Integer status) {}
+    Integer status) {
+}

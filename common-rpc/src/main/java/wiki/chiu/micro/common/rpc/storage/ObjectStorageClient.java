@@ -2,9 +2,9 @@ package wiki.chiu.micro.common.rpc.storage;
 
 public interface ObjectStorageClient {
 
-  String put(String objectName, byte[] content, String contentType);
+    String put(String objectName, byte[] content, String contentType);
 
-  void delete(String objectName);
+    void delete(String objectName);
 
-  String objectName(String publicUrl);
+    String objectName(String publicUrl);
 }

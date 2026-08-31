@@ -4,13 +4,13 @@ import java.time.LocalDateTime;
 
 public interface DateRangeRequest {
 
-  LocalDateTime createStart();
+    LocalDateTime createStart();
 
-  LocalDateTime createEnd();
+    LocalDateTime createEnd();
 
-  default boolean hasValidDateRange() {
-    LocalDateTime start = createStart();
-    LocalDateTime end = createEnd();
-    return start == null || end == null || !start.isAfter(end);
-  }
+    default boolean hasValidDateRange() {
+        LocalDateTime start = createStart();
+        LocalDateTime end = createEnd();
+        return start == null || end == null || !start.isAfter(end);
+    }
 }

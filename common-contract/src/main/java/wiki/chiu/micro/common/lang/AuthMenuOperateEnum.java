@@ -5,36 +5,36 @@ import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 import wiki.chiu.micro.common.exception.MissException;
 
 public enum AuthMenuOperateEnum {
-  AUTH(1, "权限"),
+    AUTH(1, "权限"),
 
-  MENU(2, "菜单或按钮"),
+    MENU(2, "菜单或按钮"),
 
-  AUTH_AND_MENU(3, "权限和菜单");
+    AUTH_AND_MENU(3, "权限和菜单");
 
-  private final Integer type;
+    private final Integer type;
 
-  private final String description;
+    private final String description;
 
-  AuthMenuOperateEnum(Integer type, String description) {
-    this.type = type;
-    this.description = description;
-  }
-
-  public static AuthMenuOperateEnum of(Integer type) {
-    for (AuthMenuOperateEnum operateEnum : values()) {
-      if (operateEnum.type.equals(type)) {
-        return operateEnum;
-      }
+    AuthMenuOperateEnum(Integer type, String description) {
+        this.type = type;
+        this.description = description;
     }
 
-    throw new MissException(NO_FOUND);
-  }
+    public static AuthMenuOperateEnum of(Integer type) {
+        for (AuthMenuOperateEnum operateEnum : values()) {
+            if (operateEnum.type.equals(type)) {
+                return operateEnum;
+            }
+        }
 
-  public Integer getType() {
-    return this.type;
-  }
+        throw new MissException(NO_FOUND);
+    }
 
-  public String getDescription() {
-    return this.description;
-  }
+    public Integer getType() {
+        return this.type;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
 }

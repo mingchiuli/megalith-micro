@@ -7,6 +7,7 @@ import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.service.registry.ImportHttpServices;
+
 import wiki.chiu.micro.common.rpc.OssHttpService;
 import wiki.chiu.micro.user.config.CustomRuntimeHints;
 
@@ -22,7 +23,7 @@ import wiki.chiu.micro.user.config.CustomRuntimeHints;
     types = {OssHttpService.class})
 public class MicroUserApplication {
 
-  public static void main(String[] args) {
-    SpringApplication.run(MicroUserApplication.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(MicroUserApplication.class, args);
+    }
 }

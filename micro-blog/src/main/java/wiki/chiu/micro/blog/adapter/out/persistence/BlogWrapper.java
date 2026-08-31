@@ -1,8 +1,10 @@
 package wiki.chiu.micro.blog.adapter.out.persistence;
 
 import java.util.List;
+
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
@@ -19,112 +21,112 @@ import wiki.chiu.micro.outbox.OutboxService;
 @Component
 public class BlogWrapper implements BlogWriter {
 
-  private final BlogRepository blogs;
-  private final BlogSensitiveContentRepository sensitiveContents;
-  private final OutboxService outbox;
+    private final BlogRepository blogs;
+    private final BlogSensitiveContentRepository sensitiveContents;
+    private final OutboxService outbox;
 
-  public BlogWrapper(
-      BlogRepository blogs,
-      BlogSensitiveContentRepository sensitiveContents,
-      OutboxService outbox) {
-    this.blogs = blogs;
-    this.sensitiveContents = sensitiveContents;
-    this.outbox = outbox;
-  }
-
-  @Transactional
-  @Override
-  public void saveOrUpdate(
-      BlogEntity blog,
-      Long expectedRevision,
-      List<Long> existingSensitiveIds,
-      List<BlogSensitiveContentEntity> newSensitiveContents,
-      BlogEventContext event) {
-    BlogEntity persisted =
-        expectedRevision == null ? blogs.save(blog) : update(blog, expectedRevision);
-
-    sensitiveContents.deleteAllByIdInBatch(existingSensitiveIds);
-    newSensitiveContents.forEach(item -> item.setBlogId(persisted.getId()));
-    sensitiveContents.saveAll(newSensitiveContents);
-    enqueue(persisted, event);
-  }
-
-  @Transactional
-  @Override
-  public void recoverDeletedBlog(BlogEntity blog, BlogEventContext event) {
-    enqueue(blogs.save(blog), event);
-  }
-
-  @Transactional
-  @Override
-  public void deleteByIds(
-      List<BlogEntity> deleted, List<Long> sensitiveIds, BlogEventContext event) {
-    deleted.forEach(
-        blog -> {
-          long expectedRevision = blog.getEventRevision() - 1;
-          if (blogs.deleteByIdAndEventRevision(blog.getId(), expectedRevision) != 1) {
-            throw revisionConflict(blog.getId());
-          }
-        });
-    sensitiveContents.deleteAllByIdInBatch(sensitiveIds);
-    deleted.forEach(blog -> enqueue(blog, event));
-  }
-
-  @Transactional
-  @Override
-  public void incrementViews(Long blogId) {
-    blogs.setReadCount(blogId);
-  }
-
-  private BlogEntity update(BlogEntity blog, Long expectedRevision) {
-    int updated =
-        blogs.updateByIdAndEventRevision(
-            blog.getId(),
-            expectedRevision,
-            blog.getEventRevision(),
-            blog.getTitle(),
-            blog.getDescription(),
-            blog.getContent(),
-            blog.getStatus(),
-            blog.getLink(),
-            blog.getUpdated());
-    if (updated != 1) {
-      throw revisionConflict(blog.getId());
+    public BlogWrapper(
+        BlogRepository blogs,
+        BlogSensitiveContentRepository sensitiveContents,
+        OutboxService outbox) {
+        this.blogs = blogs;
+        this.sensitiveContents = sensitiveContents;
+        this.outbox = outbox;
     }
-    return blog;
-  }
 
-  private BaseException revisionConflict(Long blogId) {
-    return new BaseException(CommonErrorCode.CONFLICT, "blog revision conflict: " + blogId);
-  }
+    @Transactional
+    @Override
+    public void saveOrUpdate(
+        BlogEntity blog,
+        Long expectedRevision,
+        List<Long> existingSensitiveIds,
+        List<BlogSensitiveContentEntity> newSensitiveContents,
+        BlogEventContext event) {
+        BlogEntity persisted =
+            expectedRevision == null ? blogs.save(blog) : update(blog, expectedRevision);
 
-  private void enqueue(BlogEntity blog, BlogEventContext event) {
-    BlogSnapshot snapshot =
-        new BlogSnapshot(
-            blog.getId(),
-            blog.getUserId(),
-            blog.getTitle(),
-            blog.getDescription(),
-            blog.getContent(),
-            blog.getCreated(),
-            blog.getUpdated(),
-            blog.getStatus(),
-            blog.getLink(),
-            blog.getReadCount(),
-            blog.getEventRevision());
-    outbox.enqueue(
-        OutboxProducer.BLOG,
-        "BLOG",
-        blog.getId(),
-        eventId ->
-            new BlogChangedMessage(
-                eventId,
-                event.operation().getCode(),
+        sensitiveContents.deleteAllByIdInBatch(existingSensitiveIds);
+        newSensitiveContents.forEach(item -> item.setBlogId(persisted.getId()));
+        sensitiveContents.saveAll(newSensitiveContents);
+        enqueue(persisted, event);
+    }
+
+    @Transactional
+    @Override
+    public void recoverDeletedBlog(BlogEntity blog, BlogEventContext event) {
+        enqueue(blogs.save(blog), event);
+    }
+
+    @Transactional
+    @Override
+    public void deleteByIds(
+        List<BlogEntity> deleted, List<Long> sensitiveIds, BlogEventContext event) {
+        deleted.forEach(
+            blog -> {
+                long expectedRevision = blog.getEventRevision() - 1;
+                if (blogs.deleteByIdAndEventRevision(blog.getId(), expectedRevision) != 1) {
+                    throw revisionConflict(blog.getId());
+                }
+            });
+        sensitiveContents.deleteAllByIdInBatch(sensitiveIds);
+        deleted.forEach(blog -> enqueue(blog, event));
+    }
+
+    @Transactional
+    @Override
+    public void incrementViews(Long blogId) {
+        blogs.setReadCount(blogId);
+    }
+
+    private BlogEntity update(BlogEntity blog, Long expectedRevision) {
+        int updated =
+            blogs.updateByIdAndEventRevision(
+                blog.getId(),
+                expectedRevision,
                 blog.getEventRevision(),
-                event.operatorUserId(),
-                snapshot,
-                event.totalCount(),
-                event.newerOrSameCount(),
-                event.previousTotalCount()));
-  }
+                blog.getTitle(),
+                blog.getDescription(),
+                blog.getContent(),
+                blog.getStatus(),
+                blog.getLink(),
+                blog.getUpdated());
+        if (updated != 1) {
+            throw revisionConflict(blog.getId());
+        }
+        return blog;
+    }
+
+    private BaseException revisionConflict(Long blogId) {
+        return new BaseException(CommonErrorCode.CONFLICT, "blog revision conflict: " + blogId);
+    }
+
+    private void enqueue(BlogEntity blog, BlogEventContext event) {
+        BlogSnapshot snapshot =
+            new BlogSnapshot(
+                blog.getId(),
+                blog.getUserId(),
+                blog.getTitle(),
+                blog.getDescription(),
+                blog.getContent(),
+                blog.getCreated(),
+                blog.getUpdated(),
+                blog.getStatus(),
+                blog.getLink(),
+                blog.getReadCount(),
+                blog.getEventRevision());
+        outbox.enqueue(
+            OutboxProducer.BLOG,
+            "BLOG",
+            blog.getId(),
+            eventId ->
+                new BlogChangedMessage(
+                    eventId,
+                    event.operation().getCode(),
+                    blog.getEventRevision(),
+                    event.operatorUserId(),
+                    snapshot,
+                    event.totalCount(),
+                    event.newerOrSameCount(),
+                    event.previousTotalCount()));
+    }
 }

@@ -10,15 +10,15 @@ public record UserEntityRegisterReq(
     String phone,
     String token) {
 
-  public UserEntityRegisterReq(UserEntityRegisterReq req, String phone) {
-    this(
-        req.username,
-        req.nickname,
-        req.avatar,
-        req.password,
-        req.confirmPassword,
-        req.email,
-        phone,
-        req.token);
-  }
+    public UserEntityRegisterReq(UserEntityRegisterReq req, String phone) {
+        this(
+            req.username,
+            req.nickname,
+            req.avatar,
+            req.password,
+            req.confirmPassword,
+            req.email,
+            phone,
+            req.token);
+    }
 }

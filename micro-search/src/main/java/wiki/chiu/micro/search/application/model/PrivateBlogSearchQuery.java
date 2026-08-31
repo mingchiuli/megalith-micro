@@ -10,4 +10,5 @@ public record PrivateBlogSearchQuery(
     LocalDateTime createStart,
     LocalDateTime createEnd,
     long userId,
-    boolean allData) {}
+    boolean allData) {
+}

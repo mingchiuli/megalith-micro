@@ -2,21 +2,24 @@ package wiki.chiu.micro.common.rpc.config;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 
-/** OTEL log */
+/**
+ * OTEL log
+ */
 @AutoConfiguration
 class InstallOpenTelemetryAppender implements InitializingBean {
 
-  private final OpenTelemetry openTelemetry;
+    private final OpenTelemetry openTelemetry;
 
-  InstallOpenTelemetryAppender(OpenTelemetry openTelemetry) {
-    this.openTelemetry = openTelemetry;
-  }
+    InstallOpenTelemetryAppender(OpenTelemetry openTelemetry) {
+        this.openTelemetry = openTelemetry;
+    }
 
-  @Override
-  public void afterPropertiesSet() {
-    OpenTelemetryAppender.install(this.openTelemetry);
-  }
+    @Override
+    public void afterPropertiesSet() {
+        OpenTelemetryAppender.install(this.openTelemetry);
+    }
 }

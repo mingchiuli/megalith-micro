@@ -9,11 +9,11 @@ import wiki.chiu.micro.common.lang.ExceptionMessage;
  */
 public class MissException extends BaseException {
 
-  public MissException(String message) {
-    super(ErrorCodes.findByMessage(message).orElse(ExceptionMessage.NO_FOUND), message);
-  }
+    public MissException(String message) {
+        super(ErrorCodes.findByMessage(message).orElse(ExceptionMessage.NO_FOUND), message);
+    }
 
-  public MissException(ExceptionMessage exceptionMessage) {
-    super(exceptionMessage);
-  }
+    public MissException(ExceptionMessage exceptionMessage) {
+        super(exceptionMessage);
+    }
 }

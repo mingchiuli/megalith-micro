@@ -9,9 +9,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,116 +21,117 @@ import org.redisson.api.RedissonClient;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+
 import wiki.chiu.micro.outbox.config.OutboxProperties;
 import wiki.chiu.micro.scheduling.RedisTaskLock;
 import wiki.chiu.micro.scheduling.TaskLockProperties;
 
 class OutboxPublisherTest {
 
-  private final OutboxStore store = mock(OutboxStore.class);
-  private final RabbitTemplate rabbitTemplate = mock(RabbitTemplate.class);
-  private final RedissonClient redisson = mock(RedissonClient.class);
-  private final OutboxProperties properties = new OutboxProperties();
-  private OutboxPublisher publisher;
+    private final OutboxStore store = mock(OutboxStore.class);
+    private final RabbitTemplate rabbitTemplate = mock(RabbitTemplate.class);
+    private final RedissonClient redisson = mock(RedissonClient.class);
+    private final OutboxProperties properties = new OutboxProperties();
+    private OutboxPublisher publisher;
 
-  @BeforeEach
-  void setUp() {
-    properties.setProducer(OutboxProducer.BLOG);
-    properties.setExchange("blog.exchange");
-    properties.setPublisherConcurrency(1);
-    properties.setConfirmTimeoutMillis(100);
-    org.redisson.api.RLock lock = mock(org.redisson.api.RLock.class);
-    when(redisson.getLock("megalith:default:task:outbox:publisher:BLOG")).thenReturn(lock);
-    when(lock.tryLock()).thenReturn(true);
-    when(lock.isHeldByCurrentThread()).thenReturn(true);
-    RedisTaskLock taskLock = new RedisTaskLock(redisson, new TaskLockProperties());
-    publisher =
-        new OutboxPublisher(store, rabbitTemplate, taskLock, properties, new SimpleMeterRegistry());
-  }
+    @BeforeEach
+    void setUp() {
+        properties.setProducer(OutboxProducer.BLOG);
+        properties.setExchange("blog.exchange");
+        properties.setPublisherConcurrency(1);
+        properties.setConfirmTimeoutMillis(100);
+        org.redisson.api.RLock lock = mock(org.redisson.api.RLock.class);
+        when(redisson.getLock("megalith:default:task:outbox:publisher:BLOG")).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(true);
+        when(lock.isHeldByCurrentThread()).thenReturn(true);
+        RedisTaskLock taskLock = new RedisTaskLock(redisson, new TaskLockProperties());
+        publisher =
+            new OutboxPublisher(store, rabbitTemplate, taskLock, properties, new SimpleMeterRegistry());
+    }
 
-  @AfterEach
-  void tearDown() {
-    publisher.close();
-  }
+    @AfterEach
+    void tearDown() {
+        publisher.close();
+    }
 
-  @Test
-  void confirmedMessageIsPhysicallyDeleted() {
-    OutboxRecord record = record();
-    when(store.findReady(OutboxProducer.BLOG, 50)).thenReturn(List.of(record));
-    completeConfirm(true, null);
+    @Test
+    void confirmedMessageIsPhysicallyDeleted() {
+        OutboxRecord record = record();
+        when(store.findReady(OutboxProducer.BLOG, 50)).thenReturn(List.of(record));
+        completeConfirm(true, null);
 
-    publisher.publishReady();
+        publisher.publishReady();
 
-    verify(store).delete(record.id(), OutboxProducer.BLOG);
-    verify(store, never())
-        .reschedule(
-            eq(record.id()), eq(OutboxProducer.BLOG), any(LocalDateTime.class), any(String.class));
-  }
+        verify(store).delete(record.id(), OutboxProducer.BLOG);
+        verify(store, never())
+            .reschedule(
+                eq(record.id()), eq(OutboxProducer.BLOG), any(LocalDateTime.class), any(String.class));
+    }
 
-  @Test
-  void brokerNackSchedulesAutomaticRetryWithoutDeleting() {
-    OutboxRecord record = record();
-    when(store.findReady(OutboxProducer.BLOG, 50)).thenReturn(List.of(record));
-    completeConfirm(false, "broker unavailable");
+    @Test
+    void brokerNackSchedulesAutomaticRetryWithoutDeleting() {
+        OutboxRecord record = record();
+        when(store.findReady(OutboxProducer.BLOG, 50)).thenReturn(List.of(record));
+        completeConfirm(false, "broker unavailable");
 
-    publisher.publishReady();
+        publisher.publishReady();
 
-    verify(store, never()).delete(record.id(), OutboxProducer.BLOG);
-    verify(store)
-        .reschedule(
-            eq(record.id()),
-            eq(OutboxProducer.BLOG),
-            any(LocalDateTime.class),
-            eq("broker nack: broker unavailable"));
-  }
+        verify(store, never()).delete(record.id(), OutboxProducer.BLOG);
+        verify(store)
+            .reschedule(
+                eq(record.id()),
+                eq(OutboxProducer.BLOG),
+                any(LocalDateTime.class),
+                eq("broker nack: broker unavailable"));
+    }
 
-  @Test
-  void eventTypeCanUseADedicatedExchange() {
-    properties.setEventExchanges(Map.of("UserDeletedMessage", "user.deleted.exchange"));
-    OutboxRecord record =
-        new OutboxRecord(
-            2L,
-            "event-2",
+    @Test
+    void eventTypeCanUseADedicatedExchange() {
+        properties.setEventExchanges(Map.of("UserDeletedMessage", "user.deleted.exchange"));
+        OutboxRecord record =
+            new OutboxRecord(
+                2L,
+                "event-2",
+                OutboxProducer.BLOG,
+                "USER_DELETION",
+                "42",
+                "UserDeletedMessage",
+                "{}",
+                0,
+                LocalDateTime.now());
+        when(store.findReady(OutboxProducer.BLOG, 50)).thenReturn(List.of(record));
+        completeConfirm("user.deleted.exchange", true, null);
+
+        publisher.publishReady();
+
+        verify(store).delete(record.id(), OutboxProducer.BLOG);
+    }
+
+    private void completeConfirm(boolean ack, String reason) {
+        completeConfirm("blog.exchange", ack, reason);
+    }
+
+    private void completeConfirm(String exchange, boolean ack, String reason) {
+        doAnswer(
+            invocation -> {
+                CorrelationData correlation = invocation.getArgument(3);
+                correlation.getFuture().complete(new CorrelationData.Confirm(ack, reason));
+                return null;
+            })
+            .when(rabbitTemplate)
+            .send(eq(exchange), eq(""), any(Message.class), any(CorrelationData.class));
+    }
+
+    private OutboxRecord record() {
+        return new OutboxRecord(
+            1L,
+            "event-1",
             OutboxProducer.BLOG,
-            "USER_DELETION",
+            "BLOG",
             "42",
-            "UserDeletedMessage",
+            "BlogChangedMessage",
             "{}",
             0,
             LocalDateTime.now());
-    when(store.findReady(OutboxProducer.BLOG, 50)).thenReturn(List.of(record));
-    completeConfirm("user.deleted.exchange", true, null);
-
-    publisher.publishReady();
-
-    verify(store).delete(record.id(), OutboxProducer.BLOG);
-  }
-
-  private void completeConfirm(boolean ack, String reason) {
-    completeConfirm("blog.exchange", ack, reason);
-  }
-
-  private void completeConfirm(String exchange, boolean ack, String reason) {
-    doAnswer(
-            invocation -> {
-              CorrelationData correlation = invocation.getArgument(3);
-              correlation.getFuture().complete(new CorrelationData.Confirm(ack, reason));
-              return null;
-            })
-        .when(rabbitTemplate)
-        .send(eq(exchange), eq(""), any(Message.class), any(CorrelationData.class));
-  }
-
-  private OutboxRecord record() {
-    return new OutboxRecord(
-        1L,
-        "event-1",
-        OutboxProducer.BLOG,
-        "BLOG",
-        "42",
-        "BlogChangedMessage",
-        "{}",
-        0,
-        LocalDateTime.now());
-  }
+    }
 }

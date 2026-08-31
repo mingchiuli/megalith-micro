@@ -4,5 +4,5 @@ import java.io.OutputStream;
 
 public interface UserExportService {
 
-  void write(OutputStream outputStream);
+    void write(OutputStream outputStream);
 }

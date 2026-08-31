@@ -1,30 +1,32 @@
 package wiki.chiu.micro.auth.convertor;
 
 import java.util.List;
+
 import wiki.chiu.micro.auth.dto.MenuDisplayDto;
 import wiki.chiu.micro.auth.dto.MenuWithChildDto;
 
 public class MenuWithChildDtoConvertor {
 
-  private MenuWithChildDtoConvertor() {}
+    private MenuWithChildDtoConvertor() {
+    }
 
-  public static List<MenuWithChildDto> convert(List<MenuDisplayDto> displayDtos) {
-    return displayDtos.stream()
-        .map(
-            item ->
-                MenuWithChildDto.builder()
-                    .id(item.id())
-                    .icon(item.icon())
-                    .name(item.name())
-                    .title(item.title())
-                    .status(item.status())
-                    .component(item.component())
-                    .url(item.url())
-                    .parentId(item.parentId())
-                    .orderNum(item.orderNum())
-                    .type(item.type())
-                    .children(convert(item.children()))
-                    .build())
-        .toList();
-  }
+    public static List<MenuWithChildDto> convert(List<MenuDisplayDto> displayDtos) {
+        return displayDtos.stream()
+            .map(
+                item ->
+                    MenuWithChildDto.builder()
+                        .id(item.id())
+                        .icon(item.icon())
+                        .name(item.name())
+                        .title(item.title())
+                        .status(item.status())
+                        .component(item.component())
+                        .url(item.url())
+                        .parentId(item.parentId())
+                        .orderNum(item.orderNum())
+                        .type(item.type())
+                        .children(convert(item.children()))
+                        .build())
+            .toList();
+    }
 }

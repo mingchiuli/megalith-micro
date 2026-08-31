@@ -13,14 +13,14 @@ import org.springframework.core.task.support.ContextPropagatingTaskDecorator;
 @Configuration(proxyBeanMethods = false)
 public class ThreadPoolConfig {
 
-  @Bean("mqExecutor")
-  TaskExecutor simpleAsyncTaskExecutor(
-      ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
-    SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
-    executor.setVirtualThreads(true);
-    executor.setTaskTerminationTimeout(60000);
-    executor.setCancelRemainingTasksOnClose(true);
-    executor.setTaskDecorator(contextPropagatingTaskDecorator);
-    return executor;
-  }
+    @Bean("mqExecutor")
+    TaskExecutor simpleAsyncTaskExecutor(
+        ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
+        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+        executor.setVirtualThreads(true);
+        executor.setTaskTerminationTimeout(60000);
+        executor.setCancelRemainingTasksOnClose(true);
+        executor.setTaskDecorator(contextPropagatingTaskDecorator);
+        return executor;
+    }
 }

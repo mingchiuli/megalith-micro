@@ -11,4 +11,5 @@ public record OutboxRecord(
     String eventType,
     String payload,
     int attempts,
-    LocalDateTime availableAt) {}
+    LocalDateTime availableAt) {
+}

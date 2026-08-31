@@ -4,7 +4,7 @@ import wiki.chiu.micro.user.application.model.UserUpload;
 
 public interface UserAssetService {
 
-  String upload(String registrationToken, UserUpload upload);
+    String upload(String registrationToken, UserUpload upload);
 
-  void delete(String registrationToken, String url);
+    void delete(String registrationToken, String url);
 }

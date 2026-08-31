@@ -7,24 +7,24 @@ import org.junit.jupiter.api.Test;
 
 class EntityEqualityTest {
 
-  @Test
-  void persistedEntitiesUseDatabaseIdentity() {
-    BlogEntity first = BlogEntity.builder().id(7L).title("before").build();
-    BlogEntity second = BlogEntity.builder().id(7L).title("different").build();
+    @Test
+    void persistedEntitiesUseDatabaseIdentity() {
+        BlogEntity first = BlogEntity.builder().id(7L).title("before").build();
+        BlogEntity second = BlogEntity.builder().id(7L).title("different").build();
 
-    assertEquals(first, second);
-    assertEquals(first.hashCode(), second.hashCode());
-  }
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+    }
 
-  @Test
-  void transientEntitiesAreOnlyEqualToThemselvesAndHashIsStableAcrossMutation() {
-    BlogEntity first = BlogEntity.builder().title("before").build();
-    BlogEntity second = BlogEntity.builder().title("before").build();
-    int hash = first.hashCode();
+    @Test
+    void transientEntitiesAreOnlyEqualToThemselvesAndHashIsStableAcrossMutation() {
+        BlogEntity first = BlogEntity.builder().title("before").build();
+        BlogEntity second = BlogEntity.builder().title("before").build();
+        int hash = first.hashCode();
 
-    first.setTitle("after");
+        first.setTitle("after");
 
-    assertNotEquals(first, second);
-    assertEquals(hash, first.hashCode());
-  }
+        assertNotEquals(first, second);
+        assertEquals(hash, first.hashCode());
+    }
 }

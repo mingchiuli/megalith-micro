@@ -5,6 +5,6 @@ import org.springframework.web.service.annotation.GetExchange;
 
 public interface SmsHttpService {
 
-  @GetExchange("/{paramStr}")
-  void sendSms(@PathVariable String paramStr);
+    @GetExchange("/{paramStr}")
+    void sendSms(@PathVariable String paramStr);
 }

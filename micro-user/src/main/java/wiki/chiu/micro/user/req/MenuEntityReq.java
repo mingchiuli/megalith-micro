@@ -16,4 +16,5 @@ public record MenuEntityReq(
     String icon,
     Integer orderNum,
     Integer type,
-    Integer status) {}
+    Integer status) {
+}

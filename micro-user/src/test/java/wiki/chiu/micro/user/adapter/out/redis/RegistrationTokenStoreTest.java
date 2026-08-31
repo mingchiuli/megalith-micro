@@ -9,43 +9,45 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
+
 import wiki.chiu.micro.common.exception.MissException;
 
 class RegistrationTokenStoreTest {
 
-  private final StringRedisTemplate redis = mock(StringRedisTemplate.class);
-  private final RedisRegistrationTokenStore tokens =
-      new RedisRegistrationTokenStore(redis, new DefaultResourceLoader());
+    private final StringRedisTemplate redis = mock(StringRedisTemplate.class);
+    private final RedisRegistrationTokenStore tokens =
+        new RedisRegistrationTokenStore(redis, new DefaultResourceLoader());
 
-  @BeforeEach
-  void loadScript() throws IOException {
-    tokens.loadScript();
-  }
+    @BeforeEach
+    void loadScript() throws IOException {
+        tokens.loadScript();
+    }
 
-  @Test
-  @SuppressWarnings("unchecked")
-  void consumesMatchingUsernameWithOneRedisScript() {
-    when(redis.execute(any(RedisScript.class), eq(List.of("register_prefix:token")), eq("alice")))
-        .thenReturn(1L);
+    @Test
+    @SuppressWarnings("unchecked")
+    void consumesMatchingUsernameWithOneRedisScript() {
+        when(redis.execute(any(RedisScript.class), eq(List.of("register_prefix:token")), eq("alice")))
+            .thenReturn(1L);
 
-    tokens.consumeForUsername("token", "alice");
+        tokens.consumeForUsername("token", "alice");
 
-    verify(redis)
-        .execute(any(RedisScript.class), eq(List.of("register_prefix:token")), eq("alice"));
-  }
+        verify(redis)
+            .execute(any(RedisScript.class), eq(List.of("register_prefix:token")), eq("alice"));
+    }
 
-  @Test
-  @SuppressWarnings("unchecked")
-  void rejectsMissingOrMismatchedToken() {
-    when(redis.execute(any(RedisScript.class), eq(List.of("register_prefix:token")), eq("mallory")))
-        .thenReturn(0L);
+    @Test
+    @SuppressWarnings("unchecked")
+    void rejectsMissingOrMismatchedToken() {
+        when(redis.execute(any(RedisScript.class), eq(List.of("register_prefix:token")), eq("mallory")))
+            .thenReturn(0L);
 
-    assertThrows(MissException.class, () -> tokens.consumeForUsername("token", "mallory"));
-    assertThrows(MissException.class, () -> tokens.consumeForUsername("", "alice"));
-  }
+        assertThrows(MissException.class, () -> tokens.consumeForUsername("token", "mallory"));
+        assertThrows(MissException.class, () -> tokens.consumeForUsername("", "alice"));
+    }
 }

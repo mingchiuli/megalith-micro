@@ -4,5 +4,5 @@ import wiki.chiu.micro.search.application.model.BlogIndexChange;
 
 public interface BlogIndexWriter {
 
-  void write(BlogIndexChange change);
+    void write(BlogIndexChange change);
 }

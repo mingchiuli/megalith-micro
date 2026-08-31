@@ -16,65 +16,65 @@ import org.redisson.api.RedissonClient;
 
 class RedisTaskLockTest {
 
-  private final RedissonClient redisson = mock(RedissonClient.class);
-  private final RLock lock = mock(RLock.class);
-  private RedisTaskLock taskLock;
+    private final RedissonClient redisson = mock(RedissonClient.class);
+    private final RLock lock = mock(RLock.class);
+    private RedisTaskLock taskLock;
 
-  @BeforeEach
-  void setUp() {
-    TaskLockProperties properties = new TaskLockProperties();
-    properties.setEnvironment("test");
-    when(redisson.getLock("megalith:test:task:sample")).thenReturn(lock);
-    taskLock = new RedisTaskLock(redisson, properties);
-  }
+    @BeforeEach
+    void setUp() {
+        TaskLockProperties properties = new TaskLockProperties();
+        properties.setEnvironment("test");
+        when(redisson.getLock("megalith:test:task:sample")).thenReturn(lock);
+        taskLock = new RedisTaskLock(redisson, properties);
+    }
 
-  @Test
-  void runsAndUnlocksWhenAcquired() {
-    Runnable task = mock(Runnable.class);
-    when(lock.tryLock()).thenReturn(true);
-    when(lock.isHeldByCurrentThread()).thenReturn(true);
+    @Test
+    void runsAndUnlocksWhenAcquired() {
+        Runnable task = mock(Runnable.class);
+        when(lock.tryLock()).thenReturn(true);
+        when(lock.isHeldByCurrentThread()).thenReturn(true);
 
-    assertTrue(taskLock.tryRun("sample", task));
+        assertTrue(taskLock.tryRun("sample", task));
 
-    verify(task).run();
-    verify(lock).unlock();
-  }
+        verify(task).run();
+        verify(lock).unlock();
+    }
 
-  @Test
-  void skipsWhenAnotherNodeOwnsTheLock() {
-    Runnable task = mock(Runnable.class);
-    when(lock.tryLock()).thenReturn(false);
+    @Test
+    void skipsWhenAnotherNodeOwnsTheLock() {
+        Runnable task = mock(Runnable.class);
+        when(lock.tryLock()).thenReturn(false);
 
-    assertFalse(taskLock.tryRun("sample", task));
+        assertFalse(taskLock.tryRun("sample", task));
 
-    verify(task, never()).run();
-    verify(lock, never()).unlock();
-  }
+        verify(task, never()).run();
+        verify(lock, never()).unlock();
+    }
 
-  @Test
-  void unlocksAndPropagatesTaskFailure() {
-    when(lock.tryLock()).thenReturn(true);
-    when(lock.isHeldByCurrentThread()).thenReturn(true);
+    @Test
+    void unlocksAndPropagatesTaskFailure() {
+        when(lock.tryLock()).thenReturn(true);
+        when(lock.isHeldByCurrentThread()).thenReturn(true);
 
-    assertThrows(
-        IllegalStateException.class,
-        () ->
-            taskLock.tryRun(
-                "sample",
-                () -> {
-                  throw new IllegalStateException("failed");
-                }));
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                taskLock.tryRun(
+                    "sample",
+                    () -> {
+                        throw new IllegalStateException("failed");
+                    }));
 
-    verify(lock).unlock();
-  }
+        verify(lock).unlock();
+    }
 
-  @Test
-  void blockingExecutionReturnsValue() {
-    when(lock.isHeldByCurrentThread()).thenReturn(true);
+    @Test
+    void blockingExecutionReturnsValue() {
+        when(lock.isHeldByCurrentThread()).thenReturn(true);
 
-    assertEquals("done", taskLock.run("sample", () -> "done"));
+        assertEquals("done", taskLock.run("sample", () -> "done"));
 
-    verify(lock).lock();
-    verify(lock).unlock();
-  }
+        verify(lock).lock();
+        verify(lock).unlock();
+    }
 }

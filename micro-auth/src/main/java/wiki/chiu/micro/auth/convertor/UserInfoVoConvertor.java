@@ -5,13 +5,14 @@ import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 public class UserInfoVoConvertor {
 
-  private UserInfoVoConvertor() {}
+    private UserInfoVoConvertor() {
+    }
 
-  public static UserInfoVo convert(UserEntityRpcVo userEntity) {
-    return UserInfoVo.builder()
-        .id(userEntity.id())
-        .avatar(userEntity.avatar())
-        .nickname(userEntity.nickname())
-        .build();
-  }
+    public static UserInfoVo convert(UserEntityRpcVo userEntity) {
+        return UserInfoVo.builder()
+            .id(userEntity.id())
+            .avatar(userEntity.avatar())
+            .nickname(userEntity.nickname())
+            .build();
+    }
 }

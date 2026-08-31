@@ -1,6 +1,7 @@
 package wiki.chiu.micro.user.application.port.in;
 
 import java.util.List;
+
 import wiki.chiu.micro.user.req.MenuEntityReq;
 import wiki.chiu.micro.user.vo.MenuDisplayVo;
 import wiki.chiu.micro.user.vo.MenuEntityVo;
@@ -11,13 +12,13 @@ import wiki.chiu.micro.user.vo.MenuEntityVo;
  */
 public interface MenuService {
 
-  MenuEntityVo findById(Long id);
+    MenuEntityVo findById(Long id);
 
-  void saveOrUpdate(MenuEntityReq menu);
+    void saveOrUpdate(MenuEntityReq menu);
 
-  List<MenuDisplayVo> tree();
+    List<MenuDisplayVo> tree();
 
-  byte[] download();
+    byte[] download();
 
-  void delete(Long id);
+    void delete(Long id);
 }

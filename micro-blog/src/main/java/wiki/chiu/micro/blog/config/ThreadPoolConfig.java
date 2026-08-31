@@ -16,24 +16,24 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableAsync
 public class ThreadPoolConfig {
 
-  @Bean("mqExecutor")
-  TaskExecutor simpleAsyncTaskExecutor(
-      ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
-    SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
-    executor.setVirtualThreads(true);
-    executor.setTaskTerminationTimeout(60000);
-    executor.setCancelRemainingTasksOnClose(true);
-    executor.setTaskDecorator(contextPropagatingTaskDecorator);
-    return executor;
-  }
+    @Bean("mqExecutor")
+    TaskExecutor simpleAsyncTaskExecutor(
+        ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
+        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+        executor.setVirtualThreads(true);
+        executor.setTaskTerminationTimeout(60000);
+        executor.setCancelRemainingTasksOnClose(true);
+        executor.setTaskDecorator(contextPropagatingTaskDecorator);
+        return executor;
+    }
 
-  @Bean("commonExecutor")
-  TaskExecutor taskExecutor(ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
-    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setVirtualThreads(true);
-    executor.setWaitForTasksToCompleteOnShutdown(true);
-    executor.setAwaitTerminationSeconds(60);
-    executor.setTaskDecorator(contextPropagatingTaskDecorator);
-    return executor;
-  }
+    @Bean("commonExecutor")
+    TaskExecutor taskExecutor(ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setVirtualThreads(true);
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
+        executor.setTaskDecorator(contextPropagatingTaskDecorator);
+        return executor;
+    }
 }

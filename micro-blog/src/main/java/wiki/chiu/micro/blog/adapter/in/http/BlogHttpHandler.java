@@ -5,6 +5,7 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.*;
 
 import java.io.IOException;
 import java.util.List;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+
 import wiki.chiu.micro.blog.application.model.UploadObject;
 import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
 import wiki.chiu.micro.blog.application.port.in.BlogCollaborationService;
@@ -34,146 +36,147 @@ import wiki.chiu.micro.common.web.ValidatedRequest;
 @Component
 public class BlogHttpHandler {
 
-  private final BlogService blogService;
-  private final BlogAssetService assetService;
-  private final BlogCollaborationService collaborationService;
-  private final BlogExportService exportService;
-  private final ValidatedRequest v;
-  private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
-      new ParameterizedTypeReference<>() {};
+    private final BlogService blogService;
+    private final BlogAssetService assetService;
+    private final BlogCollaborationService collaborationService;
+    private final BlogExportService exportService;
+    private final ValidatedRequest v;
+    private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
+        new ParameterizedTypeReference<>() {
+        };
 
-  public BlogHttpHandler(
-      BlogService blogService,
-      BlogAssetService assetService,
-      BlogCollaborationService collaborationService,
-      BlogExportService exportService,
-      ValidatedRequest v) {
-    this.blogService = blogService;
-    this.assetService = assetService;
-    this.collaborationService = collaborationService;
-    this.exportService = exportService;
-    this.v = v;
-  }
-
-  public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-    BlogEntityReq blog = BlogRequestConverter.toBlogEntityReq(request);
-    AuthPrincipal authInfo = authPrincipal(request);
-    return ok(
-        Result.success(
-            () -> blogService.saveOrUpdate(blog, authInfo.userId(), authInfo.dataPermissions())));
-  }
-
-  public ServerResponse deleteBlogs(ServerRequest request) throws Exception {
-    List<Long> ids = v.notEmpty(v.positiveElements(request.body(LONG_LIST), "ids"), "ids");
-    AuthPrincipal authInfo = authPrincipal(request);
-    return ok(
-        Result.success(
-            () -> blogService.deleteBatch(ids, authInfo.userId(), authInfo.dataPermissions())));
-  }
-
-  public ServerResponse setBlogToken(ServerRequest request) {
-    Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
-    AuthPrincipal authInfo = authPrincipal(request);
-    return ok(
-        Result.success(
-            () ->
-                collaborationService.issueReadToken(
-                    blogId, authInfo.userId(), authInfo.dataPermissions())));
-  }
-
-  public ServerResponse getAllBlogs(ServerRequest request) {
-    BlogQueryReq query = BlogRequestConverter.toBlogQueryReq(request);
-    AuthPrincipal authInfo = authPrincipal(request);
-    return ok(
-        Result.success(
-            () -> blogService.findAllBlogs(query, authInfo.userId(), authInfo.dataPermissions())));
-  }
-
-  public ServerResponse getDeletedBlogs(ServerRequest request) {
-    Integer currentPage =
-        v.positive(requiredParam(request, "currentPage", Integer::valueOf), "currentPage");
-    Integer size = v.positive(requiredParam(request, "size", Integer::valueOf), "size");
-    AuthPrincipal authInfo = authPrincipal(request);
-    return ok(
-        Result.success(() -> blogService.findDeletedBlogs(currentPage, size, authInfo.userId())));
-  }
-
-  public ServerResponse recoverDeletedBlog(ServerRequest request) {
-    Integer idx = v.nonNegative(pathVariable(request, "idx", Integer::valueOf), "idx");
-    AuthPrincipal authInfo = authPrincipal(request);
-    return ok(Result.success(() -> blogService.recoverDeletedBlog(idx, authInfo.userId())));
-  }
-
-  public ServerResponse uploadOss(ServerRequest request) {
-    MultipartFile image = multipartFile(request, "image");
-    Long blogId = nullableParam(request, "blogId", Long::valueOf);
-    if (blogId != null) {
-      v.positive(blogId, "blogId");
+    public BlogHttpHandler(
+        BlogService blogService,
+        BlogAssetService assetService,
+        BlogCollaborationService collaborationService,
+        BlogExportService exportService,
+        ValidatedRequest v) {
+        this.blogService = blogService;
+        this.assetService = assetService;
+        this.collaborationService = collaborationService;
+        this.exportService = exportService;
+        this.v = v;
     }
-    AuthPrincipal authInfo = authPrincipal(request);
-    try {
-      UploadObject upload = new UploadObject(image.getBytes());
-      return ok(
-          Result.success(
-              () ->
-                  assetService.upload(
-                      upload, blogId, authInfo.userId(), authInfo.dataPermissions())));
-    } catch (IOException exception) {
-      throw new ValidationException("failed to read uploaded image");
-    }
-  }
 
-  public ServerResponse deleteOss(ServerRequest request) throws Exception {
-    OssDeleteReq body = request.body(OssDeleteReq.class);
-    String url = v.notBlank(body.url(), "url");
-    Long blogId = body.blogId();
-    if (blogId != null) {
-      v.positive(blogId, "blogId");
+    public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
+        BlogEntityReq blog = BlogRequestConverter.toBlogEntityReq(request);
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () -> blogService.saveOrUpdate(blog, authInfo.userId(), authInfo.dataPermissions())));
     }
-    AuthPrincipal authInfo = authPrincipal(request);
-    return ok(
-        Result.success(
-            () -> assetService.delete(url, blogId, authInfo.userId(), authInfo.dataPermissions())));
-  }
 
-  public ServerResponse issueCollaborationTicket(ServerRequest request) {
-    Long blogId = nullableParam(request, "blogId", Long::valueOf);
-    if (blogId != null) {
-      v.positive(blogId, "blogId");
+    public ServerResponse deleteBlogs(ServerRequest request) throws Exception {
+        List<Long> ids = v.notEmpty(v.positiveElements(request.body(LONG_LIST), "ids"), "ids");
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () -> blogService.deleteBatch(ids, authInfo.userId(), authInfo.dataPermissions())));
     }
-    AuthPrincipal authInfo = authPrincipal(request);
-    return ok(
-        Result.success(
-            () ->
-                collaborationService.issueWebSocketTicket(
-                    blogId, authInfo.userId(), authInfo.dataPermissions())));
-  }
 
-  public ServerResponse download(ServerRequest request) {
-    BlogDownloadReq downloadReq = BlogRequestConverter.toBlogDownloadReq(request);
-    AuthPrincipal authInfo = authPrincipal(request);
-    return ServerResponse.ok()
-        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=blogs.sql")
-        .build(
-            (servletRequest, response) -> {
-              exportService.write(
-                  downloadReq,
-                  authInfo.userId(),
-                  authInfo.dataPermissions(),
-                  response.getOutputStream());
-              return null;
-            });
-  }
-
-  public ServerResponse getEchoDetail(ServerRequest request) {
-    Long blogId = nullableParam(request, "blogId", Long::valueOf);
-    if (blogId != null) {
-      v.positive(blogId, "blogId");
+    public ServerResponse setBlogToken(ServerRequest request) {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () ->
+                    collaborationService.issueReadToken(
+                        blogId, authInfo.userId(), authInfo.dataPermissions())));
     }
-    AuthPrincipal authInfo = authPrincipal(request);
-    return ok(
-        Result.success(
-            () -> blogService.findEdit(blogId, authInfo.userId(), authInfo.dataPermissions())));
-  }
+
+    public ServerResponse getAllBlogs(ServerRequest request) {
+        BlogQueryReq query = BlogRequestConverter.toBlogQueryReq(request);
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () -> blogService.findAllBlogs(query, authInfo.userId(), authInfo.dataPermissions())));
+    }
+
+    public ServerResponse getDeletedBlogs(ServerRequest request) {
+        Integer currentPage =
+            v.positive(requiredParam(request, "currentPage", Integer::valueOf), "currentPage");
+        Integer size = v.positive(requiredParam(request, "size", Integer::valueOf), "size");
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(() -> blogService.findDeletedBlogs(currentPage, size, authInfo.userId())));
+    }
+
+    public ServerResponse recoverDeletedBlog(ServerRequest request) {
+        Integer idx = v.nonNegative(pathVariable(request, "idx", Integer::valueOf), "idx");
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(Result.success(() -> blogService.recoverDeletedBlog(idx, authInfo.userId())));
+    }
+
+    public ServerResponse uploadOss(ServerRequest request) {
+        MultipartFile image = multipartFile(request, "image");
+        Long blogId = nullableParam(request, "blogId", Long::valueOf);
+        if (blogId != null) {
+            v.positive(blogId, "blogId");
+        }
+        AuthPrincipal authInfo = authPrincipal(request);
+        try {
+            UploadObject upload = new UploadObject(image.getBytes());
+            return ok(
+                Result.success(
+                    () ->
+                        assetService.upload(
+                            upload, blogId, authInfo.userId(), authInfo.dataPermissions())));
+        } catch (IOException exception) {
+            throw new ValidationException("failed to read uploaded image");
+        }
+    }
+
+    public ServerResponse deleteOss(ServerRequest request) throws Exception {
+        OssDeleteReq body = request.body(OssDeleteReq.class);
+        String url = v.notBlank(body.url(), "url");
+        Long blogId = body.blogId();
+        if (blogId != null) {
+            v.positive(blogId, "blogId");
+        }
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () -> assetService.delete(url, blogId, authInfo.userId(), authInfo.dataPermissions())));
+    }
+
+    public ServerResponse issueCollaborationTicket(ServerRequest request) {
+        Long blogId = nullableParam(request, "blogId", Long::valueOf);
+        if (blogId != null) {
+            v.positive(blogId, "blogId");
+        }
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () ->
+                    collaborationService.issueWebSocketTicket(
+                        blogId, authInfo.userId(), authInfo.dataPermissions())));
+    }
+
+    public ServerResponse download(ServerRequest request) {
+        BlogDownloadReq downloadReq = BlogRequestConverter.toBlogDownloadReq(request);
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ServerResponse.ok()
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=blogs.sql")
+            .build(
+                (servletRequest, response) -> {
+                    exportService.write(
+                        downloadReq,
+                        authInfo.userId(),
+                        authInfo.dataPermissions(),
+                        response.getOutputStream());
+                    return null;
+                });
+    }
+
+    public ServerResponse getEchoDetail(ServerRequest request) {
+        Long blogId = nullableParam(request, "blogId", Long::valueOf);
+        if (blogId != null) {
+            v.positive(blogId, "blogId");
+        }
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () -> blogService.findEdit(blogId, authInfo.userId(), authInfo.dataPermissions())));
+    }
 }

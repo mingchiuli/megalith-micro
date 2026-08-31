@@ -3,39 +3,42 @@ package wiki.chiu.micro.auth.component;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
+
 import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.common.lang.Result;
 
 @Component
 public class LoginFailureHandler implements AuthenticationFailureHandler {
 
-  private final JsonMapper jsonMapper;
+    private final JsonMapper jsonMapper;
 
-  public LoginFailureHandler(JsonMapper jsonMapper) {
-    this.jsonMapper = jsonMapper;
-  }
+    public LoginFailureHandler(JsonMapper jsonMapper) {
+        this.jsonMapper = jsonMapper;
+    }
 
-  @Override
-  public void onAuthenticationFailure(
-      @NonNull HttpServletRequest request,
-      HttpServletResponse response,
-      AuthenticationException exception)
-      throws IOException {
-    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-    response.setStatus(HttpStatus.UNAUTHORIZED.value());
-    ServletOutputStream outputStream = response.getOutputStream();
-    Result<Void> result = Result.fail(exception.getMessage());
-    outputStream.write(jsonMapper.writeValueAsString(result).getBytes(StandardCharsets.UTF_8));
+    @Override
+    public void onAuthenticationFailure(
+        @NonNull HttpServletRequest request,
+        HttpServletResponse response,
+        AuthenticationException exception)
+        throws IOException {
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        ServletOutputStream outputStream = response.getOutputStream();
+        Result<Void> result = Result.fail(exception.getMessage());
+        outputStream.write(jsonMapper.writeValueAsString(result).getBytes(StandardCharsets.UTF_8));
 
-    outputStream.flush();
-    outputStream.close();
-  }
+        outputStream.flush();
+        outputStream.close();
+    }
 }

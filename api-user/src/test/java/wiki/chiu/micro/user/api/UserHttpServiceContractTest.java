@@ -9,33 +9,33 @@ import org.springframework.web.service.annotation.PostExchange;
 
 class UserHttpServiceContractTest {
 
-  @Test
-  void passwordLockUsesPatch() throws NoSuchMethodException {
-    var method = UserHttpService.class.getMethod("lockAfterPasswordFailures", Long.class);
+    @Test
+    void passwordLockUsesPatch() throws NoSuchMethodException {
+        var method = UserHttpService.class.getMethod("lockAfterPasswordFailures", Long.class);
 
-    assertThat(method.getAnnotation(PatchExchange.class).value())
-        .isEqualTo("/user/{userId}/password-lock");
-    assertThat(method.getAnnotation(GetExchange.class)).isNull();
-  }
+        assertThat(method.getAnnotation(PatchExchange.class).value())
+            .isEqualTo("/user/{userId}/password-lock");
+        assertThat(method.getAnnotation(GetExchange.class)).isNull();
+    }
 
-  @Test
-  void authorityListIsAReadOnlyGet() throws NoSuchMethodException {
-    var method = AuthorityHttpService.class.getMethod("getAuthorities");
+    @Test
+    void authorityListIsAReadOnlyGet() throws NoSuchMethodException {
+        var method = AuthorityHttpService.class.getMethod("getAuthorities");
 
-    assertThat(method.getAnnotation(GetExchange.class).value()).isEqualTo("/authority/list");
-  }
+        assertThat(method.getAnnotation(GetExchange.class).value()).isEqualTo("/authority/list");
+    }
 
-  @Test
-  void accessAndRoleAuthorizationAreSeparateCacheableResources() throws NoSuchMethodException {
-    var method = UserHttpService.class.getMethod("findUserAccess", Long.class);
+    @Test
+    void accessAndRoleAuthorizationAreSeparateCacheableResources() throws NoSuchMethodException {
+        var method = UserHttpService.class.getMethod("findUserAccess", Long.class);
 
-    assertThat(method.getAnnotation(GetExchange.class).value()).isEqualTo("/user/access/{userId}");
-    var allRoleMethod = UserHttpService.class.getMethod("findAllRoleAuthorizations");
-    assertThat(allRoleMethod.getAnnotation(GetExchange.class).value())
-        .isEqualTo("/role/authorizations");
-    var batchRoleMethod =
-        UserHttpService.class.getMethod("findRoleAuthorizations", java.util.List.class);
-    assertThat(batchRoleMethod.getAnnotation(PostExchange.class).value())
-        .isEqualTo("/role/authorizations");
-  }
+        assertThat(method.getAnnotation(GetExchange.class).value()).isEqualTo("/user/access/{userId}");
+        var allRoleMethod = UserHttpService.class.getMethod("findAllRoleAuthorizations");
+        assertThat(allRoleMethod.getAnnotation(GetExchange.class).value())
+            .isEqualTo("/role/authorizations");
+        var batchRoleMethod =
+            UserHttpService.class.getMethod("findRoleAuthorizations", java.util.List.class);
+        assertThat(batchRoleMethod.getAnnotation(PostExchange.class).value())
+            .isEqualTo("/role/authorizations");
+    }
 }

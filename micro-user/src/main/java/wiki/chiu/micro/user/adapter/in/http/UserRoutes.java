@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
+
 import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -35,61 +36,61 @@ import wiki.chiu.micro.user.vo.UserEntityVo;
 
 @Configuration(proxyBeanMethods = false)
 @RegisterReflectionForBinding({
-  Result.class,
-  PageAdapter.class,
-  UserEntityRegisterReq.class,
-  UserEntityReq.class,
-  RegisterImageDeleteReq.class,
-  RoleEntityReq.class,
-  MenuEntityReq.class,
-  AuthorityEntityReq.class,
-  UserEntityVo.class,
-  RoleEntityVo.class,
-  RoleMenuVo.class,
-  MenuEntityVo.class,
-  MenuDisplayVo.class,
-  MenuAuthorityVo.class,
-  AuthorityVo.class,
-  UserEntityRpcVo.class,
-  UserAccessRpcVo.class,
-  RoleAuthorizationRpcVo.class,
-  RoleEntityRpcVo.class,
-  MenuRpcVo.class,
-  AuthorityRpcVo.class,
-  DataPermissionEnum.class
+    Result.class,
+    PageAdapter.class,
+    UserEntityRegisterReq.class,
+    UserEntityReq.class,
+    RegisterImageDeleteReq.class,
+    RoleEntityReq.class,
+    MenuEntityReq.class,
+    AuthorityEntityReq.class,
+    UserEntityVo.class,
+    RoleEntityVo.class,
+    RoleMenuVo.class,
+    MenuEntityVo.class,
+    MenuDisplayVo.class,
+    MenuAuthorityVo.class,
+    AuthorityVo.class,
+    UserEntityRpcVo.class,
+    UserAccessRpcVo.class,
+    RoleAuthorizationRpcVo.class,
+    RoleEntityRpcVo.class,
+    MenuRpcVo.class,
+    AuthorityRpcVo.class,
+    DataPermissionEnum.class
 })
 public class UserRoutes {
 
-  private static final Logger log = LoggerFactory.getLogger(UserRoutes.class);
+    private static final Logger log = LoggerFactory.getLogger(UserRoutes.class);
 
-  @Bean
-  RouterFunction<ServerResponse> userRouter(
-      UserHttpHandler userHandler,
-      RoleHttpHandler roleHandler,
-      MenuHttpHandler menuHandler,
-      AuthorityHttpHandler authorityHandler,
-      UserInternalHttpHandler userInternalHandler,
-      MenuInternalHttpHandler menuInternalHandler,
-      AuthorityInternalHttpHandler authorityInternalHandler) {
-    return routes(
-        userHandler,
-        roleHandler,
-        menuHandler,
-        authorityHandler,
-        userInternalHandler,
-        menuInternalHandler,
-        authorityInternalHandler);
-  }
+    @Bean
+    RouterFunction<ServerResponse> userRouter(
+        UserHttpHandler userHandler,
+        RoleHttpHandler roleHandler,
+        MenuHttpHandler menuHandler,
+        AuthorityHttpHandler authorityHandler,
+        UserInternalHttpHandler userInternalHandler,
+        MenuInternalHttpHandler menuInternalHandler,
+        AuthorityInternalHttpHandler authorityInternalHandler) {
+        return routes(
+            userHandler,
+            roleHandler,
+            menuHandler,
+            authorityHandler,
+            userInternalHandler,
+            menuInternalHandler,
+            authorityInternalHandler);
+    }
 
-  public static RouterFunction<ServerResponse> routes(
-      UserHttpHandler userHandler,
-      RoleHttpHandler roleHandler,
-      MenuHttpHandler menuHandler,
-      AuthorityHttpHandler authorityHandler,
-      UserInternalHttpHandler userInternalHandler,
-      MenuInternalHttpHandler menuInternalHandler,
-      AuthorityInternalHttpHandler authorityInternalHandler) {
-    return withDefaultErrorHandling(
+    public static RouterFunction<ServerResponse> routes(
+        UserHttpHandler userHandler,
+        RoleHttpHandler roleHandler,
+        MenuHttpHandler menuHandler,
+        AuthorityHttpHandler authorityHandler,
+        UserInternalHttpHandler userInternalHandler,
+        MenuInternalHttpHandler menuInternalHandler,
+        AuthorityInternalHttpHandler authorityInternalHandler) {
+        return withDefaultErrorHandling(
             route()
                 .GET("/sys/user/auth/register/page", userHandler::getRegisterPage)
                 .GET("/sys/user/register/check", userHandler::checkRegisterPage)
@@ -138,6 +139,6 @@ public class UserRoutes {
                 .GET("/inner/user/{userId}", userInternalHandler::findById)
                 .GET("/inner/authority/list", authorityInternalHandler::getAuthorities),
             log)
-        .build();
-  }
+            .build();
+    }
 }

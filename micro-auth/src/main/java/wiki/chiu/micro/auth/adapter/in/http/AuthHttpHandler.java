@@ -6,20 +6,21 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+
 import wiki.chiu.micro.auth.application.port.in.AuthService;
 import wiki.chiu.micro.common.lang.Result;
 
 @Component
 public class AuthHttpHandler {
 
-  private final AuthService authService;
+    private final AuthService authService;
 
-  public AuthHttpHandler(AuthService authService) {
-    this.authService = authService;
-  }
+    public AuthHttpHandler(AuthService authService) {
+        this.authService = authService;
+    }
 
-  public ServerResponse nav(ServerRequest request) {
-    var principal = authPrincipal(request);
-    return ok(Result.success(() -> authService.getCurrentUserNav(principal.roles())));
-  }
+    public ServerResponse nav(ServerRequest request) {
+        var principal = authPrincipal(request);
+        return ok(Result.success(() -> authService.getCurrentUserNav(principal.roles())));
+    }
 }

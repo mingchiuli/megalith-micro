@@ -1,6 +1,7 @@
 package wiki.chiu.micro.user.application.port.in;
 
 import java.util.List;
+
 import wiki.chiu.micro.common.lang.DataPermissionEnum;
 
 /**
@@ -8,7 +9,7 @@ import wiki.chiu.micro.common.lang.DataPermissionEnum;
  */
 public interface UserRoleService {
 
-  List<String> findRoleCodesByUserId(Long userId);
+    List<String> findRoleCodesByUserId(Long userId);
 
-  List<DataPermissionEnum> findDataPermissionsByUserId(Long userId);
+    List<DataPermissionEnum> findDataPermissionsByUserId(Long userId);
 }
