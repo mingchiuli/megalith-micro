@@ -86,8 +86,8 @@ graph TD
     Gateway -->|HTTP| Search
 
     %% Business dependencies.
-    User --> MariaDB
-    Blog --> MariaDB
+    User -->|Domain Data + Outbox Rows| MariaDB
+    Blog -->|Domain Data + Outbox Rows| MariaDB
     Exhibit -->|Fetch Data| User
     Exhibit -->|Fetch Data| Blog
     Auth -->|Batch Snapshot Misses| User
@@ -95,13 +95,13 @@ graph TD
     Blog -->|Query IDs, Then Fetch| Search
 
     %% Durable events and distributed caches.
-    User -->|Transactional Outbox| MariaDB
-    Blog -->|Transactional Outbox| MariaDB
-    MariaDB -->|Confirmed Publish| RabbitMQ
-    RabbitMQ -->|Invalidate Auth Cache| Auth
-    RabbitMQ -->|Delete Blogs Owned by Deleted Users| Blog
-    RabbitMQ -->|Invalidate Exhibit Cache| Exhibit
-    RabbitMQ -->|Update Search Index| Search
+    User -->|Outbox Poll + Confirmed Publish| RabbitMQ
+    Blog -->|Outbox Poll + Confirmed Publish| RabbitMQ
+    RabbitMQ -->|AuthCacheEvictMessage<br/>Exact Cache Eviction| Auth
+    RabbitMQ -->|UserDeletedMessage<br/>Delete Owned Blogs| Blog
+    RabbitMQ -->|BlogChangedMessage<br/>Recycle Metadata| Blog
+    RabbitMQ -->|BlogChangedMessage<br/>Exact Cache Eviction| Exhibit
+    RabbitMQ -->|BlogChangedMessage<br/>Index Update| Search
     Auth -->|L2 Cache| Redis
     Exhibit -->|L2 Cache| Redis
     Sync <-->|Replica Coordination<br/>Event Streams / Snapshots<br/>Presence / Leases / Compaction| Redis
@@ -115,6 +115,63 @@ graph TD
 All external traffic enters through nginx. The Rust gateway proxies HTTP and WebSocket requests,
 calls `micro-auth` once for authorization and route resolution, and passes a trusted principal to
 the target service. Business services never re-parse browser credentials.
+
+### Message and outbox topology
+
+```mermaid
+flowchart LR
+    subgraph Producers[Transactional Producers]
+        UserWrite["micro-user<br/>Transactional Write Adapter"]
+        UserOutbox[("m_outbox_event<br/>producer = USER")]
+        BlogWrite["micro-blog<br/>Transactional Write Adapter"]
+        BlogOutbox[("m_outbox_event<br/>producer = BLOG")]
+        UserWrite -->|Domain Writes + Event Row| UserOutbox
+        BlogWrite -->|Domain Writes + Event Row| BlogOutbox
+    end
+
+    subgraph Exchanges[RabbitMQ Durable Fanout Exchanges]
+        AuthExchange["user.auth.menu.change.fanout.exchange<br/>AuthCacheEvictMessage"]
+        DeletedExchange["user.deleted.fanout.exchange<br/>UserDeletedMessage"]
+        BlogExchange["blog.change.fanout.exchange<br/>BlogChangedMessage"]
+    end
+
+    subgraph Queues[Durable Consumer Queues]
+        AuthQueue["user.auth.menu.change.queue.auth<br/>micro-auth: exact auth-cache eviction"]
+        DeletedQueue["user.deleted.queue.blog<br/>micro-blog: delete blogs by user ID"]
+        SearchQueue["blog.change.queue.es<br/>micro-search: update Elasticsearch"]
+        CacheQueue["blog.change.queue.cache<br/>micro-exhibit: exact cache eviction"]
+        RecycleQueue["blog.change.queue.recycle<br/>micro-blog: retain recycle metadata"]
+    end
+
+    UserOutbox -->|"Poll by eventType<br/>Publisher Confirm"| AuthExchange
+    UserOutbox -->|"eventType = UserDeletedMessage<br/>Publisher Confirm"| DeletedExchange
+    BlogOutbox -->|"Poll + Publisher Confirm"| BlogExchange
+
+    AuthExchange --> AuthQueue
+    DeletedExchange --> DeletedQueue
+    BlogExchange --> SearchQueue
+    BlogExchange --> CacheQueue
+    BlogExchange --> RecycleQueue
+
+    DeletedQueue -->|Cascade Delete + New BlogChangedMessage Rows| BlogOutbox
+```
+
+| Event | Producer | Exchange | Queue and consumer | Effect |
+| --- | --- | --- | --- | --- |
+| `AuthCacheEvictMessage` | `micro-user` | `user.auth.menu.change.fanout.exchange` | `user.auth.menu.change.queue.auth` -> `micro-auth` | Evict exact authorization, menu, and route cache entries |
+| `UserDeletedMessage` | `micro-user` | `user.deleted.fanout.exchange` | `user.deleted.queue.blog` -> `micro-blog` | Delete blogs owned by deleted users and enqueue their blog-change events |
+| `BlogChangedMessage` | `micro-blog` | `blog.change.fanout.exchange` | `blog.change.queue.es` -> `micro-search` | Apply revision-aware Elasticsearch index changes |
+| `BlogChangedMessage` | `micro-blog` | `blog.change.fanout.exchange` | `blog.change.queue.cache` -> `micro-exhibit` | Invalidate exact presentation cache entries |
+| `BlogChangedMessage` | `micro-blog` | `blog.change.fanout.exchange` | `blog.change.queue.recycle` -> `micro-blog` | Store recycle-bin metadata for an operator-initiated removal |
+
+The producer-side outbox and consumer-side retry paths solve different failures. An outbox row is
+deleted only after RabbitMQ confirms the persistent message; publish failures remain in MariaDB and
+are rescheduled with bounded backoff and jitter. Consumers acknowledge manually. A handler failure
+is republished with publisher confirmation to that queue's retry exchange, delayed for 5 seconds,
+30 seconds, and 300 seconds, and finally moved to `<queue>.dlq`, which retains it for 14 days.
+Aggregate types such as `USER_DELETION` classify outbox rows, while the payload class name stored as
+the event type selects a dedicated exchange, such as `UserDeletedMessage` selecting
+`user.deleted.fanout.exchange`.
 
 `micro-sync-rs` replicas coordinate through Redis. Document and awareness updates are appended to
 shared Redis Streams and relayed to connections on every replica, while snapshots, presence
