@@ -104,7 +104,9 @@ export const messages = {
       errorMessage: '协同编辑连接失败，将继续重试',
       closedMessage: '关闭码：{code}，原因：{reason}',
       persistenceErrorTitle: '本地草稿不可用',
-      persistenceErrorMessage: '无法使用浏览器本地存储，将继续在线编辑。'
+      persistenceErrorMessage: '无法使用浏览器本地存储，将继续在线编辑。',
+      syncFailedMessage: '协同文档暂时无法同步',
+      retry: '重新连接'
     },
     admin: {
       backend: '后台',
@@ -282,7 +284,9 @@ export const messages = {
       errorMessage: 'Collaboration failed to connect and will keep retrying',
       closedMessage: 'Close code: {code}, reason: {reason}',
       persistenceErrorTitle: 'Local draft unavailable',
-      persistenceErrorMessage: 'Browser storage is unavailable. Editing will continue online.'
+      persistenceErrorMessage: 'Browser storage is unavailable. Editing will continue online.',
+      syncFailedMessage: 'The collaborative document is temporarily unavailable',
+      retry: 'Reconnect'
     },
     admin: {
       backend: 'Admin',

@@ -24,16 +24,30 @@ const usercolors = [
 export const yjsCompartment = new Compartment()
 export const COLLABORATION_TICKET_REFRESH_INTERVAL_MS = 240_000
 export const COLLABORATION_TICKET_RECONNECT_MAX_AGE_MS = 30_000
-let currentProvider: WebsocketProvider | null = null
-let currentDoc: Y.Doc | null = null
-let currentPersistence: IndexeddbPersistence | null = null
+export const COLLABORATION_INITIAL_SYNC_TIMEOUT_MS = 20_000
 const INDEXEDDB_SYNC_TIMEOUT_MS = 5000
+const activePersistences = new Map<string, Set<IndexeddbPersistence>>()
+
+export type CollaborationPhase =
+  'initializing' | 'connecting' | 'syncing' | 'ready' | 'reconnecting' | 'failed' | 'expired'
 
 export type CollaborationEvent =
   | {
       type: 'initialized' | 'connected' | 'disconnected' | 'connection-error' | 'persistence-error'
     }
+  | { type: 'synced'; content: string }
   | { type: 'connection-closed'; code: number; reason: string }
+
+export type CollaborationSession = {
+  config: Extension
+  persistenceKey: string
+  connect: () => void
+  disconnect: () => void
+  updateToken: (token: string) => void
+  restart: (token?: string) => void
+  clearPersistence: () => Promise<void>
+  destroy: () => void
+}
 
 export const hasYjsDocumentState = (doc: Y.Doc) =>
   Y.decodeStateVector(Y.encodeStateVector(doc)).size > 0
@@ -46,6 +60,12 @@ export const shouldRefreshCollaborationTicket = (
   maxAge: number,
   now = Date.now()
 ) => issuedAt <= 0 || now - issuedAt >= maxAge
+
+export const isCollaborationEditable = (hasSynced: boolean, sessionExpired: boolean) =>
+  hasSynced && !sessionExpired
+
+export const collaborationPhaseAfterDisconnect = (hasSynced: boolean): CollaborationPhase =>
+  hasSynced ? 'reconnecting' : 'connecting'
 
 export const createYjsBindingTransaction = (
   currentDocumentLength: number,
@@ -60,45 +80,28 @@ export const createYjsBindingTransaction = (
   effects: yjsCompartment.reconfigure(extension)
 })
 
-export const cleanupYjs = () => {
-  const persistence = currentPersistence
-  if (currentProvider) {
-    currentProvider.disconnect()
-    currentProvider.destroy()
-  }
-  if (currentDoc) {
-    currentDoc.destroy()
-  } else {
-    persistence?.destroy().catch(() => undefined)
-  }
-  currentProvider = null
-  currentDoc = null
-  currentPersistence = null
-}
-
-export const disconnectYjs = () => {
-  currentProvider?.disconnect()
-}
-
-export const reconnectYjs = () => {
-  currentProvider?.connect()
-}
-
-export const updateProviderToken = (token: string) => {
-  if (!currentProvider) return
-  if (token) {
-    currentProvider.params.token = token
-  }
-}
-
 export const clearYjsDraft = async (persistenceKey?: string) => {
-  const persistence = currentPersistence
-  if (persistence && (!persistenceKey || persistence.name === persistenceKey)) {
-    currentPersistence = null
-    await persistence.clearData()
+  if (!persistenceKey) return
+  const persistences = [...(activePersistences.get(persistenceKey) ?? [])]
+  if (persistences.length === 0) {
+    await clearDocument(persistenceKey)
     return
   }
-  if (persistenceKey) await clearDocument(persistenceKey)
+  activePersistences.delete(persistenceKey)
+  await Promise.all(persistences.map((persistence) => persistence.clearData()))
+}
+
+const registerPersistence = (key: string, persistence: IndexeddbPersistence) => {
+  const persistences = activePersistences.get(key) ?? new Set<IndexeddbPersistence>()
+  persistences.add(persistence)
+  activePersistences.set(key, persistences)
+}
+
+const unregisterPersistence = (key: string, persistence: IndexeddbPersistence | null) => {
+  if (!persistence) return
+  const persistences = activePersistences.get(key)
+  persistences?.delete(persistence)
+  if (persistences?.size === 0) activePersistences.delete(key)
 }
 
 const waitForIndexedDb = async (persistence: IndexeddbPersistence) => {
@@ -118,41 +121,33 @@ const waitForIndexedDb = async (persistence: IndexeddbPersistence) => {
   }
 }
 
-export const createYjsExtension = async (
+export const createCollaborationSession = async (
   roomId: string,
   initialContent: string,
   collaborationToken: string,
   user: UserInfo,
   onEvent: (event: CollaborationEvent) => void
-) => {
-  // 重要说明：
-  // 1. 这个方法只在组件挂载时调用一次
-  // 2. Yjs 的断线重连是 WebsocketProvider 自动处理的
-  // 3. 重连时不会再次调用这个方法
-  // 4. 所以不需要"检查是否重用"的逻辑
-
-  // 清理旧连接（如果存在）
-  cleanupYjs()
-
+): Promise<CollaborationSession> => {
   const userColor = usercolors[random.uint32() % usercolors.length]!
-
   const ydoc = new Y.Doc()
   const ytext = ydoc.getText()
+  const persistenceKey = createEditorYjsPersistenceKey(
+    user.id,
+    roomId === `init:${user.id}` ? undefined : roomId
+  )
 
   let persistence: IndexeddbPersistence | null = null
   try {
     if (typeof globalThis.indexedDB === 'undefined') {
       throw new Error('IndexedDB is unavailable')
     }
-    persistence = new IndexeddbPersistence(
-      createEditorYjsPersistenceKey(user.id, roomId === `init:${user.id}` ? undefined : roomId),
-      ydoc
-    )
+    persistence = new IndexeddbPersistence(persistenceKey, ydoc)
     persistence._db?.catch(() => undefined)
     await waitForIndexedDb(persistence)
-    currentPersistence = persistence
+    registerPersistence(persistenceKey, persistence)
   } catch (error) {
     persistence?.destroy().catch(() => undefined)
+    persistence = null
     logger.warn('IndexedDB persistence is unavailable; continuing online:', error)
     onEvent({ type: 'persistence-error' })
   }
@@ -162,78 +157,57 @@ export const createYjsExtension = async (
     roomId,
     ydoc,
     {
-      // URL 参数：认证令牌会附加到 WebSocket URL 上
       params: {
         token: collaborationToken
       },
-
-      // 延迟连接：在配置完成后手动调用 provider.connect()
       connect: false,
-
-      // 定期同步：每3秒向服务器请求一次完整状态，防止增量更新丢失
       resyncInterval: 3000,
-
-      // 重连退避：断线重连时的最大等待时间（采用指数退避策略）
       maxBackoffTime: 10000,
-
-      // 跨标签页通信：启用 BroadcastChannel（同一浏览器的多个标签页可直接通信）
       disableBc: false
     }
   )
-
-  let initialSyncResolved = false
-  let resolveInitialSync: (content: string) => void
-  const initialSync = new Promise<string>((resolve) => {
-    resolveInitialSync = resolve
-  })
+  let destroyed = false
 
   provider.on('sync', (isSynced: boolean) => {
+    if (destroyed) return
     logger.log('Sync event fired, isSynced:', isSynced)
     logger.log('Document length after sync:', ytext.length)
 
-    if (!isSynced || initialSyncResolved) return
+    if (!isSynced) return
 
-    // A state-less document is new or was recreated after its in-memory room expired.
     if (shouldInitializeYjsDocument(ydoc, ytext, initialContent)) {
       logger.log('Inserting initial content:', initialContent.substring(0, 50))
       ytext.insert(0, initialContent)
-
       onEvent({ type: 'initialized' })
     }
 
-    initialSyncResolved = true
-    resolveInitialSync(ytext.toString())
+    onEvent({ type: 'synced', content: ytext.toString() })
   })
 
-  // 关键修复6: 监听连接状态
   provider.on('status', (event: { status: 'connected' | 'disconnected' | 'connecting' }) => {
+    if (destroyed) return
     logger.log('WebSocket status:', event.status)
 
     switch (event.status) {
       case 'connected':
-        logger.log('WebSocket connected')
         onEvent({ type: 'connected' })
         break
-
       case 'disconnected':
-        logger.warn('WebSocket disconnected')
         onEvent({ type: 'disconnected' })
         break
-
       case 'connecting':
-        logger.log('WebSocket connecting')
         break
     }
   })
 
-  // 关键修复7: 连接错误处理
   provider.on('connection-error', (event: Event) => {
+    if (destroyed) return
     logger.error('WebSocket connection error:', event)
     onEvent({ type: 'connection-error' })
   })
 
-  // 关键修复8: 连接关闭处理
   provider.on('connection-close', (event: CloseEvent | null) => {
+    if (destroyed) return
     if (!event) {
       logger.warn('WebSocket 连接关闭: 事件为 null')
       return
@@ -244,12 +218,6 @@ export const createYjsExtension = async (
       reason: event.reason,
       wasClean: event.wasClean
     })
-
-    // WebSocket 关闭码参考：
-    // 1000: 正常关闭
-    // 1001: 端点离开（例如：服务器关闭或浏览器导航）
-    // 1006: 异常关闭（没有发送关闭帧）
-    // 1011: 服务器遇到意外情况
 
     if (event.code !== 1000) {
       onEvent({ type: 'connection-closed', code: event.code, reason: event.reason })
@@ -264,13 +232,36 @@ export const createYjsExtension = async (
     colorLight: userColor.light
   })
 
-  currentDoc = ydoc
-  currentProvider = provider
-  if (persistence) currentPersistence = persistence
-
   const config = yCollab(ytext, provider.awareness, { undoManager })
 
-  return { config, provider, initialSync }
+  return {
+    config,
+    persistenceKey,
+    connect: () => {
+      if (!destroyed) provider.connect()
+    },
+    disconnect: () => {
+      if (!destroyed) provider.disconnect()
+    },
+    updateToken: (token) => {
+      if (!destroyed) provider.params.token = token
+    },
+    restart: (token) => {
+      if (destroyed) return
+      if (token) provider.params.token = token
+      provider.disconnect()
+      provider.connect()
+    },
+    clearPersistence: () => clearYjsDraft(persistenceKey),
+    destroy: () => {
+      if (destroyed) return
+      destroyed = true
+      unregisterPersistence(persistenceKey, persistence)
+      provider.destroy()
+      persistence?.destroy().catch(() => undefined)
+      ydoc.destroy()
+    }
+  }
 }
 
 config({

@@ -6,10 +6,11 @@ vi.mock('md-editor-v3', () => ({ config: vi.fn() }))
 
 import {
   COLLABORATION_TICKET_REFRESH_INTERVAL_MS,
+  collaborationPhaseAfterDisconnect,
+  createCollaborationSession,
   createYjsBindingTransaction,
-  createYjsExtension,
-  cleanupYjs,
   hasYjsDocumentState,
+  isCollaborationEditable,
   shouldRefreshCollaborationTicket,
   shouldInitializeYjsDocument,
   yjsCompartment
@@ -69,6 +70,15 @@ describe('editorConfig', () => {
     ).toBe(true)
   })
 
+  it('keeps a previously synchronized editor editable while reconnecting', () => {
+    expect(collaborationPhaseAfterDisconnect(false)).toBe('connecting')
+    expect(isCollaborationEditable(false, false)).toBe(false)
+
+    expect(collaborationPhaseAfterDisconnect(true)).toBe('reconnecting')
+    expect(isCollaborationEditable(true, false)).toBe(true)
+    expect(isCollaborationEditable(true, true)).toBe(false)
+  })
+
   it('uses a user-isolated persistence key for every collaboration room', () => {
     expect(createEditorYjsPersistenceKey(7, '42')).toBe('megalith:editor:yjs:v1:7:42')
     expect(createEditorYjsPersistenceKey(7)).toBe('megalith:editor:yjs:v1:7:new')
@@ -94,7 +104,7 @@ describe('editorConfig', () => {
 
   it('falls back to online editing when IndexedDB is unavailable', async () => {
     const events: string[] = []
-    const { provider } = await createYjsExtension(
+    const session = await createCollaborationSession(
       '42',
       'server content',
       'ticket',
@@ -103,7 +113,6 @@ describe('editorConfig', () => {
     )
 
     expect(events).toContain('persistence-error')
-    cleanupYjs()
-    expect(provider.shouldConnect).toBe(false)
+    session.destroy()
   })
 })

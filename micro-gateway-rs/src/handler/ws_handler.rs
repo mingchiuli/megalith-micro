@@ -1,6 +1,6 @@
 use axum::body::Body;
 use axum::extract::WebSocketUpgrade;
-use axum::extract::ws::WebSocket;
+use axum::extract::ws::{CloseFrame, Message, WebSocket};
 use axum::response::{IntoResponse, Response};
 use futures_util::{SinkExt, StreamExt};
 use hyper::Uri;
@@ -14,6 +14,9 @@ use crate::proxy::{
     AuthorizedRoute, inject_trace_context, parse_url, principal_header_value, to_axum_message,
     to_tungstenite_message,
 };
+
+const CLOSE_DOWNSTREAM_UNAVAILABLE: u16 = 4503;
+const DOWNSTREAM_UNAVAILABLE_REASON: &str = "downstream WebSocket unavailable";
 
 #[instrument(
     name = "proxy_websocket_request",
@@ -41,7 +44,7 @@ pub async fn ws_route_handler(
 }
 
 async fn proxy_websocket(
-    socket: WebSocket,
+    mut socket: WebSocket,
     target_uri: Uri,
     principal: crate::proxy::AuthPrincipal,
 ) {
@@ -70,6 +73,9 @@ async fn proxy_websocket(
         Ok(connection) => connection,
         Err(error) => {
             tracing::error!(%error, "failed to connect downstream WebSocket");
+            let _ = socket
+                .send(Message::Close(Some(downstream_unavailable_close_frame())))
+                .await;
             return;
         }
     };
@@ -121,5 +127,25 @@ async fn proxy_websocket(
     tokio::select! {
         _ = client_to_downstream => tracing::info!("client WebSocket connection closed"),
         _ = downstream_to_client => tracing::info!("downstream WebSocket connection closed"),
+    }
+}
+
+fn downstream_unavailable_close_frame() -> CloseFrame {
+    CloseFrame {
+        code: CLOSE_DOWNSTREAM_UNAVAILABLE,
+        reason: DOWNSTREAM_UNAVAILABLE_REASON.into(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn downstream_connect_failure_uses_transient_close_code() {
+        let frame = downstream_unavailable_close_frame();
+
+        assert_eq!(frame.code, 4503);
+        assert_eq!(frame.reason, DOWNSTREAM_UNAVAILABLE_REASON);
     }
 }
