@@ -28,6 +28,11 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
     }
 
     @Override
+    public List<Long> findIdsAfter(Long afterId, int limit) {
+        return blogs.findIdsAfter(afterId, PageRequest.of(0, limit));
+    }
+
+    @Override
     public Optional<BlogEntity> findById(Long blogId) {
         return blogs.findById(blogId);
     }

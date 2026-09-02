@@ -1,7 +1,9 @@
 package wiki.chiu.micro.blog.application.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -16,6 +18,16 @@ import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
 
 class BlogQueryServiceImplTest {
+
+    @Test
+    void returnsIdsAfterExclusiveCursor() {
+        BlogQueryStore blogs = mock(BlogQueryStore.class);
+        BlogQueryServiceImpl service = new BlogQueryServiceImpl(blogs, mock(BlogWrapper.class));
+        when(blogs.findIdsAfter(7L, 1000)).thenReturn(List.of(8L, 11L));
+
+        assertEquals(List.of(8L, 11L), service.findIdsAfter(7L, 1000));
+        verify(blogs).findIdsAfter(7L, 1000);
+    }
 
     @Test
     void firstPageMayBeEmptyButLaterEmptyPagesAreMissing() {

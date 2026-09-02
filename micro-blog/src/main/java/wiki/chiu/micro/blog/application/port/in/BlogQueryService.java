@@ -8,6 +8,8 @@ import wiki.chiu.micro.common.page.PageAdapter;
 
 public interface BlogQueryService {
 
+    List<Long> findIdsAfter(Long afterId, Integer limit);
+
     BlogEntityRpcVo findById(Long blogId);
 
     List<BlogEntityRpcVo> findAllById(List<Long> ids);

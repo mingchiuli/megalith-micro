@@ -1,7 +1,5 @@
 package wiki.chiu.micro.exhibit.adapter.in.messaging.cache.handler;
 
-import static wiki.chiu.micro.common.lang.Const.*;
-
 import java.util.HashSet;
 
 import org.redisson.api.RedissonClient;
@@ -12,18 +10,22 @@ import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.exhibit.adapter.in.messaging.cache.CacheKeyGenerator;
+import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 
 @Component
 public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
     private final CacheKeyGenerator cacheKeyGenerator;
+    private final BlogExistenceService blogExistenceService;
 
     public CreateBlogCacheEvictHandler(
         RedissonClient redissonClient,
         CacheKeyGenerator cacheKeyGenerator,
-        CacheEvictor cacheEvictor) {
+        CacheEvictor cacheEvictor,
+        BlogExistenceService blogExistenceService) {
         super(redissonClient, cacheEvictor);
         this.cacheKeyGenerator = cacheKeyGenerator;
+        this.blogExistenceService = blogExistenceService;
     }
 
     @Override
@@ -38,15 +40,11 @@ public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         long count = message.totalCount();
 
         evictCaches(count);
-        setBlogDetailBloom(id);
+        blogExistenceService.markPresent(id);
     }
 
     private void evictCaches(long count) {
         HashSet<String> keys = cacheKeyGenerator.generateHotBlogsKeys(count);
         cacheEvictor.evict(keys);
-    }
-
-    private void setBlogDetailBloom(Long id) {
-        redissonClient.getBitSet(BLOOM_FILTER_BLOG).set(id, true);
     }
 }

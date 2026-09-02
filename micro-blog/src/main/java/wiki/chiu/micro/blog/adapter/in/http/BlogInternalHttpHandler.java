@@ -49,6 +49,13 @@ public class BlogInternalHttpHandler implements BlogHttpService {
         return ok(count());
     }
 
+    public ServerResponse findIdsAfter(ServerRequest request) {
+        Long afterId = v.nonNegative(requiredParam(request, "afterId", Long::valueOf), "afterId");
+        Integer limit =
+            v.range(requiredParam(request, "limit", Integer::valueOf), 1, 1000, "limit");
+        return ok(findIdsAfter(afterId, limit));
+    }
+
     public ServerResponse countByCreatedGreaterThanEqual(ServerRequest request) {
         LocalDateTime created = requiredParam(request, "created", LocalDateTime::parse);
         return ok(countByCreatedGreaterThanEqual(created));
@@ -78,6 +85,11 @@ public class BlogInternalHttpHandler implements BlogHttpService {
     public ServerResponse setReadCount(ServerRequest request) {
         Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         return ok(setReadCount(blogId));
+    }
+
+    @Override
+    public Result<List<Long>> findIdsAfter(Long afterId, Integer limit) {
+        return Result.success(() -> blogQueryService.findIdsAfter(afterId, limit));
     }
 
     @Override

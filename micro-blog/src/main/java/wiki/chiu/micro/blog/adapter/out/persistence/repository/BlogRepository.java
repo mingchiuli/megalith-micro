@@ -6,6 +6,7 @@ import java.util.List;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,6 +19,10 @@ import wiki.chiu.micro.blog.domain.BlogEntity;
  * @create 2022-11-27 1:30 am
  */
 public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonNull Long> {
+
+    @Query(
+        "SELECT blog.id FROM BlogEntity blog WHERE blog.id > :afterId ORDER BY blog.id ASC")
+    List<Long> findIdsAfter(@Param("afterId") Long afterId, Pageable pageable);
 
     Long countByCreatedGreaterThanEqual(LocalDateTime created);
 

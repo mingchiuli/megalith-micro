@@ -11,8 +11,8 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
-import wiki.chiu.micro.exhibit.checker.handler.DetailHandler;
 import wiki.chiu.micro.exhibit.req.ReadTokenReq;
 
 @Component
@@ -20,18 +20,20 @@ public class BlogExhibitHttpHandler {
 
     private final BlogService blogService;
     private final ValidatedRequest v;
-    private final DetailHandler detailHandler;
+    private final BlogExistenceService blogExistenceService;
 
     public BlogExhibitHttpHandler(
-        BlogService blogService, ValidatedRequest v, DetailHandler detailHandler) {
+        BlogService blogService,
+        ValidatedRequest v,
+        BlogExistenceService blogExistenceService) {
         this.blogService = blogService;
         this.v = v;
-        this.detailHandler = detailHandler;
+        this.blogExistenceService = blogExistenceService;
     }
 
     public ServerResponse getBlogDetail(ServerRequest request) {
         Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
-        detailHandler.check(blogId);
+        blogExistenceService.check(blogId);
         AuthPrincipal authInfo = authPrincipal(request);
         return ok(
             Result.success(
@@ -47,7 +49,7 @@ public class BlogExhibitHttpHandler {
 
     public ServerResponse getLockedBlog(ServerRequest request) throws Exception {
         Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
-        detailHandler.check(blogId);
+        blogExistenceService.check(blogId);
         ReadTokenReq body = request.body(ReadTokenReq.class);
         String token = v.notBlank(body.readToken(), "readToken");
         return ok(Result.success(blogService.getLockedBlog(blogId, token)));

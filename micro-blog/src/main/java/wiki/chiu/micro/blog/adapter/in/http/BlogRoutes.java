@@ -68,6 +68,7 @@ public class BlogRoutes {
                 .POST("/sys/blog/edit/ticket", blogHandler::issueCollaborationTicket)
                 .GET("/inner/blog/count", internalHandler::count)
                 .GET("/inner/blog/count/until", internalHandler::countByCreatedGreaterThanEqual)
+                .GET("/inner/blog/ids", internalHandler::findIdsAfter)
                 .GET("/inner/blog/sensitive/{blogId}", internalHandler::findSensitiveByBlogId)
                 .GET("/inner/blog/page", internalHandler::findPage)
                 .GET("/inner/blog/{blogId}", internalHandler::findById)

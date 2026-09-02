@@ -36,3 +36,7 @@ megalith:
         exchange: cache.blog.evict.fanout.exchange
   blog:
     blog-page-size: 5
+    existence-index:
+      batch-size: 1000
+      initial-delay: 0s
+      reconcile-delay: 30s

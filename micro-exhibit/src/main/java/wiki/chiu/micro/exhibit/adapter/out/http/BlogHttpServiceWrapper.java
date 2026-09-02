@@ -24,6 +24,11 @@ public class BlogHttpServiceWrapper implements BlogCatalog {
         this.blogHttpService = blogHttpService;
     }
 
+    @Override
+    public List<Long> findIdsAfter(Long afterId, Integer limit) {
+        return RemoteResult.requireSuccess(() -> blogHttpService.findIdsAfter(afterId, limit));
+    }
+
     public BlogEntityRpcVo findById(Long blogId) {
         return RemoteResult.requireSuccess(() -> blogHttpService.findById(blogId));
     }

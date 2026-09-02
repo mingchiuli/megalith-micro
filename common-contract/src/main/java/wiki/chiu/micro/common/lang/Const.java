@@ -38,8 +38,6 @@ public class Const {
 
     public static final String HOT_BLOG = "hot_blog";
 
-    public static final String BLOOM_FILTER_BLOG = "bloom_filter_blog";
-
     public static final String REGISTER_PREFIX = "register_prefix:";
 
     public static final String USER = "user";

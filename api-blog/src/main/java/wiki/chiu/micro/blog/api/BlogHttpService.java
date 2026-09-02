@@ -17,6 +17,10 @@ import wiki.chiu.micro.common.page.PageAdapter;
 
 public interface BlogHttpService {
 
+    @GetExchange("/blog/ids")
+    Result<List<Long>> findIdsAfter(
+        @RequestParam Long afterId, @RequestParam Integer limit);
+
     @GetExchange("/blog/{blogId}")
     Result<BlogEntityRpcVo> findById(@PathVariable Long blogId);
 

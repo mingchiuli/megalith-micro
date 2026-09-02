@@ -29,6 +29,11 @@ public class BlogQueryServiceImpl implements BlogQueryService {
     }
 
     @Override
+    public List<Long> findIdsAfter(Long afterId, Integer limit) {
+        return blogs.findIdsAfter(afterId, limit);
+    }
+
+    @Override
     public BlogEntityRpcVo findById(Long blogId) {
         BlogEntity blog =
             blogs.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND.getMsg()));

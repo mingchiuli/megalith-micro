@@ -311,6 +311,17 @@ class BlogControllerTest {
     }
 
     @Test
+    void internalIdQueryUsesLiteralRoute() throws Exception {
+        when(blogInternalHttpHandler.findIdsAfter(any())).thenReturn(ServerResponse.ok().build());
+
+        mockMvc
+            .perform(get("/inner/blog/ids").param("afterId", "0").param("limit", "1000"))
+            .andExpect(status().isOk());
+
+        verify(blogInternalHttpHandler).findIdsAfter(any());
+    }
+
+    @Test
     void internalViewMutationUsesExplicitViewsPath() throws Exception {
         when(blogInternalHttpHandler.setReadCount(any(ServerRequest.class)))
             .thenReturn(ServerResponse.ok().build());

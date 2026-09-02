@@ -13,6 +13,7 @@ import wiki.chiu.micro.cache.key.CacheKeyFactory;
 import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
 import wiki.chiu.micro.exhibit.adapter.in.messaging.cache.CacheKeyGenerator;
+import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;
 
 @Component
@@ -21,15 +22,18 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
     private final CacheKeyGenerator cacheKeyGenerator;
 
     private final CacheKeyFactory cacheKeyFactory;
+    private final BlogExistenceService blogExistenceService;
 
     public DeleteBlogCacheEvictHandler(
         RedissonClient redissonClient,
         CacheKeyGenerator cacheKeyGenerator,
         CacheEvictor cacheEvictor,
-        CacheKeyFactory cacheKeyFactory) {
+        CacheKeyFactory cacheKeyFactory,
+        BlogExistenceService blogExistenceService) {
         super(redissonClient, cacheEvictor);
         this.cacheKeyGenerator = cacheKeyGenerator;
         this.cacheKeyFactory = cacheKeyFactory;
+        this.blogExistenceService = blogExistenceService;
     }
 
     @Override
@@ -49,16 +53,12 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
         evictCaches(id, pageInvalidationCount);
         clearKeys(id);
-        setDetailBloom(id);
+        blogExistenceService.markAbsent(id);
         deleteHotRead(id);
     }
 
     private void deleteHotRead(Long id) {
         redissonClient.getScoredSortedSet(HOT_READ).remove(id.toString());
-    }
-
-    private void setDetailBloom(Long id) {
-        redissonClient.getBitSet(BLOOM_FILTER_BLOG).set(id, false);
     }
 
     private void clearKeys(Long id) {

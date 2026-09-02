@@ -27,8 +27,8 @@ import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogExhibitHttpHandler;
 import wiki.chiu.micro.exhibit.adapter.in.http.ExhibitRoutes;
+import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
-import wiki.chiu.micro.exhibit.checker.handler.DetailHandler;
 import wiki.chiu.micro.exhibit.vo.BlogExhibitVo;
 import wiki.chiu.micro.exhibit.vo.BlogHotReadVo;
 import wiki.chiu.micro.exhibit.vo.VisitStatisticsVo;
@@ -39,7 +39,7 @@ class BlogControllerTest {
     @Mock
     private BlogService blogService;
     @Mock
-    private DetailHandler detailHandler;
+    private BlogExistenceService blogExistenceService;
 
     private final ValidatedRequest validation = new ValidatedRequest();
 
@@ -49,7 +49,7 @@ class BlogControllerTest {
     void setUp() {
         AuthPrincipal authInfo = new AuthPrincipal(1L, List.of("ROLE_USER"));
         BlogExhibitHttpHandler handler =
-            new BlogExhibitHttpHandler(blogService, validation, detailHandler);
+            new BlogExhibitHttpHandler(blogService, validation, blogExistenceService);
         mockMvc =
             MockMvcBuilders.routerFunctions(ExhibitRoutes.routes(handler))
                 .defaultRequest(
