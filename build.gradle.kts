@@ -13,7 +13,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7" apply false
     id("org.springframework.boot") version "4.1.1" apply false
     id("org.graalvm.buildtools.native") version "1.1.11" apply false
-    id("org.hibernate.orm") version "7.4.6.Final" apply false
+    id("org.hibernate.orm") version "7.4.7.Final" apply false
 }
 
 subprojects {
