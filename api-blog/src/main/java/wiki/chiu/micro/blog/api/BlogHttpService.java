@@ -1,9 +1,7 @@
 package wiki.chiu.micro.blog.api;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,10 +34,6 @@ public interface BlogHttpService {
     @GetExchange("/blog/page")
     Result<PageAdapter<BlogEntityRpcVo>> findPage(
         @RequestParam Integer pageNo, @RequestParam Integer pageSize);
-
-    @GetExchange("/blog/count/until")
-    Result<Long> countByCreatedGreaterThanEqual(
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime created);
 
     @GetExchange("/blog/sensitive/{blogId}")
     Result<BlogSensitiveContentRpcVo> findSensitiveByBlogId(@PathVariable Long blogId);

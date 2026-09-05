@@ -1,0 +1,11 @@
+if (ctx.op != 'create' && ctx._source.revision != null && ctx._source.revision >= params.blog.revision) {
+    ctx.op = 'noop';
+    return;
+}
+long readCount = ctx._source.readCount == null ? 0L : (long) ctx._source.readCount;
+ctx._source.clear();
+ctx._source.putAll(params.blog);
+if (ctx._source.deleted != true) {
+    long incoming = ctx._source.readCount == null ? 0L : (long) ctx._source.readCount;
+    ctx._source.readCount = Math.max(readCount, incoming);
+}

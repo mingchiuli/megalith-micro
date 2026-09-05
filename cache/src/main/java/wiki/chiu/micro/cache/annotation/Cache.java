@@ -30,6 +30,14 @@ public @interface Cache {
     int version() default 1;
 
     /**
+     * Registers generated keys for application-owned, exact group eviction.
+     * Tracked caches bypass storage when the registry is unavailable.
+     *
+     * @return whether to register keys before loading their values
+     */
+    boolean trackKeys() default false;
+
+    /**
      * Returns the cache lifetime in {@link #timeUnit()}.
      *
      * @return the positive cache lifetime

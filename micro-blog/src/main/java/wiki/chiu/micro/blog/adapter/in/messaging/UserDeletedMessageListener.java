@@ -26,6 +26,7 @@ public class UserDeletedMessageListener {
     }
 
     @RabbitListener(
+        autoStartup = "#{!${megalith.blog.maintenance.read-only:false}}",
         queues = Const.USER_DELETED_QUEUE,
         concurrency = "2",
         messageConverter = "jsonMessageConverter",

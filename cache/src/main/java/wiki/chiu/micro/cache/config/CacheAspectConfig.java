@@ -15,11 +15,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 import tools.jackson.databind.json.JsonMapper;
+
 import wiki.chiu.micro.cache.aspect.CacheAspect;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
 import wiki.chiu.micro.cache.key.impl.JacksonCacheKeyFactory;
 import wiki.chiu.micro.cache.metrics.CacheMetrics;
 import wiki.chiu.micro.cache.store.LocalCacheEntry;
+import wiki.chiu.micro.cache.store.RedisCacheKeyRegistry;
 
 @AutoConfiguration
 @EnableConfigurationProperties(CacheProperties.class)
@@ -41,6 +43,11 @@ public class CacheAspectConfig {
     }
 
     @Bean
+    RedisCacheKeyRegistry cacheKeyRegistry(RedissonClient redissonClient) {
+        return new RedisCacheKeyRegistry(redissonClient);
+    }
+
+    @Bean
     CacheAspect cacheAspect(
         RedissonClient redissonClient,
         JsonMapper jsonMapper,
@@ -48,7 +55,8 @@ public class CacheAspectConfig {
         @Qualifier("caffeineCache") Cache<@NonNull String, LocalCacheEntry> localCache,
         @Qualifier("localLockMap") Cache<@NonNull String, ReentrantLock> localLockMap,
         CacheProperties properties,
-        CacheMetrics metrics) {
+        CacheMetrics metrics,
+        RedisCacheKeyRegistry keyRegistry) {
         properties.validate();
         return new CacheAspect(
             redissonClient,
@@ -57,6 +65,7 @@ public class CacheAspectConfig {
             localCache,
             localLockMap,
             properties,
-            metrics);
+            metrics,
+            keyRegistry);
     }
 }

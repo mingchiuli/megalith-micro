@@ -92,7 +92,9 @@ graph TD
     Exhibit -->|Fetch Data| Blog
     Auth -->|Batch Snapshot Misses| User
     Search --> ES
-    Blog -->|Query IDs, Then Fetch| Search
+    Blog -->|Query IDs + Batched Read Counts| Search
+    Search -->|Maintenance Snapshots| Blog
+    Search -->|Maintenance Task Locks| Redis
 
     %% Durable events and distributed caches.
     User -->|Outbox Poll + Confirmed Publish| RabbitMQ
@@ -163,6 +165,25 @@ flowchart LR
 | `BlogChangedMessage` | `micro-blog` | `blog.change.fanout.exchange` | `blog.change.queue.es` -> `micro-search` | Apply revision-aware Elasticsearch index changes |
 | `BlogChangedMessage` | `micro-blog` | `blog.change.fanout.exchange` | `blog.change.queue.cache` -> `micro-exhibit` | Invalidate exact presentation cache entries |
 | `BlogChangedMessage` | `micro-blog` | `blog.change.fanout.exchange` | `blog.change.queue.recycle` -> `micro-blog` | Store recycle-bin metadata for an operator-initiated removal |
+
+Search content events compare the persisted blog `event_revision` with the document's
+`_source.revision` atomically. Elasticsearch's own `_version` is independent and is never used as
+the blog revision. Reading an article updates MariaDB's cumulative counter and the Redis hot list;
+`micro-blog` synchronizes cumulative counts to Elasticsearch every 60 seconds in batches of 500.
+Statistics updates are idempotent, preserve newer counts, and cannot recreate deleted documents.
+
+Administration lists, filters, counts, and exports always select IDs through Elasticsearch,
+including requests without keywords. MariaDB supplies current content and sensitive ranges for
+those IDs, with a second permission/filter check and the Elasticsearch ordering preserved.
+Search failures remain visible; there is no independent database search fallback.
+
+All presentation pages remain eligible for two-level caching. The `blog-page:v3` contract uses
+`@Cache(trackKeys = true)` to register generated keys before loading or promoting a value. Blog
+events invalidate those exact registered page keys in batches, so blog writes no longer calculate
+pagination counts for cache consumers. Existing queued events with those legacy fields are accepted.
+
+For the coordinated upgrade, index alias migration, maintenance rebuild, failure recovery, and
+configuration, see [Search and cache operations](docs/search-and-cache-operations.md).
 
 The producer-side outbox and consumer-side retry paths solve different failures. An outbox row is
 deleted only after RabbitMQ confirms the persistent message; publish failures remain in MariaDB and
@@ -350,6 +371,7 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.3.4.1+1.1/Contents
 
 ```bash
 ./gradlew build
+./gradlew :micro-blog:integrationTest :micro-search:integrationTest :cache:integrationTest
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace

@@ -8,6 +8,7 @@ import java.util.*;
 import org.springframework.stereotype.Service;
 
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
+import wiki.chiu.micro.blog.application.model.BlogSearchSelection;
 import wiki.chiu.micro.blog.application.model.DeletedBlogPage;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
@@ -113,11 +114,6 @@ public class BlogServiceImpl implements BlogService {
                             .type(item.type())
                             .build())
                 .toList();
-        long totalCount = blogs.count() + (expectedRevision == null ? 1 : 0);
-        Long newerOrSameCount =
-            expectedRevision == null
-                ? null
-                : blogs.countCreatedSince(candidate.getCreated());
         BlogOperateEnum operation =
             expectedRevision == null ? BlogOperateEnum.CREATE : BlogOperateEnum.UPDATE;
 
@@ -126,7 +122,7 @@ public class BlogServiceImpl implements BlogService {
             expectedRevision,
             existingSensitiveIds,
             blogSensitiveContentEntityList,
-            new BlogEventContext(operation, userId, totalCount, newerOrSameCount));
+            new BlogEventContext(operation, userId));
     }
 
     private BlogEntity getBlogEntity(
@@ -154,19 +150,28 @@ public class BlogServiceImpl implements BlogService {
         BlogSearchRpcVo dto = blogSearch.searchBlogs(req);
         List<Long> ids = dto.ids();
         if (ids.isEmpty()) {
-            return PageAdapter.emptyPage();
+            return BlogEntityVoConvertor.convert(List.of(), Map.of(), List.of(), dto);
+        }
+
+        BlogSearchSelection selection = new BlogSearchSelection(
+            req.status(), req.createStart(), req.createEnd(), req.userId(), req.allData());
+        Map<Long, Integer> order = new HashMap<>();
+        for (int index = 0; index < ids.size(); index++) {
+            order.put(ids.get(index), index);
         }
 
         List<BlogEntity> items =
             blogs.findAllById(ids).stream()
-                .sorted(Comparator.comparing(item -> ids.indexOf(item.getId())))
-                .filter(item -> req.status() == null || Objects.equals(item.getStatus(), req.status()))
+                .filter(selection::includes)
+                .sorted(Comparator.comparing(item -> order.get(item.getId())))
                 .toList();
 
-        List<BlogSensitiveContentEntity> blogSensitiveContentEntities =
-            blogs.findSensitiveByBlogIds(ids);
+        List<Long> currentIds = items.stream().map(BlogEntity::getId).toList();
 
-        Map<Long, Integer> readMap = runtimeStore.readCounts(ids);
+        List<BlogSensitiveContentEntity> blogSensitiveContentEntities =
+            currentIds.isEmpty() ? List.of() : blogs.findSensitiveByBlogIds(currentIds);
+
+        Map<Long, Integer> readMap = currentIds.isEmpty() ? Map.of() : runtimeStore.readCounts(currentIds);
 
         return BlogEntityVoConvertor.convert(items, readMap, blogSensitiveContentEntities, dto);
     }
@@ -192,7 +197,7 @@ public class BlogServiceImpl implements BlogService {
         BlogEntity recovered = deleted.orElseThrow().blog();
         blogWrapper.recoverDeletedBlog(
             recovered,
-            new BlogEventContext(BlogOperateEnum.CREATE, userId, blogs.count() + 1, null));
+            new BlogEventContext(BlogOperateEnum.CREATE, userId));
         runtimeStore.removeDeletedBlog(userId, deleted.orElseThrow().receipt());
     }
 
@@ -220,17 +225,9 @@ public class BlogServiceImpl implements BlogService {
             blogs.findSensitiveByBlogIds(deletedIds).stream()
                 .map(BlogSensitiveContentEntity::getId)
                 .toList();
-        long previousTotalCount = blogs.count();
-        long totalCount = Math.max(0, previousTotalCount - deleted.size());
-
         blogWrapper.deleteByIds(
             deleted,
             sensitiveIds,
-            new BlogEventContext(
-                BlogOperateEnum.REMOVE,
-                operatorUserId,
-                totalCount,
-                null,
-                previousTotalCount));
+            new BlogEventContext(BlogOperateEnum.REMOVE, operatorUserId));
     }
 }

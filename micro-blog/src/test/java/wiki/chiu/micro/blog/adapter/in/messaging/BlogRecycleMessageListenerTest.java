@@ -33,7 +33,7 @@ class BlogRecycleMessageListenerTest {
             new BlogSnapshot(9L, 42L, "title", "description", "content", now, now, 0, null, 1L, 3L);
         BlogChangedMessage event =
             new BlogChangedMessage(
-                "event-7", BlogOperateEnum.REMOVE.getCode(), 3L, 42L, snapshot, 0L, 0L);
+                "event-7", BlogOperateEnum.REMOVE.getCode(), 3L, 42L, snapshot);
 
         listener.handle(event, channel, message);
 
@@ -56,7 +56,7 @@ class BlogRecycleMessageListenerTest {
 
         listener.handle(
             new BlogChangedMessage(
-                "event-8", BlogOperateEnum.REMOVE.getCode(), 3L, null, snapshot, 0L, null, 1L),
+                "event-8", BlogOperateEnum.REMOVE.getCode(), 3L, null, snapshot),
             channel,
             message);
 

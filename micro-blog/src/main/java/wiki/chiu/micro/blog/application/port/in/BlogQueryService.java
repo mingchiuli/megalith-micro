@@ -1,6 +1,5 @@
 package wiki.chiu.micro.blog.application.port.in;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
@@ -20,5 +19,4 @@ public interface BlogQueryService {
 
     PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize);
 
-    long countCreatedSince(LocalDateTime created);
 }

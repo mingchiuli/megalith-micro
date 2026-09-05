@@ -1,0 +1,10 @@
+if (ctx.op == 'create' || ctx._source.deleted == true) {
+    ctx.op = 'noop';
+    return;
+}
+long current = ctx._source.readCount == null ? 0L : (long) ctx._source.readCount;
+if (params.readCount <= current) {
+    ctx.op = 'noop';
+} else {
+    ctx._source.readCount = params.readCount;
+}

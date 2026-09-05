@@ -1,6 +1,5 @@
 package wiki.chiu.micro.exhibit.adapter.out.http;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -48,11 +47,6 @@ public class BlogHttpServiceWrapper implements BlogCatalog {
 
     public PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize) {
         return RemoteResult.requireSuccess(() -> blogHttpService.findPage(pageNo, pageSize));
-    }
-
-    public long countByCreatedGreaterThanEqual(LocalDateTime created) {
-        return RemoteResult.requireSuccess(
-            () -> blogHttpService.countByCreatedGreaterThanEqual(created));
     }
 
     public BlogSensitiveContentRpcVo findSensitiveByBlogId(Long blogId) {

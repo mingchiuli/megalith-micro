@@ -9,6 +9,8 @@ import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
+import wiki.chiu.micro.blog.config.BlogMaintenanceProperties;
+import wiki.chiu.micro.blog.convertor.BlogSnapshotConvertor;
 import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
 import wiki.chiu.micro.common.exception.BaseException;
@@ -24,14 +26,17 @@ public class BlogWrapper implements BlogWriter {
     private final BlogRepository blogs;
     private final BlogSensitiveContentRepository sensitiveContents;
     private final OutboxService outbox;
+    private final BlogMaintenanceProperties maintenance;
 
     public BlogWrapper(
         BlogRepository blogs,
         BlogSensitiveContentRepository sensitiveContents,
-        OutboxService outbox) {
+        OutboxService outbox,
+        BlogMaintenanceProperties maintenance) {
         this.blogs = blogs;
         this.sensitiveContents = sensitiveContents;
         this.outbox = outbox;
+        this.maintenance = maintenance;
     }
 
     @Transactional
@@ -42,6 +47,7 @@ public class BlogWrapper implements BlogWriter {
         List<Long> existingSensitiveIds,
         List<BlogSensitiveContentEntity> newSensitiveContents,
         BlogEventContext event) {
+        maintenance.requireWritable();
         BlogEntity persisted =
             expectedRevision == null ? blogs.save(blog) : update(blog, expectedRevision);
 
@@ -54,6 +60,7 @@ public class BlogWrapper implements BlogWriter {
     @Transactional
     @Override
     public void recoverDeletedBlog(BlogEntity blog, BlogEventContext event) {
+        maintenance.requireWritable();
         enqueue(blogs.save(blog), event);
     }
 
@@ -61,6 +68,7 @@ public class BlogWrapper implements BlogWriter {
     @Override
     public void deleteByIds(
         List<BlogEntity> deleted, List<Long> sensitiveIds, BlogEventContext event) {
+        maintenance.requireWritable();
         deleted.forEach(
             blog -> {
                 long expectedRevision = blog.getEventRevision() - 1;
@@ -101,19 +109,7 @@ public class BlogWrapper implements BlogWriter {
     }
 
     private void enqueue(BlogEntity blog, BlogEventContext event) {
-        BlogSnapshot snapshot =
-            new BlogSnapshot(
-                blog.getId(),
-                blog.getUserId(),
-                blog.getTitle(),
-                blog.getDescription(),
-                blog.getContent(),
-                blog.getCreated(),
-                blog.getUpdated(),
-                blog.getStatus(),
-                blog.getLink(),
-                blog.getReadCount(),
-                blog.getEventRevision());
+        BlogSnapshot snapshot = BlogSnapshotConvertor.convert(blog);
         outbox.enqueue(
             OutboxProducer.BLOG,
             "BLOG",
@@ -124,9 +120,6 @@ public class BlogWrapper implements BlogWriter {
                     event.operation().getCode(),
                     blog.getEventRevision(),
                     event.operatorUserId(),
-                    snapshot,
-                    event.totalCount(),
-                    event.newerOrSameCount(),
-                    event.previousTotalCount()));
+                    snapshot));
     }
 }

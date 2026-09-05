@@ -1,7 +1,5 @@
 package wiki.chiu.micro.exhibit.adapter.in.messaging.cache.handler;
 
-import java.util.HashSet;
-
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
@@ -9,22 +7,22 @@ import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.exhibit.adapter.in.messaging.cache.CacheKeyGenerator;
+import wiki.chiu.micro.exhibit.adapter.in.messaging.cache.PageCacheEviction;
 import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 
 @Component
 public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
-    private final CacheKeyGenerator cacheKeyGenerator;
+    private final PageCacheEviction pageCacheEviction;
     private final BlogExistenceService blogExistenceService;
 
     public CreateBlogCacheEvictHandler(
         RedissonClient redissonClient,
-        CacheKeyGenerator cacheKeyGenerator,
+        PageCacheEviction pageCacheEviction,
         CacheEvictor cacheEvictor,
         BlogExistenceService blogExistenceService) {
         super(redissonClient, cacheEvictor);
-        this.cacheKeyGenerator = cacheKeyGenerator;
+        this.pageCacheEviction = pageCacheEviction;
         this.blogExistenceService = blogExistenceService;
     }
 
@@ -37,14 +35,7 @@ public final class CreateBlogCacheEvictHandler extends BlogCacheEvictHandler {
     public void redisProcess(BlogChangedMessage message) {
         BlogEntityRpcVo blogEntity = blogEntity(message.blogSnapshot());
         Long id = blogEntity.id();
-        long count = message.totalCount();
-
-        evictCaches(count);
+        pageCacheEviction.evict();
         blogExistenceService.markPresent(id);
-    }
-
-    private void evictCaches(long count) {
-        HashSet<String> keys = cacheKeyGenerator.generateHotBlogsKeys(count);
-        cacheEvictor.evict(keys);
     }
 }

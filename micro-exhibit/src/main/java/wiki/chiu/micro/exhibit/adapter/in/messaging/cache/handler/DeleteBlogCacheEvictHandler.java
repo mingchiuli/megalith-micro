@@ -12,26 +12,26 @@ import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
 import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.exhibit.adapter.in.messaging.cache.CacheKeyGenerator;
+import wiki.chiu.micro.exhibit.adapter.in.messaging.cache.PageCacheEviction;
 import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;
 
 @Component
 public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
-    private final CacheKeyGenerator cacheKeyGenerator;
+    private final PageCacheEviction pageCacheEviction;
 
     private final CacheKeyFactory cacheKeyFactory;
     private final BlogExistenceService blogExistenceService;
 
     public DeleteBlogCacheEvictHandler(
         RedissonClient redissonClient,
-        CacheKeyGenerator cacheKeyGenerator,
+        PageCacheEviction pageCacheEviction,
         CacheEvictor cacheEvictor,
         CacheKeyFactory cacheKeyFactory,
         BlogExistenceService blogExistenceService) {
         super(redissonClient, cacheEvictor);
-        this.cacheKeyGenerator = cacheKeyGenerator;
+        this.pageCacheEviction = pageCacheEviction;
         this.cacheKeyFactory = cacheKeyFactory;
         this.blogExistenceService = blogExistenceService;
     }
@@ -46,12 +46,8 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
         BlogEntityRpcVo blogEntity = blogEntity(message.blogSnapshot());
         Long id = blogEntity.id();
 
-        long pageInvalidationCount =
-            message.previousTotalCount() == null
-                ? message.totalCount()
-                : message.previousTotalCount();
-
-        evictCaches(id, pageInvalidationCount);
+        evictCaches(id);
+        pageCacheEviction.evict();
         clearKeys(id);
         blogExistenceService.markAbsent(id);
         deleteHotRead(id);
@@ -67,12 +63,11 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
         redissonClient.getKeys().delete(clearKeys.toArray(new String[0]));
     }
 
-    private void evictCaches(Long id, long count) {
+    private void evictCaches(Long id) {
         HashSet<String> keys = new HashSet<>();
 
         keys.add(cacheKeyFactory.generate(BlogCacheDescriptors.DETAIL, id));
         keys.add(cacheKeyFactory.generate(BlogCacheDescriptors.SENSITIVE, id));
-        keys.addAll(cacheKeyGenerator.generateHotBlogsKeys(count));
         cacheEvictor.evict(keys);
     }
 }

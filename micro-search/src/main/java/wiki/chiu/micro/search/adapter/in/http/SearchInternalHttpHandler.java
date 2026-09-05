@@ -1,8 +1,10 @@
 package wiki.chiu.micro.search.adapter.in.http;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
-import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
 
+import java.util.List;
+
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -10,15 +12,20 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.search.api.SearchHttpService;
+import wiki.chiu.micro.search.api.req.BlogReadCountReq;
 import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
+import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchResult;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
 
 @Component
 public class SearchInternalHttpHandler implements SearchHttpService {
+
+    private static final ParameterizedTypeReference<List<BlogReadCountReq>> READ_COUNTS =
+        new ParameterizedTypeReference<>() {};
 
     private final SearchBlogsUseCase searchBlogs;
     private final ValidatedRequest v;
@@ -36,9 +43,15 @@ public class SearchInternalHttpHandler implements SearchHttpService {
         return ok(countBlogs(SearchRequestConvertor.toBlogSysCountSearchReq(request)));
     }
 
-    public ServerResponse addReadCount(ServerRequest request) {
-        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
-        return ok(addReadCount(blogId));
+    public ServerResponse updateReadCounts(ServerRequest request) throws Exception {
+        List<BlogReadCountReq> counts = v.notEmpty(request.body(READ_COUNTS), "counts");
+        v.range(counts.size(), 1, 1000, "counts.size");
+        for (BlogReadCountReq count : counts) {
+            v.notNull(count, "count");
+            v.positive(count.blogId(), "blogId");
+            v.nonNegative(count.readCount(), "readCount");
+        }
+        return ok(updateReadCounts(counts));
     }
 
     @Override
@@ -52,8 +65,9 @@ public class SearchInternalHttpHandler implements SearchHttpService {
     }
 
     @Override
-    public Result<Void> addReadCount(Long blogId) {
-        return Result.success(() -> searchBlogs.incrementViews(blogId));
+    public Result<Void> updateReadCounts(List<BlogReadCountReq> counts) {
+        return Result.success(() -> searchBlogs.updateReadCounts(
+            counts.stream().map(count -> new BlogReadCount(count.blogId(), count.readCount())).toList()));
     }
 
     private static PrivateBlogSearchQuery toQuery(BlogSysSearchReq req) {

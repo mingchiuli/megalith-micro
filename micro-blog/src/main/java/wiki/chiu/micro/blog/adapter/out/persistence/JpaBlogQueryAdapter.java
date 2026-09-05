@@ -1,6 +1,5 @@
 package wiki.chiu.micro.blog.adapter.out.persistence;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogSensitiveContentRepository;
+import wiki.chiu.micro.blog.application.model.BlogReadCount;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
@@ -33,6 +33,16 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
     }
 
     @Override
+    public List<BlogReadCount> findReadCountsAfter(long afterId, int limit) {
+        return blogs.findReadCountsAfter(afterId, PageRequest.of(0, limit));
+    }
+
+    @Override
+    public List<BlogEntity> findSnapshotsAfter(long afterId, int limit) {
+        return blogs.findSnapshotsAfter(afterId, PageRequest.of(0, limit));
+    }
+
+    @Override
     public Optional<BlogEntity> findById(Long blogId) {
         return blogs.findById(blogId);
     }
@@ -50,11 +60,6 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
     @Override
     public long count() {
         return blogs.count();
-    }
-
-    @Override
-    public long countCreatedSince(LocalDateTime created) {
-        return blogs.countByCreatedGreaterThanEqual(created);
     }
 
     @Override

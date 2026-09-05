@@ -2,7 +2,6 @@ package wiki.chiu.micro.blog.application.service;
 
 import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -69,8 +68,4 @@ public class BlogQueryServiceImpl implements BlogQueryService {
         return BlogEntityRpcVoConvertor.convert(page);
     }
 
-    @Override
-    public long countCreatedSince(LocalDateTime created) {
-        return blogs.countCreatedSince(created);
-    }
 }

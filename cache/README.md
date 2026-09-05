@@ -35,7 +35,38 @@ cacheEvictor.evict(Set.of(cacheKeyFactory.generate(USER_ACCESS, userId)));
 ```
 
 Cached methods must pass through their Spring proxy. `null` is returned but never stored. L1 entries
-receive 90-100% of the annotation TTL by default, so L1 never outlives L2.
+receive 90-100% of the annotation TTL at insertion. Promoting an L2 value starts a new local TTL,
+so local entries can remain after the corresponding Redis value expires.
+
+## Tracked Keys
+
+Enable `trackKeys = true` for contracts whose callers cannot enumerate all cached arguments:
+
+```java
+@Cache(namespace = "blog-page", version = 3, trackKeys = true)
+public PageAdapter<BlogDescriptionDto> findPage(Integer currentPage) {
+    return loadPage(currentPage);
+}
+
+cacheEvictor.evict(cacheKeyRegistry.registeredKeys(new CacheDescriptor("blog-page", 3)));
+```
+
+`CacheKeyRegistry` is exposed in the public `handler` package. The registry stores exact keys in
+`megalith:cache:keys:<namespace>:v<version>`. Tracked L1 misses acquire the existing distributed key
+lock and register before reading L2 or the source, keeping registration and promotion ordered with
+eviction. L1 hits require no extra Redis call. Registry, remote-read, or remote-lock failures fall
+back to the source without caching an untracked local value.
+
+Directory membership survives normal TTL expiry and explicit eviction because other replicas may
+still retain local values or refill a key. A newly registered key whose first load fails or returns
+null is removed under the same lock. Successful registrations are retained for that contract version;
+applications should evict large snapshots in bounded batches and retry the complete snapshot after
+a partial failure. Directories for retired versions can be removed after all old replicas and values
+are gone. Bump the contract version when first enabling tracking on an existing cache.
+
+After complete Redis data loss, restart all application replicas using tracked caches to clear L1.
+If only a directory was lost, stop those replicas and invalidate the exact remaining L2 keys for
+that namespace/version before restarting. New loads recreate directory membership.
 
 ## Required Beans
 
@@ -79,6 +110,7 @@ replica was disconnected.
 | Operation | Behavior |
 | --- | --- |
 | Redis L2 read or lock unavailable | Run the source method and populate only L1 |
+| Tracked cache registry, L2 read, or lock unavailable | Run the source method without caching |
 | Local or remote load lock timeout | Run the source method without caching |
 | Cached value cannot be decoded | Delete it best-effort and reload from the source |
 | Source returns `null` | Return `null`; do not write L1 or L2 |

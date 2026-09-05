@@ -2,21 +2,25 @@ package wiki.chiu.micro.search.adapter.out.elasticsearch;
 
 import co.elastic.clients.elasticsearch._types.ScriptLanguage;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Map;
 
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.elasticsearch.VersionConflictException;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
+import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.BlogSearchResult;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
@@ -28,16 +32,26 @@ import wiki.chiu.micro.search.domain.BlogIndexEntry;
 
 public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogIndexWriter {
 
-    private static final Logger log = LoggerFactory.getLogger(ElasticsearchBlogAdapter.class);
     private static final ZoneId ZONE_ID = ZoneId.of("Asia/Shanghai");
 
     private final ElasticsearchTemplate elasticsearchTemplate;
     private final int publicPageSize;
+    private final String indexName;
+    private final String contentScript;
+    private final String readCountScript;
 
     public ElasticsearchBlogAdapter(
         ElasticsearchTemplate elasticsearchTemplate, int publicPageSize) {
+        this(elasticsearchTemplate, publicPageSize, IndexConst.indexName);
+    }
+
+    public ElasticsearchBlogAdapter(
+        ElasticsearchTemplate elasticsearchTemplate, int publicPageSize, String indexName) {
         this.elasticsearchTemplate = elasticsearchTemplate;
         this.publicPageSize = publicPageSize;
+        this.indexName = indexName;
+        this.contentScript = script("blog-content-update.painless");
+        this.readCountScript = script("blog-read-count-update.painless");
     }
 
     @Override
@@ -46,7 +60,7 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
             PublicSearchQueryConvertor.searchConvert(
                 query.keywords(), query.page(), publicPageSize, query.allInfo());
         SearchHits<@NonNull BlogDocument> hits =
-            elasticsearchTemplate.search(searchQuery, BlogDocument.class);
+            elasticsearchTemplate.search(searchQuery, BlogDocument.class, IndexCoordinates.of(indexName));
         return toPage(hits, query.page(), publicPageSize);
     }
 
@@ -63,7 +77,7 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
                 query.page(),
                 query.pageSize());
         SearchHits<@NonNull BlogDocument> hits =
-            elasticsearchTemplate.search(searchQuery, BlogDocument.class);
+            elasticsearchTemplate.search(searchQuery, BlogDocument.class, IndexCoordinates.of(indexName));
         return new BlogSearchResult(
             hits.getTotalHits(),
             query.page(),
@@ -81,32 +95,46 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
                 query.createEnd(),
                 query.userId(),
                 query.allData());
-        return elasticsearchTemplate.count(countQuery, BlogDocument.class);
+        return elasticsearchTemplate.count(countQuery, BlogDocument.class, IndexCoordinates.of(indexName));
     }
 
     @Override
-    public void incrementViews(long blogId) {
-        UpdateQuery updateQuery =
-            UpdateQuery.builder(Long.toString(blogId))
-                .withScript("ctx._source.readCount += 1;")
-                .withLang(ScriptLanguage.Painless.jsonValue())
-                .build();
-        elasticsearchTemplate.update(updateQuery, IndexCoordinates.of(IndexConst.indexName));
+    public void updateReadCounts(List<BlogReadCount> counts) {
+        if (counts.isEmpty()) {
+            return;
+        }
+        List<UpdateQuery> queries = counts.stream()
+            .map(count -> scriptedUpdate(count.blogId(), readCountScript,
+                Map.of("readCount", count.readCount())))
+            .toList();
+        elasticsearchTemplate.bulkUpdate(queries, IndexCoordinates.of(indexName));
     }
 
     @Override
     public void write(BlogIndexChange change) {
         BlogDocument document = toDocument(change);
-        IndexQuery query =
-            IndexQuery.builder()
-                .withId(document.getId().toString())
-                .withObject(document)
-                .withVersion(change.revision())
-                .build();
+        Document source = elasticsearchTemplate.getElasticsearchConverter().mapObject(document);
+        elasticsearchTemplate.update(
+            scriptedUpdate(document.getId(), contentScript, Map.of("blog", source)),
+            IndexCoordinates.of(indexName));
+    }
+
+    private static UpdateQuery scriptedUpdate(long id, String script, Map<String, Object> params) {
+        return UpdateQuery.builder(Long.toString(id))
+            .withScript(script)
+            .withLang(ScriptLanguage.Painless.jsonValue())
+            .withParams(params)
+            .withScriptedUpsert(true)
+            .withUpsert(Document.create())
+            .withRetryOnConflict(5)
+            .build();
+    }
+
+    private static String script(String name) {
         try {
-            elasticsearchTemplate.index(query, IndexCoordinates.of(IndexConst.indexName));
-        } catch (VersionConflictException staleMessage) {
-            log.debug("Ignored stale blog index revision {} for {}", change.revision(), document.getId());
+            return new ClassPathResource("script/" + name).getContentAsString(StandardCharsets.UTF_8);
+        } catch (IOException failure) {
+            throw new UncheckedIOException("Cannot load search update script " + name, failure);
         }
     }
 
@@ -140,7 +168,7 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
             totalPages);
     }
 
-    private static BlogDocument toDocument(BlogIndexChange change) {
+    static BlogDocument toDocument(BlogIndexChange change) {
         BlogIndexEntry blog = change.blog();
         if (change.operation() == BlogIndexChange.Operation.REMOVE) {
             return BlogDocument.builder()

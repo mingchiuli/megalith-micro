@@ -43,6 +43,12 @@ megalith:
   task-lock:
     environment: ${spring.profiles.active:default}
   blog:
+    maintenance:
+      read-only: false
+    statistics-sync:
+      enabled: true
+      interval: 60s
+      batch-size: 500
     oss:
       base-url: https://${megalith.blog.aliyun.oss.bucket-name}.${megalith.blog.oss.endpoint}
       endpoint: oss-cn-hangzhou.aliyuncs.com

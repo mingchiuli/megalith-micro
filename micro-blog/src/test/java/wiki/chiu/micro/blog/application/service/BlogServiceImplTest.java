@@ -70,7 +70,6 @@ class BlogServiceImplTest {
         BlogEntity first = BlogEntity.builder().id(7L).eventRevision(2L).build();
         BlogEntity second = BlogEntity.builder().id(8L).eventRevision(4L).build();
         when(blogs.findByUserIds(List.of(42L))).thenReturn(List.of(first, second));
-        when(blogs.count()).thenReturn(10L);
         BlogServiceImpl service =
             new BlogServiceImpl(
                 blogs,
@@ -85,8 +84,7 @@ class BlogServiceImplTest {
         verify(writer)
             .deleteByIds(eq(List.of(first, second)), eq(List.of()), event.capture());
         assertEquals(null, event.getValue().operatorUserId());
-        assertEquals(8L, event.getValue().totalCount());
-        assertEquals(10L, event.getValue().previousTotalCount());
+        org.mockito.Mockito.verify(blogs, org.mockito.Mockito.never()).count();
         assertEquals(3L, first.getEventRevision());
         assertEquals(5L, second.getEventRevision());
     }

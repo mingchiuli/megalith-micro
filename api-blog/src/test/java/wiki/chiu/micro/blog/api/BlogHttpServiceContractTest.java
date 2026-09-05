@@ -5,8 +5,6 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import java.time.LocalDateTime;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -34,7 +32,7 @@ class BlogHttpServiceContractTest {
     }
 
     @Test
-    void createdQueryUsesIsoDateTime() {
+    void cursorQueryUsesTheExplicitIdAndLimit() {
         var restClientBuilder = RestClient.builder().baseUrl("https://blog.test");
         var server = MockRestServiceServer.bindTo(restClientBuilder).build();
         var client =
@@ -43,11 +41,11 @@ class BlogHttpServiceContractTest {
                 .createClient(BlogHttpService.class);
 
         server
-            .expect(requestTo("https://blog.test/blog/count/until?created=2026-08-01T12%3A04%3A00"))
+            .expect(requestTo("https://blog.test/blog/ids?afterId=7&limit=500"))
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess());
 
-        var result = client.countByCreatedGreaterThanEqual(LocalDateTime.of(2026, 8, 1, 12, 4));
+        var result = client.findIdsAfter(7L, 500);
 
         assertThat(result).isNull();
         server.verify();

@@ -1,6 +1,7 @@
 package wiki.chiu.micro.cache.aspect;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -24,11 +25,14 @@ import org.redisson.client.RedisException;
 import org.redisson.client.codec.StringCodec;
 
 import tools.jackson.databind.json.JsonMapper;
+
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.cache.config.CacheProperties;
+import wiki.chiu.micro.cache.key.CacheDescriptor;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
 import wiki.chiu.micro.cache.metrics.CacheMetrics;
 import wiki.chiu.micro.cache.store.LocalCacheEntry;
+import wiki.chiu.micro.cache.store.RedisCacheKeyRegistry;
 
 class CacheAspectTest {
 
@@ -41,6 +45,7 @@ class CacheAspectTest {
     private final com.github.benmanes.caffeine.cache.Cache<String, ReentrantLock> locks =
         Caffeine.newBuilder().build();
     private final CacheProperties properties = properties();
+    private final RedisCacheKeyRegistry registry = mock(RedisCacheKeyRegistry.class);
     private final CacheAspect aspect =
         new CacheAspect(
             redisson,
@@ -49,7 +54,89 @@ class CacheAspectTest {
             local,
             locks,
             properties,
-            new CacheMetrics(null));
+            new CacheMetrics(null), registry);
+
+    @Test
+    void registersBeforeReadingTheSourceAndRetainsTheKeyAfterFilling() throws Throwable {
+        ProceedingJoinPoint point = joinPoint("tracked");
+        RBucket<String> bucket = bucket();
+        remoteLock(true);
+        when(registry.register(new CacheDescriptor("fixture", 1), KEY)).thenReturn(true);
+        when(point.proceed()).thenReturn("loaded");
+
+        assertThat(aspect.around(point)).isEqualTo("loaded");
+
+        var order = org.mockito.Mockito.inOrder(registry, point, bucket);
+        order.verify(registry).register(new CacheDescriptor("fixture", 1), KEY);
+        order.verify(point).proceed();
+        order.verify(bucket).set("\"loaded\"", Duration.ofMinutes(2));
+        verify(registry, never()).unregisterFailedLoad(org.mockito.ArgumentMatchers.any(), anyString());
+    }
+
+    @Test
+    void registryFailureReturnsSourceWithoutCreatingUntrackedCacheEntries() throws Throwable {
+        ProceedingJoinPoint point = joinPoint("tracked");
+        RBucket<String> bucket = bucket();
+        remoteLock(true);
+        when(registry.register(new CacheDescriptor("fixture", 1), KEY)).thenThrow(new RedisException("offline"));
+        when(point.proceed()).thenReturn("source");
+
+        assertThat(aspect.around(point)).isEqualTo("source");
+        assertThat(local.getIfPresent(KEY)).isNull();
+        verify(bucket, never()).set(anyString(), org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void trackedCacheDoesNotPopulateL1WhenRedisIsUnavailable() throws Throwable {
+        ProceedingJoinPoint point = joinPoint("tracked");
+        remoteLock(true);
+        when(bucket().get()).thenThrow(new RedisException("offline"));
+        when(point.proceed()).thenReturn("source");
+
+        assertThat(aspect.around(point)).isEqualTo("source");
+        assertThat(local.getIfPresent(KEY)).isNull();
+    }
+
+    @Test
+    void trackedL2HitsRegisterBeforePromotingTheValueToL1() throws Throwable {
+        ProceedingJoinPoint point = joinPoint("tracked");
+        RBucket<String> bucket = bucket();
+        remoteLock(true);
+        when(bucket.get()).thenReturn("\"remote\"");
+        when(registry.register(new CacheDescriptor("fixture", 1), KEY)).thenReturn(true);
+
+        assertThat(aspect.around(point)).isEqualTo("remote");
+
+        var order = org.mockito.Mockito.inOrder(registry, bucket);
+        order.verify(registry).register(new CacheDescriptor("fixture", 1), KEY);
+        order.verify(bucket).get();
+        assertThat(local.getIfPresent(KEY).value()).isEqualTo("remote");
+        verify(point, never()).proceed();
+    }
+
+    @Test
+    void failedFirstLoadRemovesItsNewRegistration() throws Throwable {
+        ProceedingJoinPoint point = joinPoint("tracked");
+        bucket();
+        remoteLock(true);
+        when(registry.register(new CacheDescriptor("fixture", 1), KEY)).thenReturn(true);
+        when(point.proceed()).thenThrow(new IllegalArgumentException("missing page"));
+
+        assertThatThrownBy(() -> aspect.around(point)).hasMessage("missing page");
+        verify(registry).unregisterFailedLoad(new CacheDescriptor("fixture", 1), KEY);
+        assertThat(local.getIfPresent(KEY)).isNull();
+    }
+
+    @Test
+    void failedReloadKeepsEarlierRegistrationForOtherReplicas() throws Throwable {
+        ProceedingJoinPoint point = joinPoint("tracked");
+        bucket();
+        remoteLock(true);
+        when(point.proceed()).thenThrow(new IllegalArgumentException("deleted page"));
+
+        assertThatThrownBy(() -> aspect.around(point)).hasMessage("deleted page");
+        verify(registry, never()).unregisterFailedLoad(org.mockito.ArgumentMatchers.any(), anyString());
+    }
 
     @AfterEach
     void clearInterruptedStatus() {
@@ -155,10 +242,14 @@ class CacheAspectTest {
     }
 
     private ProceedingJoinPoint joinPoint() throws NoSuchMethodException {
+        return joinPoint("load");
+    }
+
+    private ProceedingJoinPoint joinPoint(String method) throws NoSuchMethodException {
         ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
         MethodSignature signature = mock(MethodSignature.class);
         when(joinPoint.getSignature()).thenReturn(signature);
-        when(signature.getMethod()).thenReturn(Fixture.class.getDeclaredMethod("load", String.class));
+        when(signature.getMethod()).thenReturn(Fixture.class.getDeclaredMethod(method, String.class));
         when(joinPoint.getArgs()).thenReturn(new Object[]{"value"});
         return joinPoint;
     }
@@ -170,6 +261,11 @@ class CacheAspectTest {
     }
 
     static final class Fixture {
+
+        @Cache(namespace = "fixture", ttl = 2, trackKeys = true)
+        String tracked(String value) {
+            return value;
+        }
 
         @Cache(namespace = "fixture", ttl = 2)
         String load(String value) {

@@ -188,8 +188,21 @@ class BlogSearchControllerTest {
 
     @Test
     void internalViewMutationUsesExplicitViewsPath() throws Exception {
-        mockMvc.perform(post("/inner/blog/7/views")).andExpect(status().isOk());
+        mockMvc.perform(post("/inner/blog/views/batch")
+            .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+            .content("[{\"blogId\":7,\"readCount\":120}]"))
+            .andExpect(status().isOk());
 
-        verify(searchBlogs).incrementViews(7L);
+        verify(searchBlogs).updateReadCounts(java.util.List.of(
+            new wiki.chiu.micro.search.application.model.BlogReadCount(7L, 120L)));
+    }
+
+    @Test
+    void batchStatisticsRejectInvalidCountsAndEmptyBatches() throws Exception {
+        for (String body : List.of("[]", "[null]", "[{\"blogId\":0,\"readCount\":1}]", "[{\"blogId\":7,\"readCount\":-1}]")) {
+            mockMvc.perform(post("/inner/blog/views/batch").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest());
+        }
+        verify(searchBlogs, never()).updateReadCounts(any());
     }
 }

@@ -1,5 +1,8 @@
 package wiki.chiu.micro.search.application.service;
 
+import java.util.List;
+
+import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.BlogSearchResult;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
@@ -32,7 +35,7 @@ public final class SearchApplicationService implements SearchBlogsUseCase {
     }
 
     @Override
-    public void incrementViews(long blogId) {
-        searchIndex.incrementViews(blogId);
+    public void updateReadCounts(List<BlogReadCount> counts) {
+        searchIndex.updateReadCounts(counts);
     }
 }

@@ -13,7 +13,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
  * @author mingchiuli
  * @create 2022-11-30 8:55 pm
  */
-@Document(indexName = IndexConst.indexName, versionType = Document.VersionType.EXTERNAL_GTE)
+@Document(indexName = IndexConst.indexName, createIndex = false)
 public class BlogDocument {
 
     @Id

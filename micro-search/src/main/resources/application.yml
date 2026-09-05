@@ -23,5 +23,14 @@ server:
   max-http-request-header-size: 10MB
 
 megalith:
+  task-lock:
+    environment: ${spring.profiles.active:default}
+  search:
+    maintenance:
+      enabled: false
+    index:
+      alias: blog_search
+      legacy-name: blog_index_v4
+      rebuild-batch-size: 500
   blog:
     blog-page-size: 5

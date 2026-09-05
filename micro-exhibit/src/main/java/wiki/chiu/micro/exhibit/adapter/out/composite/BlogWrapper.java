@@ -11,7 +11,6 @@ import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.common.lang.Const;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpServiceWrapper;
-import wiki.chiu.micro.exhibit.adapter.out.http.SearchHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.application.port.out.BlogReader;
 import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;
@@ -28,8 +27,6 @@ public class BlogWrapper implements BlogReader {
 
     private final UserHttpServiceWrapper userHttpServiceWrapper;
 
-    private final SearchHttpServiceWrapper searchHttpServiceWrapper;
-
     private final TaskExecutor taskExecutor;
 
     private final RedissonClient redissonClient;
@@ -40,12 +37,10 @@ public class BlogWrapper implements BlogReader {
     public BlogWrapper(
         BlogHttpServiceWrapper blogHttpServiceWrapper,
         UserHttpServiceWrapper userHttpServiceWrapper,
-        SearchHttpServiceWrapper searchHttpServiceWrapper,
         @Qualifier("commonExecutor") TaskExecutor taskExecutor,
         RedissonClient redissonClient) {
         this.blogHttpServiceWrapper = blogHttpServiceWrapper;
         this.userHttpServiceWrapper = userHttpServiceWrapper;
-        this.searchHttpServiceWrapper = searchHttpServiceWrapper;
         this.taskExecutor = taskExecutor;
         this.redissonClient = redissonClient;
     }
@@ -67,13 +62,13 @@ public class BlogWrapper implements BlogReader {
             () -> {
                 blogHttpServiceWrapper.setReadCount(id);
                 redissonClient.<String>getScoredSortedSet(Const.HOT_READ).addScore(id.toString(), 1);
-                searchHttpServiceWrapper.addReadCount(id);
             });
     }
 
     @Cache(
         namespace = BlogCacheDescriptors.PAGE_NAMESPACE,
-        version = BlogCacheDescriptors.VERSION)
+        version = BlogCacheDescriptors.PAGE_VERSION,
+        trackKeys = true)
     @Override
     public PageAdapter<BlogDescriptionDto> findPage(Integer currentPage) {
         PageAdapter<BlogEntityRpcVo> page = blogHttpServiceWrapper.findPage(currentPage, blogPageSize);

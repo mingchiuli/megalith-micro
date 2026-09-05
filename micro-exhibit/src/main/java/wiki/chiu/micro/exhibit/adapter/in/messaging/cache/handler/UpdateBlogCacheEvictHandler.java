@@ -13,23 +13,23 @@ import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
 import wiki.chiu.micro.common.lang.BlogChangedMessage;
 import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.exhibit.adapter.in.messaging.cache.CacheKeyGenerator;
+import wiki.chiu.micro.exhibit.adapter.in.messaging.cache.PageCacheEviction;
 import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;
 
 @Component
 public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
 
-    private final CacheKeyGenerator cacheKeyGenerator;
+    private final PageCacheEviction pageCacheEviction;
 
     private final CacheKeyFactory cacheKeyFactory;
 
     public UpdateBlogCacheEvictHandler(
         RedissonClient redissonClient,
-        CacheKeyGenerator cacheKeyGenerator,
+        PageCacheEviction pageCacheEviction,
         CacheEvictor cacheEvictor,
         CacheKeyFactory cacheKeyFactory) {
         super(redissonClient, cacheEvictor);
-        this.cacheKeyGenerator = cacheKeyGenerator;
+        this.pageCacheEviction = pageCacheEviction;
         this.cacheKeyFactory = cacheKeyFactory;
     }
 
@@ -44,14 +44,13 @@ public final class UpdateBlogCacheEvictHandler extends BlogCacheEvictHandler {
         Long id = blogEntity.id();
         Integer status = blogEntity.status();
 
-        // 保守处理，前面的全删
-        long countAfter = message.newerOrSameCount();
-        evictCaches(id, countAfter);
+        evictCaches(id);
+        pageCacheEviction.evict();
         clearReadToken(id, status);
     }
 
-    private void evictCaches(Long id, long countAfter) {
-        HashSet<String> keys = cacheKeyGenerator.generateBlogKey(countAfter);
+    private void evictCaches(Long id) {
+        HashSet<String> keys = new HashSet<>();
 
         keys.add(cacheKeyFactory.generate(BlogCacheDescriptors.DETAIL, id));
         keys.add(cacheKeyFactory.generate(BlogCacheDescriptors.SENSITIVE, id));

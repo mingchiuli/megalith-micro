@@ -1,4 +1,9 @@
 spring:
+  data:
+    redis:
+      port: 6379
+      password: 123456
+      host: 127.0.0.1
   ssl:
     bundle:
       pem:
@@ -17,6 +22,10 @@ spring:
     password: guest
     host: 127.0.0.1
     port: 5672
+
+megalith:
+  blog:
+    blog-url: http://127.0.0.1:8082/inner
 
 management:
   endpoints:

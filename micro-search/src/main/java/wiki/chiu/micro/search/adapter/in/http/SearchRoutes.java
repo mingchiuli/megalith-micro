@@ -13,6 +13,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.search.api.req.BlogReadCountReq;
 import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 
@@ -22,6 +23,7 @@ import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
     PageAdapter.class,
     BlogSysSearchReq.class,
     BlogSysCountSearchReq.class,
+    BlogReadCountReq.class,
     BlogDocumentVo.class
 })
 public class SearchRoutes {
@@ -41,7 +43,7 @@ public class SearchRoutes {
                 .GET("/search/public/blog", searchHandler::searchBlogs)
                 .POST("/inner/blog/search", internalHandler::searchBlogs)
                 .POST("/inner/blog/count", internalHandler::countBlogs)
-                .POST("/inner/blog/{blogId}/views", internalHandler::addReadCount),
+                .POST("/inner/blog/views/batch", internalHandler::updateReadCounts),
             log)
             .build();
     }

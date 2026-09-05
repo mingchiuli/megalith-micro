@@ -29,6 +29,7 @@ import org.springframework.core.annotation.Order;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.json.JsonMapper;
+
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.cache.config.CacheProperties;
 import wiki.chiu.micro.cache.key.CacheDescriptor;
@@ -36,6 +37,7 @@ import wiki.chiu.micro.cache.key.CacheKeyFactory;
 import wiki.chiu.micro.cache.metrics.CacheMetrics;
 import wiki.chiu.micro.cache.store.CacheLockNames;
 import wiki.chiu.micro.cache.store.LocalCacheEntry;
+import wiki.chiu.micro.cache.store.RedisCacheKeyRegistry;
 
 @Aspect
 @Order(2)
@@ -52,6 +54,7 @@ public class CacheAspect {
         localLockMap;
     private final CacheProperties properties;
     private final CacheMetrics metrics;
+    private final RedisCacheKeyRegistry keyRegistry;
 
     public CacheAspect(
         RedissonClient redissonClient,
@@ -61,6 +64,19 @@ public class CacheAspect {
         com.github.benmanes.caffeine.cache.Cache<@NonNull String, ReentrantLock> localLockMap,
         CacheProperties properties,
         CacheMetrics metrics) {
+        this(redissonClient, jsonMapper, cacheKeyFactory, localCache, localLockMap,
+            properties, metrics, new RedisCacheKeyRegistry(redissonClient));
+    }
+
+    public CacheAspect(
+        RedissonClient redissonClient,
+        JsonMapper jsonMapper,
+        CacheKeyFactory cacheKeyFactory,
+        com.github.benmanes.caffeine.cache.Cache<@NonNull String, LocalCacheEntry> localCache,
+        com.github.benmanes.caffeine.cache.Cache<@NonNull String, ReentrantLock> localLockMap,
+        CacheProperties properties,
+        CacheMetrics metrics,
+        RedisCacheKeyRegistry keyRegistry) {
         this.redissonClient = redissonClient;
         this.jsonMapper = jsonMapper;
         this.cacheKeyFactory = cacheKeyFactory;
@@ -68,6 +84,7 @@ public class CacheAspect {
         this.localLockMap = localLockMap;
         this.properties = properties;
         this.metrics = metrics;
+        this.keyRegistry = keyRegistry;
     }
 
     @Pointcut("@annotation(wiki.chiu.micro.cache.annotation.Cache)")
@@ -84,9 +101,10 @@ public class CacheAspect {
         }
 
         Duration ttl = cacheTtl(annotation, method);
+        CacheDescriptor descriptor = new CacheDescriptor(annotation.namespace(), annotation.version());
         String cacheKey =
             cacheKeyFactory.generate(
-                new CacheDescriptor(annotation.namespace(), annotation.version()), pjp.getArgs());
+                descriptor, pjp.getArgs());
 
         Object localValue = localValue(cacheKey);
         if (localValue != null) {
@@ -106,6 +124,10 @@ public class CacheAspect {
                 return localValue;
             }
 
+            if (annotation.trackKeys()) {
+                return handleMiss(pjp, method, cacheKey, ttl, descriptor, true);
+            }
+
             RemoteRead remoteRead = readRemote(cacheKey);
             if (!remoteRead.available()) {
                 return proceedAndCacheLocally(pjp, cacheKey, ttl);
@@ -118,7 +140,7 @@ public class CacheAspect {
                 }
             }
 
-            return handleMiss(pjp, method, cacheKey, ttl);
+            return handleMiss(pjp, method, cacheKey, ttl, descriptor, false);
         } finally {
             localLock.unlock();
         }
@@ -225,35 +247,59 @@ public class CacheAspect {
     }
 
     private Object handleMiss(
-        ProceedingJoinPoint pjp, Method method, String cacheKey, Duration ttl) throws Throwable {
+        ProceedingJoinPoint pjp, Method method, String cacheKey, Duration ttl,
+        CacheDescriptor descriptor, boolean tracked) throws Throwable {
         RLock remoteLock = redissonClient.getLock(CacheLockNames.remote(cacheKey));
         RemoteLockResult lockResult = tryRemoteLock(remoteLock);
         if (lockResult == RemoteLockResult.TIMEOUT || lockResult == RemoteLockResult.INTERRUPTED) {
             return proceedUncached(pjp);
         }
         if (lockResult == RemoteLockResult.UNAVAILABLE) {
-            return proceedAndCacheLocally(pjp, cacheKey, ttl);
+            return tracked ? proceedUncached(pjp) : proceedAndCacheLocally(pjp, cacheKey, ttl);
         }
 
         try {
-            RemoteRead remoteRead = readRemote(cacheKey);
-            if (!remoteRead.available()) {
-                return proceedAndCacheLocally(pjp, cacheKey, ttl);
-            }
-            if (remoteRead.value() != null) {
-                Object remoteValue = parseRemote(remoteRead.value(), method, cacheKey, ttl);
-                if (remoteValue != null) {
-                    metrics.request("l2_hit");
-                    return remoteValue;
+            boolean newlyRegistered = false;
+            if (tracked) {
+                try {
+                    newlyRegistered = keyRegistry.register(descriptor, cacheKey);
+                } catch (RedisException failure) {
+                    metrics.failure("key_registration");
+                    log.warn("Cache key registration failed for {}", cacheKey, failure);
+                    return proceedUncached(pjp);
                 }
             }
-
-            Object result = proceed(pjp);
-            if (result == null) {
-                return null;
+            boolean loaded = false;
+            try {
+                RemoteRead remoteRead = readRemote(cacheKey);
+                if (!remoteRead.available()) {
+                    return tracked ? proceedUncached(pjp) : proceedAndCacheLocally(pjp, cacheKey, ttl);
+                }
+                if (remoteRead.value() != null) {
+                    Object remoteValue = parseRemote(remoteRead.value(), method, cacheKey, ttl);
+                    if (remoteValue != null) {
+                        loaded = true;
+                        metrics.request("l2_hit");
+                        return remoteValue;
+                    }
+                }
+                Object result = proceed(pjp);
+                if (result == null) {
+                    return null;
+                }
+                loaded = true;
+                writeCaches(cacheKey, result, ttl);
+                return result;
+            } finally {
+                if (newlyRegistered && !loaded) {
+                    try {
+                        keyRegistry.unregisterFailedLoad(descriptor, cacheKey);
+                    } catch (RedisException failure) {
+                        metrics.failure("key_registration_cleanup");
+                        log.warn("Could not remove failed cache registration {}", cacheKey, failure);
+                    }
+                }
             }
-            writeCaches(cacheKey, result, ttl);
-            return result;
         } finally {
             unlockRemote(remoteLock);
         }

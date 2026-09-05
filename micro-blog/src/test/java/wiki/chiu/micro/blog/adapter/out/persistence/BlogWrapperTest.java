@@ -26,7 +26,23 @@ class BlogWrapperTest {
     private final BlogSensitiveContentRepository sensitiveContents =
         Mockito.mock(BlogSensitiveContentRepository.class);
     private final OutboxService outbox = Mockito.mock(OutboxService.class);
-    private final BlogWrapper wrapper = new BlogWrapper(blogs, sensitiveContents, outbox);
+    private final BlogWrapper wrapper = new BlogWrapper(blogs, sensitiveContents, outbox,
+        new wiki.chiu.micro.blog.config.BlogMaintenanceProperties(false));
+
+    @Test
+    void maintenanceStopsAllContentWritersButAllowsViewCounting() {
+        BlogWrapper readOnly = new BlogWrapper(blogs, sensitiveContents, outbox,
+            new wiki.chiu.micro.blog.config.BlogMaintenanceProperties(true));
+        var event = new BlogEventContext(BlogOperateEnum.CREATE, 42L);
+        assertThrows(BaseException.class,
+            () -> readOnly.saveOrUpdate(blog(7L, 1L), null, List.of(), List.of(), event));
+        assertThrows(BaseException.class, () -> readOnly.recoverDeletedBlog(blog(7L, 1L), event));
+        assertThrows(BaseException.class, () -> readOnly.deleteByIds(List.of(blog(7L, 2L)), List.of(), event));
+        verifyNoInteractions(blogs, sensitiveContents, outbox);
+
+        readOnly.incrementViews(7L);
+        verify(blogs).setReadCount(7L);
+    }
 
     @Test
     void updateConflictStopsAssociationWritesAndOutbox() {
@@ -51,7 +67,7 @@ class BlogWrapperTest {
                     1L,
                     List.of(11L),
                     List.of(),
-                    new BlogEventContext(BlogOperateEnum.UPDATE, 42L, 10L, 3L)));
+                    new BlogEventContext(BlogOperateEnum.UPDATE, 42L)));
 
         verify(sensitiveContents, never()).deleteAllByIdInBatch(List.of(11L));
         verifyNoInteractions(outbox);
@@ -70,7 +86,7 @@ class BlogWrapperTest {
                 wrapper.deleteByIds(
                     List.of(first, second),
                     List.of(11L, 12L),
-                    new BlogEventContext(BlogOperateEnum.REMOVE, 42L, 8L, null)));
+                    new BlogEventContext(BlogOperateEnum.REMOVE, 42L)));
 
         verify(blogs).deleteByIdAndEventRevision(7L, 1L);
         verify(blogs).deleteByIdAndEventRevision(8L, 3L);

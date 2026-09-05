@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import wiki.chiu.micro.blog.application.model.BlogSearchSelection;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
@@ -52,13 +53,15 @@ public class BlogExportServiceImpl implements BlogExportService {
             BlogSysCountSearchReqConvertor.convert(request, userId, allData);
         long total = search.countBlogs(countRequest);
         long pageCount = (total + PAGE_SIZE - 1) / PAGE_SIZE;
+        BlogSearchSelection selection = new BlogSearchSelection(
+            request.status(), request.createStart(), request.createEnd(), userId, allData);
 
         try {
             OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
             for (int page = 1; page <= pageCount; page++) {
                 BlogSysSearchReq searchRequest =
                     BlogSysSearchReqConvertor.convert(request, page, PAGE_SIZE, userId, allData);
-                writePage(search.searchBlogs(searchRequest), writer);
+                writePage(search.searchBlogs(searchRequest), selection, writer);
             }
             writer.flush();
         } catch (IOException exception) {
@@ -66,7 +69,8 @@ public class BlogExportServiceImpl implements BlogExportService {
         }
     }
 
-    private void writePage(BlogSearchRpcVo result, OutputStreamWriter writer) throws IOException {
+    private void writePage(
+        BlogSearchRpcVo result, BlogSearchSelection selection, OutputStreamWriter writer) throws IOException {
         List<Long> ids = result.ids();
         if (ids.isEmpty()) {
             return;
@@ -77,13 +81,16 @@ public class BlogExportServiceImpl implements BlogExportService {
         }
         List<BlogEntity> pageBlogs =
             blogs.findAllById(ids).stream()
+                .filter(selection::includes)
                 .sorted(
                     (left, right) ->
                         Integer.compare(
                             order.getOrDefault(left.getId(), Integer.MAX_VALUE),
                             order.getOrDefault(right.getId(), Integer.MAX_VALUE)))
                 .toList();
-        List<BlogSensitiveContentEntity> pageSensitive = blogs.findSensitiveByBlogIds(ids);
+        List<Long> currentIds = pageBlogs.stream().map(BlogEntity::getId).toList();
+        List<BlogSensitiveContentEntity> pageSensitive =
+            currentIds.isEmpty() ? List.of() : blogs.findSensitiveByBlogIds(currentIds);
         writeStatement(writer, SQLUtils.entityToInsertSQL(pageBlogs, BLOG_TABLE));
         writeStatement(writer, SQLUtils.entityToInsertSQL(pageSensitive, BLOG_SENSITIVE_TABLE));
     }

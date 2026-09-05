@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import wiki.chiu.micro.blog.application.model.BlogReadCount;
 import wiki.chiu.micro.blog.domain.BlogEntity;
 
 /**
@@ -24,7 +25,14 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
         "SELECT blog.id FROM BlogEntity blog WHERE blog.id > :afterId ORDER BY blog.id ASC")
     List<Long> findIdsAfter(@Param("afterId") Long afterId, Pageable pageable);
 
-    Long countByCreatedGreaterThanEqual(LocalDateTime created);
+    @Query("""
+        SELECT new wiki.chiu.micro.blog.application.model.BlogReadCount(blog.id, COALESCE(blog.readCount, 0L))
+        FROM BlogEntity blog WHERE blog.id > :afterId ORDER BY blog.id ASC
+        """)
+    List<BlogReadCount> findReadCountsAfter(@Param("afterId") long afterId, Pageable pageable);
+
+    @Query("SELECT blog FROM BlogEntity blog WHERE blog.id > :afterId ORDER BY blog.id ASC")
+    List<BlogEntity> findSnapshotsAfter(@Param("afterId") long afterId, Pageable pageable);
 
     @Query(
         value = "UPDATE BlogEntity blog SET blog.readCount = blog.readCount + 1 WHERE blog.id = ?1")

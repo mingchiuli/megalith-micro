@@ -4,7 +4,6 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -54,11 +53,6 @@ public class BlogInternalHttpHandler implements BlogHttpService {
         Integer limit =
             v.range(requiredParam(request, "limit", Integer::valueOf), 1, 1000, "limit");
         return ok(findIdsAfter(afterId, limit));
-    }
-
-    public ServerResponse countByCreatedGreaterThanEqual(ServerRequest request) {
-        LocalDateTime created = requiredParam(request, "created", LocalDateTime::parse);
-        return ok(countByCreatedGreaterThanEqual(created));
     }
 
     public ServerResponse findSensitiveByBlogId(ServerRequest request) {
@@ -115,11 +109,6 @@ public class BlogInternalHttpHandler implements BlogHttpService {
     @Override
     public Result<PageAdapter<BlogEntityRpcVo>> findPage(Integer pageNo, Integer pageSize) {
         return Result.success(() -> blogQueryService.findPage(pageNo, pageSize));
-    }
-
-    @Override
-    public Result<Long> countByCreatedGreaterThanEqual(LocalDateTime created) {
-        return Result.success(() -> blogQueryService.countCreatedSince(created));
     }
 
     @Override

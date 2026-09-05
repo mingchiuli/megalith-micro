@@ -32,6 +32,7 @@ public class BlogMessageListener {
     }
 
     @RabbitListener(
+        autoStartup = "#{!${megalith.search.maintenance.enabled:false}}",
         queues = Const.ES_QUEUE,
         concurrency = "10",
         messageConverter = "jsonMessageConverter",
