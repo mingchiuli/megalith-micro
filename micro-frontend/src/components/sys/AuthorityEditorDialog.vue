@@ -30,6 +30,19 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const formRef = ref<FormInstance>()
 const formModel = reactive(props.form)
+const services = [
+  { host: 'micro-blog', port: 8082 },
+  { host: 'micro-user', port: 8086 },
+  { host: 'micro-auth', port: 8081 },
+  { host: 'micro-search', port: 8085 },
+  { host: 'micro-exhibit', port: 8083 },
+  { host: 'micro-sync-rs', port: 8089 }
+]
+
+const handleServiceChange = (host: string) => {
+  const service = services.find((service) => service.host === host)
+  if (service) formModel.servicePort = service.port
+}
 </script>
 
 <template>
@@ -63,14 +76,17 @@ const formModel = reactive(props.form)
         <el-input v-model="formModel.routePattern" maxlength="50" />
       </el-form-item>
       <el-form-item :label="t('admin.service')" label-width="100px" prop="serviceHost">
-        <el-select v-model="formModel.serviceHost" style="width: 100%">
+        <el-select
+          v-model="formModel.serviceHost"
+          style="width: 100%"
+          @change="handleServiceChange"
+        >
           <el-option
-            v-for="service in ['blog', 'user', 'auth', 'search', 'exhibit']"
-            :key="service"
-            :label="`micro-${service}`"
-            :value="`micro-${service}`"
+            v-for="service in services"
+            :key="service.host"
+            :label="service.host"
+            :value="service.host"
           />
-          <el-option label="micro-sync-rs" value="micro-sync-rs" />
         </el-select>
       </el-form-item>
       <el-form-item :label="t('admin.port')" label-width="100px" prop="servicePort">
