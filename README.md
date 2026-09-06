@@ -68,8 +68,17 @@ graph TD
     subgraph MonitoringLayer[Monitoring Layer - Server]
         APMServer["APM Server<br/>OpenTelemetry Receiver"]
     end
-    subgraph LocalMachine[Local Machine - Developer]
-        Kibana["Kibana<br/>Monitoring Visualization"]
+    subgraph LocalMachine[Developer Mac - Mainland China]
+        Kibana["Kibana - Docker<br/>Monitoring Visualization"]
+        MacWG["WireGuard - macOS Host<br/>VPN IP: 172.16.0.2"]
+        WSClient["wstunnel Client - Docker<br/>Mac Loopback UDP: 51821"]
+    end
+    subgraph CrossBorder[Cross-Border Network - Logical Filtering Boundary]
+        GFW["GFW / ISP Filtering Risk<br/>Transit Only, Not a TLS Endpoint<br/>Native WireGuard UDP May Be Disrupted"]
+    end
+    subgraph RemoteAccess[Remote Access - Canada Server]
+        WSServer["wstunnel Server - Docker<br/>WSS / TCP 8443 + TLS Certificate<br/>Shared Token + Restricted Forwarding"]
+        ServerWG["WireGuard - Linux Host<br/>UDP 27263 / VPN IP: 172.16.0.1"]
     end
 
     %% Page requests use SSR; browser API calls bypass the frontend server.
@@ -111,12 +120,84 @@ graph TD
     %% Observability.
     Frontend & User & Blog & Auth & Exhibit & Search & Sync & Gateway -->|OTel Traces / Metrics / Logs| APMServer
     APMServer --> ES
-    ES -->|Encrypted WireGuard VPN| Kibana
+    Kibana <-->|HTTPS to 172.16.0.1:9200| MacWG
+    MacWG <-->|WireGuard UDP<br/>Endpoint: 127.0.0.1:51821| WSClient
+    WSClient <-->|WSS / TCP 8443| GFW
+    GFW <-->|Same End-to-End WSS Connection| WSServer
+    WSServer <-->|Local UDP<br/>127.0.0.1:27263| ServerWG
+    ServerWG <-->|VPN-Only Elasticsearch Access| ES
 ```
 
-All external traffic enters through nginx. The Rust gateway proxies HTTP and WebSocket requests,
+Public application traffic enters through nginx. The Rust gateway proxies HTTP and WebSocket requests,
 calls `micro-auth` once for authorization and route resolution, and passes a trusted principal to
-the target service. Business services never re-parse browser credentials.
+the target service. Business services never re-parse browser credentials. Administrative VPN traffic
+uses the separate wstunnel listener; it does not pass through nginx or the application gateway.
+
+### Cross-border administration: WireGuard over WSS
+
+The deployed application and infrastructure services run in Canada, while the developer's Kibana
+runs in Docker on a Mac in mainland China. **WireGuard still provides the VPN; wstunnel only changes
+how its encrypted UDP packets cross the public network.** Both WireGuard endpoints remain running,
+with a Dockerized wstunnel client and server wrapping and unwrapping those packets. Kibana continues
+to address Elasticsearch at `https://172.16.0.1:9200`, not at the public wstunnel endpoint.
+
+**The GFW belongs on the cross-border network path, between the mainland client and the Canadian
+server.** The diagram represents a logical filtering boundary, not an identified router, Docker
+component, or TLS-terminating proxy. In the observed native-UDP failure, WireGuard handshake requests
+reached the server and replies left it, but the replies were not seen in the Mac capture. That
+supports investigating the return path, NAT, and filtering; it does **not** establish which device
+dropped them or prove that the GFW blocks all UDP. Research documents specific
+[GFW QUIC/UDP filtering mechanisms](https://gfw.report/publications/usenixsecurity25/en/), but those
+findings alone do not identify the cause of this WireGuard incident.
+
+The selected transport is **WireGuard over wstunnel WSS/TCP**, rather than native WireGuard UDP for
+this cross-border client. It removes the requirement for working cross-border UDP without replacing
+the existing VPN keys, peer authorization, or private addresses. WSS terminates directly in
+wstunnel on TCP `8443`, reusing the `chiu.wiki` TLS certificate; nginx keeps serving application
+traffic independently. QUIC/WebTransport would still depend on UDP, so it is not the selected
+transport for this failure mode. See the upstream
+[wstunnel WireGuard integration](https://github.com/erebe/wstunnel/blob/v10.7.1/README.md#wireguard).
+
+| Configuration boundary | Current deployment |
+| --- | --- |
+| Mac WireGuard | `Endpoint = 127.0.0.1:51821`; retain peer keys and `AllowedIPs = 172.16.0.0/24` |
+| Mac wstunnel container | Publish only `127.0.0.1:51821:51821/udp`; listen on `0.0.0.0:51821` inside Docker and connect to `wss://chiu.wiki:8443` with TLS certificate verification enabled |
+| Canadian wstunnel container | Linux host networking; listen on TCP `8443` and restrict forwarding to `127.0.0.1:27263`, the existing WireGuard listener |
+| Shared access token | Generate once and match the client's `WSTUNNEL_HTTP_UPGRADE_PATH_PREFIX` with the server's `WSTUNNEL_RESTRICT_HTTP_UPGRADE_PATH_PREFIX`; keep the value out of source control |
+| Encryption and identity | The token gates tunnel access; it is not an encryption key. WireGuard retains its own public/private keys, and WSS uses the server's TLS certificate and private key |
+| Private services | Keep Elasticsearch behind VPN access controls; neither this tunnel nor Kibana requires publishing `9200` to the public Internet |
+
+The Mac Compose file is maintained outside this repository at
+`~/Config/megalith/docker-compose-remote-access.yml`, containing `wstunnel` and `kibana-server`.
+The server's `wstunnel` service lives in `/root/docker-compose.infrastructure.yml`. The Mac's `.env`
+maps `WSTUNNEL_TOKEN` to the client setting; the server reads its matching token from
+`/root/wstunnel/server.env`. The client disables the UDP forwarding idle timeout with `timeout_sec=0`.
+Only the VPN subnet is routed through WireGuard, so the public WSS connection stays outside the VPN
+and does not loop back into itself. This is an administrative access path, not a system-wide proxy;
+the existing GitHub Actions WireGuard deployment flow is unchanged.
+
+This choice trades transport efficiency for connectivity on this path. TCP retransmissions can
+stall later tunneled packets, especially when carrying inner TCP connections such as Elasticsearch
+HTTPS. WSS is **not a guarantee against GFW interference**: IP, port, TLS SNI, and traffic-based
+filtering can still disrupt it. Finally, a successful VPN ping checks IP reachability, not service
+health; Elasticsearch must be running and reachable on `9200` for Kibana to work.
+
+#### Health checks
+
+The deployed `ghcr.io/erebe/wstunnel:v10.7.1` image has no built-in Docker `HEALTHCHECK`, and the
+current Mac Compose service does not define one. Its `restart: unless-stopped` policy handles
+container exits, not tunnel readiness; an `unhealthy` status alone would not restart a running
+container. Kibana's current `depends_on` only waits for `wstunnel` to start, not for a working VPN.
+See Docker's [restart policies](https://docs.docker.com/engine/containers/start-containers-automatically/)
+and [Compose readiness conditions](https://docs.docker.com/compose/how-tos/startup-order/).
+
+Keep three checks separate: container/process availability, end-to-end VPN reachability, and
+Elasticsearch health. A local UDP listener or a TCP connection to `8443` does not prove that token
+validation, UDP forwarding, and WireGuard handshakes work. Check the VPN from the Mac host, where
+WireGuard runs, using a recent handshake and a probe to `172.16.0.1`; check Elasticsearch separately
+with its HTTPS endpoint and credentials. Do not make the wstunnel health result depend on whether
+Elasticsearch is running, and do not assume a probe from Docker Desktop's VM follows the same path
+as one from the Mac host.
 
 ### Message and outbox topology
 
