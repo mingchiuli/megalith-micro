@@ -6,22 +6,19 @@
 [![Bun](https://img.shields.io/badge/Bun-1.4.0-000000.svg?logo=bun&logoColor=white)](https://bun.sh/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-> **Inspired by Zhiming Zhou's _The Phoenix Architecture_ (《凤凰架构》), this project is a
-> hands-on exploration of the ideas presented in the book. Its lifecycle has followed the broader
-> evolution of software architecture, from a monolith through distributed systems and
-> microservices, and it is now in its cloud-native stage.**
+Megalith Micro is a cloud-native blogging and content-management platform with public publishing,
+administration, full-text search, and collaborative editing. This monorepo brings together Java
+business services, a Rust gateway and collaboration service, and a Vue SSR frontend.
 
-Megalith Micro is a platform monorepo designed to ship every application as a **single native
-executable**.
+> Inspired by Zhiming Zhou's _The Phoenix Architecture_ (《凤凰架构》), the project explores
+> software architecture through a working application, evolving from a monolith through
+> distributed systems and microservices to a cloud-native deployment.
 
-**The Java services are not deployed as JVM applications or JARs.** All five Spring Boot services
-use Java 25 and GraalVM Native Image for ahead-of-time compilation, so their production images do
-not require a JVM or JRE. The gateway and collaboration service compile to native Rust binaries;
-the frontend service is compiled to a standalone executable by Bun.
-
-The entire platform therefore follows the same model: **one application, one native executable,
-one independent OCI image**. Application images contain the executable and only the minimal
-runtime files, with no source code, build toolchain, or separate language runtime.
+Every application is delivered as a **single native executable in its own OCI image**. The five
+Spring Boot services compile ahead of time with GraalVM Native Image, the Rust services build as
+release binaries, and Bun packages the frontend server and assets into a standalone executable.
+Production application images contain the executable and minimal OS runtime files, without a
+separate JVM, JRE, Bun installation, build toolchain, or source tree.
 
 | Applications | Technology | Production artifact |
 | --- | --- | --- |
@@ -29,9 +26,8 @@ runtime files, with no source code, build toolchain, or separate language runtim
 | `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
 | `micro-frontend` | Bun 1.4.0, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
-> MariaDB, Redis, RabbitMQ, Elasticsearch, and other infrastructure components continue to use
-> their standard images. "Single binary" describes how the platform applications are built and
-> delivered.
+MariaDB, Redis, RabbitMQ, Elasticsearch, and the monitoring infrastructure use their standard
+container images.
 
 ## Architecture
 
@@ -40,24 +36,24 @@ graph TD
     %% Layer Definitions
     subgraph ClientLayer[Client Layer]
         Browser["Browser<br/>Vue 3 Hydrated Client"]
-        BrowserDB["Browser IndexedDB<br/>Yjs Document + Editor Metadata Drafts"]
+        BrowserDB["Browser IndexedDB<br/>Local Editor Drafts"]
     end
     subgraph ExternalLayer[External Layer]
         Nginx["nginx<br/>Reverse Proxy"]
     end
     subgraph FrontendLayer[Frontend Layer]
-        Frontend["micro-frontend - Bun Standalone Executable<br/>Vue 3 SSR + Embedded Static Assets<br/>Server Prefetch + Client Hydration"]
+        Frontend["micro-frontend<br/>Vue 3 SSR + Client Hydration<br/>Embedded Static Assets"]
     end
     subgraph GatewayLayer[Gateway Layer]
-        Gateway["micro-gateway-rs - Native Rust Binary<br/>Origin Policy + Auth Client<br/>Pooled Streaming HTTP / WebSocket Proxy"]
+        Gateway["micro-gateway-rs<br/>Origin Checks + Centralized Authorization<br/>Streaming HTTP / WebSocket Proxy"]
     end
     subgraph ServiceLayer[Service Layer - Native Executables]
-        Auth["micro-auth - GraalVM Native Image<br/>Route and Role Permission Cache<br/>Login API + Principal Resolution"]
-        User["micro-user - GraalVM Native Image<br/>User and Permission Management"]
-        Blog["micro-blog - GraalVM Native Image<br/>Blog Content Management"]
-        Sync["micro-sync-rs - Native Rust Binary<br/>Collaboration Application Ports<br/>Stateless WebSocket + Redis Adapter"]
-        Exhibit["micro-exhibit - GraalVM Native Image<br/>Content Presentation + L2 Cache"]
-        Search["micro-search - GraalVM Native Image<br/>Full-Text Search + Index Consumer"]
+        Auth["micro-auth<br/>Login + Principal Resolution<br/>Route and Permission Caches"]
+        User["micro-user<br/>User and Permission Management"]
+        Blog["micro-blog<br/>Blog Content Management"]
+        Sync["micro-sync-rs<br/>Stateless Real-Time Collaboration<br/>YRS CRDT + Redis State"]
+        Exhibit["micro-exhibit<br/>Content Presentation + Caching"]
+        Search["micro-search<br/>Full-Text Search + Indexing"]
     end
     subgraph StorageLayer[Storage and Middleware Layer]
         MariaDB["MariaDB<br/>User / Blog Storage"]
@@ -126,21 +122,21 @@ graph TD
 
 Public application traffic enters through nginx. The Rust gateway proxies HTTP and WebSocket requests,
 calls `micro-auth` once for authorization and route resolution, and passes a trusted principal to
-the target service. Business services never re-parse browser credentials.
+the target service. Business services use that principal for identity and permission checks.
 
 ### Remote administration: WireGuard over WSS
 
-The platform uses a private network for remote monitoring and administration. In the current
-deployment, Kibana runs in Docker on a developer workstation in mainland China and connects to
-Elasticsearch on the Canadian server through WireGuard. Elasticsearch is accessible over the VPN
-without exposing its API to the public Internet.
+The platform uses a private network for remote monitoring and administration. Kibana runs in
+Docker on a developer workstation in mainland China and connects to Elasticsearch on the Canadian
+server through WireGuard. Elasticsearch is accessible over the VPN without exposing its API to
+the public Internet.
 
-To support cross-border access where direct UDP connectivity is unreliable,
-[wstunnel](https://github.com/erebe/wstunnel/blob/v10.7.1/README.md#wireguard) carries WireGuard's
-encrypted UDP packets over a TLS-protected WebSocket connection (WSS). A Dockerized client and
-server handle this transport, while WireGuard provides VPN addressing, peer authentication, and
-end-to-end encryption. This gives the administrative connection a TCP-based public transport;
-packet loss can introduce additional latency through TCP retransmissions.
+The project uses [wstunnel](https://github.com/erebe/wstunnel/blob/v10.7.1/README.md#wireguard) to
+address Great Firewall (GFW) interference with cross-border WireGuard UDP connectivity. A
+Dockerized client and server carry WireGuard's encrypted UDP packets over a TLS-protected
+WebSocket connection (WSS), allowing the public connection to use TCP. WireGuard provides VPN
+addressing, peer authentication, and end-to-end encryption; wstunnel provides the transport across
+the filtered network. TCP retransmissions can add latency when packets are lost.
 
 The WSS connection terminates at a dedicated wstunnel listener on TCP `8443`, independently of nginx
 and the application gateway. The client verifies the server's TLS certificate, and the server
@@ -149,6 +145,10 @@ private subnet is routed through the VPN, where Kibana reaches Elasticsearch at
 `https://172.16.0.1:9200`.
 
 ### Message and outbox topology
+
+User and blog changes propagate through a transactional outbox and RabbitMQ. Each event has
+dedicated consumers for authorization caches, search indexing, presentation caches, or related
+content cleanup.
 
 ```mermaid
 flowchart LR
@@ -188,48 +188,38 @@ flowchart LR
     DeletedQueue -->|Cascade Delete + New BlogChangedMessage Rows| BlogOutbox
 ```
 
-| Event | Producer | Exchange | Queue and consumer | Effect |
-| --- | --- | --- | --- | --- |
-| `AuthCacheEvictMessage` | `micro-user` | `user.auth.menu.change.fanout.exchange` | `user.auth.menu.change.queue.auth` -> `micro-auth` | Evict exact authorization, menu, and route cache entries |
-| `UserDeletedMessage` | `micro-user` | `user.deleted.fanout.exchange` | `user.deleted.queue.blog` -> `micro-blog` | Delete blogs owned by deleted users and enqueue their blog-change events |
-| `BlogChangedMessage` | `micro-blog` | `blog.change.fanout.exchange` | `blog.change.queue.es` -> `micro-search` | Apply revision-aware Elasticsearch index changes |
-| `BlogChangedMessage` | `micro-blog` | `blog.change.fanout.exchange` | `blog.change.queue.cache` -> `micro-exhibit` | Invalidate exact presentation cache entries |
-| `BlogChangedMessage` | `micro-blog` | `blog.change.fanout.exchange` | `blog.change.queue.recycle` -> `micro-blog` | Store recycle-bin metadata for an operator-initiated removal |
+| Event | Producer | Consumer | Responsibility |
+| --- | --- | --- | --- |
+| `AuthCacheEvictMessage` | `micro-user` | `micro-auth` | Invalidate authorization, menu, and route caches |
+| `UserDeletedMessage` | `micro-user` | `micro-blog` | Delete the user's blogs and emit the corresponding blog events |
+| `BlogChangedMessage` | `micro-blog` | `micro-search` | Update the search index |
+| `BlogChangedMessage` | `micro-blog` | `micro-exhibit` | Invalidate presentation caches |
+| `BlogChangedMessage` | `micro-blog` | `micro-blog` | Retain recycle-bin metadata for operator removals |
 
-Search content events compare the persisted blog `event_revision` with the document's
-`_source.revision` atomically. Elasticsearch's own `_version` is independent and is never used as
-the blog revision. Reading an article updates MariaDB's cumulative counter and the Redis hot list;
-`micro-blog` synchronizes cumulative counts to Elasticsearch every 60 seconds in batches of 500.
-Statistics updates are idempotent, preserve newer counts, and cannot recreate deleted documents.
+Domain writes and outbox entries commit in the same database transaction. The publisher removes
+an outbox entry after RabbitMQ confirms publication and retries failed publications with bounded
+backoff. Consumers use manual acknowledgements and confirmed retry publication; messages that
+exhaust their delayed retries are retained in dead-letter queues for investigation and recovery.
 
-Administration lists, filters, counts, and exports always select IDs through Elasticsearch,
-including requests without keywords. MariaDB supplies current content and sensitive ranges for
-those IDs, with a second permission/filter check and the Elasticsearch ordering preserved.
-Search failures remain visible; there is no independent database search fallback.
+### Search and caching
 
-All presentation pages remain eligible for two-level caching. The `blog-page:v3` contract uses
-`@Cache(trackKeys = true)` to register generated keys before loading or promoting a value. Blog
-events invalidate those exact registered page keys in batches, so blog writes no longer calculate
-pagination counts for cache consumers. Existing queued events with those legacy fields are accepted.
+Elasticsearch provides full-text search and selects blog IDs for administration lists, filters,
+counts, and exports. MariaDB supplies current content for those IDs, with permissions and filters
+checked again before returning results in search order. Content events carry revisions so index
+consumers can reject stale updates. Article visits update MariaDB counters and the Redis hot list;
+cumulative counts are synchronized to Elasticsearch in batches through idempotent updates.
 
-For the coordinated upgrade, index alias migration, maintenance rebuild, failure recovery, and
-configuration, see [Search and cache operations](docs/search-and-cache-operations.md).
+Presentation reads use Caffeine as an in-process L1 cache and Redis as a shared L2 cache. Versioned
+cache keys identify individual results, and a key registry tracks cached pages for invalidation.
+Blog events invalidate the affected entries across service replicas. See the
+[cache module](cache/README.md) for key generation, locking, and distributed eviction.
 
-The producer-side outbox and consumer-side retry paths solve different failures. An outbox row is
-deleted only after RabbitMQ confirms the persistent message; publish failures remain in MariaDB and
-are rescheduled with bounded backoff and jitter. Consumers acknowledge manually. A handler failure
-is republished with publisher confirmation to that queue's retry exchange, delayed for 5 seconds,
-30 seconds, and 300 seconds, and finally moved to `<queue>.dlq`, which retains it for 14 days.
-Aggregate types such as `USER_DELETION` classify outbox rows, while the payload class name stored as
-the event type selects a dedicated exchange, such as `UserDeletedMessage` selecting
-`user.deleted.fanout.exchange`.
+### Stateless collaboration
 
-`micro-sync-rs` replicas coordinate through Redis. Document and awareness updates are appended to
-shared Redis Streams and relayed to connections on every replica, while snapshots, presence
-ownership, connection leases, and compaction work remain in shared Redis state. Any replica can
-therefore accept a connection for any room without sticky sessions or assigning that room to a
-single process. The Redis store keeps its presence and compaction implementations in focused
-submodules, and loads multi-step atomic Redis operations from standalone `.lua` source files.
+`micro-sync-rs` uses YRS CRDT for collaborative documents and Redis for coordination across
+replicas. Document and awareness updates flow through shared Redis Streams to connected clients.
+Snapshots, presence, connection leases, and compaction state also live in Redis, allowing any
+replica to serve any room without sticky sessions or a dedicated room owner.
 
 ## Applications and Modules
 
@@ -275,15 +265,15 @@ The five Java applications use the same ports-and-adapters layout for their core
 | `config` | Spring wiring, RabbitMQ topology, AOT hints, and application configuration |
 
 Input adapters call input ports, and application services call output ports. Spring Data,
-Redisson, remote HTTP contracts, and storage clients stay behind output adapters. Some
-transactional persistence adapters retain historical `*Wrapper` class names, but services depend
-on their writer ports rather than those concrete classes. ArchUnit checks these boundaries and
-also keeps transaction ownership out of application services.
+Redisson, remote HTTP contracts, and storage clients stay behind output adapters. Application
+services prepare inputs and coordinate use cases; persistence adapters own the short transactions
+that commit domain writes and outbox entries. ArchUnit verifies dependency and transaction
+boundaries.
 
 ### Rust application boundaries
 
-The Rust services use boundaries suited to their responsibilities rather than sharing a directory
-template mechanically:
+The collaboration service separates protocol, application, and infrastructure concerns. The
+gateway organizes its code around authentication, forwarding policies, and HTTP/WebSocket delivery:
 
 | Service area | Responsibility |
 | --- | --- |
@@ -296,51 +286,42 @@ template mechanically:
 | `micro-gateway-rs/handler`, `middleware` | Axum HTTP/WebSocket delivery and single-pass authorization flow |
 
 `micro-sync-rs` application code depends on store traits and application-level errors; Redis
-connections, result types, keys, and Stream ID strings remain inside the outbound adapter. The
-gateway is itself an edge adapter, so it keeps transport-oriented modules instead of introducing an
-artificial domain and application hierarchy.
+connections, keys, and Stream IDs are encapsulated by the outbound adapter. The gateway keeps
+no-I/O forwarding policies separate from the clients, handlers, and middleware that perform
+network operations.
 
 ## Frontend
 
-`micro-frontend` is the Bun workspace for the production `megalith-frontend` service. JavaScript
-dependency versions are defined once in the root `package.json` catalog, while the workspace
-declares the packages it uses through the `catalog:` protocol. The service remains independently
-built and deployed outside the Gradle and Cargo workspaces.
+`micro-frontend` serves the public site and administration interface using Vue 3 and Bun. It is
+built and deployed independently of the Java and Rust services. The root `package.json` catalog
+manages JavaScript dependency versions, referenced by workspace packages through `catalog:`.
 
 Public and administration routes are rendered on the Bun server and hydrated by Vue in the
 browser. Each SSR request creates isolated Vue Router, Pinia, i18n, head-management, and HTTP
-state; route data prefetched through `micro-gateway-rs` is serialized into the page and reused
-during hydration. Subsequent browser API and WebSocket traffic goes directly through nginx to the
-gateway instead of passing through the frontend server.
+state. The server prefetches route data through `micro-gateway-rs`, and the browser reuses it
+during hydration. Browser API and WebSocket requests reach the gateway directly through nginx.
 
-Authentication tokens are transported only in HttpOnly cookies. The SSR server forwards request
-cookies to the gateway and propagates refreshed `Set-Cookie` headers, while browser code never
-reads or persists access or refresh tokens.
+Authentication uses HttpOnly cookies. The SSR server forwards request cookies to the gateway and
+propagates refreshed `Set-Cookie` headers. Access and refresh tokens stay outside browser
+JavaScript and client-side storage.
 
 ### Editor collaboration and drafts
 
-The administration editor uses Yjs for real-time collaboration. In the browser, `y-indexeddb`
-persists the Yjs document locally, while editor metadata such as the title, description, status,
-cover, and sensitive-word selections is stored separately in IndexedDB. Persistence keys include
-the authenticated user ID and blog ID, so drafts are isolated between users and editing sessions.
+The administration editor combines Yjs real-time collaboration with local draft persistence.
+Document changes synchronize with `micro-sync-rs` over WebSocket and merge through the CRDT.
+IndexedDB stores document drafts and editor metadata under the authenticated user and blog IDs,
+allowing work to survive page reloads while keeping users' drafts separate.
 
-When an editor room opens, the local Yjs document is restored before the WebSocket connection is
-started. The same Yjs document then synchronizes with `micro-sync-rs`; local and remote updates are
-merged by Yjs, and a persisted local document is never treated as an authoritative replacement for
-the remote document. For a new document, the initial server content is inserted only when the
-synced Yjs document has no existing state.
+Collaboration and draft storage run in the browser. Connections use short-lived collaboration
+tickets, and session expiry pauses editing while preserving the local draft for reauthentication.
+The editor supports online collaboration when local storage is unavailable and clears saved
+drafts after successful persistence to the server.
 
-IndexedDB and WebSocket collaboration are browser-only and do not participate in SSR. If IndexedDB
-is unavailable, the editor falls back to online collaboration without local persistence. When a
-backgrounded tab becomes visible again, the editor refreshes its short-lived collaboration ticket
-before reconnecting. If the login session has expired, editing is paused, the local draft is kept,
-and the user is prompted to log in again and returned to the original edit route. A successful save
-clears both the Yjs document draft and the metadata draft.
+### Runtime and configuration
 
 Vite builds the client and SSR bundles, then Bun compiles the server, runtime, and assets into
-`micro-frontend/dist/bin/megalith-frontend`. The runtime image contains only that executable and
-minimal OS runtime files. It exposes `/actuator/health`, performs graceful shutdown, and exports
-correlated OpenTelemetry traces, metrics, and logs.
+`micro-frontend/dist/bin/megalith-frontend`. The service exposes `/actuator/health`, performs
+graceful shutdown, and exports correlated OpenTelemetry traces, metrics, and logs.
 
 | Variable | Default / production value | Purpose |
 | --- | --- | --- |
@@ -357,29 +338,23 @@ authentication, caching, observability, failure behavior, and deployment details
 ## Core Design
 
 - **Single-pass authorization:** the gateway calls `POST /inner/auth/route` once to resolve both
-  the target service and trusted principal. Business services trust only the
-  `X-Megalith-Principal` injected by the gateway.
+  the target service and trusted principal. Business services use the gateway-injected
+  `X-Megalith-Principal` as their identity source.
 - **Two-level caching:** `@Cache` uses explicit versioned namespaces and canonical argument hashes,
-  then reads through Caffeine L1 followed by Redis L2. Exact eviction waits on the same distributed
-  locks and broadcasts to every replica to clear local entries.
+  with Caffeine L1 and Redis L2 storage. Reads and exact eviction share distributed key locks;
+  invalidations are broadcast to every replica.
 - **Short write transactions:** services perform reads, validation, and input preparation outside
-  a transaction. Transactional persistence adapters perform only writes and the matching outbox
-  insert inside one short transaction. ArchUnit enforces this boundary.
+  a transaction. Persistence adapters commit writes and the matching outbox entries in a short
+  transaction, with ArchUnit enforcing ownership boundaries.
 - **Reliable domain events:** user and blog changes commit to a MariaDB transactional outbox before
-  confirmed publication through RabbitMQ. Cache eviction and Elasticsearch indexing consume these
-  durable events.
-- **User-deletion cleanup:** deleting users writes a `UserDeletedMessage` to the user outbox and
-  routes it through a dedicated fanout exchange. `micro-blog` consumes the event and deletes blogs
-  owned by those users; cascade deletions do not create recycle-bin entries for a missing operator.
+  confirmed publication through RabbitMQ. Independent consumers handle cache eviction, search
+  indexing, and related content cleanup.
 - **Stateless collaboration:** `micro-sync-rs` uses YRS CRDT and shared Redis for session streams,
-  snapshots, and presence. Replicas do not require sticky sessions.
-- **External Lua sources:** Redis Lua is stored only in `.lua` files. Java adapters read classpath
-  resources registered for Native Image, while Rust uses `include_str!` so the release binary does
-  not require the source tree at runtime. Lua bodies are never embedded in Java or Rust strings.
-- **Native observability:** Java Native Image, Rust, and Bun applications export OpenTelemetry
-  traces, metrics, and logs.
-- **Centralized workspace versions:** the root Bun catalog owns JavaScript dependency versions;
-  each frontend declares only the packages it uses through the `catalog:` protocol.
+  snapshots, and presence, allowing connections to be distributed across replicas.
+- **Native resource packaging:** runtime hints cover reflective Java APIs and serialization, and
+  Redis Lua resources are bundled into Java and Rust executables.
+- **Correlated observability:** Java, Rust, and Bun services propagate trace context and export
+  OpenTelemetry traces, metrics, and logs to the monitoring infrastructure.
 
 ## Build
 
@@ -412,7 +387,9 @@ bun install --frozen-lockfile
 bun run frontend:check
 ```
 
-The Java build includes unit tests, ArchUnit, and Spring AOT test processing.
+Java checks cover unit tests, ArchUnit boundaries, Spring AOT processing, and integration tests.
+Rust checks cover formatting, linting, and service behavior; frontend checks cover linting, types,
+tests, and SSR builds.
 
 ### Native Executables
 
@@ -433,15 +410,14 @@ are written to `target/release/`; the frontend executable is written to
 
 ### Application Images
 
-Spring Boot Buildpacks compile and publish each Java service as a GraalVM Native Image. Set
+Spring Boot Buildpacks package each Java service as a GraalVM Native Image container. Set
 `DOCKER_USERNAME` and `DOCKER_PWD` before running the task:
 
 ```bash
 ./gradlew :micro-auth:bootBuildImage
 ```
 
-The Rust and Bun services use multi-stage Dockerfiles. Their final images contain only the release
-executable and required runtime files:
+The Rust and Bun services use multi-stage Dockerfiles:
 
 ```bash
 docker build -t megalith-micro-gateway-rs:latest -f micro-gateway-rs/Dockerfile .
@@ -449,15 +425,13 @@ docker build -t megalith-micro-sync-rs:latest -f micro-sync-rs/Dockerfile .
 docker build -t mingchiuli/megalith-frontend:latest -f micro-frontend/Dockerfile .
 ```
 
-CI validates AOT processing and builds a separate GraalVM Native Image for each of the five Java
-services. It formats, lints, and tests the two Rust services, runs the ignored collaboration store
-integration test against Redis 8, and checks the Bun frontend before building release images.
-Changed services are published independently and deployed in platform order, with the frontend
-after the gateway.
+CI runs the checks for each language, including Java AOT validation and Redis-backed collaboration
+tests, before building release images. Services are published independently and deployed in
+dependency order, with the frontend following the gateway.
 
 ### Development
 
-Native compilation can be skipped when running a single service during development:
+Run individual services with their development toolchains:
 
 ```bash
 ./gradlew :micro-auth:bootRun
@@ -469,8 +443,9 @@ The frontend development server listens on `http://127.0.0.1:1919` and expects t
 `http://127.0.0.1:8088`. For local HTTP login, run `micro-auth` with
 `MEGALITH_AUTH_COOKIE_SECURE=false`.
 
-A complete local deployment also requires MariaDB, Redis, RabbitMQ, and Elasticsearch. Connection,
-port, and OpenTelemetry settings are defined in each module's `application.yml`.
+A complete local deployment also requires MariaDB, Redis, RabbitMQ, and Elasticsearch. Backend
+connection, port, and OpenTelemetry defaults are defined in each service's `application.yml`;
+frontend settings are listed above.
 
 ## License
 
