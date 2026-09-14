@@ -3,7 +3,7 @@
 [![GraalVM](https://img.shields.io/badge/GraalVM-Java%2025-f29111.svg)](https://www.graalvm.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-6db33f.svg)](https://spring.io/projects/spring-boot)
 [![Rust](https://img.shields.io/badge/Rust-2024-000000.svg)](https://www.rust-lang.org/)
-[![Bun](https://img.shields.io/badge/Bun-1.4.0-000000.svg?logo=bun&logoColor=white)](https://bun.sh/)
+[![Bun](https://img.shields.io/badge/Bun-1.4.2-000000.svg?logo=bun&logoColor=white)](https://bun.sh/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 Megalith Micro is a cloud-native blogging and content-management platform with public publishing,
@@ -24,7 +24,7 @@ separate JVM, JRE, Bun installation, build toolchain, or source tree.
 | --- | --- | --- |
 | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot 4.1.1, GraalVM | GraalVM Native Image executable |
 | `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
-| `micro-frontend` | Bun 1.4.0, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
+| `micro-frontend` | Bun 1.4.2, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
 MariaDB, Redis, RabbitMQ, Elasticsearch, and the monitoring infrastructure use their standard
 container images.
@@ -363,7 +363,7 @@ authentication, caching, observability, failure behavior, and deployment details
 - GraalVM for JDK 25 using the HotSpot JVM, not the Espresso JVM
 - Gradle 9.7 through the included Wrapper
 - Rust stable with 2024 edition support
-- Bun 1.4.0
+- Bun 1.4.2
 - Docker for OCI image builds
 
 Example on macOS:

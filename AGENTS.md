@@ -9,7 +9,7 @@ this file records the implementation constraints that are easy to miss.
 - Java 25 (GraalVM HotSpot), Spring Boot 4.1.1, Hibernate ORM 7.4.6.Final, Redisson 4.7.0, and Caffeine.
 - Gradle 9.7 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
 - Rust 2024 for `micro-gateway-rs` and `micro-sync-rs`.
-- Bun 1.4.0, Vue 3, and Vite for the standalone `micro-frontend` service.
+- Bun 1.4.2, Vue 3, and Vite for the standalone `micro-frontend` service.
 
 `JAVA_HOME` must point to a GraalVM HotSpot JDK, not the Espresso JVM. On macOS, for example:
 
