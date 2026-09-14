@@ -52,7 +52,6 @@
   "devDependencies": {
     "@types/bun": "catalog:",
     "@types/markdown-it": "catalog:",
-    "@types/node": "catalog:",
     "@types/sanitize-html": "catalog:",
     "@vitejs/plugin-vue": "catalog:",
     "@vitest/coverage-istanbul": "catalog:",
