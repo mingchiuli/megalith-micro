@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)))
 const binary = path.join(root, 'dist/bin/megalith-frontend')
-const sourceMap = path.join(root, 'dist/bin/standalone-entry.js.map')
+const sourceMap = path.join(root, 'dist/bin/megalith-frontend.map')
 const browserOnlyPackages = ['dompurify', 'happy-dom', 'isomorphic-dompurify', 'jsdom']
 
 const waitForHealth = async (url: string, timeoutMillis: number): Promise<void> => {
