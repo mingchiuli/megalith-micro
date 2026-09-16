@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { logger } from './logger.js'
 import { observeHttpRequest } from './observability.js'
-import type { Render, SsrResponse } from './ssr.js'
+import type { ClientManifest, Render, SsrResponse } from './ssr.js'
 import { renderSsrPage } from './ssr.js'
 import { shutdownTelemetry } from './telemetry.js'
 
@@ -77,11 +77,12 @@ const pageResult = (result: SsrResponse): HttpResult => ({
 
 export const startProductionServer = async (render: Render): Promise<void> => {
   const clientRoot = path.join(import.meta.dir, 'client')
-  const [template, ssrManifest, assetManifest] = await Promise.all([
+  const [template, ssrManifest, clientManifest, assetManifest] = await Promise.all([
     Bun.file(path.join(clientRoot, 'index.html')).text(),
     Bun.file(path.join(clientRoot, '.vite/ssr-manifest.json')).json() as Promise<
       Record<string, string[]>
     >,
+    Bun.file(path.join(clientRoot, '.vite/manifest.json')).json() as Promise<ClientManifest>,
     Bun.file(path.join(clientRoot, '.vite/public-assets.json')).json() as Promise<AssetManifest>
   ])
   let shuttingDown = false
@@ -133,7 +134,8 @@ export const startProductionServer = async (render: Render): Promise<void> => {
             {
               loadTemplate: async () => template,
               loadRender: async () => render,
-              ssrManifest
+              ssrManifest,
+              clientManifest
             }
           )
           return pageResult(rendered)

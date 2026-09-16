@@ -38,10 +38,19 @@ export type SsrResponse = {
   body: string
 }
 
+export type ClientManifestChunk = {
+  file: string
+  css?: string[]
+  imports?: string[]
+}
+
+export type ClientManifest = Record<string, ClientManifestChunk>
+
 type SsrDependencies = {
   loadTemplate: (url: string) => Promise<string>
   loadRender: () => Promise<Render>
   ssrManifest: Record<string, string[]>
+  clientManifest?: ClientManifest
 }
 
 export const renderSsrPage = async (
@@ -81,7 +90,12 @@ export const renderSsrPage = async (
     }
   }
 
-  const preloadLinks = renderPreloadLinks(result.modules, dependencies.ssrManifest)
+  const preloadLinks = renderPreloadLinks(
+    result.modules,
+    dependencies.ssrManifest,
+    dependencies.clientManifest,
+    linkedAssets(template)
+  )
   const htmlAttrs = result.htmlAttrs.trim()
   const bodyAttrs = result.bodyAttrs.trim()
   const html = template
@@ -109,16 +123,67 @@ function renderTeleports(teleports: Record<string, string>): string {
   }, teleports.body ?? '')
 }
 
-function renderPreloadLinks(modules: Set<string>, manifest: Record<string, string[]>): string {
-  const files = new Set<string>()
-  for (const id of modules) {
-    for (const file of manifest[id] || []) files.add(file)
+const linkedAssets = (template: string): Set<string> => {
+  const hrefs = new Set<string>()
+  for (const [, href] of template.matchAll(/<link\b[^>]*\bhref="([^"]+)"/g)) {
+    if (href) hrefs.add(href)
   }
-  return [...files]
-    .map((file) => {
-      const href = file.startsWith('/') ? file : `/${file}`
-      if (file.endsWith('.js')) return `<link rel="modulepreload" crossorigin href="${href}">`
-      if (file.endsWith('.css')) return `<link rel="stylesheet" href="${href}">`
+  return hrefs
+}
+
+const manifestKey = (file: string): string => (file.startsWith('/') ? file.slice(1) : file)
+
+/**
+ * The SSR manifest only maps a rendered component to its own chunk. Component styles
+ * imported by that chunk are declared in the client manifest instead, so the route has
+ * to be expanded transitively. Without them the browser paints the server HTML before
+ * the component CSS arrives, which flashes unstyled controls on slow connections.
+ */
+function renderPreloadLinks(
+  modules: Set<string>,
+  ssrManifest: Record<string, string[]>,
+  clientManifest?: ClientManifest,
+  alreadyLinked: Set<string> = new Set<string>()
+): string {
+  const files: string[] = []
+  const queued = new Set<string>()
+  const visitedChunks = new Set<string>()
+  const keyByFile = new Map<string, string>()
+  for (const [key, chunk] of Object.entries(clientManifest ?? {})) {
+    keyByFile.set(manifestKey(chunk.file), key)
+  }
+
+  const enqueue = (file: string) => {
+    const normalized = manifestKey(file)
+    if (queued.has(normalized)) return
+    queued.add(normalized)
+    files.push(normalized)
+  }
+
+  const visitChunk = (key: string) => {
+    if (visitedChunks.has(key)) return
+    const chunk = clientManifest?.[key]
+    if (!chunk) return
+    visitedChunks.add(key)
+    enqueue(chunk.file)
+    for (const css of chunk.css ?? []) enqueue(css)
+    for (const imported of chunk.imports ?? []) visitChunk(imported)
+  }
+
+  for (const id of modules) {
+    for (const file of ssrManifest[id] ?? []) {
+      enqueue(file)
+      const key = keyByFile.get(manifestKey(file))
+      if (key !== undefined) visitChunk(key)
+    }
+  }
+
+  return files
+    .map((file) => (file.startsWith('/') ? file : `/${file}`))
+    .filter((href) => !alreadyLinked.has(href))
+    .map((href) => {
+      if (href.endsWith('.js')) return `<link rel="modulepreload" crossorigin href="${href}">`
+      if (href.endsWith('.css')) return `<link rel="stylesheet" href="${href}">`
       return ''
     })
     .join('')

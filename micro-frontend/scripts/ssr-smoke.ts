@@ -132,6 +132,22 @@ try {
   assert.match(blogsHtml, /blogs-skeleton/)
   assert.match(blogsHtml, /style="display:\s*none;?"/)
 
+  // The server HTML has to declare every stylesheet the rendered route needs, otherwise
+  // slow connections paint the component markup unstyled before the client CSS arrives.
+  const styleHrefs = [...blogsHtml.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)].map(
+    (match) => match[1]!
+  )
+  const routeStyles: string[] = []
+  for (const href of styleHrefs) {
+    const stylesheet = await fetch(`${baseUrl}${href}`)
+    assert.equal(stylesheet.status, 200, `stylesheet ${href} must be served`)
+    routeStyles.push(await stylesheet.text())
+  }
+  const styleText = routeStyles.join('\n')
+  for (const selector of ['.el-pagination{', '.el-skeleton{', '.el-text{']) {
+    assert.ok(styleText.includes(selector), `${selector} must be declared before the first paint`)
+  }
+
   const notFound = await fetch(`${baseUrl}/production-ssr-smoke-not-found`)
   assert.equal(notFound.status, 404)
   assert.match(await notFound.text(), /404 NOT FOUND/)
