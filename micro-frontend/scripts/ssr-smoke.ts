@@ -9,6 +9,46 @@ const binary = path.join(root, 'dist/bin/megalith-frontend')
 const sourceMap = path.join(root, 'dist/bin/megalith-frontend.map')
 const browserOnlyPackages = ['dompurify', 'happy-dom', 'isomorphic-dompurify', 'jsdom']
 
+const adminMenu = {
+  id: 1,
+  title: '系统',
+  name: 'system',
+  icon: '',
+  orderNum: 0,
+  parentId: 0,
+  status: 0,
+  type: 0,
+  url: '/sys',
+  component: 'sys/SystemView',
+  children: [
+    {
+      id: 2,
+      title: '用户',
+      name: 'system-users',
+      icon: '',
+      orderNum: 0,
+      parentId: 1,
+      status: 0,
+      type: 1,
+      url: '/sys/users',
+      component: 'sys/UsersView',
+      children: []
+    }
+  ]
+}
+
+/**
+ * Element Plus renders these class names without shipping rules for them, so they are not
+ * evidence that a component stylesheet is missing.
+ */
+const unstyledElementPlusClasses = new Set([
+  'tab-pane',
+  'scrollbar__view',
+  'select__icon',
+  'tooltip__trigger',
+  'calendar__button-group'
+])
+
 const waitForHealth = async (url: string, timeoutMillis: number): Promise<void> => {
   const deadline = Date.now() + timeoutMillis
   while (Date.now() < deadline) {
@@ -29,6 +69,45 @@ const reservePort = async (): Promise<number> => {
   await reservation.stop(true)
   if (port === undefined) throw new Error('Bun did not assign a reservation port')
   return port
+}
+
+const elementPlusClasses = (html: string): Set<string> => {
+  const classes = new Set<string>()
+  const body = html.slice(html.indexOf('<body'))
+  for (const match of body.matchAll(/class="([^"]*)"/g)) {
+    for (const name of match[1]!.split(/\s+/)) {
+      if (!name.startsWith('el-')) continue
+      const root = name.split('--')[0]!.replace(/^el-/, '')
+      if (root && !unstyledElementPlusClasses.has(root)) classes.add(root)
+    }
+  }
+  return classes
+}
+
+/**
+ * The server HTML has to declare every stylesheet the rendered route needs, otherwise slow
+ * connections paint the component markup unstyled before the client CSS arrives.
+ */
+const assertFirstPaintStyles = async (base: string, route: string, html: string): Promise<void> => {
+  const styleHrefs = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)].map(
+    (match) => match[1]!
+  )
+  assert.ok(styleHrefs.length > 0, `${route} must declare stylesheets`)
+  assert.equal(new Set(styleHrefs).size, styleHrefs.length, `${route} must not repeat stylesheets`)
+
+  const styles: string[] = []
+  for (const href of styleHrefs) {
+    const stylesheet = await fetch(`${base}${href}`)
+    assert.equal(stylesheet.status, 200, `stylesheet ${href} must be served`)
+    styles.push(await stylesheet.text())
+  }
+  const styleText = styles.join('\n')
+  for (const className of elementPlusClasses(html)) {
+    assert.ok(
+      styleText.includes(`.el-${className}`),
+      `${route} must declare .el-${className} before the first paint`
+    )
+  }
 }
 
 const gateway = Bun.serve({
@@ -74,6 +153,18 @@ const gateway = Bun.serve({
           nickname: 'SSR',
           created: '2026-08-21'
         }
+      })
+    }
+    if (url.pathname === '/auth/menu/nav') {
+      return Response.json({ msg: 'OK', data: adminMenu })
+    }
+    if (url.pathname === '/token/userinfo') {
+      return Response.json({ msg: 'OK', data: { nickname: 'SSR', avatar: '', id: 1 } })
+    }
+    if (url.pathname.startsWith('/sys/')) {
+      return Response.json({
+        msg: 'OK',
+        data: { content: [], totalElements: 0, pageSize: 5, pageNumber: 1, additional: [] }
       })
     }
     return Response.json({ msg: 'Not Found', data: null }, { status: 404 })
@@ -132,25 +223,66 @@ try {
   assert.match(blogsHtml, /blogs-skeleton/)
   assert.match(blogsHtml, /style="display:\s*none;?"/)
 
-  // The server HTML has to declare every stylesheet the rendered route needs, otherwise
-  // slow connections paint the component markup unstyled before the client CSS arrives.
-  const styleHrefs = [...blogsHtml.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)].map(
-    (match) => match[1]!
-  )
-  const routeStyles: string[] = []
-  for (const href of styleHrefs) {
-    const stylesheet = await fetch(`${baseUrl}${href}`)
-    assert.equal(stylesheet.status, 200, `stylesheet ${href} must be served`)
-    routeStyles.push(await stylesheet.text())
-  }
-  const styleText = routeStyles.join('\n')
-  for (const selector of ['.el-pagination{', '.el-skeleton{', '.el-text{']) {
-    assert.ok(styleText.includes(selector), `${selector} must be declared before the first paint`)
+  await assertFirstPaintStyles(baseUrl, '/blogs', blogsHtml)
+
+  const routes = [
+    { path: '/', status: 200 },
+    { path: '/blogs', status: 200 },
+    { path: '/blog/standalone-smoke', status: 200 },
+    { path: '/login', status: 200 },
+    { path: '/register/smoke-token', status: 200 },
+    { path: '/production-ssr-smoke-not-found', status: 404 },
+    { path: '/sys/users', status: 200, cookie: 'megalith_access_token=smoke' }
+  ]
+  for (const route of routes) {
+    const response = await fetch(`${baseUrl}${route.path}`, {
+      headers: route.cookie ? { Cookie: route.cookie } : undefined
+    })
+    assert.equal(response.status, route.status, `${route.path} must render with ${route.status}`)
+    await assertFirstPaintStyles(baseUrl, route.path, await response.text())
   }
 
   const notFound = await fetch(`${baseUrl}/production-ssr-smoke-not-found`)
   assert.equal(notFound.status, 404)
   assert.match(await notFound.text(), /404 NOT FOUND/)
+
+  // An unreachable gateway must not terminate the SSR process: the affected route renders
+  // with its default state and every later request still gets a response.
+  const unreachablePort = await reservePort()
+  const degradedPort = await reservePort()
+  const degradedChild = Bun.spawn([binary], {
+    cwd: runtimeRoot,
+    env: {
+      ...process.env,
+      NODE_ENV: 'production',
+      PORT: String(degradedPort),
+      SSR_API_BASE_URL: `http://127.0.0.1:${unreachablePort}`,
+      APP_ORIGIN: 'https://chiu.wiki',
+      OTEL_SDK_DISABLED: 'true'
+    },
+    stdin: 'ignore',
+    stdout: 'pipe',
+    stderr: 'pipe'
+  })
+  const degradedOutput = [
+    new Response(degradedChild.stdout).text(),
+    new Response(degradedChild.stderr).text()
+  ]
+  try {
+    await waitForHealth(`http://127.0.0.1:${degradedPort}/actuator/health`, 10_000)
+    for (const path of ['/', '/login', '/blogs']) {
+      const response = await fetch(`http://127.0.0.1:${degradedPort}${path}`)
+      assert.equal(response.status, 200, `${path} must render while the gateway is unreachable`)
+      await response.arrayBuffer()
+    }
+    const health = await fetch(`http://127.0.0.1:${degradedPort}/actuator/health`)
+    assert.equal(health.status, 200, 'SSR process must survive an unreachable gateway')
+    await health.arrayBuffer()
+  } finally {
+    degradedChild.kill('SIGKILL')
+    await degradedChild.exited
+    await Promise.all(degradedOutput)
+  }
 
   const manifest = (await Bun.file(
     path.join(root, 'dist/client/.vite/public-assets.json')

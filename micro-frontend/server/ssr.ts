@@ -1,3 +1,4 @@
+import { logger } from './logger.js'
 import { observeSsrRender } from './observability.js'
 
 export type RenderResult = {
@@ -13,6 +14,7 @@ export type RenderResult = {
   redirect?: string
   modules: Set<string>
   setCookies: string[]
+  prefetchFailures?: Array<{ key: string; reason: unknown }>
 }
 
 export type Render = (
@@ -51,6 +53,11 @@ type SsrDependencies = {
   loadRender: () => Promise<Render>
   ssrManifest: Record<string, string[]>
   clientManifest?: ClientManifest
+  /**
+   * Development-only hook: the Vite dev server resolves styles through its module graph
+   * because there is no build manifest to expand.
+   */
+  headStyles?: (modules: Set<string>, alreadyLinked: Set<string>) => Promise<string>
 }
 
 export const renderSsrPage = async (
@@ -90,18 +97,28 @@ export const renderSsrPage = async (
     }
   }
 
+  const alreadyLinked = linkedAssets(template)
   const preloadLinks = renderPreloadLinks(
     result.modules,
     dependencies.ssrManifest,
     dependencies.clientManifest,
-    linkedAssets(template)
+    alreadyLinked
   )
+  const additionalStyles = dependencies.headStyles
+    ? await dependencies.headStyles(result.modules, alreadyLinked)
+    : ''
+  for (const failure of result.prefetchFailures ?? []) {
+    logger.error('SSR prefetch failed', failure.reason, {
+      'ssr.route': result.route,
+      'ssr.prefetch.key': failure.key
+    })
+  }
   const htmlAttrs = result.htmlAttrs.trim()
   const bodyAttrs = result.bodyAttrs.trim()
   const html = template
     .replace('<html lang="en">', `<html ${htmlAttrs || 'lang="en"'}>`)
     .replace('<body>', bodyAttrs ? `<body ${bodyAttrs}>` : '<body>')
-    .replace('<!--app-head-->', `${result.headTags}${preloadLinks}`)
+    .replace('<!--app-head-->', `${result.headTags}${preloadLinks}${additionalStyles}`)
     .replace('<!--app-html-->', result.appHtml)
     .replace(
       '<!--app-state-->',
@@ -183,7 +200,7 @@ function renderPreloadLinks(
     .filter((href) => !alreadyLinked.has(href))
     .map((href) => {
       if (href.endsWith('.js')) return `<link rel="modulepreload" crossorigin href="${href}">`
-      if (href.endsWith('.css')) return `<link rel="stylesheet" href="${href}">`
+      if (href.endsWith('.css')) return `<link rel="stylesheet" crossorigin href="${href}">`
       return ''
     })
     .join('')

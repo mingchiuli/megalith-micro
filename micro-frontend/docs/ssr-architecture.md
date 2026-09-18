@@ -41,7 +41,9 @@ On `SIGTERM` or `SIGINT`, readiness changes to 503, `Bun.serve` stops accepting 
 - Authentication redirects are HTTP 302 responses during SSR.
 - HTML responses use `Cache-Control: private, no-store` because they may contain user-specific state.
 - Fingerprinted assets are immutable and cached for one year.
-- Initial prefetch failures flow through the route or server error path; interactive request failures use the existing Element Plus notification behavior.
+- Server HTML declares every stylesheet the rendered route needs before the first paint: production expands the rendered modules through the Vite client manifest, development resolves the same set through the Vite module graph. Routes must never depend on JavaScript-injected CSS for their initial paint, otherwise slow connections flash unstyled controls.
+- Initial prefetch failures render the route with its default state and are logged with the route and prefetch key; interactive request failures use the existing Element Plus notification behavior.
+- The standalone executable is compiled with `NODE_ENV=production` so Vue's production build is bundled; a development build rethrows inside its error handler and would terminate the SSR process.
 
 ## Deployment
 

@@ -16,6 +16,7 @@ type RenderResult = {
   redirect?: string
   modules: Set<string>
   setCookies: string[]
+  prefetchFailures: Array<{ key: string; reason: unknown }>
 }
 
 export const render = async (url: string, request: AppRequestContext): Promise<RenderResult> => {
@@ -29,7 +30,7 @@ export const render = async (url: string, request: AppRequestContext): Promise<R
 
   await router.push(url)
   await router.isReady()
-  const context: SSRContext = {}
+  const context: SSRContext & { prefetchFailures?: Array<{ key: string; reason: unknown }> } = {}
   const appHtml = await renderToString(app, context)
   const renderedHead = head.render()
   const finalRoute = router.currentRoute.value
@@ -47,6 +48,7 @@ export const render = async (url: string, request: AppRequestContext): Promise<R
     route: finalRoute.matched.at(-1)?.path ?? finalRoute.path,
     redirect,
     modules: context.modules ?? new Set<string>(),
-    setCookies: responseCookies
+    setCookies: responseCookies,
+    prefetchFailures: context.prefetchFailures ?? []
   }
 }

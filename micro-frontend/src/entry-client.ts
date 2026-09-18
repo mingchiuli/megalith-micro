@@ -15,6 +15,7 @@ const head = createHead()
 const locale = resolveAppLocale(document.documentElement.lang, navigator.language)
 const { app, router, pinia } = createMegalithApp({ server: false, head, initialState, locale })
 
+// Resolve the theme before mount so the first head patch matches the class index.html already set.
+themeStore(pinia).initTheme()
 await router.isReady()
 app.mount('#app')
-themeStore(pinia).initTheme()

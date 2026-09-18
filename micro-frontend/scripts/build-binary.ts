@@ -43,6 +43,10 @@ try {
     format: 'esm',
     sourcemap: 'inline',
     minify: { syntax: true, whitespace: true, identifiers: false },
+    // Without an explicit production define the standalone bundle picks up Vue's development
+    // build, whose error handler rethrows. That turned a failed prefetch into an unhandled
+    // rejection and terminated the whole SSR process.
+    define: { 'process.env.NODE_ENV': '"production"' },
     compile: {
       outfile: binaryPath,
       assets: [clientRoot]

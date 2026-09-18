@@ -8,7 +8,7 @@
     "build": "bun run type-check && bun run build-only",
     "build-only": "bun --bun vite build --outDir dist/client --manifest --ssrManifest && bun --bun vite build --ssr src/entry-server.ts --outDir dist/server && bun scripts/build-binary.ts",
     "preview": "NODE_ENV=production ./dist/bin/megalith-frontend",
-    "check": "bun run quality && bun run build-only && bun run test:ssr && bun run test:otel",
+    "check": "bun run quality && bun run build-only && bun run test:ssr && bun run test:dev-ssr && bun run test:otel",
     "quality": "bun run lint && bun run format:check && bun run type-check && bun run test:coverage",
     "lint": "bun --bun eslint .",
     "format": "bun --bun prettier --write .",
@@ -17,6 +17,7 @@
     "test": "bun --bun vitest",
     "test:coverage": "bun --bun vitest run --coverage",
     "test:ssr": "bun scripts/ssr-smoke.ts",
+    "test:dev-ssr": "bun scripts/dev-ssr-smoke.ts",
     "test:otel": "bun scripts/otel-smoke.ts"
   },
   "dependencies": {

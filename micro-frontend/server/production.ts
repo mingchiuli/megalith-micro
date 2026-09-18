@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { logger } from './logger.js'
 import { observeHttpRequest } from './observability.js'
+import { installProcessGuards } from './process-guards.js'
 import type { ClientManifest, Render, SsrResponse } from './ssr.js'
 import { renderSsrPage } from './ssr.js'
 import { shutdownTelemetry } from './telemetry.js'
@@ -76,6 +77,7 @@ const pageResult = (result: SsrResponse): HttpResult => ({
 })
 
 export const startProductionServer = async (render: Render): Promise<void> => {
+  installProcessGuards()
   const clientRoot = path.join(import.meta.dir, 'client')
   const [template, ssrManifest, clientManifest, assetManifest] = await Promise.all([
     Bun.file(path.join(clientRoot, 'index.html')).text(),

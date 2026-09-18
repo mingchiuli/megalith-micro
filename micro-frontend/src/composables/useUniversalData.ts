@@ -1,8 +1,25 @@
-import { onMounted, onServerPrefetch, readonly, ref, shallowRef, type Ref } from 'vue'
+import {
+  onMounted,
+  onServerPrefetch,
+  readonly,
+  ref,
+  shallowRef,
+  useSSRContext,
+  type Ref
+} from 'vue'
 import { ssrDataStore } from '@/stores/ssrStore'
 
 type UniversalDataOptions = {
   loading?: Ref<boolean>
+}
+
+export type PrefetchFailure = {
+  key: string
+  reason: unknown
+}
+
+type PrefetchContext = {
+  prefetchFailures?: PrefetchFailure[]
 }
 
 export const useUniversalData = <T>(
@@ -36,8 +53,18 @@ export const useUniversalData = <T>(
     }
   }
 
-  if (import.meta.env.SSR) onServerPrefetch(() => execute())
-  else if (hydrated === undefined) onMounted(() => void execute().catch(() => undefined))
+  if (import.meta.env.SSR) {
+    const ssrContext = useSSRContext<PrefetchContext>()
+    onServerPrefetch(() =>
+      execute().catch((reason: unknown) => {
+        // Never reject a render hook: Vue's development build rethrows inside its error
+        // handler, which surfaces as an unhandled rejection and used to kill the SSR
+        // process. The route renders with its default state and the failure is reported by
+        // the server once the render finishes.
+        if (ssrContext) (ssrContext.prefetchFailures ??= []).push({ key, reason })
+      })
+    )
+  } else if (hydrated === undefined) onMounted(() => void execute().catch(() => undefined))
 
   return {
     refresh: execute,
