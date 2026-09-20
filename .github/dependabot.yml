@@ -51,7 +51,9 @@ updates:
   # Docker：升级 Dockerfile 中带语义化 tag 的基础镜像
   - package-ecosystem: "docker"
     directories:
-      - "/"
+      - "/micro-frontend"
+      - "/micro-gateway-rs"
+      - "/micro-sync-rs"
     schedule:
       interval: "daily"
       time: "10:00"
