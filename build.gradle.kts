@@ -92,7 +92,7 @@ subprojects {
                     --gc=G1
                     -R:MaxHeapSize=$heapSize
                     -O3
-                    -J-XX:MaxRAMPercentage=80.0
+                    -J-XX:MaxRAMPercentage=90.0
                     -H:+MLCallCountProfileInference
                     -H:+TrackPrimitiveValues
                     -H:+UsePredicates
