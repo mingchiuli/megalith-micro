@@ -6,7 +6,7 @@ import java.util.Objects;
 
 import wiki.chiu.micro.auth.dto.MenuDisplayDto;
 import wiki.chiu.micro.auth.dto.MenuDto;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.enums.StatusEnum;
 
 public class MenuDisplayDtoConvertor {
 

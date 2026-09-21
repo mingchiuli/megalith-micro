@@ -1,8 +1,8 @@
 package wiki.chiu.micro.auth.component.provider;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.ACCOUNT_LOCKED;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.ROLE_DISABLED;
-import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
+import static wiki.chiu.micro.common.enums.StatusEnum.NORMAL;
+import static wiki.chiu.micro.common.error.ExceptionMessage.ACCOUNT_LOCKED;
+import static wiki.chiu.micro.common.error.ExceptionMessage.ROLE_DISABLED;
 
 import java.util.List;
 

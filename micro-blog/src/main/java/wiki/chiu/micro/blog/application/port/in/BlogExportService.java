@@ -4,7 +4,7 @@ import java.io.OutputStream;
 import java.util.List;
 
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 
 public interface BlogExportService {
 

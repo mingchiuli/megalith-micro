@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.constant.Const;
 
 /**
  * @author mingchiuli

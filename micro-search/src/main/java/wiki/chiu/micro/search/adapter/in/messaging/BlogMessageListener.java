@@ -6,11 +6,11 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.common.lang.BlogChangedMessage;
-import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.common.lang.BlogSnapshot;
-import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.messaging.RetryingMessageRecoverer;
+import wiki.chiu.micro.common.constant.Const;
+import wiki.chiu.micro.common.enums.BlogOperateEnum;
+import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.port.in.ApplyBlogIndexChangeUseCase;
 import wiki.chiu.micro.search.domain.BlogIndexEntry;

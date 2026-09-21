@@ -8,11 +8,11 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.common.lang.BlogChangedMessage;
-import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.constant.Const;
+import wiki.chiu.micro.common.enums.BlogOperateEnum;
+import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
 import wiki.chiu.micro.exhibit.adapter.in.messaging.cache.handler.BlogCacheEvictHandler;
-import wiki.chiu.micro.messaging.RetryingMessageRecoverer;
 
 /**
  * @author mingchiuli

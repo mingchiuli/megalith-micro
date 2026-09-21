@@ -14,9 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
+import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
-import wiki.chiu.micro.common.lang.CommonErrorCode;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.search.api.SearchIndexMaintenanceHttpService;
 import wiki.chiu.micro.search.api.vo.IndexRebuildRpcVo;
 import wiki.chiu.micro.search.application.model.IndexRebuildRejectedException;

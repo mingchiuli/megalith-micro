@@ -5,8 +5,8 @@ import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
-import wiki.chiu.micro.common.lang.BlogChangedMessage;
-import wiki.chiu.micro.common.lang.BlogSnapshot;
+import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 

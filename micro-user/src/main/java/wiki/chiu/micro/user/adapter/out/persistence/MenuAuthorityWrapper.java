@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import wiki.chiu.micro.common.lang.AuthTypeEnum;
+import wiki.chiu.micro.common.enums.AuthTypeEnum;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.AuthorityRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
 import wiki.chiu.micro.user.application.port.out.AuthorityWriter;

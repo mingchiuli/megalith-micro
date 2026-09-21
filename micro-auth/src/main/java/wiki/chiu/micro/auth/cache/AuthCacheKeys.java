@@ -6,7 +6,7 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
-import wiki.chiu.micro.common.lang.AuthCacheEvictMessage;
+import wiki.chiu.micro.common.message.AuthCacheEvictMessage;
 
 @Component
 public class AuthCacheKeys {

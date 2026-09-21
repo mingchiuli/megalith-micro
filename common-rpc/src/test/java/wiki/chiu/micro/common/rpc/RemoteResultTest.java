@@ -5,9 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
 
+import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.RemoteServiceException;
-import wiki.chiu.micro.common.lang.CommonErrorCode;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 
 class RemoteResultTest {
 

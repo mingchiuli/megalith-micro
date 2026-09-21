@@ -1,6 +1,6 @@
 package wiki.chiu.micro.exhibit.application.service;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
+import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;

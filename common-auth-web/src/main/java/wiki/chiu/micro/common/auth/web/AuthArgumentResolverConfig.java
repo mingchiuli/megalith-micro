@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 
 @AutoConfiguration

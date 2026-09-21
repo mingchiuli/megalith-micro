@@ -23,9 +23,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import wiki.chiu.micro.common.error.ExceptionMessage;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.adapter.in.http.AuthorityHttpHandler;
 import wiki.chiu.micro.user.adapter.in.http.AuthorityInternalHttpHandler;

@@ -1,7 +1,7 @@
 package wiki.chiu.micro.user.adapter.out.persistence;
 
-import static wiki.chiu.micro.common.lang.StatusEnum.HIDE;
-import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
+import static wiki.chiu.micro.common.enums.StatusEnum.HIDE;
+import static wiki.chiu.micro.common.enums.StatusEnum.NORMAL;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;

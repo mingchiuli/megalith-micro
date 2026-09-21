@@ -9,7 +9,7 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 
-import wiki.chiu.micro.common.lang.BlogChangedMessage;
+import wiki.chiu.micro.common.message.BlogChangedMessage;
 
 class BlogMessageCompatibilityTest {
 

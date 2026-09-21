@@ -44,7 +44,7 @@ class UserServiceImplTest {
                 "13800138000",
                 "expired-token");
 
-        doThrow(new MissException(wiki.chiu.micro.common.lang.ExceptionMessage.NO_AUTH))
+        doThrow(new MissException(wiki.chiu.micro.common.error.ExceptionMessage.NO_AUTH))
             .when(tokens)
             .consumeForUsername("expired-token", "alice");
 

@@ -7,7 +7,7 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 
 class RpcRuntimeHintsTest {
 

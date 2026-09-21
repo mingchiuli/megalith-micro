@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
@@ -24,8 +23,7 @@ public interface RoleRepository extends JpaRepository<RoleEntity, Long>, RoleRea
 
     Optional<RoleEntity> findByCode(String role);
 
-    @Query(value = "SELECT role.code from RoleEntity role")
-    List<String> findAllCodes();
+    List<RoleEntity> findByStatus(Integer status);
 
     @Override
     default PageAdapter<RoleEntity> findPage(int pageNumber, int pageSize) {

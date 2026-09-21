@@ -17,8 +17,8 @@ import org.springframework.amqp.core.MessageBuilder;
 
 import wiki.chiu.micro.auth.cache.AuthCacheKeys;
 import wiki.chiu.micro.cache.handler.CacheEvictor;
-import wiki.chiu.micro.common.lang.AuthCacheEvictMessage;
-import wiki.chiu.micro.messaging.RetryingMessageRecoverer;
+import wiki.chiu.micro.common.message.AuthCacheEvictMessage;
+import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
 
 class UserRedisCacheEvictMessageListenerTest {
 

@@ -1,6 +1,6 @@
 package wiki.chiu.micro.auth.component;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.INVALID_LOGIN_OPERATE;
+import static wiki.chiu.micro.common.error.ExceptionMessage.INVALID_LOGIN_OPERATE;
 
 import jakarta.servlet.http.HttpServletRequest;
 

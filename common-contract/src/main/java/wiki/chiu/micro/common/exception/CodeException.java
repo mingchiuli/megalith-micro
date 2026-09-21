@@ -1,8 +1,8 @@
 package wiki.chiu.micro.common.exception;
 
-import wiki.chiu.micro.common.lang.CommonErrorCode;
-import wiki.chiu.micro.common.lang.ErrorCodes;
-import wiki.chiu.micro.common.lang.ExceptionMessage;
+import wiki.chiu.micro.common.error.CommonErrorCode;
+import wiki.chiu.micro.common.error.ErrorCodes;
+import wiki.chiu.micro.common.error.ExceptionMessage;
 
 /**
  * @author mingchiuli

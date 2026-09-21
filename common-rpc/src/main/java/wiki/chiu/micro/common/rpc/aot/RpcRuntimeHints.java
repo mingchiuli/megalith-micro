@@ -4,7 +4,7 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 
 public final class RpcRuntimeHints implements RuntimeHintsRegistrar {
 

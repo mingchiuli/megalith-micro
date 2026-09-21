@@ -1,7 +1,7 @@
 package wiki.chiu.micro.auth.support;
 
-import static wiki.chiu.micro.common.lang.Const.EMAIL_CODE;
-import static wiki.chiu.micro.common.lang.Const.SMS_CODE;
+import static wiki.chiu.micro.common.constant.Const.EMAIL_CODE;
+import static wiki.chiu.micro.common.constant.Const.SMS_CODE;
 
 import java.util.concurrent.ThreadLocalRandom;
 

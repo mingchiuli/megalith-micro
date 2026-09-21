@@ -1,7 +1,7 @@
 package wiki.chiu.micro.common.exception;
 
-import wiki.chiu.micro.common.lang.CommonErrorCode;
-import wiki.chiu.micro.common.lang.ErrorCode;
+import wiki.chiu.micro.common.error.CommonErrorCode;
+import wiki.chiu.micro.common.error.ErrorCode;
 
 public final class RemoteServiceException extends BaseException {
 

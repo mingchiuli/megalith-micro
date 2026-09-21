@@ -11,7 +11,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import wiki.chiu.micro.scheduling.RedisTaskLock;
+import wiki.chiu.micro.common.scheduling.RedisTaskLock;
 import wiki.chiu.micro.user.application.port.in.UserIdentityService;
 import wiki.chiu.micro.user.config.PasswordLockProperties;
 

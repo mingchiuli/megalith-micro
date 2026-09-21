@@ -1,6 +1,6 @@
 package wiki.chiu.micro.auth.component.provider;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
+import static wiki.chiu.micro.common.error.ExceptionMessage.*;
 
 import jakarta.annotation.PostConstruct;
 
@@ -25,7 +25,7 @@ import org.springframework.util.ResourceUtils;
 
 import wiki.chiu.micro.auth.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.component.token.SMSAuthenticationToken;
-import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.constant.Const;
 
 /**
  * @author mingchiuli

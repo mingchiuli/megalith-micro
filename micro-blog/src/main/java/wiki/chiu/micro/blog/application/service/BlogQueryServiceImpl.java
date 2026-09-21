@@ -1,6 +1,6 @@
 package wiki.chiu.micro.blog.application.service;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
+import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
 
 import java.util.List;
 
@@ -12,8 +12,8 @@ import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
 import wiki.chiu.micro.blog.convertor.BlogEntityRpcVoConvertor;
 import wiki.chiu.micro.blog.domain.BlogEntity;
+import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.BlogStatusEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
 
 @Service

@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 
-import wiki.chiu.micro.scheduling.RedisTaskLock;
+import wiki.chiu.micro.common.scheduling.RedisTaskLock;
 import wiki.chiu.micro.search.adapter.out.elasticsearch.ElasticsearchBlogAdapter;
 import wiki.chiu.micro.search.adapter.out.elasticsearch.ElasticsearchIndexMaintenanceAdapter;
 import wiki.chiu.micro.search.application.port.in.ApplyBlogIndexChangeUseCase;

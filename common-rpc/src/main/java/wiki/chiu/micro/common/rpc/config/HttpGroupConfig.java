@@ -22,11 +22,11 @@ import org.springframework.web.service.registry.HttpServiceGroupConfigurer.Group
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import tools.jackson.databind.json.JsonMapper;
+import wiki.chiu.micro.common.error.CommonErrorCode;
+import wiki.chiu.micro.common.error.ErrorCode;
+import wiki.chiu.micro.common.error.ErrorCodes;
 import wiki.chiu.micro.common.exception.RemoteServiceException;
-import wiki.chiu.micro.common.lang.CommonErrorCode;
-import wiki.chiu.micro.common.lang.ErrorCode;
-import wiki.chiu.micro.common.lang.ErrorCodes;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.rpc.config.interceptor.AuthHttpInterceptor;
 
 @AutoConfiguration

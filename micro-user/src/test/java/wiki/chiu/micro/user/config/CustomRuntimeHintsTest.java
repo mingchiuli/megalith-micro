@@ -7,8 +7,8 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 
-import wiki.chiu.micro.common.lang.AuthCacheEvictMessage;
-import wiki.chiu.micro.common.lang.UserDeletedMessage;
+import wiki.chiu.micro.common.message.AuthCacheEvictMessage;
+import wiki.chiu.micro.common.message.UserDeletedMessage;
 
 class CustomRuntimeHintsTest {
 

@@ -3,8 +3,8 @@ package wiki.chiu.micro.blog.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
-import wiki.chiu.micro.common.lang.CommonErrorCode;
 
 @Component
 public class BlogMaintenanceProperties {

@@ -1,6 +1,6 @@
 package wiki.chiu.micro.exhibit.convertor;
 
-import static wiki.chiu.micro.common.lang.BlogStatusEnum.HIDE;
+import static wiki.chiu.micro.common.enums.BlogStatusEnum.HIDE;
 
 import java.util.List;
 import java.util.Map;

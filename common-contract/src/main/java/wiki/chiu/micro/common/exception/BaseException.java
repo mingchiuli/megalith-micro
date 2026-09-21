@@ -1,8 +1,8 @@
 package wiki.chiu.micro.common.exception;
 
-import wiki.chiu.micro.common.lang.CommonErrorCode;
-import wiki.chiu.micro.common.lang.ErrorCode;
-import wiki.chiu.micro.common.lang.ExceptionMessage;
+import wiki.chiu.micro.common.error.CommonErrorCode;
+import wiki.chiu.micro.common.error.ErrorCode;
+import wiki.chiu.micro.common.error.ExceptionMessage;
 
 public class BaseException extends RuntimeException {
 

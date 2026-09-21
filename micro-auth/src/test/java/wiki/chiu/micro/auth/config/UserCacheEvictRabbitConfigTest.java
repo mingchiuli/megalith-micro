@@ -7,7 +7,7 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
 
-import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.constant.Const;
 
 class UserCacheEvictRabbitConfigTest {
 

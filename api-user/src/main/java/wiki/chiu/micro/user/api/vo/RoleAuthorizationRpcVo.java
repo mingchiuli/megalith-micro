@@ -3,7 +3,7 @@ package wiki.chiu.micro.user.api.vo;
 import java.util.List;
 import java.util.Set;
 
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 
 public record RoleAuthorizationRpcVo(
     Long roleId,

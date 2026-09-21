@@ -8,7 +8,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import wiki.chiu.micro.auth.application.port.in.CodeService;
 import wiki.chiu.micro.auth.dto.CodeReq;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 
 @Component
 public class CodeHttpHandler {

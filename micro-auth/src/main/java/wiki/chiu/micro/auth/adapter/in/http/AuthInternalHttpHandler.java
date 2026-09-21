@@ -16,7 +16,7 @@ import wiki.chiu.micro.auth.application.port.in.AuthService;
 import wiki.chiu.micro.auth.converter.AuthRequestConverter;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.security.InternalHttpHeaders;
 

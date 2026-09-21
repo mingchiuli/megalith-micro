@@ -6,8 +6,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static wiki.chiu.micro.common.lang.StatusEnum.HIDE;
-import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
+import static wiki.chiu.micro.common.enums.StatusEnum.HIDE;
+import static wiki.chiu.micro.common.enums.StatusEnum.NORMAL;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 

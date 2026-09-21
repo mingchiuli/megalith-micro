@@ -9,8 +9,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
+import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
 import wiki.chiu.micro.user.application.port.out.UserRoleReader;

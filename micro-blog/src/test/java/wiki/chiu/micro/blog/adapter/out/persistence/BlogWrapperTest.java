@@ -16,9 +16,9 @@ import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.domain.BlogEntity;
+import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.exception.BaseException;
-import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.outbox.OutboxService;
+import wiki.chiu.micro.common.outbox.application.OutboxService;
 
 class BlogWrapperTest {
 

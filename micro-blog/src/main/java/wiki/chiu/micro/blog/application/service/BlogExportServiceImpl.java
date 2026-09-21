@@ -1,8 +1,5 @@
 package wiki.chiu.micro.blog.application.service;
 
-import static wiki.chiu.micro.common.lang.Const.BLOG_SENSITIVE_TABLE;
-import static wiki.chiu.micro.common.lang.Const.BLOG_TABLE;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -14,6 +11,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import wiki.chiu.micro.blog.application.model.BlogSearchSelection;
+import wiki.chiu.micro.blog.application.model.SqlTables;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
@@ -22,8 +20,8 @@ import wiki.chiu.micro.blog.convertor.BlogSysSearchReqConvertor;
 import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
-import wiki.chiu.micro.common.utils.SQLUtils;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
+import wiki.chiu.micro.common.export.SQLUtils;
 import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
@@ -91,8 +89,8 @@ public class BlogExportServiceImpl implements BlogExportService {
         List<Long> currentIds = pageBlogs.stream().map(BlogEntity::getId).toList();
         List<BlogSensitiveContentEntity> pageSensitive =
             currentIds.isEmpty() ? List.of() : blogs.findSensitiveByBlogIds(currentIds);
-        writeStatement(writer, SQLUtils.entityToInsertSQL(pageBlogs, BLOG_TABLE));
-        writeStatement(writer, SQLUtils.entityToInsertSQL(pageSensitive, BLOG_SENSITIVE_TABLE));
+        writeStatement(writer, SQLUtils.insertSql(pageBlogs, SqlTables.BLOG));
+        writeStatement(writer, SQLUtils.insertSql(pageSensitive, SqlTables.BLOG_SENSITIVE));
     }
 
     private static void writeStatement(OutputStreamWriter writer, String statement)

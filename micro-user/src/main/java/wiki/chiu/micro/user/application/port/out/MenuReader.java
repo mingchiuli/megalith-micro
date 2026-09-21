@@ -18,6 +18,4 @@ public interface MenuReader {
     List<MenuEntity> findByParentId(Long parentId);
 
     boolean existsByParentId(Long parentId);
-
-    List<Long> findAllIds();
 }

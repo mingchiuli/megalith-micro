@@ -13,10 +13,10 @@ import org.redisson.api.RedissonClient;
 
 import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
-import wiki.chiu.micro.common.lang.BlogChangedMessage;
-import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.common.lang.BlogSnapshot;
-import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.constant.Const;
+import wiki.chiu.micro.common.enums.BlogOperateEnum;
+import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 import wiki.chiu.micro.exhibit.adapter.in.messaging.cache.PageCacheEviction;
 import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 

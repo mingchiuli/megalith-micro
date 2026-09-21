@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.common.lang.AuthCacheEvictMessage;
-import wiki.chiu.micro.outbox.OutboxProducer;
-import wiki.chiu.micro.outbox.OutboxService;
+import wiki.chiu.micro.common.message.AuthCacheEvictMessage;
+import wiki.chiu.micro.common.outbox.application.OutboxService;
+import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
 @Component
 public class AuthCacheEvictionOutbox {

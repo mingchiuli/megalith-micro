@@ -19,12 +19,12 @@ import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
+import wiki.chiu.micro.common.error.CommonErrorCode;
+import wiki.chiu.micro.common.error.ErrorCategory;
+import wiki.chiu.micro.common.error.ErrorCode;
+import wiki.chiu.micro.common.error.ExceptionMessage;
 import wiki.chiu.micro.common.exception.BaseException;
-import wiki.chiu.micro.common.lang.CommonErrorCode;
-import wiki.chiu.micro.common.lang.ErrorCategory;
-import wiki.chiu.micro.common.lang.ErrorCode;
-import wiki.chiu.micro.common.lang.ExceptionMessage;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 
 public final class FunctionalWeb {
 

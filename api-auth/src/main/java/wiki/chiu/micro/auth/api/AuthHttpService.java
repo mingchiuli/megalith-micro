@@ -8,7 +8,7 @@ import org.springframework.web.service.annotation.PostExchange;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.security.InternalHttpHeaders;
 
 public interface AuthHttpService {

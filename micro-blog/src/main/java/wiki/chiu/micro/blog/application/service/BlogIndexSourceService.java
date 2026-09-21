@@ -9,9 +9,9 @@ import wiki.chiu.micro.blog.application.port.in.BlogIndexSourceQueries;
 import wiki.chiu.micro.blog.application.port.out.BlogIndexSourceState;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.convertor.BlogSnapshotConvertor;
+import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
-import wiki.chiu.micro.common.lang.BlogSnapshot;
-import wiki.chiu.micro.common.lang.CommonErrorCode;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 
 @Service
 public class BlogIndexSourceService implements BlogIndexSourceQueries {

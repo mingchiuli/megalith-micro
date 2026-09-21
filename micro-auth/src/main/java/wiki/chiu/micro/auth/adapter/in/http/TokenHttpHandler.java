@@ -11,7 +11,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.auth.application.port.in.TokenService;
 import wiki.chiu.micro.auth.token.AccessTokenCookieManager;
 import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 
 @Component
 public class TokenHttpHandler {

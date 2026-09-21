@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
-import wiki.chiu.micro.common.lang.BlogStatusEnum;
+import wiki.chiu.micro.common.enums.BlogStatusEnum;
 
 class BlogEntityConvertorTest {
 

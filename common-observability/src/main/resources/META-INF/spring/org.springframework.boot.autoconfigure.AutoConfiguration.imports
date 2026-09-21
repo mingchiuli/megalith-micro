@@ -1,2 +1,2 @@
-wiki.chiu.micro.common.rpc.config.TracePropagateConfig
-wiki.chiu.micro.common.rpc.config.InstallOpenTelemetryAppender
+wiki.chiu.micro.common.observability.config.TracePropagateConfig
+wiki.chiu.micro.common.observability.config.InstallOpenTelemetryAppender

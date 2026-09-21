@@ -1,9 +1,9 @@
 package wiki.chiu.micro.auth.adapter.out.redis;
 
-import static wiki.chiu.micro.common.lang.Const.DAY_VISIT;
-import static wiki.chiu.micro.common.lang.Const.MONTH_VISIT;
-import static wiki.chiu.micro.common.lang.Const.WEEK_VISIT;
-import static wiki.chiu.micro.common.lang.Const.YEAR_VISIT;
+import static wiki.chiu.micro.common.constant.Const.DAY_VISIT;
+import static wiki.chiu.micro.common.constant.Const.MONTH_VISIT;
+import static wiki.chiu.micro.common.constant.Const.WEEK_VISIT;
+import static wiki.chiu.micro.common.constant.Const.YEAR_VISIT;
 
 import jakarta.annotation.PostConstruct;
 

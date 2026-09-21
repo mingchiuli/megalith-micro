@@ -1,6 +1,6 @@
 package wiki.chiu.micro.user.application.port.out;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_AUTH;
+import static wiki.chiu.micro.common.error.ExceptionMessage.NO_AUTH;
 
 import wiki.chiu.micro.common.exception.MissException;
 

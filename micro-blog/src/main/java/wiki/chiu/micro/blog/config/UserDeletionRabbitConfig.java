@@ -10,9 +10,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.messaging.RetryTopology;
-import wiki.chiu.micro.messaging.RetryingMessageRecoverer;
+import wiki.chiu.micro.common.constant.Const;
+import wiki.chiu.micro.common.messaging.RetryTopology;
+import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
 
 @Configuration(proxyBeanMethods = false)
 public class UserDeletionRabbitConfig {

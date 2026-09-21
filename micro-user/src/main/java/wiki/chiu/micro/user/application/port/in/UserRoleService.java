@@ -2,7 +2,7 @@ package wiki.chiu.micro.user.application.port.in;
 
 import java.util.List;
 
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 
 /**
  * @Author limingjiu @Date 2024/5/29 22:12

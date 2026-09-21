@@ -20,3 +20,23 @@ dependencies {
     implementation(project(":common-export"))
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 }
+
+val integrationTest = sourceSets.create("integrationTest")
+integrationTest.compileClasspath += sourceSets.main.get().output
+integrationTest.runtimeClasspath += sourceSets.main.get().output
+configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())
+configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly.get())
+
+dependencies {
+    add(integrationTest.implementationConfigurationName, platform("org.testcontainers:testcontainers-bom:2.0.5"))
+    add(integrationTest.implementationConfigurationName, "org.testcontainers:testcontainers-junit-jupiter")
+}
+
+tasks.register<Test>("integrationTest") {
+    group = "verification"
+    description = "Verifies outbox index usage and bulk delete flows against an isolated MariaDB instance."
+    testClassesDirs = integrationTest.output.classesDirs
+    classpath = integrationTest.runtimeClasspath
+    shouldRunAfter(tasks.test)
+    useJUnitPlatform()
+}

@@ -10,8 +10,8 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 
 import wiki.chiu.micro.blog.application.port.in.BlogService;
-import wiki.chiu.micro.common.lang.UserDeletedMessage;
-import wiki.chiu.micro.messaging.RetryingMessageRecoverer;
+import wiki.chiu.micro.common.message.UserDeletedMessage;
+import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
 
 class UserDeletedMessageListenerTest {
 

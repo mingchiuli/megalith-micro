@@ -1,13 +1,13 @@
 package wiki.chiu.micro.user.application.service;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.ROLE_NOT_EXIST;
+import static wiki.chiu.micro.common.error.ExceptionMessage.ROLE_NOT_EXIST;
 
 import java.util.*;
 
 import org.springframework.stereotype.Service;
 
+import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 import wiki.chiu.micro.user.application.port.in.RoleMenuService;
 import wiki.chiu.micro.user.application.port.out.MenuReader;
@@ -72,8 +72,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     }
 
     public List<RoleMenuVo> getMenusInfo(Long roleId) {
-        List<Long> menuIds = menuRepository.findAllIds();
-        List<MenuEntity> menus = menuRepository.findAllById(menuIds);
+        List<MenuEntity> menus = menuRepository.findAll();
         List<MenuDisplayVo> menuEntities = MenuDisplayVoConvertor.convert(menus, true);
         // 转树状结构
         List<MenuDisplayVo> menusInfo = MenuDisplayVoConvertor.buildTreeMenu(menuEntities);

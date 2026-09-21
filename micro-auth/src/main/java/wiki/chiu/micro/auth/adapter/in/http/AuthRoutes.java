@@ -23,9 +23,9 @@ import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.auth.dto.CodeReq;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.auth.vo.UserInfoVo;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.AuthException;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 
 @Configuration(proxyBeanMethods = false)

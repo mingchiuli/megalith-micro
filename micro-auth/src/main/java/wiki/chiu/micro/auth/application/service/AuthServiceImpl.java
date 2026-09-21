@@ -22,10 +22,10 @@ import wiki.chiu.micro.auth.convertor.MenuWithChildDtoConvertor;
 import wiki.chiu.micro.auth.dto.*;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
+import wiki.chiu.micro.common.enums.AuthTypeEnum;
+import wiki.chiu.micro.common.enums.StatusEnum;
+import wiki.chiu.micro.common.error.ExceptionMessage;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.AuthTypeEnum;
-import wiki.chiu.micro.common.lang.ExceptionMessage;
-import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
@@ -148,7 +148,7 @@ public class AuthServiceImpl implements AuthService {
                 .toList();
         List<String> roles =
             authorizations.stream().map(RoleAuthorizationRpcVo::code).distinct().toList();
-        List<wiki.chiu.micro.common.lang.DataPermissionEnum> dataPermissions =
+        List<wiki.chiu.micro.common.enums.DataPermissionEnum> dataPermissions =
             authorizations.stream()
                 .map(RoleAuthorizationRpcVo::dataPermissions)
                 .flatMap(Collection::stream)

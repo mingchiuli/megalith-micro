@@ -1,6 +1,6 @@
 package wiki.chiu.micro.exhibit.adapter.in.messaging.cache.handler;
 
-import static wiki.chiu.micro.common.lang.Const.*;
+import static wiki.chiu.micro.common.constant.Const.*;
 
 import java.util.HashSet;
 
@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
-import wiki.chiu.micro.common.lang.BlogChangedMessage;
-import wiki.chiu.micro.common.lang.BlogOperateEnum;
+import wiki.chiu.micro.common.enums.BlogOperateEnum;
+import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.exhibit.adapter.in.messaging.cache.PageCacheEviction;
 import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;

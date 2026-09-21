@@ -1,13 +1,13 @@
 package wiki.chiu.micro.user.application.service;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.ROLE_NOT_EXIST;
+import static wiki.chiu.micro.common.error.ExceptionMessage.ROLE_NOT_EXIST;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.user.application.port.in.RoleDataPermissionService;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionWriter;

@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
+import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.user.application.port.in.UserRoleService;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;

@@ -8,8 +8,8 @@ import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
-import wiki.chiu.micro.common.lang.BlogChangedMessage;
-import wiki.chiu.micro.common.lang.BlogSnapshot;
+import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 
 class CustomRuntimeHintsTest {
 

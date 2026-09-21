@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;

@@ -9,9 +9,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import wiki.chiu.micro.blog.domain.BlogEntity;
+import wiki.chiu.micro.common.enums.BlogStatusEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.BlogStatusEnum;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
 
 class BlogAccessPolicyTest {
 

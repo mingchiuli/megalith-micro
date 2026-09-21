@@ -8,10 +8,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
-import wiki.chiu.micro.common.lang.BlogChangedMessage;
-import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.messaging.RetryingMessageRecoverer;
+import wiki.chiu.micro.common.constant.Const;
+import wiki.chiu.micro.common.enums.BlogOperateEnum;
+import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
 
 @Component
 public class BlogRecycleMessageListener {

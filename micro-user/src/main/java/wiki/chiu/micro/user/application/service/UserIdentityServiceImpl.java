@@ -1,15 +1,15 @@
 package wiki.chiu.micro.user.application.service;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.EMAIL_NOT_EXIST;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.PHONE_NOT_EXIST;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.USER_MISS;
+import static wiki.chiu.micro.common.error.ExceptionMessage.EMAIL_NOT_EXIST;
+import static wiki.chiu.micro.common.error.ExceptionMessage.PHONE_NOT_EXIST;
+import static wiki.chiu.micro.common.error.ExceptionMessage.USER_MISS;
 
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
+import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.application.port.in.UserIdentityService;

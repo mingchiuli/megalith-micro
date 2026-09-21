@@ -33,9 +33,9 @@ import wiki.chiu.micro.auth.application.port.in.AuthService;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
+import wiki.chiu.micro.common.error.ExceptionMessage;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.ExceptionMessage;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.security.InternalHttpHeaders;
 

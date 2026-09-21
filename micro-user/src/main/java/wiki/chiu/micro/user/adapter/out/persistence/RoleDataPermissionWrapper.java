@@ -27,7 +27,6 @@ public class RoleDataPermissionWrapper implements RoleDataPermissionWriter {
     public void saveDataPermissions(
         Long roleId, List<RoleDataPermissionEntity> dataPermissionEntities) {
         roleDataPermissions.deleteByRoleId(roleId);
-        roleDataPermissions.flush();
         roleDataPermissions.saveAll(dataPermissionEntities);
         cacheEvictions.enqueue(List.of(), List.of(roleId), List.of(), false, false);
     }

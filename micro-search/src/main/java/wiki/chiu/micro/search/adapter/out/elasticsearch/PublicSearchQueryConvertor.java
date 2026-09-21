@@ -1,6 +1,6 @@
 package wiki.chiu.micro.search.adapter.out.elasticsearch;
 
-import static wiki.chiu.micro.common.lang.FieldEnum.*;
+import static wiki.chiu.micro.common.enums.FieldEnum.*;
 
 import co.elastic.clients.elasticsearch._types.ScriptLanguage;
 import co.elastic.clients.elasticsearch._types.ScriptSource;
@@ -18,7 +18,7 @@ import org.springframework.data.elasticsearch.core.query.highlight.Highlight;
 import org.springframework.data.elasticsearch.core.query.highlight.HighlightField;
 import org.springframework.data.elasticsearch.core.query.highlight.HighlightParameters;
 
-import wiki.chiu.micro.common.lang.BlogStatusEnum;
+import wiki.chiu.micro.common.enums.BlogStatusEnum;
 
 public class PublicSearchQueryConvertor {
 

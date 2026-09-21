@@ -1,6 +1,6 @@
 package wiki.chiu.micro.auth.component;
 
-import static wiki.chiu.micro.common.lang.Const.PASSWORD_KEY;
+import static wiki.chiu.micro.common.constant.Const.PASSWORD_KEY;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletOutputStream;
@@ -24,7 +24,7 @@ import wiki.chiu.micro.auth.token.AccessTokenCookieManager;
 import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
 import wiki.chiu.micro.auth.user.LoginUser;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 
 @Component
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {

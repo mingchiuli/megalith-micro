@@ -1,7 +1,7 @@
 package wiki.chiu.micro.user.adapter.out.redis;
 
-import static wiki.chiu.micro.common.lang.Const.REGISTER_PREFIX;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_AUTH;
+import static wiki.chiu.micro.common.constant.Const.REGISTER_PREFIX;
+import static wiki.chiu.micro.common.error.ExceptionMessage.NO_AUTH;
 
 import jakarta.annotation.PostConstruct;
 

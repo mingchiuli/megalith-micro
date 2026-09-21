@@ -1,6 +1,6 @@
 package wiki.chiu.micro.search.adapter.out.elasticsearch;
 
-import static wiki.chiu.micro.common.lang.FieldEnum.*;
+import static wiki.chiu.micro.common.enums.FieldEnum.*;
 
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOrder;
@@ -20,7 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.util.StringUtils;
 
-import wiki.chiu.micro.common.lang.BlogStatusEnum;
+import wiki.chiu.micro.common.enums.BlogStatusEnum;
 
 public class PrivateSearchQueryConvertor {
 

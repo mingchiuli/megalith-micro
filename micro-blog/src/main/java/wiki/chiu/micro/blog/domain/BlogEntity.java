@@ -10,7 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.constant.Const;
 
 /**
  * @author mingchiuli
@@ -21,7 +21,10 @@ import wiki.chiu.micro.common.lang.Const;
 @EntityListeners(AuditingEntityListener.class)
 @Table(
     name = Const.BLOG_TABLE,
-    indexes = {@Index(columnList = "status,created")})
+    indexes = {
+        @Index(columnList = "status,created"),
+        @Index(name = "idx_blog_user", columnList = "user_id")
+    })
 public class BlogEntity {
 
     @Id

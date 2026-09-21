@@ -15,7 +15,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.stereotype.Component;
 
 import tools.jackson.databind.json.JsonMapper;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 
 @Component
 public class LoginFailureHandler implements AuthenticationFailureHandler {

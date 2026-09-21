@@ -7,9 +7,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.messaging.RetryTopology;
-import wiki.chiu.micro.scheduling.RedisTaskLock;
+import wiki.chiu.micro.common.constant.Const;
+import wiki.chiu.micro.common.messaging.RetryTopology;
+import wiki.chiu.micro.common.scheduling.RedisTaskLock;
 import wiki.chiu.micro.search.application.model.IndexRebuildRejectedException;
 import wiki.chiu.micro.search.application.port.out.SearchRebuildControl;
 

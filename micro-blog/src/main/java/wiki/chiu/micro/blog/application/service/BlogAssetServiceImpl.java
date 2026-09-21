@@ -1,6 +1,6 @@
 package wiki.chiu.micro.blog.application.service;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_AUTH;
+import static wiki.chiu.micro.common.error.ExceptionMessage.NO_AUTH;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,8 +12,8 @@ import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
 import wiki.chiu.micro.blog.application.port.out.BlogAssetStorage;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.domain.BlogEntity;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
 
 @Service
 public class BlogAssetServiceImpl implements BlogAssetService {

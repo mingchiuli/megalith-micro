@@ -9,7 +9,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleDataPermissionRepository;
 import wiki.chiu.micro.user.domain.RoleDataPermissionEntity;
 import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
@@ -29,7 +29,6 @@ class RoleDataPermissionWrapperTest {
 
         InOrder writes = inOrder(dataPermissions, cacheEvictions);
         writes.verify(dataPermissions).deleteByRoleId(7L);
-        writes.verify(dataPermissions).flush();
         writes.verify(dataPermissions).saveAll(entities);
         writes.verify(cacheEvictions).enqueue(List.of(), List.of(7L), List.of(), false, false);
     }

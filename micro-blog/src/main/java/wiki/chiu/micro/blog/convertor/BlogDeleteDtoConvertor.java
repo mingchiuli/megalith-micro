@@ -2,7 +2,7 @@ package wiki.chiu.micro.blog.convertor;
 
 import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
-import wiki.chiu.micro.common.lang.BlogSnapshot;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 
 public class BlogDeleteDtoConvertor {
 

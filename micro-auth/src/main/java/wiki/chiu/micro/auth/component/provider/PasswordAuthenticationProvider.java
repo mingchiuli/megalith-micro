@@ -1,7 +1,7 @@
 package wiki.chiu.micro.auth.component.provider;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.PASSWORD_MISMATCH;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.PASSWORD_MISS;
+import static wiki.chiu.micro.common.error.ExceptionMessage.PASSWORD_MISMATCH;
+import static wiki.chiu.micro.common.error.ExceptionMessage.PASSWORD_MISS;
 
 import jakarta.annotation.PostConstruct;
 
@@ -28,7 +28,7 @@ import org.springframework.util.ResourceUtils;
 import wiki.chiu.micro.auth.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.config.PasswordFailureProperties;
 import wiki.chiu.micro.auth.user.LoginUser;
-import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.constant.Const;
 
 /**
  * @author mingchiuli

@@ -1,6 +1,6 @@
 package wiki.chiu.micro.user.application.service;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.ROLE_NOT_EXIST;
+import static wiki.chiu.micro.common.error.ExceptionMessage.ROLE_NOT_EXIST;
 
 import java.util.List;
 import java.util.Objects;
@@ -8,13 +8,13 @@ import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
+import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.export.SQLUtils;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.utils.SQLUtils;
 import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
+import wiki.chiu.micro.user.application.model.SqlTables;
 import wiki.chiu.micro.user.application.port.in.RoleService;
 import wiki.chiu.micro.user.application.port.out.*;
 import wiki.chiu.micro.user.application.port.out.RoleWriter;
@@ -109,18 +109,15 @@ public class RoleServiceImpl implements RoleService {
         List<RoleDataPermissionEntity> dataPermissions = roleDataPermissionRepository.findAll();
 
         return SQLUtils.compose(
-                SQLUtils.entityToInsertSQL(roleEntities, Const.ROLE_TABLE),
-                SQLUtils.entityToInsertSQL(userRoleEntities, Const.USER_ROLE_TABLE),
-                SQLUtils.entityToInsertSQL(dataPermissions, Const.ROLE_DATA_PERMISSION_TABLE))
+                SQLUtils.insertSql(roleEntities, SqlTables.ROLE),
+                SQLUtils.insertSql(userRoleEntities, SqlTables.USER_ROLE),
+                SQLUtils.insertSql(dataPermissions, SqlTables.ROLE_DATA_PERMISSION))
             .getBytes();
     }
 
     @Override
     public List<RoleEntityVo> getValidAll() {
-        List<RoleEntity> entities =
-            roleRepository.findAll().stream()
-                .filter(item -> StatusEnum.NORMAL.getCode().equals(item.getStatus()))
-                .toList();
+        List<RoleEntity> entities = roleRepository.findByStatus(StatusEnum.NORMAL.getCode());
         return RoleEntityVoConvertor.convert(entities);
     }
 

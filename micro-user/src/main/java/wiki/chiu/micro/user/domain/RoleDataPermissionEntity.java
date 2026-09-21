@@ -18,8 +18,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
+import wiki.chiu.micro.common.constant.Const;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 
 @Entity
 @DynamicUpdate

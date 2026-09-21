@@ -1,7 +1,7 @@
 package wiki.chiu.micro.user.application.service;
 
-import static wiki.chiu.micro.common.lang.Const.USER;
-import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
+import static wiki.chiu.micro.common.constant.Const.USER;
+import static wiki.chiu.micro.common.enums.StatusEnum.NORMAL;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -11,8 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.ValidationException;
-import wiki.chiu.micro.common.lang.StatusEnum;
 import wiki.chiu.micro.user.application.port.in.RegistrationService;
 import wiki.chiu.micro.user.application.port.in.UserService;
 import wiki.chiu.micro.user.application.port.out.RegistrationTokenStore;

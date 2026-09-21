@@ -13,12 +13,12 @@ import wiki.chiu.micro.blog.config.BlogMaintenanceProperties;
 import wiki.chiu.micro.blog.convertor.BlogSnapshotConvertor;
 import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
+import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
-import wiki.chiu.micro.common.lang.BlogChangedMessage;
-import wiki.chiu.micro.common.lang.BlogSnapshot;
-import wiki.chiu.micro.common.lang.CommonErrorCode;
-import wiki.chiu.micro.outbox.OutboxProducer;
-import wiki.chiu.micro.outbox.OutboxService;
+import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.common.model.BlogSnapshot;
+import wiki.chiu.micro.common.outbox.application.OutboxService;
+import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
 @Component
 public class BlogWrapper implements BlogWriter {

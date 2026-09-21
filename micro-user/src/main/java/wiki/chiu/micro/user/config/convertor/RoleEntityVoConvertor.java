@@ -55,7 +55,7 @@ public class RoleEntityVoConvertor {
                         RoleDataPermissionEntity::getUpdated,
                         (v1, v2) -> v1.isAfter(v2) ? v1 : v2));
 
-        Map<Long, List<wiki.chiu.micro.common.lang.DataPermissionEnum>> permissionsByRole =
+        Map<Long, List<wiki.chiu.micro.common.enums.DataPermissionEnum>> permissionsByRole =
             dataPermissions.stream()
                 .collect(
                     Collectors.groupingBy(

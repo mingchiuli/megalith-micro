@@ -2,7 +2,7 @@ package wiki.chiu.micro.blog.application.port.in;
 
 import java.util.List;
 
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 
 public interface BlogCollaborationService {
 

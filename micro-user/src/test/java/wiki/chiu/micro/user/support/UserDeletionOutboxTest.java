@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import wiki.chiu.micro.common.lang.UserDeletedMessage;
-import wiki.chiu.micro.outbox.OutboxProducer;
-import wiki.chiu.micro.outbox.OutboxService;
+import wiki.chiu.micro.common.message.UserDeletedMessage;
+import wiki.chiu.micro.common.outbox.application.OutboxService;
+import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
 class UserDeletionOutboxTest {
 

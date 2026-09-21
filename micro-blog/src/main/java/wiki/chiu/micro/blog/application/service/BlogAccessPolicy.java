@@ -1,6 +1,6 @@
 package wiki.chiu.micro.blog.application.service;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.EDIT_NO_AUTH;
+import static wiki.chiu.micro.common.error.ExceptionMessage.EDIT_NO_AUTH;
 
 import java.util.List;
 import java.util.Objects;
@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.blog.vo.BlogPermissionsVo;
+import wiki.chiu.micro.common.enums.BlogStatusEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.BlogStatusEnum;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
 
 @Component
 public class BlogAccessPolicy {

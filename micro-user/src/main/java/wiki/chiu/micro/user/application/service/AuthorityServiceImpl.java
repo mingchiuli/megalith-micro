@@ -1,16 +1,16 @@
 package wiki.chiu.micro.user.application.service;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
+import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.common.lang.StatusEnum;
-import wiki.chiu.micro.common.utils.SQLUtils;
+import wiki.chiu.micro.common.export.SQLUtils;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
+import wiki.chiu.micro.user.application.model.SqlTables;
 import wiki.chiu.micro.user.application.port.in.AuthorityService;
 import wiki.chiu.micro.user.application.port.out.AuthorityReader;
 import wiki.chiu.micro.user.application.port.out.AuthorityWriter;
@@ -48,9 +48,7 @@ public class AuthorityServiceImpl implements AuthorityService {
     @Override
     public List<AuthorityRpcVo> findAllByService() {
         List<AuthorityEntity> authorityEntities =
-            authorityRepository.findAll().stream()
-                .filter(item -> StatusEnum.NORMAL.getCode().equals(item.getStatus()))
-                .toList();
+            authorityRepository.findByStatus(StatusEnum.NORMAL.getCode());
         return AuthorityRpcVoConvertor.convert(authorityEntities);
     }
 
@@ -87,8 +85,8 @@ public class AuthorityServiceImpl implements AuthorityService {
         List<MenuAuthorityEntity> menuAuthorityEntities = menuAuthorityReader.findAll();
 
         return SQLUtils.compose(
-                SQLUtils.entityToInsertSQL(authorityEntities, Const.AUTHORITY_TABLE),
-                SQLUtils.entityToInsertSQL(menuAuthorityEntities, Const.MENU_AUTHORITY_TABLE))
+                SQLUtils.insertSql(authorityEntities, SqlTables.AUTHORITY),
+                SQLUtils.insertSql(menuAuthorityEntities, SqlTables.MENU_AUTHORITY))
             .getBytes();
     }
 

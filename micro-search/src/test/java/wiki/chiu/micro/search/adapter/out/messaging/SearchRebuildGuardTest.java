@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.ChannelCallback;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
-import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.messaging.RetryTopology;
-import wiki.chiu.micro.scheduling.RedisTaskLock;
+import wiki.chiu.micro.common.constant.Const;
+import wiki.chiu.micro.common.messaging.RetryTopology;
+import wiki.chiu.micro.common.scheduling.RedisTaskLock;
 
 class SearchRebuildGuardTest {
 

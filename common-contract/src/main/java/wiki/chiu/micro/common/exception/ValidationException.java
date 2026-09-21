@@ -1,6 +1,6 @@
 package wiki.chiu.micro.common.exception;
 
-import wiki.chiu.micro.common.lang.CommonErrorCode;
+import wiki.chiu.micro.common.error.CommonErrorCode;
 
 public final class ValidationException extends BaseException {
 

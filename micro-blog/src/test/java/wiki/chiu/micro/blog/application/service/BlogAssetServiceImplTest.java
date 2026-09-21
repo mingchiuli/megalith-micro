@@ -16,8 +16,8 @@ import wiki.chiu.micro.blog.application.model.UploadObject;
 import wiki.chiu.micro.blog.application.port.out.BlogAssetStorage;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.domain.BlogEntity;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
 
 class BlogAssetServiceImplTest {
 

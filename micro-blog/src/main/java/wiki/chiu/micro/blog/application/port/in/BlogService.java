@@ -7,7 +7,7 @@ import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.vo.BlogDeleteVo;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
 
 public interface BlogService {

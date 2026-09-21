@@ -22,8 +22,8 @@ import wiki.chiu.micro.blog.vo.BlogDeleteVo;
 import wiki.chiu.micro.blog.vo.BlogEditVo;
 import wiki.chiu.micro.blog.vo.BlogEntityVo;
 import wiki.chiu.micro.blog.vo.BlogPermissionsVo;
-import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.result.Result;
 
 @Configuration(proxyBeanMethods = false)
 @RegisterReflectionForBinding({

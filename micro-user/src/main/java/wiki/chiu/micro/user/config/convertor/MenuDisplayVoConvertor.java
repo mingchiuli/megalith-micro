@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.user.domain.MenuEntity;
 import wiki.chiu.micro.user.vo.MenuDisplayVo;
 

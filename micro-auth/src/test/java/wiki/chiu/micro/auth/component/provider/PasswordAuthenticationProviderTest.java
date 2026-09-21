@@ -23,7 +23,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import wiki.chiu.micro.auth.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.auth.config.PasswordFailureProperties;
 import wiki.chiu.micro.auth.user.LoginUser;
-import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.constant.Const;
 
 class PasswordAuthenticationProviderTest {
 

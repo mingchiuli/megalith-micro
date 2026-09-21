@@ -9,8 +9,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.ValidationException;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 
 class AuthPrincipalCodecTest {

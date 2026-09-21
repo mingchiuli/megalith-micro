@@ -11,7 +11,7 @@ import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
-import wiki.chiu.micro.common.lang.BlogSnapshot;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 
 @Configuration(proxyBeanMethods = false)
 @RegisterReflectionForBinding({BlogIndexSourceStatus.class, BlogSnapshot.class})

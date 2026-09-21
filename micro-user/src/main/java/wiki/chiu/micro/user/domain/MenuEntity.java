@@ -10,7 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import wiki.chiu.micro.common.lang.Const;
+import wiki.chiu.micro.common.constant.Const;
 
 /**
  * @author mingchiuli
@@ -21,6 +21,7 @@ import wiki.chiu.micro.common.lang.Const;
 @EntityListeners(AuditingEntityListener.class)
 @Table(
     name = Const.MENU_TABLE,
+    indexes = {@Index(name = "idx_menu_parent", columnList = "parent_id")},
     uniqueConstraints = {@UniqueConstraint(columnNames = "name")})
 public class MenuEntity {
 

@@ -108,6 +108,13 @@ in the root `package.json` catalog and `bun.lock`; workspace packages use `catal
     Inbound adapters call `RoomManager` rather than the concrete store. `micro-gateway-rs` remains a
     transport-oriented edge service: authentication belongs to `client`, no-I/O forwarding rules
     belong to `proxy`, and handlers/middleware coordinate them without an artificial domain layer.
+15. **Common module packages.** Every shared module uses `wiki.chiu.micro.common.<module>` as its
+    root package, so `common-messaging` owns `wiki.chiu.micro.common.messaging`,
+    `common-scheduling` owns `wiki.chiu.micro.common.scheduling`, and `common-outbox` owns
+    `wiki.chiu.micro.common.outbox`. `common-outbox` mirrors the application layout with `domain`,
+    `application`, `adapter.in.actuator`, `adapter.out.persistence.repository`, and `config`.
+    `common-contract` groups contracts by kind under `result`, `error`, `message`, `model`, `enums`,
+    and `constant`; do not recreate the retired `wiki.chiu.micro.common.lang` bucket.
 
 ## Code Style
 

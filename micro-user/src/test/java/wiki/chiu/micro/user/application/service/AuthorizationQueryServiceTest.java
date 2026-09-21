@@ -19,8 +19,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
-import wiki.chiu.micro.common.lang.StatusEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
+import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.user.application.port.out.AuthorityReader;
 import wiki.chiu.micro.user.application.port.out.MenuAuthorityReader;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;

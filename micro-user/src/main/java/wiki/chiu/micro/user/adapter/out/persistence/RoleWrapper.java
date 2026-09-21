@@ -45,7 +45,7 @@ public class RoleWrapper implements RoleWriter {
     @Transactional
     @Override
     public void delete(List<Long> ids, List<String> roleCodes) {
-        roleMenus.deleteAllByRoleIdIn(ids);
+        roleMenus.deleteByRoleIdIn(ids);
         userRoles.deleteByRoleIdIn(ids);
         dataPermissions.deleteByRoleIdIn(ids);
         roles.deleteAllByIdInBatch(ids);

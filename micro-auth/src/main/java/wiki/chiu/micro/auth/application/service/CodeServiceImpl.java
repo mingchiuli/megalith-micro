@@ -1,7 +1,7 @@
 package wiki.chiu.micro.auth.application.service;
 
-import static wiki.chiu.micro.common.lang.Const.SMS_CODE;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.CODE_EXISTED;
+import static wiki.chiu.micro.common.constant.Const.SMS_CODE;
+import static wiki.chiu.micro.common.error.ExceptionMessage.CODE_EXISTED;
 
 import java.util.Collections;
 import java.util.Map;
@@ -18,8 +18,8 @@ import wiki.chiu.micro.auth.application.port.out.UserDirectory;
 import wiki.chiu.micro.auth.application.port.out.VerificationCodeStore;
 import wiki.chiu.micro.auth.support.AliyunSmsSigner;
 import wiki.chiu.micro.auth.support.VerificationCodeGenerator;
+import wiki.chiu.micro.common.constant.Const;
 import wiki.chiu.micro.common.exception.CodeException;
-import wiki.chiu.micro.common.lang.Const;
 
 /**
  * @author mingchiuli

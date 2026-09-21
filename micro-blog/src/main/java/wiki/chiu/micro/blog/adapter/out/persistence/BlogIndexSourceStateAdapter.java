@@ -6,8 +6,8 @@ import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
 import wiki.chiu.micro.blog.application.port.out.BlogIndexSourceState;
 import wiki.chiu.micro.blog.config.BlogMaintenanceProperties;
-import wiki.chiu.micro.outbox.OutboxProducer;
-import wiki.chiu.micro.outbox.OutboxStore;
+import wiki.chiu.micro.common.outbox.application.OutboxStore;
+import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
 @Component
 public class BlogIndexSourceStateAdapter implements BlogIndexSourceState {

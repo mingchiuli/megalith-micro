@@ -1,6 +1,6 @@
 package wiki.chiu.micro.user.application.service;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.*;
+import static wiki.chiu.micro.common.error.ExceptionMessage.*;
 
 import java.util.*;
 

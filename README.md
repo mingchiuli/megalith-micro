@@ -249,6 +249,14 @@ replica to serve any room without sticky sessions or a dedicated room owner.
 | `common-messaging`, `common-outbox` | Consumer retries, dead-letter queues, and the transactional outbox |
 | `common-scheduling`, `common-export` | Distributed scheduler locks and export utilities |
 
+Every shared module lives under the `wiki.chiu.micro.common.<module>` root package, so
+`common-messaging`, `common-scheduling`, and `common-outbox` own `wiki.chiu.micro.common.messaging`,
+`wiki.chiu.micro.common.scheduling`, and `wiki.chiu.micro.common.outbox` respectively. `common-outbox`
+follows the same `domain`, `application`, `adapter.in.*`, `adapter.out.*`, and `config` layering as
+the applications. `common-contract` groups its contracts by kind: `result` for response envelopes,
+`error` for error codes, `message` for outbox payloads, `model` for cross-service projections,
+`enums` for shared domain enumerations, and `constant` for shared constants.
+
 ### Java application boundaries
 
 The five Java applications use the same ports-and-adapters layout for their core code:

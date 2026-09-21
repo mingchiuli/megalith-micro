@@ -2,7 +2,7 @@ package wiki.chiu.micro.common.security;
 
 import java.util.List;
 
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 
 public record AuthPrincipal(
     Long userId, List<String> roles, List<DataPermissionEnum> dataPermissions) {

@@ -13,10 +13,10 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
-import wiki.chiu.micro.common.lang.BlogChangedMessage;
-import wiki.chiu.micro.common.lang.BlogOperateEnum;
-import wiki.chiu.micro.common.lang.BlogSnapshot;
-import wiki.chiu.micro.messaging.RetryingMessageRecoverer;
+import wiki.chiu.micro.common.enums.BlogOperateEnum;
+import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 
 class BlogRecycleMessageListenerTest {
 

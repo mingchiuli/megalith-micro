@@ -1,6 +1,6 @@
 package wiki.chiu.micro.blog.converter;
 
-import static wiki.chiu.micro.common.lang.Const.URL_REGEX;
+import static wiki.chiu.micro.common.constant.Const.URL_REGEX;
 import static wiki.chiu.micro.common.web.FunctionalWeb.nullableParam;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
@@ -13,7 +13,7 @@ import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
 import wiki.chiu.micro.blog.req.SensitiveContentReq;
-import wiki.chiu.micro.common.lang.SensitiveTypeEnum;
+import wiki.chiu.micro.common.enums.SensitiveTypeEnum;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
 public final class BlogRequestConverter {

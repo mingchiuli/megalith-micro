@@ -1,10 +1,10 @@
 package wiki.chiu.micro.blog.adapter.out.redis;
 
-import static wiki.chiu.micro.common.lang.Const.A_WEEK;
-import static wiki.chiu.micro.common.lang.Const.HOT_READ;
-import static wiki.chiu.micro.common.lang.Const.QUERY_DELETED;
-import static wiki.chiu.micro.common.lang.Const.READ_TOKEN;
-import static wiki.chiu.micro.common.lang.Const.RECYCLE_EVENT_PREFIX;
+import static wiki.chiu.micro.common.constant.Const.A_WEEK;
+import static wiki.chiu.micro.common.constant.Const.HOT_READ;
+import static wiki.chiu.micro.common.constant.Const.QUERY_DELETED;
+import static wiki.chiu.micro.common.constant.Const.READ_TOKEN;
+import static wiki.chiu.micro.common.constant.Const.RECYCLE_EVENT_PREFIX;
 
 import jakarta.annotation.PostConstruct;
 
@@ -34,7 +34,7 @@ import wiki.chiu.micro.blog.convertor.BlogDeleteDtoConvertor;
 import wiki.chiu.micro.blog.convertor.BlogEntityConvertor;
 import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.blog.dto.BlogDeleteDto;
-import wiki.chiu.micro.common.lang.BlogSnapshot;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 
 @Component
 public class RedisBlogRuntimeStore implements BlogRuntimeStore {

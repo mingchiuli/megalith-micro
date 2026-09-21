@@ -4,8 +4,8 @@ import java.util.Base64;
 import java.util.List;
 
 import tools.jackson.databind.json.JsonMapper;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.ValidationException;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.security.InternalHttpHeaders;
 

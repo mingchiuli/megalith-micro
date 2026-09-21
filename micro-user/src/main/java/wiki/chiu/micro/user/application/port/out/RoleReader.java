@@ -20,5 +20,7 @@ public interface RoleReader {
 
     List<RoleEntity> findByCodeInAndStatus(List<String> codes, Integer status);
 
+    List<RoleEntity> findByStatus(Integer status);
+
     PageAdapter<RoleEntity> findPage(int pageNumber, int pageSize);
 }

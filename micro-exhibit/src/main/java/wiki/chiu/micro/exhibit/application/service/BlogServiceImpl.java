@@ -1,7 +1,7 @@
 package wiki.chiu.micro.exhibit.application.service;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.AUTH_EXCEPTION;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.TOKEN_INVALID;
+import static wiki.chiu.micro.common.error.ExceptionMessage.AUTH_EXCEPTION;
+import static wiki.chiu.micro.common.error.ExceptionMessage.TOKEN_INVALID;
 
 import java.util.List;
 import java.util.Objects;
@@ -12,9 +12,9 @@ import org.springframework.util.StringUtils;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.blog.api.vo.SensitiveContentRpcVo;
+import wiki.chiu.micro.common.enums.BlogStatusEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.BlogStatusEnum;
-import wiki.chiu.micro.common.lang.DataPermissionEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
 import wiki.chiu.micro.exhibit.application.port.out.BlogCatalog;

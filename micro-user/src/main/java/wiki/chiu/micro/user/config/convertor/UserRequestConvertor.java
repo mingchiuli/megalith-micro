@@ -1,6 +1,6 @@
 package wiki.chiu.micro.user.config.convertor;
 
-import static wiki.chiu.micro.common.lang.Const.*;
+import static wiki.chiu.micro.common.constant.Const.*;
 
 import org.springframework.web.servlet.function.ServerRequest;
 

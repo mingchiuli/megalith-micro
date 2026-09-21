@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.blog.application.port.in.BlogStatisticsSync;
 import wiki.chiu.micro.blog.config.BlogMaintenanceProperties;
-import wiki.chiu.micro.scheduling.RedisTaskLock;
+import wiki.chiu.micro.common.scheduling.RedisTaskLock;
 
 @Component
 public class BlogStatisticsScheduler {

@@ -1,6 +1,6 @@
 package wiki.chiu.micro.common.exception;
 
-import wiki.chiu.micro.common.lang.ExceptionMessage;
+import wiki.chiu.micro.common.error.ExceptionMessage;
 
 public class AuthException extends BaseException {
 

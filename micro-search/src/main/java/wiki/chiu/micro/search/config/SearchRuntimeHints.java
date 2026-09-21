@@ -5,7 +5,7 @@ import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
 import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
-import wiki.chiu.micro.common.lang.BlogSnapshot;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 
 public class SearchRuntimeHints implements RuntimeHintsRegistrar {
 

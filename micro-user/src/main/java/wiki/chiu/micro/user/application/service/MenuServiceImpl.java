@@ -1,12 +1,12 @@
 package wiki.chiu.micro.user.application.service;
 
-import static wiki.chiu.micro.common.lang.ExceptionMessage.BUTTON_MUST_NOT_PARENT;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.CATALOGUE_CHILD_MUST_NOT_BUTTON;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.CATALOGUE_PARENT_MUST_PARENT;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_CHILDREN_MUST_BE_BUTTON;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_INVALID_OPERATE;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.MENU_NOT_EXIST;
-import static wiki.chiu.micro.common.lang.ExceptionMessage.NO_FOUND;
+import static wiki.chiu.micro.common.error.ExceptionMessage.BUTTON_MUST_NOT_PARENT;
+import static wiki.chiu.micro.common.error.ExceptionMessage.CATALOGUE_CHILD_MUST_NOT_BUTTON;
+import static wiki.chiu.micro.common.error.ExceptionMessage.CATALOGUE_PARENT_MUST_PARENT;
+import static wiki.chiu.micro.common.error.ExceptionMessage.MENU_CHILDREN_MUST_BE_BUTTON;
+import static wiki.chiu.micro.common.error.ExceptionMessage.MENU_INVALID_OPERATE;
+import static wiki.chiu.micro.common.error.ExceptionMessage.MENU_NOT_EXIST;
+import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,12 +14,12 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import wiki.chiu.micro.common.enums.StatusEnum;
+import wiki.chiu.micro.common.enums.TypeEnum;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.lang.Const;
-import wiki.chiu.micro.common.lang.StatusEnum;
-import wiki.chiu.micro.common.lang.TypeEnum;
-import wiki.chiu.micro.common.utils.SQLUtils;
+import wiki.chiu.micro.common.export.SQLUtils;
+import wiki.chiu.micro.user.application.model.SqlTables;
 import wiki.chiu.micro.user.application.port.in.MenuService;
 import wiki.chiu.micro.user.application.port.out.MenuReader;
 import wiki.chiu.micro.user.application.port.out.MenuWriter;
@@ -99,8 +99,8 @@ public class MenuServiceImpl implements MenuService {
         List<MenuEntity> menuEntities = menuRepository.findAll();
         List<RoleMenuEntity> roleMenuEntities = roleMenuReader.findAll();
         return SQLUtils.compose(
-                SQLUtils.entityToInsertSQL(menuEntities, Const.MENU_TABLE),
-                SQLUtils.entityToInsertSQL(roleMenuEntities, Const.ROLE_MENU_TABLE))
+                SQLUtils.insertSql(menuEntities, SqlTables.MENU),
+                SQLUtils.insertSql(roleMenuEntities, SqlTables.ROLE_MENU))
             .getBytes();
     }
 

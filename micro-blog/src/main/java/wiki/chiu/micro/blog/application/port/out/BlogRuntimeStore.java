@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import wiki.chiu.micro.blog.application.model.DeletedBlogEntry;
 import wiki.chiu.micro.blog.application.model.DeletedBlogPage;
-import wiki.chiu.micro.common.lang.BlogSnapshot;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 
 public interface BlogRuntimeStore {
 

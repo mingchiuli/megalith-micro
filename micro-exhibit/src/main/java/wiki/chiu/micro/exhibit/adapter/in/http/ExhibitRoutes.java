@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
-import wiki.chiu.micro.common.lang.Result;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.exhibit.req.ReadTokenReq;
 import wiki.chiu.micro.exhibit.vo.BlogDescriptionVo;
 import wiki.chiu.micro.exhibit.vo.BlogExhibitVo;

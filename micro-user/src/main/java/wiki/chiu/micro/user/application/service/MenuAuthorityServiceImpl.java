@@ -1,12 +1,12 @@
 package wiki.chiu.micro.user.application.service;
 
-import static wiki.chiu.micro.common.lang.StatusEnum.NORMAL;
+import static wiki.chiu.micro.common.enums.StatusEnum.NORMAL;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import wiki.chiu.micro.common.lang.AuthTypeEnum;
+import wiki.chiu.micro.common.enums.AuthTypeEnum;
 import wiki.chiu.micro.user.application.port.in.MenuAuthorityService;
 import wiki.chiu.micro.user.application.port.out.AuthorityReader;
 import wiki.chiu.micro.user.application.port.out.AuthorityWriter;
@@ -53,9 +53,9 @@ public class MenuAuthorityServiceImpl implements MenuAuthorityService {
                 .map(MenuAuthorityEntity::getAuthorityId)
                 .toList();
 
-        return authorityRepository.findAll().stream()
-            .filter(item -> NORMAL.getCode().equals(item.getStatus()))
-            .filter(item -> AuthTypeEnum.NEED_AUTH.getCode().equals(item.getType()))
+        return authorityRepository.findByStatusAndType(
+                NORMAL.getCode(), AuthTypeEnum.NEED_AUTH.getCode())
+            .stream()
             .map(item -> MenuAuthorityVoConvertor.convert(item, ids))
             .toList();
     }

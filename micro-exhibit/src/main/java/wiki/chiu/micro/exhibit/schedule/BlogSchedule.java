@@ -1,6 +1,6 @@
 package wiki.chiu.micro.exhibit.schedule;
 
-import static wiki.chiu.micro.common.lang.Const.*;
+import static wiki.chiu.micro.common.constant.Const.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

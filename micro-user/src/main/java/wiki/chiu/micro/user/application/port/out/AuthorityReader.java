@@ -11,5 +11,9 @@ public interface AuthorityReader {
 
     Optional<AuthorityEntity> findById(Long id);
 
+    List<AuthorityEntity> findByStatus(Integer status);
+
+    List<AuthorityEntity> findByStatusAndType(Integer status, Integer type);
+
     List<AuthorityEntity> findByIdInAndStatus(List<Long> ids, Integer status);
 }

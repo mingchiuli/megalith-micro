@@ -2,11 +2,11 @@ package wiki.chiu.micro.common.rpc;
 
 import java.util.function.Supplier;
 
+import wiki.chiu.micro.common.error.CommonErrorCode;
+import wiki.chiu.micro.common.error.ErrorCode;
+import wiki.chiu.micro.common.error.ErrorCodes;
 import wiki.chiu.micro.common.exception.RemoteServiceException;
-import wiki.chiu.micro.common.lang.CommonErrorCode;
-import wiki.chiu.micro.common.lang.ErrorCode;
-import wiki.chiu.micro.common.lang.ErrorCodes;
-import wiki.chiu.micro.common.lang.Result;
+import wiki.chiu.micro.common.result.Result;
 
 public final class RemoteResult {
 
