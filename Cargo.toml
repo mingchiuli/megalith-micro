@@ -26,7 +26,7 @@ opentelemetry = { version = "0.32.0", features = ["trace", "metrics", "logs"] }
 opentelemetry_sdk = { version = "0.32.1", features = ["rt-tokio", "trace", "metrics", "logs"] }
 opentelemetry-otlp = { version = "0.32.0", features = ["trace", "metrics", "logs", "http-proto", "reqwest-blocking-client"] }
 tracing-opentelemetry = "0.33.0"
-opentelemetry-appender-tracing = "0.32.0"
+opentelemetry-appender-tracing = "0.33.0"
 opentelemetry-http = "0.32.0"
 
 # HTTP client - MUST use blocking client for OpenTelemetry
