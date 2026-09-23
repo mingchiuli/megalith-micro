@@ -14,8 +14,8 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import tools.jackson.databind.json.JsonMapper;
+import wiki.chiu.micro.cache.adapter.out.eviction.RedisCacheEvictor;
 import wiki.chiu.micro.cache.handler.CacheEvictor;
-import wiki.chiu.micro.cache.handler.impl.RedisCacheEvictor;
 
 class CacheAutoConfigurationTest {
 

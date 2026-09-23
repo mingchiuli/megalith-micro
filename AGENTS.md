@@ -89,6 +89,10 @@ in the root `package.json` catalog and `bun.lock`; workspace packages use `catal
    delete blogs owned by the deleted users. Never publish domain events outside the outbox.
 9. **JPMS.** `cache` exports only its public `annotation`, `handler`, and `key` packages. A new
    public package needs an `exports` entry; downstream JPMS modules require `wiki.chiu.micro.cache`.
+   Internals follow the application layout: `application` and `application.model` hold shared
+   entries, payloads, and lock names, `adapter.in.*` holds the read-through aspect and the eviction
+   listeners, `adapter.out.*` holds key generation and the Redis and eviction adapters, and `config`
+   holds auto-configuration, properties, conditions, and contract validation.
 10. **Native and AOT reachability.** Types used through reflection, serialization, HTTP interfaces, or
     native-image initialization need the matching Spring AOT/runtime hints.
 11. **Observability.** Java, Rust, Bun, gateway, and sync services export correlated OpenTelemetry

@@ -16,12 +16,12 @@ import org.springframework.context.annotation.Bean;
 
 import tools.jackson.databind.json.JsonMapper;
 
-import wiki.chiu.micro.cache.aspect.CacheAspect;
+import wiki.chiu.micro.cache.adapter.in.aop.CacheAspect;
+import wiki.chiu.micro.cache.adapter.out.key.JacksonCacheKeyFactory;
+import wiki.chiu.micro.cache.adapter.out.redis.RedisCacheKeyRegistry;
+import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
-import wiki.chiu.micro.cache.key.impl.JacksonCacheKeyFactory;
 import wiki.chiu.micro.cache.metrics.CacheMetrics;
-import wiki.chiu.micro.cache.store.LocalCacheEntry;
-import wiki.chiu.micro.cache.store.RedisCacheKeyRegistry;
 
 @AutoConfiguration
 @EnableConfigurationProperties(CacheProperties.class)

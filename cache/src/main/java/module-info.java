@@ -4,6 +4,11 @@
  * <p>A cache framework that provides both local and remote caching capabilities with cache eviction
  * support through RabbitMQ or Redis pub/sub.
  *
+ * <p>The published API is {@code annotation}, {@code handler}, and {@code key}. Internals follow
+ * the application layout: read-through caching is an {@code adapter.in.aop} adapter, eviction
+ * transports are {@code adapter.in.messaging} and {@code adapter.out.eviction} adapters, and
+ * shared keys, models, and wiring live in {@code application} and {@code config}.
+ *
  * @author mingchiuli
  * @since 2025
  */
@@ -33,10 +38,10 @@ module wiki.chiu.micro.cache {
 
     // Implementation packages - opened for Spring reflection only
     opens wiki.chiu.micro.cache.config;
-    opens wiki.chiu.micro.cache.aspect;
-    opens wiki.chiu.micro.cache.listener;
-    opens wiki.chiu.micro.cache.handler.impl;
-    opens wiki.chiu.micro.cache.aot.hints;
-    opens wiki.chiu.micro.cache.key.impl;
-    opens wiki.chiu.micro.cache.message;
+    opens wiki.chiu.micro.cache.aot;
+    opens wiki.chiu.micro.cache.application.model;
+    opens wiki.chiu.micro.cache.adapter.in.aop;
+    opens wiki.chiu.micro.cache.adapter.in.messaging;
+    opens wiki.chiu.micro.cache.adapter.out.eviction;
+    opens wiki.chiu.micro.cache.adapter.out.key;
 }

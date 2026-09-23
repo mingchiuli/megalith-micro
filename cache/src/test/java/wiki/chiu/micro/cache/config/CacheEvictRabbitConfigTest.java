@@ -8,7 +8,7 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 
 import tools.jackson.databind.json.JsonMapper;
-import wiki.chiu.micro.cache.message.CacheEvictionMessage;
+import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 
 class CacheEvictRabbitConfigTest {
 

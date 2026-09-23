@@ -4,6 +4,21 @@
 single-flight loading, and replica-wide exact eviction. It is a JPMS module and supports Spring AOT
 and GraalVM Native Image.
 
+## Module Structure
+
+| Package | Responsibility |
+| --- | --- |
+| `annotation`, `handler`, `key` | Published API: the `@Cache` annotation, the eviction and key-registry ports, and the cache identity and key-generation contracts. These are the only exported packages. |
+| `application`, `application.model` | Cache entries, eviction payloads, and lock naming shared by the read-through adapter and the eviction transports. |
+| `adapter.in.aop` | Inbound AOP adapter that serves annotated methods from Caffeine L1 and Redis L2. |
+| `adapter.in.messaging` | Inbound listeners that apply broadcast evictions to this replica's local cache. |
+| `adapter.out.eviction`, `adapter.out.key`, `adapter.out.redis` | Outbound exact key deletion and confirmed eviction broadcast, canonical key generation, and the tracked-key registry. |
+| `config` | Auto-configuration, `megalith.cache` properties, transport conditions, and cache contract validation. |
+| `aot`, `metrics` | Native Image reachability hints and Micrometer meters. |
+
+Only `annotation`, `handler`, and `key` are part of the published API. A contract version bump is
+required for changing a namespace, version, key, or payload shape; moving internal packages is not.
+
 ## Contract
 
 Applications declare a stable cache identity independently of Java class and method names:

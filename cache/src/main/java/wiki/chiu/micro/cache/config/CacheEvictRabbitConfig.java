@@ -27,12 +27,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 
 import tools.jackson.databind.json.JsonMapper;
+import wiki.chiu.micro.cache.adapter.in.messaging.RabbitCacheEvictMessageListener;
+import wiki.chiu.micro.cache.adapter.out.eviction.RabbitCacheEvictor;
+import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
+import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.handler.CacheEvictor;
-import wiki.chiu.micro.cache.handler.impl.RabbitCacheEvictor;
-import wiki.chiu.micro.cache.listener.RabbitCacheEvictMessageListener;
-import wiki.chiu.micro.cache.message.CacheEvictionMessage;
 import wiki.chiu.micro.cache.metrics.CacheMetrics;
-import wiki.chiu.micro.cache.store.LocalCacheEntry;
 
 @AutoConfiguration
 @ConditionalOnClass({ConnectionFactory.class, RabbitAutoConfiguration.class})

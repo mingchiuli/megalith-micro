@@ -10,7 +10,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
-import wiki.chiu.micro.cache.store.LocalCacheEntry;
+import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 
 @AutoConfiguration
 public class LocalCacheConfig {
