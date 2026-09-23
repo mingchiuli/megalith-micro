@@ -6,7 +6,6 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.withDefaultErrorHandling;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -17,29 +16,9 @@ import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import wiki.chiu.micro.auth.api.AuthHttpPaths;
-import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
-import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
-import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
-import wiki.chiu.micro.auth.dto.CodeReq;
-import wiki.chiu.micro.auth.vo.MenuWithChildVo;
-import wiki.chiu.micro.auth.vo.UserInfoVo;
-import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.AuthException;
-import wiki.chiu.micro.common.result.Result;
-import wiki.chiu.micro.common.security.AuthPrincipal;
 
 @Configuration(proxyBeanMethods = false)
-@RegisterReflectionForBinding({
-    Result.class,
-    AuthorityRouteReq.class,
-    WebSocketTicketReq.class,
-    MenuWithChildVo.class,
-    UserInfoVo.class,
-    AuthorityRouteRpcVo.class,
-    AuthPrincipal.class,
-    DataPermissionEnum.class,
-    CodeReq.class
-})
 public class AuthRoutes {
 
     private static final Logger log = LoggerFactory.getLogger(AuthRoutes.class);

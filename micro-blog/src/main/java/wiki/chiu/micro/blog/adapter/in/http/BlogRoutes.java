@@ -5,42 +5,12 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.withDefaultErrorHandling;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
-import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
-import wiki.chiu.micro.blog.req.BlogDownloadReq;
-import wiki.chiu.micro.blog.req.BlogEntityReq;
-import wiki.chiu.micro.blog.req.BlogQueryReq;
-import wiki.chiu.micro.blog.req.OssDeleteReq;
-import wiki.chiu.micro.blog.req.SensitiveContentReq;
-import wiki.chiu.micro.blog.vo.BlogDeleteVo;
-import wiki.chiu.micro.blog.vo.BlogEditVo;
-import wiki.chiu.micro.blog.vo.BlogEntityVo;
-import wiki.chiu.micro.blog.vo.BlogPermissionsVo;
-import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.result.Result;
-
 @Configuration(proxyBeanMethods = false)
-@RegisterReflectionForBinding({
-    Result.class,
-    PageAdapter.class,
-    BlogEntityReq.class,
-    SensitiveContentReq.class,
-    BlogQueryReq.class,
-    BlogDownloadReq.class,
-    OssDeleteReq.class,
-    BlogEntityVo.class,
-    BlogDeleteVo.class,
-    BlogEditVo.class,
-    BlogPermissionsVo.class,
-    BlogEntityRpcVo.class,
-    BlogSensitiveContentRpcVo.class
-})
 public class BlogRoutes {
 
     private static final Logger log = LoggerFactory.getLogger(BlogRoutes.class);

@@ -94,7 +94,9 @@ in the root `package.json` catalog and `bun.lock`; workspace packages use `catal
    listeners, `adapter.out.*` holds key generation and the Redis and eviction adapters, and `config`
    holds auto-configuration, properties, conditions, and contract validation.
 10. **Native and AOT reachability.** Types used through reflection, serialization, HTTP interfaces, or
-    native-image initialization need the matching Spring AOT/runtime hints.
+    native-image initialization need the matching Spring AOT/runtime hints. Declare HTTP payload
+    binding hints in the application's `config/CustomRuntimeHints` with
+    `BindingReflectionHintsRegistrar`, so `adapter.in.http` holds route tables and handlers only.
 11. **Observability.** Java, Rust, Bun, gateway, and sync services export correlated OpenTelemetry
     traces, metrics, and logs; preserve existing trace-context propagation when adding boundaries.
 12. **External Lua sources.** Redis scripts live in standalone `.lua` files. Java reads them as

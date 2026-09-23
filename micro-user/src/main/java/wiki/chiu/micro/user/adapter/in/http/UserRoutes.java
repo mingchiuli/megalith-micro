@@ -5,60 +5,12 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.withDefaultErrorHandling;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
-import wiki.chiu.micro.common.enums.DataPermissionEnum;
-import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.common.result.Result;
-import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
-import wiki.chiu.micro.user.api.vo.MenuRpcVo;
-import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
-import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
-import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
-import wiki.chiu.micro.user.req.AuthorityEntityReq;
-import wiki.chiu.micro.user.req.MenuEntityReq;
-import wiki.chiu.micro.user.req.RegisterImageDeleteReq;
-import wiki.chiu.micro.user.req.RoleEntityReq;
-import wiki.chiu.micro.user.req.UserEntityRegisterReq;
-import wiki.chiu.micro.user.req.UserEntityReq;
-import wiki.chiu.micro.user.vo.AuthorityVo;
-import wiki.chiu.micro.user.vo.MenuAuthorityVo;
-import wiki.chiu.micro.user.vo.MenuDisplayVo;
-import wiki.chiu.micro.user.vo.MenuEntityVo;
-import wiki.chiu.micro.user.vo.RoleEntityVo;
-import wiki.chiu.micro.user.vo.RoleMenuVo;
-import wiki.chiu.micro.user.vo.UserEntityVo;
-
 @Configuration(proxyBeanMethods = false)
-@RegisterReflectionForBinding({
-    Result.class,
-    PageAdapter.class,
-    UserEntityRegisterReq.class,
-    UserEntityReq.class,
-    RegisterImageDeleteReq.class,
-    RoleEntityReq.class,
-    MenuEntityReq.class,
-    AuthorityEntityReq.class,
-    UserEntityVo.class,
-    RoleEntityVo.class,
-    RoleMenuVo.class,
-    MenuEntityVo.class,
-    MenuDisplayVo.class,
-    MenuAuthorityVo.class,
-    AuthorityVo.class,
-    UserEntityRpcVo.class,
-    UserAccessRpcVo.class,
-    RoleAuthorizationRpcVo.class,
-    RoleEntityRpcVo.class,
-    MenuRpcVo.class,
-    AuthorityRpcVo.class,
-    DataPermissionEnum.class
-})
 public class UserRoutes {
 
     private static final Logger log = LoggerFactory.getLogger(UserRoutes.class);
