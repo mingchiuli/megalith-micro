@@ -1,4 +1,4 @@
-package wiki.chiu.micro.blog.converter;
+package wiki.chiu.micro.blog.convertor;
 
 import static wiki.chiu.micro.common.constant.Const.URL_REGEX;
 import static wiki.chiu.micro.common.web.FunctionalWeb.nullableParam;
@@ -16,11 +16,11 @@ import wiki.chiu.micro.blog.req.SensitiveContentReq;
 import wiki.chiu.micro.common.enums.SensitiveTypeEnum;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
-public final class BlogRequestConverter {
+public final class BlogRequestConvertor {
 
     private static final ValidatedRequest v = new ValidatedRequest();
 
-    private BlogRequestConverter() {
+    private BlogRequestConvertor() {
     }
 
     public static BlogQueryReq toBlogQueryReq(ServerRequest request) {

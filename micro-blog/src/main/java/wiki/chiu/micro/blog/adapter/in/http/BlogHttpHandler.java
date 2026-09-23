@@ -19,7 +19,7 @@ import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
 import wiki.chiu.micro.blog.application.port.in.BlogCollaborationService;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
-import wiki.chiu.micro.blog.converter.BlogRequestConverter;
+import wiki.chiu.micro.blog.convertor.BlogRequestConvertor;
 import wiki.chiu.micro.blog.req.BlogDownloadReq;
 import wiki.chiu.micro.blog.req.BlogEntityReq;
 import wiki.chiu.micro.blog.req.BlogQueryReq;
@@ -59,7 +59,7 @@ public class BlogHttpHandler {
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-        BlogEntityReq blog = BlogRequestConverter.toBlogEntityReq(request);
+        BlogEntityReq blog = BlogRequestConvertor.toBlogEntityReq(request);
         AuthPrincipal authInfo = authPrincipal(request);
         return ok(
             Result.success(
@@ -85,7 +85,7 @@ public class BlogHttpHandler {
     }
 
     public ServerResponse getAllBlogs(ServerRequest request) {
-        BlogQueryReq query = BlogRequestConverter.toBlogQueryReq(request);
+        BlogQueryReq query = BlogRequestConvertor.toBlogQueryReq(request);
         AuthPrincipal authInfo = authPrincipal(request);
         return ok(
             Result.success(
@@ -153,7 +153,7 @@ public class BlogHttpHandler {
     }
 
     public ServerResponse download(ServerRequest request) {
-        BlogDownloadReq downloadReq = BlogRequestConverter.toBlogDownloadReq(request);
+        BlogDownloadReq downloadReq = BlogRequestConvertor.toBlogDownloadReq(request);
         AuthPrincipal authInfo = authPrincipal(request);
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
