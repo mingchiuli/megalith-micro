@@ -11,5 +11,5 @@ dependencies {
     implementation("io.micrometer:micrometer-core")
     implementation("tools.jackson.core:jackson-databind")
 
-    testImplementation("com.tngtech.archunit:archunit-junit5:1.5.0")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.5.1")
 }
