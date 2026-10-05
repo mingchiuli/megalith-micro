@@ -5,15 +5,15 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.common.message.UserDeletedMessage;
-import wiki.chiu.micro.common.outbox.application.OutboxService;
+import wiki.chiu.micro.common.outbox.application.port.in.OutboxEvents;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
 @Component
 public class UserDeletionOutbox {
 
-    private final OutboxService outboxService;
+    private final OutboxEvents outboxService;
 
-    public UserDeletionOutbox(OutboxService outboxService) {
+    public UserDeletionOutbox(OutboxEvents outboxService) {
         this.outboxService = outboxService;
     }
 

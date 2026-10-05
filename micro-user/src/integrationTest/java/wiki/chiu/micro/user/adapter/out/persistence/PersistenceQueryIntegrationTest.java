@@ -32,8 +32,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import wiki.chiu.micro.common.outbox.adapter.out.persistence.repository.OutboxEventRepository;
-import wiki.chiu.micro.common.outbox.application.OutboxStore;
-import wiki.chiu.micro.common.outbox.domain.OutboxEventEntity;
+import wiki.chiu.micro.common.outbox.adapter.out.persistence.entity.OutboxEventEntity;
+import wiki.chiu.micro.common.outbox.application.port.out.OutboxStore;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuRepository;
@@ -84,7 +84,7 @@ class PersistenceQueryIntegrationTest {
         jdbc = new JdbcTemplate(context.getBean(DataSource.class));
         transaction = new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
         outbox = context.getBean(OutboxEventRepository.class);
-        outboxStore = new OutboxStore(outbox);
+        outboxStore = new wiki.chiu.micro.common.outbox.adapter.out.persistence.OutboxStoreAdapter(outbox);
         roles = context.getBean(RoleRepository.class);
         userRoles = context.getBean(UserRoleRepository.class);
         roleMenus = context.getBean(RoleMenuRepository.class);
@@ -354,7 +354,8 @@ class PersistenceQueryIntegrationTest {
             var factory = new LocalContainerEntityManagerFactoryBean();
             factory.setDataSource(dataSource);
             factory.setPackagesToScan(
-                "wiki.chiu.micro.user.domain", "wiki.chiu.micro.common.outbox.domain");
+                "wiki.chiu.micro.user.domain",
+                "wiki.chiu.micro.common.outbox.adapter.out.persistence.entity");
             factory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
             factory.setJpaPropertyMap(
                 Map.of(

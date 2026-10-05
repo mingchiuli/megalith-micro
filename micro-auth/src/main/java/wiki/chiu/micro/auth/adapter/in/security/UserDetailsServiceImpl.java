@@ -1,7 +1,5 @@
 package wiki.chiu.micro.auth.adapter.in.security;
 
-import java.util.List;
-
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -10,35 +8,34 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.auth.application.model.UserAccount;
-import wiki.chiu.micro.auth.application.port.out.UserDirectory;
+import wiki.chiu.micro.auth.application.model.LoginAccount;
+import wiki.chiu.micro.auth.application.port.in.LoginAccountLookup;
 import wiki.chiu.micro.common.enums.StatusEnum;
 
 @Component
 public final class UserDetailsServiceImpl implements UserDetailsService {
 
-    private final UserDirectory users;
+    private final LoginAccountLookup accounts;
 
-    public UserDetailsServiceImpl(UserDirectory users) {
-        this.users = users;
+    public UserDetailsServiceImpl(LoginAccountLookup accounts) {
+        this.accounts = accounts;
     }
 
     @Override
     @NullUnmarked
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
 
-        UserAccount user = users.findByLoginName(username);
-        List<String> roleCodes = users.findEnabledRoleCodesOf(user.id());
+        LoginAccount account = accounts.byLoginName(username);
 
         // 通过User去自动比较用户名和密码
         return new LoginUser(
             username,
-            user.password(),
+            account.password(),
             true,
             true,
             true,
-            StatusEnum.NORMAL.getCode().equals(user.status()),
-            AuthorityUtils.createAuthorityList(roleCodes),
-            user.id());
+            StatusEnum.NORMAL.getCode().equals(account.status()),
+            AuthorityUtils.createAuthorityList(account.roleCodes()),
+            account.userId());
     }
 }

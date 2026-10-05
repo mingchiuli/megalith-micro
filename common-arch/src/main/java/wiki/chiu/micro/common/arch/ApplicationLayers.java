@@ -1,15 +1,21 @@
 package wiki.chiu.micro.common.arch;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Executable form of the ports-and-adapters layout every Java application in this repository
@@ -40,7 +46,8 @@ public final class ApplicationLayers {
         "wiki.chiu.micro.common.observability..",
         "wiki.chiu.micro.common.messaging..",
         "wiki.chiu.micro.common.outbox..",
-        "wiki.chiu.micro.common.scheduling.."
+        "wiki.chiu.micro.common.scheduling..",
+        "wiki.chiu.micro.cache.."
     };
 
     /** Shared modules that the application layer must not reach into from its own code. */
@@ -65,7 +72,18 @@ public final class ApplicationLayers {
      * @param rootPackage the service's root package, such as {@code wiki.chiu.micro.user}
      */
     public static void verify(String rootPackage) {
-        verify(productionClasses(rootPackage), rootPackage);
+        verify(rootPackage, Set.of());
+    }
+
+    /**
+     * Verifies the shared application layout for a module that carries extra public packages beside
+     * the layout, such as a Spring Boot starter whose published API lives in its own root packages.
+     *
+     * @param rootPackage the module's root package
+     * @param extraLayerPackages additional package names allowed directly under the root
+     */
+    public static void verify(String rootPackage, Set<String> extraLayerPackages) {
+        verify(productionClasses(rootPackage), rootPackage, extraLayerPackages);
     }
 
     /**
@@ -75,11 +93,27 @@ public final class ApplicationLayers {
      * @param rootPackage the service's root package, such as {@code wiki.chiu.micro.user}
      */
     public static void verify(JavaClasses classes, String rootPackage) {
-        assertNoCodeOutsideDeclaredLayers(classes, rootPackage);
-        assertDomainIsFrameworkFree(classes, rootPackage);
-        assertApplicationIsFrameworkFree(classes, rootPackage);
+        verify(classes, rootPackage, Set.of());
+    }
+
+    /**
+     * Verifies the shared application layout for one module against already imported classes.
+     *
+     * @param classes production classes of the module
+     * @param rootPackage the module's root package
+     * @param extraLayerPackages additional package names allowed directly under the root
+     */
+    public static void verify(
+        JavaClasses classes, String rootPackage, Set<String> extraLayerPackages) {
+        Set<String> layers = allowedLayers(extraLayerPackages);
+        String[] coreBanned = withoutSelf(CORE_BANNED, rootPackage);
+        String[] applicationBanned = withoutSelf(APPLICATION_BANNED, rootPackage);
+        assertNoCodeOutsideDeclaredLayers(classes, rootPackage, layers);
+        assertDomainIsFrameworkFree(classes, rootPackage, coreBanned);
+        assertApplicationIsFrameworkFree(classes, rootPackage, coreBanned, applicationBanned);
         assertApplicationDoesNotReachIntoAdaptersOrContracts(classes, rootPackage);
         assertAdaptersDoNotCrossDirections(classes, rootPackage);
+        assertServicesOnlyDependOnImplementedInputPorts(classes, rootPackage);
     }
 
     /**
@@ -98,10 +132,11 @@ public final class ApplicationLayers {
      * Every class belongs to one of the declared layer packages, so utility or transport buckets
      * cannot appear beside the layout.
      */
-    private static void assertNoCodeOutsideDeclaredLayers(JavaClasses classes, String rootPackage) {
+    private static void assertNoCodeOutsideDeclaredLayers(
+        JavaClasses classes, String rootPackage, Set<String> layers) {
         Set<String> offending = new LinkedHashSet<>();
         for (JavaClass javaClass : classes) {
-            if (layerOf(javaClass.getPackageName(), rootPackage) == null) {
+            if (layerOf(javaClass.getPackageName(), rootPackage, layers) == null) {
                 offending.add(javaClass.getName());
             }
         }
@@ -110,7 +145,7 @@ public final class ApplicationLayers {
                 "Classes outside the declared layers of "
                     + rootPackage
                     + " (allowed: root, "
-                    + LAYER_PACKAGES
+                    + layers
                     + "): "
                     + offending);
         }
@@ -120,20 +155,27 @@ public final class ApplicationLayers {
      * {@code domain} holds business state only: no framework, no infrastructure module, no other
      * service's wire contract, and no dependency on the layers that surround it.
      */
-    private static void assertDomainIsFrameworkFree(JavaClasses classes, String rootPackage) {
+    private static void assertDomainIsFrameworkFree(
+        JavaClasses classes, String rootPackage, String[] coreBanned) {
         noClasses()
             .that()
             .resideInAnyPackage(under(rootPackage, "domain"))
             .should()
             .dependOnClassesThat()
-            .resideInAnyPackage(merge(CORE_BANNED, under(rootPackage, "application", "adapter", "config")))
+            .resideInAnyPackage(
+                merge(coreBanned, under(rootPackage, "application", "adapter", "config")))
+            .allowEmptyShould(true)
             .check(classes);
     }
 
     /**
      * {@code application} is framework-free and only knows its own use cases and capabilities.
      */
-    private static void assertApplicationIsFrameworkFree(JavaClasses classes, String rootPackage) {
+    private static void assertApplicationIsFrameworkFree(
+        JavaClasses classes,
+        String rootPackage,
+        String[] coreBanned,
+        String[] applicationBanned) {
         noClasses()
             .that()
             .resideInAnyPackage(under(rootPackage, "application"))
@@ -141,9 +183,10 @@ public final class ApplicationLayers {
             .dependOnClassesThat()
             .resideInAnyPackage(
                 merge(
-                    CORE_BANNED,
-                    APPLICATION_BANNED,
+                    coreBanned,
+                    applicationBanned,
                     under(rootPackage, "adapter", "config")))
+            .allowEmptyShould(true)
             .check(classes);
     }
 
@@ -159,12 +202,13 @@ public final class ApplicationLayers {
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage("..handler..", "..route..", "..routes..", "..repository..")
+            .allowEmptyShould(true)
             .check(classes);
     }
 
     /**
-     * Input adapters call input ports rather than output adapters or application services, and no
-     * adapter reaches into the composition root.
+     * Input adapters call input ports only: they never reach into output ports, output adapters, or
+     * application services, and no adapter reaches into the composition root.
      */
     private static void assertAdaptersDoNotCrossDirections(JavaClasses classes, String rootPackage) {
         noClasses()
@@ -173,6 +217,7 @@ public final class ApplicationLayers {
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage(under(rootPackage, "adapter.out"))
+            .allowEmptyShould(true)
             .check(classes);
         noClasses()
             .that()
@@ -180,6 +225,15 @@ public final class ApplicationLayers {
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage(under(rootPackage, "application.service"))
+            .allowEmptyShould(true)
+            .check(classes);
+        noClasses()
+            .that()
+            .resideInAnyPackage(under(rootPackage, "adapter.in"))
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage(under(rootPackage, "application.port.out"))
+            .allowEmptyShould(true)
             .check(classes);
         noClasses()
             .that()
@@ -187,7 +241,59 @@ public final class ApplicationLayers {
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage(under(rootPackage, "config"))
+            .allowEmptyShould(true)
             .check(classes);
+    }
+
+    /**
+     * A service may implement an input port, but it may not reach into a different use case's input
+     * port: cross-use-case logic goes through output ports or a plain application collaborator.
+     */
+    private static void assertServicesOnlyDependOnImplementedInputPorts(
+        JavaClasses classes, String rootPackage) {
+        String portInPackage = rootPackage + ".application.port.in";
+        classes()
+            .that()
+            .resideInAnyPackage(under(rootPackage, "application.service"))
+            .should(
+                new ArchCondition<JavaClass>("only depend on input ports they implement") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        Set<String> implemented =
+                            item.getAllRawInterfaces().stream()
+                                .map(JavaClass::getName)
+                                .collect(Collectors.toSet());
+                        item.getDirectDependenciesFromSelf().stream()
+                            .map(Dependency::getTargetClass)
+                            .filter(target -> target.getPackageName().equals(portInPackage))
+                            .filter(target -> !implemented.contains(target.getName()))
+                            .forEach(
+                                target ->
+                                    events.add(
+                                        SimpleConditionEvent.violated(
+                                            item,
+                                            item.getName()
+                                                + " depends on input port "
+                                            + target.getName()
+                                                + " which it does not implement")));
+                    }
+                })
+            .allowEmptyShould(true)
+            .check(classes);
+    }
+
+    private static Set<String> allowedLayers(Set<String> extraLayerPackages) {
+        Set<String> layers = new LinkedHashSet<>(LAYER_PACKAGES);
+        layers.addAll(extraLayerPackages);
+        return layers;
+    }
+
+    /** Drops the module's own root from a ban list so shared modules can verify themselves. */
+    private static String[] withoutSelf(String[] banned, String rootPackage) {
+        String selfPattern = rootPackage + "..";
+        return java.util.Arrays.stream(banned)
+            .filter(entry -> !entry.equals(selfPattern) && !entry.equals(rootPackage))
+            .toArray(String[]::new);
     }
 
     /**
@@ -212,7 +318,8 @@ public final class ApplicationLayers {
         return all.toArray(String[]::new);
     }
 
-    private static String layerOf(String packageName, String rootPackage) {
+    private static String layerOf(
+        String packageName, String rootPackage, Set<String> layers) {
         if (packageName.equals(rootPackage)) {
             return "";
         }
@@ -221,6 +328,6 @@ public final class ApplicationLayers {
         }
         String remainder = packageName.substring(rootPackage.length() + 1);
         String first = remainder.split("\\.", 2)[0];
-        return LAYER_PACKAGES.contains(first) ? first : null;
+        return layers.contains(first) ? first : null;
     }
 }

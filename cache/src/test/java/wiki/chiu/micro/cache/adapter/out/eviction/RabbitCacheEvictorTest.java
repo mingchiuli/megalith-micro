@@ -19,9 +19,9 @@ import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
+import wiki.chiu.micro.cache.adapter.out.metrics.MicrometerCacheMetrics;
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 import wiki.chiu.micro.cache.config.CacheProperties;
-import wiki.chiu.micro.cache.application.CacheMetrics;
 
 class RabbitCacheEvictorTest {
 
@@ -55,8 +55,10 @@ class RabbitCacheEvictorTest {
                 rabbitTemplate,
                 redisson,
                 Caffeine.newBuilder().build(),
-                properties,
-                new CacheMetrics(null));
+                properties.getSingleFlight().getWaitTimeout(),
+                properties.getEviction().getRabbit().getExchange(),
+                properties.getEviction().getRabbit().getConfirmTimeout().toMillis(),
+                new MicrometerCacheMetrics(null));
 
         assertThatThrownBy(() -> evictor.evict(Set.of("cache:v1:key")))
             .isInstanceOf(IllegalStateException.class)

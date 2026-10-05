@@ -18,10 +18,12 @@ import tools.jackson.databind.json.JsonMapper;
 
 import wiki.chiu.micro.cache.adapter.in.aop.CacheAspect;
 import wiki.chiu.micro.cache.adapter.out.key.JacksonCacheKeyFactory;
+import wiki.chiu.micro.cache.adapter.out.metrics.MicrometerCacheMetrics;
 import wiki.chiu.micro.cache.adapter.out.redis.RedisCacheKeyRegistry;
-import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
-import wiki.chiu.micro.cache.key.CacheKeyFactory;
 import wiki.chiu.micro.cache.application.CacheMetrics;
+import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
+import wiki.chiu.micro.cache.handler.CacheKeyRegistry;
+import wiki.chiu.micro.cache.key.CacheKeyFactory;
 
 @AutoConfiguration
 @EnableConfigurationProperties(CacheProperties.class)
@@ -34,7 +36,7 @@ public class CacheAspectConfig {
 
     @Bean
     CacheMetrics cacheMetrics(ObjectProvider<@NonNull MeterRegistry> meterRegistries) {
-        return new CacheMetrics(meterRegistries.getIfAvailable());
+        return new MicrometerCacheMetrics(meterRegistries.getIfAvailable());
     }
 
     @Bean
@@ -43,7 +45,7 @@ public class CacheAspectConfig {
     }
 
     @Bean
-    RedisCacheKeyRegistry cacheKeyRegistry(RedissonClient redissonClient) {
+    CacheKeyRegistry cacheKeyRegistry(RedissonClient redissonClient) {
         return new RedisCacheKeyRegistry(redissonClient);
     }
 
@@ -56,7 +58,7 @@ public class CacheAspectConfig {
         @Qualifier("localLockMap") Cache<@NonNull String, ReentrantLock> localLockMap,
         CacheProperties properties,
         CacheMetrics metrics,
-        RedisCacheKeyRegistry keyRegistry) {
+        CacheKeyRegistry keyRegistry) {
         properties.validate();
         return new CacheAspect(
             redissonClient,
@@ -64,7 +66,8 @@ public class CacheAspectConfig {
             cacheKeyFactory,
             localCache,
             localLockMap,
-            properties,
+            properties.getSingleFlight().getWaitTimeout(),
+            properties.getLocal().getTtlJitter(),
             metrics,
             keyRegistry);
     }

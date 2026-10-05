@@ -31,10 +31,10 @@ import org.testcontainers.rabbitmq.RabbitMQContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import wiki.chiu.micro.cache.adapter.in.messaging.RabbitCacheEvictMessageListener;
+import wiki.chiu.micro.cache.adapter.out.metrics.MicrometerCacheMetrics;
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.config.CacheProperties;
-import wiki.chiu.micro.cache.application.CacheMetrics;
 
 @Testcontainers(disabledWithoutDocker = true)
 class RabbitCacheEvictionIntegrationTest {
@@ -80,8 +80,10 @@ class RabbitCacheEvictionIntegrationTest {
                     rabbitTemplate(connectionFactory),
                     redisson(),
                     publisherLocal,
-                    properties,
-                    new CacheMetrics(null));
+                    properties.getSingleFlight().getWaitTimeout(),
+                    properties.getEviction().getRabbit().getExchange(),
+                    properties.getEviction().getRabbit().getConfirmTimeout().toMillis(),
+                    new MicrometerCacheMetrics(null));
 
             evictor.evict(Set.of(key));
 

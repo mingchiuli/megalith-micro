@@ -22,6 +22,7 @@ import org.redisson.api.RKeys;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 
+import wiki.chiu.micro.cache.adapter.out.metrics.MicrometerCacheMetrics;
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.config.CacheProperties;
@@ -94,7 +95,11 @@ class CacheEvictorTest {
 
     private RecordingCacheEvictor evictor(boolean failBroadcast) {
         return new RecordingCacheEvictor(
-            redisson, local, properties, new CacheMetrics(null), failBroadcast);
+            redisson,
+            local,
+            properties.getSingleFlight().getWaitTimeout(),
+            new MicrometerCacheMetrics(null),
+            failBroadcast);
     }
 
     private RLock lock(String key, boolean acquired) throws Exception {
@@ -116,10 +121,10 @@ class CacheEvictorTest {
         private RecordingCacheEvictor(
             RedissonClient redissonClient,
             Cache<String, LocalCacheEntry> localCache,
-            CacheProperties properties,
+            Duration singleFlightWaitTimeout,
             CacheMetrics metrics,
             boolean failBroadcast) {
-            super(redissonClient, localCache, properties, metrics);
+            super(redissonClient, localCache, singleFlightWaitTimeout, metrics);
             this.failBroadcast = failBroadcast;
         }
 

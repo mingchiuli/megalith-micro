@@ -9,12 +9,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.auth.adapter.in.security.LoginUser;
-import wiki.chiu.micro.auth.application.port.in.PasswordFailurePolicy;
-import wiki.chiu.micro.auth.application.port.out.UserDirectory;
+import wiki.chiu.micro.auth.application.port.in.PasswordAuthentication;
 
 /**
  * @author mingchiuli
@@ -23,18 +21,12 @@ import wiki.chiu.micro.auth.application.port.out.UserDirectory;
 @Component
 public final class PasswordAuthenticationProvider extends ProviderBase {
 
-    private final PasswordEncoder passwordEncoder;
-
-    private final PasswordFailurePolicy passwordFailures;
+    private final PasswordAuthentication passwordAuthentication;
 
     public PasswordAuthenticationProvider(
-        PasswordEncoder passwordEncoder,
-        UserDetailsService userDetailsService,
-        UserDirectory users,
-        PasswordFailurePolicy passwordFailures) {
-        super(userDetailsService, users);
-        this.passwordEncoder = passwordEncoder;
-        this.passwordFailures = passwordFailures;
+        UserDetailsService userDetailsService, PasswordAuthentication passwordAuthentication) {
+        super(userDetailsService);
+        this.passwordAuthentication = passwordAuthentication;
     }
 
     @Override
@@ -47,9 +39,12 @@ public final class PasswordAuthenticationProvider extends ProviderBase {
         if (authentication.getCredentials() == null) {
             throw new BadCredentialsException(PASSWORD_MISS.getMsg());
         }
-        if (!passwordEncoder.matches(
-            authentication.getCredentials().toString(), user.getPassword())) {
-            passwordFailures.recordFailure(((LoginUser) user).getUserId());
+        boolean matched =
+            passwordAuthentication.authenticate(
+                ((LoginUser) user).getUserId(),
+                user.getPassword(),
+                authentication.getCredentials().toString());
+        if (!matched) {
             throw new BadCredentialsException(PASSWORD_MISMATCH.getMsg());
         }
     }

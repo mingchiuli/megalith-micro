@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.user.application.port.in.UserService;
 import wiki.chiu.micro.user.application.port.out.RegistrationTokenStore;
 import wiki.chiu.micro.user.application.port.out.UserReader;
 import wiki.chiu.micro.user.application.model.RegistrationDraft;
@@ -29,10 +28,10 @@ class UserServiceImplTest {
     @Test
     void registrationRejectsExpiredTokenBeforePersistence() {
         RegistrationTokenStore tokens = mock(RegistrationTokenStore.class);
-        UserService userService = mock(UserService.class);
+        UserDraftPersister userDrafts = mock(UserDraftPersister.class);
         RegistrationServiceImpl service =
             new RegistrationServiceImpl(
-                tokens, mock(UserReader.class), userService, "https://example.com/register/");
+                tokens, mock(UserReader.class), userDrafts, "https://example.com/register/");
         RegistrationDraft request =
             new RegistrationDraft(
                 "alice",
@@ -50,17 +49,17 @@ class UserServiceImplTest {
         MissException exception = assertThrows(MissException.class, () -> service.register(request));
 
         assertEquals("没有权限", exception.getMessage());
-        verify(userService, never()).saveOrUpdate(org.mockito.ArgumentMatchers.any());
+        verify(userDrafts, never()).save(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
     void registrationConsumesTokenBeforePersistingUser() {
         RegistrationTokenStore tokens = mock(RegistrationTokenStore.class);
         UserReader users = mock(UserReader.class);
-        UserService userService = mock(UserService.class);
+        UserDraftPersister userDrafts = mock(UserDraftPersister.class);
         RegistrationServiceImpl service =
             new RegistrationServiceImpl(
-                tokens, users, userService, "https://example.com/register/");
+                tokens, users, userDrafts, "https://example.com/register/");
         when(users.findByUsername("alice")).thenReturn(Optional.empty());
         RegistrationDraft request =
             new RegistrationDraft(
@@ -74,9 +73,9 @@ class UserServiceImplTest {
 
         service.register(request);
 
-        InOrder order = inOrder(tokens, userService);
+        InOrder order = inOrder(tokens, userDrafts);
         order.verify(tokens).consumeForUsername("token", "alice");
-        order.verify(userService).saveOrUpdate(org.mockito.ArgumentMatchers.any());
+        order.verify(userDrafts).save(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
@@ -87,7 +86,7 @@ class UserServiceImplTest {
             new RegistrationServiceImpl(
                 tokens,
                 mock(UserReader.class),
-                mock(UserService.class),
+                mock(UserDraftPersister.class),
                 "https://example.com/register/");
 
         String page = service.issuePage("张 三&#");

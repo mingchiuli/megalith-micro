@@ -6,33 +6,33 @@ import org.springframework.boot.actuate.endpoint.annotation.Selector;
 import org.springframework.boot.actuate.endpoint.annotation.WriteOperation;
 
 import wiki.chiu.micro.common.outbox.application.OutboxLockNames;
-import wiki.chiu.micro.common.outbox.application.OutboxStore;
 import wiki.chiu.micro.common.outbox.application.model.OutboxStatus;
-import wiki.chiu.micro.common.outbox.config.OutboxProperties;
+import wiki.chiu.micro.common.outbox.application.port.in.OutboxAdministration;
+import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 import wiki.chiu.micro.common.scheduling.RedisTaskLock;
 
 @Endpoint(id = "outbox")
 public class OutboxEndpoint {
 
-    private final OutboxStore store;
-    private final OutboxProperties properties;
+    private final OutboxAdministration administration;
+    private final OutboxProducer producer;
     private final RedisTaskLock taskLock;
 
-    public OutboxEndpoint(OutboxStore store, OutboxProperties properties, RedisTaskLock taskLock) {
-        this.store = store;
-        this.properties = properties;
+    public OutboxEndpoint(
+        OutboxAdministration administration, OutboxProducer producer, RedisTaskLock taskLock) {
+        this.administration = administration;
+        this.producer = producer;
         this.taskLock = taskLock;
     }
 
     @ReadOperation
     public OutboxStatus status() {
-        return store.status(properties.getProducer());
+        return administration.status();
     }
 
     @WriteOperation
     public boolean manage(@Selector String eventId, String action) {
         return taskLock.run(
-            OutboxLockNames.publisher(properties),
-            () -> store.manage(eventId, properties.getProducer(), action));
+            OutboxLockNames.publisher(producer.name()), () -> administration.manage(eventId, action));
     }
 }

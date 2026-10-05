@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import wiki.chiu.micro.common.outbox.domain.OutboxEventEntity;
+import wiki.chiu.micro.common.outbox.adapter.out.persistence.entity.OutboxEventEntity;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
 public interface OutboxEventRepository extends JpaRepository<OutboxEventEntity, Long> {

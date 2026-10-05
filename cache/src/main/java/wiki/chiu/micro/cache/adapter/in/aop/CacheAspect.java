@@ -30,14 +30,13 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.json.JsonMapper;
 
-import wiki.chiu.micro.cache.adapter.out.redis.RedisCacheKeyRegistry;
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.cache.application.CacheLockNames;
+import wiki.chiu.micro.cache.application.CacheMetrics;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
-import wiki.chiu.micro.cache.config.CacheProperties;
+import wiki.chiu.micro.cache.handler.CacheKeyRegistry;
 import wiki.chiu.micro.cache.key.CacheDescriptor;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
-import wiki.chiu.micro.cache.application.CacheMetrics;
 
 @Aspect
 @Order(2)
@@ -52,9 +51,10 @@ public class CacheAspect {
         localCache;
     private final com.github.benmanes.caffeine.cache.Cache<@NonNull String, ReentrantLock>
         localLockMap;
-    private final CacheProperties properties;
+    private final Duration singleFlightWaitTimeout;
+    private final double localTtlJitter;
     private final CacheMetrics metrics;
-    private final RedisCacheKeyRegistry keyRegistry;
+    private final CacheKeyRegistry keyRegistry;
 
     public CacheAspect(
         RedissonClient redissonClient,
@@ -62,27 +62,17 @@ public class CacheAspect {
         CacheKeyFactory cacheKeyFactory,
         com.github.benmanes.caffeine.cache.Cache<@NonNull String, LocalCacheEntry> localCache,
         com.github.benmanes.caffeine.cache.Cache<@NonNull String, ReentrantLock> localLockMap,
-        CacheProperties properties,
-        CacheMetrics metrics) {
-        this(redissonClient, jsonMapper, cacheKeyFactory, localCache, localLockMap,
-            properties, metrics, new RedisCacheKeyRegistry(redissonClient));
-    }
-
-    public CacheAspect(
-        RedissonClient redissonClient,
-        JsonMapper jsonMapper,
-        CacheKeyFactory cacheKeyFactory,
-        com.github.benmanes.caffeine.cache.Cache<@NonNull String, LocalCacheEntry> localCache,
-        com.github.benmanes.caffeine.cache.Cache<@NonNull String, ReentrantLock> localLockMap,
-        CacheProperties properties,
+        Duration singleFlightWaitTimeout,
+        double localTtlJitter,
         CacheMetrics metrics,
-        RedisCacheKeyRegistry keyRegistry) {
+        CacheKeyRegistry keyRegistry) {
         this.redissonClient = redissonClient;
         this.jsonMapper = jsonMapper;
         this.cacheKeyFactory = cacheKeyFactory;
         this.localCache = localCache;
         this.localLockMap = localLockMap;
-        this.properties = properties;
+        this.singleFlightWaitTimeout = singleFlightWaitTimeout;
+        this.localTtlJitter = localTtlJitter;
         this.metrics = metrics;
         this.keyRegistry = keyRegistry;
     }
@@ -175,7 +165,7 @@ public class CacheAspect {
     private boolean tryLocalLock(Lock lock) {
         try {
             boolean acquired =
-                lock.tryLock(properties.getSingleFlight().getWaitTimeout().toMillis(), TimeUnit.MILLISECONDS);
+                lock.tryLock(singleFlightWaitTimeout.toMillis(), TimeUnit.MILLISECONDS);
             if (!acquired) {
                 metrics.lockTimeout("local");
             }
@@ -190,7 +180,7 @@ public class CacheAspect {
     private RemoteLockResult tryRemoteLock(RLock lock) {
         try {
             boolean acquired =
-                lock.tryLock(properties.getSingleFlight().getWaitTimeout().toMillis(), TimeUnit.MILLISECONDS);
+                lock.tryLock(singleFlightWaitTimeout.toMillis(), TimeUnit.MILLISECONDS);
             if (!acquired) {
                 metrics.lockTimeout("remote");
                 return RemoteLockResult.TIMEOUT;
@@ -338,7 +328,7 @@ public class CacheAspect {
     }
 
     private void putLocal(String cacheKey, Object result, Duration ttl) {
-        double jitter = properties.getLocal().getTtlJitter();
+        double jitter = localTtlJitter;
         double factor = jitter == 0 ? 1 : ThreadLocalRandom.current().nextDouble(1 - jitter, 1);
         long localTtlNanos = Math.max(1, (long) (ttl.toNanos() * factor));
         localCache.put(cacheKey, new LocalCacheEntry(result, Duration.ofNanos(localTtlNanos)));

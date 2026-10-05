@@ -39,10 +39,12 @@ import wiki.chiu.micro.user.application.service.AuthorizationQueryService;
 import wiki.chiu.micro.user.application.service.MenuAuthorityServiceImpl;
 import wiki.chiu.micro.user.application.service.MenuServiceImpl;
 import wiki.chiu.micro.user.application.service.RegistrationServiceImpl;
+import wiki.chiu.micro.user.application.service.RoleCodeLookup;
 import wiki.chiu.micro.user.application.service.RoleDataPermissionServiceImpl;
 import wiki.chiu.micro.user.application.service.RoleMenuServiceImpl;
 import wiki.chiu.micro.user.application.service.RoleServiceImpl;
 import wiki.chiu.micro.user.application.service.UserAssetServiceImpl;
+import wiki.chiu.micro.user.application.service.UserDraftPersister;
 import wiki.chiu.micro.user.application.service.UserExportServiceImpl;
 import wiki.chiu.micro.user.application.service.UserIdentityServiceImpl;
 import wiki.chiu.micro.user.application.service.UserRoleServiceImpl;
@@ -119,21 +121,34 @@ public class UserApplicationConfig {
     }
 
     @Bean
+    RoleCodeLookup roleCodeLookup(UserRoleReader userRoles, RoleReader roles) {
+        return new RoleCodeLookup(userRoles, roles);
+    }
+
+    @Bean
+    UserDraftPersister userDraftPersister(
+        UserReader users, UserWriter writer, PasswordHasher passwordHasher, RoleReader roles) {
+        return new UserDraftPersister(users, writer, passwordHasher, roles);
+    }
+
+    @Bean
     UserRoleService userRoleService(
-        RoleReader roles, UserRoleReader userRoles, RoleDataPermissionReader dataPermissions) {
-        return new UserRoleServiceImpl(roles, userRoles, dataPermissions);
+        RoleReader roles,
+        UserRoleReader userRoles,
+        RoleDataPermissionReader dataPermissions,
+        RoleCodeLookup roleCodes) {
+        return new UserRoleServiceImpl(roles, userRoles, dataPermissions, roleCodes);
     }
 
     @Bean
     UserService userService(
         UserReader users,
         UserWriter userWriter,
-        PasswordHasher passwordHasher,
         RoleReader roles,
         UserRoleReader userRoles,
-        UserRoleService userRoleService) {
-        return new UserServiceImpl(
-            users, userWriter, passwordHasher, roles, userRoles, userRoleService);
+        UserDraftPersister userDrafts,
+        RoleCodeLookup roleCodes) {
+        return new UserServiceImpl(users, userWriter, roles, userRoles, userDrafts, roleCodes);
     }
 
     @Bean
@@ -150,9 +165,9 @@ public class UserApplicationConfig {
     RegistrationService registrationService(
         RegistrationTokenStore tokens,
         UserReader users,
-        UserService userService,
+        UserDraftPersister userDrafts,
         @Value("${megalith.blog.register.page-prefix}") String registerPagePrefix) {
-        return new RegistrationServiceImpl(tokens, users, userService, registerPagePrefix);
+        return new RegistrationServiceImpl(tokens, users, userDrafts, registerPagePrefix);
     }
 
     @Bean

@@ -17,7 +17,7 @@ import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.model.BlogSnapshot;
-import wiki.chiu.micro.common.outbox.application.OutboxService;
+import wiki.chiu.micro.common.outbox.application.port.in.OutboxEvents;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
 @Component
@@ -25,13 +25,13 @@ public class BlogWrapper implements BlogWriter {
 
     private final BlogRepository blogs;
     private final BlogSensitiveContentRepository sensitiveContents;
-    private final OutboxService outbox;
+    private final OutboxEvents outbox;
     private final BlogMaintenanceMode maintenance;
 
     public BlogWrapper(
         BlogRepository blogs,
         BlogSensitiveContentRepository sensitiveContents,
-        OutboxService outbox,
+        OutboxEvents outbox,
         BlogMaintenanceMode maintenance) {
         this.blogs = blogs;
         this.sensitiveContents = sensitiveContents;

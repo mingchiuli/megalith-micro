@@ -22,24 +22,22 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     private final RoleDataPermissionReader roleDataPermissionRepository;
 
+    private final RoleCodeLookup roleCodes;
+
     public UserRoleServiceImpl(
         RoleReader roleRepository,
         UserRoleReader userRoleReader,
-        RoleDataPermissionReader roleDataPermissionRepository) {
+        RoleDataPermissionReader roleDataPermissionRepository,
+        RoleCodeLookup roleCodes) {
         this.roleRepository = roleRepository;
         this.userRoleReader = userRoleReader;
         this.roleDataPermissionRepository = roleDataPermissionRepository;
+        this.roleCodes = roleCodes;
     }
 
     @Override
     public List<String> findRoleCodesByUserId(Long userId) {
-        List<Long> roleIds =
-            userRoleReader.findByUserId(userId).stream().map(UserRole::roleId).toList();
-
-        return roleRepository.findAllById(roleIds).stream()
-            .filter(item -> StatusEnum.NORMAL.getCode().equals(item.status()))
-            .map(Role::code)
-            .toList();
+        return roleCodes.codesOf(userId);
     }
 
     @Override

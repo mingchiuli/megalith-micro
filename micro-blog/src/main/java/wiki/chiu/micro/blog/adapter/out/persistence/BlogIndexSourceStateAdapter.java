@@ -6,18 +6,17 @@ import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.application.model.IndexSourceStatus;
 import wiki.chiu.micro.blog.application.port.out.BlogIndexSourceState;
 import wiki.chiu.micro.blog.application.model.BlogMaintenanceMode;
-import wiki.chiu.micro.common.outbox.application.OutboxStore;
-import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
+import wiki.chiu.micro.common.outbox.application.port.in.OutboxAdministration;
 
 @Component
 public class BlogIndexSourceStateAdapter implements BlogIndexSourceState {
 
     private final BlogMaintenanceMode maintenance;
     private final BlogRepository blogs;
-    private final OutboxStore outbox;
+    private final OutboxAdministration outbox;
 
     public BlogIndexSourceStateAdapter(
-        BlogMaintenanceMode maintenance, BlogRepository blogs, OutboxStore outbox) {
+        BlogMaintenanceMode maintenance, BlogRepository blogs, OutboxAdministration outbox) {
         this.maintenance = maintenance;
         this.blogs = blogs;
         this.outbox = outbox;
@@ -25,7 +24,7 @@ public class BlogIndexSourceStateAdapter implements BlogIndexSourceState {
 
     @Override
     public IndexSourceStatus status() {
-        var status = outbox.status(OutboxProducer.BLOG);
+        var status = outbox.status();
         return new IndexSourceStatus(
             maintenance.readOnly(), status.ready(), status.paused(), blogs.count());
     }

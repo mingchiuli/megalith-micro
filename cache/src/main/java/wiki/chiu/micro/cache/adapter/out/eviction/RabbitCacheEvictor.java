@@ -2,6 +2,7 @@ package wiki.chiu.micro.cache.adapter.out.eviction;
 
 import com.github.benmanes.caffeine.cache.Cache;
 
+import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -12,7 +13,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
-import wiki.chiu.micro.cache.config.CacheProperties;
 import wiki.chiu.micro.cache.application.CacheMetrics;
 
 public final class RabbitCacheEvictor extends AbstractCacheEvictor {
@@ -25,13 +25,14 @@ public final class RabbitCacheEvictor extends AbstractCacheEvictor {
         RabbitTemplate rabbitTemplate,
         RedissonClient redissonClient,
         Cache<@NonNull String, LocalCacheEntry> localCache,
-        CacheProperties properties,
+        Duration singleFlightWaitTimeout,
+        String exchange,
+        long confirmTimeoutMillis,
         CacheMetrics metrics) {
-        super(redissonClient, localCache, properties, metrics);
+        super(redissonClient, localCache, singleFlightWaitTimeout, metrics);
         this.rabbitTemplate = rabbitTemplate;
-        this.exchange = properties.getEviction().getRabbit().getExchange();
-        this.confirmTimeoutMillis =
-            properties.getEviction().getRabbit().getConfirmTimeout().toMillis();
+        this.exchange = exchange;
+        this.confirmTimeoutMillis = confirmTimeoutMillis;
     }
 
     @Override

@@ -30,12 +30,12 @@ import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.cache.adapter.in.aop.CacheAspect;
 import wiki.chiu.micro.cache.adapter.out.eviction.RedisCacheEvictor;
 import wiki.chiu.micro.cache.adapter.out.key.JacksonCacheKeyFactory;
+import wiki.chiu.micro.cache.adapter.out.metrics.MicrometerCacheMetrics;
 import wiki.chiu.micro.cache.adapter.out.redis.RedisCacheKeyRegistry;
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.config.CacheProperties;
 import wiki.chiu.micro.cache.key.CacheDescriptor;
-import wiki.chiu.micro.cache.application.CacheMetrics;
 
 @Testcontainers(disabledWithoutDocker = true)
 class TrackedCacheIntegrationTest {
@@ -61,11 +61,17 @@ class TrackedCacheIntegrationTest {
         var target = new Pages();
         var factory = new AspectJProxyFactory(target);
         factory.addAspect(new CacheAspect(reader, mapper, new JacksonCacheKeyFactory(mapper), local,
-            Caffeine.newBuilder().<String, ReentrantLock>build(), properties, new CacheMetrics(null), registry));
+            Caffeine.newBuilder().<String, ReentrantLock>build(),
+            properties.getSingleFlight().getWaitTimeout(), properties.getLocal().getTtlJitter(),
+            new MicrometerCacheMetrics(null), registry));
         Pages proxy = factory.getProxy();
         var remoteLocal = Caffeine.newBuilder().<String, LocalCacheEntry>build();
         var listener = new RedisCacheEvictMessageListener("tracked-cache-test", reader, mapper, local);
-        var evictor = new RedisCacheEvictor(consumer, mapper, remoteLocal, properties, new CacheMetrics(null));
+        var evictor = new RedisCacheEvictor(
+            consumer, mapper, remoteLocal,
+            properties.getSingleFlight().getWaitTimeout(),
+            properties.getEviction().getRedis().getTopic(),
+            new MicrometerCacheMetrics(null));
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             listener.start();

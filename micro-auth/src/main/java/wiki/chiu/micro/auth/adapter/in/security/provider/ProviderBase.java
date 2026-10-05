@@ -3,8 +3,6 @@ package wiki.chiu.micro.auth.adapter.in.security.provider;
 import static wiki.chiu.micro.common.error.ExceptionMessage.ACCOUNT_LOCKED;
 import static wiki.chiu.micro.common.error.ExceptionMessage.ROLE_DISABLED;
 
-import java.util.List;
-
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
@@ -12,11 +10,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-
-import wiki.chiu.micro.auth.application.port.out.UserDirectory;
 
 /**
  * @author mingchiuli
@@ -25,21 +20,15 @@ import wiki.chiu.micro.auth.application.port.out.UserDirectory;
 public abstract sealed class ProviderBase extends DaoAuthenticationProvider
     permits EmailAuthenticationProvider, PasswordAuthenticationProvider, SMSAuthenticationProvider {
 
-    private final UserDirectory users;
-
-    protected ProviderBase(UserDetailsService userDetailsService, UserDirectory users) {
+    protected ProviderBase(UserDetailsService userDetailsService) {
         super(userDetailsService);
         setHideUserNotFoundExceptions(false);
-        this.users = users;
     }
 
     protected abstract void authProcess(UserDetails user, Authentication authentication);
 
     private void checkRoleStatus(UserDetails user) {
-        List<String> roles =
-            user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-
-        if (users.findEnabledRoleCodes(roles).isEmpty()) {
+        if (user.getAuthorities().isEmpty()) {
             throw new BadCredentialsException(ROLE_DISABLED.getMsg());
         }
     }

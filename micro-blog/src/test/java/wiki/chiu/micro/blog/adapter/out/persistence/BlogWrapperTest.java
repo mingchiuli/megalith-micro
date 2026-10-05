@@ -20,14 +20,14 @@ import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogSensitiveCont
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.exception.BaseException;
-import wiki.chiu.micro.common.outbox.application.OutboxService;
+import wiki.chiu.micro.common.outbox.application.port.in.OutboxEvents;
 
 class BlogWrapperTest {
 
     private final BlogRepository blogs = Mockito.mock(BlogRepository.class);
     private final BlogSensitiveContentRepository sensitiveContents =
         Mockito.mock(BlogSensitiveContentRepository.class);
-    private final OutboxService outbox = Mockito.mock(OutboxService.class);
+    private final OutboxEvents outbox = Mockito.mock(OutboxEvents.class);
     private final BlogWrapper wrapper = new BlogWrapper(blogs, sensitiveContents, outbox,
         new BlogMaintenanceMode(false));
 

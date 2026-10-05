@@ -12,4 +12,5 @@ dependencies {
     implementation("tools.jackson.core:jackson-databind")
 
     testImplementation("com.tngtech.archunit:archunit-junit5:1.5.1")
+    testImplementation(project(":common-arch"))
 }

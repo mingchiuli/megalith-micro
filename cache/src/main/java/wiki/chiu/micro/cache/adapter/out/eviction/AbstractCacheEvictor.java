@@ -2,6 +2,7 @@ package wiki.chiu.micro.cache.adapter.out.eviction;
 
 import com.github.benmanes.caffeine.cache.Cache;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -11,27 +12,26 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 
 import wiki.chiu.micro.cache.application.CacheLockNames;
+import wiki.chiu.micro.cache.application.CacheMetrics;
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
-import wiki.chiu.micro.cache.config.CacheProperties;
 import wiki.chiu.micro.cache.handler.CacheEvictor;
-import wiki.chiu.micro.cache.application.CacheMetrics;
 
 abstract class AbstractCacheEvictor implements CacheEvictor {
 
     private final RedissonClient redissonClient;
     private final Cache<@NonNull String, LocalCacheEntry> localCache;
-    private final CacheProperties properties;
+    private final Duration singleFlightWaitTimeout;
     private final CacheMetrics metrics;
 
     AbstractCacheEvictor(
         RedissonClient redissonClient,
         Cache<@NonNull String, LocalCacheEntry> localCache,
-        CacheProperties properties,
+        Duration singleFlightWaitTimeout,
         CacheMetrics metrics) {
         this.redissonClient = redissonClient;
         this.localCache = localCache;
-        this.properties = properties;
+        this.singleFlightWaitTimeout = singleFlightWaitTimeout;
         this.metrics = metrics;
     }
 
@@ -82,7 +82,7 @@ abstract class AbstractCacheEvictor implements CacheEvictor {
                 if (!locks
                     .get(acquired)
                     .tryLock(
-                        properties.getSingleFlight().getWaitTimeout().toMillis(), TimeUnit.MILLISECONDS)) {
+                        singleFlightWaitTimeout.toMillis(), TimeUnit.MILLISECONDS)) {
                     metrics.lockTimeout("evict");
                     throw new IllegalStateException(
                         "Timed out waiting to evict cache key " + keys.get(acquired));

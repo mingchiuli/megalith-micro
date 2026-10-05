@@ -1,8 +1,8 @@
 package wiki.chiu.micro.blog.adapter.in.messaging;
 
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.rabbitmq.client.Channel;
 
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 
-import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
+import wiki.chiu.micro.blog.application.port.in.BlogRecycleBin;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
@@ -20,47 +20,41 @@ import wiki.chiu.micro.common.model.BlogSnapshot;
 
 class BlogRecycleMessageListenerTest {
 
+    private final BlogRecycleBin recycleBin = mock(BlogRecycleBin.class);
+    private final RetryingMessageRecoverer recoverer = mock(RetryingMessageRecoverer.class);
+    private final BlogRecycleMessageListener listener =
+        new BlogRecycleMessageListener(recycleBin, recoverer);
+
     @Test
-    void removeEventUsesItsEventIdAsTheIdempotencyKeyBeforeAck() throws Exception {
-        BlogRuntimeStore runtimeStore = org.mockito.Mockito.mock(BlogRuntimeStore.class);
-        RetryingMessageRecoverer recoverer = org.mockito.Mockito.mock(RetryingMessageRecoverer.class);
-        BlogRecycleMessageListener listener =
-            new BlogRecycleMessageListener(runtimeStore, recoverer);
-        Channel channel = org.mockito.Mockito.mock(Channel.class);
+    void acksAfterTheRecycleBinHandledTheEvent() throws Exception {
+        Channel channel = mock(Channel.class);
         Message message = MessageBuilder.withBody(new byte[0]).setDeliveryTag(11L).build();
-        LocalDateTime now = LocalDateTime.now();
-        BlogSnapshot snapshot =
-            new BlogSnapshot(9L, 42L, "title", "description", "content", now, now, 0, null, 1L, 3L);
-        BlogChangedMessage event =
-            new BlogChangedMessage(
-                "event-7", BlogOperateEnum.REMOVE.getCode(), 3L, 42L, snapshot);
+        BlogChangedMessage event = event("event-7", 42L);
 
         listener.handle(event, channel, message);
 
-        verify(runtimeStore).saveDeletedBlog(eq(42L), eq("event-7"), eq(snapshot));
+        verify(recycleBin).recycle(event);
         verify(channel).basicAck(11L, false);
     }
 
     @Test
-    void cascadeDeleteWithoutOperatorSkipsRecycleBin() throws Exception {
-        BlogRuntimeStore runtimeStore = org.mockito.Mockito.mock(BlogRuntimeStore.class);
-        BlogRecycleMessageListener listener =
-            new BlogRecycleMessageListener(
-                runtimeStore,
-                org.mockito.Mockito.mock(RetryingMessageRecoverer.class));
-        Channel channel = org.mockito.Mockito.mock(Channel.class);
+    void recoversWhenTheRecycleBinFails() throws Exception {
+        Channel channel = mock(Channel.class);
         Message message = MessageBuilder.withBody(new byte[0]).setDeliveryTag(13L).build();
+        BlogChangedMessage event = event("event-8", 42L);
+        RuntimeException failure = new IllegalStateException("boom");
+        doThrow(failure).when(recycleBin).recycle(event);
+
+        listener.handle(event, channel, message);
+
+        verify(recoverer).recover(message, channel, failure);
+    }
+
+    private BlogChangedMessage event(String eventId, Long operatorUserId) {
         LocalDateTime now = LocalDateTime.now();
         BlogSnapshot snapshot =
             new BlogSnapshot(9L, 42L, "title", "description", "content", now, now, 0, null, 1L, 3L);
-
-        listener.handle(
-            new BlogChangedMessage(
-                "event-8", BlogOperateEnum.REMOVE.getCode(), 3L, null, snapshot),
-            channel,
-            message);
-
-        verifyNoInteractions(runtimeStore);
-        verify(channel).basicAck(13L, false);
+        return new BlogChangedMessage(
+            eventId, BlogOperateEnum.REMOVE.getCode(), 3L, operatorUserId, snapshot);
     }
 }

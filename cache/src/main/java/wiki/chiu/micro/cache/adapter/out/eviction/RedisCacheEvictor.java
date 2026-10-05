@@ -2,6 +2,8 @@ package wiki.chiu.micro.cache.adapter.out.eviction;
 
 import com.github.benmanes.caffeine.cache.Cache;
 
+import java.time.Duration;
+
 import org.jspecify.annotations.NonNull;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
@@ -9,7 +11,6 @@ import org.redisson.client.codec.StringCodec;
 import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
-import wiki.chiu.micro.cache.config.CacheProperties;
 import wiki.chiu.micro.cache.application.CacheMetrics;
 
 public final class RedisCacheEvictor extends AbstractCacheEvictor {
@@ -22,12 +23,13 @@ public final class RedisCacheEvictor extends AbstractCacheEvictor {
         RedissonClient redissonClient,
         JsonMapper jsonMapper,
         Cache<@NonNull String, LocalCacheEntry> localCache,
-        CacheProperties properties,
+        Duration singleFlightWaitTimeout,
+        String topic,
         CacheMetrics metrics) {
-        super(redissonClient, localCache, properties, metrics);
+        super(redissonClient, localCache, singleFlightWaitTimeout, metrics);
         this.redissonClient = redissonClient;
         this.jsonMapper = jsonMapper;
-        this.topic = properties.getEviction().getRedis().getTopic();
+        this.topic = topic;
     }
 
     @Override

@@ -26,13 +26,13 @@ import org.redisson.client.codec.StringCodec;
 
 import tools.jackson.databind.json.JsonMapper;
 
+import wiki.chiu.micro.cache.adapter.out.metrics.MicrometerCacheMetrics;
 import wiki.chiu.micro.cache.adapter.out.redis.RedisCacheKeyRegistry;
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.config.CacheProperties;
 import wiki.chiu.micro.cache.key.CacheDescriptor;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
-import wiki.chiu.micro.cache.application.CacheMetrics;
 
 class CacheAspectTest {
 
@@ -53,8 +53,10 @@ class CacheAspectTest {
             keys,
             local,
             locks,
-            properties,
-            new CacheMetrics(null), registry);
+            properties.getSingleFlight().getWaitTimeout(),
+            properties.getLocal().getTtlJitter(),
+            new MicrometerCacheMetrics(null),
+            registry);
 
     @Test
     void registersBeforeReadingTheSourceAndRetainsTheKeyAfterFilling() throws Throwable {

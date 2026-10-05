@@ -8,6 +8,7 @@ import wiki.chiu.micro.blog.application.port.in.BlogCollaborationService;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
 import wiki.chiu.micro.blog.application.port.in.BlogIndexSourceQueries;
 import wiki.chiu.micro.blog.application.port.in.BlogQueryService;
+import wiki.chiu.micro.blog.application.port.in.BlogRecycleBin;
 import wiki.chiu.micro.blog.application.port.in.BlogSensitiveService;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
 import wiki.chiu.micro.blog.application.port.in.BlogStatisticsSync;
@@ -25,6 +26,7 @@ import wiki.chiu.micro.blog.application.service.BlogCollaborationServiceImpl;
 import wiki.chiu.micro.blog.application.service.BlogExportServiceImpl;
 import wiki.chiu.micro.blog.application.service.BlogIndexSourceService;
 import wiki.chiu.micro.blog.application.service.BlogQueryServiceImpl;
+import wiki.chiu.micro.blog.application.service.BlogRecycleBinServiceImpl;
 import wiki.chiu.micro.blog.application.service.BlogSensitiveServiceImpl;
 import wiki.chiu.micro.blog.application.service.BlogServiceImpl;
 import wiki.chiu.micro.blog.application.service.BlogStatisticsSyncService;
@@ -90,5 +92,10 @@ public class BlogApplicationConfig {
     BlogStatisticsSync blogStatisticsSync(
         BlogQueryStore blogs, BlogStatisticsGateway statistics) {
         return new BlogStatisticsSyncService(blogs, statistics);
+    }
+
+    @Bean
+    BlogRecycleBin blogRecycleBin(BlogRuntimeStore runtimeStore) {
+        return new BlogRecycleBinServiceImpl(runtimeStore);
     }
 }

@@ -6,7 +6,6 @@ import static wiki.chiu.micro.common.error.ExceptionMessage.SMS_NOT_EXIST;
 import static wiki.chiu.micro.common.error.ExceptionMessage.SMS_TRY_MAX;
 
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,9 +13,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.auth.adapter.in.security.token.SMSAuthenticationToken;
-import wiki.chiu.micro.auth.application.port.out.LoginCodeStore;
-import wiki.chiu.micro.auth.application.port.out.LoginCodeStore.Verification;
-import wiki.chiu.micro.auth.application.port.out.UserDirectory;
+import wiki.chiu.micro.auth.application.model.CodeVerification;
+import wiki.chiu.micro.auth.application.model.LoginChannel;
+import wiki.chiu.micro.auth.application.port.in.LoginCodeAuthentication;
 
 /**
  * @author mingchiuli
@@ -25,18 +24,12 @@ import wiki.chiu.micro.auth.application.port.out.UserDirectory;
 @Component
 public final class SMSAuthenticationProvider extends ProviderBase {
 
-    private final LoginCodeStore codes;
-
-    private final int maxAttempts;
+    private final LoginCodeAuthentication loginCodes;
 
     public SMSAuthenticationProvider(
-        UserDetailsService userDetailsService,
-        UserDirectory users,
-        LoginCodeStore codes,
-        @Value("${megalith.auth.code.max-attempts:3}") int maxAttempts) {
-        super(userDetailsService, users);
-        this.codes = codes;
-        this.maxAttempts = maxAttempts;
+        UserDetailsService userDetailsService, LoginCodeAuthentication loginCodes) {
+        super(userDetailsService);
+        this.loginCodes = loginCodes;
     }
 
     @Override
@@ -49,18 +42,17 @@ public final class SMSAuthenticationProvider extends ProviderBase {
         if (authentication.getCredentials() == null) {
             throw new BadCredentialsException(SMS_NOT_EXIST.getMsg());
         }
-        Verification verification =
-            codes.verify(
-                LoginCodeStore.LoginChannel.PHONE,
+        CodeVerification verification =
+            loginCodes.authenticate(
+                LoginChannel.PHONE,
                 user.getUsername(),
-                authentication.getCredentials().toString(),
-                maxAttempts);
-        if (verification != Verification.ACCEPTED) {
+                authentication.getCredentials().toString());
+        if (verification != CodeVerification.ACCEPTED) {
             throw new BadCredentialsException(messageOf(verification));
         }
     }
 
-    private String messageOf(Verification verification) {
+    private String messageOf(CodeVerification verification) {
         return switch (verification) {
             case NOT_FOUND -> SMS_NOT_EXIST.getMsg();
             case MISMATCH -> SMS_MISMATCH.getMsg();

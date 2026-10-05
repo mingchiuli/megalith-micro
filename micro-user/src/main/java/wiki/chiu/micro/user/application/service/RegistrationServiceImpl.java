@@ -11,7 +11,6 @@ import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.user.application.model.RegistrationDraft;
 import wiki.chiu.micro.user.application.model.UserDraft;
 import wiki.chiu.micro.user.application.port.in.RegistrationService;
-import wiki.chiu.micro.user.application.port.in.UserService;
 import wiki.chiu.micro.user.application.port.out.RegistrationTokenStore;
 import wiki.chiu.micro.user.application.port.out.UserReader;
 import wiki.chiu.micro.user.domain.PhonePlaceholderGenerator;
@@ -22,18 +21,18 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     private final UserReader users;
 
-    private final UserService userService;
+    private final UserDraftPersister userDrafts;
 
     private final String registerPagePrefix;
 
     public RegistrationServiceImpl(
         RegistrationTokenStore tokens,
         UserReader users,
-        UserService userService,
+        UserDraftPersister userDrafts,
         String registerPagePrefix) {
         this.tokens = tokens;
         this.users = users;
-        this.userService = userService;
+        this.userDrafts = userDrafts;
         this.registerPagePrefix = registerPagePrefix;
     }
 
@@ -62,7 +61,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 : request.withPhone(PhonePlaceholderGenerator.generate());
         UserDraft user = toUserDraft(normalized);
         tokens.consumeForUsername(request.token(), request.username());
-        userService.saveOrUpdate(user);
+        userDrafts.save(user);
     }
 
     private void validatePolicy(RegistrationDraft request) {

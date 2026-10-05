@@ -5,15 +5,15 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.common.message.AuthCacheEvictMessage;
-import wiki.chiu.micro.common.outbox.application.OutboxService;
+import wiki.chiu.micro.common.outbox.application.port.in.OutboxEvents;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
 @Component
 public class AuthCacheEvictionOutbox {
 
-    private final OutboxService outboxService;
+    private final OutboxEvents outboxService;
 
-    public AuthCacheEvictionOutbox(OutboxService outboxService) {
+    public AuthCacheEvictionOutbox(OutboxEvents outboxService) {
         this.outboxService = outboxService;
     }
 

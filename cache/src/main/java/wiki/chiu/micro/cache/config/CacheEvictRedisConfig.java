@@ -45,6 +45,12 @@ public class CacheEvictRedisConfig {
         @Qualifier("caffeineCache") Cache<@NonNull String, LocalCacheEntry> localCache,
         CacheProperties properties,
         CacheMetrics metrics) {
-        return new RedisCacheEvictor(redissonClient, jsonMapper, localCache, properties, metrics);
+        return new RedisCacheEvictor(
+            redissonClient,
+            jsonMapper,
+            localCache,
+            properties.getSingleFlight().getWaitTimeout(),
+            properties.getEviction().getRedis().getTopic(),
+            metrics);
     }
 }

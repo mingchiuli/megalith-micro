@@ -121,7 +121,13 @@ public class CacheEvictRabbitConfig {
         CacheProperties properties,
         CacheMetrics metrics) {
         return new RabbitCacheEvictor(
-            rabbitTemplate, redissonClient, localCache, properties, metrics);
+            rabbitTemplate,
+            redissonClient,
+            localCache,
+            properties.getSingleFlight().getWaitTimeout(),
+            properties.getEviction().getRabbit().getExchange(),
+            properties.getEviction().getRabbit().getConfirmTimeout().toMillis(),
+            metrics);
     }
 
     private String requireText(String value, String property) {

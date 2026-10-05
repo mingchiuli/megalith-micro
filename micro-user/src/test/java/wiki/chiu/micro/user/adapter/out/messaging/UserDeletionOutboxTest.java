@@ -12,14 +12,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import wiki.chiu.micro.common.message.UserDeletedMessage;
-import wiki.chiu.micro.common.outbox.application.OutboxService;
+import wiki.chiu.micro.common.outbox.application.port.in.OutboxEvents;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
 class UserDeletionOutboxTest {
 
     @Test
     void writesDedicatedDeletionEvent() {
-        OutboxService outbox = Mockito.mock(OutboxService.class);
+        OutboxEvents outbox = Mockito.mock(OutboxEvents.class);
         UserDeletionOutbox deletions = new UserDeletionOutbox(outbox);
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Function<String, Object>> factory = ArgumentCaptor.forClass(Function.class);

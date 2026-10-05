@@ -21,9 +21,9 @@ import org.testcontainers.utility.DockerImageName;
 
 import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.cache.adapter.out.eviction.RedisCacheEvictor;
+import wiki.chiu.micro.cache.adapter.out.metrics.MicrometerCacheMetrics;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.config.CacheProperties;
-import wiki.chiu.micro.cache.application.CacheMetrics;
 
 @Testcontainers(disabledWithoutDocker = true)
 class RedisCacheEvictionIntegrationTest {
@@ -66,8 +66,9 @@ class RedisCacheEvictionIntegrationTest {
                     firstClient,
                     jsonMapper,
                     firstLocal,
-                    properties,
-                    new CacheMetrics(null));
+                    properties.getSingleFlight().getWaitTimeout(),
+                    properties.getEviction().getRedis().getTopic(),
+                    new MicrometerCacheMetrics(null));
 
             evictor.evict(Set.of(key));
 

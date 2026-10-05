@@ -1,4 +1,5 @@
 package wiki.chiu.micro.user.application.service;
+
 import static wiki.chiu.micro.common.error.ExceptionMessage.USER_NOT_EXIST;
 
 import java.time.LocalDateTime;
@@ -7,13 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import wiki.chiu.micro.user.application.port.out.PasswordHasher;
-
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.application.model.UserDraft;
 import wiki.chiu.micro.user.application.model.UserView;
-import wiki.chiu.micro.user.application.port.in.UserRoleService;
 import wiki.chiu.micro.user.application.port.in.UserService;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
 import wiki.chiu.micro.user.application.port.out.UserReader;
@@ -33,27 +31,27 @@ public class UserServiceImpl implements UserService {
 
     private final UserWriter userRoleWrapper;
 
-    private final PasswordHasher passwordHasher;
-
     private final RoleReader roleRepository;
 
     private final UserRoleReader userRoleReader;
 
-    private final UserRoleService userRoleService;
+    private final UserDraftPersister userDrafts;
+
+    private final RoleCodeLookup roleCodes;
 
     public UserServiceImpl(
         UserReader userRepository,
         UserWriter userRoleWrapper,
-        PasswordHasher passwordHasher,
         RoleReader roleRepository,
         UserRoleReader userRoleReader,
-        UserRoleService userRoleService) {
+        UserDraftPersister userDrafts,
+        RoleCodeLookup roleCodes) {
         this.userRepository = userRepository;
         this.userRoleWrapper = userRoleWrapper;
-        this.passwordHasher = passwordHasher;
         this.roleRepository = roleRepository;
         this.userRoleReader = userRoleReader;
-        this.userRoleService = userRoleService;
+        this.userDrafts = userDrafts;
+        this.roleCodes = roleCodes;
     }
 
     @Override
@@ -61,27 +59,13 @@ public class UserServiceImpl implements UserService {
         User user =
             userRepository.findById(userId).orElseThrow(() -> new MissException(USER_NOT_EXIST));
 
-        List<String> roleCodes = userRoleService.findRoleCodesByUserId(userId);
-        return new UserView(user, roleCodes);
+        List<String> codes = roleCodes.codesOf(userId);
+        return new UserView(user, codes);
     }
 
     @Override
     public void saveOrUpdate(UserDraft userDraft) {
-        User dealUser = getUserEntity(userDraft);
-
-        UserDraft userReq =
-            userDraft.id() != null && !hasLength(userDraft.password())
-                ? userDraft.withPassword(dealUser.password())
-                : userDraft.withPassword(passwordHasher.hash(userDraft.password()));
-
-        User user = userReq.mergeInto(dealUser);
-
-        List<UserRole> userRoles =
-            roleRepository.findByCodeIn(userDraft.roles()).stream()
-                .map(role -> new UserRole(null, null, role.id(), null, null))
-                .toList();
-
-        userRoleWrapper.saveOrUpdate(user, userRoles);
+        userDrafts.save(userDraft);
     }
 
     @Override
@@ -131,10 +115,6 @@ public class UserServiceImpl implements UserService {
         userRoleWrapper.deleteUsers(ids);
     }
 
-    private static boolean hasLength(String value) {
-        return value != null && !value.isEmpty();
-    }
-
     private static Map<Long, List<String>> codesByUser(
         List<UserRole> userRoles, List<Role> roles) {
         return userRoles.stream()
@@ -160,11 +140,5 @@ public class UserServiceImpl implements UserService {
         Map<Long, LocalDateTime> merged = new HashMap<>(left);
         right.forEach((key, value) -> merged.merge(key, value, (l, r) -> l.isAfter(r) ? l : r));
         return merged;
-    }
-
-    private User getUserEntity(UserDraft userDraft) {
-        return userDraft.id() == null
-            ? User.blank()
-            : userRepository.findById(userDraft.id()).orElseGet(User::blank);
     }
 }

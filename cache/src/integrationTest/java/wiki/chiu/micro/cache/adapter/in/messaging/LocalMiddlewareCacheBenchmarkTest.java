@@ -47,12 +47,13 @@ import wiki.chiu.micro.cache.adapter.in.aop.CacheAspect;
 import wiki.chiu.micro.cache.adapter.out.eviction.RabbitCacheEvictor;
 import wiki.chiu.micro.cache.adapter.out.eviction.RedisCacheEvictor;
 import wiki.chiu.micro.cache.adapter.out.key.JacksonCacheKeyFactory;
+import wiki.chiu.micro.cache.adapter.out.metrics.MicrometerCacheMetrics;
+import wiki.chiu.micro.cache.adapter.out.redis.RedisCacheKeyRegistry;
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.config.CacheProperties;
 import wiki.chiu.micro.cache.key.CacheDescriptor;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
-import wiki.chiu.micro.cache.application.CacheMetrics;
 
 @EnabledIfEnvironmentVariable(named = "CACHE_LOCAL_MIDDLEWARE", matches = "true")
 class LocalMiddlewareCacheBenchmarkTest {
@@ -242,8 +243,9 @@ class LocalMiddlewareCacheBenchmarkTest {
                 firstRedis,
                 jsonMapper,
                 loadingReplica.localCache(),
-                properties,
-                new CacheMetrics(meterRegistry));
+                properties.getSingleFlight().getWaitTimeout(),
+                properties.getEviction().getRedis().getTopic(),
+                new MicrometerCacheMetrics(meterRegistry));
         String key =
             keyFactory.generate(new CacheDescriptor(CacheFixture.RACE_NAMESPACE, 1), "shared");
         listener.start();
@@ -295,8 +297,9 @@ class LocalMiddlewareCacheBenchmarkTest {
                     firstRedis,
                     jsonMapper,
                     publisherLocal,
-                    properties,
-                    new CacheMetrics(meterRegistry));
+                    properties.getSingleFlight().getWaitTimeout(),
+                    properties.getEviction().getRedis().getTopic(),
+                    new MicrometerCacheMetrics(meterRegistry));
             Metric metric =
                 measure(
                     "eviction.redis_reliable_topic_e2e",
@@ -351,8 +354,10 @@ class LocalMiddlewareCacheBenchmarkTest {
                     rabbitTemplate(connectionFactory),
                     redisson,
                     publisherLocal,
-                    properties,
-                    new CacheMetrics(meterRegistry));
+                    properties.getSingleFlight().getWaitTimeout(),
+                    properties.getEviction().getRabbit().getExchange(),
+                    properties.getEviction().getRabbit().getConfirmTimeout().toMillis(),
+                    new MicrometerCacheMetrics(meterRegistry));
             Metric metric =
                 measure(
                     "eviction.rabbit_confirmed_fanout_e2e",
@@ -382,6 +387,7 @@ class LocalMiddlewareCacheBenchmarkTest {
 
     private Replica replica(RedissonClient redisson, CacheFixture target) {
         Cache<String, LocalCacheEntry> local = localCache();
+        CacheProperties properties = properties();
         CacheAspect aspect =
             new CacheAspect(
                 redisson,
@@ -389,8 +395,10 @@ class LocalMiddlewareCacheBenchmarkTest {
                 keyFactory,
                 local,
                 Caffeine.newBuilder().maximumSize(10_000).build(),
-                properties(),
-                new CacheMetrics(meterRegistry));
+                properties.getSingleFlight().getWaitTimeout(),
+                properties.getLocal().getTtlJitter(),
+                new MicrometerCacheMetrics(meterRegistry),
+                new RedisCacheKeyRegistry(redisson));
         AspectJProxyFactory factory = new AspectJProxyFactory(target);
         factory.addAspect(aspect);
         return new Replica(factory.getProxy(), target, local);
