@@ -301,8 +301,8 @@ network operations.
 ## Frontend
 
 `micro-frontend` serves the public site and administration interface using Vue 3 and Bun. It is
-built and deployed independently of the Java and Rust services. The root `package.json` catalog
-manages JavaScript dependency versions, referenced by workspace packages through `catalog:`.
+built and deployed independently of the Java and Rust services. Dependency versions are declared
+directly in `micro-frontend/package.json` and resolved into the single root `bun.lock`.
 
 Public and administration routes are rendered on the Bun server and hydrated by Vue in the
 browser. Each SSR request creates isolated Vue Router, Pinia, i18n, head-management, and HTTP

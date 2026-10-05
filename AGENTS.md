@@ -51,7 +51,8 @@ Rust toolchain, Bun runtime, or source tree in a production image.
 | Cache | `cache` | Caffeine L1, Redis L2, and distributed eviction |
 
 The frontend is an independent Bun workspace outside Gradle and Cargo. Dependency versions belong
-in the root `package.json` catalog and `bun.lock`; workspace packages use `catalog:` references.
+in `micro-frontend/package.json` and the single root `bun.lock`; do not reintroduce a Bun
+`catalog`, because Dependabot's `bun` ecosystem skips `catalog:` references.
 
 ## Architecture Invariants
 

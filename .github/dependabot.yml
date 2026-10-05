@@ -13,6 +13,13 @@ updates:
       interval: "daily"
       time: "09:30"
       timezone: "Asia/Shanghai"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    groups:
+      cargo:
+        patterns:
+          - "*"
 
   # Gradle：仅根目录覆盖所有子项目（版本定义在根目录）
   - package-ecosystem: "gradle"
@@ -22,6 +29,13 @@ updates:
       interval: "daily"
       time: "09:30"
       timezone: "Asia/Shanghai"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    groups:
+      gradle:
+        patterns:
+          - "*"
 
   # Bun：根目录管理整个 JavaScript workspace 和唯一锁文件
   - package-ecosystem: "bun"
@@ -31,6 +45,13 @@ updates:
       interval: "daily"
       time: "09:40"
       timezone: "Asia/Shanghai"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    groups:
+      bun:
+        patterns:
+          - "*"
 
   # GitHub Actions：自动升级 workflow 中 uses 的版本引用
   - package-ecosystem: "github-actions"
