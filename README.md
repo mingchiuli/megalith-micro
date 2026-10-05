@@ -392,7 +392,7 @@ authentication, caching, observability, failure behavior, and deployment details
 Example on macOS:
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.3.4.1+1.1/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.4.4.1+1.1/Contents/Home
 ```
 
 ### Checks and Tests

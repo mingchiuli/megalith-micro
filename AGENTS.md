@@ -14,7 +14,7 @@ this file records the implementation constraints that are easy to miss.
 `JAVA_HOME` must point to a GraalVM HotSpot JDK, not the Espresso JVM. On macOS, for example:
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.3.4.1+1.1/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.4.4.1+1.1/Contents/Home
 ```
 
 ## Checks and Commands
