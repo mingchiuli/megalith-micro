@@ -30,9 +30,7 @@ class CachePackageStructureTest {
             .resideInAnyPackage(
                 "wiki.chiu.micro.cache.adapter..",
                 "wiki.chiu.micro.cache.application..",
-                "wiki.chiu.micro.cache.aot..",
-                "wiki.chiu.micro.cache.config..",
-                "wiki.chiu.micro.cache.metrics..")
+                "wiki.chiu.micro.cache.config..")
             .check(CLASSES);
     }
 

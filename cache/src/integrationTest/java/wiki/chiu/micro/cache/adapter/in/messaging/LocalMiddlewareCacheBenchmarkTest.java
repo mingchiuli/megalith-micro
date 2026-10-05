@@ -52,7 +52,7 @@ import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.config.CacheProperties;
 import wiki.chiu.micro.cache.key.CacheDescriptor;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
-import wiki.chiu.micro.cache.metrics.CacheMetrics;
+import wiki.chiu.micro.cache.application.CacheMetrics;
 
 @EnabledIfEnvironmentVariable(named = "CACHE_LOCAL_MIDDLEWARE", matches = "true")
 class LocalMiddlewareCacheBenchmarkTest {

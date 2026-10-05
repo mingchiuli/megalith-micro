@@ -21,7 +21,7 @@ import wiki.chiu.micro.cache.adapter.out.key.JacksonCacheKeyFactory;
 import wiki.chiu.micro.cache.adapter.out.redis.RedisCacheKeyRegistry;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
-import wiki.chiu.micro.cache.metrics.CacheMetrics;
+import wiki.chiu.micro.cache.application.CacheMetrics;
 
 @AutoConfiguration
 @EnableConfigurationProperties(CacheProperties.class)

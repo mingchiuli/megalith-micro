@@ -38,7 +38,6 @@ module wiki.chiu.micro.cache {
 
     // Implementation packages - opened for Spring reflection only
     opens wiki.chiu.micro.cache.config;
-    opens wiki.chiu.micro.cache.aot;
     opens wiki.chiu.micro.cache.application.model;
     opens wiki.chiu.micro.cache.adapter.in.aop;
     opens wiki.chiu.micro.cache.adapter.in.messaging;

@@ -25,7 +25,7 @@ import org.redisson.api.RedissonClient;
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.config.CacheProperties;
-import wiki.chiu.micro.cache.metrics.CacheMetrics;
+import wiki.chiu.micro.cache.application.CacheMetrics;
 
 class CacheEvictorTest {
 

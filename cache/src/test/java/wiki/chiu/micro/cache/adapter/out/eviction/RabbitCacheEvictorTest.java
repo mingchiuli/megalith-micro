@@ -21,7 +21,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 import wiki.chiu.micro.cache.config.CacheProperties;
-import wiki.chiu.micro.cache.metrics.CacheMetrics;
+import wiki.chiu.micro.cache.application.CacheMetrics;
 
 class RabbitCacheEvictorTest {
 

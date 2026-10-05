@@ -32,7 +32,7 @@ import wiki.chiu.micro.cache.adapter.out.eviction.RabbitCacheEvictor;
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.handler.CacheEvictor;
-import wiki.chiu.micro.cache.metrics.CacheMetrics;
+import wiki.chiu.micro.cache.application.CacheMetrics;
 
 @AutoConfiguration
 @ConditionalOnClass({ConnectionFactory.class, RabbitAutoConfiguration.class})

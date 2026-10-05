@@ -35,7 +35,7 @@ import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.config.CacheProperties;
 import wiki.chiu.micro.cache.key.CacheDescriptor;
-import wiki.chiu.micro.cache.metrics.CacheMetrics;
+import wiki.chiu.micro.cache.application.CacheMetrics;
 
 @Testcontainers(disabledWithoutDocker = true)
 class TrackedCacheIntegrationTest {

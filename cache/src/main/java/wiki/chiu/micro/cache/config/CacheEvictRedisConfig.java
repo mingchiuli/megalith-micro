@@ -16,7 +16,7 @@ import wiki.chiu.micro.cache.adapter.in.messaging.RedisCacheEvictMessageListener
 import wiki.chiu.micro.cache.adapter.out.eviction.RedisCacheEvictor;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.handler.CacheEvictor;
-import wiki.chiu.micro.cache.metrics.CacheMetrics;
+import wiki.chiu.micro.cache.application.CacheMetrics;
 
 @AutoConfiguration
 @AutoConfigureAfter(CacheEvictRabbitConfig.class)

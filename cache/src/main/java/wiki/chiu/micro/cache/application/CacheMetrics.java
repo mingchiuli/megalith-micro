@@ -1,4 +1,4 @@
-package wiki.chiu.micro.cache.metrics;
+package wiki.chiu.micro.cache.application;
 
 import io.micrometer.core.instrument.MeterRegistry;
 

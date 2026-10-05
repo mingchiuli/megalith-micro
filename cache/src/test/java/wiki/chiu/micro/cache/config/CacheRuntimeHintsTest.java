@@ -1,4 +1,4 @@
-package wiki.chiu.micro.cache.aot;
+package wiki.chiu.micro.cache.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

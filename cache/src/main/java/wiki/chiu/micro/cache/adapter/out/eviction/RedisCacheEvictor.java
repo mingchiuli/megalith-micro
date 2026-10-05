@@ -10,7 +10,7 @@ import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.config.CacheProperties;
-import wiki.chiu.micro.cache.metrics.CacheMetrics;
+import wiki.chiu.micro.cache.application.CacheMetrics;
 
 public final class RedisCacheEvictor extends AbstractCacheEvictor {
 

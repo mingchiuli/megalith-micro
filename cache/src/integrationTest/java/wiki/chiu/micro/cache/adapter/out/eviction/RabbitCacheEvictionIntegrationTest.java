@@ -34,7 +34,7 @@ import wiki.chiu.micro.cache.adapter.in.messaging.RabbitCacheEvictMessageListene
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
 import wiki.chiu.micro.cache.config.CacheProperties;
-import wiki.chiu.micro.cache.metrics.CacheMetrics;
+import wiki.chiu.micro.cache.application.CacheMetrics;
 
 @Testcontainers(disabledWithoutDocker = true)
 class RabbitCacheEvictionIntegrationTest {
