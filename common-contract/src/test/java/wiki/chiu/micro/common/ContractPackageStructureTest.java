@@ -37,4 +37,24 @@ class ContractPackageStructureTest {
                 "wiki.chiu.micro.common.enums.StatusEnum",
                 "wiki.chiu.micro.common.constant.Const");
     }
+
+    @Test
+    void everyDeclaredContractKindIsUsed() {
+        for (String kind :
+            java.util.List.of(
+                "constant",
+                "enums",
+                "error",
+                "exception",
+                "message",
+                "model",
+                "page",
+                "result",
+                "security",
+                "validation")) {
+            assertThat(CLASSES.stream().map(JavaClass::getPackageName))
+                .as("contract kind %s holds at least one contract", kind)
+                .contains("wiki.chiu.micro.common." + kind);
+        }
+    }
 }
