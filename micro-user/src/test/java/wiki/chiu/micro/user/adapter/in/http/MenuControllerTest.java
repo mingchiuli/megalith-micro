@@ -1,5 +1,6 @@
 package wiki.chiu.micro.user.adapter.in.http;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
@@ -27,6 +28,7 @@ import wiki.chiu.micro.common.error.ExceptionMessage;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.user.application.model.MenuExport;
 import wiki.chiu.micro.user.application.port.in.MenuAuthorityService;
 import wiki.chiu.micro.user.application.port.in.MenuService;
 import wiki.chiu.micro.user.domain.Menu;
@@ -93,13 +95,21 @@ class MenuControllerTest {
     }
 
     @Test
-    void downloadReturnsBytes() throws Exception {
-        when(menuService.download()).thenReturn(new byte[]{0, 1});
+    void downloadRendersTheMenuExport() throws Exception {
+        when(menuService.export())
+            .thenReturn(
+                new MenuExport(
+                    List.of(
+                        new Menu(
+                            4L, 0L, "title", "menu", "/url", "comp", 1, "icon", 9, 1, null,
+                            null)),
+                    List.of()));
 
         mockMvc
             .perform(get("/sys/menu/download"))
             .andExpect(status().isOk())
-            .andExpect(content().bytes(new byte[]{0, 1}));
+            .andExpect(content().string(containsString("INSERT INTO m_menu")))
+            .andExpect(content().string(containsString("'/url'")));
     }
 
     @Test

@@ -10,8 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,6 +20,7 @@ import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
 import wiki.chiu.micro.blog.application.model.BlogDownloadQuery;
+import wiki.chiu.micro.blog.application.model.BlogExportPage;
 import wiki.chiu.micro.blog.application.model.BlogQuery;
 import wiki.chiu.micro.blog.application.model.BlogSearchResult;
 
@@ -61,14 +60,15 @@ class BlogSearchReadbackTest {
         when(search.countBlogs(any())).thenReturn(3L);
         when(search.searchBlogs(any())).thenReturn(page(List.of(3L, 2L, 1L)));
         when(blogs.findAllById(List.of(3L, 2L, 1L))).thenReturn(List.of(blog(1, 42), blog(2, 99), blog(3, 42)));
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        new BlogExportServiceImpl(blogs, search).write(
-            new BlogDownloadQuery(null, null, null, null), 42L, List.of(), output);
+        List<BlogExportPage> pages =
+            new BlogExportServiceImpl(blogs, search)
+                .pages(new BlogDownloadQuery(null, null, null, null), 42L, List.of())
+                .toList();
 
-        String sql = output.toString(StandardCharsets.UTF_8);
-        assertThat(sql).contains("article-1", "article-3").doesNotContain("article-2");
-        assertThat(sql.indexOf("article-3")).isLessThan(sql.indexOf("article-1"));
+        assertThat(pages).hasSize(1);
+        assertThat(pages.getFirst().blogs()).extracting(Blog::id).containsExactly(3L, 1L);
+        assertThat(pages.getFirst().sensitiveContent()).isEmpty();
         verify(blogs).findSensitiveByBlogIds(List.of(3L, 1L));
     }
 

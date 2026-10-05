@@ -1,4 +1,4 @@
-package wiki.chiu.micro.blog.application.model;
+package wiki.chiu.micro.blog.adapter.in.http;
 
 import static wiki.chiu.micro.common.constant.Const.BLOG_SENSITIVE_TABLE;
 import static wiki.chiu.micro.common.constant.Const.BLOG_TABLE;
@@ -9,8 +9,8 @@ import wiki.chiu.micro.common.export.SqlColumn;
 import wiki.chiu.micro.common.export.SqlTable;
 
 /**
- * Explicit SQL export column definitions for the blog service tables, expressed over the domain
- * model so the export use case never needs the persisted entities.
+ * The physical tables and columns of the SQL script the download endpoint delivers, mapped from the
+ * exported domain rows.
  */
 public final class SqlTables {
 

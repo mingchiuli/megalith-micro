@@ -1,4 +1,4 @@
-package wiki.chiu.micro.blog.export;
+package wiki.chiu.micro.blog.adapter.in.http;
 
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.SensitiveContent;
@@ -9,7 +9,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import wiki.chiu.micro.blog.application.model.SqlTables;
 import wiki.chiu.micro.common.export.SQLUtils;
 
 /**

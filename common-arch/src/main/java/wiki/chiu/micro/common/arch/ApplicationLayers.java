@@ -30,7 +30,11 @@ import java.util.stream.Collectors;
  */
 public final class ApplicationLayers {
 
-    /** Framework and infrastructure packages that the core layers must not touch. */
+    /**
+     * Framework and infrastructure packages that the core layers must not touch. The export
+     * renderer is included because the SQL script belongs to the adapter that offers the download,
+     * not to the use case that selects the rows.
+     */
     private static final String[] CORE_BANNED = {
         "org.springframework..",
         "org.hibernate..",
@@ -40,6 +44,7 @@ public final class ApplicationLayers {
         "com.fasterxml.jackson..",
         "io.micrometer..",
         "co.elastic.clients..",
+        "wiki.chiu.micro.common.export..",
         "wiki.chiu.micro.common.rpc..",
         "wiki.chiu.micro.common.web..",
         "wiki.chiu.micro.common.auth.web..",

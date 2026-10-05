@@ -5,9 +5,8 @@ import java.util.List;
 
 import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.export.SQLUtils;
 import wiki.chiu.micro.user.application.model.AuthorityDraft;
-import wiki.chiu.micro.user.application.model.SqlTables;
+import wiki.chiu.micro.user.application.model.AuthorityExport;
 import wiki.chiu.micro.user.application.port.in.AuthorityService;
 import wiki.chiu.micro.user.application.port.out.AuthorityReader;
 import wiki.chiu.micro.user.application.port.out.AuthorityWriter;
@@ -67,14 +66,11 @@ public class AuthorityServiceImpl implements AuthorityService {
     }
 
     @Override
-    public byte[] download() {
+    public AuthorityExport export() {
         List<Authority> authorities = authorityRepository.findAll();
         List<MenuAuthority> menuAuthorities = menuAuthorityReader.findAll();
 
-        return SQLUtils.compose(
-                SQLUtils.insertSql(authorities, SqlTables.AUTHORITY),
-                SQLUtils.insertSql(menuAuthorities, SqlTables.MENU_AUTHORITY))
-            .getBytes();
+        return new AuthorityExport(authorities, menuAuthorities);
     }
 
     private List<Long> findAllRoleIds() {

@@ -5,6 +5,7 @@ import java.util.List;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.application.model.RoleAuthorization;
 import wiki.chiu.micro.user.application.model.RoleDraft;
+import wiki.chiu.micro.user.application.model.RoleExport;
 import wiki.chiu.micro.user.application.model.RoleView;
 import wiki.chiu.micro.user.domain.Role;
 
@@ -26,5 +27,5 @@ public interface RoleService {
 
     List<RoleAuthorization> findRoleAuthorizations(List<Long> roleIds);
 
-    byte[] download();
+    RoleExport export();
 }

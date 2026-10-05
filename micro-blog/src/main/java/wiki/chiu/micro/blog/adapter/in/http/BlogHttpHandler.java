@@ -4,7 +4,11 @@ import static wiki.chiu.micro.common.auth.web.AuthWeb.authPrincipal;
 import static wiki.chiu.micro.common.web.FunctionalWeb.*;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -14,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
+import wiki.chiu.micro.blog.application.model.BlogExportPage;
 import wiki.chiu.micro.blog.application.model.UploadObject;
 import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
 import wiki.chiu.micro.blog.application.port.in.BlogCollaborationService;
@@ -162,11 +167,20 @@ public class BlogHttpHandler {
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=blogs.sql")
             .build(
                 (_, response) -> {
-                    exportService.write(
-                        BlogRequestConvertor.toDownloadQuery(downloadReq),
-                        authInfo.userId(),
-                        authInfo.dataPermissions(),
-                        response.getOutputStream());
+                    try (Stream<BlogExportPage> pages =
+                        exportService.pages(
+                            BlogRequestConvertor.toDownloadQuery(downloadReq),
+                            authInfo.userId(),
+                            authInfo.dataPermissions())) {
+                        OutputStreamWriter writer =
+                            new OutputStreamWriter(
+                                response.getOutputStream(), StandardCharsets.UTF_8);
+                        Iterator<BlogExportPage> export = pages.iterator();
+                        while (export.hasNext()) {
+                            writer.write(SqlExportMapper.toSql(export.next()));
+                        }
+                        writer.flush();
+                    }
                     return null;
                 });
     }

@@ -1,4 +1,4 @@
-package wiki.chiu.micro.user.application.model;
+package wiki.chiu.micro.user.adapter.in.http;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

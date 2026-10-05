@@ -15,10 +15,9 @@ import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.enums.TypeEnum;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.export.SQLUtils;
 import wiki.chiu.micro.user.application.model.MenuDraft;
+import wiki.chiu.micro.user.application.model.MenuExport;
 import wiki.chiu.micro.user.application.model.MenuNode;
-import wiki.chiu.micro.user.application.model.SqlTables;
 import wiki.chiu.micro.user.application.port.in.MenuService;
 import wiki.chiu.micro.user.application.port.out.MenuReader;
 import wiki.chiu.micro.user.application.port.out.MenuWriter;
@@ -90,13 +89,10 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    public byte[] download() {
-        List<Menu> menuEntities = menuRepository.findAll();
-        List<RoleMenu> roleMenuEntities = roleMenuReader.findAll();
-        return SQLUtils.compose(
-                SQLUtils.insertSql(menuEntities, SqlTables.MENU),
-                SQLUtils.insertSql(roleMenuEntities, SqlTables.ROLE_MENU))
-            .getBytes();
+    public MenuExport export() {
+        List<Menu> menus = menuRepository.findAll();
+        List<RoleMenu> roleMenus = roleMenuReader.findAll();
+        return new MenuExport(menus, roleMenus);
     }
 
     @Override

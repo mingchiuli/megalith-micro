@@ -110,10 +110,6 @@ public class UserHttpHandler {
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=users.sql")
-            .build(
-                (_, response) -> {
-                    exportService.write(response.getOutputStream());
-                    return null;
-                });
+            .body(SqlExportMapper.toUserSql(exportService.export()));
     }
 }

@@ -1,8 +1,8 @@
 package wiki.chiu.micro.user.application.port.in;
 
-import java.io.OutputStream;
+import wiki.chiu.micro.user.application.model.UserExport;
 
 public interface UserExportService {
 
-    void write(OutputStream outputStream);
+    UserExport export();
 }

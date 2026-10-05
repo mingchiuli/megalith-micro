@@ -1,11 +1,6 @@
 package wiki.chiu.micro.user.application.service;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
-
-import wiki.chiu.micro.common.export.SQLUtils;
-import wiki.chiu.micro.user.application.model.SqlTables;
+import wiki.chiu.micro.user.application.model.UserExport;
 import wiki.chiu.micro.user.application.port.in.UserExportService;
 import wiki.chiu.micro.user.application.port.out.UserReader;
 
@@ -18,13 +13,7 @@ public class UserExportServiceImpl implements UserExportService {
     }
 
     @Override
-    public void write(OutputStream outputStream) {
-        String sql = SQLUtils.insertSql(users.findAll(), SqlTables.USER);
-        try {
-            outputStream.write(sql.getBytes(StandardCharsets.UTF_8));
-            outputStream.flush();
-        } catch (IOException exception) {
-            throw new IllegalStateException("failed to write user export", exception);
-        }
+    public UserExport export() {
+        return new UserExport(users.findAll());
     }
 }

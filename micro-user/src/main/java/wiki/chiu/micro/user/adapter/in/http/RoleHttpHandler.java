@@ -100,7 +100,7 @@ public class RoleHttpHandler {
     }
 
     public ServerResponse download(ServerRequest request) {
-        return ok(roleService.download());
+        return ok(SqlExportMapper.toRoleSql(roleService.export()));
     }
 
     public ServerResponse getValidAll(ServerRequest request) {

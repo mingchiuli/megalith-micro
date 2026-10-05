@@ -58,7 +58,7 @@ public class MenuHttpHandler {
     }
 
     public ServerResponse download(ServerRequest request) {
-        return ok(menuService.download());
+        return ok(SqlExportMapper.toMenuSql(menuService.export()));
     }
 
     public ServerResponse saveAuthority(ServerRequest request) throws Exception {

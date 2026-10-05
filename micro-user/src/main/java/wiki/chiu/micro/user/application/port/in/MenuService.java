@@ -3,6 +3,7 @@ package wiki.chiu.micro.user.application.port.in;
 import java.util.List;
 
 import wiki.chiu.micro.user.application.model.MenuDraft;
+import wiki.chiu.micro.user.application.model.MenuExport;
 import wiki.chiu.micro.user.application.model.MenuNode;
 import wiki.chiu.micro.user.domain.Menu;
 
@@ -18,5 +19,5 @@ public interface MenuService {
 
     void delete(Long id);
 
-    byte[] download();
+    MenuExport export();
 }

@@ -1,6 +1,8 @@
 package wiki.chiu.micro.blog.adapter.in.http;
 
+import wiki.chiu.micro.blog.application.model.BlogExportPage;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -13,10 +15,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +36,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
+import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.BlogFixtures;
 import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
 import wiki.chiu.micro.blog.application.port.in.BlogCollaborationService;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
@@ -117,6 +125,34 @@ class BlogControllerTest {
                 post("/sys/blog/delete").contentType(MediaType.APPLICATION_JSON).content("[1,2,3]"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200));
+    }
+
+    @Test
+    void downloadStreamsTheBlogExportAsAnAttachment() throws Exception {
+        LocalDateTime created = LocalDateTime.of(2026, 9, 1, 12, 0);
+        Blog blog =
+            BlogFixtures.builder()
+                .id(1L)
+                .userId(1L)
+                .title("t")
+                .description("d")
+                .content("c")
+                .link("")
+                .created(created)
+                .updated(created)
+                .status(0)
+                .readCount(0L)
+                .eventRevision(1L)
+                .build();
+        when(exportService.pages(any(), anyLong(), any()))
+            .thenReturn(Stream.of(new BlogExportPage(List.of(blog), List.of())));
+
+        mockMvc
+            .perform(get("/sys/blog/download"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=blogs.sql"))
+            .andExpect(content().string(containsString("INSERT INTO m_blog")))
+            .andExpect(content().string(containsString("'t'")));
     }
 
     @Test

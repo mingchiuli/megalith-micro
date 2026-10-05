@@ -1,5 +1,6 @@
 package wiki.chiu.micro.user.adapter.in.http;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -13,8 +14,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,10 +36,12 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.user.application.model.UserExport;
 import wiki.chiu.micro.user.application.port.in.RegistrationService;
 import wiki.chiu.micro.user.application.port.in.UserAssetService;
 import wiki.chiu.micro.user.application.port.in.UserExportService;
 import wiki.chiu.micro.user.application.port.in.UserService;
+import wiki.chiu.micro.user.domain.User;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
@@ -133,6 +140,24 @@ class UserControllerTest {
                     .content("{\"url\":\"https://oss/x.png\",\"token\":\"tk\"}"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200));
+    }
+
+    @Test
+    void downloadRendersTheUserExportAsAnAttachment() throws Exception {
+        when(exportService.export())
+            .thenReturn(
+                new UserExport(
+                    List.of(
+                        new User(
+                            1L, "alice", "nick", "avatar", "a@b.com", "138", "pwd", 1, null,
+                            null, null, null))));
+
+        mockMvc
+            .perform(get("/sys/user/download"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Content-Disposition", "attachment; filename=users.sql"))
+            .andExpect(content().string(containsString("INSERT INTO m_user")))
+            .andExpect(content().string(containsString("'alice'")));
     }
 
     @Test

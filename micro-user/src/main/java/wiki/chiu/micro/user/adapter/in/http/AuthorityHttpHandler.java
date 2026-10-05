@@ -49,6 +49,6 @@ public class AuthorityHttpHandler {
     }
 
     public ServerResponse download(ServerRequest request) {
-        return ok(authorityService.download());
+        return ok(SqlExportMapper.toAuthoritySql(authorityService.export()));
     }
 }

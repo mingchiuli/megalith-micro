@@ -1,5 +1,6 @@
 package wiki.chiu.micro.user.adapter.in.http;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
@@ -25,6 +26,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.user.application.model.AuthorityExport;
 import wiki.chiu.micro.user.application.port.in.AuthorityService;
 import wiki.chiu.micro.user.domain.Authority;
 
@@ -112,13 +114,31 @@ class AuthorityControllerTest {
     }
 
     @Test
-    void downloadReturnsBytes() throws Exception {
-        when(authorityService.download()).thenReturn(new byte[]{9});
+    void downloadRendersTheAuthorityExport() throws Exception {
+        when(authorityService.export())
+            .thenReturn(
+                new AuthorityExport(
+                    List.of(
+                        new Authority(
+                            6L,
+                            "code",
+                            "remark",
+                            "proto",
+                            "GET",
+                            "/inner/x",
+                            "micro-user",
+                            8086,
+                            null,
+                            null,
+                            2,
+                            1)),
+                    List.of()));
 
         mockMvc
             .perform(get("/sys/authority/download"))
             .andExpect(status().isOk())
-            .andExpect(content().bytes(new byte[]{9}));
+            .andExpect(content().string(containsString("INSERT INTO m_authority")))
+            .andExpect(content().string(containsString("'/inner/x'")));
     }
 
     @Test

@@ -290,8 +290,10 @@ carry no Spring annotations and are declared as beans there.
 Input adapters call ports, and application services call output ports. Spring Data, Redisson,
 remote HTTP contracts, and storage clients stay behind output adapters. Application services
 prepare inputs and coordinate use cases; persistence adapters own the short transactions that
-commit domain writes and outbox entries. `common-arch` runs the shared dependency, transaction, and
-package-layout rules for every application, and a service adds only the rules it needs on top.
+commit domain writes and outbox entries. An export or download use case returns the rows to export,
+and the adapter that offers the download renders the script with `common-export` and writes the
+response. `common-arch` runs the shared dependency, transaction, and package-layout rules for every
+application, and a service adds only the rules it needs on top.
 
 ### Rust application boundaries
 

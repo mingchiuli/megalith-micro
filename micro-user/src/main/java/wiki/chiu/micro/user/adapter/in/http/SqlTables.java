@@ -1,4 +1,4 @@
-package wiki.chiu.micro.user.application.model;
+package wiki.chiu.micro.user.adapter.in.http;
 
 import static wiki.chiu.micro.common.constant.Const.AUTHORITY_TABLE;
 import static wiki.chiu.micro.common.constant.Const.MENU_AUTHORITY_TABLE;
@@ -21,7 +21,8 @@ import wiki.chiu.micro.user.domain.User;
 import wiki.chiu.micro.user.domain.UserRole;
 
 /**
- * Explicit SQL export column definitions for the user service tables.
+ * The physical tables and columns of the SQL scripts the download endpoints deliver, mapped from
+ * the exported domain rows.
  */
 public final class SqlTables {
 

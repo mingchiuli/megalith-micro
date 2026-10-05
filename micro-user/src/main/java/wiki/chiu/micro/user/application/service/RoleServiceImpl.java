@@ -12,12 +12,11 @@ import java.util.stream.Stream;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.export.SQLUtils;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.application.model.RoleAuthorization;
 import wiki.chiu.micro.user.application.model.RoleDraft;
+import wiki.chiu.micro.user.application.model.RoleExport;
 import wiki.chiu.micro.user.application.model.RoleView;
-import wiki.chiu.micro.user.application.model.SqlTables;
 import wiki.chiu.micro.user.application.port.in.RoleService;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
 import wiki.chiu.micro.user.application.port.out.RoleMenuReader;
@@ -155,16 +154,12 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public byte[] download() {
-        List<Role> roleEntities = roleRepository.findAll();
-        List<UserRole> userRoleEntities = userRoleReader.findAll();
+    public RoleExport export() {
+        List<Role> roles = roleRepository.findAll();
+        List<UserRole> userRoles = userRoleReader.findAll();
         List<RoleDataPermission> dataPermissions = roleDataPermissionRepository.findAll();
 
-        return SQLUtils.compose(
-                SQLUtils.insertSql(roleEntities, SqlTables.ROLE),
-                SQLUtils.insertSql(userRoleEntities, SqlTables.USER_ROLE),
-                SQLUtils.insertSql(dataPermissions, SqlTables.ROLE_DATA_PERMISSION))
-            .getBytes();
+        return new RoleExport(roles, userRoles, dataPermissions);
     }
 
     @Override

@@ -1,25 +1,21 @@
 package wiki.chiu.micro.blog.application.service;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import wiki.chiu.micro.blog.application.model.BlogDownloadQuery;
+import wiki.chiu.micro.blog.application.model.BlogExportPage;
 import wiki.chiu.micro.blog.application.model.BlogSearchQuery;
-import wiki.chiu.micro.blog.application.model.BlogSearchResult;
 import wiki.chiu.micro.blog.application.model.BlogSearchSelection;
-import wiki.chiu.micro.blog.application.model.SqlTables;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.SensitiveContent;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
-import wiki.chiu.micro.common.export.SQLUtils;
 
 public class BlogExportServiceImpl implements BlogExportService {
 
@@ -35,11 +31,8 @@ public class BlogExportServiceImpl implements BlogExportService {
     }
 
     @Override
-    public void write(
-        BlogDownloadQuery query,
-        Long userId,
-        List<DataPermissionEnum> dataPermissions,
-        OutputStream outputStream) {
+    public Stream<BlogExportPage> pages(
+        BlogDownloadQuery query, Long userId, List<DataPermissionEnum> dataPermissions) {
         boolean allData = dataPermissions.contains(DataPermissionEnum.BLOG_EXPORT_ALL);
         BlogSearchSelection selection =
             new BlogSearchSelection(
@@ -47,26 +40,17 @@ public class BlogExportServiceImpl implements BlogExportService {
         long total = search.countBlogs(new BlogSearchQuery(0, 0, query.keywords(), selection));
         long pageCount = (total + PAGE_SIZE - 1) / PAGE_SIZE;
 
-        try {
-            OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-            for (int page = 1; page <= pageCount; page++) {
-                writePage(
-                    search.searchBlogs(new BlogSearchQuery(page, PAGE_SIZE, query.keywords(), selection)),
-                    selection,
-                    writer);
-            }
-            writer.flush();
-        } catch (IOException exception) {
-            throw new IllegalStateException("failed to write blog export", exception);
-        }
+        return IntStream.rangeClosed(1, Math.toIntExact(pageCount))
+            .mapToObj(page -> loadPage(page, query, selection));
     }
 
-    private void writePage(
-        BlogSearchResult result, BlogSearchSelection selection, OutputStreamWriter writer)
-        throws IOException {
-        List<Long> ids = result.ids();
+    private BlogExportPage loadPage(
+        int page, BlogDownloadQuery query, BlogSearchSelection selection) {
+        List<Long> ids =
+            search.searchBlogs(new BlogSearchQuery(page, PAGE_SIZE, query.keywords(), selection))
+                .ids();
         if (ids.isEmpty()) {
-            return;
+            return new BlogExportPage(List.of(), List.of());
         }
         Map<Long, Integer> order = new HashMap<>();
         for (int index = 0; index < ids.size(); index++) {
@@ -84,15 +68,7 @@ public class BlogExportServiceImpl implements BlogExportService {
         List<Long> currentIds = pageBlogs.stream().map(Blog::id).toList();
         List<SensitiveContent> pageSensitive =
             currentIds.isEmpty() ? List.of() : blogs.findSensitiveByBlogIds(currentIds);
-        writeStatement(writer, SQLUtils.insertSql(pageBlogs, SqlTables.BLOG));
-        writeStatement(writer, SQLUtils.insertSql(pageSensitive, SqlTables.BLOG_SENSITIVE));
-    }
 
-    private static void writeStatement(OutputStreamWriter writer, String statement)
-        throws IOException {
-        if (!statement.isBlank()) {
-            writer.write(statement);
-            writer.write(System.lineSeparator());
-        }
+        return new BlogExportPage(pageBlogs, pageSensitive);
     }
 }

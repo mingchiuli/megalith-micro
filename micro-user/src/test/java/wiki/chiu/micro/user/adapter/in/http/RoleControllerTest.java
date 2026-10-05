@@ -1,5 +1,6 @@
 package wiki.chiu.micro.user.adapter.in.http;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -31,6 +32,7 @@ import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.application.port.in.RoleDataPermissionService;
 import wiki.chiu.micro.user.application.port.in.RoleMenuService;
 import wiki.chiu.micro.user.application.port.in.RoleService;
+import wiki.chiu.micro.user.application.model.RoleExport;
 import wiki.chiu.micro.user.application.model.RoleView;
 import wiki.chiu.micro.user.domain.Role;
 
@@ -219,13 +221,19 @@ class RoleControllerTest {
     }
 
     @Test
-    void downloadReturnsBytes() throws Exception {
-        when(roleService.download()).thenReturn(new byte[]{1, 2, 3});
+    void downloadRendersTheRoleExport() throws Exception {
+        when(roleService.export())
+            .thenReturn(
+                new RoleExport(
+                    List.of(new Role(2L, "admin", "ADMIN", null, null, null, 1)),
+                    List.of(),
+                    List.of()));
 
         mockMvc
             .perform(get("/sys/role/download"))
             .andExpect(status().isOk())
-            .andExpect(content().bytes(new byte[]{1, 2, 3}));
+            .andExpect(content().string(containsString("INSERT INTO m_role")))
+            .andExpect(content().string(containsString("'ADMIN'")));
     }
 
     @Test
