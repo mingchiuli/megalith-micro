@@ -4,10 +4,10 @@ import java.util.List;
 
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.exhibit.vo.BlogDescriptionVo;
-import wiki.chiu.micro.exhibit.vo.BlogExhibitVo;
-import wiki.chiu.micro.exhibit.vo.BlogHotReadVo;
-import wiki.chiu.micro.exhibit.vo.VisitStatisticsVo;
+import wiki.chiu.micro.exhibit.application.model.BlogDescription;
+import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
+import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
+import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 
 /**
  * @author mingchiuli
@@ -15,13 +15,13 @@ import wiki.chiu.micro.exhibit.vo.VisitStatisticsVo;
  */
 public interface BlogService {
 
-    PageAdapter<BlogDescriptionVo> findPage(Integer currentPage);
+    PageAdapter<BlogDescription> findPage(Integer currentPage);
 
-    BlogExhibitVo getLockedBlog(Long blogId, String token);
+    BlogExhibit getLockedBlog(Long blogId, String token);
 
-    VisitStatisticsVo getVisitStatistics();
+    VisitStatistics getVisitStatistics();
 
-    List<BlogHotReadVo> getScoreBlogs();
+    List<BlogHotRead> getScoreBlogs();
 
-    BlogExhibitVo getBlogDetail(List<DataPermissionEnum> dataPermissions, Long id, Long userId);
+    BlogExhibit getBlogDetail(List<DataPermissionEnum> dataPermissions, Long id, Long userId);
 }

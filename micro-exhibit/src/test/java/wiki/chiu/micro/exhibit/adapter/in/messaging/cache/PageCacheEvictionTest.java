@@ -18,7 +18,7 @@ import org.mockito.ArgumentCaptor;
 
 import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.cache.handler.CacheKeyRegistry;
-import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;
+import wiki.chiu.micro.exhibit.domain.BlogCacheDescriptors;
 
 class PageCacheEvictionTest {
 

@@ -9,6 +9,7 @@ import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.rpc.RemoteResult;
+import wiki.chiu.micro.exhibit.application.model.BlogSummary;
 import wiki.chiu.micro.exhibit.application.port.out.BlogCatalog;
 
 /**
@@ -28,13 +29,14 @@ public class BlogHttpServiceWrapper implements BlogCatalog {
         return RemoteResult.requireSuccess(() -> blogHttpService.findIdsAfter(afterId, limit));
     }
 
-    public BlogEntityRpcVo findById(Long blogId) {
-        return RemoteResult.requireSuccess(() -> blogHttpService.findById(blogId));
+    @Override
+    public List<BlogSummary> findAllById(List<Long> ids) {
+        return BlogHttpMapper.toSummaries(
+            RemoteResult.requireSuccess(() -> blogHttpService.findAllById(ids)));
     }
 
-    @Override
-    public List<BlogEntityRpcVo> findAllById(List<Long> ids) {
-        return RemoteResult.requireSuccess(() -> blogHttpService.findAllById(ids));
+    public BlogEntityRpcVo findById(Long blogId) {
+        return RemoteResult.requireSuccess(() -> blogHttpService.findById(blogId));
     }
 
     public Long count() {

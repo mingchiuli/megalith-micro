@@ -13,7 +13,6 @@ import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
-import wiki.chiu.micro.exhibit.req.ReadTokenReq;
 
 @Component
 public class BlogExhibitHttpHandler {
@@ -38,13 +37,16 @@ public class BlogExhibitHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    blogService.getBlogDetail(authInfo.dataPermissions(), blogId, authInfo.userId())));
+                    ExhibitResponseMapper.toVo(
+                        blogService.getBlogDetail(
+                            authInfo.dataPermissions(), blogId, authInfo.userId()))));
     }
 
     public ServerResponse getPage(ServerRequest request) {
         Integer currentPage =
             v.positive(pathVariable(request, "currentPage", Integer::valueOf), "currentPage");
-        return ok(Result.success(() -> blogService.findPage(currentPage)));
+        return ok(
+            Result.success(() -> ExhibitResponseMapper.toVo(blogService.findPage(currentPage))));
     }
 
     public ServerResponse getLockedBlog(ServerRequest request) throws Exception {
@@ -52,14 +54,16 @@ public class BlogExhibitHttpHandler {
         blogExistenceService.check(blogId);
         ReadTokenReq body = request.body(ReadTokenReq.class);
         String token = v.notBlank(body.readToken(), "readToken");
-        return ok(Result.success(blogService.getLockedBlog(blogId, token)));
+        return ok(
+            Result.success(
+                () -> ExhibitResponseMapper.toVo(blogService.getLockedBlog(blogId, token))));
     }
 
     public ServerResponse getVisitStatistics(ServerRequest request) {
-        return ok(Result.success(blogService::getVisitStatistics));
+        return ok(Result.success(() -> ExhibitResponseMapper.toVo(blogService.getVisitStatistics())));
     }
 
     public ServerResponse getScoreBlogs(ServerRequest request) {
-        return ok(Result.success(blogService::getScoreBlogs));
+        return ok(Result.success(() -> ExhibitResponseMapper.toHotReadVos(blogService.getScoreBlogs())));
     }
 }

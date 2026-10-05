@@ -1,4 +1,4 @@
-package wiki.chiu.micro.exhibit.controller;
+package wiki.chiu.micro.exhibit.adapter.in.http;
 
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -25,13 +25,11 @@ import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.exhibit.adapter.in.http.BlogExhibitHttpHandler;
-import wiki.chiu.micro.exhibit.adapter.in.http.ExhibitRoutes;
+import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
+import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
+import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
-import wiki.chiu.micro.exhibit.vo.BlogExhibitVo;
-import wiki.chiu.micro.exhibit.vo.BlogHotReadVo;
-import wiki.chiu.micro.exhibit.vo.VisitStatisticsVo;
 
 @ExtendWith(MockitoExtension.class)
 class BlogControllerTest {
@@ -58,16 +56,8 @@ class BlogControllerTest {
                 .build();
     }
 
-    private BlogExhibitVo sampleBlog() {
-        return BlogExhibitVo.builder()
-            .description("desc")
-            .nickname("n")
-            .avatar("a")
-            .title("t")
-            .content("c")
-            .created(LocalDateTime.now())
-            .readCount(1L)
-            .build();
+    private BlogExhibit sampleBlog() {
+        return new BlogExhibit(1L, "desc", "n", "a", "t", "c", LocalDateTime.now(), 1L, 1);
     }
 
     @Test
@@ -123,14 +113,7 @@ class BlogControllerTest {
 
     @Test
     void getVisitStatisticsReturnsVo() throws Exception {
-        when(blogService.getVisitStatistics())
-            .thenReturn(
-                VisitStatisticsVo.builder()
-                    .dayVisit(1L)
-                    .weekVisit(2L)
-                    .monthVisit(3L)
-                    .yearVisit(4L)
-                    .build());
+        when(blogService.getVisitStatistics()).thenReturn(new VisitStatistics(1L, 2L, 3L, 4L));
 
         mockMvc
             .perform(get("/public/blog/stat"))
@@ -140,8 +123,7 @@ class BlogControllerTest {
 
     @Test
     void getScoreBlogsReturnsList() throws Exception {
-        when(blogService.getScoreBlogs())
-            .thenReturn(List.of(BlogHotReadVo.builder().id(1L).title("t").readCount(10L).build()));
+        when(blogService.getScoreBlogs()).thenReturn(List.of(new BlogHotRead(1L, "t", 10L)));
 
         mockMvc
             .perform(get("/public/blog/scores"))

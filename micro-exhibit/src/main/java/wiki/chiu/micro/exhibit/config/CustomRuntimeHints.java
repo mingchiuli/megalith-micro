@@ -9,13 +9,14 @@ import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.blog.api.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.result.Result;
-import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
-import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
-import wiki.chiu.micro.exhibit.req.ReadTokenReq;
-import wiki.chiu.micro.exhibit.vo.BlogDescriptionVo;
-import wiki.chiu.micro.exhibit.vo.BlogExhibitVo;
-import wiki.chiu.micro.exhibit.vo.BlogHotReadVo;
-import wiki.chiu.micro.exhibit.vo.VisitStatisticsVo;
+import wiki.chiu.micro.exhibit.adapter.in.http.BlogDescriptionVo;
+import wiki.chiu.micro.exhibit.adapter.in.http.BlogExhibitVo;
+import wiki.chiu.micro.exhibit.adapter.in.http.BlogHotReadVo;
+import wiki.chiu.micro.exhibit.adapter.in.http.ReadTokenReq;
+import wiki.chiu.micro.exhibit.adapter.in.http.VisitStatisticsVo;
+import wiki.chiu.micro.exhibit.application.model.BlogDescription;
+import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
+import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
@@ -36,11 +37,15 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
         hints
             .reflection()
             .registerType(
-                BlogExhibitDto.class,
+                BlogExhibit.class,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(
-                BlogDescriptionDto.class,
+                BlogDescription.class,
+                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                MemberCategory.INVOKE_DECLARED_METHODS)
+            .registerType(
+                SensitiveSpan.class,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(

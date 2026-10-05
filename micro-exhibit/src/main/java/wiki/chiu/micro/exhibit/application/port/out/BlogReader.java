@@ -1,14 +1,17 @@
 package wiki.chiu.micro.exhibit.application.port.out;
 
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
-import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
+import wiki.chiu.micro.exhibit.application.model.BlogDescription;
+import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 
+/**
+ * Reads the blog content this service exhibits, already composed for display.
+ */
 public interface BlogReader {
 
-    BlogExhibitDto findById(Long id);
+    BlogExhibit findById(Long id);
 
     void incrementViews(Long id);
 
-    PageAdapter<BlogDescriptionDto> findPage(Integer currentPage);
+    PageAdapter<BlogDescription> findPage(Integer currentPage);
 }

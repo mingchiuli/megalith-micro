@@ -1,20 +1,18 @@
 package wiki.chiu.micro.exhibit.adapter.in.messaging.cache.handler;
 
-import static wiki.chiu.micro.common.constant.Const.*;
-
 import java.util.HashSet;
 
-import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.exhibit.adapter.in.messaging.cache.PageCacheEviction;
 import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
-import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;
+import wiki.chiu.micro.exhibit.application.port.out.BlogEventRevisionGuard;
+import wiki.chiu.micro.exhibit.application.port.out.BlogReadStateStore;
+import wiki.chiu.micro.exhibit.domain.BlogCacheDescriptors;
 
 @Component
 public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
@@ -22,18 +20,23 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
     private final PageCacheEviction pageCacheEviction;
 
     private final CacheKeyFactory cacheKeyFactory;
+
     private final BlogExistenceService blogExistenceService;
 
+    private final BlogReadStateStore readStateStore;
+
     public DeleteBlogCacheEvictHandler(
-        RedissonClient redissonClient,
+        BlogEventRevisionGuard revisionGuard,
         PageCacheEviction pageCacheEviction,
         CacheEvictor cacheEvictor,
         CacheKeyFactory cacheKeyFactory,
-        BlogExistenceService blogExistenceService) {
-        super(redissonClient, cacheEvictor);
+        BlogExistenceService blogExistenceService,
+        BlogReadStateStore readStateStore) {
+        super(revisionGuard, cacheEvictor);
         this.pageCacheEviction = pageCacheEviction;
         this.cacheKeyFactory = cacheKeyFactory;
         this.blogExistenceService = blogExistenceService;
+        this.readStateStore = readStateStore;
     }
 
     @Override
@@ -42,32 +45,21 @@ public final class DeleteBlogCacheEvictHandler extends BlogCacheEvictHandler {
     }
 
     @Override
-    public void redisProcess(BlogChangedMessage message) {
-        BlogEntityRpcVo blogEntity = blogEntity(message.blogSnapshot());
-        Long id = blogEntity.id();
+    protected void applyChange(BlogChangedMessage message) {
+        Long blogId = message.blogSnapshot().id();
 
-        evictCaches(id);
+        cacheEvictor.evict(detailCacheKeys(blogId));
         pageCacheEviction.evict();
-        clearKeys(id);
-        blogExistenceService.markAbsent(id);
-        deleteHotRead(id);
+        readStateStore.clearReadToken(blogId);
+        blogExistenceService.markAbsent(blogId);
+        readStateStore.removeFromHotRead(blogId);
     }
 
-    private void deleteHotRead(Long id) {
-        redissonClient.getScoredSortedSet(HOT_READ).remove(id.toString());
-    }
-
-    private void clearKeys(Long id) {
-        HashSet<String> clearKeys = new HashSet<>();
-        clearKeys.add(READ_TOKEN + id);
-        redissonClient.getKeys().delete(clearKeys.toArray(new String[0]));
-    }
-
-    private void evictCaches(Long id) {
+    private HashSet<String> detailCacheKeys(Long blogId) {
         HashSet<String> keys = new HashSet<>();
 
-        keys.add(cacheKeyFactory.generate(BlogCacheDescriptors.DETAIL, id));
-        keys.add(cacheKeyFactory.generate(BlogCacheDescriptors.SENSITIVE, id));
-        cacheEvictor.evict(keys);
+        keys.add(cacheKeyFactory.generate(BlogCacheDescriptors.DETAIL, blogId));
+        keys.add(cacheKeyFactory.generate(BlogCacheDescriptors.SENSITIVE, blogId));
+        return keys;
     }
 }

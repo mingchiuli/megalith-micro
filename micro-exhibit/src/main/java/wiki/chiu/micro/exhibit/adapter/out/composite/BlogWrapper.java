@@ -10,14 +10,14 @@ import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.common.constant.Const;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.exhibit.adapter.out.http.BlogExhibitMapper;
+import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpMapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.UserHttpServiceWrapper;
+import wiki.chiu.micro.exhibit.application.model.BlogDescription;
+import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.port.out.BlogReader;
-import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;
-import wiki.chiu.micro.exhibit.convertor.BlogDescriptionDtoConvertor;
-import wiki.chiu.micro.exhibit.convertor.BlogExhibitDtoConvertor;
-import wiki.chiu.micro.exhibit.dto.BlogDescriptionDto;
-import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
+import wiki.chiu.micro.exhibit.domain.BlogCacheDescriptors;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 @Component
@@ -49,11 +49,11 @@ public class BlogWrapper implements BlogReader {
         namespace = BlogCacheDescriptors.DETAIL_NAMESPACE,
         version = BlogCacheDescriptors.VERSION)
     @Override
-    public BlogExhibitDto findById(Long id) {
+    public BlogExhibit findById(Long id) {
         BlogEntityRpcVo blogEntity = blogHttpServiceWrapper.findById(id);
 
         UserEntityRpcVo user = userHttpServiceWrapper.findById(blogEntity.userId());
-        return BlogExhibitDtoConvertor.convert(blogEntity, user);
+        return BlogExhibitMapper.toModel(blogEntity, user);
     }
 
     @Override
@@ -70,8 +70,8 @@ public class BlogWrapper implements BlogReader {
         version = BlogCacheDescriptors.PAGE_VERSION,
         trackKeys = true)
     @Override
-    public PageAdapter<BlogDescriptionDto> findPage(Integer currentPage) {
+    public PageAdapter<BlogDescription> findPage(Integer currentPage) {
         PageAdapter<BlogEntityRpcVo> page = blogHttpServiceWrapper.findPage(currentPage, blogPageSize);
-        return BlogDescriptionDtoConvertor.convert(page);
+        return BlogHttpMapper.toDescriptions(page);
     }
 }

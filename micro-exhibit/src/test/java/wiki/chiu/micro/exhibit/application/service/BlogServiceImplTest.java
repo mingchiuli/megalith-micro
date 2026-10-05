@@ -13,9 +13,9 @@ import org.junit.jupiter.api.Test;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.exhibit.adapter.out.composite.BlogSensitiveWrapper;
 import wiki.chiu.micro.exhibit.adapter.out.composite.BlogWrapper;
+import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.port.out.BlogCatalog;
 import wiki.chiu.micro.exhibit.application.port.out.ExhibitMetrics;
-import wiki.chiu.micro.exhibit.dto.BlogExhibitDto;
 
 class BlogServiceImplTest {
 
@@ -38,14 +38,8 @@ class BlogServiceImplTest {
         when(metrics.consumeReadToken(7L, "token")).thenReturn(true);
         when(blogWrapper.findById(7L))
             .thenReturn(
-                BlogExhibitDto.builder()
-                    .title("Protected")
-                    .description("description")
-                    .content("content")
-                    .nickname("author")
-                    .avatar("")
-                    .readCount(1L)
-                    .build());
+                new BlogExhibit(
+                    3L, "description", "author", "", "Protected", "content", null, 1L, 1));
 
         var blog = service.getLockedBlog(7L, " token ");
 

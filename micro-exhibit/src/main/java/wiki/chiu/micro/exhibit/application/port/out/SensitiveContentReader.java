@@ -1,8 +1,13 @@
 package wiki.chiu.micro.exhibit.application.port.out;
 
-import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
+import java.util.List;
 
+import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
+
+/**
+ * Reads the spans of a blog that the blog service flagged as sensitive.
+ */
 public interface SensitiveContentReader {
 
-    BlogSensitiveContentRpcVo findSensitiveByBlogId(Long blogId);
+    List<SensitiveSpan> findSensitiveSpans(Long blogId);
 }

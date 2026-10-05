@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.cache.handler.CacheKeyRegistry;
-import wiki.chiu.micro.exhibit.cache.BlogCacheDescriptors;
+import wiki.chiu.micro.exhibit.domain.BlogCacheDescriptors;
 
 @Component
 public class PageCacheEviction {

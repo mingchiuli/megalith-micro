@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import wiki.chiu.micro.exhibit.adapter.out.metrics.MicrometerExistenceIndexMetrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import java.util.List;
@@ -139,7 +140,11 @@ class RedisBlogExistenceStoreIntegrationTest {
                     return List.of(1L);
                 });
         BlogExistenceServiceImpl service =
-            new BlogExistenceServiceImpl(first, catalog, 1000, new SimpleMeterRegistry());
+            new BlogExistenceServiceImpl(
+                first,
+                catalog,
+                1000,
+                new MicrometerExistenceIndexMetrics(new SimpleMeterRegistry()));
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var rebuild = executor.submit(service::rebuildIfRequired);

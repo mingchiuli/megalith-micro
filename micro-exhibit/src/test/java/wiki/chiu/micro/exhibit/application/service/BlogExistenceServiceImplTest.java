@@ -8,8 +8,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -19,11 +17,13 @@ import org.mockito.InOrder;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.exhibit.application.port.out.BlogCatalog;
 import wiki.chiu.micro.exhibit.application.port.out.BlogExistenceStore;
+import wiki.chiu.micro.exhibit.application.port.out.ExistenceIndexMetrics;
 
 class BlogExistenceServiceImplTest {
 
     private final BlogExistenceStore store = mock(BlogExistenceStore.class);
     private final BlogCatalog catalog = mock(BlogCatalog.class);
+    private final ExistenceIndexMetrics metrics = mock(ExistenceIndexMetrics.class);
     private final BlogExistenceServiceImpl service = service(2);
 
     @Test
@@ -35,6 +35,10 @@ class BlogExistenceServiceImplTest {
         assertDoesNotThrow(() -> service.check(1L));
         assertThrows(MissException.class, () -> service.check(2L));
         assertDoesNotThrow(() -> service.check(3L));
+
+        verify(metrics).presentCheck();
+        verify(metrics).absentCheck();
+        verify(metrics).failOpenCheck();
     }
 
     @Test
@@ -63,6 +67,7 @@ class BlogExistenceServiceImplTest {
         order.verify(rebuild).addAll(List.of(5L));
         order.verify(rebuild).publish();
         order.verify(rebuild).close();
+        verify(metrics).rebuildSucceeded(3L);
     }
 
     @Test
@@ -75,6 +80,7 @@ class BlogExistenceServiceImplTest {
 
         verify(rebuild, never()).publish();
         verify(rebuild).close();
+        verify(metrics).rebuildFailed();
     }
 
     @Test
@@ -92,7 +98,6 @@ class BlogExistenceServiceImplTest {
     }
 
     private BlogExistenceServiceImpl service(int batchSize) {
-        return new BlogExistenceServiceImpl(
-            store, catalog, batchSize, new SimpleMeterRegistry());
+        return new BlogExistenceServiceImpl(store, catalog, batchSize, metrics);
     }
 }

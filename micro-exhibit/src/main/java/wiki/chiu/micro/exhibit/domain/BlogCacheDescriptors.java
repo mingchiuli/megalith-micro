@@ -1,7 +1,12 @@
-package wiki.chiu.micro.exhibit.cache;
+package wiki.chiu.micro.exhibit.domain;
 
 import wiki.chiu.micro.cache.key.CacheDescriptor;
 
+/**
+ * The cache contracts this service owns. Descriptors are domain vocabulary: they name and version
+ * the business data that is cached, and the cached reads and the eviction listeners both share
+ * them, so they cannot live in either adapter.
+ */
 public final class BlogCacheDescriptors {
 
     public static final int VERSION = 2;

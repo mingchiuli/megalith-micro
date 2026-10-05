@@ -1,4 +1,4 @@
-package wiki.chiu.micro.exhibit.req;
+package wiki.chiu.micro.exhibit.adapter.in.http;
 
 public record ReadTokenReq(String readToken) {
 }
