@@ -28,7 +28,7 @@ import org.testcontainers.utility.DockerImageName;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
-import wiki.chiu.micro.blog.domain.BlogEntity;
+import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogEntity;
 
 @Testcontainers(disabledWithoutDocker = true)
 class BlogIndexQueriesIntegrationTest {
@@ -59,8 +59,8 @@ class BlogIndexQueriesIntegrationTest {
             assertThat(adapter.findReadCountsAfter(first.getId(), 500))
                 .containsExactly(new BlogReadCount(second.getId(), 0));
             var snapshot = adapter.findSnapshotsAfter(first.getId(), 1).getFirst();
-            assertThat(snapshot.getId()).isEqualTo(second.getId());
-            assertThat(snapshot.getEventRevision()).isEqualTo(11L);
+            assertThat(snapshot.id()).isEqualTo(second.getId());
+            assertThat(snapshot.eventRevision()).isEqualTo(11L);
             assertThat(adapter.findSnapshotsAfter(second.getId(), 1)).isEmpty();
         }
     }

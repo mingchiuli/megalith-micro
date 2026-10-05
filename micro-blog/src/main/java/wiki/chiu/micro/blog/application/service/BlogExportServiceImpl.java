@@ -8,58 +8,52 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.stereotype.Service;
-
+import wiki.chiu.micro.blog.application.model.BlogDownloadQuery;
+import wiki.chiu.micro.blog.application.model.BlogSearchQuery;
+import wiki.chiu.micro.blog.application.model.BlogSearchResult;
 import wiki.chiu.micro.blog.application.model.BlogSearchSelection;
 import wiki.chiu.micro.blog.application.model.SqlTables;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
-import wiki.chiu.micro.blog.convertor.BlogSysCountSearchReqConvertor;
-import wiki.chiu.micro.blog.convertor.BlogSysSearchReqConvertor;
-import wiki.chiu.micro.blog.domain.BlogEntity;
-import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
-import wiki.chiu.micro.blog.req.BlogDownloadReq;
+import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.SensitiveContent;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.export.SQLUtils;
-import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
-import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
-import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 
-@Service
 public class BlogExportServiceImpl implements BlogExportService {
 
     private static final int PAGE_SIZE = 20;
 
     private final BlogQueryStore blogs;
+
     private final BlogSearchGateway search;
 
-    public BlogExportServiceImpl(
-        BlogQueryStore blogs, BlogSearchGateway search) {
+    public BlogExportServiceImpl(BlogQueryStore blogs, BlogSearchGateway search) {
         this.blogs = blogs;
         this.search = search;
     }
 
     @Override
     public void write(
-        BlogDownloadReq request,
+        BlogDownloadQuery query,
         Long userId,
         List<DataPermissionEnum> dataPermissions,
         OutputStream outputStream) {
         boolean allData = dataPermissions.contains(DataPermissionEnum.BLOG_EXPORT_ALL);
-        BlogSysCountSearchReq countRequest =
-            BlogSysCountSearchReqConvertor.convert(request, userId, allData);
-        long total = search.countBlogs(countRequest);
+        BlogSearchSelection selection =
+            new BlogSearchSelection(
+                query.status(), query.createStart(), query.createEnd(), userId, allData);
+        long total = search.countBlogs(new BlogSearchQuery(0, 0, query.keywords(), selection));
         long pageCount = (total + PAGE_SIZE - 1) / PAGE_SIZE;
-        BlogSearchSelection selection = new BlogSearchSelection(
-            request.status(), request.createStart(), request.createEnd(), userId, allData);
 
         try {
             OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
             for (int page = 1; page <= pageCount; page++) {
-                BlogSysSearchReq searchRequest =
-                    BlogSysSearchReqConvertor.convert(request, page, PAGE_SIZE, userId, allData);
-                writePage(search.searchBlogs(searchRequest), selection, writer);
+                writePage(
+                    search.searchBlogs(new BlogSearchQuery(page, PAGE_SIZE, query.keywords(), selection)),
+                    selection,
+                    writer);
             }
             writer.flush();
         } catch (IOException exception) {
@@ -68,7 +62,8 @@ public class BlogExportServiceImpl implements BlogExportService {
     }
 
     private void writePage(
-        BlogSearchRpcVo result, BlogSearchSelection selection, OutputStreamWriter writer) throws IOException {
+        BlogSearchResult result, BlogSearchSelection selection, OutputStreamWriter writer)
+        throws IOException {
         List<Long> ids = result.ids();
         if (ids.isEmpty()) {
             return;
@@ -77,17 +72,17 @@ public class BlogExportServiceImpl implements BlogExportService {
         for (int index = 0; index < ids.size(); index++) {
             order.put(ids.get(index), index);
         }
-        List<BlogEntity> pageBlogs =
+        List<Blog> pageBlogs =
             blogs.findAllById(ids).stream()
                 .filter(selection::includes)
                 .sorted(
                     (left, right) ->
                         Integer.compare(
-                            order.getOrDefault(left.getId(), Integer.MAX_VALUE),
-                            order.getOrDefault(right.getId(), Integer.MAX_VALUE)))
+                            order.getOrDefault(left.id(), Integer.MAX_VALUE),
+                            order.getOrDefault(right.id(), Integer.MAX_VALUE)))
                 .toList();
-        List<Long> currentIds = pageBlogs.stream().map(BlogEntity::getId).toList();
-        List<BlogSensitiveContentEntity> pageSensitive =
+        List<Long> currentIds = pageBlogs.stream().map(Blog::id).toList();
+        List<SensitiveContent> pageSensitive =
             currentIds.isEmpty() ? List.of() : blogs.findSensitiveByBlogIds(currentIds);
         writeStatement(writer, SQLUtils.insertSql(pageBlogs, SqlTables.BLOG));
         writeStatement(writer, SQLUtils.insertSql(pageSensitive, SqlTables.BLOG_SENSITIVE));

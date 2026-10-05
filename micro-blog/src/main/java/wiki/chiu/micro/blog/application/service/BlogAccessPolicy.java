@@ -5,52 +5,49 @@ import static wiki.chiu.micro.common.error.ExceptionMessage.EDIT_NO_AUTH;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.stereotype.Component;
-
-import wiki.chiu.micro.blog.domain.BlogEntity;
-import wiki.chiu.micro.blog.vo.BlogPermissionsVo;
+import wiki.chiu.micro.blog.application.model.BlogPermissions;
+import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
 
-@Component
 public class BlogAccessPolicy {
 
     public boolean canCollaborate(
-        BlogEntity blog, Long userId, List<DataPermissionEnum> dataPermissions) {
+        Blog blog, Long userId, List<DataPermissionEnum> dataPermissions) {
         if (!isAuthenticated(userId)) {
             return false;
         }
         return isOpenForCollaboration(blog) || canEdit(blog, userId, dataPermissions);
     }
 
-    public boolean canEdit(BlogEntity blog, Long userId, List<DataPermissionEnum> dataPermissions) {
+    public boolean canEdit(Blog blog, Long userId, List<DataPermissionEnum> dataPermissions) {
         return isAuthenticated(userId)
-            && (Objects.equals(blog.getUserId(), userId)
+            && (Objects.equals(blog.userId(), userId)
             || has(dataPermissions, DataPermissionEnum.BLOG_EDIT_ALL));
     }
 
-    public boolean canDelete(BlogEntity blog, Long userId, List<DataPermissionEnum> dataPermissions) {
+    public boolean canDelete(Blog blog, Long userId, List<DataPermissionEnum> dataPermissions) {
         return isAuthenticated(userId)
-            && (Objects.equals(blog.getUserId(), userId)
+            && (Objects.equals(blog.userId(), userId)
             || has(dataPermissions, DataPermissionEnum.BLOG_DELETE_ALL));
     }
 
-    public BlogPermissionsVo permissions(
-        BlogEntity blog, Long userId, List<DataPermissionEnum> dataPermissions) {
+    public BlogPermissions permissions(
+        Blog blog, Long userId, List<DataPermissionEnum> dataPermissions) {
         boolean manage = canEdit(blog, userId, dataPermissions);
-        return new BlogPermissionsVo(
+        return new BlogPermissions(
             canCollaborate(blog, userId, dataPermissions), manage, manage, manage);
     }
 
     public void requireCollaboration(
-        BlogEntity blog, Long userId, List<DataPermissionEnum> dataPermissions) {
+        Blog blog, Long userId, List<DataPermissionEnum> dataPermissions) {
         if (!canCollaborate(blog, userId, dataPermissions)) {
             throw new MissException(EDIT_NO_AUTH.getMsg());
         }
     }
 
-    public void requireEdit(BlogEntity blog, Long userId, List<DataPermissionEnum> dataPermissions) {
+    public void requireEdit(Blog blog, Long userId, List<DataPermissionEnum> dataPermissions) {
         if (!canEdit(blog, userId, dataPermissions)) {
             throw new MissException(EDIT_NO_AUTH.getMsg());
         }
@@ -62,9 +59,9 @@ public class BlogAccessPolicy {
         }
     }
 
-    private boolean isOpenForCollaboration(BlogEntity blog) {
-        return Objects.equals(BlogStatusEnum.NORMAL.getCode(), blog.getStatus())
-            || Objects.equals(BlogStatusEnum.DRAFT.getCode(), blog.getStatus());
+    private boolean isOpenForCollaboration(Blog blog) {
+        return Objects.equals(BlogStatusEnum.NORMAL.getCode(), blog.status())
+            || Objects.equals(BlogStatusEnum.DRAFT.getCode(), blog.status());
     }
 
     private boolean isAuthenticated(Long userId) {

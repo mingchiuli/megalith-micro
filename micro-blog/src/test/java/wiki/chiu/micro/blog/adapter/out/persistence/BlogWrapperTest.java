@@ -1,5 +1,8 @@
 package wiki.chiu.micro.blog.adapter.out.persistence;
 
+import wiki.chiu.micro.blog.application.model.BlogMaintenanceMode;
+import wiki.chiu.micro.blog.domain.BlogFixtures;
+import wiki.chiu.micro.blog.domain.Blog;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -15,7 +18,6 @@ import org.mockito.Mockito;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
-import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.outbox.application.OutboxService;
@@ -27,12 +29,12 @@ class BlogWrapperTest {
         Mockito.mock(BlogSensitiveContentRepository.class);
     private final OutboxService outbox = Mockito.mock(OutboxService.class);
     private final BlogWrapper wrapper = new BlogWrapper(blogs, sensitiveContents, outbox,
-        new wiki.chiu.micro.blog.config.BlogMaintenanceProperties(false));
+        new BlogMaintenanceMode(false));
 
     @Test
     void maintenanceStopsAllContentWritersButAllowsViewCounting() {
         BlogWrapper readOnly = new BlogWrapper(blogs, sensitiveContents, outbox,
-            new wiki.chiu.micro.blog.config.BlogMaintenanceProperties(true));
+            new BlogMaintenanceMode(true));
         var event = new BlogEventContext(BlogOperateEnum.CREATE, 42L);
         assertThrows(BaseException.class,
             () -> readOnly.saveOrUpdate(blog(7L, 1L), null, List.of(), List.of(), event));
@@ -46,17 +48,17 @@ class BlogWrapperTest {
 
     @Test
     void updateConflictStopsAssociationWritesAndOutbox() {
-        BlogEntity candidate = blog(7L, 2L);
+        Blog candidate = blog(7L, 2L);
         when(blogs.updateByIdAndEventRevision(
             7L,
             1L,
             2L,
-            candidate.getTitle(),
-            candidate.getDescription(),
-            candidate.getContent(),
-            candidate.getStatus(),
-            candidate.getLink(),
-            candidate.getUpdated()))
+            candidate.title(),
+            candidate.description(),
+            candidate.content(),
+            candidate.status(),
+            candidate.link(),
+            candidate.updated()))
             .thenReturn(0);
 
         assertThrows(
@@ -75,8 +77,8 @@ class BlogWrapperTest {
 
     @Test
     void batchDeleteConflictDoesNotEnqueueAnyEvent() {
-        BlogEntity first = blog(7L, 2L);
-        BlogEntity second = blog(8L, 4L);
+        Blog first = blog(7L, 2L);
+        Blog second = blog(8L, 4L);
         when(blogs.deleteByIdAndEventRevision(7L, 1L)).thenReturn(1);
         when(blogs.deleteByIdAndEventRevision(8L, 3L)).thenReturn(0);
 
@@ -94,8 +96,8 @@ class BlogWrapperTest {
         verifyNoInteractions(outbox);
     }
 
-    private BlogEntity blog(Long id, Long eventRevision) {
-        return BlogEntity.builder()
+    private Blog blog(Long id, Long eventRevision) {
+        return BlogFixtures.builder()
             .id(id)
             .userId(42L)
             .title("title")

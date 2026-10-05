@@ -1,8 +1,8 @@
 package wiki.chiu.micro.blog.application.port.in;
 
-import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
+import wiki.chiu.micro.blog.application.model.BlogSensitiveSpans;
 
 public interface BlogSensitiveService {
 
-    BlogSensitiveContentRpcVo findByBlogId(Long blogId);
+    BlogSensitiveSpans findByBlogId(Long blogId);
 }

@@ -1,5 +1,6 @@
 package wiki.chiu.micro.blog.application.service;
 
+import wiki.chiu.micro.blog.domain.Blog;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -39,7 +40,7 @@ class BlogQueryServiceImplTest {
                 PageAdapter.emptyPage());
         when(blogs.findPage(eq(2), eq(10), eq(statuses)))
             .thenReturn(
-                PageAdapter.<wiki.chiu.micro.blog.domain.BlogEntity>builder()
+                PageAdapter.<Blog>builder()
                     .content(List.of())
                     .pageNumber(2)
                     .pageSize(10)

@@ -5,17 +5,14 @@ import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-
 import wiki.chiu.micro.blog.application.port.in.BlogCollaborationService;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.application.port.out.CollaborationTicketGateway;
-import wiki.chiu.micro.blog.domain.BlogEntity;
+import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
 
-@Service
 public class BlogCollaborationServiceImpl implements BlogCollaborationService {
 
     private final BlogQueryStore blogs;
@@ -36,7 +33,7 @@ public class BlogCollaborationServiceImpl implements BlogCollaborationService {
 
     @Override
     public String issueReadToken(Long blogId, Long userId, List<DataPermissionEnum> dataPermissions) {
-        BlogEntity blog = blogs.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND));
+        Blog blog = blogs.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND));
         accessPolicy.requireEdit(blog, userId, dataPermissions);
         String token = UUID.randomUUID().toString();
         runtimeStore.saveReadToken(blogId, token);
@@ -51,7 +48,7 @@ public class BlogCollaborationServiceImpl implements BlogCollaborationService {
             accessPolicy.requireAuthenticated(userId);
             roomId = "init:" + userId;
         } else {
-            BlogEntity blog = blogs.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND));
+            Blog blog = blogs.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND));
             accessPolicy.requireCollaboration(blog, userId, dataPermissions);
             roomId = blogId.toString();
         }

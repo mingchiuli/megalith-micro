@@ -88,12 +88,12 @@ public class BlogInternalHttpHandler implements BlogHttpService {
 
     @Override
     public Result<BlogEntityRpcVo> findById(Long blogId) {
-        return Result.success(() -> blogQueryService.findById(blogId));
+        return Result.success(() -> BlogRpcMapper.toRpc(blogQueryService.findById(blogId)));
     }
 
     @Override
     public Result<List<BlogEntityRpcVo>> findAllById(List<Long> ids) {
-        return Result.success(() -> blogQueryService.findAllById(ids));
+        return Result.success(() -> BlogRpcMapper.toRpc(blogQueryService.findAllById(ids)));
     }
 
     @Override
@@ -108,11 +108,12 @@ public class BlogInternalHttpHandler implements BlogHttpService {
 
     @Override
     public Result<PageAdapter<BlogEntityRpcVo>> findPage(Integer pageNo, Integer pageSize) {
-        return Result.success(() -> blogQueryService.findPage(pageNo, pageSize));
+        return Result.success(() -> BlogRpcMapper.toRpc(blogQueryService.findPage(pageNo, pageSize)));
     }
 
     @Override
     public Result<BlogSensitiveContentRpcVo> findSensitiveByBlogId(Long blogId) {
-        return Result.success(() -> blogSensitiveService.findByBlogId(blogId));
+        return Result.success(
+            () -> BlogRpcMapper.toRpc(blogSensitiveService.findByBlogId(blogId)));
     }
 }

@@ -19,11 +19,6 @@ import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
 import wiki.chiu.micro.blog.application.port.in.BlogCollaborationService;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
-import wiki.chiu.micro.blog.convertor.BlogRequestConvertor;
-import wiki.chiu.micro.blog.req.BlogDownloadReq;
-import wiki.chiu.micro.blog.req.BlogEntityReq;
-import wiki.chiu.micro.blog.req.BlogQueryReq;
-import wiki.chiu.micro.blog.req.OssDeleteReq;
 import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.security.AuthPrincipal;
@@ -63,7 +58,9 @@ public class BlogHttpHandler {
         AuthPrincipal authInfo = authPrincipal(request);
         return ok(
             Result.success(
-                () -> blogService.saveOrUpdate(blog, authInfo.userId(), authInfo.dataPermissions())));
+                () ->
+                    blogService.saveOrUpdate(
+                        BlogRequestConvertor.toDraft(blog), authInfo.userId(), authInfo.dataPermissions())));
     }
 
     public ServerResponse deleteBlogs(ServerRequest request) throws Exception {
@@ -89,7 +86,12 @@ public class BlogHttpHandler {
         AuthPrincipal authInfo = authPrincipal(request);
         return ok(
             Result.success(
-                () -> blogService.findAllBlogs(query, authInfo.userId(), authInfo.dataPermissions())));
+                () ->
+                    BlogViewMapper.toVo(
+                        blogService.findAllBlogs(
+                            BlogRequestConvertor.toQuery(query),
+                            authInfo.userId(),
+                            authInfo.dataPermissions()))));
     }
 
     public ServerResponse getDeletedBlogs(ServerRequest request) {
@@ -161,7 +163,7 @@ public class BlogHttpHandler {
             .build(
                 (servletRequest, response) -> {
                     exportService.write(
-                        downloadReq,
+                        BlogRequestConvertor.toDownloadQuery(downloadReq),
                         authInfo.userId(),
                         authInfo.dataPermissions(),
                         response.getOutputStream());
@@ -177,6 +179,8 @@ public class BlogHttpHandler {
         AuthPrincipal authInfo = authPrincipal(request);
         return ok(
             Result.success(
-                () -> blogService.findEdit(blogId, authInfo.userId(), authInfo.dataPermissions())));
+                () ->
+                    BlogViewMapper.toVo(
+                        blogService.findEdit(blogId, authInfo.userId(), authInfo.dataPermissions()))));
     }
 }

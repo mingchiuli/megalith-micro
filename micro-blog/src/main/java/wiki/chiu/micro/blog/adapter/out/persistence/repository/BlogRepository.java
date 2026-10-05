@@ -13,7 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
-import wiki.chiu.micro.blog.domain.BlogEntity;
+import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogEntity;
 
 /**
  * @author mingchiuli

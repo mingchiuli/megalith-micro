@@ -5,14 +5,15 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogEntity;
+import wiki.chiu.micro.blog.adapter.out.persistence.mapping.BlogPersistenceMapper;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
-import wiki.chiu.micro.blog.config.BlogMaintenanceProperties;
-import wiki.chiu.micro.blog.convertor.BlogSnapshotConvertor;
-import wiki.chiu.micro.blog.domain.BlogEntity;
-import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
+import wiki.chiu.micro.blog.application.model.BlogMaintenanceMode;
+import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.SensitiveContent;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
@@ -26,13 +27,13 @@ public class BlogWrapper implements BlogWriter {
     private final BlogRepository blogs;
     private final BlogSensitiveContentRepository sensitiveContents;
     private final OutboxService outbox;
-    private final BlogMaintenanceProperties maintenance;
+    private final BlogMaintenanceMode maintenance;
 
     public BlogWrapper(
         BlogRepository blogs,
         BlogSensitiveContentRepository sensitiveContents,
         OutboxService outbox,
-        BlogMaintenanceProperties maintenance) {
+        BlogMaintenanceMode maintenance) {
         this.blogs = blogs;
         this.sensitiveContents = sensitiveContents;
         this.outbox = outbox;
@@ -42,38 +43,39 @@ public class BlogWrapper implements BlogWriter {
     @Transactional
     @Override
     public void saveOrUpdate(
-        BlogEntity blog,
+        Blog blog,
         Long expectedRevision,
         List<Long> existingSensitiveIds,
-        List<BlogSensitiveContentEntity> newSensitiveContents,
+        List<SensitiveContent> newSensitiveContents,
         BlogEventContext event) {
         maintenance.requireWritable();
-        BlogEntity persisted =
-            expectedRevision == null ? blogs.save(blog) : update(blog, expectedRevision);
+        Blog persisted =
+            expectedRevision == null ? create(blog) : update(blog, expectedRevision);
 
         sensitiveContents.deleteAllByIdInBatch(existingSensitiveIds);
-        newSensitiveContents.forEach(item -> item.setBlogId(persisted.getId()));
-        sensitiveContents.saveAll(newSensitiveContents);
+        sensitiveContents.saveAll(
+            newSensitiveContents.stream()
+                .map(content -> BlogPersistenceMapper.toEntity(content.onBlog(persisted.id())))
+                .toList());
         enqueue(persisted, event);
     }
 
     @Transactional
     @Override
-    public void recoverDeletedBlog(BlogEntity blog, BlogEventContext event) {
+    public void recoverDeletedBlog(Blog blog, BlogEventContext event) {
         maintenance.requireWritable();
-        enqueue(blogs.save(blog), event);
+        enqueue(BlogPersistenceMapper.toDomain(blogs.save(BlogPersistenceMapper.toEntity(blog))), event);
     }
 
     @Transactional
     @Override
-    public void deleteByIds(
-        List<BlogEntity> deleted, List<Long> sensitiveIds, BlogEventContext event) {
+    public void deleteByIds(List<Blog> deleted, List<Long> sensitiveIds, BlogEventContext event) {
         maintenance.requireWritable();
         deleted.forEach(
             blog -> {
-                long expectedRevision = blog.getEventRevision() - 1;
-                if (blogs.deleteByIdAndEventRevision(blog.getId(), expectedRevision) != 1) {
-                    throw revisionConflict(blog.getId());
+                long expectedRevision = blog.eventRevision() - 1;
+                if (blogs.deleteByIdAndEventRevision(blog.id(), expectedRevision) != 1) {
+                    throw revisionConflict(blog.id());
                 }
             });
         sensitiveContents.deleteAllByIdInBatch(sensitiveIds);
@@ -86,20 +88,24 @@ public class BlogWrapper implements BlogWriter {
         blogs.setReadCount(blogId);
     }
 
-    private BlogEntity update(BlogEntity blog, Long expectedRevision) {
+    private Blog create(Blog blog) {
+        return BlogPersistenceMapper.toDomain(blogs.save(BlogPersistenceMapper.toEntity(blog)));
+    }
+
+    private Blog update(Blog blog, Long expectedRevision) {
         int updated =
             blogs.updateByIdAndEventRevision(
-                blog.getId(),
+                blog.id(),
                 expectedRevision,
-                blog.getEventRevision(),
-                blog.getTitle(),
-                blog.getDescription(),
-                blog.getContent(),
-                blog.getStatus(),
-                blog.getLink(),
-                blog.getUpdated());
+                blog.eventRevision(),
+                blog.title(),
+                blog.description(),
+                blog.content(),
+                blog.status(),
+                blog.link(),
+                blog.updated());
         if (updated != 1) {
-            throw revisionConflict(blog.getId());
+            throw revisionConflict(blog.id());
         }
         return blog;
     }
@@ -108,17 +114,17 @@ public class BlogWrapper implements BlogWriter {
         return new BaseException(CommonErrorCode.CONFLICT, "blog revision conflict: " + blogId);
     }
 
-    private void enqueue(BlogEntity blog, BlogEventContext event) {
-        BlogSnapshot snapshot = BlogSnapshotConvertor.convert(blog);
+    private void enqueue(Blog blog, BlogEventContext event) {
+        BlogSnapshot snapshot = blog.snapshot();
         outbox.enqueue(
             OutboxProducer.BLOG,
             "BLOG",
-            blog.getId(),
+            blog.id(),
             eventId ->
                 new BlogChangedMessage(
                     eventId,
                     event.operation().getCode(),
-                    blog.getEventRevision(),
+                    blog.eventRevision(),
                     event.operatorUserId(),
                     snapshot));
     }

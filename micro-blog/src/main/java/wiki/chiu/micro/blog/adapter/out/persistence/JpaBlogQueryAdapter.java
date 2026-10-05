@@ -7,12 +7,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogEntity;
+import wiki.chiu.micro.blog.adapter.out.persistence.mapping.BlogPersistenceMapper;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
-import wiki.chiu.micro.blog.domain.BlogEntity;
-import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
+import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.SensitiveContent;
 import wiki.chiu.micro.common.page.PageAdapter;
 
 @Component
@@ -38,23 +40,23 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
     }
 
     @Override
-    public List<BlogEntity> findSnapshotsAfter(long afterId, int limit) {
-        return blogs.findSnapshotsAfter(afterId, PageRequest.of(0, limit));
+    public List<Blog> findSnapshotsAfter(long afterId, int limit) {
+        return BlogPersistenceMapper.toDomains(blogs.findSnapshotsAfter(afterId, PageRequest.of(0, limit)));
     }
 
     @Override
-    public Optional<BlogEntity> findById(Long blogId) {
-        return blogs.findById(blogId);
+    public Optional<Blog> findById(Long blogId) {
+        return blogs.findById(blogId).map(BlogPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<BlogEntity> findAllById(List<Long> blogIds) {
-        return blogs.findAllById(blogIds);
+    public List<Blog> findAllById(List<Long> blogIds) {
+        return BlogPersistenceMapper.toDomains(blogs.findAllById(blogIds));
     }
 
     @Override
-    public List<BlogEntity> findByUserIds(List<Long> userIds) {
-        return blogs.findByUserIdIn(userIds);
+    public List<Blog> findByUserIds(List<Long> userIds) {
+        return BlogPersistenceMapper.toDomains(blogs.findByUserIdIn(userIds));
     }
 
     @Override
@@ -63,12 +65,11 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
     }
 
     @Override
-    public PageAdapter<BlogEntity> findPage(
-        int pageNumber, int pageSize, List<Integer> statuses) {
+    public PageAdapter<Blog> findPage(int pageNumber, int pageSize, List<Integer> statuses) {
         var request = PageRequest.of(pageNumber - 1, pageSize, Sort.by("created").descending());
         var page = blogs.findByStatusIn(request, statuses);
-        return PageAdapter.<BlogEntity>builder()
-            .content(page.getContent())
+        return PageAdapter.<Blog>builder()
+            .content(BlogPersistenceMapper.toDomains(page.getContent()))
             .totalElements(page.getTotalElements())
             .pageNumber(page.getNumber() + 1)
             .pageSize(page.getSize())
@@ -80,12 +81,12 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
     }
 
     @Override
-    public List<BlogSensitiveContentEntity> findSensitiveByBlogId(Long blogId) {
-        return sensitiveContents.findByBlogId(blogId);
+    public List<SensitiveContent> findSensitiveByBlogId(Long blogId) {
+        return BlogPersistenceMapper.toSensitiveDomains(sensitiveContents.findByBlogId(blogId));
     }
 
     @Override
-    public List<BlogSensitiveContentEntity> findSensitiveByBlogIds(List<Long> blogIds) {
-        return sensitiveContents.findByBlogIdIn(blogIds);
+    public List<SensitiveContent> findSensitiveByBlogIds(List<Long> blogIds) {
+        return BlogPersistenceMapper.toSensitiveDomains(sensitiveContents.findByBlogIdIn(blogIds));
     }
 }

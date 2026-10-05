@@ -1,5 +1,7 @@
 package wiki.chiu.micro.blog.application.service;
 
+import wiki.chiu.micro.blog.domain.BlogFixtures;
+import wiki.chiu.micro.blog.domain.Blog;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -19,10 +21,9 @@ import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
-import wiki.chiu.micro.blog.domain.BlogEntity;
-import wiki.chiu.micro.blog.req.BlogDownloadReq;
-import wiki.chiu.micro.blog.req.BlogQueryReq;
-import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
+import wiki.chiu.micro.blog.application.model.BlogDownloadQuery;
+import wiki.chiu.micro.blog.application.model.BlogQuery;
+import wiki.chiu.micro.blog.application.model.BlogSearchResult;
 
 class BlogSearchReadbackTest {
 
@@ -37,7 +38,7 @@ class BlogSearchReadbackTest {
         when(search.searchBlogs(any())).thenReturn(page(List.of(3L, 2L, 1L)));
         when(blogs.findAllById(List.of(3L, 2L, 1L))).thenReturn(List.of(blog(1, 42), blog(2, 99), blog(3, 42)));
 
-        var result = service.findAllBlogs(new BlogQueryReq(1, 10, "", null, null, null), 42L, List.of());
+        var result = service.findAllBlogs(new BlogQuery(1, 10, "", null, null, null), 42L, List.of());
 
         assertThat(result.content()).extracting(value -> value.id()).containsExactly(3L, 1L);
         assertThat(result.totalElements()).isEqualTo(3);
@@ -50,7 +51,7 @@ class BlogSearchReadbackTest {
         when(search.searchBlogs(any())).thenThrow(new IllegalStateException("es unavailable"));
 
         assertThatThrownBy(() -> service.findAllBlogs(
-            new BlogQueryReq(1, 10, null, null, null, null), 42L, List.of())).hasMessage("es unavailable");
+            new BlogQuery(1, 10, null, null, null, null), 42L, List.of())).hasMessage("es unavailable");
 
         verifyNoInteractions(blogs, runtime);
     }
@@ -63,7 +64,7 @@ class BlogSearchReadbackTest {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
         new BlogExportServiceImpl(blogs, search).write(
-            new BlogDownloadReq(null, null, null, null), 42L, List.of(), output);
+            new BlogDownloadQuery(null, null, null, null), 42L, List.of(), output);
 
         String sql = output.toString(StandardCharsets.UTF_8);
         assertThat(sql).contains("article-1", "article-3").doesNotContain("article-2");
@@ -71,13 +72,13 @@ class BlogSearchReadbackTest {
         verify(blogs).findSensitiveByBlogIds(List.of(3L, 1L));
     }
 
-    private BlogSearchRpcVo page(List<Long> ids) {
-        return BlogSearchRpcVo.builder().ids(ids).currentPage(1).size(10).total(3L).build();
+    private BlogSearchResult page(List<Long> ids) {
+        return new BlogSearchResult(3L, 1, 10, ids);
     }
 
-    private BlogEntity blog(long id, long userId) {
+    private Blog blog(long id, long userId) {
         var date = LocalDateTime.of(2026, 9, 1, 12, 0);
-        return BlogEntity.builder().id(id).userId(userId).title("article-" + id)
+        return BlogFixtures.builder().id(id).userId(userId).title("article-" + id)
             .description("description").content("content").link("").created(date).updated(date)
             .status(0).readCount(0L).eventRevision(1L).build();
     }

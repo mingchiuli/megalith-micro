@@ -39,7 +39,7 @@ public class BlogIndexSourceHttpHandler implements BlogIndexSourceHttpService {
 
     @Override
     public Result<BlogIndexSourceStatus> indexSourceStatus() {
-        return Result.success(source::status);
+        return Result.success(() -> BlogRpcMapper.toRpc(source.status()));
     }
 
     @Override

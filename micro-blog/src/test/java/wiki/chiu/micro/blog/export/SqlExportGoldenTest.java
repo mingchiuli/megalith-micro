@@ -1,5 +1,7 @@
 package wiki.chiu.micro.blog.export;
 
+import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.SensitiveContent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
@@ -8,8 +10,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import wiki.chiu.micro.blog.application.model.SqlTables;
-import wiki.chiu.micro.blog.domain.BlogEntity;
-import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
 import wiki.chiu.micro.common.export.SQLUtils;
 
 /**
@@ -23,7 +23,7 @@ class SqlExportGoldenTest {
     @Test
     void blogTableMatchesLegacyOutput() {
         var entity =
-            new BlogEntity(
+            new Blog(
                 1L, 42L, "title", "desc", "line1\nline2", CREATED, UPDATED, 1, "link", 7L, 11L);
 
         assertEquals(
@@ -41,7 +41,7 @@ class SqlExportGoldenTest {
                 + " created, updated) VALUES (2, 1, 3, 5, 1, '2026-09-19 10:11:12', '2026-09-19"
                 + " 11:12:13');",
             SQLUtils.insertSql(
-                List.of(new BlogSensitiveContentEntity(2L, 1L, 3, 5, 1, CREATED, UPDATED)),
+                List.of(new SensitiveContent(2L, 1L, 3, 5, 1, CREATED, UPDATED)),
                 SqlTables.BLOG_SENSITIVE));
     }
 }

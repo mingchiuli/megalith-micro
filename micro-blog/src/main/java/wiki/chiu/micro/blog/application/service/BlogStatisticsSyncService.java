@@ -2,14 +2,13 @@ package wiki.chiu.micro.blog.application.service;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
+
 
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
 import wiki.chiu.micro.blog.application.port.in.BlogStatisticsSync;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogStatisticsGateway;
 
-@Service
 public class BlogStatisticsSyncService implements BlogStatisticsSync {
 
     private final BlogQueryStore blogs;

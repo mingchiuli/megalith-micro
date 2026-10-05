@@ -30,10 +30,7 @@ import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.blog.application.model.DeletedBlogEntry;
 import wiki.chiu.micro.blog.application.model.DeletedBlogPage;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
-import wiki.chiu.micro.blog.convertor.BlogDeleteDtoConvertor;
-import wiki.chiu.micro.blog.convertor.BlogEntityConvertor;
-import wiki.chiu.micro.blog.domain.BlogEntity;
-import wiki.chiu.micro.blog.dto.BlogDeleteDto;
+import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 
 @Component
@@ -81,7 +78,7 @@ public class RedisBlogRuntimeStore implements BlogRuntimeStore {
         Long userId, Integer currentPage, Integer size, LocalDateTime expirationCutoff) {
         String key = QUERY_DELETED + userId;
         List<String> stored = redis.opsForList().range(key, 0, -1);
-        List<BlogEntity> all =
+        List<Blog> all =
             Optional.ofNullable(stored).orElseGet(Collections::emptyList).stream()
                 .map(this::deserialize)
                 .toList();
@@ -90,7 +87,7 @@ public class RedisBlogRuntimeStore implements BlogRuntimeStore {
         }
 
         int expiredCount =
-            (int) all.stream().filter(blog -> expirationCutoff.isAfter(blog.getUpdated())).count();
+            (int) all.stream().filter(blog -> expirationCutoff.isAfter(blog.updated())).count();
         int start = (currentPage - 1) * size;
         List<String> result =
             redis.execute(
@@ -100,7 +97,7 @@ public class RedisBlogRuntimeStore implements BlogRuntimeStore {
                 "-1",
                 String.valueOf(size - 1),
                 String.valueOf(start));
-        List<BlogEntity> blogs =
+        List<Blog> blogs =
             result.subList(0, result.size() - 1).stream().map(this::deserialize).toList();
         return new DeletedBlogPage(expiredCount, blogs, Long.parseLong(result.getLast()));
     }
@@ -111,8 +108,9 @@ public class RedisBlogRuntimeStore implements BlogRuntimeStore {
         if (!StringUtils.hasLength(stored)) {
             return Optional.empty();
         }
-        BlogDeleteDto deleted = jsonMapper.readValue(stored, BlogDeleteDto.class);
-        return Optional.of(new DeletedBlogEntry(BlogEntityConvertor.convertRecover(deleted), stored));
+        Blog deleted = jsonMapper.readValue(stored, Blog.class);
+        long nextRevision = Optional.ofNullable(deleted.eventRevision()).orElse(0L) + 1;
+        return Optional.of(new DeletedBlogEntry(deleted.withEventRevision(nextRevision), stored));
     }
 
     @Override
@@ -120,7 +118,7 @@ public class RedisBlogRuntimeStore implements BlogRuntimeStore {
         redis.execute(
             RedisScript.of(recycleScript, Long.class),
             List.of(QUERY_DELETED + userId, RECYCLE_EVENT_PREFIX + eventId),
-            jsonMapper.writeValueAsString(BlogDeleteDtoConvertor.convert(snapshot)),
+            jsonMapper.writeValueAsString(Blog.fromSnapshot(snapshot)),
             A_WEEK);
     }
 
@@ -134,8 +132,8 @@ public class RedisBlogRuntimeStore implements BlogRuntimeStore {
         redis.opsForValue().set(READ_TOKEN + blogId, token, Expiration.from(24, TimeUnit.HOURS));
     }
 
-    private BlogEntity deserialize(String value) {
-        return BlogEntityConvertor.convert(jsonMapper.readValue(value, BlogDeleteDto.class));
+    private Blog deserialize(String value) {
+        return jsonMapper.readValue(value, Blog.class);
     }
 
     private String readScript(String name) throws IOException {

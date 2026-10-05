@@ -3,41 +3,42 @@ package wiki.chiu.micro.blog.application.model;
 import static wiki.chiu.micro.common.constant.Const.BLOG_SENSITIVE_TABLE;
 import static wiki.chiu.micro.common.constant.Const.BLOG_TABLE;
 
-import wiki.chiu.micro.blog.domain.BlogEntity;
-import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
+import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.SensitiveContent;
 import wiki.chiu.micro.common.export.SqlColumn;
 import wiki.chiu.micro.common.export.SqlTable;
 
 /**
- * Explicit SQL export column definitions for the blog service tables.
+ * Explicit SQL export column definitions for the blog service tables, expressed over the domain
+ * model so the export use case never needs the persisted entities.
  */
 public final class SqlTables {
 
-    public static final SqlTable<BlogEntity> BLOG =
+    public static final SqlTable<Blog> BLOG =
         SqlTable.of(
             BLOG_TABLE,
-            SqlColumn.of("id", BlogEntity::getId),
-            SqlColumn.of("user_id", BlogEntity::getUserId),
-            SqlColumn.of("title", BlogEntity::getTitle),
-            SqlColumn.of("description", BlogEntity::getDescription),
-            SqlColumn.of("content", BlogEntity::getContent),
-            SqlColumn.of("created", BlogEntity::getCreated),
-            SqlColumn.of("updated", BlogEntity::getUpdated),
-            SqlColumn.of("status", BlogEntity::getStatus),
-            SqlColumn.of("link", BlogEntity::getLink),
-            SqlColumn.of("read_count", BlogEntity::getReadCount),
-            SqlColumn.of("event_revision", BlogEntity::getEventRevision));
+            SqlColumn.of("id", Blog::id),
+            SqlColumn.of("user_id", Blog::userId),
+            SqlColumn.of("title", Blog::title),
+            SqlColumn.of("description", Blog::description),
+            SqlColumn.of("content", Blog::content),
+            SqlColumn.of("created", Blog::created),
+            SqlColumn.of("updated", Blog::updated),
+            SqlColumn.of("status", Blog::status),
+            SqlColumn.of("link", Blog::link),
+            SqlColumn.of("read_count", Blog::readCount),
+            SqlColumn.of("event_revision", Blog::eventRevision));
 
-    public static final SqlTable<BlogSensitiveContentEntity> BLOG_SENSITIVE =
+    public static final SqlTable<SensitiveContent> BLOG_SENSITIVE =
         SqlTable.of(
             BLOG_SENSITIVE_TABLE,
-            SqlColumn.of("id", BlogSensitiveContentEntity::getId),
-            SqlColumn.of("blog_id", BlogSensitiveContentEntity::getBlogId),
-            SqlColumn.of("start_index", BlogSensitiveContentEntity::getStartIndex),
-            SqlColumn.of("end_index", BlogSensitiveContentEntity::getEndIndex),
-            SqlColumn.of("type", BlogSensitiveContentEntity::getType),
-            SqlColumn.of("created", BlogSensitiveContentEntity::getCreated),
-            SqlColumn.of("updated", BlogSensitiveContentEntity::getUpdated));
+            SqlColumn.of("id", SensitiveContent::id),
+            SqlColumn.of("blog_id", SensitiveContent::blogId),
+            SqlColumn.of("start_index", SensitiveContent::startIndex),
+            SqlColumn.of("end_index", SensitiveContent::endIndex),
+            SqlColumn.of("type", SensitiveContent::type),
+            SqlColumn.of("created", SensitiveContent::created),
+            SqlColumn.of("updated", SensitiveContent::updated));
 
     private SqlTables() {
     }

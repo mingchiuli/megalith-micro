@@ -1,5 +1,7 @@
 package wiki.chiu.micro.blog.application.service;
 
+import wiki.chiu.micro.blog.domain.BlogFixtures;
+import wiki.chiu.micro.blog.domain.Blog;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -10,10 +12,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
+import wiki.chiu.micro.blog.application.model.IndexSourceStatus;
 import wiki.chiu.micro.blog.application.port.out.BlogIndexSourceState;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
-import wiki.chiu.micro.blog.domain.BlogEntity;
 
 class BlogIndexSourceServiceTest {
 
@@ -22,8 +23,8 @@ class BlogIndexSourceServiceTest {
         BlogQueryStore blogs = mock(BlogQueryStore.class);
         BlogIndexSourceState state = mock(BlogIndexSourceState.class);
         var service = new BlogIndexSourceService(blogs, state);
-        for (var status : List.of(new BlogIndexSourceStatus(false, 0, 0, 1),
-            new BlogIndexSourceStatus(true, 1, 0, 1), new BlogIndexSourceStatus(true, 0, 1, 1))) {
+        for (var status : List.of(new IndexSourceStatus(false, 0, 0, 1),
+            new IndexSourceStatus(true, 1, 0, 1), new IndexSourceStatus(true, 0, 1, 1))) {
             when(state.status()).thenReturn(status);
             assertThatThrownBy(() -> service.snapshots(0, 500)).hasMessageContaining("empty BLOG outbox");
         }
@@ -34,9 +35,9 @@ class BlogIndexSourceServiceTest {
     void snapshotsIncludeThePersistedBusinessRevision() {
         BlogQueryStore blogs = mock(BlogQueryStore.class);
         BlogIndexSourceState state = mock(BlogIndexSourceState.class);
-        when(state.status()).thenReturn(new BlogIndexSourceStatus(true, 0, 0, 1));
+        when(state.status()).thenReturn(new IndexSourceStatus(true, 0, 0, 1));
         when(blogs.findSnapshotsAfter(0, 500)).thenReturn(List.of(
-            BlogEntity.builder().id(7L).eventRevision(11L).readCount(120L).build()));
+            BlogFixtures.builder().id(7L).eventRevision(11L).readCount(120L).build()));
 
         var snapshot = new BlogIndexSourceService(blogs, state).snapshots(0, 500).getFirst();
 

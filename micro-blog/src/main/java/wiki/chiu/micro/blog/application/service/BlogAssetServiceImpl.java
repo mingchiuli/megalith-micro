@@ -3,22 +3,21 @@ package wiki.chiu.micro.blog.application.service;
 import static wiki.chiu.micro.common.error.ExceptionMessage.NO_AUTH;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
-
-import org.springframework.stereotype.Service;
 
 import wiki.chiu.micro.blog.application.model.UploadObject;
 import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
 import wiki.chiu.micro.blog.application.port.out.BlogAssetStorage;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
-import wiki.chiu.micro.blog.domain.BlogEntity;
+import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
 
-@Service
 public class BlogAssetServiceImpl implements BlogAssetService {
 
     private final BlogAssetStorage storage;
+
     private final BlogQueryStore blogs;
 
     public BlogAssetServiceImpl(BlogAssetStorage storage, BlogQueryStore blogs) {
@@ -45,9 +44,9 @@ public class BlogAssetServiceImpl implements BlogAssetService {
                 .anyMatch(
                     blog ->
                         canEdit(blog, userId, dataPermissions)
-                            && objectName.startsWith(ownerPrefix(blog.getUserId()))
-                            && (url.equals(blog.getLink())
-                            || objectName.startsWith(blogPrefix(blog.getUserId(), blogId))));
+                            && objectName.startsWith(ownerPrefix(blog.userId()))
+                            && (url.equals(blog.link())
+                            || objectName.startsWith(blogPrefix(blog.userId(), blogId))));
         if (!ownObject && !managedBlogObject) {
             throw new MissException(NO_AUTH);
         }
@@ -58,15 +57,15 @@ public class BlogAssetServiceImpl implements BlogAssetService {
         if (blogId == null) {
             return userId;
         }
-        BlogEntity blog = blogs.findById(blogId).orElseThrow(() -> new MissException(NO_AUTH));
+        Blog blog = blogs.findById(blogId).orElseThrow(() -> new MissException(NO_AUTH));
         if (!canEdit(blog, userId, dataPermissions)) {
             throw new MissException(NO_AUTH);
         }
-        return blog.getUserId();
+        return blog.userId();
     }
 
-    private boolean canEdit(BlogEntity blog, Long userId, List<DataPermissionEnum> dataPermissions) {
-        return java.util.Objects.equals(blog.getUserId(), userId)
+    private boolean canEdit(Blog blog, Long userId, List<DataPermissionEnum> dataPermissions) {
+        return Objects.equals(blog.userId(), userId)
             || dataPermissions.contains(DataPermissionEnum.BLOG_EDIT_ALL);
     }
 

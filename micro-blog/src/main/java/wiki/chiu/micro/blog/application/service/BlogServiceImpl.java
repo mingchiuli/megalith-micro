@@ -1,38 +1,43 @@
 package wiki.chiu.micro.blog.application.service;
 
-import static wiki.chiu.micro.common.error.ExceptionMessage.*;
+import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.springframework.stereotype.Service;
-
+import wiki.chiu.micro.blog.application.model.BlogDraft;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
+import wiki.chiu.micro.blog.application.model.BlogEdit;
+import wiki.chiu.micro.blog.application.model.BlogListItem;
+import wiki.chiu.micro.blog.application.model.BlogQuery;
+import wiki.chiu.micro.blog.application.model.BlogSearchQuery;
+import wiki.chiu.micro.blog.application.model.BlogSearchResult;
 import wiki.chiu.micro.blog.application.model.BlogSearchSelection;
+import wiki.chiu.micro.blog.application.model.DeletedBlogEntry;
+import wiki.chiu.micro.blog.application.model.DeletedBlogItem;
 import wiki.chiu.micro.blog.application.model.DeletedBlogPage;
+import wiki.chiu.micro.blog.application.model.SensitiveContentDraft;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
-import wiki.chiu.micro.blog.convertor.*;
-import wiki.chiu.micro.blog.domain.BlogEntity;
-import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
-import wiki.chiu.micro.blog.req.BlogEntityReq;
-import wiki.chiu.micro.blog.req.BlogQueryReq;
-import wiki.chiu.micro.blog.vo.BlogDeleteVo;
-import wiki.chiu.micro.blog.vo.BlogEditVo;
-import wiki.chiu.micro.blog.vo.BlogEntityVo;
+import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.SensitiveContent;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
-import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
-import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 
-@Service
 public class BlogServiceImpl implements BlogService {
+
+    private static final int RECYCLE_RETENTION_DAYS = 7;
 
     private final BlogQueryStore blogs;
 
@@ -58,64 +63,50 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public BlogEditVo findEdit(Long id, Long userId, List<DataPermissionEnum> dataPermissions) {
-
-        BlogEntity blog;
-        List<BlogEditVo.SensitiveContentVo> sensitiveContentList;
+    public BlogEdit findEdit(Long id, Long userId, List<DataPermissionEnum> dataPermissions) {
+        Blog blog;
+        List<SensitiveContent> spans;
         if (id != null) {
             blog = blogs.findById(id).orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
             accessPolicy.requireCollaboration(blog, userId, dataPermissions);
-            var sensitiveContentRpcList = blogs.findSensitiveByBlogId(id);
-            sensitiveContentList = SensitiveContentVoConvertor.convert(sensitiveContentRpcList);
+            spans = blogs.findSensitiveByBlogId(id);
         } else {
-            blog = createNewBlog(userId);
-            sensitiveContentList = new ArrayList<>();
+            blog = Blog.blankFor(userId);
+            spans = List.of();
         }
 
-        return BlogEditVoConvertor.convert(
-            blog, sensitiveContentList, accessPolicy.permissions(blog, userId, dataPermissions));
-    }
-
-    private BlogEntity createNewBlog(Long userId) {
-        return BlogEntity.builder()
-            .userId(userId)
-            .status(BlogStatusEnum.NORMAL.getCode())
-            .content("")
-            .description("")
-            .link("")
-            .title("")
-            .build();
+        return new BlogEdit(
+            blog.id(),
+            blog.userId(),
+            blog.title(),
+            blog.description(),
+            blog.link(),
+            blog.content(),
+            blog.status(),
+            spans.stream()
+                .map(span -> new SensitiveContentDraft(span.type(), span.startIndex(), span.endIndex()))
+                .toList(),
+            accessPolicy.permissions(blog, userId, dataPermissions));
     }
 
     @Override
     public void saveOrUpdate(
-        BlogEntityReq blog, Long userId, List<DataPermissionEnum> dataPermissions) {
-        BlogEntity current = getBlogEntity(blog, userId, dataPermissions);
-        Long expectedRevision = blog.id().isPresent() ? current.getEventRevision() : null;
-        BlogEntity candidate = BlogEntityConvertor.convert(blog, current);
+        BlogDraft blog, Long userId, List<DataPermissionEnum> dataPermissions) {
+        Blog current = currentState(blog, userId, dataPermissions);
+        Long expectedRevision = blog.isNew() ? null : current.eventRevision();
+        Blog candidate = blog.mergeInto(current);
         if (expectedRevision != null) {
-            candidate.setUpdated(LocalDateTime.now());
+            candidate = candidate.withUpdated(LocalDateTime.now());
         }
 
         List<Long> existingSensitiveIds =
-            blog.id()
-                .map(
-                    blogId ->
-                        blogs.findSensitiveByBlogId(blogId).stream()
-                            .map(BlogSensitiveContentEntity::getId)
-                            .toList())
-                .orElseGet(List::of);
-        List<BlogSensitiveContentEntity> blogSensitiveContentEntityList =
-            blog.sensitiveContentList().stream()
-                .distinct()
-                .map(
-                    item ->
-                        BlogSensitiveContentEntity.builder()
-                            .endIndex(item.endIndex())
-                            .startIndex(item.startIndex())
-                            .type(item.type())
-                            .build())
-                .toList();
+            blog.isNew()
+                ? List.of()
+                : blogs.findSensitiveByBlogId(blog.id()).stream()
+                    .map(SensitiveContent::id)
+                    .toList();
+        List<SensitiveContent> sensitiveContents =
+            blog.sensitiveContents().stream().distinct().toList();
         BlogOperateEnum operation =
             expectedRevision == null ? BlogOperateEnum.CREATE : BlogOperateEnum.UPDATE;
 
@@ -123,89 +114,178 @@ public class BlogServiceImpl implements BlogService {
             candidate,
             expectedRevision,
             existingSensitiveIds,
-            blogSensitiveContentEntityList,
+            sensitiveContents,
             new BlogEventContext(operation, userId));
     }
 
-    private BlogEntity getBlogEntity(
-        BlogEntityReq blog, Long userId, List<DataPermissionEnum> dataPermissions) {
-        return blog.id()
-            .map(
-                blogId -> {
-                    BlogEntity existing =
-                        blogs
-                            .findById(blogId)
-                            .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-                    accessPolicy.requireEdit(existing, userId, dataPermissions);
-                    return existing;
-                })
-            .orElseGet(() -> BlogEntity.builder().userId(userId).readCount(0L).build());
+    private Blog currentState(
+        BlogDraft blog, Long userId, List<DataPermissionEnum> dataPermissions) {
+        if (blog.isNew()) {
+            return Blog.newBy(userId);
+        }
+        Blog existing =
+            blogs.findById(blog.id()).orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+        accessPolicy.requireEdit(existing, userId, dataPermissions);
+        return existing;
     }
 
     @Override
-    public PageAdapter<BlogEntityVo> findAllBlogs(
-        BlogQueryReq blogQueryReq, Long userId, List<DataPermissionEnum> dataPermissions) {
+    public PageAdapter<BlogListItem> findAllBlogs(
+        BlogQuery query, Long userId, List<DataPermissionEnum> dataPermissions) {
 
-        BlogSysSearchReq req =
-            BlogSysSearchReqConvertor.convert(
-                blogQueryReq, userId, dataPermissions.contains(DataPermissionEnum.BLOG_VIEW_ALL));
-        BlogSearchRpcVo dto = blogSearch.searchBlogs(req);
-        List<Long> ids = dto.ids();
+        BlogSearchQuery searchQuery =
+            new BlogSearchQuery(
+                query.currentPage(),
+                query.size(),
+                query.keywords(),
+                new BlogSearchSelection(
+                    query.status(),
+                    query.createStart(),
+                    query.createEnd(),
+                    userId,
+                    dataPermissions.contains(DataPermissionEnum.BLOG_VIEW_ALL)));
+        BlogSearchResult result = blogSearch.searchBlogs(searchQuery);
+        List<Long> ids = result.ids();
         if (ids.isEmpty()) {
-            return BlogEntityVoConvertor.convert(List.of(), Map.of(), List.of(), dto);
+            return listPage(List.of(), Map.of(), List.of(), result);
         }
 
-        BlogSearchSelection selection = new BlogSearchSelection(
-            req.status(), req.createStart(), req.createEnd(), req.userId(), req.allData());
         Map<Long, Integer> order = new HashMap<>();
         for (int index = 0; index < ids.size(); index++) {
             order.put(ids.get(index), index);
         }
 
-        List<BlogEntity> items =
+        List<Blog> items =
             blogs.findAllById(ids).stream()
-                .filter(selection::includes)
-                .sorted(Comparator.comparing(item -> order.get(item.getId())))
+                .filter(searchQuery.selection()::includes)
+                .sorted(Comparator.comparing(item -> order.get(item.id())))
                 .toList();
 
-        List<Long> currentIds = items.stream().map(BlogEntity::getId).toList();
+        List<Long> currentIds = items.stream().map(Blog::id).toList();
 
-        List<BlogSensitiveContentEntity> blogSensitiveContentEntities =
+        List<SensitiveContent> sensitiveContents =
             currentIds.isEmpty() ? List.of() : blogs.findSensitiveByBlogIds(currentIds);
 
-        Map<Long, Integer> readMap = currentIds.isEmpty() ? Map.of() : runtimeStore.readCounts(currentIds);
+        Map<Long, Integer> readMap =
+            currentIds.isEmpty() ? Map.of() : runtimeStore.readCounts(currentIds);
 
-        return BlogEntityVoConvertor.convert(items, readMap, blogSensitiveContentEntities, dto);
+        return listPage(items, readMap, sensitiveContents, result);
+    }
+
+    private static PageAdapter<BlogListItem> listPage(
+        List<Blog> items,
+        Map<Long, Integer> readMap,
+        List<SensitiveContent> sensitiveContents,
+        BlogSearchResult result) {
+
+        Integer size = result.pageSize();
+        Integer currentPage = result.currentPage();
+        Long total = result.total();
+
+        Map<Long, LocalDateTime> blogDates =
+            items.stream().collect(Collectors.toMap(Blog::id, Blog::updated));
+        Map<Long, LocalDateTime> sensitiveDates =
+            sensitiveContents.stream()
+                .collect(
+                    Collectors.toMap(
+                        SensitiveContent::blogId,
+                        SensitiveContent::updated,
+                        (left, right) -> left.isAfter(right) ? left : right));
+        Map<Long, LocalDateTime> mergedDates =
+            Stream.of(sensitiveDates, blogDates)
+                .flatMap(map -> map.entrySet().stream())
+                .collect(
+                    HashMap::new,
+                    (merged, entry) ->
+                        merged.merge(
+                            entry.getKey(), entry.getValue(), (l, r) -> l.isAfter(r) ? l : r),
+                    HashMap::putAll);
+
+        List<BlogListItem> content =
+            items.stream()
+                .map(
+                    blog ->
+                        new BlogListItem(
+                            blog.id(),
+                            blog.title(),
+                            blog.description(),
+                            blog.content(),
+                            blog.link(),
+                            blog.readCount(),
+                            readMap.getOrDefault(blog.id(), 0),
+                            blog.created(),
+                            mergedDates.get(blog.id()),
+                            blog.status()))
+                .toList();
+
+        long anchor = (long) (currentPage - 1) * size + items.size();
+        return PageAdapter.<BlogListItem>builder()
+            .content(content)
+            .last(anchor >= total)
+            .first(currentPage == 1)
+            .pageNumber(currentPage)
+            .totalPages((int) (total % size == 0 ? total / size : total / size + 1))
+            .pageSize(size)
+            .totalElements(total)
+            .empty(items.isEmpty())
+            .build();
     }
 
     @Override
-    public PageAdapter<BlogDeleteVo> findDeletedBlogs(
+    public PageAdapter<DeletedBlogItem> findDeletedBlogs(
         Integer currentPage, Integer size, Long userId) {
         DeletedBlogPage deleted =
-            runtimeStore.deletedBlogs(userId, currentPage, size, LocalDateTime.now().minusDays(7));
+            runtimeStore.deletedBlogs(
+                userId, currentPage, size, LocalDateTime.now().minusDays(RECYCLE_RETENTION_DAYS));
         if (deleted.blogs().isEmpty()) {
             return PageAdapter.emptyPage();
         }
-        return BlogDeleteVoConvertor.convert(
-            deleted.expiredCount(), deleted.blogs(), currentPage, size, deleted.total());
+
+        int totalPages = (int) (deleted.total() % size == 0 ? deleted.total() / size : deleted.total() / size + 1);
+        List<DeletedBlogItem> content = new ArrayList<>();
+        int index = deleted.expiredCount();
+        for (Blog item : deleted.blogs()) {
+            content.add(
+                new DeletedBlogItem(
+                    item.id(),
+                    item.userId(),
+                    item.title(),
+                    item.description(),
+                    item.content(),
+                    item.created(),
+                    item.updated(),
+                    item.status(),
+                    index++,
+                    item.link(),
+                    item.readCount()));
+        }
+
+        return PageAdapter.<DeletedBlogItem>builder()
+            .content(content)
+            .last(currentPage == totalPages)
+            .first(currentPage == 1)
+            .pageNumber(currentPage)
+            .totalPages(totalPages)
+            .pageSize(size)
+            .totalElements(deleted.total())
+            .empty(deleted.total() == 0)
+            .build();
     }
 
     @Override
     public void recoverDeletedBlog(Integer idx, Long userId) {
-        var deleted = runtimeStore.deletedBlog(userId, idx);
-        if (deleted.isEmpty()) {
+        DeletedBlogEntry deleted = runtimeStore.deletedBlog(userId, idx).orElse(null);
+        if (deleted == null) {
             return;
         }
-        BlogEntity recovered = deleted.orElseThrow().blog();
         blogWrapper.recoverDeletedBlog(
-            recovered,
-            new BlogEventContext(BlogOperateEnum.CREATE, userId));
-        runtimeStore.removeDeletedBlog(userId, deleted.orElseThrow().receipt());
+            deleted.blog(), new BlogEventContext(BlogOperateEnum.CREATE, userId));
+        runtimeStore.removeDeletedBlog(userId, deleted.receipt());
     }
 
     @Override
     public void deleteBatch(List<Long> ids, Long userId, List<DataPermissionEnum> dataPermissions) {
-        List<BlogEntity> deleted =
+        List<Blog> deleted =
             blogs.findAllById(ids).stream()
                 .filter(blog -> accessPolicy.canDelete(blog, userId, dataPermissions))
                 .toList();
@@ -217,19 +297,20 @@ public class BlogServiceImpl implements BlogService {
         deletePrepared(blogs.findByUserIds(userIds), null);
     }
 
-    private void deletePrepared(List<BlogEntity> deleted, Long operatorUserId) {
+    private void deletePrepared(List<Blog> deleted, Long operatorUserId) {
         if (deleted.isEmpty()) {
             return;
         }
-        deleted.forEach(blog -> blog.setEventRevision(blog.getEventRevision() + 1));
-        List<Long> deletedIds = deleted.stream().map(BlogEntity::getId).toList();
+        List<Blog> nextRevision =
+            deleted.stream().map(blog -> blog.withEventRevision(blog.eventRevision() + 1)).toList();
+        List<Long> deletedIds = nextRevision.stream().map(Blog::id).toList();
         List<Long> sensitiveIds =
-            blogs.findSensitiveByBlogIds(deletedIds).stream()
-                .map(BlogSensitiveContentEntity::getId)
-                .toList();
+            blogs.findSensitiveByBlogIds(deletedIds).stream().map(SensitiveContent::id).toList();
         blogWrapper.deleteByIds(
-            deleted,
+            nextRevision,
             sensitiveIds,
-            new BlogEventContext(BlogOperateEnum.REMOVE, operatorUserId));
+            new BlogEventContext(
+                BlogOperateEnum.REMOVE, operatorUserId));
     }
+
 }

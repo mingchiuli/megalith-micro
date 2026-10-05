@@ -7,7 +7,7 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 
-import wiki.chiu.micro.blog.dto.BlogDeleteDto;
+import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 
@@ -18,7 +18,7 @@ class CustomRuntimeHintsTest {
         RuntimeHints hints = new RuntimeHints();
         new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
 
-        assertJacksonType(hints, BlogDeleteDto.class);
+        assertJacksonType(hints, Blog.class);
         assertJacksonType(hints, BlogChangedMessage.class);
         assertJacksonType(hints, BlogSnapshot.class);
     }

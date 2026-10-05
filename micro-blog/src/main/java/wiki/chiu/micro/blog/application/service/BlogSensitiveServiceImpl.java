@@ -2,15 +2,12 @@ package wiki.chiu.micro.blog.application.service;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
-import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
+import wiki.chiu.micro.blog.application.model.BlogSensitiveSpans;
+import wiki.chiu.micro.blog.application.model.SensitiveContentSpan;
 import wiki.chiu.micro.blog.application.port.in.BlogSensitiveService;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
-import wiki.chiu.micro.blog.convertor.BlogSensitiveContentRpcVoConvertor;
-import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
+import wiki.chiu.micro.blog.domain.SensitiveContent;
 
-@Service
 public class BlogSensitiveServiceImpl implements BlogSensitiveService {
 
     private final BlogQueryStore blogs;
@@ -20,8 +17,15 @@ public class BlogSensitiveServiceImpl implements BlogSensitiveService {
     }
 
     @Override
-    public BlogSensitiveContentRpcVo findByBlogId(Long blogId) {
-        List<BlogSensitiveContentEntity> entities = blogs.findSensitiveByBlogId(blogId);
-        return BlogSensitiveContentRpcVoConvertor.convert(entities);
+    public BlogSensitiveSpans findByBlogId(Long blogId) {
+        List<SensitiveContent> spans = blogs.findSensitiveByBlogId(blogId);
+        Long owner = spans.isEmpty() ? null : spans.getFirst().blogId();
+        return new BlogSensitiveSpans(
+            owner,
+            spans.stream()
+                .map(
+                    span ->
+                        new SensitiveContentSpan(span.startIndex(), span.endIndex(), span.type()))
+                .toList());
     }
 }

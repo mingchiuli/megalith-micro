@@ -4,19 +4,15 @@ import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
-import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.application.port.in.BlogQueryService;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
-import wiki.chiu.micro.blog.convertor.BlogEntityRpcVoConvertor;
-import wiki.chiu.micro.blog.domain.BlogEntity;
+import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 import wiki.chiu.micro.common.page.PageAdapter;
 
-@Service
 public class BlogQueryServiceImpl implements BlogQueryService {
 
     private final BlogQueryStore blogs;
@@ -33,15 +29,13 @@ public class BlogQueryServiceImpl implements BlogQueryService {
     }
 
     @Override
-    public BlogEntityRpcVo findById(Long blogId) {
-        BlogEntity blog =
-            blogs.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-        return BlogEntityRpcVoConvertor.convert(blog);
+    public BlogSnapshot findById(Long blogId) {
+        return blogs.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND.getMsg())).snapshot();
     }
 
     @Override
-    public List<BlogEntityRpcVo> findAllById(List<Long> ids) {
-        return BlogEntityRpcVoConvertor.convert(blogs.findAllById(ids));
+    public List<BlogSnapshot> findAllById(List<Long> ids) {
+        return blogs.findAllById(ids).stream().map(Blog::snapshot).toList();
     }
 
     @Override
@@ -55,17 +49,25 @@ public class BlogQueryServiceImpl implements BlogQueryService {
     }
 
     @Override
-    public PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize) {
+    public PageAdapter<BlogSnapshot> findPage(Integer pageNo, Integer pageSize) {
         List<Integer> statuses =
             List.of(
                 BlogStatusEnum.NORMAL.getCode(),
                 BlogStatusEnum.SENSITIVE_FILTER.getCode(),
                 BlogStatusEnum.HIDE.getCode());
-        PageAdapter<BlogEntity> page = blogs.findPage(pageNo, pageSize, statuses);
+        PageAdapter<Blog> page = blogs.findPage(pageNo, pageSize, statuses);
         if (pageNo > 1 && page.empty()) {
             throw new MissException(NO_FOUND.getMsg() + pageNo + " page");
         }
-        return BlogEntityRpcVoConvertor.convert(page);
+        return PageAdapter.<BlogSnapshot>builder()
+            .content(page.content().stream().map(Blog::snapshot).toList())
+            .totalElements(page.totalElements())
+            .pageNumber(page.pageNumber())
+            .pageSize(page.pageSize())
+            .first(page.first())
+            .last(page.last())
+            .empty(page.empty())
+            .totalPages(page.totalPages())
+            .build();
     }
-
 }

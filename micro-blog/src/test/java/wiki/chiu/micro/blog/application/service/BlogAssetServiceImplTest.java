@@ -1,5 +1,7 @@
 package wiki.chiu.micro.blog.application.service;
 
+import wiki.chiu.micro.blog.domain.BlogFixtures;
+import wiki.chiu.micro.blog.domain.Blog;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,7 +17,6 @@ import org.mockito.ArgumentCaptor;
 import wiki.chiu.micro.blog.application.model.UploadObject;
 import wiki.chiu.micro.blog.application.port.out.BlogAssetStorage;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
-import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
 
@@ -49,7 +50,7 @@ class BlogAssetServiceImplTest {
 
     @Test
     void allEditPermissionStoresAndDeletesAssetsUnderBlogOwner() {
-        BlogEntity blog = BlogEntity.builder().id(7L).userId(41L).link("https://cdn/old.png").build();
+        Blog blog = BlogFixtures.builder().id(7L).userId(41L).link("https://cdn/old.png").build();
         when(blogs.findById(7L)).thenReturn(java.util.Optional.of(blog));
         when(storage.storeImage(anyString(), any())).thenReturn("https://cdn/new.png");
         when(storage.objectName("https://cdn/old.png")).thenReturn("blog/41/old.png");

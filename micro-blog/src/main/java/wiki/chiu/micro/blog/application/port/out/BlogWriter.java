@@ -3,21 +3,21 @@ package wiki.chiu.micro.blog.application.port.out;
 import java.util.List;
 
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
-import wiki.chiu.micro.blog.domain.BlogEntity;
-import wiki.chiu.micro.blog.domain.BlogSensitiveContentEntity;
+import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.SensitiveContent;
 
 public interface BlogWriter {
 
     void saveOrUpdate(
-        BlogEntity blog,
+        Blog blog,
         Long expectedRevision,
         List<Long> existingSensitiveIds,
-        List<BlogSensitiveContentEntity> sensitiveContents,
+        List<SensitiveContent> sensitiveContents,
         BlogEventContext event);
 
-    void recoverDeletedBlog(BlogEntity blog, BlogEventContext event);
+    void recoverDeletedBlog(Blog blog, BlogEventContext event);
 
-    void deleteByIds(List<BlogEntity> deleted, List<Long> sensitiveIds, BlogEventContext event);
+    void deleteByIds(List<Blog> deleted, List<Long> sensitiveIds, BlogEventContext event);
 
     void incrementViews(Long blogId);
 }

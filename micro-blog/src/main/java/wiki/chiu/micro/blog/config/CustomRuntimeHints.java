@@ -5,19 +5,19 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
+import wiki.chiu.micro.blog.adapter.in.http.BlogDeleteVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogDownloadReq;
+import wiki.chiu.micro.blog.adapter.in.http.BlogEditVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogEntityReq;
+import wiki.chiu.micro.blog.adapter.in.http.BlogEntityVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogPermissionsVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogQueryReq;
+import wiki.chiu.micro.blog.adapter.in.http.OssDeleteReq;
+import wiki.chiu.micro.blog.adapter.in.http.SensitiveContentReq;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
 import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
-import wiki.chiu.micro.blog.dto.BlogDeleteDto;
-import wiki.chiu.micro.blog.req.BlogDownloadReq;
-import wiki.chiu.micro.blog.req.BlogEntityReq;
-import wiki.chiu.micro.blog.req.BlogQueryReq;
-import wiki.chiu.micro.blog.req.OssDeleteReq;
-import wiki.chiu.micro.blog.req.SensitiveContentReq;
-import wiki.chiu.micro.blog.vo.BlogDeleteVo;
-import wiki.chiu.micro.blog.vo.BlogEditVo;
-import wiki.chiu.micro.blog.vo.BlogEntityVo;
-import wiki.chiu.micro.blog.vo.BlogPermissionsVo;
+import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -50,7 +50,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
         hints
             .reflection()
             .registerType(
-                BlogDeleteDto.class,
+                Blog.class,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(

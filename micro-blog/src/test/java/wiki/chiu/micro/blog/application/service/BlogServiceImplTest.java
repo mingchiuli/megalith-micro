@@ -1,10 +1,13 @@
 package wiki.chiu.micro.blog.application.service;
 
+import wiki.chiu.micro.blog.domain.BlogFixtures;
+import wiki.chiu.micro.blog.domain.Blog;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,7 +23,6 @@ import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
 import wiki.chiu.micro.blog.application.port.out.CollaborationTicketGateway;
-import wiki.chiu.micro.blog.domain.BlogEntity;
 
 class BlogServiceImplTest {
 
@@ -48,7 +50,7 @@ class BlogServiceImplTest {
         BlogQueryStore blogs = mock(BlogQueryStore.class);
         BlogRuntimeStore runtimeStore = mock(BlogRuntimeStore.class);
         when(blogs.findById(7L))
-            .thenReturn(Optional.of(BlogEntity.builder().id(7L).userId(42L).build()));
+            .thenReturn(Optional.of(BlogFixtures.builder().id(7L).userId(42L).build()));
         BlogCollaborationServiceImpl service =
             new BlogCollaborationServiceImpl(
                 blogs,
@@ -64,11 +66,12 @@ class BlogServiceImplTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void userDeletionRemovesOwnedBlogsWithoutAddingThemToAUsersRecycleBin() {
         BlogQueryStore blogs = mock(BlogQueryStore.class);
         BlogWrapper writer = mock(BlogWrapper.class);
-        BlogEntity first = BlogEntity.builder().id(7L).eventRevision(2L).build();
-        BlogEntity second = BlogEntity.builder().id(8L).eventRevision(4L).build();
+        Blog first = BlogFixtures.builder().id(7L).eventRevision(2L).build();
+        Blog second = BlogFixtures.builder().id(8L).eventRevision(4L).build();
         when(blogs.findByUserIds(List.of(42L))).thenReturn(List.of(first, second));
         BlogServiceImpl service =
             new BlogServiceImpl(
@@ -78,14 +81,20 @@ class BlogServiceImplTest {
                 mock(BlogSearchGateway.class),
                 new BlogAccessPolicy());
         ArgumentCaptor<BlogEventContext> event = ArgumentCaptor.forClass(BlogEventContext.class);
+        ArgumentCaptor<List<Blog>> deleted = captor();
 
         service.deleteByUserIds(List.of(42L));
 
-        verify(writer)
-            .deleteByIds(eq(List.of(first, second)), eq(List.of()), event.capture());
+        verify(writer).deleteByIds(deleted.capture(), eq(List.of()), event.capture());
         assertEquals(null, event.getValue().operatorUserId());
-        org.mockito.Mockito.verify(blogs, org.mockito.Mockito.never()).count();
-        assertEquals(3L, first.getEventRevision());
-        assertEquals(5L, second.getEventRevision());
+        verify(blogs, never()).count();
+        assertEquals(
+            List.of(7L, 8L), deleted.getValue().stream().map(Blog::id).toList());
+        assertEquals(
+            List.of(3L, 5L), deleted.getValue().stream().map(Blog::eventRevision).toList());
+    }
+
+    private static ArgumentCaptor<List<Blog>> captor() {
+        return ArgumentCaptor.forClass(List.class);
     }
 }

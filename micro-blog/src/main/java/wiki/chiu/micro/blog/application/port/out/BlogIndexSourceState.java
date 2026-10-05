@@ -1,8 +1,8 @@
 package wiki.chiu.micro.blog.application.port.out;
 
-import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
+import wiki.chiu.micro.blog.application.model.IndexSourceStatus;
 
 public interface BlogIndexSourceState {
 
-    BlogIndexSourceStatus status();
+    IndexSourceStatus status();
 }

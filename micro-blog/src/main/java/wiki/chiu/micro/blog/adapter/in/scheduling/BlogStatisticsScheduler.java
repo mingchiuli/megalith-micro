@@ -15,7 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.blog.application.port.in.BlogStatisticsSync;
-import wiki.chiu.micro.blog.config.BlogMaintenanceProperties;
+import wiki.chiu.micro.blog.application.model.BlogMaintenanceMode;
 import wiki.chiu.micro.common.scheduling.RedisTaskLock;
 
 @Component
@@ -24,7 +24,7 @@ public class BlogStatisticsScheduler {
     private static final Logger log = LoggerFactory.getLogger(BlogStatisticsScheduler.class);
     private final BlogStatisticsSync statistics;
     private final RedisTaskLock lock;
-    private final BlogMaintenanceProperties maintenance;
+    private final BlogMaintenanceMode maintenance;
     private final boolean enabled;
     private final int batchSize;
     private final Counter failures;
@@ -35,7 +35,7 @@ public class BlogStatisticsScheduler {
     public BlogStatisticsScheduler(
         BlogStatisticsSync statistics,
         RedisTaskLock lock,
-        BlogMaintenanceProperties maintenance,
+        BlogMaintenanceMode maintenance,
         @Value("${megalith.blog.statistics-sync.enabled:true}") boolean enabled,
         @Value("${megalith.blog.statistics-sync.batch-size:500}") int batchSize,
         MeterRegistry registry) {
@@ -54,7 +54,7 @@ public class BlogStatisticsScheduler {
         fixedDelayString = "${megalith.blog.statistics-sync.interval:60s}",
         initialDelayString = "${megalith.blog.statistics-sync.interval:60s}")
     public void synchronize() {
-        if (!enabled || maintenance.isReadOnly()) {
+        if (!enabled || maintenance.readOnly()) {
             return;
         }
         try {

@@ -1,5 +1,7 @@
 package wiki.chiu.micro.blog.application.service;
 
+import wiki.chiu.micro.blog.domain.BlogFixtures;
+import wiki.chiu.micro.blog.domain.Blog;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -8,7 +10,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import wiki.chiu.micro.blog.domain.BlogEntity;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
@@ -26,8 +27,8 @@ class BlogAccessPolicyTest {
 
     @Test
     void hiddenAndSensitiveBlogsRemainRestricted() {
-        BlogEntity hidden = blog(BlogStatusEnum.HIDE, 1L);
-        BlogEntity sensitive = blog(BlogStatusEnum.SENSITIVE_FILTER, 1L);
+        Blog hidden = blog(BlogStatusEnum.HIDE, 1L);
+        Blog sensitive = blog(BlogStatusEnum.SENSITIVE_FILTER, 1L);
 
         assertThrows(MissException.class, () -> policy.requireCollaboration(hidden, 2L, List.of()));
         assertThrows(MissException.class, () -> policy.requireCollaboration(sensitive, 2L, List.of()));
@@ -48,7 +49,7 @@ class BlogAccessPolicyTest {
     @Test
     void ownerCanManageAndAnonymousUserCannotManageUnownedBlog() {
         var ownerPermissions = policy.permissions(blog(BlogStatusEnum.NORMAL, 1L), 1L, List.of());
-        BlogEntity unowned = blog(BlogStatusEnum.NORMAL, null);
+        Blog unowned = blog(BlogStatusEnum.NORMAL, null);
 
         assertTrue(ownerPermissions.commit());
         assertTrue(ownerPermissions.manageMetadata());
@@ -58,7 +59,7 @@ class BlogAccessPolicyTest {
 
     @Test
     void editAndDeleteAllPermissionsAreIndependent() {
-        BlogEntity otherUsersBlog = blog(BlogStatusEnum.HIDE, 1L);
+        Blog otherUsersBlog = blog(BlogStatusEnum.HIDE, 1L);
 
         assertTrue(policy.canEdit(otherUsersBlog, 2L, List.of(DataPermissionEnum.BLOG_EDIT_ALL)));
         assertFalse(policy.canDelete(otherUsersBlog, 2L, List.of(DataPermissionEnum.BLOG_EDIT_ALL)));
@@ -66,7 +67,7 @@ class BlogAccessPolicyTest {
         assertFalse(policy.canEdit(otherUsersBlog, 2L, List.of(DataPermissionEnum.BLOG_DELETE_ALL)));
     }
 
-    private BlogEntity blog(BlogStatusEnum status, Long ownerId) {
-        return BlogEntity.builder().userId(ownerId).status(status.getCode()).build();
+    private Blog blog(BlogStatusEnum status, Long ownerId) {
+        return BlogFixtures.builder().userId(ownerId).status(status.getCode()).build();
     }
 }

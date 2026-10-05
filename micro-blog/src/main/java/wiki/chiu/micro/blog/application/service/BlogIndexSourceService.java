@@ -2,18 +2,15 @@ package wiki.chiu.micro.blog.application.service;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
-import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
+import wiki.chiu.micro.blog.application.model.IndexSourceStatus;
 import wiki.chiu.micro.blog.application.port.in.BlogIndexSourceQueries;
 import wiki.chiu.micro.blog.application.port.out.BlogIndexSourceState;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
-import wiki.chiu.micro.blog.convertor.BlogSnapshotConvertor;
+import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 
-@Service
 public class BlogIndexSourceService implements BlogIndexSourceQueries {
 
     private final BlogQueryStore blogs;
@@ -25,7 +22,7 @@ public class BlogIndexSourceService implements BlogIndexSourceQueries {
     }
 
     @Override
-    public BlogIndexSourceStatus status() {
+    public IndexSourceStatus status() {
         return state.status();
     }
 
@@ -35,6 +32,6 @@ public class BlogIndexSourceService implements BlogIndexSourceQueries {
             throw new BaseException(CommonErrorCode.CONFLICT,
                 "index snapshots require read-only maintenance and an empty BLOG outbox");
         }
-        return blogs.findSnapshotsAfter(afterId, limit).stream().map(BlogSnapshotConvertor::convert).toList();
+        return blogs.findSnapshotsAfter(afterId, limit).stream().map(Blog::snapshot).toList();
     }
 }
