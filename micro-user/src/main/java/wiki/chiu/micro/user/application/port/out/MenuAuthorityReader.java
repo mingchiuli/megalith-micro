@@ -2,13 +2,13 @@ package wiki.chiu.micro.user.application.port.out;
 
 import java.util.List;
 
-import wiki.chiu.micro.user.domain.MenuAuthorityEntity;
+import wiki.chiu.micro.user.domain.MenuAuthority;
 
 public interface MenuAuthorityReader {
 
-    List<MenuAuthorityEntity> findAll();
+    List<MenuAuthority> findAll();
 
-    List<MenuAuthorityEntity> findByMenuId(Long menuId);
+    List<MenuAuthority> findByMenuId(Long menuId);
 
-    List<MenuAuthorityEntity> findByMenuIdIn(List<Long> menuIds);
+    List<MenuAuthority> findByMenuIdIn(List<Long> menuIds);
 }

@@ -1,12 +1,10 @@
 package wiki.chiu.micro.user.application.service;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
 
 import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.user.application.model.UserUpload;
@@ -14,7 +12,6 @@ import wiki.chiu.micro.user.application.port.in.UserAssetService;
 import wiki.chiu.micro.user.application.port.out.RegistrationTokenStore;
 import wiki.chiu.micro.user.application.port.out.UserAssetStorage;
 
-@Service
 public class UserAssetServiceImpl implements UserAssetService {
 
     private static final String AVATAR_PREFIX = "avatar/";

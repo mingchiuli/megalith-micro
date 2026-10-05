@@ -1,41 +1,39 @@
 package wiki.chiu.micro.user.application.service;
+import static wiki.chiu.micro.common.error.ExceptionMessage.USER_NOT_EXIST;
 
-import static wiki.chiu.micro.common.error.ExceptionMessage.*;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import java.util.*;
-
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import wiki.chiu.micro.user.application.port.out.PasswordHasher;
 
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.user.application.model.UserDraft;
+import wiki.chiu.micro.user.application.model.UserView;
 import wiki.chiu.micro.user.application.port.in.UserRoleService;
 import wiki.chiu.micro.user.application.port.in.UserService;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
 import wiki.chiu.micro.user.application.port.out.UserReader;
 import wiki.chiu.micro.user.application.port.out.UserRoleReader;
 import wiki.chiu.micro.user.application.port.out.UserWriter;
-import wiki.chiu.micro.user.config.convertor.UserEntityConvertor;
-import wiki.chiu.micro.user.config.convertor.UserEntityVoConvertor;
-import wiki.chiu.micro.user.domain.RoleEntity;
-import wiki.chiu.micro.user.domain.UserEntity;
-import wiki.chiu.micro.user.domain.UserRoleEntity;
-import wiki.chiu.micro.user.req.UserEntityReq;
-import wiki.chiu.micro.user.vo.UserEntityVo;
+import wiki.chiu.micro.user.domain.Role;
+import wiki.chiu.micro.user.domain.User;
+import wiki.chiu.micro.user.domain.UserRole;
 
 /**
  * @author mingchiuli
  * @create 2022-12-04 4:55 pm
  */
-@Service
 public class UserServiceImpl implements UserService {
 
     private final UserReader userRepository;
 
     private final UserWriter userRoleWrapper;
 
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordHasher passwordHasher;
 
     private final RoleReader roleRepository;
 
@@ -46,58 +44,86 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(
         UserReader userRepository,
         UserWriter userRoleWrapper,
-        PasswordEncoder passwordEncoder,
+        PasswordHasher passwordHasher,
         RoleReader roleRepository,
         UserRoleReader userRoleReader,
         UserRoleService userRoleService) {
         this.userRepository = userRepository;
         this.userRoleWrapper = userRoleWrapper;
-        this.passwordEncoder = passwordEncoder;
+        this.passwordHasher = passwordHasher;
         this.roleRepository = roleRepository;
         this.userRoleReader = userRoleReader;
         this.userRoleService = userRoleService;
     }
 
     @Override
-    public UserEntityVo findInfo(Long userId) {
-        UserEntity userEntity =
+    public UserView findInfo(Long userId) {
+        User user =
             userRepository.findById(userId).orElseThrow(() -> new MissException(USER_NOT_EXIST));
 
         List<String> roleCodes = userRoleService.findRoleCodesByUserId(userId);
-        return UserEntityVoConvertor.convert(userEntity, roleCodes);
+        return new UserView(user, roleCodes);
     }
 
     @Override
-    public void saveOrUpdate(UserEntityReq userEntityReq) {
+    public void saveOrUpdate(UserDraft userDraft) {
+        User dealUser = getUserEntity(userDraft);
 
-        UserEntity dealUser = getUserEntity(userEntityReq);
+        UserDraft userReq =
+            userDraft.id() != null && !hasLength(userDraft.password())
+                ? userDraft.withPassword(dealUser.password())
+                : userDraft.withPassword(passwordHasher.hash(userDraft.password()));
 
-        UserEntityReq userReq =
-            userEntityReq.id().isPresent() && !StringUtils.hasLength(userEntityReq.password())
-                ? new UserEntityReq(userEntityReq, dealUser.getPassword())
-                : new UserEntityReq(userEntityReq, passwordEncoder.encode(userEntityReq.password()));
+        User user = userReq.mergeInto(dealUser);
 
-        UserEntity userEntity = UserEntityConvertor.convert(userReq, dealUser);
-
-        List<UserRoleEntity> userRoleEntities =
-            roleRepository.findByCodeIn(userEntityReq.roles()).stream()
-                .map(role -> UserRoleEntity.builder().roleId(role.getId()).build())
+        List<UserRole> userRoles =
+            roleRepository.findByCodeIn(userDraft.roles()).stream()
+                .map(role -> new UserRole(null, null, role.id(), null, null))
                 .toList();
 
-        userRoleWrapper.saveOrUpdate(userEntity, userRoleEntities);
+        userRoleWrapper.saveOrUpdate(user, userRoles);
     }
 
     @Override
-    public PageAdapter<UserEntityVo> listPage(Integer currentPage, Integer size) {
-        PageAdapter<UserEntity> page = userRepository.findPage(currentPage, size);
+    public PageAdapter<UserView> listPage(Integer currentPage, Integer size) {
+        PageAdapter<User> page = userRepository.findPage(currentPage, size);
 
-        List<Long> userIds = page.content().stream().map(UserEntity::getId).toList();
-        List<UserRoleEntity> userRoleEntities = userRoleReader.findByUserIdIn(userIds);
+        List<Long> userIds = page.content().stream().map(User::id).toList();
+        List<UserRole> userRoles = userRoleReader.findByUserIdIn(userIds);
 
-        List<Long> roleIds = userRoleEntities.stream().map(UserRoleEntity::getRoleId).toList();
-        List<RoleEntity> roleEntities = roleRepository.findAllById(roleIds);
+        List<Long> roleIds = userRoles.stream().map(UserRole::roleId).toList();
+        List<Role> roles = roleRepository.findAllById(roleIds);
 
-        return UserEntityVoConvertor.convert(page, userRoleEntities, roleEntities);
+        Map<Long, List<String>> codesByUser = codesByUser(userRoles, roles);
+        Map<Long, LocalDateTime> merged =
+            merge(
+                page.content().stream().collect(Collectors.toMap(User::id, User::updated)),
+                userRoles.stream()
+                    .collect(
+                        Collectors.toMap(
+                            UserRole::userId,
+                            UserRole::updated,
+                            (left, right) -> left.isAfter(right) ? left : right)));
+
+        List<UserView> content =
+            page.content().stream()
+                .map(
+                    user ->
+                        new UserView(
+                            user.withUpdated(merged.get(user.id())),
+                            codesByUser.getOrDefault(user.id(), List.of())))
+                .toList();
+
+        return PageAdapter.<UserView>builder()
+            .content(content)
+            .totalElements(page.totalElements())
+            .pageNumber(page.pageNumber())
+            .pageSize(page.pageSize())
+            .first(page.first())
+            .last(page.last())
+            .empty(page.empty())
+            .totalPages(page.totalPages())
+            .build();
     }
 
     @Override
@@ -105,7 +131,40 @@ public class UserServiceImpl implements UserService {
         userRoleWrapper.deleteUsers(ids);
     }
 
-    private UserEntity getUserEntity(UserEntityReq userEntityReq) {
-        return userEntityReq.id().flatMap(userRepository::findById).orElseGet(UserEntity::new);
+    private static boolean hasLength(String value) {
+        return value != null && !value.isEmpty();
+    }
+
+    private static Map<Long, List<String>> codesByUser(
+        List<UserRole> userRoles, List<Role> roles) {
+        return userRoles.stream()
+            .collect(Collectors.groupingBy(UserRole::userId))
+            .entrySet()
+            .stream()
+            .map(
+                entry -> {
+                    List<Long> roleIds =
+                        entry.getValue().stream().map(UserRole::roleId).toList();
+                    List<String> roleCodes =
+                        roles.stream()
+                            .filter(role -> roleIds.contains(role.id()))
+                            .map(Role::code)
+                            .toList();
+                    return Map.entry(entry.getKey(), roleCodes);
+                })
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private static Map<Long, LocalDateTime> merge(
+        Map<Long, LocalDateTime> left, Map<Long, LocalDateTime> right) {
+        Map<Long, LocalDateTime> merged = new HashMap<>(left);
+        right.forEach((key, value) -> merged.merge(key, value, (l, r) -> l.isAfter(r) ? l : r));
+        return merged;
+    }
+
+    private User getUserEntity(UserDraft userDraft) {
+        return userDraft.id() == null
+            ? User.blank()
+            : userRepository.findById(userDraft.id()).orElseGet(User::blank);
     }
 }

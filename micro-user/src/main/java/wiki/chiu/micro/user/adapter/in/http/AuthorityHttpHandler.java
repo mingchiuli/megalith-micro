@@ -11,9 +11,12 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.user.application.model.AuthorityDraft;
+import wiki.chiu.micro.user.application.model.MenuDraft;
+import wiki.chiu.micro.user.application.model.RegistrationDraft;
+import wiki.chiu.micro.user.application.model.RoleDraft;
+import wiki.chiu.micro.user.application.model.UserDraft;
 import wiki.chiu.micro.user.application.port.in.AuthorityService;
-import wiki.chiu.micro.user.config.convertor.UserRequestConvertor;
-import wiki.chiu.micro.user.req.AuthorityEntityReq;
 
 @Component
 public class AuthorityHttpHandler {
@@ -36,11 +39,11 @@ public class AuthorityHttpHandler {
 
     public ServerResponse info(ServerRequest request) {
         Long id = v.positive(pathVariable(request, "id", Long::valueOf), "id");
-        return ok(Result.success(() -> authorityService.findById(id)));
+        return ok(Result.success(() -> UserViewMapper.toVo(authorityService.findById(id))));
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-        AuthorityEntityReq authority = UserRequestConvertor.toAuthorityEntityReq(request);
+        AuthorityDraft authority = UserRequestConvertor.toAuthorityDraft(request);
         return ok(Result.success(() -> authorityService.saveOrUpdate(authority)));
     }
 

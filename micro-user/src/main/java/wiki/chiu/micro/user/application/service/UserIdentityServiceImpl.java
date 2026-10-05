@@ -1,41 +1,36 @@
 package wiki.chiu.micro.user.application.service;
-
 import static wiki.chiu.micro.common.error.ExceptionMessage.EMAIL_NOT_EXIST;
 import static wiki.chiu.micro.common.error.ExceptionMessage.PHONE_NOT_EXIST;
 import static wiki.chiu.micro.common.error.ExceptionMessage.USER_MISS;
 
 import java.time.LocalDateTime;
 
-import org.springframework.stereotype.Service;
 
 import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
-import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
+import wiki.chiu.micro.user.application.model.UserAccess;
+import wiki.chiu.micro.user.domain.User;
 import wiki.chiu.micro.user.application.port.in.UserIdentityService;
 import wiki.chiu.micro.user.application.port.out.UserIdentityWriter;
 import wiki.chiu.micro.user.application.port.out.UserReader;
-import wiki.chiu.micro.user.config.PasswordLockProperties;
-import wiki.chiu.micro.user.config.convertor.UserEntityRpcVoConvertor;
-import wiki.chiu.micro.user.domain.UserEntity;
+import wiki.chiu.micro.user.domain.User;
 
-@Service
 public class UserIdentityServiceImpl implements UserIdentityService {
 
     private final UserReader users;
     private final UserIdentityWriter identityWrapper;
     private final AuthorizationQueryService authorizationQueries;
-    private final PasswordLockProperties passwordLockProperties;
+    private final int unlockBatchSize;
 
     public UserIdentityServiceImpl(
         UserReader users,
         UserIdentityWriter identityWrapper,
         AuthorizationQueryService authorizationQueries,
-        PasswordLockProperties passwordLockProperties) {
+        int unlockBatchSize) {
         this.users = users;
         this.identityWrapper = identityWrapper;
         this.authorizationQueries = authorizationQueries;
-        this.passwordLockProperties = passwordLockProperties;
+        this.unlockBatchSize = unlockBatchSize;
     }
 
     @Override
@@ -52,42 +47,42 @@ public class UserIdentityServiceImpl implements UserIdentityService {
     public int unlockExpiredBatch() {
         var userIds =
             users.findExpiredPasswordLockIds(
-                StatusEnum.HIDE.getCode(), passwordLockProperties.getBatchSize());
+                StatusEnum.HIDE.getCode(), unlockBatchSize);
         return identityWrapper.unlockExpired(userIds);
     }
 
     @Override
-    public UserEntityRpcVo findById(Long userId) {
-        UserEntity user =
+    public User findById(Long userId) {
+        User user =
             users.findById(userId).orElseThrow(() -> new MissException(USER_MISS.getMsg()));
-        return UserEntityRpcVoConvertor.convert(user);
+        return user;
     }
 
     @Override
-    public UserAccessRpcVo findUserAccess(Long userId) {
+    public UserAccess findUserAccess(Long userId) {
         return authorizationQueries.findUserAccess(userId);
     }
 
     @Override
-    public UserEntityRpcVo findByEmail(String email) {
-        UserEntity user =
+    public User findByEmail(String email) {
+        User user =
             users.findByEmail(email).orElseThrow(() -> new MissException(EMAIL_NOT_EXIST.getMsg()));
-        return UserEntityRpcVoConvertor.convert(user);
+        return user;
     }
 
     @Override
-    public UserEntityRpcVo findByPhone(String phone) {
-        UserEntity user =
+    public User findByPhone(String phone) {
+        User user =
             users.findByPhone(phone).orElseThrow(() -> new MissException(PHONE_NOT_EXIST.getMsg()));
-        return UserEntityRpcVoConvertor.convert(user);
+        return user;
     }
 
     @Override
-    public UserEntityRpcVo findByLogin(String login) {
-        UserEntity user =
+    public User findByLogin(String login) {
+        User user =
             users
                 .findByUsernameOrEmailOrPhone(login, login, login)
                 .orElseThrow(() -> new MissException(USER_MISS.getMsg()));
-        return UserEntityRpcVoConvertor.convert(user);
+        return user;
     }
 }

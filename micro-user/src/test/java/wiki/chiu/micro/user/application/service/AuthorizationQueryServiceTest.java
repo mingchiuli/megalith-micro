@@ -28,13 +28,13 @@ import wiki.chiu.micro.user.application.port.out.RoleMenuReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
 import wiki.chiu.micro.user.application.port.out.UserReader;
 import wiki.chiu.micro.user.application.port.out.UserRoleReader;
-import wiki.chiu.micro.user.domain.AuthorityEntity;
-import wiki.chiu.micro.user.domain.MenuAuthorityEntity;
-import wiki.chiu.micro.user.domain.RoleDataPermissionEntity;
-import wiki.chiu.micro.user.domain.RoleEntity;
-import wiki.chiu.micro.user.domain.RoleMenuEntity;
-import wiki.chiu.micro.user.domain.UserEntity;
-import wiki.chiu.micro.user.domain.UserRoleEntity;
+import wiki.chiu.micro.user.domain.Authority;
+import wiki.chiu.micro.user.domain.MenuAuthority;
+import wiki.chiu.micro.user.domain.RoleDataPermission;
+import wiki.chiu.micro.user.domain.Role;
+import wiki.chiu.micro.user.domain.RoleMenu;
+import wiki.chiu.micro.user.domain.User;
+import wiki.chiu.micro.user.domain.UserRole;
 
 @ExtendWith(MockitoExtension.class)
 class AuthorizationQueryServiceTest {
@@ -59,7 +59,7 @@ class AuthorizationQueryServiceTest {
     @Test
     void userAccessCombinesUserAndDistinctRoleIds() {
         var user =
-            UserEntity.builder().id(42L).status(StatusEnum.HIDE.getCode()).username("reader").build();
+            new User(42L, "reader", null, null, null, null, null, StatusEnum.HIDE.getCode(), null, null, null, null);
         when(users.findById(42L)).thenReturn(Optional.of(user));
         when(userRoles.findByUserId(42L))
             .thenReturn(List.of(userRole(42L, 7L), userRole(42L, 8L), userRole(42L, 7L)));
@@ -179,27 +179,27 @@ class AuthorizationQueryServiceTest {
         verify(roles, never()).findAllById(List.of());
     }
 
-    private UserRoleEntity userRole(Long userId, Long roleId) {
-        return UserRoleEntity.builder().userId(userId).roleId(roleId).build();
+    private UserRole userRole(Long userId, Long roleId) {
+        return new UserRole(null, userId, roleId, null, null);
     }
 
-    private RoleEntity role(Long id, String code) {
-        return RoleEntity.builder().id(id).code(code).status(StatusEnum.NORMAL.getCode()).build();
+    private Role role(Long id, String code) {
+        return new Role(id, null, code, null, null, null, StatusEnum.NORMAL.getCode());
     }
 
-    private RoleMenuEntity roleMenu(Long roleId, Long menuId) {
-        return RoleMenuEntity.builder().roleId(roleId).menuId(menuId).build();
+    private RoleMenu roleMenu(Long roleId, Long menuId) {
+        return new RoleMenu(null, roleId, menuId, null, null);
     }
 
-    private MenuAuthorityEntity menuAuthority(Long menuId, Long authorityId) {
-        return MenuAuthorityEntity.builder().menuId(menuId).authorityId(authorityId).build();
+    private MenuAuthority menuAuthority(Long menuId, Long authorityId) {
+        return new MenuAuthority(null, menuId, authorityId, null, null);
     }
 
-    private AuthorityEntity authority(Long id, String code) {
-        return AuthorityEntity.builder().id(id).code(code).status(StatusEnum.NORMAL.getCode()).build();
+    private Authority authority(Long id, String code) {
+        return new Authority(id, code, null, null, null, null, null, null, null, null, null, StatusEnum.NORMAL.getCode());
     }
 
-    private RoleDataPermissionEntity permission(Long roleId, DataPermissionEnum permission) {
-        return new RoleDataPermissionEntity(roleId, permission);
+    private RoleDataPermission permission(Long roleId, DataPermissionEnum permission) {
+        return new RoleDataPermission(null, roleId, permission, null, null);
     }
 }

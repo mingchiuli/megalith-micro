@@ -11,10 +11,13 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.user.application.model.AuthorityDraft;
+import wiki.chiu.micro.user.application.model.MenuDraft;
+import wiki.chiu.micro.user.application.model.RegistrationDraft;
+import wiki.chiu.micro.user.application.model.RoleDraft;
+import wiki.chiu.micro.user.application.model.UserDraft;
 import wiki.chiu.micro.user.application.port.in.MenuAuthorityService;
 import wiki.chiu.micro.user.application.port.in.MenuService;
-import wiki.chiu.micro.user.config.convertor.UserRequestConvertor;
-import wiki.chiu.micro.user.req.MenuEntityReq;
 
 /**
  * @author mingchiuli
@@ -41,7 +44,7 @@ public class MenuHttpHandler {
 
     public ServerResponse info(ServerRequest request) {
         Long id = v.positive(pathVariable(request, "id", Long::valueOf), "id");
-        return ok(Result.success(() -> menuService.findById(id)));
+        return ok(Result.success(() -> UserViewMapper.toVo(menuService.findById(id))));
     }
 
     public ServerResponse list(ServerRequest request) {
@@ -49,7 +52,7 @@ public class MenuHttpHandler {
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-        MenuEntityReq menu = UserRequestConvertor.toMenuEntityReq(request);
+        MenuDraft menu = UserRequestConvertor.toMenuDraft(request);
         return ok(Result.success(() -> menuService.saveOrUpdate(menu)));
     }
 
@@ -70,6 +73,6 @@ public class MenuHttpHandler {
 
     public ServerResponse getAuthoritiesInfo(ServerRequest request) {
         Long menuId = v.positive(pathVariable(request, "menuId", Long::valueOf), "menuId");
-        return ok(Result.success(() -> menuAuthorityService.getAuthoritiesInfo(menuId)));
+        return ok(Result.success(() -> UserViewMapper.toMenuAuthorityVos(menuAuthorityService.getAuthoritiesInfo(menuId))));
     }
 }

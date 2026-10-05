@@ -2,19 +2,18 @@ package wiki.chiu.micro.user.application.port.in;
 
 import java.util.List;
 
-import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
-import wiki.chiu.micro.user.req.AuthorityEntityReq;
-import wiki.chiu.micro.user.vo.AuthorityVo;
+import wiki.chiu.micro.user.application.model.AuthorityDraft;
+import wiki.chiu.micro.user.domain.Authority;
 
 public interface AuthorityService {
 
-    List<AuthorityRpcVo> findAllByService();
+    List<Authority> findAllByService();
 
-    List<AuthorityVo> findAll();
+    List<Authority> findAll();
 
-    AuthorityVo findById(Long id);
+    Authority findById(Long id);
 
-    void saveOrUpdate(AuthorityEntityReq req);
+    void saveOrUpdate(AuthorityDraft req);
 
     void deleteAuthorities(List<Long> ids);
 

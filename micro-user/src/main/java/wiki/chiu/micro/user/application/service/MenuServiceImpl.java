@@ -1,5 +1,4 @@
 package wiki.chiu.micro.user.application.service;
-
 import static wiki.chiu.micro.common.error.ExceptionMessage.BUTTON_MUST_NOT_PARENT;
 import static wiki.chiu.micro.common.error.ExceptionMessage.CATALOGUE_CHILD_MUST_NOT_BUTTON;
 import static wiki.chiu.micro.common.error.ExceptionMessage.CATALOGUE_PARENT_MUST_PARENT;
@@ -12,34 +11,27 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
 import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.enums.TypeEnum;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.export.SQLUtils;
+import wiki.chiu.micro.user.application.model.MenuDraft;
+import wiki.chiu.micro.user.application.model.MenuNode;
 import wiki.chiu.micro.user.application.model.SqlTables;
 import wiki.chiu.micro.user.application.port.in.MenuService;
 import wiki.chiu.micro.user.application.port.out.MenuReader;
 import wiki.chiu.micro.user.application.port.out.MenuWriter;
 import wiki.chiu.micro.user.application.port.out.RoleMenuReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
-import wiki.chiu.micro.user.config.convertor.MenuDisplayVoConvertor;
-import wiki.chiu.micro.user.config.convertor.MenuEntityConvertor;
-import wiki.chiu.micro.user.config.convertor.MenuEntityVoConvertor;
-import wiki.chiu.micro.user.domain.MenuEntity;
-import wiki.chiu.micro.user.domain.RoleEntity;
-import wiki.chiu.micro.user.domain.RoleMenuEntity;
-import wiki.chiu.micro.user.req.MenuEntityReq;
-import wiki.chiu.micro.user.vo.MenuDisplayVo;
-import wiki.chiu.micro.user.vo.MenuEntityVo;
+import wiki.chiu.micro.user.domain.Menu;
+import wiki.chiu.micro.user.domain.Role;
+import wiki.chiu.micro.user.domain.RoleMenu;
 
 /**
  * @author mingchiuli
  * @create 2022-12-04 2:25 am
  */
-@Service
 public class MenuServiceImpl implements MenuService {
 
     private static final Integer HIDE_STATUS = StatusEnum.HIDE.getCode();
@@ -63,24 +55,34 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    public MenuEntityVo findById(Long id) {
-        MenuEntity menuEntity =
-            menuRepository.findById(id).orElseThrow(() -> new MissException(MENU_NOT_EXIST.getMsg()));
-
-        return MenuEntityVoConvertor.convert(menuEntity);
+    public List<Menu> findAll() {
+        return menuRepository.findAll();
     }
 
     @Override
-    public void saveOrUpdate(MenuEntityReq menu) {
-        validateMenuHierarchy(menu);
-        MenuEntity dealMenu = menu.id().flatMap(menuRepository::findById).orElseGet(MenuEntity::new);
-        MenuEntity menuEntity = MenuEntityConvertor.convert(menu, dealMenu);
-        List<RoleEntity> roles = roleRepository.findAll();
+    public Menu findById(Long id) {
+        return menuRepository.findById(id).orElseThrow(() -> new MissException(MENU_NOT_EXIST.getMsg()));
+    }
 
-        if (HIDE_STATUS.equals(menu.status()) && menu.id().isPresent()) {
-            List<MenuEntity> menuEntities = new ArrayList<>();
+    @Override
+    public List<MenuNode> tree() {
+        return MenuTree.build(menuRepository.findAllByOrderByOrderNumDesc());
+    }
+
+    @Override
+    public void saveOrUpdate(MenuDraft menu) {
+        validateMenuHierarchy(menu);
+        Menu dealMenu =
+            menu.id() == null
+                ? Menu.blank()
+                : menuRepository.findById(menu.id()).orElseGet(Menu::blank);
+        Menu menuEntity = menu.mergeInto(dealMenu);
+        List<Role> roles = roleRepository.findAll();
+
+        if (HIDE_STATUS.equals(menu.status()) && menu.id() != null) {
+            List<Menu> menuEntities = new ArrayList<>();
             menuEntities.add(menuEntity);
-            findTargetChildrenMenuId(menu.id().get(), menuEntities);
+            findTargetChildrenMenuId(menu.id(), menuEntities);
             roleMenuAuthorityWrapper.saveMenus(menuEntities, roleIds(roles), roleCodes(roles));
         } else {
             roleMenuAuthorityWrapper.saveMenus(List.of(menuEntity), roleIds(roles), roleCodes(roles));
@@ -88,16 +90,9 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    public List<MenuDisplayVo> tree() {
-        List<MenuEntity> menus = menuRepository.findAllByOrderByOrderNumDesc();
-        List<MenuDisplayVo> menuEntities = MenuDisplayVoConvertor.convert(menus, false);
-        return MenuDisplayVoConvertor.buildTreeMenu(menuEntities);
-    }
-
-    @Override
     public byte[] download() {
-        List<MenuEntity> menuEntities = menuRepository.findAll();
-        List<RoleMenuEntity> roleMenuEntities = roleMenuReader.findAll();
+        List<Menu> menuEntities = menuRepository.findAll();
+        List<RoleMenu> roleMenuEntities = roleMenuReader.findAll();
         return SQLUtils.compose(
                 SQLUtils.insertSql(menuEntities, SqlTables.MENU),
                 SQLUtils.insertSql(roleMenuEntities, SqlTables.ROLE_MENU))
@@ -109,30 +104,30 @@ public class MenuServiceImpl implements MenuService {
         if (menuRepository.existsByParentId(id)) {
             throw new BaseException(MENU_INVALID_OPERATE);
         }
-        List<RoleEntity> roles = roleRepository.findAll();
+        List<Role> roles = roleRepository.findAll();
         roleMenuAuthorityWrapper.deleteMenu(id, roleIds(roles), roleCodes(roles));
     }
 
-    private List<Long> roleIds(List<RoleEntity> roles) {
-        return roles.stream().map(RoleEntity::getId).toList();
+    private List<Long> roleIds(List<Role> roles) {
+        return roles.stream().map(Role::id).toList();
     }
 
-    private List<String> roleCodes(List<RoleEntity> roles) {
-        return roles.stream().map(RoleEntity::getCode).toList();
+    private List<String> roleCodes(List<Role> roles) {
+        return roles.stream().map(Role::code).toList();
     }
 
-    private void findTargetChildrenMenuId(Long menuId, List<MenuEntity> menuEntities) {
-        List<MenuEntity> menus = menuRepository.findByParentId(menuId);
+    private void findTargetChildrenMenuId(Long menuId, List<Menu> menuEntities) {
+        List<Menu> menus = menuRepository.findByParentId(menuId);
         menus.forEach(
             menu -> {
-                menu.setUpdated(LocalDateTime.now());
-                menu.setStatus(StatusEnum.HIDE.getCode());
-                menuEntities.add(menu);
-                findTargetChildrenMenuId(menu.getId(), menuEntities);
+                Menu hidden =
+                    menu.withUpdated(LocalDateTime.now()).withStatus(StatusEnum.HIDE.getCode());
+                menuEntities.add(hidden);
+                findTargetChildrenMenuId(hidden.id(), menuEntities);
             });
     }
 
-    private void validateMenuHierarchy(MenuEntityReq menu) {
+    private void validateMenuHierarchy(MenuDraft menu) {
         TypeEnum type = TypeEnum.getInstance(menu.type());
         TypeEnum parentType = getParentType(menu.parentId());
 
@@ -154,8 +149,8 @@ public class MenuServiceImpl implements MenuService {
         if (Long.valueOf(0).equals(parentId)) {
             return TypeEnum.CATALOGUE;
         }
-        MenuEntity parent =
+        Menu parent =
             menuRepository.findById(parentId).orElseThrow(() -> new MissException(NO_FOUND));
-        return TypeEnum.getInstance(parent.getType());
+        return TypeEnum.getInstance(parent.type());
     }
 }

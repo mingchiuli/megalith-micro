@@ -2,8 +2,8 @@ package wiki.chiu.micro.user.application.port.in;
 
 import java.time.LocalDateTime;
 
-import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
-import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
+import wiki.chiu.micro.user.application.model.UserAccess;
+import wiki.chiu.micro.user.domain.User;
 
 public interface UserIdentityService {
 
@@ -13,13 +13,13 @@ public interface UserIdentityService {
 
     int unlockExpiredBatch();
 
-    UserEntityRpcVo findById(Long userId);
+    User findById(Long userId);
 
-    UserAccessRpcVo findUserAccess(Long userId);
+    User findByEmail(String email);
 
-    UserEntityRpcVo findByEmail(String email);
+    User findByPhone(String phone);
 
-    UserEntityRpcVo findByPhone(String phone);
+    User findByLogin(String login);
 
-    UserEntityRpcVo findByLogin(String login);
+    UserAccess findUserAccess(Long userId);
 }

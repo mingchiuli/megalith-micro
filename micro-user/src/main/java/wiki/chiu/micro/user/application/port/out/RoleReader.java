@@ -4,23 +4,23 @@ import java.util.List;
 import java.util.Optional;
 
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.user.domain.RoleEntity;
+import wiki.chiu.micro.user.domain.Role;
 
 public interface RoleReader {
 
-    Optional<RoleEntity> findById(Long id);
+    Optional<Role> findById(Long id);
 
-    Optional<RoleEntity> findByCode(String code);
+    Optional<Role> findByCode(String code);
 
-    List<RoleEntity> findAll();
+    List<Role> findAll();
 
-    List<RoleEntity> findAllById(Iterable<Long> ids);
+    List<Role> findAllById(Iterable<Long> ids);
 
-    List<RoleEntity> findByCodeIn(List<String> codes);
+    List<Role> findByCodeIn(List<String> codes);
 
-    List<RoleEntity> findByCodeInAndStatus(List<String> codes, Integer status);
+    List<Role> findByCodeInAndStatus(List<String> codes, Integer status);
 
-    List<RoleEntity> findByStatus(Integer status);
+    List<Role> findByStatus(Integer status);
 
-    PageAdapter<RoleEntity> findPage(int pageNumber, int pageSize);
+    PageAdapter<Role> findPage(int pageNumber, int pageSize);
 }

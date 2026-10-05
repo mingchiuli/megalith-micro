@@ -23,7 +23,7 @@ import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.user.application.port.in.UserService;
 import wiki.chiu.micro.user.application.port.out.RegistrationTokenStore;
 import wiki.chiu.micro.user.application.port.out.UserReader;
-import wiki.chiu.micro.user.req.UserEntityRegisterReq;
+import wiki.chiu.micro.user.application.model.RegistrationDraft;
 
 class UserServiceImplTest {
 
@@ -32,13 +32,13 @@ class UserServiceImplTest {
         RegistrationTokenStore tokens = mock(RegistrationTokenStore.class);
         UserService userService = mock(UserService.class);
         RegistrationServiceImpl service =
-            new RegistrationServiceImpl(tokens, mock(UserReader.class), userService);
-        UserEntityRegisterReq request =
-            new UserEntityRegisterReq(
+            new RegistrationServiceImpl(
+                tokens, mock(UserReader.class), userService, "https://example.com/register/");
+        RegistrationDraft request =
+            new RegistrationDraft(
                 "alice",
                 "Alice",
                 "https://example.com/avatar.jpg",
-                "secret",
                 "secret",
                 "alice@example.com",
                 "13800138000",
@@ -59,14 +59,15 @@ class UserServiceImplTest {
         RegistrationTokenStore tokens = mock(RegistrationTokenStore.class);
         UserReader users = mock(UserReader.class);
         UserService userService = mock(UserService.class);
-        RegistrationServiceImpl service = new RegistrationServiceImpl(tokens, users, userService);
+        RegistrationServiceImpl service =
+            new RegistrationServiceImpl(
+                tokens, users, userService, "https://example.com/register/");
         when(users.findByUsername("alice")).thenReturn(Optional.empty());
-        UserEntityRegisterReq request =
-            new UserEntityRegisterReq(
+        RegistrationDraft request =
+            new RegistrationDraft(
                 "alice",
                 "Alice",
                 "https://example.com/avatar.jpg",
-                "secret",
                 "secret",
                 "alice@example.com",
                 "13800138000",
@@ -84,8 +85,11 @@ class UserServiceImplTest {
         RegistrationTokenStore tokens = mock(RegistrationTokenStore.class);
         when(tokens.issue("张 三&#")).thenReturn("token");
         RegistrationServiceImpl service =
-            new RegistrationServiceImpl(tokens, mock(UserReader.class), mock(UserService.class));
-        ReflectionTestUtils.setField(service, "pagePrefix", "https://example.com/register/");
+            new RegistrationServiceImpl(
+                tokens,
+                mock(UserReader.class),
+                mock(UserService.class),
+                "https://example.com/register/");
 
         String page = service.issuePage("张 三&#");
 

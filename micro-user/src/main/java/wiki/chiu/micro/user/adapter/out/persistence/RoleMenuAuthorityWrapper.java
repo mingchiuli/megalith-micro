@@ -5,12 +5,13 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.application.port.out.MenuWriter;
-import wiki.chiu.micro.user.domain.MenuEntity;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.domain.Menu;
 
 @Component
 public class RoleMenuAuthorityWrapper implements MenuWriter {
@@ -35,8 +36,8 @@ public class RoleMenuAuthorityWrapper implements MenuWriter {
 
     @Transactional
     @Override
-    public void saveMenus(List<MenuEntity> menus, List<Long> roleIds, List<String> roleCodes) {
-        menuRepository.saveAll(menus);
+    public void saveMenus(List<Menu> menus, List<Long> roleIds, List<String> roleCodes) {
+        menuRepository.saveAll(menus.stream().map(UserPersistenceMapper::toEntity).toList());
         enqueueAllRoleEviction(roleIds, roleCodes);
     }
 

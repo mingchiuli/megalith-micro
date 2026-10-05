@@ -12,14 +12,13 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.user.application.port.out.UserReader;
-import wiki.chiu.micro.user.domain.UserEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.UserEntity;
 
 /**
  * @author mingchiuli
  * @create 2022-11-27 11:53 am
  */
-public interface UserRepository extends JpaRepository<UserEntity, Long>, UserReader {
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     Optional<UserEntity> findByEmail(String email);
 
@@ -72,12 +71,10 @@ public interface UserRepository extends JpaRepository<UserEntity, Long>, UserRea
 
     Optional<UserEntity> findByPhone(String loginSMS);
 
-    @Override
     default List<Long> findExpiredPasswordLockIds(Integer lockedStatus, int batchSize) {
         return findExpiredPasswordLockIds(lockedStatus, PageRequest.of(0, batchSize));
     }
 
-    @Override
     default PageAdapter<UserEntity> findPage(int pageNumber, int pageSize) {
         var request = PageRequest.of(pageNumber - 1, pageSize, Sort.by("created").ascending());
         var page = findAll(request);

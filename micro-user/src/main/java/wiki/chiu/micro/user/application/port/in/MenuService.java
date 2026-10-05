@@ -2,23 +2,21 @@ package wiki.chiu.micro.user.application.port.in;
 
 import java.util.List;
 
-import wiki.chiu.micro.user.req.MenuEntityReq;
-import wiki.chiu.micro.user.vo.MenuDisplayVo;
-import wiki.chiu.micro.user.vo.MenuEntityVo;
+import wiki.chiu.micro.user.application.model.MenuDraft;
+import wiki.chiu.micro.user.application.model.MenuNode;
+import wiki.chiu.micro.user.domain.Menu;
 
-/**
- * @author mingchiuli
- * @create 2022-12-04 2:25 am
- */
 public interface MenuService {
 
-    MenuEntityVo findById(Long id);
+    List<Menu> findAll();
 
-    void saveOrUpdate(MenuEntityReq menu);
+    List<MenuNode> tree();
 
-    List<MenuDisplayVo> tree();
+    Menu findById(Long id);
 
-    byte[] download();
+    void saveOrUpdate(MenuDraft menu);
 
     void delete(Long id);
+
+    byte[] download();
 }

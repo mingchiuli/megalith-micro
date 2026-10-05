@@ -4,14 +4,13 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import wiki.chiu.micro.user.application.port.out.MenuReader;
-import wiki.chiu.micro.user.domain.MenuEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuEntity;
 
 /**
  * @author mingchiuli
  * @create 2022-11-27 11:50 am
  */
-public interface MenuRepository extends JpaRepository<MenuEntity, Long>, MenuReader {
+public interface MenuRepository extends JpaRepository<MenuEntity, Long> {
 
     List<MenuEntity> findAllByOrderByOrderNumDesc();
 

@@ -4,23 +4,23 @@ import java.util.List;
 import java.util.Optional;
 
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.user.domain.UserEntity;
+import wiki.chiu.micro.user.domain.User;
 
 public interface UserReader {
 
-    Optional<UserEntity> findById(Long id);
+    Optional<User> findById(Long id);
 
-    Optional<UserEntity> findByEmail(String email);
+    Optional<User> findByEmail(String email);
 
-    Optional<UserEntity> findByPhone(String phone);
+    Optional<User> findByPhone(String phone);
 
-    Optional<UserEntity> findByUsername(String username);
+    Optional<User> findByUsername(String username);
 
-    Optional<UserEntity> findByUsernameOrEmailOrPhone(String username, String email, String phone);
+    Optional<User> findByUsernameOrEmailOrPhone(String username, String email, String phone);
 
-    List<UserEntity> findAll();
+    List<User> findAll();
 
     List<Long> findExpiredPasswordLockIds(Integer lockedStatus, int batchSize);
 
-    PageAdapter<UserEntity> findPage(int pageNumber, int pageSize);
+    PageAdapter<User> findPage(int pageNumber, int pageSize);
 }

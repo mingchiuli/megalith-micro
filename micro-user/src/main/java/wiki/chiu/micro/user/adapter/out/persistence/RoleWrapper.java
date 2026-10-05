@@ -5,13 +5,15 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleDataPermissionRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRoleRepository;
 import wiki.chiu.micro.user.application.port.out.RoleWriter;
-import wiki.chiu.micro.user.domain.RoleEntity;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.domain.Role;
 
 @Component
 public class RoleWrapper implements RoleWriter {
@@ -37,8 +39,8 @@ public class RoleWrapper implements RoleWriter {
 
     @Transactional
     @Override
-    public void saveOrUpdate(RoleEntity role, List<String> affectedCodes) {
-        RoleEntity saved = roles.save(role);
+    public void saveOrUpdate(Role role, List<String> affectedCodes) {
+        RoleEntity saved = roles.save(UserPersistenceMapper.toEntity(role));
         cacheEvictions.enqueue(List.of(), List.of(saved.getId()), affectedCodes, true, false);
     }
 

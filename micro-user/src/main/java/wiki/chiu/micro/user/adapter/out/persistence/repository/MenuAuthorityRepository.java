@@ -8,11 +8,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import wiki.chiu.micro.user.application.port.out.MenuAuthorityReader;
-import wiki.chiu.micro.user.domain.MenuAuthorityEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuAuthorityEntity;
 
 public interface MenuAuthorityRepository
-    extends JpaRepository<MenuAuthorityEntity, Long>, MenuAuthorityReader {
+    extends JpaRepository<MenuAuthorityEntity, Long> {
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Transactional

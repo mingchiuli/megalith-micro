@@ -8,14 +8,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.user.application.port.out.RoleReader;
-import wiki.chiu.micro.user.domain.RoleEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
 
 /**
  * @author mingchiuli
  * @create 2022-11-27 11:52 am
  */
-public interface RoleRepository extends JpaRepository<RoleEntity, Long>, RoleReader {
+public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
 
     List<RoleEntity> findByCodeIn(List<String> roles);
 
@@ -25,7 +24,6 @@ public interface RoleRepository extends JpaRepository<RoleEntity, Long>, RoleRea
 
     List<RoleEntity> findByStatus(Integer status);
 
-    @Override
     default PageAdapter<RoleEntity> findPage(int pageNumber, int pageSize) {
         var request = PageRequest.of(pageNumber - 1, pageSize, Sort.by("created").ascending());
         var page = findAll(request);

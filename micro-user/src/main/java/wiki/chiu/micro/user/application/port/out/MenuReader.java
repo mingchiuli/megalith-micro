@@ -3,19 +3,19 @@ package wiki.chiu.micro.user.application.port.out;
 import java.util.List;
 import java.util.Optional;
 
-import wiki.chiu.micro.user.domain.MenuEntity;
+import wiki.chiu.micro.user.domain.Menu;
 
 public interface MenuReader {
 
-    Optional<MenuEntity> findById(Long id);
+    Optional<Menu> findById(Long id);
 
-    List<MenuEntity> findAll();
+    List<Menu> findAll();
 
-    List<MenuEntity> findAllById(Iterable<Long> ids);
+    List<Menu> findAllById(Iterable<Long> ids);
 
-    List<MenuEntity> findAllByOrderByOrderNumDesc();
+    List<Menu> findAllByOrderByOrderNumDesc();
 
-    List<MenuEntity> findByParentId(Long parentId);
+    List<Menu> findByParentId(Long parentId);
 
     boolean existsByParentId(Long parentId);
 }

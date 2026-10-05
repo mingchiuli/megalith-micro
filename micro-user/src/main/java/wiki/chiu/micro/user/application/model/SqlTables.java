@@ -11,114 +11,114 @@ import static wiki.chiu.micro.common.constant.Const.USER_TABLE;
 
 import wiki.chiu.micro.common.export.SqlColumn;
 import wiki.chiu.micro.common.export.SqlTable;
-import wiki.chiu.micro.user.domain.AuthorityEntity;
-import wiki.chiu.micro.user.domain.MenuAuthorityEntity;
-import wiki.chiu.micro.user.domain.MenuEntity;
-import wiki.chiu.micro.user.domain.RoleDataPermissionEntity;
-import wiki.chiu.micro.user.domain.RoleEntity;
-import wiki.chiu.micro.user.domain.RoleMenuEntity;
-import wiki.chiu.micro.user.domain.UserEntity;
-import wiki.chiu.micro.user.domain.UserRoleEntity;
+import wiki.chiu.micro.user.domain.Authority;
+import wiki.chiu.micro.user.domain.MenuAuthority;
+import wiki.chiu.micro.user.domain.Menu;
+import wiki.chiu.micro.user.domain.RoleDataPermission;
+import wiki.chiu.micro.user.domain.Role;
+import wiki.chiu.micro.user.domain.RoleMenu;
+import wiki.chiu.micro.user.domain.User;
+import wiki.chiu.micro.user.domain.UserRole;
 
 /**
  * Explicit SQL export column definitions for the user service tables.
  */
 public final class SqlTables {
 
-    public static final SqlTable<UserEntity> USER =
+    public static final SqlTable<User> USER =
         SqlTable.of(
             USER_TABLE,
-            SqlColumn.of("id", UserEntity::getId),
-            SqlColumn.of("username", UserEntity::getUsername),
-            SqlColumn.of("nickname", UserEntity::getNickname),
-            SqlColumn.of("avatar", UserEntity::getAvatar),
-            SqlColumn.of("email", UserEntity::getEmail),
-            SqlColumn.of("phone", UserEntity::getPhone),
-            SqlColumn.of("password", UserEntity::getPassword),
-            SqlColumn.of("status", UserEntity::getStatus),
-            SqlColumn.of("password_locked_until", UserEntity::getPasswordLockedUntil),
-            SqlColumn.of("created", UserEntity::getCreated),
-            SqlColumn.of("updated", UserEntity::getUpdated),
-            SqlColumn.of("last_login", UserEntity::getLastLogin));
+            SqlColumn.of("id", User::id),
+            SqlColumn.of("username", User::username),
+            SqlColumn.of("nickname", User::nickname),
+            SqlColumn.of("avatar", User::avatar),
+            SqlColumn.of("email", User::email),
+            SqlColumn.of("phone", User::phone),
+            SqlColumn.of("password", User::password),
+            SqlColumn.of("status", User::status),
+            SqlColumn.of("password_locked_until", User::passwordLockedUntil),
+            SqlColumn.of("created", User::created),
+            SqlColumn.of("updated", User::updated),
+            SqlColumn.of("last_login", User::lastLogin));
 
-    public static final SqlTable<RoleEntity> ROLE =
+    public static final SqlTable<Role> ROLE =
         SqlTable.of(
             ROLE_TABLE,
-            SqlColumn.of("id", RoleEntity::getId),
-            SqlColumn.of("name", RoleEntity::getName),
-            SqlColumn.of("code", RoleEntity::getCode),
-            SqlColumn.of("remark", RoleEntity::getRemark),
-            SqlColumn.of("created", RoleEntity::getCreated),
-            SqlColumn.of("updated", RoleEntity::getUpdated),
-            SqlColumn.of("status", RoleEntity::getStatus));
+            SqlColumn.of("id", Role::id),
+            SqlColumn.of("name", Role::name),
+            SqlColumn.of("code", Role::code),
+            SqlColumn.of("remark", Role::remark),
+            SqlColumn.of("created", Role::created),
+            SqlColumn.of("updated", Role::updated),
+            SqlColumn.of("status", Role::status));
 
-    public static final SqlTable<UserRoleEntity> USER_ROLE =
+    public static final SqlTable<UserRole> USER_ROLE =
         SqlTable.of(
             USER_ROLE_TABLE,
-            SqlColumn.of("id", UserRoleEntity::getId),
-            SqlColumn.of("user_id", UserRoleEntity::getUserId),
-            SqlColumn.of("role_id", UserRoleEntity::getRoleId),
-            SqlColumn.of("created", UserRoleEntity::getCreated),
-            SqlColumn.of("updated", UserRoleEntity::getUpdated));
+            SqlColumn.of("id", UserRole::id),
+            SqlColumn.of("user_id", UserRole::userId),
+            SqlColumn.of("role_id", UserRole::roleId),
+            SqlColumn.of("created", UserRole::created),
+            SqlColumn.of("updated", UserRole::updated));
 
-    public static final SqlTable<RoleDataPermissionEntity> ROLE_DATA_PERMISSION =
+    public static final SqlTable<RoleDataPermission> ROLE_DATA_PERMISSION =
         SqlTable.of(
             ROLE_DATA_PERMISSION_TABLE,
-            SqlColumn.of("id", RoleDataPermissionEntity::getId),
-            SqlColumn.of("role_id", RoleDataPermissionEntity::getRoleId),
-            SqlColumn.of("permission_code", RoleDataPermissionEntity::getPermissionCode),
-            SqlColumn.of("created", RoleDataPermissionEntity::getCreated),
-            SqlColumn.of("updated", RoleDataPermissionEntity::getUpdated));
+            SqlColumn.of("id", RoleDataPermission::id),
+            SqlColumn.of("role_id", RoleDataPermission::roleId),
+            SqlColumn.of("permission_code", permission -> permission.permission().name()),
+            SqlColumn.of("created", RoleDataPermission::created),
+            SqlColumn.of("updated", RoleDataPermission::updated));
 
-    public static final SqlTable<MenuEntity> MENU =
+    public static final SqlTable<Menu> MENU =
         SqlTable.of(
             MENU_TABLE,
-            SqlColumn.of("id", MenuEntity::getId),
-            SqlColumn.of("parent_id", MenuEntity::getParentId),
-            SqlColumn.of("title", MenuEntity::getTitle),
-            SqlColumn.of("name", MenuEntity::getName),
-            SqlColumn.of("url", MenuEntity::getUrl),
-            SqlColumn.of("component", MenuEntity::getComponent),
-            SqlColumn.of("type", MenuEntity::getType),
-            SqlColumn.of("icon", MenuEntity::getIcon),
-            SqlColumn.of("order_num", MenuEntity::getOrderNum),
-            SqlColumn.of("status", MenuEntity::getStatus),
-            SqlColumn.of("created", MenuEntity::getCreated),
-            SqlColumn.of("updated", MenuEntity::getUpdated));
+            SqlColumn.of("id", Menu::id),
+            SqlColumn.of("parent_id", Menu::parentId),
+            SqlColumn.of("title", Menu::title),
+            SqlColumn.of("name", Menu::name),
+            SqlColumn.of("url", Menu::url),
+            SqlColumn.of("component", Menu::component),
+            SqlColumn.of("type", Menu::type),
+            SqlColumn.of("icon", Menu::icon),
+            SqlColumn.of("order_num", Menu::orderNum),
+            SqlColumn.of("status", Menu::status),
+            SqlColumn.of("created", Menu::created),
+            SqlColumn.of("updated", Menu::updated));
 
-    public static final SqlTable<RoleMenuEntity> ROLE_MENU =
+    public static final SqlTable<RoleMenu> ROLE_MENU =
         SqlTable.of(
             ROLE_MENU_TABLE,
-            SqlColumn.of("id", RoleMenuEntity::getId),
-            SqlColumn.of("role_id", RoleMenuEntity::getRoleId),
-            SqlColumn.of("menu_id", RoleMenuEntity::getMenuId),
-            SqlColumn.of("created", RoleMenuEntity::getCreated),
-            SqlColumn.of("updated", RoleMenuEntity::getUpdated));
+            SqlColumn.of("id", RoleMenu::id),
+            SqlColumn.of("role_id", RoleMenu::roleId),
+            SqlColumn.of("menu_id", RoleMenu::menuId),
+            SqlColumn.of("created", RoleMenu::created),
+            SqlColumn.of("updated", RoleMenu::updated));
 
-    public static final SqlTable<AuthorityEntity> AUTHORITY =
+    public static final SqlTable<Authority> AUTHORITY =
         SqlTable.of(
             AUTHORITY_TABLE,
-            SqlColumn.of("id", AuthorityEntity::getId),
-            SqlColumn.of("code", AuthorityEntity::getCode),
-            SqlColumn.of("remark", AuthorityEntity::getRemark),
-            SqlColumn.of("prototype", AuthorityEntity::getPrototype),
-            SqlColumn.of("method_type", AuthorityEntity::getMethodType),
-            SqlColumn.of("route_pattern", AuthorityEntity::getRoutePattern),
-            SqlColumn.of("service_host", AuthorityEntity::getServiceHost),
-            SqlColumn.of("service_port", AuthorityEntity::getServicePort),
-            SqlColumn.of("created", AuthorityEntity::getCreated),
-            SqlColumn.of("updated", AuthorityEntity::getUpdated),
-            SqlColumn.of("type", AuthorityEntity::getType),
-            SqlColumn.of("status", AuthorityEntity::getStatus));
+            SqlColumn.of("id", Authority::id),
+            SqlColumn.of("code", Authority::code),
+            SqlColumn.of("remark", Authority::remark),
+            SqlColumn.of("prototype", Authority::prototype),
+            SqlColumn.of("method_type", Authority::methodType),
+            SqlColumn.of("route_pattern", Authority::routePattern),
+            SqlColumn.of("service_host", Authority::serviceHost),
+            SqlColumn.of("service_port", Authority::servicePort),
+            SqlColumn.of("created", Authority::created),
+            SqlColumn.of("updated", Authority::updated),
+            SqlColumn.of("type", Authority::type),
+            SqlColumn.of("status", Authority::status));
 
-    public static final SqlTable<MenuAuthorityEntity> MENU_AUTHORITY =
+    public static final SqlTable<MenuAuthority> MENU_AUTHORITY =
         SqlTable.of(
             MENU_AUTHORITY_TABLE,
-            SqlColumn.of("id", MenuAuthorityEntity::getId),
-            SqlColumn.of("menu_id", MenuAuthorityEntity::getMenuId),
-            SqlColumn.of("authority_id", MenuAuthorityEntity::getAuthorityId),
-            SqlColumn.of("created", MenuAuthorityEntity::getCreated),
-            SqlColumn.of("updated", MenuAuthorityEntity::getUpdated));
+            SqlColumn.of("id", MenuAuthority::id),
+            SqlColumn.of("menu_id", MenuAuthority::menuId),
+            SqlColumn.of("authority_id", MenuAuthority::authorityId),
+            SqlColumn.of("created", MenuAuthority::created),
+            SqlColumn.of("updated", MenuAuthority::updated));
 
     private SqlTables() {
     }

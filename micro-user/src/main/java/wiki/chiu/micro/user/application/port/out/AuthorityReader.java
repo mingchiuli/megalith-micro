@@ -3,17 +3,17 @@ package wiki.chiu.micro.user.application.port.out;
 import java.util.List;
 import java.util.Optional;
 
-import wiki.chiu.micro.user.domain.AuthorityEntity;
+import wiki.chiu.micro.user.domain.Authority;
 
 public interface AuthorityReader {
 
-    List<AuthorityEntity> findAll();
+    List<Authority> findAll();
 
-    Optional<AuthorityEntity> findById(Long id);
+    Optional<Authority> findById(Long id);
 
-    List<AuthorityEntity> findByStatus(Integer status);
+    List<Authority> findByStatus(Integer status);
 
-    List<AuthorityEntity> findByStatusAndType(Integer status, Integer type);
+    List<Authority> findByStatusAndType(Integer status, Integer type);
 
-    List<AuthorityEntity> findByIdInAndStatus(List<Long> ids, Integer status);
+    List<Authority> findByIdInAndStatus(List<Long> ids, Integer status);
 }

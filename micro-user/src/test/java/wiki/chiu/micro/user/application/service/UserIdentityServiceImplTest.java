@@ -11,17 +11,17 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import wiki.chiu.micro.user.adapter.out.persistence.UserIdentityWrapper;
-import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
+import wiki.chiu.micro.user.application.model.UserAccess;
 import wiki.chiu.micro.user.application.port.out.UserReader;
-import wiki.chiu.micro.user.config.PasswordLockProperties;
 
 @ExtendWith(MockitoExtension.class)
 class UserIdentityServiceImplTest {
+
+    private static final int UNLOCK_BATCH_SIZE = 100;
 
     @Mock
     private UserReader users;
@@ -29,26 +29,26 @@ class UserIdentityServiceImplTest {
     private UserIdentityWrapper identityWrapper;
     @Mock
     private AuthorizationQueryService authorizationQueries;
-    @Mock
-    private PasswordLockProperties passwordLockProperties;
-    @InjectMocks
-    private UserIdentityServiceImpl service;
+
+    private UserIdentityServiceImpl service() {
+        return new UserIdentityServiceImpl(
+            users, identityWrapper, authorizationQueries, UNLOCK_BATCH_SIZE);
+    }
 
     @Test
     void delegatesAccessSnapshotQuery() {
-        var expected = new UserAccessRpcVo(42L, true, 0, List.of(7L, 8L));
+        var expected = new UserAccess(42L, true, 0, List.of(7L, 8L));
         when(authorizationQueries.findUserAccess(42L)).thenReturn(expected);
 
-        assertSame(expected, service.findUserAccess(42L));
+        assertSame(expected, service().findUserAccess(42L));
     }
 
     @Test
     void selectsExpiredIdsBeforeDelegatingTheConditionalWrite() {
-        when(passwordLockProperties.getBatchSize()).thenReturn(100);
         when(users.findExpiredPasswordLockIds(any(), anyInt())).thenReturn(List.of(7L, 8L));
         when(identityWrapper.unlockExpired(List.of(7L, 8L))).thenReturn(2);
 
-        assertEquals(2, service.unlockExpiredBatch());
+        assertEquals(2, service().unlockExpiredBatch());
 
         verify(identityWrapper).unlockExpired(List.of(7L, 8L));
     }

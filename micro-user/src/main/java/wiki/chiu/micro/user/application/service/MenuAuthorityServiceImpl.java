@@ -1,23 +1,19 @@
 package wiki.chiu.micro.user.application.service;
-
 import static wiki.chiu.micro.common.enums.StatusEnum.NORMAL;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
 import wiki.chiu.micro.common.enums.AuthTypeEnum;
+import wiki.chiu.micro.user.application.model.MenuAuthorityView;
 import wiki.chiu.micro.user.application.port.in.MenuAuthorityService;
 import wiki.chiu.micro.user.application.port.out.AuthorityReader;
 import wiki.chiu.micro.user.application.port.out.AuthorityWriter;
 import wiki.chiu.micro.user.application.port.out.MenuAuthorityReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
-import wiki.chiu.micro.user.config.convertor.MenuAuthorityEntityConvertor;
-import wiki.chiu.micro.user.config.convertor.MenuAuthorityVoConvertor;
-import wiki.chiu.micro.user.domain.MenuAuthorityEntity;
-import wiki.chiu.micro.user.vo.MenuAuthorityVo;
+import wiki.chiu.micro.user.domain.Authority;
+import wiki.chiu.micro.user.domain.MenuAuthority;
+import wiki.chiu.micro.user.domain.Role;
 
-@Service
 public class MenuAuthorityServiceImpl implements MenuAuthorityService {
 
     private final AuthorityWriter menuAuthorityWrapper;
@@ -40,23 +36,30 @@ public class MenuAuthorityServiceImpl implements MenuAuthorityService {
 
     @Override
     public void saveAuthority(Long menuId, List<Long> authorityIds) {
-        List<MenuAuthorityEntity> roleAuthorityEntities =
-            MenuAuthorityEntityConvertor.convert(menuId, authorityIds);
-        List<Long> roleIds = roleRepository.findAll().stream().map(role -> role.getId()).toList();
-        menuAuthorityWrapper.saveAuthority(menuId, roleAuthorityEntities, roleIds);
+        List<MenuAuthority> menuAuthorities =
+            authorityIds.stream()
+                .map(authorityId -> new MenuAuthority(null, menuId, authorityId, null, null))
+                .toList();
+        List<Long> roleIds = roleRepository.findAll().stream().map(Role::id).toList();
+        menuAuthorityWrapper.saveAuthority(menuId, menuAuthorities, roleIds);
     }
 
     @Override
-    public List<MenuAuthorityVo> getAuthoritiesInfo(Long menuId) {
+    public List<MenuAuthorityView> getAuthoritiesInfo(Long menuId) {
         List<Long> ids =
             menuAuthorityReader.findByMenuId(menuId).stream()
-                .map(MenuAuthorityEntity::getAuthorityId)
+                .map(MenuAuthority::authorityId)
                 .toList();
 
         return authorityRepository.findByStatusAndType(
                 NORMAL.getCode(), AuthTypeEnum.NEED_AUTH.getCode())
             .stream()
-            .map(item -> MenuAuthorityVoConvertor.convert(item, ids))
+            .map(authority -> toView(authority, ids))
             .toList();
+    }
+
+    private static MenuAuthorityView toView(Authority authority, List<Long> ids) {
+        return new MenuAuthorityView(
+            authority.id(), authority.code(), ids.contains(authority.id()));
     }
 }

@@ -28,6 +28,6 @@ public class AuthorityInternalHttpHandler implements AuthorityHttpService {
 
     @Override
     public Result<List<AuthorityRpcVo>> getAuthorities() {
-        return Result.success(() -> authorityService.findAllByService());
+        return Result.success(() -> UserViewMapper.toAuthorityRpcs(authorityService.findAllByService()));
     }
 }

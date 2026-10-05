@@ -1,30 +1,21 @@
 package wiki.chiu.micro.user.application.service;
-
 import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
 import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.export.SQLUtils;
-import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
+import wiki.chiu.micro.user.application.model.AuthorityDraft;
 import wiki.chiu.micro.user.application.model.SqlTables;
 import wiki.chiu.micro.user.application.port.in.AuthorityService;
 import wiki.chiu.micro.user.application.port.out.AuthorityReader;
 import wiki.chiu.micro.user.application.port.out.AuthorityWriter;
 import wiki.chiu.micro.user.application.port.out.MenuAuthorityReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
-import wiki.chiu.micro.user.config.convertor.AuthorityEntityConvertor;
-import wiki.chiu.micro.user.config.convertor.AuthorityRpcVoConvertor;
-import wiki.chiu.micro.user.config.convertor.AuthorityVoConvertor;
-import wiki.chiu.micro.user.domain.AuthorityEntity;
-import wiki.chiu.micro.user.domain.MenuAuthorityEntity;
-import wiki.chiu.micro.user.req.AuthorityEntityReq;
-import wiki.chiu.micro.user.vo.AuthorityVo;
+import wiki.chiu.micro.user.domain.Authority;
+import wiki.chiu.micro.user.domain.MenuAuthority;
 
-@Service
 public class AuthorityServiceImpl implements AuthorityService {
 
     private final MenuAuthorityReader menuAuthorityReader;
@@ -46,32 +37,28 @@ public class AuthorityServiceImpl implements AuthorityService {
     }
 
     @Override
-    public List<AuthorityRpcVo> findAllByService() {
-        List<AuthorityEntity> authorityEntities =
-            authorityRepository.findByStatus(StatusEnum.NORMAL.getCode());
-        return AuthorityRpcVoConvertor.convert(authorityEntities);
+    public List<Authority> findAllByService() {
+        return authorityRepository.findByStatus(StatusEnum.NORMAL.getCode());
     }
 
     @Override
-    public List<AuthorityVo> findAll() {
-        List<AuthorityEntity> authorityEntities = authorityRepository.findAll();
-        return AuthorityVoConvertor.convert(authorityEntities);
+    public List<Authority> findAll() {
+        return authorityRepository.findAll();
     }
 
     @Override
-    public AuthorityVo findById(Long id) {
-        AuthorityEntity authorityEntity =
-            authorityRepository.findById(id).orElseThrow(() -> new MissException(NO_FOUND));
-        return AuthorityVoConvertor.convert(authorityEntity);
+    public Authority findById(Long id) {
+        return authorityRepository.findById(id).orElseThrow(() -> new MissException(NO_FOUND));
     }
 
     @Override
-    public void saveOrUpdate(AuthorityEntityReq req) {
-        AuthorityEntity dealAuthority =
-            req.id().flatMap(authorityRepository::findById).orElseGet(AuthorityEntity::new);
+    public void saveOrUpdate(AuthorityDraft req) {
+        Authority dealAuthority =
+            req.id() == null
+                ? Authority.blank()
+                : authorityRepository.findById(req.id()).orElseGet(Authority::blank);
 
-        AuthorityEntity authorityEntity = AuthorityEntityConvertor.convert(req, dealAuthority);
-        menuAuthorityWrapper.saveAuthorityEntity(authorityEntity, findAllRoleIds());
+        menuAuthorityWrapper.saveAuthorityEntity(req.mergeInto(dealAuthority), findAllRoleIds());
     }
 
     @Override
@@ -81,16 +68,16 @@ public class AuthorityServiceImpl implements AuthorityService {
 
     @Override
     public byte[] download() {
-        List<AuthorityEntity> authorityEntities = authorityRepository.findAll();
-        List<MenuAuthorityEntity> menuAuthorityEntities = menuAuthorityReader.findAll();
+        List<Authority> authorities = authorityRepository.findAll();
+        List<MenuAuthority> menuAuthorities = menuAuthorityReader.findAll();
 
         return SQLUtils.compose(
-                SQLUtils.insertSql(authorityEntities, SqlTables.AUTHORITY),
-                SQLUtils.insertSql(menuAuthorityEntities, SqlTables.MENU_AUTHORITY))
+                SQLUtils.insertSql(authorities, SqlTables.AUTHORITY),
+                SQLUtils.insertSql(menuAuthorities, SqlTables.MENU_AUTHORITY))
             .getBytes();
     }
 
     private List<Long> findAllRoleIds() {
-        return roleRepository.findAll().stream().map(role -> role.getId()).toList();
+        return roleRepository.findAll().stream().map(wiki.chiu.micro.user.domain.Role::id).toList();
     }
 }

@@ -97,7 +97,7 @@ public class UserInternalHttpHandler implements UserHttpService {
 
     @Override
     public Result<UserEntityRpcVo> findById(Long userId) {
-        return Result.success(() -> userIdentityService.findById(userId));
+        return Result.success(() -> UserViewMapper.toRpc(userIdentityService.findById(userId)));
     }
 
     @Override
@@ -108,7 +108,7 @@ public class UserInternalHttpHandler implements UserHttpService {
     @Override
     public Result<List<RoleEntityRpcVo>> findByRoleCodeInAndStatus(
         List<String> roles, Integer status) {
-        return Result.success(() -> roleService.findByRoleCodeInAndStatus(roles, status));
+        return Result.success(() -> UserViewMapper.toRoleRpcs(roleService.findByRoleCodeInAndStatus(roles, status)));
     }
 
     @Override
@@ -118,31 +118,31 @@ public class UserInternalHttpHandler implements UserHttpService {
 
     @Override
     public Result<UserEntityRpcVo> findByEmail(String email) {
-        return Result.success(() -> userIdentityService.findByEmail(email));
+        return Result.success(() -> UserViewMapper.toRpc(userIdentityService.findByEmail(email)));
     }
 
     @Override
     public Result<UserEntityRpcVo> findByPhone(String phone) {
-        return Result.success(() -> userIdentityService.findByPhone(phone));
+        return Result.success(() -> UserViewMapper.toRpc(userIdentityService.findByPhone(phone)));
     }
 
     @Override
     public Result<UserAccessRpcVo> findUserAccess(Long userId) {
-        return Result.success(() -> userIdentityService.findUserAccess(userId));
+        return Result.success(() -> UserViewMapper.toRpc(userIdentityService.findUserAccess(userId)));
     }
 
     @Override
     public Result<List<RoleAuthorizationRpcVo>> findAllRoleAuthorizations() {
-        return Result.success(roleService::findAllRoleAuthorizations);
+        return Result.success(() -> UserViewMapper.toRpcs(roleService.findAllRoleAuthorizations()));
     }
 
     @Override
     public Result<List<RoleAuthorizationRpcVo>> findRoleAuthorizations(List<Long> roleIds) {
-        return Result.success(() -> roleService.findRoleAuthorizations(roleIds));
+        return Result.success(() -> UserViewMapper.toRpcs(roleService.findRoleAuthorizations(roleIds)));
     }
 
     @Override
     public Result<UserEntityRpcVo> findByUsernameOrEmailOrPhone(String username) {
-        return Result.success(() -> userIdentityService.findByLogin(username));
+        return Result.success(() -> UserViewMapper.toRpc(userIdentityService.findByLogin(username)));
     }
 }

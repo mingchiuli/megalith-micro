@@ -2,12 +2,12 @@ package wiki.chiu.micro.user.application.port.out;
 
 import java.util.List;
 
-import wiki.chiu.micro.user.domain.UserEntity;
-import wiki.chiu.micro.user.domain.UserRoleEntity;
+import wiki.chiu.micro.user.domain.User;
+import wiki.chiu.micro.user.domain.UserRole;
 
 public interface UserWriter {
 
-    void saveOrUpdate(UserEntity user, List<UserRoleEntity> roles);
+    void saveOrUpdate(User user, List<UserRole> roles);
 
     void deleteUsers(List<Long> ids);
 }

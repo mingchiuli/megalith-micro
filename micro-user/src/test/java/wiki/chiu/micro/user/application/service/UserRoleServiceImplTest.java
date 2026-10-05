@@ -14,9 +14,9 @@ import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
 import wiki.chiu.micro.user.application.port.out.UserRoleReader;
-import wiki.chiu.micro.user.domain.RoleDataPermissionEntity;
-import wiki.chiu.micro.user.domain.RoleEntity;
-import wiki.chiu.micro.user.domain.UserRoleEntity;
+import wiki.chiu.micro.user.domain.RoleDataPermission;
+import wiki.chiu.micro.user.domain.Role;
+import wiki.chiu.micro.user.domain.UserRole;
 
 class UserRoleServiceImplTest {
 
@@ -28,18 +28,18 @@ class UserRoleServiceImplTest {
 
     @Test
     void mergesAndDeduplicatesPermissionsFromEnabledRoles() {
-        UserRoleEntity first = UserRoleEntity.builder().roleId(10L).userId(1L).build();
-        UserRoleEntity second = UserRoleEntity.builder().roleId(11L).userId(1L).build();
-        RoleEntity enabled = RoleEntity.builder().id(10L).status(StatusEnum.NORMAL.getCode()).build();
-        RoleEntity disabled = RoleEntity.builder().id(11L).status(StatusEnum.HIDE.getCode()).build();
+        UserRole first = new UserRole(null, 1L, 10L, null, null);
+        UserRole second = new UserRole(null, 1L, 11L, null, null);
+        Role enabled = new Role(10L, null, null, null, null, null, StatusEnum.NORMAL.getCode());
+        Role disabled = new Role(11L, null, null, null, null, null, StatusEnum.HIDE.getCode());
         when(userRoles.findByUserId(1L)).thenReturn(List.of(first, second));
         when(roles.findAllById(List.of(10L, 11L))).thenReturn(List.of(enabled, disabled));
         when(permissions.findByRoleIdIn(List.of(10L)))
             .thenReturn(
                 List.of(
-                    new RoleDataPermissionEntity(10L, DataPermissionEnum.BLOG_VIEW_ALL),
-                    new RoleDataPermissionEntity(10L, DataPermissionEnum.BLOG_VIEW_ALL),
-                    new RoleDataPermissionEntity(10L, DataPermissionEnum.BLOG_DELETE_ALL)));
+                    new RoleDataPermission(null, 10L, DataPermissionEnum.BLOG_VIEW_ALL, null, null),
+                    new RoleDataPermission(null, 10L, DataPermissionEnum.BLOG_VIEW_ALL, null, null),
+                    new RoleDataPermission(null, 10L, DataPermissionEnum.BLOG_DELETE_ALL, null, null)));
 
         assertEquals(
             List.of(DataPermissionEnum.BLOG_VIEW_ALL, DataPermissionEnum.BLOG_DELETE_ALL),

@@ -3,32 +3,28 @@ package wiki.chiu.micro.user.application.port.in;
 import java.util.List;
 
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
-import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
-import wiki.chiu.micro.user.req.RoleEntityReq;
-import wiki.chiu.micro.user.vo.RoleEntityVo;
+import wiki.chiu.micro.user.application.model.RoleAuthorization;
+import wiki.chiu.micro.user.application.model.RoleDraft;
+import wiki.chiu.micro.user.application.model.RoleView;
+import wiki.chiu.micro.user.domain.Role;
 
-/**
- * @author mingchiuli
- * @create 2022-12-04 2:25 am
- */
 public interface RoleService {
 
-    RoleEntityVo info(Long id);
+    RoleView info(Long id);
 
-    PageAdapter<RoleEntityVo> getPage(Integer current, Integer size);
+    PageAdapter<RoleView> getPage(Integer current, Integer size);
 
-    void saveOrUpdate(RoleEntityReq role);
+    List<Role> getValidAll();
+
+    List<Role> findByRoleCodeInAndStatus(List<String> roles, Integer status);
+
+    void saveOrUpdate(RoleDraft role);
 
     void delete(List<Long> ids);
 
+    List<RoleAuthorization> findAllRoleAuthorizations();
+
+    List<RoleAuthorization> findRoleAuthorizations(List<Long> roleIds);
+
     byte[] download();
-
-    List<RoleEntityVo> getValidAll();
-
-    List<RoleEntityRpcVo> findByRoleCodeInAndStatus(List<String> roles, Integer status);
-
-    List<RoleAuthorizationRpcVo> findAllRoleAuthorizations();
-
-    List<RoleAuthorizationRpcVo> findRoleAuthorizations(List<Long> roleIds);
 }

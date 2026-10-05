@@ -13,11 +13,14 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.user.application.model.AuthorityDraft;
+import wiki.chiu.micro.user.application.model.MenuDraft;
+import wiki.chiu.micro.user.application.model.RegistrationDraft;
+import wiki.chiu.micro.user.application.model.RoleDraft;
+import wiki.chiu.micro.user.application.model.UserDraft;
 import wiki.chiu.micro.user.application.port.in.RoleDataPermissionService;
 import wiki.chiu.micro.user.application.port.in.RoleMenuService;
 import wiki.chiu.micro.user.application.port.in.RoleService;
-import wiki.chiu.micro.user.config.convertor.UserRequestConvertor;
-import wiki.chiu.micro.user.req.RoleEntityReq;
 
 /**
  * @author mingchiuli
@@ -52,18 +55,18 @@ public class RoleHttpHandler {
 
     public ServerResponse info(ServerRequest request) {
         Long id = v.positive(pathVariable(request, "id", Long::valueOf), "id");
-        return ok(Result.success(() -> roleService.info(id)));
+        return ok(Result.success(() -> UserViewMapper.toVo(roleService.info(id))));
     }
 
     public ServerResponse getPage(ServerRequest request) {
         Integer currentPage =
             v.positive(optionalParam(request, "currentPage", 1, Integer::valueOf), "currentPage");
         Integer size = v.positive(optionalParam(request, "size", 5, Integer::valueOf), "size");
-        return ok(Result.success(() -> roleService.getPage(currentPage, size)));
+        return ok(Result.success(() -> UserViewMapper.toRoleVos(roleService.getPage(currentPage, size))));
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-        RoleEntityReq role = UserRequestConvertor.toRoleEntityReq(request);
+        RoleDraft role = UserRequestConvertor.toRoleDraft(request);
         return ok(Result.success(() -> roleService.saveOrUpdate(role)));
     }
 
@@ -80,7 +83,7 @@ public class RoleHttpHandler {
 
     public ServerResponse getMenusInfo(ServerRequest request) {
         Long roleId = v.positive(pathVariable(request, "roleId", Long::valueOf), "roleId");
-        return ok(Result.success(() -> roleMenuService.getMenusInfo(roleId)));
+        return ok(Result.success(() -> UserViewMapper.toRoleMenuVos(roleMenuService.getMenusInfo(roleId))));
     }
 
     public ServerResponse saveDataPermissions(ServerRequest request) throws Exception {

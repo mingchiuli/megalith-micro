@@ -8,10 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import wiki.chiu.micro.user.application.port.out.UserRoleReader;
-import wiki.chiu.micro.user.domain.UserRoleEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.UserRoleEntity;
 
-public interface UserRoleRepository extends JpaRepository<UserRoleEntity, Long>, UserRoleReader {
+public interface UserRoleRepository extends JpaRepository<UserRoleEntity, Long> {
 
     List<UserRoleEntity> findByUserIdIn(List<Long> userIds);
 

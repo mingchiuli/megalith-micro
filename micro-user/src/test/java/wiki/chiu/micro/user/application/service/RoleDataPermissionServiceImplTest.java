@@ -21,8 +21,8 @@ import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.user.adapter.out.persistence.RoleDataPermissionWrapper;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
-import wiki.chiu.micro.user.domain.RoleDataPermissionEntity;
-import wiki.chiu.micro.user.domain.RoleEntity;
+import wiki.chiu.micro.user.domain.RoleDataPermission;
+import wiki.chiu.micro.user.domain.Role;
 
 @ExtendWith(MockitoExtension.class)
 class RoleDataPermissionServiceImplTest {
@@ -38,7 +38,7 @@ class RoleDataPermissionServiceImplTest {
 
     @Test
     void returnsDistinctSortedPermissions() {
-        when(roles.findById(7L)).thenReturn(Optional.of(RoleEntity.builder().id(7L).build()));
+        when(roles.findById(7L)).thenReturn(Optional.of(new Role(7L, null, null, null, null, null, null)));
         when(dataPermissions.findByRoleId(7L))
             .thenReturn(
                 List.of(
@@ -53,7 +53,7 @@ class RoleDataPermissionServiceImplTest {
 
     @Test
     void preparesDistinctSortedEntitiesBeforeSaving() {
-        when(roles.findById(7L)).thenReturn(Optional.of(RoleEntity.builder().id(7L).build()));
+        when(roles.findById(7L)).thenReturn(Optional.of(new Role(7L, null, null, null, null, null, null)));
 
         service.saveDataPermissions(
             7L,
@@ -63,11 +63,11 @@ class RoleDataPermissionServiceImplTest {
                 DataPermissionEnum.BLOG_DELETE_ALL));
 
         @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<RoleDataPermissionEntity>> captor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<RoleDataPermission>> captor = ArgumentCaptor.forClass(List.class);
         verify(wrapper).saveDataPermissions(org.mockito.ArgumentMatchers.eq(7L), captor.capture());
         assertEquals(
             List.of(DataPermissionEnum.BLOG_VIEW_ALL, DataPermissionEnum.BLOG_DELETE_ALL),
-            captor.getValue().stream().map(RoleDataPermissionEntity::permission).toList());
+            captor.getValue().stream().map(RoleDataPermission::permission).toList());
     }
 
     @Test
@@ -83,7 +83,7 @@ class RoleDataPermissionServiceImplTest {
                 org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyList());
     }
 
-    private RoleDataPermissionEntity permission(Long roleId, DataPermissionEnum dataPermission) {
-        return new RoleDataPermissionEntity(roleId, dataPermission);
+    private RoleDataPermission permission(Long roleId, DataPermissionEnum dataPermission) {
+        return new RoleDataPermission(null, roleId, dataPermission, null, null);
     }
 }

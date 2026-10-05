@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 
 class RoleMenuAuthorityWrapperTest {
 

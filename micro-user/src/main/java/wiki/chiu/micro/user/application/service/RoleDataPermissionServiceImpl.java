@@ -1,10 +1,8 @@
 package wiki.chiu.micro.user.application.service;
-
 import static wiki.chiu.micro.common.error.ExceptionMessage.ROLE_NOT_EXIST;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
 
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
@@ -12,9 +10,8 @@ import wiki.chiu.micro.user.application.port.in.RoleDataPermissionService;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionWriter;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
-import wiki.chiu.micro.user.domain.RoleDataPermissionEntity;
+import wiki.chiu.micro.user.domain.RoleDataPermission;
 
-@Service
 public class RoleDataPermissionServiceImpl implements RoleDataPermissionService {
 
     private final RoleReader roleRepository;
@@ -34,7 +31,7 @@ public class RoleDataPermissionServiceImpl implements RoleDataPermissionService 
     public List<DataPermissionEnum> getDataPermissions(Long roleId) {
         requireRole(roleId);
         return roleDataPermissionRepository.findByRoleId(roleId).stream()
-            .map(RoleDataPermissionEntity::permission)
+            .map(RoleDataPermission::permission)
             .distinct()
             .sorted()
             .toList();
@@ -43,11 +40,11 @@ public class RoleDataPermissionServiceImpl implements RoleDataPermissionService 
     @Override
     public void saveDataPermissions(Long roleId, List<DataPermissionEnum> dataPermissions) {
         requireRole(roleId);
-        List<RoleDataPermissionEntity> entities =
+        List<RoleDataPermission> entities =
             dataPermissions.stream()
                 .distinct()
                 .sorted()
-                .map(permission -> new RoleDataPermissionEntity(roleId, permission))
+                .map(permission -> new RoleDataPermission(null, roleId, permission, null, null))
                 .toList();
         roleDataPermissionWrapper.saveDataPermissions(roleId, entities);
     }

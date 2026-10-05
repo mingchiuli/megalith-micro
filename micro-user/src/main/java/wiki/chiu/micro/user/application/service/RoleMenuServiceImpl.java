@@ -1,33 +1,26 @@
 package wiki.chiu.micro.user.application.service;
-
+import static wiki.chiu.micro.common.enums.StatusEnum.HIDE;
 import static wiki.chiu.micro.common.error.ExceptionMessage.ROLE_NOT_EXIST;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.springframework.stereotype.Service;
-
-import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.user.api.vo.MenuRpcVo;
+import wiki.chiu.micro.user.application.model.MenuNode;
+import wiki.chiu.micro.user.application.model.MenuSelection;
 import wiki.chiu.micro.user.application.port.in.RoleMenuService;
 import wiki.chiu.micro.user.application.port.out.MenuReader;
 import wiki.chiu.micro.user.application.port.out.RoleMenuReader;
 import wiki.chiu.micro.user.application.port.out.RoleMenuWriter;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
-import wiki.chiu.micro.user.config.convertor.MenuDisplayVoConvertor;
-import wiki.chiu.micro.user.config.convertor.MenuRpcVoConvertor;
-import wiki.chiu.micro.user.config.convertor.RoleMenuEntityConvertor;
-import wiki.chiu.micro.user.domain.MenuEntity;
-import wiki.chiu.micro.user.domain.RoleEntity;
-import wiki.chiu.micro.user.domain.RoleMenuEntity;
-import wiki.chiu.micro.user.vo.MenuDisplayVo;
-import wiki.chiu.micro.user.vo.RoleMenuVo;
+import wiki.chiu.micro.user.domain.Menu;
+import wiki.chiu.micro.user.domain.Role;
+import wiki.chiu.micro.user.domain.RoleMenu;
 
 /**
  * @author mingchiuli
  * @create 2022-12-04 2:26 am
  */
-@Service
 public class RoleMenuServiceImpl implements RoleMenuService {
 
     private final MenuReader menuRepository;
@@ -49,58 +42,44 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         this.roleRepository = roleRepository;
     }
 
-    private List<RoleMenuVo> setCheckMenusInfo(
-        List<MenuDisplayVo> menusInfo, List<Long> menuIdsByRole, List<RoleMenuVo> parentChildren) {
-        menusInfo.forEach(
-            item -> {
-                RoleMenuVo.RoleMenuVoBuilder builder =
-                    RoleMenuVo.builder().title(item.title()).menuId(item.id());
-
-                if (menuIdsByRole.contains(item.id())) {
-                    builder.check(true);
-                }
-
-                if (!item.children().isEmpty()) {
-                    List<RoleMenuVo> children = new ArrayList<>();
-                    builder.children(children);
-                    setCheckMenusInfo(item.children(), menuIdsByRole, children);
-                }
-                parentChildren.add(builder.build());
-            });
-
-        return parentChildren;
+    @Override
+    public List<MenuSelection> getMenusInfo(Long roleId) {
+        List<MenuNode> menusInfo = MenuTree.buildEnabled(menuRepository.findAll());
+        List<Long> menuIdsByRole = roleMenuReader.findMenuIdsByRoleId(roleId);
+        return toSelections(menusInfo, menuIdsByRole);
     }
 
-    public List<RoleMenuVo> getMenusInfo(Long roleId) {
-        List<MenuEntity> menus = menuRepository.findAll();
-        List<MenuDisplayVo> menuEntities = MenuDisplayVoConvertor.convert(menus, true);
-        // 转树状结构
-        List<MenuDisplayVo> menusInfo = MenuDisplayVoConvertor.buildTreeMenu(menuEntities);
-
-        List<Long> menuIdsByRole = roleMenuReader.findMenuIdsByRoleId(roleId);
-        return setCheckMenusInfo(menusInfo, menuIdsByRole, new ArrayList<>());
+    @Override
+    public List<Menu> getCurrentRoleNav(String role) {
+        return roleRepository
+            .findByCode(role)
+            .filter(item -> !HIDE.getCode().equals(item.status()))
+            .map(item -> menuRepository.findAllById(roleMenuReader.findMenuIdsByRoleId(item.id())))
+            .orElseGet(List::of);
     }
 
     @Override
     public void saveMenu(Long roleId, List<Long> menuIds) {
-        RoleEntity role =
+        Role role =
             roleRepository.findById(roleId).orElseThrow(() -> new MissException(ROLE_NOT_EXIST));
-        List<RoleMenuEntity> roleMenuEntities = RoleMenuEntityConvertor.convert(roleId, menuIds);
+        List<RoleMenu> roleMenus =
+            menuIds.stream()
+                .map(menuId -> new RoleMenu(null, roleId, menuId, null, null))
+                .toList();
 
-        roleMenuWrapper.saveMenu(roleId, role.getCode(), new ArrayList<>(roleMenuEntities));
+        roleMenuWrapper.saveMenu(roleId, role.code(), new ArrayList<>(roleMenus));
     }
 
-    @Override
-    public List<MenuRpcVo> getCurrentRoleNav(String role) {
-        Optional<RoleEntity> roleEntity = roleRepository.findByCode(role);
-
-        if (roleEntity.isEmpty() || StatusEnum.HIDE.getCode().equals(roleEntity.get().getStatus())) {
-            return Collections.emptyList();
-        }
-
-        List<Long> menuIds = roleMenuReader.findMenuIdsByRoleId(roleEntity.get().getId());
-        List<MenuEntity> allKindsInfo = menuRepository.findAllById(menuIds);
-
-        return MenuRpcVoConvertor.convert(allKindsInfo);
+    private static List<MenuSelection> toSelections(
+        List<MenuNode> nodes, List<Long> menuIdsByRole) {
+        return nodes.stream()
+            .map(
+                node ->
+                    new MenuSelection(
+                        node.menu().id(),
+                        node.menu().title(),
+                        menuIdsByRole.contains(node.menu().id()),
+                        toSelections(node.children(), menuIdsByRole)))
+            .toList();
     }
 }

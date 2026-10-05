@@ -41,14 +41,14 @@ import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleDataPermissio
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRoleRepository;
-import wiki.chiu.micro.user.domain.MenuAuthorityEntity;
-import wiki.chiu.micro.user.domain.MenuEntity;
-import wiki.chiu.micro.user.domain.RoleDataPermissionEntity;
-import wiki.chiu.micro.user.domain.RoleEntity;
-import wiki.chiu.micro.user.domain.RoleMenuEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuAuthorityEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleDataPermissionEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleMenuEntity;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
-import wiki.chiu.micro.user.domain.UserRoleEntity;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.UserRoleEntity;
+import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 
 @Testcontainers(disabledWithoutDocker = true)
 class PersistenceQueryIntegrationTest {
@@ -216,7 +216,8 @@ class PersistenceQueryIntegrationTest {
         var wrapper = new RoleMenuWrapper(roleMenus, mock(AuthCacheEvictionOutbox.class));
 
         transaction.executeWithoutResult(
-            status -> wrapper.saveMenu(roleId, "D", List.of(roleMenu(roleId, 22L))));
+            status -> wrapper.saveMenu(
+                roleId, "D", List.of(new wiki.chiu.micro.user.domain.RoleMenu(null, roleId, 22L, null, null))));
 
         List<Long> menuIds =
             jdbc.queryForList(

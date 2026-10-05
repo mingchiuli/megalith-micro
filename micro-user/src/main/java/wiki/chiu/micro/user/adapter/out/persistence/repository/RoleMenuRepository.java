@@ -8,14 +8,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import wiki.chiu.micro.user.application.port.out.RoleMenuReader;
-import wiki.chiu.micro.user.domain.RoleMenuEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleMenuEntity;
 
 /**
  * @author mingchiuli
  * @create 2022-11-27 11:53 am
  */
-public interface RoleMenuRepository extends JpaRepository<RoleMenuEntity, Long>, RoleMenuReader {
+public interface RoleMenuRepository extends JpaRepository<RoleMenuEntity, Long> {
 
     @Query(value = "SELECT roleMenu.menuId from RoleMenuEntity roleMenu where roleMenu.roleId = ?1")
     List<Long> findMenuIdsByRoleId(Long id);

@@ -6,12 +6,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import wiki.chiu.micro.common.enums.AuthTypeEnum;
+import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.AuthorityRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
 import wiki.chiu.micro.user.application.port.out.AuthorityWriter;
-import wiki.chiu.micro.user.domain.AuthorityEntity;
-import wiki.chiu.micro.user.domain.MenuAuthorityEntity;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.domain.Authority;
+import wiki.chiu.micro.user.domain.MenuAuthority;
 
 @Component
 public class MenuAuthorityWrapper implements AuthorityWriter {
@@ -33,9 +34,12 @@ public class MenuAuthorityWrapper implements AuthorityWriter {
     @Transactional
     @Override
     public void saveAuthority(
-        Long menuId, List<MenuAuthorityEntity> menuAuthorityEntities, List<Long> roleIds) {
+        Long menuId, List<MenuAuthority> menuAuthorities, List<Long> roleIds) {
         menuAuthorityRepository.deleteByMenuId(menuId);
-        menuAuthorityRepository.saveAll(menuAuthorityEntities);
+        menuAuthorityRepository.saveAll(
+            menuAuthorities.stream()
+                .map(authority -> UserPersistenceMapper.toEntity(authority.onMenu(menuId)))
+                .toList());
         enqueueRoleEviction(roleIds, false);
     }
 
@@ -49,13 +53,12 @@ public class MenuAuthorityWrapper implements AuthorityWriter {
 
     @Transactional
     @Override
-    public void saveAuthorityEntity(AuthorityEntity authorityEntity, List<Long> roleIds) {
-        Long authorityId = authorityEntity.getId();
-        if (authorityId != null
-            && AuthTypeEnum.WHITE_LIST.getCode().equals(authorityEntity.getType())) {
+    public void saveAuthorityEntity(Authority authority, List<Long> roleIds) {
+        Long authorityId = authority.id();
+        if (authorityId != null && AuthTypeEnum.WHITE_LIST.getCode().equals(authority.type())) {
             menuAuthorityRepository.deleteByAuthorityId(authorityId);
         }
-        authorityRepository.save(authorityEntity);
+        authorityRepository.save(UserPersistenceMapper.toEntity(authority));
         enqueueRoleEviction(roleIds, true);
     }
 

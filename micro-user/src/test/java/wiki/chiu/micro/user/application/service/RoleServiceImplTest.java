@@ -16,13 +16,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import wiki.chiu.micro.user.adapter.out.persistence.RoleWrapper;
-import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
+import wiki.chiu.micro.user.application.model.RoleAuthorization;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
 import wiki.chiu.micro.user.application.port.out.RoleMenuReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
 import wiki.chiu.micro.user.application.port.out.UserRoleReader;
-import wiki.chiu.micro.user.domain.RoleEntity;
-import wiki.chiu.micro.user.req.RoleEntityReq;
+import wiki.chiu.micro.user.domain.Role;
+import wiki.chiu.micro.user.application.model.RoleDraft;
 
 @ExtendWith(MockitoExtension.class)
 class RoleServiceImplTest {
@@ -45,8 +45,8 @@ class RoleServiceImplTest {
     @Test
     void delegatesBatchAuthorizationQuery() {
         List<Long> roleIds = List.of(7L, 8L, 7L);
-        List<RoleAuthorizationRpcVo> expected =
-            List.of(RoleAuthorizationRpcVo.missing(7L), RoleAuthorizationRpcVo.missing(8L));
+        List<RoleAuthorization> expected =
+            List.of(RoleAuthorization.missing(7L), RoleAuthorization.missing(8L));
         when(authorizationQueries.findRoleAuthorizations(roleIds)).thenReturn(expected);
 
         assertSame(expected, service.findRoleAuthorizations(roleIds));
@@ -54,11 +54,11 @@ class RoleServiceImplTest {
 
     @Test
     void saveRoleDoesNotReplaceDataPermissions() {
-        RoleEntity existing = RoleEntity.builder().id(7L).code("editor").build();
+        Role existing = new Role(7L, null, "editor", null, null, null, null);
         when(roles.findById(7L)).thenReturn(Optional.of(existing));
 
-        service.saveOrUpdate(new RoleEntityReq(Optional.of(7L), "Editor", "editor", "Edit blogs", 0));
+        service.saveOrUpdate(new RoleDraft(7L, "Editor", "editor", "Edit blogs", 0));
 
-        verify(roleWrapper).saveOrUpdate(any(RoleEntity.class), eq(List.of("editor")));
+        verify(roleWrapper).saveOrUpdate(any(Role.class), eq(List.of("editor")));
     }
 }

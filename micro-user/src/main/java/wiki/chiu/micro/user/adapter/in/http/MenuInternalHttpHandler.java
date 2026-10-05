@@ -29,6 +29,6 @@ public class MenuInternalHttpHandler implements MenuHttpService {
 
     @Override
     public Result<List<MenuRpcVo>> getCurrentUserNav(String role) {
-        return Result.success(() -> roleMenuService.getCurrentRoleNav(role));
+        return Result.success(() -> UserViewMapper.toMenuRpcs(roleMenuService.getCurrentRoleNav(role)));
     }
 }

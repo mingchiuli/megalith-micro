@@ -14,26 +14,28 @@ import org.springframework.transaction.annotation.Transactional;
 
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRepository;
 import wiki.chiu.micro.user.application.port.out.UserIdentityWriter;
-import wiki.chiu.micro.user.config.PasswordLockProperties;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
+import java.time.Duration;
+
+import org.springframework.beans.factory.annotation.Value;
+import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 
 @Component
 public class UserIdentityWrapper implements UserIdentityWriter {
 
     private final UserRepository users;
     private final AuthCacheEvictionOutbox cacheEvictions;
-    private final PasswordLockProperties properties;
+    private final Duration passwordLockDuration;
     private final Counter locked;
     private final Counter unlocked;
 
     public UserIdentityWrapper(
         UserRepository users,
         AuthCacheEvictionOutbox cacheEvictions,
-        PasswordLockProperties properties,
+        @Value("${megalith.user.password-lock.duration:15m}") Duration passwordLockDuration,
         MeterRegistry meterRegistry) {
         this.users = users;
         this.cacheEvictions = cacheEvictions;
-        this.properties = properties;
+        this.passwordLockDuration = passwordLockDuration;
         this.locked = meterRegistry.counter("megalith.user.password.locked");
         this.unlocked = meterRegistry.counter("megalith.user.password.unlocked");
     }
@@ -49,7 +51,7 @@ public class UserIdentityWrapper implements UserIdentityWriter {
     public void lockAfterPasswordFailures(Long userId) {
         int updated =
             users.lockAfterPasswordFailures(
-                userId, NORMAL.getCode(), HIDE.getCode(), properties.getDuration().toSeconds());
+                userId, NORMAL.getCode(), HIDE.getCode(), passwordLockDuration.toSeconds());
         if (updated == 1) {
             cacheEvictions.enqueue(List.of(userId), List.of(), List.of(), false, false);
             locked.increment();

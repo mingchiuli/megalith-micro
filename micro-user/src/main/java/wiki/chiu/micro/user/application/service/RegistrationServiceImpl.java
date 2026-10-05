@@ -1,5 +1,4 @@
 package wiki.chiu.micro.user.application.service;
-
 import static wiki.chiu.micro.common.constant.Const.USER;
 import static wiki.chiu.micro.common.enums.StatusEnum.NORMAL;
 
@@ -7,43 +6,46 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
 import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.ValidationException;
+import wiki.chiu.micro.user.application.model.RegistrationDraft;
+import wiki.chiu.micro.user.application.model.UserDraft;
 import wiki.chiu.micro.user.application.port.in.RegistrationService;
 import wiki.chiu.micro.user.application.port.in.UserService;
 import wiki.chiu.micro.user.application.port.out.RegistrationTokenStore;
 import wiki.chiu.micro.user.application.port.out.UserReader;
-import wiki.chiu.micro.user.req.UserEntityRegisterReq;
-import wiki.chiu.micro.user.req.UserEntityReq;
-import wiki.chiu.micro.user.support.PhonePlaceholderGenerator;
+import wiki.chiu.micro.user.domain.PhonePlaceholderGenerator;
 
-@Service
 public class RegistrationServiceImpl implements RegistrationService {
 
     private final RegistrationTokenStore tokens;
+
     private final UserReader users;
+
     private final UserService userService;
 
-    @Value("${megalith.blog.register.page-prefix}")
-    private String pagePrefix;
+    private final String registerPagePrefix;
 
     public RegistrationServiceImpl(
-        RegistrationTokenStore tokens, UserReader users, UserService userService) {
+        RegistrationTokenStore tokens,
+        UserReader users,
+        UserService userService,
+        String registerPagePrefix) {
         this.tokens = tokens;
         this.users = users;
         this.userService = userService;
+        this.registerPagePrefix = registerPagePrefix;
     }
 
     @Override
     public String issuePage(String username) {
         String token = tokens.issue(username);
-        return StringUtils.hasLength(username)
-            ? pagePrefix + token + "?username=" + URLEncoder.encode(username, StandardCharsets.UTF_8)
-            : pagePrefix + token;
+        return hasLength(username)
+            ? registerPagePrefix
+                + token
+                + "?username="
+                + URLEncoder.encode(username, StandardCharsets.UTF_8)
+            : registerPagePrefix + token;
     }
 
     @Override
@@ -52,32 +54,36 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     @Override
-    public void register(UserEntityRegisterReq request) {
+    public void register(RegistrationDraft request) {
         validatePolicy(request);
-        UserEntityRegisterReq normalized =
-            StringUtils.hasLength(request.phone())
+        RegistrationDraft normalized =
+            hasLength(request.phone())
                 ? request
-                : new UserEntityRegisterReq(request, PhonePlaceholderGenerator.generate());
-        UserEntityReq user = toUserRequest(normalized);
+                : request.withPhone(PhonePlaceholderGenerator.generate());
+        UserDraft user = toUserDraft(normalized);
         tokens.consumeForUsername(request.token(), request.username());
         userService.saveOrUpdate(user);
     }
 
-    private void validatePolicy(UserEntityRegisterReq request) {
+    private void validatePolicy(RegistrationDraft request) {
         users
             .findByUsername(request.username())
-            .filter(user -> StatusEnum.HIDE.getCode().equals(user.getStatus()))
+            .filter(user -> StatusEnum.HIDE.getCode().equals(user.status()))
             .ifPresent(
                 user -> {
                     throw new ValidationException("registration arguments are invalid");
                 });
     }
 
-    private UserEntityReq toUserRequest(UserEntityRegisterReq request) {
+    private UserDraft toUserDraft(RegistrationDraft request) {
         List<String> roles = List.of(USER);
         return users
             .findByUsername(request.username())
-            .map(entity -> new UserEntityReq(request, entity.getId(), NORMAL.getCode(), roles))
-            .orElseGet(() -> new UserEntityReq(request, null, NORMAL.getCode(), roles));
+            .map(user -> request.toUserDraft(user.id(), NORMAL.getCode(), roles))
+            .orElseGet(() -> request.toUserDraft(null, NORMAL.getCode(), roles));
+    }
+
+    private static boolean hasLength(String value) {
+        return value != null && !value.isEmpty();
     }
 }

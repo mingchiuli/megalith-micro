@@ -16,7 +16,7 @@ import wiki.chiu.micro.user.adapter.out.persistence.RoleMenuAuthorityWrapper;
 import wiki.chiu.micro.user.application.port.out.MenuReader;
 import wiki.chiu.micro.user.application.port.out.RoleMenuReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
-import wiki.chiu.micro.user.domain.RoleEntity;
+import wiki.chiu.micro.user.domain.Role;
 
 class MenuServiceImplTest {
 
@@ -48,8 +48,8 @@ class MenuServiceImplTest {
         when(roleRepository.findAll())
             .thenReturn(
                 List.of(
-                    RoleEntity.builder().id(7L).code("admin").build(),
-                    RoleEntity.builder().id(8L).code("reader").build()));
+                    new Role(7L, null, "admin", null, null, null, null),
+                    new Role(8L, null, "reader", null, null, null, null)));
 
         service.delete(3L);
 

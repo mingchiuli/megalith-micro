@@ -1,5 +1,6 @@
 package wiki.chiu.micro.user.adapter.out.persistence;
 
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -10,9 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
+import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleDataPermissionRepository;
-import wiki.chiu.micro.user.domain.RoleDataPermissionEntity;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.domain.RoleDataPermission;
 
 class RoleDataPermissionWrapperTest {
 
@@ -22,14 +23,14 @@ class RoleDataPermissionWrapperTest {
         AuthCacheEvictionOutbox cacheEvictions = mock(AuthCacheEvictionOutbox.class);
         RoleDataPermissionWrapper wrapper =
             new RoleDataPermissionWrapper(dataPermissions, cacheEvictions);
-        List<RoleDataPermissionEntity> entities =
-            List.of(new RoleDataPermissionEntity(7L, DataPermissionEnum.BLOG_VIEW_ALL));
+        List<RoleDataPermission> entities =
+            List.of(new RoleDataPermission(null, 7L, DataPermissionEnum.BLOG_VIEW_ALL, null, null));
 
         wrapper.saveDataPermissions(7L, entities);
 
         InOrder writes = inOrder(dataPermissions, cacheEvictions);
         writes.verify(dataPermissions).deleteByRoleId(7L);
-        writes.verify(dataPermissions).saveAll(entities);
+        writes.verify(dataPermissions).saveAll(anyList());
         writes.verify(cacheEvictions).enqueue(List.of(), List.of(7L), List.of(), false, false);
     }
 

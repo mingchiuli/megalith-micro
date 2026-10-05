@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRepository;
 import wiki.chiu.micro.user.config.PasswordLockProperties;
-import wiki.chiu.micro.user.support.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 
 class UserIdentityWrapperTest {
 
@@ -26,7 +26,8 @@ class UserIdentityWrapperTest {
         org.mockito.Mockito.mock(AuthCacheEvictionOutbox.class);
     private final PasswordLockProperties properties = new PasswordLockProperties();
     private final UserIdentityWrapper wrapper =
-        new UserIdentityWrapper(users, cacheEvictions, properties, new SimpleMeterRegistry());
+        new UserIdentityWrapper(
+            users, cacheEvictions, properties.getDuration(), new SimpleMeterRegistry());
 
     @Test
     void locksForConfiguredDurationAndInvalidatesTheUserSnapshot() {

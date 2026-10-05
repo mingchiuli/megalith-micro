@@ -18,14 +18,15 @@ import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.application.model.UserUpload;
+import wiki.chiu.micro.user.application.model.AuthorityDraft;
+import wiki.chiu.micro.user.application.model.MenuDraft;
+import wiki.chiu.micro.user.application.model.RegistrationDraft;
+import wiki.chiu.micro.user.application.model.RoleDraft;
+import wiki.chiu.micro.user.application.model.UserDraft;
 import wiki.chiu.micro.user.application.port.in.RegistrationService;
 import wiki.chiu.micro.user.application.port.in.UserAssetService;
 import wiki.chiu.micro.user.application.port.in.UserExportService;
 import wiki.chiu.micro.user.application.port.in.UserService;
-import wiki.chiu.micro.user.config.convertor.UserRequestConvertor;
-import wiki.chiu.micro.user.req.RegisterImageDeleteReq;
-import wiki.chiu.micro.user.req.UserEntityRegisterReq;
-import wiki.chiu.micro.user.req.UserEntityReq;
 
 @Component
 public class UserHttpHandler {
@@ -64,7 +65,7 @@ public class UserHttpHandler {
     }
 
     public ServerResponse saveRegisterPage(ServerRequest request) throws Exception {
-        UserEntityRegisterReq registration = UserRequestConvertor.toUserEntityRegisterReq(request);
+        RegistrationDraft registration = UserRequestConvertor.toRegistrationDraft(request);
         return ok(Result.success(() -> registrationService.register(registration)));
     }
 
@@ -87,7 +88,7 @@ public class UserHttpHandler {
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-        UserEntityReq user = UserRequestConvertor.toUserEntityReq(request);
+        UserDraft user = UserRequestConvertor.toUserDraft(request);
         return ok(Result.success(() -> userService.saveOrUpdate(user)));
     }
 
@@ -95,7 +96,7 @@ public class UserHttpHandler {
         Integer currentPage =
             v.positive(pathVariable(request, "currentPage", Integer::valueOf), "currentPage");
         Integer size = v.positive(optionalParam(request, "size", 5, Integer::valueOf), "size");
-        return ok(Result.success(() -> userService.listPage(currentPage, size)));
+        return ok(Result.success(() -> UserViewMapper.toUserVos(userService.listPage(currentPage, size))));
     }
 
     public ServerResponse delete(ServerRequest request) throws Exception {
@@ -105,7 +106,7 @@ public class UserHttpHandler {
 
     public ServerResponse info(ServerRequest request) {
         Long id = v.positive(pathVariable(request, "id", Long::valueOf), "id");
-        return ok(Result.success(() -> userService.findInfo(id)));
+        return ok(Result.success(() -> UserViewMapper.toVo(userService.findInfo(id))));
     }
 
     public ServerResponse download(ServerRequest request) {

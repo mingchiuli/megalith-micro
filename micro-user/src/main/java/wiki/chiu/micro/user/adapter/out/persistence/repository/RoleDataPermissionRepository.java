@@ -8,11 +8,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
-import wiki.chiu.micro.user.domain.RoleDataPermissionEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleDataPermissionEntity;
 
 public interface RoleDataPermissionRepository
-    extends JpaRepository<RoleDataPermissionEntity, Long>, RoleDataPermissionReader {
+    extends JpaRepository<RoleDataPermissionEntity, Long> {
 
     List<RoleDataPermissionEntity> findByRoleId(Long roleId);
 

@@ -2,13 +2,13 @@ package wiki.chiu.micro.user.application.port.out;
 
 import java.util.List;
 
-import wiki.chiu.micro.user.domain.UserRoleEntity;
+import wiki.chiu.micro.user.domain.UserRole;
 
 public interface UserRoleReader {
 
-    List<UserRoleEntity> findAll();
+    List<UserRole> findAll();
 
-    List<UserRoleEntity> findByUserId(Long userId);
+    List<UserRole> findByUserId(Long userId);
 
-    List<UserRoleEntity> findByUserIdIn(List<Long> userIds);
+    List<UserRole> findByUserIdIn(List<Long> userIds);
 }
