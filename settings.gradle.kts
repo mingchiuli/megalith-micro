@@ -10,6 +10,7 @@ include(
         "api-user",
         "api-blog",
         "api-search",
+        "common-arch",
         "common-contract",
         "common-rpc",
         "common-web",

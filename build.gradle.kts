@@ -44,6 +44,7 @@ subprojects {
         add("testImplementation", "org.springframework.boot:spring-boot-starter-test")
         if (name.startsWith("micro-")) {
             add("testImplementation", "com.tngtech.archunit:archunit-junit5:1.5.1")
+            add("testImplementation", project(":common-arch"))
         }
     }
 
