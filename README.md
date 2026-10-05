@@ -244,6 +244,7 @@ replica to serve any room without sticky sessions or a dedicated room owner.
 | `cache` | Caffeine L1 + Redis L2 caching, exact eviction, and replica-wide invalidation |
 | `common-contract` | Result, error, paging, validation, security, and message contracts |
 | `common-rpc` | HTTP clients, principal propagation, and external service adapters |
+| `common-arch` | The shared ArchUnit rules every Java application runs in its layering test |
 | `common-web`, `common-auth-web` | Functional WebMVC, error handling, validation, and trusted principal resolution |
 | `common-observability` | OpenTelemetry integration and GraalVM runtime hints |
 | `common-messaging`, `common-outbox` | Consumer retries, dead-letter queues, and the transactional outbox |
@@ -253,9 +254,14 @@ Every shared module lives under the `wiki.chiu.micro.common.<module>` root packa
 `common-messaging`, `common-scheduling`, and `common-outbox` own `wiki.chiu.micro.common.messaging`,
 `wiki.chiu.micro.common.scheduling`, and `wiki.chiu.micro.common.outbox` respectively. `common-outbox`
 follows the same `domain`, `application`, `adapter.in.*`, `adapter.out.*`, and `config` layering as
-the applications. `common-contract` groups its contracts by kind: `result` for response envelopes,
-`error` for error codes, `message` for outbox payloads, `model` for cross-service projections,
-`enums` for shared domain enumerations, and `constant` for shared constants.
+the applications. `common-contract` groups its contracts by kind, one package per kind: `result`
+for response envelopes, `error` for error codes, `exception` for the runtime exception types that
+carry them, `message` for outbox payloads, `model` for cross-service projections, `enums` for
+shared domain enumerations, `constant` for shared constants, `page` for the paging envelope,
+`security` for the trusted principal and internal headers, and `validation` for reusable request
+validators. `common-arch` owns
+`wiki.chiu.micro.common.arch` and holds the ArchUnit rules that give every application the same
+layer rules instead of one hand-written rule set per service.
 
 ### Java application boundaries
 
@@ -268,15 +274,24 @@ The five Java applications use the same ports-and-adapters layout for their core
 | `application.port.in` | Use cases exposed to HTTP, messaging, and schedulers |
 | `application.port.out` | Persistence, remote service, Redis, search, and object-storage capabilities required by use cases |
 | `application.service` | Use-case orchestration; depends on domain types and ports rather than adapters |
-| `adapter.in.*` | Functional WebMVC handlers/routes and RabbitMQ consumers |
-| `adapter.out.*` | HTTP clients, Spring Data repositories, transactional writers, Redis, Elasticsearch, and object storage |
-| `config` | Spring wiring, RabbitMQ topology, AOT hints, and application configuration |
+| `adapter.in.*` | Functional WebMVC handlers/routes, the Spring Security filter chain, RabbitMQ consumers, and schedulers |
+| `adapter.out.*` | HTTP clients, Spring Data repositories and JPA entities, transactional writers, Redis, Elasticsearch, metrics, object storage, and token codecs |
+| `config` | Spring wiring, configuration properties, RabbitMQ topology, AOT hints, and application configuration |
 
-Input adapters call input ports, and application services call output ports. Spring Data,
-Redisson, remote HTTP contracts, and storage clients stay behind output adapters. Application
-services prepare inputs and coordinate use cases; persistence adapters own the short transactions
-that commit domain writes and outbox entries. ArchUnit verifies dependency and transaction
-boundaries.
+`api-<service>` shares its application's namespace (`wiki.chiu.micro.<service>.api`) but is a
+separate contract module: `application` must not depend on it, and only adapters bind it.
+
+`domain` and `application` are framework-free: no Spring, Hibernate, Redisson, Jackson, micrometer,
+or Elasticsearch type appears there, and neither layer names another service's wire contract.
+Adapters may use those frameworks but never reach into `config` or across to the opposite adapter
+direction, and `config` is the only place that knows every implementation: application services
+carry no Spring annotations and are declared as beans there.
+
+Input adapters call ports, and application services call output ports. Spring Data, Redisson,
+remote HTTP contracts, and storage clients stay behind output adapters. Application services
+prepare inputs and coordinate use cases; persistence adapters own the short transactions that
+commit domain writes and outbox entries. `common-arch` runs the shared dependency, transaction, and
+package-layout rules for every application, and a service adds only the rules it needs on top.
 
 ### Rust application boundaries
 

@@ -6,7 +6,7 @@ this file records the implementation constraints that are easy to miss.
 
 ## Toolchain
 
-- Java 25 (GraalVM HotSpot), Spring Boot 4.1.1, Hibernate ORM 7.4.6.Final, Redisson 4.7.0, and Caffeine.
+- Java 25 (GraalVM HotSpot), Spring Boot 4.1.1, Hibernate ORM 7.4.10.Final, Redisson 4.7.0, and Caffeine.
 - Gradle 9.7 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
 - Rust 2024 for `micro-gateway-rs` and `micro-sync-rs`.
 - Bun 1.4.2, Vue 3, and Vite for the standalone `micro-frontend` service.
@@ -47,7 +47,7 @@ Rust toolchain, Bun runtime, or source tree in a production image.
 | Rust applications | `micro-gateway-rs`, `micro-sync-rs` | Gateway proxy and Redis-backed collaboration |
 | Frontend | `micro-frontend` | Vue SSR, hydration, and embedded static assets |
 | Contracts | `api-auth`, `api-user`, `api-blog`, `api-search` | Typed HTTP interfaces and RPC models |
-| Shared Java | `common-*` | Contract, RPC, web, auth, observability, messaging, scheduling, outbox, export |
+| Shared Java | `common-*` | Contract, RPC, web, auth, observability, messaging, scheduling, outbox, export, shared layering rules |
 | Cache | `cache` | Caffeine L1, Redis L2, and distributed eviction |
 
 The frontend is an independent Bun workspace outside Gradle and Cargo. Dependency versions belong
@@ -76,10 +76,13 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
    topic. There are no reflective method lookups in eviction.
 6. **Ports and adapters.** Core Java code uses `domain`, `application.model`,
    `application.port.in`, `application.port.out`, `application.service`, `adapter.in.*`,
-   `adapter.out.*`, and `config`. Input adapters call input ports; application services depend on
-   output ports, never concrete HTTP, persistence, Redis, Elasticsearch, or storage adapters.
-   `*HttpServiceWrapper` classes unwrap `RemoteResult.requireSuccess(...)` behind directory/gateway
-   ports. Spring Data repositories belong under `adapter.out.persistence.repository`.
+   `adapter.out.*`, and `config`. `domain` and `application` are framework-free and never name
+   another service's `api-*` contract; services carry no Spring annotations and are declared as
+   beans in `config`, which is the only place that knows every implementation. Adapters may use
+   frameworks, but never depend on `config` or on the opposite adapter direction. `common-arch`
+   defines these rules once and every application's layering test runs them. `*HttpServiceWrapper`
+   classes unwrap `RemoteResult.requireSuccess(...)` behind directory/gateway ports. Spring Data
+   repositories and JPA entities belong under `adapter.out.persistence`.
 7. **Transaction boundary.** Services prepare inputs across reads without a transaction.
    Transactional persistence adapters (including existing `*Wrapper` classes) do only writes and
    the matching outbox insert in one short transaction and never query back. Do not add
@@ -91,9 +94,10 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
 9. **JPMS.** `cache` exports only its public `annotation`, `handler`, and `key` packages. A new
    public package needs an `exports` entry; downstream JPMS modules require `wiki.chiu.micro.cache`.
    Internals follow the application layout: `application` and `application.model` hold shared
-   entries, payloads, and lock names, `adapter.in.*` holds the read-through aspect and the eviction
-   listeners, `adapter.out.*` holds key generation and the Redis and eviction adapters, and `config`
-   holds auto-configuration, properties, conditions, and contract validation.
+   entries, payloads, lock names, and the metrics facade, `adapter.in.*` holds the read-through
+   aspect and the eviction listeners, `adapter.out.*` holds key generation and the Redis and
+   eviction adapters, and `config` holds auto-configuration, properties, conditions, contract
+   validation, and the runtime hints registered through `META-INF/spring/aot.factories`.
 10. **Native and AOT reachability.** Types used through reflection, serialization, HTTP interfaces, or
     native-image initialization need the matching Spring AOT/runtime hints. Declare HTTP payload
     binding hints in the application's `config/CustomRuntimeHints` with
@@ -120,8 +124,15 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
     `common-scheduling` owns `wiki.chiu.micro.common.scheduling`, and `common-outbox` owns
     `wiki.chiu.micro.common.outbox`. `common-outbox` mirrors the application layout with `domain`,
     `application`, `adapter.in.actuator`, `adapter.out.persistence.repository`, and `config`.
-    `common-contract` groups contracts by kind under `result`, `error`, `message`, `model`, `enums`,
-    and `constant`; do not recreate the retired `wiki.chiu.micro.common.lang` bucket.
+    `common-contract` groups contracts by kind, one package per kind: `result` for response
+    envelopes, `error` for error codes, `exception` for the runtime exception types that carry
+    them, `message` for outbox payloads, `model` for cross-service projections, `enums` for shared
+    domain enumerations, `constant` for shared constants, `page` for the paging envelope,
+    `security` for the trusted principal and internal headers, and `validation` for reusable
+    request validators. Every package carries a `package-info.java`; do not recreate the retired
+    `wiki.chiu.micro.common.lang` bucket.
+    `common-arch` owns `wiki.chiu.micro.common.arch` and holds the shared ArchUnit rules that define
+    the application layout every service is verified against.
 
 ## Code Style
 
