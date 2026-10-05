@@ -66,7 +66,6 @@ class BlogServiceImplTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void userDeletionRemovesOwnedBlogsWithoutAddingThemToAUsersRecycleBin() {
         BlogQueryStore blogs = mock(BlogQueryStore.class);
         BlogWrapper writer = mock(BlogWrapper.class);
@@ -94,6 +93,7 @@ class BlogServiceImplTest {
             List.of(3L, 5L), deleted.getValue().stream().map(Blog::eventRevision).toList());
     }
 
+    @SuppressWarnings("unchecked")
     private static ArgumentCaptor<List<Blog>> captor() {
         return ArgumentCaptor.forClass(List.class);
     }

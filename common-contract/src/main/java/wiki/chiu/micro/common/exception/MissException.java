@@ -9,6 +9,8 @@ import wiki.chiu.micro.common.error.ExceptionMessage;
  */
 public class MissException extends BaseException {
 
+    private static final long serialVersionUID = 1L;
+
     public MissException(String message) {
         super(ErrorCodes.findByMessage(message).orElse(ExceptionMessage.NO_FOUND), message);
     }

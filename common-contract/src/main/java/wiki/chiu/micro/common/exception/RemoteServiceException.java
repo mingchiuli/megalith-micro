@@ -5,6 +5,8 @@ import wiki.chiu.micro.common.error.ErrorCode;
 
 public final class RemoteServiceException extends BaseException {
 
+    private static final long serialVersionUID = 1L;
+
     private final int upstreamStatus;
 
     public RemoteServiceException(ErrorCode errorCode, String message, int upstreamStatus) {

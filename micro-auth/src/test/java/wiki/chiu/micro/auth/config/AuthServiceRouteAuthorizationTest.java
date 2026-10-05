@@ -55,7 +55,6 @@ class AuthServiceRouteAuthorizationTest {
             new JwtTokenService(
                 config.jwtEncoder(secretKey),
                 config.accessJwtDecoder(secretKey, properties),
-                config.refreshJwtDecoder(secretKey, properties),
                 config.websocketJwtDecoder(secretKey, properties),
                 properties.issuer(),
                 properties.audience(),

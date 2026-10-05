@@ -4,6 +4,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 
 public class SMSAuthenticationToken extends UsernamePasswordAuthenticationToken {
 
+    private static final long serialVersionUID = 1L;
+
     public SMSAuthenticationToken(Object principal, Object credentials) {
         super(principal, credentials);
     }

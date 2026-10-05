@@ -44,7 +44,7 @@ public class SearchApplicationConfig {
 
     @Bean
     ApplicationRunner initializeSearchAlias(ElasticsearchIndexMaintenanceAdapter indexes, RedisTaskLock lock) {
-        return args -> lock.run("search:index-rebuild", () -> {
+        return _ -> lock.run("search:index-rebuild", () -> {
             indexes.ensureAlias();
             return null;
         });

@@ -18,10 +18,7 @@ import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.application.model.UserUpload;
-import wiki.chiu.micro.user.application.model.AuthorityDraft;
-import wiki.chiu.micro.user.application.model.MenuDraft;
 import wiki.chiu.micro.user.application.model.RegistrationDraft;
-import wiki.chiu.micro.user.application.model.RoleDraft;
 import wiki.chiu.micro.user.application.model.UserDraft;
 import wiki.chiu.micro.user.application.port.in.RegistrationService;
 import wiki.chiu.micro.user.application.port.in.UserAssetService;
@@ -114,7 +111,7 @@ public class UserHttpHandler {
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=users.sql")
             .build(
-                (servletRequest, response) -> {
+                (_, response) -> {
                     exportService.write(response.getOutputStream());
                     return null;
                 });

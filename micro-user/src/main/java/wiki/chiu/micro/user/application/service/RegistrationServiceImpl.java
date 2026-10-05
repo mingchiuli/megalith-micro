@@ -70,7 +70,7 @@ public class RegistrationServiceImpl implements RegistrationService {
             .findByUsername(request.username())
             .filter(user -> StatusEnum.HIDE.getCode().equals(user.status()))
             .ifPresent(
-                user -> {
+                _ -> {
                     throw new ValidationException("registration arguments are invalid");
                 });
     }

@@ -6,6 +6,8 @@ import wiki.chiu.micro.common.error.ExceptionMessage;
 
 public class BaseException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     private final ErrorCode errorCode;
 
     public BaseException(String message) {

@@ -102,33 +102,33 @@ public final class FunctionalWeb {
         RouterFunctions.Builder builder, Logger log) {
         builder.onError(
             HttpMessageNotReadableException.class,
-            (exception, request) ->
+            (exception, _) ->
                 error(HttpStatus.BAD_REQUEST, CommonErrorCode.MALFORMED_REQUEST, exception, log));
         builder.onError(
             ServletRequestBindingException.class,
-            (exception, request) ->
+            (exception, _) ->
                 error(HttpStatus.BAD_REQUEST, CommonErrorCode.VALIDATION_ERROR, exception, log));
         builder.onError(
             MultipartException.class,
-            (exception, request) ->
+            (exception, _) ->
                 error(HttpStatus.BAD_REQUEST, CommonErrorCode.VALIDATION_ERROR, exception, log));
         builder.onError(
             BindException.class,
-            (exception, request) ->
+            (exception, _) ->
                 error(HttpStatus.BAD_REQUEST, CommonErrorCode.VALIDATION_ERROR, exception, log));
         builder.onError(
             IllegalArgumentException.class,
-            (exception, request) ->
+            (exception, _) ->
                 error(HttpStatus.BAD_REQUEST, CommonErrorCode.VALIDATION_ERROR, exception, log));
         builder.onError(
-            BaseException.class, (exception, request) -> error((BaseException) exception, log));
+            BaseException.class, (exception, _) -> error((BaseException) exception, log));
         builder.onError(
             ResourceAccessException.class,
-            (exception, request) ->
+            (exception, _) ->
                 error(HttpStatus.GATEWAY_TIMEOUT, CommonErrorCode.DOWNSTREAM_TIMEOUT, exception, log));
         builder.onError(
             Exception.class,
-            (exception, request) ->
+            (exception, _) ->
                 error(
                     HttpStatus.INTERNAL_SERVER_ERROR, CommonErrorCode.INTERNAL_ERROR, exception, log));
         return builder;

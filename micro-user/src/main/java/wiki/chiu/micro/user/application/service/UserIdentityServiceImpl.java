@@ -13,7 +13,6 @@ import wiki.chiu.micro.user.domain.User;
 import wiki.chiu.micro.user.application.port.in.UserIdentityService;
 import wiki.chiu.micro.user.application.port.out.UserIdentityWriter;
 import wiki.chiu.micro.user.application.port.out.UserReader;
-import wiki.chiu.micro.user.domain.User;
 
 public class UserIdentityServiceImpl implements UserIdentityService {
 

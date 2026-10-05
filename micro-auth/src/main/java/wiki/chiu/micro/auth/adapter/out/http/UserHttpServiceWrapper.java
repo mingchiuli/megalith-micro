@@ -16,8 +16,6 @@ import wiki.chiu.micro.user.api.UserHttpService;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
-import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 @Component
 public class UserHttpServiceWrapper implements UserDirectory {

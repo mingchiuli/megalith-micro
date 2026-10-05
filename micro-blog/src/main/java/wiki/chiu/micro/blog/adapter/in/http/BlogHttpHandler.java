@@ -161,7 +161,7 @@ public class BlogHttpHandler {
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=blogs.sql")
             .build(
-                (servletRequest, response) -> {
+                (_, response) -> {
                     exportService.write(
                         BlogRequestConvertor.toDownloadQuery(downloadReq),
                         authInfo.userId(),

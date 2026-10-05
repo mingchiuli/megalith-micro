@@ -56,13 +56,11 @@ public class JwtConfig {
     JwtTokenService jwtTokenService(
         JwtEncoder jwtEncoder,
         @Qualifier("accessJwtDecoder") JwtDecoder accessJwtDecoder,
-        @Qualifier("refreshJwtDecoder") JwtDecoder refreshJwtDecoder,
         @Qualifier("websocketJwtDecoder") JwtDecoder websocketJwtDecoder,
         JwtProperties properties) {
         return new JwtTokenService(
             jwtEncoder,
             accessJwtDecoder,
-            refreshJwtDecoder,
             websocketJwtDecoder,
             properties.issuer(),
             properties.audience(),

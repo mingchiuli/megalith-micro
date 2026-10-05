@@ -17,7 +17,6 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.user.application.port.in.UserService;

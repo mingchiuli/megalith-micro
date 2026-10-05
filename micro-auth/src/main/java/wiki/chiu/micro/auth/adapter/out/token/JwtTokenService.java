@@ -38,8 +38,6 @@ public final class JwtTokenService implements TokenEncoder, RouteTokenReader {
 
     private final JwtDecoder accessJwtDecoder;
 
-    private final JwtDecoder refreshJwtDecoder;
-
     private final JwtDecoder websocketJwtDecoder;
 
     private final String issuer;
@@ -51,14 +49,12 @@ public final class JwtTokenService implements TokenEncoder, RouteTokenReader {
     public JwtTokenService(
         JwtEncoder jwtEncoder,
         JwtDecoder accessJwtDecoder,
-        JwtDecoder refreshJwtDecoder,
         JwtDecoder websocketJwtDecoder,
         String issuer,
         String audience,
         TokenLifetimes lifetimes) {
         this.jwtEncoder = jwtEncoder;
         this.accessJwtDecoder = accessJwtDecoder;
-        this.refreshJwtDecoder = refreshJwtDecoder;
         this.websocketJwtDecoder = websocketJwtDecoder;
         this.issuer = issuer;
         this.audience = audience;

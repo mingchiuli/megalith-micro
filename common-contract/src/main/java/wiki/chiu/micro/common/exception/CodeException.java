@@ -10,6 +10,8 @@ import wiki.chiu.micro.common.error.ExceptionMessage;
  */
 public class CodeException extends BaseException {
 
+    private static final long serialVersionUID = 1L;
+
     public CodeException(String message) {
         super(ErrorCodes.findByMessage(message).orElse(CommonErrorCode.VALIDATION_ERROR), message);
     }

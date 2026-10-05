@@ -25,14 +25,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.user.adapter.in.http.AuthorityHttpHandler;
-import wiki.chiu.micro.user.adapter.in.http.AuthorityInternalHttpHandler;
-import wiki.chiu.micro.user.adapter.in.http.MenuHttpHandler;
-import wiki.chiu.micro.user.adapter.in.http.MenuInternalHttpHandler;
-import wiki.chiu.micro.user.adapter.in.http.RoleHttpHandler;
-import wiki.chiu.micro.user.adapter.in.http.UserHttpHandler;
-import wiki.chiu.micro.user.adapter.in.http.UserInternalHttpHandler;
-import wiki.chiu.micro.user.adapter.in.http.UserRoutes;
 import wiki.chiu.micro.user.application.port.in.AuthorityService;
 import wiki.chiu.micro.user.domain.Authority;
 

@@ -12,10 +12,6 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.application.model.AuthorityDraft;
-import wiki.chiu.micro.user.application.model.MenuDraft;
-import wiki.chiu.micro.user.application.model.RegistrationDraft;
-import wiki.chiu.micro.user.application.model.RoleDraft;
-import wiki.chiu.micro.user.application.model.UserDraft;
 import wiki.chiu.micro.user.application.port.in.AuthorityService;
 
 @Component

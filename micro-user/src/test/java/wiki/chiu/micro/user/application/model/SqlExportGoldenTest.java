@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.export.SQLUtils;
-import wiki.chiu.micro.user.application.model.SqlTables;
 import wiki.chiu.micro.user.domain.Authority;
 import wiki.chiu.micro.user.domain.MenuAuthority;
 import wiki.chiu.micro.user.domain.Menu;

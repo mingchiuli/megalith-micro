@@ -49,12 +49,12 @@ public class AuthRoutes {
         builder.POST("/inner" + AuthHttpPaths.WEBSOCKET_TOKEN, internalHandler::issueWebSocketTicket);
         builder.onError(
             BadCredentialsException.class,
-            (exception, request) -> error(HttpStatus.UNAUTHORIZED, exception, log));
+            (exception, _) -> error(HttpStatus.UNAUTHORIZED, exception, log));
         builder.onError(
-            AuthException.class, (exception, request) -> error(HttpStatus.FORBIDDEN, exception, log));
+            AuthException.class, (exception, _) -> error(HttpStatus.FORBIDDEN, exception, log));
         builder.onError(
             AccessDeniedException.class,
-            (exception, request) -> error(HttpStatus.FORBIDDEN, exception, log));
+            (exception, _) -> error(HttpStatus.FORBIDDEN, exception, log));
         return withDefaultErrorHandling(builder, log).build();
     }
 }
