@@ -13,8 +13,7 @@ import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.auth.application.port.in.AuthService;
-import wiki.chiu.micro.auth.converter.AuthRequestConverter;
-import wiki.chiu.micro.auth.token.JwtTokenService;
+import wiki.chiu.micro.auth.application.port.in.TokenService;
 import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.security.AuthPrincipal;
@@ -24,11 +23,11 @@ import wiki.chiu.micro.common.security.InternalHttpHeaders;
 public class AuthInternalHttpHandler implements AuthHttpService {
 
     private final AuthService authService;
-    private final JwtTokenService jwtTokenService;
+    private final TokenService tokenService;
 
-    public AuthInternalHttpHandler(AuthService authService, JwtTokenService jwtTokenService) {
+    public AuthInternalHttpHandler(AuthService authService, TokenService tokenService) {
         this.authService = authService;
-        this.jwtTokenService = jwtTokenService;
+        this.tokenService = tokenService;
     }
 
     public ServerResponse getAuthorityRoute(ServerRequest request) throws Exception {
@@ -41,18 +40,22 @@ public class AuthInternalHttpHandler implements AuthHttpService {
     public ServerResponse issueWebSocketTicket(ServerRequest request) throws Exception {
         String encodedPrincipal = request.headers().firstHeader(InternalHttpHeaders.PRINCIPAL);
         return ok(
-            issueWebSocketTicket(AuthRequestConverter.toWebSocketTicketReq(request), encodedPrincipal));
+            issueWebSocketTicket(
+                AuthRequestConverter.toWebSocketTicketReq(request), encodedPrincipal));
     }
 
     @Override
     public Result<AuthorityRouteRpcVo> getAuthorityRoute(AuthorityRouteReq req, String token) {
-        return Result.success(() -> authService.authorizeRoute(req, token));
+        return Result.success(
+            () ->
+                AuthResponseMapper.toRpc(
+                    authService.authorizeRoute(AuthRequestConverter.toRouteQuery(req), token)));
     }
 
     @Override
     public Result<String> issueWebSocketTicket(WebSocketTicketReq req, String encodedPrincipal) {
         AuthPrincipal principal = AuthPrincipalCodec.decodeRequired(encodedPrincipal);
         return Result.success(
-            "Bearer " + jwtTokenService.issueWebSocketToken(principal.userId(), req.roomId()));
+            () -> "Bearer " + tokenService.issueWebSocketTicket(principal.userId(), req.roomId()));
     }
 }

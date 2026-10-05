@@ -9,8 +9,6 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import wiki.chiu.micro.auth.application.port.in.TokenService;
-import wiki.chiu.micro.auth.token.AccessTokenCookieManager;
-import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
 import wiki.chiu.micro.common.result.Result;
 
 @Component
@@ -18,34 +16,30 @@ public class TokenHttpHandler {
 
     private final TokenService tokenService;
 
-    private final RefreshTokenCookieManager refreshTokenCookieManager;
+    private final SessionCookies sessionCookies;
 
-    private final AccessTokenCookieManager accessTokenCookieManager;
-
-    public TokenHttpHandler(
-        TokenService tokenService,
-        RefreshTokenCookieManager refreshTokenCookieManager,
-        AccessTokenCookieManager accessTokenCookieManager) {
+    public TokenHttpHandler(TokenService tokenService, SessionCookies sessionCookies) {
         this.tokenService = tokenService;
-        this.refreshTokenCookieManager = refreshTokenCookieManager;
-        this.accessTokenCookieManager = accessTokenCookieManager;
+        this.sessionCookies = sessionCookies;
     }
 
     public ServerResponse refreshToken(ServerRequest request) {
         String accessToken = tokenService.refreshAccessToken(authenticatedUserId(request));
         return ServerResponse.ok()
-            .header(HttpHeaders.SET_COOKIE, accessTokenCookieManager.create(accessToken).toString())
+            .header(HttpHeaders.SET_COOKIE, sessionCookies.access(accessToken).toString())
             .body(Result.success());
     }
 
     public ServerResponse userinfo(ServerRequest request) {
-        return ok(Result.success(() -> tokenService.userinfo(authPrincipal(request).userId())));
+        return ok(
+            Result.success(
+                () -> AuthResponseMapper.toVo(tokenService.userinfo(authPrincipal(request).userId()))));
     }
 
     public ServerResponse logout(ServerRequest request) {
         return ServerResponse.ok()
-            .header(HttpHeaders.SET_COOKIE, accessTokenCookieManager.expire().toString())
-            .header(HttpHeaders.SET_COOKIE, refreshTokenCookieManager.expire().toString())
+            .header(HttpHeaders.SET_COOKIE, sessionCookies.expiredAccess().toString())
+            .header(HttpHeaders.SET_COOKIE, sessionCookies.expiredRefresh().toString())
             .body(Result.success());
     }
 

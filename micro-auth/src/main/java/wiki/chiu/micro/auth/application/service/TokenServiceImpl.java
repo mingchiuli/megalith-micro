@@ -2,31 +2,27 @@ package wiki.chiu.micro.auth.application.service;
 
 import java.util.Objects;
 
-import org.springframework.stereotype.Service;
-
+import wiki.chiu.micro.auth.application.model.UserAccount;
+import wiki.chiu.micro.auth.application.model.UserInfo;
 import wiki.chiu.micro.auth.application.port.in.TokenService;
+import wiki.chiu.micro.auth.application.port.out.TokenEncoder;
 import wiki.chiu.micro.auth.application.port.out.UserDirectory;
-import wiki.chiu.micro.auth.convertor.UserInfoVoConvertor;
-import wiki.chiu.micro.auth.token.JwtTokenService;
-import wiki.chiu.micro.auth.vo.UserInfoVo;
 import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.error.ExceptionMessage;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 /**
  * @author mingchiuli
  * @create 2023-03-30 4:29 am
  */
-@Service
 public class TokenServiceImpl implements TokenService {
 
-    private final JwtTokenService jwtTokenService;
+    private final TokenEncoder tokens;
 
     private final UserDirectory users;
 
-    public TokenServiceImpl(JwtTokenService jwtTokenService, UserDirectory users) {
-        this.jwtTokenService = jwtTokenService;
+    public TokenServiceImpl(TokenEncoder tokens, UserDirectory users) {
+        this.tokens = tokens;
         this.users = users;
     }
 
@@ -40,12 +36,17 @@ public class TokenServiceImpl implements TokenService {
             throw new MissException(ExceptionMessage.NO_AUTH);
         }
 
-        return jwtTokenService.issueAccessToken(userId);
+        return tokens.accessToken(userId);
     }
 
     @Override
-    public UserInfoVo userinfo(Long userId) {
-        UserEntityRpcVo userEntity = users.findById(userId);
-        return UserInfoVoConvertor.convert(userEntity);
+    public UserInfo userinfo(Long userId) {
+        UserAccount user = users.findById(userId);
+        return new UserInfo(user.id(), user.nickname(), user.avatar());
+    }
+
+    @Override
+    public String issueWebSocketTicket(Long userId, String roomId) {
+        return tokens.webSocketTicket(userId, roomId);
     }
 }

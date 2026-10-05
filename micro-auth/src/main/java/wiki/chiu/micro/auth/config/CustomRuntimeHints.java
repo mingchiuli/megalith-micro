@@ -5,15 +5,18 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
+import wiki.chiu.micro.auth.adapter.in.http.CodeReq;
+import wiki.chiu.micro.auth.adapter.in.http.MenuWithChildVo;
+import wiki.chiu.micro.auth.adapter.in.http.UserInfoVo;
+import wiki.chiu.micro.auth.adapter.in.security.LoginRequest;
+import wiki.chiu.micro.auth.adapter.in.security.LoginType;
 import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
 import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
 import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
-import wiki.chiu.micro.auth.dto.CodeReq;
-import wiki.chiu.micro.auth.dto.LoginRequest;
-import wiki.chiu.micro.auth.dto.LoginType;
-import wiki.chiu.micro.auth.dto.MenuDto;
-import wiki.chiu.micro.auth.vo.MenuWithChildVo;
-import wiki.chiu.micro.auth.vo.UserInfoVo;
+import wiki.chiu.micro.auth.application.model.Authority;
+import wiki.chiu.micro.auth.application.model.Menu;
+import wiki.chiu.micro.auth.application.model.RoleAuthorization;
+import wiki.chiu.micro.auth.application.model.UserAccess;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.security.AuthPrincipal;
@@ -47,7 +50,19 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(LoginType.class, MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(
-                MenuDto.class,
+                Menu.class,
+                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                MemberCategory.INVOKE_DECLARED_METHODS)
+            .registerType(
+                UserAccess.class,
+                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                MemberCategory.INVOKE_DECLARED_METHODS)
+            .registerType(
+                RoleAuthorization.class,
+                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                MemberCategory.INVOKE_DECLARED_METHODS)
+            .registerType(
+                Authority.class,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(

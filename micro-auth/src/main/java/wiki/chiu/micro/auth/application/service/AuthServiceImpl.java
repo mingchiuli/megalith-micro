@@ -1,98 +1,94 @@
 package wiki.chiu.micro.auth.application.service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtException;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
-import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
+import wiki.chiu.micro.auth.application.model.Authority;
+import wiki.chiu.micro.auth.application.model.Menu;
+import wiki.chiu.micro.auth.application.model.MenuDisplay;
+import wiki.chiu.micro.auth.application.model.RoleAuthorization;
+import wiki.chiu.micro.auth.application.model.RouteDecision;
+import wiki.chiu.micro.auth.application.model.RouteQuery;
+import wiki.chiu.micro.auth.application.model.UserAccess;
 import wiki.chiu.micro.auth.application.port.in.AuthService;
 import wiki.chiu.micro.auth.application.port.out.AuthorizationDirectory;
+import wiki.chiu.micro.auth.application.port.out.RouteTokenReader;
 import wiki.chiu.micro.auth.application.port.out.VisitRecorder;
-import wiki.chiu.micro.auth.convertor.MenuDisplayDtoConvertor;
-import wiki.chiu.micro.auth.convertor.MenuRootVoConvertor;
-import wiki.chiu.micro.auth.convertor.MenuWithChildDtoConvertor;
-import wiki.chiu.micro.auth.dto.*;
-import wiki.chiu.micro.auth.token.JwtTokenService;
-import wiki.chiu.micro.auth.vo.MenuWithChildVo;
 import wiki.chiu.micro.common.enums.AuthTypeEnum;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.error.ExceptionMessage;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.security.AuthPrincipal;
-import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
-import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 
-@Service
 public class AuthServiceImpl implements AuthService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
-    private final AuthorizationDirectory authWrapper;
+
+    private static final String WEBSOCKET_ROUTE_PREFIX = "/rooms/";
+
+    private final AuthorizationDirectory authorizationDirectory;
 
     private final VisitRecorder visits;
 
-    private final JwtTokenService jwtTokenService;
+    private final RouteTokenReader routeTokens;
 
     public AuthServiceImpl(
-        AuthorizationDirectory authWrapper,
+        AuthorizationDirectory authorizationDirectory,
         VisitRecorder visits,
-        JwtTokenService jwtTokenService) {
-        this.authWrapper = authWrapper;
+        RouteTokenReader routeTokens) {
+        this.authorizationDirectory = authorizationDirectory;
         this.visits = visits;
-        this.jwtTokenService = jwtTokenService;
+        this.routeTokens = routeTokens;
     }
 
     @Override
-    public MenuWithChildVo getCurrentUserNav(List<String> roles) {
-        List<MenuDto> menus = new ArrayList<>();
+    public List<MenuDisplay> getCurrentUserNav(List<String> roles) {
+        List<Menu> menus = new ArrayList<>();
 
-        roles.stream().map(authWrapper::getCurrentUserNav).forEach(menus::addAll);
+        roles.stream().map(authorizationDirectory::getCurrentUserNav).forEach(menus::addAll);
 
-        return MenuRootVoConvertor.convert(
-            MenuWithChildDtoConvertor.convert(
-                MenuDisplayDtoConvertor.buildTreeMenu(MenuDisplayDtoConvertor.convert(menus))));
+        return MenuTree.build(menus);
     }
 
     @Override
-    public AuthorityRouteRpcVo authorizeRoute(AuthorityRouteReq req, String token) {
-        Long userId = resolveUserId(req.routeMapping(), token);
-        List<AuthorityRpcVo> routes = authWrapper.getAllSystemAuthorities();
-        UserAccessRpcVo access = userId == null ? null : authWrapper.getUserAccess(userId);
-        AuthorityRpcVo route =
-            matchingAuthority(routes, req.routeMapping(), req.method())
+    public RouteDecision authorizeRoute(RouteQuery query, String token) {
+        Long userId = routeTokens.resolveUserId(query.routeMapping(), token);
+        List<Authority> routes = authorizationDirectory.getAllSystemAuthorities();
+        UserAccess access = userId == null ? null : authorizationDirectory.getUserAccess(userId);
+        Authority route =
+            matchingAuthority(routes, query.routeMapping(), query.method())
                 .orElseThrow(() -> new MissException(ExceptionMessage.NO_AUTH));
-        AuthPrincipal principal = authorizePrincipal(req.routeMapping(), route, userId, access);
-        recordIp(req.ipAddr());
-        return AuthorityRouteRpcVo.builder()
-            .serviceHost(route.serviceHost())
-            .servicePort(route.servicePort())
-            .principal(principal)
-            .build();
+        AuthPrincipal principal = authorizePrincipal(query.routeMapping(), route, userId, access);
+        recordIp(query.ipAddr());
+        return new RouteDecision(route.serviceHost(), route.servicePort(), principal);
     }
 
-    private List<RoleAuthorizationRpcVo> roleAuthorizations(List<Long> roleIds) {
+    private List<RoleAuthorization> roleAuthorizations(List<Long> roleIds) {
         List<Long> distinctRoleIds = roleIds.stream().distinct().toList();
         if (distinctRoleIds.isEmpty()) {
             return List.of();
         }
-        Map<Long, RoleAuthorizationRpcVo> byId =
-            authWrapper.getAllRoleAuthorizations().stream()
-                .collect(Collectors.toMap(RoleAuthorizationRpcVo::roleId, Function.identity()));
+        Map<Long, RoleAuthorization> byId =
+            authorizationDirectory.getAllRoleAuthorizations().stream()
+                .collect(Collectors.toMap(RoleAuthorization::roleId, Function.identity()));
         return distinctRoleIds.stream()
-            .map(roleId -> byId.getOrDefault(roleId, RoleAuthorizationRpcVo.missing(roleId)))
+            .map(roleId -> byId.getOrDefault(roleId, RoleAuthorization.missing(roleId)))
             .toList();
     }
 
     private void recordIp(String ipAddr) {
-        if (StringUtils.hasLength(ipAddr)) {
+        if (ipAddr != null && !ipAddr.isEmpty()) {
             log.info("Record visit IP: {}", ipAddr);
             visits.record(ipAddr);
         }
@@ -128,7 +124,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private AuthPrincipal authorizePrincipal(
-        String routeMapping, AuthorityRpcVo route, Long userId, UserAccessRpcVo access) {
+        String routeMapping, Authority route, Long userId, UserAccess access) {
         if (userId == null) {
             if (AuthTypeEnum.WHITE_LIST.getCode().equals(route.type())) {
                 return AuthPrincipal.anonymous();
@@ -136,21 +132,19 @@ public class AuthServiceImpl implements AuthService {
             throw new MissException(ExceptionMessage.TOKEN_INVALID);
         }
 
-        if (access == null
-            || !access.exists()
-            || !StatusEnum.NORMAL.getCode().equals(access.status())) {
+        if (access == null || !access.exists() || !StatusEnum.NORMAL.getCode().equals(access.status())) {
             throw new MissException(ExceptionMessage.NO_AUTH);
         }
-        List<RoleAuthorizationRpcVo> authorizations =
+        List<RoleAuthorization> authorizations =
             roleAuthorizations(access.roleIds()).stream()
-                .filter(RoleAuthorizationRpcVo::exists)
+                .filter(RoleAuthorization::exists)
                 .filter(item -> StatusEnum.NORMAL.getCode().equals(item.status()))
                 .toList();
         List<String> roles =
-            authorizations.stream().map(RoleAuthorizationRpcVo::code).distinct().toList();
-        List<wiki.chiu.micro.common.enums.DataPermissionEnum> dataPermissions =
+            authorizations.stream().map(RoleAuthorization::code).distinct().toList();
+        List<DataPermissionEnum> dataPermissions =
             authorizations.stream()
-                .map(RoleAuthorizationRpcVo::dataPermissions)
+                .map(RoleAuthorization::dataPermissions)
                 .flatMap(Collection::stream)
                 .distinct()
                 .sorted()
@@ -164,7 +158,7 @@ public class AuthServiceImpl implements AuthService {
         }
         boolean authorized =
             authorizations.stream()
-                .map(RoleAuthorizationRpcVo::authorityCodes)
+                .map(RoleAuthorization::authorityCodes)
                 .flatMap(Collection::stream)
                 .anyMatch(route.code()::equals);
         if (!authorized) {
@@ -173,18 +167,18 @@ public class AuthServiceImpl implements AuthService {
         return principal;
     }
 
-    private Optional<AuthorityRpcVo> matchingAuthority(
-        List<AuthorityRpcVo> routes, String routeMapping, String method) {
+    private Optional<Authority> matchingAuthority(
+        List<Authority> routes, String routeMapping, String method) {
         return routes.stream()
             .filter(
                 authority ->
                     routeMatch(authority.routePattern(), authority.methodType(), routeMapping, method))
             .sorted(
                 Comparator.comparingInt(
-                        (AuthorityRpcVo authority) -> routeSpecificity(authority.routePattern()))
+                        (Authority authority) -> routeSpecificity(authority.routePattern()))
                     .reversed()
-                    .thenComparing(AuthorityRpcVo::routePattern)
-                    .thenComparing(AuthorityRpcVo::code))
+                    .thenComparing(Authority::routePattern)
+                    .thenComparing(Authority::code))
             .findFirst();
     }
 
@@ -198,38 +192,7 @@ public class AuthServiceImpl implements AuthService {
         return 3_000 + pattern.length();
     }
 
-    private Jwt decodeRouteToken(String routeMapping, String token) {
-        if (isWebSocketRoute(routeMapping)) {
-            Jwt jwt = jwtTokenService.decodeWebSocketToken(token);
-            String roomId = routeMapping.substring("/rooms/".length());
-            if (roomId.isEmpty() || !roomId.equals(jwt.getClaimAsString("room_id"))) {
-                throw new IllegalArgumentException("WebSocket ticket does not match the room");
-            }
-            return jwt;
-        }
-        return jwtTokenService.decodeAccessToken(token);
-    }
-
-    private Long resolveUserId(String routeMapping, String token) {
-        if (!StringUtils.hasLength(token)) {
-            return null;
-        }
-        try {
-            return subject(decodeRouteToken(routeMapping, token));
-        } catch (JwtException | IllegalArgumentException e) {
-            throw new MissException(ExceptionMessage.TOKEN_INVALID);
-        }
-    }
-
     private boolean isWebSocketRoute(String routeMapping) {
-        return routeMapping.startsWith("/rooms/");
-    }
-
-    private Long subject(Jwt jwt) {
-        try {
-            return Long.valueOf(jwt.getSubject());
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid JWT subject", e);
-        }
+        return routeMapping.startsWith(WEBSOCKET_ROUTE_PREFIX);
     }
 }

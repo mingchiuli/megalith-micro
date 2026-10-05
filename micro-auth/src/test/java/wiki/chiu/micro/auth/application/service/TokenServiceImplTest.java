@@ -11,16 +11,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import wiki.chiu.micro.auth.application.model.UserAccount;
+import wiki.chiu.micro.auth.application.port.out.TokenEncoder;
 import wiki.chiu.micro.auth.application.port.out.UserDirectory;
-import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 @ExtendWith(MockitoExtension.class)
 class TokenServiceImplTest {
 
     @Mock
-    private JwtTokenService jwtTokenService;
+    private TokenEncoder tokens;
 
     @Mock
     private UserDirectory users;
@@ -31,12 +31,12 @@ class TokenServiceImplTest {
     @Test
     void refreshAccessTokenIssuesRawTokenForActiveUser() {
         when(users.findById(42L)).thenReturn(user(0));
-        when(jwtTokenService.issueAccessToken(42L)).thenReturn("jwt");
+        when(tokens.accessToken(42L)).thenReturn("jwt");
 
         String result = tokenService.refreshAccessToken(42L);
 
         assertEquals("jwt", result);
-        verify(jwtTokenService).issueAccessToken(42L);
+        verify(tokens).accessToken(42L);
     }
 
     @Test
@@ -49,7 +49,7 @@ class TokenServiceImplTest {
         assertEquals("没有权限", exception.getMessage());
     }
 
-    private UserEntityRpcVo user(int status) {
-        return UserEntityRpcVo.builder().id(42L).status(status).build();
+    private UserAccount user(int status) {
+        return new UserAccount(42L, "tom", "encoded", "nick", "avatar.png", status);
     }
 }

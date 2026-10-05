@@ -2,18 +2,18 @@ package wiki.chiu.micro.auth.application.port.out;
 
 import java.util.List;
 
-import wiki.chiu.micro.auth.dto.MenuDto;
-import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
-import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
+import wiki.chiu.micro.auth.application.model.Authority;
+import wiki.chiu.micro.auth.application.model.Menu;
+import wiki.chiu.micro.auth.application.model.RoleAuthorization;
+import wiki.chiu.micro.auth.application.model.UserAccess;
 
 public interface AuthorizationDirectory {
 
-    UserAccessRpcVo getUserAccess(Long userId);
+    UserAccess getUserAccess(Long userId);
 
-    List<RoleAuthorizationRpcVo> getAllRoleAuthorizations();
+    List<RoleAuthorization> getAllRoleAuthorizations();
 
-    List<MenuDto> getCurrentUserNav(String role);
+    List<Menu> getCurrentUserNav(String role);
 
-    List<AuthorityRpcVo> getAllSystemAuthorities();
+    List<Authority> getAllSystemAuthorities();
 }

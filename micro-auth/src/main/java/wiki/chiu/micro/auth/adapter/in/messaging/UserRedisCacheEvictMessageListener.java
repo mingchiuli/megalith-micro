@@ -6,7 +6,6 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.auth.cache.AuthCacheKeys;
 import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.common.constant.Const;
 import wiki.chiu.micro.common.message.AuthCacheEvictMessage;

@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,9 +20,8 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
-import wiki.chiu.micro.auth.token.JwtProperties;
-import wiki.chiu.micro.auth.token.TokenCookieProperties;
-import wiki.chiu.micro.auth.token.TokenType;
+import wiki.chiu.micro.auth.adapter.out.token.JwtTokenService;
+import wiki.chiu.micro.auth.domain.TokenType;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({JwtProperties.class, TokenCookieProperties.class})
@@ -50,6 +50,26 @@ public class JwtConfig {
     @Bean("websocketJwtDecoder")
     JwtDecoder websocketJwtDecoder(SecretKey jwtSecretKey, JwtProperties properties) {
         return decoder(jwtSecretKey, properties, TokenType.WEBSOCKET);
+    }
+
+    @Bean
+    JwtTokenService jwtTokenService(
+        JwtEncoder jwtEncoder,
+        @Qualifier("accessJwtDecoder") JwtDecoder accessJwtDecoder,
+        @Qualifier("refreshJwtDecoder") JwtDecoder refreshJwtDecoder,
+        @Qualifier("websocketJwtDecoder") JwtDecoder websocketJwtDecoder,
+        JwtProperties properties) {
+        return new JwtTokenService(
+            jwtEncoder,
+            accessJwtDecoder,
+            refreshJwtDecoder,
+            websocketJwtDecoder,
+            properties.issuer(),
+            properties.audience(),
+            new JwtTokenService.TokenLifetimes(
+                properties.accessTokenExpire(),
+                properties.refreshTokenExpire(),
+                properties.websocketTokenExpire()));
     }
 
     private JwtDecoder decoder(SecretKey secretKey, JwtProperties properties, TokenType tokenType) {

@@ -21,6 +21,8 @@ public class AuthHttpHandler {
 
     public ServerResponse nav(ServerRequest request) {
         var principal = authPrincipal(request);
-        return ok(Result.success(() -> authService.getCurrentUserNav(principal.roles())));
+        return ok(
+            Result.success(
+                () -> AuthResponseMapper.toNav(authService.getCurrentUserNav(principal.roles()))));
     }
 }

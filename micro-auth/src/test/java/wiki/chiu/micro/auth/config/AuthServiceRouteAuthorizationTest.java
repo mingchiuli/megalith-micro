@@ -18,25 +18,24 @@ import javax.crypto.SecretKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import wiki.chiu.micro.auth.adapter.out.composite.AuthWrapper;
-import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
-import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
+import wiki.chiu.micro.auth.adapter.out.token.JwtTokenService;
+import wiki.chiu.micro.auth.application.model.Authority;
+import wiki.chiu.micro.auth.application.model.RoleAuthorization;
+import wiki.chiu.micro.auth.application.model.RouteDecision;
+import wiki.chiu.micro.auth.application.model.RouteQuery;
+import wiki.chiu.micro.auth.application.model.UserAccess;
+import wiki.chiu.micro.auth.application.port.out.AuthorizationDirectory;
 import wiki.chiu.micro.auth.application.port.out.VisitRecorder;
 import wiki.chiu.micro.auth.application.service.AuthServiceImpl;
-import wiki.chiu.micro.auth.token.JwtProperties;
-import wiki.chiu.micro.auth.token.JwtTokenService;
 import wiki.chiu.micro.common.enums.AuthTypeEnum;
 import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.error.ExceptionMessage;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.security.AuthPrincipal;
-import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
-import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 
 class AuthServiceRouteAuthorizationTest {
 
-    private AuthWrapper authWrapper;
+    private AuthorizationDirectory authorizationDirectory;
     private JwtTokenService tokens;
     private AuthServiceImpl authService;
 
@@ -58,23 +57,28 @@ class AuthServiceRouteAuthorizationTest {
                 config.accessJwtDecoder(secretKey, properties),
                 config.refreshJwtDecoder(secretKey, properties),
                 config.websocketJwtDecoder(secretKey, properties),
-                properties);
+                properties.issuer(),
+                properties.audience(),
+                new JwtTokenService.TokenLifetimes(
+                    properties.accessTokenExpire(),
+                    properties.refreshTokenExpire(),
+                    properties.websocketTokenExpire()));
 
-        authWrapper = mock(AuthWrapper.class);
+        authorizationDirectory = mock(AuthorizationDirectory.class);
         authService =
-            new AuthServiceImpl(authWrapper, mock(VisitRecorder.class), tokens);
+            new AuthServiceImpl(authorizationDirectory, mock(VisitRecorder.class), tokens);
 
-        when(authWrapper.getAllRoleAuthorizations()).thenReturn(List.of(role(Set.of())));
+        lenient().when(authorizationDirectory.getAllRoleAuthorizations()).thenReturn(List.of(role(Set.of())));
     }
 
     @Test
     void websocketTicketOnlyAuthorizesItsBoundRoom() {
         givenRoutes(List.of(authority("sync_room", "/rooms/**", AuthTypeEnum.NEED_AUTH)));
 
-        String roomTicket = "Bearer " + tokens.issueWebSocketToken(42L, "blog-7");
-        String accessToken = "Bearer " + tokens.issueAccessToken(42L);
+        String roomTicket = "Bearer " + tokens.webSocketTicket(42L, "blog-7");
+        String accessToken = "Bearer " + tokens.accessToken(42L);
 
-        AuthorityRouteRpcVo route = authService.authorizeRoute(route("/rooms/blog-7"), roomTicket);
+        RouteDecision route = authService.authorizeRoute(route("/rooms/blog-7"), roomTicket);
         assertEquals("sync", route.serviceHost());
         assertEquals(Integer.valueOf(8089), route.servicePort());
         assertEquals(42L, route.principal().userId());
@@ -99,18 +103,18 @@ class AuthServiceRouteAuthorizationTest {
             authService.authorizeRoute(route("/api/public"), null).principal());
         assertThrows(
             MissException.class, () -> authService.authorizeRoute(route("/apix/public"), null));
-        verify(authWrapper, never()).getUserAccess(42L);
+        verify(authorizationDirectory, never()).getUserAccess(42L);
     }
 
     @Test
     void whitelistUsesValidatedIdentityWhenTokenIsPresent() {
         givenRoutes(List.of(authority("public_api", "/api/public", AuthTypeEnum.WHITE_LIST)));
 
-        AuthorityRouteRpcVo route =
-            authService.authorizeRoute(route("/api/public"), "Bearer " + tokens.issueAccessToken(42L));
+        RouteDecision route =
+            authService.authorizeRoute(route("/api/public"), "Bearer " + tokens.accessToken(42L));
 
         assertEquals(new AuthPrincipal(42L, List.of("user")), route.principal());
-        verify(authWrapper, times(1)).getUserAccess(42L);
+        verify(authorizationDirectory, times(1)).getUserAccess(42L);
     }
 
     @Test
@@ -120,27 +124,28 @@ class AuthServiceRouteAuthorizationTest {
         assertThrows(
             MissException.class,
             () -> authService.authorizeRoute(route("/api/public"), "Bearer invalid-token"));
-        verify(authWrapper, never()).getUserAccess(42L);
+        verify(authorizationDirectory, never()).getUserAccess(42L);
     }
 
     @Test
     void disabledUserIsRejectedBeforeAuthorityLookup() {
-        List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH));
-        when(authWrapper.getUserAccess(42L))
-            .thenReturn(new UserAccessRpcVo(42L, true, StatusEnum.HIDE.getCode(), List.of(7L)));
+        givenRoutes(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
+        when(authorizationDirectory.getUserAccess(42L))
+            .thenReturn(new UserAccess(42L, true, StatusEnum.HIDE.getCode(), List.of(7L)));
 
         assertThrows(
             MissException.class,
             () ->
                 authService.authorizeRoute(
-                    route("/api/private"), "Bearer " + tokens.issueAccessToken(42L)));
-        verify(authWrapper, never()).getAllRoleAuthorizations();
+                    route("/api/private"), "Bearer " + tokens.accessToken(42L)));
+        verify(authorizationDirectory, never()).getAllRoleAuthorizations();
     }
 
     @Test
     void invalidAccessTokenIsUnauthenticatedButMissingAuthorityIsForbidden() {
         givenRoutes(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
-        when(authWrapper.getAllRoleAuthorizations()).thenReturn(List.of(role(Set.of("other_api"))));
+        when(authorizationDirectory.getAllRoleAuthorizations())
+            .thenReturn(List.of(role(Set.of("other_api"))));
 
         MissException invalidToken =
             assertThrows(
@@ -153,63 +158,65 @@ class AuthServiceRouteAuthorizationTest {
                 MissException.class,
                 () ->
                     authService.authorizeRoute(
-                        route("/api/private"), "Bearer " + tokens.issueAccessToken(42L)));
+                        route("/api/private"), "Bearer " + tokens.accessToken(42L)));
         assertSame(ExceptionMessage.NO_AUTH, missingAuthority.errorCode());
     }
 
     @Test
     void authorizedRoleReceivesTheResolvedRoute() {
         givenRoutes(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
-        when(authWrapper.getAllRoleAuthorizations()).thenReturn(List.of(role(Set.of("private_api"))));
+        when(authorizationDirectory.getAllRoleAuthorizations())
+            .thenReturn(List.of(role(Set.of("private_api"))));
 
-        AuthorityRouteRpcVo route =
-            authService.authorizeRoute(route("/api/private"), "Bearer " + tokens.issueAccessToken(42L));
+        RouteDecision route =
+            authService.authorizeRoute(route("/api/private"), "Bearer " + tokens.accessToken(42L));
 
         assertEquals("service", route.serviceHost());
         assertEquals(Integer.valueOf(8080), route.servicePort());
         assertEquals(List.of("user"), route.principal().roles());
-        verify(authWrapper, times(1)).getUserAccess(42L);
+        verify(authorizationDirectory, times(1)).getUserAccess(42L);
     }
 
     @Test
     void userLookupFailureIsNotCollapsedIntoForbidden() {
         MissException failure = new MissException(ExceptionMessage.USER_NOT_EXIST);
-        when(authWrapper.getUserAccess(42L)).thenThrow(failure);
+        givenRoutes(List.of(authority("private_api", "/api/private", AuthTypeEnum.NEED_AUTH)));
+        when(authorizationDirectory.getUserAccess(42L)).thenThrow(failure);
 
         MissException actual =
             assertThrows(
                 MissException.class,
                 () ->
                     authService.authorizeRoute(
-                        route("/api/private"), "Bearer " + tokens.issueAccessToken(42L)));
+                        route("/api/private"), "Bearer " + tokens.accessToken(42L)));
 
         assertSame(failure, actual);
     }
 
-    private AuthorityRouteReq route(String path) {
-        return new AuthorityRouteReq("GET", path, null);
+    private RouteQuery route(String path) {
+        return new RouteQuery("GET", path, null);
     }
 
-    private void givenRoutes(List<AuthorityRpcVo> routes) {
-        lenient().when(authWrapper.getAllSystemAuthorities()).thenReturn(routes);
+    private void givenRoutes(List<Authority> routes) {
+        lenient().when(authorizationDirectory.getAllSystemAuthorities()).thenReturn(routes);
         lenient()
-            .when(authWrapper.getUserAccess(42L))
-            .thenReturn(new UserAccessRpcVo(42L, true, StatusEnum.NORMAL.getCode(), List.of(7L)));
+            .when(authorizationDirectory.getUserAccess(42L))
+            .thenReturn(new UserAccess(42L, true, StatusEnum.NORMAL.getCode(), List.of(7L)));
     }
 
-    private RoleAuthorizationRpcVo role(Set<String> authorities) {
-        return new RoleAuthorizationRpcVo(
-            7L, true, "user", StatusEnum.NORMAL.getCode(), authorities, List.of());
+    private RoleAuthorization role(Set<String> authorities) {
+        return new RoleAuthorization(7L, true, "user", StatusEnum.NORMAL.getCode(), authorities, List.of());
     }
 
-    private AuthorityRpcVo authority(String code, String pattern, AuthTypeEnum type) {
-        return AuthorityRpcVo.builder()
-            .code(code)
-            .methodType("GET")
-            .routePattern(pattern)
-            .serviceHost(pattern.startsWith("/rooms/") ? "sync" : "service")
-            .servicePort(pattern.startsWith("/rooms/") ? 8089 : 8080)
-            .type(type.getCode())
-            .build();
+    private Authority authority(String code, String pattern, AuthTypeEnum type) {
+        boolean websocket = pattern.startsWith("/rooms/");
+        return new Authority(
+            websocket ? 2L : 1L,
+            code,
+            "GET",
+            pattern,
+            websocket ? "sync" : "service",
+            websocket ? 8089 : 8080,
+            type.getCode());
     }
 }

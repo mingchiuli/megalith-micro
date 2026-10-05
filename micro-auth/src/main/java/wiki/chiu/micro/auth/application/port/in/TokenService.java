@@ -1,6 +1,6 @@
 package wiki.chiu.micro.auth.application.port.in;
 
-import wiki.chiu.micro.auth.vo.UserInfoVo;
+import wiki.chiu.micro.auth.application.model.UserInfo;
 
 /**
  * @author mingchiuli
@@ -10,5 +10,7 @@ public interface TokenService {
 
     String refreshAccessToken(Long userId);
 
-    UserInfoVo userinfo(Long userId);
+    UserInfo userinfo(Long userId);
+
+    String issueWebSocketTicket(Long userId, String roomId);
 }

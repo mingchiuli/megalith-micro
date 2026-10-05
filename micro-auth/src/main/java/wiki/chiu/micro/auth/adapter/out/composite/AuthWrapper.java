@@ -5,15 +5,14 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.auth.adapter.out.http.UserHttpServiceWrapper;
+import wiki.chiu.micro.auth.adapter.out.http.UserRpcMapper;
+import wiki.chiu.micro.auth.application.model.Authority;
+import wiki.chiu.micro.auth.application.model.Menu;
+import wiki.chiu.micro.auth.application.model.RoleAuthorization;
+import wiki.chiu.micro.auth.application.model.UserAccess;
 import wiki.chiu.micro.auth.application.port.out.AuthorizationDirectory;
-import wiki.chiu.micro.auth.cache.AuthCacheDescriptors;
-import wiki.chiu.micro.auth.convertor.MenuDtoConvertor;
-import wiki.chiu.micro.auth.dto.MenuDto;
+import wiki.chiu.micro.auth.domain.AuthCacheDescriptors;
 import wiki.chiu.micro.cache.annotation.Cache;
-import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
-import wiki.chiu.micro.user.api.vo.MenuRpcVo;
-import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 
 @Component
 public class AuthWrapper implements AuthorizationDirectory {
@@ -28,7 +27,7 @@ public class AuthWrapper implements AuthorizationDirectory {
         namespace = AuthCacheDescriptors.USER_ACCESS_NAMESPACE,
         version = AuthCacheDescriptors.VERSION)
     @Override
-    public UserAccessRpcVo getUserAccess(Long userId) {
+    public UserAccess getUserAccess(Long userId) {
         return userHttpServiceWrapper.findUserAccess(userId);
     }
 
@@ -36,24 +35,23 @@ public class AuthWrapper implements AuthorizationDirectory {
         namespace = AuthCacheDescriptors.ROLE_AUTHORIZATION_NAMESPACE,
         version = AuthCacheDescriptors.VERSION)
     @Override
-    public List<RoleAuthorizationRpcVo> getAllRoleAuthorizations() {
-        return userHttpServiceWrapper.findAllRoleAuthorizations();
+    public List<RoleAuthorization> getAllRoleAuthorizations() {
+        return UserRpcMapper.toRoleAuthorizations(userHttpServiceWrapper.findAllRoleAuthorizations());
     }
 
     @Cache(
         namespace = AuthCacheDescriptors.ROLE_NAVIGATION_NAMESPACE,
         version = AuthCacheDescriptors.VERSION)
     @Override
-    public List<MenuDto> getCurrentUserNav(String rawRole) {
-        List<MenuRpcVo> dto = userHttpServiceWrapper.getCurrentUserNav(rawRole);
-        return MenuDtoConvertor.convert(dto);
+    public List<Menu> getCurrentUserNav(String rawRole) {
+        return UserRpcMapper.toMenus(userHttpServiceWrapper.getCurrentUserNav(rawRole));
     }
 
     @Cache(
         namespace = AuthCacheDescriptors.SYSTEM_AUTHORITIES_NAMESPACE,
         version = AuthCacheDescriptors.VERSION)
     @Override
-    public List<AuthorityRpcVo> getAllSystemAuthorities() {
-        return userHttpServiceWrapper.getSystemAuthorities();
+    public List<Authority> getAllSystemAuthorities() {
+        return UserRpcMapper.toAuthorities(userHttpServiceWrapper.getSystemAuthorities());
     }
 }

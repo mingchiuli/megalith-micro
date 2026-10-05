@@ -15,7 +15,6 @@ import org.mockito.InOrder;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 
-import wiki.chiu.micro.auth.cache.AuthCacheKeys;
 import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.common.message.AuthCacheEvictMessage;
 import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;

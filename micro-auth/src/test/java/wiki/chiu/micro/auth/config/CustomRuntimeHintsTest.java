@@ -7,7 +7,10 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 
-import wiki.chiu.micro.auth.dto.MenuDto;
+import wiki.chiu.micro.auth.application.model.Authority;
+import wiki.chiu.micro.auth.application.model.Menu;
+import wiki.chiu.micro.auth.application.model.RoleAuthorization;
+import wiki.chiu.micro.auth.application.model.UserAccess;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
 import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
@@ -19,7 +22,10 @@ class CustomRuntimeHintsTest {
         RuntimeHints hints = new RuntimeHints();
         new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
 
-        assertJacksonType(hints, MenuDto.class);
+        assertJacksonType(hints, Menu.class);
+        assertJacksonType(hints, UserAccess.class);
+        assertJacksonType(hints, RoleAuthorization.class);
+        assertJacksonType(hints, Authority.class);
         assertJacksonType(hints, UserAccessRpcVo.class);
         assertJacksonType(hints, RoleAuthorizationRpcVo.class);
         assertJacksonType(hints, AuthorityRpcVo.class);

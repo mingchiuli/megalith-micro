@@ -14,10 +14,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import tools.jackson.databind.json.JsonMapper;
-import wiki.chiu.micro.auth.component.LoginAuthenticationFilter;
-import wiki.chiu.micro.auth.component.LoginFailureHandler;
-import wiki.chiu.micro.auth.component.LoginSuccessHandler;
-import wiki.chiu.micro.auth.token.RefreshTokenCookieManager;
+import wiki.chiu.micro.auth.adapter.in.security.LoginAuthenticationFilter;
+import wiki.chiu.micro.auth.adapter.in.security.LoginFailureHandler;
+import wiki.chiu.micro.auth.adapter.in.security.LoginSuccessHandler;
+import wiki.chiu.micro.auth.adapter.in.http.RefreshTokenCookieResolver;
 
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfig {
@@ -42,7 +42,7 @@ public class SecurityConfig {
     SecurityFilterChain refreshTokenChain(
         HttpSecurity http,
         @Qualifier("refreshJwtDecoder") JwtDecoder refreshJwtDecoder,
-        RefreshTokenCookieManager refreshTokenCookieManager)
+        RefreshTokenCookieResolver refreshTokenCookieResolver)
         throws Exception {
         return stateless(http)
             .securityMatcher("/token/refresh")
@@ -50,7 +50,7 @@ public class SecurityConfig {
             .oauth2ResourceServer(
                 oauth2 ->
                     oauth2
-                        .bearerTokenResolver(refreshTokenCookieManager)
+                        .bearerTokenResolver(refreshTokenCookieResolver)
                         .jwt(jwt -> jwt.decoder(refreshJwtDecoder)))
             .build();
     }
