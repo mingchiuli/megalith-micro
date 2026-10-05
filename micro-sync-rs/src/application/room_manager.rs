@@ -155,7 +155,7 @@ where
     }
 
     pub(crate) async fn leave(&self, subscription: RoomSubscription) {
-        let previous = subscription.room.subscribers.fetch_update(
+        let previous = subscription.room.subscribers.try_update(
             Ordering::Relaxed,
             Ordering::Relaxed,
             |count| count.checked_sub(1),
