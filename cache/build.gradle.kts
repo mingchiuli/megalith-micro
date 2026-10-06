@@ -180,7 +180,7 @@ tasks.register<Test>("integrationTest") {
 dependencies {
     api("org.springframework.boot:spring-boot-starter")
     api("org.springframework.boot:spring-boot-starter-jackson")
-    api("org.redisson:redisson:4.7.0")
+    api("org.redisson:redisson:4.8.0")
     api("com.github.ben-manes.caffeine:caffeine")
     api("org.aspectj:aspectjweaver")
     api("io.micrometer:micrometer-core")
