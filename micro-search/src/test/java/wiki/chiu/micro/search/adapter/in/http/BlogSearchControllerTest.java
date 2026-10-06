@@ -1,4 +1,4 @@
-package wiki.chiu.micro.search.controller;
+package wiki.chiu.micro.search.adapter.in.http;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -22,10 +22,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.search.adapter.in.http.BlogDocumentVo;
-import wiki.chiu.micro.search.adapter.in.http.BlogSearchHttpHandler;
-import wiki.chiu.micro.search.adapter.in.http.SearchInternalHttpHandler;
-import wiki.chiu.micro.search.adapter.in.http.SearchRoutes;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.SearchPage;
