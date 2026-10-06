@@ -8,7 +8,6 @@ import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.exhibit.application.port.out.BlogEventRevisionGuard;
-import wiki.chiu.micro.exhibit.domain.BlogEventRevisionKeys;
 
 @Component
 public class RedisBlogEventRevisionGuard implements BlogEventRevisionGuard {

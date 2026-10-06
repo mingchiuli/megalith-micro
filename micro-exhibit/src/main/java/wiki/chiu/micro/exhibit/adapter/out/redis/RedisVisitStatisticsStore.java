@@ -12,10 +12,12 @@ import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.exhibit.application.port.out.VisitStatisticsStore;
-import wiki.chiu.micro.exhibit.domain.VisitStatisticsKeys;
 
 @Component
 public class RedisVisitStatisticsStore implements VisitStatisticsStore {
+
+    /** The claim that hands the daily rollover to exactly one replica. */
+    private static final String DAILY_ROLLOVER_CLAIM = "statisticsFinishKey";
 
     private static final Duration DAILY_CLAIM_TTL = Duration.ofHours(23);
 
@@ -28,7 +30,7 @@ public class RedisVisitStatisticsStore implements VisitStatisticsStore {
     @Override
     public boolean claimDailyRollover() {
         return redissonClient
-            .getBucket(VisitStatisticsKeys.DAILY_ROLLOVER_CLAIM)
+            .getBucket(DAILY_ROLLOVER_CLAIM)
             .setIfAbsent("1", DAILY_CLAIM_TTL);
     }
 

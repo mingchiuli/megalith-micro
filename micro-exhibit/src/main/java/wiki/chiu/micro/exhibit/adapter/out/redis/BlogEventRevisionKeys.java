@@ -1,10 +1,11 @@
-package wiki.chiu.micro.exhibit.domain;
+package wiki.chiu.micro.exhibit.adapter.out.redis;
 
 /**
- * The keys of the per-blog event guard. The inbound eviction listeners and the Redis guard
- * implementation must agree on them, so they are declared here rather than inside either adapter.
+ * The Redis keys of the per-blog event guard: the lock that serializes the events of one blog and
+ * the revision applied to it last. Only this adapter reaches the keys, so they are declared next to
+ * the adapter instead of in the core.
  */
-public final class BlogEventRevisionKeys {
+final class BlogEventRevisionKeys {
 
     private static final String LOCK_PREFIX = "blog:event-revision:lock:";
 
