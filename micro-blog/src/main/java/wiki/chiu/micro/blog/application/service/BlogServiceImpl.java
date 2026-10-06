@@ -22,6 +22,7 @@ import wiki.chiu.micro.blog.application.model.BlogSearchSelection;
 import wiki.chiu.micro.blog.application.model.DeletedBlogEntry;
 import wiki.chiu.micro.blog.application.model.DeletedBlogItem;
 import wiki.chiu.micro.blog.application.model.DeletedBlogPage;
+import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.model.SensitiveContentDraft;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
@@ -33,7 +34,6 @@ import wiki.chiu.micro.blog.domain.SensitiveContent;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.page.PageAdapter;
 
 public class BlogServiceImpl implements BlogService {
 
@@ -130,7 +130,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public PageAdapter<BlogListItem> findAllBlogs(
+    public Page<BlogListItem> findAllBlogs(
         BlogQuery query, Long userId, List<DataPermissionEnum> dataPermissions) {
 
         BlogSearchQuery searchQuery =
@@ -172,7 +172,7 @@ public class BlogServiceImpl implements BlogService {
         return listPage(items, readMap, sensitiveContents, result);
     }
 
-    private static PageAdapter<BlogListItem> listPage(
+    private static Page<BlogListItem> listPage(
         List<Blog> items,
         Map<Long, Integer> readMap,
         List<SensitiveContent> sensitiveContents,
@@ -219,26 +219,25 @@ public class BlogServiceImpl implements BlogService {
                 .toList();
 
         long anchor = (long) (currentPage - 1) * size + items.size();
-        return PageAdapter.<BlogListItem>builder()
-            .content(content)
-            .last(anchor >= total)
-            .first(currentPage == 1)
-            .pageNumber(currentPage)
-            .totalPages((int) (total % size == 0 ? total / size : total / size + 1))
-            .pageSize(size)
-            .totalElements(total)
-            .empty(items.isEmpty())
-            .build();
+        return new Page<>(
+            content,
+            total,
+            currentPage,
+            size,
+            currentPage == 1,
+            anchor >= total,
+            items.isEmpty(),
+            (int) (total % size == 0 ? total / size : total / size + 1));
     }
 
     @Override
-    public PageAdapter<DeletedBlogItem> findDeletedBlogs(
+    public Page<DeletedBlogItem> findDeletedBlogs(
         Integer currentPage, Integer size, Long userId) {
         DeletedBlogPage deleted =
             runtimeStore.deletedBlogs(
                 userId, currentPage, size, LocalDateTime.now().minusDays(RECYCLE_RETENTION_DAYS));
         if (deleted.blogs().isEmpty()) {
-            return PageAdapter.emptyPage();
+            return Page.emptyPage();
         }
 
         int totalPages = (int) (deleted.total() % size == 0 ? deleted.total() / size : deleted.total() / size + 1);
@@ -260,16 +259,15 @@ public class BlogServiceImpl implements BlogService {
                     item.readCount()));
         }
 
-        return PageAdapter.<DeletedBlogItem>builder()
-            .content(content)
-            .last(currentPage == totalPages)
-            .first(currentPage == 1)
-            .pageNumber(currentPage)
-            .totalPages(totalPages)
-            .pageSize(size)
-            .totalElements(deleted.total())
-            .empty(deleted.total() == 0)
-            .build();
+        return new Page<>(
+            content,
+            deleted.total(),
+            currentPage,
+            size,
+            currentPage == 1,
+            currentPage == totalPages,
+            deleted.total() == 0,
+            totalPages);
     }
 
     @Override

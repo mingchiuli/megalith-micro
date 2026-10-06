@@ -11,8 +11,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserEntity;
+import wiki.chiu.micro.user.application.model.Page;
 
 /**
  * @author mingchiuli
@@ -75,18 +75,17 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
         return findExpiredPasswordLockIds(lockedStatus, PageRequest.of(0, batchSize));
     }
 
-    default PageAdapter<UserEntity> findPage(int pageNumber, int pageSize) {
+    default Page<UserEntity> findPage(int pageNumber, int pageSize) {
         var request = PageRequest.of(pageNumber - 1, pageSize, Sort.by("created").ascending());
         var page = findAll(request);
-        return PageAdapter.<UserEntity>builder()
-            .content(page.getContent())
-            .totalElements(page.getTotalElements())
-            .pageNumber(page.getNumber())
-            .pageSize(page.getSize())
-            .first(page.isFirst())
-            .last(page.isLast())
-            .empty(page.isEmpty())
-            .totalPages(page.getTotalPages())
-            .build();
+        return new Page<>(
+            page.getContent(),
+            page.getTotalElements(),
+            page.getNumber(),
+            page.getSize(),
+            page.isFirst(),
+            page.isLast(),
+            page.isEmpty(),
+            page.getTotalPages());
     }
 }

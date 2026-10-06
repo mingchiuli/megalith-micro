@@ -7,11 +7,11 @@ import java.util.List;
 import wiki.chiu.micro.blog.application.port.in.BlogQueryService;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
+import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.model.BlogSnapshot;
-import wiki.chiu.micro.common.page.PageAdapter;
 
 public class BlogQueryServiceImpl implements BlogQueryService {
 
@@ -49,25 +49,16 @@ public class BlogQueryServiceImpl implements BlogQueryService {
     }
 
     @Override
-    public PageAdapter<BlogSnapshot> findPage(Integer pageNo, Integer pageSize) {
+    public Page<BlogSnapshot> findPage(Integer pageNo, Integer pageSize) {
         List<Integer> statuses =
             List.of(
                 BlogStatusEnum.NORMAL.getCode(),
                 BlogStatusEnum.SENSITIVE_FILTER.getCode(),
                 BlogStatusEnum.HIDE.getCode());
-        PageAdapter<Blog> page = blogs.findPage(pageNo, pageSize, statuses);
+        Page<Blog> page = blogs.findPage(pageNo, pageSize, statuses);
         if (pageNo > 1 && page.empty()) {
             throw new MissException(NO_FOUND.getMsg() + pageNo + " page");
         }
-        return PageAdapter.<BlogSnapshot>builder()
-            .content(page.content().stream().map(Blog::snapshot).toList())
-            .totalElements(page.totalElements())
-            .pageNumber(page.pageNumber())
-            .pageSize(page.pageSize())
-            .first(page.first())
-            .last(page.last())
-            .empty(page.empty())
-            .totalPages(page.totalPages())
-            .build();
+        return page.withContent(page.content().stream().map(Blog::snapshot).toList());
     }
 }

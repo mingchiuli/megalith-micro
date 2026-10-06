@@ -6,6 +6,7 @@ import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
+import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 
 /**
@@ -16,19 +17,9 @@ public final class ExhibitResponseMapper {
     private ExhibitResponseMapper() {
     }
 
-    public static PageAdapter<BlogDescriptionVo> toVo(PageAdapter<BlogDescription> page) {
-        List<BlogDescriptionVo> content =
-            page.content().stream().map(ExhibitResponseMapper::toVo).toList();
-        return PageAdapter.<BlogDescriptionVo>builder()
-            .content(content)
-            .totalElements(page.totalElements())
-            .pageNumber(page.pageNumber())
-            .pageSize(page.pageSize())
-            .first(page.first())
-            .last(page.last())
-            .empty(page.empty())
-            .totalPages(page.totalPages())
-            .build();
+    public static PageAdapter<BlogDescriptionVo> toVo(Page<BlogDescription> page) {
+        return PageResponse.of(
+            page, page.content().stream().map(ExhibitResponseMapper::toVo).toList());
     }
 
     public static BlogDescriptionVo toVo(BlogDescription description) {

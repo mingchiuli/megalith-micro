@@ -270,7 +270,7 @@ The five Java applications use the same ports-and-adapters layout for their core
 | Package | Responsibility |
 | --- | --- |
 | `domain` | Business entities and domain state without delivery or infrastructure dependencies |
-| `application.model` | Use-case-specific inputs, outputs, and event context |
+| `application.model` | Use-case-specific inputs, outputs, pages, and event context |
 | `application.port.in` | Use cases exposed to HTTP, messaging, and schedulers |
 | `application.port.out` | Persistence, remote service, Redis, search, and object-storage capabilities required by use cases |
 | `application.service` | Use-case orchestration; depends on domain types and ports rather than adapters |
@@ -292,8 +292,10 @@ remote HTTP contracts, and storage clients stay behind output adapters. Applicat
 prepare inputs and coordinate use cases; persistence adapters own the short transactions that
 commit domain writes and outbox entries. An export or download use case returns the rows to export,
 and the adapter that offers the download renders the script with `common-export` and writes the
-response. `common-arch` runs the shared dependency, transaction, and package-layout rules for every
-application, and a service adds only the rules it needs on top.
+response. A paged use case returns the core `application.model.Page`, and the adapter that renders
+the response builds the shared `common-contract` `PageAdapter` envelope from it. `common-arch` runs
+the shared dependency, transaction, and package-layout rules for every application, and a service
+adds only the rules it needs on top.
 
 ### Rust application boundaries
 

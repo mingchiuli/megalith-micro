@@ -7,8 +7,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
+import wiki.chiu.micro.user.application.model.Page;
 
 /**
  * @author mingchiuli
@@ -24,18 +24,17 @@ public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
 
     List<RoleEntity> findByStatus(Integer status);
 
-    default PageAdapter<RoleEntity> findPage(int pageNumber, int pageSize) {
+    default Page<RoleEntity> findPage(int pageNumber, int pageSize) {
         var request = PageRequest.of(pageNumber - 1, pageSize, Sort.by("created").ascending());
         var page = findAll(request);
-        return PageAdapter.<RoleEntity>builder()
-            .content(page.getContent())
-            .totalElements(page.getTotalElements())
-            .pageNumber(page.getNumber())
-            .pageSize(page.getSize())
-            .first(page.isFirst())
-            .last(page.isLast())
-            .empty(page.isEmpty())
-            .totalPages(page.getTotalPages())
-            .build();
+        return new Page<>(
+            page.getContent(),
+            page.getTotalElements(),
+            page.getNumber(),
+            page.getSize(),
+            page.isFirst(),
+            page.isLast(),
+            page.isEmpty(),
+            page.getTotalPages());
     }
 }

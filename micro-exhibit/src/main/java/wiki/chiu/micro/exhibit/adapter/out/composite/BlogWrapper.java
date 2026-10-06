@@ -15,6 +15,7 @@ import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpMapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.application.model.BlogDescription;
+import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.port.out.BlogReader;
 import wiki.chiu.micro.exhibit.domain.BlogCacheDescriptors;
@@ -70,8 +71,9 @@ public class BlogWrapper implements BlogReader {
         version = BlogCacheDescriptors.PAGE_VERSION,
         trackKeys = true)
     @Override
-    public PageAdapter<BlogDescription> findPage(Integer currentPage) {
-        PageAdapter<BlogEntityRpcVo> page = blogHttpServiceWrapper.findPage(currentPage, blogPageSize);
+    public Page<BlogDescription> findPage(Integer currentPage) {
+        PageAdapter<BlogEntityRpcVo> page =
+            blogHttpServiceWrapper.findPage(currentPage, blogPageSize);
         return BlogHttpMapper.toDescriptions(page);
     }
 }

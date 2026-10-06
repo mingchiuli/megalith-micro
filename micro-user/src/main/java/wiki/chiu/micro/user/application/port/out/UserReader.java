@@ -3,7 +3,7 @@ package wiki.chiu.micro.user.application.port.out;
 import java.util.List;
 import java.util.Optional;
 
-import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.domain.User;
 
 public interface UserReader {
@@ -22,5 +22,5 @@ public interface UserReader {
 
     List<Long> findExpiredPasswordLockIds(Integer lockedStatus, int batchSize);
 
-    PageAdapter<User> findPage(int pageNumber, int pageSize);
+    Page<User> findPage(int pageNumber, int pageSize);
 }

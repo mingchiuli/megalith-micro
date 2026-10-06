@@ -11,10 +11,10 @@ import wiki.chiu.micro.blog.adapter.out.persistence.mapping.BlogPersistenceMappe
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogSensitiveContentRepository;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
+import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.SensitiveContent;
-import wiki.chiu.micro.common.page.PageAdapter;
 
 @Component
 public class JpaBlogQueryAdapter implements BlogQueryStore {
@@ -64,19 +64,18 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
     }
 
     @Override
-    public PageAdapter<Blog> findPage(int pageNumber, int pageSize, List<Integer> statuses) {
+    public Page<Blog> findPage(int pageNumber, int pageSize, List<Integer> statuses) {
         var request = PageRequest.of(pageNumber - 1, pageSize, Sort.by("created").descending());
         var page = blogs.findByStatusIn(request, statuses);
-        return PageAdapter.<Blog>builder()
-            .content(BlogPersistenceMapper.toDomains(page.getContent()))
-            .totalElements(page.getTotalElements())
-            .pageNumber(page.getNumber() + 1)
-            .pageSize(page.getSize())
-            .first(page.isFirst())
-            .last(page.isLast())
-            .empty(page.isEmpty())
-            .totalPages(page.getTotalPages())
-            .build();
+        return new Page<>(
+            BlogPersistenceMapper.toDomains(page.getContent()),
+            page.getTotalElements(),
+            page.getNumber() + 1,
+            page.getSize(),
+            page.isFirst(),
+            page.isLast(),
+            page.isEmpty(),
+            page.getTotalPages());
     }
 
     @Override

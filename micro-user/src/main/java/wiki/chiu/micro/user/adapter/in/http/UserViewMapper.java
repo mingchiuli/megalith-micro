@@ -14,6 +14,7 @@ import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.application.model.MenuAuthorityView;
 import wiki.chiu.micro.user.application.model.MenuNode;
 import wiki.chiu.micro.user.application.model.MenuSelection;
+import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.application.model.RoleView;
 import wiki.chiu.micro.user.application.model.UserView;
 import wiki.chiu.micro.user.domain.Authority;
@@ -107,17 +108,8 @@ public final class UserViewMapper {
             .toList();
     }
 
-    public static PageAdapter<RoleEntityVo> toRoleVos(PageAdapter<RoleView> page) {
-        return PageAdapter.<RoleEntityVo>builder()
-            .content(page.content().stream().map(UserViewMapper::toVo).toList())
-            .totalElements(page.totalElements())
-            .pageNumber(page.pageNumber())
-            .pageSize(page.pageSize())
-            .first(page.first())
-            .last(page.last())
-            .empty(page.empty())
-            .totalPages(page.totalPages())
-            .build();
+    public static PageAdapter<RoleEntityVo> toRoleVos(Page<RoleView> page) {
+        return PageResponse.of(page, page.content().stream().map(UserViewMapper::toVo).toList());
     }
 
     public static RoleMenuVo toVo(MenuSelection selection) {
@@ -162,17 +154,8 @@ public final class UserViewMapper {
             .build();
     }
 
-    public static PageAdapter<UserEntityVo> toUserVos(PageAdapter<UserView> page) {
-        return PageAdapter.<UserEntityVo>builder()
-            .content(page.content().stream().map(UserViewMapper::toVo).toList())
-            .totalElements(page.totalElements())
-            .pageNumber(page.pageNumber())
-            .pageSize(page.pageSize())
-            .first(page.first())
-            .last(page.last())
-            .empty(page.empty())
-            .totalPages(page.totalPages())
-            .build();
+    public static PageAdapter<UserEntityVo> toUserVos(Page<UserView> page) {
+        return PageResponse.of(page, page.content().stream().map(UserViewMapper::toVo).toList());
     }
 
     public static UserAccessRpcVo toRpc(UserAccess access) {

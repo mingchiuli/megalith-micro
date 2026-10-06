@@ -1,8 +1,8 @@
 package wiki.chiu.micro.exhibit.application.port.out;
 
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
+import wiki.chiu.micro.exhibit.application.model.Page;
 
 /**
  * Reads the blog content this service exhibits, already composed for display.
@@ -13,5 +13,5 @@ public interface BlogReader {
 
     void incrementViews(Long id);
 
-    PageAdapter<BlogDescription> findPage(Integer currentPage);
+    Page<BlogDescription> findPage(Integer currentPage);
 }

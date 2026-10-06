@@ -5,10 +5,10 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRepository;
+import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.application.port.out.UserReader;
 import wiki.chiu.micro.user.domain.User;
 
@@ -60,17 +60,8 @@ public class JpaUserReader implements UserReader {
     }
 
     @Override
-    public PageAdapter<User> findPage(int pageNumber, int pageSize) {
-        PageAdapter<UserEntity> page = users.findPage(pageNumber, pageSize);
-        return PageAdapter.<User>builder()
-            .content(UserPersistenceMapper.toUsers(page.content()))
-            .totalElements(page.totalElements())
-            .pageNumber(page.pageNumber())
-            .pageSize(page.pageSize())
-            .first(page.first())
-            .last(page.last())
-            .empty(page.empty())
-            .totalPages(page.totalPages())
-            .build();
+    public Page<User> findPage(int pageNumber, int pageSize) {
+        Page<UserEntity> page = users.findPage(pageNumber, pageSize);
+        return page.withContent(UserPersistenceMapper.toUsers(page.content()));
     }
 }

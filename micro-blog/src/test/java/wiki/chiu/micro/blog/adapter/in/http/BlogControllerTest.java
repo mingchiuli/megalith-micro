@@ -2,6 +2,7 @@ package wiki.chiu.micro.blog.adapter.in.http;
 
 import wiki.chiu.micro.blog.application.model.BlogExportPage;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
+import wiki.chiu.micro.blog.application.model.Page;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -169,17 +170,8 @@ class BlogControllerTest {
     void getAllBlogsReturnsPage() throws Exception {
         BlogListItem item =
             new BlogListItem(1L, "t", null, null, null, null, null, null, null, null);
-        PageAdapter<BlogListItem> page =
-            PageAdapter.<BlogListItem>builder()
-                .content(List.of(item))
-                .totalElements(1)
-                .pageNumber(1)
-                .pageSize(10)
-                .first(true)
-                .last(true)
-                .empty(false)
-                .totalPages(1)
-                .build();
+        Page<BlogListItem> page =
+            new Page<>(List.of(item), 1, 1, 10, true, true, false, 1);
         when(blogService.findAllBlogs(any(), anyLong(), anyList())).thenReturn(page);
 
         mockMvc
@@ -190,7 +182,7 @@ class BlogControllerTest {
 
     @Test
     void getDeletedBlogsReturnsPage() throws Exception {
-        when(blogService.findDeletedBlogs(1, 10, 1L)).thenReturn(PageAdapter.emptyPage());
+        when(blogService.findDeletedBlogs(1, 10, 1L)).thenReturn(Page.emptyPage());
 
         mockMvc
             .perform(get("/sys/blog/deleted").param("currentPage", "1").param("size", "10"))

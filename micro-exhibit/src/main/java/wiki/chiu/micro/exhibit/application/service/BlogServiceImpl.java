@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
 
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.BlogScore;
 import wiki.chiu.micro.exhibit.application.model.BlogSummary;
+import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
 import wiki.chiu.micro.exhibit.application.port.out.BlogCatalog;
@@ -63,10 +63,10 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public PageAdapter<BlogDescription> findPage(Integer currentPage) {
-        PageAdapter<BlogDescription> page = blogReader.findPage(currentPage);
+    public Page<BlogDescription> findPage(Integer currentPage) {
+        Page<BlogDescription> page = blogReader.findPage(currentPage);
         List<BlogDescription> masked = page.content().stream().map(this::mask).toList();
-        return new PageAdapter<>(masked, page);
+        return page.withContent(masked);
     }
 
     @Override

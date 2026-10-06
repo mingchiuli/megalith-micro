@@ -31,9 +31,10 @@ import java.util.stream.Collectors;
 public final class ApplicationLayers {
 
     /**
-     * Framework and infrastructure packages that the core layers must not touch. The export
-     * renderer is included because the SQL script belongs to the adapter that offers the download,
-     * not to the use case that selects the rows.
+     * Framework, infrastructure, and wire-contract packages that the core layers must not touch. The
+     * export renderer is included because the SQL script belongs to the adapter that offers the
+     * download, not to the use case that selects the rows, and the page envelope because a paged use
+     * case returns its own {@code application.model.Page}.
      */
     private static final String[] CORE_BANNED = {
         "org.springframework..",
@@ -45,6 +46,7 @@ public final class ApplicationLayers {
         "io.micrometer..",
         "co.elastic.clients..",
         "wiki.chiu.micro.common.export..",
+        "wiki.chiu.micro.common.page..",
         "wiki.chiu.micro.common.rpc..",
         "wiki.chiu.micro.common.web..",
         "wiki.chiu.micro.common.auth.web..",

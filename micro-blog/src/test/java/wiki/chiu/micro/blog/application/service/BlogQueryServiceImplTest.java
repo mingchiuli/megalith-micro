@@ -1,6 +1,5 @@
 package wiki.chiu.micro.blog.application.service;
 
-import wiki.chiu.micro.blog.domain.Blog;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -14,9 +13,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import wiki.chiu.micro.blog.adapter.out.persistence.BlogWrapper;
+import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.page.PageAdapter;
 
 class BlogQueryServiceImplTest {
 
@@ -37,15 +36,10 @@ class BlogQueryServiceImplTest {
         List<Integer> statuses = List.of(0, 2, 1);
         when(blogs.findPage(eq(1), eq(10), eq(statuses)))
             .thenReturn(
-                PageAdapter.emptyPage());
+                Page.emptyPage());
         when(blogs.findPage(eq(2), eq(10), eq(statuses)))
             .thenReturn(
-                PageAdapter.<Blog>builder()
-                    .content(List.of())
-                    .pageNumber(2)
-                    .pageSize(10)
-                    .empty(true)
-                    .build());
+                new Page<>(List.of(), 0, 2, 10, false, false, true, 0));
 
         assertDoesNotThrow(() -> service.findPage(1, 10));
         assertThrows(MissException.class, () -> service.findPage(2, 10));

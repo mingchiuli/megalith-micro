@@ -80,7 +80,9 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
    another service's `api-*` contract; services carry no Spring annotations and are declared as
    beans in `config`, which is the only place that knows every implementation. Adapters may use
    frameworks, but never depend on `config` or on the opposite adapter direction. `common-arch`
-   defines these rules once and every application's layering test runs them. `*HttpServiceWrapper`
+   defines these rules once and every application's layering test runs them. A paged use case
+   returns the core `application.model.Page`; the adapter that renders the response builds the
+   shared `common-contract` `PageAdapter` envelope from it. `*HttpServiceWrapper`
    classes unwrap `RemoteResult.requireSuccess(...)` behind directory/gateway ports. Spring Data
    repositories and JPA entities belong under `adapter.out.persistence`.
 7. **Transaction boundary.** Services prepare inputs across reads without a transaction.

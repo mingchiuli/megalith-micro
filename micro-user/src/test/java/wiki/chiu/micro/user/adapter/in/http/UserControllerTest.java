@@ -34,8 +34,8 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.application.model.UserExport;
 import wiki.chiu.micro.user.application.port.in.RegistrationService;
 import wiki.chiu.micro.user.application.port.in.UserAssetService;
@@ -259,7 +259,7 @@ class UserControllerTest {
 
     @Test
     void pageReturnsPage() throws Exception {
-        when(userService.listPage(anyInt(), anyInt())).thenReturn(PageAdapter.emptyPage());
+        when(userService.listPage(anyInt(), anyInt())).thenReturn(Page.emptyPage());
 
         mockMvc
             .perform(get("/sys/user/page/1").param("size", "5"))

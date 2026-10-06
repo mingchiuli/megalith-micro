@@ -22,11 +22,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
+import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
@@ -85,7 +85,7 @@ class BlogControllerTest {
 
     @Test
     void getPageReturnsPage() throws Exception {
-        when(blogService.findPage(1)).thenReturn(PageAdapter.emptyPage());
+        when(blogService.findPage(1)).thenReturn(Page.emptyPage());
 
         mockMvc
             .perform(get("/public/blog/page/1"))

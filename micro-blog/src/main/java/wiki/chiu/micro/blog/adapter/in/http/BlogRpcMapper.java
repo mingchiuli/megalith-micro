@@ -8,6 +8,7 @@ import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.blog.api.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.blog.application.model.BlogSensitiveSpans;
 import wiki.chiu.micro.blog.application.model.IndexSourceStatus;
+import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 import wiki.chiu.micro.common.page.PageAdapter;
 
@@ -34,17 +35,8 @@ public final class BlogRpcMapper {
             .build();
     }
 
-    public static PageAdapter<BlogEntityRpcVo> toRpc(PageAdapter<BlogSnapshot> page) {
-        return PageAdapter.<BlogEntityRpcVo>builder()
-            .content(page.content().stream().map(BlogRpcMapper::toRpc).toList())
-            .totalElements(page.totalElements())
-            .pageNumber(page.pageNumber())
-            .pageSize(page.pageSize())
-            .first(page.first())
-            .last(page.last())
-            .empty(page.empty())
-            .totalPages(page.totalPages())
-            .build();
+    public static PageAdapter<BlogEntityRpcVo> toRpc(Page<BlogSnapshot> page) {
+        return PageResponse.of(page, page.content().stream().map(BlogRpcMapper::toRpc).toList());
     }
 
     public static List<BlogEntityRpcVo> toRpc(List<BlogSnapshot> blogs) {

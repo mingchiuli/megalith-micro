@@ -24,8 +24,8 @@ import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.BlogSearchResult;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
+import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
-import wiki.chiu.micro.search.application.model.SearchPage;
 import wiki.chiu.micro.search.application.port.out.BlogIndexWriter;
 import wiki.chiu.micro.search.application.port.out.BlogSearchIndex;
 import wiki.chiu.micro.search.domain.BlogIndexEntry;
@@ -55,7 +55,7 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
     }
 
     @Override
-    public SearchPage<BlogSearchHit> searchPublic(PublicBlogSearchQuery query) {
+    public Page<BlogSearchHit> searchPublic(PublicBlogSearchQuery query) {
         NativeQuery searchQuery =
             PublicSearchQueryConvertor.searchConvert(
                 query.keywords(), query.page(), publicPageSize, query.allInfo());
@@ -138,11 +138,11 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
         }
     }
 
-    private static SearchPage<BlogSearchHit> toPage(
+    private static Page<BlogSearchHit> toPage(
         SearchHits<@NonNull BlogDocument> hits, int page, int pageSize) {
         long totalElements = hits.getTotalHits();
         int totalPages = (int) ((totalElements + pageSize - 1) / pageSize);
-        return new SearchPage<>(
+        return new Page<>(
             hits.getSearchHits().stream()
                 .map(
                     hit -> {

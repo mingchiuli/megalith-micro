@@ -5,13 +5,13 @@ import java.util.List;
 import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.BlogSearchResult;
+import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
-import wiki.chiu.micro.search.application.model.SearchPage;
 
 public interface BlogSearchIndex {
 
-    SearchPage<BlogSearchHit> searchPublic(PublicBlogSearchQuery query);
+    Page<BlogSearchHit> searchPublic(PublicBlogSearchQuery query);
 
     BlogSearchResult searchPrivate(PrivateBlogSearchQuery query);
 

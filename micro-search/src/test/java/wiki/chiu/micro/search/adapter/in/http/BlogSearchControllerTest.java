@@ -23,8 +23,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
+import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
-import wiki.chiu.micro.search.application.model.SearchPage;
 import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,8 +61,8 @@ class BlogSearchControllerTest {
                 .score(1.0f)
                 .highlight(null)
                 .build();
-        SearchPage<BlogSearchHit> page =
-            new SearchPage<>(
+        Page<BlogSearchHit> page =
+            new Page<>(
                 List.of(
                     new BlogSearchHit(
                         vo.id(),

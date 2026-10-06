@@ -5,10 +5,10 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleRepository;
+import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
 import wiki.chiu.micro.user.domain.Role;
 
@@ -57,17 +57,8 @@ public class JpaRoleReader implements RoleReader {
     }
 
     @Override
-    public PageAdapter<Role> findPage(int pageNumber, int pageSize) {
-        PageAdapter<RoleEntity> page = roles.findPage(pageNumber, pageSize);
-        return PageAdapter.<Role>builder()
-            .content(UserPersistenceMapper.toRoles(page.content()))
-            .totalElements(page.totalElements())
-            .pageNumber(page.pageNumber())
-            .pageSize(page.pageSize())
-            .first(page.first())
-            .last(page.last())
-            .empty(page.empty())
-            .totalPages(page.totalPages())
-            .build();
+    public Page<Role> findPage(int pageNumber, int pageSize) {
+        Page<RoleEntity> page = roles.findPage(pageNumber, pageSize);
+        return page.withContent(UserPersistenceMapper.toRoles(page.content()));
     }
 }

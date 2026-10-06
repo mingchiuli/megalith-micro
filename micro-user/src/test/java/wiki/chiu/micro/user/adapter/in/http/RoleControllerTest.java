@@ -27,8 +27,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.application.port.in.RoleDataPermissionService;
 import wiki.chiu.micro.user.application.port.in.RoleMenuService;
 import wiki.chiu.micro.user.application.port.in.RoleService;
@@ -94,7 +94,7 @@ class RoleControllerTest {
 
     @Test
     void getPageReturnsPage() throws Exception {
-        when(roleService.getPage(anyInt(), anyInt())).thenReturn(PageAdapter.emptyPage());
+        when(roleService.getPage(anyInt(), anyInt())).thenReturn(Page.emptyPage());
 
         mockMvc
             .perform(get("/sys/role/roles"))

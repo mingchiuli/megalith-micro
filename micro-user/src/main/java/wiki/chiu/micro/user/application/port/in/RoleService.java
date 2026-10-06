@@ -2,7 +2,7 @@ package wiki.chiu.micro.user.application.port.in;
 
 import java.util.List;
 
-import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.application.model.RoleAuthorization;
 import wiki.chiu.micro.user.application.model.RoleDraft;
 import wiki.chiu.micro.user.application.model.RoleExport;
@@ -13,7 +13,7 @@ public interface RoleService {
 
     RoleView info(Long id);
 
-    PageAdapter<RoleView> getPage(Integer current, Integer size);
+    Page<RoleView> getPage(Integer current, Integer size);
 
     List<Role> getValidAll();
 

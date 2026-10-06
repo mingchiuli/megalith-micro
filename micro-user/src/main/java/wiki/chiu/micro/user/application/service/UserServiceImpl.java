@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.application.model.UserDraft;
 import wiki.chiu.micro.user.application.model.UserView;
 import wiki.chiu.micro.user.application.port.in.UserService;
@@ -69,8 +69,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PageAdapter<UserView> listPage(Integer currentPage, Integer size) {
-        PageAdapter<User> page = userRepository.findPage(currentPage, size);
+    public Page<UserView> listPage(Integer currentPage, Integer size) {
+        Page<User> page = userRepository.findPage(currentPage, size);
 
         List<Long> userIds = page.content().stream().map(User::id).toList();
         List<UserRole> userRoles = userRoleReader.findByUserIdIn(userIds);
@@ -98,16 +98,7 @@ public class UserServiceImpl implements UserService {
                             codesByUser.getOrDefault(user.id(), List.of())))
                 .toList();
 
-        return PageAdapter.<UserView>builder()
-            .content(content)
-            .totalElements(page.totalElements())
-            .pageNumber(page.pageNumber())
-            .pageSize(page.pageSize())
-            .first(page.first())
-            .last(page.last())
-            .empty(page.empty())
-            .totalPages(page.totalPages())
-            .build();
+        return page.withContent(content);
     }
 
     @Override

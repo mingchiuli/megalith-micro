@@ -5,6 +5,7 @@ import java.util.List;
 import wiki.chiu.micro.blog.application.model.BlogEdit;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
 import wiki.chiu.micro.blog.application.model.DeletedBlogItem;
+import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.common.page.PageAdapter;
 
 /**
@@ -15,17 +16,8 @@ public final class BlogViewMapper {
     private BlogViewMapper() {
     }
 
-    public static PageAdapter<BlogEntityVo> toVo(PageAdapter<BlogListItem> page) {
-        return PageAdapter.<BlogEntityVo>builder()
-            .content(page.content().stream().map(BlogViewMapper::toVo).toList())
-            .totalElements(page.totalElements())
-            .pageNumber(page.pageNumber())
-            .pageSize(page.pageSize())
-            .first(page.first())
-            .last(page.last())
-            .empty(page.empty())
-            .totalPages(page.totalPages())
-            .build();
+    public static PageAdapter<BlogEntityVo> toVo(Page<BlogListItem> page) {
+        return PageResponse.of(page, page.content().stream().map(BlogViewMapper::toVo).toList());
     }
 
     public static BlogEntityVo toVo(BlogListItem blog) {
@@ -43,17 +35,9 @@ public final class BlogViewMapper {
             .build();
     }
 
-    public static PageAdapter<BlogDeleteVo> toDeletedVo(PageAdapter<DeletedBlogItem> page) {
-        return PageAdapter.<BlogDeleteVo>builder()
-            .content(page.content().stream().map(BlogViewMapper::toDeletedVo).toList())
-            .totalElements(page.totalElements())
-            .pageNumber(page.pageNumber())
-            .pageSize(page.pageSize())
-            .first(page.first())
-            .last(page.last())
-            .empty(page.empty())
-            .totalPages(page.totalPages())
-            .build();
+    public static PageAdapter<BlogDeleteVo> toDeletedVo(Page<DeletedBlogItem> page) {
+        return PageResponse.of(
+            page, page.content().stream().map(BlogViewMapper::toDeletedVo).toList());
     }
 
     public static BlogDeleteVo toDeletedVo(DeletedBlogItem blog) {

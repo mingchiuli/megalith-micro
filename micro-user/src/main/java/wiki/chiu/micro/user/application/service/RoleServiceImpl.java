@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.application.model.RoleAuthorization;
 import wiki.chiu.micro.user.application.model.RoleDraft;
 import wiki.chiu.micro.user.application.model.RoleExport;
@@ -70,8 +70,8 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public PageAdapter<RoleView> getPage(Integer currentPage, Integer size) {
-        PageAdapter<Role> page = roleRepository.findPage(currentPage, size);
+    public Page<RoleView> getPage(Integer currentPage, Integer size) {
+        Page<Role> page = roleRepository.findPage(currentPage, size);
 
         List<Long> ids = page.content().stream().map(Role::id).toList();
 
@@ -118,16 +118,7 @@ public class RoleServiceImpl implements RoleService {
                             permissionsByRole.getOrDefault(role.id(), List.of())))
                 .toList();
 
-        return PageAdapter.<RoleView>builder()
-            .content(content)
-            .totalElements(page.totalElements())
-            .pageNumber(page.pageNumber())
-            .pageSize(page.pageSize())
-            .first(page.first())
-            .last(page.last())
-            .empty(page.empty())
-            .totalPages(page.totalPages())
-            .build();
+        return page.withContent(content);
     }
 
     @Override
@@ -189,17 +180,8 @@ public class RoleServiceImpl implements RoleService {
             .toList();
     }
 
-    private static PageAdapter<RoleView> emptyPage(PageAdapter<Role> page) {
-        return PageAdapter.<RoleView>builder()
-            .content(List.of())
-            .totalElements(page.totalElements())
-            .pageNumber(page.pageNumber())
-            .pageSize(page.pageSize())
-            .first(page.first())
-            .last(page.last())
-            .empty(page.empty())
-            .totalPages(page.totalPages())
-            .build();
+    private static Page<RoleView> emptyPage(Page<Role> page) {
+        return page.withContent(List.of());
     }
 
     @SafeVarargs
