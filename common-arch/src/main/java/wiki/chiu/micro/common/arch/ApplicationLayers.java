@@ -33,7 +33,8 @@ public final class ApplicationLayers {
     /**
      * Framework, infrastructure, and wire-contract packages that the core layers must not touch. The
      * export renderer is included because the SQL script belongs to the adapter that offers the
-     * download, not to the use case that selects the rows, and the page envelope because a paged use
+     * download, not to the use case that selects the rows, the {@code api-*} contracts because
+     * another service's wire format is an adapter concern, and the page envelope because a paged use
      * case returns its own {@code application.model.Page}.
      */
     private static final String[] CORE_BANNED = {
@@ -45,6 +46,7 @@ public final class ApplicationLayers {
         "com.fasterxml.jackson..",
         "io.micrometer..",
         "co.elastic.clients..",
+        "wiki.chiu.micro.*.api..",
         "wiki.chiu.micro.common.export..",
         "wiki.chiu.micro.common.page..",
         "wiki.chiu.micro.common.rpc..",
@@ -59,7 +61,7 @@ public final class ApplicationLayers {
 
     /** Shared modules that the application layer must not reach into from its own code. */
     private static final String[] APPLICATION_BANNED = {
-        "wiki.chiu.micro.cache..", "wiki.chiu.micro.*.api.."
+        "wiki.chiu.micro.cache.."
     };
 
     /**
