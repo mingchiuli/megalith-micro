@@ -388,7 +388,7 @@ authentication, caching, observability, failure behavior, and deployment details
 ### Requirements
 
 - GraalVM for JDK 25 using the HotSpot JVM, not the Espresso JVM
-- Gradle 9.7 through the included Wrapper
+- Gradle 9.8.1 through the included Wrapper
 - Rust stable with 2024 edition support
 - Bun 1.4.2
 - Docker for OCI image builds
