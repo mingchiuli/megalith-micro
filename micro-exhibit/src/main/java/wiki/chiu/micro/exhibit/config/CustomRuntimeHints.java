@@ -16,6 +16,7 @@ import wiki.chiu.micro.exhibit.adapter.in.http.ReadTokenReq;
 import wiki.chiu.micro.exhibit.adapter.in.http.VisitStatisticsVo;
 import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
+import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
@@ -42,6 +43,10 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(
                 BlogDescription.class,
+                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                MemberCategory.INVOKE_DECLARED_METHODS)
+            .registerType(
+                Page.class,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(

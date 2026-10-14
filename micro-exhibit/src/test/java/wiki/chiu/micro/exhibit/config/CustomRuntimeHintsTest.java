@@ -12,6 +12,7 @@ import wiki.chiu.micro.blog.api.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
+import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
 
 class CustomRuntimeHintsTest {
@@ -23,6 +24,7 @@ class CustomRuntimeHintsTest {
 
         assertJacksonType(hints, BlogExhibit.class);
         assertJacksonType(hints, BlogDescription.class);
+        assertJacksonType(hints, Page.class);
         assertJacksonType(hints, SensitiveSpan.class);
         assertJacksonType(hints, PageAdapter.class);
         assertJacksonType(hints, BlogSensitiveContentRpcVo.class);
