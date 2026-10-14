@@ -43,7 +43,7 @@ subprojects {
     dependencies {
         add("testImplementation", "org.springframework.boot:spring-boot-starter-test")
         if (name.startsWith("micro-")) {
-            add("testImplementation", "com.tngtech.archunit:archunit-junit5:1.5.1")
+            add("testImplementation", "com.tngtech.archunit:archunit-junit5")
             add("testImplementation", project(":common-arch"))
         }
     }
@@ -136,6 +136,10 @@ subprojects {
 
     configure<DependencyManagementExtension> {
         dependencies {
+            // Coordinates the Spring Boot BOM does not manage: pinned once here so every
+            // module can declare them without a version.
+            dependency("com.tngtech.archunit:archunit:1.5.1")
+            dependency("com.tngtech.archunit:archunit-junit5:1.5.1")
             dependency("org.redisson:redisson:4.8.0")
         }
     }

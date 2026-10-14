@@ -38,10 +38,6 @@ dependencies {
     implementation("org.redisson:redisson")
     add(
         integrationTest.implementationConfigurationName,
-        platform("org.testcontainers:testcontainers-bom:2.0.5"),
-    )
-    add(
-        integrationTest.implementationConfigurationName,
         "org.testcontainers:testcontainers-junit-jupiter",
     )
 }

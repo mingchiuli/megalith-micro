@@ -187,12 +187,8 @@ dependencies {
     compileOnly("org.springframework.boot:spring-boot-amqp")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     testImplementation("org.springframework.boot:spring-boot-amqp")
-    testImplementation("com.tngtech.archunit:archunit-junit5:1.5.1")
+    testImplementation("com.tngtech.archunit:archunit-junit5")
     testImplementation(project(":common-arch"))
-    add(
-        integrationTest.implementationConfigurationName,
-        platform("org.testcontainers:testcontainers-bom:2.0.5"),
-    )
     add(
         integrationTest.implementationConfigurationName,
         "org.testcontainers:testcontainers-junit-jupiter",

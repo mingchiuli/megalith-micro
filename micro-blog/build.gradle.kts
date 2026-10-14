@@ -33,7 +33,6 @@ configurations[integrationTest.implementationConfigurationName].extendsFrom(conf
 configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly.get())
 
 dependencies {
-    add(integrationTest.implementationConfigurationName, platform("org.testcontainers:testcontainers-bom:2.0.5"))
     add(integrationTest.implementationConfigurationName, "org.testcontainers:testcontainers-junit-jupiter")
 }
 
