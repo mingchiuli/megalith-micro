@@ -52,6 +52,11 @@ updates:
       bun:
         patterns:
           - "*"
+    # typescript-eslint/vue-tsc 依赖 TypeScript 的 JS Compiler API（peer: >=4.8.4 <6.1.0），
+    # 而 typescript 7 的原生包不再暴露该 API，等工具链支持后再手动放开大版本升级。
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions：自动升级 workflow 中 uses 的版本引用
   - package-ecosystem: "github-actions"
