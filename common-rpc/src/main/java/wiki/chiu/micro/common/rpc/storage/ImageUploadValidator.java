@@ -1,21 +1,59 @@
 package wiki.chiu.micro.common.rpc.storage;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Locale;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
+import java.util.zip.CRC32;
 
 import wiki.chiu.micro.common.exception.ValidationException;
 
+/**
+ * Validates uploaded images by walking the JPEG and PNG container structure only: pixels are never
+ * decoded and no {@code java.awt}/{@code javax.imageio} class is touched, because the AWT stack
+ * cannot be initialized inside a GraalVM native image. Metadata is stripped by copying the essential
+ * segments and dropping the ones that only carry user data.
+ */
 public final class ImageUploadValidator {
 
     private static final long MAX_PIXELS = 25_000_000L;
+
+    private static final byte[] PNG_SIGNATURE = {
+        (byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A
+    };
+
+    /** Length and type of a PNG chunk. */
+    private static final int PNG_CHUNK_HEADER = 8;
+
+    /** CRC of a PNG chunk. */
+    private static final int PNG_CHUNK_TRAILER = 4;
+
+    private static final int PNG_IHDR = 0x49484452;
+
+    private static final int PNG_IDAT = 0x49444154;
+
+    private static final int PNG_IEND = 0x49454E44;
+
+    private static final int PNG_EXIF = 0x65455866;
+
+    private static final int PNG_TIME = 0x74494D45;
+
+    private static final int PNG_TEXT = 0x74455874;
+
+    private static final int PNG_COMPRESSED_TEXT = 0x7A545874;
+
+    private static final int PNG_INTERNATIONAL_TEXT = 0x69545874;
+
+    private static final int JPEG_SOI = 0xFFD8;
+
+    private static final int JPEG_EOI = 0xFFD9;
+
+    private static final int JPEG_EOI_MARKER = 0xD9;
+
+    private static final int JPEG_SOS = 0xDA;
+
+    private static final int JPEG_COMMENT = 0xFE;
+
+    private static final int JPEG_APP1 = 0xE1;
+
+    private static final int JPEG_APP15 = 0xEF;
 
     private ImageUploadValidator() {
     }
@@ -25,41 +63,180 @@ public final class ImageUploadValidator {
             throw new ValidationException("uploaded image is empty");
         }
 
-        try (ImageInputStream input =
-                 ImageIO.createImageInputStream(new ByteArrayInputStream(content))) {
-            if (input == null) {
+        ImageFormat format = ImageFormat.detect(content);
+        byte[] sanitized =
+            switch (format) {
+                case PNG -> sanitizePng(content);
+                case JPEG -> sanitizeJpeg(content);
+            };
+        return new ValidatedImage(sanitized, format.extension, format.contentType);
+    }
+
+    private static byte[] sanitizePng(byte[] content) {
+        ByteArrayOutputStream output = new ByteArrayOutputStream(content.length);
+        output.writeBytes(PNG_SIGNATURE);
+        boolean header = false;
+        boolean data = false;
+        boolean end = false;
+        int position = PNG_SIGNATURE.length;
+        while (position < content.length) {
+            if (end || position > content.length - (PNG_CHUNK_HEADER + PNG_CHUNK_TRAILER)) {
                 throw invalidImage();
             }
-            Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
-            if (!readers.hasNext()) {
+            int length = readInt(content, position);
+            int remaining = content.length - position - PNG_CHUNK_HEADER - PNG_CHUNK_TRAILER;
+            if (length < 0 || length > remaining) {
                 throw invalidImage();
             }
-
-            ImageReader reader = readers.next();
-            try {
-                reader.setInput(input, true, true);
-                ImageFormat format = ImageFormat.from(reader.getFormatName());
-                int width = reader.getWidth(0);
-                int height = reader.getHeight(0);
-                if (width <= 0 || height <= 0 || (long) width * height > MAX_PIXELS) {
-                    throw new ValidationException("uploaded image dimensions are invalid");
-                }
-
-                BufferedImage image = reader.read(0);
-                ByteArrayOutputStream output = new ByteArrayOutputStream(content.length);
-                if (!ImageIO.write(image, format.writerName, output)) {
+            int type = readInt(content, position + 4);
+            if (type == PNG_IHDR) {
+                if (header || position != PNG_SIGNATURE.length || length != 13) {
                     throw invalidImage();
                 }
-                return new ValidatedImage(output.toByteArray(), format.extension, format.contentType);
-            } finally {
-                reader.dispose();
+                header = true;
+                requireDimensions(readInt(content, position + 8), readInt(content, position + 12));
+            } else if (type == PNG_IDAT) {
+                if (!header) {
+                    throw invalidImage();
+                }
+                data = true;
+            } else if (type == PNG_IEND) {
+                if (!data || length != 0) {
+                    throw invalidImage();
+                }
+                end = true;
+            } else if (!header) {
+                throw invalidImage();
             }
-        } catch (IOException | RuntimeException exception) {
-            if (exception instanceof ValidationException validationException) {
-                throw validationException;
+            requireChunkChecksum(content, position, length);
+            if (keepPngChunk(type)) {
+                output.write(content, position, length + PNG_CHUNK_HEADER + PNG_CHUNK_TRAILER);
             }
-            throw new ValidationException("uploaded image is invalid");
+            position += length + PNG_CHUNK_HEADER + PNG_CHUNK_TRAILER;
         }
+        if (!end) {
+            throw invalidImage();
+        }
+        return output.toByteArray();
+    }
+
+    /** Keeps critical chunks and the ancillary chunks that change how the pixels are rendered. */
+    private static boolean keepPngChunk(int type) {
+        return type != PNG_TEXT
+            && type != PNG_COMPRESSED_TEXT
+            && type != PNG_INTERNATIONAL_TEXT
+            && type != PNG_EXIF
+            && type != PNG_TIME;
+    }
+
+    private static byte[] sanitizeJpeg(byte[] content) {
+        ByteArrayOutputStream output = new ByteArrayOutputStream(content.length);
+        output.write(content, 0, 2);
+        boolean frame = false;
+        int position = 2;
+        while (true) {
+            if (position > content.length - 2 || (content[position] & 0xFF) != 0xFF) {
+                throw invalidImage();
+            }
+            int marker = content[position + 1] & 0xFF;
+            if (marker == 0xFF) {
+                position++;
+                continue;
+            }
+            if (marker == 0x00 || marker == 0xD8 || marker == JPEG_EOI_MARKER) {
+                throw invalidImage();
+            }
+            if (marker == 0x01 || (marker >= 0xD0 && marker <= 0xD7)) {
+                position += 2;
+                continue;
+            }
+            int segment = position;
+            position += 2;
+            if (position > content.length - 2) {
+                throw invalidImage();
+            }
+            int length = readShort(content, position);
+            if (length < 2 || length > content.length - position) {
+                throw invalidImage();
+            }
+            if (isFrameMarker(marker)) {
+                if (length < 8) {
+                    throw invalidImage();
+                }
+                requireDimensions(readShort(content, position + 3), readShort(content, position + 5));
+                frame = true;
+            }
+            if (keepJpegSegment(marker)) {
+                output.write(content, segment, length + 2);
+            }
+            position += length;
+            if (marker == JPEG_SOS) {
+                if (!frame) {
+                    throw invalidImage();
+                }
+                break;
+            }
+        }
+        int scan = position;
+        int eoi = indexOfMarker(content, scan, JPEG_EOI);
+        if (eoi < 0) {
+            throw invalidImage();
+        }
+        output.write(content, scan, eoi + 2 - scan);
+        return output.toByteArray();
+    }
+
+    /** Keeps JFIF, every coding segment, and the scan data; drops EXIF/XMP/ICC/comment metadata. */
+    private static boolean keepJpegSegment(int marker) {
+        return marker != JPEG_COMMENT && (marker < JPEG_APP1 || marker > JPEG_APP15);
+    }
+
+    /** The markers that carry the frame header; {@code 0xC4}, {@code 0xC8}, and {@code 0xCC} are not. */
+    private static boolean isFrameMarker(int marker) {
+        return marker >= 0xC0 && marker <= 0xCF && marker != 0xC4 && marker != 0xC8 && marker != 0xCC;
+    }
+
+    private static void requireDimensions(int width, int height) {
+        if (width <= 0 || height <= 0 || (long) width * height > MAX_PIXELS) {
+            throw new ValidationException("uploaded image dimensions are invalid");
+        }
+    }
+
+    private static void requireChunkChecksum(byte[] content, int position, int length) {
+        CRC32 checksum = new CRC32();
+        checksum.update(content, position + 4, length + 4);
+        if ((int) checksum.getValue() != readInt(content, position + PNG_CHUNK_HEADER + length)) {
+            throw invalidImage();
+        }
+    }
+
+    private static int indexOfMarker(byte[] content, int from, int marker) {
+        for (int index = from; index <= content.length - 2; index++) {
+            if (readShort(content, index) == marker) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    private static int readShort(byte[] content, int offset) {
+        return ((content[offset] & 0xFF) << 8) | (content[offset + 1] & 0xFF);
+    }
+
+    private static int readInt(byte[] content, int offset) {
+        return (readShort(content, offset) << 16) | readShort(content, offset + 2);
+    }
+
+    private static boolean startsWith(byte[] content, byte[] prefix) {
+        if (content.length < prefix.length) {
+            return false;
+        }
+        for (int index = 0; index < prefix.length; index++) {
+            if (content[index] != prefix[index]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static ValidationException invalidImage() {
@@ -67,25 +244,25 @@ public final class ImageUploadValidator {
     }
 
     private enum ImageFormat {
-        JPEG("jpeg", "jpg", "image/jpeg"),
-        PNG("png", "png", "image/png");
+        JPEG("jpg", "image/jpeg"),
+        PNG("png", "image/png");
 
-        private final String writerName;
         private final String extension;
         private final String contentType;
 
-        ImageFormat(String writerName, String extension, String contentType) {
-            this.writerName = writerName;
+        ImageFormat(String extension, String contentType) {
             this.extension = extension;
             this.contentType = contentType;
         }
 
-        private static ImageFormat from(String value) {
-            return switch (value.toLowerCase(Locale.ROOT)) {
-                case "jpeg", "jpg" -> JPEG;
-                case "png" -> PNG;
-                default -> throw invalidImage();
-            };
+        private static ImageFormat detect(byte[] content) {
+            if (startsWith(content, PNG_SIGNATURE)) {
+                return PNG;
+            }
+            if (content.length >= 2 && readShort(content, 0) == JPEG_SOI) {
+                return JPEG;
+            }
+            throw invalidImage();
         }
     }
 
