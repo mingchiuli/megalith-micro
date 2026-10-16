@@ -25,6 +25,7 @@ export const yjsCompartment = new Compartment()
 export const COLLABORATION_TICKET_REFRESH_INTERVAL_MS = 240_000
 export const COLLABORATION_TICKET_RECONNECT_MAX_AGE_MS = 30_000
 export const COLLABORATION_INITIAL_SYNC_TIMEOUT_MS = 20_000
+export const COLLABORATION_CONNECTION_NOTICE_DELAY_MS = 3_000
 const INDEXEDDB_SYNC_TIMEOUT_MS = 5000
 const activePersistences = new Map<string, Set<IndexeddbPersistence>>()
 

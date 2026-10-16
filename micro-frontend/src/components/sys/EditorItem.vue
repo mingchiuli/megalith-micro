@@ -10,6 +10,7 @@ import {
 import {
   createCollaborationSession,
   createYjsBindingTransaction,
+  COLLABORATION_CONNECTION_NOTICE_DELAY_MS,
   COLLABORATION_INITIAL_SYNC_TIMEOUT_MS,
   COLLABORATION_TICKET_REFRESH_INTERVAL_MS,
   COLLABORATION_TICKET_RECONNECT_MAX_AGE_MS,
@@ -175,9 +176,11 @@ let recoveryRestartRequested = false
 let ticketRefreshTask: number | undefined
 let initialSyncTimeoutTask: number | undefined
 let initializationRetryTask: number | undefined
+let disconnectNoticeTask: number | undefined
 let initializationRetryCount = 0
 let readyEmitted = false
 let lastConnectionNotificationAt = 0
+let connectionNoticeShown = false
 
 const issueCollaborationTicket = () => {
   const url = blogId
@@ -295,6 +298,24 @@ const notifyConnectionIssue = (event: CollaborationEvent) => {
   notifyCollaborationEvent(event)
 }
 
+const clearConnectionNotice = () => {
+  if (disconnectNoticeTask === undefined) return
+  window.clearTimeout(disconnectNoticeTask)
+  disconnectNoticeTask = undefined
+}
+
+// Transient drops and deliberate restarts recover on their own, so a connection
+// notice is only raised after the collaboration stayed unsynchronized.
+const scheduleConnectionNotice = (event: CollaborationEvent) => {
+  if (disconnectNoticeTask !== undefined || connectionNoticeShown || sessionExpired.value) return
+  disconnectNoticeTask = window.setTimeout(() => {
+    disconnectNoticeTask = undefined
+    if (disposed || sessionExpired.value || collaborationPhase.value === 'ready') return
+    connectionNoticeShown = true
+    notifyConnectionIssue(event)
+  }, COLLABORATION_CONNECTION_NOTICE_DELAY_MS)
+}
+
 const armInitialSyncTimeout = () => {
   clearInitialSyncTimeout()
   if (disposed || sessionExpired.value || collaborationReady.value) return
@@ -330,6 +351,7 @@ const handleCollaborationEvent = (event: CollaborationEvent, generation: number)
       collaborationPhase.value = collaborationReady.value ? 'reconnecting' : 'syncing'
       return
     case 'synced': {
+      clearConnectionNotice()
       if (!collaborationReady.value) {
         const view = editorRef.value?.getEditorView()
         const session = collaborationSession
@@ -343,6 +365,9 @@ const handleCollaborationEvent = (event: CollaborationEvent, generation: number)
           emit('ready')
         }
         notifyCollaborationEvent({ type: 'connected' })
+      } else if (connectionNoticeShown) {
+        connectionNoticeShown = false
+        notifyCollaborationEvent({ type: 'connected' })
       }
       clearInitialSyncTimeout()
       clearInitializationRetry()
@@ -353,12 +378,12 @@ const handleCollaborationEvent = (event: CollaborationEvent, generation: number)
     }
     case 'disconnected':
       collaborationPhase.value = collaborationPhaseAfterDisconnect(collaborationReady.value)
-      notifyConnectionIssue(event)
+      scheduleConnectionNotice(event)
       void recoverCollaboration(false, false)
       return
     case 'connection-error':
       collaborationPhase.value = collaborationPhaseAfterDisconnect(collaborationReady.value)
-      notifyConnectionIssue(event)
+      scheduleConnectionNotice(event)
       void recoverCollaboration(false, false)
       return
     case 'connection-closed': {
@@ -369,7 +394,7 @@ const handleCollaborationEvent = (event: CollaborationEvent, generation: number)
           : collaborationReady.value
             ? 'reconnecting'
             : 'connecting'
-      notifyConnectionIssue(event)
+      scheduleConnectionNotice(event)
       void recoverCollaboration(terminal, terminal)
       return
     }
@@ -525,6 +550,7 @@ watch(sessionExpired, (expired) => {
   collaborationPhase.value = 'expired'
   clearInitialSyncTimeout()
   clearInitializationRetry()
+  clearConnectionNotice()
   stopTicketRefresh()
   collaborationSession?.disconnect()
 })
@@ -535,6 +561,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', handleVisibilityChange)
   clearInitialSyncTimeout()
   clearInitializationRetry()
+  clearConnectionNotice()
   stopTicketRefresh()
   collaborationSession?.destroy()
   collaborationSession = undefined
