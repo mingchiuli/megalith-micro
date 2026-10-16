@@ -328,7 +328,7 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.2
+          bun-version: 1.4.3
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Validate source and tests
@@ -422,7 +422,7 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.2
+          bun-version: 1.4.3
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Build and smoke test

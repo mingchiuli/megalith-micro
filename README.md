@@ -24,7 +24,7 @@ separate JVM, JRE, Bun installation, build toolchain, or source tree.
 | --- | --- | --- |
 | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot 4.1.1, GraalVM | GraalVM Native Image executable |
 | `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
-| `micro-frontend` | Bun 1.4.2, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
+| `micro-frontend` | Bun 1.4.3, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
 MariaDB, Redis, RabbitMQ, Elasticsearch, and the monitoring infrastructure use their standard
 container images.
@@ -390,7 +390,7 @@ authentication, caching, observability, failure behavior, and deployment details
 - GraalVM for JDK 25 using the HotSpot JVM, not the Espresso JVM
 - Gradle 9.8.1 through the included Wrapper
 - Rust stable with 2024 edition support
-- Bun 1.4.2
+- Bun 1.4.3
 - Docker for OCI image builds
 
 Example on macOS:

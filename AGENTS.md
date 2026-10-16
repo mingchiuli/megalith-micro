@@ -9,7 +9,7 @@ this file records the implementation constraints that are easy to miss.
 - Java 25 (GraalVM HotSpot), Spring Boot 4.1.1, Hibernate ORM 7.4.10.Final, Redisson 4.8.0, and Caffeine.
 - Gradle 9.8.1 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
 - Rust 2024 for `micro-gateway-rs` and `micro-sync-rs`.
-- Bun 1.4.2, Vue 3, and Vite for the standalone `micro-frontend` service.
+- Bun 1.4.3, Vue 3, and Vite for the standalone `micro-frontend` service.
 
 `JAVA_HOME` must point to a GraalVM HotSpot JDK, not the Espresso JVM. On macOS, for example:
 
@@ -152,7 +152,10 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
 - Rust changes follow Rust 2024 conventions and must pass `rustfmt`; preserve existing async, error,
   and tracing patterns.
 - Frontend TypeScript and Vue changes follow existing patterns, Prettier, and ESLint. Run
-  `bun run frontend:check` before committing frontend changes.
+  `bun run frontend:check` before committing frontend changes. Type checks are split by file type:
+  `vue-tsc` for `.vue` sources and `bun check` for the `tsconfig.bun.json` project. Never add a
+  `check` script to `micro-frontend`, because `bun check` resolves that script name before the
+  built-in type checker.
 - Keep comments short and explain non-obvious decisions only. Avoid unrelated refactors.
 
 ## Commits

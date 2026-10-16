@@ -2,6 +2,16 @@
 
 > 状态：**等待中**。项目已就绪，但 `vue-tsc` 尚无官方 TS7 支持，等 TS 7.1（编译器 API 回归）落地后再执行。
 
+## 2026-10-16 更新：`bun check`
+
+Bun 1.4.3 内置 `bun check`（typescript-go 移植，通过 TS 7.0.2 一致性测试），已接入 `type-check`：
+
+- `tsconfig.bun.json`（`vite.config.ts`、`server/`、`scripts/`）改由
+  `bun check -p tsconfig.bun.json --composite false` 检查，行为等同原 `tsc --noEmit`
+- `.vue` 不受支持（`bun check` 不把 `.vue` 当输入），app/vitest 两个项目继续走 `vue-tsc`
+- 因此本文件下方的「原生编译器」双装方案不再需要 `@typescript/native`
+- `micro-frontend` 内不得存在名为 `check` 的脚本：`bun check` 会优先解析同名脚本，原全量 `check` 脚本已改名为 `verify`（根仓 `bun run frontend:check` 入口不变）
+
 ## 当前状态快照
 
 | 项         | 值                                                |
@@ -10,7 +20,7 @@
 | vue-tsc    | `^3.3.9`                                          |
 | 包管理     | Bun 1.4 单仓（无 workspaces）                     |
 | 构建       | Vite 8（client + SSR），Bun standalone executable |
-| 类型检查   | `vue-tsc`（app/test）、`tsc`（bun/server）        |
+| 类型检查   | `vue-tsc`（app/test）、`bun check`（bun/server）  |
 | 编辑器     | JetBrains 环境（`IdeaProjects/`）                 |
 
 ## 评估结论（2026-08-17）
@@ -32,10 +42,8 @@
    ```bash
    bun add -d typescript@npm:@typescript/typescript6@^6.0.2
    ```
-2. 新增原生编译器（用于 `type-check` 的 Bun 服务端检查）：
-   ```bash
-   bun add -d @typescript/native@npm:typescript@^7.0.2
-   ```
+2. 原生编译器用于 `type-check` 的 Bun 服务端检查：Bun ≥ 1.4.3 用内置 `bun check` 即可，无需再装
+   `@typescript/native@npm:typescript@^7.0.2`
 3. **前提**：升级 `vue-tsc` 到含垫片识别修复的版本（vuejs/language-tools PR #6123 —— `runTsc` 需能解析 `@typescript/typescript6` 垫片，找到真实的 `tsc.js`）。
    若届时 vue-tsc 已原生支持 TS7，则忽略双装，直接 `typescript@^7.0`。
 
@@ -56,7 +64,7 @@ JSDoc `@typedef`+`@template` 声明生成会丢泛型参数（本项目非 `.js`
 1. 升级依赖（按上面双装或直装 TS7）
 2. `bun run type-check` —— 修 `strictBuiltinIteratorReturn` 等新报错
 3. `bun run build` —— 验证客户端、SSR 和 Bun standalone 编译
-4. `bun run check` —— 全量 lint + format + type-check + test + build + SSR/OTel smoke
+4. `bun run verify` —— 全量 lint + format + type-check + test + build + SSR/OTel smoke
 5. 编辑器冒烟：JetBrains 打开项目确认语言服务仍用 TS6 垫片（`typescript.tsdk` 指向 workspace 安装）
 
 ## 参考链接

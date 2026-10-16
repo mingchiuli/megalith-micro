@@ -8,12 +8,12 @@
     "build": "bun run type-check && bun run build-only",
     "build-only": "bun --bun vite build --outDir dist/client --manifest --ssrManifest && bun --bun vite build --ssr src/entry-server.ts --outDir dist/server && bun scripts/build-binary.ts",
     "preview": "NODE_ENV=production ./dist/bin/megalith-frontend",
-    "check": "bun run quality && bun run build-only && bun run test:ssr && bun run test:dev-ssr && bun run test:otel",
+    "verify": "bun run quality && bun run build-only && bun run test:ssr && bun run test:dev-ssr && bun run test:otel",
     "quality": "bun run lint && bun run format:check && bun run type-check && bun run test:coverage",
     "lint": "bun --bun eslint .",
     "format": "bun --bun prettier --write .",
     "format:check": "bun --bun prettier --check .",
-    "type-check": "bun --bun vue-tsc --noEmit -p tsconfig.app.json --composite false && bun --bun vue-tsc --noEmit -p tsconfig.vitest.json --composite false && bun --bun tsc --noEmit -p tsconfig.bun.json --composite false",
+    "type-check": "bun --bun vue-tsc --noEmit -p tsconfig.app.json --composite false && bun --bun vue-tsc --noEmit -p tsconfig.vitest.json --composite false && bun check -p tsconfig.bun.json --composite false",
     "test": "bun --bun vitest",
     "test:coverage": "bun --bun vitest run --coverage",
     "test:ssr": "bun scripts/ssr-smoke.ts",
@@ -51,7 +51,7 @@
     "yjs": "^13.6.33"
   },
   "devDependencies": {
-    "@types/bun": "1.4.2",
+    "@types/bun": "1.4.3",
     "@types/markdown-it": "^14.2.0",
     "@types/sanitize-html": "^2.16.2",
     "@vitejs/plugin-vue": "^6.0.10",
