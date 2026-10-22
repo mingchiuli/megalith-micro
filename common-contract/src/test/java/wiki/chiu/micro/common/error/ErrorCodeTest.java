@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.stream.Stream;
 
@@ -41,7 +42,7 @@ class ErrorCodeTest {
 
     @Test
     void dateRangeContractAcceptsOpenAndEqualEndpoints() {
-        var point = java.time.LocalDateTime.of(2026, 8, 8, 12, 0);
+        var point = LocalDateTime.of(2026, 8, 8, 12, 0);
 
         assertTrue(new Range(null, point).hasValidDateRange());
         assertTrue(new Range(point, null).hasValidDateRange());
@@ -49,7 +50,7 @@ class ErrorCodeTest {
         assertFalse(new Range(point.plusSeconds(1), point).hasValidDateRange());
     }
 
-    private record Range(java.time.LocalDateTime createStart, java.time.LocalDateTime createEnd)
+    private record Range(LocalDateTime createStart, LocalDateTime createEnd)
         implements DateRangeRequest {
     }
 }

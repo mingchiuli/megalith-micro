@@ -10,7 +10,29 @@ public record BlogSysSearchReq(
     LocalDateTime createStart,
     LocalDateTime createEnd,
     Long userId,
-    Boolean allData) {
+    Boolean allData,
+    Boolean draftOnly) {
+
+    public BlogSysSearchReq(
+        Integer page,
+        Integer pageSize,
+        String keywords,
+        Integer status,
+        LocalDateTime createStart,
+        LocalDateTime createEnd,
+        Long userId,
+        Boolean allData) {
+        this(
+            page,
+            pageSize,
+            keywords,
+            status,
+            createStart,
+            createEnd,
+            userId,
+            allData,
+            false);
+    }
 
     public static BlogSysSearchReq.BlogSearchReqBuilder builder() {
         return new BlogSysSearchReq.BlogSearchReqBuilder();
@@ -25,6 +47,7 @@ public record BlogSysSearchReq(
         private LocalDateTime createEnd;
         private Long userId;
         private Boolean allData;
+        private Boolean draftOnly;
 
         public BlogSysSearchReq.BlogSearchReqBuilder page(Integer page) {
             this.page = page;
@@ -66,9 +89,22 @@ public record BlogSysSearchReq(
             return this;
         }
 
+        public BlogSysSearchReq.BlogSearchReqBuilder draftOnly(Boolean draftOnly) {
+            this.draftOnly = draftOnly;
+            return this;
+        }
+
         public BlogSysSearchReq build() {
             return new BlogSysSearchReq(
-                page, pageSize, keywords, status, createStart, createEnd, userId, allData);
+                page,
+                pageSize,
+                keywords,
+                status,
+                createStart,
+                createEnd,
+                userId,
+                allData,
+                draftOnly);
         }
     }
 }

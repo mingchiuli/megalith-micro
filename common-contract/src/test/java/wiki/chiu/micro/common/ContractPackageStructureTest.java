@@ -7,6 +7,8 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 class ContractPackageStructureTest {
@@ -41,7 +43,7 @@ class ContractPackageStructureTest {
     @Test
     void everyDeclaredContractKindIsUsed() {
         for (String kind :
-            java.util.List.of(
+            List.of(
                 "constant",
                 "enums",
                 "error",

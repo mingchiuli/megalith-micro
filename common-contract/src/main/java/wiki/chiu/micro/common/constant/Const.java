@@ -52,7 +52,14 @@ public class Const {
 
     public static final String BLOG_TABLE = "m_blog";
 
-    public static final String BLOG_SENSITIVE_TABLE = "m_blog_sensitive_content";
+    public static final String BLOG_DRAFT_TABLE = "m_blog_draft";
+
+    public static final String BLOG_DRAFT_SENSITIVE_TABLE = "m_blog_draft_sensitive_content";
+
+    public static final String BLOG_REVISION_TABLE = "m_blog_revision";
+
+    public static final String BLOG_REVISION_SENSITIVE_TABLE =
+        "m_blog_revision_sensitive_content";
 
     public static final String AUTHORITY_TABLE = "m_authority";
 
@@ -89,6 +96,8 @@ public class Const {
 
     public static final String ES_QUEUE = "blog.change.queue.es";
 
+    public static final String ADMIN_ES_QUEUE = "blog.admin.change.queue.es";
+
     public static final String CACHE_QUEUE = "blog.change.queue.cache";
 
     public static final String RECYCLE_QUEUE = "blog.change.queue.recycle";
@@ -96,6 +105,9 @@ public class Const {
     public static final String RECYCLE_EVENT_PREFIX = "blog:recycle:event:";
 
     public static final String BLOG_CHANGE_FANOUT_EXCHANGE = "blog.change.fanout.exchange";
+
+    public static final String BLOG_ADMIN_FANOUT_EXCHANGE =
+        "blog.admin.change.fanout.exchange";
 
     public static final String USER_QUEUE = "user.auth.menu.change.queue.auth";
 
