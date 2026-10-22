@@ -4,8 +4,10 @@ import java.util.List;
 
 import wiki.chiu.micro.blog.application.model.BlogEdit;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
+import wiki.chiu.micro.blog.application.model.BlogVersionComparison;
 import wiki.chiu.micro.blog.application.model.DeletedBlogItem;
 import wiki.chiu.micro.blog.application.model.Page;
+import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.common.page.PageAdapter;
 
 /**
@@ -32,6 +34,8 @@ public final class BlogViewMapper {
             .created(blog.created())
             .updated(blog.updated())
             .content(blog.content())
+            .hasDraft(blog.hasDraft())
+            .draftNewer(blog.draftNewer())
             .build();
     }
 
@@ -75,6 +79,11 @@ public final class BlogViewMapper {
             .content(blog.content())
             .link(blog.link())
             .status(blog.status())
+            .draftRevision(blog.draftRevision())
+            .basePublishedRevisionId(blog.basePublishedRevisionId())
+            .publishedRevisionId(blog.publishedRevisionId())
+            .hasDraft(blog.hasDraft())
+            .draftNewer(blog.draftNewer())
             .permissions(
                 new BlogPermissionsVo(
                     blog.permissions().collaborate(),
@@ -83,5 +92,28 @@ public final class BlogViewMapper {
                     blog.permissions().manageAssets()))
             .sensitiveContentList(spans)
             .build();
+    }
+
+    public static BlogVersionVo toVo(BlogVersion version) {
+        return new BlogVersionVo(
+            version.id(),
+            version.blogId(),
+            version.versionNo(),
+            version.origin(),
+            version.baseRevisionId(),
+            version.title(),
+            version.description(),
+            version.content(),
+            version.link(),
+            version.renderMode(),
+            version.firstPublishedAt(),
+            version.createdBy(),
+            version.createdAt(),
+            version.sensitiveContent());
+    }
+
+    public static BlogVersionComparisonVo toVo(BlogVersionComparison comparison) {
+        return new BlogVersionComparisonVo(
+            toVo(comparison.previous()), toVo(comparison.current()));
     }
 }

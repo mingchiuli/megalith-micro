@@ -1,7 +1,10 @@
 package wiki.chiu.micro.blog.adapter.out.http;
 
+import java.util.Objects;
+
 import wiki.chiu.micro.blog.application.model.BlogSearchQuery;
 import wiki.chiu.micro.blog.application.model.BlogSearchResult;
+import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
@@ -24,6 +27,10 @@ public final class SearchRpcMapper {
             .createEnd(query.selection().createEnd())
             .userId(query.selection().userId())
             .allData(query.selection().allData())
+            .draftOnly(
+                Objects.equals(
+                    query.selection().status(),
+                    BlogStatusEnum.DRAFT.getCode()))
             .build();
     }
 

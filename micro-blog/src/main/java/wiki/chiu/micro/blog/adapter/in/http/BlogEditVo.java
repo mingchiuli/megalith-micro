@@ -10,6 +10,11 @@ public record BlogEditVo(
     String link,
     String content,
     Integer status,
+    Long draftRevision,
+    Long basePublishedRevisionId,
+    Long publishedRevisionId,
+    boolean hasDraft,
+    boolean draftNewer,
     List<SensitiveContentVo> sensitiveContentList,
     BlogPermissionsVo permissions) {
 
@@ -25,6 +30,11 @@ public record BlogEditVo(
         private String link;
         private String content;
         private Integer status;
+        private Long draftRevision;
+        private Long basePublishedRevisionId;
+        private Long publishedRevisionId;
+        private boolean hasDraft;
+        private boolean draftNewer;
         private List<SensitiveContentVo> sensitiveContentList;
         private BlogPermissionsVo permissions;
 
@@ -63,6 +73,31 @@ public record BlogEditVo(
             return this;
         }
 
+        public BlogEditVoBuilder draftRevision(Long draftRevision) {
+            this.draftRevision = draftRevision;
+            return this;
+        }
+
+        public BlogEditVoBuilder basePublishedRevisionId(Long basePublishedRevisionId) {
+            this.basePublishedRevisionId = basePublishedRevisionId;
+            return this;
+        }
+
+        public BlogEditVoBuilder publishedRevisionId(Long publishedRevisionId) {
+            this.publishedRevisionId = publishedRevisionId;
+            return this;
+        }
+
+        public BlogEditVoBuilder hasDraft(boolean hasDraft) {
+            this.hasDraft = hasDraft;
+            return this;
+        }
+
+        public BlogEditVoBuilder draftNewer(boolean draftNewer) {
+            this.draftNewer = draftNewer;
+            return this;
+        }
+
         public BlogEditVoBuilder sensitiveContentList(List<SensitiveContentVo> sensitiveContentList) {
             this.sensitiveContentList = sensitiveContentList;
             return this;
@@ -75,7 +110,20 @@ public record BlogEditVo(
 
         public BlogEditVo build() {
             return new BlogEditVo(
-                id, userId, title, description, link, content, status, sensitiveContentList, permissions);
+                id,
+                userId,
+                title,
+                description,
+                link,
+                content,
+                status,
+                draftRevision,
+                basePublishedRevisionId,
+                publishedRevisionId,
+                hasDraft,
+                draftNewer,
+                sensitiveContentList,
+                permissions);
         }
     }
 

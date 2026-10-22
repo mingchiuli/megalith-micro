@@ -1,6 +1,5 @@
 package wiki.chiu.micro.blog.application.service;
 
-import wiki.chiu.micro.blog.domain.BlogFixtures;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -8,12 +7,14 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 
 import wiki.chiu.micro.blog.application.model.IndexSourceStatus;
 import wiki.chiu.micro.blog.application.port.out.BlogIndexSourceState;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 
 class BlogIndexSourceServiceTest {
 
@@ -35,8 +36,21 @@ class BlogIndexSourceServiceTest {
         BlogQueryStore blogs = mock(BlogQueryStore.class);
         BlogIndexSourceState state = mock(BlogIndexSourceState.class);
         when(state.status()).thenReturn(new IndexSourceStatus(true, 0, 0, 1));
-        when(blogs.findSnapshotsAfter(0, 500)).thenReturn(List.of(
-            BlogFixtures.builder().id(7L).eventRevision(11L).readCount(120L).build()));
+        when(blogs.findPublishedSnapshotsAfter(0, 500))
+            .thenReturn(
+                List.of(
+                    new BlogSnapshot(
+                        7L,
+                        42L,
+                        "title",
+                        "description",
+                        "content",
+                        LocalDateTime.now(),
+                        LocalDateTime.now(),
+                        0,
+                        "",
+                        120L,
+                        11L)));
 
         var snapshot = new BlogIndexSourceService(blogs, state).snapshots(0, 500).getFirst();
 

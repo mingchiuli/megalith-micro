@@ -18,7 +18,9 @@ public record BlogEntityVo(
     Integer recentReadCount,
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime created,
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime updated,
-    Integer status) {
+    Integer status,
+    boolean hasDraft,
+    boolean draftNewer) {
 
     public static BlogEntityVoBuilder builder() {
         return new BlogEntityVoBuilder();
@@ -35,6 +37,8 @@ public record BlogEntityVo(
         private LocalDateTime created;
         private LocalDateTime updated;
         private Integer status;
+        private boolean hasDraft;
+        private boolean draftNewer;
 
         public BlogEntityVoBuilder id(Long id) {
             this.id = id;
@@ -86,6 +90,16 @@ public record BlogEntityVo(
             return this;
         }
 
+        public BlogEntityVoBuilder hasDraft(boolean hasDraft) {
+            this.hasDraft = hasDraft;
+            return this;
+        }
+
+        public BlogEntityVoBuilder draftNewer(boolean draftNewer) {
+            this.draftNewer = draftNewer;
+            return this;
+        }
+
         public BlogEntityVo build() {
             return new BlogEntityVo(
                 id,
@@ -97,7 +111,9 @@ public record BlogEntityVo(
                 recentReadCount,
                 created,
                 updated,
-                status);
+                status,
+                hasDraft,
+                draftNewer);
         }
     }
 }

@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -45,13 +46,13 @@ class AuthorityControllerTest {
         mockMvc =
             MockMvcBuilders.routerFunctions(
                     UserRoutes.routes(
-                        org.mockito.Mockito.mock(UserHttpHandler.class),
-                        org.mockito.Mockito.mock(RoleHttpHandler.class),
-                        org.mockito.Mockito.mock(MenuHttpHandler.class),
+                        mock(UserHttpHandler.class),
+                        mock(RoleHttpHandler.class),
+                        mock(MenuHttpHandler.class),
                         handler,
-                        org.mockito.Mockito.mock(UserInternalHttpHandler.class),
-                        org.mockito.Mockito.mock(MenuInternalHttpHandler.class),
-                        org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class)))
+                        mock(UserInternalHttpHandler.class),
+                        mock(MenuInternalHttpHandler.class),
+                        mock(AuthorityInternalHttpHandler.class)))
                 .build();
     }
 

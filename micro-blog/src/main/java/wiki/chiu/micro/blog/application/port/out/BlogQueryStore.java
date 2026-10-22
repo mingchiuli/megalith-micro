@@ -7,6 +7,7 @@ import wiki.chiu.micro.blog.application.model.BlogReadCount;
 import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.SensitiveContent;
+import wiki.chiu.micro.common.model.BlogSnapshot;
 
 public interface BlogQueryStore {
 
@@ -14,7 +15,7 @@ public interface BlogQueryStore {
 
     List<BlogReadCount> findReadCountsAfter(long afterId, int limit);
 
-    List<Blog> findSnapshotsAfter(long afterId, int limit);
+    List<BlogSnapshot> findPublishedSnapshotsAfter(long afterId, int limit);
 
     Optional<Blog> findById(Long blogId);
 

@@ -19,6 +19,7 @@ import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
 import wiki.chiu.micro.blog.application.port.out.BlogStatisticsGateway;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
+import wiki.chiu.micro.blog.application.port.out.BlogAuthoringStore;
 import wiki.chiu.micro.blog.application.port.out.CollaborationTicketGateway;
 import wiki.chiu.micro.blog.application.service.BlogAccessPolicy;
 import wiki.chiu.micro.blog.application.service.BlogAssetServiceImpl;
@@ -49,8 +50,9 @@ public class BlogApplicationConfig {
         BlogRuntimeStore runtimeStore,
         BlogWriter writer,
         BlogSearchGateway search,
-        BlogAccessPolicy accessPolicy) {
-        return new BlogServiceImpl(blogs, runtimeStore, writer, search, accessPolicy);
+        BlogAccessPolicy accessPolicy,
+        BlogAuthoringStore authoring) {
+        return new BlogServiceImpl(blogs, runtimeStore, writer, search, accessPolicy, authoring);
     }
 
     @Bean
@@ -70,8 +72,9 @@ public class BlogApplicationConfig {
     }
 
     @Bean
-    BlogExportService blogExportService(BlogQueryStore blogs, BlogSearchGateway search) {
-        return new BlogExportServiceImpl(blogs, search);
+    BlogExportService blogExportService(
+        BlogSearchGateway search, BlogAuthoringStore authoring) {
+        return new BlogExportServiceImpl(search, authoring);
     }
 
     @Bean

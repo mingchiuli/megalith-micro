@@ -22,6 +22,11 @@ public class BlogChangeRabbitConfig {
         return new Queue(Const.ES_QUEUE, true, false, false);
     }
 
+    @Bean("adminEsQueue")
+    Queue adminEsQueue() {
+        return new Queue(Const.ADMIN_ES_QUEUE, true, false, false);
+    }
+
     @Bean("cacheQueue")
     Queue cacheQueue() {
         return new Queue(Const.CACHE_QUEUE, true, false, false);
@@ -38,11 +43,23 @@ public class BlogChangeRabbitConfig {
         return new FanoutExchange(Const.BLOG_CHANGE_FANOUT_EXCHANGE, true, false);
     }
 
+    @Bean("adminFanoutExchange")
+    FanoutExchange adminExchange() {
+        return new FanoutExchange(Const.BLOG_ADMIN_FANOUT_EXCHANGE, true, false);
+    }
+
     // 绑定ES队列和ES交换机
     @Bean("esBinding")
     Binding esBinding(
         @Qualifier("esQueue") Queue esQueue, @Qualifier("fanoutExchange") FanoutExchange exchange) {
         return BindingBuilder.bind(esQueue).to(exchange);
+    }
+
+    @Bean("adminEsBinding")
+    Binding adminEsBinding(
+        @Qualifier("adminEsQueue") Queue queue,
+        @Qualifier("adminFanoutExchange") FanoutExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange);
     }
 
     @Bean("cacheBinding")

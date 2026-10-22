@@ -13,6 +13,11 @@ public record BlogEdit(
     String link,
     String content,
     Integer status,
+    Long draftRevision,
+    Long basePublishedRevisionId,
+    Long publishedRevisionId,
+    boolean hasDraft,
+    boolean draftNewer,
     List<SensitiveContentDraft> sensitiveContentList,
     BlogPermissions permissions) {
 }

@@ -25,7 +25,18 @@ public class BlogRoutes {
         BlogHttpHandler blogHandler, BlogInternalHttpHandler internalHandler) {
         return withDefaultErrorHandling(
             route()
-                .POST("/sys/blog/save", blogHandler::saveOrUpdate)
+                .POST("/sys/blog/draft/new", blogHandler::createDraftBlog)
+                .POST("/sys/blog/{blogId}/draft", blogHandler::saveDraft)
+                .DELETE("/sys/blog/{blogId}/draft", blogHandler::deleteDraft)
+                .POST("/sys/blog/{blogId}/versions", blogHandler::saveDraftVersion)
+                .GET("/sys/blog/{blogId}/versions", blogHandler::findVersions)
+                .POST("/sys/blog/{blogId}/publish", blogHandler::publish)
+                .POST("/sys/blog/{blogId}/offline", blogHandler::offline)
+                .POST("/sys/blog/{blogId}/online", blogHandler::online)
+                .GET("/sys/blog/{blogId}/versions/{revisionId}", blogHandler::findVersion)
+                .GET(
+                    "/sys/blog/{blogId}/versions/{revisionId}/compare",
+                    blogHandler::compareVersion)
                 .POST("/sys/blog/delete", blogHandler::deleteBlogs)
                 .POST("/sys/blog/lock/{blogId}", blogHandler::setBlogToken)
                 .GET("/sys/blog/blogs", blogHandler::getAllBlogs)

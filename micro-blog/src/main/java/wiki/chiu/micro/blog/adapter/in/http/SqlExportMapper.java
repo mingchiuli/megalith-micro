@@ -16,7 +16,11 @@ public final class SqlExportMapper {
         StringBuilder script = new StringBuilder();
         appendStatement(script, SQLUtils.insertSql(page.blogs(), SqlTables.BLOG));
         appendStatement(
-            script, SQLUtils.insertSql(page.sensitiveContent(), SqlTables.BLOG_SENSITIVE));
+            script, SQLUtils.insertSql(page.revisions(), SqlTables.BLOG_REVISION));
+        appendStatement(
+            script,
+            SQLUtils.insertSql(
+                page.sensitiveContent(), SqlTables.BLOG_REVISION_SENSITIVE));
         return script.toString();
     }
 

@@ -1,7 +1,5 @@
 package wiki.chiu.micro.blog.adapter.in.http;
 
-import wiki.chiu.micro.blog.domain.Blog;
-import wiki.chiu.micro.blog.domain.SensitiveContent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
@@ -9,38 +7,55 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import wiki.chiu.micro.blog.application.model.BlogExportPage;
+import wiki.chiu.micro.blog.application.model.BlogExportRow;
+import wiki.chiu.micro.blog.domain.BlogIdentity;
+import wiki.chiu.micro.blog.domain.BlogVersion;
+import wiki.chiu.micro.common.enums.BlogAccessMode;
+import wiki.chiu.micro.common.enums.BlogRenderMode;
+import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
 import wiki.chiu.micro.common.export.SQLUtils;
 
-/**
- * Pins the export statements to the output produced before the reflective renderer was replaced.
- */
 class SqlExportGoldenTest {
 
     private static final LocalDateTime CREATED = LocalDateTime.of(2026, 9, 19, 10, 11, 12);
-    private static final LocalDateTime UPDATED = LocalDateTime.of(2026, 9, 19, 11, 12, 13);
 
     @Test
-    void blogTableMatchesLegacyOutput() {
-        var entity =
-            new Blog(
-                1L, 42L, "title", "desc", "line1\nline2", CREATED, UPDATED, 1, "link", 7L, 11L);
+    void exportsNormalizedIdentityAndRevisionTables() {
+        BlogIdentity identity =
+            new BlogIdentity(
+                1L, 42L, CREATED, 7L, 2L, CREATED, null, BlogAccessMode.PUBLIC, 1L, 3L);
+        BlogVersion version =
+            new BlogVersion(
+                2L,
+                1L,
+                1L,
+                BlogRevisionOrigin.PUBLICATION,
+                null,
+                "title",
+                "desc",
+                "line1\nline2",
+                "",
+                BlogRenderMode.NORMAL,
+                CREATED,
+                42L,
+                CREATED,
+                List.of());
+        BlogExportPage page =
+            new BlogExportPage(List.of(new BlogExportRow(identity, List.of(version))));
 
         assertEquals(
-            "INSERT INTO m_blog (id, user_id, title, description, content, created, updated,"
-                + " status, link, read_count, event_revision) VALUES (1, 42, 'title', 'desc',"
-                + " 'line1\\nline2', '2026-09-19 10:11:12', '2026-09-19 11:12:13', 1, 'link', 7,"
-                + " 11);",
-            SQLUtils.insertSql(List.of(entity), SqlTables.BLOG));
-    }
-
-    @Test
-    void sensitiveContentMatchesLegacyOutput() {
+            "INSERT INTO m_blog (id, user_id, created, read_count, published_revision_id,"
+                + " published_at, offline_at, access_mode, publication_revision, admin_revision)"
+                + " VALUES (1, 42, '2026-09-19 10:11:12', 7, 2, '2026-09-19 10:11:12',"
+                + " NULL, 0, 1, 3);",
+            SQLUtils.insertSql(page.blogs(), SqlTables.BLOG));
         assertEquals(
-            "INSERT INTO m_blog_sensitive_content (id, blog_id, start_index, end_index, type,"
-                + " created, updated) VALUES (2, 1, 3, 5, 1, '2026-09-19 10:11:12', '2026-09-19"
-                + " 11:12:13');",
-            SQLUtils.insertSql(
-                List.of(new SensitiveContent(2L, 1L, 3, 5, 1, CREATED, UPDATED)),
-                SqlTables.BLOG_SENSITIVE));
+            "INSERT INTO m_blog_revision (id, blog_id, version_no, origin, base_revision_id,"
+                + " title, description, content, link, render_mode, first_published_at,"
+                + " created_by, created_at) VALUES (2, 1, 1, 'PUBLICATION', NULL, 'title',"
+                + " 'desc', 'line1\\nline2', '', 'NORMAL', '2026-09-19 10:11:12', 42,"
+                + " '2026-09-19 10:11:12');",
+            SQLUtils.insertSql(page.revisions(), SqlTables.BLOG_REVISION));
     }
 }

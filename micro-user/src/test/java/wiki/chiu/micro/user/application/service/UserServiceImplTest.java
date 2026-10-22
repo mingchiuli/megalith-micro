@@ -3,6 +3,7 @@ package wiki.chiu.micro.user.application.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
+import wiki.chiu.micro.common.error.ExceptionMessage;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.user.application.port.out.RegistrationTokenStore;
 import wiki.chiu.micro.user.application.port.out.UserReader;
@@ -42,14 +44,14 @@ class UserServiceImplTest {
                 "13800138000",
                 "expired-token");
 
-        doThrow(new MissException(wiki.chiu.micro.common.error.ExceptionMessage.NO_AUTH))
+        doThrow(new MissException(ExceptionMessage.NO_AUTH))
             .when(tokens)
             .consumeForUsername("expired-token", "alice");
 
         MissException exception = assertThrows(MissException.class, () -> service.register(request));
 
         assertEquals("没有权限", exception.getMessage());
-        verify(userDrafts, never()).save(org.mockito.ArgumentMatchers.any());
+        verify(userDrafts, never()).save(any());
     }
 
     @Test
@@ -75,7 +77,7 @@ class UserServiceImplTest {
 
         InOrder order = inOrder(tokens, userDrafts);
         order.verify(tokens).consumeForUsername("token", "alice");
-        order.verify(userDrafts).save(org.mockito.ArgumentMatchers.any());
+        order.verify(userDrafts).save(any());
     }
 
     @Test

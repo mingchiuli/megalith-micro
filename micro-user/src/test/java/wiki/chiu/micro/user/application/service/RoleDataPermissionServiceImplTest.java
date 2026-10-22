@@ -2,6 +2,9 @@ package wiki.chiu.micro.user.application.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -64,7 +67,7 @@ class RoleDataPermissionServiceImplTest {
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<RoleDataPermission>> captor = ArgumentCaptor.forClass(List.class);
-        verify(wrapper).saveDataPermissions(org.mockito.ArgumentMatchers.eq(7L), captor.capture());
+        verify(wrapper).saveDataPermissions(eq(7L), captor.capture());
         assertEquals(
             List.of(DataPermissionEnum.BLOG_VIEW_ALL, DataPermissionEnum.BLOG_DELETE_ALL),
             captor.getValue().stream().map(RoleDataPermission::permission).toList());
@@ -80,7 +83,7 @@ class RoleDataPermissionServiceImplTest {
 
         verify(wrapper, never())
             .saveDataPermissions(
-                org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyList());
+                anyLong(), anyList());
     }
 
     private RoleDataPermission permission(Long roleId, DataPermissionEnum dataPermission) {

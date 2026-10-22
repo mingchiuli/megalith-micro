@@ -3,6 +3,7 @@ package wiki.chiu.micro.user.adapter.out.persistence;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -21,9 +22,9 @@ import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 
 class UserIdentityWrapperTest {
 
-    private final UserRepository users = org.mockito.Mockito.mock(UserRepository.class);
+    private final UserRepository users = mock(UserRepository.class);
     private final AuthCacheEvictionOutbox cacheEvictions =
-        org.mockito.Mockito.mock(AuthCacheEvictionOutbox.class);
+        mock(AuthCacheEvictionOutbox.class);
     private final PasswordLockProperties properties = new PasswordLockProperties();
     private final UserIdentityWrapper wrapper =
         new UserIdentityWrapper(

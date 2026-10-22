@@ -19,7 +19,7 @@ public record Role(
         return new Role(null, null, null, null, null, null, null);
     }
 
-    public Role withUpdated(java.time.LocalDateTime newUpdated) {
+    public Role withUpdated(LocalDateTime newUpdated) {
         return new Role(id, name, code, remark, created, newUpdated, status);
     }
 

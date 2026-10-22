@@ -15,5 +15,33 @@ public record BlogListItem(
     Integer recentReadCount,
     LocalDateTime created,
     LocalDateTime updated,
-    Integer status) {
+    Integer status,
+    boolean hasDraft,
+    boolean draftNewer) {
+
+    public BlogListItem(
+        Long id,
+        String title,
+        String description,
+        String content,
+        String link,
+        Long readCount,
+        Integer recentReadCount,
+        LocalDateTime created,
+        LocalDateTime updated,
+        Integer status) {
+        this(
+            id,
+            title,
+            description,
+            content,
+            link,
+            readCount,
+            recentReadCount,
+            created,
+            updated,
+            status,
+            false,
+            false);
+    }
 }

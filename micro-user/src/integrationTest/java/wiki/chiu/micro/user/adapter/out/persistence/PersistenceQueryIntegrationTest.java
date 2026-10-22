@@ -32,6 +32,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import wiki.chiu.micro.common.outbox.adapter.out.persistence.repository.OutboxEventRepository;
+import wiki.chiu.micro.common.outbox.adapter.out.persistence.OutboxStoreAdapter;
 import wiki.chiu.micro.common.outbox.adapter.out.persistence.entity.OutboxEventEntity;
 import wiki.chiu.micro.common.outbox.application.port.out.OutboxStore;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
@@ -41,6 +42,7 @@ import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleDataPermissio
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRoleRepository;
+import wiki.chiu.micro.user.config.AdminMetadataInitializer;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuAuthorityEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleDataPermissionEntity;
@@ -49,6 +51,7 @@ import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleMenuEntity;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserRoleEntity;
 import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.domain.RoleMenu;
 
 @Testcontainers(disabledWithoutDocker = true)
 class PersistenceQueryIntegrationTest {
@@ -84,7 +87,7 @@ class PersistenceQueryIntegrationTest {
         jdbc = new JdbcTemplate(context.getBean(DataSource.class));
         transaction = new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
         outbox = context.getBean(OutboxEventRepository.class);
-        outboxStore = new wiki.chiu.micro.common.outbox.adapter.out.persistence.OutboxStoreAdapter(outbox);
+        outboxStore = new OutboxStoreAdapter(outbox);
         roles = context.getBean(RoleRepository.class);
         userRoles = context.getBean(UserRoleRepository.class);
         roleMenus = context.getBean(RoleMenuRepository.class);
@@ -107,6 +110,88 @@ class PersistenceQueryIntegrationTest {
 
         assertThat(indexNames)
             .contains("idx_outbox_poll", "idx_outbox_aggregate", "idx_outbox_manage");
+    }
+
+    @Test
+    void adminMetadataInitializationIsIdempotentAndAuthorizesCanonicalEndpoints() {
+        DataSource dataSource = context.getBean(DataSource.class);
+        AdminMetadataInitializer initializer =
+            new AdminMetadataInitializer(dataSource, mock(AuthCacheEvictionOutbox.class));
+
+        initializer.run(null);
+        int menuCount = count("SELECT COUNT(*) FROM m_menu");
+        int authorityCount = count("SELECT COUNT(*) FROM m_authority");
+        int roleMenuCount = count("SELECT COUNT(*) FROM m_role_menu");
+        initializer.run(null);
+
+        assertThat(count("SELECT COUNT(*) FROM m_menu")).isEqualTo(menuCount);
+        assertThat(count("SELECT COUNT(*) FROM m_authority")).isEqualTo(authorityCount);
+        assertThat(count("SELECT COUNT(*) FROM m_role_menu")).isEqualTo(roleMenuCount);
+        assertThat(
+                count(
+                    """
+                    SELECT COUNT(*)
+                    FROM m_authority
+                    WHERE code IN ('sys:blog:save', 'sys:blog:push:all')
+                    """))
+            .isZero();
+        assertThat(
+                count(
+                    """
+                    SELECT COUNT(*)
+                    FROM m_authority authority
+                    LEFT JOIN m_menu_authority mapping
+                      ON mapping.authority_id = authority.id
+                    WHERE authority.status = 0
+                      AND authority.type = 1
+                      AND mapping.id IS NULL
+                    """))
+            .isZero();
+        assertThat(
+                count(
+                    """
+                    SELECT COUNT(*)
+                    FROM m_menu menu
+                    JOIN m_role role ON role.code = 'admin'
+                    LEFT JOIN m_role_menu mapping
+                      ON mapping.role_id = role.id
+                     AND mapping.menu_id = menu.id
+                    WHERE mapping.id IS NULL
+                      AND (menu.name LIKE 'system-%' OR menu.name = 'blog-manage')
+                    """))
+            .isZero();
+        assertThat(
+                jdbc.queryForList(
+                    """
+                    SELECT code
+                    FROM m_authority
+                    WHERE code IN (
+                        'sys:blog:draft:create',
+                        'sys:blog:draft:save',
+                        'sys:blog:draft:delete',
+                        'sys:blog:version:save',
+                        'sys:blog:version:list',
+                        'sys:blog:version:view',
+                        'sys:blog:version:compare',
+                        'sys:blog:publish',
+                        'sys:blog:offline',
+                        'sys:blog:online',
+                        'whitelist:blog:recommendations'
+                    )
+                    """,
+                    String.class))
+            .containsExactlyInAnyOrder(
+                "sys:blog:draft:create",
+                "sys:blog:draft:save",
+                "sys:blog:draft:delete",
+                "sys:blog:version:save",
+                "sys:blog:version:list",
+                "sys:blog:version:view",
+                "sys:blog:version:compare",
+                "sys:blog:publish",
+                "sys:blog:offline",
+                "sys:blog:online",
+                "whitelist:blog:recommendations");
     }
 
     @Test
@@ -217,7 +302,7 @@ class PersistenceQueryIntegrationTest {
 
         transaction.executeWithoutResult(
             status -> wrapper.saveMenu(
-                roleId, "D", List.of(new wiki.chiu.micro.user.domain.RoleMenu(null, roleId, 22L, null, null))));
+                roleId, "D", List.of(new RoleMenu(null, roleId, 22L, null, null))));
 
         List<Long> menuIds =
             jdbc.queryForList(
@@ -354,7 +439,7 @@ class PersistenceQueryIntegrationTest {
             var factory = new LocalContainerEntityManagerFactoryBean();
             factory.setDataSource(dataSource);
             factory.setPackagesToScan(
-                "wiki.chiu.micro.user.domain",
+                "wiki.chiu.micro.user.adapter.out.persistence.entity",
                 "wiki.chiu.micro.common.outbox.adapter.out.persistence.entity");
             factory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
             factory.setJpaPropertyMap(

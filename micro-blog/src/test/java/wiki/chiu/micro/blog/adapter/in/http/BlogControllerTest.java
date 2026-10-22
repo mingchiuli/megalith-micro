@@ -1,8 +1,5 @@
 package wiki.chiu.micro.blog.adapter.in.http;
 
-import wiki.chiu.micro.blog.application.model.BlogExportPage;
-import wiki.chiu.micro.blog.application.model.BlogListItem;
-import wiki.chiu.micro.blog.application.model.Page;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -37,16 +34,23 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
-import wiki.chiu.micro.blog.domain.Blog;
-import wiki.chiu.micro.blog.domain.BlogFixtures;
+import wiki.chiu.micro.blog.application.model.BlogExportPage;
+import wiki.chiu.micro.blog.application.model.BlogExportRow;
+import wiki.chiu.micro.blog.application.model.BlogListItem;
+import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
 import wiki.chiu.micro.blog.application.port.in.BlogCollaborationService;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
+import wiki.chiu.micro.blog.domain.BlogIdentity;
+import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
+import wiki.chiu.micro.common.enums.BlogAccessMode;
+import wiki.chiu.micro.common.enums.BlogRenderMode;
+import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
@@ -87,31 +91,38 @@ class BlogControllerTest {
     }
 
     @Test
-    void saveOrUpdateReturnsSuccess() throws Exception {
-        doNothing().when(blogService).saveOrUpdate(any(), anyLong(), anyList());
+    void draftSaveReturnsSuccess() throws Exception {
+        when(blogService.saveDraft(anyLong(), any(), anyLong(), anyList()))
+            .thenReturn(null);
 
         String body =
             "{\"id\":null,\"title\":\"t\",\"description\":\"d\",\"content\":\"c\","
                 + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":[]}";
         mockMvc
-            .perform(post("/sys/blog/save").contentType(MediaType.APPLICATION_JSON).content(body))
+            .perform(
+                post("/sys/blog/7/draft")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200));
 
-        verify(blogService).saveOrUpdate(any(), anyLong(), anyList());
+        verify(blogService).saveDraft(anyLong(), any(), anyLong(), anyList());
     }
 
     @Test
     void concurrentUpdateReturnsConflict() throws Exception {
         doThrow(new BaseException(CommonErrorCode.CONFLICT, "blog revision conflict: 7"))
             .when(blogService)
-            .saveOrUpdate(any(), anyLong(), anyList());
+            .saveDraft(anyLong(), any(), anyLong(), anyList());
 
         String body =
             "{\"id\":7,\"title\":\"t\",\"description\":\"d\",\"content\":\"c\","
                 + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":[]}";
         mockMvc
-            .perform(post("/sys/blog/save").contentType(MediaType.APPLICATION_JSON).content(body))
+            .perform(
+                post("/sys/blog/7/draft")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.code").value(CommonErrorCode.CONFLICT.code()));
     }
@@ -130,22 +141,30 @@ class BlogControllerTest {
     @Test
     void downloadStreamsTheBlogExportAsAnAttachment() throws Exception {
         LocalDateTime created = LocalDateTime.of(2026, 9, 1, 12, 0);
-        Blog blog =
-            BlogFixtures.builder()
-                .id(1L)
-                .userId(1L)
-                .title("t")
-                .description("d")
-                .content("c")
-                .link("")
-                .created(created)
-                .updated(created)
-                .status(0)
-                .readCount(0L)
-                .eventRevision(1L)
-                .build();
+        BlogIdentity identity =
+            new BlogIdentity(
+                1L, 1L, created, 0L, 2L, created, null, BlogAccessMode.PUBLIC, 1L, 1L);
+        BlogVersion version =
+            new BlogVersion(
+                2L,
+                1L,
+                1L,
+                BlogRevisionOrigin.PUBLICATION,
+                null,
+                "t",
+                "d",
+                "c",
+                "",
+                BlogRenderMode.NORMAL,
+                created,
+                1L,
+                created,
+                List.of());
         when(exportService.pages(any(), anyLong(), any()))
-            .thenReturn(Stream.of(new BlogExportPage(List.of(blog), List.of())));
+            .thenReturn(
+                Stream.of(
+                    new BlogExportPage(
+                        List.of(new BlogExportRow(identity, List.of(version))))));
 
         mockMvc
             .perform(get("/sys/blog/download"))
@@ -253,11 +272,14 @@ class BlogControllerTest {
     @Test
     void invalidBlogBodyIsRejectedBeforeHandler() throws Exception {
         mockMvc
-            .perform(post("/sys/blog/save").contentType(MediaType.APPLICATION_JSON).content("{}"))
+            .perform(
+                post("/sys/blog/7/draft")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.msg").value("title must not be blank"));
 
-        verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
+        verify(blogService, never()).saveDraft(anyLong(), any(), anyLong(), anyList());
     }
 
     @Test
@@ -268,11 +290,14 @@ class BlogControllerTest {
                 + "{\"startIndex\":0,\"endIndex\":1,\"type\":9}]}";
 
         mockMvc
-            .perform(post("/sys/blog/save").contentType(MediaType.APPLICATION_JSON).content(body))
+            .perform(
+                post("/sys/blog/7/draft")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.msg").value("sensitiveContent type is invalid"));
 
-        verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
+        verify(blogService, never()).saveDraft(anyLong(), any(), anyLong(), anyList());
     }
 
     @Test
@@ -283,11 +308,14 @@ class BlogControllerTest {
                 + "{\"startIndex\":1,\"endIndex\":4,\"type\":1}]}";
 
         mockMvc
-            .perform(post("/sys/blog/save").contentType(MediaType.APPLICATION_JSON).content(body))
+            .perform(
+                post("/sys/blog/7/draft")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.msg").value("sensitiveContent start/end indices invalid"));
 
-        verify(blogService, never()).saveOrUpdate(any(), anyLong(), anyList());
+        verify(blogService, never()).saveDraft(anyLong(), any(), anyLong(), anyList());
     }
 
     @Test

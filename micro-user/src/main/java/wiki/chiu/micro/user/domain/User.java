@@ -24,7 +24,7 @@ public record User(
         return new User(null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
-    public User withUpdated(java.time.LocalDateTime newUpdated) {
+    public User withUpdated(LocalDateTime newUpdated) {
         return new User(
             id, username, nickname, avatar, email, phone, password, status, passwordLockedUntil,
             created, newUpdated, lastLogin);

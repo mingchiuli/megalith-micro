@@ -74,6 +74,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
         hints
             .resources()
+            .registerPattern("script/admin-metadata.sql")
             .registerPattern("script/consume-registration-token.lua");
     }
 }

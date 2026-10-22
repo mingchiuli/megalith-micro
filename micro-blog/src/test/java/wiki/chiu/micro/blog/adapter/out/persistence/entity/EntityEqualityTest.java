@@ -9,8 +9,8 @@ class EntityEqualityTest {
 
     @Test
     void persistedEntitiesUseDatabaseIdentity() {
-        BlogEntity first = BlogEntity.builder().id(7L).title("before").build();
-        BlogEntity second = BlogEntity.builder().id(7L).title("different").build();
+        BlogEntity first = entity(7L);
+        BlogEntity second = entity(7L);
 
         assertEquals(first, second);
         assertEquals(first.hashCode(), second.hashCode());
@@ -18,13 +18,17 @@ class EntityEqualityTest {
 
     @Test
     void transientEntitiesAreOnlyEqualToThemselvesAndHashIsStableAcrossMutation() {
-        BlogEntity first = BlogEntity.builder().title("before").build();
-        BlogEntity second = BlogEntity.builder().title("before").build();
+        BlogEntity first = entity(null);
+        BlogEntity second = entity(null);
         int hash = first.hashCode();
 
-        first.setTitle("after");
+        first.setAccessMode(1);
 
         assertNotEquals(first, second);
         assertEquals(hash, first.hashCode());
+    }
+
+    private BlogEntity entity(Long id) {
+        return new BlogEntity(id, 42L, null, 0L, null, null, null, 0, 0L, 0L);
     }
 }

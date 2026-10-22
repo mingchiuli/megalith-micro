@@ -6,7 +6,6 @@ import wiki.chiu.micro.blog.application.model.IndexSourceStatus;
 import wiki.chiu.micro.blog.application.port.in.BlogIndexSourceQueries;
 import wiki.chiu.micro.blog.application.port.out.BlogIndexSourceState;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
-import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.model.BlogSnapshot;
@@ -32,6 +31,6 @@ public class BlogIndexSourceService implements BlogIndexSourceQueries {
             throw new BaseException(CommonErrorCode.CONFLICT,
                 "index snapshots require read-only maintenance and an empty BLOG outbox");
         }
-        return blogs.findSnapshotsAfter(afterId, limit).stream().map(Blog::snapshot).toList();
+        return blogs.findPublishedSnapshotsAfter(afterId, limit);
     }
 }

@@ -95,6 +95,7 @@ public final class BlogRequestConvertor {
     public static BlogDraft toDraft(BlogEntityReq req) {
         return new BlogDraft(
             req.id().orElse(null),
+            req.draftRevision(),
             req.title(),
             req.description(),
             req.content(),

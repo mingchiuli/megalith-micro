@@ -1,33 +1,31 @@
 package wiki.chiu.micro.blog.application.service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import wiki.chiu.micro.blog.application.model.BlogDownloadQuery;
 import wiki.chiu.micro.blog.application.model.BlogExportPage;
+import wiki.chiu.micro.blog.application.model.BlogExportRow;
 import wiki.chiu.micro.blog.application.model.BlogSearchQuery;
 import wiki.chiu.micro.blog.application.model.BlogSearchSelection;
+import wiki.chiu.micro.blog.application.model.BlogListItem;
+import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
-import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
+import wiki.chiu.micro.blog.application.port.out.BlogAuthoringStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
-import wiki.chiu.micro.blog.domain.Blog;
-import wiki.chiu.micro.blog.domain.SensitiveContent;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 
 public class BlogExportServiceImpl implements BlogExportService {
 
     private static final int PAGE_SIZE = 20;
 
-    private final BlogQueryStore blogs;
-
     private final BlogSearchGateway search;
+    private final BlogAuthoringStore authoring;
 
-    public BlogExportServiceImpl(BlogQueryStore blogs, BlogSearchGateway search) {
-        this.blogs = blogs;
+    public BlogExportServiceImpl(BlogSearchGateway search, BlogAuthoringStore authoring) {
         this.search = search;
+        this.authoring = authoring;
     }
 
     @Override
@@ -37,38 +35,38 @@ public class BlogExportServiceImpl implements BlogExportService {
         BlogSearchSelection selection =
             new BlogSearchSelection(
                 query.status(), query.createStart(), query.createEnd(), userId, allData);
-        long total = search.countBlogs(new BlogSearchQuery(0, 0, query.keywords(), selection));
-        long pageCount = (total + PAGE_SIZE - 1) / PAGE_SIZE;
+        Page<BlogListItem> first =
+            search.searchAdmin(new BlogSearchQuery(1, PAGE_SIZE, query.keywords(), selection));
 
-        return IntStream.rangeClosed(1, Math.toIntExact(pageCount))
-            .mapToObj(page -> loadPage(page, query, selection));
+        return IntStream.rangeClosed(1, first.totalPages())
+            .mapToObj(
+                page ->
+                    page == 1
+                        ? loadPage(first, selection)
+                        : loadPage(
+                            search.searchAdmin(
+                                new BlogSearchQuery(
+                                    page, PAGE_SIZE, query.keywords(), selection)),
+                            selection));
     }
 
     private BlogExportPage loadPage(
-        int page, BlogDownloadQuery query, BlogSearchSelection selection) {
-        List<Long> ids =
-            search.searchBlogs(new BlogSearchQuery(page, PAGE_SIZE, query.keywords(), selection))
-                .ids();
-        if (ids.isEmpty()) {
-            return new BlogExportPage(List.of(), List.of());
-        }
-        Map<Long, Integer> order = new HashMap<>();
-        for (int index = 0; index < ids.size(); index++) {
-            order.put(ids.get(index), index);
-        }
-        List<Blog> pageBlogs =
-            blogs.findAllById(ids).stream()
-                .filter(selection::includes)
-                .sorted(
-                    (left, right) ->
-                        Integer.compare(
-                            order.getOrDefault(left.id(), Integer.MAX_VALUE),
-                            order.getOrDefault(right.id(), Integer.MAX_VALUE)))
+        Page<BlogListItem> page, BlogSearchSelection selection) {
+        List<Long> ids = page.content().stream().map(BlogListItem::id).toList();
+        List<BlogExportRow> rows =
+            ids.stream()
+                .flatMap(
+                    id ->
+                        authoring.findIdentity(id)
+                            .filter(
+                                identity ->
+                                    selection.allData()
+                                        || identity.userId().equals(selection.userId()))
+                            .map(
+                                identity ->
+                                    new BlogExportRow(identity, authoring.findVersions(id)))
+                            .stream())
                 .toList();
-        List<Long> currentIds = pageBlogs.stream().map(Blog::id).toList();
-        List<SensitiveContent> pageSensitive =
-            currentIds.isEmpty() ? List.of() : blogs.findSensitiveByBlogIds(currentIds);
-
-        return new BlogExportPage(pageBlogs, pageSensitive);
+        return new BlogExportPage(rows);
     }
 }

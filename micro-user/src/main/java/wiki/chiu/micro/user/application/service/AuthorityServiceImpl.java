@@ -14,6 +14,7 @@ import wiki.chiu.micro.user.application.port.out.MenuAuthorityReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
 import wiki.chiu.micro.user.domain.Authority;
 import wiki.chiu.micro.user.domain.MenuAuthority;
+import wiki.chiu.micro.user.domain.Role;
 
 public class AuthorityServiceImpl implements AuthorityService {
 
@@ -74,6 +75,6 @@ public class AuthorityServiceImpl implements AuthorityService {
     }
 
     private List<Long> findAllRoleIds() {
-        return roleRepository.findAll().stream().map(wiki.chiu.micro.user.domain.Role::id).toList();
+        return roleRepository.findAll().stream().map(Role::id).toList();
     }
 }

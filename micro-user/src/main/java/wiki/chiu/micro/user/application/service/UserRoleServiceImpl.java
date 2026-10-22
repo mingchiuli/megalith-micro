@@ -9,6 +9,7 @@ import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
 import wiki.chiu.micro.user.application.port.out.UserRoleReader;
 import wiki.chiu.micro.user.domain.Role;
+import wiki.chiu.micro.user.domain.RoleDataPermission;
 import wiki.chiu.micro.user.domain.UserRole;
 
 /**
@@ -53,7 +54,7 @@ public class UserRoleServiceImpl implements UserRoleService {
             return List.of();
         }
         return roleDataPermissionRepository.findByRoleIdIn(enabledRoleIds).stream()
-            .map(wiki.chiu.micro.user.domain.RoleDataPermission::permission)
+            .map(RoleDataPermission::permission)
             .distinct()
             .sorted()
             .toList();

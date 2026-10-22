@@ -40,6 +40,8 @@ megalith:
   outbox:
     producer: BLOG
     exchange: blog.change.fanout.exchange
+    event-exchanges:
+      BlogAdminIndexMessage: blog.admin.change.fanout.exchange
   task-lock:
     environment: ${spring.profiles.active:default}
   blog:

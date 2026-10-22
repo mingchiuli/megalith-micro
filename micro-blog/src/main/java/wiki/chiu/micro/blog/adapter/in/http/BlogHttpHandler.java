@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -58,14 +59,167 @@ public class BlogHttpHandler {
         this.v = v;
     }
 
-    public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
-        BlogEntityReq blog = BlogRequestConvertor.toBlogEntityReq(request);
+    public ServerResponse createDraftBlog(ServerRequest request) {
         AuthPrincipal authInfo = authPrincipal(request);
         return ok(
             Result.success(
                 () ->
-                    blogService.saveOrUpdate(
-                        BlogRequestConvertor.toDraft(blog), authInfo.userId(), authInfo.dataPermissions())));
+                    new BlogIdVo(
+                        blogService.createDraftBlog(authInfo.userId()).id())));
+    }
+
+    public ServerResponse saveDraft(ServerRequest request) throws Exception {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        BlogEntityReq body = BlogRequestConvertor.toBlogEntityReq(request);
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () ->
+                    blogService.saveDraft(
+                        blogId,
+                        BlogRequestConvertor.toDraft(body),
+                        authInfo.userId(),
+                        authInfo.dataPermissions())));
+    }
+
+    public ServerResponse saveDraftVersion(ServerRequest request) throws Exception {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        BlogEntityReq body = BlogRequestConvertor.toBlogEntityReq(request);
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () ->
+                    BlogViewMapper.toVo(
+                        blogService.saveDraftVersion(
+                            blogId,
+                            BlogRequestConvertor.toDraft(body),
+                            authInfo.userId(),
+                            authInfo.dataPermissions()))));
+    }
+
+    public ServerResponse findVersions(ServerRequest request) {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        Integer currentPage =
+            v.positive(requiredParam(request, "currentPage", Integer::valueOf), "currentPage");
+        Integer size = v.range(requiredParam(request, "size", Integer::valueOf), 1, 100, "size");
+        String keywords =
+            v.maxLength(
+                nullableParam(request, "keywords", Function.identity()),
+                20,
+                "keywords");
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () -> {
+                    var page =
+                        blogService.findVersions(
+                            blogId,
+                            currentPage,
+                            size,
+                            keywords,
+                            authInfo.userId(),
+                            authInfo.dataPermissions());
+                    return PageResponse.of(
+                        page,
+                        page.content().stream()
+                            .map(
+                                version ->
+                                    new BlogVersionSummaryVo(
+                                        version.id(),
+                                        version.blogId(),
+                                        version.versionNo(),
+                                        version.origin(),
+                                        version.baseRevisionId(),
+                                        version.title(),
+                                        version.description(),
+                                        version.content(),
+                                        version.link(),
+                                        version.renderMode(),
+                                        version.firstPublishedAt(),
+                                        version.createdBy(),
+                                        version.createdAt(),
+                                        version.currentPublished()))
+                            .toList());
+                }));
+    }
+
+    public ServerResponse publish(ServerRequest request) throws Exception {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        PublishBlogReq body = request.body(PublishBlogReq.class);
+        v.positive(body.revisionId(), "revisionId");
+        v.range(body.accessMode(), 0, 1, "accessMode");
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () ->
+                    blogService.publish(
+                        blogId,
+                        body.revisionId(),
+                        body.accessMode(),
+                        authInfo.userId(),
+                        authInfo.dataPermissions())));
+    }
+
+    public ServerResponse offline(ServerRequest request) {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () ->
+                    blogService.offline(
+                        blogId, authInfo.userId(), authInfo.dataPermissions())));
+    }
+
+    public ServerResponse online(ServerRequest request) {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () ->
+                    blogService.online(
+                        blogId, authInfo.userId(), authInfo.dataPermissions())));
+    }
+
+    public ServerResponse deleteDraft(ServerRequest request) {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () ->
+                    blogService.deleteDraft(
+                        blogId, authInfo.userId(), authInfo.dataPermissions())));
+    }
+
+    public ServerResponse findVersion(ServerRequest request) {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        Long revisionId =
+            v.positive(pathVariable(request, "revisionId", Long::valueOf), "revisionId");
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () ->
+                    BlogViewMapper.toVo(
+                        blogService.findVersion(
+                            blogId,
+                            revisionId,
+                            authInfo.userId(),
+                            authInfo.dataPermissions()))));
+    }
+
+    public ServerResponse compareVersion(ServerRequest request) {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        Long revisionId =
+            v.positive(pathVariable(request, "revisionId", Long::valueOf), "revisionId");
+        AuthPrincipal authInfo = authPrincipal(request);
+        return ok(
+            Result.success(
+                () ->
+                    BlogViewMapper.toVo(
+                        blogService.compareVersion(
+                            blogId,
+                            revisionId,
+                            authInfo.userId(),
+                            authInfo.dataPermissions()))));
     }
 
     public ServerResponse deleteBlogs(ServerRequest request) throws Exception {

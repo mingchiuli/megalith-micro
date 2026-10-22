@@ -14,5 +14,17 @@ public record BlogEntityReq(
     String content,
     Integer status,
     String link,
-    List<SensitiveContentReq> sensitiveContentList) {
+    List<SensitiveContentReq> sensitiveContentList,
+    Long draftRevision) {
+
+    public BlogEntityReq(
+        Optional<Long> id,
+        String title,
+        String description,
+        String content,
+        Integer status,
+        String link,
+        List<SensitiveContentReq> sensitiveContentList) {
+        this(id, title, description, content, status, link, sensitiveContentList, null);
+    }
 }

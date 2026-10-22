@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,13 +59,13 @@ class RoleControllerTest {
         mockMvc =
             MockMvcBuilders.routerFunctions(
                     UserRoutes.routes(
-                        org.mockito.Mockito.mock(UserHttpHandler.class),
+                        mock(UserHttpHandler.class),
                         handler,
-                        org.mockito.Mockito.mock(MenuHttpHandler.class),
-                        org.mockito.Mockito.mock(AuthorityHttpHandler.class),
-                        org.mockito.Mockito.mock(UserInternalHttpHandler.class),
-                        org.mockito.Mockito.mock(MenuInternalHttpHandler.class),
-                        org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class)))
+                        mock(MenuHttpHandler.class),
+                        mock(AuthorityHttpHandler.class),
+                        mock(UserInternalHttpHandler.class),
+                        mock(MenuInternalHttpHandler.class),
+                        mock(AuthorityInternalHttpHandler.class)))
                 .build();
     }
 

@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -73,12 +74,12 @@ class UserControllerTest {
             MockMvcBuilders.routerFunctions(
                     UserRoutes.routes(
                         handler,
-                        org.mockito.Mockito.mock(RoleHttpHandler.class),
-                        org.mockito.Mockito.mock(MenuHttpHandler.class),
-                        org.mockito.Mockito.mock(AuthorityHttpHandler.class),
+                        mock(RoleHttpHandler.class),
+                        mock(MenuHttpHandler.class),
+                        mock(AuthorityHttpHandler.class),
                         userInternalHttpHandler,
-                        org.mockito.Mockito.mock(MenuInternalHttpHandler.class),
-                        org.mockito.Mockito.mock(AuthorityInternalHttpHandler.class)))
+                        mock(MenuInternalHttpHandler.class),
+                        mock(AuthorityInternalHttpHandler.class)))
                 .build();
     }
 

@@ -1,7 +1,5 @@
 package wiki.chiu.micro.blog.application.service;
 
-import wiki.chiu.micro.blog.domain.BlogFixtures;
-import wiki.chiu.micro.blog.domain.Blog;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -10,6 +8,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.BlogFixtures;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
