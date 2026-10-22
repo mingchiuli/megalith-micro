@@ -7,16 +7,26 @@ const { menuTree } = storeToRefs(menuStore())
 // Collapsed menus render teleported tooltips. Keep the hydration tree stable,
 // then adapt the menu to the viewport after the client has mounted.
 const collapsed = ref(false)
+let narrowViewport: boolean | undefined
 const arrow = computed(() => (collapsed.value ? ArrowRight : ArrowLeft))
 const isRouteMenuNode = (node: MenuNode): node is Menu => node.type !== RoutesEnum.BUTTON
 const visibleMenuItems = computed(() => menuTree.value?.children.filter(isRouteMenuNode) ?? [])
 const reverseCollapse = (): void => {
   collapsed.value = !collapsed.value
 }
+const syncCollapsedWithViewport = (): void => {
+  const nextNarrowViewport = document.body.clientWidth <= 900
+  if (nextNarrowViewport === narrowViewport) return
+
+  narrowViewport = nextNarrowViewport
+  collapsed.value = nextNarrowViewport
+}
 
 onMounted(() => {
-  collapsed.value = document.body.clientWidth <= 900
+  syncCollapsedWithViewport()
+  window.addEventListener('resize', syncCollapsedWithViewport)
 })
+onUnmounted(() => window.removeEventListener('resize', syncCollapsedWithViewport))
 </script>
 
 <template>

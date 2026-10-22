@@ -282,5 +282,52 @@ describe('backend navigation', () => {
     await flushPromises()
     expect(menu.props('collapse')).toBe(false)
     expect(button.props('icon')).toBe(ArrowLeft)
+
+    wrapper.unmount()
+  })
+
+  it('automatically collapses the side menu when the viewport crosses the narrow breakpoint', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    let width = 1024
+    vi.spyOn(document.body, 'clientWidth', 'get').mockImplementation(() => width)
+
+    const ElButtonStub = defineComponent({
+      name: 'ElButton',
+      props: { icon: { default: undefined } },
+      setup: () => () => h('button')
+    })
+    const ElMenuStub = defineComponent({
+      name: 'ElMenu',
+      props: { collapse: Boolean },
+      setup: () => () => h('div')
+    })
+
+    const wrapper = mount(SideMenuItem, {
+      global: {
+        plugins: [pinia],
+        stubs: {
+          ElButton: ElButtonStub,
+          ElMenu: ElMenuStub,
+          InfiniteMenuItem: true
+        }
+      }
+    })
+    await flushPromises()
+
+    const menu = wrapper.getComponent(ElMenuStub)
+    expect(menu.props('collapse')).toBe(false)
+
+    width = 600
+    window.dispatchEvent(new Event('resize'))
+    await flushPromises()
+    expect(menu.props('collapse')).toBe(true)
+
+    width = 1024
+    window.dispatchEvent(new Event('resize'))
+    await flushPromises()
+    expect(menu.props('collapse')).toBe(false)
+
+    wrapper.unmount()
   })
 })
