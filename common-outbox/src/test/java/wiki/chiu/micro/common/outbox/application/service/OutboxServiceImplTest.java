@@ -2,6 +2,8 @@ package wiki.chiu.micro.common.outbox.application.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -29,11 +31,11 @@ class OutboxServiceImplTest {
         ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
         verify(store)
             .insert(
-                org.mockito.ArgumentMatchers.eq(eventId),
-                org.mockito.ArgumentMatchers.eq(OutboxProducer.BLOG),
-                org.mockito.ArgumentMatchers.eq("BLOG"),
-                org.mockito.ArgumentMatchers.eq("42"),
-                org.mockito.ArgumentMatchers.eq("TestEvent"),
+                eq(eventId),
+                eq(OutboxProducer.BLOG),
+                eq("BLOG"),
+                eq("42"),
+                eq("TestEvent"),
                 payload.capture());
         assertTrue(payload.getValue().contains("\"eventId\":\"" + eventId + "\""));
         assertTrue(payload.getValue().contains("\"value\":\"changed\""));
@@ -48,11 +50,11 @@ class OutboxServiceImplTest {
         verify(store)
             .insert(
                 storedId.capture(),
-                org.mockito.ArgumentMatchers.eq(OutboxProducer.USER),
-                org.mockito.ArgumentMatchers.eq("AUTHORIZATION"),
-                org.mockito.ArgumentMatchers.eq("GLOBAL"),
-                org.mockito.ArgumentMatchers.eq("TestEvent"),
-                org.mockito.ArgumentMatchers.anyString());
+                eq(OutboxProducer.USER),
+                eq("AUTHORIZATION"),
+                eq("GLOBAL"),
+                eq("TestEvent"),
+                anyString());
         assertEquals(eventId, storedId.getValue());
     }
 

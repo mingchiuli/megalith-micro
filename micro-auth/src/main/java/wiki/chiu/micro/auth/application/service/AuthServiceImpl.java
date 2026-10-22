@@ -1,8 +1,8 @@
 package wiki.chiu.micro.auth.application.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -104,23 +104,9 @@ public class AuthServiceImpl implements AuthService {
             return true;
         }
 
-        if (routePattern.endsWith("/**")) {
-            String prefix = routePattern.replace("/**", "");
-
-            return routeMapping.equals(prefix) || routeMapping.startsWith(prefix + "/");
-        }
-
-        if (routePattern.endsWith("/*")) {
-            String prefix = routePattern.replace("/*", "");
-
-            if (!routeMapping.startsWith(prefix + "/")) {
-                return false;
-            }
-            String remaining = routeMapping.substring(prefix.length() + 1);
-            return !remaining.isEmpty() && !remaining.contains("/");
-        }
-
-        return false;
+        String[] patterns = pathSegments(routePattern);
+        String[] routes = pathSegments(routeMapping);
+        return segmentMatch(patterns, routes, 0, 0);
     }
 
     private AuthPrincipal authorizePrincipal(
@@ -174,22 +160,85 @@ public class AuthServiceImpl implements AuthService {
                 authority ->
                     routeMatch(authority.routePattern(), authority.methodType(), routeMapping, method))
             .sorted(
-                Comparator.comparingInt(
-                        (Authority authority) -> routeSpecificity(authority.routePattern()))
-                    .reversed()
-                    .thenComparing(Authority::routePattern)
-                    .thenComparing(Authority::code))
+                (left, right) -> {
+                    int specificity =
+                        compareRouteSpecificity(left.routePattern(), right.routePattern());
+                    if (specificity != 0) {
+                        return specificity;
+                    }
+                    int pattern = left.routePattern().compareTo(right.routePattern());
+                    return pattern != 0 ? pattern : left.code().compareTo(right.code());
+                })
             .findFirst();
     }
 
-    private int routeSpecificity(String pattern) {
-        if (pattern.endsWith("/**")) {
-            return 1_000 + pattern.length();
+    private int compareRouteSpecificity(String left, String right) {
+        int categoryComparison =
+            Integer.compare(routeCategory(right), routeCategory(left));
+        if (categoryComparison != 0) {
+            return categoryComparison;
         }
-        if (pattern.endsWith("/*")) {
-            return 2_000 + pattern.length();
+        String[] leftSegments = pathSegments(left);
+        String[] rightSegments = pathSegments(right);
+        for (int index = 0; index < Math.min(leftSegments.length, rightSegments.length); index++) {
+            int segmentComparison =
+                Integer.compare(
+                    segmentSpecificity(rightSegments[index]),
+                    segmentSpecificity(leftSegments[index]));
+            if (segmentComparison != 0) {
+                return segmentComparison;
+            }
         }
-        return 3_000 + pattern.length();
+        if (leftSegments.length != rightSegments.length) {
+            return Integer.compare(rightSegments.length, leftSegments.length);
+        }
+        return Integer.compare(right.length(), left.length());
+    }
+
+    private int routeCategory(String pattern) {
+        String[] segments = pathSegments(pattern);
+        if (Arrays.stream(segments).anyMatch("**"::equals)) {
+            return 0;
+        }
+        if (Arrays.stream(segments).anyMatch("*"::equals)) {
+            return 1;
+        }
+        return 2;
+    }
+
+    private int segmentSpecificity(String segment) {
+        if ("**".equals(segment)) {
+            return 0;
+        }
+        if ("*".equals(segment)) {
+            return 1;
+        }
+        return 2;
+    }
+
+    private boolean segmentMatch(String[] patterns, String[] routes, int patternIndex, int routeIndex) {
+        if (patternIndex == patterns.length) {
+            return routeIndex == routes.length;
+        }
+        String pattern = patterns[patternIndex];
+        if ("**".equals(pattern)) {
+            return patternIndex == patterns.length - 1;
+        }
+        if (routeIndex == routes.length) {
+            return false;
+        }
+        if (!"*".equals(pattern) && !Objects.equals(pattern, routes[routeIndex])) {
+            return false;
+        }
+        return segmentMatch(patterns, routes, patternIndex + 1, routeIndex + 1);
+    }
+
+    private String[] pathSegments(String path) {
+        if (path == null || path.isBlank()) {
+            return new String[0];
+        }
+        String normalized = path.startsWith("/") ? path.substring(1) : path;
+        return normalized.split("/", -1);
     }
 
     private boolean isWebSocketRoute(String routeMapping) {

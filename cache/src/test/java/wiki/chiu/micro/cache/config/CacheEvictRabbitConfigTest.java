@@ -2,6 +2,8 @@ package wiki.chiu.micro.cache.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
@@ -18,7 +20,7 @@ class CacheEvictRabbitConfigTest {
     void converterTrustsOnlyTheCacheMessagePackage() {
         JacksonJsonMessageConverter converter =
             config.cacheEvictMessageConverter(JsonMapper.builder().build());
-        CacheEvictionMessage expected = CacheEvictionMessage.of(java.util.Set.of("cache:v1:key"));
+        CacheEvictionMessage expected = CacheEvictionMessage.of(Set.of("cache:v1:key"));
 
         Message encoded = converter.toMessage(expected, new MessageProperties());
 

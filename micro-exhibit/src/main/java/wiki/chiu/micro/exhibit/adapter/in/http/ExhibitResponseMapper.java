@@ -6,6 +6,8 @@ import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
+import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
+import wiki.chiu.micro.exhibit.application.model.BlogRecommendations;
 import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 
@@ -55,5 +57,21 @@ public final class ExhibitResponseMapper {
         return hotReads.stream()
             .map(hotRead -> new BlogHotReadVo(hotRead.id(), hotRead.title(), hotRead.readCount()))
             .toList();
+    }
+
+    public static BlogRecommendationsVo toVo(BlogRecommendations recommendations) {
+        return new BlogRecommendationsVo(
+            recommendations.hot().stream().map(ExhibitResponseMapper::toVo).toList(),
+            recommendations.related().stream().map(ExhibitResponseMapper::toVo).toList());
+    }
+
+    private static BlogRecommendationVo toVo(BlogRecommendation recommendation) {
+        return new BlogRecommendationVo(
+            recommendation.id(),
+            recommendation.title(),
+            recommendation.description(),
+            recommendation.created(),
+            recommendation.link(),
+            recommendation.readCount());
     }
 }

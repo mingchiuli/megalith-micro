@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.client.MockClientHttpRequest;
 import org.springframework.mock.http.client.MockClientHttpResponse;
@@ -61,8 +62,7 @@ class AuthHttpInterceptorTest {
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     }
 
-    private MockClientHttpResponse respondOk(
-        org.springframework.http.HttpRequest request, byte[] body) {
+    private MockClientHttpResponse respondOk(HttpRequest request, byte[] body) {
         return new MockClientHttpResponse(new byte[0], HttpStatus.OK);
     }
 }

@@ -6,6 +6,7 @@ import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
+import wiki.chiu.micro.exhibit.application.model.BlogRecommendations;
 import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 
@@ -22,6 +23,8 @@ public interface BlogService {
     VisitStatistics getVisitStatistics();
 
     List<BlogHotRead> getScoreBlogs();
+
+    BlogRecommendations getRecommendations(Long blogId, int limit);
 
     BlogExhibit getBlogDetail(List<DataPermissionEnum> dataPermissions, Long id, Long userId);
 }

@@ -12,10 +12,12 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Executable form of the ports-and-adapters layout every Java application in this repository
@@ -300,7 +302,7 @@ public final class ApplicationLayers {
     /** Drops the module's own root from a ban list so shared modules can verify themselves. */
     private static String[] withoutSelf(String[] banned, String rootPackage) {
         String selfPattern = rootPackage + "..";
-        return java.util.Arrays.stream(banned)
+        return Arrays.stream(banned)
             .filter(entry -> !entry.equals(selfPattern) && !entry.equals(rootPackage))
             .toArray(String[]::new);
     }
@@ -310,11 +312,11 @@ public final class ApplicationLayers {
      * the named package only unless the pattern ends in {@code ..}.
      */
     private static String[] under(String rootPackage, String... layerPackages) {
-        return java.util.Arrays.stream(layerPackages)
+        return Arrays.stream(layerPackages)
             .flatMap(
                 layer -> {
                     String base = rootPackage + "." + layer;
-                    return java.util.stream.Stream.of(base, base + "..");
+                    return Stream.of(base, base + "..");
                 })
             .toArray(String[]::new);
     }

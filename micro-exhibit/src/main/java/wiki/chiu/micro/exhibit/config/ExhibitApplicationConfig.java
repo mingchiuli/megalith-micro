@@ -19,7 +19,6 @@ import wiki.chiu.micro.exhibit.application.port.out.BlogReadStateStore;
 import wiki.chiu.micro.exhibit.application.port.out.BlogReader;
 import wiki.chiu.micro.exhibit.application.port.out.ExhibitMetrics;
 import wiki.chiu.micro.exhibit.application.port.out.ExistenceIndexMetrics;
-import wiki.chiu.micro.exhibit.application.port.out.SensitiveContentReader;
 import wiki.chiu.micro.exhibit.application.port.out.VisitStatisticsStore;
 import wiki.chiu.micro.exhibit.application.service.BlogChangeEvictionHandler;
 import wiki.chiu.micro.exhibit.application.service.BlogChangeEvictionServiceImpl;
@@ -39,11 +38,9 @@ public class ExhibitApplicationConfig {
 
     @Bean
     BlogService blogService(
-        SensitiveContentReader sensitiveContentReader,
-        BlogCatalog blogCatalog,
         BlogReader blogReader,
         ExhibitMetrics metrics) {
-        return new BlogServiceImpl(sensitiveContentReader, blogCatalog, blogReader, metrics);
+        return new BlogServiceImpl(blogReader, metrics);
     }
 
     @Bean

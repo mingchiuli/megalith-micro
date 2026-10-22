@@ -106,6 +106,57 @@ class AuthServiceRouteAuthorizationTest {
     }
 
     @Test
+    void wildcardSegmentsMatchOnlyOnePathSegment() {
+        givenRoutes(
+            List.of(
+                authority(
+                    "version_compare",
+                    "GET",
+                    "/sys/blog/*/versions/*/compare",
+                    AuthTypeEnum.WHITE_LIST,
+                    "blog",
+                    8082)));
+
+        RouteDecision decision =
+            authService.authorizeRoute(route("GET", "/sys/blog/42/versions/7/compare"), null);
+
+        assertEquals("blog", decision.serviceHost());
+        assertThrows(
+            MissException.class,
+            () -> authService.authorizeRoute(route("GET", "/sys/blog/42/versions/7"), null));
+        assertThrows(
+            MissException.class,
+            () ->
+                authService.authorizeRoute(
+                    route("GET", "/sys/blog/42/versions/7/history/compare"), null));
+    }
+
+    @Test
+    void earlierLiteralSegmentsWinOverEarlierWildcards() {
+        givenRoutes(
+            List.of(
+                authority(
+                    "wildcard_first",
+                    "GET",
+                    "/api/*/detail",
+                    AuthTypeEnum.WHITE_LIST,
+                    "wildcard-first",
+                    8082),
+                authority(
+                    "literal_first",
+                    "GET",
+                    "/api/private/*",
+                    AuthTypeEnum.WHITE_LIST,
+                    "literal-first",
+                    8083)));
+
+        RouteDecision decision =
+            authService.authorizeRoute(route("GET", "/api/private/detail"), null);
+
+        assertEquals("literal-first", decision.serviceHost());
+    }
+
+    @Test
     void whitelistUsesValidatedIdentityWhenTokenIsPresent() {
         givenRoutes(List.of(authority("public_api", "/api/public", AuthTypeEnum.WHITE_LIST)));
 
@@ -196,6 +247,10 @@ class AuthServiceRouteAuthorizationTest {
         return new RouteQuery("GET", path, null);
     }
 
+    private RouteQuery route(String method, String path) {
+        return new RouteQuery(method, path, null);
+    }
+
     private void givenRoutes(List<Authority> routes) {
         lenient().when(authorizationDirectory.getAllSystemAuthorities()).thenReturn(routes);
         lenient()
@@ -217,5 +272,15 @@ class AuthServiceRouteAuthorizationTest {
             websocket ? "sync" : "service",
             websocket ? 8089 : 8080,
             type.getCode());
+    }
+
+    private Authority authority(
+        String code,
+        String method,
+        String pattern,
+        AuthTypeEnum type,
+        String host,
+        int port) {
+        return new Authority(1L, code, method, pattern, host, port, type.getCode());
     }
 }

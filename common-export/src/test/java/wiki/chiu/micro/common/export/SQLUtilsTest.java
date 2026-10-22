@@ -2,6 +2,7 @@ package wiki.chiu.micro.common.export;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -47,7 +48,7 @@ class SQLUtilsTest {
         assertEquals(
             "INSERT INTO t_row (id, count, flag, moment, day, legacy, text) VALUES (7, 3, 1,"
                 + " '2026-09-19 10:11:12', '2026-09-19', '"
-                + new java.sql.Timestamp(0L)
+                + new Timestamp(0L)
                 + "', 'plain');",
             SQLUtils.insertSql(List.of(row), ROWS));
     }

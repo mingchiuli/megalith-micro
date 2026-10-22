@@ -65,7 +65,6 @@ const emitSelection = (input: HTMLInputElement | HTMLTextAreaElement, type: Sens
       <el-radio :value="Status.NORMAL">{{ t('common.public') }}</el-radio>
       <el-radio :value="Status.BLOCK">{{ t('common.hidden') }}</el-radio>
       <el-radio :value="Status.SENSITIVE_FILTER">{{ t('common.masked') }}</el-radio>
-      <el-radio :value="Status.DRAFT">{{ t('common.draft') }}</el-radio>
     </el-radio-group>
   </el-form-item>
 

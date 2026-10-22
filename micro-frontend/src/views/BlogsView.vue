@@ -3,6 +3,7 @@ import type { BlogDesc, PageAdapter, SearchPage } from '@/type/entity'
 import { useHttp } from '@/http/http'
 import { loginStateStore, tabStore, blogsStore, menuStore, themeStore } from '@/stores'
 import Search from '@/components/SearchItem.vue'
+import RecommendationPanel from '@/components/RecommendationPanel.vue'
 import { Status } from '@/type/entity'
 import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
 import { Moon, Sunny } from '@element-plus/icons-vue'
@@ -197,6 +198,7 @@ useUniversalData<PageAdapter<BlogDesc>>(
       />
     </div>
     <el-text size="large">{{ $t('blog.articles', { count: page.totalElements }) }}</el-text>
+    <RecommendationPanel :limit="5" />
     <el-link
       type="success"
       size="large"

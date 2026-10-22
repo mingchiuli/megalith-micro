@@ -11,25 +11,20 @@ import static wiki.chiu.micro.common.error.ExceptionMessage.AUTH_EXCEPTION;
 import static wiki.chiu.micro.common.error.ExceptionMessage.TOKEN_INVALID;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
+import wiki.chiu.micro.common.enums.SensitiveTypeEnum;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
-import wiki.chiu.micro.exhibit.application.model.BlogScore;
-import wiki.chiu.micro.exhibit.application.model.BlogSummary;
+import wiki.chiu.micro.exhibit.application.model.BlogRecommendations;
 import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
-import wiki.chiu.micro.exhibit.application.port.out.BlogCatalog;
 import wiki.chiu.micro.exhibit.application.port.out.BlogReader;
 import wiki.chiu.micro.exhibit.application.port.out.ExhibitMetrics;
-import wiki.chiu.micro.exhibit.application.port.out.SensitiveContentReader;
 import wiki.chiu.micro.exhibit.domain.SensitiveContentMasker;
 import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
 
@@ -39,25 +34,15 @@ import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
  */
 public class BlogServiceImpl implements BlogService {
 
-    private static final String UNKNOWN_TITLE = "未知标题";
-
     private static final int HOT_READ_LIMIT = 5;
-
-    private final SensitiveContentReader sensitiveContentReader;
-
-    private final BlogCatalog blogCatalog;
 
     private final BlogReader blogReader;
 
     private final ExhibitMetrics metrics;
 
     public BlogServiceImpl(
-        SensitiveContentReader sensitiveContentReader,
-        BlogCatalog blogCatalog,
         BlogReader blogReader,
         ExhibitMetrics metrics) {
-        this.sensitiveContentReader = sensitiveContentReader;
-        this.blogCatalog = blogCatalog;
         this.blogReader = blogReader;
         this.metrics = metrics;
     }
@@ -88,27 +73,14 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public List<BlogHotRead> getScoreBlogs() {
-        List<BlogScore> scores = metrics.topReadBlogs(HOT_READ_LIMIT);
-        List<BlogSummary> blogs =
-            blogCatalog.findAllById(scores.stream().map(BlogScore::blogId).toList());
-
-        Map<Long, String> titles =
-            blogs.stream().collect(Collectors.toMap(BlogSummary::id, BlogSummary::title));
-        Set<Long> visibleIds =
-            blogs.stream()
-                .filter(blog -> !HIDE.getCode().equals(blog.status()))
-                .map(BlogSummary::id)
-                .collect(Collectors.toSet());
-
-        return scores.stream()
-            .filter(score -> visibleIds.contains(score.blogId()))
-            .map(
-                score ->
-                    new BlogHotRead(
-                        score.blogId(),
-                        titles.getOrDefault(score.blogId(), UNKNOWN_TITLE),
-                        score.readCount()))
+        return getRecommendations(null, HOT_READ_LIMIT).hot().stream()
+            .map(item -> new BlogHotRead(item.id(), item.title(), item.readCount()))
             .toList();
+    }
+
+    @Override
+    public BlogRecommendations getRecommendations(Long blogId, int limit) {
+        return blogReader.recommendations(blogId, limit);
     }
 
     @Override
@@ -141,7 +113,16 @@ public class BlogServiceImpl implements BlogService {
         if (!SENSITIVE_FILTER.getCode().equals(description.status())) {
             return description;
         }
-        List<SensitiveSpan> spans = sensitiveContentReader.findSensitiveSpans(description.id());
+        List<SensitiveSpan> spans =
+            description.sensitiveContent().stream()
+                .flatMap(
+                    span ->
+                        SensitiveTypeEnum.ofCode(span.type()).stream()
+                            .map(
+                                type ->
+                                    new SensitiveSpan(
+                                        type, span.startIndex(), span.endIndex())))
+                .toList();
         if (spans.isEmpty()) {
             return description;
         }
@@ -151,7 +132,16 @@ public class BlogServiceImpl implements BlogService {
     }
 
     private BlogExhibit mask(BlogExhibit blog, Long blogId) {
-        List<SensitiveSpan> spans = sensitiveContentReader.findSensitiveSpans(blogId);
+        List<SensitiveSpan> spans =
+            blog.sensitiveContent().stream()
+                .flatMap(
+                    span ->
+                        SensitiveTypeEnum.ofCode(span.type()).stream()
+                            .map(
+                                type ->
+                                    new SensitiveSpan(
+                                        type, span.startIndex(), span.endIndex())))
+                .toList();
         if (spans.isEmpty()) {
             return blog;
         }

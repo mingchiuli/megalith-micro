@@ -2,6 +2,7 @@ package wiki.chiu.micro.exhibit.adapter.out.http;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ import wiki.chiu.micro.user.api.UserHttpService;
 
 class UserHttpServiceWrapperTest {
 
-    private final UserHttpService users = org.mockito.Mockito.mock(UserHttpService.class);
+    private final UserHttpService users = mock(UserHttpService.class);
     private final UserHttpServiceWrapper wrapper = new UserHttpServiceWrapper(users);
 
     @Test

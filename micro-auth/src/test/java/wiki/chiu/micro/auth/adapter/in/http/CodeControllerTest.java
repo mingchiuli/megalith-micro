@@ -2,6 +2,7 @@ package wiki.chiu.micro.auth.adapter.in.http;
 
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -34,10 +35,10 @@ class CodeControllerTest {
         mockMvc =
             MockMvcBuilders.routerFunctions(
                     AuthRoutes.routes(
-                        org.mockito.Mockito.mock(AuthHttpHandler.class),
-                        org.mockito.Mockito.mock(TokenHttpHandler.class),
+                        mock(AuthHttpHandler.class),
+                        mock(TokenHttpHandler.class),
                         handler,
-                        org.mockito.Mockito.mock(AuthInternalHttpHandler.class)))
+                        mock(AuthInternalHttpHandler.class)))
                 .build();
     }
 

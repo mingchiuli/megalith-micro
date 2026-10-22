@@ -302,6 +302,9 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
     <el-table-column :label="t('common.status')" align="center">
       <template #default="scope">
         <StatusTag :status="scope.row.status" />
+        <el-tag v-if="scope.row.hasDraft" type="info" class="draft-tag">
+          {{ t('admin.hasDraft') }}
+        </el-tag>
       </template>
     </el-table-column>
 
@@ -374,5 +377,9 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
 
 .el-pagination {
   margin-top: 10px;
+}
+
+.draft-tag {
+  margin-left: 4px;
 }
 </style>

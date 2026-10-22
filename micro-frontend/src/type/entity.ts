@@ -28,6 +28,8 @@ export interface BlogSys {
   readCount?: number
   recentReadCount?: number
   status: Status
+  hasDraft?: boolean
+  draftNewer?: boolean
   link: string
 }
 
@@ -115,6 +117,11 @@ export interface BlogEdit {
   content: string
   link: string
   status: Status
+  draftRevision?: number
+  basePublishedRevisionId?: number
+  publishedRevisionId?: number
+  hasDraft: boolean
+  draftNewer: boolean
   sensitiveContentList: SensitiveItem[]
   permissions: BlogPermissions
 }
@@ -265,6 +272,13 @@ export enum ButtonAuth {
   SYS_DELETE_RESUME = 'system-delete-resume',
   SYS_EDIT_COMMIT = 'system-edit-submit',
   SYS_EDIT_AI = 'system-edit-ai',
+  SYS_EDIT_SAVE_DRAFT = 'system-edit-save-draft',
+  SYS_EDIT_VERSIONS = 'system-edit-versions',
+  SYS_EDIT_VERSION_VIEW = 'system-edit-version-view',
+  SYS_EDIT_VERSION_COMPARE = 'system-edit-version-compare',
+  SYS_EDIT_PUBLISH = 'system-edit-publish',
+  SYS_EDIT_STATUS = 'system-edit-status',
+  SYS_EDIT_RESTORE_VERSION = 'system-edit-restore-version',
 
   SYS_AUTHORITY_CREATE = 'system-authorities-create',
   SYS_AUTHORITY_BATCH_DEL = 'system-authorities-batch-del',
@@ -309,8 +323,50 @@ export interface EditForm {
   description: string
   content: string
   status: Status
+  draftRevision?: number
+  basePublishedRevisionId?: number
+  publishedRevisionId?: number
+  hasDraft?: boolean
+  draftNewer?: boolean
   link: string
   sensitiveContentList: SensitiveItem[]
+}
+
+export interface BlogVersion {
+  id: number
+  blogId: number
+  versionNo: number
+  origin: 'DRAFT' | 'PUBLICATION'
+  baseRevisionId?: number
+  title: string
+  description: string
+  content: string
+  link: string
+  renderMode: 'NORMAL' | 'SENSITIVE_FILTER'
+  firstPublishedAt?: string
+  createdBy: number
+  createdAt: string
+  sensitiveContent: SensitiveItem[]
+  currentPublished?: boolean
+}
+
+export interface BlogVersionComparison {
+  previous: BlogVersion
+  current: BlogVersion
+}
+
+export interface BlogRecommendation {
+  id: number
+  title: string
+  description: string
+  created: string
+  link: string
+  readCount: number
+}
+
+export interface BlogRecommendations {
+  hot: BlogRecommendation[]
+  related: BlogRecommendation[]
 }
 
 export interface SensitiveItem {

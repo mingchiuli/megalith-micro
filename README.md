@@ -165,12 +165,14 @@ flowchart LR
         AuthExchange["user.auth.menu.change.fanout.exchange<br/>AuthCacheEvictMessage"]
         DeletedExchange["user.deleted.fanout.exchange<br/>UserDeletedMessage"]
         BlogExchange["blog.change.fanout.exchange<br/>BlogChangedMessage"]
+        AdminExchange["blog.admin.change.fanout.exchange<br/>BlogAdminIndexMessage"]
     end
 
     subgraph Queues[Durable Consumer Queues]
         AuthQueue["user.auth.menu.change.queue.auth<br/>micro-auth: exact auth-cache eviction"]
         DeletedQueue["user.deleted.queue.blog<br/>micro-blog: delete blogs by user ID"]
         SearchQueue["blog.change.queue.es<br/>micro-search: update Elasticsearch"]
+        AdminQueue["blog.admin.change.queue.es<br/>micro-search: admin/version projections"]
         CacheQueue["blog.change.queue.cache<br/>micro-exhibit: exact cache eviction"]
         RecycleQueue["blog.change.queue.recycle<br/>micro-blog: retain recycle metadata"]
     end
@@ -178,10 +180,12 @@ flowchart LR
     UserOutbox -->|"Poll by eventType<br/>Publisher Confirm"| AuthExchange
     UserOutbox -->|"eventType = UserDeletedMessage<br/>Publisher Confirm"| DeletedExchange
     BlogOutbox -->|"Poll + Publisher Confirm"| BlogExchange
+    BlogOutbox -->|"Poll + Publisher Confirm"| AdminExchange
 
     AuthExchange --> AuthQueue
     DeletedExchange --> DeletedQueue
     BlogExchange --> SearchQueue
+    AdminExchange --> AdminQueue
     BlogExchange --> CacheQueue
     BlogExchange --> RecycleQueue
 
@@ -193,6 +197,7 @@ flowchart LR
 | `AuthCacheEvictMessage` | `micro-user` | `micro-auth` | Invalidate authorization, menu, and route caches |
 | `UserDeletedMessage` | `micro-user` | `micro-blog` | Delete the user's blogs and emit the corresponding blog events |
 | `BlogChangedMessage` | `micro-blog` | `micro-search` | Update the search index |
+| `BlogAdminIndexMessage` | `micro-blog` | `micro-search` | Update admin blog and immutable revision projections |
 | `BlogChangedMessage` | `micro-blog` | `micro-exhibit` | Invalidate presentation caches |
 | `BlogChangedMessage` | `micro-blog` | `micro-blog` | Retain recycle-bin metadata for operator removals |
 
@@ -203,11 +208,12 @@ exhaust their delayed retries are retained in dead-letter queues for investigati
 
 ### Search and caching
 
-Elasticsearch provides full-text search and selects blog IDs for administration lists, filters,
-counts, and exports. MariaDB supplies current content for those IDs, with permissions and filters
-checked again before returning results in search order. Content events carry revisions so index
-consumers can reject stale updates. Article visits update MariaDB counters and the Redis hot list;
-cumulative counts are synchronized to Elasticsearch in batches through idempotent updates.
+Elasticsearch owns the public blog read model and the administration list projections. Public list,
+detail, sensitive-content masking data, and recommendations are served from `blog_search`; admin
+lists use `blog_admin_search`, and version search uses `blog_revision_search`. Editing and version
+diff payloads are read from MariaDB so index lag cannot affect the editor. Content events carry
+monotonic projection revisions so consumers can reject stale updates. Article visits update MariaDB
+counters; cumulative counts are synchronized to Elasticsearch in batches through idempotent updates.
 
 Presentation reads use Caffeine as an in-process L1 cache and Redis as a shared L2 cache. Versioned
 cache keys identify individual results, and a key registry tracks cached pages for invalidation.
@@ -334,15 +340,30 @@ JavaScript and client-side storage.
 
 ### Editor collaboration and drafts
 
-The administration editor combines Yjs real-time collaboration with local draft persistence.
-Document changes synchronize with `micro-sync-rs` over WebSocket and merge through the CRDT.
-IndexedDB stores document drafts and editor metadata under the authenticated user and blog IDs,
-allowing work to survive page reloads while keeping users' drafts separate.
+The administration editor combines Yjs real-time collaboration with local and server draft
+persistence. Document changes synchronize with `micro-sync-rs` over WebSocket and merge through the
+CRDT. IndexedDB buffers offline changes, while `m_blog_draft` stores the current server-side working
+copy. Explicit draft saves create immutable rows in `m_blog_revision`; publishing moves the blog's
+published revision pointer without modifying history. The version page compares the selected
+version with its immediate predecessor.
 
 Collaboration and draft storage run in the browser. Connections use short-lived collaboration
 tickets, and session expiry pauses editing while preserving the local draft for reauthentication.
-The editor supports online collaboration when local storage is unavailable and clears saved
-drafts after successful persistence to the server.
+The editor supports online collaboration when local storage is unavailable. Published blogs open a
+newer active draft automatically; older drafts are retained as read-only history and never override
+the published version. A newer active draft is based on the current published revision and has a
+later saved timestamp.
+
+### Versioned blog migration
+
+The versioned-blog release runs a one-time MariaDB migration before readiness. Hibernate
+`hbm2ddl.auto=update` creates the normalized tables and columns; the migration copies legacy content
+into immutable revisions, creates an initial working draft for legacy `DRAFT` rows, rebuilds index
+projections through the outbox, and then drops the obsolete content columns and sensitive-content
+table. The migration is protected by a MariaDB advisory lock and is safe to rerun after interruption.
+The search service performs the corresponding ES migration before listeners start: it reindexes a
+legacy physical index or an alias still pointing to `blog_index_v4` into a new `blog_search-v6`
+index, switches the alias, and only then deletes the legacy index.
 
 ### Runtime and configuration
 
@@ -367,6 +388,12 @@ authentication, caching, observability, failure behavior, and deployment details
 - **Single-pass authorization:** the gateway calls `POST /inner/auth/route` once to resolve both
   the target service and trusted principal. Business services use the gateway-injected
   `X-Megalith-Principal` as their identity source.
+- **Canonical administration metadata:** `micro-user` applies
+  `script/admin-metadata.sql` after Hibernate schema updates. Pages, buttons, and every
+  gateway-exposed API are keyed by stable menu `name`, role `code`, and authority `code`, then
+  linked to the built-in `admin` role. Route patterns support `*` for one segment and trailing
+  `**` for the remaining path, and a confirmed outbox event evicts authorization caches after
+  startup synchronization.
 - **Two-level caching:** `@Cache` uses explicit versioned namespaces and canonical argument hashes,
   with Caffeine L1 and Redis L2 storage. Reads and exact eviction share distributed key locks;
   invalidations are broadcast to every replica.

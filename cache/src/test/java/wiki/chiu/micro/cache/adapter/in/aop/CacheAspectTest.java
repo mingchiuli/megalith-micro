@@ -2,7 +2,9 @@ package wiki.chiu.micro.cache.adapter.in.aop;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -68,11 +70,11 @@ class CacheAspectTest {
 
         assertThat(aspect.around(point)).isEqualTo("loaded");
 
-        var order = org.mockito.Mockito.inOrder(registry, point, bucket);
+        var order = inOrder(registry, point, bucket);
         order.verify(registry).register(new CacheDescriptor("fixture", 1), KEY);
         order.verify(point).proceed();
         order.verify(bucket).set("\"loaded\"", Duration.ofMinutes(2));
-        verify(registry, never()).unregisterFailedLoad(org.mockito.ArgumentMatchers.any(), anyString());
+        verify(registry, never()).unregisterFailedLoad(any(), anyString());
     }
 
     @Test
@@ -85,7 +87,7 @@ class CacheAspectTest {
 
         assertThat(aspect.around(point)).isEqualTo("source");
         assertThat(local.getIfPresent(KEY)).isNull();
-        verify(bucket, never()).set(anyString(), org.mockito.ArgumentMatchers.any());
+        verify(bucket, never()).set(anyString(), any());
     }
 
     @Test
@@ -109,7 +111,7 @@ class CacheAspectTest {
 
         assertThat(aspect.around(point)).isEqualTo("remote");
 
-        var order = org.mockito.Mockito.inOrder(registry, bucket);
+        var order = inOrder(registry, bucket);
         order.verify(registry).register(new CacheDescriptor("fixture", 1), KEY);
         order.verify(bucket).get();
         assertThat(local.getIfPresent(KEY).value()).isEqualTo("remote");
@@ -137,7 +139,7 @@ class CacheAspectTest {
         when(point.proceed()).thenThrow(new IllegalArgumentException("deleted page"));
 
         assertThatThrownBy(() -> aspect.around(point)).hasMessage("deleted page");
-        verify(registry, never()).unregisterFailedLoad(org.mockito.ArgumentMatchers.any(), anyString());
+        verify(registry, never()).unregisterFailedLoad(any(), anyString());
     }
 
     @AfterEach
@@ -152,7 +154,7 @@ class CacheAspectTest {
 
         assertThat(aspect.around(joinPoint)).isEqualTo("local");
 
-        verify(redisson, never()).getBucket(anyString(), org.mockito.ArgumentMatchers.any());
+        verify(redisson, never()).getBucket(anyString(), any());
         verify(joinPoint, never()).proceed();
     }
 
@@ -191,7 +193,7 @@ class CacheAspectTest {
         assertThat(aspect.around(joinPoint)).isNull();
 
         assertThat(local.getIfPresent(KEY)).isNull();
-        verify(bucket, never()).set(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
+        verify(bucket, never()).set(anyString(), any());
     }
 
     @Test

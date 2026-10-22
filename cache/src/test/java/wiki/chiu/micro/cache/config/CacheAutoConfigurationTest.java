@@ -1,6 +1,7 @@
 package wiki.chiu.micro.cache.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -24,7 +25,7 @@ class CacheAutoConfigurationTest {
         RedissonClient redisson = mock(RedissonClient.class);
         RReliableTopic topic = mock(RReliableTopic.class);
         when(redisson.getReliableTopic(anyString(), eq(StringCodec.INSTANCE))).thenReturn(topic);
-        when(topic.addListener(eq(String.class), org.mockito.ArgumentMatchers.any())).thenReturn("id");
+        when(topic.addListener(eq(String.class), any())).thenReturn("id");
 
         contextRunner()
             .withPropertyValues("megalith.cache.eviction.transport=REDIS")

@@ -3,8 +3,10 @@ import type { FormInstance, FormRules, TagProps } from 'element-plus'
 import { useHttp } from '@/http/http'
 import {
   type BlogEdit,
+  type BlogVersion,
   type BlogPermissions,
   ButtonAuth,
+  Status,
   type EditForm,
   type SensitiveExhibit,
   type SensitiveItem,
@@ -12,6 +14,7 @@ import {
   SensitiveType
 } from '@/type/entity'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
+import BlogVersionPanel from '@/components/sys/BlogVersionPanel.vue'
 import { checkButtonAuth, getButtonTitle, getButtonType } from '@/utils/permissions'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { AI_MODELS } from '@/config/aiConfig'
@@ -51,6 +54,7 @@ const form: EditForm = reactive({
   description: '',
   content: '',
   status: 0,
+  draftRevision: undefined,
   link: '',
   sensitiveContentList: []
 })
@@ -82,6 +86,8 @@ const permissions = ref<BlogPermissions>({
   manageMetadata: false,
   manageAssets: false
 })
+const versionPanelVisible = ref(false)
+const versionPanel = useTemplateRef<InstanceType<typeof BlogVersionPanel>>('versionPanel')
 
 type SensitiveTagsItem = {
   element: SensitiveExhibit
@@ -140,37 +146,113 @@ const handleAiGenerate = async () => {
   await aiGenerate()
 }
 
-const submitForm = async (ref: FormInstance) => {
+type DraftSaveResponse = {
+  blogId: number
+  draftRevision: number
+}
+
+const ensureBlogId = async () => {
+  if (form.id) return form.id
+  const created = await POST<{ id: number }>(API_ENDPOINTS.BLOG_ADMIN.CREATE_DRAFT_BLOG, {})
+  form.id = created.id
+  return created.id
+}
+
+const saveDraft = async (): Promise<BlogVersion> => {
+  if (serverDraftSaveTask !== undefined) {
+    globalThis.clearTimeout(serverDraftSaveTask)
+    serverDraftSaveTask = undefined
+  }
+  const currentBlogId = await ensureBlogId()
+  const savedDraft = await POST<DraftSaveResponse>(
+    API_ENDPOINTS.BLOG_ADMIN.SAVE_DRAFT(currentBlogId),
+    form
+  )
+  form.draftRevision = savedDraft.draftRevision
+  const version = await POST<BlogVersion>(
+    API_ENDPOINTS.BLOG_ADMIN.SAVE_VERSION(currentBlogId),
+    form
+  )
+  lastServerSnapshot = editableSnapshot()
+  return version
+}
+
+const clearLocalDraftAfterSave = async () => {
+  metadataDraftReady = false
+  if (metadataDraftSaveTask !== undefined) {
+    globalThis.clearTimeout(metadataDraftSaveTask)
+    metadataDraftSaveTask = undefined
+  }
+  if (serverDraftSaveTask !== undefined) {
+    globalThis.clearTimeout(serverDraftSaveTask)
+    serverDraftSaveTask = undefined
+  }
+  await Promise.all([
+    clearEditorMetadataDraft(metadataDraftKey),
+    clearYjsDraft(yjsPersistenceKey)
+  ]).catch((error) => {
+    logger.warn('Failed to clear the saved editor draft:', error)
+  })
+}
+
+const saveVersion = async (ref: FormInstance) => {
   if (sessionExpired.value) return
   await ref.validate(async (valid) => {
-    if (valid) {
-      try {
-        submitLoading.value = true
-        await POST<null>(API_ENDPOINTS.BLOG_ADMIN.SAVE_BLOG, form)
-        metadataDraftReady = false
-        if (metadataDraftSaveTask !== undefined) {
-          globalThis.clearTimeout(metadataDraftSaveTask)
-          metadataDraftSaveTask = undefined
-        }
-        await Promise.all([
-          clearEditorMetadataDraft(metadataDraftKey),
-          clearYjsDraft(yjsPersistenceKey)
-        ]).catch((error) => {
-          logger.warn('Failed to clear the saved editor draft:', error)
-        })
-        ElNotification({
-          title: t('common.operationSuccess'),
-          message: t('common.editSuccess'),
-          type: 'success',
-          duration: 1000
-        })
-        router.push({
-          name: 'system-blogs'
-        })
-      } catch {
-        submitLoading.value = false
-      }
+    if (!valid) return
+    try {
+      submitLoading.value = true
+      await saveDraft()
+      await clearLocalDraftAfterSave()
+      ElNotification({
+        title: t('common.operationSuccess'),
+        message: t('admin.saveDraftVersion'),
+        type: 'success',
+        duration: 1000
+      })
+      await versionPanel.value?.refresh()
+    } catch {
+      submitLoading.value = false
     }
+  })
+}
+
+const publish = async (ref: FormInstance) => {
+  if (sessionExpired.value) return
+  await ref.validate(async (valid) => {
+    if (!valid) return
+    try {
+      submitLoading.value = true
+      const version = await saveDraft()
+      await POST<null>(API_ENDPOINTS.BLOG_ADMIN.PUBLISH(form.id!), {
+        revisionId: version.id,
+        accessMode: form.status === Status.BLOCK ? 1 : 0
+      })
+      await clearLocalDraftAfterSave()
+      ElNotification({
+        title: t('common.operationSuccess'),
+        message: t('admin.publish'),
+        type: 'success',
+        duration: 1000
+      })
+      router.push({ name: 'system-blogs' })
+    } catch {
+      submitLoading.value = false
+    }
+  })
+}
+
+const toggleOffline = async () => {
+  if (!form.id) return
+  const offline = form.status !== Status.BLOCK
+  await POST<null>(
+    offline ? API_ENDPOINTS.BLOG_ADMIN.OFFLINE(form.id) : API_ENDPOINTS.BLOG_ADMIN.ONLINE(form.id),
+    {}
+  )
+  form.status = offline ? Status.BLOCK : Status.NORMAL
+  ElNotification({
+    title: t('common.operationSuccess'),
+    message: offline ? t('admin.offline') : t('admin.online'),
+    type: 'success'
   })
 }
 
@@ -213,6 +295,18 @@ const editorReady = ref(false)
 let metadataDraftReady = false
 let metadataDraftRestored = false
 let metadataDraftSaveTask: ReturnType<typeof setTimeout> | undefined
+let serverDraftSaveTask: ReturnType<typeof setTimeout> | undefined
+let lastServerSnapshot = ''
+
+const editableSnapshot = () =>
+  JSON.stringify({
+    title: form.title,
+    description: form.description,
+    content: form.content,
+    status: form.status,
+    link: form.link,
+    sensitiveContentList: form.sensitiveContentList
+  })
 
 const restoreMetadataDraft = async () => {
   if (metadataDraftRestored) return
@@ -245,9 +339,45 @@ const scheduleMetadataDraftSave = () => {
   }, 300)
 }
 
+const scheduleServerDraftSave = () => {
+  if (
+    !form.id ||
+    loadContent.value ||
+    sessionExpired.value ||
+    !checkButtonAuth(ButtonAuth.SYS_EDIT_SAVE_DRAFT)
+  ) {
+    return
+  }
+  if (editableSnapshot() === lastServerSnapshot) return
+  if (serverDraftSaveTask !== undefined) globalThis.clearTimeout(serverDraftSaveTask)
+  serverDraftSaveTask = globalThis.setTimeout(() => {
+    serverDraftSaveTask = undefined
+    void POST<DraftSaveResponse>(API_ENDPOINTS.BLOG_ADMIN.SAVE_DRAFT(form.id!), form)
+      .then((draft) => {
+        form.draftRevision = draft.draftRevision
+        form.hasDraft = true
+        lastServerSnapshot = editableSnapshot()
+      })
+      .catch((error) => logger.warn('Failed to autosave the server draft:', error))
+  }, 1200)
+}
+
 watch(
   () => [form.title, form.description, form.status, form.link, form.sensitiveContentList],
   scheduleMetadataDraftSave,
+  { deep: true }
+)
+
+watch(
+  () => [
+    form.title,
+    form.description,
+    form.content,
+    form.status,
+    form.link,
+    form.sensitiveContentList
+  ],
+  scheduleServerDraftSave,
   { deep: true }
 )
 
@@ -265,10 +395,16 @@ const applyEditContent = (data: BlogEdit) => {
   form.content = data.content
   form.link = data.link
   form.status = data.status
+  form.draftRevision = data.draftRevision
+  form.basePublishedRevisionId = data.basePublishedRevisionId
+  form.publishedRevisionId = data.publishedRevisionId
+  form.hasDraft = data.hasDraft
+  form.draftNewer = data.draftNewer
   form.id = data.id
   form.userId = data.userId
   form.sensitiveContentList = data.sensitiveContentList
   permissions.value = data.permissions
+  lastServerSnapshot = editableSnapshot()
 }
 
 useUniversalData(
@@ -327,6 +463,18 @@ onMounted(() => void loadAiModels())
         </template>
       </BlogMetadataFields>
 
+      <div v-if="form.id" class="version-actions">
+        <el-tag v-if="form.hasDraft" type="info">{{ t('admin.hasDraft') }}</el-tag>
+        <el-button
+          v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_VERSIONS)"
+          @click="versionPanel?.open()"
+          >{{ t('admin.versionHistory') }}</el-button
+        >
+        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_STATUS)" @click="toggleOffline">
+          {{ form.status === Status.BLOCK ? t('admin.online') : t('admin.offline') }}
+        </el-button>
+      </div>
+
       <BlogCoverField
         v-model:link="form.link"
         v-model:generated-dialog-visible="generatedImageDialogVisible"
@@ -358,10 +506,24 @@ onMounted(() => void loadAiModels())
           :loading="submitLoading"
           :type="getButtonType(ButtonAuth.SYS_EDIT_COMMIT)"
           v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)"
-          @click="submitForm(formRef!)"
+          @click="saveVersion(formRef!)"
           >{{ getButtonTitle(ButtonAuth.SYS_EDIT_COMMIT) }}</el-button
         >
+        <el-button
+          :disabled="submitLoading || !permissions.commit || !collaborationReady || sessionExpired"
+          :loading="submitLoading"
+          type="primary"
+          v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_PUBLISH)"
+          @click="publish(formRef!)"
+          >{{ t('admin.publish') }}</el-button
+        >
       </div>
+      <BlogVersionPanel
+        ref="versionPanel"
+        v-if="form.id"
+        v-model:visible="versionPanelVisible"
+        :blog-id="form.id"
+      />
     </el-form>
   </div>
 </template>
@@ -375,6 +537,14 @@ onMounted(() => void loadAiModels())
 .submit-button {
   margin: 10px auto;
   text-align: center;
+}
+
+.version-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .content {

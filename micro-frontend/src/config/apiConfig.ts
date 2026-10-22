@@ -51,6 +51,7 @@ const BLOG_PUBLIC_API = {
   READ_SECRET_BLOG: (id: number | string) => `/public/blog/secret/${id}`,
   // 获取热门博客排行
   GET_HOT_BLOGS: '/public/blog/scores',
+  GET_RECOMMENDATIONS: '/public/blog/recommendations',
   // 获取博客访问统计
   GET_BLOG_STAT: '/public/blog/stat'
 }
@@ -65,8 +66,6 @@ const BLOG_ADMIN_API = {
   LOCK_BLOG: (id: number) => `/sys/blog/lock/${id}`,
   // 下载博客数据
   DOWNLOAD_BLOGS: '/sys/blog/download',
-  // 博客保存/更新
-  SAVE_BLOG: '/sys/blog/save',
   // 获取编辑页面数据
   EDIT_PULL_ECHO: '/sys/blog/edit/pull/echo',
   // OSS图片上传
@@ -75,6 +74,17 @@ const BLOG_ADMIN_API = {
   OSS_DELETE: '/sys/blog/oss/delete',
   // 获取已删除的博客列表
   GET_DELETED_BLOGS: '/sys/blog/deleted',
+  CREATE_DRAFT_BLOG: '/sys/blog/draft/new',
+  SAVE_DRAFT: (id: number) => `/sys/blog/${id}/draft`,
+  DELETE_DRAFT: (id: number) => `/sys/blog/${id}/draft`,
+  SAVE_VERSION: (id: number) => `/sys/blog/${id}/versions`,
+  GET_VERSIONS: (id: number) => `/sys/blog/${id}/versions`,
+  GET_VERSION: (id: number, revisionId: number) => `/sys/blog/${id}/versions/${revisionId}`,
+  COMPARE_VERSION: (id: number, revisionId: number) =>
+    `/sys/blog/${id}/versions/${revisionId}/compare`,
+  PUBLISH: (id: number) => `/sys/blog/${id}/publish`,
+  OFFLINE: (id: number) => `/sys/blog/${id}/offline`,
+  ONLINE: (id: number) => `/sys/blog/${id}/online`,
   // 恢复已删除的博客
   RECOVER_BLOG: (idx: number) => `/sys/blog/recover/${idx}`
 }

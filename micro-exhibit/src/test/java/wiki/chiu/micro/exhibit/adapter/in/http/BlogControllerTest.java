@@ -28,7 +28,6 @@ import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
-import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,9 +35,6 @@ class BlogControllerTest {
 
     @Mock
     private BlogService blogService;
-    @Mock
-    private BlogExistenceService blogExistenceService;
-
     private final ValidatedRequest validation = new ValidatedRequest();
 
     private MockMvc mockMvc;
@@ -47,7 +43,7 @@ class BlogControllerTest {
     void setUp() {
         AuthPrincipal authInfo = new AuthPrincipal(1L, List.of("ROLE_USER"));
         BlogExhibitHttpHandler handler =
-            new BlogExhibitHttpHandler(blogService, validation, blogExistenceService);
+            new BlogExhibitHttpHandler(blogService, validation);
         mockMvc =
             MockMvcBuilders.routerFunctions(ExhibitRoutes.routes(handler))
                 .defaultRequest(

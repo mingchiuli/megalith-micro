@@ -2,6 +2,8 @@ package wiki.chiu.micro.user.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PatchExchange;
@@ -34,7 +36,7 @@ class UserHttpServiceContractTest {
         assertThat(allRoleMethod.getAnnotation(GetExchange.class).value())
             .isEqualTo("/role/authorizations");
         var batchRoleMethod =
-            UserHttpService.class.getMethod("findRoleAuthorizations", java.util.List.class);
+            UserHttpService.class.getMethod("findRoleAuthorizations", List.class);
         assertThat(batchRoleMethod.getAnnotation(PostExchange.class).value())
             .isEqualTo("/role/authorizations");
     }

@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.BooleanSupplier;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -192,7 +193,7 @@ class LocalMiddlewareCacheBenchmarkTest {
                             throw new IllegalStateException(e);
                         }
                     })
-                .collect(java.util.stream.Collectors.toSet());
+                .collect(Collectors.toSet());
         int sourceLoads = firstTarget.singleFlightLoads() + secondTarget.singleFlightLoads();
         assertThat(sourceLoads).isEqualTo(1);
         assertThat(results).hasSize(1);

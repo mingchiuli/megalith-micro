@@ -2,6 +2,7 @@ package wiki.chiu.micro.exhibit.application.port.out;
 
 import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
+import wiki.chiu.micro.exhibit.application.model.BlogRecommendations;
 import wiki.chiu.micro.exhibit.application.model.Page;
 
 /**
@@ -14,4 +15,6 @@ public interface BlogReader {
     void incrementViews(Long id);
 
     Page<BlogDescription> findPage(Integer currentPage);
+
+    BlogRecommendations recommendations(Long blogId, int limit);
 }

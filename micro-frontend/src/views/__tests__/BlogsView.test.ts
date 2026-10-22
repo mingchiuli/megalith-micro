@@ -78,6 +78,7 @@ const PassThroughStub = defineComponent({
 
 const componentStubs = {
   ReadTokenItem: true,
+  RecommendationPanel: true,
   SearchItem: SearchStub,
   ElButton: PassThroughStub,
   ElCard: PassThroughStub,

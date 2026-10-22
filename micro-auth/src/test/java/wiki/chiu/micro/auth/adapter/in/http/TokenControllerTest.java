@@ -1,6 +1,11 @@
 package wiki.chiu.micro.auth.adapter.in.http;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -40,10 +45,10 @@ class TokenControllerTest {
         mockMvc =
             MockMvcBuilders.routerFunctions(
                     AuthRoutes.routes(
-                        org.mockito.Mockito.mock(AuthHttpHandler.class),
+                        mock(AuthHttpHandler.class),
                         handler,
-                        org.mockito.Mockito.mock(CodeHttpHandler.class),
-                        org.mockito.Mockito.mock(AuthInternalHttpHandler.class)))
+                        mock(CodeHttpHandler.class),
+                        mock(AuthInternalHttpHandler.class)))
                 .defaultRequest(
                     get("/")
                         .header(
@@ -60,16 +65,16 @@ class TokenControllerTest {
             .perform(post("/token/refresh").principal(() -> "42"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200))
-            .andExpect(jsonPath("$.data").value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.data").value(nullValue()))
             .andExpect(
                 content()
                     .string(
-                        org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("newtoken"))))
+                        not(containsString("newtoken"))))
             .andExpect(
                 header()
                     .string(
                         "Set-Cookie",
-                        org.hamcrest.Matchers.containsString("megalith_access_token=newtoken")));
+                        containsString("megalith_access_token=newtoken")));
     }
 
     @Test
@@ -103,11 +108,11 @@ class TokenControllerTest {
             .andExpect(
                 result -> {
                     var cookies = result.getResponse().getHeaders("Set-Cookie");
-                    org.junit.jupiter.api.Assertions.assertTrue(
+                    assertTrue(
                         cookies.stream().anyMatch(value -> value.contains("megalith_access_token=")));
-                    org.junit.jupiter.api.Assertions.assertTrue(
+                    assertTrue(
                         cookies.stream().anyMatch(value -> value.contains("megalith_refresh_token=")));
-                    org.junit.jupiter.api.Assertions.assertTrue(
+                    assertTrue(
                         cookies.stream().allMatch(value -> value.contains("Max-Age=0")));
                 })
             .andExpect(jsonPath("$.code").value(200));

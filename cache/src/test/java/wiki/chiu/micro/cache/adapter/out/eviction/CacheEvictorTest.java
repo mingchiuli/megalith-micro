@@ -3,6 +3,7 @@ package wiki.chiu.micro.cache.adapter.out.eviction;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.AdditionalMatchers.aryEq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -72,7 +73,7 @@ class CacheEvictorTest {
             .hasMessageContaining("Timed out waiting to evict cache key b");
 
         assertThat(local.getIfPresent("a")).isNotNull();
-        verify(remoteKeys, never()).delete(org.mockito.ArgumentMatchers.<String[]>any());
+        verify(remoteKeys, never()).delete(any(String[].class));
         verify(first).unlock();
         assertThat(evictor.message).isNull();
     }

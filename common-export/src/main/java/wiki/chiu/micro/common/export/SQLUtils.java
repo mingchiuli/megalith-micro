@@ -1,5 +1,6 @@
 package wiki.chiu.micro.common.export;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -62,7 +63,7 @@ public final class SQLUtils {
             return "'" + localDate.format(DATE_FORMATTER) + "'";
         }
         if (value instanceof Date date) {
-            return "'" + new java.sql.Timestamp(date.getTime()) + "'";
+            return "'" + new Timestamp(date.getTime()) + "'";
         }
         return "'" + escapeSqlString(String.valueOf(value)) + "'";
     }

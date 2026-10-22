@@ -3,6 +3,8 @@ package wiki.chiu.micro.auth.adapter.in.http;
 import static wiki.chiu.micro.common.auth.web.AuthWeb.authPrincipal;
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 
+import java.security.Principal;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -46,7 +48,7 @@ public class TokenHttpHandler {
     private Long authenticatedUserId(ServerRequest request) {
         return request
             .principal()
-            .map(java.security.Principal::getName)
+            .map(Principal::getName)
             .map(Long::valueOf)
             .orElseThrow(() -> new IllegalStateException("Authenticated principal is missing"));
     }

@@ -2,6 +2,7 @@ package wiki.chiu.micro.common.auth.web;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 
 import tools.jackson.databind.json.JsonMapper;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
@@ -60,7 +61,7 @@ public final class AuthPrincipalCodec {
         }
         List<DataPermissionEnum> dataPermissions =
             principal.dataPermissions() == null ? List.of() : principal.dataPermissions();
-        if (dataPermissions.stream().anyMatch(java.util.Objects::isNull)) {
+        if (dataPermissions.stream().anyMatch(Objects::isNull)) {
             throw new ValidationException("invalid internal principal dataPermissions");
         }
         if (principal.userId() == 0L && !dataPermissions.isEmpty()) {
