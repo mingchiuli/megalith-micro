@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
@@ -185,12 +186,11 @@ class BlogSearchControllerTest {
     @Test
     void internalViewMutationUsesExplicitViewsPath() throws Exception {
         mockMvc.perform(post("/inner/blog/views/batch")
-            .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
             .content("[{\"blogId\":7,\"readCount\":120}]"))
             .andExpect(status().isOk());
 
-        verify(searchBlogs).updateReadCounts(java.util.List.of(
-            new wiki.chiu.micro.search.application.model.BlogReadCount(7L, 120L)));
+        verify(searchBlogs).updateReadCounts(List.of(new BlogReadCount(7L, 120L)));
     }
 
     @Test

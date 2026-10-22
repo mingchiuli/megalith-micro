@@ -23,6 +23,7 @@ import wiki.chiu.micro.search.application.port.out.BlogIndexMaintenance;
 public final class ElasticsearchIndexMaintenanceAdapter implements BlogIndexMaintenance {
 
     private static final Logger log = LoggerFactory.getLogger(ElasticsearchIndexMaintenanceAdapter.class);
+    private final ElasticsearchClient client;
     private final ElasticsearchIndicesClient indices;
     private final ElasticsearchTemplate template;
     private final String alias;
@@ -33,6 +34,7 @@ public final class ElasticsearchIndexMaintenanceAdapter implements BlogIndexMain
         if (!alias.matches("[a-z0-9][a-z0-9_-]*")) {
             throw new IllegalArgumentException("invalid search index alias");
         }
+        this.client = client;
         this.indices = client.indices();
         this.template = template;
         this.alias = alias;
@@ -42,22 +44,84 @@ public final class ElasticsearchIndexMaintenanceAdapter implements BlogIndexMain
     public void ensureAlias() {
         try {
             if (indices.existsAlias(request -> request.name(alias)).value()) {
-                currentIndex();
+                String active = currentIndex();
+                if (legacyIndex.equals(active)) {
+                    String target = migrateIndex(legacyIndex);
+                    activate(legacyIndex, target);
+                }
+                cleanupLegacyIndex();
                 return;
             }
             if (indices.exists(request -> request.index(alias)).value()) {
-                throw new IllegalStateException("search alias name is occupied by a physical index: " + alias);
+                migratePhysicalIndexNamedAsAlias();
+                cleanupLegacyIndex();
+                return;
             }
-            String target = indices.exists(request -> request.index(legacyIndex)).value()
-                ? legacyIndex : createIndex();
+            String target =
+                indices.exists(request -> request.index(legacyIndex)).value()
+                    ? migrateIndex(legacyIndex)
+                    : createIndex();
             var result = indices.updateAliases(request -> request.actions(action ->
                 action.add(add -> add.index(target).alias(alias).isWriteIndex(true))));
             if (!result.acknowledged()) {
                 throw new IllegalStateException("search alias initialization was not acknowledged");
             }
+            cleanupLegacyIndex();
         } catch (IOException failure) {
             throw new UncheckedIOException(failure);
         }
+    }
+
+    private void migratePhysicalIndexNamedAsAlias() throws IOException {
+        String target = migrateIndex(alias);
+        if (!indices.delete(request -> request.index(alias)).acknowledged()) {
+            throw new IllegalStateException("search physical index deletion was not acknowledged: " + alias);
+        }
+        var result =
+            indices.updateAliases(
+                request ->
+                    request.actions(
+                        action ->
+                            action.add(
+                                add ->
+                                    add.index(target)
+                                        .alias(alias)
+                                        .isWriteIndex(true))));
+        if (!result.acknowledged()) {
+            throw new IllegalStateException("search alias migration was not acknowledged: " + alias);
+        }
+        log.info("Migrated physical index {} to {} and installed alias", alias, target);
+    }
+
+    private String migrateIndex(String source) throws IOException {
+        String target = createIndex();
+        var response =
+            client.reindex(
+                request ->
+                    request.source(value -> value.index(source))
+                        .dest(destination -> destination.index(target))
+                        .waitForCompletion(true));
+        if (response.timedOut()
+            || (response.failures() != null && !response.failures().isEmpty())) {
+            throw new IllegalStateException("search index reindex failed: " + source + " -> " + target);
+        }
+        template.indexOps(IndexCoordinates.of(target)).refresh();
+        return target;
+    }
+
+    private void cleanupLegacyIndex() throws IOException {
+        if (alias.equals(legacyIndex)
+            || !indices.exists(request -> request.index(legacyIndex)).value()) {
+            return;
+        }
+        String active = currentIndex();
+        if (legacyIndex.equals(active)) {
+            throw new IllegalStateException("legacy search index is still active: " + legacyIndex);
+        }
+        if (!indices.delete(request -> request.index(legacyIndex)).acknowledged()) {
+            throw new IllegalStateException("legacy search index deletion was not acknowledged: " + legacyIndex);
+        }
+        log.info("Deleted legacy search index {}", legacyIndex);
     }
 
     @Override
@@ -75,7 +139,7 @@ public final class ElasticsearchIndexMaintenanceAdapter implements BlogIndexMain
 
     @Override
     public String createIndex() {
-        String target = alias + "-v5-" + UUID.randomUUID();
+        String target = alias + "-v6-" + UUID.randomUUID();
         var operations = template.indexOps(IndexCoordinates.of(target));
         if (!operations.create(Map.of(), operations.createMapping(BlogDocument.class))) {
             throw new IllegalStateException("search index creation failed: " + target);

@@ -10,5 +10,27 @@ public record PrivateBlogSearchQuery(
     LocalDateTime createStart,
     LocalDateTime createEnd,
     long userId,
-    boolean allData) {
+    boolean allData,
+    boolean draftOnly) {
+
+    public PrivateBlogSearchQuery(
+        int page,
+        int pageSize,
+        String keywords,
+        Integer status,
+        LocalDateTime createStart,
+        LocalDateTime createEnd,
+        long userId,
+        boolean allData) {
+        this(
+            page,
+            pageSize,
+            keywords,
+            status,
+            createStart,
+            createEnd,
+            userId,
+            allData,
+            false);
+    }
 }

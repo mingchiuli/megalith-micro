@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.ChannelCallback;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -38,7 +40,7 @@ class SearchRebuildGuardTest {
         when(rabbit.execute(any())).thenAnswer(call -> ((ChannelCallback<?>) call.getArgument(0)).doInRabbit(channel));
         var guard = new SearchRebuildGuard(mock(RedisTaskLock.class), rabbit, true);
 
-        for (String queue : java.util.List.of(Const.ES_QUEUE + ".retry.3", RetryTopology.deadLetterQueue(Const.ES_QUEUE))) {
+        for (String queue : List.of(Const.ES_QUEUE + ".retry.3", RetryTopology.deadLetterQueue(Const.ES_QUEUE))) {
             when(channel.queueDeclarePassive(anyString())).thenReturn(empty);
             var pending = mock(AMQP.Queue.DeclareOk.class);
             when(pending.getMessageCount()).thenReturn(1);

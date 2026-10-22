@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.blog.api.BlogIndexSourceHttpService;
+import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.rpc.RemoteResult;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.model.IndexSourceStatus;
@@ -30,8 +31,24 @@ public class BlogIndexSourceHttpAdapter implements BlogIndexSource {
     public List<BlogIndexChange> snapshots(long afterId, int limit) {
         return RemoteResult.requireSuccess(() -> blogs.indexSnapshots(afterId, limit)).stream()
             .map(blog -> new BlogIndexChange(BlogIndexChange.Operation.CREATE, blog.revision(),
-                new BlogIndexEntry(blog.id(), blog.userId(), blog.status(), blog.readCount(),
-                    blog.title(), blog.description(), blog.content(), blog.created(), blog.updated())))
+                new BlogIndexEntry(
+                    blog.id(),
+                    blog.userId(),
+                    blog.status(),
+                    blog.readCount(),
+                    blog.title(),
+                    blog.description(),
+                    blog.content(),
+                    blog.link(),
+                    blog.created(),
+                    blog.updated(),
+                    blog.publishedRevisionId(),
+                    null,
+                    blog.publishedAt(),
+                    blog.offlineAt(),
+                    blog.accessMode(),
+                    BlogRenderMode.of(blog.renderMode()),
+                    blog.sensitiveContent() == null ? List.of() : blog.sensitiveContent())))
             .toList();
     }
 }

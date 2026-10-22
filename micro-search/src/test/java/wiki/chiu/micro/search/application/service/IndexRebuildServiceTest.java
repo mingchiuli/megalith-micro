@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -45,7 +46,7 @@ class IndexRebuildServiceTest {
         var result = service.rebuild();
 
         assertThat(result.documents()).isEqualTo(3);
-        var order = org.mockito.Mockito.inOrder(indexes);
+        var order = inOrder(indexes);
         order.verify(indexes).currentIndex();
         order.verify(indexes).createIndex();
         order.verify(indexes).writeSnapshots("new", List.of(snapshot(7), snapshot(9)));

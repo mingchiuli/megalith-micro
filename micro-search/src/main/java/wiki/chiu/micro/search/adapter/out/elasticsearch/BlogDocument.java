@@ -1,6 +1,7 @@
 package wiki.chiu.micro.search.adapter.out.elasticsearch;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.data.annotation.Id;
@@ -8,6 +9,9 @@ import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import wiki.chiu.micro.common.enums.BlogRenderMode;
+import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 
 /**
  * @author mingchiuli
@@ -31,6 +35,27 @@ public class BlogDocument {
     @Field(type = FieldType.Long)
     private Long revision;
 
+    @Field(type = FieldType.Long)
+    private Long publishedRevisionId;
+
+    @Field(type = FieldType.Long)
+    private Long versionNo;
+
+    @Field(type = FieldType.Byte)
+    private Integer accessMode;
+
+    @Field(type = FieldType.Keyword)
+    private BlogRenderMode renderMode;
+
+    @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
+    private ZonedDateTime publishedAt;
+
+    @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
+    private ZonedDateTime offlineAt;
+
+    @Field(type = FieldType.Nested)
+    private List<BlogSensitiveSpan> sensitiveContent;
+
     @Field(type = FieldType.Boolean)
     private Boolean deleted;
 
@@ -42,6 +67,9 @@ public class BlogDocument {
 
     @Field(type = FieldType.Text, searchAnalyzer = "ik_smart", analyzer = "ik_max_word")
     private String content;
+
+    @Field(type = FieldType.Keyword)
+    private String link;
 
     @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
     private ZonedDateTime created;
@@ -57,10 +85,18 @@ public class BlogDocument {
         String title,
         String description,
         String content,
+        String link,
         ZonedDateTime created,
         ZonedDateTime updated,
         Long revision,
-        Boolean deleted) {
+        Boolean deleted,
+        Long publishedRevisionId,
+        Long versionNo,
+        Integer accessMode,
+        BlogRenderMode renderMode,
+        ZonedDateTime publishedAt,
+        ZonedDateTime offlineAt,
+        List<BlogSensitiveSpan> sensitiveContent) {
         this.id = id;
         this.userId = userId;
         this.status = status;
@@ -68,10 +104,18 @@ public class BlogDocument {
         this.title = title;
         this.description = description;
         this.content = content;
+        this.link = link;
         this.created = created;
         this.updated = updated;
         this.revision = revision;
         this.deleted = deleted;
+        this.publishedRevisionId = publishedRevisionId;
+        this.versionNo = versionNo;
+        this.accessMode = accessMode;
+        this.renderMode = renderMode;
+        this.publishedAt = publishedAt;
+        this.offlineAt = offlineAt;
+        this.sensitiveContent = sensitiveContent;
     }
 
     public static BlogDocumentBuilder builder() {
@@ -102,6 +146,10 @@ public class BlogDocument {
         return this.content;
     }
 
+    public String getLink() {
+        return link;
+    }
+
     public Long getReadCount() {
         return readCount;
     }
@@ -120,6 +168,34 @@ public class BlogDocument {
 
     public Long getRevision() {
         return revision;
+    }
+
+    public Long getPublishedRevisionId() {
+        return publishedRevisionId;
+    }
+
+    public Long getVersionNo() {
+        return versionNo;
+    }
+
+    public Integer getAccessMode() {
+        return accessMode;
+    }
+
+    public BlogRenderMode getRenderMode() {
+        return renderMode;
+    }
+
+    public ZonedDateTime getPublishedAt() {
+        return publishedAt;
+    }
+
+    public ZonedDateTime getOfflineAt() {
+        return offlineAt;
+    }
+
+    public List<BlogSensitiveSpan> getSensitiveContent() {
+        return sensitiveContent;
     }
 
     public Boolean getDeleted() {
@@ -196,10 +272,18 @@ public class BlogDocument {
         private String title;
         private String description;
         private String content;
+        private String link;
         private ZonedDateTime created;
         private ZonedDateTime updated;
         private Long revision;
         private Boolean deleted;
+        private Long publishedRevisionId;
+        private Long versionNo;
+        private Integer accessMode;
+        private BlogRenderMode renderMode;
+        private ZonedDateTime publishedAt;
+        private ZonedDateTime offlineAt;
+        private List<BlogSensitiveSpan> sensitiveContent;
 
         public BlogDocumentBuilder id(Long id) {
             this.id = id;
@@ -236,6 +320,11 @@ public class BlogDocument {
             return this;
         }
 
+        public BlogDocumentBuilder link(String link) {
+            this.link = link;
+            return this;
+        }
+
         public BlogDocumentBuilder created(ZonedDateTime created) {
             this.created = created;
             return this;
@@ -256,6 +345,41 @@ public class BlogDocument {
             return this;
         }
 
+        public BlogDocumentBuilder publishedRevisionId(Long publishedRevisionId) {
+            this.publishedRevisionId = publishedRevisionId;
+            return this;
+        }
+
+        public BlogDocumentBuilder versionNo(Long versionNo) {
+            this.versionNo = versionNo;
+            return this;
+        }
+
+        public BlogDocumentBuilder accessMode(Integer accessMode) {
+            this.accessMode = accessMode;
+            return this;
+        }
+
+        public BlogDocumentBuilder renderMode(BlogRenderMode renderMode) {
+            this.renderMode = renderMode;
+            return this;
+        }
+
+        public BlogDocumentBuilder publishedAt(ZonedDateTime publishedAt) {
+            this.publishedAt = publishedAt;
+            return this;
+        }
+
+        public BlogDocumentBuilder offlineAt(ZonedDateTime offlineAt) {
+            this.offlineAt = offlineAt;
+            return this;
+        }
+
+        public BlogDocumentBuilder sensitiveContent(List<BlogSensitiveSpan> sensitiveContent) {
+            this.sensitiveContent = sensitiveContent;
+            return this;
+        }
+
         public BlogDocument build() {
             return new BlogDocument(
                 id,
@@ -265,10 +389,18 @@ public class BlogDocument {
                 title,
                 description,
                 content,
+                link,
                 created,
                 updated,
                 revision,
-                deleted);
+                deleted,
+                publishedRevisionId,
+                versionNo,
+                accessMode,
+                renderMode,
+                publishedAt,
+                offlineAt,
+                sensitiveContent);
         }
     }
 }

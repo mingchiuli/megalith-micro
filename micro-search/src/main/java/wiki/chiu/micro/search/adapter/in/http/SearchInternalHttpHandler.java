@@ -1,6 +1,9 @@
 package wiki.chiu.micro.search.adapter.in.http;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
+import static wiki.chiu.micro.common.web.FunctionalWeb.nullableParam;
+import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
+import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 import java.util.List;
 
@@ -13,13 +16,27 @@ import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.search.api.SearchHttpService;
 import wiki.chiu.micro.search.api.req.BlogReadCountReq;
+import wiki.chiu.micro.search.api.req.BlogRevisionSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
+import wiki.chiu.micro.search.api.vo.AdminBlogRpcVo;
+import wiki.chiu.micro.search.api.vo.AdminBlogSearchRpcVo;
+import wiki.chiu.micro.search.api.vo.AdminRevisionRpcVo;
+import wiki.chiu.micro.search.api.vo.AdminRevisionSearchRpcVo;
+import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
+import wiki.chiu.micro.search.api.vo.RecommendationRpcVo;
 import wiki.chiu.micro.search.application.model.BlogReadCount;
+import wiki.chiu.micro.search.application.model.AdminBlogRead;
+import wiki.chiu.micro.search.application.model.AdminRevisionRead;
+import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.BlogSearchResult;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
+import wiki.chiu.micro.search.application.model.PublicBlogRead;
+import wiki.chiu.micro.search.application.model.RecommendationResult;
+import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
 import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
+import wiki.chiu.micro.common.page.PageAdapter;
 
 @Component
 public class SearchInternalHttpHandler implements SearchHttpService {
@@ -54,9 +71,75 @@ public class SearchInternalHttpHandler implements SearchHttpService {
         return ok(updateReadCounts(counts));
     }
 
+    public ServerResponse searchAdminBlogs(ServerRequest request) throws Exception {
+        return ok(searchAdminBlogs(SearchRequestConvertor.toBlogSysSearchReq(request)));
+    }
+
+    public ServerResponse searchRevisions(ServerRequest request) throws Exception {
+        BlogRevisionSearchReq req = request.body(BlogRevisionSearchReq.class);
+        return ok(searchRevisions(req));
+    }
+
+    public ServerResponse publicPage(ServerRequest request) {
+        Integer page = v.positive(requiredParam(request, "page", Integer::valueOf), "page");
+        Integer size = v.range(requiredParam(request, "size", Integer::valueOf), 1, 50, "size");
+        return ok(publicPage(page, size));
+    }
+
+    public ServerResponse publicBlog(ServerRequest request) {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        return ok(publicBlog(blogId));
+    }
+
+    public ServerResponse recommendations(ServerRequest request) {
+        Long blogId = nullableParam(request, "blogId", Long::valueOf);
+        Integer limit = v.range(requiredParam(request, "limit", Integer::valueOf), 1, 20, "limit");
+        return ok(recommendations(blogId, limit));
+    }
+
     @Override
     public Result<BlogSearchRpcVo> searchBlogs(BlogSysSearchReq req) {
         return Result.success(() -> toResponse(searchBlogs.searchPrivate(toQuery(req))));
+    }
+
+    @Override
+    public Result<AdminBlogSearchRpcVo> searchAdminBlogs(BlogSysSearchReq req) {
+        Page<AdminBlogRead> page = searchBlogs.searchAdmin(toQuery(req));
+        return Result.success(
+            () ->
+                new AdminBlogSearchRpcVo(
+                    page.totalElements(),
+                    page.pageNumber(),
+                    page.pageSize(),
+                    page.content().stream()
+                        .map(SearchInternalHttpHandler::toResponse)
+                        .toList()));
+    }
+
+    @Override
+    public Result<AdminRevisionSearchRpcVo> searchRevisions(BlogRevisionSearchReq req) {
+        v.positive(req.blogId(), "blogId");
+        v.positive(req.page(), "page");
+        v.range(req.pageSize(), 1, 100, "pageSize");
+        v.positive(req.userId(), "userId");
+        Page<AdminRevisionRead> page =
+            searchBlogs.searchRevisions(
+                new RevisionSearchQuery(
+                    req.blogId(),
+                    req.page(),
+                    req.pageSize(),
+                    req.keywords(),
+                    req.userId(),
+                    Boolean.TRUE.equals(req.allData())));
+        return Result.success(
+            () ->
+                new AdminRevisionSearchRpcVo(
+                    page.totalElements(),
+                    page.pageNumber(),
+                    page.pageSize(),
+                    page.content().stream()
+                        .map(SearchInternalHttpHandler::toResponse)
+                        .toList()));
     }
 
     @Override
@@ -70,6 +153,35 @@ public class SearchInternalHttpHandler implements SearchHttpService {
             counts.stream().map(count -> new BlogReadCount(count.blogId(), count.readCount())).toList()));
     }
 
+    @Override
+    public Result<PageAdapter<PublicBlogRpcVo>> publicPage(Integer page, Integer size) {
+        Page<PublicBlogRead> result = searchBlogs.publicPage(page, size);
+        return Result.success(
+            () ->
+                PageResponse.of(
+                    result,
+                    result.content().stream()
+                        .map(SearchInternalHttpHandler::toResponse)
+                        .toList()));
+    }
+
+    @Override
+    public Result<PublicBlogRpcVo> publicBlog(Long blogId) {
+        return Result.success(() -> toResponse(searchBlogs.findPublic(blogId)));
+    }
+
+    @Override
+    public Result<RecommendationRpcVo> recommendations(Long blogId, Integer limit) {
+        RecommendationResult result = searchBlogs.recommendations(blogId, limit);
+        return Result.success(
+            () ->
+                new RecommendationRpcVo(
+                    result.hot().stream().map(SearchInternalHttpHandler::toResponse).toList(),
+                    result.related().stream()
+                        .map(SearchInternalHttpHandler::toResponse)
+                        .toList()));
+    }
+
     private static PrivateBlogSearchQuery toQuery(BlogSysSearchReq req) {
         return new PrivateBlogSearchQuery(
             req.page(),
@@ -79,7 +191,8 @@ public class SearchInternalHttpHandler implements SearchHttpService {
             req.createStart(),
             req.createEnd(),
             req.userId(),
-            req.allData());
+            req.allData(),
+            Boolean.TRUE.equals(req.draftOnly()));
     }
 
     private static PrivateBlogSearchQuery toQuery(BlogSysCountSearchReq req) {
@@ -91,7 +204,8 @@ public class SearchInternalHttpHandler implements SearchHttpService {
             req.createStart(),
             req.createEnd(),
             req.userId(),
-            req.allData());
+            req.allData(),
+            false);
     }
 
     private static BlogSearchRpcVo toResponse(BlogSearchResult result) {
@@ -101,5 +215,66 @@ public class SearchInternalHttpHandler implements SearchHttpService {
             .size(result.pageSize())
             .total(result.total())
             .build();
+    }
+
+    private static PublicBlogRpcVo toResponse(PublicBlogRead blog) {
+        return new PublicBlogRpcVo(
+            blog.id(),
+            blog.userId(),
+            blog.publishedRevisionId(),
+            blog.versionNo(),
+            blog.title(),
+            blog.description(),
+            blog.content(),
+            blog.link(),
+            blog.readCount(),
+            blog.created(),
+            blog.publishedAt(),
+            blog.offlineAt(),
+            blog.accessMode(),
+            blog.renderMode(),
+            blog.sensitiveContent());
+    }
+
+    private static AdminBlogRpcVo toResponse(AdminBlogRead blog) {
+        return new AdminBlogRpcVo(
+            blog.id(),
+            blog.userId(),
+            blog.publishedRevisionId(),
+            blog.publicationRevision(),
+            blog.adminRevision(),
+            blog.title(),
+            blog.description(),
+            blog.content(),
+            blog.link(),
+            blog.readCount(),
+            blog.created(),
+            blog.updated(),
+            blog.status(),
+            blog.accessMode(),
+            blog.renderMode(),
+            blog.hasDraft(),
+            blog.draftNewer(),
+            blog.draftRevision(),
+            blog.basePublishedRevisionId(),
+            blog.draftUpdatedAt());
+    }
+
+    private static AdminRevisionRpcVo toResponse(AdminRevisionRead revision) {
+        return new AdminRevisionRpcVo(
+            revision.id(),
+            revision.blogId(),
+            revision.versionNo(),
+            revision.origin(),
+            revision.baseRevisionId(),
+            revision.title(),
+            revision.description(),
+            revision.content(),
+            revision.link(),
+            revision.renderMode(),
+            revision.firstPublishedAt(),
+            revision.createdBy(),
+            revision.createdAt(),
+            revision.currentPublished());
     }
 }

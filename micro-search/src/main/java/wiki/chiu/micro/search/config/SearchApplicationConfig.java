@@ -3,12 +3,10 @@ package wiki.chiu.micro.search.config;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 
-import wiki.chiu.micro.common.scheduling.RedisTaskLock;
 import wiki.chiu.micro.search.adapter.out.elasticsearch.ElasticsearchBlogAdapter;
 import wiki.chiu.micro.search.adapter.out.elasticsearch.ElasticsearchIndexMaintenanceAdapter;
 import wiki.chiu.micro.search.application.port.in.ApplyBlogIndexChangeUseCase;
@@ -30,8 +28,16 @@ public class SearchApplicationConfig {
     ElasticsearchBlogAdapter elasticsearchBlogAdapter(
         ElasticsearchTemplate elasticsearchTemplate,
         @Value("${megalith.blog.blog-page-size}") int publicPageSize,
-        @Value("${megalith.search.index.alias:blog_search}") String alias) {
-        return new ElasticsearchBlogAdapter(elasticsearchTemplate, publicPageSize, alias);
+        @Value("${megalith.search.index.alias:blog_search}") String alias,
+        @Value("${megalith.search.index.admin-alias:blog_admin_search}") String adminAlias,
+        @Value("${megalith.search.index.revision-alias:blog_revision_search}")
+            String revisionAlias) {
+        return new ElasticsearchBlogAdapter(
+            elasticsearchTemplate,
+            publicPageSize,
+            alias,
+            adminAlias,
+            revisionAlias);
     }
 
     @Bean
@@ -40,14 +46,6 @@ public class SearchApplicationConfig {
         @Value("${megalith.search.index.alias:blog_search}") String alias,
         @Value("${megalith.search.index.legacy-name:blog_index_v4}") String legacyIndex) {
         return new ElasticsearchIndexMaintenanceAdapter(client, template, alias, legacyIndex);
-    }
-
-    @Bean
-    ApplicationRunner initializeSearchAlias(ElasticsearchIndexMaintenanceAdapter indexes, RedisTaskLock lock) {
-        return _ -> lock.run("search:index-rebuild", () -> {
-            indexes.ensureAlias();
-            return null;
-        });
     }
 
     @Bean

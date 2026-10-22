@@ -1,13 +1,17 @@
 package wiki.chiu.micro.search.adapter.in.messaging;
 
+import java.util.List;
+
 import com.rabbitmq.client.Channel;
 
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.common.constant.Const;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
+import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
 import wiki.chiu.micro.common.model.BlogSnapshot;
@@ -26,7 +30,8 @@ public class BlogMessageListener {
     private final RetryingMessageRecoverer recoverer;
 
     public BlogMessageListener(
-        ApplyBlogIndexChangeUseCase applyBlogIndexChange, RetryingMessageRecoverer recoverer) {
+        ApplyBlogIndexChangeUseCase applyBlogIndexChange,
+        @Qualifier("searchMessageRecoverer") RetryingMessageRecoverer recoverer) {
         this.applyBlogIndexChange = applyBlogIndexChange;
         this.recoverer = recoverer;
     }
@@ -66,7 +71,15 @@ public class BlogMessageListener {
                 blog.title(),
                 blog.description(),
                 blog.content(),
+                blog.link(),
                 blog.created(),
-                blog.updated()));
+                blog.updated(),
+                blog.publishedRevisionId(),
+                null,
+                blog.publishedAt(),
+                blog.offlineAt(),
+                blog.accessMode(),
+                BlogRenderMode.of(blog.renderMode()),
+                blog.sensitiveContent() == null ? List.of() : blog.sensitiveContent()));
     }
 }

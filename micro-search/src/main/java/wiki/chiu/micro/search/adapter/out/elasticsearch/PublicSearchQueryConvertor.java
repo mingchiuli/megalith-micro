@@ -96,9 +96,8 @@ public class PublicSearchQueryConvertor {
                                                         .filter(
                                                             filter ->
                                                                 filter.term(
-                                                                    termQry ->
-                                                                        termQry
-                                                                            .field(STATUS.getField())
+                                                                    term ->
+                                                                        term.field(STATUS.getField())
                                                                             .value(
                                                                                 BlogStatusEnum.NORMAL
                                                                                     .getCode())))))
