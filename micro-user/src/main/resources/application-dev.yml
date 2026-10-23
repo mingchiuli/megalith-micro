@@ -18,6 +18,14 @@ spring:
       host: 127.0.0.1
 
 megalith:
+  admin-metadata:
+    hosts:
+      auth: localhost
+      user: localhost
+      blog: localhost
+      sync: localhost
+      exhibit: localhost
+      search: localhost
   blog:
     auth-url: http://127.0.0.1:8081/inner
     register:

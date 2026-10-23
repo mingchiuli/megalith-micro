@@ -379,6 +379,7 @@ graceful shutdown, and exports correlated OpenTelemetry traces, metrics, and log
 | `OTEL_SERVICE_VERSION` | Package version / deployed Git SHA | Frontend release identifier |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://127.0.0.1:8200` / `http://apm-server:8200` | Base OTLP endpoint for traces, metrics, and logs |
 | `LOG_LEVEL` | `info` | Console and OTLP application log threshold |
+| `MEGALITH_ADMIN_METADATA_HOSTS_*` | Docker service names / `localhost` in development | Downstream hosts injected into canonical route metadata |
 
 See the [SSR architecture](micro-frontend/docs/ssr-architecture.md) for request flow,
 authentication, caching, observability, failure behavior, and deployment details.

@@ -43,6 +43,7 @@ import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepositor
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRoleRepository;
 import wiki.chiu.micro.user.config.AdminMetadataInitializer;
+import wiki.chiu.micro.user.config.AdminMetadataProperties;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuAuthorityEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleDataPermissionEntity;
@@ -116,7 +117,10 @@ class PersistenceQueryIntegrationTest {
     void adminMetadataInitializationIsIdempotentAndAuthorizesCanonicalEndpoints() {
         DataSource dataSource = context.getBean(DataSource.class);
         AdminMetadataInitializer initializer =
-            new AdminMetadataInitializer(dataSource, mock(AuthCacheEvictionOutbox.class));
+            new AdminMetadataInitializer(
+                dataSource,
+                mock(AuthCacheEvictionOutbox.class),
+                new AdminMetadataProperties());
 
         initializer.run(null);
         int menuCount = count("SELECT COUNT(*) FROM m_menu");
@@ -192,6 +196,17 @@ class PersistenceQueryIntegrationTest {
                 "sys:blog:offline",
                 "sys:blog:online",
                 "whitelist:blog:recommendations");
+        assertThat(
+                jdbc.queryForList(
+                    "SELECT DISTINCT service_host FROM m_authority WHERE status = 0",
+                    String.class))
+            .containsExactlyInAnyOrder(
+                "micro-auth",
+                "micro-user",
+                "micro-blog",
+                "micro-sync-rs",
+                "micro-exhibit",
+                "micro-search");
     }
 
     @Test

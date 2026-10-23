@@ -1,5 +1,7 @@
 package wiki.chiu.micro.user.config;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,7 +15,9 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.EncodedResource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.stereotype.Component;
 
@@ -32,11 +36,15 @@ public class AdminMetadataInitializer implements ApplicationRunner {
 
     private final DataSource dataSource;
     private final AuthCacheEvictionOutbox cacheEvictions;
+    private final AdminMetadataProperties properties;
 
     public AdminMetadataInitializer(
-        DataSource dataSource, AuthCacheEvictionOutbox cacheEvictions) {
+        DataSource dataSource,
+        AuthCacheEvictionOutbox cacheEvictions,
+        AdminMetadataProperties properties) {
         this.dataSource = dataSource;
         this.cacheEvictions = cacheEvictions;
+        this.properties = properties;
     }
 
     @Override
@@ -46,16 +54,32 @@ public class AdminMetadataInitializer implements ApplicationRunner {
                 throw new IllegalStateException("admin metadata lock is held by another replica");
             }
             try {
-                ScriptUtils.executeSqlScript(connection, new ClassPathResource(SCRIPT));
+                ScriptUtils.executeSqlScript(connection, renderedScript());
                 long adminRoleId = findAdminRoleId(connection);
                 cacheEvictions.enqueue(List.of(), List.of(adminRoleId), List.of("admin"), true, true);
                 log.info("Canonical administration metadata is current");
             } finally {
                 releaseLock(connection);
             }
-        } catch (SQLException failure) {
+        } catch (IOException | SQLException failure) {
             throw new IllegalStateException("admin metadata initialization failed", failure);
         }
+    }
+
+    private EncodedResource renderedScript() throws IOException {
+        String script =
+            new ClassPathResource(SCRIPT).getContentAsString(StandardCharsets.UTF_8);
+        AdminMetadataProperties.Hosts hosts = properties.getHosts();
+        String rendered =
+            script.replace("__AUTH_HOST__", hosts.getAuth())
+                .replace("__USER_HOST__", hosts.getUser())
+                .replace("__BLOG_HOST__", hosts.getBlog())
+                .replace("__SYNC_HOST__", hosts.getSync())
+                .replace("__EXHIBIT_HOST__", hosts.getExhibit())
+                .replace("__SEARCH_HOST__", hosts.getSearch());
+        return new EncodedResource(
+            new ByteArrayResource(rendered.getBytes(StandardCharsets.UTF_8)),
+            StandardCharsets.UTF_8);
     }
 
     private long findAdminRoleId(Connection connection) throws SQLException {
