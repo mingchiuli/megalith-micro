@@ -1,7 +1,6 @@
 package wiki.chiu.micro.search.config;
 
 import org.springframework.aot.hint.BindingReflectionHintsRegistrar;
-import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
@@ -15,9 +14,6 @@ import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.search.adapter.in.http.BlogDocumentVo;
-import wiki.chiu.micro.search.adapter.out.elasticsearch.AdminBlogDocument;
-import wiki.chiu.micro.search.adapter.out.elasticsearch.AdminRevisionDocument;
-import wiki.chiu.micro.search.adapter.out.elasticsearch.BlogDocument;
 import wiki.chiu.micro.search.api.req.BlogReadCountReq;
 import wiki.chiu.micro.search.api.req.BlogRevisionSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
@@ -35,24 +31,6 @@ public class SearchRuntimeHints implements RuntimeHintsRegistrar {
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
         hints.resources().registerPattern("script/*.painless");
-
-        hints
-            .reflection()
-            .registerType(
-                BlogDocument.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.ACCESS_DECLARED_FIELDS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                AdminBlogDocument.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.ACCESS_DECLARED_FIELDS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                AdminRevisionDocument.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.ACCESS_DECLARED_FIELDS,
-                MemberCategory.INVOKE_DECLARED_METHODS);
 
         // Payload types bound by the functional routes and the index source client.
         new BindingReflectionHintsRegistrar()
