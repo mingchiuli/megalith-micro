@@ -434,7 +434,12 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
                                                             source.source(
                                                                 scriptSource ->
                                                                     scriptSource.scriptString(
-                                                                        "return Math.log(doc['readCount'].value + 1);")))))
+                                                                        """
+                                                                        if (doc['readCount'].size() == 0) {
+                                                                            return 0;
+                                                                        }
+                                                                        return Math.log(doc['readCount'].value + 1);
+                                                                        """)))))
                                     .functions(
                                         fn ->
                                             fn.gauss(

@@ -77,6 +77,9 @@ public class BlogDocument {
     @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
     private ZonedDateTime updated;
 
+    public BlogDocument() {
+    }
+
     BlogDocument(
         Long id,
         Long userId,

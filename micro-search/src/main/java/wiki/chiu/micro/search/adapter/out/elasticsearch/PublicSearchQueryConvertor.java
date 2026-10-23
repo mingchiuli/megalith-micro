@@ -198,7 +198,10 @@ public class PublicSearchQueryConvertor {
                                                                 ScriptSource.of(
                                                                     builder ->
                                                                         builder.scriptString(
-                                                                            "def c = doc['readCount'].value;return Math.log(c + 3);")))
+                                                                            """
+                                                                            def c = doc['readCount'].size() == 0 ? 0 : doc['readCount'].value;
+                                                                            return Math.log(c + 3);
+                                                                            """)))
                                                             .lang(ScriptLanguage.Painless))))
                                 .scoreMode(FunctionScoreMode.Sum)
                                 .boostMode(FunctionBoostMode.Multiply)))

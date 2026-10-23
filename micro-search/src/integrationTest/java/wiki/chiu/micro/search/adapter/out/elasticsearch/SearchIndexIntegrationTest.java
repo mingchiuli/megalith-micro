@@ -8,6 +8,8 @@ import co.elastic.clients.elasticsearch.indices.ElasticsearchIndicesClient;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,6 +34,7 @@ import org.testcontainers.utility.DockerImageName;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.IndexSourceStatus;
+import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
 import wiki.chiu.micro.search.application.port.out.BlogIndexSource;
 import wiki.chiu.micro.search.application.port.out.SearchRebuildControl;
 import wiki.chiu.micro.search.application.service.IndexRebuildService;
@@ -149,6 +152,35 @@ class SearchIndexIntegrationTest {
 
         assertThat(indexes.currentIndex()).isEqualTo(previous);
         assertThat(document(7).getTitle()).isEqualTo("old");
+    }
+
+    @Test
+    void documentsMissingOptionalFieldsRemainSearchable() throws Exception {
+        ZonedDateTime date =
+            ZonedDateTime.of(
+                LocalDateTime.of(2026, 9, 1, 12, 0),
+                ZoneId.of("Asia/Shanghai"));
+        template.save(
+            BlogDocument.builder()
+                .id(99L)
+                .userId(42L)
+                .status(0)
+                .deleted(false)
+                .title("missing fields")
+                .description("legacy document")
+                .content("legacy content")
+                .created(date)
+                .updated(date)
+                .build(),
+            IndexCoordinates.of(alias));
+        template.indexOps(IndexCoordinates.of(alias)).refresh();
+
+        assertThat(blogs.recommendations(null, 5).hot())
+            .extracting(blog -> blog.id())
+            .contains(99L);
+        assertThat(blogs.searchPublic(new PublicBlogSearchQuery(1, "legacy", false)).content())
+            .extracting(blog -> blog.id())
+            .contains(99L);
     }
 
     private BlogDocument document(long id) {
