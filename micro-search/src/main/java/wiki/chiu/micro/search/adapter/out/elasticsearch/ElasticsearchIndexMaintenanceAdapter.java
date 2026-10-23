@@ -1,20 +1,16 @@
 package wiki.chiu.micro.search.adapter.out.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.Conflicts;
-import co.elastic.clients.elasticsearch._types.ScriptLanguage;
 import co.elastic.clients.elasticsearch.indices.ElasticsearchIndicesClient;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
@@ -41,61 +37,6 @@ public final class ElasticsearchIndexMaintenanceAdapter implements BlogIndexMain
         this.indices = client.indices();
         this.template = template;
         this.alias = alias;
-    }
-
-    public void ensureAlias() {
-        try {
-            if (indices.existsAlias(request -> request.name(alias)).value()) {
-                return;
-            }
-            if (indices.exists(request -> request.index(alias)).value()) {
-                throw new IllegalStateException("search alias is occupied by an index: " + alias);
-            }
-            String target = createIndex();
-            var result = indices.updateAliases(request -> request.actions(action ->
-                action.add(add -> add.index(target).alias(alias).isWriteIndex(true))));
-            if (!result.acknowledged()) {
-                throw new IllegalStateException("search alias initialization was not acknowledged");
-            }
-        } catch (IOException failure) {
-            throw new UncheckedIOException(failure);
-        }
-    }
-
-    public void repairLegacyDocuments() {
-        try {
-            var response =
-                client.updateByQuery(
-                    request ->
-                        request.index(alias)
-                            .conflicts(Conflicts.Proceed)
-                            .refresh(true)
-                            .script(
-                                script ->
-                                    script
-                                        .lang(ScriptLanguage.Painless)
-                                        .source(
-                                            source ->
-                                                source.scriptString(
-                                                    script(
-                                                        "repair-blog-document-fields.painless")))));
-            if (response.failures() != null && !response.failures().isEmpty()) {
-                throw new IllegalStateException(
-                    "legacy search document repair had failures: " + response.failures());
-            }
-            log.info("Repaired {} legacy search documents", response.updated());
-        } catch (IOException failure) {
-            throw new UncheckedIOException(failure);
-        }
-    }
-
-    private static String script(String name) {
-        try {
-            return new ClassPathResource("script/" + name)
-                .getContentAsString(StandardCharsets.UTF_8);
-        } catch (IOException failure) {
-            throw new UncheckedIOException("Cannot load search maintenance script " + name, failure);
-        }
     }
 
     @Override

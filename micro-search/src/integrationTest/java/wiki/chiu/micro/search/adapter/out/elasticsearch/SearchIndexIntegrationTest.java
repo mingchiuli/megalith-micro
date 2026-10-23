@@ -32,7 +32,6 @@ import org.testcontainers.utility.DockerImageName;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.IndexSourceStatus;
-import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
 import wiki.chiu.micro.search.application.port.out.BlogIndexSource;
 import wiki.chiu.micro.search.application.port.out.SearchRebuildControl;
 import wiki.chiu.micro.search.application.service.IndexRebuildService;
@@ -85,10 +84,12 @@ class SearchIndexIntegrationTest {
     }
 
     @BeforeEach
-    void createIsolatedIndex() {
+    void createIsolatedIndex() throws Exception {
         alias = "test-search-" + UUID.randomUUID();
         indexes = new ElasticsearchIndexMaintenanceAdapter(client, template, alias);
-        indexes.ensureAlias();
+        String target = indexes.createIndex();
+        indexClient.updateAliases(request -> request.actions(action ->
+            action.add(add -> add.index(target).alias(alias).isWriteIndex(true))));
         blogs = new ElasticsearchBlogAdapter(template, 5, alias);
     }
 
@@ -150,38 +151,6 @@ class SearchIndexIntegrationTest {
 
         assertThat(indexes.currentIndex()).isEqualTo(previous);
         assertThat(document(7).getTitle()).isEqualTo("old");
-    }
-
-    @Test
-    void documentsMissingOptionalFieldsRemainSearchable() throws Exception {
-        client.index(
-            request ->
-                request.index(alias)
-                    .id("99")
-                    .document(
-                        Map.of(
-                            "id", 99,
-                            "userId", 42,
-                            "status", 0,
-                            "deleted", false,
-                            "title", "missing fields",
-                            "description", "legacy document",
-                            "content", "legacy content",
-                            "created", "2026-09-01T12:00:00+08:00",
-                            "updated", "2026-09-01T12:00:00+08:00")));
-        template.indexOps(IndexCoordinates.of(alias)).refresh();
-
-        indexes.repairLegacyDocuments();
-
-        BlogDocument repaired = document(99);
-        assertThat(repaired.getReadCount()).isZero();
-        assertThat(repaired.getPublishedAt()).isNotNull();
-        assertThat(blogs.recommendations(null, 5).hot())
-            .extracting(blog -> blog.id())
-            .contains(99L);
-        assertThat(blogs.searchPublic(new PublicBlogSearchQuery(1, "legacy", false)).content())
-            .extracting(blog -> blog.id())
-            .contains(99L);
     }
 
     private BlogDocument document(long id) {

@@ -1,7 +1,6 @@
 package wiki.chiu.micro.user.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import wiki.chiu.micro.user.application.port.out.PasswordHasher;
@@ -56,7 +55,6 @@ import wiki.chiu.micro.user.application.service.UserServiceImpl;
  * Spring annotations, so every service bean is declared here.
  */
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(AdminRouteHostProperties.class)
 public class UserApplicationConfig {
 
     @Bean
