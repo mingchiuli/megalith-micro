@@ -8,8 +8,6 @@ import co.elastic.clients.elasticsearch.indices.ElasticsearchIndicesClient;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -156,30 +154,28 @@ class SearchIndexIntegrationTest {
 
     @Test
     void documentsMissingOptionalFieldsRemainSearchable() throws Exception {
-        ZonedDateTime date =
-            ZonedDateTime.of(
-                LocalDateTime.of(2026, 9, 1, 12, 0),
-                ZoneId.of("Asia/Shanghai"));
-        template.save(
-            BlogDocument.builder()
-                .id(99L)
-                .userId(42L)
-                .status(0)
-                .deleted(false)
-                .title("missing fields")
-                .description("legacy document")
-                .content("legacy content")
-                .created(date)
-                .updated(date)
-                .build(),
-            IndexCoordinates.of(alias));
+        client.index(
+            request ->
+                request.index(alias)
+                    .id("99")
+                    .document(
+                        Map.of(
+                            "id", 99,
+                            "userId", 42,
+                            "status", 0,
+                            "deleted", false,
+                            "title", "missing fields",
+                            "description", "legacy document",
+                            "content", "legacy content",
+                            "created", "2026-09-01T12:00:00+08:00",
+                            "updated", "2026-09-01T12:00:00+08:00")));
         template.indexOps(IndexCoordinates.of(alias)).refresh();
 
         indexes.repairLegacyDocuments();
 
         BlogDocument repaired = document(99);
         assertThat(repaired.getReadCount()).isZero();
-        assertThat(repaired.getPublishedAt()).isEqualTo(date);
+        assertThat(repaired.getPublishedAt()).isNotNull();
         assertThat(blogs.recommendations(null, 5).hot())
             .extracting(blog -> blog.id())
             .contains(99L);

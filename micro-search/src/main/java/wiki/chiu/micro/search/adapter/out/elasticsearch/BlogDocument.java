@@ -47,10 +47,22 @@ public class BlogDocument {
     @Field(type = FieldType.Keyword)
     private BlogRenderMode renderMode;
 
-    @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
+    @Field(
+        type = FieldType.Date,
+        format = DateFormat.date_optional_time,
+        pattern = {
+            "uuuu-MM-dd'T'HH:mm:ss.SSSXXX",
+            "uuuu-MM-dd'T'HH:mm:ssXXX"
+        })
     private ZonedDateTime publishedAt;
 
-    @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
+    @Field(
+        type = FieldType.Date,
+        format = DateFormat.date_optional_time,
+        pattern = {
+            "uuuu-MM-dd'T'HH:mm:ss.SSSXXX",
+            "uuuu-MM-dd'T'HH:mm:ssXXX"
+        })
     private ZonedDateTime offlineAt;
 
     @Field(type = FieldType.Nested)
@@ -71,10 +83,22 @@ public class BlogDocument {
     @Field(type = FieldType.Keyword)
     private String link;
 
-    @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
+    @Field(
+        type = FieldType.Date,
+        format = DateFormat.date_optional_time,
+        pattern = {
+            "uuuu-MM-dd'T'HH:mm:ss.SSSXXX",
+            "uuuu-MM-dd'T'HH:mm:ssXXX"
+        })
     private ZonedDateTime created;
 
-    @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
+    @Field(
+        type = FieldType.Date,
+        format = DateFormat.date_optional_time,
+        pattern = {
+            "uuuu-MM-dd'T'HH:mm:ss.SSSXXX",
+            "uuuu-MM-dd'T'HH:mm:ssXXX"
+        })
     private ZonedDateTime updated;
 
     public BlogDocument() {
