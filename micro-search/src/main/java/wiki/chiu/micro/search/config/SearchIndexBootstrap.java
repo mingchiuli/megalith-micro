@@ -34,6 +34,7 @@ public class SearchIndexBootstrap implements SmartInitializingSingleton {
             "search:index-bootstrap",
             () -> {
                 publicIndexes.ensureAlias();
+                publicIndexes.repairLegacyDocuments();
                 try {
                     adminIndexes.ensureAliases();
                 } catch (IOException failure) {

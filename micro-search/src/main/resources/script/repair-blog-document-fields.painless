@@ -1,0 +1,30 @@
+if (ctx._source.readCount == null) {
+    ctx._source.readCount = 0L;
+}
+if (ctx._source.updated == null && ctx._source.created != null) {
+    ctx._source.updated = ctx._source.created;
+}
+if (ctx._source.created == null && ctx._source.updated != null) {
+    ctx._source.created = ctx._source.updated;
+}
+if (ctx._source.publishedAt == null) {
+    ctx._source.publishedAt = ctx._source.updated != null ? ctx._source.updated : ctx._source.created;
+}
+if (ctx._source.accessMode == null) {
+    ctx._source.accessMode = 0;
+}
+if (ctx._source.renderMode == null) {
+    ctx._source.renderMode = 'NORMAL';
+}
+if (ctx._source.deleted == null) {
+    ctx._source.deleted = false;
+}
+if (ctx._source.sensitiveContent == null) {
+    ctx._source.sensitiveContent = [];
+}
+if (ctx._source.revision == null) {
+    ctx._source.revision = 1L;
+}
+if (ctx._source.versionNo == null) {
+    ctx._source.versionNo = 1L;
+}

@@ -175,6 +175,11 @@ class SearchIndexIntegrationTest {
             IndexCoordinates.of(alias));
         template.indexOps(IndexCoordinates.of(alias)).refresh();
 
+        indexes.repairLegacyDocuments();
+
+        BlogDocument repaired = document(99);
+        assertThat(repaired.getReadCount()).isZero();
+        assertThat(repaired.getPublishedAt()).isEqualTo(date);
         assertThat(blogs.recommendations(null, 5).hot())
             .extracting(blog -> blog.id())
             .contains(99L);

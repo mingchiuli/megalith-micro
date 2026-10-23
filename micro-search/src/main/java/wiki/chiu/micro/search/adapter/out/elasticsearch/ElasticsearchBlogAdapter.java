@@ -3,6 +3,8 @@ package wiki.chiu.micro.search.adapter.out.elasticsearch;
 import co.elastic.clients.elasticsearch._types.ScriptLanguage;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.Time;
+import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -403,24 +405,64 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
             NativeQuery.builder()
                 .withQuery(
                     value ->
-                        value.bool(
-                            bool ->
-                                bool.filter(
-                                        filter ->
-                                            filter.term(
-                                                term ->
-                                                    term.field("status")
-                                                        .value(BlogStatusEnum.NORMAL.getCode())))
-                                    .mustNot(
-                                        not ->
-                                            not.term(
-                                                term ->
-                                                    term.field("deleted").value(true)))))
-                .withSort(sort -> sort.field(field -> field.field("readCount").order(SortOrder.Desc)))
-                .withSort(
-                    sort ->
-                        sort.field(
-                            field -> field.field("publishedAt").order(SortOrder.Desc)))
+                        value.functionScore(
+                            score ->
+                                score.query(
+                                        base ->
+                                            base.bool(
+                                                bool ->
+                                                    bool.filter(
+                                                            filter ->
+                                                                filter.term(
+                                                                    term ->
+                                                                        term.field("status")
+                                                                            .value(
+                                                                                BlogStatusEnum.NORMAL
+                                                                                    .getCode())))
+                                                        .mustNot(
+                                                            not ->
+                                                                not.term(
+                                                                    term ->
+                                                                        term.field("deleted")
+                                                                            .value(true)))))
+                                    .functions(
+                                        fn ->
+                                            fn.scriptScore(
+                                                script ->
+                                                    script.script(
+                                                        source ->
+                                                            source.source(
+                                                                scriptSource ->
+                                                                    scriptSource.scriptString(
+                                                                        """
+                                                                        if (doc['readCount'].size() == 0) {
+                                                                            return 0;
+                                                                        }
+                                                                        return Math.log(doc['readCount'].value + 1);
+                                                                        """)))))
+                                    .functions(
+                                        fn ->
+                                            fn.gauss(
+                                                gauss ->
+                                                    gauss.date(
+                                                        date ->
+                                                            date.field("publishedAt")
+                                                                .placement(
+                                                                    placement ->
+                                                                        placement
+                                                                            .origin("now")
+                                                                            .scale(
+                                                                                Time.of(
+                                                                                    time ->
+                                                                                        time.time(
+                                                                                            "180d")))
+                                                                            .offset(
+                                                                                Time.of(
+                                                                                    time ->
+                                                                                        time.time(
+                                                                                            "30d")))
+                                                                            .decay(0.5)))))
+                                    .boostMode(FunctionBoostMode.Sum)))
                 .withPageable(PageRequest.of(0, limit))
                 .build();
         SearchHits<@NonNull BlogDocument> hits =
