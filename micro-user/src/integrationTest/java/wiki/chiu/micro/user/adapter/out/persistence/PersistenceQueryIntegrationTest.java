@@ -2,6 +2,7 @@ package wiki.chiu.micro.user.adapter.out.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -50,6 +51,8 @@ import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleMenuEntity;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserRoleEntity;
 import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.config.AdminRouteHostInitializer;
+import wiki.chiu.micro.user.config.AdminRouteHostProperties;
 import wiki.chiu.micro.user.domain.RoleMenu;
 
 @Testcontainers(disabledWithoutDocker = true)
@@ -109,6 +112,46 @@ class PersistenceQueryIntegrationTest {
 
         assertThat(indexNames)
             .contains("idx_outbox_poll", "idx_outbox_aggregate", "idx_outbox_manage");
+    }
+
+    @Test
+    void startupAppliesDeploymentSpecificRouteHostsIdempotently() {
+        jdbc.update("DELETE FROM m_authority WHERE code LIKE 'route-host-test-%'");
+        for (int port : List.of(8081, 8082, 8083, 8085, 8086, 8089)) {
+            jdbc.update(
+                """
+                INSERT INTO m_authority (code, service_port, type, status)
+                VALUES (?, ?, 1, 0)
+                """,
+                "route-host-test-" + port,
+                port);
+        }
+        AuthCacheEvictionOutbox cacheEvictions = mock(AuthCacheEvictionOutbox.class);
+        AdminRouteHostInitializer initializer =
+            new AdminRouteHostInitializer(
+                context.getBean(DataSource.class),
+                cacheEvictions,
+                new AdminRouteHostProperties());
+
+        initializer.run(null);
+        initializer.run(null);
+
+        assertThat(
+                jdbc.queryForList(
+                    """
+                    SELECT service_host
+                    FROM m_authority
+                    WHERE code LIKE 'route-host-test-%'
+                    """,
+                    String.class))
+            .containsExactlyInAnyOrder(
+                "micro-auth",
+                "micro-blog",
+                "micro-exhibit",
+                "micro-search",
+                "micro-user",
+                "micro-sync-rs");
+        verify(cacheEvictions).enqueue(List.of(), List.of(), List.of(), false, true);
     }
 
     @Test

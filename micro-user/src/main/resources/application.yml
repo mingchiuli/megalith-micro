@@ -37,6 +37,14 @@ server:
   max-http-request-header-size: 10MB
 
 megalith:
+  admin-routes:
+    hosts:
+      auth: micro-auth
+      user: micro-user
+      blog: micro-blog
+      sync: micro-sync-rs
+      exhibit: micro-exhibit
+      search: micro-search
   outbox:
     producer: USER
     exchange: user.auth.menu.change.fanout.exchange
