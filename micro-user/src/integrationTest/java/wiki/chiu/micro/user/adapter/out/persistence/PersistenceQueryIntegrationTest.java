@@ -42,8 +42,6 @@ import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleDataPermissio
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRoleRepository;
-import wiki.chiu.micro.user.config.AdminMetadataInitializer;
-import wiki.chiu.micro.user.config.AdminMetadataProperties;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuAuthorityEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleDataPermissionEntity;
@@ -111,102 +109,6 @@ class PersistenceQueryIntegrationTest {
 
         assertThat(indexNames)
             .contains("idx_outbox_poll", "idx_outbox_aggregate", "idx_outbox_manage");
-    }
-
-    @Test
-    void adminMetadataInitializationIsIdempotentAndAuthorizesCanonicalEndpoints() {
-        DataSource dataSource = context.getBean(DataSource.class);
-        AdminMetadataInitializer initializer =
-            new AdminMetadataInitializer(
-                dataSource,
-                mock(AuthCacheEvictionOutbox.class),
-                new AdminMetadataProperties());
-
-        initializer.run(null);
-        int menuCount = count("SELECT COUNT(*) FROM m_menu");
-        int authorityCount = count("SELECT COUNT(*) FROM m_authority");
-        int roleMenuCount = count("SELECT COUNT(*) FROM m_role_menu");
-        initializer.run(null);
-
-        assertThat(count("SELECT COUNT(*) FROM m_menu")).isEqualTo(menuCount);
-        assertThat(count("SELECT COUNT(*) FROM m_authority")).isEqualTo(authorityCount);
-        assertThat(count("SELECT COUNT(*) FROM m_role_menu")).isEqualTo(roleMenuCount);
-        assertThat(
-                count(
-                    """
-                    SELECT COUNT(*)
-                    FROM m_authority
-                    WHERE code IN ('sys:blog:save', 'sys:blog:push:all')
-                    """))
-            .isZero();
-        assertThat(
-                count(
-                    """
-                    SELECT COUNT(*)
-                    FROM m_authority authority
-                    LEFT JOIN m_menu_authority mapping
-                      ON mapping.authority_id = authority.id
-                    WHERE authority.status = 0
-                      AND authority.type = 1
-                      AND mapping.id IS NULL
-                    """))
-            .isZero();
-        assertThat(
-                count(
-                    """
-                    SELECT COUNT(*)
-                    FROM m_menu menu
-                    JOIN m_role role ON role.code = 'admin'
-                    LEFT JOIN m_role_menu mapping
-                      ON mapping.role_id = role.id
-                     AND mapping.menu_id = menu.id
-                    WHERE mapping.id IS NULL
-                      AND (menu.name LIKE 'system-%' OR menu.name = 'blog-manage')
-                    """))
-            .isZero();
-        assertThat(
-                jdbc.queryForList(
-                    """
-                    SELECT code
-                    FROM m_authority
-                    WHERE code IN (
-                        'sys:blog:draft:create',
-                        'sys:blog:draft:save',
-                        'sys:blog:draft:delete',
-                        'sys:blog:version:save',
-                        'sys:blog:version:list',
-                        'sys:blog:version:view',
-                        'sys:blog:version:compare',
-                        'sys:blog:publish',
-                        'sys:blog:offline',
-                        'sys:blog:online',
-                        'whitelist:blog:recommendations'
-                    )
-                    """,
-                    String.class))
-            .containsExactlyInAnyOrder(
-                "sys:blog:draft:create",
-                "sys:blog:draft:save",
-                "sys:blog:draft:delete",
-                "sys:blog:version:save",
-                "sys:blog:version:list",
-                "sys:blog:version:view",
-                "sys:blog:version:compare",
-                "sys:blog:publish",
-                "sys:blog:offline",
-                "sys:blog:online",
-                "whitelist:blog:recommendations");
-        assertThat(
-                jdbc.queryForList(
-                    "SELECT DISTINCT service_host FROM m_authority WHERE status = 0",
-                    String.class))
-            .containsExactlyInAnyOrder(
-                "micro-auth",
-                "micro-user",
-                "micro-blog",
-                "micro-sync-rs",
-                "micro-exhibit",
-                "micro-search");
     }
 
     @Test

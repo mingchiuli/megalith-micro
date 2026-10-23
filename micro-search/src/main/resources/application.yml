@@ -32,7 +32,6 @@ megalith:
       alias: blog_search
       admin-alias: blog_admin_search
       revision-alias: blog_revision_search
-      legacy-name: blog_index_v4
       rebuild-batch-size: 500
   blog:
     blog-page-size: 5

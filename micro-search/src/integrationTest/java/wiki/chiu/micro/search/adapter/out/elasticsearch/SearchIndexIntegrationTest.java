@@ -86,7 +86,7 @@ class SearchIndexIntegrationTest {
     @BeforeEach
     void createIsolatedIndex() {
         alias = "test-search-" + UUID.randomUUID();
-        indexes = new ElasticsearchIndexMaintenanceAdapter(client, template, alias, alias + "-legacy");
+        indexes = new ElasticsearchIndexMaintenanceAdapter(client, template, alias);
         indexes.ensureAlias();
         blogs = new ElasticsearchBlogAdapter(template, 5, alias);
     }
@@ -149,31 +149,6 @@ class SearchIndexIntegrationTest {
 
         assertThat(indexes.currentIndex()).isEqualTo(previous);
         assertThat(document(7).getTitle()).isEqualTo("old");
-    }
-
-    @Test
-    void startupMigratesAndDeletesTheLegacyPhysicalIndex() throws Exception {
-        String legacy = "test-search-legacy-" + UUID.randomUUID();
-        String targetAlias = "test-search-legacy-alias-" + UUID.randomUUID();
-        var operations = template.indexOps(IndexCoordinates.of(legacy));
-        assertThat(operations.create(Map.of(), operations.createMapping(BlogDocument.class))).isTrue();
-        template.save(
-            ElasticsearchBlogAdapter.toDocument(change(41, 1, 0, 5, "legacy document")),
-            IndexCoordinates.of(legacy));
-        template.indexOps(IndexCoordinates.of(legacy)).refresh();
-
-        var migration =
-            new ElasticsearchIndexMaintenanceAdapter(
-                client, template, targetAlias, legacy);
-        migration.ensureAlias();
-
-        assertThat(migration.currentIndex()).isNotEqualTo(legacy);
-        assertThat(
-                template.get(
-                    "41", BlogDocument.class, IndexCoordinates.of(targetAlias))
-                    .getTitle())
-            .isEqualTo("legacy document");
-        assertThat(indexClient.exists(request -> request.index(legacy)).value()).isFalse();
     }
 
     private BlogDocument document(long id) {

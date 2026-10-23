@@ -354,17 +354,6 @@ newer active draft automatically; older drafts are retained as read-only history
 the published version. A newer active draft is based on the current published revision and has a
 later saved timestamp.
 
-### Versioned blog migration
-
-The versioned-blog release runs a one-time MariaDB migration before readiness. Hibernate
-`hbm2ddl.auto=update` creates the normalized tables and columns; the migration copies legacy content
-into immutable revisions, creates an initial working draft for legacy `DRAFT` rows, rebuilds index
-projections through the outbox, and then drops the obsolete content columns and sensitive-content
-table. The migration is protected by a MariaDB advisory lock and is safe to rerun after interruption.
-The search service performs the corresponding ES migration before listeners start: it reindexes a
-legacy physical index or an alias still pointing to `blog_index_v4` into a new `blog_search-v6`
-index, switches the alias, and only then deletes the legacy index.
-
 ### Runtime and configuration
 
 Vite builds the client and SSR bundles, then Bun compiles the server, runtime, and assets into
@@ -379,7 +368,6 @@ graceful shutdown, and exports correlated OpenTelemetry traces, metrics, and log
 | `OTEL_SERVICE_VERSION` | Package version / deployed Git SHA | Frontend release identifier |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://127.0.0.1:8200` / `http://apm-server:8200` | Base OTLP endpoint for traces, metrics, and logs |
 | `LOG_LEVEL` | `info` | Console and OTLP application log threshold |
-| `MEGALITH_ADMIN_METADATA_HOSTS_*` | Docker service names / `localhost` in development | Downstream hosts injected into canonical route metadata |
 
 See the [SSR architecture](micro-frontend/docs/ssr-architecture.md) for request flow,
 authentication, caching, observability, failure behavior, and deployment details.
@@ -389,12 +377,6 @@ authentication, caching, observability, failure behavior, and deployment details
 - **Single-pass authorization:** the gateway calls `POST /inner/auth/route` once to resolve both
   the target service and trusted principal. Business services use the gateway-injected
   `X-Megalith-Principal` as their identity source.
-- **Canonical administration metadata:** `micro-user` applies
-  `script/admin-metadata.sql` after Hibernate schema updates. Pages, buttons, and every
-  gateway-exposed API are keyed by stable menu `name`, role `code`, and authority `code`, then
-  linked to the built-in `admin` role. Route patterns support `*` for one segment and trailing
-  `**` for the remaining path, and a confirmed outbox event evicts authorization caches after
-  startup synchronization.
 - **Two-level caching:** `@Cache` uses explicit versioned namespaces and canonical argument hashes,
   with Caffeine L1 and Redis L2 storage. Reads and exact eviction share distributed key locks;
   invalidations are broadcast to every replica.

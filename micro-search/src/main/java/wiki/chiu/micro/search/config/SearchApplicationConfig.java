@@ -43,9 +43,8 @@ public class SearchApplicationConfig {
     @Bean
     ElasticsearchIndexMaintenanceAdapter indexMaintenance(
         ElasticsearchClient client, ElasticsearchTemplate template,
-        @Value("${megalith.search.index.alias:blog_search}") String alias,
-        @Value("${megalith.search.index.legacy-name:blog_index_v4}") String legacyIndex) {
-        return new ElasticsearchIndexMaintenanceAdapter(client, template, alias, legacyIndex);
+        @Value("${megalith.search.index.alias:blog_search}") String alias) {
+        return new ElasticsearchIndexMaintenanceAdapter(client, template, alias);
     }
 
     @Bean
