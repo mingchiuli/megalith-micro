@@ -78,6 +78,8 @@ subprojects {
 
         // Configure bootBuildImage for all microservices
         tasks.named<BootBuildImage>("bootBuildImage") {
+            builder.set("docker.io/paketobuildpacks/builder-noble-java-tiny:0.0.200")
+
             buildpacks = listOf(
                 "docker.io/paketobuildpacks/oracle",
                 "urn:cnb:builder:paketo-buildpacks/java-native-image",
