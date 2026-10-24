@@ -78,8 +78,6 @@ subprojects {
 
         // Configure bootBuildImage for all microservices
         tasks.named<BootBuildImage>("bootBuildImage") {
-            imagePlatform.set("linux/amd64")
-
             buildpacks = listOf(
                 "docker.io/paketobuildpacks/oracle",
                 "urn:cnb:builder:paketo-buildpacks/java-native-image",
