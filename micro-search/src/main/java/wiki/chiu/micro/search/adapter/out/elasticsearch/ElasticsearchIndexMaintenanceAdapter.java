@@ -23,7 +23,6 @@ import wiki.chiu.micro.search.application.port.out.BlogIndexMaintenance;
 public final class ElasticsearchIndexMaintenanceAdapter implements BlogIndexMaintenance {
 
     private static final Logger log = LoggerFactory.getLogger(ElasticsearchIndexMaintenanceAdapter.class);
-    private final ElasticsearchClient client;
     private final ElasticsearchIndicesClient indices;
     private final ElasticsearchTemplate template;
     private final String alias;
@@ -33,7 +32,6 @@ public final class ElasticsearchIndexMaintenanceAdapter implements BlogIndexMain
         if (!alias.matches("[a-z0-9][a-z0-9_-]*")) {
             throw new IllegalArgumentException("invalid search index alias");
         }
-        this.client = client;
         this.indices = client.indices();
         this.template = template;
         this.alias = alias;
