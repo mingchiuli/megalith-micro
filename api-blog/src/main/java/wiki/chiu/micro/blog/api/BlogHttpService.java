@@ -10,7 +10,6 @@ import org.springframework.web.service.annotation.PostExchange;
 
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.result.Result;
 
 public interface BlogHttpService {
@@ -30,10 +29,6 @@ public interface BlogHttpService {
 
     @PostExchange("/blog/{blogId}/views")
     Result<Void> setReadCount(@PathVariable Long blogId);
-
-    @GetExchange("/blog/page")
-    Result<PageAdapter<BlogEntityRpcVo>> findPage(
-        @RequestParam Integer pageNo, @RequestParam Integer pageSize);
 
     @GetExchange("/blog/sensitive/{blogId}")
     Result<BlogSensitiveContentRpcVo> findSensitiveByBlogId(@PathVariable Long blogId);

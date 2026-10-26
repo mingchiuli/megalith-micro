@@ -2,14 +2,16 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia, type Pinia } from 'pinia'
 import { defineComponent, h, nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { BlogDesc, PageAdapter } from '@/type/entity'
+import type { BlogDesc, BlogRecommendation, PageAdapter, SearchPage } from '@/type/entity'
 import { Status } from '@/type/entity'
 import { ssrDataStore } from '@/stores'
 
 const mocks = vi.hoisted(() => ({
   GET: vi.fn(),
   routerPush: vi.fn(),
-  routeQuery: {} as Record<string, string>
+  routeQuery: {} as Record<string, string>,
+  searchAllInfo: vi.fn(),
+  cancelSearch: vi.fn()
 }))
 
 vi.mock('@/http/http', () => ({
@@ -63,10 +65,35 @@ const SearchStub = defineComponent({
     loading: Boolean,
     searchDialogVisible: Boolean
   },
-  emits: ['update:loading', 'update:searchDialogVisible', 'transSearchData', 'refresh'],
+  emits: [
+    'update:loading',
+    'update:searchDialogVisible',
+    'transSearchData',
+    'refresh',
+    'searchError'
+  ],
   setup(_, { expose }) {
-    expose({ searchAllInfo: vi.fn() })
-    return () => h('div')
+    expose({
+      searchAllInfo: mocks.searchAllInfo,
+      cancelSearch: mocks.cancelSearch
+    })
+    return () => h('div', { class: 'search-stub' })
+  }
+})
+
+const FooterStub = defineComponent({
+  props: {
+    loading: Boolean,
+    hasMore: Boolean,
+    error: Boolean
+  },
+  emits: ['load', 'retry'],
+  setup(_, { emit }) {
+    return () =>
+      h('div', { class: 'footer-stub' }, [
+        h('button', { class: 'load-more', onClick: () => emit('load') }, 'load'),
+        h('button', { class: 'retry-feed', onClick: () => emit('retry') }, 'retry')
+      ])
   }
 })
 
@@ -78,44 +105,56 @@ const PassThroughStub = defineComponent({
 
 const componentStubs = {
   ReadTokenItem: true,
-  RecommendationPanel: true,
+  InfiniteScrollFooter: FooterStub,
   SearchItem: SearchStub,
   ElButton: PassThroughStub,
   ElCard: PassThroughStub,
   ElImage: ImageStub,
   ElLink: PassThroughStub,
-  ElPagination: true,
   ElSkeleton: SkeletonStub,
   ElText: PassThroughStub,
   ElTimeline: PassThroughStub,
   ElTimelineItem: TimelineItemStub
 }
 
+const recommendation = (id: number): BlogRecommendation => ({
+  id,
+  title: `Recommendation ${id}`,
+  description: `Description ${id}`,
+  created: '2026-10-25',
+  link: '',
+  readCount: id
+})
+
 const blog = (id: number, link = ''): BlogDesc => ({
   id,
   title: `Blog ${id}`,
   description: `Description ${id}`,
-  created: '2026-08-30',
+  created: '2026-10-25',
   link,
   status: Status.NORMAL
 })
 
-const page = (content: BlogDesc[]): PageAdapter<BlogDesc> => ({
+const recommendationPage = (
+  content: BlogRecommendation[],
+  pageNumber = 1,
+  last = true
+): PageAdapter<BlogRecommendation> => ({
   content,
   totalElements: content.length,
   pageSize: 5,
-  pageNumber: 1
+  pageNumber,
+  last
 })
 
-const deferred = <T>() => {
-  let resolve!: (value: T) => void
-  let reject!: (cause: unknown) => void
-  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
-    resolve = resolvePromise
-    reject = rejectPromise
-  })
-  return { promise, resolve, reject }
-}
+const searchPage = (content: BlogDesc[], pageNumber = 1, last = true): SearchPage<BlogDesc> => ({
+  content,
+  totalElements: content.length,
+  pageSize: 5,
+  pageNumber,
+  last,
+  additional: null
+})
 
 const mountBlogs = (pinia: Pinia = createPinia()): VueWrapper => {
   setActivePinia(pinia)
@@ -127,15 +166,10 @@ const mountBlogs = (pinia: Pinia = createPinia()): VueWrapper => {
   })
 }
 
-const skeletonLoading = (wrapper: VueWrapper) =>
-  wrapper.get('.blogs-skeleton').attributes('data-loading') === 'true'
+const cards = (wrapper: VueWrapper) => wrapper.findAll('.recommendation-name')
 
-const blogItemsHidden = (wrapper: VueWrapper) =>
-  wrapper.findAll('.blog-item').every((item) => item.attributes('style')?.includes('display: none'))
-
-describe('BlogsView loading', () => {
+describe('BlogsView feed', () => {
   beforeEach(() => {
-    vi.useRealTimers()
     vi.clearAllMocks()
     mocks.routeQuery = {}
   })
@@ -144,88 +178,128 @@ describe('BlogsView loading', () => {
     vi.useRealTimers()
   })
 
-  it('keeps every blog hidden until all cover images settle', async () => {
-    const request = deferred<PageAdapter<BlogDesc>>()
-    mocks.GET.mockReturnValueOnce(request.promise)
-    const wrapper = mountBlogs()
-
-    expect(skeletonLoading(wrapper)).toBe(true)
-    request.resolve(page([blog(1, '/cover-1.webp'), blog(2, '/cover-2.webp')]))
-    await flushPromises()
-
-    expect(skeletonLoading(wrapper)).toBe(true)
-    expect(blogItemsHidden(wrapper)).toBe(true)
-
-    await wrapper.findAll('.cover-image')[0]!.trigger('load')
-    expect(skeletonLoading(wrapper)).toBe(true)
-
-    await wrapper.findAll('.cover-image')[1]!.trigger('error')
-    expect(skeletonLoading(wrapper)).toBe(false)
-    expect(blogItemsHidden(wrapper)).toBe(false)
-    wrapper.unmount()
-  })
-
-  it('shows a page without cover images as soon as its request completes', async () => {
-    mocks.GET.mockResolvedValueOnce(page([blog(1), blog(2)]))
+  it('shows paginated recommendations below the admin link without page controls', async () => {
+    mocks.GET.mockResolvedValueOnce(recommendationPage([recommendation(1)], 1, false))
     const wrapper = mountBlogs()
     await flushPromises()
 
-    expect(skeletonLoading(wrapper)).toBe(false)
-    expect(blogItemsHidden(wrapper)).toBe(false)
+    expect(mocks.GET).toHaveBeenCalledWith('/public/blog/recommendations/page/1')
+    expect(cards(wrapper).map((card) => card.text())).toEqual(['Recommendation 1'])
+    expect(wrapper.find('.el-pagination').exists()).toBe(false)
+    expect(wrapper.html().indexOf('进入后台')).toBeLessThan(
+      wrapper.html().indexOf('Recommendation 1')
+    )
+    expect(wrapper.text()).not.toContain('推荐阅读')
     wrapper.unmount()
   })
 
-  it('uses hydrated SSR data without another request and still waits for its covers', async () => {
+  it('appends and de-duplicates recommendation pages', async () => {
+    mocks.GET.mockResolvedValueOnce(
+      recommendationPage([recommendation(1), recommendation(2)], 1, false)
+    ).mockResolvedValueOnce(recommendationPage([recommendation(2), recommendation(3)], 2, true))
+    const wrapper = mountBlogs()
+    await flushPromises()
+
+    await wrapper.get('.load-more').trigger('click')
+    await flushPromises()
+
+    expect(mocks.GET).toHaveBeenLastCalledWith('/public/blog/recommendations/page/2')
+    expect(cards(wrapper).map((card) => card.text())).toEqual([
+      'Recommendation 1',
+      'Recommendation 2',
+      'Recommendation 3'
+    ])
+    wrapper.unmount()
+  })
+
+  it('replaces recommendations with search results and keeps an empty search empty', async () => {
+    mocks.routeQuery = { q: 'vue' }
+    mocks.GET.mockResolvedValueOnce(searchPage([blog(9)]))
+    const wrapper = mountBlogs()
+    await flushPromises()
+
+    expect(mocks.GET).toHaveBeenCalledWith(expect.stringContaining('/search/public/blog?'))
+    expect(cards(wrapper)).toHaveLength(0)
+    expect(wrapper.find('.blog-item').exists()).toBe(true)
+
+    wrapper.findComponent(SearchStub).vm.$emit('transSearchData', searchPage([], 1, true))
+    await nextTick()
+
+    expect(wrapper.text()).toContain('未找到相关文章')
+    expect(mocks.GET).toHaveBeenCalledTimes(1)
+    wrapper.unmount()
+  })
+
+  it('continues the active search feed when the footer requests more', async () => {
+    mocks.routeQuery = { q: 'vue' }
+    mocks.GET.mockResolvedValueOnce(searchPage([blog(1)], 1, false))
+    const wrapper = mountBlogs()
+    await flushPromises()
+
+    await wrapper.get('.load-more').trigger('click')
+    await nextTick()
+    expect(mocks.searchAllInfo).toHaveBeenCalledWith('vue', 2)
+
+    wrapper
+      .findComponent(SearchStub)
+      .vm.$emit('transSearchData', searchPage([blog(1), blog(2)], 2, true))
+    await nextTick()
+
+    expect(wrapper.findAll('.blog-item')).toHaveLength(2)
+    wrapper.unmount()
+  })
+
+  it('uses hydrated SSR data without requesting the first recommendation page again', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    ssrDataStore(pinia).set('blogs::1', page([blog(1, '/hydrated.webp')]))
+    ssrDataStore(pinia).set('blog-feed:recommendations:1', {
+      kind: 'recommendations',
+      page: recommendationPage([recommendation(1)])
+    })
 
     const wrapper = mountBlogs(pinia)
     await nextTick()
 
     expect(mocks.GET).not.toHaveBeenCalled()
-    expect(skeletonLoading(wrapper)).toBe(true)
-    await wrapper.get('.cover-image').trigger('load')
-    expect(skeletonLoading(wrapper)).toBe(false)
+    expect(cards(wrapper).map((card) => card.text())).toEqual(['Recommendation 1'])
     wrapper.unmount()
   })
 
-  it('keeps initial search results behind the skeleton until their covers settle', async () => {
+  it('keeps loaded content when the next recommendation page fails and retries it', async () => {
+    mocks.GET.mockResolvedValueOnce(recommendationPage([recommendation(1)], 1, false))
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce(recommendationPage([recommendation(2)], 2, true))
+    const wrapper = mountBlogs()
+    await flushPromises()
+
+    await wrapper.get('.load-more').trigger('click')
+    await flushPromises()
+
+    expect(cards(wrapper)).toHaveLength(1)
+    expect(wrapper.findComponent(FooterStub).props('error')).toBe(true)
+
+    await wrapper.get('.retry-feed').trigger('click')
+    await flushPromises()
+
+    expect(mocks.GET).toHaveBeenLastCalledWith('/public/blog/recommendations/page/2')
+    expect(cards(wrapper)).toHaveLength(2)
+    wrapper.unmount()
+  })
+
+  it('returns to recommendation page one when search is cleared', async () => {
     mocks.routeQuery = { q: 'vue' }
-    mocks.GET.mockResolvedValueOnce(page([blog(1, '/search.webp')]))
+    mocks.GET.mockResolvedValueOnce(searchPage([blog(9)])).mockResolvedValueOnce(
+      recommendationPage([recommendation(1)])
+    )
     const wrapper = mountBlogs()
     await flushPromises()
 
-    expect(mocks.GET).toHaveBeenCalledWith(expect.stringContaining('/search/public/blog?'))
-    expect(skeletonLoading(wrapper)).toBe(true)
-    await wrapper.get('.cover-image').trigger('load')
-    expect(skeletonLoading(wrapper)).toBe(false)
-    wrapper.unmount()
-  })
-
-  it('releases the skeleton when the initial request fails', async () => {
-    mocks.GET.mockRejectedValueOnce(new Error('request failed'))
-    const wrapper = mountBlogs()
+    wrapper.findComponent(SearchStub).vm.$emit('refresh')
     await flushPromises()
 
-    expect(skeletonLoading(wrapper)).toBe(false)
-    wrapper.unmount()
-  })
-
-  it('releases a stalled image batch after ten seconds', async () => {
-    vi.useFakeTimers()
-    mocks.GET.mockResolvedValueOnce(page([blog(1, '/stalled.webp')]))
-    const wrapper = mountBlogs()
-    await Promise.resolve()
-    await nextTick()
-    await Promise.resolve()
-    await nextTick()
-
-    expect(skeletonLoading(wrapper)).toBe(true)
-    await vi.advanceTimersByTimeAsync(10_000)
-    await nextTick()
-
-    expect(skeletonLoading(wrapper)).toBe(false)
+    expect(mocks.cancelSearch).toHaveBeenCalledOnce()
+    expect(mocks.GET).toHaveBeenLastCalledWith('/public/blog/recommendations/page/1')
+    expect(cards(wrapper)).toHaveLength(1)
     wrapper.unmount()
   })
 })

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
-import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.SensitiveContent;
 import wiki.chiu.micro.common.model.BlogSnapshot;
@@ -24,8 +23,6 @@ public interface BlogQueryStore {
     List<Blog> findByUserIds(List<Long> userIds);
 
     long count();
-
-    Page<Blog> findPage(int pageNumber, int pageSize, List<Integer> statuses);
 
     List<SensitiveContent> findSensitiveByBlogId(Long blogId);
 

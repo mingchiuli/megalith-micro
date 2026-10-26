@@ -43,15 +43,14 @@ const AUTH_API = {
 
 // 博客相关API - 公开接口
 const BLOG_PUBLIC_API = {
-  // 分页获取博客列表
-  GET_BLOGS_PAGE: (pageNo: number) => `/public/blog/page/${pageNo}`,
   // 获取博客详情
   GET_BLOG_INFO: (id: number | string) => `/public/blog/info/${id}`,
   // 消费阅读密码并获取博客
   READ_SECRET_BLOG: (id: number | string) => `/public/blog/secret/${id}`,
   // 获取热门博客排行
   GET_HOT_BLOGS: '/public/blog/scores',
-  GET_RECOMMENDATIONS: '/public/blog/recommendations',
+  GET_RELATED_ARTICLES: (id: number | string) => `/public/blog/related/${id}`,
+  GET_RECOMMENDATIONS_PAGE: (pageNo: number) => `/public/blog/recommendations/page/${pageNo}`,
   // 获取博客访问统计
   GET_BLOG_STAT: '/public/blog/stat'
 }

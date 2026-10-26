@@ -1,8 +1,10 @@
 package wiki.chiu.micro.exhibit.application.port.out;
 
-import wiki.chiu.micro.exhibit.application.model.BlogDescription;
+import java.util.List;
+
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
-import wiki.chiu.micro.exhibit.application.model.BlogRecommendations;
+import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
+import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
 import wiki.chiu.micro.exhibit.application.model.Page;
 
 /**
@@ -14,7 +16,9 @@ public interface BlogReader {
 
     void incrementViews(Long id);
 
-    Page<BlogDescription> findPage(Integer currentPage);
+    List<BlogHotRead> hotBlogs(int limit);
 
-    BlogRecommendations recommendations(Long blogId, int limit);
+    List<BlogRecommendation> relatedArticles(Long blogId, int limit);
+
+    Page<BlogRecommendation> recommendationPage(int currentPage);
 }

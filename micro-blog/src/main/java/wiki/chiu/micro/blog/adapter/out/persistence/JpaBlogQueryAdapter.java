@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogDraftEntity;
@@ -15,7 +14,6 @@ import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionSensitiveContentRepository;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
-import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.SensitiveContent;
@@ -87,28 +85,6 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
     @Override
     public long count() {
         return blogs.countByPublishedRevisionIdIsNotNull();
-    }
-
-    @Override
-    public Page<Blog> findPage(int pageNumber, int pageSize, List<Integer> statuses) {
-        var request =
-            PageRequest.of(pageNumber - 1, pageSize, Sort.by("created").descending());
-        var page = blogs.findByPublishedRevisionIdIsNotNull(request);
-        List<Blog> content =
-            page.getContent().stream()
-                .map(this::published)
-                .flatMap(Optional::stream)
-                .filter(blog -> statuses.contains(blog.status()))
-                .toList();
-        return new Page<>(
-            content,
-            page.getTotalElements(),
-            page.getNumber() + 1,
-            page.getSize(),
-            page.isFirst(),
-            page.isLast(),
-            page.isEmpty(),
-            page.getTotalPages());
     }
 
     @Override

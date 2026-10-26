@@ -16,6 +16,7 @@ const router = useRouter()
 const emit = defineEmits<{
   transSearchData: [payload: PageAdapter<BlogDesc>]
   refresh: [payload: void]
+  searchError: [payload: void]
 }>()
 
 const { keywords } = storeToRefs(blogsStore())
@@ -40,6 +41,7 @@ const search = async (
 
 let suggestionRequest = 0
 let suggestionController: AbortController | null = null
+let fullSearchController: AbortController | null = null
 
 const searchAbstractAsync: AutocompleteFetchSuggestions = (
   queryString: string,
@@ -87,22 +89,37 @@ const searchAllInfo = async (queryString: string, currentPage = 1) => {
   if (currentPage === 1) {
     blogsStore().searchPageNum = 1
   }
-  try {
-    if (queryString.length) {
-      loading.value = true
-      const page: PageAdapter<BlogDesc> = await search(queryString, currentPage, true)
-      if (page.content.length) {
-        emit('transSearchData', page)
-        return
-      }
-    }
+  if (!queryString.length) {
     emit('refresh')
+    return
+  }
+
+  fullSearchController?.abort()
+  const controller = new AbortController()
+  fullSearchController = controller
+  try {
+    loading.value = true
+    const page: PageAdapter<BlogDesc> = await search(
+      queryString,
+      currentPage,
+      true,
+      controller.signal
+    )
+    if (!controller.signal.aborted) emit('transSearchData', page)
   } catch {
-    loading.value = false
+    if (!controller.signal.aborted) emit('searchError')
+  } finally {
+    if (fullSearchController === controller) {
+      fullSearchController = null
+      loading.value = false
+    }
   }
 }
 
 const searchBeforeClose = (close: () => void) => {
+  fullSearchController?.abort()
+  fullSearchController = null
+  loading.value = false
   keywords.value = ''
   suggestionController?.abort()
   suggestionList.value = []
@@ -115,7 +132,18 @@ const openDialog = () => {
 }
 
 const clearSearch = () => {
+  fullSearchController?.abort()
+  fullSearchController = null
+  loading.value = false
   keywords.value = ''
+  suggestionController?.abort()
+  suggestionList.value = []
+}
+
+const cancelSearch = () => {
+  fullSearchController?.abort()
+  fullSearchController = null
+  loading.value = false
   suggestionController?.abort()
   suggestionList.value = []
 }
@@ -124,6 +152,7 @@ const highlighted = (label: string, html: string) => sanitizeHighlight(label + h
 
 onBeforeUnmount(() => {
   suggestionController?.abort()
+  fullSearchController?.abort()
 })
 
 defineExpose({
@@ -133,6 +162,7 @@ defineExpose({
   searchBeforeClose,
   openDialog,
   clearSearch,
+  cancelSearch,
   highlighted
 })
 </script>

@@ -3,7 +3,6 @@ package wiki.chiu.micro.exhibit.adapter.in.http;
 import static wiki.chiu.micro.common.auth.web.AuthWeb.authPrincipal;
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
-import static wiki.chiu.micro.common.web.FunctionalWeb.nullableParam;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 import org.springframework.stereotype.Component;
@@ -37,13 +36,6 @@ public class BlogExhibitHttpHandler {
                             authInfo.dataPermissions(), blogId, authInfo.userId()))));
     }
 
-    public ServerResponse getPage(ServerRequest request) {
-        Integer currentPage =
-            v.positive(pathVariable(request, "currentPage", Integer::valueOf), "currentPage");
-        return ok(
-            Result.success(() -> ExhibitResponseMapper.toVo(blogService.findPage(currentPage))));
-    }
-
     public ServerResponse getLockedBlog(ServerRequest request) throws Exception {
         Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         ReadTokenReq body = request.body(ReadTokenReq.class);
@@ -61,17 +53,23 @@ public class BlogExhibitHttpHandler {
         return ok(Result.success(() -> ExhibitResponseMapper.toHotReadVos(blogService.getScoreBlogs())));
     }
 
-    public ServerResponse getRecommendations(ServerRequest request) {
-        Long blogId = nullableParam(request, "blogId", Long::valueOf);
-        if (blogId != null) {
-            v.positive(blogId, "blogId");
-        }
+    public ServerResponse getRelatedArticles(ServerRequest request) {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         Integer limit =
             v.range(requiredParam(request, "limit", Integer::valueOf), 1, 10, "limit");
         return ok(
             Result.success(
+                () -> ExhibitResponseMapper.toRelatedArticleVos(
+                    blogService.getRelatedArticles(blogId, limit))));
+    }
+
+    public ServerResponse getRecommendationPage(ServerRequest request) {
+        Integer currentPage =
+            v.positive(pathVariable(request, "currentPage", Integer::valueOf), "currentPage");
+        return ok(
+            Result.success(
                 () ->
-                    ExhibitResponseMapper.toVo(
-                        blogService.getRecommendations(blogId, limit))));
+                    ExhibitResponseMapper.toRecommendationPageVo(
+                        blogService.findRecommendationPage(currentPage))));
     }
 }

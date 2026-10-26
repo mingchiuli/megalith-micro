@@ -1,5 +1,7 @@
 package wiki.chiu.micro.exhibit.adapter.out.composite;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
@@ -9,16 +11,14 @@ import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.rpc.RemoteResult;
 import wiki.chiu.micro.search.api.SearchHttpService;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
-import wiki.chiu.micro.search.api.vo.RecommendationRpcVo;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogExhibitMapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpMapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.UserHttpServiceWrapper;
-import wiki.chiu.micro.exhibit.application.model.BlogDescription;
-import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
+import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
-import wiki.chiu.micro.exhibit.application.model.BlogRecommendations;
+import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.port.out.BlogReader;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
@@ -62,30 +62,26 @@ public class BlogWrapper implements BlogReader {
     }
 
     @Override
-    public Page<BlogDescription> findPage(Integer currentPage) {
+    public List<BlogHotRead> hotBlogs(int limit) {
         PageAdapter<PublicBlogRpcVo> page =
             RemoteResult.requireSuccess(
-                () -> searchHttpService.publicPage(currentPage, blogPageSize));
-        return BlogHttpMapper.toPublicDescriptions(page);
+                () -> searchHttpService.recommendationPage(1, limit));
+        return page.content().stream().map(BlogHttpMapper::toHotRead).toList();
     }
 
     @Override
-    public BlogRecommendations recommendations(Long blogId, int limit) {
-        RecommendationRpcVo result =
+    public List<BlogRecommendation> relatedArticles(Long blogId, int limit) {
+        List<PublicBlogRpcVo> result =
             RemoteResult.requireSuccess(
-                () -> searchHttpService.recommendations(blogId, limit));
-        return new BlogRecommendations(
-            result.hot().stream().map(BlogWrapper::recommendation).toList(),
-            result.related().stream().map(BlogWrapper::recommendation).toList());
+                () -> searchHttpService.relatedArticles(blogId, limit));
+        return result.stream().map(BlogHttpMapper::toRecommendation).toList();
     }
 
-    private static BlogRecommendation recommendation(PublicBlogRpcVo blog) {
-        return new BlogRecommendation(
-            blog.id(),
-            blog.title(),
-            blog.description(),
-            blog.publishedAt() == null ? blog.created() : blog.publishedAt(),
-            blog.link(),
-            blog.readCount());
+    @Override
+    public Page<BlogRecommendation> recommendationPage(int currentPage) {
+        PageAdapter<PublicBlogRpcVo> page =
+            RemoteResult.requireSuccess(
+                () -> searchHttpService.recommendationPage(currentPage, blogPageSize));
+        return BlogHttpMapper.toRecommendationPage(page);
     }
 }

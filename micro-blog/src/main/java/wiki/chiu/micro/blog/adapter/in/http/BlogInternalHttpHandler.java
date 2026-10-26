@@ -16,7 +16,6 @@ import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.blog.application.port.in.BlogQueryService;
 import wiki.chiu.micro.blog.application.port.in.BlogSensitiveService;
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
@@ -69,13 +68,6 @@ public class BlogInternalHttpHandler implements BlogHttpService {
         return ok(findAllById(v.positiveElements(request.body(LONG_LIST), "ids")));
     }
 
-    public ServerResponse findPage(ServerRequest request) {
-        return ok(
-            findPage(
-                v.positive(requiredParam(request, "pageNo", Integer::valueOf), "pageNo"),
-                v.positive(requiredParam(request, "pageSize", Integer::valueOf), "pageSize")));
-    }
-
     public ServerResponse setReadCount(ServerRequest request) {
         Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         return ok(setReadCount(blogId));
@@ -104,11 +96,6 @@ public class BlogInternalHttpHandler implements BlogHttpService {
     @Override
     public Result<Void> setReadCount(Long blogId) {
         return Result.success(() -> blogQueryService.incrementViews(blogId));
-    }
-
-    @Override
-    public Result<PageAdapter<BlogEntityRpcVo>> findPage(Integer pageNo, Integer pageSize) {
-        return Result.success(() -> BlogRpcMapper.toRpc(blogQueryService.findPage(pageNo, pageSize)));
     }
 
     @Override

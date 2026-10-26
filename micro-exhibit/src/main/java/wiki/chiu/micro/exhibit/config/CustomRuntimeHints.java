@@ -9,19 +9,15 @@ import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.blog.api.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.result.Result;
-import wiki.chiu.micro.exhibit.adapter.in.http.BlogDescriptionVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogExhibitVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogHotReadVo;
-import wiki.chiu.micro.exhibit.adapter.in.http.BlogRecommendationsVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogRecommendationVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.ReadTokenReq;
 import wiki.chiu.micro.exhibit.adapter.in.http.VisitStatisticsVo;
-import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
-import wiki.chiu.micro.search.api.vo.RecommendationRpcVo;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
@@ -34,23 +30,16 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 Result.class,
                 PageAdapter.class,
                 ReadTokenReq.class,
-                BlogDescriptionVo.class,
                 BlogExhibitVo.class,
                 BlogHotReadVo.class,
-                BlogRecommendationsVo.class,
                 BlogRecommendationVo.class,
                 PublicBlogRpcVo.class,
-                RecommendationRpcVo.class,
                 VisitStatisticsVo.class);
 
         hints
             .reflection()
             .registerType(
                 BlogExhibit.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                BlogDescription.class,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(

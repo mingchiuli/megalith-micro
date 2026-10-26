@@ -24,11 +24,13 @@ public class ExhibitRoutes {
         return withDefaultErrorHandling(
             route()
                 .GET("/public/blog/info/{blogId}", handler::getBlogDetail)
-                .GET("/public/blog/page/{currentPage}", handler::getPage)
                 .POST("/public/blog/secret/{blogId}", handler::getLockedBlog)
                 .GET("/public/blog/stat", handler::getVisitStatistics)
                 .GET("/public/blog/scores", handler::getScoreBlogs)
-                .GET("/public/blog/recommendations", handler::getRecommendations),
+                .GET(
+                    "/public/blog/recommendations/page/{currentPage}",
+                    handler::getRecommendationPage)
+                .GET("/public/blog/related/{blogId}", handler::getRelatedArticles),
             log)
             .build();
     }

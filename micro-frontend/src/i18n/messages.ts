@@ -86,7 +86,13 @@ export const messages = {
       weeklyRanking: '本周阅读排行',
       anonymousArticle: '匿名文章',
       totalReadCount: '总阅读数：{count}',
-      weeklyReadCount: '本周阅读数：{count}'
+      weeklyReadCount: '本周阅读数：{count}',
+      loadingMore: '正在加载...',
+      loadMoreFailed: '加载失败，请重试',
+      retry: '重试',
+      noMore: '已经到底了',
+      noRecommendations: '暂无推荐内容',
+      noSearchResults: '未找到相关文章'
     },
     stats: {
       day: '今日 {count}',
@@ -128,7 +134,6 @@ export const messages = {
       online: '重新上线',
       hasDraft: '有草稿',
       draftNewer: '草稿较新',
-      recommendations: '推荐阅读',
       relatedArticles: '相关文章',
       backend: '后台',
       home: '回到首页',
@@ -287,7 +292,13 @@ export const messages = {
       weeklyRanking: 'Most read this week',
       anonymousArticle: 'Untitled article',
       totalReadCount: 'Total reads: {count}',
-      weeklyReadCount: 'Reads this week: {count}'
+      weeklyReadCount: 'Reads this week: {count}',
+      loadingMore: 'Loading...',
+      loadMoreFailed: 'Failed to load. Try again.',
+      retry: 'Retry',
+      noMore: "You're all caught up",
+      noRecommendations: 'No recommendations yet',
+      noSearchResults: 'No matching articles'
     },
     stats: {
       day: 'Today {count}',
@@ -329,7 +340,6 @@ export const messages = {
       online: 'Bring online',
       hasDraft: 'Has draft',
       draftNewer: 'Draft is newer',
-      recommendations: 'Recommended',
       relatedArticles: 'Related articles',
       backend: 'Admin',
       home: 'Back to home',

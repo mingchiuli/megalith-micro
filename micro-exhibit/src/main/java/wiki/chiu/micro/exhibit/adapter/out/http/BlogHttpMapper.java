@@ -7,7 +7,8 @@ import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
-import wiki.chiu.micro.exhibit.application.model.BlogDescription;
+import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
+import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
 import wiki.chiu.micro.exhibit.application.model.BlogSummary;
 import wiki.chiu.micro.exhibit.application.model.Page;
 
@@ -19,38 +20,17 @@ public final class BlogHttpMapper {
     private BlogHttpMapper() {
     }
 
-    public static Page<BlogDescription> toDescriptions(PageAdapter<BlogEntityRpcVo> page) {
-        List<BlogDescription> content =
-            page.content().stream()
-                .map(blog -> BlogHttpMapper.toDescription(blog))
-                .toList();
-        return new Page<>(
-            content,
-            page.totalElements(),
-            page.pageNumber(),
-            page.pageSize(),
-            page.first(),
-            page.last(),
-            page.empty(),
-            page.totalPages());
-    }
-
-    public static BlogDescription toDescription(BlogEntityRpcVo blog) {
-        return new BlogDescription(
-            blog.id(), blog.title(), blog.description(), blog.status(), blog.created(), blog.link());
-    }
-
     public static List<BlogSummary> toSummaries(List<BlogEntityRpcVo> blogs) {
         return blogs.stream()
             .map(blog -> new BlogSummary(blog.id(), blog.title(), blog.status()))
             .toList();
     }
 
-    public static Page<BlogDescription> toPublicDescriptions(
+    public static Page<BlogRecommendation> toRecommendationPage(
         PageAdapter<PublicBlogRpcVo> page) {
         return new Page<>(
             page.content().stream()
-                .map(blog -> BlogHttpMapper.toDescription(blog))
+                .map(BlogHttpMapper::toRecommendation)
                 .toList(),
             page.totalElements(),
             page.pageNumber(),
@@ -61,15 +41,18 @@ public final class BlogHttpMapper {
             page.totalPages());
     }
 
-    public static BlogDescription toDescription(PublicBlogRpcVo blog) {
-        return new BlogDescription(
+    public static BlogRecommendation toRecommendation(PublicBlogRpcVo blog) {
+        return new BlogRecommendation(
             blog.id(),
             blog.title(),
             blog.description(),
-            publicStatus(blog),
             blog.publishedAt() == null ? blog.created() : blog.publishedAt(),
             blog.link(),
-            blog.sensitiveContent() == null ? List.of() : blog.sensitiveContent());
+            blog.readCount());
+    }
+
+    public static BlogHotRead toHotRead(PublicBlogRpcVo blog) {
+        return new BlogHotRead(blog.id(), blog.title(), blog.readCount());
     }
 
     public static int publicStatus(PublicBlogRpcVo blog) {

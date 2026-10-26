@@ -37,23 +37,24 @@ const gateway = Bun.serve({
         data: { dayVisit: 1, weekVisit: 2, monthVisit: 3, yearVisit: 4 }
       })
     }
-    if (url.pathname === '/public/blog/page/1') {
+    if (url.pathname === '/public/blog/recommendations/page/1') {
       return Response.json({
         msg: 'OK',
         data: {
           content: [
             {
               id: 1,
-              title: 'Development SSR blog list',
-              description: 'Prefetched list content hidden behind the skeleton',
-              created: '2026-08-30',
-              link: '/standalone-cover.webp',
-              status: 0
+              title: 'Development SSR recommendation',
+              description: 'Prefetched recommendation content',
+              created: '2026-10-25',
+              link: '',
+              readCount: 1
             }
           ],
           totalElements: 1,
           pageSize: 5,
-          pageNumber: 1
+          pageNumber: 1,
+          last: true
         }
       })
     }
@@ -83,7 +84,7 @@ try {
   const response = await fetch(`${baseUrl}/blogs`)
   assert.equal(response.status, 200)
   const html = await response.text()
-  assert.match(html, /Development SSR blog list/)
+  assert.match(html, /Development SSR recommendation/)
 
   // Vite injects development styles through JavaScript, so the server HTML has to declare the
   // stylesheets itself, exactly like the production manifest does.
@@ -107,7 +108,7 @@ try {
     styles.push(await stylesheet.text())
   }
   const styleText = styles.join('\n')
-  for (const selector of ['.el-pagination', '.el-button', '.el-skeleton']) {
+  for (const selector of ['.el-card', '.el-button', '.infinite-footer']) {
     assert.ok(styleText.includes(selector), `${selector} must be declared before the first paint`)
   }
 

@@ -3,10 +3,9 @@ package wiki.chiu.micro.exhibit.application.port.in;
 import java.util.List;
 
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
-import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
-import wiki.chiu.micro.exhibit.application.model.BlogRecommendations;
+import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
 import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 
@@ -16,15 +15,15 @@ import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
  */
 public interface BlogService {
 
-    Page<BlogDescription> findPage(Integer currentPage);
-
     BlogExhibit getLockedBlog(Long blogId, String token);
 
     VisitStatistics getVisitStatistics();
 
     List<BlogHotRead> getScoreBlogs();
 
-    BlogRecommendations getRecommendations(Long blogId, int limit);
+    List<BlogRecommendation> getRelatedArticles(Long blogId, int limit);
+
+    Page<BlogRecommendation> findRecommendationPage(Integer currentPage);
 
     BlogExhibit getBlogDetail(List<DataPermissionEnum> dataPermissions, Long id, Long userId);
 }

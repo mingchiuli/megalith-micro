@@ -24,7 +24,6 @@ import wiki.chiu.micro.search.api.vo.AdminBlogSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminRevisionRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminRevisionSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
-import wiki.chiu.micro.search.api.vo.RecommendationRpcVo;
 
 public class SearchRuntimeHints implements RuntimeHintsRegistrar {
 
@@ -55,7 +54,6 @@ public class SearchRuntimeHints implements RuntimeHintsRegistrar {
                 AdminBlogSearchRpcVo.class,
                 AdminRevisionRpcVo.class,
                 AdminRevisionSearchRpcVo.class,
-                PublicBlogRpcVo.class,
-                RecommendationRpcVo.class);
+                PublicBlogRpcVo.class);
     }
 }

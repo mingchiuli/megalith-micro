@@ -16,10 +16,9 @@ import java.util.Objects;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.enums.SensitiveTypeEnum;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
-import wiki.chiu.micro.exhibit.application.model.BlogRecommendations;
+import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
 import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
@@ -48,13 +47,6 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public Page<BlogDescription> findPage(Integer currentPage) {
-        Page<BlogDescription> page = blogReader.findPage(currentPage);
-        List<BlogDescription> masked = page.content().stream().map(this::mask).toList();
-        return page.withContent(masked);
-    }
-
-    @Override
     public BlogExhibit getLockedBlog(Long blogId, String token) {
         String normalizedToken = token.trim();
         if (normalizedToken.isEmpty() || !metrics.consumeReadToken(blogId, normalizedToken)) {
@@ -73,14 +65,17 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public List<BlogHotRead> getScoreBlogs() {
-        return getRecommendations(null, HOT_READ_LIMIT).hot().stream()
-            .map(item -> new BlogHotRead(item.id(), item.title(), item.readCount()))
-            .toList();
+        return blogReader.hotBlogs(HOT_READ_LIMIT);
     }
 
     @Override
-    public BlogRecommendations getRecommendations(Long blogId, int limit) {
-        return blogReader.recommendations(blogId, limit);
+    public List<BlogRecommendation> getRelatedArticles(Long blogId, int limit) {
+        return blogReader.relatedArticles(blogId, limit);
+    }
+
+    @Override
+    public Page<BlogRecommendation> findRecommendationPage(Integer currentPage) {
+        return blogReader.recommendationPage(currentPage);
     }
 
     @Override
@@ -107,28 +102,6 @@ public class BlogServiceImpl implements BlogService {
 
         blogReader.incrementViews(id);
         return result;
-    }
-
-    private BlogDescription mask(BlogDescription description) {
-        if (!SENSITIVE_FILTER.getCode().equals(description.status())) {
-            return description;
-        }
-        List<SensitiveSpan> spans =
-            description.sensitiveContent().stream()
-                .flatMap(
-                    span ->
-                        SensitiveTypeEnum.ofCode(span.type()).stream()
-                            .map(
-                                type ->
-                                    new SensitiveSpan(
-                                        type, span.startIndex(), span.endIndex())))
-                .toList();
-        if (spans.isEmpty()) {
-            return description;
-        }
-        return description.withMasked(
-            SensitiveContentMasker.mask(description.title(), spans, TITLE),
-            SensitiveContentMasker.mask(description.description(), spans, DESCRIPTION));
     }
 
     private BlogExhibit mask(BlogExhibit blog, Long blogId) {

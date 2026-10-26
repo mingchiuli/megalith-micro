@@ -11,18 +11,17 @@ import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogRead;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
-import wiki.chiu.micro.search.application.model.RecommendationResult;
 import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
 
 public interface SearchBlogsUseCase {
 
     Page<BlogSearchHit> searchPublic(PublicBlogSearchQuery query);
 
-    Page<PublicBlogRead> publicPage(int page, int pageSize);
-
     PublicBlogRead findPublic(long blogId);
 
-    RecommendationResult recommendations(Long blogId, int limit);
+    List<PublicBlogRead> relatedArticles(long blogId, int limit);
+
+    Page<PublicBlogRead> recommendationPage(int page, int pageSize);
 
     Page<AdminBlogRead> searchAdmin(PrivateBlogSearchQuery query);
 

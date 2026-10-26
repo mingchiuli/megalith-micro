@@ -1,6 +1,7 @@
 package wiki.chiu.micro.search.adapter.in.http;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,6 +26,7 @@ import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.Page;
+import wiki.chiu.micro.search.application.model.PublicBlogRead;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
 import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
 
@@ -179,6 +181,54 @@ class BlogSearchControllerTest {
     }
 
     @Test
+    void recommendationPageReturnsPagingMetadata() throws Exception {
+        Page<PublicBlogRead> page =
+            new Page<>(
+                List.of(publicBlog(7)),
+                6,
+                2,
+                5,
+                false,
+                true,
+                false,
+                2);
+        when(searchBlogs.recommendationPage(2, 5)).thenReturn(page);
+
+        mockMvc
+            .perform(
+                get("/inner/blog/public/recommendations/page")
+                    .param("page", "2")
+                    .param("size", "5"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.content[0].id").value(7))
+            .andExpect(jsonPath("$.data.pageNumber").value(2))
+            .andExpect(jsonPath("$.data.totalElements").value(6))
+            .andExpect(jsonPath("$.data.last").value(true));
+    }
+
+    @Test
+    void recommendationPageRejectsInvalidPaging() throws Exception {
+        mockMvc
+            .perform(
+                get("/inner/blog/public/recommendations/page")
+                    .param("page", "0")
+                    .param("size", "5"))
+            .andExpect(status().isBadRequest());
+
+        verify(searchBlogs, never()).recommendationPage(anyInt(), anyInt());
+    }
+
+    @Test
+    void relatedArticlesReturnsPublicBlogs() throws Exception {
+        when(searchBlogs.relatedArticles(7L, 4)).thenReturn(List.of(publicBlog(3)));
+
+        mockMvc
+            .perform(get("/inner/blog/public/related/7").param("limit", "4"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data[0].id").value(3));
+    }
+
+    @Test
     void unknownPathReturns404() throws Exception {
         mockMvc.perform(get("/search/unknown")).andExpect(status().isNotFound());
     }
@@ -200,5 +250,25 @@ class BlogSearchControllerTest {
                 .andExpect(status().isBadRequest());
         }
         verify(searchBlogs, never()).updateReadCounts(any());
+    }
+
+    private static PublicBlogRead publicBlog(long id) {
+        LocalDateTime created = LocalDateTime.of(2026, 10, 25, 12, 0);
+        return new PublicBlogRead(
+            id,
+            2L,
+            null,
+            null,
+            "title",
+            "description",
+            "content",
+            "",
+            10L,
+            created,
+            created,
+            null,
+            null,
+            null,
+            List.of());
     }
 }

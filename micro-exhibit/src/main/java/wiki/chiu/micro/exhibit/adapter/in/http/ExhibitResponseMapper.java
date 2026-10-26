@@ -3,11 +3,9 @@ package wiki.chiu.micro.exhibit.adapter.in.http;
 import java.util.List;
 
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.exhibit.application.model.BlogDescription;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
-import wiki.chiu.micro.exhibit.application.model.BlogRecommendations;
 import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 
@@ -17,21 +15,6 @@ import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 public final class ExhibitResponseMapper {
 
     private ExhibitResponseMapper() {
-    }
-
-    public static PageAdapter<BlogDescriptionVo> toVo(Page<BlogDescription> page) {
-        return PageResponse.of(
-            page, page.content().stream().map(ExhibitResponseMapper::toVo).toList());
-    }
-
-    public static BlogDescriptionVo toVo(BlogDescription description) {
-        return new BlogDescriptionVo(
-            description.id(),
-            description.title(),
-            description.description(),
-            description.created(),
-            description.link(),
-            description.status());
     }
 
     public static BlogExhibitVo toVo(BlogExhibit exhibit) {
@@ -59,10 +42,15 @@ public final class ExhibitResponseMapper {
             .toList();
     }
 
-    public static BlogRecommendationsVo toVo(BlogRecommendations recommendations) {
-        return new BlogRecommendationsVo(
-            recommendations.hot().stream().map(ExhibitResponseMapper::toVo).toList(),
-            recommendations.related().stream().map(ExhibitResponseMapper::toVo).toList());
+    public static List<BlogRecommendationVo> toRelatedArticleVos(
+        List<BlogRecommendation> recommendations) {
+        return recommendations.stream().map(ExhibitResponseMapper::toVo).toList();
+    }
+
+    public static PageAdapter<BlogRecommendationVo> toRecommendationPageVo(
+        Page<BlogRecommendation> page) {
+        return PageResponse.of(
+            page, page.content().stream().map(ExhibitResponseMapper::toVo).toList());
     }
 
     private static BlogRecommendationVo toVo(BlogRecommendation recommendation) {

@@ -13,7 +13,6 @@ import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogRead;
-import wiki.chiu.micro.search.application.model.RecommendationResult;
 import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
 import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
 import wiki.chiu.micro.search.application.port.out.BlogSearchIndex;
@@ -32,11 +31,6 @@ public final class SearchApplicationService implements SearchBlogsUseCase {
     }
 
     @Override
-    public Page<PublicBlogRead> publicPage(int page, int pageSize) {
-        return searchIndex.publicPage(page, pageSize);
-    }
-
-    @Override
     public PublicBlogRead findPublic(long blogId) {
         PublicBlogRead blog = searchIndex.findPublic(blogId)
             .orElseThrow(
@@ -49,8 +43,13 @@ public final class SearchApplicationService implements SearchBlogsUseCase {
     }
 
     @Override
-    public RecommendationResult recommendations(Long blogId, int limit) {
-        return searchIndex.recommendations(blogId, limit);
+    public List<PublicBlogRead> relatedArticles(long blogId, int limit) {
+        return searchIndex.relatedArticles(blogId, limit);
+    }
+
+    @Override
+    public Page<PublicBlogRead> recommendationPage(int page, int pageSize) {
+        return searchIndex.recommendationPage(page, pageSize);
     }
 
     @Override

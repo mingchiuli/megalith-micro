@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import wiki.chiu.micro.blog.api.BlogHttpService;
 import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.rpc.RemoteResult;
 import wiki.chiu.micro.exhibit.application.model.BlogSummary;
 import wiki.chiu.micro.exhibit.application.port.out.BlogCatalog;
@@ -45,10 +44,6 @@ public class BlogHttpServiceWrapper implements BlogCatalog {
 
     public void setReadCount(Long id) {
         RemoteResult.requireSuccess(() -> blogHttpService.setReadCount(id));
-    }
-
-    public PageAdapter<BlogEntityRpcVo> findPage(Integer pageNo, Integer pageSize) {
-        return RemoteResult.requireSuccess(() -> blogHttpService.findPage(pageNo, pageSize));
     }
 
     public BlogSensitiveContentRpcVo findSensitiveByBlogId(Long blogId) {

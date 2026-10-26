@@ -353,17 +353,6 @@ class BlogControllerTest {
     }
 
     @Test
-    void internalPageQueryUsesGetAndIsNotCapturedAsBlogId() throws Exception {
-        when(blogInternalHttpHandler.findPage(any())).thenReturn(ServerResponse.ok().build());
-
-        mockMvc
-            .perform(get("/inner/blog/page").param("pageNo", "1").param("pageSize", "10"))
-            .andExpect(status().isOk());
-
-        verify(blogInternalHttpHandler).findPage(any());
-    }
-
-    @Test
     void internalIdQueryUsesLiteralRoute() throws Exception {
         when(blogInternalHttpHandler.findIdsAfter(any())).thenReturn(ServerResponse.ok().build());
 

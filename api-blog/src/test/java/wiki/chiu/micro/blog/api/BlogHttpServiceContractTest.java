@@ -10,19 +10,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
-import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PostExchange;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 class BlogHttpServiceContractTest {
-
-    @Test
-    void pageQueryUsesGet() throws NoSuchMethodException {
-        var method = BlogHttpService.class.getMethod("findPage", Integer.class, Integer.class);
-
-        assertThat(method.getAnnotation(GetExchange.class).value()).isEqualTo("/blog/page");
-        assertThat(method.getAnnotation(PostExchange.class)).isNull();
-    }
 
     @Test
     void viewMutationHasAnExplicitResourcePath() throws NoSuchMethodException {

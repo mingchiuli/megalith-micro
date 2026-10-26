@@ -153,6 +153,46 @@ class SearchIndexIntegrationTest {
         assertThat(document(7).getTitle()).isEqualTo("old");
     }
 
+    @Test
+    void recommendationPagingUsesStableScoresAndPublicDocumentsOnly() throws Exception {
+        for (long id = 1; id <= 7; id++) {
+            blogs.write(change(id, 1, 0, id * 10, "article " + id));
+        }
+        blogs.write(change(8, 1, 2, 1000, "filtered article"));
+        indexClient.refresh(request -> request.index(alias));
+
+        var first = blogs.recommendationPage(1, 3);
+        var second = blogs.recommendationPage(2, 3);
+        var third = blogs.recommendationPage(3, 3);
+
+        assertThat(first.content()).extracting(blog -> blog.id()).containsExactly(7L, 6L, 5L);
+        assertThat(second.content()).extracting(blog -> blog.id()).containsExactly(4L, 3L, 2L);
+        assertThat(third.content()).extracting(blog -> blog.id()).containsExactly(1L);
+        assertThat(first.totalElements()).isEqualTo(7);
+        assertThat(first.last()).isFalse();
+        assertThat(third.last()).isTrue();
+    }
+
+    @Test
+    void relatedArticlesExcludeTheSourceAndDeletedDocuments() throws Exception {
+        blogs.write(change(1, 1, 0, 10, "shared topic"));
+        blogs.write(change(2, 1, 0, 20, "shared topic"));
+        blogs.write(change(3, 1, 2, 30, "shared topic"));
+        blogs.write(change(4, 1, 0, 40, "shared topic"));
+        blogs.write(
+            new BlogIndexChange(
+                BlogIndexChange.Operation.REMOVE,
+                2,
+                change(4, 2, 0, 40, "shared topic").blog()));
+        indexClient.refresh(request -> request.index(alias));
+
+        var related = blogs.relatedArticles(1L, 10);
+
+        assertThat(related)
+            .extracting(blog -> blog.id())
+            .containsExactlyInAnyOrder(2L, 3L);
+    }
+
     private BlogDocument document(long id) {
         return template.get(Long.toString(id), BlogDocument.class, IndexCoordinates.of(alias));
     }

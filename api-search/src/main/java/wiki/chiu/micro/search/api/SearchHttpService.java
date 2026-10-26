@@ -18,7 +18,6 @@ import wiki.chiu.micro.search.api.vo.AdminBlogSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminRevisionSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
-import wiki.chiu.micro.search.api.vo.RecommendationRpcVo;
 
 public interface SearchHttpService {
 
@@ -37,14 +36,14 @@ public interface SearchHttpService {
     @PostExchange("/blog/views/batch")
     Result<Void> updateReadCounts(@RequestBody List<BlogReadCountReq> counts);
 
-    @GetExchange("/blog/public/page")
-    Result<PageAdapter<PublicBlogRpcVo>> publicPage(
-        @RequestParam Integer page, @RequestParam Integer size);
-
     @GetExchange("/blog/public/{blogId}")
     Result<PublicBlogRpcVo> publicBlog(@PathVariable Long blogId);
 
-    @GetExchange("/blog/public/recommendations")
-    Result<RecommendationRpcVo> recommendations(
-        @RequestParam(required = false) Long blogId, @RequestParam Integer limit);
+    @GetExchange("/blog/public/related/{blogId}")
+    Result<List<PublicBlogRpcVo>> relatedArticles(
+        @PathVariable Long blogId, @RequestParam Integer limit);
+
+    @GetExchange("/blog/public/recommendations/page")
+    Result<PageAdapter<PublicBlogRpcVo>> recommendationPage(
+        @RequestParam Integer page, @RequestParam Integer size);
 }

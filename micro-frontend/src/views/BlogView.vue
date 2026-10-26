@@ -2,7 +2,7 @@
 import { useHttp } from '@/http/http'
 import type { BlogExhibit } from '@/type/entity'
 import Catalogue from '@/components/CatalogueItem.vue'
-import RecommendationPanel from '@/components/RecommendationPanel.vue'
+import RelatedArticlesPanel from '@/components/RelatedArticlesPanel.vue'
 import { API_ENDPOINTS } from '@/config/apiConfig'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
@@ -146,7 +146,7 @@ useHead(() => ({
         @on-html-changed="renderCatalogue"
       />
     </el-card>
-    <RecommendationPanel :blog-id="blogId" :limit="4" />
+    <RelatedArticlesPanel :blog-id="blogId" :limit="4" />
     <DiscussItem />
   </div>
 </template>

@@ -26,6 +26,7 @@ import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
+import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
 import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
@@ -80,21 +81,6 @@ class BlogControllerTest {
     }
 
     @Test
-    void getPageReturnsPage() throws Exception {
-        when(blogService.findPage(1)).thenReturn(Page.emptyPage());
-
-        mockMvc
-            .perform(get("/public/blog/page/1"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.empty").value(true));
-    }
-
-    @Test
-    void getPageWithBadPathVariableReturns400() throws Exception {
-        mockMvc.perform(get("/public/blog/page/abc")).andExpect(status().isBadRequest());
-    }
-
-    @Test
     void getLockedBlogReturnsVo() throws Exception {
         when(blogService.getLockedBlog(7L, "tk")).thenReturn(sampleBlog());
 
@@ -125,6 +111,43 @@ class BlogControllerTest {
             .perform(get("/public/blog/scores"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data[0].id").value(1));
+    }
+
+    @Test
+    void getRecommendationPageReturnsPagedCards() throws Exception {
+        Page<BlogRecommendation> page =
+            new Page<>(
+                List.of(new BlogRecommendation(7L, "title", "description", LocalDateTime.now(), "", 10L)),
+                6,
+                2,
+                5,
+                false,
+                true,
+                false,
+                2);
+        when(blogService.findRecommendationPage(2)).thenReturn(page);
+
+        mockMvc
+            .perform(get("/public/blog/recommendations/page/2"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.content[0].id").value(7))
+            .andExpect(jsonPath("$.data.pageNumber").value(2))
+            .andExpect(jsonPath("$.data.last").value(true));
+    }
+
+    @Test
+    void getRelatedArticlesReturnsOnlyRelatedCards() throws Exception {
+        when(blogService.getRelatedArticles(5L, 4))
+            .thenReturn(
+                List.of(
+                    new BlogRecommendation(
+                        7L, "related", "description", LocalDateTime.now(), "", 10L)));
+
+        mockMvc
+            .perform(get("/public/blog/related/5").param("limit", "4"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data[0].id").value(7))
+            .andExpect(jsonPath("$.data[0].title").value("related"));
     }
 
     @Test

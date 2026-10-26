@@ -39,7 +39,6 @@ import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogRead;
 import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
-import wiki.chiu.micro.search.application.model.RecommendationResult;
 import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
 import wiki.chiu.micro.search.application.port.out.BlogIndexWriter;
 import wiki.chiu.micro.search.application.port.out.BlogSearchIndex;
@@ -105,48 +104,6 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
     }
 
     @Override
-    public Page<PublicBlogRead> publicPage(int page, int pageSize) {
-        NativeQuery query =
-            NativeQuery.builder()
-                .withQuery(
-                    value ->
-                        value.bool(
-                            bool ->
-                                bool.filter(
-                                        filter ->
-                                            filter.terms(
-                                                terms ->
-                                                    terms.field("status")
-                                                        .terms(
-                                                            termsValue ->
-                                                                termsValue.value(
-                                                                    List.of(
-                                                                        FieldValue.of(
-                                                                            BlogStatusEnum.NORMAL.getCode()),
-                                                                        FieldValue.of(
-                                                                            BlogStatusEnum.SENSITIVE_FILTER.getCode()),
-                                                                        FieldValue.of(
-                                                                            BlogStatusEnum.HIDE.getCode()))))))
-                                    .mustNot(
-                                        not ->
-                                            not.term(
-                                                term ->
-                                                    term.field("deleted").value(true)))
-                                    .mustNot(
-                                        not ->
-                                            not.exists(
-                                                exists ->
-                                                    exists.field("offlineAt")))))
-                .withPageable(PageRequest.of(page - 1, pageSize))
-                .withSort(sort -> sort.field(field -> field.field("created").order(SortOrder.Desc)))
-                .build();
-        SearchHits<@NonNull BlogDocument> hits =
-            elasticsearchTemplate.search(
-                query, BlogDocument.class, IndexCoordinates.of(indexName));
-        return publicPage(hits, page, pageSize);
-    }
-
-    @Override
     public Optional<PublicBlogRead> findPublic(long blogId) {
         BlogDocument document =
             elasticsearchTemplate.get(
@@ -158,11 +115,18 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
     }
 
     @Override
-    public RecommendationResult recommendations(Long blogId, int limit) {
-        List<PublicBlogRead> hot = recommendHot(limit);
-        List<PublicBlogRead> related =
-            blogId == null ? List.of() : recommendRelated(blogId, limit);
-        return new RecommendationResult(hot, related);
+    public List<PublicBlogRead> relatedArticles(long blogId, int limit) {
+        return recommendRelated(blogId, limit);
+    }
+
+    @Override
+    public Page<PublicBlogRead> recommendationPage(int page, int pageSize) {
+        SearchHits<@NonNull BlogDocument> hits =
+            elasticsearchTemplate.search(
+                recommendationQuery(page, pageSize),
+                BlogDocument.class,
+                IndexCoordinates.of(indexName));
+        return toPublicPage(hits, page, pageSize);
     }
 
     @Override
@@ -400,9 +364,8 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
             .build();
     }
 
-    private List<PublicBlogRead> recommendHot(int limit) {
-        NativeQuery query =
-            NativeQuery.builder()
+    private static NativeQuery recommendationQuery(int page, int pageSize) {
+        return NativeQuery.builder()
                 .withQuery(
                     value ->
                         value.functionScore(
@@ -463,12 +426,10 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
                                                                                             "30d")))
                                                                             .decay(0.5)))))
                                     .boostMode(FunctionBoostMode.Sum)))
-                .withPageable(PageRequest.of(0, limit))
+                .withSort(sort -> sort.score(score -> score.order(SortOrder.Desc)))
+                .withSort(sort -> sort.field(field -> field.field("id").order(SortOrder.Asc)))
+                .withPageable(PageRequest.of(page - 1, pageSize))
                 .build();
-        SearchHits<@NonNull BlogDocument> hits =
-            elasticsearchTemplate.search(
-                query, BlogDocument.class, IndexCoordinates.of(indexName));
-        return hits.getSearchHits().stream().map(hit -> toPublic(hit.getContent())).toList();
     }
 
     private List<PublicBlogRead> recommendRelated(long blogId, int limit) {
@@ -857,17 +818,18 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
             document.getId().equals(currentPublishedRevisionId));
     }
 
-    private static Page<PublicBlogRead> publicPage(
+    private static Page<PublicBlogRead> toPublicPage(
         SearchHits<@NonNull BlogDocument> hits, int page, int pageSize) {
+        int totalPages = pageCount(hits.getTotalHits(), pageSize);
         return new Page<>(
             hits.getSearchHits().stream().map(hit -> toPublic(hit.getContent())).toList(),
             hits.getTotalHits(),
             page,
             pageSize,
             page == 1,
-            hits.getSearchHits().size() < pageSize,
+            page >= totalPages,
             hits.getTotalHits() == 0,
-            pageCount(hits.getTotalHits(), pageSize));
+            totalPages);
     }
 
     private static int pageCount(long total, int pageSize) {

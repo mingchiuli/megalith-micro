@@ -185,7 +185,7 @@ export interface Button extends MenuNodeBase {
   component?: string
 }
 
-interface MenuRoute extends MenuNodeBase, ChildrenFather<MenuNode> {
+export interface MenuRoute extends MenuNodeBase, ChildrenFather<MenuNode> {
   type: RoutesEnum.CATALOGUE | RoutesEnum.MENU
   url: string
   component: string
@@ -220,6 +220,10 @@ export interface PageAdapter<T> {
   pageSize: number
   totalElements: number
   pageNumber: number
+  first?: boolean
+  last?: boolean
+  empty?: boolean
+  totalPages?: number
 }
 
 export interface SearchPage<T> extends PageAdapter<T> {
@@ -362,11 +366,6 @@ export interface BlogRecommendation {
   created: string
   link: string
   readCount: number
-}
-
-export interface BlogRecommendations {
-  hot: BlogRecommendation[]
-  related: BlogRecommendation[]
 }
 
 export interface SensitiveItem {

@@ -50,7 +50,6 @@ public class BlogRoutes {
                 .GET("/inner/blog/count", internalHandler::count)
                 .GET("/inner/blog/ids", internalHandler::findIdsAfter)
                 .GET("/inner/blog/sensitive/{blogId}", internalHandler::findSensitiveByBlogId)
-                .GET("/inner/blog/page", internalHandler::findPage)
                 .GET("/inner/blog/{blogId}", internalHandler::findById)
                 .POST("/inner/blog/batch", internalHandler::findAllById)
                 .POST("/inner/blog/{blogId}/views", internalHandler::setReadCount),

@@ -95,7 +95,7 @@ describe('SearchItem.vue', () => {
     wrapper.unmount()
   })
 
-  it('searchAllInfo 无结果时 emit refresh', async () => {
+  it('searchAllInfo 无结果时仍 emit 空结果', async () => {
     mocks.GET.mockResolvedValueOnce(buildPage([]))
 
     const wrapper = mountSearch()
@@ -104,7 +104,22 @@ describe('SearchItem.vue', () => {
     }
     await exposed.searchAllInfo('none', 1)
 
-    expect(wrapper.emitted('refresh')).toBeTruthy()
+    expect(wrapper.emitted('refresh')).toBeFalsy()
+    const payload = wrapper.emitted('transSearchData')![0]![0] as SearchPage<BlogDesc>
+    expect(payload.content).toEqual([])
+    wrapper.unmount()
+  })
+
+  it('searchAllInfo 请求失败时 emit searchError', async () => {
+    mocks.GET.mockRejectedValueOnce(new Error('search failed'))
+
+    const wrapper = mountSearch()
+    const exposed = wrapper.vm as unknown as {
+      searchAllInfo: (q: string, p?: number) => Promise<void>
+    }
+    await exposed.searchAllInfo('none', 1)
+
+    expect(wrapper.emitted('searchError')).toHaveLength(1)
     expect(wrapper.emitted('transSearchData')).toBeFalsy()
     wrapper.unmount()
   })

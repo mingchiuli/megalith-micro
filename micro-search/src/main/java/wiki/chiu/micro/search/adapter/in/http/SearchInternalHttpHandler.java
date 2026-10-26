@@ -1,7 +1,6 @@
 package wiki.chiu.micro.search.adapter.in.http;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
-import static wiki.chiu.micro.common.web.FunctionalWeb.nullableParam;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
@@ -25,7 +24,6 @@ import wiki.chiu.micro.search.api.vo.AdminBlogSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminRevisionRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminRevisionSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
-import wiki.chiu.micro.search.api.vo.RecommendationRpcVo;
 import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.AdminBlogRead;
 import wiki.chiu.micro.search.application.model.AdminRevisionRead;
@@ -33,7 +31,6 @@ import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.BlogSearchResult;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogRead;
-import wiki.chiu.micro.search.application.model.RecommendationResult;
 import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
 import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
 import wiki.chiu.micro.common.page.PageAdapter;
@@ -80,21 +77,21 @@ public class SearchInternalHttpHandler implements SearchHttpService {
         return ok(searchRevisions(req));
     }
 
-    public ServerResponse publicPage(ServerRequest request) {
-        Integer page = v.positive(requiredParam(request, "page", Integer::valueOf), "page");
-        Integer size = v.range(requiredParam(request, "size", Integer::valueOf), 1, 50, "size");
-        return ok(publicPage(page, size));
-    }
-
     public ServerResponse publicBlog(ServerRequest request) {
         Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         return ok(publicBlog(blogId));
     }
 
-    public ServerResponse recommendations(ServerRequest request) {
-        Long blogId = nullableParam(request, "blogId", Long::valueOf);
+    public ServerResponse relatedArticles(ServerRequest request) {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         Integer limit = v.range(requiredParam(request, "limit", Integer::valueOf), 1, 20, "limit");
-        return ok(recommendations(blogId, limit));
+        return ok(relatedArticles(blogId, limit));
+    }
+
+    public ServerResponse recommendationPage(ServerRequest request) {
+        Integer page = v.positive(requiredParam(request, "page", Integer::valueOf), "page");
+        Integer size = v.range(requiredParam(request, "size", Integer::valueOf), 1, 50, "size");
+        return ok(recommendationPage(page, size));
     }
 
     @Override
@@ -154,30 +151,25 @@ public class SearchInternalHttpHandler implements SearchHttpService {
     }
 
     @Override
-    public Result<PageAdapter<PublicBlogRpcVo>> publicPage(Integer page, Integer size) {
-        Page<PublicBlogRead> result = searchBlogs.publicPage(page, size);
-        return Result.success(
-            () ->
-                PageResponse.of(
-                    result,
-                    result.content().stream()
-                        .map(SearchInternalHttpHandler::toResponse)
-                        .toList()));
-    }
-
-    @Override
     public Result<PublicBlogRpcVo> publicBlog(Long blogId) {
         return Result.success(() -> toResponse(searchBlogs.findPublic(blogId)));
     }
 
     @Override
-    public Result<RecommendationRpcVo> recommendations(Long blogId, Integer limit) {
-        RecommendationResult result = searchBlogs.recommendations(blogId, limit);
+    public Result<List<PublicBlogRpcVo>> relatedArticles(Long blogId, Integer limit) {
+        List<PublicBlogRead> result = searchBlogs.relatedArticles(blogId, limit);
+        return Result.success(
+            () -> result.stream().map(SearchInternalHttpHandler::toResponse).toList());
+    }
+
+    @Override
+    public Result<PageAdapter<PublicBlogRpcVo>> recommendationPage(Integer page, Integer size) {
+        Page<PublicBlogRead> result = searchBlogs.recommendationPage(page, size);
         return Result.success(
             () ->
-                new RecommendationRpcVo(
-                    result.hot().stream().map(SearchInternalHttpHandler::toResponse).toList(),
-                    result.related().stream()
+                PageResponse.of(
+                    result,
+                    result.content().stream()
                         .map(SearchInternalHttpHandler::toResponse)
                         .toList()));
     }
