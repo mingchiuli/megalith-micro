@@ -22,7 +22,7 @@ separate JVM, JRE, Bun installation, build toolchain, or source tree.
 
 | Applications | Technology | Production artifact |
 | --- | --- | --- |
-| `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot 4.1.1, GraalVM | GraalVM Native Image executable |
+| `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot 4.1.2, GraalVM | GraalVM Native Image executable |
 | `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
 | `micro-frontend` | Bun 1.4.3, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 

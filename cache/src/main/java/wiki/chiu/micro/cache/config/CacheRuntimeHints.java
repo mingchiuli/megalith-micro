@@ -2,6 +2,8 @@ package wiki.chiu.micro.cache.config;
 
 import static org.springframework.util.ReflectionUtils.findMethod;
 
+import java.util.List;
+
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -16,6 +18,17 @@ import wiki.chiu.micro.cache.adapter.in.messaging.RabbitCacheEvictMessageListene
 import wiki.chiu.micro.cache.application.model.CacheEvictionMessage;
 
 class CacheRuntimeHints implements RuntimeHintsRegistrar {
+
+    private static final TypeReference REFERENCE_COUNT_UTIL =
+        TypeReference.of("io.netty.util.ReferenceCountUtil");
+    private static final TypeReference ADVANCED_LEAK_AWARE_BYTE_BUF =
+        TypeReference.of("io.netty.buffer.AdvancedLeakAwareByteBuf");
+    private static final TypeReference ABSTRACT_BYTE_BUF_ALLOCATOR =
+        TypeReference.of("io.netty.buffer.AbstractByteBufAllocator");
+    private static final TypeReference RESOURCE_LEAK_TRACKER =
+        TypeReference.of("io.netty.util.ResourceLeakTracker");
+    private static final TypeReference BYTE_BUF = TypeReference.of("io.netty.buffer.ByteBuf");
+    private static final TypeReference OBJECT = TypeReference.of(Object.class);
 
     private static final Logger log = LoggerFactory.getLogger(CacheRuntimeHints.class);
 
@@ -68,6 +81,34 @@ class CacheRuntimeHints implements RuntimeHintsRegistrar {
                         typeHint.withField("FACTORY");
                         typeHint.withField("EXPIRES_AFTER_ACCESS_NANOS");
                     });
+
+            // GraalVM metadata overrides netty-buffer's registration, but Netty reflects over these
+            // methods while initializing its leak detector.
+            hints
+                .reflection()
+                .registerType(
+                    REFERENCE_COUNT_UTIL,
+                    typeHint -> typeHint.withMethod(
+                        "touch",
+                        List.of(OBJECT),
+                        ExecutableMode.INVOKE))
+                .registerType(
+                    ADVANCED_LEAK_AWARE_BYTE_BUF,
+                    typeHint -> typeHint
+                        .withMethod(
+                            "touch",
+                            List.of(OBJECT),
+                            ExecutableMode.INVOKE)
+                        .withMethod(
+                            "recordLeakNonRefCountingOperation",
+                            List.of(RESOURCE_LEAK_TRACKER),
+                            ExecutableMode.INVOKE))
+                .registerType(
+                    ABSTRACT_BYTE_BUF_ALLOCATOR,
+                    typeHint -> typeHint.withMethod(
+                        "toLeakAwareBuffer",
+                        List.of(BYTE_BUF),
+                        ExecutableMode.INVOKE));
 
         } catch (Exception e) {
             log.error("Failed to register runtime hints", e);
