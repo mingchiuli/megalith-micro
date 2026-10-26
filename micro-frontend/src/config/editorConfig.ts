@@ -30,7 +30,13 @@ const INDEXEDDB_SYNC_TIMEOUT_MS = 5000
 const activePersistences = new Map<string, Set<IndexeddbPersistence>>()
 
 export type CollaborationPhase =
-  'initializing' | 'connecting' | 'syncing' | 'ready' | 'reconnecting' | 'failed' | 'expired'
+  | 'initializing'
+  | 'connecting'
+  | 'syncing'
+  | 'ready'
+  | 'reconnecting'
+  | 'failed'
+  | 'expired'
 
 export type CollaborationEvent =
   | {

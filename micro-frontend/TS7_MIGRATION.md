@@ -31,7 +31,7 @@ Bun 1.4.3 内置 `bun check`（typescript-go 移植，通过 TS 7.0.2 一致性�
 - ✅ 无 `const enum`、namespace、自定义 transformer、旧式 `moduleResolution`（app/server 均为 `Bundler`）
 - ✅ tsconfig 全链（含 `@vue/tsconfig` 与 Bun 类型）不含任何 TS7 移除的选项（兼容性扫描零命中）
 - ✅ CSS 副作用导入（`entry-client.ts`、`EditorItem.vue`、`BlogView.vue` 等）由 `env.d.ts` 的 `vite/client` 声明覆盖，新默认 `noUncheckedSideEffectImports` 不会误报
-- ✅ ESLint 为纯语法检查（`vueTsConfigs.recommended` 不开 type-aware），不受编译器 API 移除影响
+- ✅ Oxlint 为非 type-aware 检查，不受编译器 API 移除影响
 - ✅ 客户端/SSR 构建走 Vite/esbuild，与 TS 编译器无关
 - ⛔ **阻塞**：`vue-tsc`/Volar 靠运行时补丁 JS 版 `tsc.js` 识别 `.vue`，TS7 原生 Go 二进制无法如此工作。TS 7.0 不暴露可编程 Compiler API（推迟到 7.1），vue-tsc 官方支持要等 7.1
 - ⛔ **编辑器**：JetBrains 暂无原生 tsgo 语言服务；VS Code 需装 "TypeScript Native Preview" 扩展

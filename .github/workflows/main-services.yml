@@ -331,8 +331,16 @@ jobs:
           bun-version: 1.4.3
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Validate source and tests
-        run: bun run frontend:quality
+      - name: Run Oxlint
+        uses: oxc-project/oxlint-action@v3.1.0
+        with:
+          version: '1.89.0'
+          all-files: true
+          deny-warnings: true
+          working-directory: micro-frontend
+          config: .oxlintrc.json
+      - name: Validate formatting, types, and tests
+        run: bun run --filter megalith-frontend quality:ci
 
   build-java:
     name: Build Java Service

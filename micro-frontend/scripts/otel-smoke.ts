@@ -35,7 +35,8 @@ const collector = Bun.serve({
   port: 0,
   async fetch(request) {
     const signal = new URL(request.url).pathname.match(/^\/v1\/(traces|metrics|logs)$/)?.[1] as
-      OtelSignal | undefined
+      | OtelSignal
+      | undefined
     if (request.method !== 'POST' || !signal) return new Response(null, { status: 404 })
 
     signals.add(signal)

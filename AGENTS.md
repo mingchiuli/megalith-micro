@@ -151,7 +151,7 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
   paths such as `/role/authorizations` aligned with server routes such as `/inner/role/authorizations`.
 - Rust changes follow Rust 2024 conventions and must pass `rustfmt`; preserve existing async, error,
   and tracing patterns.
-- Frontend TypeScript and Vue changes follow existing patterns, Prettier, and ESLint. Run
+- Frontend TypeScript and Vue changes follow existing patterns, Oxlint, and Oxfmt. Run
   `bun run frontend:check` before committing frontend changes. Type checks are split by file type:
   `vue-tsc` for `.vue` sources and `bun check` for the `tsconfig.bun.json` project. Never add a
   `check` script to `micro-frontend`, because `bun check` resolves that script name before the
