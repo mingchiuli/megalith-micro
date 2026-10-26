@@ -11,8 +11,8 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel
 plugins {
     // Only declare plugin versions, don't apply to root project
     id("io.spring.dependency-management") version "1.1.7" apply false
-    id("org.springframework.boot") version "4.1.1" apply false
-    id("org.graalvm.buildtools.native") version "1.1.14" apply false
+    id("org.springframework.boot") version "4.1.2" apply false
+    id("org.graalvm.buildtools.native") version "1.1.16" apply false
     id("org.hibernate.orm") version "7.4.10.Final" apply false
 }
 
