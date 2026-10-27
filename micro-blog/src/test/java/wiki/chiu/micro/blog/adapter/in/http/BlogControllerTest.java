@@ -37,6 +37,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.blog.application.model.BlogExportPage;
 import wiki.chiu.micro.blog.application.model.BlogExportRow;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
+import wiki.chiu.micro.blog.application.model.DeletedBlogItem;
 import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
 import wiki.chiu.micro.blog.application.port.in.BlogCollaborationService;
@@ -200,12 +201,29 @@ class BlogControllerTest {
 
     @Test
     void getDeletedBlogsReturnsPage() throws Exception {
-        when(blogService.findDeletedBlogs(1, 10, 1L)).thenReturn(Page.emptyPage());
+        DeletedBlogItem deleted =
+            new DeletedBlogItem(
+                7L,
+                1L,
+                "deleted",
+                null,
+                "content",
+                null,
+                null,
+                1,
+                3,
+                "link",
+                5L);
+        Page<DeletedBlogItem> page =
+            new Page<>(List.of(deleted), 1, 1, 10, true, true, false, 1);
+        when(blogService.findDeletedBlogs(1, 10, 1L)).thenReturn(page);
 
         mockMvc
             .perform(get("/sys/blog/deleted").param("currentPage", "1").param("size", "10"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.empty").value(true));
+            .andExpect(jsonPath("$.data.content[0].id").value(7))
+            .andExpect(jsonPath("$.data.content[0].idx").value(3))
+            .andExpect(jsonPath("$.data.empty").value(false));
     }
 
     @Test

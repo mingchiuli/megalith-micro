@@ -259,7 +259,11 @@ public class BlogHttpHandler {
         Integer size = v.positive(requiredParam(request, "size", Integer::valueOf), "size");
         AuthPrincipal authInfo = authPrincipal(request);
         return ok(
-            Result.success(() -> blogService.findDeletedBlogs(currentPage, size, authInfo.userId())));
+            Result.success(
+                () ->
+                    BlogViewMapper.toDeletedVo(
+                        blogService.findDeletedBlogs(
+                            currentPage, size, authInfo.userId()))));
     }
 
     public ServerResponse recoverDeletedBlog(ServerRequest request) {

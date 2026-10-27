@@ -104,6 +104,6 @@ public class RoleHttpHandler {
     }
 
     public ServerResponse getValidAll(ServerRequest request) {
-        return ok(Result.success(roleService::getValidAll));
+        return ok(Result.success(() -> UserViewMapper.toRoleVos(roleService.getValidAll())));
     }
 }

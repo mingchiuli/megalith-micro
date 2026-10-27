@@ -30,6 +30,7 @@ import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.application.model.MenuExport;
+import wiki.chiu.micro.user.application.model.MenuNode;
 import wiki.chiu.micro.user.application.port.in.MenuAuthorityService;
 import wiki.chiu.micro.user.application.port.in.MenuService;
 import wiki.chiu.micro.user.domain.Menu;
@@ -87,12 +88,17 @@ class MenuControllerTest {
 
     @Test
     void listReturnsTree() throws Exception {
-        when(menuService.tree()).thenReturn(List.of());
+        Menu menu =
+            new Menu(1L, 0L, "root", "root", "/root", "RootView", 0, "icon", 1, 0, null, null);
+        when(menuService.tree()).thenReturn(List.of(new MenuNode(menu, List.of())));
 
         mockMvc
             .perform(get("/sys/menu/list"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data").isArray());
+            .andExpect(jsonPath("$.data[0].id").value(1))
+            .andExpect(jsonPath("$.data[0].title").value("root"))
+            .andExpect(jsonPath("$.data[0].menu").doesNotExist())
+            .andExpect(jsonPath("$.data[0].children").isArray());
     }
 
     @Test

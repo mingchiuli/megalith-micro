@@ -239,12 +239,13 @@ class RoleControllerTest {
 
     @Test
     void getValidAllReturnsList() throws Exception {
-        when(roleService.getValidAll()).thenReturn(List.of());
+        when(roleService.getValidAll())
+            .thenReturn(List.of(new Role(1L, "admin", "ADMIN", null, null, null, 0)));
 
         mockMvc
             .perform(get("/sys/role/valid/all"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data").isArray());
+            .andExpect(jsonPath("$.data[0].code").value("ADMIN"));
     }
 
     @Test

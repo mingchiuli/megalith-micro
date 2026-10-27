@@ -58,12 +58,16 @@ class AuthorityControllerTest {
 
     @Test
     void listReturnsList() throws Exception {
-        when(authorityService.findAll()).thenReturn(List.of());
+        when(authorityService.findAll())
+            .thenReturn(
+                List.of(
+                    new Authority(
+                        1L, "READ", null, null, null, null, null, null, null, null, null, null)));
 
         mockMvc
             .perform(get("/sys/authority/list"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data").isArray());
+            .andExpect(jsonPath("$.data[0].code").value("READ"));
     }
 
     @Test

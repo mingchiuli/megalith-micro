@@ -44,7 +44,7 @@ public class MenuHttpHandler {
     }
 
     public ServerResponse list(ServerRequest request) {
-        return ok(Result.success(menuService::tree));
+        return ok(Result.success(() -> UserViewMapper.toMenuDisplayVos(menuService.tree())));
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {

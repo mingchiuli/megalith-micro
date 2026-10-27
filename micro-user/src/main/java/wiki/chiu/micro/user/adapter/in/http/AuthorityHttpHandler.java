@@ -30,7 +30,7 @@ public class AuthorityHttpHandler {
     }
 
     public ServerResponse list(ServerRequest request) {
-        return ok(Result.success(authorityService::findAll));
+        return ok(Result.success(() -> UserViewMapper.toAuthorityVos(authorityService.findAll())));
     }
 
     public ServerResponse info(ServerRequest request) {

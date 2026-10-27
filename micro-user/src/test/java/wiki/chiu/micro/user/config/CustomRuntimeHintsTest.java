@@ -9,10 +9,6 @@ import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 
 import wiki.chiu.micro.common.message.AuthCacheEvictMessage;
 import wiki.chiu.micro.common.message.UserDeletedMessage;
-import wiki.chiu.micro.user.application.model.MenuNode;
-import wiki.chiu.micro.user.domain.Authority;
-import wiki.chiu.micro.user.domain.Menu;
-import wiki.chiu.micro.user.domain.Role;
 
 class CustomRuntimeHintsTest {
 
@@ -23,17 +19,6 @@ class CustomRuntimeHintsTest {
 
         assertJacksonType(hints, AuthCacheEvictMessage.class);
         assertJacksonType(hints, UserDeletedMessage.class);
-    }
-
-    @Test
-    void registersHttpResponseRecordTypesForJackson() {
-        RuntimeHints hints = new RuntimeHints();
-        new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
-
-        assertJacksonType(hints, Authority.class);
-        assertJacksonType(hints, Menu.class);
-        assertJacksonType(hints, MenuNode.class);
-        assertJacksonType(hints, Role.class);
     }
 
     private void assertJacksonType(RuntimeHints hints, Class<?> type) {

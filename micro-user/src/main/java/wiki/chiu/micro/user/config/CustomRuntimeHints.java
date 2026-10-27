@@ -16,7 +16,6 @@ import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
 import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
-import wiki.chiu.micro.user.application.model.MenuNode;
 import wiki.chiu.micro.user.adapter.in.http.AuthorityEntityReq;
 import wiki.chiu.micro.user.adapter.in.http.MenuEntityReq;
 import wiki.chiu.micro.user.adapter.in.http.RegisterImageDeleteReq;
@@ -30,9 +29,6 @@ import wiki.chiu.micro.user.adapter.in.http.MenuEntityVo;
 import wiki.chiu.micro.user.adapter.in.http.RoleEntityVo;
 import wiki.chiu.micro.user.adapter.in.http.RoleMenuVo;
 import wiki.chiu.micro.user.adapter.in.http.UserEntityVo;
-import wiki.chiu.micro.user.domain.Authority;
-import wiki.chiu.micro.user.domain.Menu;
-import wiki.chiu.micro.user.domain.Role;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
@@ -73,22 +69,6 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(
                 UserDeletedMessage.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                Authority.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                Menu.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                MenuNode.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                Role.class,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS);
 
