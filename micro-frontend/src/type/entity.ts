@@ -62,6 +62,19 @@ export interface AuthoritySys {
   servicePort: number
 }
 
+export interface AuthorityForm {
+  id?: number
+  code: string
+  remark: string
+  status: Status
+  type: AuthStatus
+  prototype: string
+  methodType: string
+  routePattern: string
+  serviceHost: string
+  servicePort: number
+}
+
 export interface UserSys {
   id: number
   username: string

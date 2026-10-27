@@ -6,7 +6,7 @@ import { AuthStatus, Status } from '@/type/entity'
 import AuthorityEditorDialog from '@/components/sys/AuthorityEditorDialog.vue'
 
 vi.mock('@/utils/permissions', () => ({
-  checkButtonAuth: () => false,
+  checkButtonAuth: () => true,
   getButtonTitle: () => 'Save',
   getButtonType: () => 'primary'
 }))
@@ -49,7 +49,7 @@ const mountDialog = (serviceHost = '', servicePort = 8081) => {
     await flushPromises()
   }
 
-  return { form, field, setVisible, selectService }
+  return { form, field, setVisible, selectService, wrapper }
 }
 
 describe('authority service selection', () => {
@@ -108,5 +108,29 @@ describe('authority service selection', () => {
     await selectService('micro-sync-rs')
     expect(form.servicePort).toBe(8089)
     expect(port.element.value).toBe('8089')
+  })
+
+  it('emits the selected protocol when saving', async () => {
+    const { form, selectService, wrapper } = mountDialog()
+    await selectService('micro-exhibit')
+    form.prototype = 'ws'
+    await nextTick()
+
+    const save = wrapper.findAll('button').find((button) => button.text() === 'Save')!
+    await save.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.findComponent(AuthorityEditorDialog).emitted('save')?.[0]?.[0]).toEqual({
+      id: 1,
+      code: 'blog-read',
+      remark: 'Read blog',
+      prototype: 'ws',
+      methodType: 'GET',
+      routePattern: '/public/blog/info/*',
+      serviceHost: 'micro-exhibit',
+      servicePort: 8083,
+      status: Status.NORMAL,
+      type: AuthStatus.NEED_AUTH
+    })
   })
 })

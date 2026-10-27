@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useHttp } from '@/http/http'
-import type { AuthoritySys } from '@/type/entity'
-import type { FormInstance, FormRules, TableInstance } from 'element-plus'
+import type { AuthorityForm, AuthoritySys } from '@/type/entity'
+import type { FormRules, TableInstance } from 'element-plus'
 import { Status, ButtonAuth, AuthStatus } from '@/type/entity'
 import { downloadSQLData } from '@/utils/download'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissions'
@@ -25,7 +25,7 @@ const showPercentage = ref(false)
 
 const content = ref<AuthoritySys[]>([])
 
-const formRules = computed<FormRules<Form>>(() => ({
+const formRules = computed<FormRules<AuthorityForm>>(() => ({
   code: [
     {
       required: true,
@@ -86,20 +86,8 @@ const formRules = computed<FormRules<Form>>(() => ({
     { required: true, message: t('validation.enter', { field: t('admin.port') }), trigger: 'blur' }
   ]
 }))
-type Form = {
-  id?: number
-  code: string
-  remark: string
-  status: Status
-  type: AuthStatus
-  prototype: string
-  methodType: string
-  routePattern: string
-  serviceHost: string
-  servicePort: number
-}
 
-const form: Form = reactive({
+const form = reactive<AuthorityForm>({
   id: undefined,
   code: '',
   remark: '',
@@ -174,20 +162,16 @@ const handleClose = () => {
   clearForm()
 }
 
-const submitForm = async (ref: FormInstance) => {
-  await ref.validate(async (valid) => {
-    if (valid) {
-      await POST<null>(API_ENDPOINTS.AUTHORITY_ADMIN.SAVE_AUTHORITY, form)
-      ElNotification({
-        title: t('common.operationSuccess'),
-        message: t('common.editSuccess'),
-        type: 'success'
-      })
-      clearForm()
-      dialogVisible.value = false
-      await queryAuthorities()
-    }
+const submitForm = async (payload: AuthorityForm) => {
+  await POST<null>(API_ENDPOINTS.AUTHORITY_ADMIN.SAVE_AUTHORITY, payload)
+  ElNotification({
+    title: t('common.operationSuccess'),
+    message: t('common.editSuccess'),
+    type: 'success'
   })
+  clearForm()
+  dialogVisible.value = false
+  await queryAuthorities()
 }
 
 const clearForm = () => {

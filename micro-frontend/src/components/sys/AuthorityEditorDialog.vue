@@ -1,21 +1,8 @@
 <script lang="ts" setup>
 import type { FormInstance, FormRules } from 'element-plus'
-import { AuthStatus, ButtonAuth, Status } from '@/type/entity'
+import { AuthStatus, ButtonAuth, Status, type AuthorityForm } from '@/type/entity'
 import { checkButtonAuth, getButtonTitle, getButtonType } from '@/utils/permissions'
 import { useI18n } from 'vue-i18n'
-
-type AuthorityForm = {
-  id?: number
-  code: string
-  remark: string
-  prototype: string
-  methodType: string
-  routePattern: string
-  serviceHost: string
-  servicePort: number
-  status: Status
-  type: AuthStatus
-}
 
 const props = defineProps<{
   visible: boolean
@@ -25,7 +12,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:visible': [visible: boolean]
   close: []
-  save: [form: FormInstance]
+  save: [form: AuthorityForm]
 }>()
 const { t } = useI18n()
 const formRef = ref<FormInstance>()
@@ -42,6 +29,11 @@ const services = [
 const handleServiceChange = (host: string) => {
   const service = services.find((service) => service.host === host)
   if (service) formModel.servicePort = service.port
+}
+
+const submit = async () => {
+  const valid = await formRef.value?.validate().catch(() => false)
+  if (valid) emit('save', { ...formModel })
 }
 </script>
 
@@ -108,7 +100,7 @@ const handleServiceChange = (host: string) => {
         <el-button
           v-if="checkButtonAuth(ButtonAuth.SYS_AUTHORITY_SAVE)"
           :type="getButtonType(ButtonAuth.SYS_AUTHORITY_SAVE)"
-          @click="emit('save', formRef!)"
+          @click="submit"
         >
           {{ getButtonTitle(ButtonAuth.SYS_AUTHORITY_SAVE) }}
         </el-button>
