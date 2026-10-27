@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -84,19 +85,12 @@ public class RoleServiceImpl implements RoleService {
 
         Map<Long, LocalDateTime> merged =
             merge(
-                page.content().stream().collect(Collectors.toMap(Role::id, Role::updated)),
-                roleMenus.stream()
-                    .collect(
-                        Collectors.toMap(
-                            RoleMenu::roleId,
-                            RoleMenu::updated,
-                            (left, right) -> left.isAfter(right) ? left : right)),
-                dataPermissions.stream()
-                    .collect(
-                        Collectors.toMap(
-                            RoleDataPermission::roleId,
-                            RoleDataPermission::updated,
-                            (left, right) -> left.isAfter(right) ? left : right)));
+                latestUpdates(page.content(), Role::id, Role::updated),
+                latestUpdates(roleMenus, RoleMenu::roleId, RoleMenu::updated),
+                latestUpdates(
+                    dataPermissions,
+                    RoleDataPermission::roleId,
+                    RoleDataPermission::updated));
 
         Map<Long, List<DataPermissionEnum>> permissionsByRole =
             dataPermissions.stream()
@@ -191,5 +185,19 @@ public class RoleServiceImpl implements RoleService {
             map.forEach((key, value) -> merged.merge(key, value, (l, r) -> l.isAfter(r) ? l : r));
         }
         return merged;
+    }
+
+    private static <T> Map<Long, LocalDateTime> latestUpdates(
+        List<T> items,
+        Function<T, Long> roleId,
+        Function<T, LocalDateTime> updated) {
+
+        return items.stream()
+            .filter(item -> updated.apply(item) != null)
+            .collect(
+                Collectors.toMap(
+                    roleId,
+                    updated,
+                    (left, right) -> left.isAfter(right) ? left : right));
     }
 }

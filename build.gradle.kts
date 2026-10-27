@@ -66,6 +66,7 @@ subprojects {
                     buildArgs.addAll(
                         "-march=compatibility",
                         "-R:MaxHeapSize=$localHeapSize",
+                        "-H:+SharedArenaSupport",
                     )
 
                     // 启用快速构建（测试环境）
@@ -97,6 +98,7 @@ subprojects {
                     -O3
                     -J-XX:MaxRAMPercentage=90.0
                     -H:+MLCallCountProfileInference
+                    -H:+SharedArenaSupport
                     -H:+TrackPrimitiveValues
                     -H:+UsePredicates
                 """.trimIndent(),
