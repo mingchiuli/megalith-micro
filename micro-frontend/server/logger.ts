@@ -1,16 +1,15 @@
-import type { Attributes } from '@opentelemetry/api'
-import { logs, SeverityNumber } from '@opentelemetry/api-logs'
+import { logs, SeverityNumber, type LogAttributes } from '@opentelemetry/api-logs'
 import { serviceName, serviceVersion } from './telemetry.js'
 
 type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
 
 type Logger = {
-  trace: (message: string, attributes?: Attributes) => void
-  debug: (message: string, attributes?: Attributes) => void
-  info: (message: string, attributes?: Attributes) => void
-  warn: (message: string, attributes?: Attributes) => void
-  error: (message: string, error?: unknown, attributes?: Attributes) => void
-  fatal: (message: string, error?: unknown, attributes?: Attributes) => void
+  trace: (message: string, attributes?: LogAttributes) => void
+  debug: (message: string, attributes?: LogAttributes) => void
+  info: (message: string, attributes?: LogAttributes) => void
+  warn: (message: string, attributes?: LogAttributes) => void
+  error: (message: string, error?: unknown, attributes?: LogAttributes) => void
+  fatal: (message: string, error?: unknown, attributes?: LogAttributes) => void
 }
 
 const otelLogger = logs.getLogger(`${serviceName}.server`, serviceVersion)
@@ -37,7 +36,12 @@ const consoleMethods: Record<LogLevel, (...data: unknown[]) => void> = {
   fatal: console.error
 }
 
-const emit = (level: LogLevel, message: string, attributes: Attributes = {}, error?: unknown) => {
+const emit = (
+  level: LogLevel,
+  message: string,
+  attributes: LogAttributes = {},
+  error?: unknown
+) => {
   if (levels.indexOf(level) < threshold) return
 
   const record: Record<string, unknown> = {
