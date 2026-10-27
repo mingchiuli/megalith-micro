@@ -201,7 +201,16 @@ try {
     )
   }
 
-  await waitForHealth(`${baseUrl}/actuator/health`, 10_000)
+  try {
+    await waitForHealth(`${baseUrl}/actuator/health`, 10_000)
+  } catch (error) {
+    child.kill('SIGKILL')
+    await child.exited
+    const output = `${await stdout}${await stderr}`
+    console.error(`Standalone frontend output:\n${output}`)
+    console.error(`Standalone frontend exit code: ${child.exitCode}`)
+    throw error
+  }
 
   const intro = await fetch(`${baseUrl}/`)
   assert.equal(intro.status, 200)

@@ -9,6 +9,25 @@ const binaryPath = path.join(binaryRoot, 'megalith-frontend')
 const generatedEntry = path.join(root, 'dist/standalone-entry.ts')
 const publicAssetsPath = path.join(clientRoot, '.vite/public-assets.json')
 
+const inlineForwardedParsePlugin: Bun.BunPlugin = {
+  name: 'inline-otel-forwarded-parse',
+  setup(build) {
+    build.onLoad(
+      { filter: /@opentelemetry[\\/]instrumentation-http[\\/]dist[\\/]utils\.mjs$/ },
+      async ({ path: modulePath }) => {
+        const source = await Bun.file(modulePath).text()
+        return {
+          contents: source.replace(
+            'const forwardedParse = __require("forwarded-parse");',
+            'import forwardedParse from "forwarded-parse";'
+          ),
+          loader: 'js'
+        }
+      }
+    )
+  }
+}
+
 const files: string[] = []
 const glob = new Bun.Glob('**/*')
 for await (const file of glob.scan({ cwd: clientRoot, dot: true, onlyFiles: true })) {
@@ -43,6 +62,7 @@ try {
     format: 'esm',
     sourcemap: 'inline',
     minify: { syntax: true, whitespace: true, identifiers: false },
+    plugins: [inlineForwardedParsePlugin],
     // Without an explicit production define the standalone bundle picks up Vue's development
     // build, whose error handler rethrows. That turned a failed prefetch into an unhandled
     // rejection and terminated the whole SSR process.

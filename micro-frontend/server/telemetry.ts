@@ -1,4 +1,4 @@
-import { logs, SeverityNumber } from '@opentelemetry/api-logs'
+import { logs, SeverityNumber } from '@opentelemetry/api'
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
 import { defaultResource, resourceFromAttributes } from '@opentelemetry/resources'
 import { NodeSDK } from '@opentelemetry/sdk-node'
