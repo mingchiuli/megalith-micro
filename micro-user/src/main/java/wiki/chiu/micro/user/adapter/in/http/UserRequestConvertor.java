@@ -100,7 +100,7 @@ public final class UserRequestConvertor {
         req.id().ifPresent(id -> v.positive(id, "id"));
         v.notBlank(req.code(), "code");
         v.notBlank(req.remark(), "remark");
-        v.notBlank(req.prototype(), "prototype");
+        v.notBlank(req.protocol(), "protocol");
         v.notBlank(req.methodType(), "methodType");
         v.notBlank(req.routePattern(), "routePattern");
         v.notBlank(req.serviceHost(), "serviceHost");
@@ -164,7 +164,7 @@ public final class UserRequestConvertor {
             req.id().orElse(null),
             req.code(),
             req.remark(),
-            req.prototype(),
+            req.protocol(),
             req.methodType(),
             req.routePattern(),
             req.serviceHost(),

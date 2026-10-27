@@ -9,7 +9,7 @@ public record Authority(
     Long id,
     String code,
     String remark,
-    String prototype,
+    String protocol,
     String methodType,
     String routePattern,
     String serviceHost,
@@ -27,13 +27,13 @@ public record Authority(
 
     public Authority withId(Long newId) {
         return new Authority(
-            newId, code, remark, prototype, methodType, routePattern, serviceHost, servicePort,
+            newId, code, remark, protocol, methodType, routePattern, serviceHost, servicePort,
             created, updated, type, status);
     }
 
     public Authority withCreated(LocalDateTime newCreated) {
         return new Authority(
-            id, code, remark, prototype, methodType, routePattern, serviceHost, servicePort,
+            id, code, remark, protocol, methodType, routePattern, serviceHost, servicePort,
             newCreated, updated, type, status);
     }
 }

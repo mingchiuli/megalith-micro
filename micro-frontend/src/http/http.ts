@@ -8,35 +8,18 @@ export type ApiClient = ReturnType<typeof createApiClient>
 export const API_CLIENT_KEY: InjectionKey<ApiClient> = Symbol('api-client')
 
 export const createApiClient = ({ httpClient, longHttpClient, aiHttpClient }: HttpClients) => {
-  // Axios 1.20 drops unsafe-looking keys while merging plain-object data.
-  // Serialize first so valid fields such as "prototype" reach the server.
-  const jsonConfig = {
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  }
-  const jsonBody = (params: unknown) =>
-    params === null || params === undefined ? params : JSON.stringify(params)
-
   const GET = async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
     const response = await httpClient.get<never, AxiosResponse<Data<T>>>(url, config)
     return response.data.data
   }
 
   const POST = async <T>(url: string, params: unknown): Promise<T> => {
-    const response = await httpClient.post<never, AxiosResponse<Data<T>>>(
-      url,
-      jsonBody(params),
-      jsonConfig
-    )
+    const response = await httpClient.post<never, AxiosResponse<Data<T>>>(url, params)
     return response.data.data
   }
 
   const DELETE = async <T>(url: string, params: unknown): Promise<T> => {
-    const response = await httpClient.delete<never, AxiosResponse<Data<T>>>(url, {
-      ...jsonConfig,
-      data: jsonBody(params)
-    })
+    const response = await httpClient.delete<never, AxiosResponse<Data<T>>>(url, { data: params })
     return response.data.data
   }
 

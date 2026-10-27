@@ -102,7 +102,7 @@ public final class SqlTables {
             SqlColumn.of("id", Authority::id),
             SqlColumn.of("code", Authority::code),
             SqlColumn.of("remark", Authority::remark),
-            SqlColumn.of("prototype", Authority::prototype),
+            SqlColumn.of("prototype", Authority::protocol),
             SqlColumn.of("method_type", Authority::methodType),
             SqlColumn.of("route_pattern", Authority::routePattern),
             SqlColumn.of("service_host", Authority::serviceHost),

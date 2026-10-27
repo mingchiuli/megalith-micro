@@ -55,7 +55,7 @@ export interface AuthoritySys {
   updated: string
   status: Status
   type: AuthStatus
-  prototype: string
+  protocol: string
   methodType: string
   routePattern: string
   serviceHost: string
@@ -68,7 +68,7 @@ export interface AuthorityForm {
   remark: string
   status: Status
   type: AuthStatus
-  prototype: string
+  protocol: string
   methodType: string
   routePattern: string
   serviceHost: string

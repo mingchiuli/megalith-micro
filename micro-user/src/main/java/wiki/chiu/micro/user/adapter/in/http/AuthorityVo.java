@@ -8,7 +8,7 @@ public record AuthorityVo(
     Long id,
     String code,
     String remark,
-    String prototype,
+    String protocol,
     String methodType,
     String routePattern,
     String serviceHost,
@@ -26,7 +26,7 @@ public record AuthorityVo(
         private Long id;
         private String code;
         private String remark;
-        private String prototype;
+        private String protocol;
         private String methodType;
         private String routePattern;
         private String serviceHost;
@@ -51,8 +51,8 @@ public record AuthorityVo(
             return this;
         }
 
-        public AuthorityVoBuilder prototype(String prototype) {
-            this.prototype = prototype;
+        public AuthorityVoBuilder protocol(String protocol) {
+            this.protocol = protocol;
             return this;
         }
 
@@ -101,7 +101,7 @@ public record AuthorityVo(
                 id,
                 code,
                 remark,
-                prototype,
+                protocol,
                 methodType,
                 routePattern,
                 serviceHost,

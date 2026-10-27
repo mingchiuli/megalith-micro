@@ -71,7 +71,7 @@ describe('authority editor', () => {
 
     await fillInput('code', 'blog-delete')
     await fillInput('remark', 'Delete blog')
-    await selectOption('prototype', 'http')
+    await selectOption('protocol', 'http')
     await selectOption('methodType', 'POST')
     await fillInput('routePattern', '/sys/blog/deleted')
     await selectOption('serviceHost', 'micro-user')
@@ -88,7 +88,7 @@ describe('authority editor', () => {
     expect(requestBody).toEqual({
       code: 'blog-delete',
       remark: 'Delete blog',
-      prototype: 'http',
+      protocol: 'http',
       methodType: 'POST',
       routePattern: '/sys/blog/deleted',
       serviceHost: 'micro-user',
@@ -96,6 +96,6 @@ describe('authority editor', () => {
       status: 0,
       type: 0
     })
-    expect(requestBody).not.toHaveProperty('protocol')
+    expect(requestBody).not.toHaveProperty('prototype')
   })
 })

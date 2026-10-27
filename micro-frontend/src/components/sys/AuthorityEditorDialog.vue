@@ -52,8 +52,8 @@ const submit = async () => {
       <el-form-item :label="t('admin.remark')" label-width="100px" prop="remark">
         <el-input v-model="formModel.remark" maxlength="50" />
       </el-form-item>
-      <el-form-item :label="t('admin.protocol')" label-width="100px" prop="prototype">
-        <el-select v-model="formModel.prototype" style="width: 100%">
+      <el-form-item :label="t('admin.protocol')" label-width="100px" prop="protocol">
+        <el-select v-model="formModel.protocol" style="width: 100%">
           <el-option label="http" value="http" />
           <el-option label="ws" value="ws" />
         </el-select>

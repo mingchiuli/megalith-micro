@@ -18,7 +18,7 @@ const mountDialog = (serviceHost = '', servicePort = 8081) => {
     id: 1,
     code: 'blog-read',
     remark: 'Read blog',
-    prototype: 'http',
+    protocol: 'http',
     methodType: 'GET',
     routePattern: '/public/blog/info/*',
     serviceHost,
@@ -48,12 +48,12 @@ const mountDialog = (serviceHost = '', servicePort = 8081) => {
     await option.trigger('click')
     await flushPromises()
   }
-  const selectProtocol = async (prototype: string) => {
-    const select = field('prototype').getComponent(ElSelect)
+  const selectProtocol = async (protocol: string) => {
+    const select = field('protocol').getComponent(ElSelect)
     await select.get('.el-select__wrapper').trigger('click')
     const option = select
       .findAllComponents(ElOption)
-      .find((item) => item.props('value') === prototype)!
+      .find((item) => item.props('value') === protocol)!
     await option.trigger('click')
     await flushPromises()
   }
@@ -77,7 +77,7 @@ describe('authority service selection', () => {
     expect(form.serviceHost).toBe(host)
     expect(form.servicePort).toBe(port)
     expect(field('servicePort').getComponent(ElInput).props('modelValue')).toBe(port)
-    expect(form.prototype).toBe('http')
+    expect(form.protocol).toBe('http')
     expect(form.methodType).toBe('GET')
     expect(form.routePattern).toBe('/public/blog/info/*')
   })
@@ -122,7 +122,7 @@ describe('authority service selection', () => {
   it('emits the selected protocol when saving', async () => {
     const { form, selectProtocol, selectService, wrapper } = mountDialog()
     await selectService('micro-exhibit')
-    form.prototype = ''
+    form.protocol = ''
     await selectProtocol('ws')
 
     const save = wrapper.findAll('button').find((button) => button.text() === 'Save')!
@@ -133,7 +133,7 @@ describe('authority service selection', () => {
       id: 1,
       code: 'blog-read',
       remark: 'Read blog',
-      prototype: 'ws',
+      protocol: 'ws',
       methodType: 'GET',
       routePattern: '/public/blog/info/*',
       serviceHost: 'micro-exhibit',

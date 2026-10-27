@@ -54,7 +54,7 @@ const formRules = computed<FormRules<AuthorityForm>>(() => ({
       trigger: 'blur'
     }
   ],
-  prototype: [
+  protocol: [
     {
       required: true,
       message: t('validation.select', { field: t('admin.protocol') }),
@@ -93,7 +93,7 @@ const form = reactive<AuthorityForm>({
   remark: '',
   status: 0,
   type: 0,
-  prototype: '',
+  protocol: '',
   methodType: '',
   routePattern: '',
   serviceHost: '',
@@ -180,7 +180,7 @@ const clearForm = () => {
   form.remark = ''
   form.status = 0
   form.type = 0
-  form.prototype = ''
+  form.protocol = ''
   form.methodType = ''
   form.serviceHost = ''
   form.servicePort = 8081
@@ -242,7 +242,7 @@ useUniversalData('admin:authorities', fetchAuthorities, applyAuthorities, { load
       min-width="300"
     />
 
-    <el-table-column :label="t('admin.protocol')" align="center" prop="prototype" min-width="130" />
+    <el-table-column :label="t('admin.protocol')" align="center" prop="protocol" min-width="130" />
     <el-table-column
       :label="t('admin.methodType')"
       align="center"

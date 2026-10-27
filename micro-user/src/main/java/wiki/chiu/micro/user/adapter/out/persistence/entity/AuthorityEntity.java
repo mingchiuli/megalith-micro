@@ -36,7 +36,7 @@ public class AuthorityEntity {
     private String remark;
 
     @Column(name = "prototype")
-    private String prototype;
+    private String protocol;
 
     @Column(name = "method_type")
     private String methodType;
@@ -68,7 +68,7 @@ public class AuthorityEntity {
         Long id,
         String code,
         String remark,
-        String prototype,
+        String protocol,
         String methodType,
         String routePattern,
         String serviceHost,
@@ -80,7 +80,7 @@ public class AuthorityEntity {
         this.id = id;
         this.code = code;
         this.remark = remark;
-        this.prototype = prototype;
+        this.protocol = protocol;
         this.methodType = methodType;
         this.routePattern = routePattern;
         this.serviceHost = serviceHost;
@@ -110,8 +110,8 @@ public class AuthorityEntity {
         return this.remark;
     }
 
-    public String getPrototype() {
-        return this.prototype;
+    public String getProtocol() {
+        return this.protocol;
     }
 
     public String getMethodType() {
@@ -158,8 +158,8 @@ public class AuthorityEntity {
         this.remark = remark;
     }
 
-    public void setPrototype(String prototype) {
-        this.prototype = prototype;
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
     }
 
     public void setMethodType(String methodType) {
@@ -211,7 +211,7 @@ public class AuthorityEntity {
         private Long id;
         private String code;
         private String remark;
-        private String prototype;
+        private String protocol;
         private String methodType;
         private String routePattern;
         private String serviceHost;
@@ -236,8 +236,8 @@ public class AuthorityEntity {
             return this;
         }
 
-        public AuthorityEntityBuilder prototype(String prototype) {
-            this.prototype = prototype;
+        public AuthorityEntityBuilder protocol(String protocol) {
+            this.protocol = protocol;
             return this;
         }
 
@@ -286,7 +286,7 @@ public class AuthorityEntity {
                 id,
                 code,
                 remark,
-                prototype,
+                protocol,
                 methodType,
                 routePattern,
                 serviceHost,

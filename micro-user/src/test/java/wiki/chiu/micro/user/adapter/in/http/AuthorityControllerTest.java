@@ -62,12 +62,14 @@ class AuthorityControllerTest {
             .thenReturn(
                 List.of(
                     new Authority(
-                        1L, "READ", null, null, null, null, null, null, null, null, null, null)));
+                        1L, "READ", null, "HTTP", null, null, null, null, null, null, null, null)));
 
         mockMvc
             .perform(get("/sys/authority/list"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data[0].code").value("READ"));
+            .andExpect(jsonPath("$.data[0].code").value("READ"))
+            .andExpect(jsonPath("$.data[0].protocol").value("HTTP"))
+            .andExpect(jsonPath("$.data[0].prototype").doesNotExist());
     }
 
     @Test
@@ -107,7 +109,7 @@ class AuthorityControllerTest {
     void saveRejectsInvalidServicePort() throws Exception {
         String body =
             "{\"id\":null,\"code\":\"READ\",\"remark\":\"read\","
-                + "\"prototype\":\"HTTP\",\"methodType\":\"GET\","
+                + "\"protocol\":\"HTTP\",\"methodType\":\"GET\","
                 + "\"routePattern\":\"/read\",\"serviceHost\":\"localhost\","
                 + "\"servicePort\":70000,\"type\":0,\"status\":1}";
 

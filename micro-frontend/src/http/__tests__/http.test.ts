@@ -15,12 +15,11 @@ describe('createApiClient', () => {
     await api.DELETE('/image', { url: 'https://cdn/image.png' })
 
     expect(deleteRequest).toHaveBeenCalledWith('/image', {
-      headers: { 'Content-Type': 'application/json' },
-      data: '{"url":"https://cdn/image.png"}'
+      data: { url: 'https://cdn/image.png' }
     })
   })
 
-  it('serializes POST payloads before Axios merges the request config', async () => {
+  it('unwraps POST responses', async () => {
     const postRequest = vi.fn(() => response('saved'))
     const api = createApiClient({
       httpClient: { post: postRequest } as never,
@@ -28,10 +27,8 @@ describe('createApiClient', () => {
       aiHttpClient: {} as never
     })
 
-    await expect(api.POST('/save', { id: 1, prototype: 'http' })).resolves.toBe('saved')
-    expect(postRequest).toHaveBeenCalledWith('/save', '{"id":1,"prototype":"http"}', {
-      headers: { 'Content-Type': 'application/json' }
-    })
+    await expect(api.POST('/save', { id: 1 })).resolves.toBe('saved')
+    expect(postRequest).toHaveBeenCalledWith('/save', { id: 1 })
   })
 
   it('tracks download and upload progress', async () => {

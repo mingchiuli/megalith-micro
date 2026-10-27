@@ -6,7 +6,7 @@ public record AuthorityEntityReq(
     Optional<Long> id,
     String code,
     String remark,
-    String prototype,
+    String protocol,
     String methodType,
     String routePattern,
     String serviceHost,
