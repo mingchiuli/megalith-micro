@@ -48,8 +48,17 @@ const mountDialog = (serviceHost = '', servicePort = 8081) => {
     await option.trigger('click')
     await flushPromises()
   }
+  const selectProtocol = async (prototype: string) => {
+    const select = field('prototype').getComponent(ElSelect)
+    await select.get('.el-select__wrapper').trigger('click')
+    const option = select
+      .findAllComponents(ElOption)
+      .find((item) => item.props('value') === prototype)!
+    await option.trigger('click')
+    await flushPromises()
+  }
 
-  return { form, field, setVisible, selectService, wrapper }
+  return { form, field, setVisible, selectProtocol, selectService, wrapper }
 }
 
 describe('authority service selection', () => {
@@ -111,10 +120,10 @@ describe('authority service selection', () => {
   })
 
   it('emits the selected protocol when saving', async () => {
-    const { form, selectService, wrapper } = mountDialog()
+    const { form, selectProtocol, selectService, wrapper } = mountDialog()
     await selectService('micro-exhibit')
-    form.prototype = 'ws'
-    await nextTick()
+    form.prototype = ''
+    await selectProtocol('ws')
 
     const save = wrapper.findAll('button').find((button) => button.text() === 'Save')!
     await save.trigger('click')
