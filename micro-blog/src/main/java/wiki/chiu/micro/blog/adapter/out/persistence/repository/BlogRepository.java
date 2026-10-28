@@ -37,6 +37,8 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
     List<BlogEntity> findByPublishedRevisionIdIsNotNullAndIdGreaterThanOrderByIdAsc(
         Long afterId, Pageable pageable);
 
+    List<BlogEntity> findByIdGreaterThanOrderByIdAsc(Long afterId, Pageable pageable);
+
     @Query(
         value = "UPDATE BlogEntity blog SET blog.readCount = blog.readCount + 1 WHERE blog.id = ?1")
     @Modifying

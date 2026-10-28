@@ -6,6 +6,8 @@ import java.util.Optional;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.SensitiveContent;
+import wiki.chiu.micro.common.model.BlogAdminIndexSnapshot;
+import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 
 public interface BlogQueryStore {
@@ -15,6 +17,10 @@ public interface BlogQueryStore {
     List<BlogReadCount> findReadCountsAfter(long afterId, int limit);
 
     List<BlogSnapshot> findPublishedSnapshotsAfter(long afterId, int limit);
+
+    List<BlogAdminIndexSnapshot> findAdminSnapshotsAfter(long afterId, int limit);
+
+    List<BlogRevisionSnapshot> findRevisionSnapshotsAfter(long afterRevisionId, int limit);
 
     Optional<Blog> findById(Long blogId);
 

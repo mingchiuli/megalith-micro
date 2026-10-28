@@ -24,6 +24,7 @@ import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
+import wiki.chiu.micro.common.model.BlogAdminIndexSnapshot;
 import wiki.chiu.micro.common.model.BlogAdminSnapshot;
 import wiki.chiu.micro.common.model.BlogDraftSnapshot;
 import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
@@ -58,6 +59,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 BlogEntityRpcVo.class,
                 BlogSensitiveContentRpcVo.class,
                 BlogIndexSourceStatus.class,
+                BlogAdminIndexSnapshot.class,
                 BlogSnapshot.class);
 
         hints
@@ -72,6 +74,10 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(
                 BlogAdminIndexMessage.class,
+                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                MemberCategory.INVOKE_DECLARED_METHODS)
+            .registerType(
+                BlogAdminIndexSnapshot.class,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(

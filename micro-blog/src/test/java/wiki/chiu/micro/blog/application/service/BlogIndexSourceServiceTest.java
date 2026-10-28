@@ -6,8 +6,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -57,5 +57,17 @@ class BlogIndexSourceServiceTest {
         assertThat(snapshot.id()).isEqualTo(7L);
         assertThat(snapshot.revision()).isEqualTo(11L);
         assertThat(snapshot.readCount()).isEqualTo(120L);
+    }
+
+    @Test
+    void startupSnapshotsDoNotRequireMaintenanceMode() {
+        BlogQueryStore blogs = mock(BlogQueryStore.class);
+        BlogIndexSourceState state = mock(BlogIndexSourceState.class);
+        when(blogs.findPublishedSnapshotsAfter(5, 500)).thenReturn(List.of());
+
+        var service = new BlogIndexSourceService(blogs, state);
+
+        assertThat(service.bootstrapSnapshots(5, 500)).isEmpty();
+        verifyNoInteractions(state);
     }
 }

@@ -26,6 +26,7 @@ import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
@@ -45,6 +46,7 @@ import wiki.chiu.micro.search.application.port.out.BlogSearchIndex;
 import wiki.chiu.micro.search.domain.BlogIndexEntry;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
+import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
 
 public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogIndexWriter {
 
@@ -177,11 +179,29 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
 
     @Override
     public void write(BlogIndexChange change) {
+        elasticsearchTemplate.update(
+            publicUpdate(change), IndexCoordinates.of(indexName));
+    }
+
+    @Override
+    public void writeAll(List<BlogIndexChange> changes) {
+        if (changes.isEmpty()) {
+            return;
+        }
+        elasticsearchTemplate.bulkUpdate(
+            changes.stream().map(this::publicUpdate).toList(),
+            IndexCoordinates.of(indexName));
+    }
+
+    private UpdateQuery publicUpdate(BlogIndexChange change) {
         BlogDocument document = toDocument(change);
         Document source = elasticsearchTemplate.getElasticsearchConverter().mapObject(document);
-        elasticsearchTemplate.update(
-            scriptedUpdate(document.getId(), contentScript, Map.of("blog", source)),
-            IndexCoordinates.of(indexName));
+        return scriptedUpdate(
+            document.getId(),
+            contentScript,
+            Map.of(
+                "blog", source,
+                "repair", change.operation() == BlogIndexChange.Operation.REPAIR));
     }
 
     @Override
@@ -202,26 +222,53 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
         elasticsearchTemplate.save(admin, IndexCoordinates.of(adminIndexName));
 
         if (message.revision() != null) {
-            AdminRevisionDocument revision = new AdminRevisionDocument();
-            revision.apply(
-                message.revision().id(),
-                message.revision().blogId(),
-                message.revision().versionNo(),
-                message.revision().origin(),
-                message.revision().baseRevisionId(),
-                message.revision().title(),
-                message.revision().description(),
-                message.revision().content(),
-                message.revision().link(),
-                message.revision().renderMode(),
-                message.revision().firstPublishedAt() == null
-                    ? null
-                    : ZonedDateTime.of(message.revision().firstPublishedAt(), ZONE_ID),
-                message.revision().createdBy(),
-                ZonedDateTime.of(message.revision().createdAt(), ZONE_ID));
-            elasticsearchTemplate.save(
-                revision, IndexCoordinates.of(revisionIndexName));
+            writeRevision(message);
         }
+    }
+
+    @Override
+    public void writeRevision(BlogAdminIndexChange change) {
+        AdminRevisionDocument document = revisionDocument(change.revision());
+        elasticsearchTemplate.save(document, IndexCoordinates.of(revisionIndexName));
+    }
+
+    @Override
+    public void writeRevisionAll(List<BlogAdminIndexChange> revisions) {
+        if (revisions.isEmpty()) {
+            return;
+        }
+        List<IndexQuery> queries =
+            revisions.stream()
+                .map(
+                    change ->
+                        IndexQuery.builder()
+                            .withId(Long.toString(change.revision().id()))
+                            .withObject(revisionDocument(change.revision()))
+                            .build())
+                .toList();
+        elasticsearchTemplate.bulkIndex(
+            queries, IndexCoordinates.of(revisionIndexName));
+    }
+
+    private static AdminRevisionDocument revisionDocument(BlogRevisionSnapshot revision) {
+        AdminRevisionDocument document = new AdminRevisionDocument();
+        document.apply(
+            revision.id(),
+            revision.blogId(),
+            revision.versionNo(),
+            revision.origin(),
+            revision.baseRevisionId(),
+            revision.title(),
+            revision.description(),
+            revision.content(),
+            revision.link(),
+            revision.renderMode(),
+            revision.firstPublishedAt() == null
+                ? null
+                : ZonedDateTime.of(revision.firstPublishedAt(), ZONE_ID),
+            revision.createdBy(),
+            ZonedDateTime.of(revision.createdAt(), ZONE_ID));
+        return document;
     }
 
     @Override

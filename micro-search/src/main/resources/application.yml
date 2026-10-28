@@ -26,6 +26,9 @@ megalith:
   task-lock:
     environment: ${spring.profiles.active:default}
   search:
+    bootstrap:
+      enabled: true
+      batch-size: 500
     maintenance:
       enabled: false
     index:
