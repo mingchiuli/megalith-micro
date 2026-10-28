@@ -331,7 +331,13 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
     </el-table-column>
 
     <!-- @vue-generic {BlogSys} -->
-    <el-table-column :fixed="fix" :label="t('common.operations')" min-width="500" align="center">
+    <el-table-column
+      :fixed="fix"
+      class-name="operation-column"
+      :label="t('common.operations')"
+      min-width="380"
+      align="center"
+    >
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_CHECK)">
           <el-button
@@ -427,5 +433,9 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
 
 .draft-tag {
   margin-left: 4px;
+}
+
+:deep(.operation-column) {
+  border-left: 1px solid var(--el-border-color);
 }
 </style>

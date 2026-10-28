@@ -59,14 +59,29 @@ const compactLocaleLabel = computed(() => (locale.value === 'zh-CN' ? '中' : 'E
   width: 96px;
 }
 
+.locale-switcher::after {
+  position: absolute;
+  top: 50%;
+  right: 11px;
+  width: 6px;
+  height: 6px;
+  border-right: 1px solid var(--el-text-color-secondary);
+  border-bottom: 1px solid var(--el-text-color-secondary);
+  content: '';
+  pointer-events: none;
+  transform: translateY(-70%) rotate(45deg);
+}
+
 .desktop-locale-select {
+  appearance: none;
   width: 96px;
   height: 32px;
-  padding: 0 8px;
+  padding: 0 28px 0 10px;
   color: var(--el-text-color-regular);
   background: var(--el-bg-color-overlay);
   border: 1px solid var(--el-border-color);
   border-radius: 4px;
+  cursor: pointer;
   font: inherit;
 }
 
@@ -120,6 +135,10 @@ const compactLocaleLabel = computed(() => (locale.value === 'zh-CN' ? '中' : 'E
     right: 20px;
     bottom: 72px;
     width: 58px;
+  }
+
+  .locale-switcher::after {
+    display: none;
   }
 
   .desktop-locale-select {
