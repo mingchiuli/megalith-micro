@@ -216,7 +216,7 @@ defineExpose({ open, refresh: loadVersions })
           <el-button
             v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_VERSION_VIEW)"
             size="small"
-            @click="viewVersion(row)"
+            @click="viewVersion(row as BlogVersionSummary)"
           >
             {{ t('common.view') }}
           </el-button>
@@ -229,7 +229,7 @@ defineExpose({ open, refresh: loadVersions })
             size="small"
             type="primary"
             :loading="restoringVersionId === row.id"
-            @click="restoreVersion(row)"
+            @click="restoreVersion(row as BlogVersionSummary)"
           >
             {{ t('admin.restoreVersion') }}
           </el-button>
@@ -237,7 +237,7 @@ defineExpose({ open, refresh: loadVersions })
             v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_VERSION_COMPARE)"
             size="small"
             :disabled="row.versionNo <= 1"
-            @click="compareWithPrevious(row)"
+            @click="compareWithPrevious(row as BlogVersionSummary)"
           >
             {{ t('admin.comparePrevious') }}
           </el-button>

@@ -1,0 +1,12 @@
+{
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/.gradle",
+    "**/.idea",
+    "**/build",
+    "**/coverage",
+    "**/dist",
+    "**/node_modules",
+    "**/target"
+  ]
+}
