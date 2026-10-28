@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
 import wiki.chiu.micro.blog.application.model.BlogSearchQuery;
-import wiki.chiu.micro.blog.application.model.BlogSearchResult;
 import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.model.BlogVersionSummary;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
@@ -26,13 +25,6 @@ public class SearchHttpServiceWrapper implements BlogSearchGateway, BlogStatisti
 
     public SearchHttpServiceWrapper(SearchHttpService searchHttpService) {
         this.searchHttpService = searchHttpService;
-    }
-
-    @Override
-    public BlogSearchResult searchBlogs(BlogSearchQuery query) {
-        return SearchRpcMapper.toResult(
-            RemoteResult.requireSuccess(
-                () -> searchHttpService.searchBlogs(SearchRpcMapper.toSearchReq(query))));
     }
 
     @Override
@@ -97,10 +89,6 @@ public class SearchHttpServiceWrapper implements BlogSearchGateway, BlogStatisti
                             revision.origin(),
                             revision.baseRevisionId(),
                             revision.title(),
-                            revision.description(),
-                            revision.content(),
-                            revision.link(),
-                            revision.renderMode(),
                             revision.firstPublishedAt(),
                             revision.createdBy(),
                             revision.createdAt(),
@@ -116,12 +104,6 @@ public class SearchHttpServiceWrapper implements BlogSearchGateway, BlogStatisti
             result.currentPage() >= totalPages,
             result.total() == 0,
             totalPages);
-    }
-
-    @Override
-    public long countBlogs(BlogSearchQuery query) {
-        return RemoteResult.requireSuccess(
-            () -> searchHttpService.countBlogs(SearchRpcMapper.toCountReq(query)));
     }
 
     @Override

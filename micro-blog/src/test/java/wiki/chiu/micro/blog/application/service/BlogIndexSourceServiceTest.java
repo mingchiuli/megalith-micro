@@ -59,15 +59,4 @@ class BlogIndexSourceServiceTest {
         assertThat(snapshot.readCount()).isEqualTo(120L);
     }
 
-    @Test
-    void startupSnapshotsDoNotRequireMaintenanceMode() {
-        BlogQueryStore blogs = mock(BlogQueryStore.class);
-        BlogIndexSourceState state = mock(BlogIndexSourceState.class);
-        when(blogs.findPublishedSnapshotsAfter(5, 500)).thenReturn(List.of());
-
-        var service = new BlogIndexSourceService(blogs, state);
-
-        assertThat(service.bootstrapSnapshots(5, 500)).isEmpty();
-        verifyNoInteractions(state);
-    }
 }

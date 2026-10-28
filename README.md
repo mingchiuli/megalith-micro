@@ -214,8 +214,6 @@ lists use `blog_admin_search`, and version search uses `blog_revision_search`. E
 diff payloads are read from MariaDB so index lag cannot affect the editor. Content events carry
 monotonic projection revisions so consumers can reject stale updates. Article visits update MariaDB
 counters; cumulative counts are synchronized to Elasticsearch in batches through idempotent updates.
-At startup, `micro-search` creates any missing aliases and backfills all three projections from
-cursor-paged MariaDB snapshots before messaging consumers start.
 
 Presentation reads use Caffeine as an in-process L1 cache and Redis as a shared L2 cache. Versioned
 cache keys identify individual results, and a key registry tracks cached pages for invalidation.

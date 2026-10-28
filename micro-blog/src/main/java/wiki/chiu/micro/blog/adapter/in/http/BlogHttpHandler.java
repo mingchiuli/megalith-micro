@@ -131,10 +131,6 @@ public class BlogHttpHandler {
                                         version.origin(),
                                         version.baseRevisionId(),
                                         version.title(),
-                                        version.description(),
-                                        version.content(),
-                                        version.link(),
-                                        version.renderMode(),
                                         version.firstPublishedAt(),
                                         version.createdBy(),
                                         version.createdAt(),
@@ -147,7 +143,9 @@ public class BlogHttpHandler {
         Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
         PublishBlogReq body = request.body(PublishBlogReq.class);
         v.positive(body.revisionId(), "revisionId");
-        v.range(body.accessMode(), 0, 1, "accessMode");
+        if (body.accessMode() != null) {
+            v.range(body.accessMode(), 0, 1, "accessMode");
+        }
         AuthPrincipal authInfo = authPrincipal(request);
         return ok(
             Result.success(

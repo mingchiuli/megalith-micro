@@ -12,8 +12,6 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.blog.api.BlogIndexSourceHttpService;
 import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
 import wiki.chiu.micro.blog.application.port.in.BlogIndexSourceQueries;
-import wiki.chiu.micro.common.model.BlogAdminIndexSnapshot;
-import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
@@ -39,21 +37,17 @@ public class BlogIndexSourceHttpHandler implements BlogIndexSourceHttpService {
         return ok(indexSnapshots(afterId, limit));
     }
 
-    public ServerResponse bootstrapSnapshots(ServerRequest request) {
-        return ok(indexBootstrapSnapshots(afterId(request), limit(request)));
-    }
-
-    public ServerResponse adminSnapshots(ServerRequest request) {
-        return ok(indexAdminSnapshots(afterId(request), limit(request)));
-    }
-
-    public ServerResponse revisionSnapshots(ServerRequest request) {
-        return ok(indexRevisionSnapshots(afterRevisionId(request), limit(request)));
-    }
-
     @Override
     public Result<BlogIndexSourceStatus> indexSourceStatus() {
-        return Result.success(() -> BlogRpcMapper.toRpc(source.status()));
+        return Result.success(
+            () -> {
+                var status = source.status();
+                return new BlogIndexSourceStatus(
+                    status.readOnly(),
+                    status.readyEvents(),
+                    status.pausedEvents(),
+                    status.total());
+            });
     }
 
     @Override
@@ -61,30 +55,9 @@ public class BlogIndexSourceHttpHandler implements BlogIndexSourceHttpService {
         return Result.success(() -> source.snapshots(afterId, limit));
     }
 
-    @Override
-    public Result<List<BlogSnapshot>> indexBootstrapSnapshots(long afterId, int limit) {
-        return Result.success(() -> source.bootstrapSnapshots(afterId, limit));
-    }
-
-    @Override
-    public Result<List<BlogAdminIndexSnapshot>> indexAdminSnapshots(long afterId, int limit) {
-        return Result.success(() -> source.adminSnapshots(afterId, limit));
-    }
-
-    @Override
-    public Result<List<BlogRevisionSnapshot>> indexRevisionSnapshots(
-        long afterRevisionId, int limit) {
-        return Result.success(() -> source.revisionSnapshots(afterRevisionId, limit));
-    }
-
     private long afterId(ServerRequest request) {
         return validation.nonNegative(
             requiredParam(request, "afterId", Long::valueOf), "afterId");
-    }
-
-    private long afterRevisionId(ServerRequest request) {
-        return validation.nonNegative(
-            requiredParam(request, "afterRevisionId", Long::valueOf), "afterRevisionId");
     }
 
     private int limit(ServerRequest request) {

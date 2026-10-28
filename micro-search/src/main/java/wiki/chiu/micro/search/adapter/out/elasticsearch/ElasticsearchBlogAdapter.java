@@ -26,14 +26,12 @@ import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.model.BlogAdminIndexChange;
 import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
-import wiki.chiu.micro.search.application.model.BlogSearchResult;
 import wiki.chiu.micro.search.application.model.AdminBlogRead;
 import wiki.chiu.micro.search.application.model.AdminRevisionRead;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
@@ -58,6 +56,7 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
     private final String adminIndexName;
     private final String revisionIndexName;
     private final String contentScript;
+    private final String adminScript;
     private final String readCountScript;
 
     public ElasticsearchBlogAdapter(
@@ -92,6 +91,7 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
         this.adminIndexName = adminIndexName;
         this.revisionIndexName = revisionIndexName;
         this.contentScript = script("blog-content-update.painless");
+        this.adminScript = script("blog-admin-update.painless");
         this.readCountScript = script("blog-read-count-update.painless");
     }
 
@@ -132,40 +132,6 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
     }
 
     @Override
-    public BlogSearchResult searchPrivate(PrivateBlogSearchQuery query) {
-        NativeQuery searchQuery =
-            PrivateSearchQueryConvertor.searchConvert(
-                query.keywords(),
-                query.status(),
-                query.createStart(),
-                query.createEnd(),
-                query.userId(),
-                query.allData(),
-                query.page(),
-                query.pageSize());
-        SearchHits<@NonNull BlogDocument> hits =
-            elasticsearchTemplate.search(searchQuery, BlogDocument.class, IndexCoordinates.of(indexName));
-        return new BlogSearchResult(
-            hits.getTotalHits(),
-            query.page(),
-            query.pageSize(),
-            hits.getSearchHits().stream().map(hit -> hit.getContent().getId()).toList());
-    }
-
-    @Override
-    public long countPrivate(PrivateBlogSearchQuery query) {
-        NativeQuery countQuery =
-            PrivateSearchQueryConvertor.countConvert(
-                query.keywords(),
-                query.status(),
-                query.createStart(),
-                query.createEnd(),
-                query.userId(),
-                query.allData());
-        return elasticsearchTemplate.count(countQuery, BlogDocument.class, IndexCoordinates.of(indexName));
-    }
-
-    @Override
     public void updateReadCounts(List<BlogReadCount> counts) {
         if (counts.isEmpty()) {
             return;
@@ -179,29 +145,11 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
 
     @Override
     public void write(BlogIndexChange change) {
-        elasticsearchTemplate.update(
-            publicUpdate(change), IndexCoordinates.of(indexName));
-    }
-
-    @Override
-    public void writeAll(List<BlogIndexChange> changes) {
-        if (changes.isEmpty()) {
-            return;
-        }
-        elasticsearchTemplate.bulkUpdate(
-            changes.stream().map(this::publicUpdate).toList(),
-            IndexCoordinates.of(indexName));
-    }
-
-    private UpdateQuery publicUpdate(BlogIndexChange change) {
         BlogDocument document = toDocument(change);
         Document source = elasticsearchTemplate.getElasticsearchConverter().mapObject(document);
-        return scriptedUpdate(
-            document.getId(),
-            contentScript,
-            Map.of(
-                "blog", source,
-                "repair", change.operation() == BlogIndexChange.Operation.REPAIR));
+        elasticsearchTemplate.update(
+            scriptedUpdate(document.getId(), contentScript, Map.of("blog", source)),
+            IndexCoordinates.of(indexName));
     }
 
     @Override
@@ -211,43 +159,40 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
                 Long.toString(message.blog().id()),
                 AdminBlogDocument.class,
                 IndexCoordinates.of(adminIndexName));
-        if (current != null
+        boolean force = "RECOVER".equals(message.operation());
+        if (!force
+            && current != null
             && current.getAdminRevision() != null
             && message.blog().adminRevision() < current.getAdminRevision()) {
             return;
         }
+        applyAdminDocument(message, current);
+    }
+
+    void applyAdminDocument(
+        BlogAdminIndexChange message, AdminBlogDocument current) {
+        boolean force = "RECOVER".equals(message.operation());
         AdminBlogProjection projection = adminProjection(current, message);
         AdminBlogDocument admin = current == null ? new AdminBlogDocument() : current;
         admin.apply(projection);
-        elasticsearchTemplate.save(admin, IndexCoordinates.of(adminIndexName));
+        Document source = elasticsearchTemplate.getElasticsearchConverter().mapObject(admin);
+        elasticsearchTemplate.update(
+            scriptedUpdate(
+                message.blog().id(),
+                adminScript,
+                Map.of(
+                    "admin", source,
+                    "force", force)),
+            IndexCoordinates.of(adminIndexName));
 
         if (message.revision() != null) {
-            writeRevision(message);
+            writeRevision(message.revision());
         }
     }
 
-    @Override
-    public void writeRevision(BlogAdminIndexChange change) {
-        AdminRevisionDocument document = revisionDocument(change.revision());
+    private void writeRevision(BlogRevisionSnapshot revision) {
+        AdminRevisionDocument document = revisionDocument(revision);
         elasticsearchTemplate.save(document, IndexCoordinates.of(revisionIndexName));
-    }
-
-    @Override
-    public void writeRevisionAll(List<BlogAdminIndexChange> revisions) {
-        if (revisions.isEmpty()) {
-            return;
-        }
-        List<IndexQuery> queries =
-            revisions.stream()
-                .map(
-                    change ->
-                        IndexQuery.builder()
-                            .withId(Long.toString(change.revision().id()))
-                            .withObject(revisionDocument(change.revision()))
-                            .build())
-                .toList();
-        elasticsearchTemplate.bulkIndex(
-            queries, IndexCoordinates.of(revisionIndexName));
     }
 
     private static AdminRevisionDocument revisionDocument(BlogRevisionSnapshot revision) {
@@ -280,6 +225,7 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
         boolean draftMode =
             query.draftOnly()
                 || Objects.equals(query.status(), BlogStatusEnum.DRAFT.getCode());
+        int totalPages = pageCount(hits.getTotalHits(), query.pageSize());
         return new Page<>(
             hits.getSearchHits().stream()
                 .map(hit -> toAdmin(hit.getContent(), draftMode))
@@ -288,9 +234,9 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
             query.page(),
             query.pageSize(),
             query.page() == 1,
-            hits.getSearchHits().size() < query.pageSize(),
+            hits.getTotalHits() == 0 || query.page() >= totalPages,
             hits.getTotalHits() == 0,
-            pageCount(hits.getTotalHits(), query.pageSize()));
+            totalPages);
     }
 
     @Override
@@ -308,6 +254,7 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
                 nativeQuery,
                 AdminRevisionDocument.class,
                 IndexCoordinates.of(revisionIndexName));
+        int totalPages = pageCount(hits.getTotalHits(), query.pageSize());
         return new Page<>(
             hits.getSearchHits().stream()
                 .map(
@@ -319,9 +266,9 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
             query.page(),
             query.pageSize(),
             query.page() == 1,
-            hits.getSearchHits().size() < query.pageSize(),
+            hits.getTotalHits() == 0 || query.page() >= totalPages,
             hits.getTotalHits() == 0,
-            pageCount(hits.getTotalHits(), query.pageSize()));
+            totalPages);
     }
 
     private static UpdateQuery scriptedUpdate(long id, String script, Map<String, Object> params) {
@@ -369,7 +316,7 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
             page,
             pageSize,
             page == 1,
-            page == totalPages,
+            totalElements == 0 || page >= totalPages,
             totalElements == 0,
             totalPages);
     }
@@ -655,6 +602,12 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
                             field.field("created")
                                 .order(
                                     SortOrder.Desc)))
+            .withSort(
+                sort ->
+                    sort.field(
+                        field ->
+                            field.field("id")
+                                .order(SortOrder.Asc)))
             .build();
     }
 
@@ -854,10 +807,6 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
             document.getOrigin(),
             document.getBaseRevisionId(),
             document.getTitle(),
-            document.getDescription(),
-            document.getContent(),
-            document.getLink(),
-            document.getRenderMode(),
             document.getFirstPublishedAt() == null
                 ? null
                 : document.getFirstPublishedAt().toLocalDateTime(),

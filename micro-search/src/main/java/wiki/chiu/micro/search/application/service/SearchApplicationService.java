@@ -6,7 +6,6 @@ import wiki.chiu.micro.common.error.ExceptionMessage;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
-import wiki.chiu.micro.search.application.model.BlogSearchResult;
 import wiki.chiu.micro.search.application.model.AdminBlogRead;
 import wiki.chiu.micro.search.application.model.AdminRevisionRead;
 import wiki.chiu.micro.search.application.model.Page;
@@ -60,16 +59,6 @@ public final class SearchApplicationService implements SearchBlogsUseCase {
     @Override
     public Page<AdminRevisionRead> searchRevisions(RevisionSearchQuery query) {
         return searchIndex.searchRevisions(query);
-    }
-
-    @Override
-    public BlogSearchResult searchPrivate(PrivateBlogSearchQuery query) {
-        return searchIndex.searchPrivate(query);
-    }
-
-    @Override
-    public long countPrivate(PrivateBlogSearchQuery query) {
-        return searchIndex.countPrivate(query);
     }
 
     @Override

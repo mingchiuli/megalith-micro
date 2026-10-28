@@ -121,6 +121,21 @@ class AuthorityControllerTest {
     }
 
     @Test
+    void saveRejectsInvalidWildcardGrammar() throws Exception {
+        String body =
+            "{\"id\":null,\"code\":\"READ\",\"remark\":\"read\","
+                + "\"protocol\":\"http\",\"methodType\":\"GET\","
+                + "\"routePattern\":\"/api/**/detail\",\"serviceHost\":\"localhost\","
+                + "\"servicePort\":8081,\"type\":0,\"status\":1}";
+
+        mockMvc
+            .perform(post("/sys/authority/save").contentType(MediaType.APPLICATION_JSON).content(body))
+            .andExpect(status().isBadRequest());
+
+        verify(authorityService, never()).saveOrUpdate(any());
+    }
+
+    @Test
     void downloadRendersTheAuthorityExport() throws Exception {
         when(authorityService.export())
             .thenReturn(

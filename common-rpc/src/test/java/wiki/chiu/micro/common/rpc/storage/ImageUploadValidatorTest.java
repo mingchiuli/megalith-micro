@@ -74,6 +74,21 @@ class ImageUploadValidatorTest {
     }
 
     @Test
+    void preservesJpegColorProfileMarkers() throws IOException {
+        byte[] iccProfile = "ICC_PROFILE\0profile".getBytes(StandardCharsets.US_ASCII);
+        byte[] jpeg =
+            withJpegSegment(
+                withJpegSegment(image("jpeg"), 0xE2, iccProfile),
+                0xEE,
+                "Adobe".getBytes(StandardCharsets.US_ASCII));
+
+        ImageUploadValidator.ValidatedImage validated = ImageUploadValidator.validate(jpeg);
+
+        assertTrue(contains(validated.content(), iccProfile));
+        assertTrue(contains(validated.content(), "Adobe".getBytes(StandardCharsets.US_ASCII)));
+    }
+
+    @Test
     void rejectsUnsupportedAndCorruptContent() throws IOException {
         assertThrows(ValidationException.class, () -> ImageUploadValidator.validate(new byte[0]));
         assertThrows(
@@ -184,9 +199,14 @@ class ImageUploadValidatorTest {
     }
 
     private static byte[] withJpegExifSegment(byte[] jpeg, byte[] payload) throws IOException {
+        return withJpegSegment(jpeg, 0xE1, payload);
+    }
+
+    private static byte[] withJpegSegment(byte[] jpeg, int marker, byte[] payload)
+        throws IOException {
         ByteArrayOutputStream segment = new ByteArrayOutputStream();
         try (DataOutputStream data = new DataOutputStream(segment)) {
-            data.writeShort(0xFFE1);
+            data.writeShort(0xFF00 | marker);
             data.writeShort(payload.length + 2);
             data.write(payload);
         }

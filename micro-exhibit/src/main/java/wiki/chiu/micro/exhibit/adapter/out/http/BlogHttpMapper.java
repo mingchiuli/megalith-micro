@@ -2,15 +2,16 @@ package wiki.chiu.micro.exhibit.adapter.out.http;
 
 import java.util.List;
 
-import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
+import wiki.chiu.micro.common.enums.SensitiveTypeEnum;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
-import wiki.chiu.micro.exhibit.application.model.BlogSummary;
 import wiki.chiu.micro.exhibit.application.model.Page;
+import wiki.chiu.micro.exhibit.domain.SensitiveContentMasker;
+import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
 
 /**
  * Turns the blog service payloads into the exhibit service's own model.
@@ -18,12 +19,6 @@ import wiki.chiu.micro.exhibit.application.model.Page;
 public final class BlogHttpMapper {
 
     private BlogHttpMapper() {
-    }
-
-    public static List<BlogSummary> toSummaries(List<BlogEntityRpcVo> blogs) {
-        return blogs.stream()
-            .map(blog -> new BlogSummary(blog.id(), blog.title(), blog.status()))
-            .toList();
     }
 
     public static Page<BlogRecommendation> toRecommendationPage(
@@ -42,13 +37,32 @@ public final class BlogHttpMapper {
     }
 
     public static BlogRecommendation toRecommendation(PublicBlogRpcVo blog) {
+        List<SensitiveSpan> spans =
+            blog.renderMode() == BlogRenderMode.SENSITIVE_FILTER
+                ? blog.sensitiveContent().stream()
+                    .flatMap(
+                        span ->
+                            SensitiveTypeEnum.ofCode(span.type()).stream()
+                                .map(
+                                    type ->
+                                        new SensitiveSpan(
+                                            type, span.startIndex(), span.endIndex())))
+                    .toList()
+                : List.of();
         return new BlogRecommendation(
             blog.id(),
-            blog.title(),
-            blog.description(),
+            mask(blog.title(), spans, SensitiveTypeEnum.TITLE),
+            mask(blog.description(), spans, SensitiveTypeEnum.DESCRIPTION),
             blog.publishedAt() == null ? blog.created() : blog.publishedAt(),
             blog.link(),
             blog.readCount());
+    }
+
+    private static String mask(
+        String content, List<SensitiveSpan> spans, SensitiveTypeEnum type) {
+        return content == null
+            ? ""
+            : SensitiveContentMasker.mask(content, spans, type);
     }
 
     public static BlogHotRead toHotRead(PublicBlogRpcVo blog) {

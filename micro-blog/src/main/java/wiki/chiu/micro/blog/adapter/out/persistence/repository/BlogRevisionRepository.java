@@ -39,7 +39,5 @@ public interface BlogRevisionRepository
 
     List<BlogRevisionEntity> findByBlogIdOrderByVersionNoAsc(Long blogId);
 
-    List<BlogRevisionEntity> findByIdGreaterThanOrderByIdAsc(Long afterId, Pageable pageable);
-
     long deleteByBlogId(Long blogId);
 }

@@ -16,9 +16,7 @@ import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.search.api.SearchHttpService;
 import wiki.chiu.micro.search.api.req.BlogReadCountReq;
 import wiki.chiu.micro.search.api.req.BlogRevisionSearchReq;
-import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
-import wiki.chiu.micro.search.api.vo.BlogSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminBlogRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminBlogSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminRevisionRpcVo;
@@ -28,7 +26,6 @@ import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.AdminBlogRead;
 import wiki.chiu.micro.search.application.model.AdminRevisionRead;
 import wiki.chiu.micro.search.application.model.Page;
-import wiki.chiu.micro.search.application.model.BlogSearchResult;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogRead;
 import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
@@ -47,14 +44,6 @@ public class SearchInternalHttpHandler implements SearchHttpService {
     public SearchInternalHttpHandler(SearchBlogsUseCase searchBlogs, ValidatedRequest v) {
         this.searchBlogs = searchBlogs;
         this.v = v;
-    }
-
-    public ServerResponse searchBlogs(ServerRequest request) throws Exception {
-        return ok(searchBlogs(SearchRequestConvertor.toBlogSysSearchReq(request)));
-    }
-
-    public ServerResponse countBlogs(ServerRequest request) throws Exception {
-        return ok(countBlogs(SearchRequestConvertor.toBlogSysCountSearchReq(request)));
     }
 
     public ServerResponse updateReadCounts(ServerRequest request) throws Exception {
@@ -92,11 +81,6 @@ public class SearchInternalHttpHandler implements SearchHttpService {
         Integer page = v.positive(requiredParam(request, "page", Integer::valueOf), "page");
         Integer size = v.range(requiredParam(request, "size", Integer::valueOf), 1, 50, "size");
         return ok(recommendationPage(page, size));
-    }
-
-    @Override
-    public Result<BlogSearchRpcVo> searchBlogs(BlogSysSearchReq req) {
-        return Result.success(() -> toResponse(searchBlogs.searchPrivate(toQuery(req))));
     }
 
     @Override
@@ -140,11 +124,6 @@ public class SearchInternalHttpHandler implements SearchHttpService {
     }
 
     @Override
-    public Result<Long> countBlogs(BlogSysCountSearchReq req) {
-        return Result.success(() -> searchBlogs.countPrivate(toQuery(req)));
-    }
-
-    @Override
     public Result<Void> updateReadCounts(List<BlogReadCountReq> counts) {
         return Result.success(() -> searchBlogs.updateReadCounts(
             counts.stream().map(count -> new BlogReadCount(count.blogId(), count.readCount())).toList()));
@@ -185,28 +164,6 @@ public class SearchInternalHttpHandler implements SearchHttpService {
             req.userId(),
             req.allData(),
             Boolean.TRUE.equals(req.draftOnly()));
-    }
-
-    private static PrivateBlogSearchQuery toQuery(BlogSysCountSearchReq req) {
-        return new PrivateBlogSearchQuery(
-            1,
-            1,
-            req.keywords(),
-            req.status(),
-            req.createStart(),
-            req.createEnd(),
-            req.userId(),
-            req.allData(),
-            false);
-    }
-
-    private static BlogSearchRpcVo toResponse(BlogSearchResult result) {
-        return BlogSearchRpcVo.builder()
-            .ids(result.ids())
-            .currentPage(result.page())
-            .size(result.pageSize())
-            .total(result.total())
-            .build();
     }
 
     private static PublicBlogRpcVo toResponse(PublicBlogRead blog) {
@@ -260,10 +217,6 @@ public class SearchInternalHttpHandler implements SearchHttpService {
             revision.origin(),
             revision.baseRevisionId(),
             revision.title(),
-            revision.description(),
-            revision.content(),
-            revision.link(),
-            revision.renderMode(),
             revision.firstPublishedAt(),
             revision.createdBy(),
             revision.createdAt(),

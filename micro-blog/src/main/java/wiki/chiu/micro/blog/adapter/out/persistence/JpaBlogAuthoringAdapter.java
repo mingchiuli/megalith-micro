@@ -276,7 +276,9 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringStore {
         blog.setPublishedRevisionId(revisionId);
         blog.setPublishedAt(now);
         blog.setOfflineAt(null);
-        blog.setAccessMode(BlogAccessMode.of(accessMode).getCode());
+        if (accessMode != null) {
+            blog.setAccessMode(BlogAccessMode.of(accessMode).getCode());
+        }
         blog.setPublicationRevision(blog.getPublicationRevision() + 1);
         blog.setAdminRevision(blog.getAdminRevision() + 1);
 

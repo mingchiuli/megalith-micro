@@ -1,7 +1,4 @@
-boolean repair = params.repair == true;
-if (ctx.op != 'create' && ctx._source.revision != null &&
-    (repair ? (ctx._source.revision > params.blog.revision || ctx._source.deleted == true)
-            : ctx._source.revision >= params.blog.revision)) {
+if (ctx.op != 'create' && ctx._source.revision != null && ctx._source.revision >= params.blog.revision) {
     ctx.op = 'noop';
     return;
 }

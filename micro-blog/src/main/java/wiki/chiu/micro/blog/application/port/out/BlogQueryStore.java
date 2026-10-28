@@ -3,11 +3,10 @@ package wiki.chiu.micro.blog.application.port.out;
 import java.util.List;
 import java.util.Optional;
 
+import wiki.chiu.micro.blog.application.model.BlogDeletionTarget;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
 import wiki.chiu.micro.blog.domain.Blog;
-import wiki.chiu.micro.blog.domain.SensitiveContent;
-import wiki.chiu.micro.common.model.BlogAdminIndexSnapshot;
-import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
+import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 
 public interface BlogQueryStore {
@@ -18,19 +17,14 @@ public interface BlogQueryStore {
 
     List<BlogSnapshot> findPublishedSnapshotsAfter(long afterId, int limit);
 
-    List<BlogAdminIndexSnapshot> findAdminSnapshotsAfter(long afterId, int limit);
-
-    List<BlogRevisionSnapshot> findRevisionSnapshotsAfter(long afterRevisionId, int limit);
-
     Optional<Blog> findById(Long blogId);
 
-    List<Blog> findAllById(List<Long> blogIds);
+    List<BlogDeletionTarget> findDeletionTargetsByIds(List<Long> blogIds);
 
-    List<Blog> findByUserIds(List<Long> userIds);
+    List<BlogDeletionTarget> findDeletionTargetsByUserIds(List<Long> userIds);
 
     long count();
 
-    List<SensitiveContent> findSensitiveByBlogId(Long blogId);
+    List<BlogSensitiveSpan> findSensitiveByBlogId(Long blogId);
 
-    List<SensitiveContent> findSensitiveByBlogIds(List<Long> blogIds);
 }

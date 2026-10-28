@@ -9,7 +9,6 @@ import wiki.chiu.micro.blog.application.port.in.BlogExportService;
 import wiki.chiu.micro.blog.application.port.in.BlogIndexSourceQueries;
 import wiki.chiu.micro.blog.application.port.in.BlogQueryService;
 import wiki.chiu.micro.blog.application.port.in.BlogRecycleBin;
-import wiki.chiu.micro.blog.application.port.in.BlogSensitiveService;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
 import wiki.chiu.micro.blog.application.port.in.BlogStatisticsSync;
 import wiki.chiu.micro.blog.application.port.out.BlogAssetStorage;
@@ -28,7 +27,6 @@ import wiki.chiu.micro.blog.application.service.BlogExportServiceImpl;
 import wiki.chiu.micro.blog.application.service.BlogIndexSourceService;
 import wiki.chiu.micro.blog.application.service.BlogQueryServiceImpl;
 import wiki.chiu.micro.blog.application.service.BlogRecycleBinServiceImpl;
-import wiki.chiu.micro.blog.application.service.BlogSensitiveServiceImpl;
 import wiki.chiu.micro.blog.application.service.BlogServiceImpl;
 import wiki.chiu.micro.blog.application.service.BlogStatisticsSyncService;
 
@@ -58,11 +56,6 @@ public class BlogApplicationConfig {
     @Bean
     BlogQueryService blogQueryService(BlogQueryStore blogs, BlogWriter writer) {
         return new BlogQueryServiceImpl(blogs, writer);
-    }
-
-    @Bean
-    BlogSensitiveService blogSensitiveService(BlogQueryStore blogs) {
-        return new BlogSensitiveServiceImpl(blogs);
     }
 
     @Bean

@@ -26,7 +26,6 @@ public class SearchRoutes {
         return withDefaultErrorHandling(
             route()
                 .GET("/search/public/blog", searchHandler::searchBlogs)
-                .POST("/inner/blog/search", internalHandler::searchBlogs)
                 .POST("/inner/blog/admin/search", internalHandler::searchAdminBlogs)
                 .POST("/inner/blog/revisions/search", internalHandler::searchRevisions)
                 .GET(
@@ -34,7 +33,6 @@ public class SearchRoutes {
                     internalHandler::recommendationPage)
                 .GET("/inner/blog/public/related/{blogId}", internalHandler::relatedArticles)
                 .GET("/inner/blog/public/{blogId}", internalHandler::publicBlog)
-                .POST("/inner/blog/count", internalHandler::countBlogs)
                 .POST("/inner/blog/views/batch", internalHandler::updateReadCounts),
             log)
             .build();

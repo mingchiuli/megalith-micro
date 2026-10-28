@@ -1,0 +1,13 @@
+boolean force = params.force == true;
+if (!force && ctx.op != 'create' && ctx._source.adminRevision != null
+    && ctx._source.adminRevision > params.admin.adminRevision) {
+    ctx.op = 'noop';
+    return;
+}
+
+long currentRevision = ctx._source.adminRevision == null ? 0L : ctx._source.adminRevision;
+ctx._source.clear();
+ctx._source.putAll(params.admin);
+if (force && ctx._source.adminRevision <= currentRevision) {
+    ctx._source.adminRevision = currentRevision + 1L;
+}

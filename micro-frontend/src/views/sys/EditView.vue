@@ -163,6 +163,11 @@ const saveDraft = async (): Promise<BlogVersion> => {
     globalThis.clearTimeout(serverDraftSaveTask)
     serverDraftSaveTask = undefined
   }
+  if (inflightServerDraftSave) {
+    await inflightServerDraftSave.catch((error) => {
+      logger.warn('The pending server draft save failed before a manual save:', error)
+    })
+  }
   const currentBlogId = await ensureBlogId()
   const savedDraft = await POST<DraftSaveResponse>(
     API_ENDPOINTS.BLOG_ADMIN.SAVE_DRAFT(currentBlogId),
@@ -296,7 +301,9 @@ let metadataDraftReady = false
 let metadataDraftRestored = false
 let metadataDraftSaveTask: ReturnType<typeof setTimeout> | undefined
 let serverDraftSaveTask: ReturnType<typeof setTimeout> | undefined
+let inflightServerDraftSave: Promise<DraftSaveResponse> | undefined
 let lastServerSnapshot = ''
+let editorDisposed = false
 
 const editableSnapshot = () =>
   JSON.stringify({
@@ -352,13 +359,24 @@ const scheduleServerDraftSave = () => {
   if (serverDraftSaveTask !== undefined) globalThis.clearTimeout(serverDraftSaveTask)
   serverDraftSaveTask = globalThis.setTimeout(() => {
     serverDraftSaveTask = undefined
-    void POST<DraftSaveResponse>(API_ENDPOINTS.BLOG_ADMIN.SAVE_DRAFT(form.id!), form)
+    let request: Promise<DraftSaveResponse>
+    request = POST<DraftSaveResponse>(API_ENDPOINTS.BLOG_ADMIN.SAVE_DRAFT(form.id!), form)
       .then((draft) => {
+        if (editorDisposed) return draft
         form.draftRevision = draft.draftRevision
         form.hasDraft = true
         lastServerSnapshot = editableSnapshot()
+        return draft
       })
-      .catch((error) => logger.warn('Failed to autosave the server draft:', error))
+      .catch((error) => {
+        logger.warn('Failed to autosave the server draft:', error)
+        throw error
+      })
+      .finally(() => {
+        if (inflightServerDraftSave === request) inflightServerDraftSave = undefined
+      })
+    inflightServerDraftSave = request
+    void request.catch(() => undefined)
   }, 1200)
 }
 
@@ -423,6 +441,12 @@ watch(
 )
 
 onMounted(() => void loadAiModels())
+
+onUnmounted(() => {
+  editorDisposed = true
+  if (metadataDraftSaveTask !== undefined) globalThis.clearTimeout(metadataDraftSaveTask)
+  if (serverDraftSaveTask !== undefined) globalThis.clearTimeout(serverDraftSaveTask)
+})
 </script>
 
 <template>

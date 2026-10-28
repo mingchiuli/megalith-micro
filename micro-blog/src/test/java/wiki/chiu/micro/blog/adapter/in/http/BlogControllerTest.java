@@ -4,6 +4,8 @@ import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -37,6 +39,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.blog.application.model.BlogExportPage;
 import wiki.chiu.micro.blog.application.model.BlogExportRow;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
+import wiki.chiu.micro.blog.application.model.BlogVersionSummary;
 import wiki.chiu.micro.blog.application.model.DeletedBlogItem;
 import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
@@ -126,6 +129,52 @@ class BlogControllerTest {
                     .content(body))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.code").value(CommonErrorCode.CONFLICT.code()));
+    }
+
+    @Test
+    void publishWithoutAccessModePreservesTheCurrentRestriction() throws Exception {
+        mockMvc
+            .perform(
+                post("/sys/blog/7/publish")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"revisionId\":9}"))
+            .andExpect(status().isOk());
+
+        verify(blogService)
+            .publish(
+                eq(7L),
+                eq(9L),
+                isNull(),
+                anyLong(),
+                anyList());
+    }
+
+    @Test
+    void versionListOmitsFullArticleContent() throws Exception {
+        BlogVersionSummary summary =
+            new BlogVersionSummary(
+                9L,
+                7L,
+                2L,
+                BlogRevisionOrigin.DRAFT,
+                8L,
+                "title",
+                null,
+                1L,
+                LocalDateTime.now(),
+                false);
+        when(blogService.findVersions(7L, 1, 10, null, 1L, List.of()))
+            .thenReturn(new Page<>(List.of(summary), 1, 1, 10, true, true, false, 1));
+
+        mockMvc
+            .perform(
+                get("/sys/blog/7/versions")
+                    .param("currentPage", "1")
+                    .param("size", "10"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.content[0].title").value("title"))
+            .andExpect(jsonPath("$.data.content[0].content").doesNotExist())
+            .andExpect(jsonPath("$.data.content[0].description").doesNotExist());
     }
 
     @Test

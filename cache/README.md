@@ -59,7 +59,7 @@ Enable `trackKeys = true` for contracts whose callers cannot enumerate all cache
 
 ```java
 @Cache(namespace = "blog-page", version = 3, trackKeys = true)
-public PageAdapter<BlogDescriptionDto> findPage(Integer currentPage) {
+public PageAdapter<ArticleCard> findPage(Integer currentPage) {
     return loadPage(currentPage);
 }
 
@@ -162,7 +162,6 @@ role_authorization:AuthWrapper:getAllRoleAuthorizations
 role_authority:AuthWrapper:getCurrentUserNav:*
 all_service:AuthWrapper:getAllSystemAuthorities
 hot_blog:BlogWrapper:findById:*
-hot_blog:BlogSensitiveWrapper:findSensitiveByBlogId:*
 hot_blogs:BlogWrapper:findPage:*
 ```
 
@@ -175,7 +174,6 @@ for pattern in \
   'role_authority:AuthWrapper:getCurrentUserNav:*' \
   'all_service:AuthWrapper:getAllSystemAuthorities' \
   'hot_blog:BlogWrapper:findById:*' \
-  'hot_blog:BlogSensitiveWrapper:findSensitiveByBlogId:*' \
   'hot_blogs:BlogWrapper:findPage:*'
 do
   redis-cli --scan --pattern "$pattern" | while IFS= read -r key

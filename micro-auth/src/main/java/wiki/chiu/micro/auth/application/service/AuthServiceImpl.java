@@ -227,6 +227,9 @@ public class AuthServiceImpl implements AuthService {
         if (routeIndex == routes.length) {
             return false;
         }
+        if ("*".equals(pattern) && routes[routeIndex].isEmpty()) {
+            return false;
+        }
         if (!"*".equals(pattern) && !Objects.equals(pattern, routes[routeIndex])) {
             return false;
         }

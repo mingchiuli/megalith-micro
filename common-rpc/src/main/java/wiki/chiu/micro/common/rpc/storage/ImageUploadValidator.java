@@ -1,6 +1,7 @@
 package wiki.chiu.micro.common.rpc.storage;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
 
 import wiki.chiu.micro.common.exception.ValidationException;
@@ -53,7 +54,14 @@ public final class ImageUploadValidator {
 
     private static final int JPEG_APP1 = 0xE1;
 
+    private static final int JPEG_APP2 = 0xE2;
+
+    private static final int JPEG_APP14 = 0xEE;
+
     private static final int JPEG_APP15 = 0xEF;
+
+    private static final byte[] JPEG_ICC_PROFILE =
+        "ICC_PROFILE\0".getBytes(StandardCharsets.US_ASCII);
 
     private ImageUploadValidator() {
     }
@@ -166,7 +174,7 @@ public final class ImageUploadValidator {
                 requireDimensions(readShort(content, position + 3), readShort(content, position + 5));
                 frame = true;
             }
-            if (keepJpegSegment(marker)) {
+            if (keepJpegSegment(marker, content, position, length)) {
                 output.write(content, segment, length + 2);
             }
             position += length;
@@ -186,8 +194,17 @@ public final class ImageUploadValidator {
         return output.toByteArray();
     }
 
-    /** Keeps JFIF, every coding segment, and the scan data; drops EXIF/XMP/ICC/comment metadata. */
-    private static boolean keepJpegSegment(int marker) {
+    /** Keeps JFIF, ICC/Adobe color markers, coding segments, and scan data. */
+    private static boolean keepJpegSegment(
+        int marker, byte[] content, int lengthOffset, int length) {
+        if (marker == JPEG_APP2
+            && matchesAt(content, lengthOffset + 2, JPEG_ICC_PROFILE)
+            && length >= JPEG_ICC_PROFILE.length + 2) {
+            return true;
+        }
+        if (marker == JPEG_APP14) {
+            return true;
+        }
         return marker != JPEG_COMMENT && (marker < JPEG_APP1 || marker > JPEG_APP15);
     }
 
@@ -228,11 +245,15 @@ public final class ImageUploadValidator {
     }
 
     private static boolean startsWith(byte[] content, byte[] prefix) {
-        if (content.length < prefix.length) {
+        return matchesAt(content, 0, prefix);
+    }
+
+    private static boolean matchesAt(byte[] content, int offset, byte[] prefix) {
+        if (offset < 0 || content.length - offset < prefix.length) {
             return false;
         }
         for (int index = 0; index < prefix.length; index++) {
-            if (content[index] != prefix[index]) {
+            if (content[offset + index] != prefix[index]) {
                 return false;
             }
         }

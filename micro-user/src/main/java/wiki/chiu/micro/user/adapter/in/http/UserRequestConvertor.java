@@ -103,6 +103,7 @@ public final class UserRequestConvertor {
         v.notBlank(req.protocol(), "protocol");
         v.notBlank(req.methodType(), "methodType");
         v.notBlank(req.routePattern(), "routePattern");
+        validateRoutePattern(req.routePattern());
         v.notBlank(req.serviceHost(), "serviceHost");
         v.notNull(req.servicePort(), "servicePort");
         v.range(req.servicePort(), 1, 65535, "servicePort");
@@ -112,6 +113,28 @@ public final class UserRequestConvertor {
         v.range(req.status(), 0, 1, "status");
 
         return req;
+    }
+
+    private static void validateRoutePattern(String pattern) {
+        if (!pattern.startsWith("/") || pattern.length() == 1) {
+            throw new IllegalArgumentException("routePattern must be an absolute path");
+        }
+        String normalized = pattern.substring(1);
+        if (normalized.contains("//")) {
+            throw new IllegalArgumentException("routePattern must not contain empty segments");
+        }
+        String[] segments = normalized.split("/", -1);
+        for (int index = 0; index < segments.length; index++) {
+            String segment = segments[index];
+            if (segment.contains("*") && !"*".equals(segment) && !"**".equals(segment)) {
+                throw new IllegalArgumentException(
+                    "routePattern wildcards must occupy an entire segment");
+            }
+            if ("**".equals(segment) && index != segments.length - 1) {
+                throw new IllegalArgumentException(
+                    "routePattern may only use ** as the final segment");
+            }
+        }
     }
 
     public static MenuEntityReq toMenuEntityReq(ServerRequest request) throws Exception {

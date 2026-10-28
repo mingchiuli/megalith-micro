@@ -27,6 +27,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogEntity;
+import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogDraftEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogRevisionEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
@@ -87,6 +88,46 @@ class BlogIndexQueriesIntegrationTest {
             assertThat(snapshot.id()).isEqualTo(ids.get(1));
             assertThat(snapshot.revision()).isEqualTo(11L);
             assertThat(snapshot.title()).isEqualTo("title-11");
+        }
+    }
+
+    @Test
+    void deletionTargetsIncludeDraftOnlyBlogs() {
+        try (var context = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
+            var blogs = context.getBean(BlogRepository.class);
+            var drafts = context.getBean(BlogDraftRepository.class);
+            var transaction =
+                new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
+            long blogId =
+                transaction.execute(
+                    status -> {
+                        BlogEntity blog = blogs.save(blog(0L, 0L));
+                        drafts.save(
+                            new BlogDraftEntity(
+                                null,
+                                blog.getId(),
+                                1L,
+                                null,
+                                "draft",
+                                "description",
+                                "content",
+                                "",
+                                BlogRenderMode.NORMAL,
+                                42L,
+                                LocalDateTime.now()));
+                        return blog.getId();
+                    });
+            var adapter =
+                new JpaBlogQueryAdapter(
+                    blogs,
+                    context.getBean(BlogRevisionRepository.class),
+                    drafts,
+                    context.getBean(BlogRevisionSensitiveContentRepository.class));
+
+            var target = adapter.findDeletionTargetsByIds(List.of(blogId)).getFirst();
+
+            assertThat(target.blog().title()).isEqualTo("draft");
+            assertThat(target.identity().adminRevision()).isZero();
         }
     }
 

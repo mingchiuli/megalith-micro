@@ -47,11 +47,7 @@ public class BlogRoutes {
                 .GET("/sys/blog/download", blogHandler::download)
                 .GET("/sys/blog/edit/pull/echo", blogHandler::getEchoDetail)
                 .POST("/sys/blog/edit/ticket", blogHandler::issueCollaborationTicket)
-                .GET("/inner/blog/count", internalHandler::count)
                 .GET("/inner/blog/ids", internalHandler::findIdsAfter)
-                .GET("/inner/blog/sensitive/{blogId}", internalHandler::findSensitiveByBlogId)
-                .GET("/inner/blog/{blogId}", internalHandler::findById)
-                .POST("/inner/blog/batch", internalHandler::findAllById)
                 .POST("/inner/blog/{blogId}/views", internalHandler::setReadCount),
             log)
             .build();

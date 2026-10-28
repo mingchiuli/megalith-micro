@@ -146,28 +146,6 @@ class BlogSearchControllerTest {
     }
 
     @Test
-    void internalSearchRejectsInvalidBody() throws Exception {
-        mockMvc
-            .perform(post("/inner/blog/search").contentType(MediaType.APPLICATION_JSON).content("{}"))
-            .andExpect(status().isBadRequest());
-
-        verify(searchBlogs, never()).searchPrivate(any());
-    }
-
-    @Test
-    void internalCountRejectsInvalidDateRange() throws Exception {
-        String body =
-            "{\"status\":0,\"createStart\":\"2026-08-02T12:00:00\","
-                + "\"createEnd\":\"2026-08-02T11:00:00\",\"userId\":1,\"allData\":false}";
-
-        mockMvc
-            .perform(post("/inner/blog/count").contentType(MediaType.APPLICATION_JSON).content(body))
-            .andExpect(status().isBadRequest());
-
-        verify(searchBlogs, never()).countPrivate(any());
-    }
-
-    @Test
     void searchBlogsServiceFailureReturns500() throws Exception {
         when(searchBlogs.searchPublic(any()))
             .thenThrow(new RuntimeException("es down"));

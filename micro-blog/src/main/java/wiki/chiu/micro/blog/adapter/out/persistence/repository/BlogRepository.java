@@ -21,9 +21,6 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
     @Query("SELECT blog.id FROM BlogEntity blog WHERE blog.id > :afterId ORDER BY blog.id ASC")
     List<Long> findIdsAfter(@Param("afterId") Long afterId, Pageable pageable);
 
-    @Query("SELECT blog.id FROM BlogEntity blog ORDER BY blog.id ASC")
-    List<Long> findAllIds(Pageable pageable);
-
     @Query(
         """
         SELECT new wiki.chiu.micro.blog.application.model.BlogReadCount(
@@ -37,15 +34,23 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
     List<BlogEntity> findByPublishedRevisionIdIsNotNullAndIdGreaterThanOrderByIdAsc(
         Long afterId, Pageable pageable);
 
-    List<BlogEntity> findByIdGreaterThanOrderByIdAsc(Long afterId, Pageable pageable);
-
     @Query(
         value = "UPDATE BlogEntity blog SET blog.readCount = blog.readCount + 1 WHERE blog.id = ?1")
     @Modifying
     void setReadCount(Long id);
 
-    @Query("SELECT blog.userId FROM BlogEntity blog WHERE blog.id = ?1")
-    Long findUserIdById(Long id);
+    @Modifying
+    @Query(
+        """
+        DELETE FROM BlogEntity blog
+        WHERE blog.id = :id
+          AND COALESCE(blog.publicationRevision, 0) = :publicationRevision
+          AND COALESCE(blog.adminRevision, 0) = :adminRevision
+        """)
+    int deleteByIdAndRevisions(
+        @Param("id") Long id,
+        @Param("publicationRevision") Long publicationRevision,
+        @Param("adminRevision") Long adminRevision);
 
     List<BlogEntity> findByUserIdIn(List<Long> userIds);
 

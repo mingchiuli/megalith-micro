@@ -7,8 +7,6 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 
-import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
-import wiki.chiu.micro.blog.api.vo.SensitiveContentRpcVo;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.Page;
@@ -25,8 +23,6 @@ class CustomRuntimeHintsTest {
         assertJacksonType(hints, Page.class);
         assertJacksonType(hints, SensitiveSpan.class);
         assertJacksonType(hints, PageAdapter.class);
-        assertJacksonType(hints, BlogSensitiveContentRpcVo.class);
-        assertJacksonType(hints, SensitiveContentRpcVo.class);
     }
 
     private void assertJacksonType(RuntimeHints hints, Class<?> type) {

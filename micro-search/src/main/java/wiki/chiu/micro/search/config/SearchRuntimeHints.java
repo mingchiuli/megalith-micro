@@ -6,7 +6,6 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
 import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
 import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
-import wiki.chiu.micro.common.model.BlogAdminIndexSnapshot;
 import wiki.chiu.micro.common.model.BlogAdminSnapshot;
 import wiki.chiu.micro.common.model.BlogDraftSnapshot;
 import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
@@ -17,7 +16,6 @@ import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.search.adapter.in.http.BlogDocumentVo;
 import wiki.chiu.micro.search.api.req.BlogReadCountReq;
 import wiki.chiu.micro.search.api.req.BlogRevisionSearchReq;
-import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.api.vo.IndexRebuildRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminBlogRpcVo;
@@ -41,12 +39,10 @@ public class SearchRuntimeHints implements RuntimeHintsRegistrar {
                 Result.class,
                 PageAdapter.class,
                 BlogSysSearchReq.class,
-                BlogSysCountSearchReq.class,
                 BlogReadCountReq.class,
                 BlogDocumentVo.class,
                 IndexRebuildRpcVo.class,
                 BlogAdminIndexMessage.class,
-                BlogAdminIndexSnapshot.class,
                 BlogAdminSnapshot.class,
                 BlogDraftSnapshot.class,
                 BlogRevisionSnapshot.class,

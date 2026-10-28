@@ -3,7 +3,8 @@ package wiki.chiu.micro.blog.application.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import wiki.chiu.micro.blog.adapter.out.persistence.BlogWrapper;
+import wiki.chiu.micro.blog.application.model.BlogDeletionTarget;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.port.out.BlogAuthoringStore;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
@@ -29,6 +31,7 @@ import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.enums.BlogAccessMode;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
+import wiki.chiu.micro.common.enums.BlogStatusEnum;
 
 class BlogServiceImplTest {
 
@@ -78,7 +81,11 @@ class BlogServiceImplTest {
         BlogWrapper writer = mock(BlogWrapper.class);
         Blog first = BlogFixtures.builder().id(7L).eventRevision(2L).build();
         Blog second = BlogFixtures.builder().id(8L).eventRevision(4L).build();
-        when(blogs.findByUserIds(List.of(42L))).thenReturn(List.of(first, second));
+        when(blogs.findDeletionTargetsByUserIds(List.of(42L)))
+            .thenReturn(
+                List.of(
+                    new BlogDeletionTarget(first, identity(7L, 3L)),
+                    new BlogDeletionTarget(second, identity(8L, 5L))));
         BlogServiceImpl service =
             new BlogServiceImpl(
                 blogs,
@@ -88,17 +95,51 @@ class BlogServiceImplTest {
                 new BlogAccessPolicy(),
                 mock(BlogAuthoringStore.class));
         ArgumentCaptor<BlogEventContext> event = ArgumentCaptor.forClass(BlogEventContext.class);
-        ArgumentCaptor<List<Blog>> deleted = captor();
+        ArgumentCaptor<List<BlogDeletionTarget>> deleted = captor();
 
         service.deleteByUserIds(List.of(42L));
 
-        verify(writer).deleteByIds(deleted.capture(), eq(List.of()), event.capture());
+        verify(writer).deleteByIds(deleted.capture(), event.capture());
         assertEquals(null, event.getValue().operatorUserId());
         verify(blogs, never()).count();
         assertEquals(
-            List.of(7L, 8L), deleted.getValue().stream().map(Blog::id).toList());
+            List.of(7L, 8L),
+            deleted.getValue().stream().map(target -> target.blog().id()).toList());
         assertEquals(
-            List.of(3L, 5L), deleted.getValue().stream().map(Blog::eventRevision).toList());
+            List.of(3L, 5L),
+            deleted.getValue().stream().map(target -> target.identity().adminRevision()).toList());
+    }
+
+    @Test
+    void deleteBatchIncludesDraftOnlyBlogs() {
+        BlogQueryStore blogs = mock(BlogQueryStore.class);
+        BlogWrapper writer = mock(BlogWrapper.class);
+        Blog draft =
+            BlogFixtures.builder()
+                .id(7L)
+                .userId(42L)
+                .status(BlogStatusEnum.DRAFT.getCode())
+                .build();
+        when(blogs.findDeletionTargetsByIds(List.of(7L)))
+            .thenReturn(List.of(new BlogDeletionTarget(draft, identity(7L, 3L))));
+        BlogServiceImpl service =
+            new BlogServiceImpl(
+                blogs,
+                mock(BlogRuntimeStore.class),
+                writer,
+                mock(BlogSearchGateway.class),
+                new BlogAccessPolicy(),
+                mock(BlogAuthoringStore.class));
+
+        service.deleteBatch(List.of(7L), 42L, List.of());
+
+        verify(writer)
+            .deleteByIds(
+                argThat(
+                    targets ->
+                        targets.size() == 1
+                            && targets.getFirst().blog().id().equals(7L)),
+                any(BlogEventContext.class));
     }
 
     @Test
@@ -221,7 +262,22 @@ class BlogServiceImplTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static ArgumentCaptor<List<Blog>> captor() {
+    private static ArgumentCaptor<List<BlogDeletionTarget>> captor() {
         return ArgumentCaptor.forClass(List.class);
+    }
+
+    private static BlogIdentity identity(long id, long revision) {
+        LocalDateTime created = LocalDateTime.of(2026, 9, 1, 10, 0);
+        return new BlogIdentity(
+            id,
+            42L,
+            created,
+            0L,
+            1L,
+            created,
+            null,
+            BlogAccessMode.PUBLIC,
+            revision,
+            revision);
     }
 }

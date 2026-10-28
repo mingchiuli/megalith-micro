@@ -3,7 +3,6 @@ package wiki.chiu.micro.search.adapter.in.http;
 import org.springframework.web.servlet.function.ServerRequest;
 
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.search.api.req.BlogSysCountSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 
 public final class SearchRequestConvertor {
@@ -30,17 +29,4 @@ public final class SearchRequestConvertor {
         return req;
     }
 
-    public static BlogSysCountSearchReq toBlogSysCountSearchReq(ServerRequest request)
-        throws Exception {
-        BlogSysCountSearchReq req = request.body(BlogSysCountSearchReq.class);
-
-        v.maxLength(req.keywords(), 20, "keywords");
-        v.range(req.status(), 0, 3, "status");
-        v.notNull(req.userId(), "userId");
-        v.nonNegative(req.userId(), "userId");
-        v.notNull(req.allData(), "allData");
-        v.dateRange(req.createStart(), req.createEnd(), "createStart", "createEnd");
-
-        return req;
-    }
 }

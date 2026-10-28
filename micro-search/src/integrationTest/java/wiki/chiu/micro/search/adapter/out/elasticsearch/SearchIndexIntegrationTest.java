@@ -38,6 +38,7 @@ import wiki.chiu.micro.search.application.model.BlogAdminIndexChange;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.IndexSourceStatus;
+import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
 import wiki.chiu.micro.search.application.port.out.BlogIndexSource;
 import wiki.chiu.micro.search.application.port.out.SearchRebuildControl;
@@ -129,84 +130,6 @@ class SearchIndexIntegrationTest {
     }
 
     @Test
-    void startupSchemaCreatesAllThreeAliasesIdempotently() throws Exception {
-        String suffix = UUID.randomUUID().toString();
-        String publicAlias = "test-search-public-" + suffix;
-        String adminAlias = "test-search-admin-" + suffix;
-        String revisionAlias = "test-search-revision-" + suffix;
-        var schema =
-            new ElasticsearchSearchIndexSchemaAdapter(
-                client, template, publicAlias, adminAlias, revisionAlias);
-
-        schema.ensureAliases();
-        String publicIndex =
-            indexClient.getAlias(request -> request.name(publicAlias))
-                .aliases()
-                .keySet()
-                .iterator()
-                .next();
-        schema.ensureAliases();
-
-        assertThat(indexClient.existsAlias(request -> request.name(publicAlias)).value()).isTrue();
-        assertThat(indexClient.existsAlias(request -> request.name(adminAlias)).value()).isTrue();
-        assertThat(indexClient.existsAlias(request -> request.name(revisionAlias)).value()).isTrue();
-        assertThat(
-                indexClient.getAlias(request -> request.name(publicAlias))
-                    .aliases()
-                    .keySet())
-            .containsExactly(publicIndex);
-    }
-
-    @Test
-    void bootstrapWritesPopulateAdminAndRevisionIndexes() throws Exception {
-        String suffix = UUID.randomUUID().toString();
-        String publicAlias = "test-search-public-" + suffix;
-        String adminAlias = "test-search-admin-" + suffix;
-        String revisionAlias = "test-search-revision-" + suffix;
-        new ElasticsearchSearchIndexSchemaAdapter(
-                client, template, publicAlias, adminAlias, revisionAlias)
-            .ensureAliases();
-        var adapter =
-            new ElasticsearchBlogAdapter(
-                template, 5, publicAlias, adminAlias, revisionAlias);
-        LocalDateTime date = LocalDateTime.of(2026, 10, 28, 10, 0);
-        BlogRevisionSnapshot published = revision(7L, 7L, date);
-        BlogRevisionSnapshot historical = revision(9L, 7L, date);
-
-        adapter.writeAdmin(
-            new BlogAdminIndexChange(
-                "BOOTSTRAP",
-                new BlogAdminSnapshot(
-                    7L, 42L, 7L, date, null, 0, 1L, 2L, 10L, date),
-                new BlogDraftSnapshot(
-                    7L,
-                    1L,
-                    7L,
-                    "draft",
-                    "description",
-                    "content",
-                    cover(7),
-                    BlogRenderMode.NORMAL,
-                    42L,
-                    date.plusHours(1),
-                    List.of()),
-                published));
-        adapter.writeRevision(
-            new BlogAdminIndexChange("BOOTSTRAP", null, null, historical));
-        indexClient.refresh(request -> request.index(adminAlias));
-        indexClient.refresh(request -> request.index(revisionAlias));
-
-        assertThat(
-                template.get("7", AdminBlogDocument.class, IndexCoordinates.of(adminAlias))
-                    .getPublishedLink())
-            .isEqualTo(cover(7));
-        assertThat(
-                template.get("9", AdminRevisionDocument.class, IndexCoordinates.of(revisionAlias))
-                    .getLink())
-            .isEqualTo(cover(9));
-    }
-
-    @Test
     void rebuildingRepairsMissingAndDeletedDocumentsAndRetainsTheOldIndex() {
         blogs.write(change(1, 1, 0, 3, "old"));
         blogs.write(change(2, 2, 0, 8, "deleted in database"));
@@ -271,45 +194,60 @@ class SearchIndexIntegrationTest {
     }
 
     @Test
-    void repairRefreshesAnExistingDocumentAtTheSameRevision() throws Exception {
-        blogs.write(change(1, 1, 0, 10, "article", ""));
-        BlogIndexChange changed = change(1, 1, 0, 10, "article", cover(1));
-        blogs.write(new BlogIndexChange(
-            BlogIndexChange.Operation.REPAIR, changed.revision(), changed.blog()));
+    void publicSearchMarksEmptyAndExactFinalPagesAsLast() throws Exception {
+        for (long id = 1; id <= 5; id++) {
+            blogs.write(change(id, 1, 0, id, "searchable article " + id));
+        }
         indexClient.refresh(request -> request.index(alias));
 
-        assertThat(document(1).getLink()).isEqualTo(cover(1));
+        var fullPage = blogs.searchPublic(new PublicBlogSearchQuery(1, "searchable", false));
+        var emptyPage = blogs.searchPublic(new PublicBlogSearchQuery(1, "missing", false));
+
+        assertThat(fullPage.content()).hasSize(5);
+        assertThat(fullPage.last()).isTrue();
+        assertThat(emptyPage.content()).isEmpty();
+        assertThat(emptyPage.empty()).isTrue();
+        assertThat(emptyPage.last()).isTrue();
     }
 
     @Test
-    void bulkRepairCreatesMissingDocumentsAndRefreshesExistingOnes() throws Exception {
-        blogs.write(change(1, 1, 0, 10, "article", ""));
-        BlogIndexChange existing = change(1, 1, 0, 10, "article", cover(1));
-        BlogIndexChange missing = change(2, 1, 0, 20, "new article", cover(2));
-        blogs.writeAll(
-            List.of(
-                new BlogIndexChange(
-                    BlogIndexChange.Operation.REPAIR, existing.revision(), existing.blog()),
-                new BlogIndexChange(
-                    BlogIndexChange.Operation.REPAIR, missing.revision(), missing.blog())));
-        indexClient.refresh(request -> request.index(alias));
+    void adminRevisionGuardPreventsStaleOverwriteAndRecoveryAdvancesTheTombstone() throws Exception {
+        String suffix = UUID.randomUUID().toString();
+        String adminIndex = "test-search-admin-" + suffix;
+        String revisionIndex = "test-search-revision-" + suffix;
+        createIndex(adminIndex, AdminBlogDocument.class);
+        createIndex(revisionIndex, AdminRevisionDocument.class);
+        var adapter =
+            new ElasticsearchBlogAdapter(
+                template, 5, alias, adminIndex, revisionIndex);
+        adapter.writeAdmin(adminChange("UPDATE", 5, "latest", cover(7), 0));
+        adapter.writeAdmin(adminChange(8L, 12L, "UPDATE", 1, "second", "", 0));
+        indexClient.refresh(request -> request.index(adminIndex));
+        AdminBlogDocument current =
+            template.get("7", AdminBlogDocument.class, IndexCoordinates.of(adminIndex));
 
-        assertThat(document(1).getLink()).isEqualTo(cover(1));
-        assertThat(document(2).getLink()).isEqualTo(cover(2));
-    }
+        adapter.applyAdminDocument(
+            adminChange("UPDATE", 4, "stale", "", 0), current);
+        indexClient.refresh(request -> request.index(adminIndex));
+        assertThat(
+                template.get("7", AdminBlogDocument.class, IndexCoordinates.of(adminIndex))
+                    .getPublishedTitle())
+            .isEqualTo("latest");
 
-    @Test
-    void repairDoesNotResurrectADeletedDocumentAtTheSameRevision() {
-        blogs.write(change(1, 1, 0, 10, "article", cover(1)));
-        BlogIndexEntry deleted =
-            new BlogIndexEntry(
-                1L, 42L, 0, 10L, null, null, null, null, null);
-        blogs.write(new BlogIndexChange(BlogIndexChange.Operation.REMOVE, 2, deleted));
-        BlogIndexChange changed = change(1, 2, 0, 10, "article", cover(1));
-        blogs.write(new BlogIndexChange(
-            BlogIndexChange.Operation.REPAIR, changed.revision(), changed.blog()));
-
-        assertThat(document(1).getDeleted()).isTrue();
+        adapter.writeAdmin(adminChange("RECOVER", 1, "recovered", cover(7), 1));
+        indexClient.refresh(request -> request.index(adminIndex));
+        AdminBlogDocument recovered =
+            template.get("7", AdminBlogDocument.class, IndexCoordinates.of(adminIndex));
+        assertThat(recovered.getPublishedTitle()).isEqualTo("recovered");
+        assertThat(recovered.getAccessMode()).isEqualTo(1);
+        assertThat(recovered.getAdminRevision()).isEqualTo(6L);
+        assertThat(
+                adapter.searchAdmin(
+                        new PrivateBlogSearchQuery(
+                            1, 10, null, null, null, null, 42L, true, false))
+                    .content())
+            .extracting(blog -> blog.id())
+            .containsExactly(7L, 8L);
     }
 
     @Test
@@ -336,6 +274,71 @@ class SearchIndexIntegrationTest {
         return template.get(Long.toString(id), BlogDocument.class, IndexCoordinates.of(alias));
     }
 
+    private void createIndex(String index, Class<?> documentType) {
+        var operations = template.indexOps(IndexCoordinates.of(index));
+        if (!operations.create(Map.of(), operations.createMapping(documentType))) {
+            throw new IllegalStateException("test index creation failed: " + index);
+        }
+    }
+
+    private static BlogAdminIndexChange adminChange(
+        String operation, long revision, String title, String cover, int accessMode) {
+        return adminChange(7L, 11L, operation, revision, title, cover, accessMode);
+    }
+
+    private static BlogAdminIndexChange adminChange(
+        long blogId,
+        long revisionId,
+        String operation,
+        long revision,
+        String title,
+        String cover,
+        int accessMode) {
+        LocalDateTime date = LocalDateTime.of(2026, 10, 28, 10, 0);
+        BlogRevisionSnapshot revisionSnapshot =
+            new BlogRevisionSnapshot(
+                revisionId,
+                blogId,
+                1L,
+                BlogRevisionOrigin.PUBLICATION,
+                null,
+                title,
+                "description",
+                "content",
+                cover,
+                BlogRenderMode.NORMAL,
+                date,
+                42L,
+                date,
+                List.of());
+        return new BlogAdminIndexChange(
+            operation,
+            new BlogAdminSnapshot(
+                blogId,
+                42L,
+                revisionId,
+                date,
+                null,
+                accessMode,
+                1L,
+                revision,
+                10L,
+                date),
+            new BlogDraftSnapshot(
+                blogId,
+                1L,
+                revisionId,
+                "draft",
+                "description",
+                "content",
+                cover,
+                BlogRenderMode.NORMAL,
+                42L,
+                date.plusHours(1),
+                List.of()),
+            revisionSnapshot);
+    }
+
     private static BlogIndexChange change(long id, long revision, int status, long views, String title) {
         return change(id, revision, status, views, title, null);
     }
@@ -350,24 +353,6 @@ class SearchIndexIntegrationTest {
 
     private static String cover(long id) {
         return "https://cdn.example/cover-" + id + ".png";
-    }
-
-    private static BlogRevisionSnapshot revision(long id, long blogId, LocalDateTime date) {
-        return new BlogRevisionSnapshot(
-            id,
-            blogId,
-            1L,
-            BlogRevisionOrigin.PUBLICATION,
-            null,
-            "title",
-            "description",
-            "content",
-            cover(id),
-            BlogRenderMode.NORMAL,
-            date,
-            42L,
-            date,
-            List.of());
     }
 
     private static BlogIndexSource source(List<BlogIndexChange> documents) {

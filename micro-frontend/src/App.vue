@@ -13,6 +13,7 @@ const { isDark } = storeToRefs(themeStore())
 const loginState = loginStateStore()
 const { sessionExpired } = storeToRefs(loginState)
 const showGlobalFooter = computed(() => route.meta.layout !== 'system')
+const viewKey = computed(() => (route.name === 'blog' ? route.params.id : undefined))
 
 const continueToLogin = async () => {
   const redirect = loginState.sessionExpiredRedirect
@@ -32,7 +33,7 @@ useHead(() => {
 
 <template>
   <el-config-provider :locale="elementLocale">
-    <router-view />
+    <router-view :key="viewKey" />
     <MyFooterItem v-if="showGlobalFooter" />
     <LocaleSwitcher />
     <el-dialog

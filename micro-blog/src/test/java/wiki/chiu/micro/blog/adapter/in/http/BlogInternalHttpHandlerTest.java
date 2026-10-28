@@ -15,7 +15,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import wiki.chiu.micro.blog.application.port.in.BlogQueryService;
-import wiki.chiu.micro.blog.application.port.in.BlogSensitiveService;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
 class BlogInternalHttpHandlerTest {
@@ -26,8 +25,7 @@ class BlogInternalHttpHandlerTest {
     @BeforeEach
     void setUp() {
         BlogInternalHttpHandler handler =
-            new BlogInternalHttpHandler(
-                blogs, mock(BlogSensitiveService.class), new ValidatedRequest());
+            new BlogInternalHttpHandler(blogs, new ValidatedRequest());
         mockMvc =
             MockMvcBuilders.routerFunctions(BlogRoutes.routes(mock(BlogHttpHandler.class), handler))
                 .build();

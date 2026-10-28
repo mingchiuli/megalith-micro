@@ -7,7 +7,6 @@ public record BlogIndexChange(Operation operation, long revision, BlogIndexEntry
     public enum Operation {
         CREATE,
         UPDATE,
-        REMOVE,
-        REPAIR
+        REMOVE
     }
 }

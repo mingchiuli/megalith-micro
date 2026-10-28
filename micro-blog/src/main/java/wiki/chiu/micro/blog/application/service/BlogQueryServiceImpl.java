@@ -1,15 +1,10 @@
 package wiki.chiu.micro.blog.application.service;
 
-import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
-
 import java.util.List;
 
 import wiki.chiu.micro.blog.application.port.in.BlogQueryService;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
-import wiki.chiu.micro.blog.domain.Blog;
-import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.model.BlogSnapshot;
 
 public class BlogQueryServiceImpl implements BlogQueryService {
 
@@ -24,21 +19,6 @@ public class BlogQueryServiceImpl implements BlogQueryService {
     @Override
     public List<Long> findIdsAfter(Long afterId, Integer limit) {
         return blogs.findIdsAfter(afterId, limit);
-    }
-
-    @Override
-    public BlogSnapshot findById(Long blogId) {
-        return blogs.findById(blogId).orElseThrow(() -> new MissException(NO_FOUND.getMsg())).snapshot();
-    }
-
-    @Override
-    public List<BlogSnapshot> findAllById(List<Long> ids) {
-        return blogs.findAllById(ids).stream().map(Blog::snapshot).toList();
-    }
-
-    @Override
-    public long count() {
-        return blogs.count();
     }
 
     @Override

@@ -5,15 +5,9 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.blog.api.BlogHttpService;
-import wiki.chiu.micro.blog.api.vo.BlogEntityRpcVo;
-import wiki.chiu.micro.blog.api.vo.BlogSensitiveContentRpcVo;
 import wiki.chiu.micro.common.rpc.RemoteResult;
-import wiki.chiu.micro.exhibit.application.model.BlogSummary;
 import wiki.chiu.micro.exhibit.application.port.out.BlogCatalog;
 
-/**
- * BlogHttpServiceWrapper
- */
 @Component
 public class BlogHttpServiceWrapper implements BlogCatalog {
 
@@ -28,25 +22,7 @@ public class BlogHttpServiceWrapper implements BlogCatalog {
         return RemoteResult.requireSuccess(() -> blogHttpService.findIdsAfter(afterId, limit));
     }
 
-    @Override
-    public List<BlogSummary> findAllById(List<Long> ids) {
-        return BlogHttpMapper.toSummaries(
-            RemoteResult.requireSuccess(() -> blogHttpService.findAllById(ids)));
-    }
-
-    public BlogEntityRpcVo findById(Long blogId) {
-        return RemoteResult.requireSuccess(() -> blogHttpService.findById(blogId));
-    }
-
-    public Long count() {
-        return RemoteResult.requireSuccess(blogHttpService::count);
-    }
-
     public void setReadCount(Long id) {
         RemoteResult.requireSuccess(() -> blogHttpService.setReadCount(id));
-    }
-
-    public BlogSensitiveContentRpcVo findSensitiveByBlogId(Long blogId) {
-        return RemoteResult.requireSuccess(() -> blogHttpService.findSensitiveByBlogId(blogId));
     }
 }

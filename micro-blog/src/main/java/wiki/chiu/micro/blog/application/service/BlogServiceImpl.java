@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import wiki.chiu.micro.blog.application.model.BlogContentCommand;
+import wiki.chiu.micro.blog.application.model.BlogDeletionTarget;
 import wiki.chiu.micro.blog.application.model.BlogDraft;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.model.BlogEdit;
@@ -33,7 +34,6 @@ import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
-import wiki.chiu.micro.blog.domain.SensitiveContent;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
@@ -121,12 +121,7 @@ public class BlogServiceImpl implements BlogService {
                 ? draft.sensitiveContent()
                 : published == null
                     ? List.of()
-                    : blogs.findSensitiveByBlogId(id).stream()
-                        .map(
-                            span ->
-                                new BlogSensitiveSpan(
-                                    span.startIndex(), span.endIndex(), span.type()))
-                        .toList();
+                    : blogs.findSensitiveByBlogId(id);
         return edit(
             selected,
             draft,
@@ -437,30 +432,24 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public void deleteBatch(List<Long> ids, Long userId, List<DataPermissionEnum> dataPermissions) {
-        List<Blog> deleted =
-            blogs.findAllById(ids).stream()
-                .filter(blog -> accessPolicy.canDelete(blog, userId, dataPermissions))
+        List<BlogDeletionTarget> deleted =
+            blogs.findDeletionTargetsByIds(ids).stream()
+                .filter(target -> accessPolicy.canDelete(target.blog(), userId, dataPermissions))
                 .toList();
         deletePrepared(deleted, userId);
     }
 
     @Override
     public void deleteByUserIds(List<Long> userIds) {
-        deletePrepared(blogs.findByUserIds(userIds), null);
+        deletePrepared(blogs.findDeletionTargetsByUserIds(userIds), null);
     }
 
-    private void deletePrepared(List<Blog> deleted, Long operatorUserId) {
+    private void deletePrepared(List<BlogDeletionTarget> deleted, Long operatorUserId) {
         if (deleted.isEmpty()) {
             return;
         }
-        List<Blog> nextRevision =
-            deleted.stream().map(blog -> blog.withEventRevision(blog.eventRevision() + 1)).toList();
-        List<Long> deletedIds = nextRevision.stream().map(Blog::id).toList();
-        List<Long> sensitiveIds =
-            blogs.findSensitiveByBlogIds(deletedIds).stream().map(SensitiveContent::id).toList();
         blogWrapper.deleteByIds(
-            nextRevision,
-            sensitiveIds,
+            deleted,
             new BlogEventContext(
                 BlogOperateEnum.REMOVE, operatorUserId));
     }

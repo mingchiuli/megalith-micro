@@ -4,7 +4,6 @@ import java.util.List;
 
 import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
-import wiki.chiu.micro.search.application.model.BlogSearchResult;
 import wiki.chiu.micro.search.application.model.AdminBlogRead;
 import wiki.chiu.micro.search.application.model.AdminRevisionRead;
 import wiki.chiu.micro.search.application.model.Page;
@@ -26,10 +25,6 @@ public interface SearchBlogsUseCase {
     Page<AdminBlogRead> searchAdmin(PrivateBlogSearchQuery query);
 
     Page<AdminRevisionRead> searchRevisions(RevisionSearchQuery query);
-
-    BlogSearchResult searchPrivate(PrivateBlogSearchQuery query);
-
-    long countPrivate(PrivateBlogSearchQuery query);
 
     void updateReadCounts(List<BlogReadCount> counts);
 }

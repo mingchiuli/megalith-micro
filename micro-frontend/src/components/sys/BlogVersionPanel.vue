@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from '@/config/apiConfig'
 import {
   ButtonAuth,
   type BlogVersion,
+  type BlogVersionSummary,
   type BlogVersionComparison,
   type PageAdapter
 } from '@/type/entity'
@@ -23,13 +24,14 @@ const keyword = ref('')
 const page = ref(1)
 const pageSize = 10
 const total = ref(0)
-const versions = ref<BlogVersion[]>([])
+const versions = ref<BlogVersionSummary[]>([])
 const comparison = ref<BlogVersionComparison>()
 const compareVisible = ref(false)
 const compareLoading = ref(false)
 const viewVisible = ref(false)
 const viewLoading = ref(false)
 const selectedVersion = ref<BlogVersion>()
+const restoringVersionId = ref<number>()
 const mode = ref<'split' | 'unified'>('split')
 
 type DiffLine = {
@@ -48,7 +50,7 @@ const loadVersions = async () => {
     url.searchParams.set('currentPage', String(page.value))
     url.searchParams.set('size', String(pageSize))
     if (keyword.value.trim()) url.searchParams.set('keywords', keyword.value.trim())
-    const data = await GET<PageAdapter<BlogVersion>>(url.pathname + url.search)
+    const data = await GET<PageAdapter<BlogVersionSummary>>(url.pathname + url.search)
     versions.value = data.content
     total.value = data.totalElements
   } catch {
@@ -59,7 +61,7 @@ const loadVersions = async () => {
   }
 }
 
-const compareWithPrevious = async (version: BlogVersion) => {
+const compareWithPrevious = async (version: BlogVersionSummary) => {
   compareLoading.value = true
   compareVisible.value = true
   try {
@@ -73,7 +75,7 @@ const compareWithPrevious = async (version: BlogVersion) => {
   }
 }
 
-const viewVersion = async (version: BlogVersion) => {
+const viewVersion = async (version: BlogVersionSummary) => {
   viewLoading.value = true
   viewVisible.value = true
   try {
@@ -87,17 +89,33 @@ const viewVersion = async (version: BlogVersion) => {
   }
 }
 
-const restoreVersion = async (version: BlogVersion) => {
-  await POST<null>(API_ENDPOINTS.BLOG_ADMIN.PUBLISH(props.blogId), {
-    revisionId: version.id,
-    accessMode: 0
-  })
-  ElNotification({
-    title: t('common.operationSuccess'),
-    message: t('admin.restoreVersion'),
-    type: 'success'
-  })
-  await loadVersions()
+const restoreVersion = async (version: BlogVersionSummary) => {
+  const confirmed = await ElMessageBox.confirm(
+    t('admin.restoreVersionConfirm', { version: version.versionNo }),
+    t('common.confirm'),
+    { type: 'warning' }
+  ).catch(() => false)
+  if (!confirmed) return
+  restoringVersionId.value = version.id
+  try {
+    await POST<null>(API_ENDPOINTS.BLOG_ADMIN.PUBLISH(props.blogId), {
+      revisionId: version.id
+    })
+    ElNotification({
+      title: t('common.operationSuccess'),
+      message: t('admin.restoreVersion'),
+      type: 'success'
+    })
+    await loadVersions()
+  } catch {
+    ElNotification({
+      title: t('common.operationFailed'),
+      message: t('admin.restoreVersionFailed'),
+      type: 'error'
+    })
+  } finally {
+    restoringVersionId.value = undefined
+  }
 }
 
 const splitLines = computed<DiffLine[]>(() => {
@@ -158,6 +176,11 @@ const open = () => {
   void loadVersions()
 }
 
+const searchVersions = () => {
+  page.value = 1
+  void loadVersions()
+}
+
 defineExpose({ open, refresh: loadVersions })
 </script>
 
@@ -168,9 +191,9 @@ defineExpose({ open, refresh: loadVersions })
         v-model="keyword"
         clearable
         :placeholder="t('common.input')"
-        @keyup.enter="loadVersions"
+        @keyup.enter="searchVersions"
       />
-      <el-button @click="loadVersions">{{ t('common.search') }}</el-button>
+      <el-button @click="searchVersions">{{ t('common.search') }}</el-button>
     </div>
     <el-table v-loading="loading" :data="versions" border>
       <el-table-column prop="versionNo" :label="t('admin.versionNo')" width="90" />
@@ -184,7 +207,7 @@ defineExpose({ open, refresh: loadVersions })
           <el-tag v-else-if="!row.firstPublishedAt" type="info">
             {{ t('common.draft') }}
           </el-tag>
-          <el-tag v-else type="warning">{{ t('admin.offline') }}</el-tag>
+          <el-tag v-else type="warning">{{ t('admin.historicalPublished') }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="createdAt" :label="t('common.updatedAt')" width="180" />
@@ -198,9 +221,14 @@ defineExpose({ open, refresh: loadVersions })
             {{ t('common.view') }}
           </el-button>
           <el-button
-            v-if="row.firstPublishedAt && checkButtonAuth(ButtonAuth.SYS_EDIT_RESTORE_VERSION)"
+            v-if="
+              row.firstPublishedAt &&
+              !row.currentPublished &&
+              checkButtonAuth(ButtonAuth.SYS_EDIT_RESTORE_VERSION)
+            "
             size="small"
             type="primary"
+            :loading="restoringVersionId === row.id"
             @click="restoreVersion(row)"
           >
             {{ t('admin.restoreVersion') }}

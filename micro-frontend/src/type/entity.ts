@@ -349,22 +349,25 @@ export interface EditForm {
   sensitiveContentList: SensitiveItem[]
 }
 
-export interface BlogVersion {
+export interface BlogVersionSummary {
   id: number
   blogId: number
   versionNo: number
   origin: 'DRAFT' | 'PUBLICATION'
   baseRevisionId?: number
   title: string
+  firstPublishedAt?: string
+  createdBy: number
+  createdAt: string
+  currentPublished?: boolean
+}
+
+export interface BlogVersion extends BlogVersionSummary {
   description: string
   content: string
   link: string
   renderMode: 'NORMAL' | 'SENSITIVE_FILTER'
-  firstPublishedAt?: string
-  createdBy: number
-  createdAt: string
   sensitiveContent: SensitiveItem[]
-  currentPublished?: boolean
 }
 
 export interface BlogVersionComparison {
