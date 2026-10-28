@@ -14,11 +14,18 @@ import { checkButtonAuth } from '@/utils/permissions'
 
 const props = defineProps<{
   blogId: number
+  visible: boolean
+}>()
+const emit = defineEmits<{
+  'update:visible': [visible: boolean]
 }>()
 
 const { t } = useI18n()
 const { GET, POST } = useHttp()
-const visible = defineModel<boolean>('visible', { default: false })
+const visible = computed({
+  get: () => props.visible,
+  set: (value: boolean) => emit('update:visible', value)
+})
 const loading = ref(false)
 const keyword = ref('')
 const page = ref(1)
@@ -33,6 +40,7 @@ const viewLoading = ref(false)
 const selectedVersion = ref<BlogVersion>()
 const restoringVersionId = ref<number>()
 const mode = ref<'split' | 'unified'>('split')
+let versionRequest = 0
 
 type DiffLine = {
   left: string
@@ -44,6 +52,7 @@ type DiffLine = {
 
 const loadVersions = async () => {
   if (!props.blogId) return
+  const request = ++versionRequest
   loading.value = true
   try {
     const url = new URL(API_ENDPOINTS.BLOG_ADMIN.GET_VERSIONS(props.blogId), 'http://localhost')
@@ -51,13 +60,15 @@ const loadVersions = async () => {
     url.searchParams.set('size', String(pageSize))
     if (keyword.value.trim()) url.searchParams.set('keywords', keyword.value.trim())
     const data = await GET<PageAdapter<BlogVersionSummary>>(url.pathname + url.search)
+    if (request !== versionRequest) return
     versions.value = data.content
     total.value = data.totalElements
   } catch {
+    if (request !== versionRequest) return
     versions.value = []
     total.value = 0
   } finally {
-    loading.value = false
+    if (request === versionRequest) loading.value = false
   }
 }
 
@@ -171,17 +182,37 @@ const changedFields = computed(() => {
   ].filter(([, left, right]) => left !== right)
 })
 
-const open = () => {
-  visible.value = true
-  void loadVersions()
-}
-
 const searchVersions = () => {
   page.value = 1
   void loadVersions()
 }
 
-defineExpose({ open, refresh: loadVersions })
+const resetPanel = () => {
+  keyword.value = ''
+  page.value = 1
+  total.value = 0
+  versions.value = []
+  comparison.value = undefined
+  compareVisible.value = false
+  compareLoading.value = false
+  viewVisible.value = false
+  viewLoading.value = false
+  selectedVersion.value = undefined
+  restoringVersionId.value = undefined
+  mode.value = 'split'
+}
+
+watch(
+  [visible, () => props.blogId],
+  ([isVisible, blogId], [wasVisible, previousBlogId]) => {
+    if (!isVisible) return
+    if (!wasVisible || blogId !== previousBlogId) {
+      resetPanel()
+      void loadVersions()
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>

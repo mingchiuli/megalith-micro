@@ -8,6 +8,7 @@ import { displayState } from '@/utils/position'
 import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
 import { useI18n } from 'vue-i18n'
 import { useLatestRequest, useUniversalData } from '@/composables'
+import BlogVersionPanel from '@/components/sys/BlogVersionPanel.vue'
 
 const { t } = useI18n()
 const { GET, POST, DOWNLOAD } = useHttp()
@@ -24,6 +25,8 @@ const uploadPercentage = ref(0)
 const showPercentage = ref(false)
 const dateTimeScope = ref(['', ''])
 const status = ref<string | number>('')
+const versionPanelVisible = ref(false)
+const versionBlogId = ref<number>()
 const statusOptions = computed(() => [
   {
     value: 0,
@@ -94,6 +97,25 @@ const handlePassword = async (row: BlogSys) => {
     message: token,
     type: 'success'
   })
+}
+
+const handleVersions = (row: BlogSys) => {
+  versionBlogId.value = row.id
+  versionPanelVisible.value = true
+}
+
+const handleStatus = async (row: BlogSys) => {
+  const offline = row.status !== Status.BLOCK
+  await POST<null>(
+    offline ? API_ENDPOINTS.BLOG_ADMIN.OFFLINE(row.id) : API_ENDPOINTS.BLOG_ADMIN.ONLINE(row.id),
+    {}
+  )
+  ElNotification({
+    title: t('common.operationSuccess'),
+    message: offline ? t('admin.offline') : t('admin.online'),
+    type: 'success'
+  })
+  await searchBlogs()
 }
 
 const download = async () => {
@@ -309,7 +331,7 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
     </el-table-column>
 
     <!-- @vue-generic {BlogSys} -->
-    <el-table-column :fixed="fix" :label="t('common.operations')" min-width="300" align="center">
+    <el-table-column :fixed="fix" :label="t('common.operations')" min-width="500" align="center">
       <template #default="scope">
         <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_CHECK)">
           <el-button
@@ -327,6 +349,24 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
             @click="handleEdit(scope.row)"
             >{{ getButtonTitle(ButtonAuth.SYS_BLOG_EDIT) }}</el-button
           >
+        </template>
+
+        <template v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_VERSIONS)">
+          <el-button size="small" type="info" plain @click="handleVersions(scope.row)">
+            {{ t('admin.versionHistory') }}
+          </el-button>
+        </template>
+
+        <template
+          v-if="scope.row.status !== Status.DRAFT && checkButtonAuth(ButtonAuth.SYS_EDIT_STATUS)"
+        >
+          <el-button
+            size="small"
+            :type="scope.row.status === Status.BLOCK ? 'success' : 'warning'"
+            @click="handleStatus(scope.row)"
+          >
+            {{ scope.row.status === Status.BLOCK ? t('admin.online') : t('admin.offline') }}
+          </el-button>
         </template>
 
         <template
@@ -361,6 +401,12 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
     :current-page="pageNumber"
     :page-size="pageSize"
     :total="totalElements"
+  />
+
+  <BlogVersionPanel
+    v-if="versionBlogId"
+    v-model:visible="versionPanelVisible"
+    :blog-id="versionBlogId"
   />
 </template>
 

@@ -14,7 +14,6 @@ import {
   SensitiveType
 } from '@/type/entity'
 import EditorLoadingItem from '@/components/sys/EditorLoadingItem.vue'
-import BlogVersionPanel from '@/components/sys/BlogVersionPanel.vue'
 import { checkButtonAuth, getButtonTitle, getButtonType } from '@/utils/permissions'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import { AI_MODELS } from '@/config/aiConfig'
@@ -86,8 +85,6 @@ const permissions = ref<BlogPermissions>({
   manageMetadata: false,
   manageAssets: false
 })
-const versionPanelVisible = ref(false)
-const versionPanel = useTemplateRef<InstanceType<typeof BlogVersionPanel>>('versionPanel')
 
 type SensitiveTagsItem = {
   element: SensitiveExhibit
@@ -214,7 +211,6 @@ const saveVersion = async (ref: FormInstance) => {
         type: 'success',
         duration: 1000
       })
-      await versionPanel.value?.refresh()
     } catch {
       submitLoading.value = false
     }
@@ -243,21 +239,6 @@ const publish = async (ref: FormInstance) => {
     } catch {
       submitLoading.value = false
     }
-  })
-}
-
-const toggleOffline = async () => {
-  if (!form.id) return
-  const offline = form.status !== Status.BLOCK
-  await POST<null>(
-    offline ? API_ENDPOINTS.BLOG_ADMIN.OFFLINE(form.id) : API_ENDPOINTS.BLOG_ADMIN.ONLINE(form.id),
-    {}
-  )
-  form.status = offline ? Status.BLOCK : Status.NORMAL
-  ElNotification({
-    title: t('common.operationSuccess'),
-    message: offline ? t('admin.offline') : t('admin.online'),
-    type: 'success'
   })
 }
 
@@ -487,18 +468,6 @@ onUnmounted(() => {
         </template>
       </BlogMetadataFields>
 
-      <div v-if="form.id" class="version-actions">
-        <el-tag v-if="form.hasDraft" type="info">{{ t('admin.hasDraft') }}</el-tag>
-        <el-button
-          v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_VERSIONS)"
-          @click="versionPanel?.open()"
-          >{{ t('admin.versionHistory') }}</el-button
-        >
-        <el-button v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_STATUS)" @click="toggleOffline">
-          {{ form.status === Status.BLOCK ? t('admin.online') : t('admin.offline') }}
-        </el-button>
-      </div>
-
       <BlogCoverField
         v-model:link="form.link"
         v-model:generated-dialog-visible="generatedImageDialogVisible"
@@ -542,12 +511,6 @@ onUnmounted(() => {
           >{{ t('admin.publish') }}</el-button
         >
       </div>
-      <BlogVersionPanel
-        ref="versionPanel"
-        v-if="form.id"
-        v-model:visible="versionPanelVisible"
-        :blog-id="form.id"
-      />
     </el-form>
   </div>
 </template>
@@ -561,14 +524,6 @@ onUnmounted(() => {
 .submit-button {
   margin: 10px auto;
   text-align: center;
-}
-
-.version-actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  margin-top: 14px;
 }
 
 .content {
