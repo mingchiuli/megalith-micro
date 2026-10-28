@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogDraftEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogEntity;
-import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogRevisionEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.mapping.BlogPersistenceMapper;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
