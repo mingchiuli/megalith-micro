@@ -11,6 +11,7 @@ public record BlogSearchHit(
     String title,
     String description,
     String content,
+    String link,
     LocalDateTime created,
     Float score,
     Map<String, List<String>> highlight) {

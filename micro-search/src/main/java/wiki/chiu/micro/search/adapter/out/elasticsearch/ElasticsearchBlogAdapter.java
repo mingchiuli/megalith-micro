@@ -312,6 +312,7 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
                             document.getTitle(),
                             document.getDescription(),
                             document.getContent(),
+                            document.getLink(),
                             document.getCreated().toLocalDateTime(),
                             hit.getScore(),
                             hit.getHighlightFields());

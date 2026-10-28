@@ -32,6 +32,7 @@ import org.testcontainers.utility.DockerImageName;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.IndexSourceStatus;
+import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
 import wiki.chiu.micro.search.application.port.out.BlogIndexSource;
 import wiki.chiu.micro.search.application.port.out.SearchRebuildControl;
 import wiki.chiu.micro.search.application.service.IndexRebuildService;
@@ -156,7 +157,7 @@ class SearchIndexIntegrationTest {
     @Test
     void recommendationPagingUsesStableScoresAndPublicDocumentsOnly() throws Exception {
         for (long id = 1; id <= 7; id++) {
-            blogs.write(change(id, 1, 0, id * 10, "article " + id));
+            blogs.write(change(id, 1, 0, id * 10, "article " + id, cover(id)));
         }
         blogs.write(change(8, 1, 2, 1000, "filtered article"));
         indexClient.refresh(request -> request.index(alias));
@@ -166,11 +167,23 @@ class SearchIndexIntegrationTest {
         var third = blogs.recommendationPage(3, 3);
 
         assertThat(first.content()).extracting(blog -> blog.id()).containsExactly(7L, 6L, 5L);
+        assertThat(first.content()).extracting(blog -> blog.link())
+            .containsExactly(cover(7), cover(6), cover(5));
         assertThat(second.content()).extracting(blog -> blog.id()).containsExactly(4L, 3L, 2L);
         assertThat(third.content()).extracting(blog -> blog.id()).containsExactly(1L);
         assertThat(first.totalElements()).isEqualTo(7);
         assertThat(first.last()).isFalse();
         assertThat(third.last()).isTrue();
+    }
+
+    @Test
+    void publicSearchCardsCarryCoverLinks() throws Exception {
+        blogs.write(change(1, 1, 0, 10, "searchable article", cover(1)));
+        indexClient.refresh(request -> request.index(alias));
+
+        var page = blogs.searchPublic(new PublicBlogSearchQuery(1, "searchable", false));
+
+        assertThat(page.content()).extracting(hit -> hit.link()).containsExactly(cover(1));
     }
 
     @Test
@@ -198,9 +211,19 @@ class SearchIndexIntegrationTest {
     }
 
     private static BlogIndexChange change(long id, long revision, int status, long views, String title) {
+        return change(id, revision, status, views, title, null);
+    }
+
+    private static BlogIndexChange change(
+        long id, long revision, int status, long views, String title, String link) {
         var date = LocalDateTime.of(2026, 9, 1, 12, 0);
         return new BlogIndexChange(BlogIndexChange.Operation.UPDATE, revision,
-            new BlogIndexEntry(id, 42L, status, views, title, "description", "content", date, date));
+            new BlogIndexEntry(id, 42L, status, views, title, "description", "content", link,
+                date, date, null, null, null, null, null, null, List.of()));
+    }
+
+    private static String cover(long id) {
+        return "https://cdn.example/cover-" + id + ".png";
     }
 
     private static BlogIndexSource source(List<BlogIndexChange> documents) {

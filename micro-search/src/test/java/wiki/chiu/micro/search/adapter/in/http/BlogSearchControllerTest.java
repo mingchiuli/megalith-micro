@@ -59,7 +59,7 @@ class BlogSearchControllerTest {
                 .title("title")
                 .description("d")
                 .content("c")
-                .link("")
+                .link("https://cdn.example/cover-1.png")
                 .created(LocalDateTime.now())
                 .score(1.0f)
                 .highlight(null)
@@ -74,6 +74,7 @@ class BlogSearchControllerTest {
                         vo.title(),
                         vo.description(),
                         vo.content(),
+                        vo.link(),
                         vo.created(),
                         vo.score(),
                         vo.highlight())),
@@ -94,7 +95,8 @@ class BlogSearchControllerTest {
                     .param("keywords", "abc"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200))
-            .andExpect(jsonPath("$.data.content[0].id").value(1));
+            .andExpect(jsonPath("$.data.content[0].id").value(1))
+            .andExpect(jsonPath("$.data.content[0].link").value("https://cdn.example/cover-1.png"));
     }
 
     @Test

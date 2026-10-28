@@ -57,6 +57,7 @@ public class BlogSearchHttpHandler {
             .title(hit.title())
             .description(hit.description())
             .content(hit.content())
+            .link(hit.link())
             .created(hit.created())
             .score(hit.score())
             .highlight(hit.highlight())
