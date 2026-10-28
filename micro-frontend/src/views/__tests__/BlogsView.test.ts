@@ -122,7 +122,7 @@ const recommendation = (id: number): BlogRecommendation => ({
   id,
   title: `Recommendation ${id}`,
   description: `Description ${id}`,
-  created: '2026-10-25',
+  created: '2026-10-25 08:30:15',
   link: '',
   readCount: id
 })
@@ -202,7 +202,7 @@ describe('BlogsView feed', () => {
     await flushPromises()
 
     const items = wrapper.findAllComponents(TimelineItemStub)
-    expect(items.map((item) => item.props('timestamp'))).toEqual(['2026-10-25'])
+    expect(items.map((item) => item.props('timestamp'))).toEqual(['2026-10-25 08:30:15'])
     expect(wrapper.find('.cover-image').attributes('src')).toBe('https://cdn.example/1.png')
     expect(wrapper.find('.blog-item').text()).toContain('Description 1')
     wrapper.unmount()

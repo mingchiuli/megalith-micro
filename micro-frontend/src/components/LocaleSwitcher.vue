@@ -53,7 +53,7 @@ const compactLocaleLabel = computed(() => (locale.value === 'zh-CN' ? '中' : 'E
 <style scoped>
 .locale-switcher {
   position: fixed;
-  right: 16px;
+  right: 32px;
   bottom: 16px;
   z-index: 2100;
   width: 96px;
@@ -117,7 +117,7 @@ const compactLocaleLabel = computed(() => (locale.value === 'zh-CN' ? '中' : 'E
 
 @media (max-width: 600px) {
   .locale-switcher {
-    right: 12px;
+    right: 20px;
     bottom: 72px;
     width: 58px;
   }

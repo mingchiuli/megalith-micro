@@ -115,9 +115,10 @@ class BlogControllerTest {
 
     @Test
     void getRecommendationPageReturnsPagedCards() throws Exception {
+        LocalDateTime created = LocalDateTime.of(2026, 10, 25, 8, 30, 15);
         Page<BlogRecommendation> page =
             new Page<>(
-                List.of(new BlogRecommendation(7L, "title", "description", LocalDateTime.now(),
+                List.of(new BlogRecommendation(7L, "title", "description", created,
                     "https://cdn.example/7.png", 10L)),
                 6,
                 2,
@@ -132,6 +133,7 @@ class BlogControllerTest {
             .perform(get("/public/blog/recommendations/page/2"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.content[0].id").value(7))
+            .andExpect(jsonPath("$.data.content[0].created").value("2026-10-25 08:30:15"))
             .andExpect(jsonPath("$.data.content[0].link").value("https://cdn.example/7.png"))
             .andExpect(jsonPath("$.data.pageNumber").value(2))
             .andExpect(jsonPath("$.data.last").value(true));
