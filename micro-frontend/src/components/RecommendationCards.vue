@@ -1,13 +1,9 @@
 <script lang="ts" setup>
 import type { BlogRecommendation } from '@/type/entity'
 
-withDefaults(
-  defineProps<{
-    items: BlogRecommendation[]
-    layout?: 'single' | 'auto'
-  }>(),
-  { layout: 'auto' }
-)
+defineProps<{
+  items: BlogRecommendation[]
+}>()
 
 const emit = defineEmits<{
   select: [id: number]
@@ -15,7 +11,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="recommendation-grid" :class="`recommendation-grid--${layout}`">
+  <div class="recommendation-grid">
     <el-card v-for="item in items" :key="item.id" shadow="hover" @click="emit('select', item.id)">
       <div class="recommendation-name">{{ item.title }}</div>
       <div v-if="item.description" class="recommendation-desc">
@@ -28,15 +24,8 @@ const emit = defineEmits<{
 <style scoped>
 .recommendation-grid {
   display: grid;
-  gap: 10px;
-}
-
-.recommendation-grid--auto {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-
-.recommendation-grid--single {
-  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
 }
 
 .recommendation-grid .el-card {

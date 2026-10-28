@@ -3,7 +3,6 @@ import type { BlogDesc, BlogRecommendation, PageAdapter, SearchPage } from '@/ty
 import { useHttp } from '@/http/http'
 import { loginStateStore, tabStore, blogsStore, menuStore, themeStore } from '@/stores'
 import Search from '@/components/SearchItem.vue'
-import RecommendationCards from '@/components/RecommendationCards.vue'
 import InfiniteScrollFooter from '@/components/InfiniteScrollFooter.vue'
 import { Status } from '@/type/entity'
 import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
@@ -47,9 +46,13 @@ const { login } = storeToRefs(loginStateStore())
 const theme = themeStore()
 const { isDark } = storeToRefs(theme)
 
-const hasContent = computed(() =>
-  keywords.value ? searchPage.content.length > 0 : recommendations.value.length > 0
+// 推荐项与筛选结果共用同一套文章卡片样式
+const feedCards = computed<BlogDesc[]>(() =>
+  keywords.value
+    ? searchPage.content
+    : recommendations.value.map((item) => ({ ...item, status: Status.NORMAL }))
 )
+const hasContent = computed(() => feedCards.value.length > 0)
 const hasMore = computed(() => (keywords.value ? searchHasMore.value : recommendationHasMore.value))
 const paginationLoading = computed(
   () => loadingMore.value || (requestLoading.value && hasContent.value)
@@ -225,10 +228,6 @@ const to = (id: number, status: Status) => {
   }
 }
 
-const openRecommendation = (id: number) => {
-  void router.push({ name: 'blog', params: { id } })
-}
-
 const clearSearch = () => {
   searchRef.value?.cancelSearch()
   feedGeneration += 1
@@ -287,30 +286,14 @@ const goToBack = () => {
     }}</el-link>
     <br />
 
-    <section v-if="!keywords" class="recommendation-feed">
+    <section class="description">
       <el-skeleton class="blogs-skeleton" animated :loading="skeletonLoading">
         <template #template>
-          <el-skeleton v-for="i in 3" :key="i" :rows="3" animated />
-        </template>
-        <RecommendationCards
-          :items="recommendations"
-          layout="single"
-          @select="openRecommendation"
-        />
-      </el-skeleton>
-      <p v-if="!skeletonLoading && !hasContent && !feedError" class="feed-empty">
-        {{ $t('blog.noRecommendations') }}
-      </p>
-    </section>
-
-    <section v-else class="description">
-      <el-skeleton class="blogs-skeleton" animated :loading="skeletonLoading">
-        <template #template>
-          <el-skeleton v-for="i in searchPage.pageSize" :key="i" :rows="10" animated />
+          <el-skeleton v-for="i in 3" :key="i" :rows="10" animated />
         </template>
         <el-timeline>
           <el-timeline-item
-            v-for="blog in searchPage.content"
+            v-for="blog in feedCards"
             :key="blog.id"
             :timestamp="blog.created"
             placement="top"
@@ -356,7 +339,7 @@ const goToBack = () => {
         </el-timeline>
       </el-skeleton>
       <p v-if="!skeletonLoading && !hasContent && !feedError" class="feed-empty">
-        {{ $t('blog.noSearchResults') }}
+        {{ keywords ? $t('blog.noSearchResults') : $t('blog.noRecommendations') }}
       </p>
     </section>
 
@@ -392,11 +375,6 @@ const goToBack = () => {
 
 .description {
   margin: 0 auto;
-}
-
-.recommendation-feed {
-  max-width: 900px;
-  margin: 22px auto 0;
 }
 
 .feed-empty {

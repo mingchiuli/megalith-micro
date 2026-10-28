@@ -41,6 +41,7 @@ const SkeletonStub = defineComponent({
 
 const TimelineItemStub = defineComponent({
   inheritAttrs: false,
+  props: { timestamp: { type: String, default: '' } },
   setup(_, { attrs, slots }) {
     return () => h('article', { ...attrs, class: ['blog-item', attrs.class] }, slots.default?.())
   }
@@ -166,7 +167,7 @@ const mountBlogs = (pinia: Pinia = createPinia()): VueWrapper => {
   })
 }
 
-const cards = (wrapper: VueWrapper) => wrapper.findAll('.recommendation-name')
+const cards = (wrapper: VueWrapper) => wrapper.findAll('.blog-item .title')
 
 describe('BlogsView feed', () => {
   beforeEach(() => {
@@ -190,6 +191,20 @@ describe('BlogsView feed', () => {
       wrapper.html().indexOf('Recommendation 1')
     )
     expect(wrapper.text()).not.toContain('推荐阅读')
+    wrapper.unmount()
+  })
+
+  it('renders recommendations with the article card layout', async () => {
+    mocks.GET.mockResolvedValueOnce(
+      recommendationPage([{ ...recommendation(1), link: 'https://cdn.example/1.png' }])
+    )
+    const wrapper = mountBlogs()
+    await flushPromises()
+
+    const items = wrapper.findAllComponents(TimelineItemStub)
+    expect(items.map((item) => item.props('timestamp'))).toEqual(['2026-10-25'])
+    expect(wrapper.find('.cover-image').attributes('src')).toBe('https://cdn.example/1.png')
+    expect(wrapper.find('.blog-item').text()).toContain('Description 1')
     wrapper.unmount()
   })
 
@@ -219,12 +234,12 @@ describe('BlogsView feed', () => {
     await flushPromises()
 
     expect(mocks.GET).toHaveBeenCalledWith(expect.stringContaining('/search/public/blog?'))
-    expect(cards(wrapper)).toHaveLength(0)
-    expect(wrapper.find('.blog-item').exists()).toBe(true)
+    expect(cards(wrapper).map((card) => card.text())).toEqual(['Blog 9'])
 
     wrapper.findComponent(SearchStub).vm.$emit('transSearchData', searchPage([], 1, true))
     await nextTick()
 
+    expect(cards(wrapper)).toHaveLength(0)
     expect(wrapper.text()).toContain('未找到相关文章')
     expect(mocks.GET).toHaveBeenCalledTimes(1)
     wrapper.unmount()
