@@ -16,19 +16,11 @@ const emit = defineEmits<{
 
 const sentinel = useTemplateRef<HTMLElement>('sentinel')
 let observer: IntersectionObserver | undefined
-let intersecting = false
 
 const requestMore = () => {
-  if (!intersecting || props.loading || props.error || !props.hasMore) return
+  if (props.loading || props.error || !props.hasMore) return
   emit('load')
 }
-
-watch(
-  () => [props.loading, props.error, props.hasMore] as const,
-  () => {
-    void nextTick(requestMore)
-  }
-)
 
 watch(
   sentinel,
@@ -41,13 +33,10 @@ watch(
 
 onMounted(() => {
   if (import.meta.env.SSR || typeof IntersectionObserver === 'undefined') return
-  observer = new IntersectionObserver(
-    (entries) => {
-      intersecting = entries.some((entry) => entry.isIntersecting)
-      requestMore()
-    },
-    { rootMargin: '240px 0px' }
-  )
+  // 只在哨兵真正进入视口时请求下一页；加载中哨兵会卸载，加载完成后重新观测并重新判定
+  observer = new IntersectionObserver((entries) => {
+    if (entries.some((entry) => entry.isIntersecting)) requestMore()
+  })
   if (sentinel.value) observer.observe(sentinel.value)
 })
 

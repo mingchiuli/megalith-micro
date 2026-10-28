@@ -1,4 +1,5 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
+import { nextTick, type ComponentPublicInstance } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import InfiniteScrollFooter from '@/components/InfiniteScrollFooter.vue'
 
@@ -26,7 +27,10 @@ class IntersectionObserverStub {
   disconnect() {}
 }
 
-const mountFooter = (overrides: Partial<FooterProps> = {}) =>
+// setProps 需要宽松的 props 类型，否则 vue-tsc 推断不出 SFC 的 props
+const mountFooter = (
+  overrides: Partial<FooterProps> = {}
+): VueWrapper<ComponentPublicInstance<Record<string, unknown>>> =>
   mount(InfiniteScrollFooter, {
     props: {
       loading: false,
@@ -45,7 +49,7 @@ const mountFooter = (overrides: Partial<FooterProps> = {}) =>
         }
       }
     }
-  })
+  }) as VueWrapper<ComponentPublicInstance<Record<string, unknown>>>
 
 describe('InfiniteScrollFooter.vue', () => {
   beforeEach(() => {
@@ -67,6 +71,23 @@ describe('InfiniteScrollFooter.vue', () => {
     expect(loadingWrapper.emitted('load')).toBeUndefined()
     expect(loadingWrapper.text()).toContain('Loading')
     loadingWrapper.unmount()
+  })
+
+  it('waits for the sentinel to re-enter the viewport after a finished load', async () => {
+    const wrapper = mountFooter()
+    intersectionCallback([{ isIntersecting: true } as IntersectionObserverEntry], {} as never)
+    expect(wrapper.emitted('load')).toHaveLength(1)
+
+    await wrapper.setProps({ loading: true })
+    await wrapper.setProps({ loading: false })
+    await flushPromises()
+    await nextTick()
+
+    expect(wrapper.emitted('load')).toHaveLength(1)
+
+    intersectionCallback([{ isIntersecting: true } as IntersectionObserverEntry], {} as never)
+    expect(wrapper.emitted('load')).toHaveLength(2)
+    wrapper.unmount()
   })
 
   it('shows retry for failures and an end message when exhausted', async () => {
