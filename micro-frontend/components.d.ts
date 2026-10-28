@@ -93,7 +93,6 @@ declare module 'vue' {
     MyFooterItem: typeof import('./src/components/MyFooterItem.vue')['default']
     ReadTokenItem: typeof import('./src/components/ReadTokenItem.vue')['default']
     RecommendationCards: typeof import('./src/components/RecommendationCards.vue')['default']
-    RelatedArticlesPanel: typeof import('./src/components/RelatedArticlesPanel.vue')['default']
     RoleDialogs: typeof import('./src/components/sys/RoleDialogs.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

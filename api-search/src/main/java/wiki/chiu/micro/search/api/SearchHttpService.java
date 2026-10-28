@@ -31,10 +31,6 @@ public interface SearchHttpService {
     @GetExchange("/blog/public/{blogId}")
     Result<PublicBlogRpcVo> publicBlog(@PathVariable Long blogId);
 
-    @GetExchange("/blog/public/related/{blogId}")
-    Result<List<PublicBlogRpcVo>> relatedArticles(
-        @PathVariable Long blogId, @RequestParam Integer limit);
-
     @GetExchange("/blog/public/recommendations/page")
     Result<PageAdapter<PublicBlogRpcVo>> recommendationPage(
         @RequestParam Integer page, @RequestParam Integer size);

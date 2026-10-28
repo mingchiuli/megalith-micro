@@ -3,7 +3,6 @@ package wiki.chiu.micro.exhibit.adapter.in.http;
 import static wiki.chiu.micro.common.auth.web.AuthWeb.authPrincipal;
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
-import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -51,16 +50,6 @@ public class BlogExhibitHttpHandler {
 
     public ServerResponse getScoreBlogs(ServerRequest request) {
         return ok(Result.success(() -> ExhibitResponseMapper.toHotReadVos(blogService.getScoreBlogs())));
-    }
-
-    public ServerResponse getRelatedArticles(ServerRequest request) {
-        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
-        Integer limit =
-            v.range(requiredParam(request, "limit", Integer::valueOf), 1, 10, "limit");
-        return ok(
-            Result.success(
-                () -> ExhibitResponseMapper.toRelatedArticleVos(
-                    blogService.getRelatedArticles(blogId, limit))));
     }
 
     public ServerResponse getRecommendationPage(ServerRequest request) {

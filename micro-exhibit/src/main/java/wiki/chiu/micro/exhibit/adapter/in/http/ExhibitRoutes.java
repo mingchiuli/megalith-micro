@@ -29,8 +29,7 @@ public class ExhibitRoutes {
                 .GET("/public/blog/scores", handler::getScoreBlogs)
                 .GET(
                     "/public/blog/recommendations/page/{currentPage}",
-                    handler::getRecommendationPage)
-                .GET("/public/blog/related/{blogId}", handler::getRelatedArticles),
+                    handler::getRecommendationPage),
             log)
             .build();
     }

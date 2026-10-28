@@ -71,12 +71,6 @@ public class SearchInternalHttpHandler implements SearchHttpService {
         return ok(publicBlog(blogId));
     }
 
-    public ServerResponse relatedArticles(ServerRequest request) {
-        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
-        Integer limit = v.range(requiredParam(request, "limit", Integer::valueOf), 1, 20, "limit");
-        return ok(relatedArticles(blogId, limit));
-    }
-
     public ServerResponse recommendationPage(ServerRequest request) {
         Integer page = v.positive(requiredParam(request, "page", Integer::valueOf), "page");
         Integer size = v.range(requiredParam(request, "size", Integer::valueOf), 1, 50, "size");
@@ -132,13 +126,6 @@ public class SearchInternalHttpHandler implements SearchHttpService {
     @Override
     public Result<PublicBlogRpcVo> publicBlog(Long blogId) {
         return Result.success(() -> toResponse(searchBlogs.findPublic(blogId)));
-    }
-
-    @Override
-    public Result<List<PublicBlogRpcVo>> relatedArticles(Long blogId, Integer limit) {
-        List<PublicBlogRead> result = searchBlogs.relatedArticles(blogId, limit);
-        return Result.success(
-            () -> result.stream().map(SearchInternalHttpHandler::toResponse).toList());
     }
 
     @Override

@@ -49,7 +49,6 @@ const BLOG_PUBLIC_API = {
   READ_SECRET_BLOG: (id: number | string) => `/public/blog/secret/${id}`,
   // 获取热门博客排行
   GET_HOT_BLOGS: '/public/blog/scores',
-  GET_RELATED_ARTICLES: (id: number | string) => `/public/blog/related/${id}`,
   GET_RECOMMENDATIONS_PAGE: (pageNo: number) => `/public/blog/recommendations/page/${pageNo}`,
   // 获取博客访问统计
   GET_BLOG_STAT: '/public/blog/stat'

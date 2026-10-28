@@ -42,11 +42,6 @@ public final class SearchApplicationService implements SearchBlogsUseCase {
     }
 
     @Override
-    public List<PublicBlogRead> relatedArticles(long blogId, int limit) {
-        return searchIndex.relatedArticles(blogId, limit);
-    }
-
-    @Override
     public Page<PublicBlogRead> recommendationPage(int page, int pageSize) {
         return searchIndex.recommendationPage(page, pageSize);
     }

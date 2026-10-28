@@ -18,8 +18,6 @@ public interface SearchBlogsUseCase {
 
     PublicBlogRead findPublic(long blogId);
 
-    List<PublicBlogRead> relatedArticles(long blogId, int limit);
-
     Page<PublicBlogRead> recommendationPage(int page, int pageSize);
 
     Page<AdminBlogRead> searchAdmin(PrivateBlogSearchQuery query);

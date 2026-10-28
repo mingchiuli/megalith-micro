@@ -1,7 +1,6 @@
 package wiki.chiu.micro.search.adapter.out.elasticsearch;
 
 import co.elastic.clients.elasticsearch._types.ScriptLanguage;
-import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.Time;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
@@ -114,11 +113,6 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
             return Optional.empty();
         }
         return Optional.of(toPublic(document));
-    }
-
-    @Override
-    public List<PublicBlogRead> relatedArticles(long blogId, int limit) {
-        return recommendRelated(blogId, limit);
     }
 
     @Override
@@ -425,66 +419,6 @@ public final class ElasticsearchBlogAdapter implements BlogSearchIndex, BlogInde
                 .withSort(sort -> sort.field(field -> field.field("id").order(SortOrder.Asc)))
                 .withPageable(PageRequest.of(page - 1, pageSize))
                 .build();
-    }
-
-    private List<PublicBlogRead> recommendRelated(long blogId, int limit) {
-        BlogDocument source =
-            elasticsearchTemplate.get(
-                Long.toString(blogId), BlogDocument.class, IndexCoordinates.of(indexName));
-        if (source == null || source.getTitle() == null) {
-            return List.of();
-        }
-        String text =
-            String.join(
-                " ",
-                source.getTitle(),
-                source.getDescription() == null ? "" : source.getDescription(),
-                source.getContent() == null ? "" : source.getContent());
-        NativeQuery query =
-            NativeQuery.builder()
-                .withQuery(
-                    value ->
-                        value.bool(
-                            bool ->
-                                bool.must(
-                                        must ->
-                                            must.multiMatch(
-                                                multi ->
-                                                    multi.query(text)
-                                                        .fields(
-                                                            "title^2",
-                                                            "description^1.5",
-                                                            "content")))
-                                    .filter(
-                                        filter ->
-                                            filter.terms(
-                                                terms ->
-                                                    terms.field("status")
-                                                        .terms(
-                                                            values ->
-                                                                values.value(
-                                                                    List.of(
-                                                                        FieldValue.of(
-                                                                            BlogStatusEnum.NORMAL.getCode()),
-                                                                        FieldValue.of(
-                                                                            BlogStatusEnum.SENSITIVE_FILTER.getCode()))))))
-                                    .mustNot(
-                                        not ->
-                                            not.ids(
-                                                ids ->
-                                                    ids.values(
-                                                        Long.toString(blogId))))
-                                    .mustNot(
-                                        not ->
-                                            not.term(
-                                                term ->
-                                                    term.field("deleted").value(true)))))
-                .withPageable(PageRequest.of(0, limit))
-                .build();
-        SearchHits<@NonNull BlogDocument> hits =
-            elasticsearchTemplate.search(
-                query, BlogDocument.class, IndexCoordinates.of(indexName));
-        return hits.getSearchHits().stream().map(hit -> toPublic(hit.getContent())).toList();
     }
 
     private static NativeQuery adminQuery(PrivateBlogSearchQuery query) {

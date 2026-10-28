@@ -21,8 +21,6 @@ public interface BlogService {
 
     List<BlogHotRead> getScoreBlogs();
 
-    List<BlogRecommendation> getRelatedArticles(Long blogId, int limit);
-
     Page<BlogRecommendation> findRecommendationPage(Integer currentPage);
 
     BlogExhibit getBlogDetail(List<DataPermissionEnum> dataPermissions, Long id, Long userId);

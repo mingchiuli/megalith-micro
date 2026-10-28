@@ -138,21 +138,6 @@ class BlogControllerTest {
     }
 
     @Test
-    void getRelatedArticlesReturnsOnlyRelatedCards() throws Exception {
-        when(blogService.getRelatedArticles(5L, 4))
-            .thenReturn(
-                List.of(
-                    new BlogRecommendation(
-                        7L, "related", "description", LocalDateTime.now(), "", 10L)));
-
-        mockMvc
-            .perform(get("/public/blog/related/5").param("limit", "4"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data[0].id").value(7))
-            .andExpect(jsonPath("$.data[0].title").value("related"));
-    }
-
-    @Test
     void unknownPathReturns404() throws Exception {
         mockMvc.perform(get("/public/blog/unknown")).andExpect(status().isNotFound());
     }

@@ -250,26 +250,6 @@ class SearchIndexIntegrationTest {
             .containsExactly(7L, 8L);
     }
 
-    @Test
-    void relatedArticlesExcludeTheSourceAndDeletedDocuments() throws Exception {
-        blogs.write(change(1, 1, 0, 10, "shared topic"));
-        blogs.write(change(2, 1, 0, 20, "shared topic"));
-        blogs.write(change(3, 1, 2, 30, "shared topic"));
-        blogs.write(change(4, 1, 0, 40, "shared topic"));
-        blogs.write(
-            new BlogIndexChange(
-                BlogIndexChange.Operation.REMOVE,
-                2,
-                change(4, 2, 0, 40, "shared topic").blog()));
-        indexClient.refresh(request -> request.index(alias));
-
-        var related = blogs.relatedArticles(1L, 10);
-
-        assertThat(related)
-            .extracting(blog -> blog.id())
-            .containsExactlyInAnyOrder(2L, 3L);
-    }
-
     private BlogDocument document(long id) {
         return template.get(Long.toString(id), BlogDocument.class, IndexCoordinates.of(alias));
     }

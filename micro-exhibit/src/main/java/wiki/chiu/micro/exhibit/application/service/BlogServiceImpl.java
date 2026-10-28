@@ -69,11 +69,6 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public List<BlogRecommendation> getRelatedArticles(Long blogId, int limit) {
-        return blogReader.relatedArticles(blogId, limit);
-    }
-
-    @Override
     public Page<BlogRecommendation> findRecommendationPage(Integer currentPage) {
         return blogReader.recommendationPage(currentPage);
     }

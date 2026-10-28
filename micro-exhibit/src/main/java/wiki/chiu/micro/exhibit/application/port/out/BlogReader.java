@@ -18,7 +18,5 @@ public interface BlogReader {
 
     List<BlogHotRead> hotBlogs(int limit);
 
-    List<BlogRecommendation> relatedArticles(Long blogId, int limit);
-
     Page<BlogRecommendation> recommendationPage(int currentPage);
 }

@@ -199,16 +199,6 @@ class BlogSearchControllerTest {
     }
 
     @Test
-    void relatedArticlesReturnsPublicBlogs() throws Exception {
-        when(searchBlogs.relatedArticles(7L, 4)).thenReturn(List.of(publicBlog(3)));
-
-        mockMvc
-            .perform(get("/inner/blog/public/related/7").param("limit", "4"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data[0].id").value(3));
-    }
-
-    @Test
     void unknownPathReturns404() throws Exception {
         mockMvc.perform(get("/search/unknown")).andExpect(status().isNotFound());
     }

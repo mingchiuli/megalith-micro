@@ -70,14 +70,6 @@ public class BlogWrapper implements BlogReader {
     }
 
     @Override
-    public List<BlogRecommendation> relatedArticles(Long blogId, int limit) {
-        List<PublicBlogRpcVo> result =
-            RemoteResult.requireSuccess(
-                () -> searchHttpService.relatedArticles(blogId, limit));
-        return result.stream().map(BlogHttpMapper::toRecommendation).toList();
-    }
-
-    @Override
     public Page<BlogRecommendation> recommendationPage(int currentPage) {
         PageAdapter<PublicBlogRpcVo> page =
             RemoteResult.requireSuccess(

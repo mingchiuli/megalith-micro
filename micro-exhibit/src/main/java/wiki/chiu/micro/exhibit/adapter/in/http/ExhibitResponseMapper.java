@@ -42,11 +42,6 @@ public final class ExhibitResponseMapper {
             .toList();
     }
 
-    public static List<BlogRecommendationVo> toRelatedArticleVos(
-        List<BlogRecommendation> recommendations) {
-        return recommendations.stream().map(ExhibitResponseMapper::toVo).toList();
-    }
-
     public static PageAdapter<BlogRecommendationVo> toRecommendationPageVo(
         Page<BlogRecommendation> page) {
         return PageResponse.of(
