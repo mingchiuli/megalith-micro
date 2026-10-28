@@ -117,7 +117,8 @@ class BlogControllerTest {
     void getRecommendationPageReturnsPagedCards() throws Exception {
         Page<BlogRecommendation> page =
             new Page<>(
-                List.of(new BlogRecommendation(7L, "title", "description", LocalDateTime.now(), "", 10L)),
+                List.of(new BlogRecommendation(7L, "title", "description", LocalDateTime.now(),
+                    "https://cdn.example/7.png", 10L)),
                 6,
                 2,
                 5,
@@ -131,6 +132,7 @@ class BlogControllerTest {
             .perform(get("/public/blog/recommendations/page/2"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.content[0].id").value(7))
+            .andExpect(jsonPath("$.data.content[0].link").value("https://cdn.example/7.png"))
             .andExpect(jsonPath("$.data.pageNumber").value(2))
             .andExpect(jsonPath("$.data.last").value(true));
     }
