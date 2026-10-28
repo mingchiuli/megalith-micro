@@ -195,7 +195,8 @@ const getCheckKeys = (menuForms: RoleMenuForm[]): Array<number> => {
 
 const getKeysIds = (menuForms: RoleMenuForm[], ids: Array<number>) => {
   menuForms.forEach((item) => {
-    if (item.check) {
+    // Only leaf keys are restored so parent state is derived instead of selecting all descendants.
+    if (item.check && item.children.length === 0) {
       ids.push(item.menuId)
     }
     if (item.children.length) {

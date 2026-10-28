@@ -103,7 +103,6 @@ const treeProps = { children: 'children', label: 'title' }
         show-checkbox
         default-expand-all
         node-key="menuId"
-        check-strictly
       />
       <el-form-item label-width="450px">
         <el-button
