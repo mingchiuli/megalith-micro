@@ -335,66 +335,70 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
       :fixed="fix"
       class-name="operation-column"
       :label="t('common.operations')"
-      min-width="380"
+      min-width="560"
       align="center"
     >
       <template #default="scope">
-        <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_CHECK)">
-          <el-button
-            size="small"
-            :type="getButtonType(ButtonAuth.SYS_BLOG_CHECK)"
-            @click="handleCheck(scope.row)"
-            >{{ getButtonTitle(ButtonAuth.SYS_BLOG_CHECK) }}</el-button
+        <div class="operation-actions">
+          <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_CHECK)">
+            <el-button
+              size="small"
+              :type="getButtonType(ButtonAuth.SYS_BLOG_CHECK)"
+              @click="handleCheck(scope.row)"
+              >{{ getButtonTitle(ButtonAuth.SYS_BLOG_CHECK) }}</el-button
+            >
+          </template>
+
+          <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_EDIT)">
+            <el-button
+              size="small"
+              :type="getButtonType(ButtonAuth.SYS_BLOG_EDIT)"
+              @click="handleEdit(scope.row)"
+              >{{ getButtonTitle(ButtonAuth.SYS_BLOG_EDIT) }}</el-button
+            >
+          </template>
+
+          <template v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_VERSIONS)">
+            <el-button size="small" type="info" plain @click="handleVersions(scope.row)">
+              {{ t('admin.versionHistory') }}
+            </el-button>
+          </template>
+
+          <template
+            v-if="scope.row.status !== Status.DRAFT && checkButtonAuth(ButtonAuth.SYS_EDIT_STATUS)"
           >
-        </template>
+            <el-button
+              size="small"
+              :type="scope.row.status === Status.BLOCK ? 'success' : 'warning'"
+              @click="handleStatus(scope.row)"
+            >
+              {{ scope.row.status === Status.BLOCK ? t('admin.online') : t('admin.offline') }}
+            </el-button>
+          </template>
 
-        <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_EDIT)">
-          <el-button
-            size="small"
-            :type="getButtonType(ButtonAuth.SYS_BLOG_EDIT)"
-            @click="handleEdit(scope.row)"
-            >{{ getButtonTitle(ButtonAuth.SYS_BLOG_EDIT) }}</el-button
+          <template
+            v-if="
+              scope.row.status === Status.BLOCK && checkButtonAuth(ButtonAuth.SYS_BLOG_PASSWORD)
+            "
           >
-        </template>
+            <el-button
+              size="small"
+              :type="getButtonType(ButtonAuth.SYS_BLOG_PASSWORD)"
+              @click="handlePassword(scope.row)"
+              >{{ getButtonTitle(ButtonAuth.SYS_BLOG_PASSWORD) }}</el-button
+            >
+          </template>
 
-        <template v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_VERSIONS)">
-          <el-button size="small" type="info" plain @click="handleVersions(scope.row)">
-            {{ t('admin.versionHistory') }}
-          </el-button>
-        </template>
-
-        <template
-          v-if="scope.row.status !== Status.DRAFT && checkButtonAuth(ButtonAuth.SYS_EDIT_STATUS)"
-        >
-          <el-button
-            size="small"
-            :type="scope.row.status === Status.BLOCK ? 'success' : 'warning'"
-            @click="handleStatus(scope.row)"
-          >
-            {{ scope.row.status === Status.BLOCK ? t('admin.online') : t('admin.offline') }}
-          </el-button>
-        </template>
-
-        <template
-          v-if="scope.row.status === Status.BLOCK && checkButtonAuth(ButtonAuth.SYS_BLOG_PASSWORD)"
-        >
-          <el-button
-            size="small"
-            :type="getButtonType(ButtonAuth.SYS_BLOG_PASSWORD)"
-            @click="handlePassword(scope.row)"
-            >{{ getButtonTitle(ButtonAuth.SYS_BLOG_PASSWORD) }}</el-button
-          >
-        </template>
-
-        <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_DELETE)">
-          <el-popconfirm :title="t('common.deleteConfirm')" @confirm="handleDelete(scope.row)">
-            <template #reference>
-              <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_DELETE)">{{
-                getButtonTitle(ButtonAuth.SYS_BLOG_DELETE)
-              }}</el-button>
-            </template>
-          </el-popconfirm>
-        </template>
+          <template v-if="checkButtonAuth(ButtonAuth.SYS_BLOG_DELETE)">
+            <el-popconfirm :title="t('common.deleteConfirm')" @confirm="handleDelete(scope.row)">
+              <template #reference>
+                <el-button size="small" :type="getButtonType(ButtonAuth.SYS_BLOG_DELETE)">{{
+                  getButtonTitle(ButtonAuth.SYS_BLOG_DELETE)
+                }}</el-button>
+              </template>
+            </el-popconfirm>
+          </template>
+        </div>
       </template>
     </el-table-column>
   </el-table>
@@ -437,5 +441,21 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
 
 :deep(.operation-column) {
   border-left: 1px solid var(--el-border-color);
+}
+
+.operation-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.operation-actions :deep(.el-button) {
+  flex: 0 0 auto;
+}
+
+.operation-actions :deep(.el-button + .el-button) {
+  margin-left: 0;
 }
 </style>
