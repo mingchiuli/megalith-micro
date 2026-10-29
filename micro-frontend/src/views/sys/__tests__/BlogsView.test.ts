@@ -1,6 +1,6 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import ElementPlus from 'element-plus'
+import ElementPlus, { ElTable } from 'element-plus'
 import { defineComponent, h } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ButtonAuth, Status, type BlogSys, type PageAdapter } from '@/type/entity'
@@ -108,6 +108,14 @@ describe('admin BlogsView row actions', () => {
     expect(panel.props('blogId')).toBe(7)
     expect(panel.props('visible')).toBe(true)
     expect(buttonWithText(wrapper, '版本历史')!.classes()).toContain('el-button--info')
+    wrapper.unmount()
+  })
+
+  it('allows resizing the operation column at the end of the table', async () => {
+    mocks.GET.mockResolvedValue(blogPage(Status.NORMAL))
+    const wrapper = await mountView()
+
+    expect(wrapper.findComponent(ElTable).props()).toMatchObject({ allowDragLastColumn: true })
     wrapper.unmount()
   })
 

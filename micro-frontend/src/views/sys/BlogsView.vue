@@ -277,6 +277,7 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
     :data="content"
     :style="{ width: '100%' }"
     border
+    allow-drag-last-column
     stripe
     @selection-change="handleSelectionChange"
     v-loading="loading"
