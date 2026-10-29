@@ -10,6 +10,7 @@ import wiki.chiu.micro.blog.adapter.in.http.BlogDownloadReq;
 import wiki.chiu.micro.blog.adapter.in.http.BlogEditVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogEntityReq;
 import wiki.chiu.micro.blog.adapter.in.http.BlogEntityVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogIdVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogPermissionsVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogQueryReq;
 import wiki.chiu.micro.blog.adapter.in.http.BlogVersionComparisonVo;
@@ -20,6 +21,7 @@ import wiki.chiu.micro.blog.adapter.in.http.OssDeleteReq;
 import wiki.chiu.micro.blog.adapter.in.http.SensitiveContentReq;
 import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
 import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
 import wiki.chiu.micro.common.model.BlogAdminSnapshot;
@@ -41,6 +43,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 Result.class,
                 PageAdapter.class,
                 BlogEntityReq.class,
+                BlogIdVo.class,
                 SensitiveContentReq.class,
                 BlogQueryReq.class,
                 PublishBlogReq.class,
@@ -54,6 +57,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 BlogVersionComparisonVo.class,
                 BlogPermissionsVo.class,
                 BlogIndexSourceStatus.class,
+                BlogWorkingDraft.class,
                 BlogSnapshot.class);
 
         hints

@@ -7,7 +7,9 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 
+import wiki.chiu.micro.blog.adapter.in.http.BlogIdVo;
 import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 
@@ -23,6 +25,15 @@ class CustomRuntimeHintsTest {
         assertJacksonType(hints, BlogSnapshot.class);
     }
 
+    @Test
+    void registersDraftResponseRecordsForNativeSerialization() {
+        RuntimeHints hints = new RuntimeHints();
+        new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
+
+        assertBindingType(hints, BlogIdVo.class);
+        assertBindingType(hints, BlogWorkingDraft.class);
+    }
+
     private void assertJacksonType(RuntimeHints hints, Class<?> type) {
         assertThat(
                 RuntimeHintsPredicates.reflection()
@@ -34,6 +45,19 @@ class CustomRuntimeHintsTest {
                             .withMemberCategory(MemberCategory.INVOKE_DECLARED_METHODS))
                     .test(hints))
             .as("Jackson reflection hints for %s", type.getName())
+            .isTrue();
+    }
+
+    private void assertBindingType(RuntimeHints hints, Class<?> type) {
+        assertThat(
+                RuntimeHintsPredicates.reflection()
+                    .onType(type)
+                    .withMemberCategory(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS)
+                    .test(hints))
+            .as("Binding constructor hints for %s", type.getName())
+            .isTrue();
+        assertThat(RuntimeHintsPredicates.reflection().onMethodInvocation(type, "id").test(hints))
+            .as("Record accessor hint for %s", type.getName())
             .isTrue();
     }
 }
