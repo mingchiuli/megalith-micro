@@ -1,5 +1,7 @@
 package wiki.chiu.micro.blog.adapter.in.http;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,6 +22,6 @@ public record BlogVersionVo(
     BlogRenderMode renderMode,
     LocalDateTime firstPublishedAt,
     Long createdBy,
-    LocalDateTime createdAt,
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime createdAt,
     List<BlogSensitiveSpan> sensitiveContent) {
 }

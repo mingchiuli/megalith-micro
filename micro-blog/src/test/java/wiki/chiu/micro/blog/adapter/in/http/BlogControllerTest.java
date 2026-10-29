@@ -151,6 +151,7 @@ class BlogControllerTest {
 
     @Test
     void versionListOmitsFullArticleContent() throws Exception {
+        LocalDateTime createdAt = LocalDateTime.of(2026, 10, 21, 11, 58, 33);
         BlogVersionSummary summary =
             new BlogVersionSummary(
                 9L,
@@ -161,7 +162,7 @@ class BlogControllerTest {
                 "title",
                 null,
                 1L,
-                LocalDateTime.now(),
+                createdAt,
                 false);
         when(blogService.findVersions(7L, 1, 10, null, 1L, List.of()))
             .thenReturn(new Page<>(List.of(summary), 1, 1, 10, true, true, false, 1));
@@ -173,6 +174,7 @@ class BlogControllerTest {
                     .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.content[0].title").value("title"))
+            .andExpect(jsonPath("$.data.content[0].createdAt").value("2026-10-21 11:58:33"))
             .andExpect(jsonPath("$.data.content[0].content").doesNotExist())
             .andExpect(jsonPath("$.data.content[0].description").doesNotExist());
     }

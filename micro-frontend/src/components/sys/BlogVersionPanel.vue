@@ -216,12 +216,18 @@ watch(
 </script>
 
 <template>
-  <el-drawer v-model="visible" size="70%" :title="t('admin.versionHistory')">
+  <el-drawer v-model="visible" size="55%" header-class="version-history-header">
+    <template #header="{ titleId, titleClass }">
+      <span :id="titleId" :class="titleClass" class="visually-hidden">
+        {{ t('admin.versionHistory') }}
+      </span>
+    </template>
     <div class="toolbar">
       <el-input
         v-model="keyword"
         clearable
         :placeholder="t('common.input')"
+        class="version-search"
         @keyup.enter="searchVersions"
       />
       <el-button @click="searchVersions">{{ t('common.search') }}</el-button>
@@ -371,7 +377,30 @@ watch(
 <style scoped>
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
+  margin-bottom: 14px;
+}
+
+.version-search {
+  width: 320px;
+  max-width: 100%;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:deep(.version-history-header) {
   margin-bottom: 14px;
 }
 
