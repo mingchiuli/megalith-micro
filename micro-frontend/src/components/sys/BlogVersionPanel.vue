@@ -216,7 +216,7 @@ watch(
 </script>
 
 <template>
-  <el-drawer v-model="visible" size="55%" header-class="version-history-header">
+  <el-drawer v-model="visible" size="min(720px, 50vw)" header-class="version-history-header">
     <template #header="{ titleId, titleClass }">
       <span :id="titleId" :class="titleClass" class="visually-hidden">
         {{ t('admin.versionHistory') }}
@@ -234,8 +234,6 @@ watch(
     </div>
     <el-table v-loading="loading" :data="versions" border>
       <el-table-column prop="versionNo" :label="t('admin.versionNo')" width="90" />
-      <el-table-column prop="origin" :label="t('admin.versionOrigin')" width="130" />
-      <el-table-column prop="title" :label="t('common.title')" min-width="180" />
       <el-table-column :label="t('common.status')" width="130">
         <template #default="{ row }">
           <el-tag v-if="row.currentPublished" type="success">

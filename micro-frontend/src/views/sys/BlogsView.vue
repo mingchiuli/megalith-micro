@@ -336,7 +336,7 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
       :fixed="fix"
       class-name="operation-column"
       :label="t('common.operations')"
-      min-width="560"
+      min-width="420"
       align="center"
     >
       <template #default="scope">
@@ -449,7 +449,7 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
   flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .operation-actions :deep(.el-button) {

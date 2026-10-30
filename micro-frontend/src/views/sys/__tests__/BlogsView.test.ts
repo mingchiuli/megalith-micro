@@ -1,6 +1,6 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import ElementPlus, { ElTable } from 'element-plus'
+import ElementPlus, { ElTable, ElTableColumn } from 'element-plus'
 import { defineComponent, h } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ButtonAuth, Status, type BlogSys, type PageAdapter } from '@/type/entity'
@@ -116,6 +116,13 @@ describe('admin BlogsView row actions', () => {
     const wrapper = await mountView()
 
     expect(wrapper.findComponent(ElTable).props()).toMatchObject({ allowDragLastColumn: true })
+    const operationColumn = wrapper
+      .findAllComponents(ElTableColumn)
+      .find(
+        (column) =>
+          (column.props as unknown as (name: string) => unknown)('className') === 'operation-column'
+      )
+    expect((operationColumn?.props as unknown as (name: string) => unknown)('minWidth')).toBe('420')
     wrapper.unmount()
   })
 

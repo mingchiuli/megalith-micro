@@ -1,6 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import ElementPlus from 'element-plus'
+import ElementPlus, { ElDrawer, ElTableColumn } from 'element-plus'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BlogVersionSummary, PageAdapter } from '@/type/entity'
 
@@ -86,6 +86,26 @@ describe('BlogVersionPanel', () => {
     await flushPromises()
 
     expect(mocks.GET).toHaveBeenCalledTimes(2)
+    wrapper.unmount()
+  })
+
+  it('uses a compact drawer with only the essential version columns', async () => {
+    mocks.GET.mockResolvedValue(versionPage(11))
+    const wrapper = mount(BlogVersionPanel, {
+      props: {
+        blogId: 11,
+        visible: true
+      },
+      global: { plugins: [ElementPlus] }
+    })
+    await flushPromises()
+
+    expect(wrapper.findComponent(ElDrawer).props('size')).toBe('min(720px, 50vw)')
+    const labels = wrapper
+      .findAllComponents(ElTableColumn)
+      .map((column) => (column.props as unknown as (name: string) => unknown)('label'))
+    expect(labels).not.toContain('来源')
+    expect(labels).not.toContain('标题')
     wrapper.unmount()
   })
 })
