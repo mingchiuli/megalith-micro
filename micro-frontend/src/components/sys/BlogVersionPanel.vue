@@ -233,8 +233,8 @@ watch(
       <el-button @click="searchVersions">{{ t('common.search') }}</el-button>
     </div>
     <el-table v-loading="loading" :data="versions" border>
-      <el-table-column prop="versionNo" :label="t('admin.versionNo')" width="90" />
-      <el-table-column :label="t('common.status')" width="130">
+      <el-table-column prop="versionNo" :label="t('admin.versionNo')" width="80" />
+      <el-table-column :label="t('common.status')" width="110">
         <template #default="{ row }">
           <el-tag v-if="row.currentPublished" type="success">
             {{ t('admin.currentPublished') }}
@@ -245,37 +245,39 @@ watch(
           <el-tag v-else type="warning">{{ t('admin.historicalPublished') }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="createdAt" :label="t('common.updatedAt')" width="180" />
-      <el-table-column :label="t('common.operations')" width="260">
+      <el-table-column prop="createdAt" :label="t('common.updatedAt')" width="170" />
+      <el-table-column :label="t('common.operations')" width="320">
         <template #default="{ row }">
-          <el-button
-            v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_VERSION_VIEW)"
-            size="small"
-            @click="viewVersion(row as BlogVersionSummary)"
-          >
-            {{ t('common.view') }}
-          </el-button>
-          <el-button
-            v-if="
-              row.firstPublishedAt &&
-              !row.currentPublished &&
-              checkButtonAuth(ButtonAuth.SYS_EDIT_RESTORE_VERSION)
-            "
-            size="small"
-            type="primary"
-            :loading="restoringVersionId === row.id"
-            @click="restoreVersion(row as BlogVersionSummary)"
-          >
-            {{ t('admin.restoreVersion') }}
-          </el-button>
-          <el-button
-            v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_VERSION_COMPARE)"
-            size="small"
-            :disabled="row.versionNo <= 1"
-            @click="compareWithPrevious(row as BlogVersionSummary)"
-          >
-            {{ t('admin.comparePrevious') }}
-          </el-button>
+          <div class="version-actions">
+            <el-button
+              v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_VERSION_VIEW)"
+              size="small"
+              @click="viewVersion(row as BlogVersionSummary)"
+            >
+              {{ t('common.view') }}
+            </el-button>
+            <el-button
+              v-if="
+                row.firstPublishedAt &&
+                !row.currentPublished &&
+                checkButtonAuth(ButtonAuth.SYS_EDIT_RESTORE_VERSION)
+              "
+              size="small"
+              type="primary"
+              :loading="restoringVersionId === row.id"
+              @click="restoreVersion(row as BlogVersionSummary)"
+            >
+              {{ t('admin.restoreVersion') }}
+            </el-button>
+            <el-button
+              v-if="checkButtonAuth(ButtonAuth.SYS_EDIT_VERSION_COMPARE)"
+              size="small"
+              :disabled="row.versionNo <= 1"
+              @click="compareWithPrevious(row as BlogVersionSummary)"
+            >
+              {{ t('admin.comparePrevious') }}
+            </el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -384,6 +386,22 @@ watch(
 .version-search {
   width: 320px;
   max-width: 100%;
+}
+
+.version-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.version-actions :deep(.el-button) {
+  flex: 0 0 auto;
+}
+
+.version-actions :deep(.el-button + .el-button) {
+  margin-left: 0;
 }
 
 .visually-hidden {
