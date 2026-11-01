@@ -4,9 +4,10 @@ import org.springframework.web.service.annotation.PostExchange;
 
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.search.api.vo.IndexRebuildRpcVo;
+import wiki.chiu.micro.search.api.vo.SearchIndexesRebuildRpcVo;
 
 public interface SearchIndexMaintenanceHttpService {
 
     @PostExchange("/search/index/rebuild")
-    Result<IndexRebuildRpcVo> rebuild();
+    Result<SearchIndexesRebuildRpcVo> rebuild();
 }

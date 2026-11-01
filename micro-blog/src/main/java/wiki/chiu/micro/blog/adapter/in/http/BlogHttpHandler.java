@@ -89,7 +89,7 @@ public class BlogHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    BlogViewMapper.toVo(
+                    BlogViewMapper.toSaveVo(
                         blogService.saveDraftVersion(
                             blogId,
                             BlogRequestConvertor.toDraft(body),

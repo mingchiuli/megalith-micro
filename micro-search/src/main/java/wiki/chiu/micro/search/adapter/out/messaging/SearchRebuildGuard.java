@@ -37,8 +37,18 @@ public class SearchRebuildGuard implements SearchRebuildControl {
     @Override
     public void requireQuiescent() {
         requireMaintenance();
-        List<String> queues = List.of(Const.ES_QUEUE, Const.ES_QUEUE + ".retry.1",
-            Const.ES_QUEUE + ".retry.2", Const.ES_QUEUE + ".retry.3", RetryTopology.deadLetterQueue(Const.ES_QUEUE));
+        List<String> queues =
+            List.of(
+                Const.ES_QUEUE,
+                Const.ES_QUEUE + ".retry.1",
+                Const.ES_QUEUE + ".retry.2",
+                Const.ES_QUEUE + ".retry.3",
+                RetryTopology.deadLetterQueue(Const.ES_QUEUE),
+                Const.ADMIN_ES_QUEUE,
+                Const.ADMIN_ES_QUEUE + ".retry.1",
+                Const.ADMIN_ES_QUEUE + ".retry.2",
+                Const.ADMIN_ES_QUEUE + ".retry.3",
+                RetryTopology.deadLetterQueue(Const.ADMIN_ES_QUEUE));
         rabbit.execute(channel -> {
             for (String queue : queues) {
                 var state = channel.queueDeclarePassive(queue);

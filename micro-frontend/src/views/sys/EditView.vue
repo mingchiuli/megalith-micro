@@ -32,6 +32,7 @@ import { clearYjsDraft } from '@/config/editorConfig'
 import { loginStateStore } from '@/stores'
 import { logger } from '@/utils/logger'
 import { getSensitiveTagType, getSensitiveText } from '@/utils/sensitive'
+import { saveBlogVersion } from '@/utils/blogVersion'
 
 const { t } = useI18n()
 const { GET, POST } = useHttp()
@@ -166,17 +167,10 @@ const saveDraft = async (): Promise<BlogVersion> => {
     })
   }
   const currentBlogId = await ensureBlogId()
-  const savedDraft = await POST<DraftSaveResponse>(
-    API_ENDPOINTS.BLOG_ADMIN.SAVE_DRAFT(currentBlogId),
-    form
-  )
-  form.draftRevision = savedDraft.draftRevision
-  const version = await POST<BlogVersion>(
-    API_ENDPOINTS.BLOG_ADMIN.SAVE_VERSION(currentBlogId),
-    form
-  )
+  const saved = await saveBlogVersion(POST, currentBlogId, form)
+  form.draftRevision = saved.draftRevision
   lastServerSnapshot = editableSnapshot()
-  return version
+  return saved.version
 }
 
 const clearLocalDraftAfterSave = async () => {

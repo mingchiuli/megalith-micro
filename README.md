@@ -212,8 +212,11 @@ Elasticsearch owns the public blog read model and the administration list projec
 detail, sensitive-content masking data, and recommendations are served from `blog_search`; admin
 lists use `blog_admin_search`, and version search uses `blog_revision_search`. Editing and version
 diff payloads are read from MariaDB so index lag cannot affect the editor. Content events carry
-monotonic projection revisions so consumers can reject stale updates. Article visits update MariaDB
-counters; cumulative counts are synchronized to Elasticsearch in batches through idempotent updates.
+self-contained administration snapshots and monotonic projection revisions so consumers can reject
+out-of-order updates without reading potentially stale index state. The Elasticsearch repositories
+create any missing physical index and alias during startup; the maintenance rebuild replaces all
+three aliases together after both search queues are quiescent. Article visits update MariaDB counters;
+cumulative counts are synchronized to Elasticsearch in batches through idempotent updates.
 
 Presentation reads use Caffeine as an in-process L1 cache and Redis as a shared L2 cache. Versioned
 cache keys identify individual results, and a key registry tracks cached pages for invalidation.
@@ -345,7 +348,9 @@ persistence. Document changes synchronize with `micro-sync-rs` over WebSocket an
 CRDT. IndexedDB buffers offline changes, while `m_blog_draft` stores the current server-side working
 copy. Explicit draft saves create immutable rows in `m_blog_revision`; publishing moves the blog's
 published revision pointer without modifying history. The version page compares the selected
-version with its immediate predecessor.
+version with its immediate predecessor. The application layer prepares the current identity,
+working draft, published revision, and next revision number before a short persistence transaction;
+conditional revision checks reject competing saves without querying inside the write transaction.
 
 Collaboration and draft storage run in the browser. Connections use short-lived collaboration
 tickets, and session expiry pauses editing while preserving the local draft for reauthentication.

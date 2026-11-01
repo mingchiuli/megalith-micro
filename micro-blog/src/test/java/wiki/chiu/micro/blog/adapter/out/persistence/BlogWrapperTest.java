@@ -86,7 +86,8 @@ class BlogWrapperTest {
                 "link",
                 0L,
                 3L,
-                List.of(sensitive));
+                List.of(sensitive))
+                .withAdminRevision(12L);
         when(blogs.save(any(BlogEntity.class))).thenAnswer(call -> call.getArgument(0));
         when(revisions.save(any(BlogRevisionEntity.class)))
             .thenAnswer(
@@ -133,8 +134,10 @@ class BlogWrapperTest {
 
         assertThat(publicEvent.blogSnapshot().accessMode()).isEqualTo(1);
         assertThat(publicEvent.blogSnapshot().sensitiveContent()).containsExactly(sensitive);
+        assertThat(publicEvent.adminRevision()).isEqualTo(12L);
         assertThat(adminEvent.operation()).isEqualTo("RECOVER");
         assertThat(adminEvent.blog().accessMode()).isEqualTo(1);
+        assertThat(adminEvent.blog().adminRevision()).isEqualTo(12L);
         assertThat(adminEvent.revision().sensitiveContent()).containsExactly(sensitive);
     }
 

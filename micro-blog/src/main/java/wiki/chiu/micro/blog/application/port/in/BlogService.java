@@ -10,6 +10,7 @@ import wiki.chiu.micro.blog.application.model.BlogVersionComparison;
 import wiki.chiu.micro.blog.application.model.BlogVersionSummary;
 import wiki.chiu.micro.blog.application.model.DeletedBlogItem;
 import wiki.chiu.micro.blog.application.model.Page;
+import wiki.chiu.micro.blog.application.model.SavedBlogVersion;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
@@ -24,7 +25,7 @@ public interface BlogService {
 
     void deleteDraft(Long blogId, Long userId, List<DataPermissionEnum> dataPermissions);
 
-    BlogVersion saveDraftVersion(
+    SavedBlogVersion saveDraftVersion(
         Long blogId, BlogDraft blog, Long userId, List<DataPermissionEnum> dataPermissions);
 
     void publish(

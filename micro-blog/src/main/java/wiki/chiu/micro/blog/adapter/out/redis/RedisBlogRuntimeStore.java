@@ -114,11 +114,12 @@ public class RedisBlogRuntimeStore implements BlogRuntimeStore {
     }
 
     @Override
-    public void saveDeletedBlog(Long userId, String eventId, BlogSnapshot snapshot) {
+    public void saveDeletedBlog(
+        Long userId, String eventId, BlogSnapshot snapshot, Long adminRevision) {
         redis.execute(
             RedisScript.of(recycleScript, Long.class),
             List.of(QUERY_DELETED + userId, RECYCLE_EVENT_PREFIX + eventId),
-            jsonMapper.writeValueAsString(Blog.fromSnapshot(snapshot)),
+            jsonMapper.writeValueAsString(Blog.fromSnapshot(snapshot, adminRevision)),
             A_WEEK);
     }
 

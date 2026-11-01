@@ -14,16 +14,18 @@ import wiki.chiu.micro.blog.adapter.in.http.BlogIdVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogPermissionsVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogQueryReq;
 import wiki.chiu.micro.blog.adapter.in.http.BlogVersionComparisonVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSaveVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSummaryVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogVersionVo;
-import wiki.chiu.micro.blog.adapter.in.http.PublishBlogReq;
 import wiki.chiu.micro.blog.adapter.in.http.OssDeleteReq;
+import wiki.chiu.micro.blog.adapter.in.http.PublishBlogReq;
 import wiki.chiu.micro.blog.adapter.in.http.SensitiveContentReq;
 import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
+import wiki.chiu.micro.common.model.BlogAdminIndexSnapshot;
 import wiki.chiu.micro.common.model.BlogAdminSnapshot;
 import wiki.chiu.micro.common.model.BlogDraftSnapshot;
 import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
@@ -53,10 +55,12 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 BlogDeleteVo.class,
                 BlogEditVo.class,
                 BlogVersionVo.class,
+                BlogVersionSaveVo.class,
                 BlogVersionSummaryVo.class,
                 BlogVersionComparisonVo.class,
                 BlogPermissionsVo.class,
                 BlogIndexSourceStatus.class,
+                BlogAdminIndexSnapshot.class,
                 BlogWorkingDraft.class,
                 BlogSnapshot.class);
 

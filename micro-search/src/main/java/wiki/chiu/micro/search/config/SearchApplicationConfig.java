@@ -6,8 +6,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
-import wiki.chiu.micro.search.adapter.out.elasticsearch.ElasticsearchBlogAdapter;
+import wiki.chiu.micro.search.adapter.out.elasticsearch.AliasInitializingElasticsearchRepository;
+import wiki.chiu.micro.search.adapter.out.elasticsearch.ElasticsearchBlogIndexWriter;
+import wiki.chiu.micro.search.adapter.out.elasticsearch.ElasticsearchBlogQueryAdapter;
 import wiki.chiu.micro.search.adapter.out.elasticsearch.ElasticsearchIndexMaintenanceAdapter;
 import wiki.chiu.micro.search.application.port.in.ApplyBlogIndexChangeUseCase;
 import wiki.chiu.micro.search.application.port.in.RebuildSearchIndex;
@@ -22,17 +25,20 @@ import wiki.chiu.micro.search.application.service.IndexRebuildService;
 import wiki.chiu.micro.search.application.service.SearchApplicationService;
 
 @Configuration(proxyBeanMethods = false)
+@EnableElasticsearchRepositories(
+    basePackages = "wiki.chiu.micro.search.adapter.out.elasticsearch",
+    repositoryBaseClass = AliasInitializingElasticsearchRepository.class)
 public class SearchApplicationConfig {
 
     @Bean
-    ElasticsearchBlogAdapter elasticsearchBlogAdapter(
+    ElasticsearchBlogQueryAdapter elasticsearchBlogQueryAdapter(
         ElasticsearchTemplate elasticsearchTemplate,
         @Value("${megalith.blog.blog-page-size}") int publicPageSize,
         @Value("${megalith.search.index.alias:blog_search}") String alias,
         @Value("${megalith.search.index.admin-alias:blog_admin_search}") String adminAlias,
         @Value("${megalith.search.index.revision-alias:blog_revision_search}")
             String revisionAlias) {
-        return new ElasticsearchBlogAdapter(
+        return new ElasticsearchBlogQueryAdapter(
             elasticsearchTemplate,
             publicPageSize,
             alias,
@@ -41,10 +47,25 @@ public class SearchApplicationConfig {
     }
 
     @Bean
+    ElasticsearchBlogIndexWriter elasticsearchBlogIndexWriter(
+        ElasticsearchTemplate elasticsearchTemplate,
+        @Value("${megalith.search.index.alias:blog_search}") String alias,
+        @Value("${megalith.search.index.admin-alias:blog_admin_search}") String adminAlias,
+        @Value("${megalith.search.index.revision-alias:blog_revision_search}")
+            String revisionAlias) {
+        return new ElasticsearchBlogIndexWriter(
+            elasticsearchTemplate, alias, adminAlias, revisionAlias);
+    }
+
+    @Bean
     ElasticsearchIndexMaintenanceAdapter indexMaintenance(
         ElasticsearchClient client, ElasticsearchTemplate template,
-        @Value("${megalith.search.index.alias:blog_search}") String alias) {
-        return new ElasticsearchIndexMaintenanceAdapter(client, template, alias);
+        @Value("${megalith.search.index.alias:blog_search}") String alias,
+        @Value("${megalith.search.index.admin-alias:blog_admin_search}") String adminAlias,
+        @Value("${megalith.search.index.revision-alias:blog_revision_search}")
+            String revisionAlias) {
+        return new ElasticsearchIndexMaintenanceAdapter(
+            client, template, alias, adminAlias, revisionAlias);
     }
 
     @Bean
@@ -55,8 +76,9 @@ public class SearchApplicationConfig {
     }
 
     @Bean
-    SearchBlogsUseCase searchBlogsUseCase(BlogSearchIndex searchIndex) {
-        return new SearchApplicationService(searchIndex);
+    SearchBlogsUseCase searchBlogsUseCase(
+        BlogSearchIndex searchIndex, BlogIndexWriter indexWriter) {
+        return new SearchApplicationService(searchIndex, indexWriter);
     }
 
     @Bean

@@ -12,6 +12,8 @@ import org.springframework.web.servlet.function.ServerResponse;
 import wiki.chiu.micro.blog.api.BlogIndexSourceHttpService;
 import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
 import wiki.chiu.micro.blog.application.port.in.BlogIndexSourceQueries;
+import wiki.chiu.micro.common.model.BlogAdminIndexSnapshot;
+import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
@@ -37,6 +39,19 @@ public class BlogIndexSourceHttpHandler implements BlogIndexSourceHttpService {
         return ok(indexSnapshots(afterId, limit));
     }
 
+    public ServerResponse adminSnapshots(ServerRequest request) {
+        return ok(indexAdminSnapshots(afterId(request), limit(request)));
+    }
+
+    public ServerResponse revisionSnapshots(ServerRequest request) {
+        return ok(
+            indexRevisionSnapshots(
+                validation.nonNegative(
+                    requiredParam(request, "afterRevisionId", Long::valueOf),
+                    "afterRevisionId"),
+                limit(request)));
+    }
+
     @Override
     public Result<BlogIndexSourceStatus> indexSourceStatus() {
         return Result.success(
@@ -53,6 +68,18 @@ public class BlogIndexSourceHttpHandler implements BlogIndexSourceHttpService {
     @Override
     public Result<List<BlogSnapshot>> indexSnapshots(long afterId, int limit) {
         return Result.success(() -> source.snapshots(afterId, limit));
+    }
+
+    @Override
+    public Result<List<BlogAdminIndexSnapshot>> indexAdminSnapshots(
+        long afterId, int limit) {
+        return Result.success(() -> source.adminSnapshots(afterId, limit));
+    }
+
+    @Override
+    public Result<List<BlogRevisionSnapshot>> indexRevisionSnapshots(
+        long afterRevisionId, int limit) {
+        return Result.success(() -> source.revisionSnapshots(afterRevisionId, limit));
     }
 
     private long afterId(ServerRequest request) {

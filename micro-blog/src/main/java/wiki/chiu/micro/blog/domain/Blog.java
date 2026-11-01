@@ -24,6 +24,7 @@ public record Blog(
     String link,
     Long readCount,
     Long eventRevision,
+    Long adminRevision,
     List<BlogSensitiveSpan> sensitiveContent) {
 
     public Blog(
@@ -38,6 +39,23 @@ public record Blog(
         String link,
         Long readCount,
         Long eventRevision) {
+        this(id, userId, title, description, content, created, updated, status, link, readCount,
+            eventRevision, null, List.of());
+    }
+
+    public Blog(
+        Long id,
+        Long userId,
+        String title,
+        String description,
+        String content,
+        LocalDateTime created,
+        LocalDateTime updated,
+        Integer status,
+        String link,
+        Long readCount,
+        Long eventRevision,
+        List<BlogSensitiveSpan> sensitiveContent) {
         this(
             id,
             userId,
@@ -50,11 +68,29 @@ public record Blog(
             link,
             readCount,
             eventRevision,
-            List.of());
+            null,
+            sensitiveContent);
     }
 
     public Blog {
         sensitiveContent = sensitiveContent == null ? List.of() : List.copyOf(sensitiveContent);
+    }
+
+    public Blog withAdminRevision(Long revision) {
+        return new Blog(
+            id,
+            userId,
+            title,
+            description,
+            content,
+            created,
+            updated,
+            status,
+            link,
+            readCount,
+            eventRevision,
+            revision,
+            sensitiveContent);
     }
 
     /** A blank blog that belongs to the given author and has never been written. */
@@ -75,11 +111,17 @@ public record Blog(
             link,
             readCount,
             revision,
+            adminRevision,
             sensitiveContent);
     }
 
     /** Rebuilds a blog from its cross-service projection. */
     public static Blog fromSnapshot(BlogSnapshot snapshot) {
+        return fromSnapshot(snapshot, null);
+    }
+
+    /** Rebuilds a blog and its administration revision from a cross-service projection. */
+    public static Blog fromSnapshot(BlogSnapshot snapshot, Long adminRevision) {
         return new Blog(
             snapshot.id(),
             snapshot.userId(),
@@ -92,6 +134,7 @@ public record Blog(
             snapshot.link(),
             snapshot.readCount(),
             snapshot.revision(),
+            adminRevision,
             snapshot.sensitiveContent());
     }
 

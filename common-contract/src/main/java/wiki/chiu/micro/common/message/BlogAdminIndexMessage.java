@@ -9,5 +9,15 @@ public record BlogAdminIndexMessage(
     String operation,
     BlogAdminSnapshot blog,
     BlogDraftSnapshot draft,
-    BlogRevisionSnapshot revision) {
+    BlogRevisionSnapshot revision,
+    BlogRevisionSnapshot publishedRevision) {
+
+    public BlogAdminIndexMessage(
+        String eventId,
+        String operation,
+        BlogAdminSnapshot blog,
+        BlogDraftSnapshot draft,
+        BlogRevisionSnapshot revision) {
+        this(eventId, operation, blog, draft, revision, null);
+    }
 }

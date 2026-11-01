@@ -39,7 +39,8 @@ public class BlogAdminMessageListener {
                     message.operation(),
                     message.blog(),
                     message.draft(),
-                    message.revision()));
+                    message.revision(),
+                    message.publishedRevision()));
             channel.basicAck(msg.getMessageProperties().getDeliveryTag(), false);
         } catch (Exception failure) {
             recoverer.recover(msg, channel, failure);

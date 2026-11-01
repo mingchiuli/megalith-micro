@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 import wiki.chiu.micro.blog.api.BlogIndexSourceHttpService;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.rpc.RemoteResult;
+import wiki.chiu.micro.search.application.model.BlogAdminIndexChange;
+import wiki.chiu.micro.search.application.model.BlogRevisionIndexEntry;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.model.IndexSourceStatus;
 import wiki.chiu.micro.search.application.port.out.BlogIndexSource;
@@ -49,6 +51,48 @@ public class BlogIndexSourceHttpAdapter implements BlogIndexSource {
                     blog.accessMode(),
                     BlogRenderMode.of(blog.renderMode()),
                     blog.sensitiveContent() == null ? List.of() : blog.sensitiveContent())))
+            .toList();
+    }
+
+    @Override
+    public List<BlogAdminIndexChange> adminSnapshots(long afterId, int limit) {
+        return RemoteResult.requireSuccess(
+                () -> blogs.indexAdminSnapshots(afterId, limit))
+            .stream()
+            .map(
+                snapshot ->
+                    new BlogAdminIndexChange(
+                        "BOOTSTRAP",
+                        snapshot.blog(),
+                        snapshot.draft(),
+                        snapshot.revision(),
+                        snapshot.publishedRevision()))
+            .toList();
+    }
+
+    @Override
+    public List<BlogRevisionIndexEntry> revisionSnapshots(
+        long afterRevisionId, int limit) {
+        return RemoteResult.requireSuccess(
+                () -> blogs.indexRevisionSnapshots(afterRevisionId, limit))
+            .stream()
+            .map(
+                revision ->
+                    new BlogRevisionIndexEntry(
+                        revision.id(),
+                        revision.blogId(),
+                        revision.versionNo(),
+                        revision.origin(),
+                        revision.baseRevisionId(),
+                        revision.title(),
+                        revision.description(),
+                        revision.content(),
+                        revision.link(),
+                        revision.renderMode(),
+                        revision.firstPublishedAt(),
+                        revision.createdBy(),
+                        revision.createdAt(),
+                        revision.sensitiveContent()))
             .toList();
     }
 }

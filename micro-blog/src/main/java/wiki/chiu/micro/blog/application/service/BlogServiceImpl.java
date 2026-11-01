@@ -4,10 +4,14 @@ import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import wiki.chiu.micro.blog.application.model.BlogContentCommand;
+import wiki.chiu.micro.blog.application.model.BlogDraftDeleteCommand;
+import wiki.chiu.micro.blog.application.model.BlogDraftWriteCommand;
 import wiki.chiu.micro.blog.application.model.BlogDeletionTarget;
 import wiki.chiu.micro.blog.application.model.BlogDraft;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
@@ -15,17 +19,22 @@ import wiki.chiu.micro.blog.application.model.BlogEdit;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
 import wiki.chiu.micro.blog.application.model.BlogPermissions;
 import wiki.chiu.micro.blog.application.model.BlogQuery;
+import wiki.chiu.micro.blog.application.model.BlogPublishCommand;
 import wiki.chiu.micro.blog.application.model.BlogSearchQuery;
 import wiki.chiu.micro.blog.application.model.BlogSearchSelection;
+import wiki.chiu.micro.blog.application.model.BlogStatusWriteCommand;
 import wiki.chiu.micro.blog.application.model.BlogVersionComparison;
 import wiki.chiu.micro.blog.application.model.BlogVersionSummary;
+import wiki.chiu.micro.blog.application.model.BlogVersionWriteCommand;
 import wiki.chiu.micro.blog.application.model.DeletedBlogEntry;
 import wiki.chiu.micro.blog.application.model.DeletedBlogItem;
 import wiki.chiu.micro.blog.application.model.DeletedBlogPage;
 import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.model.SensitiveContentDraft;
+import wiki.chiu.micro.blog.application.model.SavedBlogVersion;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
-import wiki.chiu.micro.blog.application.port.out.BlogAuthoringStore;
+import wiki.chiu.micro.blog.application.port.out.BlogAuthoringReader;
+import wiki.chiu.micro.blog.application.port.out.BlogAuthoringWriter;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
@@ -36,9 +45,12 @@ import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
+import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
+import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.error.ExceptionMessage;
+import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 
@@ -56,7 +68,9 @@ public class BlogServiceImpl implements BlogService {
 
     private final BlogAccessPolicy accessPolicy;
 
-    private final BlogAuthoringStore authoring;
+    private final BlogAuthoringReader authoring;
+
+    private final BlogAuthoringWriter authoringWriter;
 
     public BlogServiceImpl(
         BlogQueryStore blogs,
@@ -64,13 +78,15 @@ public class BlogServiceImpl implements BlogService {
         BlogWriter blogWrapper,
         BlogSearchGateway blogSearch,
         BlogAccessPolicy accessPolicy,
-        BlogAuthoringStore authoring) {
+        BlogAuthoringReader authoring,
+        BlogAuthoringWriter authoringWriter) {
         this.blogs = blogs;
         this.runtimeStore = runtimeStore;
         this.blogWrapper = blogWrapper;
         this.blogSearch = blogSearch;
         this.accessPolicy = accessPolicy;
         this.authoring = authoring;
+        this.authoringWriter = authoringWriter;
     }
 
     @Override
@@ -112,16 +128,14 @@ public class BlogServiceImpl implements BlogService {
                 draft,
                 identity,
                 null,
-                toDrafts(draft.sensitiveContent()),
+                draft.sensitiveContent(),
                 accessPolicy.permissions(permissionBlog, userId, dataPermissions));
         }
         Blog selected = published == null ? draftBlog(identity, draft) : published;
         List<BlogSensitiveSpan> spans =
             draft != null && published == null
                 ? draft.sensitiveContent()
-                : published == null
-                    ? List.of()
-                    : blogs.findSensitiveByBlogId(id);
+                : published == null ? List.of() : published.sensitiveContent();
         return edit(
             selected,
             draft,
@@ -134,7 +148,7 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public BlogIdentity createDraftBlog(Long userId) {
         accessPolicy.requireAuthenticated(userId);
-        return authoring.createIdentity(userId);
+        return authoringWriter.createIdentity(userId);
     }
 
     @Override
@@ -143,33 +157,48 @@ public class BlogServiceImpl implements BlogService {
         BlogDraft blog,
         Long userId,
         List<DataPermissionEnum> dataPermissions) {
-        requireEditable(blogId, userId, dataPermissions);
-        return authoring.saveDraft(
-            blogId,
-            blog.draftRevision(),
-            command(blog),
-            userId);
+        PreparedBlog prepared = prepareEditable(blogId, userId, dataPermissions);
+        requireDraftRevision(blogId, blog.draftRevision(), prepared.draft());
+        return authoringWriter.saveDraft(
+            new BlogDraftWriteCommand(
+                prepared.identity(),
+                prepared.draft(),
+                command(blog),
+                prepared.publishedRevision(),
+                userId,
+                LocalDateTime.now()));
     }
 
     @Override
     public void deleteDraft(
         Long blogId, Long userId, List<DataPermissionEnum> dataPermissions) {
-        requireEditable(blogId, userId, dataPermissions);
-        authoring.deleteDraft(blogId);
+        PreparedBlog prepared = prepareEditable(blogId, userId, dataPermissions);
+        authoringWriter.deleteDraft(
+            new BlogDraftDeleteCommand(
+                prepared.identity(), prepared.draft(), prepared.publishedRevision()));
     }
 
     @Override
-    public BlogVersion saveDraftVersion(
+    public SavedBlogVersion saveDraftVersion(
         Long blogId,
         BlogDraft blog,
         Long userId,
         List<DataPermissionEnum> dataPermissions) {
-        requireEditable(blogId, userId, dataPermissions);
-        return authoring.saveDraftVersion(
-            blogId,
-            blog.draftRevision(),
-            command(blog),
-            userId);
+        PreparedBlog prepared = prepareEditable(blogId, userId, dataPermissions);
+        requireDraftRevision(blogId, blog.draftRevision(), prepared.draft());
+        long nextVersion =
+            authoring.findLatestVersion(blogId)
+                .map(version -> version.versionNo() + 1)
+                .orElse(1L);
+        return authoringWriter.saveDraftVersion(
+            new BlogVersionWriteCommand(
+                prepared.identity(),
+                prepared.draft(),
+                command(blog),
+                prepared.publishedRevision(),
+                nextVersion,
+                userId,
+                LocalDateTime.now()));
     }
 
     @Override
@@ -179,26 +208,47 @@ public class BlogServiceImpl implements BlogService {
         Integer accessMode,
         Long userId,
         List<DataPermissionEnum> dataPermissions) {
-        requireEditable(blogId, userId, dataPermissions);
-        authoring.publish(blogId, revisionId, userId, accessMode);
+        PreparedBlog prepared = prepareEditable(blogId, userId, dataPermissions);
+        BlogVersion selected =
+            authoring.findVersion(blogId, revisionId)
+                .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+        BlogVersion latest =
+            authoring.findLatestVersion(blogId)
+                .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+        if (selected.firstPublishedAt() == null
+            && selected.origin() == BlogRevisionOrigin.DRAFT
+            && !selected.versionNo().equals(latest.versionNo())) {
+            throw conflict(blogId);
+        }
+        BlogWorkingDraft draft = prepared.draft();
+        BlogWorkingDraft archived =
+            draft != null && !same(draft, selected) ? draft : null;
+        authoringWriter.publish(
+            new BlogPublishCommand(
+                prepared.identity(),
+                selected,
+                draft,
+                archived,
+                latest.versionNo() + 1,
+                accessMode,
+                userId,
+                LocalDateTime.now()));
     }
 
     @Override
     public void offline(Long blogId, Long userId, List<DataPermissionEnum> dataPermissions) {
-        requireEditable(blogId, userId, dataPermissions);
-        authoring.offline(blogId, userId);
+        changeStatus(blogId, userId, dataPermissions, false);
     }
 
     @Override
     public void online(Long blogId, Long userId, List<DataPermissionEnum> dataPermissions) {
-        requireEditable(blogId, userId, dataPermissions);
-        authoring.online(blogId, userId);
+        changeStatus(blogId, userId, dataPermissions, true);
     }
 
     @Override
     public BlogVersion findVersion(
         Long blogId, Long revisionId, Long userId, List<DataPermissionEnum> dataPermissions) {
-        requireEditable(blogId, userId, dataPermissions);
+        prepareEditable(blogId, userId, dataPermissions);
         return authoring.findVersion(blogId, revisionId)
             .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
     }
@@ -221,7 +271,7 @@ public class BlogServiceImpl implements BlogService {
         String keywords,
         Long userId,
         List<DataPermissionEnum> dataPermissions) {
-        requireEditable(blogId, userId, dataPermissions);
+        prepareEditable(blogId, userId, dataPermissions);
         return blogSearch.searchVersions(
             blogId,
             page,
@@ -231,27 +281,57 @@ public class BlogServiceImpl implements BlogService {
             dataPermissions.contains(DataPermissionEnum.BLOG_VIEW_ALL));
     }
 
-    private void requireEditable(
+    private PreparedBlog prepareEditable(
         Long blogId, Long userId, List<DataPermissionEnum> dataPermissions) {
         BlogIdentity identity =
             authoring.findIdentity(blogId).orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-        Blog blog =
-            blogs.findById(blogId)
-                .orElseGet(
-                    () ->
-                        new Blog(
-                            identity.id(),
-                            identity.userId(),
-                            "",
-                            "",
-                            "",
-                            identity.created(),
-                            identity.created(),
-                            BlogStatusEnum.DRAFT.getCode(),
-                            "",
-                            identity.readCount(),
-                            identity.publicationRevision()));
-        accessPolicy.requireEdit(blog, userId, dataPermissions);
+        accessPolicy.requireEdit(identity, userId, dataPermissions);
+        return new PreparedBlog(
+            identity,
+            authoring.findDraft(blogId).orElse(null),
+            authoring.findPublishedVersion(blogId).orElse(null));
+    }
+
+    private void changeStatus(
+        Long blogId, Long userId, List<DataPermissionEnum> dataPermissions, boolean online) {
+        PreparedBlog prepared = prepareEditable(blogId, userId, dataPermissions);
+        BlogVersion published =
+            prepared.publishedRevision() == null
+                ? authoring.findPublishedVersion(blogId)
+                    .orElseThrow(() -> new MissException(NO_FOUND.getMsg()))
+                : prepared.publishedRevision();
+        authoringWriter.changeStatus(
+            new BlogStatusWriteCommand(
+                prepared.identity(),
+                published,
+                prepared.draft(),
+                userId,
+                LocalDateTime.now(),
+                online));
+    }
+
+    private static boolean same(BlogWorkingDraft draft, BlogVersion revision) {
+        return Objects.equals(draft.title(), revision.title())
+            && Objects.equals(draft.description(), revision.description())
+            && Objects.equals(draft.content(), revision.content())
+            && Objects.equals(draft.link(), revision.link())
+            && draft.renderMode() == revision.renderMode()
+            && new HashSet<>(draft.sensitiveContent())
+                .equals(new HashSet<>(revision.sensitiveContent()));
+    }
+
+    private static void requireDraftRevision(
+        Long blogId, Long expected, BlogWorkingDraft current) {
+        if (expected != null
+            && (current == null || !Objects.equals(expected, current.draftRevision()))) {
+            throw conflict(blogId);
+        }
+    }
+
+    private static BaseException conflict(Long blogId) {
+        return new BaseException(
+            CommonErrorCode.CONFLICT,
+            "blog revision conflict: " + blogId);
     }
 
     private static BlogContentCommand command(BlogDraft blog) {
@@ -334,11 +414,6 @@ public class BlogServiceImpl implements BlogService {
                             span.type(), span.startIndex(), span.endIndex()))
                 .toList(),
             permissions);
-    }
-
-    private static List<BlogSensitiveSpan> toDrafts(
-        List<BlogSensitiveSpan> sensitive) {
-        return sensitive;
     }
 
     @Override
@@ -452,6 +527,12 @@ public class BlogServiceImpl implements BlogService {
             deleted,
             new BlogEventContext(
                 BlogOperateEnum.REMOVE, operatorUserId));
+    }
+
+    private record PreparedBlog(
+        BlogIdentity identity,
+        BlogWorkingDraft draft,
+        BlogVersion publishedRevision) {
     }
 
 }

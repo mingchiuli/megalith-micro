@@ -22,7 +22,8 @@ import wiki.chiu.micro.blog.application.model.BlogExportPage;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
 import wiki.chiu.micro.blog.application.model.BlogQuery;
 import wiki.chiu.micro.blog.application.model.Page;
-import wiki.chiu.micro.blog.application.port.out.BlogAuthoringStore;
+import wiki.chiu.micro.blog.application.port.out.BlogAuthoringReader;
+import wiki.chiu.micro.blog.application.port.out.BlogAuthoringWriter;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
@@ -35,14 +36,15 @@ class BlogSearchReadbackTest {
     private final BlogQueryStore blogs = mock(BlogQueryStore.class);
     private final BlogSearchGateway search = mock(BlogSearchGateway.class);
     private final BlogRuntimeStore runtime = mock(BlogRuntimeStore.class);
-    private final BlogAuthoringStore authoring = mock(BlogAuthoringStore.class);
+    private final BlogAuthoringReader authoring = mock(BlogAuthoringReader.class);
     private final BlogServiceImpl service = new BlogServiceImpl(
         blogs,
         runtime,
         mock(BlogWriter.class),
         search,
         new BlogAccessPolicy(),
-        authoring);
+        authoring,
+        mock(BlogAuthoringWriter.class));
 
     @Test
     void adminListIsServedFromEsAndOnlyDecoratedWithRecentCounts() {

@@ -7,5 +7,15 @@ public record BlogChangedMessage(
     Integer operation,
     Long revision,
     Long operatorUserId,
-    BlogSnapshot blogSnapshot) {
+    BlogSnapshot blogSnapshot,
+    Long adminRevision) {
+
+    public BlogChangedMessage(
+        String eventId,
+        Integer operation,
+        Long revision,
+        Long operatorUserId,
+        BlogSnapshot blogSnapshot) {
+        this(eventId, operation, revision, operatorUserId, blogSnapshot, null);
+    }
 }

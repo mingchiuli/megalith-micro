@@ -40,6 +40,7 @@ import wiki.chiu.micro.blog.application.model.BlogExportPage;
 import wiki.chiu.micro.blog.application.model.BlogExportRow;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
 import wiki.chiu.micro.blog.application.model.BlogVersionSummary;
+import wiki.chiu.micro.blog.application.model.SavedBlogVersion;
 import wiki.chiu.micro.blog.application.model.DeletedBlogItem;
 import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
@@ -48,6 +49,7 @@ import wiki.chiu.micro.blog.application.port.in.BlogExportService;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.blog.domain.BlogVersion;
+import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
@@ -111,6 +113,55 @@ class BlogControllerTest {
             .andExpect(jsonPath("$.code").value(200));
 
         verify(blogService).saveDraft(anyLong(), any(), anyLong(), anyList());
+    }
+
+    @Test
+    void savingAVersionReturnsTheUpdatedDraftRevision() throws Exception {
+        LocalDateTime now = LocalDateTime.of(2026, 11, 1, 10, 0);
+        BlogVersion version =
+            new BlogVersion(
+                9L,
+                7L,
+                2L,
+                BlogRevisionOrigin.DRAFT,
+                8L,
+                "title",
+                "description",
+                "content",
+                "",
+                BlogRenderMode.NORMAL,
+                null,
+                1L,
+                now,
+                List.of());
+        BlogWorkingDraft draft =
+            new BlogWorkingDraft(
+                4L,
+                7L,
+                3L,
+                8L,
+                "title",
+                "description",
+                "content",
+                "",
+                BlogRenderMode.NORMAL,
+                1L,
+                now,
+                List.of());
+        when(blogService.saveDraftVersion(anyLong(), any(), anyLong(), anyList()))
+            .thenReturn(new SavedBlogVersion(draft, version));
+
+        mockMvc
+            .perform(
+                post("/sys/blog/7/versions")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"id\":7,\"draftRevision\":2,\"title\":\"title\","
+                            + "\"description\":\"description\",\"content\":\"content\","
+                            + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":[]}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.draftRevision").value(3))
+            .andExpect(jsonPath("$.data.version.id").value(9));
     }
 
     @Test

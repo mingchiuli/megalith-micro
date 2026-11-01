@@ -12,7 +12,7 @@ import wiki.chiu.micro.blog.application.model.BlogSearchSelection;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
 import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
-import wiki.chiu.micro.blog.application.port.out.BlogAuthoringStore;
+import wiki.chiu.micro.blog.application.port.out.BlogAuthoringReader;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 
@@ -21,9 +21,9 @@ public class BlogExportServiceImpl implements BlogExportService {
     private static final int PAGE_SIZE = 20;
 
     private final BlogSearchGateway search;
-    private final BlogAuthoringStore authoring;
+    private final BlogAuthoringReader authoring;
 
-    public BlogExportServiceImpl(BlogSearchGateway search, BlogAuthoringStore authoring) {
+    public BlogExportServiceImpl(BlogSearchGateway search, BlogAuthoringReader authoring) {
         this.search = search;
         this.authoring = authoring;
     }

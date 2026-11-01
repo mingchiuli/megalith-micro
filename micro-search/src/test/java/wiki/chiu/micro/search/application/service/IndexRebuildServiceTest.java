@@ -3,7 +3,8 @@ package wiki.chiu.micro.search.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -14,6 +15,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.model.IndexRebuildRejectedException;
 import wiki.chiu.micro.search.application.model.IndexSourceStatus;
+import wiki.chiu.micro.search.application.model.SearchIndexKind;
 import wiki.chiu.micro.search.application.port.out.BlogIndexMaintenance;
 import wiki.chiu.micro.search.application.port.out.BlogIndexSource;
 import wiki.chiu.micro.search.application.port.out.SearchRebuildControl;
@@ -45,14 +48,14 @@ class IndexRebuildServiceTest {
 
         var result = service.rebuild();
 
-        assertThat(result.documents()).isEqualTo(3);
+        assertThat(result.indexes()).extracting(index -> index.documents()).containsExactly(3L, 0L, 0L);
         var order = inOrder(indexes);
-        order.verify(indexes).currentIndex();
-        order.verify(indexes).createIndex();
-        order.verify(indexes).writeSnapshots("new", List.of(snapshot(7), snapshot(9)));
-        order.verify(indexes).writeSnapshots("new", List.of(snapshot(15)));
-        order.verify(indexes).refreshAndCount("new");
-        order.verify(indexes).activate("old", "new");
+        order.verify(indexes).currentIndexes();
+        order.verify(indexes).createIndex(SearchIndexKind.PUBLIC_BLOGS);
+        order.verify(indexes).writePublicSnapshots("public-new", List.of(snapshot(7), snapshot(9)));
+        order.verify(indexes).writePublicSnapshots("public-new", List.of(snapshot(15)));
+        order.verify(indexes).refreshAndCount(SearchIndexKind.PUBLIC_BLOGS, "public-new");
+        order.verify(indexes).activate(any());
     }
 
     @Test
@@ -73,28 +76,40 @@ class IndexRebuildServiceTest {
     void failedBatchKeepsThePreviousAlias() {
         prepare();
         doThrow(new IllegalStateException("bulk rejected")).when(indexes)
-            .writeSnapshots("new", List.of(snapshot(15)));
+            .writePublicSnapshots("public-new", List.of(snapshot(15)));
 
         assertThatThrownBy(service::rebuild).hasMessage("bulk rejected");
-        verify(indexes, never()).activate(anyString(), anyString());
+        verify(indexes, never()).activate(any());
     }
 
     @Test
     void changedSourceOrMissingDocumentsPreventsActivation() {
         prepare();
-        when(indexes.refreshAndCount("new")).thenReturn(2L);
+        when(indexes.refreshAndCount(SearchIndexKind.PUBLIC_BLOGS, "public-new"))
+            .thenReturn(2L);
 
         assertThatThrownBy(service::rebuild).hasMessageContaining("counts do not agree");
-        verify(indexes, never()).activate(anyString(), anyString());
+        verify(indexes, never()).activate(any());
     }
 
     private void prepare() {
         when(source.status()).thenReturn(new IndexSourceStatus(true, 0, 0, 3));
         when(source.snapshots(0, 2)).thenReturn(List.of(snapshot(7), snapshot(9)));
         when(source.snapshots(9, 2)).thenReturn(List.of(snapshot(15)));
-        when(indexes.currentIndex()).thenReturn("old");
-        when(indexes.createIndex()).thenReturn("new");
-        when(indexes.refreshAndCount("new")).thenReturn(3L);
+        when(source.adminSnapshots(anyLong(), anyInt())).thenReturn(List.of());
+        when(source.revisionSnapshots(anyLong(), anyInt())).thenReturn(List.of());
+        when(indexes.currentIndexes())
+            .thenReturn(
+                Map.of(
+                    SearchIndexKind.PUBLIC_BLOGS, "public-old",
+                    SearchIndexKind.ADMIN_BLOGS, "admin-old",
+                    SearchIndexKind.REVISIONS, "revision-old"));
+        when(indexes.createIndex(SearchIndexKind.PUBLIC_BLOGS)).thenReturn("public-new");
+        when(indexes.createIndex(SearchIndexKind.ADMIN_BLOGS)).thenReturn("admin-new");
+        when(indexes.createIndex(SearchIndexKind.REVISIONS)).thenReturn("revision-new");
+        when(indexes.refreshAndCount(SearchIndexKind.PUBLIC_BLOGS, "public-new")).thenReturn(3L);
+        when(indexes.refreshAndCount(SearchIndexKind.ADMIN_BLOGS, "admin-new")).thenReturn(0L);
+        when(indexes.refreshAndCount(SearchIndexKind.REVISIONS, "revision-new")).thenReturn(0L);
     }
 
     private BlogIndexChange snapshot(long id) {

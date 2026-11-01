@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogDraftEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftRepository;
+import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftSensitiveContentRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionSensitiveContentRepository;
@@ -26,7 +27,12 @@ class JpaBlogQueryAdapterDeletionTest {
     private final BlogRevisionSensitiveContentRepository sensitive =
         mock(BlogRevisionSensitiveContentRepository.class);
     private final JpaBlogQueryAdapter adapter =
-        new JpaBlogQueryAdapter(blogs, revisions, drafts, sensitive);
+        new JpaBlogQueryAdapter(
+            blogs,
+            revisions,
+            drafts,
+            mock(BlogDraftSensitiveContentRepository.class),
+            sensitive);
 
     @Test
     void deletionTargetsIncludeDraftOnlyBlogsAndBothRevisionCounters() {

@@ -22,6 +22,9 @@ public class BlogRecycleBinServiceImpl implements BlogRecycleBin {
             return;
         }
         runtimeStore.saveDeletedBlog(
-            event.operatorUserId(), event.eventId(), event.blogSnapshot());
+            event.operatorUserId(),
+            event.eventId(),
+            event.blogSnapshot(),
+            event.adminRevision());
     }
 }

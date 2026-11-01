@@ -13,5 +13,17 @@ class BlogIndexSourceContractTest {
             .getAnnotation(GetExchange.class).value()).isEqualTo("/blog/index/status");
         assertThat(BlogIndexSourceHttpService.class.getMethod("indexSnapshots", long.class, int.class)
             .getAnnotation(GetExchange.class).value()).isEqualTo("/blog/index/snapshots");
+        assertThat(
+                BlogIndexSourceHttpService.class
+                    .getMethod("indexAdminSnapshots", long.class, int.class)
+                    .getAnnotation(GetExchange.class)
+                    .value())
+            .isEqualTo("/blog/index/admin-snapshots");
+        assertThat(
+                BlogIndexSourceHttpService.class
+                    .getMethod("indexRevisionSnapshots", long.class, int.class)
+                    .getAnnotation(GetExchange.class)
+                    .value())
+            .isEqualTo("/blog/index/revision-snapshots");
     }
 }

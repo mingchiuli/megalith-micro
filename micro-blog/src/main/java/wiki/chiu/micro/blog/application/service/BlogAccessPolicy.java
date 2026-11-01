@@ -7,6 +7,7 @@ import java.util.Objects;
 
 import wiki.chiu.micro.blog.application.model.BlogPermissions;
 import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.exception.MissException;
@@ -22,9 +23,12 @@ public class BlogAccessPolicy {
     }
 
     public boolean canEdit(Blog blog, Long userId, List<DataPermissionEnum> dataPermissions) {
-        return isAuthenticated(userId)
-            && (Objects.equals(blog.userId(), userId)
-            || has(dataPermissions, DataPermissionEnum.BLOG_EDIT_ALL));
+        return canEdit(blog.userId(), userId, dataPermissions);
+    }
+
+    public boolean canEdit(
+        BlogIdentity identity, Long userId, List<DataPermissionEnum> dataPermissions) {
+        return canEdit(identity.userId(), userId, dataPermissions);
     }
 
     public boolean canDelete(Blog blog, Long userId, List<DataPermissionEnum> dataPermissions) {
@@ -53,6 +57,13 @@ public class BlogAccessPolicy {
         }
     }
 
+    public void requireEdit(
+        BlogIdentity identity, Long userId, List<DataPermissionEnum> dataPermissions) {
+        if (!canEdit(identity, userId, dataPermissions)) {
+            throw new MissException(EDIT_NO_AUTH.getMsg());
+        }
+    }
+
     public void requireAuthenticated(Long userId) {
         if (!isAuthenticated(userId)) {
             throw new MissException(EDIT_NO_AUTH.getMsg());
@@ -66,6 +77,13 @@ public class BlogAccessPolicy {
 
     private boolean isAuthenticated(Long userId) {
         return userId != null && userId > 0;
+    }
+
+    private boolean canEdit(
+        Long ownerId, Long userId, List<DataPermissionEnum> dataPermissions) {
+        return isAuthenticated(userId)
+            && (Objects.equals(ownerId, userId)
+                || has(dataPermissions, DataPermissionEnum.BLOG_EDIT_ALL));
     }
 
     private boolean has(List<DataPermissionEnum> dataPermissions, DataPermissionEnum permission) {

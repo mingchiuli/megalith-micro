@@ -8,5 +8,14 @@ public record BlogAdminIndexChange(
     String operation,
     BlogAdminSnapshot blog,
     BlogDraftSnapshot draft,
-    BlogRevisionSnapshot revision) {
+    BlogRevisionSnapshot revision,
+    BlogRevisionSnapshot publishedRevision) {
+
+    public BlogAdminIndexChange(
+        String operation,
+        BlogAdminSnapshot blog,
+        BlogDraftSnapshot draft,
+        BlogRevisionSnapshot revision) {
+        this(operation, blog, draft, revision, null);
+    }
 }

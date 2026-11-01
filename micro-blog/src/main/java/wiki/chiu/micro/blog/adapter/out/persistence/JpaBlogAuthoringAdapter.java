@@ -2,8 +2,6 @@ package wiki.chiu.micro.blog.adapter.out.persistence;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,13 +18,21 @@ import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionSensitiveContentRepository;
 import wiki.chiu.micro.blog.application.model.BlogContentCommand;
-import wiki.chiu.micro.blog.application.port.out.BlogAuthoringStore;
+import wiki.chiu.micro.blog.application.model.BlogDraftDeleteCommand;
+import wiki.chiu.micro.blog.application.model.BlogDraftWriteCommand;
+import wiki.chiu.micro.blog.application.model.BlogPublishCommand;
+import wiki.chiu.micro.blog.application.model.BlogStatusWriteCommand;
+import wiki.chiu.micro.blog.application.model.BlogVersionWriteCommand;
+import wiki.chiu.micro.blog.application.model.SavedBlogVersion;
+import wiki.chiu.micro.blog.application.port.out.BlogAuthoringWriter;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.enums.BlogAccessMode;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
+import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
+import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
@@ -40,7 +46,7 @@ import wiki.chiu.micro.common.outbox.application.port.in.OutboxEvents;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
 @Component
-public class JpaBlogAuthoringAdapter implements BlogAuthoringStore {
+public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
 
     private final BlogRepository blogs;
     private final BlogRevisionRepository revisions;
@@ -64,365 +70,310 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringStore {
         this.outbox = outbox;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<BlogIdentity> findIdentity(Long blogId) {
-        return blogs.findById(blogId).map(BlogPersistenceMapper::toIdentity);
-    }
-
-    @Override
     @Transactional
+    @Override
     public BlogIdentity createIdentity(Long userId) {
         BlogEntity entity = blogs.save(BlogEntity.newBlog(userId));
         BlogIdentity identity = BlogPersistenceMapper.toIdentity(entity);
-        enqueueAdmin(identity, null, null, "BLOG_CREATED");
+        enqueueAdmin(identity, null, null, null, "BLOG_CREATED");
         return identity;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<BlogWorkingDraft> findDraft(Long blogId) {
-        return drafts.findByBlogId(blogId)
-            .map(
-                draft ->
-                    BlogPersistenceMapper.toDraft(
-                        draft,
-                        draftSensitive.findByBlogId(blogId).stream()
-                            .map(BlogPersistenceMapper::toSpan)
-                            .toList()));
-    }
-
-    @Override
     @Transactional
-    public BlogWorkingDraft saveDraft(
-        Long blogId,
-        Long expectedDraftRevision,
-        BlogContentCommand content,
-        Long userId) {
-        BlogEntity blog = requireBlogForUpdate(blogId);
-        BlogDraftEntity draft = drafts.findByBlogId(blogId).orElse(null);
-        if (expectedDraftRevision != null
-            && (draft == null || !Objects.equals(draft.getDraftRevision(), expectedDraftRevision))) {
-            throw conflict(blogId);
+    @Override
+    public BlogWorkingDraft saveDraft(BlogDraftWriteCommand command) {
+        BlogIdentity original = command.identity();
+        long expectedAdmin = revision(original.adminRevision());
+        if (blogs.bumpAdminRevision(original.id(), expectedAdmin) != 1) {
+            throw conflict(original.id());
         }
 
-        LocalDateTime now = LocalDateTime.now();
-        if (draft == null) {
-            draft =
+        BlogWorkingDraft current = command.currentDraft();
+        long draftRevision = current == null ? 1L : current.draftRevision() + 1;
+        if (current == null) {
+            BlogDraftEntity entity =
                 BlogDraftEntity.create(
-                    blogId,
-                    blog.getPublishedRevisionId(),
-                    content.title(),
-                    content.description(),
-                    content.content(),
-                    content.link(),
-                    content.renderMode(),
-                    userId,
-                    now);
+                    original.id(),
+                    original.publishedRevisionId(),
+                    command.content().title(),
+                    command.content().description(),
+                    command.content().content(),
+                    command.content().link(),
+                    command.content().renderMode(),
+                    command.userId(),
+                    command.now());
+            drafts.save(entity);
         } else {
-            apply(draft, content, blog.getPublishedRevisionId(), userId, now);
+            updateDraft(current, original, command.content(), command.userId(), command.now());
         }
-        BlogDraftEntity persisted = drafts.save(draft);
-        replaceDraftSensitive(blogId, content.sensitiveContent());
-        BlogIdentity identity = bumpAdminRevision(blog);
+        replaceDraftSensitive(original.id(), command.content().sensitiveContent());
         BlogWorkingDraft result =
-            BlogPersistenceMapper.toDraft(persisted, content.sensitiveContent());
-        enqueueAdmin(identity, result, null, "DRAFT_UPSERT");
+            draftResult(original, current, draftRevision, command.content(), command.userId(), command.now());
+        BlogIdentity changed = withAdminRevision(original, expectedAdmin + 1);
+        enqueueAdmin(changed, result, null, command.publishedRevision(), "DRAFT_UPSERT");
         return result;
     }
 
-    @Override
     @Transactional
-    public void deleteDraft(Long blogId) {
-        BlogEntity blog = requireBlogForUpdate(blogId);
-        drafts.findByBlogId(blogId).ifPresent(drafts::delete);
-        draftSensitive.deleteByBlogId(blogId);
-        BlogIdentity identity = bumpAdminRevision(blog);
-        enqueueAdmin(identity, null, null, "DRAFT_DELETE");
+    @Override
+    public void deleteDraft(BlogDraftDeleteCommand command) {
+        BlogIdentity original = command.identity();
+        long expectedAdmin = revision(original.adminRevision());
+        if (blogs.bumpAdminRevision(original.id(), expectedAdmin) != 1) {
+            throw conflict(original.id());
+        }
+        if (command.draft() != null) {
+            drafts.deleteByBlogId(original.id());
+        }
+        draftSensitive.deleteByBlogId(original.id());
+        enqueueAdmin(
+            withAdminRevision(original, expectedAdmin + 1),
+            null,
+            null,
+            command.publishedRevision(),
+            "DRAFT_DELETE");
     }
 
-    @Override
     @Transactional
-    public BlogVersion saveDraftVersion(
-        Long blogId,
-        Long expectedDraftRevision,
-        BlogContentCommand content,
-        Long userId) {
-        BlogEntity blog = requireBlogForUpdate(blogId);
-        BlogDraftEntity draft = drafts.findByBlogId(blogId).orElse(null);
-        if (expectedDraftRevision != null
-            && (draft == null || !Objects.equals(draft.getDraftRevision(), expectedDraftRevision))) {
-            throw conflict(blogId);
+    @Override
+    public SavedBlogVersion saveDraftVersion(BlogVersionWriteCommand command) {
+        BlogIdentity original = command.identity();
+        long expectedAdmin = revision(original.adminRevision());
+        if (blogs.bumpAdminRevision(original.id(), expectedAdmin) != 1) {
+            throw conflict(original.id());
         }
 
-        LocalDateTime now = LocalDateTime.now();
-        if (draft == null) {
-            draft =
-                BlogDraftEntity.create(
-                    blogId,
-                    blog.getPublishedRevisionId(),
-                    content.title(),
-                    content.description(),
-                    content.content(),
-                    content.link(),
-                    content.renderMode(),
-                    userId,
-                    now);
-        } else {
-            apply(draft, content, blog.getPublishedRevisionId(), userId, now);
-        }
-        draft = drafts.save(draft);
-        replaceDraftSensitive(blogId, content.sensitiveContent());
-
-        BlogRevisionEntity revision =
-            revisions.save(
-                new BlogRevisionEntity(
-                    null,
-                    blogId,
-                    nextVersion(blogId),
-                    BlogRevisionOrigin.DRAFT,
-                    draft.getBasePublishedRevisionId(),
-                    draft.getTitle(),
-                    draft.getDescription(),
-                    draft.getContent(),
-                    draft.getLink(),
-                    draft.getRenderMode(),
-                    null,
-                    userId,
-                    now));
-        replaceRevisionSensitive(
-            revision.getId(),
-            draftSensitive.findByBlogId(blogId).stream()
-                .map(entity -> new BlogSensitiveSpan(
-                    entity.getStartIndex(), entity.getEndIndex(), entity.getType()))
-                .toList());
-        BlogIdentity identity = bumpAdminRevision(blog);
-        BlogWorkingDraft workingDraft = BlogPersistenceMapper.toDraft(
-            draft,
-            draftSensitive.findByBlogId(blogId).stream()
-                .map(BlogPersistenceMapper::toSpan)
-                .toList());
-        BlogVersion version = BlogPersistenceMapper.toVersion(
-            revision,
-            draftSensitive.findByBlogId(blogId).stream()
-                .map(entity -> new BlogSensitiveSpan(
-                    entity.getStartIndex(), entity.getEndIndex(), entity.getType()))
-                .toList());
-        enqueueAdmin(identity, workingDraft, version, "REVISION_CREATE");
-        return version;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<BlogVersion> findVersion(Long blogId, Long revisionId) {
-        return revisions.findByIdAndBlogId(revisionId, blogId)
-            .map(
-                revision ->
-                    BlogPersistenceMapper.toVersion(
-                        revision,
-                        revisionSensitive.findByRevisionId(revisionId).stream()
-                            .map(BlogPersistenceMapper::toSpan)
-                            .toList()));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<BlogVersion> findPreviousVersion(Long blogId, Long revisionId) {
-        BlogRevisionEntity current = revisions.findByIdAndBlogId(revisionId, blogId).orElse(null);
+        BlogWorkingDraft current = command.currentDraft();
+        long draftRevision = current == null ? 1L : current.draftRevision() + 1;
         if (current == null) {
-            return Optional.empty();
+            drafts.save(
+                BlogDraftEntity.create(
+                    original.id(),
+                    original.publishedRevisionId(),
+                    command.content().title(),
+                    command.content().description(),
+                    command.content().content(),
+                    command.content().link(),
+                    command.content().renderMode(),
+                    command.userId(),
+                    command.now()));
+        } else {
+            updateDraft(current, original, command.content(), command.userId(), command.now());
         }
-        return revisions.findFirstByBlogIdAndVersionNoLessThanOrderByVersionNoDesc(
-                blogId, current.getVersionNo())
-            .map(
-                revision ->
-                    BlogPersistenceMapper.toVersion(
-                        revision,
-                        revisionSensitive.findByRevisionId(revision.getId()).stream()
-                            .map(BlogPersistenceMapper::toSpan)
-                            .toList()));
-    }
+        replaceDraftSensitive(original.id(), command.content().sensitiveContent());
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<BlogVersion> findVersions(Long blogId) {
-        List<BlogRevisionEntity> entities = revisions.findByBlogIdOrderByVersionNoAsc(blogId);
-        return BlogPersistenceMapper.toVersions(
-            entities,
-            revisionSensitive.findByRevisionIdIn(
-                entities.stream().map(BlogRevisionEntity::getId).toList()));
-    }
-
-    @Override
-    @Transactional
-    public void publish(Long blogId, Long revisionId, Long userId, Integer accessMode) {
-        BlogEntity blog = requireBlogForUpdate(blogId);
-        BlogRevisionEntity revision =
-            revisions.findByIdAndBlogId(revisionId, blogId)
-                .orElseThrow(() -> conflict(blogId));
-        Long latestVersion =
-            revisions.findFirstByBlogIdOrderByVersionNoDesc(blogId)
-                .map(BlogRevisionEntity::getVersionNo)
-                .orElse(null);
-        if (revision.getFirstPublishedAt() == null
-            && revision.getOrigin() == BlogRevisionOrigin.DRAFT
-            && !revision.getVersionNo().equals(latestVersion)) {
-            throw conflict(blogId);
-        }
-        LocalDateTime now = LocalDateTime.now();
-        if (revision.getFirstPublishedAt() == null) {
-            revision.setFirstPublishedAt(now);
-        }
-        blog.setPublishedRevisionId(revisionId);
-        blog.setPublishedAt(now);
-        blog.setOfflineAt(null);
-        if (accessMode != null) {
-            blog.setAccessMode(BlogAccessMode.of(accessMode).getCode());
-        }
-        blog.setPublicationRevision(blog.getPublicationRevision() + 1);
-        blog.setAdminRevision(blog.getAdminRevision() + 1);
-
-        BlogVersion archivedDraft = archiveDraftIfNeeded(blog, revision, userId, now);
-        BlogIdentity identity = BlogPersistenceMapper.toIdentity(blog);
-        BlogVersion version = version(revision);
-        BlogSnapshot published = publishedSnapshot(blog, revision);
-        enqueuePublic(BlogOperateEnum.UPDATE.getCode(), published, userId);
-        enqueueAdmin(identity, currentDraft(blogId), version, "PUBLICATION_UPSERT");
-        if (archivedDraft != null) {
-            enqueueAdmin(identity, null, archivedDraft, "REVISION_CREATE");
-        }
-    }
-
-    @Override
-    @Transactional
-    public void offline(Long blogId, Long userId) {
-        BlogEntity blog = requireBlogForUpdate(blogId);
-        if (blog.getPublishedRevisionId() == null) {
-            throw conflict(blogId);
-        }
-        blog.setOfflineAt(LocalDateTime.now());
-        blog.setPublicationRevision(blog.getPublicationRevision() + 1);
-        blog.setAdminRevision(blog.getAdminRevision() + 1);
-        BlogRevisionEntity revision = requireRevision(blog);
-        enqueuePublic(
-            BlogOperateEnum.UPDATE.getCode(), publishedSnapshot(blog, revision), userId);
-        enqueueAdmin(
-            BlogPersistenceMapper.toIdentity(blog),
-            currentDraft(blogId),
-            version(revision),
-            "OFFLINE");
-    }
-
-    @Override
-    @Transactional
-    public void online(Long blogId, Long userId) {
-        BlogEntity blog = requireBlogForUpdate(blogId);
-        if (blog.getPublishedRevisionId() == null) {
-            throw conflict(blogId);
-        }
-        blog.setOfflineAt(null);
-        blog.setPublishedAt(LocalDateTime.now());
-        blog.setPublicationRevision(blog.getPublicationRevision() + 1);
-        blog.setAdminRevision(blog.getAdminRevision() + 1);
-        BlogRevisionEntity revision = requireRevision(blog);
-        enqueuePublic(
-            BlogOperateEnum.UPDATE.getCode(), publishedSnapshot(blog, revision), userId);
-        enqueueAdmin(
-            BlogPersistenceMapper.toIdentity(blog),
-            currentDraft(blogId),
-            version(revision),
-            "ONLINE");
-    }
-
-    @Override
-    @Transactional
-    public void rebuildProjections(Long blogId) {
-        BlogEntity blog =
-            blogs.findById(blogId)
-                .orElseThrow(
-                    () ->
-                        new BaseException(
-                            CommonErrorCode.CONFLICT, "blog not found: " + blogId));
-        BlogIdentity identity = BlogPersistenceMapper.toIdentity(blog);
-        BlogWorkingDraft draft = currentDraft(blogId);
-        BlogRevisionEntity revision =
-            blog.getPublishedRevisionId() == null
-                ? null
-                : revisions.findById(blog.getPublishedRevisionId()).orElse(null);
-        BlogVersion version = revision == null ? null : version(revision);
-        enqueueAdmin(identity, draft, version, "REBUILD");
-        if (revision != null) {
-            enqueuePublic(
-                BlogOperateEnum.UPDATE.getCode(),
-                publishedSnapshot(blog, revision),
-                blog.getUserId());
-        }
-    }
-
-    private BlogVersion archiveDraftIfNeeded(
-        BlogEntity blog, BlogRevisionEntity published, Long userId, LocalDateTime now) {
-        BlogDraftEntity draft = drafts.findByBlogId(blog.getId()).orElse(null);
-        if (draft == null) {
-            return null;
-        }
-        if (same(draft, published)) {
-            drafts.delete(draft);
-            draftSensitive.deleteByBlogId(blog.getId());
-            return null;
-        }
-        BlogRevisionEntity archived =
+        BlogRevisionEntity savedRevision =
             revisions.save(
                 new BlogRevisionEntity(
                     null,
-                    blog.getId(),
-                    nextVersion(blog.getId()),
+                    original.id(),
+                    command.nextVersion(),
                     BlogRevisionOrigin.DRAFT,
-                    draft.getBasePublishedRevisionId(),
-                    draft.getTitle(),
-                    draft.getDescription(),
-                    draft.getContent(),
-                    draft.getLink(),
-                    draft.getRenderMode(),
+                    original.publishedRevisionId(),
+                    command.content().title(),
+                    command.content().description(),
+                    command.content().content(),
+                    command.content().link(),
+                    command.content().renderMode(),
                     null,
-                    userId,
-                    now));
-        replaceRevisionSensitive(
-            archived.getId(),
-            draftSensitive.findByBlogId(blog.getId()).stream()
-                .map(entity -> new BlogSensitiveSpan(
-                    entity.getStartIndex(), entity.getEndIndex(), entity.getType()))
-                .toList());
-        drafts.delete(draft);
-        draftSensitive.deleteByBlogId(blog.getId());
-        return version(archived);
+                    command.userId(),
+                    command.now()));
+        replaceRevisionSensitive(savedRevision.getId(), command.content().sensitiveContent());
+
+        BlogWorkingDraft draft =
+            draftResult(original, current, draftRevision, command.content(), command.userId(), command.now());
+        BlogVersion version =
+            version(savedRevision, command.content().sensitiveContent());
+        BlogIdentity changed = withAdminRevision(original, expectedAdmin + 1);
+        enqueueAdmin(
+            changed,
+            draft,
+            version,
+            command.publishedRevision(),
+            "REVISION_CREATE");
+        return new SavedBlogVersion(draft, version);
     }
 
-    private boolean same(BlogDraftEntity draft, BlogRevisionEntity revision) {
-        return Objects.equals(draft.getTitle(), revision.getTitle())
-            && Objects.equals(draft.getDescription(), revision.getDescription())
-            && Objects.equals(draft.getContent(), revision.getContent())
-            && Objects.equals(draft.getLink(), revision.getLink())
-            && draft.getRenderMode() == revision.getRenderMode();
+    @Transactional
+    @Override
+    public void publish(BlogPublishCommand command) {
+        BlogIdentity original = command.identity();
+        BlogVersion selected = command.revision();
+        if (selected.firstPublishedAt() == null
+            && revisions.markFirstPublished(selected.id(), original.id(), command.now()) != 1) {
+            throw conflict(original.id());
+        }
+        int accessMode =
+            command.accessMode() == null
+                ? original.accessMode().getCode()
+                : BlogAccessMode.of(command.accessMode()).getCode();
+        if (blogs.publish(
+                original.id(),
+                selected.id(),
+                command.now(),
+                command.accessMode(),
+                revision(original.publicationRevision()),
+                revision(original.adminRevision()))
+            != 1) {
+            throw conflict(original.id());
+        }
+
+        BlogVersion archivedVersion = null;
+        if (command.currentDraft() != null) {
+            if (command.archivedDraft() != null) {
+                BlogRevisionEntity archived =
+                    revisions.save(
+                        new BlogRevisionEntity(
+                            null,
+                            original.id(),
+                            command.archivedVersionNo(),
+                            BlogRevisionOrigin.DRAFT,
+                            command.archivedDraft().basePublishedRevisionId(),
+                            command.archivedDraft().title(),
+                            command.archivedDraft().description(),
+                            command.archivedDraft().content(),
+                            command.archivedDraft().link(),
+                            command.archivedDraft().renderMode(),
+                            null,
+                            command.userId(),
+                            command.now()));
+                replaceRevisionSensitive(
+                    archived.getId(), command.archivedDraft().sensitiveContent());
+                archivedVersion =
+                    version(archived, command.archivedDraft().sensitiveContent());
+            }
+            drafts.deleteByBlogId(original.id());
+            draftSensitive.deleteByBlogId(original.id());
+        }
+
+        BlogVersion published =
+            selected.firstPublishedAt() == null
+                ? withFirstPublishedAt(selected, command.now())
+                : selected;
+        BlogIdentity changed =
+            new BlogIdentity(
+                original.id(),
+                original.userId(),
+                original.created(),
+                original.readCount(),
+                selected.id(),
+                command.now(),
+                null,
+                BlogAccessMode.of(accessMode),
+                revision(original.publicationRevision()) + 1,
+                revision(original.adminRevision()) + 1);
+        enqueuePublic(
+            BlogOperateEnum.UPDATE,
+            snapshot(changed, published),
+            command.userId(),
+            changed.adminRevision());
+        enqueueAdmin(
+            changed,
+            null,
+            published,
+            published,
+            "PUBLICATION_UPSERT");
+        if (command.archivedDraft() != null) {
+            enqueueAdmin(
+                changed,
+                null,
+                archivedVersion,
+                published,
+                "REVISION_CREATE");
+        }
     }
 
-    private void apply(
-        BlogDraftEntity draft,
+    @Transactional
+    @Override
+    public void changeStatus(BlogStatusWriteCommand command) {
+        BlogIdentity original = command.identity();
+        int changed =
+            command.online()
+                ? blogs.setOnlineAt(
+                    original.id(),
+                    command.now(),
+                    revision(original.publicationRevision()),
+                    revision(original.adminRevision()))
+                : blogs.setOfflineAt(
+                    original.id(),
+                    command.now(),
+                    revision(original.publicationRevision()),
+                    revision(original.adminRevision()));
+        if (changed != 1) {
+            throw conflict(original.id());
+        }
+
+        BlogIdentity next =
+            new BlogIdentity(
+                original.id(),
+                original.userId(),
+                original.created(),
+                original.readCount(),
+                original.publishedRevisionId(),
+                command.online() ? command.now() : original.publishedAt(),
+                command.online() ? null : command.now(),
+                original.accessMode(),
+                revision(original.publicationRevision()) + 1,
+                revision(original.adminRevision()) + 1);
+        enqueuePublic(
+            BlogOperateEnum.UPDATE,
+            snapshot(next, command.revision()),
+            command.userId(),
+            next.adminRevision());
+        enqueueAdmin(
+            next,
+            command.draft(),
+            command.revision(),
+            command.revision(),
+            command.online() ? "ONLINE" : "OFFLINE");
+    }
+
+    private void updateDraft(
+        BlogWorkingDraft current,
+        BlogIdentity identity,
         BlogContentCommand content,
-        Long publishedRevisionId,
         Long userId,
         LocalDateTime now) {
-        draft.setBasePublishedRevisionId(publishedRevisionId);
-        draft.setTitle(content.title());
-        draft.setDescription(content.description());
-        draft.setContent(content.content());
-        draft.setLink(content.link());
-        draft.setRenderMode(content.renderMode());
-        draft.setUpdatedBy(userId);
-        draft.setUpdatedAt(now);
-        draft.setDraftRevision(draft.getDraftRevision() + 1);
+        if (drafts.updateContent(
+                current.id(),
+                current.draftRevision(),
+                identity.publishedRevisionId(),
+                content.title(),
+                content.description(),
+                content.content(),
+                content.link(),
+                content.renderMode(),
+                userId,
+                now)
+            != 1) {
+            throw conflict(identity.id());
+        }
     }
 
-    private void replaceDraftSensitive(Long blogId, List<BlogSensitiveSpan> spans) {
+    private BlogWorkingDraft draftResult(
+        BlogIdentity identity,
+        BlogWorkingDraft current,
+        long draftRevision,
+        BlogContentCommand content,
+        Long userId,
+        LocalDateTime now) {
+        return new BlogWorkingDraft(
+            current == null ? null : current.id(),
+            identity.id(),
+            draftRevision,
+            identity.publishedRevisionId(),
+            content.title(),
+            content.description(),
+            content.content(),
+            content.link(),
+            content.renderMode(),
+            userId,
+            now,
+            content.sensitiveContent());
+    }
+
+    private void replaceDraftSensitive(
+        Long blogId, List<BlogSensitiveSpan> spans) {
         draftSensitive.deleteByBlogId(blogId);
         draftSensitive.saveAll(
             spans.stream()
@@ -438,7 +389,8 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringStore {
                 .toList());
     }
 
-    private void replaceRevisionSensitive(Long revisionId, List<BlogSensitiveSpan> spans) {
+    private void replaceRevisionSensitive(
+        Long revisionId, List<BlogSensitiveSpan> spans) {
         revisionSensitive.deleteByRevisionId(revisionId);
         revisionSensitive.saveAll(
             spans.stream()
@@ -454,66 +406,43 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringStore {
                 .toList());
     }
 
-    private BlogEntity requireBlogForUpdate(Long blogId) {
-        return blogs.findForUpdate(blogId)
-            .orElseThrow(() -> new BaseException(CommonErrorCode.CONFLICT, "blog not found"));
+    private void enqueueAdmin(
+        BlogIdentity identity,
+        BlogWorkingDraft draft,
+        BlogVersion revision,
+        BlogVersion publishedRevision,
+        String operation) {
+        outbox.enqueue(
+            OutboxProducer.BLOG,
+            "BLOG",
+            identity.id(),
+            eventId ->
+                new BlogAdminIndexMessage(
+                    eventId,
+                    operation,
+                    adminSnapshot(identity),
+                    draftSnapshot(draft),
+                    revisionSnapshot(revision),
+                    revisionSnapshot(publishedRevision)));
     }
 
-    private BlogRevisionEntity requireRevision(BlogEntity blog) {
-        return revisions.findById(blog.getPublishedRevisionId())
-            .orElseThrow(() -> conflict(blog.getId()));
+    private void enqueuePublic(
+        BlogOperateEnum operation, BlogSnapshot snapshot, Long userId, Long adminRevision) {
+        outbox.enqueue(
+            OutboxProducer.BLOG,
+            "BLOG",
+            snapshot.id(),
+            eventId ->
+                new BlogChangedMessage(
+                    eventId,
+                    operation.getCode(),
+                    snapshot.revision(),
+                    userId,
+                    snapshot,
+                    adminRevision));
     }
 
-    private long nextVersion(Long blogId) {
-        return revisions.findFirstByBlogIdOrderByVersionNoDesc(blogId)
-            .map(revision -> revision.getVersionNo() + 1)
-            .orElse(1L);
-    }
-
-    private BlogIdentity bumpAdminRevision(BlogEntity blog) {
-        blog.setAdminRevision(blog.getAdminRevision() + 1);
-        return BlogPersistenceMapper.toIdentity(blog);
-    }
-
-    private BlogVersion version(BlogRevisionEntity revision) {
-        return BlogPersistenceMapper.toVersion(
-            revision,
-            revisionSensitive.findByRevisionId(revision.getId()).stream()
-                .map(BlogPersistenceMapper::toSpan)
-                .toList());
-    }
-
-    private BlogWorkingDraft currentDraft(Long blogId) {
-        return findDraft(blogId).orElse(null);
-    }
-
-    private BlogSnapshot publishedSnapshot(BlogEntity blog, BlogRevisionEntity revision) {
-        List<BlogSensitiveSpan> spans =
-            revisionSensitive.findByRevisionId(revision.getId()).stream()
-                .map(BlogPersistenceMapper::toSpan)
-                .toList();
-        Integer status = BlogPersistenceMapper.status(blog, revision);
-        return new BlogSnapshot(
-            blog.getId(),
-            blog.getUserId(),
-            revision.getTitle(),
-            revision.getDescription(),
-            revision.getContent(),
-            blog.getCreated(),
-            revision.getFirstPublishedAt(),
-            status,
-            revision.getLink(),
-            blog.getReadCount(),
-            blog.getPublicationRevision(),
-            revision.getId(),
-            blog.getPublishedAt(),
-            blog.getOfflineAt(),
-            blog.getAccessMode(),
-            revision.getRenderMode().getCode(),
-            spans);
-    }
-
-    private BlogAdminSnapshot adminSnapshot(BlogIdentity identity) {
+    private static BlogAdminSnapshot adminSnapshot(BlogIdentity identity) {
         return new BlogAdminSnapshot(
             identity.id(),
             identity.userId(),
@@ -527,7 +456,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringStore {
             identity.created());
     }
 
-    private BlogDraftSnapshot draftSnapshot(BlogWorkingDraft draft) {
+    private static BlogDraftSnapshot draftSnapshot(BlogWorkingDraft draft) {
         if (draft == null) {
             return null;
         }
@@ -545,7 +474,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringStore {
             draft.sensitiveContent());
     }
 
-    private BlogRevisionSnapshot revisionSnapshot(BlogVersion version) {
+    private static BlogRevisionSnapshot revisionSnapshot(BlogVersion version) {
         if (version == null) {
             return null;
         }
@@ -566,35 +495,93 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringStore {
             version.sensitiveContent());
     }
 
-    private void enqueueAdmin(
-        BlogIdentity identity,
-        BlogWorkingDraft draft,
-        BlogVersion revision,
-        String operation) {
-        outbox.enqueue(
-            OutboxProducer.BLOG,
-            "BLOG",
+    private static BlogVersion version(
+        BlogRevisionEntity entity, List<BlogSensitiveSpan> sensitiveContent) {
+        return new BlogVersion(
+            entity.getId(),
+            entity.getBlogId(),
+            entity.getVersionNo(),
+            entity.getOrigin(),
+            entity.getBaseRevisionId(),
+            entity.getTitle(),
+            entity.getDescription(),
+            entity.getContent(),
+            entity.getLink(),
+            entity.getRenderMode(),
+            entity.getFirstPublishedAt(),
+            entity.getCreatedBy(),
+            entity.getCreatedAt(),
+            sensitiveContent);
+    }
+
+    private static BlogVersion withFirstPublishedAt(
+        BlogVersion version, LocalDateTime publishedAt) {
+        return new BlogVersion(
+            version.id(),
+            version.blogId(),
+            version.versionNo(),
+            version.origin(),
+            version.baseRevisionId(),
+            version.title(),
+            version.description(),
+            version.content(),
+            version.link(),
+            version.renderMode(),
+            publishedAt,
+            version.createdBy(),
+            version.createdAt(),
+            version.sensitiveContent());
+    }
+
+    private static BlogSnapshot snapshot(BlogIdentity identity, BlogVersion revision) {
+        Integer status =
+            identity.offlineAt() != null
+                    || identity.accessMode() == BlogAccessMode.RESTRICTED
+                ? BlogStatusEnum.HIDE.getCode()
+                : revision.renderMode() == BlogRenderMode.SENSITIVE_FILTER
+                    ? BlogStatusEnum.SENSITIVE_FILTER.getCode()
+                    : BlogStatusEnum.NORMAL.getCode();
+        return new BlogSnapshot(
             identity.id(),
-            eventId ->
-                new BlogAdminIndexMessage(
-                    eventId,
-                    operation,
-                    adminSnapshot(identity),
-                    draftSnapshot(draft),
-                    revisionSnapshot(revision)));
+            identity.userId(),
+            revision.title(),
+            revision.description(),
+            revision.content(),
+            identity.created(),
+            revision.firstPublishedAt(),
+            status,
+            revision.link(),
+            identity.readCount(),
+            identity.publicationRevision(),
+            revision.id(),
+            identity.publishedAt(),
+            identity.offlineAt(),
+            identity.accessMode().getCode(),
+            revision.renderMode().getCode(),
+            revision.sensitiveContent());
     }
 
-    private void enqueuePublic(Integer operation, BlogSnapshot snapshot, Long userId) {
-        outbox.enqueue(
-            OutboxProducer.BLOG,
-            "BLOG",
-            snapshot.id(),
-            eventId ->
-                new BlogChangedMessage(
-                    eventId, operation, snapshot.revision(), userId, snapshot));
+    private static BlogIdentity withAdminRevision(
+        BlogIdentity identity, long adminRevision) {
+        return new BlogIdentity(
+            identity.id(),
+            identity.userId(),
+            identity.created(),
+            identity.readCount(),
+            identity.publishedRevisionId(),
+            identity.publishedAt(),
+            identity.offlineAt(),
+            identity.accessMode(),
+            identity.publicationRevision(),
+            adminRevision);
     }
 
-    private BaseException conflict(Long blogId) {
-        return new BaseException(CommonErrorCode.CONFLICT, "blog revision conflict: " + blogId);
+    private static long revision(Long value) {
+        return value == null ? 0L : value;
+    }
+
+    private static BaseException conflict(Long blogId) {
+        return new BaseException(
+            CommonErrorCode.CONFLICT, "blog revision conflict: " + blogId);
     }
 }

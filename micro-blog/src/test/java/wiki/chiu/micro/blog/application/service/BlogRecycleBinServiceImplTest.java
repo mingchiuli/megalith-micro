@@ -26,7 +26,7 @@ class BlogRecycleBinServiceImplTest {
 
         service.recycle(event);
 
-        verify(runtimeStore).saveDeletedBlog(42L, "event-7", snapshot);
+        verify(runtimeStore).saveDeletedBlog(42L, "event-7", snapshot, null);
     }
 
     @Test

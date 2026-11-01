@@ -30,6 +30,7 @@ import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogDraftEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogRevisionEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftRepository;
+import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftSensitiveContentRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionSensitiveContentRepository;
@@ -77,6 +78,7 @@ class BlogIndexQueriesIntegrationTest {
                     blogs,
                     revisions,
                     context.getBean(BlogDraftRepository.class),
+                    context.getBean(BlogDraftSensitiveContentRepository.class),
                     context.getBean(BlogRevisionSensitiveContentRepository.class));
 
             assertThat(adapter.findReadCountsAfter(0, 1))
@@ -88,6 +90,10 @@ class BlogIndexQueriesIntegrationTest {
             assertThat(snapshot.id()).isEqualTo(ids.get(1));
             assertThat(snapshot.revision()).isEqualTo(11L);
             assertThat(snapshot.title()).isEqualTo("title-11");
+            assertThat(adapter.findAdminSnapshotsAfter(0, 10))
+                .hasSize(2)
+                .allSatisfy(admin -> assertThat(admin.publishedRevision()).isNotNull());
+            assertThat(adapter.findRevisionSnapshotsAfter(0, 10)).hasSize(2);
         }
     }
 
@@ -122,12 +128,50 @@ class BlogIndexQueriesIntegrationTest {
                     blogs,
                     context.getBean(BlogRevisionRepository.class),
                     drafts,
+                    context.getBean(BlogDraftSensitiveContentRepository.class),
                     context.getBean(BlogRevisionSensitiveContentRepository.class));
 
             var target = adapter.findDeletionTargetsByIds(List.of(blogId)).getFirst();
 
             assertThat(target.blog().title()).isEqualTo("draft");
             assertThat(target.identity().adminRevision()).isZero();
+        }
+    }
+
+    @Test
+    void conditionalWritesRejectStaleRevisionsAndPublishWithoutReadingBack() {
+        try (var context = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
+            var blogs = context.getBean(BlogRepository.class);
+            var revisions = context.getBean(BlogRevisionRepository.class);
+            var transaction =
+                new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
+
+            transaction.executeWithoutResult(
+                status -> {
+                    BlogEntity blog = blogs.save(blog(0L, 0L));
+                    BlogRevisionEntity revision = revisions.save(revision(blog, 1L));
+
+                    assertThat(blogs.bumpAdminRevision(blog.getId(), 0L)).isEqualTo(1);
+                    assertThat(blogs.bumpAdminRevision(blog.getId(), 0L)).isZero();
+                    assertThat(
+                            blogs.publish(
+                                blog.getId(),
+                                revision.getId(),
+                                LocalDateTime.now(),
+                                0,
+                                0L,
+                                1L))
+                        .isEqualTo(1);
+                    assertThat(
+                            blogs.publish(
+                                blog.getId(),
+                                revision.getId(),
+                                LocalDateTime.now(),
+                                0,
+                                0L,
+                                1L))
+                        .isZero();
+                });
         }
     }
 

@@ -370,6 +370,11 @@ export interface BlogVersion extends BlogVersionSummary {
   sensitiveContent: SensitiveItem[]
 }
 
+export interface BlogVersionSaveResponse {
+  draftRevision: number
+  version: BlogVersion
+}
+
 export interface BlogVersionComparison {
   previous: BlogVersion
   current: BlogVersion

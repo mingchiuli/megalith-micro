@@ -16,7 +16,9 @@ public class BlogIndexSourceRoutes {
     RouterFunction<ServerResponse> indexSourceRouter(BlogIndexSourceHttpHandler handler) {
         return withDefaultErrorHandling(route()
             .GET("/inner/blog/index/status", handler::status)
-            .GET("/inner/blog/index/snapshots", handler::snapshots),
+            .GET("/inner/blog/index/snapshots", handler::snapshots)
+            .GET("/inner/blog/index/admin-snapshots", handler::adminSnapshots)
+            .GET("/inner/blog/index/revision-snapshots", handler::revisionSnapshots),
             LoggerFactory.getLogger(BlogIndexSourceRoutes.class)).build();
     }
 }

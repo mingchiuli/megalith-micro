@@ -20,7 +20,9 @@ import org.mockito.ArgumentCaptor;
 import wiki.chiu.micro.blog.adapter.out.persistence.BlogWrapper;
 import wiki.chiu.micro.blog.application.model.BlogDeletionTarget;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
-import wiki.chiu.micro.blog.application.port.out.BlogAuthoringStore;
+import wiki.chiu.micro.blog.application.model.BlogPublishCommand;
+import wiki.chiu.micro.blog.application.port.out.BlogAuthoringReader;
+import wiki.chiu.micro.blog.application.port.out.BlogAuthoringWriter;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
@@ -29,9 +31,12 @@ import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogFixtures;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
+import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.common.enums.BlogAccessMode;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
+import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
+import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 
 class BlogServiceImplTest {
 
@@ -44,7 +49,8 @@ class BlogServiceImplTest {
                 mock(BlogWrapper.class),
                 mock(BlogSearchGateway.class),
                 new BlogAccessPolicy(),
-                mock(BlogAuthoringStore.class));
+                mock(BlogAuthoringReader.class),
+                mock(BlogAuthoringWriter.class));
 
         var edit = service.findEdit(null, 42L, List.of());
 
@@ -93,7 +99,8 @@ class BlogServiceImplTest {
                 writer,
                 mock(BlogSearchGateway.class),
                 new BlogAccessPolicy(),
-                mock(BlogAuthoringStore.class));
+                mock(BlogAuthoringReader.class),
+                mock(BlogAuthoringWriter.class));
         ArgumentCaptor<BlogEventContext> event = ArgumentCaptor.forClass(BlogEventContext.class);
         ArgumentCaptor<List<BlogDeletionTarget>> deleted = captor();
 
@@ -129,7 +136,8 @@ class BlogServiceImplTest {
                 writer,
                 mock(BlogSearchGateway.class),
                 new BlogAccessPolicy(),
-                mock(BlogAuthoringStore.class));
+                mock(BlogAuthoringReader.class),
+                mock(BlogAuthoringWriter.class));
 
         service.deleteBatch(List.of(7L), 42L, List.of());
 
@@ -145,7 +153,7 @@ class BlogServiceImplTest {
     @Test
     void editorLoadsAnActiveDraftThatIsNewerThanTheCurrentPublication() {
         BlogQueryStore blogs = mock(BlogQueryStore.class);
-        BlogAuthoringStore authoring = mock(BlogAuthoringStore.class);
+        BlogAuthoringReader authoring = mock(BlogAuthoringReader.class);
         LocalDateTime publishedAt = LocalDateTime.of(2026, 9, 1, 10, 0);
         BlogIdentity identity =
             new BlogIdentity(
@@ -192,7 +200,8 @@ class BlogServiceImplTest {
                 mock(BlogWrapper.class),
                 mock(BlogSearchGateway.class),
                 new BlogAccessPolicy(),
-                authoring);
+                authoring,
+                mock(BlogAuthoringWriter.class));
 
         var edit = service.findEdit(7L, 42L, List.of());
 
@@ -205,7 +214,7 @@ class BlogServiceImplTest {
     @Test
     void editorKeepsThePublicationWhenItsDraftIsOlder() {
         BlogQueryStore blogs = mock(BlogQueryStore.class);
-        BlogAuthoringStore authoring = mock(BlogAuthoringStore.class);
+        BlogAuthoringReader authoring = mock(BlogAuthoringReader.class);
         LocalDateTime publishedAt = LocalDateTime.of(2026, 9, 1, 10, 0);
         BlogIdentity identity =
             new BlogIdentity(
@@ -252,13 +261,56 @@ class BlogServiceImplTest {
                 mock(BlogWrapper.class),
                 mock(BlogSearchGateway.class),
                 new BlogAccessPolicy(),
-                authoring);
+                authoring,
+                mock(BlogAuthoringWriter.class));
 
         var edit = service.findEdit(7L, 42L, List.of());
 
         assertEquals("published", edit.title());
         assertFalse(edit.draftNewer());
         assertTrue(edit.hasDraft());
+    }
+
+    @Test
+    void publishingArchivesAWorkingDraftWhenOnlySensitiveSpansChanged() {
+        BlogQueryStore blogs = mock(BlogQueryStore.class);
+        BlogAuthoringReader reader = mock(BlogAuthoringReader.class);
+        BlogAuthoringWriter writer = mock(BlogAuthoringWriter.class);
+        LocalDateTime now = LocalDateTime.of(2026, 11, 1, 10, 0);
+        BlogIdentity identity =
+            new BlogIdentity(
+                7L, 42L, now.minusDays(1), 0L, 11L, now, null,
+                BlogAccessMode.PUBLIC, 2L, 3L);
+        BlogWorkingDraft draft =
+            new BlogWorkingDraft(
+                1L, 7L, 2L, 11L, "title", "description", "content", "",
+                BlogRenderMode.NORMAL, 42L, now, List.of(new BlogSensitiveSpan(1, 2, 1)));
+        BlogVersion published =
+            new BlogVersion(
+                11L, 7L, 1L, BlogRevisionOrigin.PUBLICATION, null,
+                "title", "description", "content", "", BlogRenderMode.NORMAL,
+                now, 42L, now, List.of());
+        when(reader.findIdentity(7L)).thenReturn(Optional.of(identity));
+        when(reader.findDraft(7L)).thenReturn(Optional.of(draft));
+        when(reader.findPublishedVersion(7L)).thenReturn(Optional.of(published));
+        when(reader.findVersion(7L, 11L)).thenReturn(Optional.of(published));
+        when(reader.findLatestVersion(7L)).thenReturn(Optional.of(published));
+        BlogServiceImpl service =
+            new BlogServiceImpl(
+                blogs,
+                mock(BlogRuntimeStore.class),
+                mock(BlogWrapper.class),
+                mock(BlogSearchGateway.class),
+                new BlogAccessPolicy(),
+                reader,
+                writer);
+
+        service.publish(7L, 11L, null, 42L, List.of());
+
+        ArgumentCaptor<BlogPublishCommand> command =
+            ArgumentCaptor.forClass(BlogPublishCommand.class);
+        verify(writer).publish(command.capture());
+        assertEquals(draft, command.getValue().archivedDraft());
     }
 
     @SuppressWarnings("unchecked")

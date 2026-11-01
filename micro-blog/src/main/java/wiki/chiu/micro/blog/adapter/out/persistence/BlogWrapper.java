@@ -73,6 +73,10 @@ public class BlogWrapper implements BlogWriter {
     public void recoverDeletedBlog(Blog blog, BlogEventContext event) {
         maintenance.requireWritable();
         LocalDateTime now = LocalDateTime.now();
+        long recoveredAdminRevision =
+            blog.adminRevision() == null
+                ? Math.max(System.currentTimeMillis(), safeRevision(blog.eventRevision()) + 1)
+                : blog.adminRevision();
         int accessMode =
             Objects.equals(blog.status(), BlogStatusEnum.HIDE.getCode())
                 ? BlogAccessMode.RESTRICTED.getCode()
@@ -89,7 +93,7 @@ public class BlogWrapper implements BlogWriter {
                     null,
                     accessMode,
                     blog.eventRevision() == null ? 0L : blog.eventRevision(),
-                    blog.eventRevision() == null ? 0L : blog.eventRevision()));
+                    recoveredAdminRevision));
         BlogRevisionEntity revision =
             revisions.save(
                 new BlogRevisionEntity(
@@ -122,7 +126,10 @@ public class BlogWrapper implements BlogWriter {
                             span.endIndex(),
                             span.type()))
                 .toList());
-        enqueue(blogSnapshot(identity, revision, blog.sensitiveContent()), event);
+        enqueue(
+            blogSnapshot(identity, revision, blog.sensitiveContent()),
+            event,
+            recoveredAdminRevision);
         enqueueAdminRecovery(
             blog, revision, BlogPersistenceMapper.toIdentity(identity), event);
     }
@@ -162,7 +169,8 @@ public class BlogWrapper implements BlogWriter {
                     blog.link(),
                     blog.readCount(),
                     publicationRevision),
-                event);
+                event,
+                adminRevision);
             enqueueAdminDelete(blog, expected, adminRevision, event);
         }
     }
@@ -197,7 +205,8 @@ public class BlogWrapper implements BlogWriter {
             sensitiveContent);
     }
 
-    private void enqueue(BlogSnapshot snapshot, BlogEventContext event) {
+    private void enqueue(
+        BlogSnapshot snapshot, BlogEventContext event, Long adminRevision) {
         outbox.enqueue(
             OutboxProducer.BLOG,
             "BLOG",
@@ -208,7 +217,8 @@ public class BlogWrapper implements BlogWriter {
                     event.operation().getCode(),
                     snapshot.revision(),
                     event.operatorUserId(),
-                    snapshot));
+                    snapshot,
+                    adminRevision));
     }
 
     private void enqueueAdminDelete(
@@ -232,6 +242,7 @@ public class BlogWrapper implements BlogWriter {
                         adminRevision,
                         blog.readCount(),
                         blog.created()),
+                    null,
                     null,
                     null));
     }
@@ -275,7 +286,26 @@ public class BlogWrapper implements BlogWriter {
                         revision.getFirstPublishedAt(),
                         revision.getCreatedBy(),
                         revision.getCreatedAt(),
+                        blog.sensitiveContent()),
+                    new BlogRevisionSnapshot(
+                        revision.getId(),
+                        revision.getBlogId(),
+                        revision.getVersionNo(),
+                        revision.getOrigin(),
+                        revision.getBaseRevisionId(),
+                        revision.getTitle(),
+                        revision.getDescription(),
+                        revision.getContent(),
+                        revision.getLink(),
+                        revision.getRenderMode(),
+                        revision.getFirstPublishedAt(),
+                        revision.getCreatedBy(),
+                        revision.getCreatedAt(),
                         blog.sensitiveContent())));
+    }
+
+    private static long safeRevision(Long revision) {
+        return revision == null ? 0L : revision;
     }
 
     private static BaseException conflict(Long blogId) {

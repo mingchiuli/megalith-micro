@@ -19,6 +19,7 @@ import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.search.api.SearchIndexMaintenanceHttpService;
 import wiki.chiu.micro.search.api.vo.IndexRebuildRpcVo;
+import wiki.chiu.micro.search.api.vo.SearchIndexesRebuildRpcVo;
 import wiki.chiu.micro.search.application.model.IndexRebuildRejectedException;
 import wiki.chiu.micro.search.application.port.in.RebuildSearchIndex;
 
@@ -44,13 +45,22 @@ public class IndexMaintenanceHttpHandler implements SearchIndexMaintenanceHttpSe
     }
 
     @Override
-    public Result<IndexRebuildRpcVo> rebuild() {
+    public Result<SearchIndexesRebuildRpcVo> rebuild() {
         long started = System.nanoTime();
         try {
             var result = indexes.rebuild();
-            processed.increment(result.documents());
+            result.indexes().forEach(index -> processed.increment(index.documents()));
             lastSuccess.set(Instant.now().getEpochSecond());
-            return Result.success(new IndexRebuildRpcVo(result.previousIndex(), result.index(), result.documents()));
+            return Result.success(
+                new SearchIndexesRebuildRpcVo(
+                    result.indexes().stream()
+                        .map(
+                            index ->
+                                new IndexRebuildRpcVo(
+                                    index.previousIndex(),
+                                    index.index(),
+                                    index.documents()))
+                        .toList()));
         } catch (IndexRebuildRejectedException rejected) {
             failures.increment();
             throw new BaseException(CommonErrorCode.CONFLICT, rejected.getMessage());

@@ -1,14 +1,11 @@
 package wiki.chiu.micro.blog.adapter.out.persistence.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
-
-import jakarta.persistence.LockModeType;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,6 +31,8 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
     List<BlogEntity> findByPublishedRevisionIdIsNotNullAndIdGreaterThanOrderByIdAsc(
         Long afterId, Pageable pageable);
 
+    List<BlogEntity> findByIdGreaterThanOrderByIdAsc(Long afterId, Pageable pageable);
+
     @Query(
         value = "UPDATE BlogEntity blog SET blog.readCount = blog.readCount + 1 WHERE blog.id = ?1")
     @Modifying
@@ -56,7 +55,77 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
 
     long countByPublishedRevisionIdIsNotNull();
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT blog FROM BlogEntity blog WHERE blog.id = :id")
-    Optional<BlogEntity> findForUpdate(@Param("id") Long id);
+    @Modifying
+    @Query(
+        """
+        UPDATE BlogEntity blog
+        SET blog.adminRevision = COALESCE(blog.adminRevision, 0) + 1
+        WHERE blog.id = :id
+          AND COALESCE(blog.adminRevision, 0) = :expectedAdminRevision
+        """)
+    int bumpAdminRevision(
+        @Param("id") Long id,
+        @Param("expectedAdminRevision") Long expectedAdminRevision);
+
+    @Modifying
+    @Query(
+        """
+        UPDATE BlogEntity blog
+        SET blog.publishedRevisionId = :revisionId,
+            blog.publishedAt = :publishedAt,
+            blog.offlineAt = NULL,
+            blog.accessMode = CASE
+                WHEN :accessMode IS NULL THEN blog.accessMode
+                ELSE :accessMode
+            END,
+            blog.publicationRevision = COALESCE(blog.publicationRevision, 0) + 1,
+            blog.adminRevision = COALESCE(blog.adminRevision, 0) + 1
+        WHERE blog.id = :id
+          AND COALESCE(blog.publicationRevision, 0) = :expectedPublicationRevision
+          AND COALESCE(blog.adminRevision, 0) = :expectedAdminRevision
+        """)
+    int publish(
+        @Param("id") Long id,
+        @Param("revisionId") Long revisionId,
+        @Param("publishedAt") LocalDateTime publishedAt,
+        @Param("accessMode") Integer accessMode,
+        @Param("expectedPublicationRevision") Long expectedPublicationRevision,
+        @Param("expectedAdminRevision") Long expectedAdminRevision);
+
+    @Modifying
+    @Query(
+        """
+        UPDATE BlogEntity blog
+        SET blog.offlineAt = :changedAt,
+            blog.publicationRevision = COALESCE(blog.publicationRevision, 0) + 1,
+            blog.adminRevision = COALESCE(blog.adminRevision, 0) + 1
+        WHERE blog.id = :id
+          AND blog.publishedRevisionId IS NOT NULL
+          AND COALESCE(blog.publicationRevision, 0) = :expectedPublicationRevision
+          AND COALESCE(blog.adminRevision, 0) = :expectedAdminRevision
+        """)
+    int setOfflineAt(
+        @Param("id") Long id,
+        @Param("changedAt") LocalDateTime changedAt,
+        @Param("expectedPublicationRevision") Long expectedPublicationRevision,
+        @Param("expectedAdminRevision") Long expectedAdminRevision);
+
+    @Modifying
+    @Query(
+        """
+        UPDATE BlogEntity blog
+        SET blog.offlineAt = NULL,
+            blog.publishedAt = :publishedAt,
+            blog.publicationRevision = COALESCE(blog.publicationRevision, 0) + 1,
+            blog.adminRevision = COALESCE(blog.adminRevision, 0) + 1
+        WHERE blog.id = :id
+          AND blog.publishedRevisionId IS NOT NULL
+          AND COALESCE(blog.publicationRevision, 0) = :expectedPublicationRevision
+          AND COALESCE(blog.adminRevision, 0) = :expectedAdminRevision
+        """)
+    int setOnlineAt(
+        @Param("id") Long id,
+        @Param("publishedAt") LocalDateTime publishedAt,
+        @Param("expectedPublicationRevision") Long expectedPublicationRevision,
+        @Param("expectedAdminRevision") Long expectedAdminRevision);
 }

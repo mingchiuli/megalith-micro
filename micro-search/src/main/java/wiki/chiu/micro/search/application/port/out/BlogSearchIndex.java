@@ -3,7 +3,6 @@ package wiki.chiu.micro.search.application.port.out;
 import java.util.List;
 import java.util.Optional;
 
-import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.AdminBlogRead;
 import wiki.chiu.micro.search.application.model.AdminRevisionRead;
@@ -25,5 +24,4 @@ public interface BlogSearchIndex {
 
     Page<AdminRevisionRead> searchRevisions(RevisionSearchQuery query);
 
-    void updateReadCounts(List<BlogReadCount> counts);
 }

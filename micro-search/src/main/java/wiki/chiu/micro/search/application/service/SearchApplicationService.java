@@ -15,13 +15,17 @@ import wiki.chiu.micro.search.application.model.PublicBlogRead;
 import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
 import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
 import wiki.chiu.micro.search.application.port.out.BlogSearchIndex;
+import wiki.chiu.micro.search.application.port.out.BlogIndexWriter;
 
 public final class SearchApplicationService implements SearchBlogsUseCase {
 
     private final BlogSearchIndex searchIndex;
+    private final BlogIndexWriter indexWriter;
 
-    public SearchApplicationService(BlogSearchIndex searchIndex) {
+    public SearchApplicationService(
+        BlogSearchIndex searchIndex, BlogIndexWriter indexWriter) {
         this.searchIndex = searchIndex;
+        this.indexWriter = indexWriter;
     }
 
     @Override
@@ -58,6 +62,6 @@ public final class SearchApplicationService implements SearchBlogsUseCase {
 
     @Override
     public void updateReadCounts(List<BlogReadCount> counts) {
-        searchIndex.updateReadCounts(counts);
+        indexWriter.updateReadCounts(counts);
     }
 }

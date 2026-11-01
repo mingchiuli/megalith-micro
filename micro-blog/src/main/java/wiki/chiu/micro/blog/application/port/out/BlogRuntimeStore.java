@@ -18,7 +18,8 @@ public interface BlogRuntimeStore {
 
     Optional<DeletedBlogEntry> deletedBlog(Long userId, Integer index);
 
-    void saveDeletedBlog(Long userId, String eventId, BlogSnapshot snapshot);
+    void saveDeletedBlog(
+        Long userId, String eventId, BlogSnapshot snapshot, Long adminRevision);
 
     void removeDeletedBlog(Long userId, String receipt);
 
