@@ -176,17 +176,16 @@ describe('stores/store', () => {
   describe('blogsStore', () => {
     it('页码与关键词的初始值', () => {
       const store = blogsStore()
-      expect(store.pageNum).toBe(1)
       expect(store.searchPageNum).toBe(1)
       expect(store.keywords).toBe('')
     })
 
-    it('支持修改 keywords / pageNum', () => {
+    it('支持修改 keywords / searchPageNum', () => {
       const store = blogsStore()
       store.keywords = 'vue'
-      store.pageNum = 3
+      store.searchPageNum = 3
       expect(blogsStore().keywords).toBe('vue')
-      expect(blogsStore().pageNum).toBe(3)
+      expect(blogsStore().searchPageNum).toBe(3)
     })
   })
 
