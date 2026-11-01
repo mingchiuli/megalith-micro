@@ -5,15 +5,14 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogExhibitVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogHotReadVo;
+import wiki.chiu.micro.exhibit.adapter.in.http.BlogRecommendationFeedVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogRecommendationVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.ReadTokenReq;
 import wiki.chiu.micro.exhibit.adapter.in.http.VisitStatisticsVo;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
-import wiki.chiu.micro.exhibit.application.model.Page;
 import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
 
@@ -26,11 +25,11 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
             .registerReflectionHints(
                 hints.reflection(),
                 Result.class,
-                PageAdapter.class,
                 ReadTokenReq.class,
                 BlogExhibitVo.class,
                 BlogHotReadVo.class,
                 BlogRecommendationVo.class,
+                BlogRecommendationFeedVo.class,
                 PublicBlogRpcVo.class,
                 VisitStatisticsVo.class);
 
@@ -41,15 +40,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(
-                Page.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
                 SensitiveSpan.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                PageAdapter.class,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS);
 

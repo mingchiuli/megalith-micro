@@ -189,6 +189,7 @@ const clearLocalDraftAfterSave = async () => {
   ]).catch((error) => {
     logger.warn('Failed to clear the saved editor draft:', error)
   })
+  metadataDraftReady = true
 }
 
 const saveVersion = async (ref: FormInstance) => {
@@ -206,6 +207,8 @@ const saveVersion = async (ref: FormInstance) => {
         duration: 1000
       })
     } catch {
+      // The HTTP layer presents the failure; keep the editor usable.
+    } finally {
       submitLoading.value = false
     }
   })
@@ -231,6 +234,8 @@ const publish = async (ref: FormInstance) => {
       })
       router.push({ name: 'system-blogs' })
     } catch {
+      // The HTTP layer presents the failure; keep the editor usable.
+    } finally {
       submitLoading.value = false
     }
   })

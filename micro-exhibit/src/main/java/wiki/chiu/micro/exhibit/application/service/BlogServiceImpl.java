@@ -18,8 +18,7 @@ import wiki.chiu.micro.common.enums.SensitiveTypeEnum;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
-import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
-import wiki.chiu.micro.exhibit.application.model.Page;
+import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
 import wiki.chiu.micro.exhibit.application.port.out.BlogReader;
@@ -69,8 +68,8 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public Page<BlogRecommendation> findRecommendationPage(Integer currentPage) {
-        return blogReader.recommendationPage(currentPage);
+    public RecommendationFeed findRecommendationFeed(String cursor) {
+        return blogReader.recommendationFeed(cursor);
     }
 
     @Override

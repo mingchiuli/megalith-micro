@@ -3,7 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import ElementPlus, { ElTable, ElTableColumn } from 'element-plus'
 import { defineComponent, h } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ButtonAuth, Status, type BlogSys, type PageAdapter } from '@/type/entity'
+import { ButtonAuth, Status, type BlogSys, type BlogVersion, type PageAdapter } from '@/type/entity'
 
 const mocks = vi.hoisted(() => ({
   GET: vi.fn(),
@@ -35,7 +35,7 @@ const VersionPanelStub = defineComponent({
     visible: Boolean,
     blogId: Number
   },
-  emits: ['update:visible'],
+  emits: ['update:visible', 'restored'],
   setup(props) {
     return () =>
       h('div', {
@@ -159,6 +159,40 @@ describe('admin BlogsView row actions', () => {
     expect(buttonWithText(wrapper, '下线')).toBeUndefined()
     expect(buttonWithText(wrapper, '重新上线')).toBeUndefined()
     expect(buttonWithText(wrapper, '版本历史')).toBeDefined()
+    wrapper.unmount()
+  })
+
+  it('updates the visible row immediately after restoring a version', async () => {
+    mocks.GET.mockResolvedValue({
+      ...blogPage(Status.NORMAL),
+      content: [{ ...blog(Status.NORMAL), hasDraft: true, draftNewer: true }]
+    })
+    const wrapper = await mountView()
+    await buttonWithText(wrapper, '版本历史')!.trigger('click')
+    await flushPromises()
+    const restored: BlogVersion = {
+      id: 9,
+      blogId: 7,
+      versionNo: 2,
+      origin: 'PUBLICATION',
+      title: 'Restored title',
+      firstPublishedAt: '2026-10-28 12:00:00',
+      createdBy: 1,
+      createdAt: '2026-10-28 12:00:00',
+      description: 'Restored description',
+      content: 'Restored content',
+      link: 'https://cdn.example/restored.png',
+      renderMode: 'NORMAL',
+      sensitiveContent: []
+    }
+
+    wrapper.getComponent(VersionPanelStub).vm.$emit('restored', restored)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Restored title')
+    expect(wrapper.text()).toContain('Restored description')
+    expect(wrapper.text()).toContain('Restored content')
+    expect(wrapper.text()).not.toContain('有草稿')
     wrapper.unmount()
   })
 })

@@ -7,10 +7,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.rpc.RemoteResult;
 import wiki.chiu.micro.search.api.SearchHttpService;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
+import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogExhibitMapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpMapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpServiceWrapper;
@@ -18,7 +18,7 @@ import wiki.chiu.micro.exhibit.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
-import wiki.chiu.micro.exhibit.application.model.Page;
+import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.application.port.out.BlogReader;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
@@ -63,17 +63,17 @@ public class BlogWrapper implements BlogReader {
 
     @Override
     public List<BlogHotRead> hotBlogs(int limit) {
-        PageAdapter<PublicBlogRpcVo> page =
+        List<PublicBlogRpcVo> blogs =
             RemoteResult.requireSuccess(
-                () -> searchHttpService.recommendationPage(1, limit));
-        return page.content().stream().map(BlogHttpMapper::toHotRead).toList();
+                () -> searchHttpService.recommendationHead(limit));
+        return blogs.stream().map(BlogHttpMapper::toHotRead).toList();
     }
 
     @Override
-    public Page<BlogRecommendation> recommendationPage(int currentPage) {
-        PageAdapter<PublicBlogRpcVo> page =
+    public RecommendationFeed recommendationFeed(String cursor) {
+        RecommendationFeedRpcVo page =
             RemoteResult.requireSuccess(
-                () -> searchHttpService.recommendationPage(currentPage, blogPageSize));
-        return BlogHttpMapper.toRecommendationPage(page);
+                () -> searchHttpService.recommendationFeed(cursor, blogPageSize));
+        return BlogHttpMapper.toRecommendationFeed(page);
     }
 }

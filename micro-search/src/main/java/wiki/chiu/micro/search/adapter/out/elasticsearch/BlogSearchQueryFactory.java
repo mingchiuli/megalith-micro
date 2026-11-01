@@ -4,9 +4,11 @@ import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.Time;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
 
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.data.domain.PageRequest;
@@ -23,8 +25,9 @@ final class BlogSearchQueryFactory {
     private BlogSearchQueryFactory() {
     }
 
-    static NativeQuery recommendation(int page, int pageSize) {
-        return NativeQuery.builder()
+    static NativeQuery recommendation(
+        Instant snapshotTime, List<Object> searchAfter, int pageSize) {
+        NativeQuery query = NativeQuery.builder()
             .withQuery(
                 value ->
                     value.functionScore(
@@ -72,7 +75,9 @@ final class BlogSearchQueryFactory {
                                                             .placement(
                                                                 placement ->
                                                                     placement
-                                                                        .origin("now")
+                                                                        .origin(
+                                                                            snapshotTime
+                                                                                .toString())
                                                                         .scale(
                                                                             Time.of(
                                                                                 time ->
@@ -87,8 +92,10 @@ final class BlogSearchQueryFactory {
                                 .boostMode(FunctionBoostMode.Sum)))
             .withSort(sort -> sort.score(score -> score.order(SortOrder.Desc)))
             .withSort(sort -> sort.field(field -> field.field("id").order(SortOrder.Asc)))
-            .withPageable(PageRequest.of(page - 1, pageSize))
+            .withPageable(PageRequest.of(0, pageSize))
             .build();
+        query.setSearchAfter(searchAfter);
+        return query;
     }
 
     static NativeQuery admin(PrivateBlogSearchQuery query) {

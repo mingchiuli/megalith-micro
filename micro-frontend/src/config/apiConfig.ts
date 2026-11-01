@@ -49,7 +49,7 @@ const BLOG_PUBLIC_API = {
   READ_SECRET_BLOG: (id: number | string) => `/public/blog/secret/${id}`,
   // 获取热门博客排行
   GET_HOT_BLOGS: '/public/blog/scores',
-  GET_RECOMMENDATIONS_PAGE: (pageNo: number) => `/public/blog/recommendations/page/${pageNo}`,
+  GET_RECOMMENDATIONS: '/public/blog/recommendations',
   // 获取博客访问统计
   GET_BLOG_STAT: '/public/blog/stat'
 }
@@ -233,6 +233,10 @@ export const buildCommonUrls = {
   // 构建搜索URL
   searchQuery: (params: { keywords?: string; currentPage?: number; allInfo?: boolean }) => {
     return buildQueryUrl(SEARCH_API.SEARCH_BLOGS, params)
+  },
+
+  recommendationFeed: (cursor?: string) => {
+    return buildQueryUrl(BLOG_PUBLIC_API.GET_RECOMMENDATIONS, { cursor })
   },
 
   // 构建博客下载URL

@@ -1,6 +1,7 @@
 package wiki.chiu.micro.exhibit.adapter.in.http;
 
 import static wiki.chiu.micro.common.auth.web.AuthWeb.authPrincipal;
+import static wiki.chiu.micro.common.web.FunctionalWeb.nullableParam;
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
 
@@ -52,13 +53,14 @@ public class BlogExhibitHttpHandler {
         return ok(Result.success(() -> ExhibitResponseMapper.toHotReadVos(blogService.getScoreBlogs())));
     }
 
-    public ServerResponse getRecommendationPage(ServerRequest request) {
-        Integer currentPage =
-            v.positive(pathVariable(request, "currentPage", Integer::valueOf), "currentPage");
+    public ServerResponse getRecommendationFeed(ServerRequest request) {
+        String cursor =
+            nullableParam(
+                request, "cursor", value -> v.maxLength(value, 4096, "cursor"));
         return ok(
             Result.success(
                 () ->
-                    ExhibitResponseMapper.toRecommendationPageVo(
-                        blogService.findRecommendationPage(currentPage))));
+                    ExhibitResponseMapper.toRecommendationFeedVo(
+                        blogService.findRecommendationFeed(cursor))));
     }
 }

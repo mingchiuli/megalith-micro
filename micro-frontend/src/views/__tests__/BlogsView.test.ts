@@ -2,7 +2,7 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia, type Pinia } from 'pinia'
 import { defineComponent, h, nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { BlogDesc, BlogRecommendation, PageAdapter, SearchPage } from '@/type/entity'
+import type { BlogDesc, BlogRecommendation, RecommendationFeed, SearchPage } from '@/type/entity'
 import { Status } from '@/type/entity'
 import { ssrDataStore } from '@/stores'
 
@@ -136,16 +136,16 @@ const blog = (id: number, link = ''): BlogDesc => ({
   status: Status.NORMAL
 })
 
-const recommendationPage = (
+const recommendationFeed = (
   content: BlogRecommendation[],
-  pageNumber = 1,
-  last = true
-): PageAdapter<BlogRecommendation> => ({
+  nextCursor?: string,
+  hasMore = false,
+  restart = false
+): RecommendationFeed => ({
   content,
-  totalElements: content.length,
-  pageSize: 5,
-  pageNumber,
-  last
+  nextCursor,
+  hasMore,
+  restart
 })
 
 const searchPage = (content: BlogDesc[], pageNumber = 1, last = true): SearchPage<BlogDesc> => ({
@@ -179,12 +179,12 @@ describe('BlogsView feed', () => {
     vi.useRealTimers()
   })
 
-  it('shows paginated recommendations below the admin link without page controls', async () => {
-    mocks.GET.mockResolvedValueOnce(recommendationPage([recommendation(1)], 1, false))
+  it('shows recommendations below the admin link without page controls', async () => {
+    mocks.GET.mockResolvedValueOnce(recommendationFeed([recommendation(1)]))
     const wrapper = mountBlogs()
     await flushPromises()
 
-    expect(mocks.GET).toHaveBeenCalledWith('/public/blog/recommendations/page/1')
+    expect(mocks.GET).toHaveBeenCalledWith('/public/blog/recommendations')
     expect(cards(wrapper).map((card) => card.text())).toEqual(['Recommendation 1'])
     expect(wrapper.find('.el-pagination').exists()).toBe(false)
     expect(wrapper.html().indexOf('进入后台')).toBeLessThan(
@@ -196,7 +196,7 @@ describe('BlogsView feed', () => {
 
   it('renders recommendations with the article card layout', async () => {
     mocks.GET.mockResolvedValueOnce(
-      recommendationPage([{ ...recommendation(1), link: 'https://cdn.example/1.png' }])
+      recommendationFeed([{ ...recommendation(1), link: 'https://cdn.example/1.png' }])
     )
     const wrapper = mountBlogs()
     await flushPromises()
@@ -210,20 +210,35 @@ describe('BlogsView feed', () => {
 
   it('appends and de-duplicates recommendation pages', async () => {
     mocks.GET.mockResolvedValueOnce(
-      recommendationPage([recommendation(1), recommendation(2)], 1, false)
-    ).mockResolvedValueOnce(recommendationPage([recommendation(2), recommendation(3)], 2, true))
+      recommendationFeed([recommendation(1), recommendation(2)], 'cursor-1', true)
+    ).mockResolvedValueOnce(recommendationFeed([recommendation(2), recommendation(3)]))
     const wrapper = mountBlogs()
     await flushPromises()
 
     await wrapper.get('.load-more').trigger('click')
     await flushPromises()
 
-    expect(mocks.GET).toHaveBeenLastCalledWith('/public/blog/recommendations/page/2')
+    expect(mocks.GET).toHaveBeenLastCalledWith('/public/blog/recommendations?cursor=cursor-1')
     expect(cards(wrapper).map((card) => card.text())).toEqual([
       'Recommendation 1',
       'Recommendation 2',
       'Recommendation 3'
     ])
+    wrapper.unmount()
+  })
+
+  it('replaces the current feed when the recommendation snapshot restarts', async () => {
+    mocks.GET.mockResolvedValueOnce(
+      recommendationFeed([recommendation(1), recommendation(2)], 'expired-cursor', true)
+    ).mockResolvedValueOnce(recommendationFeed([recommendation(3)], undefined, false, true))
+    const wrapper = mountBlogs()
+    await flushPromises()
+
+    await wrapper.get('.load-more').trigger('click')
+    await flushPromises()
+
+    expect(cards(wrapper).map((card) => card.text())).toEqual(['Recommendation 3'])
+    expect(wrapper.findComponent(FooterStub).props('hasMore')).toBe(false)
     wrapper.unmount()
   })
 
@@ -269,7 +284,7 @@ describe('BlogsView feed', () => {
     setActivePinia(pinia)
     ssrDataStore(pinia).set('blog-feed:recommendations:1', {
       kind: 'recommendations',
-      page: recommendationPage([recommendation(1)])
+      feed: recommendationFeed([recommendation(1)])
     })
 
     const wrapper = mountBlogs(pinia)
@@ -281,9 +296,9 @@ describe('BlogsView feed', () => {
   })
 
   it('keeps loaded content when the next recommendation page fails and retries it', async () => {
-    mocks.GET.mockResolvedValueOnce(recommendationPage([recommendation(1)], 1, false))
+    mocks.GET.mockResolvedValueOnce(recommendationFeed([recommendation(1)], 'cursor-1', true))
       .mockRejectedValueOnce(new Error('offline'))
-      .mockResolvedValueOnce(recommendationPage([recommendation(2)], 2, true))
+      .mockResolvedValueOnce(recommendationFeed([recommendation(2)]))
     const wrapper = mountBlogs()
     await flushPromises()
 
@@ -296,7 +311,7 @@ describe('BlogsView feed', () => {
     await wrapper.get('.retry-feed').trigger('click')
     await flushPromises()
 
-    expect(mocks.GET).toHaveBeenLastCalledWith('/public/blog/recommendations/page/2')
+    expect(mocks.GET).toHaveBeenLastCalledWith('/public/blog/recommendations?cursor=cursor-1')
     expect(cards(wrapper)).toHaveLength(2)
     wrapper.unmount()
   })
@@ -304,7 +319,7 @@ describe('BlogsView feed', () => {
   it('returns to recommendation page one when search is cleared', async () => {
     mocks.routeQuery = { q: 'vue' }
     mocks.GET.mockResolvedValueOnce(searchPage([blog(9)])).mockResolvedValueOnce(
-      recommendationPage([recommendation(1)])
+      recommendationFeed([recommendation(1)])
     )
     const wrapper = mountBlogs()
     await flushPromises()
@@ -313,7 +328,7 @@ describe('BlogsView feed', () => {
     await flushPromises()
 
     expect(mocks.cancelSearch).toHaveBeenCalledOnce()
-    expect(mocks.GET).toHaveBeenLastCalledWith('/public/blog/recommendations/page/1')
+    expect(mocks.GET).toHaveBeenLastCalledWith('/public/blog/recommendations')
     expect(cards(wrapper)).toHaveLength(1)
     wrapper.unmount()
   })

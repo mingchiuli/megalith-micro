@@ -2,14 +2,14 @@ package wiki.chiu.micro.exhibit.adapter.out.http;
 
 import java.util.List;
 
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.enums.SensitiveTypeEnum;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
+import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
-import wiki.chiu.micro.exhibit.application.model.Page;
+import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.domain.SensitiveContentMasker;
 import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
 
@@ -21,19 +21,15 @@ public final class BlogHttpMapper {
     private BlogHttpMapper() {
     }
 
-    public static Page<BlogRecommendation> toRecommendationPage(
-        PageAdapter<PublicBlogRpcVo> page) {
-        return new Page<>(
-            page.content().stream()
+    public static RecommendationFeed toRecommendationFeed(
+        RecommendationFeedRpcVo feed) {
+        return new RecommendationFeed(
+            feed.content().stream()
                 .map(BlogHttpMapper::toRecommendation)
                 .toList(),
-            page.totalElements(),
-            page.pageNumber(),
-            page.pageSize(),
-            page.first(),
-            page.last(),
-            page.empty(),
-            page.totalPages());
+            feed.nextCursor(),
+            feed.hasMore(),
+            feed.restart());
     }
 
     public static BlogRecommendation toRecommendation(PublicBlogRpcVo blog) {

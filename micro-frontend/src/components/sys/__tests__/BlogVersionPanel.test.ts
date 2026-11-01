@@ -1,8 +1,8 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import ElementPlus, { ElDrawer, ElTableColumn } from 'element-plus'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { BlogVersionSummary, PageAdapter } from '@/type/entity'
+import ElementPlus, { ElDrawer, ElMessageBox, ElTableColumn } from 'element-plus'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { BlogVersion, BlogVersionSummary, PageAdapter } from '@/type/entity'
 
 const mocks = vi.hoisted(() => ({ GET: vi.fn(), POST: vi.fn() }))
 
@@ -45,6 +45,8 @@ describe('BlogVersionPanel', () => {
     mocks.GET.mockReset()
     mocks.POST.mockReset()
   })
+
+  afterEach(() => vi.restoreAllMocks())
 
   it('loads versions when opened and reloads when the article changes', async () => {
     mocks.GET.mockImplementation((url: string) => {
@@ -106,6 +108,50 @@ describe('BlogVersionPanel', () => {
       .map((column) => (column.props as unknown as (name: string) => unknown)('label'))
     expect(labels).not.toContain('来源')
     expect(labels).not.toContain('标题')
+    wrapper.unmount()
+  })
+
+  it('restores a version and emits the complete published content', async () => {
+    const page = versionPage(11)
+    const summary = {
+      ...page.content[0]!,
+      firstPublishedAt: '2026-10-28 12:00:00',
+      currentPublished: false
+    }
+    const restored: BlogVersion = {
+      ...summary,
+      description: 'restored description',
+      content: 'restored content',
+      link: '',
+      renderMode: 'NORMAL',
+      sensitiveContent: []
+    }
+    mocks.GET.mockResolvedValueOnce({ ...page, content: [summary] }).mockResolvedValueOnce(restored)
+    mocks.POST.mockResolvedValue(null)
+    vi.spyOn(ElMessageBox, 'confirm').mockResolvedValue('confirm' as never)
+    const wrapper = mount(BlogVersionPanel, {
+      props: {
+        blogId: 11,
+        visible: true
+      },
+      global: { plugins: [ElementPlus] }
+    })
+    await flushPromises()
+
+    const setupState = (
+      wrapper.vm as unknown as {
+        $: {
+          setupState: {
+            restoreVersion: (version: BlogVersionSummary) => Promise<void>
+          }
+        }
+      }
+    ).$.setupState
+    await setupState.restoreVersion(summary)
+    await flushPromises()
+
+    expect(mocks.POST).toHaveBeenCalledWith('/sys/blog/11/publish', { revisionId: 110 })
+    expect(wrapper.emitted('restored')?.[0]?.[0]).toEqual(restored)
     wrapper.unmount()
   })
 })

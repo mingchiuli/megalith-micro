@@ -18,6 +18,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   'update:visible': [visible: boolean]
+  restored: [version: BlogVersion]
 }>()
 
 const { t } = useI18n()
@@ -109,15 +110,22 @@ const restoreVersion = async (version: BlogVersionSummary) => {
   if (!confirmed) return
   restoringVersionId.value = version.id
   try {
+    const restored = await GET<BlogVersion>(
+      API_ENDPOINTS.BLOG_ADMIN.GET_VERSION(props.blogId, version.id)
+    )
     await POST<null>(API_ENDPOINTS.BLOG_ADMIN.PUBLISH(props.blogId), {
       revisionId: version.id
     })
+    versions.value = versions.value.map((item) => ({
+      ...item,
+      currentPublished: item.id === version.id
+    }))
+    emit('restored', restored)
     ElNotification({
       title: t('common.operationSuccess'),
       message: t('admin.restoreVersion'),
       type: 'success'
     })
-    await loadVersions()
   } catch {
     ElNotification({
       title: t('common.operationFailed'),

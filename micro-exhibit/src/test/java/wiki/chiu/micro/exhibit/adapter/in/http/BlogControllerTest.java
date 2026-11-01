@@ -27,7 +27,7 @@ import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
-import wiki.chiu.micro.exhibit.application.model.Page;
+import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
 
@@ -114,29 +114,28 @@ class BlogControllerTest {
     }
 
     @Test
-    void getRecommendationPageReturnsPagedCards() throws Exception {
+    void getRecommendationFeedReturnsCursorCards() throws Exception {
         LocalDateTime created = LocalDateTime.of(2026, 10, 25, 8, 30, 15);
-        Page<BlogRecommendation> page =
-            new Page<>(
+        RecommendationFeed page =
+            new RecommendationFeed(
                 List.of(new BlogRecommendation(7L, "title", "description", created,
                     "https://cdn.example/7.png", 10L)),
-                6,
-                2,
-                5,
-                false,
+                "next-token",
                 true,
-                false,
-                2);
-        when(blogService.findRecommendationPage(2)).thenReturn(page);
+                false);
+        when(blogService.findRecommendationFeed("cursor-token")).thenReturn(page);
 
         mockMvc
-            .perform(get("/public/blog/recommendations/page/2"))
+            .perform(
+                get("/public/blog/recommendations")
+                    .param("cursor", "cursor-token"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.content[0].id").value(7))
             .andExpect(jsonPath("$.data.content[0].created").value("2026-10-25 08:30:15"))
             .andExpect(jsonPath("$.data.content[0].link").value("https://cdn.example/7.png"))
-            .andExpect(jsonPath("$.data.pageNumber").value(2))
-            .andExpect(jsonPath("$.data.last").value(true));
+            .andExpect(jsonPath("$.data.nextCursor").value("next-token"))
+            .andExpect(jsonPath("$.data.hasMore").value(true))
+            .andExpect(jsonPath("$.data.restart").value(false));
     }
 
     @Test

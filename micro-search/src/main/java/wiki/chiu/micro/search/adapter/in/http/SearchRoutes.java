@@ -29,8 +29,11 @@ public class SearchRoutes {
                 .POST("/inner/blog/admin/search", internalHandler::searchAdminBlogs)
                 .POST("/inner/blog/revisions/search", internalHandler::searchRevisions)
                 .GET(
-                    "/inner/blog/public/recommendations/page",
-                    internalHandler::recommendationPage)
+                    "/inner/blog/public/recommendations/feed",
+                    internalHandler::recommendationFeed)
+                .GET(
+                    "/inner/blog/public/recommendations/head",
+                    internalHandler::recommendationHead)
                 .GET("/inner/blog/public/{blogId}", internalHandler::publicBlog)
                 .POST("/inner/blog/views/batch", internalHandler::updateReadCounts),
             log)

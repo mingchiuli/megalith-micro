@@ -37,7 +37,7 @@ const gateway = Bun.serve({
         data: { dayVisit: 1, weekVisit: 2, monthVisit: 3, yearVisit: 4 }
       })
     }
-    if (url.pathname === '/public/blog/recommendations/page/1') {
+    if (url.pathname === '/public/blog/recommendations') {
       return Response.json({
         msg: 'OK',
         data: {
@@ -51,10 +51,9 @@ const gateway = Bun.serve({
               readCount: 1
             }
           ],
-          totalElements: 1,
-          pageSize: 5,
-          pageNumber: 1,
-          last: true
+          nextCursor: null,
+          hasMore: false,
+          restart: false
         }
       })
     }

@@ -10,6 +10,8 @@ import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogRead;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
+import wiki.chiu.micro.search.application.model.RecommendationFeed;
+import wiki.chiu.micro.search.application.model.RecommendationFeedQuery;
 import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
 
 public interface BlogSearchIndex {
@@ -18,7 +20,9 @@ public interface BlogSearchIndex {
 
     Optional<PublicBlogRead> findPublic(long blogId);
 
-    Page<PublicBlogRead> recommendationPage(int page, int pageSize);
+    RecommendationFeed recommendationFeed(RecommendationFeedQuery query);
+
+    List<PublicBlogRead> recommendationHead(int limit);
 
     Page<AdminBlogRead> searchAdmin(PrivateBlogSearchQuery query);
 

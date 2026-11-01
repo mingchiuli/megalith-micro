@@ -2,11 +2,10 @@ package wiki.chiu.micro.exhibit.adapter.in.http;
 
 import java.util.List;
 
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
-import wiki.chiu.micro.exhibit.application.model.Page;
+import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 
 /**
@@ -42,10 +41,13 @@ public final class ExhibitResponseMapper {
             .toList();
     }
 
-    public static PageAdapter<BlogRecommendationVo> toRecommendationPageVo(
-        Page<BlogRecommendation> page) {
-        return PageResponse.of(
-            page, page.content().stream().map(ExhibitResponseMapper::toVo).toList());
+    public static BlogRecommendationFeedVo toRecommendationFeedVo(
+        RecommendationFeed feed) {
+        return new BlogRecommendationFeedVo(
+            feed.content().stream().map(ExhibitResponseMapper::toVo).toList(),
+            feed.nextCursor(),
+            feed.hasMore(),
+            feed.restart());
     }
 
     private static BlogRecommendationVo toVo(BlogRecommendation recommendation) {

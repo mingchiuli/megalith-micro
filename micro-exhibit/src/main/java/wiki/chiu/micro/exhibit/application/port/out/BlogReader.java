@@ -4,8 +4,7 @@ import java.util.List;
 
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
-import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
-import wiki.chiu.micro.exhibit.application.model.Page;
+import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 
 /**
  * Reads the blog content this service exhibits, already composed for display.
@@ -18,5 +17,5 @@ public interface BlogReader {
 
     List<BlogHotRead> hotBlogs(int limit);
 
-    Page<BlogRecommendation> recommendationPage(int currentPage);
+    RecommendationFeed recommendationFeed(String cursor);
 }

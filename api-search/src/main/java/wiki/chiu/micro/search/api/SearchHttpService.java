@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.search.api.req.BlogReadCountReq;
 import wiki.chiu.micro.search.api.req.BlogRevisionSearchReq;
@@ -16,6 +15,7 @@ import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.api.vo.AdminBlogSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminRevisionSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
+import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
 
 public interface SearchHttpService {
 
@@ -31,7 +31,10 @@ public interface SearchHttpService {
     @GetExchange("/blog/public/{blogId}")
     Result<PublicBlogRpcVo> publicBlog(@PathVariable Long blogId);
 
-    @GetExchange("/blog/public/recommendations/page")
-    Result<PageAdapter<PublicBlogRpcVo>> recommendationPage(
-        @RequestParam Integer page, @RequestParam Integer size);
+    @GetExchange("/blog/public/recommendations/feed")
+    Result<RecommendationFeedRpcVo> recommendationFeed(
+        @RequestParam(required = false) String cursor, @RequestParam Integer size);
+
+    @GetExchange("/blog/public/recommendations/head")
+    Result<List<PublicBlogRpcVo>> recommendationHead(@RequestParam Integer size);
 }

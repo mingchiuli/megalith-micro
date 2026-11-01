@@ -2,11 +2,17 @@ package wiki.chiu.micro.search.config;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
+import java.time.Duration;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
+
+import tools.jackson.databind.json.JsonMapper;
 
 import wiki.chiu.micro.search.adapter.out.elasticsearch.AliasInitializingElasticsearchRepository;
 import wiki.chiu.micro.search.adapter.out.elasticsearch.ElasticsearchBlogIndexWriter;
@@ -37,13 +43,20 @@ public class SearchApplicationConfig {
         @Value("${megalith.search.index.alias:blog_search}") String alias,
         @Value("${megalith.search.index.admin-alias:blog_admin_search}") String adminAlias,
         @Value("${megalith.search.index.revision-alias:blog_revision_search}")
-            String revisionAlias) {
+            String revisionAlias,
+        @Value("${megalith.search.recommendation.pit-keep-alive:2m}")
+            Duration recommendationPitKeepAlive,
+        JsonMapper jsonMapper,
+        MeterRegistry meterRegistry) {
         return new ElasticsearchBlogQueryAdapter(
             elasticsearchTemplate,
             publicPageSize,
             alias,
             adminAlias,
-            revisionAlias);
+            revisionAlias,
+            recommendationPitKeepAlive,
+            jsonMapper,
+            meterRegistry);
     }
 
     @Bean

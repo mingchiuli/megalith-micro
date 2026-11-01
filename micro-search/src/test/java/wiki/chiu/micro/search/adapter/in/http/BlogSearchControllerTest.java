@@ -27,6 +27,8 @@ import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PublicBlogRead;
+import wiki.chiu.micro.search.application.model.RecommendationFeed;
+import wiki.chiu.micro.search.application.model.RecommendationFeedQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
 import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
 
@@ -161,41 +163,33 @@ class BlogSearchControllerTest {
     }
 
     @Test
-    void recommendationPageReturnsPagingMetadata() throws Exception {
-        Page<PublicBlogRead> page =
-            new Page<>(
-                List.of(publicBlog(7)),
-                6,
-                2,
-                5,
-                false,
-                true,
-                false,
-                2);
-        when(searchBlogs.recommendationPage(2, 5)).thenReturn(page);
+    void recommendationFeedReturnsCursorMetadata() throws Exception {
+        RecommendationFeed page =
+            new RecommendationFeed(List.of(publicBlog(7)), "next-token", true, false);
+        when(searchBlogs.recommendationFeed(new RecommendationFeedQuery("cursor-token", 5)))
+            .thenReturn(page);
 
         mockMvc
             .perform(
-                get("/inner/blog/public/recommendations/page")
-                    .param("page", "2")
+                get("/inner/blog/public/recommendations/feed")
+                    .param("cursor", "cursor-token")
                     .param("size", "5"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.content[0].id").value(7))
-            .andExpect(jsonPath("$.data.pageNumber").value(2))
-            .andExpect(jsonPath("$.data.totalElements").value(6))
-            .andExpect(jsonPath("$.data.last").value(true));
+            .andExpect(jsonPath("$.data.nextCursor").value("next-token"))
+            .andExpect(jsonPath("$.data.hasMore").value(true))
+            .andExpect(jsonPath("$.data.restart").value(false));
     }
 
     @Test
-    void recommendationPageRejectsInvalidPaging() throws Exception {
+    void recommendationFeedRejectsInvalidPaging() throws Exception {
         mockMvc
             .perform(
-                get("/inner/blog/public/recommendations/page")
-                    .param("page", "0")
-                    .param("size", "5"))
+                get("/inner/blog/public/recommendations/feed")
+                    .param("size", "0"))
             .andExpect(status().isBadRequest());
 
-        verify(searchBlogs, never()).recommendationPage(anyInt(), anyInt());
+        verify(searchBlogs, never()).recommendationFeed(any());
     }
 
     @Test

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { TableInstance } from 'element-plus'
 import { useHttp } from '@/http/http'
-import { Status, type BlogSys, type PageAdapter, ButtonAuth } from '@/type/entity'
+import { Status, type BlogSys, type BlogVersion, type PageAdapter, ButtonAuth } from '@/type/entity'
 import { downloadSQLData } from '@/utils/download'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissions'
 import { displayState } from '@/utils/position'
@@ -102,6 +102,17 @@ const handlePassword = async (row: BlogSys) => {
 const handleVersions = (row: BlogSys) => {
   versionBlogId.value = row.id
   versionPanelVisible.value = true
+}
+
+const handleVersionRestored = (version: BlogVersion) => {
+  const row = content.value.find((item) => item.id === version.blogId)
+  if (!row) return
+  row.title = version.title
+  row.description = version.description
+  row.content = version.content
+  row.link = version.link
+  row.hasDraft = false
+  row.draftNewer = false
 }
 
 const handleStatus = async (row: BlogSys) => {
@@ -418,6 +429,7 @@ useUniversalData('admin:blogs', fetchAdminBlogs, applyAdminBlogs, { loading })
     v-if="versionBlogId"
     v-model:visible="versionPanelVisible"
     :blog-id="versionBlogId"
+    @restored="handleVersionRestored"
   />
 </template>
 

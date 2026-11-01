@@ -1,17 +1,23 @@
 <script lang="ts" setup>
-import type { BlogDesc, BlogRecommendation, PageAdapter, SearchPage } from '@/type/entity'
+import type {
+  BlogDesc,
+  BlogRecommendation,
+  PageAdapter,
+  RecommendationFeed,
+  SearchPage
+} from '@/type/entity'
 import { useHttp } from '@/http/http'
 import { loginStateStore, tabStore, blogsStore, menuStore, themeStore } from '@/stores'
 import Search from '@/components/SearchItem.vue'
 import InfiniteScrollFooter from '@/components/InfiniteScrollFooter.vue'
 import { Status } from '@/type/entity'
-import { API_ENDPOINTS, buildCommonUrls } from '@/config/apiConfig'
+import { buildCommonUrls } from '@/config/apiConfig'
 import { Moon, Sunny } from '@element-plus/icons-vue'
 import { sanitizeHighlight } from '@/utils/sanitize'
 import { useUniversalData } from '@/composables'
 
 type FeedPayload =
-  | { kind: 'recommendations'; page: PageAdapter<BlogRecommendation> }
+  | { kind: 'recommendations'; feed: RecommendationFeed }
   | { kind: 'search'; page: SearchPage<BlogDesc> }
 
 const IMAGE_LOAD_TIMEOUT_MS = 10_000
@@ -34,11 +40,11 @@ const searchPage: PageAdapter<BlogDesc> = reactive({
   pageNumber: 1
 })
 const recommendationHasMore = ref(false)
+const recommendationCursor = ref<string>()
 const searchHasMore = ref(false)
 let feedGeneration = 0
 
-const { searchPageNum, pageNum, keywords } = storeToRefs(blogsStore())
-pageNum.value = 1
+const { searchPageNum, keywords } = storeToRefs(blogsStore())
 searchPageNum.value = 1
 keywords.value = typeof route.query.q === 'string' ? route.query.q : ''
 
@@ -113,18 +119,17 @@ const applySearchPage = (data: PageAdapter<BlogDesc>) => {
   if (reset) startImageBatch(data.content)
 }
 
-const applyRecommendationPage = (data: PageAdapter<BlogRecommendation>) => {
-  const reset = data.pageNumber <= 1
-  recommendations.value = reset ? data.content : appendUnique(recommendations.value, data.content)
-  pageNum.value = data.pageNumber
-  recommendationHasMore.value =
-    data.last === undefined ? data.content.length >= data.pageSize : !data.last
+const applyRecommendationFeed = (feed: RecommendationFeed) => {
+  const reset = feed.restart || !recommendationCursor.value
+  recommendations.value = reset ? feed.content : appendUnique(recommendations.value, feed.content)
+  recommendationCursor.value = feed.nextCursor
+  recommendationHasMore.value = feed.hasMore
   feedError.value = false
 }
 
 const applyFeedPayload = (payload: FeedPayload) => {
   if (payload.kind === 'search') applySearchPage(payload.page)
-  else applyRecommendationPage(payload.page)
+  else applyRecommendationFeed(payload.feed)
 }
 
 const loadActiveFeed = async (): Promise<FeedPayload> => {
@@ -144,9 +149,7 @@ const loadActiveFeed = async (): Promise<FeedPayload> => {
     }
     return {
       kind: 'recommendations',
-      page: await GET<PageAdapter<BlogRecommendation>>(
-        API_ENDPOINTS.BLOG_PUBLIC.GET_RECOMMENDATIONS_PAGE(1)
-      )
+      feed: await GET<RecommendationFeed>(buildCommonUrls.recommendationFeed())
     }
   } catch (cause) {
     feedError.value = true
@@ -170,16 +173,19 @@ const fillSearchData = (payload: PageAdapter<BlogDesc>) => {
   applySearchPage(payload)
 }
 
-const loadRecommendationPage = async (page: number) => {
+const loadRecommendationFeed = async () => {
   const generation = feedGeneration
+  const cursor = recommendationCursor.value
+  if (!cursor) {
+    recommendationHasMore.value = false
+    return
+  }
   loadingMore.value = true
   feedError.value = false
   try {
-    const data = await GET<PageAdapter<BlogRecommendation>>(
-      API_ENDPOINTS.BLOG_PUBLIC.GET_RECOMMENDATIONS_PAGE(page)
-    )
+    const feed = await GET<RecommendationFeed>(buildCommonUrls.recommendationFeed(cursor))
     if (generation !== feedGeneration || keywords.value) return
-    applyRecommendationPage(data)
+    applyRecommendationFeed(feed)
   } catch {
     if (generation === feedGeneration && !keywords.value) feedError.value = true
   } finally {
@@ -190,7 +196,7 @@ const loadRecommendationPage = async (page: number) => {
 const loadMore = async () => {
   if (paginationLoading.value || feedError.value || !hasMore.value) return
   if (!keywords.value) {
-    await loadRecommendationPage(pageNum.value + 1)
+    await loadRecommendationFeed()
     return
   }
 
@@ -233,10 +239,10 @@ const clearSearch = () => {
   feedGeneration += 1
   keywords.value = ''
   searchPageNum.value = 1
-  pageNum.value = 1
   searchPage.content = []
   searchPage.totalElements = 0
   recommendations.value = []
+  recommendationCursor.value = undefined
   recommendationHasMore.value = false
   loadingMore.value = false
   feedError.value = false

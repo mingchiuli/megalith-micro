@@ -30,6 +30,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import tools.jackson.databind.json.JsonMapper;
+
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
 import wiki.chiu.micro.common.model.BlogAdminSnapshot;
@@ -42,6 +44,7 @@ import wiki.chiu.micro.search.application.model.BlogRevisionIndexEntry;
 import wiki.chiu.micro.search.application.model.IndexSourceStatus;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
+import wiki.chiu.micro.search.application.model.RecommendationFeedQuery;
 import wiki.chiu.micro.search.application.model.SearchIndexKind;
 import wiki.chiu.micro.search.application.port.out.BlogIndexSource;
 import wiki.chiu.micro.search.application.port.out.SearchRebuildControl;
@@ -187,18 +190,77 @@ class SearchIndexIntegrationTest {
         writer.write(change(8, 1, 2, 1000, "filtered article"));
         indexClient.refresh(request -> request.index(alias));
 
-        var first = queries.recommendationPage(1, 3);
-        var second = queries.recommendationPage(2, 3);
-        var third = queries.recommendationPage(3, 3);
+        var first = queries.recommendationFeed(new RecommendationFeedQuery(null, 3));
+        var second =
+            queries.recommendationFeed(
+                new RecommendationFeedQuery(first.nextCursor(), 3));
+        var third =
+            queries.recommendationFeed(
+                new RecommendationFeedQuery(second.nextCursor(), 3));
 
         assertThat(first.content()).extracting(blog -> blog.id()).containsExactly(7L, 6L, 5L);
         assertThat(first.content()).extracting(blog -> blog.link())
             .containsExactly(cover(7), cover(6), cover(5));
         assertThat(second.content()).extracting(blog -> blog.id()).containsExactly(4L, 3L, 2L);
         assertThat(third.content()).extracting(blog -> blog.id()).containsExactly(1L);
-        assertThat(first.totalElements()).isEqualTo(7);
-        assertThat(first.last()).isFalse();
-        assertThat(third.last()).isTrue();
+        assertThat(first.hasMore()).isTrue();
+        assertThat(third.hasMore()).isFalse();
+        assertThat(third.nextCursor()).isNull();
+    }
+
+    @Test
+    void recommendationCursorKeepsTheInitialSnapshotWhileTheIndexChanges() throws Exception {
+        for (long id = 1; id <= 5; id++) {
+            writer.write(change(id, 1, 0, id * 10, "article " + id));
+        }
+        indexClient.refresh(request -> request.index(alias));
+
+        var first = queries.recommendationFeed(new RecommendationFeedQuery(null, 2));
+        Long firstPageLastId = first.content().getLast().id();
+
+        writer.updateReadCounts(List.of(new BlogReadCount(1, 1_000)));
+        writer.write(change(6, 1, 0, 1_000, "new article"));
+        writer.write(
+            new BlogIndexChange(
+                BlogIndexChange.Operation.REMOVE,
+                2,
+                change(firstPageLastId, 2, 0, 0, "deleted").blog()));
+        indexClient.refresh(request -> request.index(alias));
+
+        var collected = new java.util.ArrayList<Long>();
+        first.content().forEach(blog -> collected.add(blog.id()));
+        var next = first;
+        while (next.hasMore()) {
+            next =
+                queries.recommendationFeed(
+                    new RecommendationFeedQuery(next.nextCursor(), 2));
+            next.content().forEach(blog -> collected.add(blog.id()));
+        }
+
+        assertThat(collected).containsExactly(5L, 4L, 3L, 2L, 1L);
+        assertThat(collected).doesNotContain(6L);
+    }
+
+    @Test
+    void expiredRecommendationPitRestartsFromANewSnapshot() throws Exception {
+        for (long id = 1; id <= 4; id++) {
+            writer.write(change(id, 1, 0, id * 10, "article " + id));
+        }
+        indexClient.refresh(request -> request.index(alias));
+        var first = queries.recommendationFeed(new RecommendationFeedQuery(null, 2));
+        var cursor =
+            new RecommendationCursorCodec(JsonMapper.builder().build())
+                .decode(first.nextCursor());
+        assertThat(template.closePointInTime(cursor.pitId())).isTrue();
+
+        var restarted =
+            queries.recommendationFeed(
+                new RecommendationFeedQuery(first.nextCursor(), 2));
+
+        assertThat(restarted.restart()).isTrue();
+        assertThat(restarted.content()).extracting(blog -> blog.id())
+            .containsExactly(4L, 3L);
+        assertThat(restarted.nextCursor()).isNotBlank();
     }
 
     @Test

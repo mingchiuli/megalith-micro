@@ -389,6 +389,13 @@ export interface BlogRecommendation {
   readCount: number
 }
 
+export interface RecommendationFeed {
+  content: BlogRecommendation[]
+  nextCursor?: string
+  hasMore: boolean
+  restart: boolean
+}
+
 export interface SensitiveItem {
   startIndex: number
   endIndex: number

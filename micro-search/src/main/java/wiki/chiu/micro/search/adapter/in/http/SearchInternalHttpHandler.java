@@ -1,6 +1,7 @@
 package wiki.chiu.micro.search.adapter.in.http;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
+import static wiki.chiu.micro.common.web.FunctionalWeb.nullableParam;
 import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
@@ -22,15 +23,17 @@ import wiki.chiu.micro.search.api.vo.AdminBlogSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminRevisionRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminRevisionSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
+import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
 import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.AdminBlogRead;
 import wiki.chiu.micro.search.application.model.AdminRevisionRead;
 import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogRead;
+import wiki.chiu.micro.search.application.model.RecommendationFeed;
+import wiki.chiu.micro.search.application.model.RecommendationFeedQuery;
 import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
 import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
-import wiki.chiu.micro.common.page.PageAdapter;
 
 @Component
 public class SearchInternalHttpHandler implements SearchHttpService {
@@ -71,10 +74,15 @@ public class SearchInternalHttpHandler implements SearchHttpService {
         return ok(publicBlog(blogId));
     }
 
-    public ServerResponse recommendationPage(ServerRequest request) {
-        Integer page = v.positive(requiredParam(request, "page", Integer::valueOf), "page");
+    public ServerResponse recommendationFeed(ServerRequest request) {
+        String cursor = nullableParam(request, "cursor", value -> v.maxLength(value, 4096, "cursor"));
         Integer size = v.range(requiredParam(request, "size", Integer::valueOf), 1, 50, "size");
-        return ok(recommendationPage(page, size));
+        return ok(recommendationFeed(cursor, size));
+    }
+
+    public ServerResponse recommendationHead(ServerRequest request) {
+        Integer size = v.range(requiredParam(request, "size", Integer::valueOf), 1, 50, "size");
+        return ok(recommendationHead(size));
     }
 
     @Override
@@ -129,15 +137,27 @@ public class SearchInternalHttpHandler implements SearchHttpService {
     }
 
     @Override
-    public Result<PageAdapter<PublicBlogRpcVo>> recommendationPage(Integer page, Integer size) {
-        Page<PublicBlogRead> result = searchBlogs.recommendationPage(page, size);
+    public Result<RecommendationFeedRpcVo> recommendationFeed(String cursor, Integer size) {
+        RecommendationFeed result =
+            searchBlogs.recommendationFeed(new RecommendationFeedQuery(cursor, size));
         return Result.success(
             () ->
-                PageResponse.of(
-                    result,
+                new RecommendationFeedRpcVo(
                     result.content().stream()
                         .map(SearchInternalHttpHandler::toResponse)
-                        .toList()));
+                        .toList(),
+                    result.nextCursor(),
+                    result.hasMore(),
+                    result.restart()));
+    }
+
+    @Override
+    public Result<List<PublicBlogRpcVo>> recommendationHead(Integer size) {
+        return Result.success(
+            () ->
+                searchBlogs.recommendationHead(size).stream()
+                    .map(SearchInternalHttpHandler::toResponse)
+                    .toList());
     }
 
     private static PrivateBlogSearchQuery toQuery(BlogSysSearchReq req) {
