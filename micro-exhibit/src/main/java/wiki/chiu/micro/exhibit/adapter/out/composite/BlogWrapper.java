@@ -17,7 +17,6 @@ import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
-import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
 import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.application.port.out.BlogReader;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
