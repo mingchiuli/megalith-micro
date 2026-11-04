@@ -1,6 +1,6 @@
 # Megalith Micro
 
-[![GraalVM](https://img.shields.io/badge/GraalVM-Java%2025-f29111.svg)](https://www.graalvm.org/)
+[![GraalVM](https://img.shields.io/badge/GraalVM-25.5%20Innovation-f29111.svg)](https://www.graalvm.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-6db33f.svg)](https://spring.io/projects/spring-boot)
 [![Rust](https://img.shields.io/badge/Rust-2024-000000.svg)](https://www.rust-lang.org/)
 [![Bun](https://img.shields.io/badge/Bun-1.4-000000.svg?logo=bun&logoColor=white)](https://bun.sh/)
@@ -22,7 +22,7 @@ separate JVM, JRE, Bun installation, build toolchain, or source tree.
 
 | Applications | Technology | Production artifact |
 | --- | --- | --- |
-| `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot 4.1.2, GraalVM | GraalVM Native Image executable |
+| `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot 4.1.2, GraalVM 25.5 Innovation | GraalVM Native Image executable |
 | `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
 | `micro-frontend` | Bun 1.4.3, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
@@ -402,7 +402,8 @@ authentication, caching, observability, failure behavior, and deployment details
 
 ### Requirements
 
-- GraalVM for JDK 25 using the HotSpot JVM, not the Espresso JVM
+- GraalVM 25.5.5.0.3 innovation release for JDK 25 using the HotSpot JVM, not the
+  Espresso JVM
 - Gradle 9.8.2 through the included Wrapper
 - Rust stable with 2024 edition support
 - Bun 1.4.3
@@ -411,7 +412,7 @@ authentication, caching, observability, failure behavior, and deployment details
 Example on macOS:
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.4.4.1+1.1/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.5.5.0.3+1.1/Contents/Home
 ```
 
 ### Checks and Tests

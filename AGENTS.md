@@ -6,7 +6,8 @@ this file records the implementation constraints that are easy to miss.
 
 ## Toolchain
 
-- Java 25 (GraalVM HotSpot), Spring Boot 4.1.2, Hibernate ORM 7.4.10.Final, Redisson 4.8.0, and Caffeine.
+- Java 25 (GraalVM 25.5 Innovation HotSpot), Spring Boot 4.1.2, Hibernate ORM
+  7.4.10.Final, Redisson 4.8.0, and Caffeine.
 - Gradle 9.8.2 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
 - Rust 2024 for `micro-gateway-rs` and `micro-sync-rs`.
 - Bun 1.4.3, Vue 3, and Vite for the standalone `micro-frontend` service.
@@ -14,7 +15,7 @@ this file records the implementation constraints that are easy to miss.
 `JAVA_HOME` must point to a GraalVM HotSpot JDK, not the Espresso JVM. On macOS, for example:
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.4.4.1+1.1/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.5.5.0.3+1.1/Contents/Home
 ```
 
 ## Checks and Commands
