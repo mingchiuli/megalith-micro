@@ -1,5 +1,5 @@
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
-import { nextTick, type ComponentPublicInstance } from 'vue'
+import { flushPromises, mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import InfiniteScrollFooter from '@/components/InfiniteScrollFooter.vue'
 
@@ -27,10 +27,7 @@ class IntersectionObserverStub {
   disconnect() {}
 }
 
-// setProps 需要宽松的 props 类型，否则 vue-tsc 推断不出 SFC 的 props
-const mountFooter = (
-  overrides: Partial<FooterProps> = {}
-): VueWrapper<ComponentPublicInstance<Record<string, unknown>>> =>
+const mountFooter = (overrides: Partial<FooterProps> = {}) =>
   mount(InfiniteScrollFooter, {
     props: {
       loading: false,
@@ -49,7 +46,7 @@ const mountFooter = (
         }
       }
     }
-  }) as VueWrapper<ComponentPublicInstance<Record<string, unknown>>>
+  })
 
 describe('InfiniteScrollFooter.vue', () => {
   beforeEach(() => {
