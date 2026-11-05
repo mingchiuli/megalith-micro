@@ -9,7 +9,7 @@ const props = defineProps<{
   type?: 'blog' | 'user' | 'route'
 }>()
 
-const getStatusInfo = (status: Status, displayType: string = 'blog') => {
+const getStatusInfo = (status: Status | RoutesStatus, displayType: string = 'blog') => {
   const blogLabels: Record<
     number,
     { label: string; type: 'success' | 'danger' | 'warning' | 'info' }

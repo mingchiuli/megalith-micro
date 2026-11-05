@@ -13,7 +13,10 @@ const { isDark } = storeToRefs(themeStore())
 const loginState = loginStateStore()
 const { sessionExpired } = storeToRefs(loginState)
 const showGlobalFooter = computed(() => route.meta.layout !== 'system')
-const viewKey = computed(() => (route.name === 'blog' ? route.params.id : undefined))
+const viewKey = computed(() => {
+  const blogId = route.params.id
+  return route.name === 'blog' && typeof blogId === 'string' ? blogId : undefined
+})
 
 const continueToLogin = async () => {
   const redirect = loginState.sessionExpiredRedirect
