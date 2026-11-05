@@ -10,36 +10,21 @@ import wiki.chiu.micro.auth.adapter.in.http.MenuWithChildVo;
 import wiki.chiu.micro.auth.adapter.in.http.UserInfoVo;
 import wiki.chiu.micro.auth.adapter.in.security.LoginRequest;
 import wiki.chiu.micro.auth.adapter.in.security.LoginType;
-import wiki.chiu.micro.auth.api.req.AuthorityRouteReq;
-import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
-import wiki.chiu.micro.auth.api.vo.AuthorityRouteRpcVo;
 import wiki.chiu.micro.auth.application.model.Authority;
 import wiki.chiu.micro.auth.application.model.Menu;
 import wiki.chiu.micro.auth.application.model.RoleAuthorization;
 import wiki.chiu.micro.auth.application.model.UserAccess;
-import wiki.chiu.micro.common.enums.DataPermissionEnum;
-import wiki.chiu.micro.common.result.Result;
-import wiki.chiu.micro.common.security.AuthPrincipal;
-import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
-import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-        // HTTP payload types bound by the functional routes in adapter.in.http.
+        // HTTP payload types not covered by HTTP service interfaces.
         new BindingReflectionHintsRegistrar()
             .registerReflectionHints(
                 hints.reflection(),
-                Result.class,
-                AuthorityRouteReq.class,
-                WebSocketTicketReq.class,
                 MenuWithChildVo.class,
                 UserInfoVo.class,
-                AuthorityRouteRpcVo.class,
-                AuthPrincipal.class,
-                DataPermissionEnum.class,
                 CodeReq.class);
 
         hints
@@ -63,18 +48,6 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(
                 Authority.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                UserAccessRpcVo.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                RoleAuthorizationRpcVo.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                AuthorityRpcVo.class,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS);
 

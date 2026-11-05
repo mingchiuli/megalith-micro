@@ -1,48 +1,28 @@
 package wiki.chiu.micro.exhibit.config;
 
 import org.springframework.aot.hint.BindingReflectionHintsRegistrar;
-import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
-import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogExhibitVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogHotReadVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogRecommendationFeedVo;
-import wiki.chiu.micro.exhibit.adapter.in.http.BlogRecommendationVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.ReadTokenReq;
 import wiki.chiu.micro.exhibit.adapter.in.http.VisitStatisticsVo;
-import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
-import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
-import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-        // HTTP payload types bound by the functional routes in adapter.in.http.
+        // HTTP payload types not covered by HTTP service interfaces.
         new BindingReflectionHintsRegistrar()
             .registerReflectionHints(
                 hints.reflection(),
-                Result.class,
                 ReadTokenReq.class,
                 BlogExhibitVo.class,
                 BlogHotReadVo.class,
-                BlogRecommendationVo.class,
                 BlogRecommendationFeedVo.class,
-                PublicBlogRpcVo.class,
                 VisitStatisticsVo.class);
-
-        hints
-            .reflection()
-            .registerType(
-                BlogExhibit.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                SensitiveSpan.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS);
 
         hints
             .resources()
