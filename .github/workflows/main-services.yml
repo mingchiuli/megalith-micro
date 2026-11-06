@@ -152,6 +152,9 @@ jobs:
 
             while IFS= read -r file; do
               case "$file" in
+                .github/workflows/main-services.yml)
+                  add_all
+                  ;;
                 micro-auth/*)
                   add_service micro-auth
                   ;;
