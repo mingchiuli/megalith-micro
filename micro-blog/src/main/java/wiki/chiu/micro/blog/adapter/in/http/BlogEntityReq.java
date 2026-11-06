@@ -15,7 +15,7 @@ public record BlogEntityReq(
     Integer status,
     String link,
     List<SensitiveContentReq> sensitiveContentList,
-    Long draftRevision) {
+    Long draftRevision, String collaborationEpoch) {
 
     public BlogEntityReq(
         Optional<Long> id,
@@ -25,6 +25,6 @@ public record BlogEntityReq(
         Integer status,
         String link,
         List<SensitiveContentReq> sensitiveContentList) {
-        this(id, title, description, content, status, link, sensitiveContentList, null);
+        this(id, title, description, content, status, link, sensitiveContentList, null, null);
     }
 }

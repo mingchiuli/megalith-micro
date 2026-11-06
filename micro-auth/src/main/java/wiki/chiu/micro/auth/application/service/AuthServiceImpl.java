@@ -22,6 +22,7 @@ import wiki.chiu.micro.auth.application.model.RouteQuery;
 import wiki.chiu.micro.auth.application.model.UserAccess;
 import wiki.chiu.micro.auth.application.port.in.AuthService;
 import wiki.chiu.micro.auth.application.port.out.AuthorizationDirectory;
+import wiki.chiu.micro.auth.application.port.out.FreshAuthorizationDirectory;
 import wiki.chiu.micro.auth.application.port.out.RouteTokenReader;
 import wiki.chiu.micro.auth.application.port.out.VisitRecorder;
 import wiki.chiu.micro.common.enums.AuthTypeEnum;
@@ -42,14 +43,20 @@ public class AuthServiceImpl implements AuthService {
     private final VisitRecorder visits;
 
     private final RouteTokenReader routeTokens;
+    private final long collaborationLeaseMillis;
+
+    private final FreshAuthorizationDirectory fresh;
 
     public AuthServiceImpl(
         AuthorizationDirectory authorizationDirectory,
         VisitRecorder visits,
-        RouteTokenReader routeTokens) {
+        RouteTokenReader routeTokens,
+        FreshAuthorizationDirectory fresh, long collaborationLeaseSeconds) {
         this.authorizationDirectory = authorizationDirectory;
         this.visits = visits;
         this.routeTokens = routeTokens;
+        this.fresh = fresh;
+        this.collaborationLeaseMillis = Math.min(60, collaborationLeaseSeconds) * 1000;
     }
 
     @Override
@@ -63,21 +70,29 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public RouteDecision authorizeRoute(RouteQuery query, String token) {
+        boolean ticketRequest = "/sys/blog/edit/ticket".equals(query.routeMapping());
+        Long expiresAt = ticketRequest ? System.currentTimeMillis() + collaborationLeaseMillis : null;
         Long userId = routeTokens.resolveUserId(query.routeMapping(), token);
-        List<Authority> routes = authorizationDirectory.getAllSystemAuthorities();
-        UserAccess access = userId == null ? null : authorizationDirectory.getUserAccess(userId);
+        List<Authority> routes = ticketRequest ? fresh.freshAuthorities() : authorizationDirectory.getAllSystemAuthorities();
+        UserAccess access = userId == null ? null : ticketRequest ? fresh.findUserAccess(userId) : authorizationDirectory.getUserAccess(userId);
         Authority route =
             matchingAuthority(routes, query.routeMapping(), query.method())
                 .orElseThrow(() -> new MissException(ExceptionMessage.NO_AUTH));
-        AuthPrincipal principal = authorizePrincipal(query.routeMapping(), route, userId, access);
+        AuthPrincipal principal = authorizePrincipal(query.routeMapping(), route, userId, access, ticketRequest);
         recordIp(query.ipAddr());
-        return new RouteDecision(route.serviceHost(), route.servicePort(), principal);
+        if (isWebSocketRoute(query.routeMapping())) {
+            expiresAt = routeTokens.authorizationExpiresAt(query.routeMapping(), token);
+        }
+        return new RouteDecision(route.serviceHost(), route.servicePort(), principal, expiresAt);
     }
 
-    private List<RoleAuthorization> roleAuthorizations(List<Long> roleIds) {
+    private List<RoleAuthorization> roleAuthorizations(List<Long> roleIds, boolean freshRead) {
         List<Long> distinctRoleIds = roleIds.stream().distinct().toList();
         if (distinctRoleIds.isEmpty()) {
             return List.of();
+        }
+        if (freshRead) {
+            return fresh.freshRoleAuthorizations(distinctRoleIds);
         }
         Map<Long, RoleAuthorization> byId =
             authorizationDirectory.getAllRoleAuthorizations().stream()
@@ -110,7 +125,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private AuthPrincipal authorizePrincipal(
-        String routeMapping, Authority route, Long userId, UserAccess access) {
+        String routeMapping, Authority route, Long userId, UserAccess access, boolean freshRead) {
         if (userId == null) {
             if (AuthTypeEnum.WHITE_LIST.getCode().equals(route.type())) {
                 return AuthPrincipal.anonymous();
@@ -122,7 +137,7 @@ public class AuthServiceImpl implements AuthService {
             throw new MissException(ExceptionMessage.NO_AUTH);
         }
         List<RoleAuthorization> authorizations =
-            roleAuthorizations(access.roleIds()).stream()
+            roleAuthorizations(access.roleIds(), freshRead).stream()
                 .filter(RoleAuthorization::exists)
                 .filter(item -> StatusEnum.NORMAL.getCode().equals(item.status()))
                 .toList();

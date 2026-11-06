@@ -2,6 +2,7 @@ package wiki.chiu.micro.blog.adapter.out.persistence;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionSensi
 import wiki.chiu.micro.blog.application.model.BlogContentCommand;
 import wiki.chiu.micro.blog.application.model.BlogDraftDeleteCommand;
 import wiki.chiu.micro.blog.application.model.BlogDraftWriteCommand;
+import wiki.chiu.micro.blog.application.model.BlogMaintenanceMode;
 import wiki.chiu.micro.blog.application.model.BlogPublishCommand;
 import wiki.chiu.micro.blog.application.model.BlogStatusWriteCommand;
 import wiki.chiu.micro.blog.application.model.BlogVersionWriteCommand;
@@ -54,6 +56,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
     private final BlogRevisionSensitiveContentRepository revisionSensitive;
     private final BlogDraftSensitiveContentRepository draftSensitive;
     private final OutboxEvents outbox;
+    private final BlogMaintenanceMode maintenance;
 
     public JpaBlogAuthoringAdapter(
         BlogRepository blogs,
@@ -61,18 +64,20 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
         BlogDraftRepository drafts,
         BlogRevisionSensitiveContentRepository revisionSensitive,
         BlogDraftSensitiveContentRepository draftSensitive,
-        OutboxEvents outbox) {
+        OutboxEvents outbox, BlogMaintenanceMode maintenance) {
         this.blogs = blogs;
         this.revisions = revisions;
         this.drafts = drafts;
         this.revisionSensitive = revisionSensitive;
         this.draftSensitive = draftSensitive;
         this.outbox = outbox;
+        this.maintenance = maintenance;
     }
 
     @Transactional
     @Override
     public BlogIdentity createIdentity(Long userId) {
+        maintenance.requireWritable();
         BlogEntity entity = blogs.save(BlogEntity.newBlog(userId));
         BlogIdentity identity = BlogPersistenceMapper.toIdentity(entity);
         enqueueAdmin(identity, null, null, null, "BLOG_CREATED");
@@ -82,9 +87,10 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
     @Transactional
     @Override
     public BlogWorkingDraft saveDraft(BlogDraftWriteCommand command) {
+        maintenance.requireWritable();
         BlogIdentity original = command.identity();
         long expectedAdmin = revision(original.adminRevision());
-        if (blogs.bumpAdminRevision(original.id(), expectedAdmin) != 1) {
+        if (blogs.bumpAdminRevision(original.id(), expectedAdmin, original.collaborationEpoch()) != 1) {
             throw conflict(original.id());
         }
 
@@ -117,9 +123,13 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
     @Transactional
     @Override
     public void deleteDraft(BlogDraftDeleteCommand command) {
+        maintenance.requireWritable();
         BlogIdentity original = command.identity();
         long expectedAdmin = revision(original.adminRevision());
-        if (blogs.bumpAdminRevision(original.id(), expectedAdmin) != 1) {
+        if (blogs.bumpAdminRevision(original.id(), expectedAdmin, original.collaborationEpoch()) != 1) {
+            throw conflict(original.id());
+        }
+        if (blogs.rotateEpoch(original.id(), original.collaborationEpoch(), UUID.randomUUID().toString()) != 1) {
             throw conflict(original.id());
         }
         if (command.draft() != null) {
@@ -137,9 +147,10 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
     @Transactional
     @Override
     public SavedBlogVersion saveDraftVersion(BlogVersionWriteCommand command) {
+        maintenance.requireWritable();
         BlogIdentity original = command.identity();
         long expectedAdmin = revision(original.adminRevision());
-        if (blogs.bumpAdminRevision(original.id(), expectedAdmin) != 1) {
+        if (blogs.bumpAdminRevision(original.id(), expectedAdmin, original.collaborationEpoch()) != 1) {
             throw conflict(original.id());
         }
 
@@ -197,8 +208,10 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
     @Transactional
     @Override
     public void publish(BlogPublishCommand command) {
+        maintenance.requireWritable();
         BlogIdentity original = command.identity();
         BlogVersion selected = command.revision();
+        String nextEpoch = UUID.randomUUID().toString();
         if (selected.firstPublishedAt() == null
             && revisions.markFirstPublished(selected.id(), original.id(), command.now()) != 1) {
             throw conflict(original.id());
@@ -210,10 +223,11 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
         if (blogs.publish(
                 original.id(),
                 selected.id(),
+                nextEpoch,
                 command.now(),
                 command.accessMode(),
                 revision(original.publicationRevision()),
-                revision(original.adminRevision()))
+                revision(original.adminRevision()), original.collaborationEpoch())
             != 1) {
             throw conflict(original.id());
         }
@@ -261,7 +275,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
                 null,
                 BlogAccessMode.of(accessMode),
                 revision(original.publicationRevision()) + 1,
-                revision(original.adminRevision()) + 1);
+                revision(original.adminRevision()) + 1, nextEpoch);
         enqueuePublic(
             BlogOperateEnum.UPDATE,
             snapshot(changed, published),
@@ -286,6 +300,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
     @Transactional
     @Override
     public void changeStatus(BlogStatusWriteCommand command) {
+        maintenance.requireWritable();
         BlogIdentity original = command.identity();
         int changed =
             command.online()
@@ -293,12 +308,12 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
                     original.id(),
                     command.now(),
                     revision(original.publicationRevision()),
-                    revision(original.adminRevision()))
+                    revision(original.adminRevision()), original.collaborationEpoch())
                 : blogs.setOfflineAt(
                     original.id(),
                     command.now(),
                     revision(original.publicationRevision()),
-                    revision(original.adminRevision()));
+                    revision(original.adminRevision()), original.collaborationEpoch());
         if (changed != 1) {
             throw conflict(original.id());
         }
@@ -314,7 +329,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
                 command.online() ? null : command.now(),
                 original.accessMode(),
                 revision(original.publicationRevision()) + 1,
-                revision(original.adminRevision()) + 1);
+                revision(original.adminRevision()) + 1, original.collaborationEpoch());
         enqueuePublic(
             BlogOperateEnum.UPDATE,
             snapshot(next, command.revision()),
@@ -572,7 +587,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
             identity.offlineAt(),
             identity.accessMode(),
             identity.publicationRevision(),
-            adminRevision);
+            adminRevision, identity.collaborationEpoch());
     }
 
     private static long revision(Long value) {

@@ -41,7 +41,12 @@ async fn forward_to_target_service(
 ) -> Result<Response<hyper::body::Incoming>, ClientError> {
     let target_uri = proxy::parse_url(&route_resp, req.uri(), constant::HTTP)?;
 
-    let headers = proxy::prepare_headers(req.headers(), route_resp.principal(), req.uri().path())?;
+    let headers = proxy::prepare_headers(
+        req.headers(),
+        route_resp.principal(),
+        req.uri().path(),
+        route_resp.authorization_expires_at(),
+    )?;
     let method = req.method().clone();
     let body = req.into_body();
 

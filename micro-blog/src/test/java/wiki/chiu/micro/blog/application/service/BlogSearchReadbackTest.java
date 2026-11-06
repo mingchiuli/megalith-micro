@@ -121,6 +121,6 @@ class BlogSearchReadbackTest {
     private BlogIdentity identity(long id, long userId) {
         var date = LocalDateTime.of(2026, 9, 1, 12, 0);
         return new BlogIdentity(
-            id, userId, date, 0L, null, null, null, BlogAccessMode.PUBLIC, 0L, 0L);
+            id, userId, date, 0L, null, null, null, BlogAccessMode.PUBLIC, 0L, 0L, "00000000-0000-0000-0000-000000000001");
     }
 }

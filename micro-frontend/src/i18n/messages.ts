@@ -101,6 +101,7 @@ export const messages = {
       year: '今年 {count}'
     },
     collaboration: {
+      authorizationPaused: '协作授权已暂停，草稿已保留。请重新连接或登录。',
       initializedTitle: '文档已初始化',
       initializedMessage: '协同编辑已就绪',
       connectedTitle: '已连接',
@@ -116,6 +117,8 @@ export const messages = {
       retry: '重新连接'
     },
     admin: {
+      draftCreationFailed: '无法创建草稿',
+      recoveryCopies: '恢复副本（仅供查看和复制）',
       versionHistory: '版本历史',
       versionView: '查看版本',
       versionNo: '版本',
@@ -308,6 +311,8 @@ export const messages = {
       year: 'Year {count}'
     },
     collaboration: {
+      authorizationPaused:
+        'Collaboration authorization paused. Your draft is retained. Reconnect or sign in again.',
       initializedTitle: 'Document initialized',
       initializedMessage: 'Collaborative editing is ready',
       connectedTitle: 'Connected',
@@ -323,6 +328,8 @@ export const messages = {
       retry: 'Reconnect'
     },
     admin: {
+      draftCreationFailed: 'Could not create draft',
+      recoveryCopies: 'Recovery copies (view and copy only)',
       versionHistory: 'Version history',
       versionView: 'View version',
       versionNo: 'Version',

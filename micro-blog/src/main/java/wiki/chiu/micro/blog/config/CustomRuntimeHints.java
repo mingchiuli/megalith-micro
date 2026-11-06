@@ -18,6 +18,7 @@ import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSummaryVo;
 import wiki.chiu.micro.blog.adapter.in.http.OssDeleteReq;
 import wiki.chiu.micro.blog.adapter.in.http.PublishBlogReq;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
+import wiki.chiu.micro.blog.application.model.CollaborationTicket;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
@@ -33,6 +34,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
             .registerReflectionHints(
                 hints.reflection(),
                 PageAdapter.class,
+                CollaborationTicket.class,
                 BlogRepository.BlogId.class,
                 BlogEntityReq.class,
                 BlogIdVo.class,
@@ -65,6 +67,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
         hints
             .resources()
+            .registerPattern("db/migration/add-blog-collaboration-epoch.sql")
             .registerPattern("script/hot-blogs.lua")
             .registerPattern("script/blog-delete-list.lua")
             .registerPattern("script/blog-recycle.lua");

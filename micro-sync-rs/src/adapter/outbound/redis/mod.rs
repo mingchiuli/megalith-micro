@@ -288,6 +288,19 @@ impl RedisSessionStore {
 impl RoomEventStore for RedisSessionStore {
     type Reader = RedisEventReader;
 
+    async fn initialize_room(&self, room_id: &str, update: &[u8]) -> StoreResult<()> {
+        let mut connection = self.connection.clone();
+        let result = Script::new(scripts::INITIALIZE_ROOM)
+            .key(self.snapshot_key(room_id))
+            .key(self.room_stream(room_id))
+            .arg(update)
+            .arg(self.active_ttl_millis())
+            .invoke_async::<i32>(&mut connection)
+            .await;
+        self.record_health(&result);
+        result.map(|_| ()).map_err(store_error)
+    }
+
     async fn event_reader(&self) -> StoreResult<Self::Reader> {
         let connection = self.dedicated_connection().await.map_err(store_error)?;
         Ok(RedisEventReader {
@@ -652,6 +665,29 @@ mod tests {
             .await
             .unwrap();
         assert!(second.read_awareness("room").await.unwrap().is_empty());
+
+        // Independent replicas must seed one shared document, never append duplicate initial text.
+        let seed = crate::domain::protocol::initial_document("initial body");
+        let other_seed = crate::domain::protocol::initial_document("initial body");
+        let (one, two) = tokio::join!(
+            RoomEventStore::initialize_room(&first, "seeded", &seed),
+            RoomEventStore::initialize_room(&second, "seeded", &other_seed)
+        );
+        one.unwrap();
+        two.unwrap();
+        let seeded = first.load_room("seeded").await.unwrap();
+        assert!(seeded.document.as_ref() == seed || seeded.document.as_ref() == other_seed);
+        let empty = crate::domain::protocol::initial_document("");
+        RoomEventStore::initialize_room(&first, "empty", &empty)
+            .await
+            .unwrap();
+        RoomEventStore::initialize_room(&second, "empty", &seed)
+            .await
+            .unwrap();
+        assert_eq!(
+            second.load_room("empty").await.unwrap().document.as_ref(),
+            empty
+        );
 
         let keys = redis::cmd("KEYS")
             .arg(format!("{}:*", first.prefix))

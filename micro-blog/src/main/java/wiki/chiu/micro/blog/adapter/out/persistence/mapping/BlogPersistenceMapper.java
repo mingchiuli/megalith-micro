@@ -36,7 +36,7 @@ public final class BlogPersistenceMapper {
             entity.getOfflineAt(),
             BlogAccessMode.of(entity.getAccessMode()),
             entity.getPublicationRevision(),
-            entity.getAdminRevision());
+            entity.getAdminRevision(), entity.getCollaborationEpoch());
     }
 
     public static Blog toPublishedBlog(

@@ -1,5 +1,5 @@
 use axum::Router;
-use axum::routing::get;
+use axum::routing::{get, post};
 use std::time::Duration;
 
 use crate::adapter::inbound::health::health;
@@ -26,6 +26,11 @@ pub async fn set_route() -> redis::RedisResult<Router> {
 
     Ok(Router::new()
         .route("/rooms/{room_id}", get(ws_handler::<RedisSessionStore>))
+        .route(
+            "/inner/rooms/{room_id}/initialize",
+            post(crate::adapter::inbound::initialize::initialize::<RedisSessionStore>)
+                .layer(axum::extract::DefaultBodyLimit::disable()),
+        )
         .route("/actuator/health", get(health::<RedisSessionStore>))
         .with_state(room_manager))
 }

@@ -24,7 +24,7 @@ class SqlExportGoldenTest {
     void exportsNormalizedIdentityAndRevisionTables() {
         BlogIdentity identity =
             new BlogIdentity(
-                1L, 42L, CREATED, 7L, 2L, CREATED, null, BlogAccessMode.PUBLIC, 1L, 3L);
+                1L, 42L, CREATED, 7L, 2L, CREATED, null, BlogAccessMode.PUBLIC, 1L, 3L, "00000000-0000-0000-0000-000000000001");
         BlogVersion version =
             new BlogVersion(
                 2L,

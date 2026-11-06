@@ -51,7 +51,7 @@ megalith:
     jwt:
       access-token-expire: 900
       refresh-token-expire: 604800
-      websocket-token-expire: 300
+      websocket-token-expire: 60
       issuer: micro-auth
       audience: megalith-api
     cookie:

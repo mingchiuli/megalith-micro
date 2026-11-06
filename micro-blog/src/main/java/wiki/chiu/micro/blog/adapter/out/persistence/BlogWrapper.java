@@ -86,7 +86,7 @@ public class BlogWrapper implements BlogWriter {
             accessMode, safeRevision(blog.eventRevision()), recoveredAdminRevision);
         blogs.insertRecovered(
             identity.getId(), identity.getUserId(), identity.getCreated(), identity.getReadCount(),
-            identity.getAccessMode(), identity.getPublicationRevision(), identity.getAdminRevision());
+            identity.getAccessMode(), identity.getPublicationRevision(), identity.getAdminRevision(), identity.getCollaborationEpoch());
         BlogRevisionEntity revision =
             revisions.save(
                 new BlogRevisionEntity(
@@ -149,7 +149,7 @@ public class BlogWrapper implements BlogWriter {
             if (blogs.deleteByIdAndRevisions(
                     blog.id(),
                     expected.publicationRevision(),
-                    expected.adminRevision())
+                    expected.adminRevision(), expected.collaborationEpoch())
                 != 1) {
                 throw conflict(blog.id());
             }

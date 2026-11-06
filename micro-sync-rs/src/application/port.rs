@@ -18,6 +18,12 @@ pub(crate) trait RoomEventReader: Send {
 pub(crate) trait RoomEventStore: Send + Sync + 'static {
     type Reader: RoomEventReader;
 
+    fn initialize_room(
+        &self,
+        room_id: &str,
+        update: &[u8],
+    ) -> impl Future<Output = StoreResult<()>> + Send;
+
     fn event_reader(&self) -> impl Future<Output = StoreResult<Self::Reader>> + Send;
 
     fn latest_event_id(

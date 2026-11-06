@@ -62,7 +62,7 @@ const sessionStub = {
 
 const mountEditor = async () => {
   const wrapper = mount(EditorItem, {
-    props: { formStatus: 0, manageAssets: false },
+    props: { blogId: 42, collaborationEpoch: 'epoch', formStatus: 0, manageAssets: false },
     global: { plugins: [createPinia()] }
   })
   await flushPromises()
@@ -79,13 +79,16 @@ describe('collaborative editor connection notices', () => {
     mocks.notify.mockReset()
     mocks.POST.mockReset()
     mocks.createCollaborationSession.mockReset()
-    mocks.POST.mockResolvedValue('ticket')
-    mocks.createCollaborationSession.mockImplementation(
-      async (_roomId, _content, _token, _user, onEvent) => {
-        emitCollaborationEvent = onEvent
-        return sessionStub
-      }
-    )
+    mocks.POST.mockImplementation(async () => ({
+      ticket: 'ticket',
+      roomId: 'blog:42:epoch',
+      collaborationEpoch: 'epoch',
+      expiresAt: Date.now() + 60_000
+    }))
+    mocks.createCollaborationSession.mockImplementation(async (_roomId, _token, _user, onEvent) => {
+      emitCollaborationEvent = onEvent
+      return sessionStub
+    })
   })
 
   afterEach(() => {
@@ -125,6 +128,52 @@ describe('collaborative editor connection notices', () => {
 
     emitCollaborationEvent({ type: 'synced', content: 'content' })
     expect(noticeTypes()).toEqual(['warning', 'success'])
+    wrapper.unmount()
+  })
+  it('renews and reconnects before authorization expires without a warning', async () => {
+    vi.useFakeTimers()
+    const wrapper = await mountEditor()
+    emitCollaborationEvent({ type: 'synced', content: 'content' })
+    mocks.notify.mockClear()
+    await vi.advanceTimersByTimeAsync(45_000)
+    await flushPromises()
+    expect(mocks.POST).toHaveBeenCalledTimes(2)
+    expect(sessionStub.restart).toHaveBeenCalledWith('ticket')
+    expect(noticeTypes()).toEqual([])
+    wrapper.unmount()
+  })
+
+  it('retains old content and asks the parent to reload on an epoch change', async () => {
+    vi.useFakeTimers()
+    const wrapper = await mountEditor()
+    emitCollaborationEvent({ type: 'synced', content: 'unsaved old content' })
+    mocks.POST.mockResolvedValue({
+      ticket: 'new',
+      roomId: 'blog:42:new',
+      collaborationEpoch: 'new',
+      expiresAt: Date.now() + 60_000
+    })
+    await vi.advanceTimersByTimeAsync(45_000)
+    await flushPromises()
+    expect(wrapper.emitted('epochChanged')).toHaveLength(1)
+    expect(wrapper.emitted('authorizationPaused')).toHaveLength(1)
+    expect(sessionStub.disconnect).toHaveBeenCalled()
+    expect(sessionStub.restart).not.toHaveBeenCalledWith('new')
+    wrapper.unmount()
+  })
+
+  it('pauses instead of reconnecting indefinitely after permission is denied', async () => {
+    vi.useFakeTimers()
+    const wrapper = await mountEditor()
+    emitCollaborationEvent({ type: 'synced', content: 'content' })
+    mocks.POST.mockRejectedValue({ response: { status: 403 } })
+    await vi.advanceTimersByTimeAsync(45_000)
+    await flushPromises()
+    expect(wrapper.emitted('authorizationPaused')).toHaveLength(1)
+    expect(sessionStub.disconnect).toHaveBeenCalled()
+    const requests = mocks.POST.mock.calls.length
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(mocks.POST).toHaveBeenCalledTimes(requests)
     wrapper.unmount()
   })
 })

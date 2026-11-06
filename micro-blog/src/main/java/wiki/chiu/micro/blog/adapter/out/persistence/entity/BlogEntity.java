@@ -1,5 +1,8 @@
 package wiki.chiu.micro.blog.adapter.out.persistence.entity;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -8,9 +11,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-
-import java.time.LocalDateTime;
-
 import org.hibernate.Hibernate;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -63,6 +63,9 @@ public class BlogEntity {
     @Column(name = "admin_revision")
     private Long adminRevision;
 
+    @Column(name = "collaboration_epoch", nullable = false, length = 36)
+    private String collaborationEpoch = UUID.randomUUID().toString();
+
     protected BlogEntity() {
     }
 
@@ -101,6 +104,10 @@ public class BlogEntity {
             BlogAccessMode.PUBLIC.getCode(),
             0L,
             0L);
+    }
+
+    public String getCollaborationEpoch() {
+        return collaborationEpoch;
     }
 
     public Long getId() {

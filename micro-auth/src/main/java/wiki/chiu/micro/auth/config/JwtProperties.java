@@ -24,9 +24,9 @@ public record JwtProperties(
         if (refreshTokenExpire <= 0) {
             throw new IllegalArgumentException("megalith.auth.jwt.refresh-token-expire must be positive");
         }
-        if (websocketTokenExpire <= 0) {
+        if (websocketTokenExpire <= 0 || websocketTokenExpire > 60) {
             throw new IllegalArgumentException(
-                "megalith.auth.jwt.websocket-token-expire must be positive");
+                "megalith.auth.jwt.websocket-token-expire must be between 1 and 60 seconds");
         }
         if (issuer == null || issuer.isBlank()) {
             throw new IllegalArgumentException("megalith.auth.jwt.issuer must not be blank");

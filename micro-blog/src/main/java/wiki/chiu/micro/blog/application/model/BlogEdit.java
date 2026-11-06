@@ -19,5 +19,5 @@ public record BlogEdit(
     boolean hasDraft,
     boolean draftNewer,
     List<SensitiveContentDraft> sensitiveContentList,
-    BlogPermissions permissions) {
+    BlogPermissions permissions, String collaborationEpoch) {
 }

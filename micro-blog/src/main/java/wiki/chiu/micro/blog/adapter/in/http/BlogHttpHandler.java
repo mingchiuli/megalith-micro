@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -25,9 +26,11 @@ import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
 import wiki.chiu.micro.blog.application.port.in.BlogCollaborationService;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
+import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.security.AuthPrincipal;
+import wiki.chiu.micro.common.security.InternalHttpHeaders;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
 /**
@@ -64,8 +67,11 @@ public class BlogHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    new BlogIdVo(
-                        blogService.createDraftBlog(authInfo.userId()).id())));
+                    createdBlog(blogService.createDraftBlog(authInfo.userId()))));
+    }
+
+    private static BlogIdVo createdBlog(BlogIdentity identity) {
+        return new BlogIdVo(identity.id(), identity.collaborationEpoch());
     }
 
     public ServerResponse saveDraft(ServerRequest request) throws Exception {
@@ -185,7 +191,8 @@ public class BlogHttpHandler {
             Result.success(
                 () ->
                     blogService.deleteDraft(
-                        blogId, authInfo.userId(), authInfo.dataPermissions())));
+                        blogId, authInfo.userId(), authInfo.dataPermissions(),
+                        requiredParam(request, "collaborationEpoch", UUID::fromString).toString())));
     }
 
     public ServerResponse findVersion(ServerRequest request) {
@@ -303,16 +310,12 @@ public class BlogHttpHandler {
     }
 
     public ServerResponse issueCollaborationTicket(ServerRequest request) {
-        Long blogId = nullableParam(request, "blogId", Long::valueOf);
-        if (blogId != null) {
-            v.positive(blogId, "blogId");
-        }
+        Long blogId = v.positive(requiredParam(request, "blogId", Long::valueOf), "blogId");
+        long expiresAt = Long.parseLong(requiredHeader(request,
+            InternalHttpHeaders.AUTHORIZATION_EXPIRES_AT));
         AuthPrincipal authInfo = authPrincipal(request);
-        return ok(
-            Result.success(
-                () ->
-                    collaborationService.issueWebSocketTicket(
-                        blogId, authInfo.userId(), authInfo.dataPermissions())));
+        return ok(Result.success(() -> collaborationService.issueWebSocketTicket(
+            blogId, authInfo.userId(), authInfo.dataPermissions(), expiresAt)));
     }
 
     public ServerResponse download(ServerRequest request) {

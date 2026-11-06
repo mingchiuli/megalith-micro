@@ -14,7 +14,8 @@ public record BlogIdentity(
     LocalDateTime offlineAt,
     BlogAccessMode accessMode,
     Long publicationRevision,
-    Long adminRevision) {
+    Long adminRevision,
+    String collaborationEpoch) {
 
     public boolean published() {
         return publishedRevisionId != null;

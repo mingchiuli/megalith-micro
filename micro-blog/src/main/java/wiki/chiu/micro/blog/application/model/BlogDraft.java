@@ -13,7 +13,7 @@ public record BlogDraft(
     String content,
     Integer status,
     String link,
-    List<SensitiveContentDraft> sensitiveContentList) {
+    List<SensitiveContentDraft> sensitiveContentList, String collaborationEpoch) {
 
     public BlogDraft(
         Long id,
@@ -22,8 +22,8 @@ public record BlogDraft(
         String content,
         Integer status,
         String link,
-        List<SensitiveContentDraft> sensitiveContentList) {
-        this(id, null, title, description, content, status, link, sensitiveContentList);
+        List<SensitiveContentDraft> sensitiveContentList, String collaborationEpoch) {
+        this(id, null, title, description, content, status, link, sensitiveContentList, null);
     }
 
 }

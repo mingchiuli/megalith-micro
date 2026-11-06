@@ -1,5 +1,7 @@
 package wiki.chiu.micro.auth.application.port.out;
 
+
+
 /**
  * Resolves the caller of a routed request from the token the gateway forwards.
  */
@@ -12,5 +14,7 @@ public interface RouteTokenReader {
      * @throws wiki.chiu.micro.common.exception.MissException when the token is malformed, expired,
      *     of the wrong type, or bound to a different room
      */
+    Long authorizationExpiresAt(String routeMapping, String token);
+
     Long resolveUserId(String routeMapping, String token);
 }

@@ -34,9 +34,15 @@ pub(crate) struct AuthorizedRoute {
     service_host: String,
     service_port: u32,
     principal: AuthPrincipal,
+    #[serde(default)]
+    authorization_expires_at: Option<u64>,
 }
 
 impl AuthorizedRoute {
+    pub(crate) fn authorization_expires_at(&self) -> Option<u64> {
+        self.authorization_expires_at
+    }
+
     pub(crate) fn service_host(&self) -> &str {
         &self.service_host
     }

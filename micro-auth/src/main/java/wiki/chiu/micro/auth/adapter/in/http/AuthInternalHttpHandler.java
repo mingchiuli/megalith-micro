@@ -3,6 +3,8 @@ package wiki.chiu.micro.auth.adapter.in.http;
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredHeader;
 
+import java.util.Objects;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -56,6 +58,7 @@ public class AuthInternalHttpHandler implements AuthHttpService {
     public Result<String> issueWebSocketTicket(WebSocketTicketReq req, String encodedPrincipal) {
         AuthPrincipal principal = AuthPrincipalCodec.decodeRequired(encodedPrincipal);
         return Result.success(
-            () -> "Bearer " + tokenService.issueWebSocketTicket(principal.userId(), req.roomId()));
+            () -> "Bearer " + tokenService.issueWebSocketTicket(principal.userId(), req.roomId(),
+                    Objects.requireNonNull(req.expiresAt(), "expiresAt")));
     }
 }

@@ -1,5 +1,7 @@
 package wiki.chiu.micro.auth.application.port.out;
 
+
+
 /**
  * Mints the signed tokens this service hands out.
  */
@@ -9,5 +11,5 @@ public interface TokenEncoder {
 
     String refreshToken(Long userId);
 
-    String webSocketTicket(Long userId, String roomId);
+    String webSocketTicket(Long userId, String roomId, long expiresAt);
 }

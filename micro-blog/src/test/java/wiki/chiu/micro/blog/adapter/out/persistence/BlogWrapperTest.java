@@ -112,7 +112,7 @@ class BlogWrapperTest {
         writer.recoverDeletedBlog(
             hidden, new BlogEventContext(BlogOperateEnum.CREATE, 42L));
 
-        verify(outbox, org.mockito.Mockito.times(2))
+        verify(outbox, Mockito.times(2))
             .enqueue(
                 eq(OutboxProducer.BLOG),
                 eq("BLOG"),
@@ -155,15 +155,15 @@ class BlogWrapperTest {
                 null,
                 BlogAccessMode.PUBLIC,
                 1L,
-                5L);
-        when(blogs.deleteByIdAndRevisions(7L, 1L, 5L)).thenReturn(1);
+                5L, "00000000-0000-0000-0000-000000000001");
+        when(blogs.deleteByIdAndRevisions(7L, 1L, 5L, "00000000-0000-0000-0000-000000000001")).thenReturn(1);
         List<Object> messages = captureEvents();
 
         writer.deleteByIds(
             List.of(new BlogDeletionTarget(blog, identity)),
             new BlogEventContext(BlogOperateEnum.REMOVE, 42L));
 
-        verify(outbox, org.mockito.Mockito.times(2))
+        verify(outbox, Mockito.times(2))
             .enqueue(
                 eq(OutboxProducer.BLOG),
                 eq("BLOG"),
@@ -241,6 +241,6 @@ class BlogWrapperTest {
             null,
             BlogAccessMode.PUBLIC,
             2L,
-            2L);
+            2L, "00000000-0000-0000-0000-000000000001");
     }
 }

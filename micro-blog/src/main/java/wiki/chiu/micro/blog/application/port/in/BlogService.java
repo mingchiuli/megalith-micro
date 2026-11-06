@@ -23,7 +23,7 @@ public interface BlogService {
     BlogWorkingDraft saveDraft(
         Long blogId, BlogDraft blog, Long userId, List<DataPermissionEnum> dataPermissions);
 
-    void deleteDraft(Long blogId, Long userId, List<DataPermissionEnum> dataPermissions);
+    void deleteDraft(Long blogId, Long userId, List<DataPermissionEnum> dataPermissions, String collaborationEpoch);
 
     SavedBlogVersion saveDraftVersion(
         Long blogId, BlogDraft blog, Long userId, List<DataPermissionEnum> dataPermissions);

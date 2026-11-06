@@ -49,12 +49,12 @@ public final class IndexRebuildService implements RebuildSearchIndex {
 
         List<IndexTransition> targets = new ArrayList<>(3);
         targets.add(
-            rebuildPublic(previous.get(SearchIndexKind.PUBLIC_BLOGS), before.total()));
-        targets.add(rebuildAdmin(previous.get(SearchIndexKind.ADMIN_BLOGS)));
+            rebuildPublic(previous.get(SearchIndexKind.PUBLIC_BLOGS), before.publishedTotal()));
+        targets.add(rebuildAdmin(previous.get(SearchIndexKind.ADMIN_BLOGS), before.total()));
         targets.add(rebuildRevisions(previous.get(SearchIndexKind.REVISIONS)));
 
         IndexSourceStatus after = requireSourceReady();
-        if (before.total() != after.total()) {
+        if (before.total() != after.total() || before.publishedTotal() != after.publishedTotal()) {
             throw new IndexRebuildRejectedException(
                 "blog source changed during search index rebuild");
         }
@@ -74,11 +74,11 @@ public final class IndexRebuildService implements RebuildSearchIndex {
             indexes::writePublicSnapshots);
     }
 
-    private IndexTransition rebuildAdmin(String previous) {
+    private IndexTransition rebuildAdmin(String previous, long expectedDocuments) {
         return rebuild(
             SearchIndexKind.ADMIN_BLOGS,
             previous,
-            null,
+            expectedDocuments,
             offset -> source.adminSnapshots(offset, batchSize),
             change -> change.blog().id(),
             null,

@@ -69,13 +69,13 @@ class AuthHttpServiceContractTest {
         server
             .expect(requestTo("https://auth.test" + AuthHttpPaths.WEBSOCKET_TOKEN))
             .andExpect(method(HttpMethod.POST))
-            .andExpect(content().json("{\"roomId\":\"blog-7\"}"))
+            .andExpect(content().json("{\"roomId\":\"blog-7\",\"expiresAt\":12345}"))
             .andRespond(
                 withSuccess(
                     "{\"msg\":\"success\",\"code\":200,\"data\":\"ticket\"}",
                     MediaType.APPLICATION_JSON));
 
-        assertThat(client.issueWebSocketTicket(new WebSocketTicketReq("blog-7"), null).data())
+        assertThat(client.issueWebSocketTicket(new WebSocketTicketReq("blog-7", 12345L), null).data())
             .isEqualTo("ticket");
         server.verify();
     }

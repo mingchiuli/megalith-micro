@@ -8,3 +8,5 @@ pub(super) const COMPACT_ROOM: &str = include_str!("scripts/compact-room.lua");
 pub(super) const ACKNOWLEDGE_WORKER_TASK: &str =
     include_str!("scripts/acknowledge-worker-task.lua");
 pub(super) const ENQUEUE_COMPACTION: &str = include_str!("scripts/enqueue-compaction.lua");
+
+pub(super) const INITIALIZE_ROOM: &str = include_str!("scripts/initialize-room.lua");

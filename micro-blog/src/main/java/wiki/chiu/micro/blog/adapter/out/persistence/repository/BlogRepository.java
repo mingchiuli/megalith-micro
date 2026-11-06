@@ -29,8 +29,8 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
     @Query(
         """
         INSERT INTO BlogEntity
-            (id, userId, created, readCount, accessMode, publicationRevision, adminRevision)
-        VALUES (:id, :userId, :created, :readCount, :accessMode, :publicationRevision, :adminRevision)
+            (id, userId, created, readCount, accessMode, publicationRevision, adminRevision, collaborationEpoch)
+        VALUES (:id, :userId, :created, :readCount, :accessMode, :publicationRevision, :adminRevision, :collaborationEpoch)
         """)
     int insertRecovered(
         @Param("id") Long id,
@@ -39,7 +39,11 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
         @Param("readCount") Long readCount,
         @Param("accessMode") Integer accessMode,
         @Param("publicationRevision") Long publicationRevision,
-        @Param("adminRevision") Long adminRevision);
+        @Param("adminRevision") Long adminRevision, @Param("collaborationEpoch") String collaborationEpoch);
+
+    @Modifying
+    @Query("UPDATE BlogEntity b SET b.collaborationEpoch = :nextEpoch WHERE b.id = :id AND b.collaborationEpoch = :expectedEpoch")
+    int rotateEpoch(Long id, String expectedEpoch, String nextEpoch);
 
     @Modifying
     @Query(
@@ -83,11 +87,12 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
         WHERE blog.id = :id
           AND COALESCE(blog.publicationRevision, 0) = :publicationRevision
           AND COALESCE(blog.adminRevision, 0) = :adminRevision
+          AND blog.collaborationEpoch = :collaborationEpoch
         """)
     int deleteByIdAndRevisions(
         @Param("id") Long id,
         @Param("publicationRevision") Long publicationRevision,
-        @Param("adminRevision") Long adminRevision);
+        @Param("adminRevision") Long adminRevision, @Param("collaborationEpoch") String collaborationEpoch);
 
     List<BlogEntity> findByUserIdIn(List<Long> userIds);
 
@@ -100,10 +105,11 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
         SET blog.adminRevision = COALESCE(blog.adminRevision, 0) + 1
         WHERE blog.id = :id
           AND COALESCE(blog.adminRevision, 0) = :expectedAdminRevision
+          AND blog.collaborationEpoch = :collaborationEpoch
         """)
     int bumpAdminRevision(
         @Param("id") Long id,
-        @Param("expectedAdminRevision") Long expectedAdminRevision);
+        @Param("expectedAdminRevision") Long expectedAdminRevision, @Param("collaborationEpoch") String collaborationEpoch);
 
     @Modifying
     @Query(
@@ -112,6 +118,7 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
         SET blog.publishedRevisionId = :revisionId,
             blog.publishedAt = :publishedAt,
             blog.offlineAt = NULL,
+            blog.collaborationEpoch = :nextEpoch,
             blog.accessMode = CASE
                 WHEN :accessMode IS NULL THEN blog.accessMode
                 ELSE :accessMode
@@ -121,14 +128,16 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
         WHERE blog.id = :id
           AND COALESCE(blog.publicationRevision, 0) = :expectedPublicationRevision
           AND COALESCE(blog.adminRevision, 0) = :expectedAdminRevision
+          AND blog.collaborationEpoch = :collaborationEpoch
         """)
     int publish(
         @Param("id") Long id,
         @Param("revisionId") Long revisionId,
+        @Param("nextEpoch") String nextEpoch,
         @Param("publishedAt") LocalDateTime publishedAt,
         @Param("accessMode") Integer accessMode,
         @Param("expectedPublicationRevision") Long expectedPublicationRevision,
-        @Param("expectedAdminRevision") Long expectedAdminRevision);
+        @Param("expectedAdminRevision") Long expectedAdminRevision, @Param("collaborationEpoch") String collaborationEpoch);
 
     @Modifying
     @Query(
@@ -141,12 +150,13 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
           AND blog.publishedRevisionId IS NOT NULL
           AND COALESCE(blog.publicationRevision, 0) = :expectedPublicationRevision
           AND COALESCE(blog.adminRevision, 0) = :expectedAdminRevision
+          AND blog.collaborationEpoch = :collaborationEpoch
         """)
     int setOfflineAt(
         @Param("id") Long id,
         @Param("changedAt") LocalDateTime changedAt,
         @Param("expectedPublicationRevision") Long expectedPublicationRevision,
-        @Param("expectedAdminRevision") Long expectedAdminRevision);
+        @Param("expectedAdminRevision") Long expectedAdminRevision, @Param("collaborationEpoch") String collaborationEpoch);
 
     @Modifying
     @Query(
@@ -160,10 +170,11 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
           AND blog.publishedRevisionId IS NOT NULL
           AND COALESCE(blog.publicationRevision, 0) = :expectedPublicationRevision
           AND COALESCE(blog.adminRevision, 0) = :expectedAdminRevision
+          AND blog.collaborationEpoch = :collaborationEpoch
         """)
     int setOnlineAt(
         @Param("id") Long id,
         @Param("publishedAt") LocalDateTime publishedAt,
         @Param("expectedPublicationRevision") Long expectedPublicationRevision,
-        @Param("expectedAdminRevision") Long expectedAdminRevision);
+        @Param("expectedAdminRevision") Long expectedAdminRevision, @Param("collaborationEpoch") String collaborationEpoch);
 }

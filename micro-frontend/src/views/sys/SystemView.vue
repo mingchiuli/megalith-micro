@@ -22,7 +22,7 @@ const isSystemRoot = computed(() => route.name === menuStore().menuTree?.name)
           {{ $t('admin.welcome') }}
         </el-text>
         <div v-else class="content">
-          <router-view />
+          <router-view :key="$route.fullPath" />
         </div>
       </el-main>
       <el-footer>

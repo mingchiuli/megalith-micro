@@ -25,10 +25,13 @@ import {
   createEditorMetadataDraftKey,
   createEditorYjsPersistenceKey,
   loadEditorMetadataDraft,
+  loadEditorRecoveryDrafts,
+  type EditorMetadataDraft,
   saveEditorMetadataDraft,
   toEditorMetadataDraft
 } from '@/config/editorDraft'
-import { clearYjsDraft } from '@/config/editorConfig'
+import { useEditorDraftIdentity } from '@/composables/useEditorDraftIdentity'
+import { clearYjsDraft, readPersistedYjsDraft } from '@/config/editorConfig'
 import { loginStateStore } from '@/stores'
 import { logger } from '@/utils/logger'
 import { getSensitiveTagType, getSensitiveText } from '@/utils/sensitive'
@@ -45,8 +48,6 @@ const loginState = loginStateStore()
 const { sessionExpired } = storeToRefs(loginState)
 const collaborationReady = ref(false)
 const draftUserId = loginState.user?.id ?? 0
-const metadataDraftKey = createEditorMetadataDraftKey(draftUserId, blogId)
-const yjsPersistenceKey = createEditorYjsPersistenceKey(draftUserId, blogId)
 const form: EditForm = reactive({
   id: 0,
   userId: 0,
@@ -58,6 +59,31 @@ const form: EditForm = reactive({
   link: '',
   sensitiveContentList: []
 })
+
+const metadataDraftKey = computed(() =>
+  createEditorMetadataDraftKey(
+    draftUserId,
+    String(form.id || blogId || 'new'),
+    form.collaborationEpoch
+  )
+)
+const yjsPersistenceKey = computed(() =>
+  createEditorYjsPersistenceKey(
+    draftUserId,
+    String(form.id || blogId || 'new'),
+    form.collaborationEpoch
+  )
+)
+const recoveryDrafts = ref<EditorMetadataDraft[]>([])
+const { failed: draftCreationFailed, createDraft } = useEditorDraftIdentity(
+  blogId,
+  () =>
+    POST<{ id: number; collaborationEpoch: string }>(
+      API_ENDPOINTS.BLOG_ADMIN.CREATE_DRAFT_BLOG,
+      {}
+    ),
+  (id) => router.replace({ path: route.path, query: { ...route.query, id: String(id) } })
+)
 
 const {
   aiModels,
@@ -150,10 +176,8 @@ type DraftSaveResponse = {
 }
 
 const ensureBlogId = async () => {
-  if (form.id) return form.id
-  const created = await POST<{ id: number }>(API_ENDPOINTS.BLOG_ADMIN.CREATE_DRAFT_BLOG, {})
-  form.id = created.id
-  return created.id
+  if (!form.id || !form.collaborationEpoch) throw new Error('Editor draft is not ready')
+  return form.id
 }
 
 const saveDraft = async (): Promise<BlogVersion> => {
@@ -184,8 +208,8 @@ const clearLocalDraftAfterSave = async () => {
     serverDraftSaveTask = undefined
   }
   await Promise.all([
-    clearEditorMetadataDraft(metadataDraftKey),
-    clearYjsDraft(yjsPersistenceKey)
+    clearEditorMetadataDraft(metadataDraftKey.value),
+    clearYjsDraft(yjsPersistenceKey.value)
   ]).catch((error) => {
     logger.warn('Failed to clear the saved editor draft:', error)
   })
@@ -299,7 +323,7 @@ const restoreMetadataDraft = async () => {
   if (metadataDraftRestored) return
   metadataDraftRestored = true
   try {
-    const draft = await loadEditorMetadataDraft(metadataDraftKey)
+    const draft = await loadEditorMetadataDraft(metadataDraftKey.value)
     if (draft) {
       form.title = draft.title
       form.description = draft.description
@@ -312,6 +336,9 @@ const restoreMetadataDraft = async () => {
   } finally {
     metadataDraftReady = true
     editorReady.value = true
+    void loadRecoveryDrafts().catch((error) =>
+      logger.warn('Failed to load recovery copies:', error)
+    )
   }
 }
 
@@ -320,15 +347,20 @@ const scheduleMetadataDraftSave = () => {
   if (metadataDraftSaveTask !== undefined) globalThis.clearTimeout(metadataDraftSaveTask)
   metadataDraftSaveTask = globalThis.setTimeout(() => {
     metadataDraftSaveTask = undefined
-    void saveEditorMetadataDraft(toEditorMetadataDraft(metadataDraftKey, form)).catch((error) => {
-      logger.warn('Failed to persist the editor metadata draft:', error)
-    })
+    void saveEditorMetadataDraft(toEditorMetadataDraft(metadataDraftKey.value, form)).catch(
+      (error) => {
+        logger.warn('Failed to persist the editor metadata draft:', error)
+      }
+    )
   }, 300)
 }
 
 const scheduleServerDraftSave = () => {
   if (
     !form.id ||
+    !form.collaborationEpoch ||
+    !collaborationReady.value ||
+    !permissions.value.commit ||
     loadContent.value ||
     sessionExpired.value ||
     !checkButtonAuth(ButtonAuth.SYS_EDIT_SAVE_DRAFT)
@@ -339,13 +371,19 @@ const scheduleServerDraftSave = () => {
   if (serverDraftSaveTask !== undefined) globalThis.clearTimeout(serverDraftSaveTask)
   serverDraftSaveTask = globalThis.setTimeout(() => {
     serverDraftSaveTask = undefined
+    const epoch = form.collaborationEpoch
+    const snapshot = editableSnapshot()
+    const payload = {
+      ...form,
+      sensitiveContentList: form.sensitiveContentList.map((span) => ({ ...span }))
+    }
     let request: Promise<DraftSaveResponse>
-    request = POST<DraftSaveResponse>(API_ENDPOINTS.BLOG_ADMIN.SAVE_DRAFT(form.id!), form)
+    request = POST<DraftSaveResponse>(API_ENDPOINTS.BLOG_ADMIN.SAVE_DRAFT(form.id!), payload)
       .then((draft) => {
-        if (editorDisposed) return draft
+        if (editorDisposed || form.collaborationEpoch !== epoch) return draft
         form.draftRevision = draft.draftRevision
         form.hasDraft = true
-        lastServerSnapshot = editableSnapshot()
+        lastServerSnapshot = snapshot
         return draft
       })
       .catch((error) => {
@@ -393,6 +431,7 @@ const applyEditContent = (data: BlogEdit) => {
   form.content = data.content
   form.link = data.link
   form.status = data.status
+  form.collaborationEpoch = data.collaborationEpoch
   form.draftRevision = data.draftRevision
   form.basePublishedRevisionId = data.basePublishedRevisionId
   form.publishedRevisionId = data.publishedRevisionId
@@ -405,7 +444,7 @@ const applyEditContent = (data: BlogEdit) => {
   lastServerSnapshot = editableSnapshot()
 }
 
-useUniversalData(
+const { refresh: refreshEditor } = useUniversalData(
   `admin:edit:${blogId ?? 'new'}`,
   () => fetchEditContent(blogId),
   applyEditContent,
@@ -415,12 +454,68 @@ useUniversalData(
 watch(
   loadContent,
   (loading) => {
-    if (!loading) void restoreMetadataDraft()
+    if (!loading && blogId && form.collaborationEpoch) void restoreMetadataDraft()
   },
   { immediate: true }
 )
 
-onMounted(() => void loadAiModels())
+const loadRecoveryDrafts = async () => {
+  if (!blogId) return
+  const drafts = await loadEditorRecoveryDrafts(draftUserId, blogId, metadataDraftKey.value)
+  for (const draft of drafts) {
+    if (draft.content === undefined) {
+      draft.content = await readPersistedYjsDraft(draft.key.replace(':metadata:', ':yjs:')).catch(
+        () => ''
+      )
+    }
+  }
+  // Legacy new-article drafts cannot be attributed to any individual article.
+  const legacyKey = `megalith:editor:metadata:v1:${draftUserId}:new`
+  const legacy = await loadEditorMetadataDraft(legacyKey).catch(() => undefined)
+  const legacyContent = await readPersistedYjsDraft(legacyKey.replace(':metadata:', ':yjs:')).catch(
+    () => ''
+  )
+  if (legacy || legacyContent)
+    drafts.push({ ...(legacy ?? toEditorMetadataDraft(legacyKey, form)), content: legacyContent })
+  const legacyBlogKey = `megalith:editor:metadata:v1:${draftUserId}:${blogId}`
+  if (!drafts.some((draft) => draft.key === legacyBlogKey)) {
+    const content = await readPersistedYjsDraft(legacyBlogKey.replace(':metadata:', ':yjs:')).catch(
+      () => ''
+    )
+    if (content) drafts.push({ ...toEditorMetadataDraft(legacyBlogKey, form), content })
+  }
+  recoveryDrafts.value = [
+    ...new Map([...recoveryDrafts.value, ...drafts].map((draft) => [draft.key, draft])).values()
+  ]
+}
+
+const handleEpochChanged = async () => {
+  collaborationReady.value = false
+  metadataDraftReady = false
+  loadContent.value = true
+  if (serverDraftSaveTask !== undefined) globalThis.clearTimeout(serverDraftSaveTask)
+  if (metadataDraftSaveTask !== undefined) globalThis.clearTimeout(metadataDraftSaveTask)
+  const recovery = {
+    ...toEditorMetadataDraft(`${metadataDraftKey.value}:recovery:${Date.now()}`, form),
+    content: form.content
+  }
+  recoveryDrafts.value.unshift(recovery)
+  await saveEditorMetadataDraft(recovery).catch((error) =>
+    logger.warn('Failed to retain recovery copy:', error)
+  )
+  try {
+    await refreshEditor()
+    metadataDraftRestored = false
+    await restoreMetadataDraft()
+    await loadRecoveryDrafts()
+  } catch {
+    loadContent.value = true
+  }
+}
+
+onMounted(() => {
+  void loadAiModels()
+})
 
 onUnmounted(() => {
   editorDisposed = true
@@ -431,6 +526,34 @@ onUnmounted(() => {
 
 <template>
   <div class="father">
+    <el-alert
+      v-if="draftCreationFailed"
+      type="error"
+      :closable="false"
+      :title="t('admin.draftCreationFailed')"
+    >
+      <el-button @click="createDraft">{{ t('collaboration.retry') }}</el-button>
+    </el-alert>
+    <el-collapse v-if="recoveryDrafts.length">
+      <el-collapse-item :title="t('admin.recoveryCopies')">
+        <div v-for="draft in recoveryDrafts" :key="draft.key">
+          <p>{{ draft.title }} — {{ new Date(draft.updatedAt).toLocaleString() }}</p>
+          <el-input :model-value="draft.title" :aria-label="t('common.title')" readonly />
+          <el-input
+            :model-value="draft.description"
+            :aria-label="t('common.description')"
+            readonly
+          />
+          <el-input
+            type="textarea"
+            :rows="6"
+            :model-value="draft.content"
+            :aria-label="t('common.content')"
+            readonly
+          />
+        </div>
+      </el-collapse-item>
+    </el-collapse>
     <el-form :model="form" :rules="formRules" ref="formRef">
       <BlogMetadataFields
         v-model:title="form.title"
@@ -481,7 +604,12 @@ onUnmounted(() => {
       <el-form-item class="content" prop="content">
         <ClientOnly>
           <CustomEditorItem
-            v-if="!loadContent && editorReady"
+            v-if="!loadContent && editorReady && form.id && form.collaborationEpoch"
+            :key="`${form.id}:${form.collaborationEpoch}`"
+            :blog-id="form.id"
+            :collaboration-epoch="form.collaborationEpoch"
+            @epoch-changed="handleEpochChanged"
+            @authorization-paused="collaborationReady = false"
             v-model:content="form.content"
             @ready="collaborationReady = true"
             @sensitive="dealSensitive"

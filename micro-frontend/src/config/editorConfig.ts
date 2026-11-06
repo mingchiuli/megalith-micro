@@ -8,7 +8,6 @@ import * as random from 'lib0/random'
 import type { UserInfo } from '@/type/entity'
 import { API_CONFIG, API_ENDPOINTS } from '@/config/apiConfig'
 import { logger } from '@/utils/logger'
-import { createEditorYjsPersistenceKey } from '@/config/editorDraft'
 
 const usercolors = [
   { color: '#30bced', light: '#30bced33' },
@@ -22,7 +21,7 @@ const usercolors = [
 ]
 
 export const yjsCompartment = new Compartment()
-export const COLLABORATION_TICKET_REFRESH_INTERVAL_MS = 240_000
+export const COLLABORATION_TICKET_REFRESH_INTERVAL_MS = 45_000
 export const COLLABORATION_TICKET_RECONNECT_MAX_AGE_MS = 30_000
 export const COLLABORATION_INITIAL_SYNC_TIMEOUT_MS = 20_000
 export const COLLABORATION_CONNECTION_NOTICE_DELAY_MS = 3_000
@@ -55,12 +54,6 @@ export type CollaborationSession = {
   clearPersistence: () => Promise<void>
   destroy: () => void
 }
-
-export const hasYjsDocumentState = (doc: Y.Doc) =>
-  Y.decodeStateVector(Y.encodeStateVector(doc)).size > 0
-
-export const shouldInitializeYjsDocument = (doc: Y.Doc, text: Y.Text, initialContent: string) =>
-  initialContent.length > 0 && text.length === 0 && !hasYjsDocumentState(doc)
 
 export const shouldRefreshCollaborationTicket = (
   issuedAt: number,
@@ -130,18 +123,14 @@ const waitForIndexedDb = async (persistence: IndexeddbPersistence) => {
 
 export const createCollaborationSession = async (
   roomId: string,
-  initialContent: string,
   collaborationToken: string,
   user: UserInfo,
-  onEvent: (event: CollaborationEvent) => void
+  onEvent: (event: CollaborationEvent) => void,
+  persistenceKey: string
 ): Promise<CollaborationSession> => {
   const userColor = usercolors[random.uint32() % usercolors.length]!
   const ydoc = new Y.Doc()
   const ytext = ydoc.getText()
-  const persistenceKey = createEditorYjsPersistenceKey(
-    user.id,
-    roomId === `init:${user.id}` ? undefined : roomId
-  )
 
   let persistence: IndexeddbPersistence | null = null
   try {
@@ -181,12 +170,6 @@ export const createCollaborationSession = async (
     logger.log('Document length after sync:', ytext.length)
 
     if (!isSynced) return
-
-    if (shouldInitializeYjsDocument(ydoc, ytext, initialContent)) {
-      logger.log('Inserting initial content:', initialContent.substring(0, 50))
-      ytext.insert(0, initialContent)
-      onEvent({ type: 'initialized' })
-    }
 
     onEvent({ type: 'synced', content: ytext.toString() })
   })
@@ -282,3 +265,17 @@ config({
     ]
   }
 })
+
+export const readPersistedYjsDraft = async (persistenceKey: string): Promise<string> => {
+  if (typeof globalThis.indexedDB === 'undefined') return ''
+  const doc = new Y.Doc()
+  const persistence = new IndexeddbPersistence(persistenceKey, doc)
+  persistence._db?.catch(() => undefined)
+  try {
+    await waitForIndexedDb(persistence)
+    return doc.getText().toString()
+  } finally {
+    await persistence.destroy()
+    doc.destroy()
+  }
+}

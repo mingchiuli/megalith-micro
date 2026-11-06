@@ -12,11 +12,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
-
 import javax.crypto.SecretKey;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import wiki.chiu.micro.auth.adapter.out.token.JwtTokenService;
 import wiki.chiu.micro.auth.application.model.Authority;
@@ -25,6 +26,7 @@ import wiki.chiu.micro.auth.application.model.RouteDecision;
 import wiki.chiu.micro.auth.application.model.RouteQuery;
 import wiki.chiu.micro.auth.application.model.UserAccess;
 import wiki.chiu.micro.auth.application.port.out.AuthorizationDirectory;
+import wiki.chiu.micro.auth.application.port.out.FreshAuthorizationDirectory;
 import wiki.chiu.micro.auth.application.port.out.VisitRecorder;
 import wiki.chiu.micro.auth.application.service.AuthServiceImpl;
 import wiki.chiu.micro.common.enums.AuthTypeEnum;
@@ -36,6 +38,7 @@ import wiki.chiu.micro.common.security.AuthPrincipal;
 class AuthServiceRouteAuthorizationTest {
 
     private AuthorizationDirectory authorizationDirectory;
+    private FreshAuthorizationDirectory fresh;
     private JwtTokenService tokens;
     private AuthServiceImpl authService;
 
@@ -46,7 +49,7 @@ class AuthServiceRouteAuthorizationTest {
                 "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
                 900,
                 604800,
-                300,
+                60,
                 "micro-auth",
                 "megalith-api");
         JwtConfig config = new JwtConfig();
@@ -60,12 +63,12 @@ class AuthServiceRouteAuthorizationTest {
                 properties.audience(),
                 new JwtTokenService.TokenLifetimes(
                     properties.accessTokenExpire(),
-                    properties.refreshTokenExpire(),
-                    properties.websocketTokenExpire()));
+                    properties.refreshTokenExpire()));
 
         authorizationDirectory = mock(AuthorizationDirectory.class);
+        fresh = mock(FreshAuthorizationDirectory.class);
         authService =
-            new AuthServiceImpl(authorizationDirectory, mock(VisitRecorder.class), tokens);
+            new AuthServiceImpl(authorizationDirectory, mock(VisitRecorder.class), tokens, fresh, 60);
 
         lenient().when(authorizationDirectory.getAllRoleAuthorizations()).thenReturn(List.of(role(Set.of())));
     }
@@ -74,7 +77,7 @@ class AuthServiceRouteAuthorizationTest {
     void websocketTicketOnlyAuthorizesItsBoundRoom() {
         givenRoutes(List.of(authority("sync_room", "/rooms/**", AuthTypeEnum.NEED_AUTH)));
 
-        String roomTicket = "Bearer " + tokens.webSocketTicket(42L, "blog-7");
+        String roomTicket = "Bearer " + tokens.webSocketTicket(42L, "blog-7", System.currentTimeMillis() + 60_000);
         String accessToken = "Bearer " + tokens.accessToken(42L);
 
         RouteDecision route = authService.authorizeRoute(route("/rooms/blog-7"), roomTicket);
@@ -244,6 +247,27 @@ class AuthServiceRouteAuthorizationTest {
                         route("/api/private"), "Bearer " + tokens.accessToken(42L)));
 
         assertSame(failure, actual);
+    }
+
+    @Test
+    void ticketIssuanceBypassesCachedUserAndRolePermissions() {
+        when(fresh.freshAuthorities()).thenReturn(List.of(
+            authority("ticket", "POST", "/sys/blog/edit/ticket", AuthTypeEnum.NEED_AUTH, "blog", 8082)));
+        when(fresh.findUserAccess(42L)).thenReturn(new UserAccess(42L, true, 0, List.of(7L)));
+        when(fresh.freshRoleAuthorizations(List.of(7L))).thenReturn(List.of(role(Set.of("ticket"))));
+        long started = System.currentTimeMillis();
+        var result = authService.authorizeRoute(route("POST", "/sys/blog/edit/ticket"), "Bearer " + tokens.accessToken(42L));
+        Assertions.assertTrue(result.authorizationExpiresAt() >= started);
+        Assertions.assertTrue(result.authorizationExpiresAt() <= System.currentTimeMillis() + 60_000);
+        Mockito.verifyNoInteractions(authorizationDirectory);
+
+        // Revocation must be visible even if the usual cache would still grant the role.
+        when(fresh.freshRoleAuthorizations(List.of(7L))).thenReturn(List.of(role(Set.of())));
+        assertThrows(MissException.class, () -> authService.authorizeRoute(
+            route("POST", "/sys/blog/edit/ticket"), "Bearer " + tokens.accessToken(42L)));
+        when(fresh.findUserAccess(42L)).thenReturn(new UserAccess(42L, true, 1, List.of(7L)));
+        assertThrows(MissException.class, () -> authService.authorizeRoute(
+            route("POST", "/sys/blog/edit/ticket"), "Bearer " + tokens.accessToken(42L)));
     }
 
     private RouteQuery route(String path) {

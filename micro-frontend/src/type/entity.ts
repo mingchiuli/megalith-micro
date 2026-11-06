@@ -130,6 +130,7 @@ export interface BlogEdit {
   content: string
   link: string
   status: Status
+  collaborationEpoch?: string
   draftRevision?: number
   basePublishedRevisionId?: number
   publishedRevisionId?: number
@@ -340,6 +341,7 @@ export interface EditForm {
   description: string
   content: string
   status: Status
+  collaborationEpoch?: string
   draftRevision?: number
   basePublishedRevisionId?: number
   publishedRevisionId?: number
@@ -429,3 +431,10 @@ export const Colors = [
   { color: '#1989fa', percentage: 80 },
   { color: '#6f7ad3', percentage: 100 }
 ]
+
+export type CollaborationTicket = {
+  ticket: string
+  roomId: string
+  collaborationEpoch: string
+  expiresAt: number
+}

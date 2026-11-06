@@ -27,6 +27,7 @@ public final class AuthRequestConverter {
         WebSocketTicketReq req = request.body(WebSocketTicketReq.class);
 
         v.notBlank(req.roomId(), "roomId");
+        v.notNull(req.expiresAt(), "expiresAt");
 
         return req;
     }

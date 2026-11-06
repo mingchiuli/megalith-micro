@@ -9,34 +9,13 @@ import {
   collaborationPhaseAfterDisconnect,
   createCollaborationSession,
   createYjsBindingTransaction,
-  hasYjsDocumentState,
   isCollaborationEditable,
   shouldRefreshCollaborationTicket,
-  shouldInitializeYjsDocument,
   yjsCompartment
 } from '@/config/editorConfig'
 import { createEditorYjsPersistenceKey } from '@/config/editorDraft'
 
 describe('editorConfig', () => {
-  it('recognizes a recreated empty Y.Doc as state-less', () => {
-    const doc = new Y.Doc()
-    const text = doc.getText()
-
-    expect(hasYjsDocumentState(doc)).toBe(false)
-    expect(shouldInitializeYjsDocument(doc, text, 'database content')).toBe(true)
-  })
-
-  it('distinguishes an intentionally cleared document from a new empty document', () => {
-    const doc = new Y.Doc()
-    const text = doc.getText()
-    text.insert(0, 'remote content')
-    text.delete(0, text.length)
-
-    expect(text.length).toBe(0)
-    expect(hasYjsDocumentState(doc)).toBe(true)
-    expect(shouldInitializeYjsDocument(doc, text, 'database content')).toBe(false)
-  })
-
   it('replaces the local editor document when binding synchronized content', () => {
     const state = EditorState.create({
       doc: '1',
@@ -80,9 +59,15 @@ describe('editorConfig', () => {
   })
 
   it('uses a user-isolated persistence key for every collaboration room', () => {
-    expect(createEditorYjsPersistenceKey(7, '42')).toBe('megalith:editor:yjs:v1:7:42')
-    expect(createEditorYjsPersistenceKey(7)).toBe('megalith:editor:yjs:v1:7:new')
-    expect(createEditorYjsPersistenceKey(8, '42')).not.toBe(createEditorYjsPersistenceKey(7, '42'))
+    expect(createEditorYjsPersistenceKey(7, '42', 'epoch')).toBe(
+      'megalith:editor:yjs:v2:7:42:epoch'
+    )
+    expect(createEditorYjsPersistenceKey(7, undefined, 'epoch')).toBe(
+      'megalith:editor:yjs:v2:7:new:epoch'
+    )
+    expect(createEditorYjsPersistenceKey(8, '42', 'epoch')).not.toBe(
+      createEditorYjsPersistenceKey(7, '42', 'epoch')
+    )
   })
 
   it('merges locally persisted and remote Yjs updates in one document model', () => {
@@ -106,10 +91,10 @@ describe('editorConfig', () => {
     const events: string[] = []
     const session = await createCollaborationSession(
       '42',
-      'server content',
       'ticket',
       { id: 7, nickname: 'Chiu', avatar: '' },
-      (event) => events.push(event.type)
+      (event) => events.push(event.type),
+      'megalith:editor:yjs:v2:7:42:epoch'
     )
 
     expect(events).toContain('persistence-error')

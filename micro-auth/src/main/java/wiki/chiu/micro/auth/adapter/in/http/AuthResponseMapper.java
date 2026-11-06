@@ -44,6 +44,6 @@ public final class AuthResponseMapper {
 
     public static AuthorityRouteRpcVo toRpc(RouteDecision decision) {
         return new AuthorityRouteRpcVo(
-            decision.serviceHost(), decision.servicePort(), decision.principal());
+            decision.serviceHost(), decision.servicePort(), decision.principal(), decision.authorizationExpiresAt());
     }
 }

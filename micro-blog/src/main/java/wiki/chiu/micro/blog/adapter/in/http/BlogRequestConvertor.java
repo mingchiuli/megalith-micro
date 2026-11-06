@@ -5,6 +5,7 @@ import static wiki.chiu.micro.common.web.FunctionalWeb.nullableParam;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.function.Function;
 
 import org.springframework.web.servlet.function.ServerRequest;
@@ -51,6 +52,8 @@ public final class BlogRequestConvertor {
         BlogEntityReq req = request.body(BlogEntityReq.class);
 
         v.notNull(req.id(), "id");
+        v.notBlank(req.collaborationEpoch(), "collaborationEpoch");
+        UUID.fromString(req.collaborationEpoch());
         req.id().ifPresent(id -> v.positive(id, "id"));
         v.notBlank(req.title(), "title");
         v.notBlank(req.description(), "description");
@@ -103,7 +106,7 @@ public final class BlogRequestConvertor {
             req.link(),
             req.sensitiveContentList().stream()
                 .map(item -> new SensitiveContentDraft(item.type(), item.startIndex(), item.endIndex()))
-                .toList());
+                .toList(), req.collaborationEpoch());
     }
 
     public static BlogQuery toQuery(BlogQueryReq req) {

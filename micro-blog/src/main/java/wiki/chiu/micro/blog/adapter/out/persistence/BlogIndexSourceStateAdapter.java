@@ -3,9 +3,9 @@ package wiki.chiu.micro.blog.adapter.out.persistence;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
+import wiki.chiu.micro.blog.application.model.BlogMaintenanceMode;
 import wiki.chiu.micro.blog.application.model.IndexSourceStatus;
 import wiki.chiu.micro.blog.application.port.out.BlogIndexSourceState;
-import wiki.chiu.micro.blog.application.model.BlogMaintenanceMode;
 import wiki.chiu.micro.common.outbox.application.port.in.OutboxAdministration;
 
 @Component
@@ -26,6 +26,6 @@ public class BlogIndexSourceStateAdapter implements BlogIndexSourceState {
     public IndexSourceStatus status() {
         var status = outbox.status();
         return new IndexSourceStatus(
-            maintenance.readOnly(), status.ready(), status.paused(), blogs.count());
+            maintenance.readOnly(), status.ready(), status.paused(), blogs.count(), blogs.countByPublishedRevisionIdIsNotNull());
     }
 }

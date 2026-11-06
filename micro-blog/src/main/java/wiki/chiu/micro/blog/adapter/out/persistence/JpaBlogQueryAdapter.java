@@ -362,7 +362,7 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
                         identity.publishedRevisionId(), identity.publishedAt(), identity.offlineAt(),
                         identity.accessMode(),
                         identity.publicationRevision() == null ? 0L : identity.publicationRevision(),
-                        identity.adminRevision() == null ? 0L : identity.adminRevision()));
+                        identity.adminRevision() == null ? 0L : identity.adminRevision(), identity.collaborationEpoch()));
             })
             .toList();
     }

@@ -80,6 +80,7 @@ public final class BlogViewMapper {
             .content(blog.content())
             .link(blog.link())
             .status(blog.status())
+            .collaborationEpoch(blog.collaborationEpoch())
             .draftRevision(blog.draftRevision())
             .basePublishedRevisionId(blog.basePublishedRevisionId())
             .publishedRevisionId(blog.publishedRevisionId())

@@ -9,11 +9,17 @@ import { Status, SensitiveType, type EditForm } from '@/type/entity'
 
 describe('editorDraft', () => {
   it('isolates new and existing drafts by user and blog', () => {
-    expect(createEditorDraftId(7)).toBe('7:new')
-    expect(createEditorDraftId(7, '42')).toBe('7:42')
-    expect(createEditorMetadataDraftKey(7, '42')).toBe('megalith:editor:metadata:v1:7:42')
-    expect(createEditorYjsPersistenceKey(7, '42')).toBe('megalith:editor:yjs:v1:7:42')
-    expect(createEditorYjsPersistenceKey(8, '42')).not.toBe(createEditorYjsPersistenceKey(7, '42'))
+    expect(createEditorDraftId(7, undefined, 'epoch')).toBe('7:new:epoch')
+    expect(createEditorDraftId(7, '42', 'epoch')).toBe('7:42:epoch')
+    expect(createEditorMetadataDraftKey(7, '42', 'epoch')).toBe(
+      'megalith:editor:metadata:v2:7:42:epoch'
+    )
+    expect(createEditorYjsPersistenceKey(7, '42', 'epoch')).toBe(
+      'megalith:editor:yjs:v2:7:42:epoch'
+    )
+    expect(createEditorYjsPersistenceKey(8, '42', 'epoch')).not.toBe(
+      createEditorYjsPersistenceKey(7, '42', 'epoch')
+    )
   })
 
   it('serializes only editable metadata and clones sensitive ranges', () => {

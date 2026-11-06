@@ -3,16 +3,16 @@ package wiki.chiu.micro.search.adapter.out.elasticsearch;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.indices.ElasticsearchIndicesClient;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.indices.ElasticsearchIndicesClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,6 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-
 import tools.jackson.databind.json.JsonMapper;
 
 import wiki.chiu.micro.common.enums.BlogRenderMode;
@@ -227,7 +226,7 @@ class SearchIndexIntegrationTest {
                 change(firstPageLastId, 2, 0, 0, "deleted").blog()));
         indexClient.refresh(request -> request.index(alias));
 
-        var collected = new java.util.ArrayList<Long>();
+        var collected = new ArrayList<Long>();
         first.content().forEach(blog -> collected.add(blog.id()));
         var next = first;
         while (next.hasMore()) {
@@ -526,9 +525,11 @@ class SearchIndexIntegrationTest {
             }
 
             @Override
-            public List<wiki.chiu.micro.search.application.model.BlogAdminIndexChange> adminSnapshots(
+            public List<BlogAdminIndexChange> adminSnapshots(
                 long afterId, int limit) {
-                return List.of();
+                return documents.stream().filter(document -> document.blog().id() > afterId).limit(limit)
+                    .map(document -> adminChange(document.blog().id(), document.revision(), "PUBLICATION_UPSERT",
+                        document.blog().id() * 10, document.blog().title(), document.blog().link(), 0)).toList();
             }
 
             @Override

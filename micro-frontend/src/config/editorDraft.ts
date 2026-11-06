@@ -1,6 +1,6 @@
 import type { EditForm, SensitiveItem, Status } from '@/type/entity'
 
-export const EDITOR_DRAFT_VERSION = 1
+export const EDITOR_DRAFT_VERSION = 2
 export const EDITOR_DRAFT_DATABASE = 'megalith-editor-drafts-v1'
 const EDITOR_DRAFT_STORE = 'metadata'
 
@@ -11,6 +11,7 @@ export type EditorMetadataDraft = {
   status: Status
   link: string
   sensitiveContentList: SensitiveItem[]
+  content?: string
   updatedAt: number
 }
 
@@ -62,14 +63,14 @@ const draftTransaction = async <T>(
   })
 }
 
-export const createEditorDraftId = (userId: number, blogId?: string) =>
-  `${userId}:${blogId || 'new'}`
+export const createEditorDraftId = (userId: number, blogId?: string, epoch = 'unbound') =>
+  `${userId}:${blogId || 'new'}:${epoch}`
 
-export const createEditorYjsPersistenceKey = (userId: number, blogId?: string) =>
-  `megalith:editor:yjs:v${EDITOR_DRAFT_VERSION}:${createEditorDraftId(userId, blogId)}`
+export const createEditorYjsPersistenceKey = (userId: number, blogId?: string, epoch?: string) =>
+  `megalith:editor:yjs:v${EDITOR_DRAFT_VERSION}:${createEditorDraftId(userId, blogId, epoch)}`
 
-export const createEditorMetadataDraftKey = (userId: number, blogId?: string) =>
-  `megalith:editor:metadata:v${EDITOR_DRAFT_VERSION}:${createEditorDraftId(userId, blogId)}`
+export const createEditorMetadataDraftKey = (userId: number, blogId?: string, epoch?: string) =>
+  `megalith:editor:metadata:v${EDITOR_DRAFT_VERSION}:${createEditorDraftId(userId, blogId, epoch)}`
 
 export const toEditorMetadataDraft = (
   key: string,
@@ -92,3 +93,18 @@ export const saveEditorMetadataDraft = (draft: EditorMetadataDraft) =>
 
 export const clearEditorMetadataDraft = (key: string) =>
   draftTransaction('readwrite', (store) => store.delete(key))
+
+export const loadEditorRecoveryDrafts = async (
+  userId: number,
+  blogId: string,
+  currentKey: string
+) => {
+  const drafts = await draftTransaction<EditorMetadataDraft[]>('readonly', (store) =>
+    store.getAll()
+  )
+  const prefix = `megalith:editor:metadata:v2:${userId}:${blogId}:`
+  const legacy = `megalith:editor:metadata:v1:${userId}:${blogId}`
+  return drafts.filter(
+    (draft) => draft.key !== currentKey && (draft.key.startsWith(prefix) || draft.key === legacy)
+  )
+}

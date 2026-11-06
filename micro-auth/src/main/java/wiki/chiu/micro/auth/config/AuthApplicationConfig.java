@@ -18,6 +18,7 @@ import wiki.chiu.micro.auth.application.port.in.LoginSession;
 import wiki.chiu.micro.auth.application.port.in.PasswordAuthentication;
 import wiki.chiu.micro.auth.application.port.in.TokenService;
 import wiki.chiu.micro.auth.application.port.out.AuthorizationDirectory;
+import wiki.chiu.micro.auth.application.port.out.FreshAuthorizationDirectory;
 import wiki.chiu.micro.auth.application.port.out.LoginCodeStore;
 import wiki.chiu.micro.auth.application.port.out.MailSender;
 import wiki.chiu.micro.auth.application.port.out.PasswordFailureStore;
@@ -45,8 +46,9 @@ public class AuthApplicationConfig {
 
     @Bean
     AuthService authService(
-        AuthorizationDirectory authorizationDirectory, VisitRecorder visits, RouteTokenReader routeTokens) {
-        return new AuthServiceImpl(authorizationDirectory, visits, routeTokens);
+        AuthorizationDirectory authorizationDirectory, VisitRecorder visits, RouteTokenReader routeTokens,
+        FreshAuthorizationDirectory fresh, JwtProperties jwt) {
+        return new AuthServiceImpl(authorizationDirectory, visits, routeTokens, fresh, jwt.websocketTokenExpire());
     }
 
     @Bean

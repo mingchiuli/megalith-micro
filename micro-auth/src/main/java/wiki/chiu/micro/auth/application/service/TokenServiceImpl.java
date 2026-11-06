@@ -46,7 +46,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public String issueWebSocketTicket(Long userId, String roomId) {
-        return tokens.webSocketTicket(userId, roomId);
+    public String issueWebSocketTicket(Long userId, String roomId, long expiresAt) {
+        return tokens.webSocketTicket(userId, roomId, expiresAt);
     }
 }

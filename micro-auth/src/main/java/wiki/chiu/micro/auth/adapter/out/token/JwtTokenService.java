@@ -1,5 +1,6 @@
 package wiki.chiu.micro.auth.adapter.out.token;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +64,7 @@ public final class JwtTokenService implements TokenEncoder, RouteTokenReader {
 
     /** How long each token flavour stays valid. */
     public record TokenLifetimes(
-        long accessSeconds, long refreshSeconds, long webSocketSeconds) {
+        long accessSeconds, long refreshSeconds) {
     }
 
     @Override
@@ -77,9 +78,12 @@ public final class JwtTokenService implements TokenEncoder, RouteTokenReader {
     }
 
     @Override
-    public String webSocketTicket(Long userId, String roomId) {
-        return issue(
-            userId, TokenType.WEBSOCKET, lifetimes.webSocketSeconds(), Map.of(ROOM_CLAIM, roomId));
+    public String webSocketTicket(Long userId, String roomId, long expiresAt) {
+        long now = System.currentTimeMillis();
+        if (expiresAt <= now || expiresAt > now + 60_000) {
+            throw new IllegalArgumentException("invalid collaboration authorization deadline");
+        }
+        return issueUntil(userId, TokenType.WEBSOCKET, Instant.ofEpochMilli(expiresAt), Map.of(ROOM_CLAIM, roomId));
     }
 
     @Override
@@ -99,11 +103,25 @@ public final class JwtTokenService implements TokenEncoder, RouteTokenReader {
             return accessJwtDecoder.decode(stripBearerPrefix(token));
         }
         Jwt jwt = websocketJwtDecoder.decode(stripBearerPrefix(token));
+        if (jwt.getExpiresAt() == null || jwt.getIssuedAt() == null
+            || !Instant.now().isBefore(jwt.getExpiresAt())
+            || Duration.between(jwt.getIssuedAt(), jwt.getExpiresAt()).getSeconds() > 60) {
+            throw new IllegalArgumentException("invalid WebSocket authorization lifetime");
+        }
         String roomId = routeMapping.substring(WEBSOCKET_ROUTE_PREFIX.length());
         if (roomId.isEmpty() || !roomId.equals(jwt.getClaimAsString(ROOM_CLAIM))) {
             throw new IllegalArgumentException("WebSocket ticket does not match the room");
         }
         return jwt;
+    }
+
+    @Override
+    public Long authorizationExpiresAt(String routeMapping, String token) {
+        try {
+            return decode(routeMapping, token).getExpiresAt().toEpochMilli();
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new MissException(ExceptionMessage.TOKEN_INVALID);
+        }
     }
 
     private boolean isWebSocketRoute(String routeMapping) {
@@ -120,6 +138,10 @@ public final class JwtTokenService implements TokenEncoder, RouteTokenReader {
 
     private String issue(
         Long userId, TokenType type, long expiresInSeconds, Map<String, Object> claims) {
+        return issueUntil(userId, type, Instant.now().plusSeconds(expiresInSeconds), claims);
+    }
+
+    private String issueUntil(Long userId, TokenType type, Instant expiresAt, Map<String, Object> claims) {
         Instant issuedAt = Instant.now();
         JwtClaimsSet.Builder claimsBuilder =
             JwtClaimsSet.builder()
@@ -128,7 +150,7 @@ public final class JwtTokenService implements TokenEncoder, RouteTokenReader {
                 .audience(List.of(audience))
                 .issuedAt(issuedAt)
                 .notBefore(issuedAt)
-                .expiresAt(issuedAt.plusSeconds(expiresInSeconds))
+                .expiresAt(expiresAt)
                 .id(UUID.randomUUID().toString())
                 .claim(TOKEN_USE_CLAIM, type.value());
         claims.forEach(claimsBuilder::claim);

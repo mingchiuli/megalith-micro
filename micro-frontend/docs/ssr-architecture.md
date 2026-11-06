@@ -50,3 +50,13 @@ On `SIGTERM` or `SIGINT`, readiness changes to 503, `Bun.serve` stops accepting 
 The multi-stage Docker build runs Vite under Bun and compiles `dist/bin/megalith-frontend`, a standalone executable containing the Bun runtime, server code, SSR bundle, and client assets. The Debian runtime image copies only that executable and contains no Node, Bun CLI, `node_modules`, or server source. Deployment injects `SSR_API_BASE_URL=http://micro-gateway-rs:8088`, `OTEL_SERVICE_VERSION=<git-sha>`, and `OTEL_EXPORTER_OTLP_ENDPOINT=http://apm-server:8200`; the frontend, gateway, and APM Server Compose services must share a Docker network. CI verifies lint, unit tests, type checking, both Vite builds, standalone SSR behavior, all three OTLP signals, W3C propagation, Bun runtime metrics, and graceful shutdown before publishing `mingchiuli/megalith-frontend:latest`.
 
 Deployment records the previous local image ID, pulls `latest`, recreates the Compose service, and waits for its container health check. If the health check fails or times out, the workflow prints the container logs and exits with a failure; it does not restore the previous image or container. After a successful health check, the previous local image is removed when its ID differs from the current image. No SHA image tag is pushed.
+
+## Collaboration authorization and recovery
+
+New article IDs are allocated only after browser mounting; SSR never creates drafts. The editor URL
+contains that ID, and article/epoch changes recreate editor state. Ticket responses contain `ticket`,
+`roomId`, `collaborationEpoch`, and `expiresAt` (Unix milliseconds). A ticket renews 15 seconds before
+expiry by reconnecting the same Y.Doc; expiry or denied renewal pauses editing. Access and refresh
+cookies remain HttpOnly. A changed epoch stores the old content as a recovery copy and loads the
+current article into a separate document. Version 1 local databases are retained, not automatically
+merged. Without IndexedDB, recovery copies remain in memory until the editor is closed.

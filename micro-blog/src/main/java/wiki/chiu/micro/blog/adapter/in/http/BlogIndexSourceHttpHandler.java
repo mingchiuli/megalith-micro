@@ -61,7 +61,7 @@ public class BlogIndexSourceHttpHandler implements BlogIndexSourceHttpService {
                     status.readOnly(),
                     status.readyEvents(),
                     status.pausedEvents(),
-                    status.total());
+                    status.total(), status.publishedTotal());
             });
     }
 

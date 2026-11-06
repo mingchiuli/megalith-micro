@@ -40,9 +40,9 @@ import wiki.chiu.micro.blog.application.model.BlogExportPage;
 import wiki.chiu.micro.blog.application.model.BlogExportRow;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
 import wiki.chiu.micro.blog.application.model.BlogVersionSummary;
-import wiki.chiu.micro.blog.application.model.SavedBlogVersion;
 import wiki.chiu.micro.blog.application.model.DeletedBlogItem;
 import wiki.chiu.micro.blog.application.model.Page;
+import wiki.chiu.micro.blog.application.model.SavedBlogVersion;
 import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
 import wiki.chiu.micro.blog.application.port.in.BlogCollaborationService;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
@@ -51,12 +51,12 @@ import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.auth.web.AuthPrincipalCodec;
-import wiki.chiu.micro.common.error.CommonErrorCode;
-import wiki.chiu.micro.common.exception.BaseException;
-import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.enums.BlogAccessMode;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
+import wiki.chiu.micro.common.error.CommonErrorCode;
+import wiki.chiu.micro.common.exception.BaseException;
+import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
@@ -103,7 +103,7 @@ class BlogControllerTest {
 
         String body =
             "{\"id\":null,\"title\":\"t\",\"description\":\"d\",\"content\":\"c\","
-                + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":[]}";
+                + "\"status\":0,\"link\":\"\",\"collaborationEpoch\":\"00000000-0000-0000-0000-000000000001\",\"sensitiveContentList\":[]}";
         mockMvc
             .perform(
                 post("/sys/blog/7/draft")
@@ -158,7 +158,7 @@ class BlogControllerTest {
                     .content(
                         "{\"id\":7,\"draftRevision\":2,\"title\":\"title\","
                             + "\"description\":\"description\",\"content\":\"content\","
-                            + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":[]}"))
+                            + "\"status\":0,\"link\":\"\",\"collaborationEpoch\":\"00000000-0000-0000-0000-000000000001\",\"sensitiveContentList\":[]}"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.draftRevision").value(3))
             .andExpect(jsonPath("$.data.version.id").value(9));
@@ -172,7 +172,7 @@ class BlogControllerTest {
 
         String body =
             "{\"id\":7,\"title\":\"t\",\"description\":\"d\",\"content\":\"c\","
-                + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":[]}";
+                + "\"status\":0,\"link\":\"\",\"collaborationEpoch\":\"00000000-0000-0000-0000-000000000001\",\"sensitiveContentList\":[]}";
         mockMvc
             .perform(
                 post("/sys/blog/7/draft")
@@ -246,7 +246,7 @@ class BlogControllerTest {
         LocalDateTime created = LocalDateTime.of(2026, 9, 1, 12, 0);
         BlogIdentity identity =
             new BlogIdentity(
-                1L, 1L, created, 0L, 2L, created, null, BlogAccessMode.PUBLIC, 1L, 1L);
+                1L, 1L, created, 0L, 2L, created, null, BlogAccessMode.PUBLIC, 1L, 1L, "00000000-0000-0000-0000-000000000001");
         BlogVersion version =
             new BlogVersion(
                 2L,
@@ -397,7 +397,7 @@ class BlogControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{}"))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.msg").value("title must not be blank"));
+            .andExpect(jsonPath("$.msg").value("collaborationEpoch must not be blank"));
 
         verify(blogService, never()).saveDraft(anyLong(), any(), anyLong(), anyList());
     }
@@ -406,7 +406,7 @@ class BlogControllerTest {
     void invalidSensitiveContentIsRejectedBeforeHandler() throws Exception {
         String body =
             "{\"id\":null,\"title\":\"t\",\"description\":\"d\",\"content\":\"c\","
-                + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":["
+                + "\"status\":0,\"link\":\"\",\"collaborationEpoch\":\"00000000-0000-0000-0000-000000000001\",\"sensitiveContentList\":["
                 + "{\"startIndex\":0,\"endIndex\":1,\"type\":9}]}";
 
         mockMvc
@@ -424,7 +424,7 @@ class BlogControllerTest {
     void sensitiveContentOutsideContentIsRejectedBeforeHandler() throws Exception {
         String body =
             "{\"id\":null,\"title\":\"t\",\"description\":\"d\",\"content\":\"abc\","
-                + "\"status\":0,\"link\":\"\",\"sensitiveContentList\":["
+                + "\"status\":0,\"link\":\"\",\"collaborationEpoch\":\"00000000-0000-0000-0000-000000000001\",\"sensitiveContentList\":["
                 + "{\"startIndex\":1,\"endIndex\":4,\"type\":1}]}";
 
         mockMvc

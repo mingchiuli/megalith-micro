@@ -3,6 +3,7 @@ import { useHttp } from '@/http/http'
 import {
   SensitiveType,
   Status,
+  type CollaborationTicket,
   type SensitiveTrans,
   type SensitiveContentItem,
   Colors
@@ -21,6 +22,7 @@ import {
   type CollaborationPhase,
   type CollaborationSession
 } from '@/config/editorConfig'
+import { createEditorYjsPersistenceKey } from '@/config/editorDraft'
 import { API_ENDPOINTS, buildQueryUrl } from '@/config/apiConfig'
 import type { Footers, ToolbarNames, ExposeParam } from 'md-editor-v3'
 import { MdEditor } from 'md-editor-v3'
@@ -36,12 +38,9 @@ import { RefreshRight } from '@element-plus/icons-vue'
 const { t } = useI18n()
 const { POST, UPLOAD } = useHttp()
 
-const route = useRoute()
 const loginState = loginStateStore()
 const { sessionExpired } = storeToRefs(loginState)
 const user = loginState.user || { nickname: 'Anonymous', avatar: '', id: 0 }
-const blogId = route.query.id as string | undefined
-const roomId = blogId ? `${blogId}` : `init:${user.id}`
 
 // 主题管理
 const theme = themeStore()
@@ -86,9 +85,13 @@ const footers: Footers[] = ['markdownTotal', 0, '=', 1, 'scrollSwitch']
 const emit = defineEmits<{
   sensitive: [payload: SensitiveTrans]
   ready: []
+  epochChanged: []
+  authorizationPaused: []
 }>()
 
-const { formStatus, manageAssets } = defineProps<{
+const { formStatus, manageAssets, blogId, collaborationEpoch } = defineProps<{
+  blogId: number
+  collaborationEpoch: string
   formStatus: number
   manageAssets: boolean
 }>()
@@ -157,50 +160,81 @@ const findAllOccurrences = (text: string, pattern: string) => {
 }
 
 const editorRef = useTemplateRef<ExposeParam>('editorRef')
+const authorizationPaused = ref(false)
 const collaborationReady = ref(false)
 const collaborationPhase = ref<CollaborationPhase>('initializing')
 const collaborationRecovering = ref(false)
 const collaborationEditable = computed(() =>
-  isCollaborationEditable(collaborationReady.value, sessionExpired.value)
+  isCollaborationEditable(
+    collaborationReady.value,
+    sessionExpired.value || authorizationPaused.value
+  )
 )
 let disposed = false
 let collaborationGeneration = 0
 let collaborationSession: CollaborationSession | undefined
 let collaborationTicketIssuedAt = 0
-let ticketRefreshPromise: Promise<string> | undefined
+let ticketRefreshPromise: Promise<CollaborationTicket> | undefined
+let activeTicket: CollaborationTicket | undefined
+let leaseExpiryTask: number | undefined
 let initializationPromise: Promise<void> | undefined
 let recoveryPromise: Promise<void> | undefined
 let recoveryRequested = false
 let recoveryForceTicketRequested = false
 let recoveryRestartRequested = false
 let ticketRefreshTask: number | undefined
+let ticketRenewalFailures = 0
 let initialSyncTimeoutTask: number | undefined
 let initializationRetryTask: number | undefined
 let disconnectNoticeTask: number | undefined
 let initializationRetryCount = 0
-let readyEmitted = false
 let lastConnectionNotificationAt = 0
 let connectionNoticeShown = false
 
-const issueCollaborationTicket = () => {
-  const url = blogId
-    ? buildQueryUrl(API_ENDPOINTS.COLLABORATION.TICKET, { blogId })
-    : API_ENDPOINTS.COLLABORATION.TICKET
-  return POST<string>(url, {})
+const pauseAuthorization = () => {
+  if (disposed || authorizationPaused.value) return
+  if (leaseExpiryTask !== undefined) window.clearTimeout(leaseExpiryTask)
+  collaborationReady.value = false
+  authorizationPaused.value = true
+  collaborationPhase.value = 'expired'
+  stopTicketRefresh()
+  collaborationSession?.disconnect()
+  emit('authorizationPaused')
 }
+
+const issueCollaborationTicket = () =>
+  POST<CollaborationTicket>(buildQueryUrl(API_ENDPOINTS.COLLABORATION.TICKET, { blogId }), {})
 
 const acquireCollaborationTicket = (
   maxAge = COLLABORATION_TICKET_RECONNECT_MAX_AGE_MS
-): Promise<string | undefined> => {
-  if (disposed || !shouldRefreshCollaborationTicket(collaborationTicketIssuedAt, maxAge)) {
-    return Promise.resolve(undefined)
-  }
-
+): Promise<CollaborationTicket | undefined> => {
+  if (disposed || authorizationPaused.value) return Promise.resolve(undefined)
+  if (
+    !shouldRefreshCollaborationTicket(collaborationTicketIssuedAt, maxAge) &&
+    activeTicket &&
+    activeTicket.expiresAt > Date.now()
+  )
+    return Promise.resolve(activeTicket)
   if (!ticketRefreshPromise) {
     ticketRefreshPromise = issueCollaborationTicket()
-      .then((token) => {
-        if (!disposed) collaborationTicketIssuedAt = Date.now()
-        return token
+      .then((ticket) => {
+        if (disposed) return ticket
+        if (ticket.collaborationEpoch !== collaborationEpoch) {
+          pauseAuthorization()
+          emit('epochChanged')
+          throw new Error('Collaboration epoch changed')
+        }
+        if (ticket.expiresAt <= Date.now()) throw new Error('Collaboration authorization expired')
+        activeTicket = ticket
+        collaborationTicketIssuedAt = Date.now()
+        if (leaseExpiryTask !== undefined) window.clearTimeout(leaseExpiryTask)
+        leaseExpiryTask = window.setTimeout(pauseAuthorization, ticket.expiresAt - Date.now())
+        return ticket
+      })
+      .catch((error) => {
+        const status = error?.response?.status
+        if (status === 401 || status === 403) pauseAuthorization()
+        throw error
       })
       .finally(() => {
         ticketRefreshPromise = undefined
@@ -210,21 +244,41 @@ const acquireCollaborationTicket = (
 }
 
 const startTicketRefresh = () => {
-  if (ticketRefreshTask !== undefined) return
-  ticketRefreshTask = window.setInterval(() => {
-    void acquireCollaborationTicket(COLLABORATION_TICKET_REFRESH_INTERVAL_MS)
-      .then((token) => {
-        if (token) collaborationSession?.updateToken(token)
+  if (
+    disposed ||
+    sessionExpired.value ||
+    ticketRefreshTask !== undefined ||
+    !activeTicket ||
+    authorizationPaused.value
+  )
+    return
+  const renew = () => {
+    ticketRefreshTask = undefined
+    if (disposed || sessionExpired.value || authorizationPaused.value) return
+    void acquireCollaborationTicket(0)
+      .then((ticket) => {
+        ticketRenewalFailures = 0
+        if (ticket && !disposed && !authorizationPaused.value)
+          collaborationSession?.restart(ticket.ticket)
+        startTicketRefresh()
       })
       .catch((error) => {
-        logger.error('Failed to renew collaboration ticket:', error)
+        logger.warn('Failed to renew collaboration authorization:', error)
+        if (!disposed && !authorizationPaused.value) {
+          const delay = Math.min(1000 * 2 ** Math.min(ticketRenewalFailures++, 3), 5000)
+          ticketRefreshTask = window.setTimeout(renew, delay)
+        }
       })
-  }, COLLABORATION_TICKET_REFRESH_INTERVAL_MS)
+  }
+  ticketRefreshTask = window.setTimeout(
+    renew,
+    Math.max(1000, activeTicket.expiresAt - Date.now() - 15_000)
+  )
 }
 
 const stopTicketRefresh = () => {
   if (ticketRefreshTask === undefined) return
-  window.clearInterval(ticketRefreshTask)
+  window.clearTimeout(ticketRefreshTask)
   ticketRefreshTask = undefined
 }
 
@@ -310,7 +364,13 @@ const scheduleConnectionNotice = (event: CollaborationEvent) => {
   if (disconnectNoticeTask !== undefined || connectionNoticeShown || sessionExpired.value) return
   disconnectNoticeTask = window.setTimeout(() => {
     disconnectNoticeTask = undefined
-    if (disposed || sessionExpired.value || collaborationPhase.value === 'ready') return
+    if (
+      disposed ||
+      sessionExpired.value ||
+      authorizationPaused.value ||
+      collaborationPhase.value === 'ready'
+    )
+      return
     connectionNoticeShown = true
     notifyConnectionIssue(event)
   }, COLLABORATION_CONNECTION_NOTICE_DELAY_MS)
@@ -318,11 +378,13 @@ const scheduleConnectionNotice = (event: CollaborationEvent) => {
 
 const armInitialSyncTimeout = () => {
   clearInitialSyncTimeout()
-  if (disposed || sessionExpired.value || collaborationReady.value) return
+  if (disposed || sessionExpired.value || authorizationPaused.value || collaborationReady.value)
+    return
 
   initialSyncTimeoutTask = window.setTimeout(() => {
     initialSyncTimeoutTask = undefined
-    if (disposed || sessionExpired.value || collaborationReady.value) return
+    if (disposed || sessionExpired.value || authorizationPaused.value || collaborationReady.value)
+      return
 
     collaborationPhase.value = 'failed'
     notifyConnectionIssue({ type: 'connection-error' })
@@ -331,7 +393,13 @@ const armInitialSyncTimeout = () => {
 }
 
 const scheduleInitializationRetry = () => {
-  if (disposed || sessionExpired.value || initializationRetryTask !== undefined) return
+  if (
+    disposed ||
+    sessionExpired.value ||
+    authorizationPaused.value ||
+    initializationRetryTask !== undefined
+  )
+    return
   const delay = Math.min(1000 * 2 ** initializationRetryCount, 10_000)
   initializationRetryCount += 1
   initializationRetryTask = window.setTimeout(() => {
@@ -341,7 +409,13 @@ const scheduleInitializationRetry = () => {
 }
 
 const handleCollaborationEvent = (event: CollaborationEvent, generation: number) => {
-  if (disposed || generation !== collaborationGeneration || sessionExpired.value) return
+  if (
+    disposed ||
+    authorizationPaused.value ||
+    generation !== collaborationGeneration ||
+    sessionExpired.value
+  )
+    return
 
   switch (event.type) {
     case 'initialized':
@@ -360,10 +434,6 @@ const handleCollaborationEvent = (event: CollaborationEvent, generation: number)
           createYjsBindingTransaction(view.state.doc.length, event.content, session.config)
         )
         collaborationReady.value = true
-        if (!readyEmitted) {
-          readyEmitted = true
-          emit('ready')
-        }
         notifyCollaborationEvent({ type: 'connected' })
       } else if (connectionNoticeShown) {
         connectionNoticeShown = false
@@ -374,6 +444,8 @@ const handleCollaborationEvent = (event: CollaborationEvent, generation: number)
       initializationRetryCount = 0
       collaborationRecovering.value = false
       collaborationPhase.value = 'ready'
+      emit('ready')
+      startTicketRefresh()
       return
     }
     case 'disconnected':
@@ -405,7 +477,7 @@ const handleCollaborationEvent = (event: CollaborationEvent, generation: number)
 }
 
 const initializeCollaboration = async () => {
-  if (disposed || sessionExpired.value || collaborationSession) return
+  if (disposed || sessionExpired.value || authorizationPaused.value || collaborationSession) return
   if (initializationPromise) return initializationPromise
 
   const generation = ++collaborationGeneration
@@ -415,13 +487,18 @@ const initializeCollaboration = async () => {
     if (!collaborationToken) throw new Error('Collaboration ticket is unavailable')
 
     const session = await createCollaborationSession(
-      roomId,
-      text.value ?? '',
-      collaborationToken,
+      collaborationToken.roomId,
+      collaborationToken.ticket,
       user,
-      (event) => handleCollaborationEvent(event, generation)
+      (event) => handleCollaborationEvent(event, generation),
+      createEditorYjsPersistenceKey(user.id, String(blogId), collaborationEpoch)
     )
-    if (disposed || sessionExpired.value || generation !== collaborationGeneration) {
+    if (
+      disposed ||
+      sessionExpired.value ||
+      authorizationPaused.value ||
+      generation !== collaborationGeneration
+    ) {
       session.destroy()
       return
     }
@@ -449,7 +526,7 @@ const initializeCollaboration = async () => {
 }
 
 const recoverCollaboration = async (forceTicket: boolean, restart: boolean) => {
-  if (disposed || sessionExpired.value) return
+  if (disposed || sessionExpired.value || authorizationPaused.value) return
   if (!collaborationSession) {
     await initializeCollaboration()
     return
@@ -471,9 +548,10 @@ const recoverCollaboration = async (forceTicket: boolean, restart: boolean) => {
       const token = await acquireCollaborationTicket(
         shouldForceTicket ? 0 : COLLABORATION_TICKET_RECONNECT_MAX_AGE_MS
       )
-      if (disposed || sessionExpired.value || !collaborationSession) return
-      if (token) collaborationSession.updateToken(token)
-      if (shouldRestart) collaborationSession.restart(token)
+      if (disposed || sessionExpired.value || authorizationPaused.value || !collaborationSession)
+        return
+      if (token) collaborationSession.updateToken(token.ticket)
+      if (shouldRestart) collaborationSession.restart(token?.ticket)
     }
   })()
   recoveryPromise = task
@@ -489,6 +567,7 @@ const recoverCollaboration = async (forceTicket: boolean, restart: boolean) => {
 }
 
 const retryCollaboration = () => {
+  authorizationPaused.value = false
   clearInitializationRetry()
   if (collaborationSession) {
     void recoverCollaboration(true, true).finally(armInitialSyncTimeout)
@@ -498,7 +577,13 @@ const retryCollaboration = () => {
 }
 
 const handleVisibilityChange = () => {
-  if (document.visibilityState !== 'visible' || disposed || sessionExpired.value) return
+  if (
+    document.visibilityState !== 'visible' ||
+    disposed ||
+    sessionExpired.value ||
+    authorizationPaused.value
+  )
+    return
   void recoverCollaboration(true, true).finally(armInitialSyncTimeout)
 }
 
@@ -557,6 +642,7 @@ watch(sessionExpired, (expired) => {
 
 onBeforeUnmount(() => {
   disposed = true
+  if (leaseExpiryTask !== undefined) window.clearTimeout(leaseExpiryTask)
   collaborationGeneration += 1
   document.removeEventListener('visibilitychange', handleVisibilityChange)
   clearInitialSyncTimeout()
@@ -601,11 +687,20 @@ onBeforeUnmount(() => {
   </el-dialog>
 
   <div
-    v-if="collaborationPhase === 'failed' && !collaborationReady && !sessionExpired"
+    v-if="
+      (authorizationPaused || (collaborationPhase === 'failed' && !collaborationReady)) &&
+      !sessionExpired
+    "
     class="collaboration-status"
     role="alert"
   >
-    <el-text type="danger">{{ t('collaboration.syncFailedMessage') }}</el-text>
+    <el-text type="danger">{{
+      t(
+        authorizationPaused
+          ? 'collaboration.authorizationPaused'
+          : 'collaboration.syncFailedMessage'
+      )
+    }}</el-text>
     <el-tooltip :content="t('collaboration.retry')">
       <el-button
         circle

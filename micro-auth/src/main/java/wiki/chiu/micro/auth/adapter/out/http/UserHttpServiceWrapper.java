@@ -6,8 +6,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import wiki.chiu.micro.auth.application.model.Authority;
+import wiki.chiu.micro.auth.application.model.RoleAuthorization;
 import wiki.chiu.micro.auth.application.model.UserAccess;
 import wiki.chiu.micro.auth.application.model.UserAccount;
+import wiki.chiu.micro.auth.application.port.out.FreshAuthorizationDirectory;
 import wiki.chiu.micro.auth.application.port.out.UserDirectory;
 import wiki.chiu.micro.common.rpc.RemoteResult;
 import wiki.chiu.micro.user.api.AuthorityHttpService;
@@ -18,7 +21,7 @@ import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
 
 @Component
-public class UserHttpServiceWrapper implements UserDirectory {
+public class UserHttpServiceWrapper implements UserDirectory, FreshAuthorizationDirectory {
 
     private final UserHttpService userHttpService;
 
@@ -105,6 +108,16 @@ public class UserHttpServiceWrapper implements UserDirectory {
 
     public List<AuthorityRpcVo> getSystemAuthorities() {
         return RemoteResult.requireSuccess(authorityHttpService::getAuthorities);
+    }
+
+    @Override
+    public List<Authority> freshAuthorities() {
+        return UserRpcMapper.toAuthorities(getSystemAuthorities());
+    }
+
+    @Override
+    public List<RoleAuthorization> freshRoleAuthorizations(List<Long> roleIds) {
+        return UserRpcMapper.toRoleAuthorizations(findRoleAuthorizations(roleIds));
     }
 
     private static List<String> enabledCodes(List<RoleAuthorizationRpcVo> roles) {

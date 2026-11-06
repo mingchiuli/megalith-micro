@@ -184,6 +184,11 @@ where
         self.store.register_connection(room_id, connection_id).await
     }
 
+    pub(crate) async fn initialize_room(&self, room_id: &str, content: &str) -> StoreResult<()> {
+        let update = crate::domain::protocol::initial_document(content);
+        self.store.initialize_room(room_id, &update).await
+    }
+
     pub(crate) async fn load_room(&self, room_id: &str) -> StoreResult<RoomState> {
         self.store.load_room(room_id).await
     }
@@ -436,6 +441,9 @@ mod tests {
     }
 
     impl RoomEventStore for FakeStore {
+        async fn initialize_room(&self, _room_id: &str, _update: &[u8]) -> StoreResult<()> {
+            Ok(())
+        }
         type Reader = EmptyEventReader;
 
         async fn event_reader(&self) -> StoreResult<Self::Reader> {

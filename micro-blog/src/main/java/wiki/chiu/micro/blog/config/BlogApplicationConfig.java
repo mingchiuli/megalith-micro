@@ -20,10 +20,12 @@ import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
 import wiki.chiu.micro.blog.application.port.out.BlogStatisticsGateway;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
+import wiki.chiu.micro.blog.application.port.out.CollaborationRoomInitializer;
 import wiki.chiu.micro.blog.application.port.out.CollaborationTicketGateway;
 import wiki.chiu.micro.blog.application.service.BlogAccessPolicy;
 import wiki.chiu.micro.blog.application.service.BlogAssetServiceImpl;
 import wiki.chiu.micro.blog.application.service.BlogCollaborationServiceImpl;
+import wiki.chiu.micro.blog.application.service.BlogEditor;
 import wiki.chiu.micro.blog.application.service.BlogExportServiceImpl;
 import wiki.chiu.micro.blog.application.service.BlogIndexSourceService;
 import wiki.chiu.micro.blog.application.service.BlogQueryServiceImpl;
@@ -79,12 +81,19 @@ public class BlogApplicationConfig {
     }
 
     @Bean
+    BlogEditor blogEditor(
+        BlogQueryStore blogs, BlogAuthoringReader reader, BlogAccessPolicy policy) {
+        return new BlogEditor(blogs, reader, policy);
+    }
+
+    @Bean
     BlogCollaborationService blogCollaborationService(
         BlogQueryStore blogs,
         BlogAccessPolicy accessPolicy,
         BlogRuntimeStore runtimeStore,
-        CollaborationTicketGateway tickets) {
-        return new BlogCollaborationServiceImpl(blogs, accessPolicy, runtimeStore, tickets);
+        CollaborationTicketGateway tickets, BlogEditor editor,
+        CollaborationRoomInitializer rooms) {
+        return new BlogCollaborationServiceImpl(blogs, accessPolicy, runtimeStore, tickets, editor, rooms);
     }
 
     @Bean

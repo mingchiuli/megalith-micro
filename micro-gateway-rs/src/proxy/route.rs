@@ -14,6 +14,8 @@ use super::request::{REFRESH_TOKEN_COOKIE, cookie_value, get_ip_from_headers};
 use crate::constant::UNKNOWN;
 use crate::exception::ClientError;
 
+pub(crate) const AUTHORIZATION_EXPIRES_HEADER: &str = "x-megalith-authorization-expires-at";
+
 const REFRESH_TOKEN_PATH: &str = "/token/refresh";
 pub(crate) const PRINCIPAL_HEADER: &str = "x-megalith-principal";
 
@@ -49,6 +51,7 @@ pub(crate) fn prepare_headers(
     request_headers: &HeaderMap,
     principal: &AuthPrincipal,
     request_path: &str,
+    authorization_expires_at: Option<u64>,
 ) -> Result<HeaderMap, ClientError> {
     let mut headers = request_headers.clone();
     remove_hop_by_hop_headers(&mut headers);
@@ -56,6 +59,10 @@ pub(crate) fn prepare_headers(
         headers.remove(name);
     }
     headers.remove(PRINCIPAL_HEADER);
+    headers.remove(AUTHORIZATION_EXPIRES_HEADER);
+    if let Some(expires_at) = authorization_expires_at {
+        headers.insert(AUTHORIZATION_EXPIRES_HEADER, HeaderValue::from(expires_at));
+    }
 
     if request_path == REFRESH_TOKEN_PATH
         && let Some(refresh_token) = cookie_value(request_headers, REFRESH_TOKEN_COOKIE)
@@ -160,7 +167,8 @@ mod tests {
         );
         headers.insert(PRINCIPAL_HEADER, HeaderValue::from_static("forged"));
 
-        let result = prepare_headers(&headers, route().principal(), REFRESH_TOKEN_PATH).unwrap();
+        let result =
+            prepare_headers(&headers, route().principal(), REFRESH_TOKEN_PATH, None).unwrap();
         assert_eq!(
             result.get(header::COOKIE).unwrap(),
             "megalith_refresh_token=refresh"
@@ -182,11 +190,30 @@ mod tests {
         headers.insert(header::COOKIE, HeaderValue::from_static("session=x"));
         headers.insert(header::AUTHORIZATION, HeaderValue::from_static("Bearer x"));
 
-        let result = prepare_headers(&headers, route().principal(), "/blog/list").unwrap();
+        let result = prepare_headers(&headers, route().principal(), "/blog/list", None).unwrap();
         assert!(!result.contains_key(header::CONNECTION));
         assert!(!result.contains_key("x-remove"));
         assert!(!result.contains_key(header::COOKIE));
         assert!(!result.contains_key(header::AUTHORIZATION));
+    }
+
+    #[test]
+    fn removes_forged_deadlines_and_only_forwards_authorized_deadlines() {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            AUTHORIZATION_EXPIRES_HEADER,
+            HeaderValue::from_static("9999999999999"),
+        );
+        let stripped = prepare_headers(&headers, route().principal(), "/other", None).unwrap();
+        assert!(!stripped.contains_key(AUTHORIZATION_EXPIRES_HEADER));
+        let forwarded = prepare_headers(
+            &headers,
+            route().principal(),
+            "/sys/blog/edit/ticket",
+            Some(123),
+        )
+        .unwrap();
+        assert_eq!(forwarded.get(AUTHORIZATION_EXPIRES_HEADER).unwrap(), "123");
     }
 
     #[test]

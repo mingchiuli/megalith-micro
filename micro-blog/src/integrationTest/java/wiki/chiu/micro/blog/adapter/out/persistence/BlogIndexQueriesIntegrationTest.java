@@ -3,19 +3,28 @@ package wiki.chiu.micro.blog.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import jakarta.persistence.EntityManagerFactory;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -42,11 +51,15 @@ import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionSensitiveContentRepository;
 import wiki.chiu.micro.blog.application.model.BlogContentCommand;
+import wiki.chiu.micro.blog.application.model.BlogDraftDeleteCommand;
 import wiki.chiu.micro.blog.application.model.BlogDraftWriteCommand;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.model.BlogMaintenanceMode;
+import wiki.chiu.micro.blog.application.model.BlogPublishCommand;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
+import wiki.chiu.micro.blog.config.BlogSchemaMigrationConfig;
 import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
@@ -54,7 +67,10 @@ import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 import wiki.chiu.micro.common.outbox.adapter.out.persistence.OutboxStoreAdapter;
 import wiki.chiu.micro.common.outbox.adapter.out.persistence.repository.OutboxEventRepository;
+import wiki.chiu.micro.common.outbox.application.model.OutboxStatus;
+import wiki.chiu.micro.common.outbox.application.port.in.OutboxAdministration;
 import wiki.chiu.micro.common.outbox.application.service.OutboxServiceImpl;
+import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
 @Testcontainers(disabledWithoutDocker = true)
 class BlogIndexQueriesIntegrationTest {
@@ -175,26 +191,189 @@ class BlogIndexQueriesIntegrationTest {
                     BlogEntity blog = blogs.save(blog(0L, 0L));
                     BlogRevisionEntity revision = revisions.save(revision(blog, 1L));
 
-                    assertThat(blogs.bumpAdminRevision(blog.getId(), 0L)).isEqualTo(1);
-                    assertThat(blogs.bumpAdminRevision(blog.getId(), 0L)).isZero();
+                    assertThat(blogs.bumpAdminRevision(blog.getId(), 0L, blog.getCollaborationEpoch())).isEqualTo(1);
+                    assertThat(blogs.bumpAdminRevision(blog.getId(), 0L, blog.getCollaborationEpoch())).isZero();
                     assertThat(
                             blogs.publish(
                                 blog.getId(),
                                 revision.getId(),
+                                UUID.randomUUID().toString(),
                                 LocalDateTime.now(),
                                 0,
                                 0L,
-                                1L))
+                                1L, blog.getCollaborationEpoch()))
                         .isEqualTo(1);
                     assertThat(
                             blogs.publish(
                                 blog.getId(),
                                 revision.getId(),
+                                UUID.randomUUID().toString(),
                                 LocalDateTime.now(),
                                 0,
                                 0L,
-                                1L))
+                                1L, blog.getCollaborationEpoch()))
                         .isZero();
+                });
+        }
+    }
+
+    @Test
+    void publicSourceCountExcludesUnpublishedDraftIdentities() {
+        try (var context = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
+            var blogs = context.getBean(BlogRepository.class);
+            var revisions = context.getBean(BlogRevisionRepository.class);
+            var transaction = new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
+            transaction.executeWithoutResult(status -> {
+                for (int index = 0; index < 3; index++) {
+                    var identity = blogs.save(blog(0L, 0L));
+                    if (index < 2) {
+                        identity.setPublishedRevisionId(revisions.save(revision(identity, index + 1)).getId());
+                    }
+                }
+            });
+            var administration = Mockito.mock(OutboxAdministration.class);
+            Mockito.when(administration.status()).thenReturn(
+                new OutboxStatus(
+                    OutboxProducer.BLOG, 0, 0, 0));
+            var status = new BlogIndexSourceStateAdapter(new BlogMaintenanceMode(true), blogs, administration).status();
+            assertThat(status.total()).isEqualTo(3);
+            assertThat(status.publishedTotal()).isEqualTo(2);
+            assertThat(queryAdapter(context).findPublishedSnapshotsAfter(0, 10)).hasSize(2);
+            assertThat(queryAdapter(context).findAdminSnapshotsAfter(0, 10)).hasSize(3);
+        }
+    }
+
+    @Test
+    void publicationAndDraftDeletionRotateEpochAndRejectOldEpochAtTheWriteBoundary() {
+        try (var context = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
+            var blogs = context.getBean(BlogRepository.class);
+            var revisions = context.getBean(BlogRevisionRepository.class);
+            var transaction = new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
+            var ids = transaction.execute(status -> {
+                var blog = blogs.save(blog(0, 0));
+                return List.of(blog.getId(), revisions.save(revision(blog, 1)).getId());
+            });
+            var reader = authoringReader(context);
+            var original = reader.findIdentity(ids.getFirst()).orElseThrow();
+            var selected = reader.findVersion(ids.getFirst(), ids.getLast()).orElseThrow();
+            var events = new OutboxServiceImpl(new OutboxStoreAdapter(context.getBean(OutboxEventRepository.class)), event -> "{}");
+            var writer = new JpaBlogAuthoringAdapter(blogs, revisions, context.getBean(BlogDraftRepository.class),
+                context.getBean(BlogRevisionSensitiveContentRepository.class),
+                context.getBean(BlogDraftSensitiveContentRepository.class), events, new BlogMaintenanceMode(false));
+            transaction.executeWithoutResult(status -> writer.publish(
+                new BlogPublishCommand(
+                    original, selected, null, null, 2L, 0, 42L, LocalDateTime.now())));
+            var published = reader.findIdentity(original.id()).orElseThrow();
+            assertThat(published.collaborationEpoch()).isNotEqualTo(original.collaborationEpoch());
+            var stale = new BlogIdentity(published.id(), published.userId(), published.created(),
+                published.readCount(), published.publishedRevisionId(), published.publishedAt(), published.offlineAt(),
+                published.accessMode(), published.publicationRevision(), published.adminRevision(), original.collaborationEpoch());
+            assertThatThrownBy(() -> transaction.executeWithoutResult(status -> writer.saveDraft(
+                new BlogDraftWriteCommand(stale, null, new BlogContentCommand("title", "description", "old content", "",
+                    BlogRenderMode.NORMAL, List.of()), selected, 42L, LocalDateTime.now()))))
+                .isInstanceOf(BaseException.class);
+            assertThat(reader.findDraft(original.id())).isEmpty();
+            transaction.executeWithoutResult(status -> writer.deleteDraft(
+                new BlogDraftDeleteCommand(published, null, selected)));
+            assertThat(reader.findIdentity(original.id()).orElseThrow().collaborationEpoch())
+                .isNotEqualTo(published.collaborationEpoch());
+        }
+    }
+
+    @Test
+    void epochMigrationBackfillsDistinctRoomsAndCanBeReplayed() throws Exception {
+        try (var context = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
+            var blogs = context.getBean(BlogRepository.class);
+            var transaction = new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
+            transaction.executeWithoutResult(status -> blogs.saveAll(List.of(blog(0, 0), blog(0, 0))));
+            var dataSource = context.getBean(DataSource.class);
+            var jdbc = new JdbcTemplate(dataSource);
+            jdbc.execute("ALTER TABLE m_blog MODIFY COLUMN collaboration_epoch VARCHAR(36) NULL");
+            jdbc.update("UPDATE m_blog SET collaboration_epoch = NULL");
+            try (var connection = dataSource.getConnection()) {
+                ScriptUtils.executeSqlScript(connection, new ClassPathResource("db/migration/add-blog-collaboration-epoch.sql"));
+                var first = jdbc.queryForList("SELECT collaboration_epoch FROM m_blog ORDER BY id", String.class);
+                assertThat(first).doesNotContainNull().doesNotHaveDuplicates();
+                ScriptUtils.executeSqlScript(connection, new ClassPathResource("db/migration/add-blog-collaboration-epoch.sql"));
+                assertThat(jdbc.queryForList("SELECT collaboration_epoch FROM m_blog ORDER BY id", String.class))
+                    .containsExactlyElementsOf(first);
+            }
+        }
+    }
+
+    @Test
+    void startupMigratesBeforeHibernateValidation() {
+        try (var original = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
+            var dataSource = original.getBean(DataSource.class);
+            var jdbc = new JdbcTemplate(dataSource);
+            jdbc.execute("ALTER TABLE m_blog DROP COLUMN collaboration_epoch");
+            jdbc.update("INSERT INTO m_blog (user_id, created, read_count) VALUES (42, NOW(), 0), (43, NOW(), 0)");
+            new ApplicationContextRunner()
+                .withConfiguration(AutoConfigurations.of(
+                    HibernateJpaAutoConfiguration.class))
+                .withUserConfiguration(StartupMigrationConfiguration.class)
+                .withBean(DataSource.class, () -> dataSource)
+                .withPropertyValues("spring.jpa.hibernate.ddl-auto=validate", "spring.sql.init.mode=never")
+                .run(context -> {
+                    assertThat(context).hasNotFailed();
+                    assertThat(context).hasSingleBean(EntityManagerFactory.class);
+                    assertThat(context.getBeanFactory().getBeanDefinition("entityManagerFactory").getDependsOn())
+                        .contains("blogSchemaInitializer");
+                    var epochs = jdbc.queryForList("SELECT collaboration_epoch FROM m_blog", String.class);
+                    assertThat(epochs).hasSize(2).doesNotContainNull().doesNotHaveDuplicates();
+                    assertThat(new BlogSchemaInitializer(dataSource).initializeDatabase()).isFalse();
+                });
+        }
+    }
+
+    @Test
+    void startupResumesNullableMigrationAndSerializesConcurrentReplicas() throws Exception {
+        try (var context = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
+            var dataSource = context.getBean(DataSource.class);
+            var jdbc = new JdbcTemplate(dataSource);
+            jdbc.execute("ALTER TABLE m_blog MODIFY COLUMN collaboration_epoch VARCHAR(36) NULL");
+            String savedEpoch = UUID.randomUUID().toString();
+            jdbc.update("INSERT INTO m_blog (user_id, created, read_count, collaboration_epoch) VALUES (42, NOW(), 0, ?)", savedEpoch);
+            jdbc.update("INSERT INTO m_blog (user_id, created, read_count) VALUES (43, NOW(), 0)");
+            try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                var start = new CountDownLatch(1);
+                Callable<Boolean> migrate = () -> {
+                    start.await();
+                    return new BlogSchemaInitializer(dataSource).initializeDatabase();
+                };
+                var first = executor.submit(migrate);
+                var second = executor.submit(migrate);
+                start.countDown();
+                assertThat(List.of(first.get(30, TimeUnit.SECONDS),
+                    second.get(30, TimeUnit.SECONDS))).containsExactlyInAnyOrder(true, false);
+            }
+            assertThat(jdbc.queryForObject("SELECT collaboration_epoch FROM m_blog WHERE user_id = 42", String.class))
+                .isEqualTo(savedEpoch);
+            assertThat(jdbc.queryForList("SELECT collaboration_epoch FROM m_blog", String.class))
+                .hasSize(2).doesNotContainNull().doesNotHaveDuplicates();
+        }
+    }
+
+    @Test
+    void startupLeavesFreshDatabaseCreationToHibernate() {
+        try (var original = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
+            var dataSource = original.getBean(DataSource.class);
+            var jdbc = new JdbcTemplate(dataSource);
+            jdbc.execute("DROP TABLE m_blog");
+            assertThat(new BlogSchemaInitializer(dataSource).initializeDatabase()).isFalse();
+            new ApplicationContextRunner()
+                .withConfiguration(AutoConfigurations.of(
+                    HibernateJpaAutoConfiguration.class))
+                .withUserConfiguration(StartupMigrationConfiguration.class)
+                .withBean(DataSource.class, () -> dataSource)
+                .withPropertyValues("spring.jpa.hibernate.ddl-auto=update")
+                .run(context -> {
+                    assertThat(context).hasNotFailed();
+                    assertThat(jdbc.queryForObject("""
+                        SELECT IS_NULLABLE FROM information_schema.COLUMNS
+                        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'm_blog'
+                          AND COLUMN_NAME = 'collaboration_epoch'
+                        """, String.class)).isEqualTo("NO");
                 });
         }
     }
@@ -290,7 +469,7 @@ class BlogIndexQueriesIntegrationTest {
                 return result;
             });
             var reader = authoringReader(context);
-            var authoring = new JpaBlogAuthoringAdapter(blogs, revisions, drafts, revisionSpans, draftSpans, events);
+            var authoring = new JpaBlogAuthoringAdapter(blogs, revisions, drafts, revisionSpans, draftSpans, events, new BlogMaintenanceMode(false));
             var identity = reader.findIdentity(ids.getFirst()).orElseThrow();
             var draft = reader.findDraft(ids.getFirst()).orElseThrow();
             SqlCapture.clear();
@@ -303,7 +482,7 @@ class BlogIndexQueriesIntegrationTest {
                 .containsExactly(new BlogSensitiveSpan(2, 4, 3));
 
             var targets = queryAdapter(context).findDeletionTargetsByIds(ids);
-            transaction.executeWithoutResult(status -> blogs.bumpAdminRevision(ids.getLast(), 0L));
+            transaction.executeWithoutResult(status -> blogs.bumpAdminRevision(ids.getLast(), 0L, reader.findIdentity(ids.getLast()).orElseThrow().collaborationEpoch()));
             long eventCount = outbox.count();
             var writer = new BlogWrapper(blogs, revisions, drafts, draftSpans, revisionSpans, events,
                 new BlogMaintenanceMode(false));
@@ -452,6 +631,13 @@ class BlogIndexQueriesIntegrationTest {
             date,
             42L,
             date);
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @Import(BlogSchemaMigrationConfig.class)
+    @EntityScan(basePackages = {
+        "wiki.chiu.micro.blog.adapter.out.persistence.entity", "wiki.chiu.micro.common.outbox.adapter.out.persistence.entity"})
+    static class StartupMigrationConfiguration {
     }
 
     @Configuration(proxyBeanMethods = false)

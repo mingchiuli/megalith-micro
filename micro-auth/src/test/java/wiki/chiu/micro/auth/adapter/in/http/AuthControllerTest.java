@@ -139,17 +139,17 @@ class AuthControllerTest {
 
     @Test
     void internalWebSocketTicketUsesThePrincipalHeader() throws Exception {
-        when(tokenService.issueWebSocketTicket(1L, "blog-7")).thenReturn("ticket");
+        when(tokenService.issueWebSocketTicket(1L, "blog-7", 12345L)).thenReturn("ticket");
 
         mockMvc
             .perform(
                 post("/inner/token/websocket")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"roomId\":\"blog-7\"}"))
+                    .content("{\"roomId\":\"blog-7\",\"expiresAt\":12345}"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data").value("Bearer ticket"));
 
-        verify(tokenService).issueWebSocketTicket(1L, "blog-7");
+        verify(tokenService).issueWebSocketTicket(1L, "blog-7", 12345L);
     }
 
     @Test
@@ -158,10 +158,10 @@ class AuthControllerTest {
             .perform(
                 post("/inner/token/websocket")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"roomId\":\"blog-7\"}"))
+                    .content("{\"roomId\":\"blog-7\",\"expiresAt\":12345}"))
             .andExpect(status().isBadRequest());
 
-        verify(tokenService, never()).issueWebSocketTicket(anyLong(), anyString());
+        verify(tokenService, never()).issueWebSocketTicket(anyLong(), anyString(), anyLong());
     }
 
     @Test
@@ -171,10 +171,10 @@ class AuthControllerTest {
                 post("/inner/token/websocket")
                     .header(InternalHttpHeaders.PRINCIPAL, "not-base64")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"roomId\":\"blog-7\"}"))
+                    .content("{\"roomId\":\"blog-7\",\"expiresAt\":12345}"))
             .andExpect(status().isBadRequest());
 
-        verify(tokenService, never()).issueWebSocketTicket(anyLong(), anyString());
+        verify(tokenService, never()).issueWebSocketTicket(anyLong(), anyString(), anyLong());
     }
 
     @Test
@@ -184,10 +184,10 @@ class AuthControllerTest {
                 post("/inner/token/websocket")
                     .header(InternalHttpHeaders.PRINCIPAL, " ")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"roomId\":\"blog-7\"}"))
+                    .content("{\"roomId\":\"blog-7\",\"expiresAt\":12345}"))
             .andExpect(status().isBadRequest());
 
-        verify(tokenService, never()).issueWebSocketTicket(anyLong(), anyString());
+        verify(tokenService, never()).issueWebSocketTicket(anyLong(), anyString(), anyLong());
     }
 
     @Test

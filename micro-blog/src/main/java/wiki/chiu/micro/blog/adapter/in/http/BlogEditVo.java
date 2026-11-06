@@ -16,7 +16,7 @@ public record BlogEditVo(
     boolean hasDraft,
     boolean draftNewer,
     List<SensitiveContentVo> sensitiveContentList,
-    BlogPermissionsVo permissions) {
+    BlogPermissionsVo permissions, String collaborationEpoch) {
 
     public static BlogEditVoBuilder builder() {
         return new BlogEditVoBuilder();
@@ -37,6 +37,12 @@ public record BlogEditVo(
         private boolean draftNewer;
         private List<SensitiveContentVo> sensitiveContentList;
         private BlogPermissionsVo permissions;
+        private String collaborationEpoch;
+
+        public BlogEditVoBuilder collaborationEpoch(String value) {
+            this.collaborationEpoch = value;
+            return this;
+        }
 
         public BlogEditVoBuilder id(Long id) {
             this.id = id;
@@ -123,7 +129,7 @@ public record BlogEditVo(
                 hasDraft,
                 draftNewer,
                 sensitiveContentList,
-                permissions);
+                permissions, collaborationEpoch);
         }
     }
 

@@ -8,8 +8,8 @@ import wiki.chiu.micro.blog.api.BlogIndexSourceHttpService;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.rpc.RemoteResult;
 import wiki.chiu.micro.search.application.model.BlogAdminIndexChange;
-import wiki.chiu.micro.search.application.model.BlogRevisionIndexEntry;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
+import wiki.chiu.micro.search.application.model.BlogRevisionIndexEntry;
 import wiki.chiu.micro.search.application.model.IndexSourceStatus;
 import wiki.chiu.micro.search.application.port.out.BlogIndexSource;
 import wiki.chiu.micro.search.domain.BlogIndexEntry;
@@ -26,7 +26,7 @@ public class BlogIndexSourceHttpAdapter implements BlogIndexSource {
     @Override
     public IndexSourceStatus status() {
         var status = RemoteResult.requireSuccess(blogs::indexSourceStatus);
-        return new IndexSourceStatus(status.readOnly(), status.readyEvents(), status.pausedEvents(), status.total());
+        return new IndexSourceStatus(status.readOnly(), status.readyEvents(), status.pausedEvents(), status.total(), status.publishedTotal());
     }
 
     @Override

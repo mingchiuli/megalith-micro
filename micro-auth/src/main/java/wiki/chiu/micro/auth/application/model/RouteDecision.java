@@ -5,5 +5,8 @@ import wiki.chiu.micro.common.security.AuthPrincipal;
 /**
  * Where the gateway must send an authorized route and who the caller is.
  */
-public record RouteDecision(String serviceHost, Integer servicePort, AuthPrincipal principal) {
+public record RouteDecision(String serviceHost, Integer servicePort, AuthPrincipal principal, Long authorizationExpiresAt) {
+    public RouteDecision(String serviceHost, Integer servicePort, AuthPrincipal principal) {
+        this(serviceHost, servicePort, principal, null);
+    }
 }

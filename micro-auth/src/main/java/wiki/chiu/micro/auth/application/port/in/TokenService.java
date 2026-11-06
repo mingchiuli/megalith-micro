@@ -12,5 +12,5 @@ public interface TokenService {
 
     UserInfo userinfo(Long userId);
 
-    String issueWebSocketTicket(Long userId, String roomId);
+    String issueWebSocketTicket(Long userId, String roomId, long expiresAt);
 }

@@ -215,7 +215,9 @@ diff payloads are read from MariaDB so index lag cannot affect the editor. Conte
 self-contained administration snapshots and monotonic projection revisions so consumers can reject
 out-of-order updates without reading potentially stale index state. The Elasticsearch repositories
 create any missing physical index and alias during startup; the maintenance rebuild replaces all
-three aliases together after both search queues are quiescent. Article visits update MariaDB counters;
+three aliases together after both search queues are quiescent. `total` counts all article identities;
+`publishedTotal` counts only identities with a published revision. Public and administration rebuilds
+validate against those respective counts. Article visits update MariaDB counters;
 cumulative counts are synchronized to Elasticsearch in batches through idempotent updates.
 
 Presentation reads use Caffeine as an in-process L1 cache and Redis as a shared L2 cache. Versioned
@@ -352,8 +354,19 @@ version with its immediate predecessor. The application layer prepares the curre
 working draft, published revision, and next revision number before a short persistence transaction;
 conditional revision checks reject competing saves without querying inside the write transaction.
 
-Collaboration and draft storage run in the browser. Connections use short-lived collaboration
-tickets, and session expiry pauses editing while preserving the local draft for reauthentication.
+Collaboration and draft storage run in the browser. Each new editor creates an independent server draft in the browser and records its ID in the URL.
+Rooms and local draft keys include an article's `collaborationEpoch`. Publishing (including restoring a
+historical publication), deleting a working draft, or recovering a deleted article starts a new epoch;
+ordinary draft saves and status changes keep it. The blog service initializes each room through the
+sync service before signing a ticket. Redis atomically installs one YRS seed, including empty documents;
+browsers never independently seed the same room.
+
+Collaboration tickets use authoritative user/role reads at the existing single route-authorization
+boundary. Their authorization expires within 60 seconds of that check, and the gateway terminates
+connections at that absolute deadline, including downstream connection time. Replaying a ticket cannot
+extend its lifetime. Clients renew and reconnect 15 seconds before expiry; denied authorization pauses
+editing while retaining local content. Epoch changes preserve the old content as read-only recovery
+copies and reload the current editor state. Old-epoch HTTP saves are rejected with 409.
 The editor supports online collaboration when local storage is unavailable. Published blogs open a
 newer active draft automatically; older drafts are retained as read-only history and never override
 the published version. A newer active draft is based on the current published revision and has a
@@ -397,6 +410,38 @@ authentication, caching, observability, failure behavior, and deployment details
   Redis Lua resources are bundled into Java and Rust executables.
 - **Correlated observability:** Java, Rust, and Bun services propagate trace context and export
   OpenTelemetry traces, metrics, and logs to the monitoring infrastructure.
+
+### Upgrading collaboration and rebuilding search
+
+This upgrade changes ticket payloads, authorization deadlines, room names, and draft-write contracts.
+Use a coordinated maintenance window rather than mixing old and new replicas:
+
+1. Ask active editors to retain/export uncommitted work. Stop new traffic and close old gateway
+   WebSockets. Stop all blog writers, including user-deletion consumers, before changing the schema.
+2. Back up MariaDB. `micro-blog` automatically migrates `collaboration_epoch` before Hibernate starts:
+   it adds the column, assigns independent UUIDs to existing rows, and enforces `NOT NULL`. No manual SQL
+   is required. A database advisory lock serializes migrations across replicas; completed migrations are
+   skipped on subsequent starts. A fresh database is created normally by Hibernate. The startup account
+   needs the existing schema-update permissions, and a migration failure stops startup.
+   The SQL is embedded at `db/migration/add-blog-collaboration-epoch.sql`, including in Native Images.
+   Do not clear Redis or IndexedDB: new rooms use new epochs; legacy local drafts remain available as recovery
+   copies and old Redis rooms expire under their existing retention policy.
+3. Deploy auth, blog, sync, gateway, and frontend together. Configure
+   `MEGALITH_BLOG_SYNC_URL=http://micro-sync-rs:8089` for blog containers. The sync initialization route
+   `/inner/rooms/{roomId}/initialize` is internal-only and must never be added to external gateway routes.
+   Keep service clocks synchronized, as with JWT validation.
+4. Verify independent new drafts, cross-replica collaboration, historical restoration, 409 on old-epoch
+   writes, automatic renewal, and forced closure of a raw client at ticket expiry before restoring traffic.
+
+For a search rebuild, set `megalith.blog.maintenance.read-only=true` on **every** blog replica and wait
+for old writable replicas and in-flight writes to finish. Drain the BLOG outbox (including paused rows)
+and both search queues, retries, and dead-letter queues; then stop all search consumers using search
+maintenance mode. Confirm source status and queue checks pass before calling the rebuild endpoint.
+Creation, draft/version saves, publication, draft deletion, status changes, deletion, and recovery all
+reject writes in maintenance mode. Visit counting remains available, and the existing statistics lock
+excludes concurrent read-count synchronization. A failed rebuild retains the old aliases; inspect
+ambiguous alias-switch outcomes before retrying. Restore consumers and writable replicas only after
+validating all three indexes, including a dataset containing unpublished drafts.
 
 ## Build
 

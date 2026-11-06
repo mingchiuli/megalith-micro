@@ -35,7 +35,7 @@ class BlogWorkingDraftTest {
             null,
             BlogAccessMode.PUBLIC,
             1L,
-            2L);
+            2L, "00000000-0000-0000-0000-000000000001");
     }
 
     private BlogWorkingDraft draft(Long baseRevisionId, LocalDateTime updatedAt) {

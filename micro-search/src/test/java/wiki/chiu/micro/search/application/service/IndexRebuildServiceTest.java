@@ -21,6 +21,8 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import wiki.chiu.micro.common.model.BlogAdminSnapshot;
+import wiki.chiu.micro.search.application.model.BlogAdminIndexChange;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.model.IndexRebuildRejectedException;
 import wiki.chiu.micro.search.application.model.IndexSourceStatus;
@@ -48,7 +50,7 @@ class IndexRebuildServiceTest {
 
         var result = service.rebuild();
 
-        assertThat(result.indexes()).extracting(index -> index.documents()).containsExactly(3L, 0L, 0L);
+        assertThat(result.indexes()).extracting(index -> index.documents()).containsExactly(3L, 4L, 0L);
         var order = inOrder(indexes);
         order.verify(indexes).currentIndexes();
         order.verify(indexes).createIndex(SearchIndexKind.PUBLIC_BLOGS);
@@ -93,10 +95,12 @@ class IndexRebuildServiceTest {
     }
 
     private void prepare() {
-        when(source.status()).thenReturn(new IndexSourceStatus(true, 0, 0, 3));
+        when(source.status()).thenReturn(new IndexSourceStatus(true, 0, 0, 4, 3));
         when(source.snapshots(0, 2)).thenReturn(List.of(snapshot(7), snapshot(9)));
         when(source.snapshots(9, 2)).thenReturn(List.of(snapshot(15)));
-        when(source.adminSnapshots(anyLong(), anyInt())).thenReturn(List.of());
+        when(source.adminSnapshots(0, 2)).thenReturn(List.of(admin(7), admin(9)));
+        when(source.adminSnapshots(9, 2)).thenReturn(List.of(admin(15), admin(16)));
+        when(source.adminSnapshots(16, 2)).thenReturn(List.of());
         when(source.revisionSnapshots(anyLong(), anyInt())).thenReturn(List.of());
         when(indexes.currentIndexes())
             .thenReturn(
@@ -108,8 +112,14 @@ class IndexRebuildServiceTest {
         when(indexes.createIndex(SearchIndexKind.ADMIN_BLOGS)).thenReturn("admin-new");
         when(indexes.createIndex(SearchIndexKind.REVISIONS)).thenReturn("revision-new");
         when(indexes.refreshAndCount(SearchIndexKind.PUBLIC_BLOGS, "public-new")).thenReturn(3L);
-        when(indexes.refreshAndCount(SearchIndexKind.ADMIN_BLOGS, "admin-new")).thenReturn(0L);
+        when(indexes.refreshAndCount(SearchIndexKind.ADMIN_BLOGS, "admin-new")).thenReturn(4L);
         when(indexes.refreshAndCount(SearchIndexKind.REVISIONS, "revision-new")).thenReturn(0L);
+    }
+
+    private BlogAdminIndexChange admin(long id) {
+        return new BlogAdminIndexChange("DRAFT_UPSERT",
+            new BlogAdminSnapshot(id, 42L, null, null, null, 0, 0L, 1L, 0L,
+                LocalDateTime.of(2026, 9, 1, 12, 0)), null, null);
     }
 
     private BlogIndexChange snapshot(long id) {

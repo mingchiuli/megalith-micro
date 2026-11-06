@@ -4,7 +4,7 @@ use bytes::{BufMut, Bytes, BytesMut};
 use yrs::sync::{AwarenessUpdate, awareness::AwarenessUpdateEntry};
 use yrs::updates::decoder::Decode;
 use yrs::updates::encoder::Encode;
-use yrs::{ClientID, Doc, ReadTxn, StateVector, Transact, Update, diff_updates_v1};
+use yrs::{ClientID, Doc, ReadTxn, StateVector, Text, Transact, Update, diff_updates_v1};
 
 pub const MSG_SYNC: u64 = 0;
 pub const MSG_AWARENESS: u64 = 1;
@@ -219,6 +219,15 @@ fn read_var_uint8_array(data: &[u8]) -> Option<(&[u8], usize)> {
 fn write_var_uint8_array(buffer: &mut BytesMut, data: &[u8]) {
     write_var_uint(buffer, data.len() as u64);
     buffer.extend_from_slice(data);
+}
+
+/// Seeds the unnamed Y.Text used by the browser editor.
+pub(crate) fn initial_document(content: &str) -> Vec<u8> {
+    let doc = Doc::new();
+    let text = doc.get_or_insert_text("");
+    let mut txn = doc.transact_mut();
+    text.insert(&mut txn, 0, content);
+    txn.encode_state_as_update_v1(&StateVector::default())
 }
 
 #[cfg(test)]

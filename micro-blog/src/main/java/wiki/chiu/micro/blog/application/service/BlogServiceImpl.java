@@ -10,16 +10,15 @@ import java.util.Map;
 import java.util.Objects;
 
 import wiki.chiu.micro.blog.application.model.BlogContentCommand;
-import wiki.chiu.micro.blog.application.model.BlogDraftDeleteCommand;
-import wiki.chiu.micro.blog.application.model.BlogDraftWriteCommand;
 import wiki.chiu.micro.blog.application.model.BlogDeletionTarget;
 import wiki.chiu.micro.blog.application.model.BlogDraft;
-import wiki.chiu.micro.blog.application.model.BlogEventContext;
+import wiki.chiu.micro.blog.application.model.BlogDraftDeleteCommand;
+import wiki.chiu.micro.blog.application.model.BlogDraftWriteCommand;
 import wiki.chiu.micro.blog.application.model.BlogEdit;
+import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
-import wiki.chiu.micro.blog.application.model.BlogPermissions;
-import wiki.chiu.micro.blog.application.model.BlogQuery;
 import wiki.chiu.micro.blog.application.model.BlogPublishCommand;
+import wiki.chiu.micro.blog.application.model.BlogQuery;
 import wiki.chiu.micro.blog.application.model.BlogSearchQuery;
 import wiki.chiu.micro.blog.application.model.BlogSearchSelection;
 import wiki.chiu.micro.blog.application.model.BlogStatusWriteCommand;
@@ -30,7 +29,6 @@ import wiki.chiu.micro.blog.application.model.DeletedBlogEntry;
 import wiki.chiu.micro.blog.application.model.DeletedBlogItem;
 import wiki.chiu.micro.blog.application.model.DeletedBlogPage;
 import wiki.chiu.micro.blog.application.model.Page;
-import wiki.chiu.micro.blog.application.model.SensitiveContentDraft;
 import wiki.chiu.micro.blog.application.model.SavedBlogVersion;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
 import wiki.chiu.micro.blog.application.port.out.BlogAuthoringReader;
@@ -49,7 +47,6 @@ import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.error.CommonErrorCode;
-import wiki.chiu.micro.common.error.ExceptionMessage;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.model.BlogSensitiveSpan;
@@ -91,58 +88,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public BlogEdit findEdit(Long id, Long userId, List<DataPermissionEnum> dataPermissions) {
-        if (id == null) {
-            Blog blank = Blog.blankFor(userId);
-            return edit(blank, null, null, null, List.of(), accessPolicy.permissions(
-                blank, userId, dataPermissions));
-        }
-        BlogIdentity identity =
-            authoring.findIdentity(id).orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-        Blog published = blogs.findById(id).orElse(null);
-        BlogWorkingDraft draft = authoring.findDraft(id).orElse(null);
-        Blog permissionBlog =
-            published == null ? draftBlog(identity, draft) : published;
-        if (!accessPolicy.canEdit(permissionBlog, userId, dataPermissions)) {
-            throw new MissException(ExceptionMessage.EDIT_NO_AUTH.getMsg());
-        }
-        if (published != null) {
-            accessPolicy.requireCollaboration(published, userId, dataPermissions);
-        }
-        boolean draftNewer = draft != null && draft.newerThan(identity);
-        if (draftNewer) {
-            return edit(
-                new Blog(
-                    identity.id(),
-                    identity.userId(),
-                    draft.title(),
-                    draft.description(),
-                    draft.content(),
-                    identity.created(),
-                    draft.updatedAt(),
-                    BlogRenderMode.SENSITIVE_FILTER == draft.renderMode()
-                        ? 2
-                        : 0,
-                    draft.link(),
-                    identity.readCount(),
-                    identity.publicationRevision()),
-                draft,
-                identity,
-                null,
-                draft.sensitiveContent(),
-                accessPolicy.permissions(permissionBlog, userId, dataPermissions));
-        }
-        Blog selected = published == null ? draftBlog(identity, draft) : published;
-        List<BlogSensitiveSpan> spans =
-            draft != null && published == null
-                ? draft.sensitiveContent()
-                : published == null ? List.of() : published.sensitiveContent();
-        return edit(
-            selected,
-            draft,
-            identity,
-            published == null ? null : identity.publishedRevisionId(),
-            spans,
-            accessPolicy.permissions(permissionBlog, userId, dataPermissions));
+        return new BlogEditor(blogs, authoring, accessPolicy).loadEdit(id, userId, dataPermissions, false);
     }
 
     @Override
@@ -158,6 +104,7 @@ public class BlogServiceImpl implements BlogService {
         Long userId,
         List<DataPermissionEnum> dataPermissions) {
         PreparedBlog prepared = prepareEditable(blogId, userId, dataPermissions);
+        requireEpoch(prepared.identity(), blog.collaborationEpoch());
         requireDraftRevision(blogId, blog.draftRevision(), prepared.draft());
         return authoringWriter.saveDraft(
             new BlogDraftWriteCommand(
@@ -171,8 +118,9 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public void deleteDraft(
-        Long blogId, Long userId, List<DataPermissionEnum> dataPermissions) {
+        Long blogId, Long userId, List<DataPermissionEnum> dataPermissions, String collaborationEpoch) {
         PreparedBlog prepared = prepareEditable(blogId, userId, dataPermissions);
+        requireEpoch(prepared.identity(), collaborationEpoch);
         authoringWriter.deleteDraft(
             new BlogDraftDeleteCommand(
                 prepared.identity(), prepared.draft(), prepared.publishedRevision()));
@@ -185,6 +133,7 @@ public class BlogServiceImpl implements BlogService {
         Long userId,
         List<DataPermissionEnum> dataPermissions) {
         PreparedBlog prepared = prepareEditable(blogId, userId, dataPermissions);
+        requireEpoch(prepared.identity(), blog.collaborationEpoch());
         requireDraftRevision(blogId, blog.draftRevision(), prepared.draft());
         long nextVersion =
             authoring.findLatestVersion(blogId)
@@ -328,6 +277,12 @@ public class BlogServiceImpl implements BlogService {
         }
     }
 
+    private static void requireEpoch(BlogIdentity identity, String epoch) {
+        if (!Objects.equals(identity.collaborationEpoch(), epoch)) {
+            throw conflict(identity.id());
+        }
+    }
+
     private static BaseException conflict(Long blogId) {
         return new BaseException(
             CommonErrorCode.CONFLICT,
@@ -353,67 +308,6 @@ public class BlogServiceImpl implements BlogService {
                         new BlogSensitiveSpan(
                             span.startIndex(), span.endIndex(), span.type()))
                 .toList());
-    }
-
-    private static Blog draftBlog(BlogIdentity identity, BlogWorkingDraft draft) {
-        if (draft == null) {
-            return new Blog(
-                identity.id(),
-                identity.userId(),
-                "",
-                "",
-                "",
-                identity.created(),
-                identity.created(),
-                BlogStatusEnum.DRAFT.getCode(),
-                "",
-                identity.readCount(),
-                identity.publicationRevision());
-        }
-        return new Blog(
-            identity.id(),
-            identity.userId(),
-            draft.title(),
-            draft.description(),
-            draft.content(),
-            identity.created(),
-            draft.updatedAt(),
-            draft.renderMode() == BlogRenderMode.SENSITIVE_FILTER
-                ? BlogStatusEnum.SENSITIVE_FILTER.getCode()
-                : BlogStatusEnum.DRAFT.getCode(),
-            draft.link(),
-            identity.readCount(),
-            identity.publicationRevision());
-    }
-
-    private static BlogEdit edit(
-        Blog blog,
-        BlogWorkingDraft draft,
-        BlogIdentity identity,
-        Long publishedRevisionId,
-        List<BlogSensitiveSpan> spans,
-        BlogPermissions permissions) {
-        boolean draftNewer = draft != null && identity != null && draft.newerThan(identity);
-        return new BlogEdit(
-            blog.id(),
-            blog.userId(),
-            blog.title(),
-            blog.description(),
-            blog.link(),
-            blog.content(),
-            blog.status(),
-            draft == null ? null : draft.draftRevision(),
-            draft == null ? null : draft.basePublishedRevisionId(),
-            publishedRevisionId,
-            draft != null,
-            draftNewer,
-            spans.stream()
-                .map(
-                    span ->
-                        new SensitiveContentDraft(
-                            span.type(), span.startIndex(), span.endIndex()))
-                .toList(),
-            permissions);
     }
 
     @Override

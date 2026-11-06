@@ -14,11 +14,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import wiki.chiu.micro.blog.adapter.out.persistence.BlogWrapper;
 import wiki.chiu.micro.blog.application.model.BlogDeletionTarget;
+import wiki.chiu.micro.blog.application.model.BlogDraft;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.model.BlogPublishCommand;
 import wiki.chiu.micro.blog.application.port.out.BlogAuthoringReader;
@@ -26,16 +29,18 @@ import wiki.chiu.micro.blog.application.port.out.BlogAuthoringWriter;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
+import wiki.chiu.micro.blog.application.port.out.CollaborationRoomInitializer;
 import wiki.chiu.micro.blog.application.port.out.CollaborationTicketGateway;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogFixtures;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
-import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.blog.domain.BlogVersion;
+import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.enums.BlogAccessMode;
 import wiki.chiu.micro.common.enums.BlogRenderMode;
-import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
+import wiki.chiu.micro.common.enums.BlogStatusEnum;
+import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 
 class BlogServiceImplTest {
@@ -72,7 +77,7 @@ class BlogServiceImplTest {
                 blogs,
                 new BlogAccessPolicy(),
                 runtimeStore,
-                mock(CollaborationTicketGateway.class));
+                mock(CollaborationTicketGateway.class), mock(BlogEditor.class), mock(CollaborationRoomInitializer.class));
 
         String token = service.issueReadToken(7L, 42L, List.of());
 
@@ -166,7 +171,7 @@ class BlogServiceImplTest {
                 null,
                 BlogAccessMode.PUBLIC,
                 1L,
-                2L);
+                2L, "00000000-0000-0000-0000-000000000001");
         Blog published =
             BlogFixtures.builder()
                 .id(7L)
@@ -227,7 +232,7 @@ class BlogServiceImplTest {
                 null,
                 BlogAccessMode.PUBLIC,
                 1L,
-                2L);
+                2L, "00000000-0000-0000-0000-000000000001");
         Blog published =
             BlogFixtures.builder()
                 .id(7L)
@@ -280,7 +285,7 @@ class BlogServiceImplTest {
         BlogIdentity identity =
             new BlogIdentity(
                 7L, 42L, now.minusDays(1), 0L, 11L, now, null,
-                BlogAccessMode.PUBLIC, 2L, 3L);
+                BlogAccessMode.PUBLIC, 2L, 3L, "00000000-0000-0000-0000-000000000001");
         BlogWorkingDraft draft =
             new BlogWorkingDraft(
                 1L, 7L, 2L, 11L, "title", "description", "content", "",
@@ -313,6 +318,20 @@ class BlogServiceImplTest {
         assertEquals(draft, command.getValue().archivedDraft());
     }
 
+    @Test
+    void oldEpochSaveIsRejectedEvenWhenDraftRevisionIsUnspecified() {
+        BlogAuthoringReader reader = mock(BlogAuthoringReader.class);
+        BlogAuthoringWriter writer = mock(BlogAuthoringWriter.class);
+        when(reader.findIdentity(7L)).thenReturn(Optional.of(identity(7L, 1L)));
+        var service = new BlogServiceImpl(mock(BlogQueryStore.class), mock(BlogRuntimeStore.class),
+            mock(BlogWrapper.class), mock(BlogSearchGateway.class), new BlogAccessPolicy(), reader, writer);
+        var oldDraft = new BlogDraft(7L, null, "title", "description",
+            "stale text", 0, "", List.of(), "00000000-0000-0000-0000-000000000002");
+        Assertions.assertThrows(BaseException.class,
+            () -> service.saveDraft(7L, oldDraft, 42L, List.of()));
+        Mockito.verifyNoInteractions(writer);
+    }
+
     @SuppressWarnings("unchecked")
     private static ArgumentCaptor<List<BlogDeletionTarget>> captor() {
         return ArgumentCaptor.forClass(List.class);
@@ -330,6 +349,6 @@ class BlogServiceImplTest {
             null,
             BlogAccessMode.PUBLIC,
             revision,
-            revision);
+            revision, "00000000-0000-0000-0000-000000000001");
     }
 }
