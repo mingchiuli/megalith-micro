@@ -6,6 +6,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-restclient")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("io.micrometer:micrometer-core")
     runtimeOnly("com.fasterxml.jackson.core:jackson-databind")
@@ -39,9 +40,12 @@ dependencies {
 
 tasks.register<Test>("integrationTest") {
     group = "verification"
-    description = "Verifies statistics and rebuild cursor projections against an isolated MariaDB instance."
+    description = "Verifies blog startup, collaboration clients, and persistence against isolated middleware."
     testClassesDirs = integrationTest.output.classesDirs
     classpath = integrationTest.runtimeClasspath
     shouldRunAfter(tasks.test)
     useJUnitPlatform()
+    val nativeExecutable = providers.environmentVariable("MICRO_BLOG_NATIVE_EXECUTABLE")
+    inputs.property("nativeSmokeEnabled", nativeExecutable.isPresent)
+    nativeExecutable.orNull?.let { inputs.file(it).withPropertyName("nativeSmokeExecutable") }
 }

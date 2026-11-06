@@ -426,8 +426,8 @@ Use a coordinated maintenance window rather than mixing old and new replicas:
    The SQL is embedded at `db/migration/add-blog-collaboration-epoch.sql`, including in Native Images.
    Do not clear Redis or IndexedDB: new rooms use new epochs; legacy local drafts remain available as recovery
    copies and old Redis rooms expire under their existing retention policy.
-3. Deploy auth, blog, sync, gateway, and frontend together. Configure
-   `MEGALITH_BLOG_SYNC_URL=http://micro-sync-rs:8089` for blog containers. The sync initialization route
+3. Deploy auth, blog, sync, gateway, and frontend together. The deployment workflow sets
+   `MEGALITH_BLOG_SYNC_URL=http://micro-sync-rs:8089` for blog containers; set the same value for manual deployments. The sync initialization route
    `/inner/rooms/{roomId}/initialize` is internal-only and must never be added to external gateway routes.
    Keep service clocks synchronized, as with JWT validation.
 4. Verify independent new drafts, cross-replica collaboration, historical restoration, 409 on old-epoch
@@ -476,6 +476,16 @@ bun run frontend:check
 ```
 
 Java checks cover unit tests, ArchUnit boundaries, Spring AOT processing, and integration tests.
+The blog startup integration test boots the real application with MariaDB, Redis, and RabbitMQ, then
+checks health, draft creation, collaboration initialization, and outbound trace propagation. It runs
+in the Java CI quality gate before publishing images. To smoke-test the actual Native Image as well:
+
+```bash
+./gradlew :micro-blog:nativeCompile
+MICRO_BLOG_NATIVE_EXECUTABLE="$PWD/micro-blog/build/native/nativeCompile/micro-blog" \
+  ./gradlew :micro-blog:integrationTest --tests '*BlogApplicationStartupIntegrationTest'
+```
+
 Rust checks cover formatting, linting, and service behavior; frontend checks cover linting, types,
 tests, and SSR builds.
 
