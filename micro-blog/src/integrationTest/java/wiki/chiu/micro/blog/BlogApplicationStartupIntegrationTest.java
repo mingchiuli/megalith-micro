@@ -40,22 +40,37 @@ import wiki.chiu.micro.common.security.InternalHttpHeaders;
 class BlogApplicationStartupIntegrationTest {
 
     @Container
-    private static final GenericContainer<?> DATABASE = new GenericContainer<>(DockerImageName.parse("mariadb:12.3.2"))
-        .withEnv("MARIADB_DATABASE", "blog_startup")
-        .withEnv("MARIADB_ROOT_PASSWORD", "test-password")
-        .withExposedPorts(3306)
-        .waitingFor(Wait.forLogMessage(".*ready for connections.*\\n", 2));
+    private static final GenericContainer<?> DATABASE = databaseContainer();
 
     @Container
-    private static final GenericContainer<?> REDIS = new GenericContainer<>(DockerImageName.parse("redis:8-alpine"))
-        .withExposedPorts(6379);
+    private static final GenericContainer<?> REDIS = redisContainer();
 
     @Container
-    private static final GenericContainer<?> RABBIT = new GenericContainer<>(DockerImageName.parse("rabbitmq:4.3.4-management"))
-        .withEnv("RABBITMQ_DEFAULT_USER", "test")
-        .withEnv("RABBITMQ_DEFAULT_PASS", "test-password")
-        .withExposedPorts(5672)
-        .waitingFor(Wait.forLogMessage(".*Server startup complete.*\\n", 1));
+    private static final GenericContainer<?> RABBIT = rabbitContainer();
+
+    private static GenericContainer<?> databaseContainer() {
+        GenericContainer<?> container = new GenericContainer<>(DockerImageName.parse("mariadb:12.3.2"));
+        container.addEnv("MARIADB_DATABASE", "blog_startup");
+        container.addEnv("MARIADB_ROOT_PASSWORD", "test-password");
+        container.addExposedPorts(3306);
+        container.waitingFor(Wait.forLogMessage(".*ready for connections.*\\n", 2));
+        return container;
+    }
+
+    private static GenericContainer<?> redisContainer() {
+        GenericContainer<?> container = new GenericContainer<>(DockerImageName.parse("redis:8-alpine"));
+        container.addExposedPorts(6379);
+        return container;
+    }
+
+    private static GenericContainer<?> rabbitContainer() {
+        GenericContainer<?> container = new GenericContainer<>(DockerImageName.parse("rabbitmq:4.3.4-management"));
+        container.addEnv("RABBITMQ_DEFAULT_USER", "test");
+        container.addEnv("RABBITMQ_DEFAULT_PASS", "test-password");
+        container.addExposedPorts(5672);
+        container.waitingFor(Wait.forLogMessage(".*Server startup complete.*\\n", 1));
+        return container;
+    }
 
     private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
     private final JsonMapper json = JsonMapper.builder().build();
