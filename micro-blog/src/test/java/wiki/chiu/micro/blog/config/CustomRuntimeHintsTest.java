@@ -107,8 +107,6 @@ class CustomRuntimeHintsTest {
         RuntimeHints hints = new RuntimeHints();
         new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
 
-        assertThat(RuntimeHintsPredicates.resource()
-            .forResource("db/migration/add-blog-collaboration-epoch.sql").test(hints)).isTrue();
         assertThat(RuntimeHintsPredicates.resource().forResource("script/blog-delete-list.lua").test(hints))
             .as("Resource hints for blog-delete-list.lua")
             .isTrue();

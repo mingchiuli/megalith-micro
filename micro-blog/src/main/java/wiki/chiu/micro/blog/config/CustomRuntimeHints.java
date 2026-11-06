@@ -67,7 +67,6 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
         hints
             .resources()
-            .registerPattern("db/migration/add-blog-collaboration-epoch.sql")
             .registerPattern("script/hot-blogs.lua")
             .registerPattern("script/blog-delete-list.lua")
             .registerPattern("script/blog-recycle.lua");

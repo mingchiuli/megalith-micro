@@ -8,23 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 
 import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration;
-import org.springframework.boot.persistence.autoconfigure.EntityScan;
-import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -57,7 +48,6 @@ import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.model.BlogMaintenanceMode;
 import wiki.chiu.micro.blog.application.model.BlogPublishCommand;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
-import wiki.chiu.micro.blog.config.BlogSchemaMigrationConfig;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
@@ -277,104 +267,6 @@ class BlogIndexQueriesIntegrationTest {
                 new BlogDraftDeleteCommand(published, null, selected)));
             assertThat(reader.findIdentity(original.id()).orElseThrow().collaborationEpoch())
                 .isNotEqualTo(published.collaborationEpoch());
-        }
-    }
-
-    @Test
-    void epochMigrationBackfillsDistinctRoomsAndCanBeReplayed() throws Exception {
-        try (var context = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
-            var blogs = context.getBean(BlogRepository.class);
-            var transaction = new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
-            transaction.executeWithoutResult(status -> blogs.saveAll(List.of(blog(0, 0), blog(0, 0))));
-            var dataSource = context.getBean(DataSource.class);
-            var jdbc = new JdbcTemplate(dataSource);
-            jdbc.execute("ALTER TABLE m_blog MODIFY COLUMN collaboration_epoch VARCHAR(36) NULL");
-            jdbc.update("UPDATE m_blog SET collaboration_epoch = NULL");
-            try (var connection = dataSource.getConnection()) {
-                ScriptUtils.executeSqlScript(connection, new ClassPathResource("db/migration/add-blog-collaboration-epoch.sql"));
-                var first = jdbc.queryForList("SELECT collaboration_epoch FROM m_blog ORDER BY id", String.class);
-                assertThat(first).doesNotContainNull().doesNotHaveDuplicates();
-                ScriptUtils.executeSqlScript(connection, new ClassPathResource("db/migration/add-blog-collaboration-epoch.sql"));
-                assertThat(jdbc.queryForList("SELECT collaboration_epoch FROM m_blog ORDER BY id", String.class))
-                    .containsExactlyElementsOf(first);
-            }
-        }
-    }
-
-    @Test
-    void startupMigratesBeforeHibernateValidation() {
-        try (var original = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
-            var dataSource = original.getBean(DataSource.class);
-            var jdbc = new JdbcTemplate(dataSource);
-            jdbc.execute("ALTER TABLE m_blog DROP COLUMN collaboration_epoch");
-            jdbc.update("INSERT INTO m_blog (user_id, created, read_count) VALUES (42, NOW(), 0), (43, NOW(), 0)");
-            new ApplicationContextRunner()
-                .withConfiguration(AutoConfigurations.of(
-                    HibernateJpaAutoConfiguration.class))
-                .withUserConfiguration(StartupMigrationConfiguration.class)
-                .withBean(DataSource.class, () -> dataSource)
-                .withPropertyValues("spring.jpa.hibernate.ddl-auto=validate", "spring.sql.init.mode=never")
-                .run(context -> {
-                    assertThat(context).hasNotFailed();
-                    assertThat(context).hasSingleBean(EntityManagerFactory.class);
-                    assertThat(context.getBeanFactory().getBeanDefinition("entityManagerFactory").getDependsOn())
-                        .contains("blogSchemaInitializer");
-                    var epochs = jdbc.queryForList("SELECT collaboration_epoch FROM m_blog", String.class);
-                    assertThat(epochs).hasSize(2).doesNotContainNull().doesNotHaveDuplicates();
-                    assertThat(new BlogSchemaInitializer(dataSource).initializeDatabase()).isFalse();
-                });
-        }
-    }
-
-    @Test
-    void startupResumesNullableMigrationAndSerializesConcurrentReplicas() throws Exception {
-        try (var context = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
-            var dataSource = context.getBean(DataSource.class);
-            var jdbc = new JdbcTemplate(dataSource);
-            jdbc.execute("ALTER TABLE m_blog MODIFY COLUMN collaboration_epoch VARCHAR(36) NULL");
-            String savedEpoch = UUID.randomUUID().toString();
-            jdbc.update("INSERT INTO m_blog (user_id, created, read_count, collaboration_epoch) VALUES (42, NOW(), 0, ?)", savedEpoch);
-            jdbc.update("INSERT INTO m_blog (user_id, created, read_count) VALUES (43, NOW(), 0)");
-            try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-                var start = new CountDownLatch(1);
-                Callable<Boolean> migrate = () -> {
-                    start.await();
-                    return new BlogSchemaInitializer(dataSource).initializeDatabase();
-                };
-                var first = executor.submit(migrate);
-                var second = executor.submit(migrate);
-                start.countDown();
-                assertThat(List.of(first.get(30, TimeUnit.SECONDS),
-                    second.get(30, TimeUnit.SECONDS))).containsExactlyInAnyOrder(true, false);
-            }
-            assertThat(jdbc.queryForObject("SELECT collaboration_epoch FROM m_blog WHERE user_id = 42", String.class))
-                .isEqualTo(savedEpoch);
-            assertThat(jdbc.queryForList("SELECT collaboration_epoch FROM m_blog", String.class))
-                .hasSize(2).doesNotContainNull().doesNotHaveDuplicates();
-        }
-    }
-
-    @Test
-    void startupLeavesFreshDatabaseCreationToHibernate() {
-        try (var original = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
-            var dataSource = original.getBean(DataSource.class);
-            var jdbc = new JdbcTemplate(dataSource);
-            jdbc.execute("DROP TABLE m_blog");
-            assertThat(new BlogSchemaInitializer(dataSource).initializeDatabase()).isFalse();
-            new ApplicationContextRunner()
-                .withConfiguration(AutoConfigurations.of(
-                    HibernateJpaAutoConfiguration.class))
-                .withUserConfiguration(StartupMigrationConfiguration.class)
-                .withBean(DataSource.class, () -> dataSource)
-                .withPropertyValues("spring.jpa.hibernate.ddl-auto=update")
-                .run(context -> {
-                    assertThat(context).hasNotFailed();
-                    assertThat(jdbc.queryForObject("""
-                        SELECT IS_NULLABLE FROM information_schema.COLUMNS
-                        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'm_blog'
-                          AND COLUMN_NAME = 'collaboration_epoch'
-                        """, String.class)).isEqualTo("NO");
-                });
         }
     }
 
@@ -631,13 +523,6 @@ class BlogIndexQueriesIntegrationTest {
             date,
             42L,
             date);
-    }
-
-    @Configuration(proxyBeanMethods = false)
-    @Import(BlogSchemaMigrationConfig.class)
-    @EntityScan(basePackages = {
-        "wiki.chiu.micro.blog.adapter.out.persistence.entity", "wiki.chiu.micro.common.outbox.adapter.out.persistence.entity"})
-    static class StartupMigrationConfiguration {
     }
 
     @Configuration(proxyBeanMethods = false)

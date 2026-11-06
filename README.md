@@ -417,13 +417,10 @@ This upgrade changes ticket payloads, authorization deadlines, room names, and d
 Use a coordinated maintenance window rather than mixing old and new replicas:
 
 1. Ask active editors to retain/export uncommitted work. Stop new traffic and close old gateway
-   WebSockets. Stop all blog writers, including user-deletion consumers, before changing the schema.
-2. Back up MariaDB. `micro-blog` automatically migrates `collaboration_epoch` before Hibernate starts:
-   it adds the column, assigns independent UUIDs to existing rows, and enforces `NOT NULL`. No manual SQL
-   is required. A database advisory lock serializes migrations across replicas; completed migrations are
-   skipped on subsequent starts. A fresh database is created normally by Hibernate. The startup account
-   needs the existing schema-update permissions, and a migration failure stops startup.
-   The SQL is embedded at `db/migration/add-blog-collaboration-epoch.sql`, including in Native Images.
+   WebSockets. Stop all blog writers, including user-deletion consumers, before replacing services.
+2. The one-time `collaboration_epoch` startup migration has been retired after rollout. Existing
+   databases must already contain the non-null UUID column; startup no longer alters or backfills it.
+   A fresh database is created normally by Hibernate, and the application assigns epochs to new articles.
    Do not clear Redis or IndexedDB: new rooms use new epochs; legacy local drafts remain available as recovery
    copies and old Redis rooms expire under their existing retention policy.
 3. Deploy auth, blog, sync, gateway, and frontend together. The deployment workflow sets
