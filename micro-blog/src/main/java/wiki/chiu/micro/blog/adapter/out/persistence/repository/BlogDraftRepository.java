@@ -21,7 +21,9 @@ public interface BlogDraftRepository
 
     List<BlogDraftEntity> findByBlogIdIn(Collection<Long> blogIds);
 
-    void deleteByBlogId(Long blogId);
+    @Modifying
+    @Query("DELETE FROM BlogDraftEntity entity WHERE entity.blogId = :blogId")
+    void deleteByBlogId(@Param("blogId") Long blogId);
 
     @Modifying
     @Query(

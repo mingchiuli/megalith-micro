@@ -25,11 +25,11 @@ import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
-import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 import wiki.chiu.micro.common.model.BlogAdminIndexSnapshot;
 import wiki.chiu.micro.common.model.BlogAdminSnapshot;
 import wiki.chiu.micro.common.model.BlogDraftSnapshot;
 import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
+import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 
 @Component
@@ -201,18 +201,12 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
 
     @Override
     public List<BlogDeletionTarget> findDeletionTargetsByIds(List<Long> blogIds) {
-        return blogs.findAllById(blogIds).stream()
-            .map(this::deletionTarget)
-            .flatMap(Optional::stream)
-            .toList();
+        return blogIds.isEmpty() ? List.of() : deletionTargets(blogs.findAllById(blogIds));
     }
 
     @Override
     public List<BlogDeletionTarget> findDeletionTargetsByUserIds(List<Long> userIds) {
-        return blogs.findByUserIdIn(userIds).stream()
-            .map(this::deletionTarget)
-            .flatMap(Optional::stream)
-            .toList();
+        return userIds.isEmpty() ? List.of() : deletionTargets(blogs.findByUserIdIn(userIds));
     }
 
     @Override
@@ -310,49 +304,67 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
             spans);
     }
 
-    private Optional<Blog> publishedOrDraft(BlogEntity blog) {
-        Optional<Blog> published = published(blog);
-        if (published.isPresent()) {
-            return published;
+    private List<BlogDeletionTarget> deletionTargets(List<BlogEntity> entities) {
+        if (entities.isEmpty()) {
+            return List.of();
         }
-        return drafts.findByBlogId(blog.getId())
-            .map(draft -> draftProjection(blog, draft));
-    }
-
-    private Optional<BlogDeletionTarget> deletionTarget(BlogEntity entity) {
-        Blog blog =
-            publishedOrDraft(entity)
-                .orElseGet(
-                    () ->
-                        new Blog(
-                            entity.getId(),
-                            entity.getUserId(),
-                            "",
-                            "",
-                            "",
-                            entity.getCreated(),
-                            entity.getCreated(),
-                            BlogStatusEnum.DRAFT.getCode(),
-                            "",
-                            entity.getReadCount(),
-                            entity.getAdminRevision()));
-        BlogIdentity identity = BlogPersistenceMapper.toIdentity(entity);
-        return Optional.of(
-            new BlogDeletionTarget(
-                blog,
-                new BlogIdentity(
-                    identity.id(),
-                    identity.userId(),
-                    identity.created(),
-                    identity.readCount(),
-                    identity.publishedRevisionId(),
-                    identity.publishedAt(),
-                    identity.offlineAt(),
-                    identity.accessMode(),
-                    identity.publicationRevision() == null
-                        ? 0L
-                        : identity.publicationRevision(),
-                    identity.adminRevision() == null ? 0L : identity.adminRevision())));
+        List<Long> revisionIds =
+            entities.stream()
+                .map(BlogEntity::getPublishedRevisionId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        Map<Long, BlogRevisionEntity> revisionsById =
+            revisionIds.isEmpty()
+                ? Map.of()
+                : revisions.findAllById(revisionIds).stream()
+                    .collect(Collectors.toMap(BlogRevisionEntity::getId, Function.identity()));
+        Map<Long, List<BlogSensitiveSpan>> spansByRevision =
+            revisionIds.isEmpty()
+                ? Map.of()
+                : revisionSensitive.findByRevisionIdIn(revisionIds).stream()
+                    .collect(Collectors.groupingBy(
+                        span -> span.getRevisionId(),
+                        Collectors.mapping(BlogPersistenceMapper::toSpan, Collectors.toList())));
+        List<Long> draftIds =
+            entities.stream()
+                .filter(blog -> blog.getPublishedRevisionId() == null
+                    || !revisionsById.containsKey(blog.getPublishedRevisionId()))
+                .map(BlogEntity::getId)
+                .toList();
+        Map<Long, BlogDraftEntity> draftsByBlog =
+            draftIds.isEmpty()
+                ? Map.of()
+                : drafts.findByBlogIdIn(draftIds).stream()
+                    .collect(Collectors.toMap(BlogDraftEntity::getBlogId, Function.identity()));
+        return entities.stream()
+            .map(entity -> {
+                BlogRevisionEntity revision = entity.getPublishedRevisionId() == null
+                    ? null : revisionsById.get(entity.getPublishedRevisionId());
+                BlogDraftEntity draft = draftsByBlog.get(entity.getId());
+                Blog blog;
+                if (revision != null) {
+                    blog = BlogPersistenceMapper.toPublishedBlog(
+                        entity, revision, spansByRevision.getOrDefault(revision.getId(), List.of()));
+                } else if (draft != null) {
+                    blog = draftProjection(entity, draft);
+                } else {
+                    blog = new Blog(
+                        entity.getId(), entity.getUserId(), "", "", "", entity.getCreated(),
+                        entity.getCreated(), BlogStatusEnum.DRAFT.getCode(), "", entity.getReadCount(),
+                        entity.getAdminRevision());
+                }
+                BlogIdentity identity = BlogPersistenceMapper.toIdentity(entity);
+                return new BlogDeletionTarget(
+                    blog,
+                    new BlogIdentity(
+                        identity.id(), identity.userId(), identity.created(), identity.readCount(),
+                        identity.publishedRevisionId(), identity.publishedAt(), identity.offlineAt(),
+                        identity.accessMode(),
+                        identity.publicationRevision() == null ? 0L : identity.publicationRevision(),
+                        identity.adminRevision() == null ? 0L : identity.adminRevision()));
+            })
+            .toList();
     }
 
     private Blog draftProjection(BlogEntity blog, BlogDraftEntity draft) {

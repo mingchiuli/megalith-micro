@@ -1,6 +1,8 @@
 package wiki.chiu.micro.blog.adapter.out.persistence.mapping;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogDraftEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogDraftSensitiveContentEntity;
@@ -55,7 +57,8 @@ public final class BlogPersistenceMapper {
             status(entity, revision),
             revision.getLink(),
             entity.getReadCount(),
-            entity.getPublicationRevision());
+            entity.getPublicationRevision(),
+            spans);
     }
 
     public static Integer status(BlogEntity blog, BlogRevisionEntity revision) {
@@ -120,15 +123,11 @@ public final class BlogPersistenceMapper {
     public static List<BlogVersion> toVersions(
         List<BlogRevisionEntity> entities,
         List<BlogRevisionSensitiveContentEntity> sensitive) {
+        Map<Long, List<BlogSensitiveSpan>> spansByRevision = sensitive.stream()
+            .collect(Collectors.groupingBy(BlogRevisionSensitiveContentEntity::getRevisionId,
+                Collectors.mapping(BlogPersistenceMapper::toSpan, Collectors.toList())));
         return entities.stream()
-            .map(
-                entity ->
-                    toVersion(
-                        entity,
-                        sensitive.stream()
-                            .filter(span -> span.getRevisionId().equals(entity.getId()))
-                            .map(BlogPersistenceMapper::toSpan)
-                            .toList()))
+            .map(entity -> toVersion(entity, spansByRevision.getOrDefault(entity.getId(), List.of())))
             .toList();
     }
 }

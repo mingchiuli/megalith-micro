@@ -16,8 +16,14 @@ import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleMenuEntity;
  */
 public interface RoleMenuRepository extends JpaRepository<RoleMenuEntity, Long> {
 
-    @Query(value = "SELECT roleMenu.menuId from RoleMenuEntity roleMenu where roleMenu.roleId = ?1")
-    List<Long> findMenuIdsByRoleId(Long id);
+    record MenuId(Long menuId) {
+    }
+
+    List<MenuId> findProjectedByRoleId(Long roleId);
+
+    default List<Long> findMenuIdsByRoleId(Long id) {
+        return findProjectedByRoleId(id).stream().map(MenuId::menuId).toList();
+    }
 
     List<RoleMenuEntity> findByRoleIdIn(List<Long> ids);
 

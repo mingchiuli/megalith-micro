@@ -45,6 +45,28 @@ public class JpaBlogAuthoringReader implements BlogAuthoringReader {
     }
 
     @Override
+    public List<BlogIdentity> findIdentities(List<Long> blogIds) {
+        return blogIds.isEmpty()
+            ? List.of()
+            : blogs.findAllById(blogIds).stream().map(BlogPersistenceMapper::toIdentity).toList();
+    }
+
+    @Override
+    public List<BlogVersion> findVersionsByBlogIds(List<Long> blogIds) {
+        if (blogIds.isEmpty()) {
+            return List.of();
+        }
+        List<BlogRevisionEntity> entities =
+            revisions.findByBlogIdInOrderByBlogIdAscVersionNoAsc(blogIds);
+        return BlogPersistenceMapper.toVersions(
+            entities,
+            entities.isEmpty()
+                ? List.of()
+                : revisionSensitive.findByRevisionIdIn(
+                    entities.stream().map(BlogRevisionEntity::getId).toList()));
+    }
+
+    @Override
     public Optional<BlogWorkingDraft> findDraft(Long blogId) {
         return drafts
             .findByBlogId(blogId)

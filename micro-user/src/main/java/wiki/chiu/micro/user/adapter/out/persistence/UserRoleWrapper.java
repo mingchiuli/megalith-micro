@@ -1,10 +1,13 @@
 package wiki.chiu.micro.user.adapter.out.persistence;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import wiki.chiu.micro.common.error.CommonErrorCode;
+import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.adapter.out.messaging.UserDeletionOutbox;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserEntity;
@@ -41,13 +44,22 @@ public class UserRoleWrapper implements UserWriter {
     @Transactional
     @Override
     public void saveOrUpdate(User user, List<UserRole> roles) {
-        userRoleRepository.deleteByUserId(user.id());
-        UserEntity saved = userRepository.save(UserPersistenceMapper.toEntity(user));
+        UserEntity entity = UserPersistenceMapper.toEntity(user);
+        Long userId;
+        if (user.id() == null) {
+            userId = userRepository.save(entity).getId();
+        } else {
+            userId = user.id();
+            if (userRepository.updateDetails(entity, LocalDateTime.now()) != 1) {
+                throw new BaseException(CommonErrorCode.CONFLICT, "user changed: " + userId);
+            }
+            userRoleRepository.deleteByUserId(userId);
+        }
         userRoleRepository.saveAll(
             roles.stream()
-                .map(role -> UserPersistenceMapper.toEntity(role.onUser(saved.getId())))
+                .map(role -> UserPersistenceMapper.toEntity(role.onUser(userId)))
                 .toList());
-        cacheEvictions.enqueue(List.of(saved.getId()), List.of(), List.of(), false, false);
+        cacheEvictions.enqueue(List.of(userId), List.of(), List.of(), false, false);
     }
 
     @Transactional

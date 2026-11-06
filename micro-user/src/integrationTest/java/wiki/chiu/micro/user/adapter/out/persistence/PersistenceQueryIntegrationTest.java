@@ -1,6 +1,7 @@
 package wiki.chiu.micro.user.adapter.out.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 import jakarta.persistence.EntityManagerFactory;
@@ -8,6 +9,8 @@ import jakarta.persistence.EntityManagerFactory;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 
 import javax.sql.DataSource;
 
@@ -31,26 +34,35 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import wiki.chiu.micro.common.outbox.adapter.out.persistence.repository.OutboxEventRepository;
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
+import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.outbox.adapter.out.persistence.OutboxStoreAdapter;
 import wiki.chiu.micro.common.outbox.adapter.out.persistence.entity.OutboxEventEntity;
+import wiki.chiu.micro.common.outbox.adapter.out.persistence.repository.OutboxEventRepository;
 import wiki.chiu.micro.common.outbox.application.port.out.OutboxStore;
+import wiki.chiu.micro.common.outbox.application.service.OutboxServiceImpl;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
-import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
-import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuRepository;
-import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleDataPermissionRepository;
-import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
-import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleRepository;
-import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRoleRepository;
+import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.adapter.out.messaging.UserDeletionOutbox;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.AuthorityEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuAuthorityEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleDataPermissionEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleMenuEntity;
-import wiki.chiu.micro.common.enums.DataPermissionEnum;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.UserEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserRoleEntity;
-import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.AuthorityRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleDataPermissionRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRoleRepository;
 import wiki.chiu.micro.user.domain.RoleMenu;
+import wiki.chiu.micro.user.domain.User;
 
 @Testcontainers(disabledWithoutDocker = true)
 class PersistenceQueryIntegrationTest {
@@ -71,6 +83,8 @@ class PersistenceQueryIntegrationTest {
     private static RoleDataPermissionRepository dataPermissions;
     private static MenuRepository menus;
     private static MenuAuthorityRepository menuAuthorities;
+    private static UserRepository users;
+    private static AuthorityRepository authorities;
 
     private static GenericContainer<?> databaseContainer() {
         GenericContainer<?> result = new GenericContainer<>(DockerImageName.parse("mariadb:12.3.2"));
@@ -93,6 +107,8 @@ class PersistenceQueryIntegrationTest {
         dataPermissions = context.getBean(RoleDataPermissionRepository.class);
         menus = context.getBean(MenuRepository.class);
         menuAuthorities = context.getBean(MenuAuthorityRepository.class);
+        users = context.getBean(UserRepository.class);
+        authorities = context.getBean(AuthorityRepository.class);
     }
 
     @AfterAll
@@ -228,7 +244,7 @@ class PersistenceQueryIntegrationTest {
     }
 
     @Test
-    void menuDeletionFlushesPendingEntityRemovalBeforeBulkDeletes() {
+    void menuDeletionRemovesRelatedRowsWithoutSelectingEntities() {
         Long menuId = menus.save(menu(101L, "delete-me")).getId();
         Long roleId = roles.save(role("E")).getId();
         transaction.executeWithoutResult(
@@ -240,12 +256,146 @@ class PersistenceQueryIntegrationTest {
         var wrapper =
             new RoleMenuAuthorityWrapper(
                 menus, menuAuthorities, roleMenus, mock(AuthCacheEvictionOutbox.class));
+        SqlCapture.clear();
         transaction.executeWithoutResult(
             status -> wrapper.deleteMenu(menuId, List.of(roleId), List.of("E")));
+
+        assertThat(SqlCapture.statements()).hasSize(3)
+            .allMatch(sql -> sql.toLowerCase().startsWith("delete"));
 
         assertThat(count("SELECT COUNT(*) FROM m_menu WHERE id = ?", menuId)).isZero();
         assertThat(count("SELECT COUNT(*) FROM m_role_menu WHERE menu_id = ?", menuId)).isZero();
         assertThat(count("SELECT COUNT(*) FROM m_menu_authority WHERE menu_id = ?", menuId)).isZero();
+    }
+
+    @Test
+    void preparedUpdatesOnlyWritePreserveCreatedAndDoNotOverwriteNewLoginTime() {
+        UserEntity stored = users.save(user("update", NOW));
+        User prepared = new User(stored.getId(), "updated-user", "edited", stored.getAvatar(),
+            stored.getEmail(), stored.getPhone(), stored.getPassword(), 0, null,
+            NOW.minusYears(1), NOW.minusYears(1), NOW.minusYears(1));
+        RoleEntity role = roles.save(role("update-role"));
+        MenuEntity menu = menus.save(menu(0L, "update-menu"));
+        AuthorityEntity authority = authorities.save(new AuthorityEntity(null, "update-authority",
+            "remark", "http", "GET", "/test", "localhost", 8080, NOW, NOW, 0, 0));
+        transaction.executeWithoutResult(status -> users.updateLoginTime("update", NOW.plusHours(1)));
+        var events = new OutboxServiceImpl(outboxStore, event -> "{}");
+        var cache = new AuthCacheEvictionOutbox(events);
+        var userWriter = new UserRoleWrapper(users, userRoles, cache, mock(UserDeletionOutbox.class));
+        var roleWriter = new RoleWrapper(roles, roleMenus, userRoles, dataPermissions, cache);
+        var menuWriter = new RoleMenuAuthorityWrapper(menus, menuAuthorities, roleMenus, cache);
+        var authorityWriter = new MenuAuthorityWrapper(menuAuthorities, authorities, cache);
+        SqlCapture.clear();
+
+        transaction.executeWithoutResult(status -> {
+            userWriter.saveOrUpdate(prepared, List.of());
+            roleWriter.saveOrUpdate(UserPersistenceMapper.toDomain(role).withRemark("edited"), List.of());
+            menuWriter.saveMenus(List.of(UserPersistenceMapper.toDomain(menu).withStatus(0)), List.of(), List.of());
+            authorityWriter.saveAuthorityEntity(UserPersistenceMapper.toDomain(authority), List.of());
+        });
+
+        assertThat(SqlCapture.statements()).noneMatch(sql -> sql.toLowerCase().startsWith("select"));
+        UserEntity updated = users.findById(stored.getId()).orElseThrow();
+        assertThat(updated.getNickname()).isEqualTo("edited");
+        assertThat(updated.getCreated()).isEqualTo(NOW);
+        assertThat(updated.getUpdated()).isAfter(NOW);
+        assertThat(updated.getLastLogin()).isEqualTo(NOW.plusHours(1));
+        RoleEntity updatedRole = roles.findById(role.getId()).orElseThrow();
+        assertThat(updatedRole.getRemark()).isEqualTo("edited");
+        assertThat(updatedRole.getCreated()).isEqualTo(NOW);
+        assertThat(updatedRole.getUpdated()).isAfter(NOW);
+        assertThat(menus.findById(menu.getId()).orElseThrow().getUpdated()).isAfter(NOW);
+        assertThat(authorities.findById(authority.getId()).orElseThrow().getUpdated()).isAfter(NOW);
+    }
+
+    @Test
+    void outboxFailureAndMissingUpdateTargetRollBackPreparedWrites() {
+        UserEntity stored = users.save(user("rollback", NOW));
+        userRoles.save(userRole(stored.getId(), 12345L));
+        var events = new OutboxServiceImpl(outboxStore, event -> "{}");
+        var writer = new UserRoleWrapper(users, userRoles, new AuthCacheEvictionOutbox(events),
+            mock(UserDeletionOutbox.class));
+        var failing = new AuthCacheEvictionOutbox(new OutboxServiceImpl(outboxStore, event -> {
+            throw new IllegalStateException("outbox unavailable");
+        }));
+        var failingWriter = new UserRoleWrapper(users, userRoles, failing, mock(UserDeletionOutbox.class));
+        User prepared = UserPersistenceMapper.toDomain(stored).withStatus(1);
+        long count = outbox.count();
+
+        assertThatThrownBy(() -> transaction.executeWithoutResult(status -> {
+            writer.saveOrUpdate(prepared, List.of());
+            failingWriter.saveOrUpdate(prepared, List.of());
+        })).isInstanceOf(IllegalStateException.class).hasMessage("outbox unavailable");
+
+        assertThat(users.findById(stored.getId()).orElseThrow().getStatus()).isZero();
+        assertThat(userRoles.findByUserId(stored.getId())).hasSize(1);
+        assertThat(outbox.count()).isEqualTo(count);
+        User missing = prepared.withId(Long.MAX_VALUE);
+        assertThatThrownBy(() -> transaction.executeWithoutResult(status -> writer.saveOrUpdate(missing, List.of())))
+            .isInstanceOf(BaseException.class);
+        assertThat(outbox.count()).isEqualTo(count);
+    }
+
+    @Test
+    void passwordLockUsesDatabaseTimeAndOnlyOneConcurrentAttemptSucceeds() throws Exception {
+        UserEntity stored = users.save(user("password-lock", NOW));
+        LocalDateTime before = jdbc.queryForObject("SELECT CURRENT_TIMESTAMP(6)", LocalDateTime.class);
+        var start = new CountDownLatch(1);
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            var first = executor.submit(() -> {
+                start.await();
+                return transaction.execute(status -> users.lockAfterPasswordFailures(stored.getId(), 0, 1, 900));
+            });
+            var second = executor.submit(() -> {
+                start.await();
+                return transaction.execute(status -> users.lockAfterPasswordFailures(stored.getId(), 0, 1, 900));
+            });
+            start.countDown();
+            assertThat(first.get() + second.get()).isEqualTo(1);
+        }
+        LocalDateTime after = jdbc.queryForObject("SELECT CURRENT_TIMESTAMP(6)", LocalDateTime.class);
+        UserEntity locked = users.findById(stored.getId()).orElseThrow();
+        assertThat(locked.getStatus()).isEqualTo(1);
+        assertThat(locked.getPasswordLockedUntil()).isBetween(before.plusSeconds(900), after.plusSeconds(900));
+        transaction.executeWithoutResult(status ->
+            assertThat(users.unlockExpiredPasswordLocks(List.of(stored.getId()), 1, 0)).isZero());
+        jdbc.update("UPDATE m_user SET password_locked_until = CURRENT_TIMESTAMP - INTERVAL 1 SECOND WHERE id = ?",
+            stored.getId());
+        assertThat(users.findExpiredPasswordLockIds(1, 100)).contains(stored.getId());
+        transaction.executeWithoutResult(status -> {
+            assertThat(users.unlockExpiredPasswordLocks(List.of(stored.getId()), 1, 0)).isEqualTo(1);
+            assertThat(users.unlockExpiredPasswordLocks(List.of(stored.getId()), 1, 0)).isZero();
+        });
+        UserEntity manual = users.save(user("manual-lock", NOW));
+        jdbc.update("UPDATE m_user SET status = 1 WHERE id = ?", manual.getId());
+        transaction.executeWithoutResult(status ->
+            assertThat(users.unlockExpiredPasswordLocks(List.of(manual.getId()), 1, 0)).isZero());
+    }
+
+    @Test
+    void paginationUsesIdToBreakEqualCreationTimesAndMenuIdsUseProjection() {
+        var created = LocalDateTime.of(1900, 1, 1, 0, 0);
+        List<Long> ids = new java.util.ArrayList<>();
+        List<Long> roleIds = new java.util.ArrayList<>();
+        for (int index = 0; index < 4; index++) {
+            ids.add(users.save(user("page-" + index, created)).getId());
+            roleIds.add(roles.save(new RoleEntity(null, "page-" + index, "page-" + index,
+                "remark", created, created, 0)).getId());
+        }
+        assertThat(users.findPage(1, 2).content()).extracting(UserEntity::getId).containsExactlyElementsOf(ids.subList(0, 2));
+        assertThat(users.findPage(2, 2).content()).extracting(UserEntity::getId).containsExactlyElementsOf(ids.subList(2, 4));
+        assertThat(roles.findPage(1, 2).content()).extracting(RoleEntity::getId).containsExactlyElementsOf(roleIds.subList(0, 2));
+        assertThat(roles.findPage(2, 2).content()).extracting(RoleEntity::getId).containsExactlyElementsOf(roleIds.subList(2, 4));
+        roleMenus.save(roleMenu(roleIds.getFirst(), 99L));
+        SqlCapture.clear();
+        assertThat(roleMenus.findMenuIdsByRoleId(roleIds.getFirst())).containsExactly(99L);
+        assertThat(SqlCapture.statements()).hasSize(1);
+        assertThat(SqlCapture.statements().getFirst().split(" from ")[0]).contains("menu_id").doesNotContain("created");
+    }
+
+    private UserEntity user(String username, LocalDateTime created) {
+        return new UserEntity(null, username, "nickname", "avatar", username + "@example.com", null,
+            "hashed-password", 0, null, created, created, created);
     }
 
     private void seedBacklog() {

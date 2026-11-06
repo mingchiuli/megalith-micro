@@ -16,8 +16,8 @@ import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftSensitiv
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionSensitiveContentRepository;
-import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.model.BlogDeletionTarget;
+import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.model.BlogMaintenanceMode;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
 import wiki.chiu.micro.blog.domain.Blog;
@@ -28,8 +28,8 @@ import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
-import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
+import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.model.BlogAdminSnapshot;
 import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
 import wiki.chiu.micro.common.model.BlogSensitiveSpan;
@@ -81,19 +81,12 @@ public class BlogWrapper implements BlogWriter {
             Objects.equals(blog.status(), BlogStatusEnum.HIDE.getCode())
                 ? BlogAccessMode.RESTRICTED.getCode()
                 : BlogAccessMode.PUBLIC.getCode();
-        BlogEntity identity =
-            blogs.save(
-                new BlogEntity(
-                    blog.id(),
-                    blog.userId(),
-                    blog.created(),
-                    blog.readCount(),
-                    null,
-                    null,
-                    null,
-                    accessMode,
-                    blog.eventRevision() == null ? 0L : blog.eventRevision(),
-                    recoveredAdminRevision));
+        BlogEntity identity = new BlogEntity(
+            blog.id(), blog.userId(), blog.created(), blog.readCount(), null, null, null,
+            accessMode, safeRevision(blog.eventRevision()), recoveredAdminRevision);
+        blogs.insertRecovered(
+            identity.getId(), identity.getUserId(), identity.getCreated(), identity.getReadCount(),
+            identity.getAccessMode(), identity.getPublicationRevision(), identity.getAdminRevision());
         BlogRevisionEntity revision =
             revisions.save(
                 new BlogRevisionEntity(
@@ -113,7 +106,11 @@ public class BlogWrapper implements BlogWriter {
         identity.setPublishedRevisionId(revision.getId());
         identity.setPublishedAt(revision.getFirstPublishedAt());
         identity.setPublicationRevision(Math.max(1L, identity.getPublicationRevision()));
-        revisionSensitive.deleteByRevisionId(revision.getId());
+        if (blogs.attachRecoveredPublication(
+                identity.getId(), revision.getId(), identity.getPublishedAt(),
+                identity.getPublicationRevision()) != 1) {
+            throw conflict(blog.id());
+        }
         revisionSensitive.saveAll(
             blog.sensitiveContent().stream()
                 .distinct()
@@ -168,7 +165,13 @@ public class BlogWrapper implements BlogWriter {
                     blog.status(),
                     blog.link(),
                     blog.readCount(),
-                    publicationRevision),
+                    publicationRevision,
+                    expected.publishedRevisionId(),
+                    expected.publishedAt(),
+                    expected.offlineAt(),
+                    expected.accessMode().getCode(),
+                    null,
+                    blog.sensitiveContent()),
                 event,
                 adminRevision);
             enqueueAdminDelete(blog, expected, adminRevision, event);

@@ -178,7 +178,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
                     null,
                     command.userId(),
                     command.now()));
-        replaceRevisionSensitive(savedRevision.getId(), command.content().sensitiveContent());
+        insertRevisionSensitive(savedRevision.getId(), command.content().sensitiveContent());
 
         BlogWorkingDraft draft =
             draftResult(original, current, draftRevision, command.content(), command.userId(), command.now());
@@ -237,7 +237,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
                             null,
                             command.userId(),
                             command.now()));
-                replaceRevisionSensitive(
+                insertRevisionSensitive(
                     archived.getId(), command.archivedDraft().sensitiveContent());
                 archivedVersion =
                     version(archived, command.archivedDraft().sensitiveContent());
@@ -389,9 +389,8 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
                 .toList());
     }
 
-    private void replaceRevisionSensitive(
+    private void insertRevisionSensitive(
         Long revisionId, List<BlogSensitiveSpan> spans) {
-        revisionSensitive.deleteByRevisionId(revisionId);
         revisionSensitive.saveAll(
             spans.stream()
                 .distinct()

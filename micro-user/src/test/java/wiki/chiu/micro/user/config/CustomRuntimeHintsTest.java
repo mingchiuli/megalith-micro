@@ -33,6 +33,7 @@ import wiki.chiu.micro.user.adapter.in.http.UserEntityRegisterReq;
 import wiki.chiu.micro.user.adapter.in.http.UserEntityReq;
 import wiki.chiu.micro.user.adapter.in.http.UserEntityVo;
 import wiki.chiu.micro.user.adapter.in.http.UserInternalHttpHandler;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
@@ -75,6 +76,7 @@ class CustomRuntimeHintsTest {
 
         for (Class<?> type : List.of(
             PageAdapter.class,
+            RoleMenuRepository.MenuId.class,
             UserEntityRegisterReq.class,
             UserEntityReq.class,
             RegisterImageDeleteReq.class,

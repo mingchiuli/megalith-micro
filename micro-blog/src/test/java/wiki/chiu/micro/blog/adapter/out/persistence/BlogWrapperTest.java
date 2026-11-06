@@ -1,7 +1,7 @@
 package wiki.chiu.micro.blog.adapter.out.persistence;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -17,15 +17,14 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogRevisionEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftSensitiveContentRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionSensitiveContentRepository;
-import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.model.BlogDeletionTarget;
+import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.model.BlogMaintenanceMode;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogFixtures;
@@ -33,10 +32,10 @@ import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.common.enums.BlogAccessMode;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
+import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.model.BlogSensitiveSpan;
-import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.outbox.application.port.in.OutboxEvents;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
@@ -88,7 +87,7 @@ class BlogWrapperTest {
                 3L,
                 List.of(sensitive))
                 .withAdminRevision(12L);
-        when(blogs.save(any(BlogEntity.class))).thenAnswer(call -> call.getArgument(0));
+        when(blogs.attachRecoveredPublication(eq(7L), eq(11L), any(), eq(3L))).thenReturn(1);
         when(revisions.save(any(BlogRevisionEntity.class)))
             .thenAnswer(
                 call -> {

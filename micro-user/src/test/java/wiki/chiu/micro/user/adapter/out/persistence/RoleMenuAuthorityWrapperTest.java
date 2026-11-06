@@ -7,10 +7,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
-import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 
 class RoleMenuAuthorityWrapperTest {
 
@@ -25,7 +25,7 @@ class RoleMenuAuthorityWrapperTest {
 
         wrapper.deleteMenu(3L, List.of(7L), List.of("admin"));
 
-        verify(menus).deleteById(3L);
+        verify(menus).deleteAllByIdInBatch(List.of(3L));
         verify(menuAuthorities).deleteByMenuId(3L);
         verify(roleMenus).deleteByMenuId(3L);
         verify(cacheEvictions).enqueue(List.of(), List.of(7L), List.of("admin"), true, false);

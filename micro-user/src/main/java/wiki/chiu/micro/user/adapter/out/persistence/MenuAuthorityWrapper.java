@@ -1,11 +1,14 @@
 package wiki.chiu.micro.user.adapter.out.persistence;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import wiki.chiu.micro.common.enums.AuthTypeEnum;
+import wiki.chiu.micro.common.error.CommonErrorCode;
+import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.AuthorityRepository;
@@ -46,8 +49,8 @@ public class MenuAuthorityWrapper implements AuthorityWriter {
     @Transactional
     @Override
     public void deleteAuthorities(List<Long> ids, List<Long> roleIds) {
-        authorityRepository.deleteAllByIdInBatch(ids);
         menuAuthorityRepository.deleteByAuthorityIdIn(ids);
+        authorityRepository.deleteAllByIdInBatch(ids);
         enqueueRoleEviction(roleIds, true);
     }
 
@@ -58,7 +61,12 @@ public class MenuAuthorityWrapper implements AuthorityWriter {
         if (authorityId != null && AuthTypeEnum.WHITE_LIST.getCode().equals(authority.type())) {
             menuAuthorityRepository.deleteByAuthorityId(authorityId);
         }
-        authorityRepository.save(UserPersistenceMapper.toEntity(authority));
+        var entity = UserPersistenceMapper.toEntity(authority);
+        if (authorityId == null) {
+            authorityRepository.save(entity);
+        } else if (authorityRepository.updateDetails(entity, LocalDateTime.now()) != 1) {
+            throw new BaseException(CommonErrorCode.CONFLICT, "authority changed: " + authorityId);
+        }
         enqueueRoleEviction(roleIds, true);
     }
 

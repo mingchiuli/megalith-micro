@@ -29,6 +29,7 @@ import wiki.chiu.micro.blog.adapter.in.http.BlogVersionVo;
 import wiki.chiu.micro.blog.adapter.in.http.OssDeleteReq;
 import wiki.chiu.micro.blog.adapter.in.http.PublishBlogReq;
 import wiki.chiu.micro.blog.adapter.in.http.SensitiveContentReq;
+import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
@@ -77,6 +78,7 @@ class CustomRuntimeHintsTest {
 
         for (Class<?> type : List.of(
             PageAdapter.class,
+            BlogRepository.BlogId.class,
             BlogEntityReq.class,
             BlogIdVo.class,
             SensitiveContentReq.class,

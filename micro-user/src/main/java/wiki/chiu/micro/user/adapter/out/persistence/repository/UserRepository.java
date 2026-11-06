@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserEntity;
 import wiki.chiu.micro.user.application.model.Page;
@@ -19,6 +20,47 @@ import wiki.chiu.micro.user.application.model.Page;
  * @create 2022-11-27 11:53 am
  */
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
+
+    @Modifying
+    @Query(
+        """
+        UPDATE UserEntity entity
+        SET entity.username = :username,
+            entity.nickname = :nickname,
+            entity.avatar = :avatar,
+            entity.email = :email,
+            entity.phone = :phone,
+            entity.password = :password,
+            entity.status = :status,
+            entity.passwordLockedUntil = :passwordLockedUntil,
+            entity.updated = :updated
+        WHERE entity.id = :id
+        """)
+    int updateDetails(
+        @Param("id") Long id,
+        @Param("username") String username,
+        @Param("nickname") String nickname,
+        @Param("avatar") String avatar,
+        @Param("email") String email,
+        @Param("phone") String phone,
+        @Param("password") String password,
+        @Param("status") Integer status,
+        @Param("passwordLockedUntil") LocalDateTime passwordLockedUntil,
+        @Param("updated") LocalDateTime updated);
+
+    default int updateDetails(UserEntity entity, LocalDateTime updated) {
+        return updateDetails(
+            entity.getId(),
+            entity.getUsername(),
+            entity.getNickname(),
+            entity.getAvatar(),
+            entity.getEmail(),
+            entity.getPhone(),
+            entity.getPassword(),
+            entity.getStatus(),
+            entity.getPasswordLockedUntil(),
+            updated);
+    }
 
     Optional<UserEntity> findByEmail(String email);
 
@@ -32,17 +74,16 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     @Modifying
     void updateLoginTime(String username, LocalDateTime time);
 
+    // MariaDB's local_datetime rendering loses microseconds; cast the dialect's current timestamp instead.
     @Query(
-        value =
-            """
-                UPDATE m_user
-                SET status = :lockedStatus,
-                    password_locked_until = TIMESTAMPADD(SECOND, :lockSeconds, CURRENT_TIMESTAMP(6))
-                WHERE id = :userId
-                  AND status = :normalStatus
-                  AND password_locked_until IS NULL
-                """,
-        nativeQuery = true)
+        """
+        UPDATE UserEntity user
+        SET user.status = :lockedStatus,
+            user.passwordLockedUntil = timestampadd(second, :lockSeconds, cast(CURRENT_TIMESTAMP as LocalDateTime))
+        WHERE user.id = :userId
+          AND user.status = :normalStatus
+          AND user.passwordLockedUntil IS NULL
+        """)
     @Modifying
     int lockAfterPasswordFailures(Long userId, int normalStatus, int lockedStatus, long lockSeconds);
 
@@ -76,7 +117,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     }
 
     default Page<UserEntity> findPage(int pageNumber, int pageSize) {
-        var request = PageRequest.of(pageNumber - 1, pageSize, Sort.by("created").ascending());
+        var request = PageRequest.of(pageNumber - 1, pageSize, Sort.by("created", "id").ascending());
         var page = findAll(request);
         return new Page<>(
             page.getContent(),

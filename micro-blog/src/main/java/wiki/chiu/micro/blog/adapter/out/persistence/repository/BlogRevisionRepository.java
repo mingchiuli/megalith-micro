@@ -27,7 +27,11 @@ public interface BlogRevisionRepository
 
     List<BlogRevisionEntity> findByBlogIdOrderByVersionNoAsc(Long blogId);
 
-    long deleteByBlogId(Long blogId);
+    List<BlogRevisionEntity> findByBlogIdInOrderByBlogIdAscVersionNoAsc(List<Long> blogIds);
+
+    @Modifying
+    @Query("DELETE FROM BlogRevisionEntity entity WHERE entity.blogId = :blogId")
+    int deleteByBlogId(@Param("blogId") Long blogId);
 
     @Modifying
     @Query(

@@ -1,11 +1,15 @@
 package wiki.chiu.micro.user.adapter.out.persistence.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
 import wiki.chiu.micro.user.application.model.Page;
@@ -16,6 +20,35 @@ import wiki.chiu.micro.user.application.model.Page;
  */
 public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
 
+    @Modifying
+    @Query(
+        """
+        UPDATE RoleEntity entity
+        SET entity.name = :name,
+            entity.code = :code,
+            entity.remark = :remark,
+            entity.status = :status,
+            entity.updated = :updated
+        WHERE entity.id = :id
+        """)
+    int updateDetails(
+        @Param("id") Long id,
+        @Param("name") String name,
+        @Param("code") String code,
+        @Param("remark") String remark,
+        @Param("status") Integer status,
+        @Param("updated") LocalDateTime updated);
+
+    default int updateDetails(RoleEntity entity, LocalDateTime updated) {
+        return updateDetails(
+            entity.getId(),
+            entity.getName(),
+            entity.getCode(),
+            entity.getRemark(),
+            entity.getStatus(),
+            updated);
+    }
+
     List<RoleEntity> findByCodeIn(List<String> roles);
 
     List<RoleEntity> findByCodeInAndStatus(List<String> roles, Integer status);
@@ -25,7 +58,7 @@ public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
     List<RoleEntity> findByStatus(Integer status);
 
     default Page<RoleEntity> findPage(int pageNumber, int pageSize) {
-        var request = PageRequest.of(pageNumber - 1, pageSize, Sort.by("created").ascending());
+        var request = PageRequest.of(pageNumber - 1, pageSize, Sort.by("created", "id").ascending());
         var page = findAll(request);
         return new Page<>(
             page.getContent(),

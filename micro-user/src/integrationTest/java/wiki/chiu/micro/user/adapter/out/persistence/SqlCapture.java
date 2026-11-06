@@ -23,6 +23,10 @@ public class SqlCapture implements StatementInspector {
         STATEMENTS.clear();
     }
 
+    static List<String> statements() {
+        return List.copyOf(STATEMENTS);
+    }
+
     static String lastMatching(Predicate<String> predicate) {
         return STATEMENTS.stream()
             .filter(predicate)

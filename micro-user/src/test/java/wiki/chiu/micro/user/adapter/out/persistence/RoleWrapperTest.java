@@ -30,7 +30,7 @@ class RoleWrapperTest {
         RoleWrapper wrapper =
             new RoleWrapper(roles, roleMenus, userRoles, dataPermissions, cacheEvictions);
         Role role = new Role(7L, "name", "editor", null, null, null, 0);
-        when(roles.save(any())).thenAnswer(invocation -> invocation.getArgument(0, RoleEntity.class));
+        when(roles.updateDetails(any(RoleEntity.class), any())).thenReturn(1);
 
         wrapper.saveOrUpdate(role, List.of("editor"));
 

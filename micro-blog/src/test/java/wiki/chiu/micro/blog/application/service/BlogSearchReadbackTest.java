@@ -3,8 +3,8 @@ package wiki.chiu.micro.blog.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -72,10 +71,10 @@ class BlogSearchReadbackTest {
 
     @Test
     void exportUsesEsAndDoesNotIncludeRowsOutsideTheCurrentUserScope() {
-        when(search.searchAdmin(any())).thenReturn(adminPage(3L, 1L));
-        when(authoring.findIdentity(3L)).thenReturn(Optional.of(identity(3L, 42L)));
-        when(authoring.findIdentity(1L)).thenReturn(Optional.of(identity(1L, 42L)));
-        when(authoring.findVersions(anyLong())).thenReturn(List.of());
+        when(search.searchAdmin(any())).thenReturn(adminPage(3L, 2L, 1L, 99L));
+        when(authoring.findIdentities(List.of(3L, 2L, 1L, 99L)))
+            .thenReturn(List.of(identity(1L, 42L), identity(2L, 7L), identity(3L, 42L)));
+        when(authoring.findVersionsByBlogIds(List.of(3L, 1L))).thenReturn(List.of());
 
         List<BlogExportPage> pages =
             new BlogExportServiceImpl(search, authoring)
@@ -87,6 +86,9 @@ class BlogSearchReadbackTest {
             .extracting(row -> row.blog().id())
             .containsExactly(3L, 1L);
         assertThat(pages.getFirst().sensitiveContent()).isEmpty();
+        verify(authoring).findVersionsByBlogIds(List.of(3L, 1L));
+        verify(authoring, never()).findIdentity(any());
+        verify(authoring, never()).findVersions(any());
     }
 
     private Page<BlogListItem> adminPage(Long... ids) {

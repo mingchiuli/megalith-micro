@@ -27,6 +27,7 @@ dependencies {
 }
 
 val integrationTest = sourceSets.create("integrationTest")
+integrationTest.resources.srcDir(rootProject.file("docs/sql"))
 integrationTest.compileClasspath += sourceSets.main.get().output
 integrationTest.runtimeClasspath += sourceSets.main.get().output
 configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())

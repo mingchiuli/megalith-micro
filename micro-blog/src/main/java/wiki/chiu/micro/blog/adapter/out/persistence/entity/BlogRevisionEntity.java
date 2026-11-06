@@ -7,7 +7,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -25,8 +24,7 @@ import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
     uniqueConstraints =
         @UniqueConstraint(
             name = "uk_blog_revision_version",
-            columnNames = {"blog_id", "version_no"}),
-    indexes = @Index(name = "idx_blog_revision_blog", columnList = "blog_id,version_no"))
+            columnNames = {"blog_id", "version_no"}))
 public class BlogRevisionEntity {
 
     @Id

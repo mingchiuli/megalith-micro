@@ -1,10 +1,13 @@
 package wiki.chiu.micro.user.adapter.out.persistence;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import wiki.chiu.micro.common.error.CommonErrorCode;
+import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
@@ -40,8 +43,14 @@ public class RoleWrapper implements RoleWriter {
     @Transactional
     @Override
     public void saveOrUpdate(Role role, List<String> affectedCodes) {
-        RoleEntity saved = roles.save(UserPersistenceMapper.toEntity(role));
-        cacheEvictions.enqueue(List.of(), List.of(saved.getId()), affectedCodes, true, false);
+        RoleEntity entity = UserPersistenceMapper.toEntity(role);
+        Long roleId = role.id();
+        if (roleId == null) {
+            roleId = roles.save(entity).getId();
+        } else if (roles.updateDetails(entity, LocalDateTime.now()) != 1) {
+            throw new BaseException(CommonErrorCode.CONFLICT, "role changed: " + roleId);
+        }
+        cacheEvictions.enqueue(List.of(), List.of(roleId), affectedCodes, true, false);
     }
 
     @Transactional

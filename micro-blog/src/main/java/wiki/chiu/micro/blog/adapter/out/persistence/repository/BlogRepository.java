@@ -15,8 +15,46 @@ import wiki.chiu.micro.blog.application.model.BlogReadCount;
 
 public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonNull Long> {
 
-    @Query("SELECT blog.id FROM BlogEntity blog WHERE blog.id > :afterId ORDER BY blog.id ASC")
-    List<Long> findIdsAfter(@Param("afterId") Long afterId, Pageable pageable);
+    record BlogId(Long id) {
+    }
+
+    List<BlogId> findProjectedByIdGreaterThanOrderByIdAsc(Long afterId, Pageable pageable);
+
+    default List<Long> findIdsAfter(Long afterId, Pageable pageable) {
+        return findProjectedByIdGreaterThanOrderByIdAsc(afterId, pageable).stream()
+            .map(BlogId::id).toList();
+    }
+
+    @Modifying
+    @Query(
+        """
+        INSERT INTO BlogEntity
+            (id, userId, created, readCount, accessMode, publicationRevision, adminRevision)
+        VALUES (:id, :userId, :created, :readCount, :accessMode, :publicationRevision, :adminRevision)
+        """)
+    int insertRecovered(
+        @Param("id") Long id,
+        @Param("userId") Long userId,
+        @Param("created") LocalDateTime created,
+        @Param("readCount") Long readCount,
+        @Param("accessMode") Integer accessMode,
+        @Param("publicationRevision") Long publicationRevision,
+        @Param("adminRevision") Long adminRevision);
+
+    @Modifying
+    @Query(
+        """
+        UPDATE BlogEntity blog
+        SET blog.publishedRevisionId = :revisionId,
+            blog.publishedAt = :publishedAt,
+            blog.publicationRevision = :publicationRevision
+        WHERE blog.id = :id AND blog.publishedRevisionId IS NULL
+        """)
+    int attachRecoveredPublication(
+        @Param("id") Long id,
+        @Param("revisionId") Long revisionId,
+        @Param("publishedAt") LocalDateTime publishedAt,
+        @Param("publicationRevision") Long publicationRevision);
 
     @Query(
         """

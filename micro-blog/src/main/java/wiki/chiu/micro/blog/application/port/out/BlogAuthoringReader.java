@@ -11,6 +11,10 @@ public interface BlogAuthoringReader {
 
     Optional<BlogIdentity> findIdentity(Long blogId);
 
+    List<BlogIdentity> findIdentities(List<Long> blogIds);
+
+    List<BlogVersion> findVersionsByBlogIds(List<Long> blogIds);
+
     Optional<BlogWorkingDraft> findDraft(Long blogId);
 
     Optional<BlogVersion> findVersion(Long blogId, Long revisionId);

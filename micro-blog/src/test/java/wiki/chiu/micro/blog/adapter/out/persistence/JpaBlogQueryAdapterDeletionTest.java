@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -53,7 +52,7 @@ class JpaBlogQueryAdapterDeletionTest {
                 42L,
                 created.plusHours(1));
         when(blogs.findAllById(List.of(7L))).thenReturn(List.of(blog));
-        when(drafts.findByBlogId(7L)).thenReturn(Optional.of(draft));
+        when(drafts.findByBlogIdIn(List.of(7L))).thenReturn(List.of(draft));
 
         var target = adapter.findDeletionTargetsByIds(List.of(7L)).getFirst();
 
