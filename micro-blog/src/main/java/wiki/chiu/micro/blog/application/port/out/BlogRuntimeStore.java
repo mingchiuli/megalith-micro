@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import wiki.chiu.micro.blog.application.model.DeletedBlogEntry;
 import wiki.chiu.micro.blog.application.model.DeletedBlogPage;
-import wiki.chiu.micro.common.model.BlogSnapshot;
+import wiki.chiu.micro.blog.domain.Blog;
 
 public interface BlogRuntimeStore {
 
@@ -19,7 +19,7 @@ public interface BlogRuntimeStore {
     Optional<DeletedBlogEntry> deletedBlog(Long userId, Integer index);
 
     void saveDeletedBlog(
-        Long userId, String eventId, BlogSnapshot snapshot, Long adminRevision);
+        Long userId, String eventId, Blog blog);
 
     void removeDeletedBlog(Long userId, String receipt);
 

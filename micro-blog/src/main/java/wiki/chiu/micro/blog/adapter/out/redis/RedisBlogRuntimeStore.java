@@ -6,8 +6,6 @@ import static wiki.chiu.micro.common.constant.Const.QUERY_DELETED;
 import static wiki.chiu.micro.common.constant.Const.READ_TOKEN;
 import static wiki.chiu.micro.common.constant.Const.RECYCLE_EVENT_PREFIX;
 
-import jakarta.annotation.PostConstruct;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -18,6 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
@@ -25,13 +24,12 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
-
 import tools.jackson.databind.json.JsonMapper;
+
 import wiki.chiu.micro.blog.application.model.DeletedBlogEntry;
 import wiki.chiu.micro.blog.application.model.DeletedBlogPage;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.domain.Blog;
-import wiki.chiu.micro.common.model.BlogSnapshot;
 
 @Component
 public class RedisBlogRuntimeStore implements BlogRuntimeStore {
@@ -115,11 +113,11 @@ public class RedisBlogRuntimeStore implements BlogRuntimeStore {
 
     @Override
     public void saveDeletedBlog(
-        Long userId, String eventId, BlogSnapshot snapshot, Long adminRevision) {
+        Long userId, String eventId, Blog blog) {
         redis.execute(
             RedisScript.of(recycleScript, Long.class),
             List.of(QUERY_DELETED + userId, RECYCLE_EVENT_PREFIX + eventId),
-            jsonMapper.writeValueAsString(Blog.fromSnapshot(snapshot, adminRevision)),
+            jsonMapper.writeValueAsString(blog),
             A_WEEK);
     }
 

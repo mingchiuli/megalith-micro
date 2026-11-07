@@ -3,6 +3,14 @@ package wiki.chiu.micro.common.arch;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -11,13 +19,6 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
-
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Executable form of the ports-and-adapters layout every Java application in this repository
@@ -36,7 +37,8 @@ public final class ApplicationLayers {
      * Framework, infrastructure, and wire-contract packages that the core layers must not touch. The
      * export renderer is included because the SQL script belongs to the adapter that offers the
      * download, not to the use case that selects the rows, the {@code api-*} contracts because
-     * another service's wire format is an adapter concern, and the page envelope because a paged use
+     * another service's wire format is an adapter concern, shared queue envelopes because messaging
+     * adapters translate them into application commands, and the page envelope because a paged use
      * case returns its own {@code application.model.Page}.
      */
     private static final String[] CORE_BANNED = {
@@ -55,6 +57,7 @@ public final class ApplicationLayers {
         "wiki.chiu.micro.common.web..",
         "wiki.chiu.micro.common.auth.web..",
         "wiki.chiu.micro.common.observability..",
+        "wiki.chiu.micro.common.message..",
         "wiki.chiu.micro.common.messaging..",
         "wiki.chiu.micro.common.outbox..",
         "wiki.chiu.micro.common.scheduling..",
@@ -121,10 +124,12 @@ public final class ApplicationLayers {
         String[] applicationBanned = withoutSelf(APPLICATION_BANNED, rootPackage);
         assertNoCodeOutsideDeclaredLayers(classes, rootPackage, layers);
         assertDomainIsFrameworkFree(classes, rootPackage, coreBanned);
+        assertDomainDoesNotDependOnTransportSnapshots(classes, rootPackage);
         assertApplicationIsFrameworkFree(classes, rootPackage, coreBanned, applicationBanned);
         assertApplicationDoesNotReachIntoAdaptersOrContracts(classes, rootPackage);
         assertAdaptersDoNotCrossDirections(classes, rootPackage);
         assertServicesOnlyDependOnImplementedInputPorts(classes, rootPackage);
+        PersistenceTransactions.verify(classes, rootPackage);
     }
 
     /**
@@ -175,6 +180,24 @@ public final class ApplicationLayers {
             .dependOnClassesThat()
             .resideInAnyPackage(
                 merge(coreBanned, under(rootPackage, "application", "adapter", "config")))
+            .allowEmptyShould(true)
+            .check(classes);
+    }
+
+    /** Shared aggregate snapshots belong to boundary mappers, rather than domain state. */
+    private static void assertDomainDoesNotDependOnTransportSnapshots(
+        JavaClasses classes, String rootPackage) {
+        noClasses()
+            .that()
+            .resideInAnyPackage(under(rootPackage, "domain"))
+            .should()
+            .dependOnClassesThat(new DescribedPredicate<JavaClass>("shared transport snapshots") {
+                @Override
+                public boolean test(JavaClass type) {
+                    return type.getPackageName().equals("wiki.chiu.micro.common.model")
+                        && type.getSimpleName().endsWith("Snapshot");
+                }
+            })
             .allowEmptyShould(true)
             .check(classes);
     }

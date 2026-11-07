@@ -1,7 +1,7 @@
 package wiki.chiu.micro.exhibit.application.service;
 
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
-import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.exhibit.application.model.BlogChange;
 
 /**
  * Internal strategy that applies one kind of blog change. This is deliberately not an input port:
@@ -11,5 +11,5 @@ public interface BlogChangeEvictionHandler {
 
     BlogOperateEnum operation();
 
-    void applyChange(BlogChangedMessage message);
+    void applyChange(BlogChange change);
 }

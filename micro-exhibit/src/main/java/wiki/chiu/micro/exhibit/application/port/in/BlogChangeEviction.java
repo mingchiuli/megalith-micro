@@ -1,6 +1,6 @@
 package wiki.chiu.micro.exhibit.application.port.in;
 
-import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.exhibit.application.model.BlogChange;
 
 /**
  * Evicts the caches and existence entries that a blog change event invalidates once the event
@@ -8,5 +8,5 @@ import wiki.chiu.micro.common.message.BlogChangedMessage;
  */
 public interface BlogChangeEviction {
 
-    void apply(BlogChangedMessage message);
+    void apply(BlogChange change);
 }

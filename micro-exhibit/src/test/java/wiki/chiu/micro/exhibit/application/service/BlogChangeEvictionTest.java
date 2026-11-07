@@ -9,7 +9,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -17,9 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
-import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.message.BlogChangedMessage;
-import wiki.chiu.micro.common.model.BlogSnapshot;
+import wiki.chiu.micro.exhibit.application.model.BlogChange;
 import wiki.chiu.micro.exhibit.application.port.out.BlogCacheInvalidation;
 import wiki.chiu.micro.exhibit.application.port.out.BlogEventRevisionGuard;
 import wiki.chiu.micro.exhibit.application.port.out.BlogExistenceStore;
@@ -96,22 +93,13 @@ class BlogChangeEvictionTest {
     }
 
     @Test
-    void unknownOperationIsRejected() {
-        assertThatThrownBy(
-                () ->
-                    eviction.apply(
-                        new BlogChangedMessage(
-                            "event", 99, REVISION, 3L, snapshot(BlogStatusEnum.NORMAL))))
-            .isInstanceOf(MissException.class);
+    void duplicateOperationHandlersAreRejected() {
+        var handler = new CreateBlogChangeEvictionHandler(revisionGuard, cacheInvalidation, existence);
+        assertThatThrownBy(() -> new BlogChangeEvictionServiceImpl(List.of(handler, handler)))
+            .isInstanceOf(IllegalStateException.class);
     }
 
-    private BlogChangedMessage message(BlogOperateEnum operation, BlogStatusEnum status) {
-        return new BlogChangedMessage("event", operation.getCode(), REVISION, 3L, snapshot(status));
-    }
-
-    private BlogSnapshot snapshot(BlogStatusEnum status) {
-        LocalDateTime now = LocalDateTime.now();
-        return new BlogSnapshot(
-            BLOG_ID, 3L, "title", "description", "content", now, now, status.getCode(), "", 0L, 1L);
+    private BlogChange message(BlogOperateEnum operation, BlogStatusEnum status) {
+        return new BlogChange(BLOG_ID, operation, REVISION, status.getCode());
     }
 }

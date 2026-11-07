@@ -85,11 +85,17 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
    returns the core `application.model.Page`; the adapter that renders the response builds the
    shared `common-contract` `PageAdapter` envelope from it. `*HttpServiceWrapper`
    classes unwrap `RemoteResult.requireSuccess(...)` behind directory/gateway ports. Spring Data
-   repositories and JPA entities belong under `adapter.out.persistence`.
+   repositories and JPA entities belong under `adapter.out.persistence`. Messaging adapters translate
+   shared queue envelopes into application commands; `domain` and `application` never depend on the
+   shared `common-contract` `message` package. Domain models do not depend on aggregate `*Snapshot`
+   transport projections; adapters own those conversions. Shared enums, value objects, and application
+   read projections remain allowed.
 7. **Transaction boundary.** Services prepare inputs across reads without a transaction.
    Transactional persistence adapters (including existing `*Wrapper` classes) do only writes and
    the matching outbox insert in one short transaction and never query back. Do not add
-   `@Transactional` to services or repository reads to transactional writers.
+   `@Transactional` to services or repository reads to transactional writers. `common-arch` identifies
+   writable persistence transactions from method/class annotations and checks reachable Spring Data
+   repository calls, including persistence helpers and method references, regardless of class names.
 8. **Transactional outbox.** User and blog changes commit to `m_outbox_event` before confirmed
    RabbitMQ publication. Cache eviction and Elasticsearch indexing consume those events. User
    deletion uses `UserDeletedMessage` on its dedicated fanout exchange; `micro-blog` consumes it to

@@ -156,6 +156,32 @@ class BlogApplicationStartupIntegrationTest {
         assertThat(json.readTree(downstream.content.get()).get("content").asString()).isEmpty();
         assertThat(downstream.traceparent.get()).isNotBlank();
         assertThat(json.readTree(downstream.ticket.get()).get("roomId").asString()).isEqualTo(ticket.get("roomId").asString());
+        verifyRecycleRoundTrip(base, principal, blogId);
+    }
+
+    private void verifyRecycleRoundTrip(String base, String principal, long blogId) throws Exception {
+        var deletion = client.send(HttpRequest.newBuilder(URI.create(base + "/sys/blog/delete"))
+            .header(InternalHttpHeaders.PRINCIPAL, principal)
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString("[" + blogId + "]"))
+            .timeout(Duration.ofSeconds(5)).build(), HttpResponse.BodyHandlers.ofString());
+        assertThat(deletion.statusCode()).as(deletion.body()).isEqualTo(200);
+        long deadline = System.nanoTime() + Duration.ofSeconds(10).toNanos();
+        while (System.nanoTime() < deadline) {
+            var response = client.send(HttpRequest.newBuilder(URI.create(base + "/sys/blog/deleted?currentPage=1&size=100"))
+                .header(InternalHttpHeaders.PRINCIPAL, principal)
+                .timeout(Duration.ofSeconds(5)).build(), HttpResponse.BodyHandlers.ofString());
+            assertThat(response.statusCode()).as(response.body()).isEqualTo(200);
+            var rows = json.readTree(response.body()).get("data").get("content");
+            for (int index = 0; index < rows.size(); index++) {
+                if (rows.get(index).get("id").asLong() == blogId) {
+                    assertThat(rows.get(index).get("userId").asLong()).isEqualTo(42L);
+                    return;
+                }
+            }
+            Thread.sleep(100);
+        }
+        throw new AssertionError("Deleted blog did not reach the recycle bin through the outbox and RabbitMQ");
     }
 
     private String[] arguments(int downstreamPort) {

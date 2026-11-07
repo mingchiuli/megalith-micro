@@ -1,6 +1,6 @@
 package wiki.chiu.micro.blog.application.port.in;
 
-import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.blog.application.model.RecycleBlogCommand;
 
 /**
  * Keeps the recycle bin in sync with blog change events: a blog removed by its owner is parked
@@ -8,5 +8,5 @@ import wiki.chiu.micro.common.message.BlogChangedMessage;
  */
 public interface BlogRecycleBin {
 
-    void recycle(BlogChangedMessage event);
+    void recycle(RecycleBlogCommand command);
 }

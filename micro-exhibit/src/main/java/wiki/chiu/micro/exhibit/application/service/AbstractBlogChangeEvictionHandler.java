@@ -1,6 +1,6 @@
 package wiki.chiu.micro.exhibit.application.service;
 
-import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.exhibit.application.model.BlogChange;
 import wiki.chiu.micro.exhibit.application.port.out.BlogCacheInvalidation;
 import wiki.chiu.micro.exhibit.application.port.out.BlogEventRevisionGuard;
 
@@ -24,12 +24,12 @@ abstract sealed class AbstractBlogChangeEvictionHandler implements BlogChangeEvi
     }
 
     @Override
-    public final void applyChange(BlogChangedMessage message) {
+    public final void applyChange(BlogChange change) {
         revisionGuard.applyIfNewer(
-            message.blogSnapshot().id(),
-            message.revision(),
-            () -> applyChangeUnderGuard(message));
+            change.blogId(),
+            change.revision(),
+            () -> applyChangeUnderGuard(change));
     }
 
-    protected abstract void applyChangeUnderGuard(BlogChangedMessage message);
+    protected abstract void applyChangeUnderGuard(BlogChange change);
 }

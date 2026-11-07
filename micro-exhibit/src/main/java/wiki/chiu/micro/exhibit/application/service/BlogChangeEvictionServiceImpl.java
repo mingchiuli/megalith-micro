@@ -6,7 +6,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
-import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.exhibit.application.model.BlogChange;
 import wiki.chiu.micro.exhibit.application.port.in.BlogChangeEviction;
 
 public class BlogChangeEvictionServiceImpl implements BlogChangeEviction {
@@ -27,12 +27,12 @@ public class BlogChangeEvictionServiceImpl implements BlogChangeEviction {
     }
 
     @Override
-    public void apply(BlogChangedMessage message) {
-        BlogOperateEnum operation = BlogOperateEnum.of(message.operation());
+    public void apply(BlogChange change) {
+        BlogOperateEnum operation = change.operation();
         BlogChangeEvictionHandler handler = handlers.get(operation);
         if (handler == null) {
             throw new IllegalArgumentException("Unsupported operation: " + operation);
         }
-        handler.applyChange(message);
+        handler.applyChange(change);
     }
 }

@@ -2,7 +2,6 @@ package wiki.chiu.micro.blog.architecture;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -40,27 +39,6 @@ class LayeringArchitectureTest {
                     assertNoJoin(method.getFullName(), query.value());
                     assertNoJoin(method.getFullName(), query.countQuery());
                 });
-    }
-
-    @Test
-    void transactionalWrappersDoNotCallRepositoryReadMethods() {
-        var readCalls =
-            new ClassFileImporter()
-                .withImportOption(new ImportOption.DoNotIncludeTests())
-                .importPackages(ROOT)
-                .stream()
-                .filter(type -> type.getSimpleName().endsWith("Wrapper"))
-                .flatMap(type -> type.getMethodCallsFromSelf().stream())
-                .filter(call -> call.getTargetOwner().getPackageName().contains(".repository"))
-                .filter(
-                    call ->
-                        call.getName()
-                            .matches("^(find|count|exists|get|read|query|load|search).*$"))
-                .map(Object::toString)
-                .sorted()
-                .toList();
-
-        assertTrue(readCalls.isEmpty(), () -> "wrapper repository reads: " + readCalls);
     }
 
     @Test

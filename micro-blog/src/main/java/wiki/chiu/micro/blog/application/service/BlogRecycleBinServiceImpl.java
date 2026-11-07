@@ -1,9 +1,11 @@
 package wiki.chiu.micro.blog.application.service;
 
+import java.util.Objects;
+
+import wiki.chiu.micro.blog.application.model.RecycleBlogCommand;
 import wiki.chiu.micro.blog.application.port.in.BlogRecycleBin;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
-import wiki.chiu.micro.common.message.BlogChangedMessage;
 
 public class BlogRecycleBinServiceImpl implements BlogRecycleBin {
 
@@ -14,17 +16,16 @@ public class BlogRecycleBinServiceImpl implements BlogRecycleBin {
     }
 
     @Override
-    public void recycle(BlogChangedMessage event) {
-        if (!BlogOperateEnum.REMOVE.equals(BlogOperateEnum.of(event.operation()))) {
+    public void recycle(RecycleBlogCommand command) {
+        if (!BlogOperateEnum.REMOVE.equals(command.operation())) {
             return;
         }
-        if (event.operatorUserId() == null) {
+        if (command.operatorUserId() == null) {
             return;
         }
         runtimeStore.saveDeletedBlog(
-            event.operatorUserId(),
-            event.eventId(),
-            event.blogSnapshot(),
-            event.adminRevision());
+            command.operatorUserId(),
+            command.eventId(),
+            Objects.requireNonNull(command.blog(), "blog"));
     }
 }

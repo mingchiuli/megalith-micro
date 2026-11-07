@@ -3,7 +3,7 @@ package wiki.chiu.micro.exhibit.application.service;
 import static wiki.chiu.micro.common.enums.BlogStatusEnum.NORMAL;
 
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
-import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.exhibit.application.model.BlogChange;
 import wiki.chiu.micro.exhibit.application.port.out.BlogCacheInvalidation;
 import wiki.chiu.micro.exhibit.application.port.out.BlogEventRevisionGuard;
 import wiki.chiu.micro.exhibit.application.port.out.BlogReadStateStore;
@@ -26,11 +26,11 @@ public final class UpdateBlogChangeEvictionHandler extends AbstractBlogChangeEvi
     }
 
     @Override
-    protected void applyChangeUnderGuard(BlogChangedMessage message) {
-        Long blogId = message.blogSnapshot().id();
+    protected void applyChangeUnderGuard(BlogChange change) {
+        Long blogId = change.blogId();
         cacheInvalidation.invalidateBlog(blogId);
         cacheInvalidation.invalidatePages();
-        if (NORMAL.getCode().equals(message.blogSnapshot().status())) {
+        if (NORMAL.getCode().equals(change.status())) {
             readStateStore.clearReadToken(blogId);
         }
     }

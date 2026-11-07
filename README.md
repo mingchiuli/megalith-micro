@@ -298,6 +298,11 @@ Adapters may use those frameworks but never reach into `config` or across to the
 direction, and `config` is the only place that knows every implementation: application services
 carry no Spring annotations and are declared as beans there.
 
+Messaging input adapters translate shared queue envelopes into application commands before invoking
+use cases. Domain models do not construct or consume aggregate transport snapshots; conversion lives
+in adapter mappers. Shared business enums, value objects, and application read projections remain
+available through `common-contract`.
+
 Input adapters call ports, and application services call output ports. Spring Data, Redisson,
 remote HTTP contracts, and storage clients stay behind output adapters. Application services
 prepare inputs and coordinate use cases; persistence adapters own the short transactions that
@@ -306,7 +311,10 @@ and the adapter that offers the download renders the script with `common-export`
 response. A paged use case returns the core `application.model.Page`, and the adapter that renders
 the response builds the shared `common-contract` `PageAdapter` envelope from it. `common-arch` runs
 the shared dependency, transaction, and package-layout rules for every application, and a service
-adds only the rules it needs on top.
+adds only the rules it needs on top. Transaction checks identify persistence writers by their
+method/class annotations, follow persistence helpers and method references, and reject Spring Data
+repository reads without relying on a `Wrapper` class-name suffix. Read-only transactions and reads
+outside write transactions remain supported.
 
 ### Rust application boundaries
 

@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import wiki.chiu.micro.common.model.BlogSensitiveSpan;
-import wiki.chiu.micro.common.model.BlogSnapshot;
 
 /**
  * A blog as the application knows it: the persisted state without any persistence, delivery, or
@@ -115,39 +114,4 @@ public record Blog(
             sensitiveContent);
     }
 
-    /** Rebuilds a blog from its cross-service projection. */
-    public static Blog fromSnapshot(BlogSnapshot snapshot) {
-        return fromSnapshot(snapshot, null);
-    }
-
-    /** Rebuilds a blog and its administration revision from a cross-service projection. */
-    public static Blog fromSnapshot(BlogSnapshot snapshot, Long adminRevision) {
-        return new Blog(
-            snapshot.id(),
-            snapshot.userId(),
-            snapshot.title(),
-            snapshot.description(),
-            snapshot.content(),
-            snapshot.created(),
-            snapshot.updated(),
-            snapshot.status(),
-            snapshot.link(),
-            snapshot.readCount(),
-            snapshot.revision(),
-            adminRevision,
-            snapshot.sensitiveContent());
-    }
-
-    /** The cross-service projection of this blog, published through the outbox. */
-    public BlogSnapshot snapshot() {
-        return new BlogSnapshot(
-            id, userId, title, description, content, created, updated, status, link, readCount,
-            eventRevision,
-            null,
-            null,
-            null,
-            null,
-            null,
-            sensitiveContent);
-    }
 }
