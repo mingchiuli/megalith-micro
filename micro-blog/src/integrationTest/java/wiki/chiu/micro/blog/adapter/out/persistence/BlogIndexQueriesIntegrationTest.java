@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 
 import jakarta.persistence.EntityManagerFactory;
@@ -241,7 +244,9 @@ class BlogIndexQueriesIntegrationTest {
             var transaction = new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
             var ids = transaction.execute(status -> {
                 var blog = blogs.save(blog(0, 0));
-                return List.of(blog.getId(), revisions.save(revision(blog, 1)).getId());
+                var unpublished = revision(blog, 1);
+                unpublished.setFirstPublishedAt(null);
+                return List.of(blog.getId(), revisions.save(unpublished).getId());
             });
             var reader = authoringReader(context);
             var original = reader.findIdentity(ids.getFirst()).orElseThrow();
@@ -250,9 +255,12 @@ class BlogIndexQueriesIntegrationTest {
             var writer = new JpaBlogAuthoringAdapter(blogs, revisions, context.getBean(BlogDraftRepository.class),
                 context.getBean(BlogRevisionSensitiveContentRepository.class),
                 context.getBean(BlogDraftSensitiveContentRepository.class), events, new BlogMaintenanceMode(false));
+            SqlCapture.clear();
             transaction.executeWithoutResult(status -> writer.publish(
                 new BlogPublishCommand(
                     original, selected, null, null, 2L, 0, 42L, LocalDateTime.now())));
+            assertThat(SqlCapture.statements().getFirst()).startsWith("update m_blog ");
+            assertThat(SqlCapture.statements()).anyMatch(sql -> sql.startsWith("update m_blog_revision "));
             var published = reader.findIdentity(original.id()).orElseThrow();
             assertThat(published.collaborationEpoch()).isNotEqualTo(original.collaborationEpoch());
             var stale = new BlogIdentity(published.id(), published.userId(), published.created(),
@@ -400,6 +408,79 @@ class BlogIndexQueriesIntegrationTest {
             assertThat(revisionSpans.count()).isZero();
             assertThat(draftSpans.count()).isZero();
             assertThat(outbox.count()).isEqualTo(eventCount + 4);
+        }
+    }
+
+    @Test
+    void concurrentDraftSaveAndDeletionContendOnTheRootBeforeTouchingChildren() throws Exception {
+        try (var context = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
+            var blogs = context.getBean(BlogRepository.class);
+            var revisions = context.getBean(BlogRevisionRepository.class);
+            var drafts = context.getBean(BlogDraftRepository.class);
+            var draftSpans = context.getBean(BlogDraftSensitiveContentRepository.class);
+            var revisionSpans = context.getBean(BlogRevisionSensitiveContentRepository.class);
+            var outbox = context.getBean(OutboxEventRepository.class);
+            var transaction = new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
+            var events = new OutboxServiceImpl(new OutboxStoreAdapter(outbox), event -> "{}");
+            Long id = transaction.execute(status -> {
+                BlogEntity blog = blogs.save(blog(0, 0));
+                drafts.save(new BlogDraftEntity(null, blog.getId(), 1L, null, "draft", "description",
+                    "content", "", BlogRenderMode.NORMAL, 42L, LocalDateTime.now()));
+                draftSpans.save(new BlogDraftSensitiveContentEntity(null, blog.getId(), 1, 3, 3));
+                return blog.getId();
+            });
+            var reader = authoringReader(context);
+            var identity = reader.findIdentity(id).orElseThrow();
+            var draft = reader.findDraft(id).orElseThrow();
+            var targets = queryAdapter(context).findDeletionTargetsByIds(List.of(id));
+            var draftLocked = new CountDownLatch(1);
+            var resumeSave = new CountDownLatch(1);
+            var pausingDrafts = Mockito.mock(BlogDraftRepository.class, invocation -> {
+                Object result = org.mockito.AdditionalAnswers.delegatesTo(drafts).answer(invocation);
+                if (invocation.getMethod().getName().equals("updateContent")) {
+                    draftLocked.countDown();
+                    assertThat(resumeSave.await(15, TimeUnit.SECONDS)).isTrue();
+                }
+                return result;
+            });
+            var authoring = new JpaBlogAuthoringAdapter(blogs, revisions, pausingDrafts,
+                revisionSpans, draftSpans, events, new BlogMaintenanceMode(false));
+            var writer = new BlogWrapper(blogs, revisions, drafts, draftSpans, revisionSpans,
+                events, new BlogMaintenanceMode(false));
+            var jdbc = new JdbcTemplate(context.getBean(DataSource.class));
+            try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                try {
+                    var save = executor.submit(() -> transaction.executeWithoutResult(status ->
+                        authoring.saveDraft(new BlogDraftWriteCommand(identity, draft,
+                            new BlogContentCommand("saved", "description", "content", "",
+                                BlogRenderMode.NORMAL, List.of(new BlogSensitiveSpan(2, 4, 3))),
+                            null, 42L, LocalDateTime.now()))));
+                    assertThat(draftLocked.await(10, TimeUnit.SECONDS)).isTrue();
+                    var delete = executor.submit(() -> assertThatThrownBy(() ->
+                        transaction.executeWithoutResult(status -> writer.deleteByIds(targets,
+                            new BlogEventContext(BlogOperateEnum.REMOVE, 42L))))
+                        .isInstanceOf(BaseException.class));
+                    // Wait for a real database lock conflict before letting the save proceed.
+                    long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+                    while (jdbc.queryForObject("SELECT COUNT(*) FROM information_schema.INNODB_LOCK_WAITS",
+                            Long.class) == 0 && System.nanoTime() < deadline) {
+                        Thread.sleep(20);
+                    }
+                    assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM information_schema.INNODB_LOCK_WAITS", Long.class))
+                        .isPositive();
+                    resumeSave.countDown();
+                    save.get(10, TimeUnit.SECONDS);
+                    delete.get(10, TimeUnit.SECONDS);
+                } finally {
+                    resumeSave.countDown();
+                }
+            }
+            assertThat(blogs.count()).isEqualTo(1);
+            assertThat(reader.findDraft(id).orElseThrow().title()).isEqualTo("saved");
+            assertThat(reader.findDraft(id).orElseThrow().sensitiveContent())
+                .containsExactly(new BlogSensitiveSpan(2, 4, 3));
+            assertThat(outbox.count()).isEqualTo(1);
         }
     }
 

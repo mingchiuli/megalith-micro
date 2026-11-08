@@ -83,6 +83,22 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
     @Modifying
     @Query(
         """
+        UPDATE BlogEntity blog
+        SET blog.adminRevision = COALESCE(blog.adminRevision, 0) + 1
+        WHERE blog.id = :id
+          AND COALESCE(blog.publicationRevision, 0) = :publicationRevision
+          AND COALESCE(blog.adminRevision, 0) = :adminRevision
+          AND blog.collaborationEpoch = :collaborationEpoch
+        """)
+    int reserveDeletion(
+        @Param("id") Long id,
+        @Param("publicationRevision") Long publicationRevision,
+        @Param("adminRevision") Long adminRevision,
+        @Param("collaborationEpoch") String collaborationEpoch);
+
+    @Modifying
+    @Query(
+        """
         DELETE FROM BlogEntity blog
         WHERE blog.id = :id
           AND COALESCE(blog.publicationRevision, 0) = :publicationRevision

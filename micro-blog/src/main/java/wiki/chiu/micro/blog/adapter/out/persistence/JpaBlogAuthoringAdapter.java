@@ -212,10 +212,6 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
         BlogIdentity original = command.identity();
         BlogVersion selected = command.revision();
         String nextEpoch = UUID.randomUUID().toString();
-        if (selected.firstPublishedAt() == null
-            && revisions.markFirstPublished(selected.id(), original.id(), command.now()) != 1) {
-            throw conflict(original.id());
-        }
         int accessMode =
             command.accessMode() == null
                 ? original.accessMode().getCode()
@@ -229,6 +225,11 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
                 revision(original.publicationRevision()),
                 revision(original.adminRevision()), original.collaborationEpoch())
             != 1) {
+            throw conflict(original.id());
+        }
+
+        if (selected.firstPublishedAt() == null
+            && revisions.markFirstPublished(selected.id(), original.id(), command.now()) != 1) {
             throw conflict(original.id());
         }
 

@@ -1,6 +1,7 @@
 package wiki.chiu.micro.blog.adapter.out.persistence;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -135,21 +136,28 @@ public class BlogWrapper implements BlogWriter {
     @Override
     public void deleteByIds(List<BlogDeletionTarget> deleted, BlogEventContext event) {
         maintenance.requireWritable();
-        for (BlogDeletionTarget target : deleted) {
+        // Acquire aggregate locks in the same order across overlapping batches.
+        for (BlogDeletionTarget target : deleted.stream()
+            .sorted(Comparator.comparing(target -> target.identity().id())).toList()) {
             Blog blog = target.blog();
             BlogIdentity expected = target.identity();
             long publicationRevision =
                 (expected.publicationRevision() == null ? 0L : expected.publicationRevision()) + 1;
             long adminRevision =
                 (expected.adminRevision() == null ? 0L : expected.adminRevision()) + 1;
+            if (blogs.reserveDeletion(
+                    blog.id(), expected.publicationRevision(), expected.adminRevision(),
+                    expected.collaborationEpoch()) != 1) {
+                throw conflict(blog.id());
+            }
             revisionSensitive.deleteByBlogId(blog.id());
             revisions.deleteByBlogId(blog.id());
-            draftSensitive.deleteByBlogId(blog.id());
             drafts.deleteByBlogId(blog.id());
+            draftSensitive.deleteByBlogId(blog.id());
             if (blogs.deleteByIdAndRevisions(
                     blog.id(),
                     expected.publicationRevision(),
-                    expected.adminRevision(), expected.collaborationEpoch())
+                    adminRevision, expected.collaborationEpoch())
                 != 1) {
                 throw conflict(blog.id());
             }

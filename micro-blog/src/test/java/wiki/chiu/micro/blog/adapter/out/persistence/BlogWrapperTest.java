@@ -156,7 +156,8 @@ class BlogWrapperTest {
                 BlogAccessMode.PUBLIC,
                 1L,
                 5L, "00000000-0000-0000-0000-000000000001");
-        when(blogs.deleteByIdAndRevisions(7L, 1L, 5L, "00000000-0000-0000-0000-000000000001")).thenReturn(1);
+        when(blogs.reserveDeletion(7L, 1L, 5L, "00000000-0000-0000-0000-000000000001")).thenReturn(1);
+        when(blogs.deleteByIdAndRevisions(7L, 1L, 6L, "00000000-0000-0000-0000-000000000001")).thenReturn(1);
         List<Object> messages = captureEvents();
 
         writer.deleteByIds(
@@ -184,6 +185,40 @@ class BlogWrapperTest {
 
         assertThat(publicEvent.blogSnapshot().revision()).isEqualTo(2L);
         assertThat(adminEvent.blog().adminRevision()).isEqualTo(6L);
+    }
+
+    @Test
+    void overlappingDeletionBatchesAcquireRootLocksInIdOrder() {
+        BlogIdentity first = identity();
+        BlogIdentity second = new BlogIdentity(8L, first.userId(), first.created(), first.readCount(),
+            first.publishedRevisionId(), first.publishedAt(), first.offlineAt(), first.accessMode(),
+            first.publicationRevision(), first.adminRevision(), first.collaborationEpoch());
+        Blog secondBlog = BlogFixtures.builder().id(8L).userId(42L).build();
+        when(blogs.reserveDeletion(any(), any(), any(), any())).thenReturn(1);
+        when(blogs.deleteByIdAndRevisions(any(), any(), any(), any())).thenReturn(1);
+
+        wrapper(new BlogMaintenanceMode(false)).deleteByIds(
+            List.of(new BlogDeletionTarget(secondBlog, second), new BlogDeletionTarget(blog(), first)),
+            new BlogEventContext(BlogOperateEnum.REMOVE, 42L));
+
+        var order = Mockito.inOrder(blogs, drafts, draftSensitive, revisions, revisionSensitive);
+        for (long id : List.of(7L, 8L)) {
+            order.verify(blogs).reserveDeletion(id, 2L, 2L, first.collaborationEpoch());
+            order.verify(revisionSensitive).deleteByBlogId(id);
+            order.verify(revisions).deleteByBlogId(id);
+            order.verify(drafts).deleteByBlogId(id);
+            order.verify(draftSensitive).deleteByBlogId(id);
+            order.verify(blogs).deleteByIdAndRevisions(id, 2L, 3L, first.collaborationEpoch());
+        }
+    }
+
+    @Test
+    void staleDeletionDoesNotTouchChildrenOrOutbox() {
+        assertThrows(BaseException.class, () -> wrapper(new BlogMaintenanceMode(false)).deleteByIds(
+            List.of(new BlogDeletionTarget(blog(), identity())),
+            new BlogEventContext(BlogOperateEnum.REMOVE, 42L)));
+
+        verifyNoInteractions(drafts, draftSensitive, revisions, revisionSensitive, outbox);
     }
 
     private List<Object> captureEvents() {
