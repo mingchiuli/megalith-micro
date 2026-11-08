@@ -25,6 +25,7 @@ import wiki.chiu.micro.search.MicroSearchApplication;
 import wiki.chiu.micro.search.adapter.in.http.BlogDocumentVo;
 import wiki.chiu.micro.search.adapter.in.http.IndexMaintenanceHttpHandler;
 import wiki.chiu.micro.search.adapter.in.http.SearchInternalHttpHandler;
+import wiki.chiu.micro.search.adapter.out.elasticsearch.RecommendationCursor;
 import wiki.chiu.micro.search.api.req.BlogReadCountReq;
 import wiki.chiu.micro.search.api.req.BlogRevisionSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
@@ -83,6 +84,7 @@ class SearchRuntimeHintsTest {
         for (Class<?> type : List.of(
             PageAdapter.class,
             BlogDocumentVo.class,
+            RecommendationCursor.class,
             BlogAdminIndexMessage.class,
             BlogAdminSnapshot.class,
             BlogDraftSnapshot.class,
