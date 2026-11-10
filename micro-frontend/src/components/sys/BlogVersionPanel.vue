@@ -355,12 +355,10 @@ watch(
           <div class="diff-header">{{ t('admin.currentVersion') }}</div>
           <template v-for="line in splitLines" :key="`${line.number}-${line.left}-${line.right}`">
             <div :class="['diff-line', line.leftType]">
-              <span class="line-number">{{ line.number }}</span
-              >{{ line.left }}
+              <span class="line-number">{{ line.number }}</span>{{ line.left }}
             </div>
             <div :class="['diff-line', line.rightType]">
-              <span class="line-number">{{ line.number }}</span
-              >{{ line.right }}
+              <span class="line-number">{{ line.number }}</span>{{ line.right }}
             </div>
           </template>
         </div>
@@ -368,12 +366,10 @@ watch(
         <div v-else class="diff-unified">
           <template v-for="line in splitLines" :key="`${line.number}-${line.left}-${line.right}`">
             <div v-if="line.leftType !== 'empty'" :class="['diff-line', line.leftType]">
-              <span class="line-number">{{ line.number }}</span
-              >- {{ line.left }}
+              <span class="line-number">{{ line.number }}</span>- {{ line.left }}
             </div>
             <div v-if="line.rightType !== 'empty'" :class="['diff-line', line.rightType]">
-              <span class="line-number">{{ line.number }}</span
-              >+ {{ line.right }}
+              <span class="line-number">{{ line.number }}</span>+ {{ line.right }}
             </div>
           </template>
         </div>

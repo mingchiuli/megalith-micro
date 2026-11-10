@@ -30,8 +30,6 @@ const preview = computed(() =>
       <span v-if="markdown" v-html="render(text)" />
       <span v-else>{{ text }}</span>
     </template>
-    <template #reference
-      ><span>{{ preview }}</span></template
-    >
+    <template #reference><span>{{ preview }}</span></template>
   </el-popover>
 </template>
