@@ -128,7 +128,7 @@ const installSsrMiddleware = (vite: ViteDevServer) => {
   vite.watcher.on('add', invalidateStyleCache)
   vite.watcher.on('unlink', invalidateStyleCache)
 
-  vite.middlewares.use(async (request, response) => {
+  const handleSsrRequest = async (request: IncomingMessage, response: ServerResponse) => {
     const absoluteUrl = requestUrl(request)
     const url = new URL(absoluteUrl)
     if (
@@ -183,6 +183,9 @@ const installSsrMiddleware = (vite: ViteDevServer) => {
       response.setHeader('Content-Type', 'text/html; charset=utf-8')
       response.end('<h1>Internal Server Error</h1>')
     }
+  }
+  vite.middlewares.use((request, response, next) => {
+    void handleSsrRequest(request, response).catch(next)
   })
 }
 

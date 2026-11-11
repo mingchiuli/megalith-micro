@@ -16,6 +16,8 @@ From the repository root:
 
 ```bash
 bun install --frozen-lockfile
+bun run --filter megalith-frontend lint
+bun run --filter megalith-frontend test:lint
 bun run --filter megalith-frontend type-check
 bun run --filter megalith-frontend test:type-check
 bun run frontend:check
@@ -46,6 +48,27 @@ bun --bun tsrs --runExternalCode --noEmit -p tsconfig.app.json --composite false
 `--bun` also makes the mapper's Node entrypoint run under Bun, so the build image does not
 need a Node installation. Keep `--noEmit` and `--composite false` on these checks to avoid
 emitting JavaScript, declarations, or build metadata into the source tree.
+
+## Type-aware linting
+
+`lint` runs the lockfile-installed Oxlint with warnings denied, both locally and in CI.
+The workflow does not download a separate Action-selected Oxlint version.
+The `OXLINT_TSGOLINT_PATH` environment variable selects `scripts/tsrs-lint.ts`, which launches
+the workspace `tsrs-lint` backend under Bun and enables external content mappers. This opt-in
+is required even when linting TypeScript that belongs to a project with Vue content mappers.
+No separate Go-based `oxlint-tsgolint` package is needed.
+
+The shared Oxlint config enables `typescript/no-floating-promises`,
+`typescript/no-misused-promises`, and `typescript/await-thenable` as errors.
+The `test:lint` smoke test checks valid and invalid TypeScript under the app, Vitest, and Bun
+project settings, and asserts each rule is actually enforced. It runs in `quality:ci`.
+
+Oxlint currently does not send `.vue` scripts to its type-aware backend. Vue files retain
+their existing syntax lint rules and the separate `tsrs`/Vize script and template type checks;
+these do not enforce the three type-aware lint rules inside Vue files. Do not remove the
+separate type-check step or claim Vue type-aware lint coverage based on a successful lint run.
+Use `bun run lint` rather than invoking Oxlint directly so the Rust backend is always selected.
+Editor integrations need the same `OXLINT_TSGOLINT_PATH` setting (an absolute path is safest).
 
 ## Upgrading and editor support
 

@@ -166,6 +166,10 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
   compiler and mapper versions pinned, and run `bun run --filter megalith-frontend test:type-check`
   when upgrading either. Do not add a wildcard `*.vue` module declaration that erases component
   props or hides missing mapper coverage. Keep `verify` as the full-check script name.
+  Run lint through the package script: it selects the workspace `tsrs-lint` backend, enables
+  external Vue mappers, and denies warnings. CI uses the same lockfile-installed Oxlint. Its
+  type-aware rules cover TypeScript files; Oxlint currently skips `.vue` for type-aware linting.
+  Run `test:lint` when changing the lint backend or configuration.
 - Keep comments short and explain non-obvious decisions only. Avoid unrelated refactors.
 
 ## Commits

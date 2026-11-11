@@ -495,6 +495,9 @@ Rust checks cover formatting, linting, and service behavior; frontend checks cov
 tests, and SSR builds. The frontend uses `tsrs` for all three TypeScript projects and the Vize
 content mapper for Vue scripts and templates. A type-check smoke test verifies that invalid
 scripts, templates, props, emits, component consumers, and Bun sources fail with diagnostics.
+Oxlint uses the same locked version locally and in CI, with `tsrs-lint` enforcing Promise-handling
+rules in TypeScript files. Vue files retain syntax lint and separate type checks; Oxlint's
+type-aware backend does not currently cover their scripts.
 See the [frontend type-checking guide](micro-frontend/docs/type-checking.md) for commands and upgrades.
 
 ### Native Executables
