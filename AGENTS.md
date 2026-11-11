@@ -10,7 +10,8 @@ this file records the implementation constraints that are easy to miss.
   7.4.10.Final, Redisson 4.8.0, and Caffeine.
 - Gradle 9.8.2 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
 - Rust 2024 for `micro-gateway-rs` and `micro-sync-rs`.
-- Bun 1.4.3, Vue 3, and Vite for the standalone `micro-frontend` service.
+- Bun 1.4.3, Vue 3, and Vite for the standalone `micro-frontend` service; `tsrs` with the
+  Vize content mapper checks TypeScript and Vue types.
 
 `JAVA_HOME` must point to a GraalVM HotSpot JDK, not the Espresso JVM. On macOS, for example:
 
@@ -159,10 +160,12 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
 - Rust changes follow Rust 2024 conventions and must pass `rustfmt`; preserve existing async, error,
   and tracing patterns.
 - Frontend TypeScript and Vue changes follow existing patterns, Oxlint, and Oxfmt. Run
-  `bun run frontend:check` before committing frontend changes. Type checks are split by file type:
-  `vue-tsc` for `.vue` sources and `bun check` for the `tsconfig.bun.json` project. Never add a
-  `check` script to `micro-frontend`, because `bun check` resolves that script name before the
-  built-in type checker.
+  `bun run frontend:check` before committing frontend changes. `tsrs` checks the app, Vitest, and
+  Bun projects; app/Vitest use the Vize `.vue` content mapper with `--runExternalCode`. Launch
+  through `bun --bun tsrs` so mapper subprocesses also use Bun in the build image. Keep the
+  compiler and mapper versions pinned, and run `bun run --filter megalith-frontend test:type-check`
+  when upgrading either. Do not add a wildcard `*.vue` module declaration that erases component
+  props or hides missing mapper coverage. Keep `verify` as the full-check script name.
 - Keep comments short and explain non-obvious decisions only. Avoid unrelated refactors.
 
 ## Commits

@@ -492,7 +492,10 @@ MICRO_BLOG_NATIVE_EXECUTABLE="$PWD/micro-blog/build/native/nativeCompile/micro-b
 ```
 
 Rust checks cover formatting, linting, and service behavior; frontend checks cover linting, types,
-tests, and SSR builds.
+tests, and SSR builds. The frontend uses `tsrs` for all three TypeScript projects and the Vize
+content mapper for Vue scripts and templates. A type-check smoke test verifies that invalid
+scripts, templates, props, emits, component consumers, and Bun sources fail with diagnostics.
+See the [frontend type-checking guide](micro-frontend/docs/type-checking.md) for commands and upgrades.
 
 ### Native Executables
 

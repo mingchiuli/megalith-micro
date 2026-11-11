@@ -10,13 +10,14 @@
     "preview": "NODE_ENV=production ./dist/bin/megalith-frontend",
     "verify": "bun run quality && bun run build-only && bun run test:ssr && bun run test:dev-ssr && bun run test:otel",
     "quality": "bun run lint && bun run quality:ci",
-    "quality:ci": "bun run format:check && bun run type-check && bun run test:coverage",
+    "quality:ci": "bun run format:check && bun run type-check && bun run test:type-check && bun run test:coverage",
     "lint": "bun --bun oxlint .",
     "format": "bun --bun oxfmt",
     "format:check": "bun --bun oxfmt --check",
-    "type-check": "bun --bun vue-tsc --noEmit -p tsconfig.app.json --composite false && bun --bun vue-tsc --noEmit -p tsconfig.vitest.json --composite false && bun check -p tsconfig.bun.json --composite false",
+    "type-check": "bun --bun tsrs --runExternalCode --noEmit -p tsconfig.app.json --composite false && bun --bun tsrs --runExternalCode --noEmit -p tsconfig.vitest.json --composite false && bun --bun tsrs --noEmit -p tsconfig.bun.json --composite false",
     "test": "bun --bun vitest",
     "test:coverage": "bun --bun vitest run --coverage",
+    "test:type-check": "bun scripts/type-check-smoke.ts",
     "test:ssr": "bun scripts/ssr-smoke.ts",
     "test:dev-ssr": "bun scripts/dev-ssr-smoke.ts",
     "test:otel": "bun scripts/otel-smoke.ts"
@@ -62,11 +63,11 @@
     "happy-dom": "^21.0.4",
     "oxfmt": "^0.77.0",
     "oxlint": "^1.92.0",
-    "typescript": "~6.0.3",
+    "tsrs": "0.24.0-ts7.1.0-beta",
     "unplugin-auto-import": "^21.1.0",
     "unplugin-vue-components": "^32.1.0",
     "vite": "^8.3.6",
     "vitest": "^5.1.0",
-    "vue-tsc": "^3.3.14"
+    "vize": "0.745.0"
   }
 }

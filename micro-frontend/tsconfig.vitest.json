@@ -1,5 +1,6 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "contentMappers": [{ "package": "vize", "extensions": [".vue"] }],
   "include": [
     "env.d.ts",
     "src/**/*",
