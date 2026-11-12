@@ -15,7 +15,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
@@ -156,7 +158,82 @@ class BlogApplicationStartupIntegrationTest {
         assertThat(json.readTree(downstream.content.get()).get("content").asString()).isEmpty();
         assertThat(downstream.traceparent.get()).isNotBlank();
         assertThat(json.readTree(downstream.ticket.get()).get("roomId").asString()).isEqualTo(ticket.get("roomId").asString());
+        verifyDraftRoundTrip(base, principal, blogId, epoch);
         verifyRecycleRoundTrip(base, principal, blogId);
+    }
+
+    private void verifyDraftRoundTrip(String base, String principal, long blogId, String epoch) throws Exception {
+        String markdown = """
+            > Cover: RFI
+
+            ## Week 3
+
+            ### 10.21
+
+            [EU pushes for stronger Arctic presence amid Russian pressure and US uncertainty](https://www.rfi.fr/en/international/20261020-eu-pushes-for-stronger-arctic-presence-amid-russian-pressure-and-us-uncertainty)
+
+            | 汉   | 英           | 英标            |
+            | -- | ----------- | ------------ |
+            """;
+        var payload = new HashMap<String, Object>(Map.of(
+            "id", blogId, "collaborationEpoch", epoch, "title", "", "description", "",
+            "content", markdown, "status", 0, "link", "", "sensitiveContentList", List.of()));
+        String article = base + "/sys/blog/" + blogId;
+        var saved = postJson(article + "/draft", principal, payload);
+        assertThat(saved.statusCode()).as(saved.body()).isEqualTo(200);
+        long revision = json.readTree(saved.body()).get("data").get("draftRevision").asLong();
+        assertEditorText(base, principal, blogId, "", "", markdown);
+
+        var incompleteVersion = postJson(article + "/versions", principal, payload);
+        assertThat(incompleteVersion.statusCode()).as(incompleteVersion.body()).isEqualTo(400);
+        assertThat(json.readTree(incompleteVersion.body()).get("msg").asString()).isEqualTo("title must not be blank");
+
+        payload.put("draftRevision", revision);
+        payload.put("content", "");
+        var cleared = postJson(article + "/draft", principal, payload);
+        assertThat(cleared.statusCode()).as(cleared.body()).isEqualTo(200);
+        long clearedRevision = json.readTree(cleared.body()).get("data").get("draftRevision").asLong();
+        assertThat(clearedRevision).isEqualTo(revision + 1);
+        assertEditorText(base, principal, blogId, "", "", "");
+
+        payload.put("draftRevision", clearedRevision);
+        payload.put("title", "Week 3");
+        payload.put("description", "RFI reading notes");
+        payload.put("content", markdown);
+        var version = postJson(article + "/versions", principal, payload);
+        assertThat(version.statusCode()).as(version.body()).isEqualTo(200);
+        var versionData = json.readTree(version.body()).get("data");
+        long versionId = versionData.get("version").get("id").asLong();
+
+        payload.put("draftRevision", versionData.get("draftRevision").asLong());
+        payload.put("title", "");
+        payload.put("description", " \t\n");
+        var unfinished = postJson(article + "/draft", principal, payload);
+        assertThat(unfinished.statusCode()).as(unfinished.body()).isEqualTo(200);
+        assertEditorText(base, principal, blogId, "", " \t\n", markdown);
+
+        var published = postJson(article + "/publish", principal, Map.of("revisionId", versionId));
+        assertThat(published.statusCode()).as(published.body()).isEqualTo(200);
+    }
+
+    private HttpResponse<String> postJson(String url, String principal, Object body) throws Exception {
+        return client.send(HttpRequest.newBuilder(URI.create(url))
+            .header(InternalHttpHeaders.PRINCIPAL, principal)
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(body)))
+            .timeout(Duration.ofSeconds(5)).build(), HttpResponse.BodyHandlers.ofString());
+    }
+
+    private void assertEditorText(String base, String principal, long blogId,
+        String title, String description, String content) throws Exception {
+        var response = client.send(HttpRequest.newBuilder(URI.create(base + "/sys/blog/edit/pull/echo?blogId=" + blogId))
+            .header(InternalHttpHeaders.PRINCIPAL, principal)
+            .timeout(Duration.ofSeconds(5)).build(), HttpResponse.BodyHandlers.ofString());
+        assertThat(response.statusCode()).as(response.body()).isEqualTo(200);
+        var editor = json.readTree(response.body()).get("data");
+        assertThat(editor.get("title").asString()).isEqualTo(title);
+        assertThat(editor.get("description").asString()).isEqualTo(description);
+        assertThat(editor.get("content").asString()).isEqualTo(content);
     }
 
     private void verifyRecycleRoundTrip(String base, String principal, long blogId) throws Exception {

@@ -1,6 +1,7 @@
 package wiki.chiu.micro.blog.adapter.in.http;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -22,11 +23,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
@@ -36,6 +43,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
+import tools.jackson.databind.json.JsonMapper;
+import wiki.chiu.micro.blog.application.model.BlogDraft;
 import wiki.chiu.micro.blog.application.model.BlogExportPage;
 import wiki.chiu.micro.blog.application.model.BlogExportRow;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
@@ -113,6 +122,72 @@ class BlogControllerTest {
             .andExpect(jsonPath("$.code").value(200));
 
         verify(blogService).saveDraft(anyLong(), any(), anyLong(), anyList());
+    }
+
+    @ParameterizedTest
+    @MethodSource("incompleteBlogText")
+    void draftSavePreservesIncompleteText(String field, String title, String description, String content)
+        throws Exception {
+        mockMvc
+            .perform(post("/sys/blog/7/draft")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(blogBody(title, description, content)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(200));
+
+        var draft = ArgumentCaptor.forClass(BlogDraft.class);
+        verify(blogService).saveDraft(eq(7L), draft.capture(), eq(1L), eq(List.of()));
+        assertEquals(title, draft.getValue().title());
+        assertEquals(description, draft.getValue().description());
+        assertEquals(content, draft.getValue().content());
+        assertEquals(2L, draft.getValue().draftRevision());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"title", "description", "content"})
+    void draftSaveRejectsNullText(String field) throws Exception {
+        mockMvc
+            .perform(post("/sys/blog/7/draft")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(blogBody(
+                    field.equals("title") ? null : "title",
+                    field.equals("description") ? null : "description",
+                    field.equals("content") ? null : "content")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.msg").value(field + " must not be null"));
+
+        verify(blogService, never()).saveDraft(anyLong(), any(), anyLong(), anyList());
+    }
+
+    @ParameterizedTest
+    @MethodSource("incompleteBlogText")
+    void versionSaveRejectsIncompleteText(String field, String title, String description, String content)
+        throws Exception {
+        mockMvc
+            .perform(post("/sys/blog/7/versions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(blogBody(title, description, content)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.msg").value(field + " must not be blank"));
+
+        verify(blogService, never()).saveDraftVersion(anyLong(), any(), anyLong(), anyList());
+    }
+
+    private static Stream<Arguments> incompleteBlogText() {
+        return Stream.concat(
+            Stream.of("title", "description", "content")
+                .flatMap(field -> Stream.of("", " \t\n")
+                    .map(value -> Arguments.of(field,
+                        field.equals("title") ? value : "title",
+                        field.equals("description") ? value : "description",
+                        field.equals("content") ? value : "content"))),
+            Stream.of(Arguments.of("title", "", "", "")));
+    }
+
+    private static String blogBody(String title, String description, String content) {
+        return JsonMapper.builder().build().writeValueAsString(new BlogEntityReq(
+            Optional.of(7L), title, description, content, 0, "", List.of(), 2L,
+            "00000000-0000-0000-0000-000000000001"));
     }
 
     @Test

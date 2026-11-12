@@ -76,7 +76,7 @@ public class BlogHttpHandler {
 
     public ServerResponse saveDraft(ServerRequest request) throws Exception {
         Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
-        BlogEntityReq body = BlogRequestConvertor.toBlogEntityReq(request);
+        BlogEntityReq body = BlogRequestConvertor.toBlogDraftReq(request);
         AuthPrincipal authInfo = authPrincipal(request);
         return ok(
             Result.success(

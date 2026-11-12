@@ -13,9 +13,14 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -276,8 +281,9 @@ class BlogServiceImplTest {
         assertTrue(edit.hasDraft());
     }
 
-    @Test
-    void publishingArchivesAWorkingDraftWhenOnlySensitiveSpansChanged() {
+    @ParameterizedTest
+    @ValueSource(strings = {"title", ""})
+    void publishingArchivesAWorkingDraftIncludingIncompleteText(String draftTitle) {
         BlogQueryStore blogs = mock(BlogQueryStore.class);
         BlogAuthoringReader reader = mock(BlogAuthoringReader.class);
         BlogAuthoringWriter writer = mock(BlogAuthoringWriter.class);
@@ -288,8 +294,9 @@ class BlogServiceImplTest {
                 BlogAccessMode.PUBLIC, 2L, 3L, "00000000-0000-0000-0000-000000000001");
         BlogWorkingDraft draft =
             new BlogWorkingDraft(
-                1L, 7L, 2L, 11L, "title", "description", "content", "",
-                BlogRenderMode.NORMAL, 42L, now, List.of(new BlogSensitiveSpan(1, 2, 1)));
+                1L, 7L, 2L, 11L, draftTitle, "description", "content", "",
+                BlogRenderMode.NORMAL, 42L, now,
+                draftTitle.isEmpty() ? List.of() : List.of(new BlogSensitiveSpan(1, 2, 1)));
         BlogVersion published =
             new BlogVersion(
                 11L, 7L, 1L, BlogRevisionOrigin.PUBLICATION, null,
@@ -316,6 +323,35 @@ class BlogServiceImplTest {
             ArgumentCaptor.forClass(BlogPublishCommand.class);
         verify(writer).publish(command.capture());
         assertEquals(draft, command.getValue().archivedDraft());
+    }
+
+    @ParameterizedTest
+    @MethodSource("incompleteVersions")
+    void publishingRejectsAnIncompleteArchivedVersion(String field, BlogVersion version) {
+        BlogAuthoringReader reader = mock(BlogAuthoringReader.class);
+        BlogAuthoringWriter writer = mock(BlogAuthoringWriter.class);
+        when(reader.findIdentity(7L)).thenReturn(Optional.of(identity(7L, 1L)));
+        when(reader.findVersion(7L, version.id())).thenReturn(Optional.of(version));
+        var service = new BlogServiceImpl(mock(BlogQueryStore.class), mock(BlogRuntimeStore.class),
+            mock(BlogWrapper.class), mock(BlogSearchGateway.class), new BlogAccessPolicy(), reader, writer);
+
+        var error = Assertions.assertThrows(IllegalArgumentException.class,
+            () -> service.publish(7L, version.id(), null, 42L, List.of()));
+
+        assertEquals(field + " must not be blank", error.getMessage());
+        Mockito.verifyNoInteractions(writer);
+    }
+
+    private static Stream<Arguments> incompleteVersions() {
+        return Stream.of("title", "description", "content")
+            .flatMap(field -> Stream.of("", " \t\n", null)
+                .map(value -> Arguments.of(field, new BlogVersion(
+                    12L, 7L, 2L, BlogRevisionOrigin.DRAFT, 11L,
+                    field.equals("title") ? value : "title",
+                    field.equals("description") ? value : "description",
+                    field.equals("content") ? value : "content",
+                    "", BlogRenderMode.NORMAL, null, 42L,
+                    LocalDateTime.of(2026, 11, 1, 10, 0), List.of()))));
     }
 
     @Test

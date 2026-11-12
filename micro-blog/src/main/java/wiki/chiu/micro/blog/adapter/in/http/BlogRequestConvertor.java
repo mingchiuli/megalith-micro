@@ -49,15 +49,30 @@ public final class BlogRequestConvertor {
     }
 
     public static BlogEntityReq toBlogEntityReq(ServerRequest request) throws Exception {
+        return toBlogEntityReq(request, true);
+    }
+
+    public static BlogEntityReq toBlogDraftReq(ServerRequest request) throws Exception {
+        return toBlogEntityReq(request, false);
+    }
+
+    private static BlogEntityReq toBlogEntityReq(ServerRequest request, boolean requireComplete)
+        throws Exception {
         BlogEntityReq req = request.body(BlogEntityReq.class);
 
         v.notNull(req.id(), "id");
         v.notBlank(req.collaborationEpoch(), "collaborationEpoch");
         UUID.fromString(req.collaborationEpoch());
         req.id().ifPresent(id -> v.positive(id, "id"));
-        v.notBlank(req.title(), "title");
-        v.notBlank(req.description(), "description");
-        v.notBlank(req.content(), "content");
+        if (requireComplete) {
+            v.notBlank(req.title(), "title");
+            v.notBlank(req.description(), "description");
+            v.notBlank(req.content(), "content");
+        } else {
+            v.notNull(req.title(), "title");
+            v.notNull(req.description(), "description");
+            v.notNull(req.content(), "content");
+        }
         v.notNull(req.status(), "status");
         v.range(req.status(), 0, 3, "status");
         v.notNull(req.link(), "link");

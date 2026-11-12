@@ -161,6 +161,10 @@ public class BlogServiceImpl implements BlogService {
         BlogVersion selected =
             authoring.findVersion(blogId, revisionId)
                 .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+        // Publishing another version can archive an unfinished working draft.
+        requireNotBlank(selected.title(), "title");
+        requireNotBlank(selected.description(), "description");
+        requireNotBlank(selected.content(), "content");
         BlogVersion latest =
             authoring.findLatestVersion(blogId)
                 .orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
@@ -267,6 +271,12 @@ public class BlogServiceImpl implements BlogService {
             && draft.renderMode() == revision.renderMode()
             && new HashSet<>(draft.sensitiveContent())
                 .equals(new HashSet<>(revision.sensitiveContent()));
+    }
+
+    private static void requireNotBlank(String value, String name) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(name + " must not be blank");
+        }
     }
 
     private static void requireDraftRevision(

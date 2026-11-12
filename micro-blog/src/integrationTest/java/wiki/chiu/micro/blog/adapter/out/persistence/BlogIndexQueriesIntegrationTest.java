@@ -464,7 +464,8 @@ class BlogIndexQueriesIntegrationTest {
                     long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
                     while (jdbc.queryForObject("SELECT COUNT(*) FROM information_schema.INNODB_LOCK_WAITS",
                             Long.class) == 0 && System.nanoTime() < deadline) {
-                        Thread.sleep(20);
+                        // InnoDB refreshes this snapshot only after over 100 ms without reads.
+                        Thread.sleep(200);
                     }
                     assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM information_schema.INNODB_LOCK_WAITS", Long.class))
