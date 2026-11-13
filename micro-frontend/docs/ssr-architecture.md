@@ -5,7 +5,7 @@
 1. The Bun server receives the browser request and creates a request-scoped application.
 2. The incoming `Cookie`, `Accept-Language`, and origin are passed to that application only.
 3. Vue Router resolves the route. Protected routes load the menu and current user before rendering.
-4. Route components run `onServerPrefetch`, call `micro-gateway-rs` over the shared Docker network, and place results in `ssrDataStore`.
+4. Route components run `onServerPrefetch`, call `micro-gateway-rs` using `SSR_API_BASE_URL` (the shared Docker network in production, loopback by default locally), and place results in `ssrDataStore`.
 5. Vue renders HTML; Unhead renders metadata; Pinia state is serialized with `devalue`.
 6. The browser restores that state and hydrates the existing HTML without repeating initial API calls.
 
@@ -41,6 +41,7 @@ On `SIGTERM` or `SIGINT`, readiness changes to 503, `Bun.serve` stops accepting 
 - Authentication redirects are HTTP 302 responses during SSR.
 - HTML responses use `Cache-Control: private, no-store` because they may contain user-specific state.
 - Fingerprinted assets are immutable and cached for one year.
+- Other embedded public assets are cached for one hour. Responses of at least 1 KiB with compressible content types are gzip-compressed when the client accepts gzip; HEAD returns the corresponding headers without a body.
 - Server HTML declares every stylesheet the rendered route needs before the first paint: production expands the rendered modules through the Vite client manifest, development resolves the same set through the Vite module graph. Routes must never depend on JavaScript-injected CSS for their initial paint, otherwise slow connections flash unstyled controls.
 - Initial prefetch failures render the route with its default state and are logged with the route and prefetch key; interactive request failures use the existing Element Plus notification behavior.
 - The standalone executable is compiled with `NODE_ENV=production` so Vue's production build is bundled; a development build rethrows inside its error handler and would terminate the SSR process.
@@ -60,3 +61,6 @@ expiry by reconnecting the same Y.Doc; expiry or denied renewal pauses editing. 
 cookies remain HttpOnly. A changed epoch stores the old content as a recovery copy and loads the
 current article into a separate document. Version 1 local databases are retained, not automatically
 merged. Without IndexedDB, recovery copies remain in memory until the editor is closed.
+
+Autosaves update the server working draft even when its title, description, or content is still
+empty. Explicit version saves and publication require all three fields to be nonblank.

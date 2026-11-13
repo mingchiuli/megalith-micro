@@ -73,10 +73,12 @@ and Spring AOT test compilation. All completed with zero failures.
 ## Reproduce
 
 The benchmark is opt-in so ordinary CI remains independent of developer middleware. Supply local
-credentials through environment variables; do not commit them.
+credentials through environment variables; do not commit them. Use the repository's current
+GraalVM HotSpot JDK to run the current source; the versions and measurements above describe the
+original 2026-08-25 run and have not been remeasured for the current toolchain.
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.2.4+7.1/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.5.5.0.3+1.1/Contents/Home
 CACHE_LOCAL_MIDDLEWARE=true \
 CACHE_LOCAL_REDIS_PASSWORD='<redis-password>' \
 CACHE_LOCAL_RABBIT_USERNAME='<rabbit-username>' \

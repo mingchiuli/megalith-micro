@@ -9,12 +9,12 @@ and GraalVM Native Image.
 | Package | Responsibility |
 | --- | --- |
 | `annotation`, `handler`, `key` | Published API: the `@Cache` annotation, the eviction and key-registry ports, and the cache identity and key-generation contracts. These are the only exported packages. |
-| `application`, `application.model` | Cache entries, eviction payloads, and lock naming shared by the read-through adapter and the eviction transports. |
+| `application`, `application.model` | Cache entries, eviction payloads, lock naming, and the framework-free metrics facade shared by the adapters. |
 | `adapter.in.aop` | Inbound AOP adapter that serves annotated methods from Caffeine L1 and Redis L2. |
 | `adapter.in.messaging` | Inbound listeners that apply broadcast evictions to this replica's local cache. |
 | `adapter.out.eviction`, `adapter.out.key`, `adapter.out.redis` | Outbound exact key deletion and confirmed eviction broadcast, canonical key generation, and the tracked-key registry. |
-| `config` | Auto-configuration, `megalith.cache` properties, transport conditions, and cache contract validation. |
-| `aot`, `metrics` | Native Image reachability hints and Micrometer meters. |
+| `adapter.out.metrics` | Micrometer implementation of the metrics facade. |
+| `config` | Auto-configuration, `megalith.cache` properties, transport conditions, cache contract validation, and Native Image reachability hints. |
 
 Only `annotation`, `handler`, and `key` are part of the published API. A contract version bump is
 required for changing a namespace, version, key, or payload shape; moving internal packages is not.
@@ -26,7 +26,7 @@ Applications declare a stable cache identity independently of Java class and met
 ```java
 @Cache(namespace = "auth-user-access", version = 1, ttl = 30, timeUnit = TimeUnit.MINUTES)
 public UserAccessRpcVo getUserAccess(Long userId) {
-  return userDirectory.findUserAccess(userId);
+    return userDirectory.findUserAccess(userId);
 }
 ```
 
@@ -50,8 +50,9 @@ cacheEvictor.evict(Set.of(cacheKeyFactory.generate(USER_ACCESS, userId)));
 ```
 
 Cached methods must pass through their Spring proxy. `null` is returned but never stored. L1 entries
-receive 90-100% of the annotation TTL at insertion. Promoting an L2 value starts a new local TTL,
-so local entries can remain after the corresponding Redis value expires.
+receive 90-100% of the annotation TTL at insertion with the default `local.ttl-jitter=0.1`.
+Promoting an L2 value starts a new local TTL, so local entries can remain after the corresponding
+Redis value expires.
 
 ## Tracked Keys
 

@@ -24,105 +24,65 @@ separate JVM, JRE, Bun installation, build toolchain, or source tree.
 | --- | --- | --- |
 | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot 4.1.2, GraalVM 25.5 Innovation | GraalVM Native Image executable |
 | `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
-| `micro-frontend` | Bun 1.4.3, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
+| `micro-frontend` | Bun 1.4, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
 MariaDB, Redis, RabbitMQ, Elasticsearch, and the monitoring infrastructure use their standard
 container images.
 
 ## Architecture
 
+The overview shows request routing. Data ownership, event delivery, and monitoring are described
+separately below so each view remains readable on GitHub.
+
 ```mermaid
-graph TD
-    %% Layer Definitions
-    subgraph ClientLayer[Client Layer]
-        Browser["Browser<br/>Vue 3 Hydrated Client"]
-        BrowserDB["Browser IndexedDB<br/>Local Editor Drafts"]
-    end
-    subgraph ExternalLayer[External Layer]
-        Nginx["nginx<br/>Reverse Proxy"]
-    end
-    subgraph FrontendLayer[Frontend Layer]
-        Frontend["micro-frontend<br/>Vue 3 SSR + Client Hydration<br/>Embedded Static Assets"]
-    end
-    subgraph GatewayLayer[Gateway Layer]
-        Gateway["micro-gateway-rs<br/>Origin Checks + Centralized Authorization<br/>Streaming HTTP / WebSocket Proxy"]
-    end
-    subgraph ServiceLayer[Service Layer - Native Executables]
-        Auth["micro-auth<br/>Login + Principal Resolution<br/>Route and Permission Caches"]
-        User["micro-user<br/>User and Permission Management"]
-        Blog["micro-blog<br/>Blog Content Management"]
-        Sync["micro-sync-rs<br/>Stateless Real-Time Collaboration<br/>YRS CRDT + Redis State"]
-        Exhibit["micro-exhibit<br/>Content Presentation + Caching"]
-        Search["micro-search<br/>Full-Text Search + Indexing"]
-    end
-    subgraph StorageLayer[Storage and Middleware Layer]
-        MariaDB["MariaDB<br/>User / Blog Storage"]
-        Redis["Redis<br/>Distributed Cache + Sync State"]
-        RabbitMQ["RabbitMQ<br/>Domain Events"]
-        ES["Elasticsearch<br/>Search + APM Storage"]
-    end
-    subgraph MonitoringLayer[Monitoring Layer - Server]
-        APMServer["APM Server<br/>OpenTelemetry Receiver"]
-    end
-    subgraph LocalMachine[Developer Workstation - Mainland China]
-        Kibana["Kibana - Docker<br/>Monitoring Visualization"]
-        MacWG["WireGuard - macOS Host<br/>VPN IP: 172.16.0.2"]
-        WSClient["wstunnel Client - Docker<br/>WireGuard UDP over WSS"]
-    end
-    subgraph RemoteAccess[Remote Access - Canada Server]
-        WSServer["wstunnel Server - Docker<br/>WSS / TCP 8443 + TLS Termination"]
-        ServerWG["WireGuard - Linux Host<br/>VPN IP: 172.16.0.1"]
-    end
+flowchart TB
+    Browser["Browser<br/>Vue hydration + local drafts"]
+    Nginx["nginx"]
+    Frontend["micro-frontend<br/>SSR + static assets"]
+    Gateway["micro-gateway-rs<br/>HTTP / WebSocket proxy"]
+    Auth["micro-auth<br/>Authorization + routing"]
+    APIs["Business HTTP APIs<br/>micro-user<br/>micro-blog<br/>micro-exhibit<br/>micro-search"]
+    Sync["micro-sync-rs<br/>Collaborative editing"]
 
-    %% Page requests use SSR; browser API calls bypass the frontend server.
-    Browser <-->|Local Draft Persistence| BrowserDB
-    Browser -->|Page / Asset / API / WS Requests| Nginx
-    Nginx -->|Page Routes + Static Assets| Frontend
-    Nginx -->|/api HTTP + /wsapi WS| Gateway
-    Frontend -->|SSR Prefetch HTTP<br/>Internal Network| Gateway
-    Gateway -->|Single HTTP/WS Auth + Route Resolution| Auth
-    Gateway -->|HTTP| User
-    Gateway -->|HTTP| Blog
-    Gateway -->|WS| Sync
-    Gateway -->|HTTP| Exhibit
-    Gateway -->|HTTP| Search
-
-    %% Business dependencies.
-    User -->|Domain Data + Outbox Rows| MariaDB
-    Blog -->|Domain Data + Outbox Rows| MariaDB
-    Exhibit -->|Fetch Data| User
-    Exhibit -->|Fetch Data| Blog
-    Auth -->|Batch Snapshot Misses| User
-    Search --> ES
-    Blog -->|Query IDs + Batched Read Counts| Search
-    Search -->|Maintenance Snapshots| Blog
-    Search -->|Maintenance Task Locks| Redis
-
-    %% Durable events and distributed caches.
-    User -->|Outbox Poll + Confirmed Publish| RabbitMQ
-    Blog -->|Outbox Poll + Confirmed Publish| RabbitMQ
-    RabbitMQ -->|AuthCacheEvictMessage<br/>Exact Cache Eviction| Auth
-    RabbitMQ -->|UserDeletedMessage<br/>Delete Owned Blogs| Blog
-    RabbitMQ -->|BlogChangedMessage<br/>Recycle Metadata| Blog
-    RabbitMQ -->|BlogChangedMessage<br/>Exact Cache Eviction| Exhibit
-    RabbitMQ -->|BlogChangedMessage<br/>Index Update| Search
-    Auth -->|L2 Cache| Redis
-    Exhibit -->|L2 Cache| Redis
-    Sync <-->|Replica Coordination<br/>Event Streams / Snapshots<br/>Presence / Leases / Compaction| Redis
-
-    %% Observability.
-    Frontend & User & Blog & Auth & Exhibit & Search & Sync & Gateway -->|OTel Traces / Metrics / Logs| APMServer
-    APMServer --> ES
-    Kibana <-->|HTTPS to 172.16.0.1:9200| MacWG
-    MacWG <-->|Local WireGuard UDP| WSClient
-    WSClient <-->|Cross-Border WSS / TCP 8443| WSServer
-    WSServer <-->|Local WireGuard UDP| ServerWG
-    ServerWG <-->|VPN-Only Elasticsearch Access| ES
+    Browser --> Nginx
+    Nginx -->|Pages / assets| Frontend
+    Nginx -->|/api · /wsapi| Gateway
+    Frontend -->|SSR prefetch| Gateway
+    Gateway -.->|Authorize once| Auth
+    Gateway -->|HTTP| APIs
+    Gateway -->|WebSocket| Sync
 ```
 
 Public application traffic enters through nginx. The Rust gateway proxies HTTP and WebSocket requests,
 calls `micro-auth` once for authorization and route resolution, and passes a trusted principal to
 the target service. Business services use that principal for identity and permission checks.
+
+### Data and service dependencies
+
+| Resource | Owners / clients | Responsibility |
+| --- | --- | --- |
+| MariaDB | `micro-user`, `micro-blog` | User and blog domain data, working drafts, immutable revisions, and transactional outbox rows |
+| Redis | Auth, blog, exhibit, search, and sync services | Tokens and caches, blog runtime state, existence indexes, distributed task locks, and collaboration Streams/state |
+| RabbitMQ | User/blog outbox publishers and event consumers | Confirmed domain-event delivery and cache-invalidation broadcasts |
+| Elasticsearch | `micro-search`, APM Server | Public/admin/revision search projections and observability storage |
+
+`micro-exhibit` reads public articles and recommendations from `micro-search`, gets author details
+from `micro-user`, and calls `micro-blog` for visit counting and existence-index scans. `micro-blog`
+uses `micro-search` for search/list projections and batched read-count updates. Search maintenance
+reads authoritative snapshots from `micro-blog`. Auth cache misses fetch user/permission snapshots
+from `micro-user`; collaboration tickets also use fresh authorization reads.
+
+### Monitoring
+
+```mermaid
+flowchart LR
+    Services["Java / Rust / Bun services"] -->|OTLP| APM["APM Server"]
+    APM --> ES["Elasticsearch"]
+    Kibana["Kibana"] -->|Query over VPN| ES
+```
+
+All application services export correlated OpenTelemetry traces, metrics, and logs. Browser traffic
+is observed at the gateway; the browser does not export directly to the private APM endpoint.
 
 ### Remote administration: WireGuard over WSS
 
@@ -151,46 +111,32 @@ dedicated consumers for authorization caches, search indexing, presentation cach
 content cleanup.
 
 ```mermaid
-flowchart LR
-    subgraph Producers[Transactional Producers]
-        UserWrite["micro-user<br/>Transactional Write Adapter"]
-        UserOutbox[("m_outbox_event<br/>producer = USER")]
-        BlogWrite["micro-blog<br/>Transactional Write Adapter"]
-        BlogOutbox[("m_outbox_event<br/>producer = BLOG")]
-        UserWrite -->|Domain Writes + Event Row| UserOutbox
-        BlogWrite -->|Domain Writes + Event Row| BlogOutbox
-    end
+flowchart TB
+    UserOutbox["micro-user<br/>Domain writes + USER outbox"]
+    Auth["micro-auth<br/>Cache eviction"]
+    Delete["micro-blog<br/>User-deletion cleanup"]
+    BlogOutbox["micro-blog<br/>Domain writes + BLOG outbox"]
+    Search["micro-search<br/>Search projections"]
+    Exhibit["micro-exhibit<br/>Cache eviction"]
+    Recycle["micro-blog<br/>Recycle metadata"]
 
-    subgraph Exchanges[RabbitMQ Durable Fanout Exchanges]
-        AuthExchange["user.auth.menu.change.fanout.exchange<br/>AuthCacheEvictMessage"]
-        DeletedExchange["user.deleted.fanout.exchange<br/>UserDeletedMessage"]
-        BlogExchange["blog.change.fanout.exchange<br/>BlogChangedMessage"]
-        AdminExchange["blog.admin.change.fanout.exchange<br/>BlogAdminIndexMessage"]
-    end
-
-    subgraph Queues[Durable Consumer Queues]
-        AuthQueue["user.auth.menu.change.queue.auth<br/>micro-auth: exact auth-cache eviction"]
-        DeletedQueue["user.deleted.queue.blog<br/>micro-blog: delete blogs by user ID"]
-        SearchQueue["blog.change.queue.es<br/>micro-search: update Elasticsearch"]
-        AdminQueue["blog.admin.change.queue.es<br/>micro-search: admin/version projections"]
-        CacheQueue["blog.change.queue.cache<br/>micro-exhibit: exact cache eviction"]
-        RecycleQueue["blog.change.queue.recycle<br/>micro-blog: retain recycle metadata"]
-    end
-
-    UserOutbox -->|"Poll by eventType<br/>Publisher Confirm"| AuthExchange
-    UserOutbox -->|"eventType = UserDeletedMessage<br/>Publisher Confirm"| DeletedExchange
-    BlogOutbox -->|"Poll + Publisher Confirm"| BlogExchange
-    BlogOutbox -->|"Poll + Publisher Confirm"| AdminExchange
-
-    AuthExchange --> AuthQueue
-    DeletedExchange --> DeletedQueue
-    BlogExchange --> SearchQueue
-    AdminExchange --> AdminQueue
-    BlogExchange --> CacheQueue
-    BlogExchange --> RecycleQueue
-
-    DeletedQueue -->|Cascade Delete + New BlogChangedMessage Rows| BlogOutbox
+    UserOutbox -->|AuthCacheEvictMessage| Auth
+    UserOutbox -->|UserDeletedMessage| Delete
+    Delete -->|Writes + outbox| BlogOutbox
+    BlogOutbox -->|"BlogChangedMessage<br/>BlogAdminIndexMessage"| Search
+    BlogOutbox -->|BlogChangedMessage| Exhibit
+    BlogOutbox -->|BlogChangedMessage| Recycle
 ```
+
+Event arrows represent outbox publication and RabbitMQ delivery, with publisher confirms at each
+publication boundary. The durable fanout exchanges and consumer queues are:
+
+| Event | Exchange | Queues |
+| --- | --- | --- |
+| `AuthCacheEvictMessage` | `user.auth.menu.change.fanout.exchange` | `user.auth.menu.change.queue.auth` |
+| `UserDeletedMessage` | `user.deleted.fanout.exchange` | `user.deleted.queue.blog` |
+| `BlogChangedMessage` | `blog.change.fanout.exchange` | `blog.change.queue.es`, `blog.change.queue.cache`, `blog.change.queue.recycle` |
+| `BlogAdminIndexMessage` | `blog.admin.change.fanout.exchange` | `blog.admin.change.queue.es` |
 
 | Event | Producer | Consumer | Responsibility |
 | --- | --- | --- | --- |
@@ -261,11 +207,12 @@ replica to serve any room without sticky sessions or a dedicated room owner.
 | `common-messaging`, `common-outbox` | Consumer retries, dead-letter queues, and the transactional outbox |
 | `common-scheduling`, `common-export` | Distributed scheduler locks and export utilities |
 
-Every shared module lives under the `wiki.chiu.micro.common.<module>` root package, so
+Shared infrastructure modules use dedicated roots under `wiki.chiu.micro.common`, so
 `common-messaging`, `common-scheduling`, and `common-outbox` own `wiki.chiu.micro.common.messaging`,
 `wiki.chiu.micro.common.scheduling`, and `wiki.chiu.micro.common.outbox` respectively. `common-outbox`
 follows the same `domain`, `application`, `adapter.in.*`, `adapter.out.*`, and `config` layering as
-the applications. `common-contract` groups its contracts by kind, one package per kind: `result`
+the applications. `common-auth-web` uses `wiki.chiu.micro.common.auth.web`. `common-contract`
+groups its contracts directly under `wiki.chiu.micro.common` by kind, one package per kind: `result`
 for response envelopes, `error` for error codes, `exception` for the runtime exception types that
 carry them, `message` for outbox payloads, `model` for cross-service projections, `enums` for
 shared domain enumerations, `constant` for shared constants, `page` for the paging envelope,
@@ -356,9 +303,11 @@ JavaScript and client-side storage.
 The administration editor combines Yjs real-time collaboration with local and server draft
 persistence. Document changes synchronize with `micro-sync-rs` over WebSocket and merge through the
 CRDT. IndexedDB buffers offline changes, while `m_blog_draft` stores the current server-side working
-copy. Explicit draft saves create immutable rows in `m_blog_revision`; publishing moves the blog's
-published revision pointer without modifying history. The version page compares the selected
-version with its immediate predecessor. The application layer prepares the current identity,
+copy. Autosaves accept incomplete titles, descriptions, and content; explicit version saves and
+publication require all three fields to be nonblank. Version saves create immutable rows in
+`m_blog_revision`; publishing moves the blog's published revision pointer without modifying history.
+The version page compares the selected version with its immediate predecessor. The application layer
+prepares the current identity,
 working draft, published revision, and next revision number before a short persistence transaction;
 conditional revision checks reject competing saves without querying inside the write transaction.
 
@@ -419,17 +368,17 @@ authentication, caching, observability, failure behavior, and deployment details
 - **Correlated observability:** Java, Rust, and Bun services propagate trace context and export
   OpenTelemetry traces, metrics, and logs to the monitoring infrastructure.
 
-### Upgrading collaboration and rebuilding search
+### Collaboration compatibility and search rebuilds
 
-This upgrade changes ticket payloads, authorization deadlines, room names, and draft-write contracts.
-Use a coordinated maintenance window rather than mixing old and new replicas:
+Changes to ticket payloads, authorization deadlines, room names, or draft-write contracts require
+a coordinated maintenance window when old and new replicas are incompatible:
 
 1. Ask active editors to retain/export uncommitted work. Stop new traffic and close old gateway
    WebSockets. Stop all blog writers, including user-deletion consumers, before replacing services.
 2. The one-time `collaboration_epoch` startup migration has been retired after rollout. Existing
    databases must already contain the non-null UUID column; startup no longer alters or backfills it.
    A fresh database is created normally by Hibernate, and the application assigns epochs to new articles.
-   Do not clear Redis or IndexedDB: new rooms use new epochs; legacy local drafts remain available as recovery
+   Do not clear Redis or IndexedDB: room names isolate collaboration epochs; legacy local drafts remain available as recovery
    copies and old Redis rooms expire under their existing retention policy.
 3. Deploy auth, blog, sync, gateway, and frontend together. The deployment workflow sets
    `MEGALITH_BLOG_SYNC_URL=http://micro-sync-rs:8089` for blog containers; set the same value for manual deployments. The sync initialization route
@@ -454,9 +403,9 @@ validating all three indexes, including a dataset containing unpublished drafts.
 
 - GraalVM 25.5.5.0.3 innovation release for JDK 25 using the HotSpot JVM, not the
   Espresso JVM
-- Gradle 9.8.2 through the included Wrapper
+- Gradle 9.9.0 through the included Wrapper
 - Rust stable with 2024 edition support
-- Bun 1.4.3
+- Bun 1.4.3 for workspace development and CI; the frontend Docker builder currently uses 1.4.4
 - Docker for OCI image builds
 
 Example on macOS:
@@ -469,7 +418,9 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.5.5.0.3+1.1/Conten
 
 ```bash
 ./gradlew build
-./gradlew :micro-blog:integrationTest :micro-search:integrationTest :cache:integrationTest
+# Docker is required for these separate Testcontainers suites.
+./gradlew :micro-user:integrationTest :micro-blog:integrationTest \
+  :micro-exhibit:integrationTest :micro-search:integrationTest :cache:integrationTest
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
@@ -480,7 +431,8 @@ bun install --frozen-lockfile
 bun run frontend:check
 ```
 
-Java checks cover unit tests, ArchUnit boundaries, Spring AOT processing, and integration tests.
+`./gradlew build` covers unit tests, ArchUnit boundaries, and Spring test AOT processing.
+The separate `integrationTest` tasks above are not attached to `build` or `check`.
 The blog startup integration test boots the real application with MariaDB, Redis, and RabbitMQ, then
 checks health, draft creation, collaboration initialization, and outbound trace propagation. It runs
 in the Java CI quality gate before publishing images. To smoke-test the actual Native Image as well:
@@ -519,7 +471,7 @@ are written to `target/release/`; the frontend executable is written to
 
 ### Application Images
 
-Spring Boot Buildpacks package each Java service as a GraalVM Native Image container. Set
+Spring Boot Buildpacks build and publish each Java service as a GraalVM Native Image container. Set
 `DOCKER_USERNAME` and `DOCKER_PWD` before running the task:
 
 ```bash

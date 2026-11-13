@@ -7,11 +7,12 @@ this file records the implementation constraints that are easy to miss.
 ## Toolchain
 
 - Java 25 (GraalVM 25.5 Innovation HotSpot), Spring Boot 4.1.2, Hibernate ORM
-  7.4.10.Final, Redisson 4.8.0, and Caffeine.
-- Gradle 9.8.2 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
+  enhancer plugin 7.4.15.Final, Redisson 4.8.0, and Caffeine. Runtime dependencies use the
+  Spring Boot BOM; the Hibernate plugin version is pinned separately in `build.gradle.kts`.
+- Gradle 9.9.0 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
 - Rust 2024 for `micro-gateway-rs` and `micro-sync-rs`.
 - Bun 1.4.3, Vue 3, and Vite for the standalone `micro-frontend` service; `tsrs` with the
-  Vize content mapper checks TypeScript and Vue types.
+  Vize content mapper checks TypeScript and Vue types. The frontend Docker builder uses Bun 1.4.4.
 
 `JAVA_HOME` must point to a GraalVM HotSpot JDK, not the Espresso JVM. On macOS, for example:
 
@@ -24,6 +25,9 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.5.5.0.3+1.1/Conten
 ```bash
 ./gradlew build
 ./gradlew :micro-auth:test
+# Separate Testcontainers suites; requires Docker, not included in build/check.
+./gradlew :micro-user:integrationTest :micro-blog:integrationTest \
+  :micro-exhibit:integrationTest :micro-search:integrationTest :cache:integrationTest
 ./gradlew :micro-auth:nativeCompile
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
@@ -129,12 +133,13 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
     Inbound adapters call `RoomManager` rather than the concrete store. `micro-gateway-rs` remains a
     transport-oriented edge service: authentication belongs to `client`, no-I/O forwarding rules
     belong to `proxy`, and handlers/middleware coordinate them without an artificial domain layer.
-15. **Common module packages.** Every shared module uses `wiki.chiu.micro.common.<module>` as its
-    root package, so `common-messaging` owns `wiki.chiu.micro.common.messaging`,
+15. **Common module packages.** Shared infrastructure modules use dedicated roots under
+    `wiki.chiu.micro.common`, so `common-messaging` owns `wiki.chiu.micro.common.messaging`,
     `common-scheduling` owns `wiki.chiu.micro.common.scheduling`, and `common-outbox` owns
     `wiki.chiu.micro.common.outbox`. `common-outbox` mirrors the application layout with `domain`,
     `application`, `adapter.in.actuator`, `adapter.out.persistence.repository`, and `config`.
-    `common-contract` groups contracts by kind, one package per kind: `result` for response
+    `common-auth-web` uses `wiki.chiu.micro.common.auth.web`. `common-contract` groups contracts
+    directly under `wiki.chiu.micro.common` by kind, one package per kind: `result` for response
     envelopes, `error` for error codes, `exception` for the runtime exception types that carry
     them, `message` for outbox payloads, `model` for cross-service projections, `enums` for shared
     domain enumerations, `constant` for shared constants, `page` for the paging envelope,
