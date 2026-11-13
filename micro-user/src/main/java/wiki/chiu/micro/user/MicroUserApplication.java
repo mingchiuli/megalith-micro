@@ -11,8 +11,6 @@ import org.springframework.web.service.registry.ImportHttpServices;
 import wiki.chiu.micro.common.rpc.OssHttpService;
 import wiki.chiu.micro.user.config.CustomRuntimeHints;
 
-// An explicit @EntityScan/@EnableJpaRepositories replaces (not merges) default base-package
-// scanning, so future entity/repository packages under this app must be listed here too.
 @SpringBootApplication(proxyBeanMethods = false)
 @EntityScan(basePackages = {"wiki.chiu.micro.user", "wiki.chiu.micro.common.outbox"})
 @EnableJpaRepositories(basePackages = {"wiki.chiu.micro.user", "wiki.chiu.micro.common.outbox"})
