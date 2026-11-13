@@ -40,6 +40,8 @@ on:
       - 'bun.lock'
       - '.dockerignore'
       - '.github/workflows/main-services.yml'
+      # Keep exclusions after positive patterns; module documentation is not deployable input.
+      - '!**/*.md'
   workflow_dispatch:
     inputs:
       services:
@@ -152,6 +154,9 @@ jobs:
 
             while IFS= read -r file; do
               case "$file" in
+                *.md)
+                  continue
+                  ;;
                 .github/workflows/main-services.yml)
                   add_all
                   ;;
