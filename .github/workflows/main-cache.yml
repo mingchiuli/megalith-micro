@@ -8,6 +8,10 @@ concurrency:
   group: cache-maven-central-release
   cancel-in-progress: false
 
+defaults:
+  run:
+    working-directory: .github
+
 permissions:
   contents: read
 
@@ -27,56 +31,15 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       - name: Resolve release version
         id: release_version
-        shell: bash
-        run: |
-          set -euo pipefail
-          TAG="$GITHUB_REF_NAME"
-          VERSION="${TAG#cache-v}"
-          if [[ "$TAG" == "$VERSION" || ! "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-            echo "Tag must use cache-v<major>.<minor>.<patch> with no leading zeroes." >&2
-            exit 1
-          fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        run: python3 -m scripts.cache_release resolve-version
       - name: Verify release order
-        shell: bash
         env:
           CACHE_VERSION: ${{ steps.release_version.outputs.version }}
-        run: |
-          set -euo pipefail
-          METADATA_URL="https://repo1.maven.org/maven2/wiki/chiu/megalith/megalith-cache-spring-boot-starter/maven-metadata.xml"
-          METADATA_FILE="$RUNNER_TEMP/megalith-cache-maven-metadata.xml"
-          if ! HTTP_STATUS="$(
-            curl --silent --show-error --output "$METADATA_FILE" --write-out '%{http_code}' "$METADATA_URL"
-          )"; then
-            echo "Could not read Maven Central metadata." >&2
-            exit 1
-          fi
-          if [[ "$HTTP_STATUS" == "404" ]]; then
-            if [[ "$CACHE_VERSION" != "0.1.0" ]]; then
-              echo "The first release of the new artifact must be 0.1.0, not $CACHE_VERSION." >&2
-              exit 1
-            fi
-            echo "No existing artifact metadata found; allowing initial 0.1.0 release."
-            exit 0
-          fi
-          if [[ "$HTTP_STATUS" != "200" ]]; then
-            echo "Maven Central metadata request returned HTTP $HTTP_STATUS." >&2
-            exit 1
-          fi
-          LATEST_VERSION="$(sed -n 's:.*<release>\([^<]*\)</release>.*:\1:p' "$METADATA_FILE")"
-          if [[ ! "$LATEST_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-            echo "Maven Central returned an invalid latest version: $LATEST_VERSION" >&2
-            exit 1
-          fi
-          HIGHEST_VERSION="$(printf '%s\n%s\n' "$LATEST_VERSION" "$CACHE_VERSION" | sort --version-sort | tail -n 1)"
-          if [[ "$CACHE_VERSION" == "$LATEST_VERSION" || "$HIGHEST_VERSION" != "$CACHE_VERSION" ]]; then
-            echo "Release $CACHE_VERSION must be greater than Maven Central version $LATEST_VERSION." >&2
-            exit 1
-          fi
+        run: python3 -m scripts.cache_release verify-order
       - name: Check
         env:
           CACHE_VERSION: ${{ steps.release_version.outputs.version }}
-        run: ./gradlew :cache:check :cache:integrationTest -PcacheVersion="$CACHE_VERSION"
+        run: python3 -m scripts.cache_release check
       - name: Publish
         env:
           CACHE_VERSION: ${{ steps.release_version.outputs.version }}
@@ -84,16 +47,10 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
-        run: ./gradlew :cache:publishMavenJavaPublicationToCentralStagingRepository -PcacheVersion="$CACHE_VERSION"
+        run: python3 -m scripts.cache_release publish
       - name: Finalize and release
         env:
           CENTRAL_NAMESPACE: ${{ vars.SONATYPE_NAMESPACE || 'wiki.chiu' }}
           CENTRAL_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           CENTRAL_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: |
-          set -euo pipefail
-          AUTH_TOKEN="$(printf '%s:%s' "$CENTRAL_USERNAME" "$CENTRAL_PASSWORD" | base64 | tr -d '\n')"
-          echo "::add-mask::$AUTH_TOKEN"
-          curl --fail-with-body --silent --show-error --request POST \
-            --header "Authorization: Bearer $AUTH_TOKEN" \
-            "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/$CENTRAL_NAMESPACE?publishing_type=automatic"
+        run: python3 -m scripts.cache_release finalize
