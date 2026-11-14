@@ -11,7 +11,7 @@ this file records the implementation constraints that are easy to miss.
   Spring Boot BOM; the Hibernate plugin version is pinned separately in `build.gradle.kts`.
 - Gradle 9.9.0 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
 - Rust 2024 for `micro-gateway-rs` and `micro-sync-rs`.
-- Bun 1.4.3, Vue 3, and Vite for the standalone `micro-frontend` service; `tsrs` with the
+- Bun 1.4.4, Vue 3, and Vite for the standalone `micro-frontend` service; `tsrs` with the
   Vize content mapper checks TypeScript and Vue types. The frontend Docker builder uses Bun 1.4.4.
 
 `JAVA_HOME` must point to a GraalVM HotSpot JDK, not the Espresso JVM. On macOS, for example:

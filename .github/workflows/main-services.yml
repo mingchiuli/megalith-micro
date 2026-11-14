@@ -149,7 +149,7 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.3
+          bun-version: 1.4.4
       - name: Install dependencies
         run: python3 -m scripts.checks frontend-install
       - name: Run Oxlint
@@ -244,7 +244,7 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.3
+          bun-version: 1.4.4
       - name: Install dependencies
         run: python3 -m scripts.checks frontend-install
       - name: Build and smoke test

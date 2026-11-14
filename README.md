@@ -405,7 +405,7 @@ validating all three indexes, including a dataset containing unpublished drafts.
   Espresso JVM
 - Gradle 9.9.0 through the included Wrapper
 - Rust stable with 2024 edition support
-- Bun 1.4.3 for workspace development and CI; the frontend Docker builder currently uses 1.4.4
+- Bun 1.4.4 for workspace development, CI, and the frontend Docker builder
 - Docker for OCI image builds
 
 Example on macOS:
