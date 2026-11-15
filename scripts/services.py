@@ -66,9 +66,7 @@ def services_for_paths(paths: Iterable[str]) -> set[str]:
     for path in paths:
         if path.endswith(".md"):
             continue
-        if path == ".github/workflows/main-services.yml" or path.startswith(
-            ".github/scripts/"
-        ):
+        if path == ".github/workflows/main-services.yml" or path.startswith("scripts/"):
             selected.update(SERVICE_ORDER)
         elif path.startswith("micro-frontend/") or path in {"package.json", "bun.lock"}:
             selected.add(FRONTEND)

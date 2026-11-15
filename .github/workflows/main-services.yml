@@ -40,7 +40,7 @@ on:
       - 'bun.lock'
       - '.dockerignore'
       - '.github/workflows/main-services.yml'
-      - '.github/scripts/**'
+      - 'scripts/**'
       # Keep exclusions after positive patterns; module documentation is not deployable input.
       - '!**/*.md'
   workflow_dispatch:
@@ -49,10 +49,6 @@ on:
         description: 'Space-separated services to deploy, or all'
         required: false
         default: 'all'
-
-defaults:
-  run:
-    working-directory: .github
 
 permissions:
   contents: read

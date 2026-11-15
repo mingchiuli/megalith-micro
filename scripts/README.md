@@ -3,15 +3,14 @@
 The workflows keep job dependencies, matrices, actions, and secrets in YAML. All
 `run` steps call these Python entry points, which use only the standard library:
 
-Run them as modules from `.github`, for example:
+Run them as modules from the repository root, for example:
 
 ```bash
-cd .github
 python3 -m scripts.checks java
 ```
 
-Both workflows set this working directory for `run` steps. Build commands still
-run from the repository root; relative imports need no editor-specific configuration.
+Both workflows use the repository root as the working directory for `run` steps.
+Relative imports need no editor-specific configuration.
 
 | Script | Responsibility |
 | --- | --- |
@@ -21,7 +20,7 @@ run from the repository root; relative imports need no editor-specific configura
 | `wireguard.py` | Temporary runner VPN setup and cleanup |
 | `deploy.py` | Compose deployment, health checks, image cleanup, and nginx reload |
 
-Changes under `.github/scripts/` trigger the service workflow and select all services, except
+Changes under `scripts/` trigger the service workflow and select all services, except
 Markdown-only changes. Missing previous commits after rewritten history also
 select all services.
 

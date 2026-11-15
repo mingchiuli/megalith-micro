@@ -490,7 +490,7 @@ CI runs the checks for each language, including Java AOT validation and Redis-ba
 tests, before building release images. Services are published independently and deployed in
 dependency order, with the frontend following the gateway.
 
-GitHub Actions commands live in [`.github/scripts`](.github/scripts/README.md). The runner and
+GitHub Actions commands live in [`scripts`](scripts/README.md). The runner and
 SSH deployment host require Python 3.9+; application container images do not need Python.
 
 ### Development

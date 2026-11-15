@@ -8,10 +8,6 @@ concurrency:
   group: cache-maven-central-release
   cancel-in-progress: false
 
-defaults:
-  run:
-    working-directory: .github
-
 permissions:
   contents: read
 
