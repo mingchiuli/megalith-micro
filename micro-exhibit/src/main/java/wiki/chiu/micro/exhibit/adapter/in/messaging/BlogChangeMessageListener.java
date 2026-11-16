@@ -10,32 +10,32 @@ import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
 import wiki.chiu.micro.exhibit.application.model.BlogChange;
-import wiki.chiu.micro.exhibit.application.port.in.BlogChangeEviction;
+import wiki.chiu.micro.exhibit.application.port.in.BlogChangeMaintenance;
 
 /**
  * @author mingchiuli
  * @create 2021-12-13 11:38 AM
  */
 @Component
-public class BlogRedisCacheEvictMessageListener {
+public class BlogChangeMessageListener {
 
-    private final BlogChangeEviction blogChangeEviction;
+    private final BlogChangeMaintenance blogChangeMaintenance;
     private final RetryingMessageRecoverer recoverer;
 
-    public BlogRedisCacheEvictMessageListener(
-        BlogChangeEviction blogChangeEviction, RetryingMessageRecoverer recoverer) {
-        this.blogChangeEviction = blogChangeEviction;
+    public BlogChangeMessageListener(
+        BlogChangeMaintenance blogChangeMaintenance, RetryingMessageRecoverer recoverer) {
+        this.blogChangeMaintenance = blogChangeMaintenance;
         this.recoverer = recoverer;
     }
 
     @RabbitListener(
-        queues = Const.CACHE_QUEUE,
+        queues = Const.EXHIBIT_STATE_QUEUE,
         concurrency = "10",
         messageConverter = "jsonMessageConverter",
         executor = "mqExecutor")
     public void handler(BlogChangedMessage message, Channel channel, Message msg) {
         try {
-            blogChangeEviction.apply(new BlogChange(
+            blogChangeMaintenance.apply(new BlogChange(
                 message.blogSnapshot().id(), BlogOperateEnum.of(message.operation()),
                 message.revision(), message.blogSnapshot().status()));
             channel.basicAck(msg.getMessageProperties().getDeliveryTag(), false);

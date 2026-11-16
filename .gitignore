@@ -16,7 +16,6 @@ __pycache__/
 node_modules
 */target
 target
-.luarc.json
 */.DS_Store
 .DS_Store
 

@@ -516,7 +516,8 @@ class BlogIndexQueriesIntegrationTest {
                 .containsExactly(new BlogSensitiveSpan(1, 3, 3));
             assertThat(outbox.count()).isEqualTo(2);
             assertThatThrownBy(() -> transaction.executeWithoutResult(status -> writer.recoverDeletedBlog(deleted, event)))
-                .isInstanceOf(RuntimeException.class);
+                .isInstanceOf(wiki.chiu.micro.common.exception.BaseException.class)
+                .hasMessage("blog already restored: 700");
             assertThat(revisions.count()).isEqualTo(1);
             assertThat(spans.count()).isEqualTo(1);
             assertThat(outbox.count()).isEqualTo(2);

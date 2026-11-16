@@ -7,7 +7,18 @@ from .services import JAVA_SERVICES
 
 COMMANDS = {
     "java": (("./gradlew", "check"),),
-    "java-integration": (("./gradlew", ":micro-blog:integrationTest"),),
+    "java-integration": (
+        (
+            "./gradlew",
+            ":micro-auth:integrationTest",
+            ":micro-user:integrationTest",
+            ":micro-blog:integrationTest",
+            ":micro-exhibit:integrationTest",
+            ":micro-search:integrationTest",
+            ":cache:integrationTest",
+        ),
+    ),
+    "scripts": (("python3", "-m", "unittest", "discover", "-s", "scripts/tests"),),
     "rust-fmt": (("cargo", "fmt", "--all", "--", "--check"),),
     "rust-clippy": (
         ("cargo", "clippy", "--workspace", "--all-targets", "--", "-D", "warnings"),
@@ -27,7 +38,7 @@ COMMANDS = {
     "frontend-install": (("bun", "install", "--frozen-lockfile"),),
     "frontend-lint": (("bun", "run", "--filter", "megalith-frontend", "lint"),),
     "frontend-quality": (
-        ("bun", "run", "--filter", "megalith-frontend", "quality:ci"),
+        ("bun", "run", "frontend:check"),
     ),
     "frontend-build": (
         ("bun", "run", "frontend:build"),

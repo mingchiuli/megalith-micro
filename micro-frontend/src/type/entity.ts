@@ -35,7 +35,7 @@ export interface BlogSys {
 
 export interface BlogDelSys {
   id: number
-  idx: number
+  recoveryId: string
   userId: number
   title: string
   description: string
@@ -224,11 +224,6 @@ export interface AiModel {
   capabilities?: string[]
 }
 
-export interface Hot {
-  id: number
-  title: string
-  readCount: number
-}
 export interface PageAdapter<T> {
   content: T[]
   pageSize: number

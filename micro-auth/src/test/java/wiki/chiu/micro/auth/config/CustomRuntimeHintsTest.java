@@ -81,15 +81,16 @@ class CustomRuntimeHintsTest {
         RuntimeHints hints = new RuntimeHints();
         new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
 
-        assertThat(RuntimeHintsPredicates.resource().forResource("script/email-phone.lua").test(hints))
-            .as("Resource hints for email-phone.lua")
+        assertThat(RuntimeHintsPredicates.resource().forResource("script/verify-login-code.lua").test(hints))
+            .as("Resource hints for verify-login-code.lua")
             .isTrue();
-        assertThat(RuntimeHintsPredicates.resource().forResource("script/hmset-expire.lua").test(hints))
-            .as("Resource hints for hmset-expire.lua")
+        assertThat(RuntimeHintsPredicates.resource().forResource("script/reserve-login-code.lua").test(hints))
+            .as("Resource hints for reserve-login-code.lua")
             .isTrue();
         assertThat(RuntimeHintsPredicates.resource().forResource("script/multi-pfadd.lua").test(hints))
             .as("Resource hints for multi-pfadd.lua")
             .isTrue();
+        assertThat(RuntimeHintsPredicates.resource().forResource("script/cancel-login-code.lua").test(hints)).isTrue();
         assertThat(RuntimeHintsPredicates.resource().forResource("script/password.lua").test(hints))
             .as("Resource hints for password.lua")
             .isTrue();

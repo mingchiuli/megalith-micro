@@ -13,7 +13,7 @@ public record BlogDeleteVo(
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime created,
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime updated,
     Integer status,
-    Integer idx,
+    String recoveryId,
     String link,
     Long readCount) {
 
@@ -30,7 +30,7 @@ public record BlogDeleteVo(
         private LocalDateTime created;
         private LocalDateTime updated;
         private Integer status;
-        private Integer idx;
+        private String recoveryId;
         private String link;
         private Long readCount;
 
@@ -74,8 +74,8 @@ public record BlogDeleteVo(
             return this;
         }
 
-        public BlogDeleteVoBuilder idx(Integer idx) {
-            this.idx = idx;
+        public BlogDeleteVoBuilder recoveryId(String recoveryId) {
+            this.recoveryId = recoveryId;
             return this;
         }
 
@@ -91,7 +91,7 @@ public record BlogDeleteVo(
 
         public BlogDeleteVo build() {
             return new BlogDeleteVo(
-                id, userId, title, description, content, created, updated, status, idx, link, readCount);
+                id, userId, title, description, content, created, updated, status, recoveryId, link, readCount);
         }
     }
 }

@@ -85,7 +85,6 @@ declare module 'vue' {
     ElTreeSelect: typeof import('element-plus/es')['ElTreeSelect']
     ElUpload: typeof import('element-plus/es')['ElUpload']
     HeaderTabsItem: typeof import('./src/components/sys/HeaderTabsItem.vue')['default']
-    HotItem: typeof import('./src/components/HotItem.vue')['default']
     InfiniteMenuItem: typeof import('./src/components/sys/InfiniteMenuItem.vue')['default']
     InfiniteScrollFooter: typeof import('./src/components/InfiniteScrollFooter.vue')['default']
     LocaleSwitcher: typeof import('./src/components/LocaleSwitcher.vue')['default']

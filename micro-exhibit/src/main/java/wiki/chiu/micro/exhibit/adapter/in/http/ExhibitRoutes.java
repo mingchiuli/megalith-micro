@@ -26,7 +26,6 @@ public class ExhibitRoutes {
                 .GET("/public/blog/info/{blogId}", handler::getBlogDetail)
                 .POST("/public/blog/secret/{blogId}", handler::getLockedBlog)
                 .GET("/public/blog/stat", handler::getVisitStatistics)
-                .GET("/public/blog/scores", handler::getScoreBlogs)
                 .GET("/public/blog/recommendations", handler::getRecommendationFeed),
             log)
             .build();

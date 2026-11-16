@@ -48,7 +48,6 @@ const BLOG_PUBLIC_API = {
   // 消费阅读密码并获取博客
   READ_SECRET_BLOG: (id: number | string) => `/public/blog/secret/${id}`,
   // 获取热门博客排行
-  GET_HOT_BLOGS: '/public/blog/scores',
   GET_RECOMMENDATIONS: '/public/blog/recommendations',
   // 获取博客访问统计
   GET_BLOG_STAT: '/public/blog/stat'
@@ -84,7 +83,7 @@ const BLOG_ADMIN_API = {
   OFFLINE: (id: number) => `/sys/blog/${id}/offline`,
   ONLINE: (id: number) => `/sys/blog/${id}/online`,
   // 恢复已删除的博客
-  RECOVER_BLOG: (idx: number) => `/sys/blog/recover/${idx}`
+  RECOVER_BLOG: (recoveryId: string) => `/sys/blog/recover/${recoveryId}`
 }
 
 // 用户管理API

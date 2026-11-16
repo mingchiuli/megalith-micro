@@ -35,6 +35,4 @@ public interface SearchHttpService {
     Result<RecommendationFeedRpcVo> recommendationFeed(
         @RequestParam(required = false) String cursor, @RequestParam Integer size);
 
-    @GetExchange("/blog/public/recommendations/head")
-    Result<List<PublicBlogRpcVo>> recommendationHead(@RequestParam Integer size);
 }

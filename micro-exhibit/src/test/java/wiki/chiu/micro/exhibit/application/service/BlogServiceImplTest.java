@@ -7,15 +7,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.exhibit.adapter.out.composite.BlogWrapper;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
-import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.port.out.ExhibitMetrics;
 
 class BlogServiceImplTest {
@@ -55,14 +52,4 @@ class BlogServiceImplTest {
         verify(blogWrapper, never()).findById(7L);
     }
 
-    @Test
-    void scoreBlogsUsesTheSharedRecommendationRanking() {
-        when(blogWrapper.hotBlogs(5))
-            .thenReturn(List.of(new BlogHotRead(7L, "Popular", 100L)));
-
-        assertEquals(
-            List.of(new BlogHotRead(7L, "Popular", 100L)),
-            service.getScoreBlogs());
-        verify(blogWrapper).hotBlogs(5);
-    }
 }

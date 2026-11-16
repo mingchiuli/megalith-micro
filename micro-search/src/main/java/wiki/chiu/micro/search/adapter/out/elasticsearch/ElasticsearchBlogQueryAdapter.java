@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.jspecify.annotations.NonNull;
 import org.springframework.data.elasticsearch.ResourceNotFoundException;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
@@ -131,19 +131,6 @@ public final class ElasticsearchBlogQueryAdapter implements BlogSearchIndex {
             }
             throw failure;
         }
-    }
-
-    @Override
-    public List<PublicBlogRead> recommendationHead(int limit) {
-        NativeQuery query =
-            BlogSearchQueryFactory.recommendation(Instant.now(), null, limit);
-        SearchHits<@NonNull BlogDocument> hits =
-            elasticsearchTemplate.search(
-                query, BlogDocument.class, IndexCoordinates.of(indexName));
-        return hits.getSearchHits().stream()
-            .limit(limit)
-            .map(hit -> BlogDocumentMapper.publicRead(hit.getContent()))
-            .toList();
     }
 
     @Override

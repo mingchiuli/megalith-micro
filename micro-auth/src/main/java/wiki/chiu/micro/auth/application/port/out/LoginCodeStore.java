@@ -5,9 +5,9 @@ package wiki.chiu.micro.auth.application.port.out;
  */
 public interface LoginCodeStore {
 
-    boolean exists(LoginChannel channel, String principal);
+    boolean reserve(LoginChannel channel, String principal, String code, String reservation);
 
-    void save(LoginChannel channel, String principal, String code);
+    void cancel(LoginChannel channel, String principal, String reservation);
 
     /**
      * Compares a presented code with the stored one and consumes it when it matches.

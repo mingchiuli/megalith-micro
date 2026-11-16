@@ -3,7 +3,7 @@ package wiki.chiu.micro.blog.application.model;
 import java.time.LocalDateTime;
 
 /**
- * A blog in the recycle bin, numbered by its position in the list.
+ * A blog in the recycle bin, identified by its stable recovery identifier.
  */
 public record DeletedBlogItem(
     Long id,
@@ -14,7 +14,7 @@ public record DeletedBlogItem(
     LocalDateTime created,
     LocalDateTime updated,
     Integer status,
-    Integer idx,
+    String recoveryId,
     String link,
     Long readCount) {
 }

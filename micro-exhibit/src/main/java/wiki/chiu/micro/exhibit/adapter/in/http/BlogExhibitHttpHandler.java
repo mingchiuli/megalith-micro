@@ -49,10 +49,6 @@ public class BlogExhibitHttpHandler {
         return ok(Result.success(() -> ExhibitResponseMapper.toVo(blogService.getVisitStatistics())));
     }
 
-    public ServerResponse getScoreBlogs(ServerRequest request) {
-        return ok(Result.success(() -> ExhibitResponseMapper.toHotReadVos(blogService.getScoreBlogs())));
-    }
-
     public ServerResponse getRecommendationFeed(ServerRequest request) {
         String cursor =
             nullableParam(

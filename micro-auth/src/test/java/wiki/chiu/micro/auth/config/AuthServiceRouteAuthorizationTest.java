@@ -124,6 +124,7 @@ class AuthServiceRouteAuthorizationTest {
             authService.authorizeRoute(route("GET", "/sys/blog/42/versions/7/compare"), null);
 
         assertEquals("blog", decision.serviceHost());
+        assertEquals("/sys/blog/*/versions/*/compare", decision.routePattern());
         assertThrows(
             MissException.class,
             () -> authService.authorizeRoute(route("GET", "/sys/blog/42/versions/7"), null));

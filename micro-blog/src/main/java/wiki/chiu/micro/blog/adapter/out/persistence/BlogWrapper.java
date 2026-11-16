@@ -85,9 +85,14 @@ public class BlogWrapper implements BlogWriter {
         BlogEntity identity = new BlogEntity(
             blog.id(), blog.userId(), blog.created(), blog.readCount(), null, null, null,
             accessMode, safeRevision(blog.eventRevision()), recoveredAdminRevision);
-        blogs.insertRecovered(
-            identity.getId(), identity.getUserId(), identity.getCreated(), identity.getReadCount(),
-            identity.getAccessMode(), identity.getPublicationRevision(), identity.getAdminRevision(), identity.getCollaborationEpoch());
+        try {
+            blogs.insertRecovered(
+                identity.getId(), identity.getUserId(), identity.getCreated(), identity.getReadCount(),
+                identity.getAccessMode(), identity.getPublicationRevision(), identity.getAdminRevision(), identity.getCollaborationEpoch());
+        } catch (org.springframework.dao.DataIntegrityViolationException failure) {
+            throw new BaseException(CommonErrorCode.CONFLICT, "blog already restored: " + blog.id());
+        }
+
         BlogRevisionEntity revision =
             revisions.save(
                 new BlogRevisionEntity(

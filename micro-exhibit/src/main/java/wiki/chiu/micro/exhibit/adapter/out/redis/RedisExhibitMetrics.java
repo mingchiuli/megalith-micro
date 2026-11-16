@@ -1,7 +1,6 @@
 package wiki.chiu.micro.exhibit.adapter.out.redis;
 
 import static wiki.chiu.micro.common.constant.Const.DAY_VISIT;
-import static wiki.chiu.micro.common.constant.Const.HOT_READ;
 import static wiki.chiu.micro.common.constant.Const.MONTH_VISIT;
 import static wiki.chiu.micro.common.constant.Const.READ_TOKEN;
 import static wiki.chiu.micro.common.constant.Const.WEEK_VISIT;
@@ -20,7 +19,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
-import wiki.chiu.micro.exhibit.application.model.BlogScore;
 import wiki.chiu.micro.exhibit.application.port.out.ExhibitMetrics;
 
 @Component
@@ -65,17 +63,6 @@ public class RedisExhibitMetrics implements ExhibitMetrics {
                 visitScript,
                 ReturnType.LIST,
                 List.of(DAY_VISIT, WEEK_VISIT, MONTH_VISIT, YEAR_VISIT));
-    }
-
-    @Override
-    public List<BlogScore> topReadBlogs(int limit) {
-        return redisson.<String>getScoredSortedSet(HOT_READ).entryRangeReversed(0, limit - 1).stream()
-            .map(
-                entry ->
-                    new BlogScore(
-                        Long.valueOf(entry.getValue()),
-                        entry.getScore() == null ? 0L : entry.getScore().longValue()))
-            .toList();
     }
 
     private String readScript(String name) throws IOException {

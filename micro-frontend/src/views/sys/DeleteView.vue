@@ -62,7 +62,7 @@ const handleSizeChange = async (val: number) => {
 const handleResume = async (row: BlogDelSys) => {
   loading.value = true
   try {
-    await POST<null>(API_ENDPOINTS.BLOG_ADMIN.RECOVER_BLOG(row.idx), {})
+    await POST<null>(API_ENDPOINTS.BLOG_ADMIN.RECOVER_BLOG(row.recoveryId), {})
   } finally {
     loading.value = false
   }

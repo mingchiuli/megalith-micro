@@ -29,9 +29,6 @@ pub async fn handle(
     uri: Uri,
     mut req: Request<Body>,
 ) -> impl IntoResponse {
-    // Record metrics
-    HTTP_REQUESTS.add(1, &[KeyValue::new("path", uri.path().to_string())]);
-
     let Some(route) = req.extensions().get::<AuthorizedRoute>().cloned() else {
         return HandlerError::new(
             hyper::StatusCode::INTERNAL_SERVER_ERROR,
@@ -39,6 +36,11 @@ pub async fn handle(
         )
         .into_response();
     };
+
+    HTTP_REQUESTS.add(
+        1,
+        &[KeyValue::new("path", route.route_pattern().to_owned())],
+    );
 
     // 检查是否是 WebSocket 请求
     if is_websocket_request(&req) {

@@ -31,9 +31,6 @@ public class SearchRoutes {
                 .GET(
                     "/inner/blog/public/recommendations/feed",
                     internalHandler::recommendationFeed)
-                .GET(
-                    "/inner/blog/public/recommendations/head",
-                    internalHandler::recommendationHead)
                 .GET("/inner/blog/public/{blogId}", internalHandler::publicBlog)
                 .POST("/inner/blog/views/batch", internalHandler::updateReadCounts),
             log)

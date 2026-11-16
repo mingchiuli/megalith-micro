@@ -34,7 +34,6 @@ dependencies {
     implementation(project(":common-auth-web"))
     implementation(project(":common-observability"))
     implementation(project(":common-messaging"))
-    implementation(project(":cache"))
     implementation("io.micrometer:micrometer-core")
     implementation("org.redisson:redisson")
     add(

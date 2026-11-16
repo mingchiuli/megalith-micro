@@ -272,9 +272,12 @@ public class BlogHttpHandler {
     }
 
     public ServerResponse recoverDeletedBlog(ServerRequest request) {
-        Integer idx = v.nonNegative(pathVariable(request, "idx", Integer::valueOf), "idx");
+        String recoveryId = request.pathVariable("recoveryId");
+        if (!recoveryId.matches("[0-9a-f]{64}")) {
+            throw new IllegalArgumentException("invalid recoveryId");
+        }
         AuthPrincipal authInfo = authPrincipal(request);
-        return ok(Result.success(() -> blogService.recoverDeletedBlog(idx, authInfo.userId())));
+        return ok(Result.success(() -> blogService.recoverDeletedBlog(recoveryId, authInfo.userId())));
     }
 
     public ServerResponse uploadOss(ServerRequest request) {

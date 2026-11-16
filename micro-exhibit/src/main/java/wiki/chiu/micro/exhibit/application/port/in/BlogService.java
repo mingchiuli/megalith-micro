@@ -4,7 +4,6 @@ import java.util.List;
 
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
-import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 
@@ -17,8 +16,6 @@ public interface BlogService {
     BlogExhibit getLockedBlog(Long blogId, String token);
 
     VisitStatistics getVisitStatistics();
-
-    List<BlogHotRead> getScoreBlogs();
 
     RecommendationFeed findRecommendationFeed(String cursor);
 

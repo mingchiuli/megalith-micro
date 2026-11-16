@@ -8,9 +8,13 @@ import static wiki.chiu.micro.common.constant.Const.RECYCLE_EVENT_PREFIX;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,7 +27,6 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
-import org.springframework.util.StringUtils;
 import tools.jackson.databind.json.JsonMapper;
 
 import wiki.chiu.micro.blog.application.model.DeletedBlogEntry;
@@ -71,44 +74,53 @@ public class RedisBlogRuntimeStore implements BlogRuntimeStore {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public DeletedBlogPage deletedBlogs(
         Long userId, Integer currentPage, Integer size, LocalDateTime expirationCutoff) {
-        String key = QUERY_DELETED + userId;
-        List<String> stored = redis.opsForList().range(key, 0, -1);
-        List<Blog> all =
-            Optional.ofNullable(stored).orElseGet(Collections::emptyList).stream()
-                .map(this::deserialize)
-                .toList();
-        if (all.isEmpty()) {
-            return new DeletedBlogPage(0, List.of(), 0);
-        }
-
-        int expiredCount =
-            (int) all.stream().filter(blog -> expirationCutoff.isAfter(blog.updated())).count();
-        int start = (currentPage - 1) * size;
-        List<String> result =
-            redis.execute(
-                RedisScript.of(listDeleteScript, List.class),
-                Collections.singletonList(key),
-                String.valueOf(expiredCount),
-                "-1",
-                String.valueOf(size - 1),
-                String.valueOf(start));
-        List<Blog> blogs =
-            result.subList(0, result.size() - 1).stream().map(this::deserialize).toList();
-        return new DeletedBlogPage(expiredCount, blogs, Long.parseLong(result.getLast()));
+        List<DeletedBlogEntry> live = liveEntries(userId, expirationCutoff);
+        long start = (long) (currentPage - 1) * size;
+        int from = (int) Math.min(start, live.size());
+        int to = (int) Math.min(start + size, live.size());
+        return new DeletedBlogPage(List.copyOf(live.subList(from, to)), live.size());
     }
 
     @Override
-    public Optional<DeletedBlogEntry> deletedBlog(Long userId, Integer index) {
-        String stored = redis.opsForList().index(QUERY_DELETED + userId, index);
-        if (!StringUtils.hasLength(stored)) {
-            return Optional.empty();
+    public Optional<DeletedBlogEntry> deletedBlog(
+        Long userId, String recoveryId, LocalDateTime expirationCutoff) {
+        return liveEntries(userId, expirationCutoff).stream()
+            .filter(entry -> entry.recoveryId().equals(recoveryId))
+            .findFirst()
+            .map(entry -> new DeletedBlogEntry(
+                entry.blog().withEventRevision(
+                    Optional.ofNullable(entry.blog().eventRevision()).orElse(0L) + 1),
+                entry.receipt(), entry.recoveryId()));
+    }
+
+    private List<DeletedBlogEntry> liveEntries(Long userId, LocalDateTime cutoff) {
+        List<String> stored = redis.opsForList().range(QUERY_DELETED + userId, 0, -1);
+        List<DeletedBlogEntry> live = new ArrayList<>();
+        List<String> expired = new ArrayList<>();
+        for (String receipt : Optional.ofNullable(stored).orElseGet(List::of)) {
+            Blog blog = deserialize(receipt);
+            if (cutoff.isAfter(blog.updated())) {
+                expired.add(receipt);
+            } else {
+                live.add(new DeletedBlogEntry(blog, receipt, recoveryId(receipt)));
+            }
         }
-        Blog deleted = jsonMapper.readValue(stored, Blog.class);
-        long nextRevision = Optional.ofNullable(deleted.eventRevision()).orElse(0L) + 1;
-        return Optional.of(new DeletedBlogEntry(deleted.withEventRevision(nextRevision), stored));
+        if (!expired.isEmpty()) {
+            redis.execute(RedisScript.of(listDeleteScript, Long.class),
+                List.of(QUERY_DELETED + userId), expired.toArray());
+        }
+        return live;
+    }
+
+    private static String recoveryId(String receipt) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                .digest(receipt.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 unavailable", exception);
+        }
     }
 
     @Override

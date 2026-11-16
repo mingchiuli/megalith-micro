@@ -14,13 +14,13 @@ import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
 public class BlogRetryRabbitConfig {
 
     @Bean
-    Declarables cacheRetryTopology() {
-        return RetryTopology.forQueue(Const.CACHE_QUEUE);
+    Declarables blogStateRetryTopology() {
+        return RetryTopology.forQueue(Const.EXHIBIT_STATE_QUEUE);
     }
 
     @Bean
-    RetryingMessageRecoverer cacheMessageRecoverer(
+    RetryingMessageRecoverer blogStateMessageRecoverer(
         @Qualifier("rabbitTemplate") RabbitTemplate rabbitTemplate) {
-        return new RetryingMessageRecoverer(rabbitTemplate, Const.CACHE_QUEUE);
+        return new RetryingMessageRecoverer(rabbitTemplate, Const.EXHIBIT_STATE_QUEUE);
     }
 }

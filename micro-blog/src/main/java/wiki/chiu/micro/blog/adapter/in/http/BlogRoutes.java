@@ -41,7 +41,7 @@ public class BlogRoutes {
                 .POST("/sys/blog/lock/{blogId}", blogHandler::setBlogToken)
                 .GET("/sys/blog/blogs", blogHandler::getAllBlogs)
                 .GET("/sys/blog/deleted", blogHandler::getDeletedBlogs)
-                .POST("/sys/blog/recover/{idx}", blogHandler::recoverDeletedBlog)
+                .POST("/sys/blog/recover/{recoveryId}", blogHandler::recoverDeletedBlog)
                 .POST("/sys/blog/oss/upload", blogHandler::uploadOss)
                 .DELETE("/sys/blog/oss/delete", blogHandler::deleteOss)
                 .GET("/sys/blog/download", blogHandler::download)

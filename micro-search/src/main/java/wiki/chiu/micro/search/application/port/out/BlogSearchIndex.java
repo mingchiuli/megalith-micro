@@ -1,11 +1,10 @@
 package wiki.chiu.micro.search.application.port.out;
 
-import java.util.List;
 import java.util.Optional;
 
-import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.AdminBlogRead;
 import wiki.chiu.micro.search.application.model.AdminRevisionRead;
+import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogRead;
@@ -21,8 +20,6 @@ public interface BlogSearchIndex {
     Optional<PublicBlogRead> findPublic(long blogId);
 
     RecommendationFeed recommendationFeed(RecommendationFeedQuery query);
-
-    List<PublicBlogRead> recommendationHead(int limit);
 
     Page<AdminBlogRead> searchAdmin(PrivateBlogSearchQuery query);
 

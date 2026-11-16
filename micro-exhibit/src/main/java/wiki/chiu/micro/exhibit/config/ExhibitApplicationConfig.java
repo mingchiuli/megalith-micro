@@ -7,11 +7,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import wiki.chiu.micro.exhibit.application.port.in.BlogChangeEviction;
+import wiki.chiu.micro.exhibit.application.port.in.BlogChangeMaintenance;
 import wiki.chiu.micro.exhibit.application.port.in.BlogExistenceService;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
 import wiki.chiu.micro.exhibit.application.port.in.VisitStatisticsMaintenance;
-import wiki.chiu.micro.exhibit.application.port.out.BlogCacheInvalidation;
 import wiki.chiu.micro.exhibit.application.port.out.BlogCatalog;
 import wiki.chiu.micro.exhibit.application.port.out.BlogEventRevisionGuard;
 import wiki.chiu.micro.exhibit.application.port.out.BlogExistenceStore;
@@ -20,13 +19,13 @@ import wiki.chiu.micro.exhibit.application.port.out.BlogReader;
 import wiki.chiu.micro.exhibit.application.port.out.ExhibitMetrics;
 import wiki.chiu.micro.exhibit.application.port.out.ExistenceIndexMetrics;
 import wiki.chiu.micro.exhibit.application.port.out.VisitStatisticsStore;
-import wiki.chiu.micro.exhibit.application.service.BlogChangeEvictionHandler;
-import wiki.chiu.micro.exhibit.application.service.BlogChangeEvictionServiceImpl;
+import wiki.chiu.micro.exhibit.application.service.BlogChangeMaintenanceHandler;
+import wiki.chiu.micro.exhibit.application.service.BlogChangeMaintenanceServiceImpl;
 import wiki.chiu.micro.exhibit.application.service.BlogExistenceServiceImpl;
 import wiki.chiu.micro.exhibit.application.service.BlogServiceImpl;
-import wiki.chiu.micro.exhibit.application.service.CreateBlogChangeEvictionHandler;
-import wiki.chiu.micro.exhibit.application.service.DeleteBlogChangeEvictionHandler;
-import wiki.chiu.micro.exhibit.application.service.UpdateBlogChangeEvictionHandler;
+import wiki.chiu.micro.exhibit.application.service.CreateBlogChangeMaintenanceHandler;
+import wiki.chiu.micro.exhibit.application.service.DeleteBlogChangeMaintenanceHandler;
+import wiki.chiu.micro.exhibit.application.service.UpdateBlogChangeMaintenanceHandler;
 import wiki.chiu.micro.exhibit.application.service.VisitStatisticsMaintenanceService;
 
 /**
@@ -58,34 +57,31 @@ public class ExhibitApplicationConfig {
     }
 
     @Bean
-    CreateBlogChangeEvictionHandler createBlogChangeEvictionHandler(
+    CreateBlogChangeMaintenanceHandler createBlogChangeMaintenanceHandler(
         BlogEventRevisionGuard revisionGuard,
-        BlogCacheInvalidation cacheInvalidation,
         BlogExistenceStore existence) {
-        return new CreateBlogChangeEvictionHandler(revisionGuard, cacheInvalidation, existence);
+        return new CreateBlogChangeMaintenanceHandler(revisionGuard, existence);
     }
 
     @Bean
-    UpdateBlogChangeEvictionHandler updateBlogChangeEvictionHandler(
+    UpdateBlogChangeMaintenanceHandler updateBlogChangeMaintenanceHandler(
         BlogEventRevisionGuard revisionGuard,
-        BlogCacheInvalidation cacheInvalidation,
         BlogReadStateStore readStateStore) {
-        return new UpdateBlogChangeEvictionHandler(
-            revisionGuard, cacheInvalidation, readStateStore);
+        return new UpdateBlogChangeMaintenanceHandler(
+            revisionGuard, readStateStore);
     }
 
     @Bean
-    DeleteBlogChangeEvictionHandler deleteBlogChangeEvictionHandler(
+    DeleteBlogChangeMaintenanceHandler deleteBlogChangeMaintenanceHandler(
         BlogEventRevisionGuard revisionGuard,
-        BlogCacheInvalidation cacheInvalidation,
         BlogReadStateStore readStateStore,
         BlogExistenceStore existence) {
-        return new DeleteBlogChangeEvictionHandler(
-            revisionGuard, cacheInvalidation, readStateStore, existence);
+        return new DeleteBlogChangeMaintenanceHandler(
+            revisionGuard, readStateStore, existence);
     }
 
     @Bean
-    BlogChangeEviction blogChangeEviction(List<BlogChangeEvictionHandler> handlers) {
-        return new BlogChangeEvictionServiceImpl(handlers);
+    BlogChangeMaintenance blogChangeMaintenance(List<BlogChangeMaintenanceHandler> handlers) {
+        return new BlogChangeMaintenanceServiceImpl(handlers);
     }
 }

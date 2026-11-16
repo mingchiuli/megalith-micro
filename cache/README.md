@@ -68,17 +68,16 @@ cacheEvictor.evict(cacheKeyRegistry.registeredKeys(new CacheDescriptor("blog-pag
 ```
 
 `CacheKeyRegistry` is exposed in the public `handler` package. The registry stores exact keys in
-`megalith:cache:keys:<namespace>:v<version>`. Tracked L1 misses acquire the existing distributed key
+`megalith:cache:key-leases:v2:<namespace>:v<version>`. Tracked L1 misses acquire the existing distributed key
 lock and register before reading L2 or the source, keeping registration and promotion ordered with
 eviction. L1 hits require no extra Redis call. Registry, remote-read, or remote-lock failures fall
 back to the source without caching an untracked local value.
 
-Directory membership survives normal TTL expiry and explicit eviction because other replicas may
-still retain local values or refill a key. A newly registered key whose first load fails or returns
-null is removed under the same lock. Successful registrations are retained for that contract version;
-applications should evict large snapshots in bounded batches and retry the complete snapshot after
-a partial failure. Directories for retired versions can be removed after all old replicas and values
-are gone. Bump the contract version when first enabling tracking on an existing cache.
+Directory membership survives explicit eviction and L2 expiry while another replica may still
+retain an L1 value. Successful reads renew a bounded lease; expired registrations are pruned.
+A newly registered key whose first load fails or returns null is removed under the same lock.
+Applications should evict large snapshots in bounded batches and retry the complete snapshot after
+a partial failure. Bump the contract version when first enabling tracking on an existing cache.
 
 After complete Redis data loss, restart all application replicas using tracked caches to clear L1.
 If only a directory was lost, stop those replicas and invalidate the exact remaining L2 keys for
@@ -199,3 +198,24 @@ RabbitMQ fanout across two local-cache replicas.
 For the opt-in test against already-running local middleware, including latency distributions,
 single-flight, TTL, load-versus-eviction ordering, cleanup, and interpretation, see
 [BENCHMARK.md](BENCHMARK.md).
+
+## Tracked-key lifecycle
+
+The built-in registry stores expiring leases under
+`megalith:cache:key-leases:v2:<namespace>:v<version>`, separate from the retired permanent Sets.
+The aspect registers before loading and renews only a live lease before cache creation or L2-to-L1
+promotion. A lease lasts twice the annotation TTL and never shortens an existing deadline. Tracked
+L2 writes use an absolute deadline, and L1 lifetimes are bounded using a monotonic clock, so a late
+load or unavailable registry cannot create an untracked entry. Loading failures remove only a new
+registration; other replicas' existing leases remain intact.
+
+Expired registrations are excluded from enumeration and pruned in batches of 256 every minute.
+The entire registry key expires after its last lease, including when its owning process stops.
+The legacy `register` method creates a bounded 30-minute registration (60-minute lease); integrations
+with cached values should implement/use the TTL-aware `registerLease` and `renewLease` methods.
+Custom registries without lease support bypass tracked caching rather than risk unsafe eviction.
+
+When upgrading an application that already uses tracked caches, stop all old replicas and allow
+their maximum L1/L2 TTL to expire before starting the new version. Do not mix old permanent-registry
+replicas with lease-registry replicas. The old `megalith:cache:keys:<namespace>:v<version>` Sets can
+then be deleted for those retired contracts; this library never deletes them automatically.

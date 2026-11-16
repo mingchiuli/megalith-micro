@@ -7,29 +7,29 @@ import java.util.stream.Collectors;
 
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.exhibit.application.model.BlogChange;
-import wiki.chiu.micro.exhibit.application.port.in.BlogChangeEviction;
+import wiki.chiu.micro.exhibit.application.port.in.BlogChangeMaintenance;
 
-public class BlogChangeEvictionServiceImpl implements BlogChangeEviction {
+public class BlogChangeMaintenanceServiceImpl implements BlogChangeMaintenance {
 
-    private final Map<BlogOperateEnum, BlogChangeEvictionHandler> handlers;
+    private final Map<BlogOperateEnum, BlogChangeMaintenanceHandler> handlers;
 
-    public BlogChangeEvictionServiceImpl(List<BlogChangeEvictionHandler> handlers) {
+    public BlogChangeMaintenanceServiceImpl(List<BlogChangeMaintenanceHandler> handlers) {
         this.handlers =
             handlers.stream()
                 .collect(
                     Collectors.toUnmodifiableMap(
-                        BlogChangeEvictionHandler::operation,
+                        BlogChangeMaintenanceHandler::operation,
                         Function.identity(),
                         (left, _) -> {
                             throw new IllegalStateException(
-                                "Duplicate blog change eviction handler for " + left.operation());
+                                "Duplicate blog change maintenance handler for " + left.operation());
                         }));
     }
 
     @Override
     public void apply(BlogChange change) {
         BlogOperateEnum operation = change.operation();
-        BlogChangeEvictionHandler handler = handlers.get(operation);
+        BlogChangeMaintenanceHandler handler = handlers.get(operation);
         if (handler == null) {
             throw new IllegalArgumentException("Unsupported operation: " + operation);
         }

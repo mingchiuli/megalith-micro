@@ -25,7 +25,6 @@ import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
-import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
 import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
@@ -104,13 +103,8 @@ class BlogControllerTest {
     }
 
     @Test
-    void getScoreBlogsReturnsList() throws Exception {
-        when(blogService.getScoreBlogs()).thenReturn(List.of(new BlogHotRead(1L, "t", 10L)));
-
-        mockMvc
-            .perform(get("/public/blog/scores"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data[0].id").value(1));
+    void retiredRankingEndpointIsNotExposed() throws Exception {
+        mockMvc.perform(get("/public/blog/scores")).andExpect(status().isNotFound());
     }
 
     @Test

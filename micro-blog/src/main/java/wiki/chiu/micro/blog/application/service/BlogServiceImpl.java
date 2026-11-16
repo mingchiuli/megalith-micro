@@ -364,14 +364,10 @@ public class BlogServiceImpl implements BlogService {
         DeletedBlogPage deleted =
             runtimeStore.deletedBlogs(
                 userId, currentPage, size, LocalDateTime.now().minusDays(RECYCLE_RETENTION_DAYS));
-        if (deleted.blogs().isEmpty()) {
-            return Page.emptyPage();
-        }
-
         int totalPages = (int) (deleted.total() % size == 0 ? deleted.total() / size : deleted.total() / size + 1);
         List<DeletedBlogItem> content = new ArrayList<>();
-        int index = deleted.expiredCount();
-        for (Blog item : deleted.blogs()) {
+        for (DeletedBlogEntry entry : deleted.entries()) {
+            Blog item = entry.blog();
             content.add(
                 new DeletedBlogItem(
                     item.id(),
@@ -382,7 +378,7 @@ public class BlogServiceImpl implements BlogService {
                     item.created(),
                     item.updated(),
                     item.status(),
-                    index++,
+                    entry.recoveryId(),
                     item.link(),
                     item.readCount()));
         }
@@ -393,17 +389,16 @@ public class BlogServiceImpl implements BlogService {
             currentPage,
             size,
             currentPage == 1,
-            currentPage == totalPages,
-            deleted.total() == 0,
+            deleted.total() == 0 || currentPage >= totalPages,
+            content.isEmpty(),
             totalPages);
     }
 
     @Override
-    public void recoverDeletedBlog(Integer idx, Long userId) {
-        DeletedBlogEntry deleted = runtimeStore.deletedBlog(userId, idx).orElse(null);
-        if (deleted == null) {
-            return;
-        }
+    public void recoverDeletedBlog(String recoveryId, Long userId) {
+        DeletedBlogEntry deleted = runtimeStore.deletedBlog(
+            userId, recoveryId, LocalDateTime.now().minusDays(RECYCLE_RETENTION_DAYS))
+            .orElseThrow(() -> new MissException(wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND));
         blogWrapper.recoverDeletedBlog(
             deleted.blog(), new BlogEventContext(BlogOperateEnum.CREATE, userId));
         runtimeStore.removeDeletedBlog(userId, deleted.receipt());

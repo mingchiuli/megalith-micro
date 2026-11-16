@@ -47,7 +47,7 @@ public final class BlogViewMapper {
 
     public static BlogDeleteVo toDeletedVo(DeletedBlogItem blog) {
         return BlogDeleteVo.builder()
-            .idx(blog.idx())
+            .recoveryId(blog.recoveryId())
             .link(blog.link())
             .content(blog.content())
             .readCount(blog.readCount())

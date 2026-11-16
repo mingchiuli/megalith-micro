@@ -34,3 +34,9 @@ Workflow inputs and credentials are passed through environment variables. Build
 tools run as argument lists, and any failed command stops its step. Deployments
 remain sequential, wait for container health, and remove temporary Compose
 overrides even when a deployment fails.
+
+Pull requests use their base/head merge base for change selection, falling back to all services when
+commits are unavailable. PRs run quality checks only; image publication and deployment jobs reject
+PR events. Java quality checks include auth, user, blog, exhibit, search, and cache integration tests.
+Frontend quality runs the full `frontend:check`, including SSR builds and smoke tests. Workflow
+selection/guard tests run through `python3 -m unittest discover -s scripts/tests`.

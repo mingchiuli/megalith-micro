@@ -388,7 +388,7 @@ class BlogControllerTest {
                 null,
                 null,
                 1,
-                3,
+                "a".repeat(64),
                 "link",
                 5L);
         Page<DeletedBlogItem> page =
@@ -399,16 +399,16 @@ class BlogControllerTest {
             .perform(get("/sys/blog/deleted").param("currentPage", "1").param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.content[0].id").value(7))
-            .andExpect(jsonPath("$.data.content[0].idx").value(3))
+            .andExpect(jsonPath("$.data.content[0].recoveryId").value("a".repeat(64)))
             .andExpect(jsonPath("$.data.empty").value(false));
     }
 
     @Test
     void recoverDeletedBlogReturnsSuccess() throws Exception {
-        doNothing().when(blogService).recoverDeletedBlog(2, 1L);
+        doNothing().when(blogService).recoverDeletedBlog("a".repeat(64), 1L);
 
         mockMvc
-            .perform(post("/sys/blog/recover/2").contentType(MediaType.APPLICATION_JSON).content("{}"))
+            .perform(post("/sys/blog/recover/" + "a".repeat(64)).contentType(MediaType.APPLICATION_JSON).content("{}"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(200));
     }

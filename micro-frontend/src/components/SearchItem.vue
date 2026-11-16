@@ -5,7 +5,6 @@ import type {
   AutocompleteFetchSuggestions,
   AutocompleteFetchSuggestionsCallback
 } from 'element-plus'
-import type HotItem from '@/components/HotItem.vue'
 import { blogsStore } from '@/stores'
 import { buildCommonUrls } from '@/config/apiConfig'
 import { sanitizeHighlight } from '@/utils/sanitize'
@@ -23,7 +22,6 @@ const { keywords } = storeToRefs(blogsStore())
 const loading = defineModel<boolean>('loading')
 const searchDialogVisible = defineModel<boolean>('searchDialogVisible')
 const suggestionList = ref<BlogDesc[]>([])
-const hotItemRef = useTemplateRef<InstanceType<typeof HotItem>>('hotItem')
 
 const search = async (
   queryString: string,
@@ -127,10 +125,6 @@ const searchBeforeClose = (close: () => void) => {
   close()
 }
 
-const openDialog = () => {
-  hotItemRef.value!.load()
-}
-
 const clearSearch = () => {
   fullSearchController?.abort()
   fullSearchController = null
@@ -160,7 +154,6 @@ defineExpose({
   searchAbstractAsync,
   handleSelect,
   searchBeforeClose,
-  openDialog,
   clearSearch,
   cancelSearch,
   highlighted
@@ -175,10 +168,8 @@ defineExpose({
     fullscreen
     align-center
     :before-close="searchBeforeClose"
-    @open="openDialog"
   >
     <template #default>
-      <HotItem ref="hotItem" class="dialog-hot" />
       <div class="dialog-autocomplete">
         <el-autocomplete
           id="elc"
@@ -247,10 +238,6 @@ defineExpose({
 .dialog-autocomplete {
   margin: 10px auto 0 auto;
   max-width: max-content;
-}
-
-.dialog-hot {
-  margin: 0 auto;
 }
 
 .circular {

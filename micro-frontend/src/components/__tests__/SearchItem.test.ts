@@ -15,17 +15,6 @@ vi.mock('vue-router', async (importOriginal) => ({
   useRouter: () => ({ push: mocks.routerPush })
 }))
 
-// HotItem 子组件存根：仅暴露 load 方法
-vi.mock('@/components/HotItem.vue', () => ({
-  default: {
-    name: 'HotItem',
-    setup(_: unknown, { expose }: { expose: (api: Record<string, unknown>) => void }) {
-      expose({ load: vi.fn() })
-      return () => null
-    }
-  }
-}))
-
 import SearchItem from '@/components/SearchItem.vue'
 import type { SearchPage, BlogDesc } from '@/type/entity'
 import { blogsStore } from '@/stores'
@@ -60,6 +49,15 @@ describe('SearchItem.vue', () => {
 
   afterEach(() => {
     document.body.innerHTML = ''
+  })
+
+  it('打开搜索弹窗不再显示或请求周阅读排行', async () => {
+    const wrapper = mountSearch()
+    await flushPromises()
+    expect(mocks.GET).not.toHaveBeenCalled()
+    expect(document.body.textContent).not.toContain('本周阅读排行')
+    expect(document.querySelector('.hot-blogs')).toBeNull()
+    wrapper.unmount()
   })
 
   it('挂载后通过 Teleport 渲染 dialog 内容', async () => {

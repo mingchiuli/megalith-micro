@@ -83,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
         if (isWebSocketRoute(query.routeMapping())) {
             expiresAt = routeTokens.authorizationExpiresAt(query.routeMapping(), token);
         }
-        return new RouteDecision(route.serviceHost(), route.servicePort(), principal, expiresAt);
+        return new RouteDecision(route.serviceHost(), route.servicePort(), principal, expiresAt, route.routePattern());
     }
 
     private List<RoleAuthorization> roleAuthorizations(List<Long> roleIds, boolean freshRead) {

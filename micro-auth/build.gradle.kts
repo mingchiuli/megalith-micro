@@ -18,3 +18,20 @@ dependencies {
     implementation(project(":common-messaging"))
     implementation(project(":cache"))
 }
+
+val integrationTest = sourceSets.create("integrationTest")
+integrationTest.compileClasspath += sourceSets.main.get().output
+integrationTest.runtimeClasspath += sourceSets.main.get().output
+configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())
+configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly.get())
+dependencies {
+    add(integrationTest.implementationConfigurationName, "org.testcontainers:testcontainers-junit-jupiter")
+}
+tasks.register<Test>("integrationTest") {
+    group = "verification"
+    description = "Verifies atomic login-code operations against Redis."
+    testClassesDirs = integrationTest.output.classesDirs
+    classpath = integrationTest.runtimeClasspath
+    shouldRunAfter(tasks.test)
+    useJUnitPlatform()
+}

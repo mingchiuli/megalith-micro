@@ -130,6 +130,23 @@ def service_outputs(selected: AbstractSet[str]) -> dict[str, str]:
     }
 
 
+def pull_request_services(event: dict[str, object]) -> set[str]:
+    request = cast(dict[str, object], event["pull_request"])
+    base = cast(dict[str, str], request["base"])["sha"]
+    head = cast(dict[str, str], request["head"])["sha"]
+    try:
+        for sha in (base, head):
+            _ = run(
+                "git", "cat-file", "-e", f"{sha}^{{commit}}",
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+        ancestor = run("git", "merge-base", base, head, capture_output=True).stdout.strip()
+    except subprocess.CalledProcessError:
+        print("::warning::PR commits are unavailable; checking all services.")
+        return set(SERVICE_ORDER)
+    return changed_services(ancestor, head)
+
+
 def main() -> None:
     event = cast(
         dict[str, object],
@@ -137,6 +154,8 @@ def main() -> None:
     )
     if os.environ["GITHUB_EVENT_NAME"] == "workflow_dispatch":
         selected = requested_services(os.environ.get("SERVICES_INPUT", "all"))
+    elif os.environ["GITHUB_EVENT_NAME"] == "pull_request":
+        selected = pull_request_services(event)
     else:
         before = event.get("before")
         if before is not None and not isinstance(before, str):

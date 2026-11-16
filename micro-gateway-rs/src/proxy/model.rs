@@ -36,9 +36,18 @@ pub(crate) struct AuthorizedRoute {
     principal: AuthPrincipal,
     #[serde(default)]
     authorization_expires_at: Option<u64>,
+    #[serde(default)]
+    route_pattern: Option<String>,
 }
 
 impl AuthorizedRoute {
+    pub(crate) fn route_pattern(&self) -> &str {
+        self.route_pattern
+            .as_deref()
+            .filter(|value| !value.is_empty())
+            .unwrap_or("unknown")
+    }
+
     pub(crate) fn authorization_expires_at(&self) -> Option<u64> {
         self.authorization_expires_at
     }
@@ -59,6 +68,24 @@ impl AuthorizedRoute {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn route_metrics_use_the_authorized_template_and_legacy_responses_are_bounded() {
+        let legacy: AuthorizedRoute = serde_json::from_value(serde_json::json!({
+            "serviceHost": "blog", "servicePort": 8082,
+            "principal": {"userId": 42, "roles": []}
+        }))
+        .unwrap();
+        assert_eq!(legacy.route_pattern(), "unknown");
+        for _ in [7, 42, 999] {
+            let route: AuthorizedRoute = serde_json::from_value(serde_json::json!({
+                "serviceHost": "sync", "servicePort": 8089, "routePattern": "/rooms/*",
+                "principal": {"userId": 42, "roles": []}
+            }))
+            .unwrap();
+            assert_eq!(route.route_pattern(), "/rooms/*");
+        }
+    }
 
     #[test]
     fn principal_serializes_as_the_java_contract() {

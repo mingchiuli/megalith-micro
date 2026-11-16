@@ -43,6 +43,8 @@ on:
       - 'scripts/**'
       # Keep exclusions after positive patterns; module documentation is not deployable input.
       - '!**/*.md'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
       services:
@@ -71,6 +73,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Test workflow scripts
+        run: python3 -m scripts.checks scripts
+
       - name: Detect changed services
         id: detect
         env:
@@ -95,7 +100,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       - name: Check all Java modules
         run: python3 -m scripts.checks java
-      - name: Verify blog application startup and database integration
+      - name: Verify all Java middleware integration suites
         run: python3 -m scripts.checks java-integration
 
   quality-rust:
@@ -148,9 +153,7 @@ jobs:
           bun-version: 1.4.4
       - name: Install dependencies
         run: python3 -m scripts.checks frontend-install
-      - name: Run Oxlint
-        run: python3 -m scripts.checks frontend-lint
-      - name: Validate formatting, types, and tests
+      - name: Verify frontend quality, SSR build, and smoke tests
         run: python3 -m scripts.checks frontend-quality
 
   build-java:
@@ -159,7 +162,7 @@ jobs:
     needs:
       - changes
       - quality-java
-    if: ${{ needs.changes.outputs.has-java == 'true' }}
+    if: ${{ github.event_name != 'pull_request' && needs.changes.outputs.has-java == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -196,7 +199,7 @@ jobs:
     needs:
       - changes
       - quality-rust
-    if: ${{ needs.changes.outputs.has-rust == 'true' }}
+    if: ${{ github.event_name != 'pull_request' && needs.changes.outputs.has-rust == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -233,7 +236,7 @@ jobs:
     needs:
       - changes
       - quality-frontend
-    if: ${{ needs.changes.outputs.has-frontend == 'true' }}
+    if: ${{ github.event_name != 'pull_request' && needs.changes.outputs.has-frontend == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -274,6 +277,7 @@ jobs:
     if: >-
       ${{
         always() &&
+        github.event_name != 'pull_request' &&
         needs.changes.outputs.has-services == 'true' &&
         (
           needs.changes.outputs.has-java != 'true' ||

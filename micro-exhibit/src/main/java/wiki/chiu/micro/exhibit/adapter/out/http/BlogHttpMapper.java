@@ -3,15 +3,14 @@ package wiki.chiu.micro.exhibit.adapter.out.http;
 import java.util.List;
 
 import wiki.chiu.micro.common.enums.BlogRenderMode;
-import wiki.chiu.micro.common.enums.SensitiveTypeEnum;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
-import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
-import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
-import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
+import wiki.chiu.micro.common.enums.SensitiveTypeEnum;
 import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
 import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.domain.SensitiveContentMasker;
 import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
+import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
+import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
 
 /**
  * Turns the blog service payloads into the exhibit service's own model.
@@ -59,10 +58,6 @@ public final class BlogHttpMapper {
         return content == null
             ? ""
             : SensitiveContentMasker.mask(content, spans, type);
-    }
-
-    public static BlogHotRead toHotRead(PublicBlogRpcVo blog) {
-        return new BlogHotRead(blog.id(), blog.title(), blog.readCount());
     }
 
     public static int publicStatus(PublicBlogRpcVo blog) {

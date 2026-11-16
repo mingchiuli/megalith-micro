@@ -17,7 +17,6 @@ import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.enums.SensitiveTypeEnum;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
-import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 import wiki.chiu.micro.exhibit.application.port.in.BlogService;
@@ -31,8 +30,6 @@ import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
  * @create 2022-11-27 2:10 pm
  */
 public class BlogServiceImpl implements BlogService {
-
-    private static final int HOT_READ_LIMIT = 5;
 
     private final BlogReader blogReader;
 
@@ -60,11 +57,6 @@ public class BlogServiceImpl implements BlogService {
     public VisitStatistics getVisitStatistics() {
         List<Long> counts = metrics.visitCounts();
         return new VisitStatistics(counts.get(0), counts.get(1), counts.get(2), counts.get(3));
-    }
-
-    @Override
-    public List<BlogHotRead> getScoreBlogs() {
-        return blogReader.hotBlogs(HOT_READ_LIMIT);
     }
 
     @Override

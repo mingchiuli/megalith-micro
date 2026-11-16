@@ -35,6 +35,7 @@ class CacheRuntimeHints implements RuntimeHintsRegistrar {
     @SuppressWarnings("all")
     @Override
     public void registerHints(@NonNull RuntimeHints hints, @Nullable ClassLoader classLoader) {
+        hints.resources().registerPattern("script/cache-*.lua");
         try {
             hints
                 .reflection()

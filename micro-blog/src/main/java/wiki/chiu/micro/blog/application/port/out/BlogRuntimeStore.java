@@ -16,7 +16,7 @@ public interface BlogRuntimeStore {
     DeletedBlogPage deletedBlogs(
         Long userId, Integer currentPage, Integer size, LocalDateTime expirationCutoff);
 
-    Optional<DeletedBlogEntry> deletedBlog(Long userId, Integer index);
+    Optional<DeletedBlogEntry> deletedBlog(Long userId, String recoveryId, LocalDateTime expirationCutoff);
 
     void saveDeletedBlog(
         Long userId, String eventId, Blog blog);

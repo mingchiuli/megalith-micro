@@ -98,7 +98,8 @@ public class Const {
 
     public static final String ADMIN_ES_QUEUE = "blog.admin.change.queue.es";
 
-    public static final String CACHE_QUEUE = "blog.change.queue.cache";
+    // Preserve the durable queue name after retiring presentation caches.
+    public static final String EXHIBIT_STATE_QUEUE = "blog.change.queue.cache";
 
     public static final String RECYCLE_QUEUE = "blog.change.queue.recycle";
 

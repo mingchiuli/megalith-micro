@@ -1,8 +1,12 @@
 package wiki.chiu.micro.cache.adapter.in.aop;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -16,6 +20,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
 import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
+import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.RedisException;
 import org.redisson.client.codec.StringCodec;
@@ -25,6 +30,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.ClassPathResource;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JavaType;
@@ -34,6 +40,7 @@ import wiki.chiu.micro.cache.annotation.Cache;
 import wiki.chiu.micro.cache.application.CacheLockNames;
 import wiki.chiu.micro.cache.application.CacheMetrics;
 import wiki.chiu.micro.cache.application.model.LocalCacheEntry;
+import wiki.chiu.micro.cache.handler.CacheKeyLease;
 import wiki.chiu.micro.cache.handler.CacheKeyRegistry;
 import wiki.chiu.micro.cache.key.CacheDescriptor;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
@@ -43,6 +50,16 @@ import wiki.chiu.micro.cache.key.CacheKeyFactory;
 public class CacheAspect {
 
     private static final Logger log = LoggerFactory.getLogger(CacheAspect.class);
+    private static final String TRACKED_WRITE = trackedWriteScript();
+
+    private static String trackedWriteScript() {
+        try {
+            return new ClassPathResource("script/cache-tracked-write.lua")
+                .getContentAsString(StandardCharsets.UTF_8);
+        } catch (IOException failure) {
+            throw new UncheckedIOException(failure);
+        }
+    }
 
     private final RedissonClient redissonClient;
     private final JsonMapper jsonMapper;
@@ -217,7 +234,9 @@ public class CacheAspect {
                 deleteCorruptRemote(cacheKey);
                 return null;
             }
-            putLocal(cacheKey, value, ttl);
+            if (!ttl.isZero() && !ttl.isNegative()) {
+                putLocal(cacheKey, value, ttl);
+            }
             return value;
         } catch (JacksonException e) {
             metrics.failure("deserialize");
@@ -252,7 +271,11 @@ public class CacheAspect {
             boolean newlyRegistered = false;
             if (tracked) {
                 try {
-                    newlyRegistered = keyRegistry.register(descriptor, cacheKey);
+                    CacheKeyLease registration = keyRegistry.registerLease(descriptor, cacheKey, ttl);
+                    if (registration == null) {
+                        return proceedUncached(pjp);
+                    }
+                    newlyRegistered = registration.newlyRegistered();
                 } catch (RedisException failure) {
                     metrics.failure("key_registration");
                     log.warn("Cache key registration failed for {}", cacheKey, failure);
@@ -266,8 +289,22 @@ public class CacheAspect {
                     return tracked ? proceedUncached(pjp) : proceedAndCacheLocally(pjp, cacheKey, ttl);
                 }
                 if (remoteRead.value() != null) {
-                    Object remoteValue = parseRemote(remoteRead.value(), method, cacheKey, ttl);
+                    Object remoteValue = parseRemote(remoteRead.value(), method, cacheKey,
+                        tracked ? Duration.ZERO : ttl);
                     if (remoteValue != null) {
+                        if (tracked) {
+                            long started = System.nanoTime();
+                            try {
+                                CacheKeyLease lease = keyRegistry.renewLease(descriptor, cacheKey, ttl);
+                                Duration localTtl = leasedTtl(lease, started, ttl);
+                                if (!localTtl.isZero()) {
+                                    putLocal(cacheKey, remoteValue, localTtl);
+                                }
+                            } catch (RedisException failure) {
+                                metrics.failure("key_renewal");
+                                log.warn("Cache lease renewal failed for {}", cacheKey, failure);
+                            }
+                        }
                         loaded = true;
                         metrics.request("l2_hit");
                         return remoteValue;
@@ -278,7 +315,11 @@ public class CacheAspect {
                     return null;
                 }
                 loaded = true;
-                writeCaches(cacheKey, result, ttl);
+                if (tracked) {
+                    writeTrackedCaches(descriptor, cacheKey, result, ttl);
+                } else {
+                    writeCaches(cacheKey, result, ttl);
+                }
                 return result;
             } finally {
                 if (newlyRegistered && !loaded) {
@@ -311,6 +352,36 @@ public class CacheAspect {
     private Object proceed(ProceedingJoinPoint pjp) throws Throwable {
         metrics.request("source");
         return pjp.proceed();
+    }
+
+    private void writeTrackedCaches(CacheDescriptor descriptor, String key, Object result, Duration ttl) {
+        long started = System.nanoTime();
+        try {
+            CacheKeyLease lease = keyRegistry.renewLease(descriptor, key, ttl);
+            if (lease == null) {
+                return;
+            }
+            String serialized = jsonMapper.writeValueAsString(result);
+            Boolean written = redissonClient.getScript(StringCodec.INSTANCE).eval(
+                RScript.Mode.READ_WRITE, TRACKED_WRITE, RScript.ReturnType.BOOLEAN,
+                List.of(key), serialized, Long.toString(Math.max(1, ttl.toMillis())),
+                Long.toString(lease.expiresAtEpochMillis()));
+            Duration localTtl = leasedTtl(lease, started, ttl);
+            if (Boolean.TRUE.equals(written) && !localTtl.isZero()) {
+                putLocal(key, result, localTtl);
+            }
+        } catch (JacksonException | RedisException failure) {
+            metrics.failure("tracked_write");
+            log.warn("Tracked cache write failed for {}", key, failure);
+        }
+    }
+
+    private static Duration leasedTtl(CacheKeyLease lease, long started, Duration ttl) {
+        if (lease == null) {
+            return Duration.ZERO;
+        }
+        long remaining = TimeUnit.MILLISECONDS.toNanos(lease.remainingMillis()) - (System.nanoTime() - started);
+        return Duration.ofNanos(Math.max(0, Math.min(ttl.toNanos(), remaining)));
     }
 
     private void writeCaches(String cacheKey, Object result, Duration ttl) {

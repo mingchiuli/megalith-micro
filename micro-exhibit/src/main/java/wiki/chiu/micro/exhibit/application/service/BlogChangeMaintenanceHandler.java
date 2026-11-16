@@ -5,9 +5,9 @@ import wiki.chiu.micro.exhibit.application.model.BlogChange;
 
 /**
  * Internal strategy that applies one kind of blog change. This is deliberately not an input port:
- * the single {@link BlogChangeEvictionServiceImpl} use case owns the dispatch.
+ * the single {@link BlogChangeMaintenanceServiceImpl} use case owns the dispatch.
  */
-public interface BlogChangeEvictionHandler {
+public interface BlogChangeMaintenanceHandler {
 
     BlogOperateEnum operation();
 

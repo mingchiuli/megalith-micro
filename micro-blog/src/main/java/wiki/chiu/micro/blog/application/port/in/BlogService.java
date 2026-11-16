@@ -56,7 +56,7 @@ public interface BlogService {
     Page<BlogListItem> findAllBlogs(
         BlogQuery query, Long userId, List<DataPermissionEnum> dataPermissions);
 
-    void recoverDeletedBlog(Integer idx, Long userId);
+    void recoverDeletedBlog(String recoveryId, Long userId);
 
     Page<DeletedBlogItem> findDeletedBlogs(Integer currentPage, Integer size, Long userId);
 

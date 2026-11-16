@@ -24,13 +24,13 @@ import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 import wiki.chiu.micro.exhibit.application.model.BlogChange;
-import wiki.chiu.micro.exhibit.application.port.in.BlogChangeEviction;
+import wiki.chiu.micro.exhibit.application.port.in.BlogChangeMaintenance;
 
-class BlogRedisCacheEvictMessageListenerTest {
+class BlogChangeMessageListenerTest {
 
-    private final BlogChangeEviction eviction = mock(BlogChangeEviction.class);
+    private final BlogChangeMaintenance maintenance = mock(BlogChangeMaintenance.class);
     private final RetryingMessageRecoverer recoverer = mock(RetryingMessageRecoverer.class);
-    private final BlogRedisCacheEvictMessageListener listener = new BlogRedisCacheEvictMessageListener(eviction, recoverer);
+    private final BlogChangeMessageListener listener = new BlogChangeMessageListener(maintenance, recoverer);
     private final Channel channel = mock(Channel.class);
     private final Message message = MessageBuilder.withBody(new byte[0]).setDeliveryTag(11L).build();
 
@@ -38,16 +38,16 @@ class BlogRedisCacheEvictMessageListenerTest {
     void translatesWireFieldsAndAcknowledgesAfterTheUseCase() throws Exception {
         listener.handler(event(BlogOperateEnum.UPDATE.getCode()), channel, message);
         var change = ArgumentCaptor.forClass(BlogChange.class);
-        var ordered = inOrder(eviction, channel);
-        ordered.verify(eviction).apply(change.capture());
+        var ordered = inOrder(maintenance, channel);
+        ordered.verify(maintenance).apply(change.capture());
         ordered.verify(channel).basicAck(11L, false);
         assertThat(change.getValue()).isEqualTo(new BlogChange(7L, BlogOperateEnum.UPDATE, 3L, 2));
     }
 
     @Test
-    void failedEvictionIsRecoveredInsteadOfAcknowledged() throws Exception {
-        var failure = new IllegalStateException("eviction unavailable");
-        doThrow(failure).when(eviction).apply(any());
+    void failedMaintenanceIsRecoveredInsteadOfAcknowledged() throws Exception {
+        var failure = new IllegalStateException("maintenance unavailable");
+        doThrow(failure).when(maintenance).apply(any());
         listener.handler(event(BlogOperateEnum.REMOVE.getCode()), channel, message);
         verify(recoverer).recover(message, channel, failure);
         verify(channel, never()).basicAck(11L, false);
@@ -57,7 +57,7 @@ class BlogRedisCacheEvictMessageListenerTest {
     void unknownWireOperationsAreRecoveredBeforeCallingTheUseCase() throws Exception {
         listener.handler(event(99), channel, message);
         verify(recoverer).recover(eq(message), eq(channel), any(MissException.class));
-        verifyNoInteractions(eviction);
+        verifyNoInteractions(maintenance);
         verify(channel, never()).basicAck(11L, false);
     }
 

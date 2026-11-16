@@ -14,7 +14,6 @@ import org.springframework.web.service.registry.ImportHttpServices;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.exhibit.MicroExhibitApplication;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogExhibitVo;
-import wiki.chiu.micro.exhibit.adapter.in.http.BlogHotReadVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogRecommendationFeedVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogRecommendationVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.ReadTokenReq;
@@ -46,7 +45,6 @@ class CustomRuntimeHintsTest {
         for (Class<?> type : List.of(
             ReadTokenReq.class,
             BlogExhibitVo.class,
-            BlogHotReadVo.class,
             BlogRecommendationVo.class,
             BlogRecommendationFeedVo.class,
             VisitStatisticsVo.class)) {

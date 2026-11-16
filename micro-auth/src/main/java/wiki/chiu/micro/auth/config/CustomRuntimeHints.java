@@ -53,9 +53,10 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
         hints
             .resources()
-            .registerPattern("script/email-phone.lua")
+            .registerPattern("script/verify-login-code.lua")
+            .registerPattern("script/cancel-login-code.lua")
             .registerPattern("script/password.lua")
-            .registerPattern("script/hmset-expire.lua")
+            .registerPattern("script/reserve-login-code.lua")
             .registerPattern("script/multi-pfadd.lua");
     }
 }

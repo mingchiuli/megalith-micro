@@ -28,12 +28,6 @@ server:
   max-http-request-header-size: 10MB
 
 megalith:
-  cache:
-    eviction:
-      transport: RABBIT
-      rabbit:
-        queue-prefix: cache.blog.evict.queue.
-        exchange: cache.blog.evict.fanout.exchange
   blog:
     blog-page-size: 5
     existence-index:

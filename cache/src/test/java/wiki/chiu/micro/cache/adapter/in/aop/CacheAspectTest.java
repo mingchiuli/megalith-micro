@@ -19,12 +19,15 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
+import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.RedisException;
 import org.redisson.client.codec.StringCodec;
+import wiki.chiu.micro.cache.handler.CacheKeyLease;
 
 import tools.jackson.databind.json.JsonMapper;
 
@@ -60,20 +63,31 @@ class CacheAspectTest {
             new MicrometerCacheMetrics(null),
             registry);
 
+    @BeforeEach
+    void leases() {
+        var lease = new CacheKeyLease(false, System.currentTimeMillis() + 240_000, 240_000);
+        when(registry.registerLease(any(), anyString(), any())).thenReturn(lease);
+        when(registry.renewLease(any(), anyString(), any())).thenReturn(lease);
+        RScript script = mock(RScript.class, invocation ->
+            invocation.getMethod().getName().equals("eval") ? Boolean.TRUE
+                : org.mockito.Mockito.RETURNS_DEFAULTS.answer(invocation));
+        when(redisson.getScript(StringCodec.INSTANCE)).thenReturn(script);
+    }
+
     @Test
     void registersBeforeReadingTheSourceAndRetainsTheKeyAfterFilling() throws Throwable {
         ProceedingJoinPoint point = joinPoint("tracked");
         RBucket<String> bucket = bucket();
         remoteLock(true);
-        when(registry.register(new CacheDescriptor("fixture", 1), KEY)).thenReturn(true);
+        when(registry.registerLease(new CacheDescriptor("fixture", 1), KEY, Duration.ofMinutes(2))).thenReturn(new CacheKeyLease(true, System.currentTimeMillis() + 240_000, 240_000));
         when(point.proceed()).thenReturn("loaded");
 
         assertThat(aspect.around(point)).isEqualTo("loaded");
 
         var order = inOrder(registry, point, bucket);
-        order.verify(registry).register(new CacheDescriptor("fixture", 1), KEY);
+        order.verify(registry).registerLease(new CacheDescriptor("fixture", 1), KEY, Duration.ofMinutes(2));
         order.verify(point).proceed();
-        order.verify(bucket).set("\"loaded\"", Duration.ofMinutes(2));
+        assertThat(local.getIfPresent(KEY).value()).isEqualTo("loaded");
         verify(registry, never()).unregisterFailedLoad(any(), anyString());
     }
 
@@ -82,7 +96,7 @@ class CacheAspectTest {
         ProceedingJoinPoint point = joinPoint("tracked");
         RBucket<String> bucket = bucket();
         remoteLock(true);
-        when(registry.register(new CacheDescriptor("fixture", 1), KEY)).thenThrow(new RedisException("offline"));
+        when(registry.registerLease(new CacheDescriptor("fixture", 1), KEY, Duration.ofMinutes(2))).thenThrow(new RedisException("offline"));
         when(point.proceed()).thenReturn("source");
 
         assertThat(aspect.around(point)).isEqualTo("source");
@@ -107,12 +121,12 @@ class CacheAspectTest {
         RBucket<String> bucket = bucket();
         remoteLock(true);
         when(bucket.get()).thenReturn("\"remote\"");
-        when(registry.register(new CacheDescriptor("fixture", 1), KEY)).thenReturn(true);
+        when(registry.registerLease(new CacheDescriptor("fixture", 1), KEY, Duration.ofMinutes(2))).thenReturn(new CacheKeyLease(true, System.currentTimeMillis() + 240_000, 240_000));
 
         assertThat(aspect.around(point)).isEqualTo("remote");
 
         var order = inOrder(registry, bucket);
-        order.verify(registry).register(new CacheDescriptor("fixture", 1), KEY);
+        order.verify(registry).registerLease(new CacheDescriptor("fixture", 1), KEY, Duration.ofMinutes(2));
         order.verify(bucket).get();
         assertThat(local.getIfPresent(KEY).value()).isEqualTo("remote");
         verify(point, never()).proceed();
@@ -123,7 +137,7 @@ class CacheAspectTest {
         ProceedingJoinPoint point = joinPoint("tracked");
         bucket();
         remoteLock(true);
-        when(registry.register(new CacheDescriptor("fixture", 1), KEY)).thenReturn(true);
+        when(registry.registerLease(new CacheDescriptor("fixture", 1), KEY, Duration.ofMinutes(2))).thenReturn(new CacheKeyLease(true, System.currentTimeMillis() + 240_000, 240_000));
         when(point.proceed()).thenThrow(new IllegalArgumentException("missing page"));
 
         assertThatThrownBy(() -> aspect.around(point)).hasMessage("missing page");
@@ -140,6 +154,18 @@ class CacheAspectTest {
 
         assertThatThrownBy(() -> aspect.around(point)).hasMessage("deleted page");
         verify(registry, never()).unregisterFailedLoad(any(), anyString());
+    }
+
+    @Test
+    void expiredLeaseDoesNotAllowALongLoadToRefill() throws Throwable {
+        ProceedingJoinPoint point = joinPoint("tracked");
+        RBucket<String> bucket = bucket();
+        remoteLock(true);
+        when(registry.renewLease(any(), anyString(), any())).thenReturn(null);
+        when(point.proceed()).thenReturn("late result");
+        assertThat(aspect.around(point)).isEqualTo("late result");
+        assertThat(local.getIfPresent(KEY)).isNull();
+        verify(bucket, never()).set(anyString(), any());
     }
 
     @AfterEach

@@ -27,9 +27,9 @@ public class BlogChangeRabbitConfig {
         return new Queue(Const.ADMIN_ES_QUEUE, true, false, false);
     }
 
-    @Bean("cacheQueue")
-    Queue cacheQueue() {
-        return new Queue(Const.CACHE_QUEUE, true, false, false);
+    @Bean("exhibitStateQueue")
+    Queue exhibitStateQueue() {
+        return new Queue(Const.EXHIBIT_STATE_QUEUE, true, false, false);
     }
 
     @Bean("recycleQueue")
@@ -62,11 +62,11 @@ public class BlogChangeRabbitConfig {
         return BindingBuilder.bind(queue).to(exchange);
     }
 
-    @Bean("cacheBinding")
-    Binding cacheBinding(
-        @Qualifier("cacheQueue") Queue cacheQueue,
+    @Bean("exhibitStateBinding")
+    Binding exhibitStateBinding(
+        @Qualifier("exhibitStateQueue") Queue exhibitStateQueue,
         @Qualifier("fanoutExchange") FanoutExchange exchange) {
-        return BindingBuilder.bind(cacheQueue).to(exchange);
+        return BindingBuilder.bind(exhibitStateQueue).to(exchange);
     }
 
     @Bean("recycleBinding")

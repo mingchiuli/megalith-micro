@@ -107,7 +107,7 @@ private subnet is routed through the VPN, where Kibana reaches Elasticsearch at
 ### Message and outbox topology
 
 User and blog changes propagate through a transactional outbox and RabbitMQ. Each event has
-dedicated consumers for authorization caches, search indexing, presentation caches, or related
+dedicated consumers for authorization caches, search indexing, presentation state, or related
 content cleanup.
 
 ```mermaid
@@ -117,7 +117,7 @@ flowchart TB
     Delete["micro-blog<br/>User-deletion cleanup"]
     BlogOutbox["micro-blog<br/>Domain writes + BLOG outbox"]
     Search["micro-search<br/>Search projections"]
-    Exhibit["micro-exhibit<br/>Cache eviction"]
+    Exhibit["micro-exhibit<br/>Presentation state"]
     Recycle["micro-blog<br/>Recycle metadata"]
 
     UserOutbox -->|AuthCacheEvictMessage| Auth
@@ -144,7 +144,7 @@ publication boundary. The durable fanout exchanges and consumer queues are:
 | `UserDeletedMessage` | `micro-user` | `micro-blog` | Delete the user's blogs and emit the corresponding blog events |
 | `BlogChangedMessage` | `micro-blog` | `micro-search` | Update the search index |
 | `BlogAdminIndexMessage` | `micro-blog` | `micro-search` | Update admin blog and immutable revision projections |
-| `BlogChangedMessage` | `micro-blog` | `micro-exhibit` | Invalidate presentation caches |
+| `BlogChangedMessage` | `micro-blog` | `micro-exhibit` | Maintain existence, read tokens, and weekly counts |
 | `BlogChangedMessage` | `micro-blog` | `micro-blog` | Retain recycle-bin metadata for operator removals |
 
 Domain writes and outbox entries commit in the same database transaction. The publisher removes
@@ -166,9 +166,11 @@ three aliases together after both search queues are quiescent. `total` counts al
 validate against those respective counts. Article visits update MariaDB counters;
 cumulative counts are synchronized to Elasticsearch in batches through idempotent updates.
 
-Presentation reads use Caffeine as an in-process L1 cache and Redis as a shared L2 cache. Versioned
-cache keys identify individual results, and a key registry tracks cached pages for invalidation.
-Blog events invalidate the affected entries across service replicas. See the
+Presentation reads use the search projections directly and compose author details through the user
+service. Blog events maintain the existence bitmap, read tokens, and weekly-count cleanup in Redis.
+The existing RabbitMQ queue name `blog.change.queue.cache` is retained for delivery compatibility.
+The public search dialog has no weekly-ranking panel; administration retains per-article weekly
+counts. Authorization reads still use Caffeine L1 and Redis L2; see the
 [cache module](cache/README.md) for key generation, locking, and distributed eviction.
 
 ### Stateless collaboration
@@ -188,7 +190,7 @@ replica to serve any room without sticky sessions or a dedicated room owner.
 | `micro-auth` | JWT, login, route authorization, and authorization snapshot caches |
 | `micro-user` | Users, roles, menus, authorities, and data permissions |
 | `micro-blog` | Blog content, recycle bin, domain events, and user-deletion cleanup |
-| `micro-exhibit` | Content presentation, visit statistics, and presentation caches |
+| `micro-exhibit` | Content presentation, visit statistics, and presentation state |
 | `micro-search` | Elasticsearch full-text search and index event consumption |
 | `micro-sync-rs` | Stateless real-time collaboration backed by YRS CRDT and Redis |
 | `micro-frontend` | Vue 3 SSR, server prefetch, client hydration, and embedded static assets |
@@ -419,7 +421,7 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.5.5.0.3+1.1/Conten
 ```bash
 ./gradlew build
 # Docker is required for these separate Testcontainers suites.
-./gradlew :micro-user:integrationTest :micro-blog:integrationTest \
+./gradlew :micro-auth:integrationTest :micro-user:integrationTest :micro-blog:integrationTest \
   :micro-exhibit:integrationTest :micro-search:integrationTest :cache:integrationTest
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
@@ -433,7 +435,8 @@ bun run frontend:check
 
 `./gradlew build` covers unit tests, ArchUnit boundaries, and Spring test AOT processing.
 The separate `integrationTest` tasks above are not attached to `build` or `check`.
-The blog startup integration test boots the real application with MariaDB, Redis, and RabbitMQ, then
+CI also runs all six Java integration suites on pull requests and before image publication.
+Pull requests run quality checks without publishing images or deploying. The blog startup integration test boots the real application with MariaDB, Redis, and RabbitMQ, then
 checks health, draft creation, collaboration initialization, and outbound trace propagation. It runs
 in the Java CI quality gate before publishing images. To smoke-test the actual Native Image as well:
 
@@ -510,6 +513,22 @@ The frontend development server listens on `http://127.0.0.1:1919` and expects t
 A complete local deployment also requires MariaDB, Redis, RabbitMQ, and Elasticsearch. Backend
 connection, port, and OpenTelemetry defaults are defined in each service's `application.yml`;
 frontend settings are listed above.
+
+### Recovery and cache compatibility
+
+Recycle-bin responses now expose a SHA-256 `recoveryId` instead of a list position. Deploy the blog
+service and frontend together, then refresh existing administration pages. Existing Redis records
+retain their format and are identified from their original serialized bytes; no database or Redis
+migration is required. Missing/expired records return 404, and conflicting restores return 409.
+The retired public ranking and internal recommendation-head endpoints are removed; recommendation
+feeds and administration weekly counts remain available.
+
+Login-code issuance reserves its Redis entry before delivery, compensates failed delivery using a
+reservation identifier, and verifies/consumes each code atomically. Deploy all auth replicas together
+so older non-atomic consumers cannot bypass the new behavior. Session cookies, JWTs, refresh, and
+logout behavior are unchanged. Gateway request metrics use the authorized route pattern; an older
+auth response without that field produces the bounded `unknown` label.
+
 
 ## License
 

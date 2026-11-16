@@ -3,10 +3,14 @@ package wiki.chiu.micro.auth.api.vo;
 import wiki.chiu.micro.common.security.AuthPrincipal;
 
 public record AuthorityRouteRpcVo(
-    String serviceHost, Integer servicePort, AuthPrincipal principal, Long authorizationExpiresAt) {
+    String serviceHost, Integer servicePort, AuthPrincipal principal, Long authorizationExpiresAt, String routePattern) {
+
+    public AuthorityRouteRpcVo(String host, Integer port, AuthPrincipal principal, Long expiresAt) {
+        this(host, port, principal, expiresAt, null);
+    }
 
     public AuthorityRouteRpcVo(String serviceHost, Integer servicePort, AuthPrincipal principal) {
-        this(serviceHost, servicePort, principal, null);
+        this(serviceHost, servicePort, principal, null, null);
     }
 
     public static AuthorityRouteRpcVoBuilder builder() {
@@ -18,6 +22,12 @@ public record AuthorityRouteRpcVo(
         private Integer servicePort;
         private AuthPrincipal principal;
         private Long authorizationExpiresAt;
+        private String routePattern;
+
+        public AuthorityRouteRpcVoBuilder routePattern(String value) {
+            this.routePattern = value;
+            return this;
+        }
 
         public AuthorityRouteRpcVoBuilder authorizationExpiresAt(Long value) {
             this.authorizationExpiresAt = value;
@@ -40,7 +50,7 @@ public record AuthorityRouteRpcVo(
         }
 
         public AuthorityRouteRpcVo build() {
-            return new AuthorityRouteRpcVo(serviceHost, servicePort, principal, authorizationExpiresAt);
+            return new AuthorityRouteRpcVo(serviceHost, servicePort, principal, authorizationExpiresAt, routePattern);
         }
     }
 }

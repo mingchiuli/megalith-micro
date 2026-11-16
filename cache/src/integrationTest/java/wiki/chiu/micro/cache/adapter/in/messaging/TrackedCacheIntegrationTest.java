@@ -103,8 +103,71 @@ class TrackedCacheIntegrationTest {
         } finally {
             target.proceed.countDown();
             listener.stop();
+            registry.close();
             consumer.shutdown();
             reader.shutdown();
+        }
+    }
+
+    @Test
+    void promotedL1RemainsDiscoverableAfterL2ExpiryAndLeasesEventuallyDisappear() throws Exception {
+        RedissonClient first = client();
+        RedissonClient second = client();
+        var registry = new RedisCacheKeyRegistry(first);
+        var otherRegistry = new RedisCacheKeyRegistry(second);
+        var descriptor = new CacheDescriptor("short-tracked-pages", 1);
+        var keys = new JacksonCacheKeyFactory(JsonMapper.builder().build());
+        String key = keys.generate(descriptor, 9);
+        var local = Caffeine.newBuilder()
+            .expireAfter(com.github.benmanes.caffeine.cache.Expiry.<String, LocalCacheEntry>creating((_, entry) -> entry.ttl()))
+            .<String, LocalCacheEntry>build();
+        var listener = new RedisCacheEvictMessageListener("lease-expiry-test", second,
+            JsonMapper.builder().build(), local);
+        try {
+            listener.start();
+            ShortPages firstProxy = shortProxy(first, registry, Caffeine.newBuilder()
+                .expireAfter(com.github.benmanes.caffeine.cache.Expiry.<String, LocalCacheEntry>creating((_, entry) -> entry.ttl()))
+                .build());
+            ShortPages secondProxy = shortProxy(second, otherRegistry, local);
+            assertThat(firstProxy.page(9)).isEqualTo("page");
+            await().atMost(Duration.ofSeconds(3)).until(() -> first.getBucket(key).remainTimeToLive() < 400);
+            assertThat(secondProxy.page(9)).isEqualTo("page");
+            await().atMost(Duration.ofSeconds(3)).until(() -> !first.getBucket(key).isExists());
+            assertThat(local.getIfPresent(key)).isNotNull();
+            assertThat(registry.registeredKeys(descriptor)).contains(key);
+            var evictor = new RedisCacheEvictor(first, JsonMapper.builder().build(),
+                Caffeine.newBuilder().build(), Duration.ofSeconds(5), "lease-expiry-test",
+                new MicrometerCacheMetrics(null));
+            evictor.evict(registry.registeredKeys(descriptor));
+            await().atMost(Duration.ofSeconds(3)).until(() -> local.getIfPresent(key) == null);
+            await().atMost(Duration.ofSeconds(4)).until(() -> registry.registeredKeys(descriptor).isEmpty());
+
+            registry.registerLease(descriptor, "late", Duration.ofMillis(20));
+            await().atMost(Duration.ofSeconds(2)).until(() -> !registry.registeredKeys(descriptor).contains("late"));
+            assertThat(registry.renewLease(descriptor, "late", Duration.ofSeconds(1))).isNull();
+        } finally {
+            listener.stop();
+            registry.close();
+            otherRegistry.close();
+            first.shutdown();
+            second.shutdown();
+        }
+    }
+
+    private static ShortPages shortProxy(RedissonClient redis, RedisCacheKeyRegistry registry,
+        com.github.benmanes.caffeine.cache.Cache<String, LocalCacheEntry> local) {
+        var factory = new AspectJProxyFactory(new ShortPages());
+        var mapper = JsonMapper.builder().build();
+        factory.addAspect(new CacheAspect(redis, mapper, new JacksonCacheKeyFactory(mapper), local,
+            Caffeine.newBuilder().<String, ReentrantLock>build(), Duration.ofSeconds(5), 0,
+            new MicrometerCacheMetrics(null), registry));
+        return factory.getProxy();
+    }
+
+    public static class ShortPages {
+        @Cache(namespace = "short-tracked-pages", trackKeys = true, ttl = 1, timeUnit = TimeUnit.SECONDS)
+        public String page(Integer number) {
+            return "page";
         }
     }
 

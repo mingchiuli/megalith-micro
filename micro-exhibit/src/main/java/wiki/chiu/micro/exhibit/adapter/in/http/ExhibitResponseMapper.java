@@ -1,9 +1,6 @@
 package wiki.chiu.micro.exhibit.adapter.in.http;
 
-import java.util.List;
-
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
-import wiki.chiu.micro.exhibit.application.model.BlogHotRead;
 import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
 import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
@@ -33,12 +30,6 @@ public final class ExhibitResponseMapper {
             statistics.weekVisit(),
             statistics.monthVisit(),
             statistics.yearVisit());
-    }
-
-    public static List<BlogHotReadVo> toHotReadVos(List<BlogHotRead> hotReads) {
-        return hotReads.stream()
-            .map(hotRead -> new BlogHotReadVo(hotRead.id(), hotRead.title(), hotRead.readCount()))
-            .toList();
     }
 
     public static BlogRecommendationFeedVo toRecommendationFeedVo(
