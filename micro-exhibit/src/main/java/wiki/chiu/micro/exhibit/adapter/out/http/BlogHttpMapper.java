@@ -13,7 +13,7 @@ import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
 import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
 
 /**
- * Turns the blog service payloads into the exhibit service's own model.
+ * Turns search service payloads into the exhibit service's own model.
  */
 public final class BlogHttpMapper {
 

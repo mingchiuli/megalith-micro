@@ -47,7 +47,7 @@ const BLOG_PUBLIC_API = {
   GET_BLOG_INFO: (id: number | string) => `/public/blog/info/${id}`,
   // 消费阅读密码并获取博客
   READ_SECRET_BLOG: (id: number | string) => `/public/blog/secret/${id}`,
-  // 获取热门博客排行
+  // 获取推荐博客分页
   GET_RECOMMENDATIONS: '/public/blog/recommendations',
   // 获取博客访问统计
   GET_BLOG_STAT: '/public/blog/stat'

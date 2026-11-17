@@ -41,10 +41,4 @@ public record User(
             id, username, nickname, avatar, email, phone, password, newStatus, passwordLockedUntil,
             created, updated, lastLogin);
     }
-
-    public User withPasswordLockedUntil(LocalDateTime lockedUntil) {
-        return new User(
-            id, username, nickname, avatar, email, phone, password, status, lockedUntil, created,
-            updated, lastLogin);
-    }
 }

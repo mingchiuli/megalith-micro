@@ -48,7 +48,6 @@ import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepositor
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
 import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
-import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
 import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
@@ -72,7 +71,6 @@ class CustomRuntimeHintsTest {
             UserEntityRpcVo.class,
             UserAccessRpcVo.class,
             RoleAuthorizationRpcVo.class,
-            RoleEntityRpcVo.class,
             MenuRpcVo.class,
             AuthorityRpcVo.class,
             DataPermissionEnum.class)) {

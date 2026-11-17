@@ -17,8 +17,6 @@ public interface RoleService {
 
     List<Role> getValidAll();
 
-    List<Role> findByRoleCodeInAndStatus(List<String> roles, Integer status);
-
     void saveOrUpdate(RoleDraft role);
 
     void delete(List<Long> ids);

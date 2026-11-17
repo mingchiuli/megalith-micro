@@ -21,7 +21,6 @@ const usercolors = [
 ]
 
 export const yjsCompartment = new Compartment()
-export const COLLABORATION_TICKET_REFRESH_INTERVAL_MS = 45_000
 export const COLLABORATION_TICKET_RECONNECT_MAX_AGE_MS = 30_000
 export const COLLABORATION_INITIAL_SYNC_TIMEOUT_MS = 20_000
 export const COLLABORATION_CONNECTION_NOTICE_DELAY_MS = 3_000
@@ -46,12 +45,10 @@ export type CollaborationEvent =
 
 export type CollaborationSession = {
   config: Extension
-  persistenceKey: string
   connect: () => void
   disconnect: () => void
   updateToken: (token: string) => void
   restart: (token?: string) => void
-  clearPersistence: () => Promise<void>
   destroy: () => void
 }
 
@@ -226,7 +223,6 @@ export const createCollaborationSession = async (
 
   return {
     config,
-    persistenceKey,
     connect: () => {
       if (!destroyed) provider.connect()
     },
@@ -242,7 +238,6 @@ export const createCollaborationSession = async (
       provider.disconnect()
       provider.connect()
     },
-    clearPersistence: () => clearYjsDraft(persistenceKey),
     destroy: () => {
       if (destroyed) return
       destroyed = true

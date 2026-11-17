@@ -29,7 +29,7 @@ Applications declare a stable cache identity independently of Java class and met
 
 ```java
 @Cache(namespace = "auth-user-access", version = 1, ttl = 30, timeUnit = TimeUnit.MINUTES)
-public UserAccessRpcVo getUserAccess(Long userId) {
+public UserAccess getUserAccess(Long userId) {
     return userDirectory.findUserAccess(userId);
 }
 ```
@@ -78,10 +78,19 @@ eviction. L1 hits require no extra Redis call. Registry, remote-read, or remote-
 back to the source without caching an untracked local value.
 
 Directory membership survives explicit eviction and L2 expiry while another replica may still
-retain an L1 value. Successful reads renew a bounded lease; expired registrations are pruned.
+retain an L1 value. The aspect renews only a live lease before cache creation or L2-to-L1 promotion.
+A lease lasts twice the annotation TTL and never shortens an existing deadline. Tracked L2 writes
+use an absolute deadline, and L1 lifetimes are bounded using a monotonic clock, so a late load or
+unavailable registry cannot create an untracked entry.
 A newly registered key whose first load fails or returns null is removed under the same lock.
 Applications should evict large snapshots in bounded batches and retry the complete snapshot after
 a partial failure. Bump the contract version when first enabling tracking on an existing cache.
+
+Expired registrations are excluded from enumeration and pruned in batches of 256 every minute.
+The entire registry key expires after its last lease, including when its owning process stops.
+The built-in `register` method uses a 30-minute value TTL, producing a 60-minute lease.
+Cache integrations should use the TTL-aware `registerLease` and `renewLease` methods.
+Custom registries without lease support bypass tracked caching rather than risk unsafe eviction.
 
 After complete Redis data loss, restart all application replicas using tracked caches to clear L1.
 If only a directory was lost, stop those replicas and invalidate the exact remaining L2 keys for
@@ -147,47 +156,17 @@ Micrometer meters are emitted when a `MeterRegistry` is available:
 - `megalith.cache.lock.timeouts` with a `scope` tag
 - `megalith.cache.evictions` with `transport` and `result` tags
 
-## Breaking Upgrade Runbook
+## Contract upgrades
 
-This version has no compatibility layer for the former method-derived keys, `CacheEvictHandler`,
-`CommonCacheKeyGenerator`, cache-owned Redisson configuration, or the cache `@Checker` aspect.
+Increase the annotation version and update the shared descriptor when changing cached arguments
+or payloads incompatibly. Deploy cached reads and eviction consumers together so they use the same
+contract. In this repository, `micro-auth` owns the cached authorization reads; `micro-exhibit`
+reads search projections directly and does not use this starter.
 
-1. Stop every `micro-auth` and `micro-exhibit` replica. Do not run old and new binaries together.
-2. Remove only the former cache key families from Redis. Preserve unrelated Redis state such as
-   tokens, bloom filters, visit counters, and collaboration data.
-3. Deploy all replicas with the new annotations, descriptor constants, and eviction configuration.
-4. Confirm Rabbit publisher confirms/returns or the Redis reliable topic, then start traffic.
-
-The former key families are:
-
-```text
-user_access:AuthWrapper:getUserAccess:*
-role_authorization:AuthWrapper:getAllRoleAuthorizations
-role_authority:AuthWrapper:getCurrentUserNav:*
-all_service:AuthWrapper:getAllSystemAuthorities
-hot_blog:BlogWrapper:findById:*
-hot_blogs:BlogWrapper:findPage:*
-```
-
-For a standalone Redis instance, delete them with targeted scans rather than `FLUSHDB`:
-
-```bash
-for pattern in \
-  'user_access:AuthWrapper:getUserAccess:*' \
-  'role_authorization:AuthWrapper:getAllRoleAuthorizations' \
-  'role_authority:AuthWrapper:getCurrentUserNav:*' \
-  'all_service:AuthWrapper:getAllSystemAuthorities' \
-  'hot_blog:BlogWrapper:findById:*' \
-  'hot_blogs:BlogWrapper:findPage:*'
-do
-  redis-cli --scan --pattern "$pattern" | while IFS= read -r key
-  do
-    redis-cli UNLINK "$key"
-  done
-done
-```
-
-Run the equivalent targeted scan on every primary when Redis Cluster is used.
+For tracked-cache upgrades that change registry semantics, stop replicas using the affected
+contracts and let their maximum L1/L2 TTL expire before starting incompatible replicas. Retire old
+registry keys only after no cached value can outlive them. Preserve unrelated Redis data, including
+tokens, existence indexes, visit counters, and collaboration state.
 
 ## Verification
 
@@ -202,24 +181,3 @@ RabbitMQ fanout across two local-cache replicas.
 For the opt-in test against already-running local middleware, including latency distributions,
 single-flight, TTL, load-versus-eviction ordering, cleanup, and interpretation, see
 [BENCHMARK.md](BENCHMARK.md).
-
-## Tracked-key lifecycle
-
-The built-in registry stores expiring leases under
-`megalith:cache:key-leases:v2:<namespace>:v<version>`, separate from the retired permanent Sets.
-The aspect registers before loading and renews only a live lease before cache creation or L2-to-L1
-promotion. A lease lasts twice the annotation TTL and never shortens an existing deadline. Tracked
-L2 writes use an absolute deadline, and L1 lifetimes are bounded using a monotonic clock, so a late
-load or unavailable registry cannot create an untracked entry. Loading failures remove only a new
-registration; other replicas' existing leases remain intact.
-
-Expired registrations are excluded from enumeration and pruned in batches of 256 every minute.
-The entire registry key expires after its last lease, including when its owning process stops.
-The legacy `register` method creates a bounded 30-minute registration (60-minute lease); integrations
-with cached values should implement/use the TTL-aware `registerLease` and `renewLease` methods.
-Custom registries without lease support bypass tracked caching rather than risk unsafe eviction.
-
-When upgrading an application that already uses tracked caches, stop all old replicas and allow
-their maximum L1/L2 TTL to expire before starting the new version. Do not mix old permanent-registry
-replicas with lease-registry replicas. The old `megalith:cache:keys:<namespace>:v<version>` Sets can
-then be deleted for those retired contracts; this library never deletes them automatically.

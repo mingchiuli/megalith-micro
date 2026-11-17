@@ -69,8 +69,9 @@ the target service. Business services use that principal for identity and permis
 `micro-exhibit` reads public articles and recommendations from `micro-search`, gets author details
 from `micro-user`, and calls `micro-blog` for visit counting and existence-index scans. `micro-blog`
 uses `micro-search` for search/list projections and batched read-count updates. Search maintenance
-reads authoritative snapshots from `micro-blog`. Auth cache misses fetch user/permission snapshots
-from `micro-user`; collaboration tickets also use fresh authorization reads.
+reads authoritative snapshots from `micro-blog`. Auth cache misses fetch user access and role
+authorization snapshots from `micro-user`; collaboration tickets use fresh authorization reads.
+Role status, authority codes, and data permissions come from those role authorization snapshots.
 
 ### Monitoring
 
@@ -83,6 +84,8 @@ flowchart LR
 
 All application services export correlated OpenTelemetry traces, metrics, and logs. Browser traffic
 is observed at the gateway; the browser does not export directly to the private APM endpoint.
+Gateway request metrics use the authorized route pattern, with a bounded `unknown` label when the
+auth response omits it.
 
 ### Remote administration: WireGuard over WSS
 
@@ -169,8 +172,7 @@ cumulative counts are synchronized to Elasticsearch in batches through idempoten
 Presentation reads use the search projections directly and compose author details through the user
 service. Blog events maintain the existence bitmap, read tokens, and weekly-count cleanup in Redis.
 The existing RabbitMQ queue name `blog.change.queue.cache` is retained for delivery compatibility.
-The public search dialog has no weekly-ranking panel; administration retains per-article weekly
-counts. Authorization reads still use Caffeine L1 and Redis L2; see the
+Administration exposes per-article weekly counts. Authorization reads use Caffeine L1 and Redis L2; see the
 [cache module](cache/README.md) for key generation, locking, and distributed eviction.
 
 ### Stateless collaboration
@@ -205,7 +207,7 @@ replica to serve any room without sticky sessions or a dedicated room owner.
 | `common-rpc` | HTTP clients, principal propagation, and external service adapters |
 | `common-arch` | The shared ArchUnit rules every Java application runs in its layering test |
 | `common-web`, `common-auth-web` | Functional WebMVC, error handling, validation, and trusted principal resolution |
-| `common-observability` | OpenTelemetry integration and GraalVM runtime hints |
+| `common-observability` | OpenTelemetry log appender installation and asynchronous trace-context propagation |
 | `common-native-hints` | Shared third-party GraalVM compatibility hints, discovered through Spring AOT factories |
 | `common-messaging`, `common-outbox` | Consumer retries, dead-letter queues, and the transactional outbox |
 | `common-scheduling`, `common-export` | Distributed scheduler locks and export utilities |
@@ -385,11 +387,10 @@ a coordinated maintenance window when old and new replicas are incompatible:
 
 1. Ask active editors to retain/export uncommitted work. Stop new traffic and close old gateway
    WebSockets. Stop all blog writers, including user-deletion consumers, before replacing services.
-2. The one-time `collaboration_epoch` startup migration has been retired after rollout. Existing
-   databases must already contain the non-null UUID column; startup no longer alters or backfills it.
-   A fresh database is created normally by Hibernate, and the application assigns epochs to new articles.
-   Do not clear Redis or IndexedDB: room names isolate collaboration epochs; legacy local drafts remain available as recovery
-   copies and old Redis rooms expire under their existing retention policy.
+2. Existing databases must contain a non-null `collaboration_epoch` UUID for every article; the
+   application assigns epochs to new articles and does not backfill existing rows at startup.
+   Preserve Redis and IndexedDB data: room names isolate collaboration epochs, local drafts remain
+   available as recovery copies, and old Redis rooms expire under their retention policy.
 3. Deploy auth, blog, sync, gateway, and frontend together. The deployment workflow sets
    `MEGALITH_BLOG_SYNC_URL=http://micro-sync-rs:8089` for blog containers; set the same value for manual deployments. The sync initialization route
    `/inner/rooms/{roomId}/initialize` is internal-only and must never be added to external gateway routes.
@@ -413,7 +414,7 @@ validating all three indexes, including a dataset containing unpublished drafts.
 
 - GraalVM 25.5.5.0.3 innovation release for JDK 25 using the HotSpot JVM, not the
   Espresso JVM
-- Gradle 9.9.0 through the included Wrapper
+- Gradle 9.9.1 through the included Wrapper
 - Rust stable with 2024 edition support
 - Bun 1.4.4 for workspace development, CI, and the frontend Docker builder
 - Docker for OCI image builds
@@ -444,9 +445,9 @@ bun run frontend:check
 `./gradlew build` covers unit tests, ArchUnit boundaries, and Spring test AOT processing.
 The separate `integrationTest` tasks above are not attached to `build` or `check`.
 CI also runs all six Java integration suites on pull requests and before image publication.
-Pull requests run quality checks without publishing images or deploying. The blog startup integration test boots the real application with MariaDB, Redis, and RabbitMQ, then
-checks health, draft creation, collaboration initialization, and outbound trace propagation. It runs
-in the Java CI quality gate before publishing images. To smoke-test the actual Native Image as well:
+Pull requests run quality checks without publishing images or deploying. The blog startup integration
+test boots the real application with MariaDB, Redis, and RabbitMQ, then checks health, draft creation,
+collaboration initialization, and outbound trace propagation. To smoke-test the actual Native Image as well:
 
 ```bash
 ./gradlew :micro-blog:nativeCompile
@@ -519,24 +520,17 @@ The frontend development server listens on `http://127.0.0.1:1919` and expects t
 `MEGALITH_AUTH_COOKIE_SECURE=false`.
 
 A complete local deployment also requires MariaDB, Redis, RabbitMQ, and Elasticsearch. Backend
-connection, port, and OpenTelemetry defaults are defined in each service's `application.yml`;
+connection, port, and OpenTelemetry defaults are defined in each service's `application.yml`.
+Rust binaries embed this file at compile time and accept environment-variable overrides at runtime;
 frontend settings are listed above.
 
-### Recovery and cache compatibility
+### Recovery and login codes
 
-Recycle-bin responses now expose a SHA-256 `recoveryId` instead of a list position. Deploy the blog
-service and frontend together, then refresh existing administration pages. Existing Redis records
-retain their format and are identified from their original serialized bytes; no database or Redis
-migration is required. Missing/expired records return 404, and conflicting restores return 409.
-The retired public ranking and internal recommendation-head endpoints are removed; recommendation
-feeds and administration weekly counts remain available.
+Recycle-bin responses identify records by a SHA-256 `recoveryId` derived from their original
+serialized Redis bytes. Missing or expired records return 404, and conflicting restores return 409.
 
 Login-code issuance reserves its Redis entry before delivery, compensates failed delivery using a
-reservation identifier, and verifies/consumes each code atomically. Deploy all auth replicas together
-so older non-atomic consumers cannot bypass the new behavior. Session cookies, JWTs, refresh, and
-logout behavior are unchanged. Gateway request metrics use the authorized route pattern; an older
-auth response without that field produces the bounded `unknown` label.
-
+reservation identifier, and verifies/consumes each code atomically.
 
 ## License
 

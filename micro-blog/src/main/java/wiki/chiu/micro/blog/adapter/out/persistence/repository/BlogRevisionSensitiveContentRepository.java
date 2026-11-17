@@ -19,10 +19,6 @@ public interface BlogRevisionSensitiveContentRepository
     List<BlogRevisionSensitiveContentEntity> findByRevisionIdIn(Collection<Long> revisionIds);
 
     @Modifying
-    @Query("DELETE FROM BlogRevisionSensitiveContentEntity entity WHERE entity.revisionId = :revisionId")
-    void deleteByRevisionId(@Param("revisionId") Long revisionId);
-
-    @Modifying
     @Query(
         """
         DELETE FROM BlogRevisionSensitiveContentEntity span

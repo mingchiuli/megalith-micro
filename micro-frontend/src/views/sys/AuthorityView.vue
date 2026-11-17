@@ -2,7 +2,7 @@
 import { useHttp } from '@/http/http'
 import type { AuthorityForm, AuthoritySys } from '@/type/entity'
 import type { FormRules, TableInstance } from 'element-plus'
-import { Status, ButtonAuth, AuthStatus } from '@/type/entity'
+import { ButtonAuth, AuthStatus } from '@/type/entity'
 import { downloadSQLData } from '@/utils/download'
 import { checkButtonAuth, getButtonType, getButtonTitle } from '@/utils/permissions'
 import { displayState } from '@/utils/position'

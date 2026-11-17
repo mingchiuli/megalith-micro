@@ -28,12 +28,6 @@ public interface UserDirectory {
      */
     List<String> findEnabledRoleCodesOf(Long userId);
 
-    /**
-     * @param roleCodes the caller's granted role codes
-     * @return the subset that exists and is enabled
-     */
-    List<String> findEnabledRoleCodes(List<String> roleCodes);
-
     void lockAfterPasswordFailures(Long userId);
 
     void updateLoginTime(String username);

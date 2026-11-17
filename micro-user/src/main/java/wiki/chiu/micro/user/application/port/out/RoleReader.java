@@ -18,8 +18,6 @@ public interface RoleReader {
 
     List<Role> findByCodeIn(List<String> codes);
 
-    List<Role> findByCodeInAndStatus(List<String> codes, Integer status);
-
     List<Role> findByStatus(Integer status);
 
     Page<Role> findPage(int pageNumber, int pageSize);

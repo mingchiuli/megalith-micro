@@ -27,8 +27,8 @@ select all services.
 Python 3.9+ is required on the Actions runner and the SSH deployment host. The
 deployment preparation step passes the standalone Python source through the
 existing SSH action, so the host needs no checkout or third-party Python packages.
-The application container images do not need Python. The SSH user's working
-directory, Docker permissions, and Compose files remain the same as before.
+The application container images do not need Python. The SSH user's working directory must contain
+the deployment Compose files, and the user must have permission to run Docker and Compose.
 
 Workflow inputs and credentials are passed through environment variables. Build
 tools run as argument lists, and any failed command stops its step. Deployments

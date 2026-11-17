@@ -1,12 +1,8 @@
 use serde::Deserialize;
 
-// Custom error type for auth-related errors
 #[derive(Deserialize, Debug)]
-
 pub struct ApiResult<T> {
     code: i32,
-    #[allow(dead_code)]
-    msg: String,
     data: T,
 }
 

@@ -24,7 +24,7 @@ class UserRoleServiceImplTest {
     private final UserRoleReader userRoles = mock(UserRoleReader.class);
     private final RoleDataPermissionReader permissions = mock(RoleDataPermissionReader.class);
     private final UserRoleServiceImpl service =
-        new UserRoleServiceImpl(roles, userRoles, permissions, new RoleCodeLookup(userRoles, roles));
+        new UserRoleServiceImpl(roles, userRoles, permissions);
 
     @Test
     void mergesAndDeduplicatesPermissionsFromEnabledRoles() {

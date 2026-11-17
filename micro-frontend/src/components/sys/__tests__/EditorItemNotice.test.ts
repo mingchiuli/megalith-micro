@@ -51,12 +51,10 @@ import EditorItem from '@/components/sys/EditorItem.vue'
 
 const sessionStub = {
   config: [],
-  persistenceKey: 'megalith:editor:yjs:v1:0:42',
   connect: vi.fn(),
   disconnect: vi.fn(),
   updateToken: vi.fn(),
   restart: vi.fn(),
-  clearPersistence: vi.fn(),
   destroy: vi.fn()
 }
 

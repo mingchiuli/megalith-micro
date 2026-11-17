@@ -1,6 +1,6 @@
 package wiki.chiu.micro.user.application.service;
-import java.util.List;
 
+import java.util.List;
 
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.enums.StatusEnum;
@@ -23,22 +23,13 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     private final RoleDataPermissionReader roleDataPermissionRepository;
 
-    private final RoleCodeLookup roleCodes;
-
     public UserRoleServiceImpl(
         RoleReader roleRepository,
         UserRoleReader userRoleReader,
-        RoleDataPermissionReader roleDataPermissionRepository,
-        RoleCodeLookup roleCodes) {
+        RoleDataPermissionReader roleDataPermissionRepository) {
         this.roleRepository = roleRepository;
         this.userRoleReader = userRoleReader;
         this.roleDataPermissionRepository = roleDataPermissionRepository;
-        this.roleCodes = roleCodes;
-    }
-
-    @Override
-    public List<String> findRoleCodesByUserId(Long userId) {
-        return roleCodes.codesOf(userId);
     }
 
     @Override

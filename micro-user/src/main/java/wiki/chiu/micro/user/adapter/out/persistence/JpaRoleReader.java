@@ -47,11 +47,6 @@ public class JpaRoleReader implements RoleReader {
     }
 
     @Override
-    public List<Role> findByCodeInAndStatus(List<String> codes, Integer status) {
-        return UserPersistenceMapper.toRoles(roles.findByCodeInAndStatus(codes, status));
-    }
-
-    @Override
     public List<Role> findByStatus(Integer status) {
         return UserPersistenceMapper.toRoles(roles.findByStatus(status));
     }

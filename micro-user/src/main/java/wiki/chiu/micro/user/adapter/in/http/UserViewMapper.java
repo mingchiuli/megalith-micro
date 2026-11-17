@@ -9,7 +9,6 @@ import wiki.chiu.micro.user.application.model.RoleAuthorization;
 import wiki.chiu.micro.user.application.model.UserAccess;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
-import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.application.model.MenuAuthorityView;
 import wiki.chiu.micro.user.application.model.MenuNode;
@@ -210,22 +209,6 @@ public final class UserViewMapper {
             .updated(user.updated())
             .lastLogin(user.lastLogin())
             .build();
-    }
-
-    public static RoleEntityRpcVo toRpc(Role role) {
-        return RoleEntityRpcVo.builder()
-            .id(role.id())
-            .name(role.name())
-            .code(role.code())
-            .remark(role.remark())
-            .status(role.status())
-            .created(role.created())
-            .updated(role.updated())
-            .build();
-    }
-
-    public static List<RoleEntityRpcVo> toRoleRpcs(List<Role> roles) {
-        return roles.stream().map(UserViewMapper::toRpc).toList();
     }
 
     public static MenuRpcVo toRpc(Menu menu) {

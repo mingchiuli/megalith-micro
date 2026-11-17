@@ -135,9 +135,8 @@ public class UserApplicationConfig {
     UserRoleService userRoleService(
         RoleReader roles,
         UserRoleReader userRoles,
-        RoleDataPermissionReader dataPermissions,
-        RoleCodeLookup roleCodes) {
-        return new UserRoleServiceImpl(roles, userRoles, dataPermissions, roleCodes);
+        RoleDataPermissionReader dataPermissions) {
+        return new UserRoleServiceImpl(roles, userRoles, dataPermissions);
     }
 
     @Bean

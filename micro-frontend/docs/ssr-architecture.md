@@ -59,8 +59,9 @@ contains that ID, and article/epoch changes recreate editor state. Ticket respon
 `roomId`, `collaborationEpoch`, and `expiresAt` (Unix milliseconds). A ticket renews 15 seconds before
 expiry by reconnecting the same Y.Doc; expiry or denied renewal pauses editing. Access and refresh
 cookies remain HttpOnly. A changed epoch stores the old content as a recovery copy and loads the
-current article into a separate document. Version 1 local databases are retained, not automatically
-merged. Without IndexedDB, recovery copies remain in memory until the editor is closed.
+current article into a separate document. Version 1 metadata and Yjs draft keys remain readable as
+recovery copies and are not automatically merged into the current epoch. Without IndexedDB,
+recovery copies remain in memory until the editor is closed.
 
 Autosaves update the server working draft even when its title, description, or content is still
 empty. Explicit version saves and publication require all three fields to be nonblank.

@@ -9,7 +9,5 @@ import wiki.chiu.micro.common.enums.DataPermissionEnum;
  */
 public interface UserRoleService {
 
-    List<String> findRoleCodesByUserId(Long userId);
-
     List<DataPermissionEnum> findDataPermissionsByUserId(Long userId);
 }

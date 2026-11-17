@@ -80,7 +80,6 @@ public class UserRoutes {
                 .PATCH(
                     "/inner/user/{userId}/password-lock",
                     userInternalHandler::lockAfterPasswordFailures)
-                .POST("/inner/user/role", userInternalHandler::findByRoleCodeInAndStatus)
                 .POST("/inner/user/login/time", userInternalHandler::updateLoginTime)
                 .GET("/inner/user/email", userInternalHandler::findByEmail)
                 .GET("/inner/user/phone", userInternalHandler::findByPhone)

@@ -1,7 +1,5 @@
 package wiki.chiu.micro.common.constant;
 
-import java.util.regex.Pattern;
-
 /**
  * @author mingchiuli
  * @create 2021-12-14 11:58 AM
@@ -34,17 +32,9 @@ public class Const {
 
     public static final String READ_TOKEN = "read_token:";
 
-    public static final String HOT_BLOGS = "hot_blogs";
-
-    public static final String HOT_BLOG = "hot_blog";
-
     public static final String REGISTER_PREFIX = "register_prefix:";
 
     public static final String USER = "user";
-
-    public static final String ALL_SERVICE = "all_service";
-
-    public static final String ROLE_AUTHORITY = "role_authority";
 
     public static final String USER_ACCESS = "user_access";
 
@@ -87,12 +77,6 @@ public class Const {
 
     public static final String USERNAME_REGEX =
         "^(?!1[3-9]\\d{9}$)(?![a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z]{2,}$).+$";
-
-    public static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
-
-    public static final Pattern PHONE_PATTERN = Pattern.compile(PHONE_REGEX);
-
-    public static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
 
     public static final String ES_QUEUE = "blog.change.queue.es";
 

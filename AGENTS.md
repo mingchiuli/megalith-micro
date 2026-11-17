@@ -9,7 +9,7 @@ this file records the implementation constraints that are easy to miss.
 - Java 25 (GraalVM 25.5 Innovation HotSpot), Spring Boot 4.1.2, Hibernate ORM
   enhancer plugin 7.4.15.Final, Redisson 4.8.0, and Caffeine. Runtime dependencies use the
   Spring Boot BOM; the Hibernate plugin version is pinned separately in `build.gradle.kts`.
-- Gradle 9.9.0 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
+- Gradle 9.9.1 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
 - Rust 2024 for `micro-gateway-rs` and `micro-sync-rs`.
 - Bun 1.4.4, Vue 3, and Vite for the standalone `micro-frontend` service; `tsrs` with the
   Vize content mapper checks TypeScript and Vue types. The frontend Docker builder uses Bun 1.4.4.
@@ -26,7 +26,7 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.5.5.0.3+1.1/Conten
 ./gradlew build
 ./gradlew :micro-auth:test
 # Separate Testcontainers suites; requires Docker, not included in build/check.
-./gradlew :micro-user:integrationTest :micro-blog:integrationTest \
+./gradlew :micro-auth:integrationTest :micro-user:integrationTest :micro-blog:integrationTest \
   :micro-exhibit:integrationTest :micro-search:integrationTest :cache:integrationTest
 ./gradlew :micro-auth:nativeCompile
 cargo fmt --all -- --check
@@ -66,8 +66,8 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
    service returns the target host/port and a Base64URL principal in `X-Megalith-Principal`; business
    services trust that header and never re-derive identity from cookies.
 2. **SSR and browser traffic are separate.** SSR prefetch uses `SSR_API_BASE_URL` through the gateway.
-   Browser API and WebSocket traffic goes through nginx and the gateway. Tokens stay in HttpOnly
-   cookies; browser code must not read or persist access or refresh tokens. SSR requests must create
+   Browser API and WebSocket traffic goes through nginx and the gateway. Access and refresh tokens
+   stay in HttpOnly cookies; browser code must not read or persist them. SSR requests must create
    isolated Router, Pinia, i18n, head-management, and HTTP state.
 3. **Stateless collaboration.** `micro-sync-rs` replicas coordinate through shared Redis Streams and
    state for documents, awareness, snapshots, presence, leases, and compaction. Do not add sticky
@@ -115,7 +115,7 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
 10. **Native and AOT reachability.** Types used through reflection, serialization, HTTP interfaces, or
     native-image initialization need the matching Spring AOT/runtime hints. Declare HTTP payload
     binding hints in the application's `config/CustomRuntimeHints` with
-    `BindingReflectionHintsRegistrar`, so `adapter.in.http` holds route tables and handlers only.
+    `BindingReflectionHintsRegistrar`; keep runtime-hint registration out of `adapter.in.http`.
     Shared third-party compatibility hints belong in `common-native-hints` under
     `wiki.chiu.micro.common.nativehints`, discovered through `META-INF/spring/aot.factories`.
     Keep cache-specific hints in `cache`. The shared hints artifact and cache starter publish

@@ -153,11 +153,6 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<Role> findByRoleCodeInAndStatus(List<String> roles, Integer status) {
-        return roleRepository.findByCodeInAndStatus(roles, status);
-    }
-
-    @Override
     public List<RoleAuthorization> findAllRoleAuthorizations() {
         return authorizationQueries.findAllRoleAuthorizations();
     }

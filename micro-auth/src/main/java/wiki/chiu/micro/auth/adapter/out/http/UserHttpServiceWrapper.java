@@ -76,15 +76,6 @@ public class UserHttpServiceWrapper implements UserDirectory, FreshAuthorization
     }
 
     @Override
-    public List<String> findEnabledRoleCodes(List<String> roleCodes) {
-        return RemoteResult.requireSuccess(
-                () -> userHttpService.findByRoleCodeInAndStatus(roleCodes, NORMAL.getCode()))
-            .stream()
-            .map(role -> role.code())
-            .toList();
-    }
-
-    @Override
     public void lockAfterPasswordFailures(Long userId) {
         RemoteResult.requireSuccess(() -> userHttpService.lockAfterPasswordFailures(userId));
     }

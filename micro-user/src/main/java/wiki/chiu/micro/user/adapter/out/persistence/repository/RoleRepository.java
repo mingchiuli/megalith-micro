@@ -51,8 +51,6 @@ public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
 
     List<RoleEntity> findByCodeIn(List<String> roles);
 
-    List<RoleEntity> findByCodeInAndStatus(List<String> roles, Integer status);
-
     Optional<RoleEntity> findByCode(String role);
 
     List<RoleEntity> findByStatus(Integer status);

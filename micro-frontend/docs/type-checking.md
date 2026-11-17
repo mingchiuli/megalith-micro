@@ -24,9 +24,11 @@ bun run frontend:check
 bun run frontend:build
 ```
 
-The existing `frontend:check`, `quality:ci`, and build commands use this toolchain locally,
-in CI, and in the Docker build. `verify` remains the frontend's full-check script.
-Vite still compiles the client and SSR bundles; Bun still packages the standalone executable.
+`frontend:check` runs the frontend's `verify` script: lint, formatting, type checks, type-check
+and lint smoke tests, unit-test coverage, client/SSR builds, standalone packaging, and SSR/OTel
+smoke tests. `quality:ci` runs formatting, type checks, smoke tests for the checker and lint backend,
+and unit-test coverage. The Docker build runs `build`, which performs type checks and builds the
+standalone executable. Vite compiles the client and SSR bundles; Bun packages the executable.
 Neither the checker nor the mapper is needed in the production image.
 
 ## Vue content mapper

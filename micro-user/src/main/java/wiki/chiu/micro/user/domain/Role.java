@@ -27,14 +27,6 @@ public record Role(
         return new Role(newId, name, code, remark, created, updated, status);
     }
 
-    public Role withName(String newName) {
-        return new Role(id, newName, code, remark, created, updated, status);
-    }
-
-    public Role withCode(String newCode) {
-        return new Role(id, name, newCode, remark, created, updated, status);
-    }
-
     public Role withRemark(String newRemark) {
         return new Role(id, name, code, newRemark, created, updated, status);
     }

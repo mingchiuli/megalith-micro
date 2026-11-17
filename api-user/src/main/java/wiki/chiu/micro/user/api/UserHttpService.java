@@ -11,7 +11,6 @@ import org.springframework.web.service.annotation.PostExchange;
 
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
-import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
 import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
@@ -19,10 +18,6 @@ public interface UserHttpService {
 
     @PatchExchange("/user/{userId}/password-lock")
     Result<Void> lockAfterPasswordFailures(@PathVariable Long userId);
-
-    @PostExchange("/user/role")
-    Result<List<RoleEntityRpcVo>> findByRoleCodeInAndStatus(
-        @RequestBody List<String> roles, @RequestParam Integer status);
 
     @PostExchange("/user/login/time")
     Result<Void> updateLoginTime(@RequestParam String username);

@@ -9,8 +9,7 @@ import wiki.chiu.micro.user.domain.Role;
 import wiki.chiu.micro.user.domain.UserRole;
 
 /**
- * Resolves the codes of the roles that are enabled for a user. Shared by the user and user-role use
- * cases, so it is an application collaborator rather than an input port.
+ * Resolves the codes of the roles that are enabled for a user.
  */
 public class RoleCodeLookup {
 

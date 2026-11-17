@@ -93,7 +93,7 @@ pub enum ConfigKey {
 static APP_CONFIG: OnceLock<AppConfig> = OnceLock::new();
 
 /// 初始化配置
-/// 按优先级加载: 环境变量 > config.yaml > 默认值
+/// 环境变量覆盖编译时嵌入的 application.yml。
 pub fn init_config() -> Result<(), ConfigError> {
     const DEFAULT_CONFIG: &str = include_str!("../application.yml");
 

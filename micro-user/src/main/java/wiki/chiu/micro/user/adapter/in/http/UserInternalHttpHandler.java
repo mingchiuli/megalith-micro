@@ -16,7 +16,6 @@ import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 import wiki.chiu.micro.user.api.UserHttpService;
 import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
-import wiki.chiu.micro.user.api.vo.RoleEntityRpcVo;
 import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.application.port.in.RoleService;
@@ -33,10 +32,6 @@ public class UserInternalHttpHandler implements UserHttpService {
     private final RoleService roleService;
 
     private final ValidatedRequest v;
-
-    private static final ParameterizedTypeReference<List<String>> STRING_LIST =
-        new ParameterizedTypeReference<>() {
-        };
 
     private static final ParameterizedTypeReference<List<Long>> LONG_LIST =
         new ParameterizedTypeReference<>() {
@@ -57,13 +52,6 @@ public class UserInternalHttpHandler implements UserHttpService {
     public ServerResponse lockAfterPasswordFailures(ServerRequest request) {
         Long userId = v.positive(pathVariable(request, "userId", Long::valueOf), "userId");
         return ok(lockAfterPasswordFailures(userId));
-    }
-
-    public ServerResponse findByRoleCodeInAndStatus(ServerRequest request) throws Exception {
-        return ok(
-            findByRoleCodeInAndStatus(
-                v.notBlankElements(request.body(STRING_LIST), "roles"),
-                v.range(requiredParam(request, "status", Integer::valueOf), 0, 1, "status")));
     }
 
     public ServerResponse updateLoginTime(ServerRequest request) {
@@ -103,12 +91,6 @@ public class UserInternalHttpHandler implements UserHttpService {
     @Override
     public Result<Void> lockAfterPasswordFailures(Long userId) {
         return Result.success(() -> userIdentityService.lockAfterPasswordFailures(userId));
-    }
-
-    @Override
-    public Result<List<RoleEntityRpcVo>> findByRoleCodeInAndStatus(
-        List<String> roles, Integer status) {
-        return Result.success(() -> UserViewMapper.toRoleRpcs(roleService.findByRoleCodeInAndStatus(roles, status)));
     }
 
     @Override
