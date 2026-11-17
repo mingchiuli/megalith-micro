@@ -1,4 +1,4 @@
-name: Release Cache and Native Hints Maven Packages
+name: Release Cache Maven Package
 on:
   push:
     tags:

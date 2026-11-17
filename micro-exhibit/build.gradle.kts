@@ -19,8 +19,7 @@ tasks.register<Test>("integrationTest") {
     classpath = integrationTest.runtimeClasspath
     shouldRunAfter(tasks.test)
     useJUnitPlatform()
-    val nativeSmoke = providers.environmentVariable("MICRO_EXHIBIT_NATIVE_EXECUTABLE").isPresent ||
-        providers.environmentVariable("MICRO_EXHIBIT_NATIVE_IMAGE").isPresent
+    val nativeSmoke = providers.environmentVariable("MICRO_EXHIBIT_NATIVE_IMAGE").isPresent
     outputs.upToDateWhen { !nativeSmoke }
     outputs.doNotCacheIf("Native smoke tests depend on external artifacts") { nativeSmoke }
 }

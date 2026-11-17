@@ -32,8 +32,6 @@ tasks.named<Javadoc>("javadoc") {
 }
 
 val validateNativeHintsReleaseVersion = tasks.register("validateNativeHintsReleaseVersion") {
-    group = "publishing"
-    description = "Validates the release version shared with the cache starter."
     doLast {
         val stableVersion = Regex("""(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)""")
         check(cacheVersion.isPresent && stableVersion.matches(cacheVersion.get())) {
@@ -57,20 +55,16 @@ publishing {
             pom {
                 name.set("Megalith Native Hints")
                 description.set("Shared third-party GraalVM runtime hints for Megalith")
-                inceptionYear.set("2026")
                 url.set("https://github.com/mingchiuli/megalith-micro/")
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
                         url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                        distribution.set("repo")
                     }
                 }
                 developers {
                     developer {
-                        id.set("chiu")
                         name.set("mingchiuli")
-                        url.set("https://github.com/mingchiuli/")
                     }
                 }
                 scm {

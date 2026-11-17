@@ -40,7 +40,6 @@ commits are unavailable. PRs run quality checks only; image publication and depl
 PR events. Java quality checks include auth, user, blog, exhibit, search, and cache integration tests.
 The exhibit image build also verifies native startup and Redis queries over Docker DNS with an
 isolated Redis/RabbitMQ network. The fixture declares the blog-owned exchange and exhibit queue
-before startup, matching production deployment order. A local native executable can be checked with
-`MICRO_EXHIBIT_NATIVE_EXECUTABLE` and `ExhibitNativeExecutableIntegrationTest`.
+before startup, matching production deployment order.
 Frontend quality runs the full `frontend:check`, including SSR builds and smoke tests. Workflow
 selection/guard tests run through `python3 -m unittest discover -s scripts/tests`.

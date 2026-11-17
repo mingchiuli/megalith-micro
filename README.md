@@ -205,7 +205,7 @@ replica to serve any room without sticky sessions or a dedicated room owner.
 | `common-rpc` | HTTP clients, principal propagation, and external service adapters |
 | `common-arch` | The shared ArchUnit rules every Java application runs in its layering test |
 | `common-web`, `common-auth-web` | Functional WebMVC, error handling, validation, and trusted principal resolution |
-| `common-observability` | OpenTelemetry trace, metric, and log integration |
+| `common-observability` | OpenTelemetry integration and GraalVM runtime hints |
 | `common-native-hints` | Shared third-party GraalVM compatibility hints, discovered through Spring AOT factories |
 | `common-messaging`, `common-outbox` | Consumer retries, dead-letter queues, and the transactional outbox |
 | `common-scheduling`, `common-export` | Distributed scheduler locks and export utilities |
