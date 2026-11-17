@@ -1,4 +1,4 @@
-"""Validate and publish the cache artifact to Maven Central."""
+"""Validate and publish the cache starter and shared native hints to Maven Central."""
 
 import base64
 import os
@@ -15,6 +15,10 @@ from .common import entrypoint, parse_command, run, write_outputs
 METADATA_URL = (
     "https://repo1.maven.org/maven2/wiki/chiu/megalith/"
     "megalith-cache-spring-boot-starter/maven-metadata.xml"
+)
+NATIVE_HINTS_METADATA_URL = (
+    "https://repo1.maven.org/maven2/wiki/chiu/megalith/"
+    "megalith-native-hints/maven-metadata.xml"
 )
 VERSION_PATTERN = re.compile(
     r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)", re.ASCII
@@ -38,10 +42,18 @@ def resolve_version(tag: str) -> str:
 
 
 def verify_release_order(version: str) -> None:
+    verify_artifact_release_order(version, METADATA_URL, require_initial_version=True)
+    # The new companion artifact starts at the existing cache release's version.
+    verify_artifact_release_order(version, NATIVE_HINTS_METADATA_URL, require_initial_version=False)
+
+
+def verify_artifact_release_order(
+    version: str, metadata_url: str, *, require_initial_version: bool
+) -> None:
     current = parse_version(version)
     try:
         with cast(
-            HTTPResponse, urllib.request.urlopen(METADATA_URL, timeout=60)
+            HTTPResponse, urllib.request.urlopen(metadata_url, timeout=60)
         ) as response:
             if response.status != 200:
                 raise ValueError(
@@ -53,11 +65,11 @@ def verify_release_order(version: str) -> None:
             raise ValueError(
                 f"Maven Central metadata request returned HTTP {error.code}."
             ) from error
-        if version != "0.1.0":
+        if require_initial_version and version != "0.1.0":
             raise ValueError(
                 f"The first release of the new artifact must be 0.1.0, not {version}."
             )
-        print("No existing artifact metadata found; allowing initial 0.1.0 release.")
+        print(f"No existing artifact metadata at {metadata_url}; allowing initial {version} release.")
         return
     try:
         latest = ET.fromstring(metadata).findtext("./versioning/release", default="")
@@ -104,9 +116,12 @@ def main() -> None:
         version = os.environ["CACHE_VERSION"]
         _ = parse_version(version)
         tasks = (
-            (":cache:check", ":cache:integrationTest")
+            (":common-native-hints:check", ":cache:check", ":cache:integrationTest")
             if command == "check"
-            else (":cache:publishMavenJavaPublicationToCentralStagingRepository",)
+            else (
+                ":common-native-hints:publishMavenJavaPublicationToCentralStagingRepository",
+                ":cache:publishMavenJavaPublicationToCentralStagingRepository",
+            )
         )
         _ = run("./gradlew", *tasks, f"-PcacheVersion={version}")
 

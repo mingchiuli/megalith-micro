@@ -116,6 +116,10 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
     native-image initialization need the matching Spring AOT/runtime hints. Declare HTTP payload
     binding hints in the application's `config/CustomRuntimeHints` with
     `BindingReflectionHintsRegistrar`, so `adapter.in.http` holds route tables and handlers only.
+    Shared third-party compatibility hints belong in `common-native-hints` under
+    `wiki.chiu.micro.common.nativehints`, discovered through `META-INF/spring/aot.factories`.
+    Keep cache-specific hints in `cache`. The shared hints artifact and cache starter publish
+    together at the same `cacheVersion`; preserve that dependency in the starter's POM and JPMS descriptor.
 11. **Observability.** Java, Rust, Bun, gateway, and sync services export correlated OpenTelemetry
     traces, metrics, and logs; preserve existing trace-context propagation when adding boundaries.
 12. **External Lua sources.** Redis scripts live in standalone `.lua` files. Java reads them as

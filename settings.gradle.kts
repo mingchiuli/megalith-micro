@@ -17,6 +17,7 @@ include(
         "common-auth-web",
         "common-observability",
         "common-messaging",
+        "common-native-hints",
         "common-scheduling",
         "common-outbox",
         "common-export",

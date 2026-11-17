@@ -2,13 +2,24 @@ package wiki.chiu.micro.blog.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.persistence.EntityManagerFactory;
+
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.aot.generate.ClassNameGenerator;
+import org.springframework.aot.generate.DefaultGenerationContext;
+import org.springframework.aot.generate.InMemoryGeneratedFiles;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.annotation.ReflectiveRuntimeHintsRegistrar;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.aot.ApplicationContextAotGenerator;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.javapoet.ClassName;
 import org.springframework.web.service.registry.ImportHttpServices;
 
 import wiki.chiu.micro.blog.MicroBlogApplication;
@@ -29,6 +40,7 @@ import wiki.chiu.micro.blog.adapter.in.http.BlogVersionVo;
 import wiki.chiu.micro.blog.adapter.in.http.OssDeleteReq;
 import wiki.chiu.micro.blog.adapter.in.http.PublishBlogReq;
 import wiki.chiu.micro.blog.adapter.in.http.SensitiveContentReq;
+import wiki.chiu.micro.blog.adapter.in.messaging.BlogRecycleMessageListener;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
 import wiki.chiu.micro.blog.domain.Blog;
@@ -72,13 +84,33 @@ class CustomRuntimeHintsTest {
     }
 
     @Test
+    void rabbitListenerCoversRemovedMessageBindings() {
+        RuntimeHints hints = new RuntimeHints();
+        new ReflectiveRuntimeHintsRegistrar().registerRuntimeHints(hints, BlogRecycleMessageListener.class);
+
+        assertBinding(hints, BlogChangedMessage.class);
+    }
+
+    @Test
+    void springDataCoversRemovedProjectionBinding() {
+        try (var context = new AnnotationConfigApplicationContext()) {
+            context.register(JpaProjectionConfiguration.class);
+            var generation = new DefaultGenerationContext(
+                new ClassNameGenerator(ClassName.get(getClass())), new InMemoryGeneratedFiles());
+
+            new ApplicationContextAotGenerator().processAheadOfTime(context, generation);
+
+            assertBinding(generation.getRuntimeHints(), BlogRepository.BlogId.class);
+        }
+    }
+
+    @Test
     void retainsBindingsForFunctionalRoutesAndManualSerialization() {
         RuntimeHints hints = new RuntimeHints();
         new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
 
         for (Class<?> type : List.of(
             PageAdapter.class,
-            BlogRepository.BlogId.class,
             BlogEntityReq.class,
             BlogIdVo.class,
             SensitiveContentReq.class,
@@ -96,7 +128,6 @@ class CustomRuntimeHintsTest {
             BlogPermissionsVo.class,
             BlogWorkingDraft.class,
             Blog.class,
-            BlogChangedMessage.class,
             BlogAdminIndexMessage.class)) {
             assertBinding(hints, type);
         }
@@ -143,6 +174,16 @@ class CustomRuntimeHintsTest {
                 .test(hints))
                 .as("Binding accessor hints for %s.%s", type.getName(), component.getName())
                 .isTrue();
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @EnableJpaRepositories(basePackageClasses = BlogRepository.class)
+    static class JpaProjectionConfiguration {
+
+        @Bean
+        EntityManagerFactory entityManagerFactory() {
+            throw new IllegalStateException("Only the bean type is needed for AOT processing");
         }
     }
 }

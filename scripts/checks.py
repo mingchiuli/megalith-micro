@@ -18,6 +18,14 @@ COMMANDS = {
             ":cache:integrationTest",
         ),
     ),
+    "exhibit-native-smoke": (
+        (
+            "./gradlew",
+            ":micro-exhibit:integrationTest",
+            "--tests",
+            "*ExhibitNativeImageIntegrationTest",
+        ),
+    ),
     "scripts": (("python3", "-m", "unittest", "discover", "-s", "scripts/tests"),),
     "rust-fmt": (("cargo", "fmt", "--all", "--", "--check"),),
     "rust-clippy": (
@@ -51,6 +59,8 @@ COMMANDS = {
 
 def main() -> None:
     command = parse_command(__doc__, [*COMMANDS, "java-aot", "java-image"])
+    if command == "exhibit-native-smoke" and not os.environ.get("MICRO_EXHIBIT_NATIVE_IMAGE"):
+        raise ValueError("MICRO_EXHIBIT_NATIVE_IMAGE is required for the native image smoke test")
     if command in {"java-aot", "java-image"}:
         service = os.environ["SERVICE"]
         if service not in JAVA_SERVICES:

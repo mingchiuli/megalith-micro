@@ -59,6 +59,7 @@ public final class ApplicationLayers {
         "wiki.chiu.micro.common.observability..",
         "wiki.chiu.micro.common.message..",
         "wiki.chiu.micro.common.messaging..",
+        "wiki.chiu.micro.common.nativehints..",
         "wiki.chiu.micro.common.outbox..",
         "wiki.chiu.micro.common.scheduling..",
         "wiki.chiu.micro.cache.."

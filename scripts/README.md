@@ -16,7 +16,7 @@ Relative imports need no editor-specific configuration.
 | --- | --- |
 | `checks.py` | Java, Rust, frontend quality checks, and Java image builds |
 | `services.py` | Changed-service selection and GitHub job outputs |
-| `cache_release.py` | Cache release tags, Maven Central version checks, publication, and finalization |
+| `cache_release.py` | Cache/native-hints release tags, Maven Central version checks, joint publication, and finalization |
 | `wireguard.py` | Temporary runner VPN setup and cleanup |
 | `deploy.py` | Compose deployment, health checks, image cleanup, and nginx reload |
 
@@ -38,5 +38,9 @@ overrides even when a deployment fails.
 Pull requests use their base/head merge base for change selection, falling back to all services when
 commits are unavailable. PRs run quality checks only; image publication and deployment jobs reject
 PR events. Java quality checks include auth, user, blog, exhibit, search, and cache integration tests.
+The exhibit image build also verifies native startup and Redis queries over Docker DNS with an
+isolated Redis/RabbitMQ network. The fixture declares the blog-owned exchange and exhibit queue
+before startup, matching production deployment order. A local native executable can be checked with
+`MICRO_EXHIBIT_NATIVE_EXECUTABLE` and `ExhibitNativeExecutableIntegrationTest`.
 Frontend quality runs the full `frontend:check`, including SSR builds and smoke tests. Workflow
 selection/guard tests run through `python3 -m unittest discover -s scripts/tests`.

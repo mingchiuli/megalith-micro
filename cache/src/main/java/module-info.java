@@ -13,6 +13,7 @@
  * @since 2025
  */
 module wiki.chiu.micro.cache {
+    requires wiki.chiu.micro.common.nativehints;
     requires org.slf4j;
     requires spring.core;
     requires spring.aop;

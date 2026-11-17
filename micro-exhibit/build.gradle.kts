@@ -19,9 +19,14 @@ tasks.register<Test>("integrationTest") {
     classpath = integrationTest.runtimeClasspath
     shouldRunAfter(tasks.test)
     useJUnitPlatform()
+    val nativeSmoke = providers.environmentVariable("MICRO_EXHIBIT_NATIVE_EXECUTABLE").isPresent ||
+        providers.environmentVariable("MICRO_EXHIBIT_NATIVE_IMAGE").isPresent
+    outputs.upToDateWhen { !nativeSmoke }
+    outputs.doNotCacheIf("Native smoke tests depend on external artifacts") { nativeSmoke }
 }
 
 dependencies {
+    runtimeOnly(project(":common-native-hints"))
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")

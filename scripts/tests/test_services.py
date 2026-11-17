@@ -28,6 +28,9 @@ class ServiceSelectionTest(unittest.TestCase):
     def test_shared_java_change_checks_java_and_docs_do_not_deploy(self):
         self.assertEqual(set(services.JAVA_SERVICES), services.services_for_paths(["cache/src/main/Foo.java"]))
         self.assertEqual(set(), services.services_for_paths(["README.md"]))
+        self.assertEqual(set(services.JAVA_SERVICES), services.services_for_paths([
+            "common-native-hints/src/main/java/wiki/chiu/micro/common/nativehints/config/NettyRuntimeHints.java"
+        ]))
 
     def test_pr_cannot_enter_any_publish_or_deploy_job(self):
         workflow = Path(".github/workflows/main-services.yml").read_text()

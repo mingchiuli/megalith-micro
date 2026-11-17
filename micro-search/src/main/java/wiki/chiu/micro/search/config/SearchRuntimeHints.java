@@ -4,7 +4,6 @@ import org.springframework.aot.hint.BindingReflectionHintsRegistrar;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
-import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
 import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.search.adapter.in.http.BlogDocumentVo;
 import wiki.chiu.micro.search.adapter.out.elasticsearch.RecommendationCursor;
@@ -21,7 +20,6 @@ public class SearchRuntimeHints implements RuntimeHintsRegistrar {
                 hints.reflection(),
                 PageAdapter.class,
                 BlogDocumentVo.class,
-                RecommendationCursor.class,
-                BlogAdminIndexMessage.class);
+                RecommendationCursor.class);
     }
 }

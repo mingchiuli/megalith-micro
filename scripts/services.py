@@ -36,6 +36,7 @@ JAVA_DIRECTORIES = (
     "common-export/",
     "common-outbox/",
     "common-messaging/",
+    "common-native-hints/",
     "common-scheduling/",
     "cache/",
     "gradle/",

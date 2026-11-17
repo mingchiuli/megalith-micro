@@ -19,6 +19,10 @@ and GraalVM Native Image.
 Only `annotation`, `handler`, and `key` are part of the published API. A contract version bump is
 required for changing a namespace, version, key, or payload shape; moving internal packages is not.
 
+The starter includes `megalith-native-hints` as a transitive dependency for shared Netty native-image
+compatibility. Both artifacts use the same version and are published together by the `cache-v*`
+release workflow. Caffeine, cache payload, listener, and Lua hints remain in this module.
+
 ## Contract
 
 Applications declare a stable cache identity independently of Java class and method names:

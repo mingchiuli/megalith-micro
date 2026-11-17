@@ -25,6 +25,7 @@ import wiki.chiu.micro.search.MicroSearchApplication;
 import wiki.chiu.micro.search.adapter.in.http.BlogDocumentVo;
 import wiki.chiu.micro.search.adapter.in.http.IndexMaintenanceHttpHandler;
 import wiki.chiu.micro.search.adapter.in.http.SearchInternalHttpHandler;
+import wiki.chiu.micro.search.adapter.in.messaging.BlogAdminMessageListener;
 import wiki.chiu.micro.search.adapter.out.elasticsearch.RecommendationCursor;
 import wiki.chiu.micro.search.api.req.BlogReadCountReq;
 import wiki.chiu.micro.search.api.req.BlogRevisionSearchReq;
@@ -77,6 +78,21 @@ class SearchRuntimeHintsTest {
     }
 
     @Test
+    void rabbitListenerCoversRemovedMessageBindings() {
+        RuntimeHints hints = new RuntimeHints();
+        new ReflectiveRuntimeHintsRegistrar().registerRuntimeHints(hints, BlogAdminMessageListener.class);
+
+        for (Class<?> type : List.of(
+            BlogAdminIndexMessage.class,
+            BlogAdminSnapshot.class,
+            BlogDraftSnapshot.class,
+            BlogRevisionSnapshot.class,
+            BlogSensitiveSpan.class)) {
+            assertBinding(hints, type);
+        }
+    }
+
+    @Test
     void retainsBindingsForFunctionalRoutesAndManualSerialization() {
         RuntimeHints hints = new RuntimeHints();
         new SearchRuntimeHints().registerHints(hints, getClass().getClassLoader());
@@ -84,12 +100,7 @@ class SearchRuntimeHintsTest {
         for (Class<?> type : List.of(
             PageAdapter.class,
             BlogDocumentVo.class,
-            RecommendationCursor.class,
-            BlogAdminIndexMessage.class,
-            BlogAdminSnapshot.class,
-            BlogDraftSnapshot.class,
-            BlogRevisionSnapshot.class,
-            BlogSensitiveSpan.class)) {
+            RecommendationCursor.class)) {
             assertBinding(hints, type);
         }
     }

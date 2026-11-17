@@ -28,8 +28,13 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 class RedisLoginCodeStoreIntegrationTest {
     @Container
-    static final GenericContainer<?> REDIS = new GenericContainer<>(DockerImageName.parse("redis:8.10.0"))
-        .withExposedPorts(6379);
+    static final GenericContainer<?> REDIS = redisContainer();
+
+    private static GenericContainer<?> redisContainer() {
+        GenericContainer<?> container = new GenericContainer<>(DockerImageName.parse("redis:8.10.0"));
+        container.addExposedPorts(6379);
+        return container;
+    }
 
     @Test
     void concurrentReservationAndConsumptionHaveOneWinner() throws Exception {

@@ -17,12 +17,10 @@ import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSaveVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSummaryVo;
 import wiki.chiu.micro.blog.adapter.in.http.OssDeleteReq;
 import wiki.chiu.micro.blog.adapter.in.http.PublishBlogReq;
-import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.application.model.CollaborationTicket;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
-import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.page.PageAdapter;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
@@ -35,7 +33,6 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 hints.reflection(),
                 PageAdapter.class,
                 CollaborationTicket.class,
-                BlogRepository.BlogId.class,
                 BlogEntityReq.class,
                 BlogIdVo.class,
                 BlogQueryReq.class,
@@ -54,10 +51,6 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
             .reflection()
             .registerType(
                 Blog.class,
-                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                MemberCategory.INVOKE_DECLARED_METHODS)
-            .registerType(
-                BlogChangedMessage.class,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS)
             .registerType(

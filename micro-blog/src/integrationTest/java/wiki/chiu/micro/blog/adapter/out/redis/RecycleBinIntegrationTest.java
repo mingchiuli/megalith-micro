@@ -28,8 +28,13 @@ import wiki.chiu.micro.common.exception.MissException;
 @Testcontainers
 class RecycleBinIntegrationTest {
     @Container
-    static final GenericContainer<?> REDIS = new GenericContainer<>(DockerImageName.parse("redis:8.10.0"))
-        .withExposedPorts(6379);
+    static final GenericContainer<?> REDIS = redisContainer();
+
+    private static GenericContainer<?> redisContainer() {
+        GenericContainer<?> container = new GenericContainer<>(DockerImageName.parse("redis:8.10.0"));
+        container.addExposedPorts(6379);
+        return container;
+    }
 
     @Test
     void stableRecoverySurvivesPagingOutOfOrderExpiryAndListChanges() throws Exception {

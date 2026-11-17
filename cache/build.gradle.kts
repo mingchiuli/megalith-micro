@@ -69,6 +69,9 @@ publishing {
             groupId = project.group.toString()
             artifactId = "megalith-cache-spring-boot-starter"
             version = project.version.toString()
+            versionMapping {
+                allVariants { fromResolutionResult() }
+            }
 
             pom {
                 name.set("Megalith Cache Spring Boot Starter")
@@ -149,6 +152,7 @@ val validateCachePublication = tasks.register("validateCachePublication") {
             }
         }
         val requiredCompileDependencies = setOf(
+            "megalith-native-hints",
             "spring-boot-starter",
             "spring-boot-starter-jackson",
             "redisson",
@@ -160,6 +164,15 @@ val validateCachePublication = tasks.register("validateCachePublication") {
             check(scopes[artifactId] == "compile") {
                 "Published dependency $artifactId must have compile scope, but was ${scopes[artifactId] ?: "missing"}."
             }
+        }
+        val hintsDependency = (0 until dependencies.length).map { dependencies.item(it) }
+            .first { it.textContent.contains("megalith-native-hints") }
+        val version = hintsDependency.childNodes.let { children ->
+            (0 until children.length).map { children.item(it) }
+                .first { it.nodeName == "version" }.textContent
+        }
+        check(version == project.version.toString()) {
+            "Native hints must be published with the cache starter version."
         }
     }
 }
@@ -178,6 +191,7 @@ tasks.register<Test>("integrationTest") {
 }
 
 dependencies {
+    api(project(":common-native-hints"))
     api("org.springframework.boot:spring-boot-starter")
     api("org.springframework.boot:spring-boot-starter-jackson")
     api("org.redisson:redisson:4.8.0")

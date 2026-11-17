@@ -205,7 +205,8 @@ replica to serve any room without sticky sessions or a dedicated room owner.
 | `common-rpc` | HTTP clients, principal propagation, and external service adapters |
 | `common-arch` | The shared ArchUnit rules every Java application runs in its layering test |
 | `common-web`, `common-auth-web` | Functional WebMVC, error handling, validation, and trusted principal resolution |
-| `common-observability` | OpenTelemetry integration and GraalVM runtime hints |
+| `common-observability` | OpenTelemetry trace, metric, and log integration |
+| `common-native-hints` | Shared third-party GraalVM compatibility hints, discovered through Spring AOT factories |
 | `common-messaging`, `common-outbox` | Consumer retries, dead-letter queues, and the transactional outbox |
 | `common-scheduling`, `common-export` | Distributed scheduler locks and export utilities |
 
@@ -222,6 +223,13 @@ shared domain enumerations, `constant` for shared constants, `page` for the pagi
 validators. `common-arch` owns
 `wiki.chiu.micro.common.arch` and holds the ArchUnit rules that give every application the same
 layer rules instead of one hand-written rule set per service.
+
+`common-native-hints` owns `wiki.chiu.micro.common.nativehints`. The cache starter,
+`common-scheduling`, and `micro-exhibit` bring it onto the runtime classpath so Redisson's Netty
+transport receives the same native hints. It does not pull Netty into applications that do not use
+it. Caffeine and cache serialization hints stay in `cache`; HTTP payloads and service resources
+stay in each service's registrar. The native-hints artifact is published alongside the cache starter
+with the same `cache-v` release version.
 
 ### Java application boundaries
 

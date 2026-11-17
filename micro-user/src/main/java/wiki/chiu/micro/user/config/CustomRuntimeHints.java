@@ -21,7 +21,6 @@ import wiki.chiu.micro.user.adapter.in.http.RoleMenuVo;
 import wiki.chiu.micro.user.adapter.in.http.UserEntityRegisterReq;
 import wiki.chiu.micro.user.adapter.in.http.UserEntityReq;
 import wiki.chiu.micro.user.adapter.in.http.UserEntityVo;
-import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
 
 public class CustomRuntimeHints implements RuntimeHintsRegistrar {
 
@@ -32,7 +31,6 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
             .registerReflectionHints(
                 hints.reflection(),
                 PageAdapter.class,
-                RoleMenuRepository.MenuId.class,
                 UserEntityRegisterReq.class,
                 UserEntityReq.class,
                 RegisterImageDeleteReq.class,

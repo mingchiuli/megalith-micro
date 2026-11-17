@@ -21,6 +21,7 @@ on:
       - 'common-export/**'
       - 'common-outbox/**'
       - 'common-messaging/**'
+      - 'common-native-hints/**'
       - 'common-scheduling/**'
       - 'common-auth-web/**'
       - 'api-auth/**'
@@ -192,6 +193,12 @@ jobs:
           SERVICE: ${{ matrix.service }}
           DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKER_PWD: ${{ secrets.DOCKERHUB_PWD }}
+
+      - name: Verify native exhibit startup over Docker DNS
+        if: ${{ matrix.service == 'micro-exhibit' }}
+        run: python3 -m scripts.checks exhibit-native-smoke
+        env:
+          MICRO_EXHIBIT_NATIVE_IMAGE: mingchiuli/megalith-micro-exhibit:latest
 
   build-rust:
     name: Build Rust Service
