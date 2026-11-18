@@ -16,8 +16,8 @@ JAVA_SERVICES = (
     "micro-user",
     "micro-auth",
     "micro-blog",
-    "micro-search",
     "micro-exhibit",
+    "micro-search",
 )
 RUST_SERVICES = ("micro-sync-rs", "micro-gateway-rs")
 FRONTEND = "megalith-frontend"

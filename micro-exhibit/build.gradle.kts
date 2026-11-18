@@ -31,6 +31,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation(project(":api-user"))
     implementation(project(":api-blog"))
+    implementation(project(":cache"))
     implementation(project(":api-search"))
     implementation(project(":common-contract"))
     implementation(project(":common-rpc"))

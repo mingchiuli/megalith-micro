@@ -72,7 +72,10 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
 3. **Stateless collaboration.** `micro-sync-rs` replicas coordinate through shared Redis Streams and
    state for documents, awareness, snapshots, presence, leases, and compaction. Do not add sticky
    session or room ownership assumptions.
-4. **`@Cache` owns cache keys.** Keys are
+4. **`@Cache` owns cache keys.** Only `micro-exhibit` and `micro-auth` may annotate business
+   reads with `@Cache`. Data owners publish changes through their transactional outbox. The cache
+   owner consumes those RabbitMQ events and uses `CacheEvictor` for exact L2 eviction and L1
+   invalidation across replicas. Keys are
    `<namespace>:v<version>:<sha256(canonicalTypedArgs)>` from `CacheKeyFactory`. Cache methods must go
    through the Spring proxy. Reads are Caffeine L1 then Redis L2; misses execute the method and write
    both levels with the annotation TTL. Increase the explicit version for incompatible contracts.

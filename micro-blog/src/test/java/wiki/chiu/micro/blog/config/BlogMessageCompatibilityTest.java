@@ -33,6 +33,7 @@ class BlogMessageCompatibilityTest {
 
         assertThat(event.revision()).isEqualTo(11L);
         assertThat(event.adminRevision()).isNull();
+        assertThat(event.previousPublishedRevisionId()).isNull();
         assertThat(event.blogSnapshot().id()).isEqualTo(7L);
         assertThat(new String(converter.toMessage(event, new MessageProperties()).getBody(), StandardCharsets.UTF_8))
             .doesNotContain("totalCount", "newerOrSameCount", "previousTotalCount");

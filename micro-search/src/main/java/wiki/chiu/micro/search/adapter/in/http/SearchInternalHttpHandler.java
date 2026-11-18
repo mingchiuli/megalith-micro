@@ -2,7 +2,6 @@ package wiki.chiu.micro.search.adapter.in.http;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.nullableParam;
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
-import static wiki.chiu.micro.common.web.FunctionalWeb.pathVariable;
 import static wiki.chiu.micro.common.web.FunctionalWeb.requiredParam;
 
 import java.util.List;
@@ -69,11 +68,6 @@ public class SearchInternalHttpHandler implements SearchHttpService {
         return ok(searchRevisions(req));
     }
 
-    public ServerResponse publicBlog(ServerRequest request) {
-        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
-        return ok(publicBlog(blogId));
-    }
-
     public ServerResponse recommendationFeed(ServerRequest request) {
         String cursor = nullableParam(request, "cursor", value -> v.maxLength(value, 4096, "cursor"));
         Integer size = v.range(requiredParam(request, "size", Integer::valueOf), 1, 50, "size");
@@ -124,11 +118,6 @@ public class SearchInternalHttpHandler implements SearchHttpService {
     public Result<Void> updateReadCounts(List<BlogReadCountReq> counts) {
         return Result.success(() -> searchBlogs.updateReadCounts(
             counts.stream().map(count -> new BlogReadCount(count.blogId(), count.readCount())).toList()));
-    }
-
-    @Override
-    public Result<PublicBlogRpcVo> publicBlog(Long blogId) {
-        return Result.success(() -> toResponse(searchBlogs.findPublic(blogId)));
     }
 
     @Override

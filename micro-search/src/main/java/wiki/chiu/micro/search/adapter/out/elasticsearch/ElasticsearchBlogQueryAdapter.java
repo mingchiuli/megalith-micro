@@ -8,7 +8,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -29,7 +28,6 @@ import wiki.chiu.micro.search.application.model.AdminRevisionRead;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
-import wiki.chiu.micro.search.application.model.PublicBlogRead;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.RecommendationFeed;
 import wiki.chiu.micro.search.application.model.RecommendationFeedQuery;
@@ -103,17 +101,6 @@ public final class ElasticsearchBlogQueryAdapter implements BlogSearchIndex {
                 BlogDocument.class,
                 IndexCoordinates.of(indexName));
         return toPage(hits, query.page(), publicPageSize);
-    }
-
-    @Override
-    public Optional<PublicBlogRead> findPublic(long blogId) {
-        BlogDocument document =
-            elasticsearchTemplate.get(
-                Long.toString(blogId), BlogDocument.class, IndexCoordinates.of(indexName));
-        if (document == null || Boolean.TRUE.equals(document.getDeleted())) {
-            return Optional.empty();
-        }
-        return Optional.of(BlogDocumentMapper.publicRead(document));
     }
 
     @Override

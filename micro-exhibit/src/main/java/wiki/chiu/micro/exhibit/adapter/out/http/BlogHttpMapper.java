@@ -3,7 +3,6 @@ package wiki.chiu.micro.exhibit.adapter.out.http;
 import java.util.List;
 
 import wiki.chiu.micro.common.enums.BlogRenderMode;
-import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.enums.SensitiveTypeEnum;
 import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
 import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
@@ -58,14 +57,5 @@ public final class BlogHttpMapper {
         return content == null
             ? ""
             : SensitiveContentMasker.mask(content, spans, type);
-    }
-
-    public static int publicStatus(PublicBlogRpcVo blog) {
-        if (blog.offlineAt() != null || Integer.valueOf(1).equals(blog.accessMode())) {
-            return BlogStatusEnum.HIDE.getCode();
-        }
-        return blog.renderMode() == BlogRenderMode.SENSITIVE_FILTER
-            ? BlogStatusEnum.SENSITIVE_FILTER.getCode()
-            : BlogStatusEnum.NORMAL.getCode();
     }
 }

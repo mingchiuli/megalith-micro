@@ -2,8 +2,6 @@ package wiki.chiu.micro.search.application.service;
 
 import java.util.List;
 
-import wiki.chiu.micro.common.error.ExceptionMessage;
-import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.search.application.model.AdminBlogRead;
 import wiki.chiu.micro.search.application.model.AdminRevisionRead;
@@ -11,7 +9,6 @@ import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
-import wiki.chiu.micro.search.application.model.PublicBlogRead;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.RecommendationFeed;
 import wiki.chiu.micro.search.application.model.RecommendationFeedQuery;
@@ -34,18 +31,6 @@ public final class SearchApplicationService implements SearchBlogsUseCase {
     @Override
     public Page<BlogSearchHit> searchPublic(PublicBlogSearchQuery query) {
         return searchIndex.searchPublic(query);
-    }
-
-    @Override
-    public PublicBlogRead findPublic(long blogId) {
-        PublicBlogRead blog = searchIndex.findPublic(blogId)
-            .orElseThrow(
-                () ->
-                    new MissException(ExceptionMessage.NO_FOUND.getMsg()));
-        if (blog.offlineAt() != null) {
-            throw new MissException(ExceptionMessage.NO_FOUND.getMsg());
-        }
-        return blog;
     }
 
     @Override

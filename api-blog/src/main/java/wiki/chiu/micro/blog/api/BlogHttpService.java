@@ -7,9 +7,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
+import wiki.chiu.micro.blog.api.vo.BlogPublicationContentRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationRpcVo;
 import wiki.chiu.micro.common.result.Result;
 
 public interface BlogHttpService {
+
+    @GetExchange("/blog/{blogId}/publication")
+    Result<BlogPublicationRpcVo> publication(@PathVariable Long blogId);
+
+    @GetExchange("/blog/{blogId}/publication/{revisionId}/content")
+    Result<BlogPublicationContentRpcVo> publicationContent(
+        @PathVariable Long blogId, @PathVariable Long revisionId);
 
     @GetExchange("/blog/ids")
     Result<List<Long>> findIdsAfter(

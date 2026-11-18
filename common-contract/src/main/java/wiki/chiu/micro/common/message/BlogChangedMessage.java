@@ -8,7 +8,14 @@ public record BlogChangedMessage(
     Long revision,
     Long operatorUserId,
     BlogSnapshot blogSnapshot,
-    Long adminRevision) {
+    Long adminRevision,
+    Long previousPublishedRevisionId) {
+
+    public BlogChangedMessage(
+        String eventId, Integer operation, Long revision, Long operatorUserId,
+        BlogSnapshot blogSnapshot, Long adminRevision) {
+        this(eventId, operation, revision, operatorUserId, blogSnapshot, adminRevision, null);
+    }
 
     public BlogChangedMessage(
         String eventId,

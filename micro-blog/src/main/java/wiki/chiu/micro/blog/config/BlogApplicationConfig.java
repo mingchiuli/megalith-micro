@@ -59,8 +59,8 @@ public class BlogApplicationConfig {
     }
 
     @Bean
-    BlogQueryService blogQueryService(BlogQueryStore blogs, BlogWriter writer) {
-        return new BlogQueryServiceImpl(blogs, writer);
+    BlogQueryService blogQueryService(BlogQueryStore blogs, BlogWriter writer, BlogAuthoringReader authoring) {
+        return new BlogQueryServiceImpl(blogs, writer, authoring);
     }
 
     @Bean

@@ -2,7 +2,6 @@ package wiki.chiu.micro.search.api;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;
@@ -14,7 +13,6 @@ import wiki.chiu.micro.search.api.req.BlogRevisionSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
 import wiki.chiu.micro.search.api.vo.AdminBlogSearchRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminRevisionSearchRpcVo;
-import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
 import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
 
 public interface SearchHttpService {
@@ -27,9 +25,6 @@ public interface SearchHttpService {
 
     @PostExchange("/blog/views/batch")
     Result<Void> updateReadCounts(@RequestBody List<BlogReadCountReq> counts);
-
-    @GetExchange("/blog/public/{blogId}")
-    Result<PublicBlogRpcVo> publicBlog(@PathVariable Long blogId);
 
     @GetExchange("/blog/public/recommendations/feed")
     Result<RecommendationFeedRpcVo> recommendationFeed(

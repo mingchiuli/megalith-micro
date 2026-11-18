@@ -5,6 +5,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
+import wiki.chiu.micro.blog.api.vo.BlogPublicationContentRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationRpcVo;
+import wiki.chiu.micro.common.error.CommonErrorCode;
+import wiki.chiu.micro.common.exception.RemoteServiceException;
 import wiki.chiu.micro.common.rpc.RemoteResult;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogExhibitMapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpMapper;
@@ -14,7 +18,6 @@ import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.application.port.out.BlogReader;
 import wiki.chiu.micro.search.api.SearchHttpService;
-import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
 import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
@@ -45,11 +48,20 @@ public class BlogWrapper implements BlogReader {
 
     @Override
     public BlogExhibit findById(Long id) {
-        PublicBlogRpcVo blogEntity =
-            RemoteResult.requireSuccess(() -> searchHttpService.publicBlog(id));
+        BlogPublicationRpcVo publication = blogHttpServiceWrapper.publication(id);
+        BlogPublicationContentRpcVo content;
+        try {
+            content = blogHttpServiceWrapper.publicationContent(id, publication.revisionId());
+        } catch (RemoteServiceException failure) {
+            if (failure.errorCode() != CommonErrorCode.CONFLICT) {
+                throw failure;
+            }
+            publication = blogHttpServiceWrapper.publication(id);
+            content = blogHttpServiceWrapper.publicationContent(id, publication.revisionId());
+        }
 
-        UserEntityRpcVo user = userHttpServiceWrapper.findById(blogEntity.userId());
-        return BlogExhibitMapper.toModel(blogEntity, user);
+        UserEntityRpcVo user = userHttpServiceWrapper.findById(publication.userId());
+        return BlogExhibitMapper.toModel(publication, content, user);
     }
 
     @Override

@@ -25,6 +25,10 @@ class ServiceSelectionTest(unittest.TestCase):
             "base": {"sha": "base"}, "head": {"sha": "head"}}}))
         self.assertEqual(set(services.SERVICE_ORDER), services.changed_services("missing", "head"))
 
+    def test_database_detail_provider_and_consumer_deploy_before_old_search_route_is_removed(self):
+        selected = {"micro-blog", "micro-exhibit", "micro-search"}
+        self.assertEqual("micro-blog micro-exhibit micro-search", services.service_outputs(selected)["deploy-services"])
+
     def test_shared_java_change_checks_java_and_docs_do_not_deploy(self):
         self.assertEqual(set(services.JAVA_SERVICES), services.services_for_paths(["cache/src/main/Foo.java"]))
         self.assertEqual(set(), services.services_for_paths(["README.md"]))

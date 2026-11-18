@@ -8,7 +8,6 @@ import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.BlogSearchHit;
 import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
-import wiki.chiu.micro.search.application.model.PublicBlogRead;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.RecommendationFeed;
 import wiki.chiu.micro.search.application.model.RecommendationFeedQuery;
@@ -17,8 +16,6 @@ import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
 public interface SearchBlogsUseCase {
 
     Page<BlogSearchHit> searchPublic(PublicBlogSearchQuery query);
-
-    PublicBlogRead findPublic(long blogId);
 
     RecommendationFeed recommendationFeed(RecommendationFeedQuery query);
 

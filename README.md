@@ -66,8 +66,8 @@ the target service. Business services use that principal for identity and permis
 | RabbitMQ | User/blog outbox publishers and event consumers | Confirmed domain-event delivery and cache-invalidation broadcasts |
 | Elasticsearch | `micro-search`, APM Server | Public/admin/revision search projections and observability storage |
 
-`micro-exhibit` reads public articles and recommendations from `micro-search`, gets author details
-from `micro-user`, and calls `micro-blog` for visit counting and existence-index scans. `micro-blog`
+`micro-exhibit` reads article details from `micro-blog`, recommendations from `micro-search`, and
+author details from `micro-user`. It also calls `micro-blog` for visit counting and existence-index scans. `micro-blog`
 uses `micro-search` for search/list projections and batched read-count updates. Search maintenance
 reads authoritative snapshots from `micro-blog`. Auth cache misses fetch user access and role
 authorization snapshots from `micro-user`; collaboration tickets use fresh authorization reads.
@@ -147,7 +147,7 @@ publication boundary. The durable fanout exchanges and consumer queues are:
 | `UserDeletedMessage` | `micro-user` | `micro-blog` | Delete the user's blogs and emit the corresponding blog events |
 | `BlogChangedMessage` | `micro-blog` | `micro-search` | Update the search index |
 | `BlogAdminIndexMessage` | `micro-blog` | `micro-search` | Update admin blog and immutable revision projections |
-| `BlogChangedMessage` | `micro-blog` | `micro-exhibit` | Maintain existence, read tokens, and weekly counts |
+| `BlogChangedMessage` | `micro-blog` | `micro-exhibit` | Evict published content and maintain existence, read tokens, and weekly counts |
 | `BlogChangedMessage` | `micro-blog` | `micro-blog` | Retain recycle-bin metadata for operator removals |
 
 Domain writes and outbox entries commit in the same database transaction. The publisher removes
@@ -157,8 +157,7 @@ exhaust their delayed retries are retained in dead-letter queues for investigati
 
 ### Search and caching
 
-Elasticsearch owns the public blog read model and the administration list projections. Public list,
-detail, sensitive-content masking data, and recommendations are served from `blog_search`; admin
+Elasticsearch serves public search and recommendations from `blog_search`. Administration
 lists use `blog_admin_search`, and version search uses `blog_revision_search`. Editing and version
 diff payloads are read from MariaDB so index lag cannot affect the editor. Content events carry
 self-contained administration snapshots and monotonic projection revisions so consumers can reject
@@ -169,9 +168,11 @@ three aliases together after both search queues are quiescent. `total` counts al
 validate against those respective counts. Article visits update MariaDB counters;
 cumulative counts are synchronized to Elasticsearch in batches through idempotent updates.
 
-Presentation reads use the search projections directly and compose author details through the user
-service. Blog events maintain the existence bitmap, read tokens, and weekly-count cleanup in Redis.
-The existing RabbitMQ queue name `blog.change.queue.cache` is retained for delivery compatibility.
+Both ordinary and read-token detail requests resolve the current online publication and read count
+in MariaDB through `micro-blog`. Exhibit caches the immutable content and its masking spans together
+by article and revision ID, then applies the reader's permissions and adds the author's details.
+The `blog.change.queue.cache` consumer evicts affected versions across exhibit replicas and maintains
+the existence bitmap, read tokens, and weekly counts.
 Administration exposes per-article weekly counts. Authorization reads use Caffeine L1 and Redis L2; see the
 [cache module](cache/README.md) for key generation, locking, and distributed eviction.
 

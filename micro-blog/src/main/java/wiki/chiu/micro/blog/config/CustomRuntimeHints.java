@@ -17,6 +17,8 @@ import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSaveVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSummaryVo;
 import wiki.chiu.micro.blog.adapter.in.http.OssDeleteReq;
 import wiki.chiu.micro.blog.adapter.in.http.PublishBlogReq;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationContentRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationRpcVo;
 import wiki.chiu.micro.blog.application.model.CollaborationTicket;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
@@ -31,6 +33,8 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
         new BindingReflectionHintsRegistrar()
             .registerReflectionHints(
                 hints.reflection(),
+                BlogPublicationRpcVo.class,
+                BlogPublicationContentRpcVo.class,
                 PageAdapter.class,
                 CollaborationTicket.class,
                 BlogEntityReq.class,

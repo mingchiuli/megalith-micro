@@ -43,6 +43,8 @@ import wiki.chiu.micro.blog.adapter.in.http.SensitiveContentReq;
 import wiki.chiu.micro.blog.adapter.in.messaging.BlogRecycleMessageListener;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationContentRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationRpcVo;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
@@ -110,6 +112,8 @@ class CustomRuntimeHintsTest {
         new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
 
         for (Class<?> type : List.of(
+            BlogPublicationContentRpcVo.class,
+            BlogPublicationRpcVo.class,
             PageAdapter.class,
             BlogEntityReq.class,
             BlogIdVo.class,

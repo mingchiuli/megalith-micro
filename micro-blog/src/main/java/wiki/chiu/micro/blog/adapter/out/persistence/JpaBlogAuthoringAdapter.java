@@ -280,6 +280,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
         enqueuePublic(
             BlogOperateEnum.UPDATE,
             snapshot(changed, published),
+            original.publishedRevisionId(),
             command.userId(),
             changed.adminRevision());
         enqueueAdmin(
@@ -334,6 +335,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
         enqueuePublic(
             BlogOperateEnum.UPDATE,
             snapshot(next, command.revision()),
+            null,
             command.userId(),
             next.adminRevision());
         enqueueAdmin(
@@ -442,7 +444,8 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
     }
 
     private void enqueuePublic(
-        BlogOperateEnum operation, BlogSnapshot snapshot, Long userId, Long adminRevision) {
+        BlogOperateEnum operation, BlogSnapshot snapshot, Long previousPublishedRevisionId,
+        Long userId, Long adminRevision) {
         outbox.enqueue(
             OutboxProducer.BLOG,
             "BLOG",
@@ -454,7 +457,8 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
                     snapshot.revision(),
                     userId,
                     snapshot,
-                    adminRevision));
+                    adminRevision,
+                    previousPublishedRevisionId));
     }
 
     private static BlogAdminSnapshot adminSnapshot(BlogIdentity identity) {

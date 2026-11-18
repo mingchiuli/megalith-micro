@@ -17,6 +17,8 @@ public interface BlogAuthoringReader {
 
     Optional<BlogWorkingDraft> findDraft(Long blogId);
 
+    Optional<BlogVersion> findOnlineVersion(Long blogId);
+
     Optional<BlogVersion> findVersion(Long blogId, Long revisionId);
 
     Optional<BlogVersion> findPreviousVersion(Long blogId, Long revisionId);

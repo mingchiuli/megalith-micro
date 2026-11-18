@@ -158,6 +158,7 @@ class BlogApplicationStartupIntegrationTest {
         assertThat(json.readTree(downstream.content.get()).get("content").asString()).isEmpty();
         assertThat(downstream.traceparent.get()).isNotBlank();
         assertThat(json.readTree(downstream.ticket.get()).get("roomId").asString()).isEqualTo(ticket.get("roomId").asString());
+        assertThat(get(base + "/inner/blog/" + blogId + "/publication").statusCode()).isEqualTo(404);
         verifyDraftRoundTrip(base, principal, blogId, epoch);
         verifyRecycleRoundTrip(base, principal, blogId);
     }
@@ -214,6 +215,26 @@ class BlogApplicationStartupIntegrationTest {
 
         var published = postJson(article + "/publish", principal, Map.of("revisionId", versionId));
         assertThat(published.statusCode()).as(published.body()).isEqualTo(200);
+        String publication = base + "/inner/blog/" + blogId + "/publication";
+        var metadata = get(publication);
+        assertThat(metadata.statusCode()).as(metadata.body()).isEqualTo(200);
+        assertThat(json.readTree(metadata.body()).get("data").get("revisionId").asLong()).isEqualTo(versionId);
+        String contentUrl = publication + "/" + versionId + "/content";
+        var content = get(contentUrl);
+        assertThat(content.statusCode()).as(content.body()).isEqualTo(200);
+        assertThat(json.readTree(content.body()).get("data").get("content").asString()).isEqualTo(markdown);
+        assertThat(get(publication + "/" + (versionId + 1) + "/content").statusCode()).isEqualTo(409);
+
+        assertThat(postJson(article + "/offline", principal, Map.of()).statusCode()).isEqualTo(200);
+        assertThat(get(publication).statusCode()).isEqualTo(404);
+        assertThat(get(contentUrl).statusCode()).isEqualTo(404);
+        assertThat(postJson(article + "/online", principal, Map.of()).statusCode()).isEqualTo(200);
+        assertThat(get(contentUrl).statusCode()).isEqualTo(200);
+    }
+
+    private HttpResponse<String> get(String url) throws Exception {
+        return client.send(HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(5)).build(),
+            HttpResponse.BodyHandlers.ofString());
     }
 
     private HttpResponse<String> postJson(String url, String principal, Object body) throws Exception {
@@ -243,6 +264,8 @@ class BlogApplicationStartupIntegrationTest {
             .POST(HttpRequest.BodyPublishers.ofString("[" + blogId + "]"))
             .timeout(Duration.ofSeconds(5)).build(), HttpResponse.BodyHandlers.ofString());
         assertThat(deletion.statusCode()).as(deletion.body()).isEqualTo(200);
+        String publication = base + "/inner/blog/" + blogId + "/publication";
+        assertThat(get(publication).statusCode()).isEqualTo(404);
         long deadline = System.nanoTime() + Duration.ofSeconds(10).toNanos();
         while (System.nanoTime() < deadline) {
             var response = client.send(HttpRequest.newBuilder(URI.create(base + "/sys/blog/deleted?currentPage=1&size=100"))
@@ -253,6 +276,10 @@ class BlogApplicationStartupIntegrationTest {
             for (int index = 0; index < rows.size(); index++) {
                 if (rows.get(index).get("id").asLong() == blogId) {
                     assertThat(rows.get(index).get("userId").asLong()).isEqualTo(42L);
+                    String recoveryId = rows.get(index).get("recoveryId").asString();
+                    assertThat(postJson(base + "/sys/blog/recover/" + recoveryId, principal, Map.of()).statusCode())
+                        .isEqualTo(200);
+                    assertThat(get(publication).statusCode()).isEqualTo(200);
                     return;
                 }
             }

@@ -47,6 +47,8 @@ public class BlogRoutes {
                 .GET("/sys/blog/download", blogHandler::download)
                 .GET("/sys/blog/edit/pull/echo", blogHandler::getEchoDetail)
                 .POST("/sys/blog/edit/ticket", blogHandler::issueCollaborationTicket)
+                .GET("/inner/blog/{blogId}/publication", internalHandler::publication)
+                .GET("/inner/blog/{blogId}/publication/{revisionId}/content", internalHandler::publicationContent)
                 .GET("/inner/blog/ids", internalHandler::findIdsAfter)
                 .POST("/inner/blog/{blogId}/views", internalHandler::setReadCount),
             log)

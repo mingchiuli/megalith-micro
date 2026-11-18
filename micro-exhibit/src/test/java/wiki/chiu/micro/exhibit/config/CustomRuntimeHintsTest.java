@@ -11,6 +11,8 @@ import org.springframework.aot.hint.annotation.ReflectiveRuntimeHintsRegistrar;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 import org.springframework.web.service.registry.ImportHttpServices;
 
+import wiki.chiu.micro.blog.api.vo.BlogPublicationContentRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationRpcVo;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.exhibit.MicroExhibitApplication;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogExhibitVo;
@@ -43,6 +45,8 @@ class CustomRuntimeHintsTest {
         new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
 
         for (Class<?> type : List.of(
+            BlogPublicationContentRpcVo.class,
+            BlogPublicationRpcVo.class,
             ReadTokenReq.class,
             BlogExhibitVo.class,
             BlogRecommendationVo.class,

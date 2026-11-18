@@ -51,6 +51,11 @@ class BlogSearchControllerTest {
     }
 
     @Test
+    void searchNoLongerServesArticleDetailById() throws Exception {
+        mockMvc.perform(get("/inner/blog/public/7")).andExpect(status().isNotFound());
+    }
+
+    @Test
     void searchBlogsReturnsPage() throws Exception {
         BlogDocumentVo vo =
             BlogDocumentVo.builder()

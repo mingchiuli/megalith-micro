@@ -11,6 +11,8 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import wiki.chiu.micro.blog.api.BlogHttpService;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationContentRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationRpcVo;
 import wiki.chiu.micro.blog.application.port.in.BlogQueryService;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
@@ -28,6 +30,31 @@ public class BlogInternalHttpHandler implements BlogHttpService {
     public BlogInternalHttpHandler(BlogQueryService blogQueryService, ValidatedRequest v) {
         this.blogQueryService = blogQueryService;
         this.v = v;
+    }
+
+    public ServerResponse publication(ServerRequest request) {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        return ok(publication(blogId));
+    }
+
+    public ServerResponse publicationContent(ServerRequest request) {
+        Long blogId = v.positive(pathVariable(request, "blogId", Long::valueOf), "blogId");
+        Long revisionId = v.positive(pathVariable(request, "revisionId", Long::valueOf), "revisionId");
+        return ok(publicationContent(blogId, revisionId));
+    }
+
+    @Override
+    public Result<BlogPublicationRpcVo> publication(Long blogId) {
+        var identity = blogQueryService.publication(blogId);
+        return Result.success(new BlogPublicationRpcVo(identity.publishedRevisionId(), identity.userId(),
+            identity.accessMode(), identity.created(), identity.publishedAt(), identity.readCount()));
+    }
+
+    @Override
+    public Result<BlogPublicationContentRpcVo> publicationContent(Long blogId, Long revisionId) {
+        var version = blogQueryService.publicationContent(blogId, revisionId);
+        return Result.success(new BlogPublicationContentRpcVo(version.title(), version.description(),
+            version.content(), version.renderMode(), version.sensitiveContent()));
     }
 
     public ServerResponse findIdsAfter(ServerRequest request) {

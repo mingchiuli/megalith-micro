@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogRevisionEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.mapping.BlogPersistenceMapper;
@@ -77,6 +79,13 @@ public class JpaBlogAuthoringReader implements BlogAuthoringReader {
                         draftSensitive.findByBlogId(blogId).stream()
                             .map(BlogPersistenceMapper::toSpan)
                             .toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    public Optional<BlogVersion> findOnlineVersion(Long blogId) {
+        return findIdentity(blogId).filter(BlogIdentity::online)
+            .flatMap(identity -> findVersion(blogId, identity.publishedRevisionId()));
     }
 
     @Override

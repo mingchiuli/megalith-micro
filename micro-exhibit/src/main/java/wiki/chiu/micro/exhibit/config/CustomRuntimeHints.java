@@ -4,6 +4,8 @@ import org.springframework.aot.hint.BindingReflectionHintsRegistrar;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
+import wiki.chiu.micro.blog.api.vo.BlogPublicationContentRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationRpcVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogExhibitVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogRecommendationFeedVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.ReadTokenReq;
@@ -17,6 +19,8 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
         new BindingReflectionHintsRegistrar()
             .registerReflectionHints(
                 hints.reflection(),
+                BlogPublicationRpcVo.class,
+                BlogPublicationContentRpcVo.class,
                 ReadTokenReq.class,
                 BlogExhibitVo.class,
                 BlogRecommendationFeedVo.class,
