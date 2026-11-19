@@ -1,4 +1,5 @@
 package wiki.chiu.micro.user.application.service;
+
 import static wiki.chiu.micro.common.error.ExceptionMessage.ROLE_NOT_EXIST;
 
 import java.time.LocalDateTime;
@@ -122,7 +123,7 @@ public class RoleServiceImpl implements RoleService {
                 ? Role.blank()
                 : roleRepository.findById(role.id()).orElseGet(Role::blank);
         String previousCode = dealRole.code();
-        Role merged = role.mergeInto(dealRole);
+        Role merged = UserModelConvertor.mergeInto(role, dealRole);
         List<String> affectedCodes =
             Stream.of(previousCode, merged.code())
                 .filter(Objects::nonNull)

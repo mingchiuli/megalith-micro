@@ -16,9 +16,9 @@ import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 /**
  * Turns the user service payloads into this service's own model.
  */
-public final class UserRpcMapper {
+public final class UserRpcConvertor {
 
-    private UserRpcMapper() {
+    private UserRpcConvertor() {
     }
 
     public static UserAccount toAccount(UserEntityRpcVo user) {

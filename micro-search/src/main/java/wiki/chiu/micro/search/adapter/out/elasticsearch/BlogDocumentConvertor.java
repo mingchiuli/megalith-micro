@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
+import org.jspecify.annotations.NonNull;
+import org.springframework.data.elasticsearch.core.SearchHits;
+
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.model.BlogDraftSnapshot;
@@ -15,14 +18,19 @@ import wiki.chiu.micro.search.application.model.AdminBlogRead;
 import wiki.chiu.micro.search.application.model.AdminRevisionRead;
 import wiki.chiu.micro.search.application.model.BlogAdminIndexChange;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
+import wiki.chiu.micro.search.application.model.BlogRevisionIndexEntry;
+import wiki.chiu.micro.search.application.model.BlogSearchHit;
+import wiki.chiu.micro.search.application.model.Page;
+import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
 import wiki.chiu.micro.search.application.model.PublicBlogRead;
+import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
 import wiki.chiu.micro.search.domain.BlogIndexEntry;
 
-final class BlogDocumentMapper {
+final class BlogDocumentConvertor {
 
     private static final ZoneId ZONE_ID = ZoneId.of("Asia/Shanghai");
 
-    private BlogDocumentMapper() {
+    private BlogDocumentConvertor() {
     }
 
     static BlogDocument publicDocument(BlogIndexChange change) {
@@ -247,4 +255,91 @@ final class BlogDocumentMapper {
         return draft == null ? null : getter.apply(draft);
     }
 
+    static BlogRevisionSnapshot toSnapshot(BlogRevisionIndexEntry revision) {
+        return new BlogRevisionSnapshot(
+            revision.id(),
+            revision.blogId(),
+            revision.versionNo(),
+            revision.origin(),
+            revision.baseRevisionId(),
+            revision.title(),
+            revision.description(),
+            revision.content(),
+            revision.link(),
+            revision.renderMode(),
+            revision.firstPublishedAt(),
+            revision.createdBy(),
+            revision.createdAt(),
+            revision.sensitiveContent());
+    }
+
+    static Page<BlogSearchHit> toPage(
+        SearchHits<@NonNull BlogDocument> hits, int page, int pageSize) {
+        long totalElements = hits.getTotalHits();
+        int totalPages = pageCount(totalElements, pageSize);
+        return new Page<>(
+            hits.getSearchHits().stream()
+                .map(
+                    hit -> {
+                        BlogDocument document = hit.getContent();
+                        return new BlogSearchHit(
+                            document.getId(),
+                            document.getUserId(),
+                            document.getStatus(),
+                            document.getTitle(),
+                            document.getDescription(),
+                            document.getContent(),
+                            document.getLink(),
+                            document.getCreated().toLocalDateTime(),
+                            hit.getScore(),
+                            hit.getHighlightFields());
+                    })
+                .toList(),
+            totalElements,
+            page,
+            pageSize,
+            page == 1,
+            totalElements == 0 || page >= totalPages,
+            totalElements == 0,
+            totalPages);
+    }
+
+    static int pageCount(long total, int pageSize) {
+        return (int) ((total + pageSize - 1) / pageSize);
+    }
+
+    static Page<AdminBlogRead> toAdminPage(
+        SearchHits<@NonNull AdminBlogDocument> hits, PrivateBlogSearchQuery query, boolean draftMode) {
+        int totalPages = BlogDocumentConvertor.pageCount(hits.getTotalHits(), query.pageSize());
+        return new Page<>(
+            hits.getSearchHits().stream()
+                .map(hit -> BlogDocumentConvertor.adminRead(hit.getContent(), draftMode))
+                .toList(),
+            hits.getTotalHits(),
+            query.page(),
+            query.pageSize(),
+            query.page() == 1,
+            hits.getTotalHits() == 0 || query.page() >= totalPages,
+            hits.getTotalHits() == 0,
+            totalPages);
+    }
+
+    static Page<AdminRevisionRead> toRevisionPage(
+        SearchHits<@NonNull AdminRevisionDocument> hits, RevisionSearchQuery query, Long currentPublishedRevisionId) {
+        int totalPages = BlogDocumentConvertor.pageCount(hits.getTotalHits(), query.pageSize());
+        return new Page<>(
+            hits.getSearchHits().stream()
+                .map(
+                    hit ->
+                        BlogDocumentConvertor.revisionRead(
+                            hit.getContent(), currentPublishedRevisionId))
+                .toList(),
+            hits.getTotalHits(),
+            query.page(),
+            query.pageSize(),
+            query.page() == 1,
+            hits.getTotalHits() == 0 || query.page() >= totalPages,
+            hits.getTotalHits() == 0,
+            totalPages);
+    }
 }

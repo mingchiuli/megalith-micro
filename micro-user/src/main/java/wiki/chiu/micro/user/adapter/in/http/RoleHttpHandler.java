@@ -51,14 +51,14 @@ public class RoleHttpHandler {
 
     public ServerResponse info(ServerRequest request) {
         Long id = v.positive(pathVariable(request, "id", Long::valueOf), "id");
-        return ok(Result.success(() -> UserViewMapper.toVo(roleService.info(id))));
+        return ok(Result.success(() -> UserViewConvertor.toVo(roleService.info(id))));
     }
 
     public ServerResponse getPage(ServerRequest request) {
         Integer currentPage =
             v.positive(optionalParam(request, "currentPage", 1, Integer::valueOf), "currentPage");
         Integer size = v.positive(optionalParam(request, "size", 5, Integer::valueOf), "size");
-        return ok(Result.success(() -> UserViewMapper.toRoleVos(roleService.getPage(currentPage, size))));
+        return ok(Result.success(() -> UserViewConvertor.toRoleVos(roleService.getPage(currentPage, size))));
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
@@ -79,7 +79,7 @@ public class RoleHttpHandler {
 
     public ServerResponse getMenusInfo(ServerRequest request) {
         Long roleId = v.positive(pathVariable(request, "roleId", Long::valueOf), "roleId");
-        return ok(Result.success(() -> UserViewMapper.toRoleMenuVos(roleMenuService.getMenusInfo(roleId))));
+        return ok(Result.success(() -> UserViewConvertor.toRoleMenuVos(roleMenuService.getMenusInfo(roleId))));
     }
 
     public ServerResponse saveDataPermissions(ServerRequest request) throws Exception {
@@ -100,10 +100,10 @@ public class RoleHttpHandler {
     }
 
     public ServerResponse download(ServerRequest request) {
-        return ok(SqlExportMapper.toRoleSql(roleService.export()));
+        return ok(SqlExportConvertor.toRoleSql(roleService.export()));
     }
 
     public ServerResponse getValidAll(ServerRequest request) {
-        return ok(Result.success(() -> UserViewMapper.toRoleVos(roleService.getValidAll())));
+        return ok(Result.success(() -> UserViewConvertor.toRoleVos(roleService.getValidAll())));
     }
 }

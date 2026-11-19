@@ -7,12 +7,10 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import wiki.chiu.micro.blog.adapter.out.persistence.convertor.BlogPersistenceConvertor;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogDraftEntity;
-import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogDraftSensitiveContentEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogRevisionEntity;
-import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogRevisionSensitiveContentEntity;
-import wiki.chiu.micro.blog.adapter.out.persistence.mapping.BlogPersistenceMapper;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftSensitiveContentRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
@@ -32,16 +30,8 @@ import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.enums.BlogAccessMode;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
-import wiki.chiu.micro.common.enums.BlogRenderMode;
-import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
-import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
-import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
-import wiki.chiu.micro.common.message.BlogChangedMessage;
-import wiki.chiu.micro.common.model.BlogAdminSnapshot;
-import wiki.chiu.micro.common.model.BlogDraftSnapshot;
-import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
 import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 import wiki.chiu.micro.common.outbox.application.port.in.OutboxEvents;
@@ -79,7 +69,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
     public BlogIdentity createIdentity(Long userId) {
         maintenance.requireWritable();
         BlogEntity entity = blogs.save(BlogEntity.newBlog(userId));
-        BlogIdentity identity = BlogPersistenceMapper.toIdentity(entity);
+        BlogIdentity identity = BlogPersistenceConvertor.toIdentity(entity);
         enqueueAdmin(identity, null, null, null, "BLOG_CREATED");
         return identity;
     }
@@ -114,8 +104,9 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
         }
         replaceDraftSensitive(original.id(), command.content().sensitiveContent());
         BlogWorkingDraft result =
-            draftResult(original, current, draftRevision, command.content(), command.userId(), command.now());
-        BlogIdentity changed = withAdminRevision(original, expectedAdmin + 1);
+            BlogPersistenceConvertor.draftResult(
+                original, current, draftRevision, command.content(), command.userId(), command.now());
+        BlogIdentity changed = BlogPersistenceConvertor.withAdminRevision(original, expectedAdmin + 1);
         enqueueAdmin(changed, result, null, command.publishedRevision(), "DRAFT_UPSERT");
         return result;
     }
@@ -137,7 +128,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
         }
         draftSensitive.deleteByBlogId(original.id());
         enqueueAdmin(
-            withAdminRevision(original, expectedAdmin + 1),
+            BlogPersistenceConvertor.withAdminRevision(original, expectedAdmin + 1),
             null,
             null,
             command.publishedRevision(),
@@ -175,27 +166,15 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
 
         BlogRevisionEntity savedRevision =
             revisions.save(
-                new BlogRevisionEntity(
-                    null,
-                    original.id(),
-                    command.nextVersion(),
-                    BlogRevisionOrigin.DRAFT,
-                    original.publishedRevisionId(),
-                    command.content().title(),
-                    command.content().description(),
-                    command.content().content(),
-                    command.content().link(),
-                    command.content().renderMode(),
-                    null,
-                    command.userId(),
-                    command.now()));
+                BlogPersistenceConvertor.toDraftRevisionEntity(command));
         insertRevisionSensitive(savedRevision.getId(), command.content().sensitiveContent());
 
         BlogWorkingDraft draft =
-            draftResult(original, current, draftRevision, command.content(), command.userId(), command.now());
+            BlogPersistenceConvertor.draftResult(
+                original, current, draftRevision, command.content(), command.userId(), command.now());
         BlogVersion version =
-            version(savedRevision, command.content().sensitiveContent());
-        BlogIdentity changed = withAdminRevision(original, expectedAdmin + 1);
+            BlogPersistenceConvertor.toVersion(savedRevision, command.content().sensitiveContent());
+        BlogIdentity changed = BlogPersistenceConvertor.withAdminRevision(original, expectedAdmin + 1);
         enqueueAdmin(
             changed,
             draft,
@@ -238,24 +217,11 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
             if (command.archivedDraft() != null) {
                 BlogRevisionEntity archived =
                     revisions.save(
-                        new BlogRevisionEntity(
-                            null,
-                            original.id(),
-                            command.archivedVersionNo(),
-                            BlogRevisionOrigin.DRAFT,
-                            command.archivedDraft().basePublishedRevisionId(),
-                            command.archivedDraft().title(),
-                            command.archivedDraft().description(),
-                            command.archivedDraft().content(),
-                            command.archivedDraft().link(),
-                            command.archivedDraft().renderMode(),
-                            null,
-                            command.userId(),
-                            command.now()));
+                        BlogPersistenceConvertor.toArchivedRevisionEntity(command));
                 insertRevisionSensitive(
                     archived.getId(), command.archivedDraft().sensitiveContent());
                 archivedVersion =
-                    version(archived, command.archivedDraft().sensitiveContent());
+                    BlogPersistenceConvertor.toVersion(archived, command.archivedDraft().sensitiveContent());
             }
             drafts.deleteByBlogId(original.id());
             draftSensitive.deleteByBlogId(original.id());
@@ -263,23 +229,14 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
 
         BlogVersion published =
             selected.firstPublishedAt() == null
-                ? withFirstPublishedAt(selected, command.now())
+                ? BlogPersistenceConvertor.withFirstPublishedAt(selected, command.now())
                 : selected;
         BlogIdentity changed =
-            new BlogIdentity(
-                original.id(),
-                original.userId(),
-                original.created(),
-                original.readCount(),
-                selected.id(),
-                command.now(),
-                null,
-                BlogAccessMode.of(accessMode),
-                revision(original.publicationRevision()) + 1,
-                revision(original.adminRevision()) + 1, nextEpoch);
+            BlogPersistenceConvertor.toPublishedIdentity(
+                original, selected.id(), command.now(), accessMode, nextEpoch);
         enqueuePublic(
             BlogOperateEnum.UPDATE,
-            snapshot(changed, published),
+            BlogPersistenceConvertor.snapshot(changed, published),
             original.publishedRevisionId(),
             command.userId(),
             changed.adminRevision());
@@ -321,20 +278,13 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
         }
 
         BlogIdentity next =
-            new BlogIdentity(
-                original.id(),
-                original.userId(),
-                original.created(),
-                original.readCount(),
-                original.publishedRevisionId(),
+            BlogPersistenceConvertor.toStatusIdentity(
+                original,
                 command.online() ? command.now() : original.publishedAt(),
-                command.online() ? null : command.now(),
-                original.accessMode(),
-                revision(original.publicationRevision()) + 1,
-                revision(original.adminRevision()) + 1, original.collaborationEpoch());
+                command.online() ? null : command.now());
         enqueuePublic(
             BlogOperateEnum.UPDATE,
-            snapshot(next, command.revision()),
+            BlogPersistenceConvertor.snapshot(next, command.revision()),
             null,
             command.userId(),
             next.adminRevision());
@@ -368,28 +318,6 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
         }
     }
 
-    private BlogWorkingDraft draftResult(
-        BlogIdentity identity,
-        BlogWorkingDraft current,
-        long draftRevision,
-        BlogContentCommand content,
-        Long userId,
-        LocalDateTime now) {
-        return new BlogWorkingDraft(
-            current == null ? null : current.id(),
-            identity.id(),
-            draftRevision,
-            identity.publishedRevisionId(),
-            content.title(),
-            content.description(),
-            content.content(),
-            content.link(),
-            content.renderMode(),
-            userId,
-            now,
-            content.sensitiveContent());
-    }
-
     private void replaceDraftSensitive(
         Long blogId, List<BlogSensitiveSpan> spans) {
         draftSensitive.deleteByBlogId(blogId);
@@ -398,12 +326,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
                 .distinct()
                 .map(
                     span ->
-                        new BlogDraftSensitiveContentEntity(
-                            null,
-                            blogId,
-                            span.startIndex(),
-                            span.endIndex(),
-                            span.type()))
+                        BlogPersistenceConvertor.toDraftSpanEntity(blogId, span))
                 .toList());
     }
 
@@ -414,12 +337,7 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
                 .distinct()
                 .map(
                     span ->
-                        new BlogRevisionSensitiveContentEntity(
-                            null,
-                            revisionId,
-                            span.startIndex(),
-                            span.endIndex(),
-                            span.type()))
+                        BlogPersistenceConvertor.toRevisionSpanEntity(revisionId, span))
                 .toList());
     }
 
@@ -434,13 +352,8 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
             "BLOG",
             identity.id(),
             eventId ->
-                new BlogAdminIndexMessage(
-                    eventId,
-                    operation,
-                    adminSnapshot(identity),
-                    draftSnapshot(draft),
-                    revisionSnapshot(revision),
-                    revisionSnapshot(publishedRevision)));
+                BlogPersistenceConvertor.toAdminMessage(
+                    eventId, operation, identity, draft, revision, publishedRevision));
     }
 
     private void enqueuePublic(
@@ -451,148 +364,8 @@ public class JpaBlogAuthoringAdapter implements BlogAuthoringWriter {
             "BLOG",
             snapshot.id(),
             eventId ->
-                new BlogChangedMessage(
-                    eventId,
-                    operation.getCode(),
-                    snapshot.revision(),
-                    userId,
-                    snapshot,
-                    adminRevision,
-                    previousPublishedRevisionId));
-    }
-
-    private static BlogAdminSnapshot adminSnapshot(BlogIdentity identity) {
-        return new BlogAdminSnapshot(
-            identity.id(),
-            identity.userId(),
-            identity.publishedRevisionId(),
-            identity.publishedAt(),
-            identity.offlineAt(),
-            identity.accessMode().getCode(),
-            identity.publicationRevision(),
-            identity.adminRevision(),
-            identity.readCount(),
-            identity.created());
-    }
-
-    private static BlogDraftSnapshot draftSnapshot(BlogWorkingDraft draft) {
-        if (draft == null) {
-            return null;
-        }
-        return new BlogDraftSnapshot(
-            draft.blogId(),
-            draft.draftRevision(),
-            draft.basePublishedRevisionId(),
-            draft.title(),
-            draft.description(),
-            draft.content(),
-            draft.link(),
-            draft.renderMode(),
-            draft.updatedBy(),
-            draft.updatedAt(),
-            draft.sensitiveContent());
-    }
-
-    private static BlogRevisionSnapshot revisionSnapshot(BlogVersion version) {
-        if (version == null) {
-            return null;
-        }
-        return new BlogRevisionSnapshot(
-            version.id(),
-            version.blogId(),
-            version.versionNo(),
-            version.origin(),
-            version.baseRevisionId(),
-            version.title(),
-            version.description(),
-            version.content(),
-            version.link(),
-            version.renderMode(),
-            version.firstPublishedAt(),
-            version.createdBy(),
-            version.createdAt(),
-            version.sensitiveContent());
-    }
-
-    private static BlogVersion version(
-        BlogRevisionEntity entity, List<BlogSensitiveSpan> sensitiveContent) {
-        return new BlogVersion(
-            entity.getId(),
-            entity.getBlogId(),
-            entity.getVersionNo(),
-            entity.getOrigin(),
-            entity.getBaseRevisionId(),
-            entity.getTitle(),
-            entity.getDescription(),
-            entity.getContent(),
-            entity.getLink(),
-            entity.getRenderMode(),
-            entity.getFirstPublishedAt(),
-            entity.getCreatedBy(),
-            entity.getCreatedAt(),
-            sensitiveContent);
-    }
-
-    private static BlogVersion withFirstPublishedAt(
-        BlogVersion version, LocalDateTime publishedAt) {
-        return new BlogVersion(
-            version.id(),
-            version.blogId(),
-            version.versionNo(),
-            version.origin(),
-            version.baseRevisionId(),
-            version.title(),
-            version.description(),
-            version.content(),
-            version.link(),
-            version.renderMode(),
-            publishedAt,
-            version.createdBy(),
-            version.createdAt(),
-            version.sensitiveContent());
-    }
-
-    private static BlogSnapshot snapshot(BlogIdentity identity, BlogVersion revision) {
-        Integer status =
-            identity.offlineAt() != null
-                    || identity.accessMode() == BlogAccessMode.RESTRICTED
-                ? BlogStatusEnum.HIDE.getCode()
-                : revision.renderMode() == BlogRenderMode.SENSITIVE_FILTER
-                    ? BlogStatusEnum.SENSITIVE_FILTER.getCode()
-                    : BlogStatusEnum.NORMAL.getCode();
-        return new BlogSnapshot(
-            identity.id(),
-            identity.userId(),
-            revision.title(),
-            revision.description(),
-            revision.content(),
-            identity.created(),
-            revision.firstPublishedAt(),
-            status,
-            revision.link(),
-            identity.readCount(),
-            identity.publicationRevision(),
-            revision.id(),
-            identity.publishedAt(),
-            identity.offlineAt(),
-            identity.accessMode().getCode(),
-            revision.renderMode().getCode(),
-            revision.sensitiveContent());
-    }
-
-    private static BlogIdentity withAdminRevision(
-        BlogIdentity identity, long adminRevision) {
-        return new BlogIdentity(
-            identity.id(),
-            identity.userId(),
-            identity.created(),
-            identity.readCount(),
-            identity.publishedRevisionId(),
-            identity.publishedAt(),
-            identity.offlineAt(),
-            identity.accessMode(),
-            identity.publicationRevision(),
-            adminRevision, identity.collaborationEpoch());
+                BlogPersistenceConvertor.toPublicMessage(
+                    eventId, operation, snapshot, userId, adminRevision, previousPublishedRevisionId));
     }
 
     private static long revision(Long value) {

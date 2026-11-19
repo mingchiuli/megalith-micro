@@ -31,7 +31,7 @@ public class BlogExhibitHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    ExhibitResponseMapper.toVo(
+                    ExhibitResponseConvertor.toVo(
                         blogService.getBlogDetail(
                             authInfo.dataPermissions(), blogId, authInfo.userId()))));
     }
@@ -42,11 +42,11 @@ public class BlogExhibitHttpHandler {
         String token = v.notBlank(body.readToken(), "readToken");
         return ok(
             Result.success(
-                () -> ExhibitResponseMapper.toVo(blogService.getLockedBlog(blogId, token))));
+                () -> ExhibitResponseConvertor.toVo(blogService.getLockedBlog(blogId, token))));
     }
 
     public ServerResponse getVisitStatistics(ServerRequest request) {
-        return ok(Result.success(() -> ExhibitResponseMapper.toVo(blogService.getVisitStatistics())));
+        return ok(Result.success(() -> ExhibitResponseConvertor.toVo(blogService.getVisitStatistics())));
     }
 
     public ServerResponse getRecommendationFeed(ServerRequest request) {
@@ -56,7 +56,7 @@ public class BlogExhibitHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    ExhibitResponseMapper.toRecommendationFeedVo(
+                    ExhibitResponseConvertor.toRecommendationFeedVo(
                         blogService.findRecommendationFeed(cursor))));
     }
 }

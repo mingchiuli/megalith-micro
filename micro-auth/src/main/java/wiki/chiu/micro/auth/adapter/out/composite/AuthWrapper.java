@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import wiki.chiu.micro.auth.adapter.out.http.UserHttpServiceWrapper;
-import wiki.chiu.micro.auth.adapter.out.http.UserRpcMapper;
+import wiki.chiu.micro.auth.adapter.out.http.UserRpcConvertor;
 import wiki.chiu.micro.auth.application.model.Authority;
 import wiki.chiu.micro.auth.application.model.Menu;
 import wiki.chiu.micro.auth.application.model.RoleAuthorization;
@@ -36,7 +36,7 @@ public class AuthWrapper implements AuthorizationDirectory {
         version = AuthCacheDescriptors.VERSION)
     @Override
     public List<RoleAuthorization> getAllRoleAuthorizations() {
-        return UserRpcMapper.toRoleAuthorizations(userHttpServiceWrapper.findAllRoleAuthorizations());
+        return UserRpcConvertor.toRoleAuthorizations(userHttpServiceWrapper.findAllRoleAuthorizations());
     }
 
     @Cache(
@@ -44,7 +44,7 @@ public class AuthWrapper implements AuthorizationDirectory {
         version = AuthCacheDescriptors.VERSION)
     @Override
     public List<Menu> getCurrentUserNav(String rawRole) {
-        return UserRpcMapper.toMenus(userHttpServiceWrapper.getCurrentUserNav(rawRole));
+        return UserRpcConvertor.toMenus(userHttpServiceWrapper.getCurrentUserNav(rawRole));
     }
 
     @Cache(
@@ -52,6 +52,6 @@ public class AuthWrapper implements AuthorizationDirectory {
         version = AuthCacheDescriptors.VERSION)
     @Override
     public List<Authority> getAllSystemAuthorities() {
-        return UserRpcMapper.toAuthorities(userHttpServiceWrapper.getSystemAuthorities());
+        return UserRpcConvertor.toAuthorities(userHttpServiceWrapper.getSystemAuthorities());
     }
 }

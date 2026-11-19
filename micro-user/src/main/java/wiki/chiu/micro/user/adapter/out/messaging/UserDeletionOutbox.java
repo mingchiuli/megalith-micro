@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.common.message.UserDeletedMessage;
 import wiki.chiu.micro.common.outbox.application.port.in.OutboxEvents;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
@@ -25,6 +24,6 @@ public class UserDeletionOutbox {
             OutboxProducer.USER,
             "USER_DELETION",
             userIds.getFirst(),
-            eventId -> new UserDeletedMessage(eventId, userIds));
+            eventId -> UserEventConvertor.toUserDeletedMessage(eventId, userIds));
     }
 }

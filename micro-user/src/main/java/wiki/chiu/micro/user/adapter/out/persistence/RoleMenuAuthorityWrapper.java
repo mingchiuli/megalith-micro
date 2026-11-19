@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
-import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
+import wiki.chiu.micro.user.adapter.out.persistence.convertor.UserPersistenceConvertor;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
@@ -42,7 +42,7 @@ public class RoleMenuAuthorityWrapper implements MenuWriter {
     public void saveMenus(List<Menu> menus, List<Long> roleIds, List<String> roleCodes) {
         LocalDateTime updated = LocalDateTime.now();
         for (Menu menu : menus) {
-            var entity = UserPersistenceMapper.toEntity(menu);
+            var entity = UserPersistenceConvertor.toEntity(menu);
             if (menu.id() == null) {
                 menuRepository.save(entity);
             } else if (menuRepository.updateDetails(entity, updated) != 1) {

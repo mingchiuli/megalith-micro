@@ -1,4 +1,5 @@
 package wiki.chiu.micro.user.application.service;
+
 import static wiki.chiu.micro.common.error.ExceptionMessage.BUTTON_MUST_NOT_PARENT;
 import static wiki.chiu.micro.common.error.ExceptionMessage.CATALOGUE_CHILD_MUST_NOT_BUTTON;
 import static wiki.chiu.micro.common.error.ExceptionMessage.CATALOGUE_PARENT_MUST_PARENT;
@@ -75,7 +76,7 @@ public class MenuServiceImpl implements MenuService {
             menu.id() == null
                 ? Menu.blank()
                 : menuRepository.findById(menu.id()).orElseGet(Menu::blank);
-        Menu menuEntity = menu.mergeInto(dealMenu);
+        Menu menuEntity = UserModelConvertor.mergeInto(menu, dealMenu);
         List<Role> roles = roleRepository.findAll();
 
         if (HIDE_STATUS.equals(menu.status()) && menu.id() != null) {

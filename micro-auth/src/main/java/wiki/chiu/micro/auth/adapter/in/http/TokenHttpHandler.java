@@ -35,7 +35,7 @@ public class TokenHttpHandler {
     public ServerResponse userinfo(ServerRequest request) {
         return ok(
             Result.success(
-                () -> AuthResponseMapper.toVo(tokenService.userinfo(authPrincipal(request).userId()))));
+                () -> AuthResponseConvertor.toVo(tokenService.userinfo(authPrincipal(request).userId()))));
     }
 
     public ServerResponse logout(ServerRequest request) {

@@ -8,9 +8,9 @@ import wiki.chiu.micro.exhibit.application.model.VisitStatistics;
 /**
  * Renders the exhibit use-case results as HTTP response bodies.
  */
-public final class ExhibitResponseMapper {
+public final class ExhibitResponseConvertor {
 
-    private ExhibitResponseMapper() {
+    private ExhibitResponseConvertor() {
     }
 
     public static BlogExhibitVo toVo(BlogExhibit exhibit) {
@@ -35,7 +35,7 @@ public final class ExhibitResponseMapper {
     public static BlogRecommendationFeedVo toRecommendationFeedVo(
         RecommendationFeed feed) {
         return new BlogRecommendationFeedVo(
-            feed.content().stream().map(ExhibitResponseMapper::toVo).toList(),
+            feed.content().stream().map(ExhibitResponseConvertor::toVo).toList(),
             feed.nextCursor(),
             feed.hasMore(),
             feed.restart());

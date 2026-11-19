@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
+import wiki.chiu.micro.user.adapter.out.persistence.convertor.UserPersistenceConvertor;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
 import wiki.chiu.micro.user.application.port.out.MenuAuthorityReader;
 import wiki.chiu.micro.user.domain.MenuAuthority;
@@ -20,16 +20,16 @@ public class JpaMenuAuthorityReader implements MenuAuthorityReader {
 
     @Override
     public List<MenuAuthority> findAll() {
-        return UserPersistenceMapper.toMenuAuthorities(menuAuthorities.findAll());
+        return UserPersistenceConvertor.toMenuAuthorities(menuAuthorities.findAll());
     }
 
     @Override
     public List<MenuAuthority> findByMenuId(Long menuId) {
-        return UserPersistenceMapper.toMenuAuthorities(menuAuthorities.findByMenuId(menuId));
+        return UserPersistenceConvertor.toMenuAuthorities(menuAuthorities.findByMenuId(menuId));
     }
 
     @Override
     public List<MenuAuthority> findByMenuIdIn(List<Long> menuIds) {
-        return UserPersistenceMapper.toMenuAuthorities(menuAuthorities.findByMenuIdIn(menuIds));
+        return UserPersistenceConvertor.toMenuAuthorities(menuAuthorities.findByMenuIdIn(menuIds));
     }
 }

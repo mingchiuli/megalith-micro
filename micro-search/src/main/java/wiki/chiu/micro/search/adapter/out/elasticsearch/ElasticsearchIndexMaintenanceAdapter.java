@@ -1,8 +1,5 @@
 package wiki.chiu.micro.search.adapter.out.elasticsearch;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.indices.ElasticsearchIndicesClient;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.EnumMap;
@@ -17,7 +14,9 @@ import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 
-import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.indices.ElasticsearchIndicesClient;
+
 import wiki.chiu.micro.search.application.model.BlogAdminIndexChange;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.model.BlogRevisionIndexEntry;
@@ -82,7 +81,7 @@ public final class ElasticsearchIndexMaintenanceAdapter implements BlogIndexMain
                     snapshot ->
                         IndexQuery.builder()
                             .withId(snapshot.blog().id().toString())
-                            .withObject(BlogDocumentMapper.publicDocument(snapshot))
+                            .withObject(BlogDocumentConvertor.publicDocument(snapshot))
                             .build())
                 .toList());
     }
@@ -96,7 +95,7 @@ public final class ElasticsearchIndexMaintenanceAdapter implements BlogIndexMain
                     snapshot ->
                         IndexQuery.builder()
                             .withId(snapshot.blog().id().toString())
-                            .withObject(BlogDocumentMapper.adminDocument(snapshot))
+                            .withObject(BlogDocumentConvertor.adminDocument(snapshot))
                             .build())
                 .toList());
     }
@@ -112,22 +111,8 @@ public final class ElasticsearchIndexMaintenanceAdapter implements BlogIndexMain
                         IndexQuery.builder()
                             .withId(revision.id().toString())
                             .withObject(
-                                BlogDocumentMapper.revisionDocument(
-                                    new BlogRevisionSnapshot(
-                                        revision.id(),
-                                        revision.blogId(),
-                                        revision.versionNo(),
-                                        revision.origin(),
-                                        revision.baseRevisionId(),
-                                        revision.title(),
-                                        revision.description(),
-                                        revision.content(),
-                                        revision.link(),
-                                        revision.renderMode(),
-                                        revision.firstPublishedAt(),
-                                        revision.createdBy(),
-                                        revision.createdAt(),
-                                        revision.sensitiveContent())))
+                                BlogDocumentConvertor.revisionDocument(
+                                    BlogDocumentConvertor.toSnapshot(revision)))
                             .build())
                 .toList());
     }

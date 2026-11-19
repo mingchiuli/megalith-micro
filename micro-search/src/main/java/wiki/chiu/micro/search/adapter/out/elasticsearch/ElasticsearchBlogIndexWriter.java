@@ -1,7 +1,5 @@
 package wiki.chiu.micro.search.adapter.out.elasticsearch;
 
-import co.elastic.clients.elasticsearch._types.ScriptLanguage;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -15,6 +13,9 @@ import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 
+import co.elastic.clients.elasticsearch._types.ScriptLanguage;
+
+import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
 import wiki.chiu.micro.search.application.model.BlogAdminIndexChange;
 import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.model.BlogReadCount;
@@ -63,7 +64,7 @@ public final class ElasticsearchBlogIndexWriter implements BlogIndexWriter {
 
     @Override
     public void write(BlogIndexChange change) {
-        BlogDocument document = BlogDocumentMapper.publicDocument(change);
+        BlogDocument document = BlogDocumentConvertor.publicDocument(change);
         Document source = elasticsearchTemplate.getElasticsearchConverter().mapObject(document);
         elasticsearchTemplate.update(
             scriptedUpdate(document.getId(), contentScript, Map.of("blog", source)),
@@ -96,7 +97,7 @@ public final class ElasticsearchBlogIndexWriter implements BlogIndexWriter {
         boolean force = "RECOVER".equals(message.operation());
         AdminBlogDocument admin =
             current == null
-                ? BlogDocumentMapper.adminDocument(message)
+                ? BlogDocumentConvertor.adminDocument(message)
                 : applyToExisting(current, message);
         Document source = elasticsearchTemplate.getElasticsearchConverter().mapObject(admin);
         elasticsearchTemplate.update(
@@ -109,7 +110,7 @@ public final class ElasticsearchBlogIndexWriter implements BlogIndexWriter {
 
     private AdminBlogDocument applyToExisting(
         AdminBlogDocument current, BlogAdminIndexChange message) {
-        current.apply(BlogDocumentMapper.adminProjection(current, message));
+        current.apply(BlogDocumentConvertor.adminProjection(current, message));
         return current;
     }
 
@@ -121,12 +122,12 @@ public final class ElasticsearchBlogIndexWriter implements BlogIndexWriter {
     }
 
     private void writeRevisionIfPresent(
-        wiki.chiu.micro.common.model.BlogRevisionSnapshot revision) {
+        BlogRevisionSnapshot revision) {
         if (revision == null) {
             return;
         }
         elasticsearchTemplate.save(
-            BlogDocumentMapper.revisionDocument(revision),
+            BlogDocumentConvertor.revisionDocument(revision),
             IndexCoordinates.of(revisionIndexName));
     }
 

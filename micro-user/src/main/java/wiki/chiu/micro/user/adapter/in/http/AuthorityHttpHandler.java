@@ -30,12 +30,12 @@ public class AuthorityHttpHandler {
     }
 
     public ServerResponse list(ServerRequest request) {
-        return ok(Result.success(() -> UserViewMapper.toAuthorityVos(authorityService.findAll())));
+        return ok(Result.success(() -> UserViewConvertor.toAuthorityVos(authorityService.findAll())));
     }
 
     public ServerResponse info(ServerRequest request) {
         Long id = v.positive(pathVariable(request, "id", Long::valueOf), "id");
-        return ok(Result.success(() -> UserViewMapper.toVo(authorityService.findById(id))));
+        return ok(Result.success(() -> UserViewConvertor.toVo(authorityService.findById(id))));
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
@@ -49,6 +49,6 @@ public class AuthorityHttpHandler {
     }
 
     public ServerResponse download(ServerRequest request) {
-        return ok(SqlExportMapper.toAuthoritySql(authorityService.export()));
+        return ok(SqlExportConvertor.toAuthoritySql(authorityService.export()));
     }
 }

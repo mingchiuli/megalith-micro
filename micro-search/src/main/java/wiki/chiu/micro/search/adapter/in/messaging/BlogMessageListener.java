@@ -1,23 +1,16 @@
 package wiki.chiu.micro.search.adapter.in.messaging;
 
-import java.util.List;
-
-import com.rabbitmq.client.Channel;
-
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.rabbitmq.client.Channel;
+
 import wiki.chiu.micro.common.constant.Const;
-import wiki.chiu.micro.common.enums.BlogOperateEnum;
-import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
-import wiki.chiu.micro.common.model.BlogSnapshot;
-import wiki.chiu.micro.search.application.model.BlogIndexChange;
 import wiki.chiu.micro.search.application.port.in.ApplyBlogIndexChangeUseCase;
-import wiki.chiu.micro.search.domain.BlogIndexEntry;
 
 /**
  * @author mingchiuli
@@ -44,42 +37,11 @@ public class BlogMessageListener {
         executor = "mqExecutor")
     public void handler(BlogChangedMessage message, Channel channel, Message msg) {
         try {
-            applyBlogIndexChange.apply(toCommand(message));
+            applyBlogIndexChange.apply(BlogMessageConvertor.toCommand(message));
             channel.basicAck(msg.getMessageProperties().getDeliveryTag(), false);
         } catch (Exception failure) {
             recoverer.recover(msg, channel, failure);
         }
     }
 
-    private static BlogIndexChange toCommand(BlogChangedMessage message) {
-        BlogOperateEnum operation = BlogOperateEnum.of(message.operation());
-        BlogIndexChange.Operation indexOperation =
-            switch (operation) {
-                case CREATE -> BlogIndexChange.Operation.CREATE;
-                case UPDATE -> BlogIndexChange.Operation.UPDATE;
-                case REMOVE -> BlogIndexChange.Operation.REMOVE;
-            };
-        BlogSnapshot blog = message.blogSnapshot();
-        return new BlogIndexChange(
-            indexOperation,
-            message.revision(),
-            new BlogIndexEntry(
-                blog.id(),
-                blog.userId(),
-                blog.status(),
-                blog.readCount(),
-                blog.title(),
-                blog.description(),
-                blog.content(),
-                blog.link(),
-                blog.created(),
-                blog.updated(),
-                blog.publishedRevisionId(),
-                null,
-                blog.publishedAt(),
-                blog.offlineAt(),
-                blog.accessMode(),
-                BlogRenderMode.of(blog.renderMode()),
-                blog.sensitiveContent() == null ? List.of() : blog.sensitiveContent()));
-    }
 }

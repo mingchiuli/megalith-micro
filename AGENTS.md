@@ -158,6 +158,17 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
 
 ## Code Style
 
+- Review affected Java files individually. Put data conversion in dedicated `*Convertor` classes
+  in the adapter that owns the boundary (requests/responses, RPC, messages, persistence entities,
+  and search documents). Use the `convertor` package for persistence conversion. Do not scatter
+  field copying across handlers, listeners, services, repositories, or domain models. Core-only
+  model conversion belongs in framework-free `application.service.*Convertor` collaborators;
+  preserve business decisions and orchestration in services. Do not introduce `*Mapper` or
+  `*Converter` names for application data conversion. Framework SPI
+  implementations such as Spring Security `AuthenticationConverter` retain framework naming.
+  Convertors do not call repositories, remote services, or infrastructure stores, and do not own
+  transactions. Request convertors may parse and validate the incoming request.
+
 - Java uses 4-space indentation, sorted imports, no unused imports, and the surrounding method and
   comment order. Preserve Chinese Javadoc conventions in `micro-user`.
 - A Java source file's physical directory must match its declared package in both `src/main/java`

@@ -7,11 +7,11 @@ import wiki.chiu.micro.auth.api.req.WebSocketTicketReq;
 import wiki.chiu.micro.auth.application.model.RouteQuery;
 import wiki.chiu.micro.common.web.ValidatedRequest;
 
-public final class AuthRequestConverter {
+public final class AuthRequestConvertor {
 
     private static final ValidatedRequest v = new ValidatedRequest();
 
-    private AuthRequestConverter() {
+    private AuthRequestConvertor() {
     }
 
     public static AuthorityRouteReq toAuthorityRouteReq(ServerRequest request) throws Exception {
@@ -34,5 +34,13 @@ public final class AuthRequestConverter {
 
     public static RouteQuery toRouteQuery(AuthorityRouteReq req) {
         return new RouteQuery(req.method(), req.routeMapping(), req.ipAddr());
+    }
+
+    public static String loginName(ServerRequest request) throws Exception {
+        CodeReq body = request.body(CodeReq.class);
+        if (body.loginName() == null || body.loginName().isBlank()) {
+            throw new IllegalArgumentException("loginName must not be blank");
+        }
+        return body.loginName();
     }
 }

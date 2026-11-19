@@ -46,15 +46,13 @@ public class BlogInternalHttpHandler implements BlogHttpService {
     @Override
     public Result<BlogPublicationRpcVo> publication(Long blogId) {
         var identity = blogQueryService.publication(blogId);
-        return Result.success(new BlogPublicationRpcVo(identity.publishedRevisionId(), identity.userId(),
-            identity.accessMode(), identity.created(), identity.publishedAt(), identity.readCount()));
+        return Result.success(BlogViewConvertor.toPublicationRpc(identity));
     }
 
     @Override
     public Result<BlogPublicationContentRpcVo> publicationContent(Long blogId, Long revisionId) {
         var version = blogQueryService.publicationContent(blogId, revisionId);
-        return Result.success(new BlogPublicationContentRpcVo(version.title(), version.description(),
-            version.content(), version.renderMode(), version.sensitiveContent()));
+        return Result.success(BlogViewConvertor.toPublicationContentRpc(version));
     }
 
     public ServerResponse findIdsAfter(ServerRequest request) {
@@ -78,5 +76,4 @@ public class BlogInternalHttpHandler implements BlogHttpService {
     public Result<Void> setReadCount(Long blogId) {
         return Result.success(() -> blogQueryService.incrementViews(blogId));
     }
-
 }

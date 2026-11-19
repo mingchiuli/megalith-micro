@@ -8,11 +8,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
-import wiki.chiu.micro.common.page.PageAdapter;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.web.ValidatedRequest;
-import wiki.chiu.micro.search.application.model.BlogSearchHit;
-import wiki.chiu.micro.search.application.model.Page;
 import wiki.chiu.micro.search.application.model.PublicBlogSearchQuery;
 import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
 
@@ -39,28 +36,9 @@ public class BlogSearchHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    toResponse(
+                    SearchResponseConvertor.toResponse(
                         searchBlogs.searchPublic(
                             new PublicBlogSearchQuery(currentPage, keywords, allInfo)))));
     }
 
-    private static PageAdapter<BlogDocumentVo> toResponse(Page<BlogSearchHit> page) {
-        return PageResponse.of(
-            page, page.content().stream().map(BlogSearchHttpHandler::toResponse).toList());
-    }
-
-    private static BlogDocumentVo toResponse(BlogSearchHit hit) {
-        return BlogDocumentVo.builder()
-            .id(hit.id())
-            .userId(hit.userId())
-            .status(hit.status())
-            .title(hit.title())
-            .description(hit.description())
-            .content(hit.content())
-            .link(hit.link())
-            .created(hit.created())
-            .score(hit.score())
-            .highlight(hit.highlight())
-            .build();
-    }
 }

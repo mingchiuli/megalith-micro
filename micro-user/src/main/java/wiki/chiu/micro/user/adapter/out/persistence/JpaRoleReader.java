@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
+import wiki.chiu.micro.user.adapter.out.persistence.convertor.UserPersistenceConvertor;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
-import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleRepository;
 import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
@@ -23,37 +23,37 @@ public class JpaRoleReader implements RoleReader {
 
     @Override
     public Optional<Role> findById(Long id) {
-        return roles.findById(id).map(UserPersistenceMapper::toDomain);
+        return roles.findById(id).map(UserPersistenceConvertor::toDomain);
     }
 
     @Override
     public Optional<Role> findByCode(String code) {
-        return roles.findByCode(code).map(UserPersistenceMapper::toDomain);
+        return roles.findByCode(code).map(UserPersistenceConvertor::toDomain);
     }
 
     @Override
     public List<Role> findAll() {
-        return UserPersistenceMapper.toRoles(roles.findAll());
+        return UserPersistenceConvertor.toRoles(roles.findAll());
     }
 
     @Override
     public List<Role> findAllById(Iterable<Long> ids) {
-        return UserPersistenceMapper.toRoles(roles.findAllById(ids));
+        return UserPersistenceConvertor.toRoles(roles.findAllById(ids));
     }
 
     @Override
     public List<Role> findByCodeIn(List<String> codes) {
-        return UserPersistenceMapper.toRoles(roles.findByCodeIn(codes));
+        return UserPersistenceConvertor.toRoles(roles.findByCodeIn(codes));
     }
 
     @Override
     public List<Role> findByStatus(Integer status) {
-        return UserPersistenceMapper.toRoles(roles.findByStatus(status));
+        return UserPersistenceConvertor.toRoles(roles.findByStatus(status));
     }
 
     @Override
     public Page<Role> findPage(int pageNumber, int pageSize) {
         Page<RoleEntity> page = roles.findPage(pageNumber, pageSize);
-        return page.withContent(UserPersistenceMapper.toRoles(page.content()));
+        return page.withContent(UserPersistenceConvertor.toRoles(page.content()));
     }
 }

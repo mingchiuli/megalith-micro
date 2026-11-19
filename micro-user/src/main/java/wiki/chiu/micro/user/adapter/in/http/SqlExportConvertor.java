@@ -12,9 +12,9 @@ import wiki.chiu.micro.user.application.model.UserExport;
  * Renders the export use-case results as the SQL scripts the download endpoints deliver. The script
  * format is delivery vocabulary, so it lives in the adapter that offers the download.
  */
-public final class SqlExportMapper {
+public final class SqlExportConvertor {
 
-    private SqlExportMapper() {
+    private SqlExportConvertor() {
     }
 
     public static byte[] toUserSql(UserExport export) {

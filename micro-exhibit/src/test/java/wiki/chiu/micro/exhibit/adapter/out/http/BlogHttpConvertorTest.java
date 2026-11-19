@@ -11,7 +11,7 @@ import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
 
-class BlogHttpMapperTest {
+class BlogHttpConvertorTest {
 
     @Test
     void masksSensitiveTitleAndDescriptionOnRelatedCards() {
@@ -35,7 +35,7 @@ class BlogHttpMapperTest {
                     new BlogSensitiveSpan(5, 11, 1),
                     new BlogSensitiveSpan(7, 13, 2)));
 
-        var recommendation = BlogHttpMapper.toRecommendation(blog);
+        var recommendation = BlogHttpConvertor.toRecommendation(blog);
 
         assertThat(recommendation.title()).isEqualTo("safe ++++++");
         assertThat(recommendation.description()).isEqualTo("public ++++++");

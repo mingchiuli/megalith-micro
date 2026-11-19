@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
+import wiki.chiu.micro.user.adapter.out.persistence.convertor.UserPersistenceConvertor;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.application.port.out.RoleMenuReader;
 import wiki.chiu.micro.user.domain.RoleMenu;
@@ -20,12 +20,12 @@ public class JpaRoleMenuReader implements RoleMenuReader {
 
     @Override
     public List<RoleMenu> findAll() {
-        return UserPersistenceMapper.toRoleMenus(roleMenus.findAll());
+        return UserPersistenceConvertor.toRoleMenus(roleMenus.findAll());
     }
 
     @Override
     public List<RoleMenu> findByRoleIdIn(List<Long> roleIds) {
-        return UserPersistenceMapper.toRoleMenus(roleMenus.findByRoleIdIn(roleIds));
+        return UserPersistenceConvertor.toRoleMenus(roleMenus.findByRoleIdIn(roleIds));
     }
 
     @Override

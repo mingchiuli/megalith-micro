@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.common.message.AuthCacheEvictMessage;
 import wiki.chiu.micro.common.outbox.application.port.in.OutboxEvents;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 
@@ -32,7 +31,6 @@ public class AuthCacheEvictionOutbox {
             "AUTHORIZATION",
             aggregateId,
             eventId ->
-                new AuthCacheEvictMessage(
-                    eventId, userIds, roleIds, roleCodes, evictMenus, evictRoutes));
+                UserEventConvertor.toAuthCacheEvictMessage(eventId, userIds, roleIds, roleCodes, evictMenus, evictRoutes));
     }
 }

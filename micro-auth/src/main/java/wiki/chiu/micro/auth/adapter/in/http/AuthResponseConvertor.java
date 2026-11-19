@@ -10,9 +10,9 @@ import wiki.chiu.micro.auth.application.model.UserInfo;
 /**
  * Renders the auth use-case results as the HTTP and RPC payloads the callers expect.
  */
-public final class AuthResponseMapper {
+public final class AuthResponseConvertor {
 
-    private AuthResponseMapper() {
+    private AuthResponseConvertor() {
     }
 
     /**
@@ -23,7 +23,7 @@ public final class AuthResponseMapper {
     }
 
     public static MenuWithChildVo toVo(MenuDisplay menu) {
-        List<MenuWithChildVo> children = menu.children().stream().map(AuthResponseMapper::toVo).toList();
+        List<MenuWithChildVo> children = menu.children().stream().map(AuthResponseConvertor::toVo).toList();
         return new MenuWithChildVo(
             menu.id(),
             menu.parentId(),

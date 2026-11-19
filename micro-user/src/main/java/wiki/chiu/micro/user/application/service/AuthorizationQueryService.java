@@ -1,11 +1,9 @@
 package wiki.chiu.micro.user.application.service;
+
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.enums.StatusEnum;
@@ -20,8 +18,8 @@ import wiki.chiu.micro.user.application.port.out.UserReader;
 import wiki.chiu.micro.user.application.port.out.UserRoleReader;
 import wiki.chiu.micro.user.domain.Authority;
 import wiki.chiu.micro.user.domain.MenuAuthority;
-import wiki.chiu.micro.user.domain.RoleDataPermission;
 import wiki.chiu.micro.user.domain.Role;
+import wiki.chiu.micro.user.domain.RoleDataPermission;
 import wiki.chiu.micro.user.domain.RoleMenu;
 import wiki.chiu.micro.user.domain.UserRole;
 
@@ -136,7 +134,7 @@ public class AuthorizationQueryService {
         return distinctRoleIds.stream()
             .map(
                 roleId ->
-                    toAuthorization(
+                    UserModelConvertor.toAuthorization(
                         roleId,
                         rolesById,
                         menuIdsByRole,
@@ -144,32 +142,5 @@ public class AuthorizationQueryService {
                         authoritiesById,
                         permissionsByRole))
             .toList();
-    }
-
-    private RoleAuthorization toAuthorization(
-        Long roleId,
-        Map<Long, Role> rolesById,
-        Map<Long, List<Long>> menuIdsByRole,
-        Map<Long, List<Long>> authorityIdsByMenu,
-        Map<Long, Authority> authoritiesById,
-        Map<Long, List<DataPermissionEnum>> permissionsByRole) {
-        Role role = rolesById.get(roleId);
-        if (role == null) {
-            return RoleAuthorization.missing(roleId);
-        }
-        Set<String> authorityCodes =
-            menuIdsByRole.getOrDefault(roleId, List.of()).stream()
-                .flatMap(menuId -> authorityIdsByMenu.getOrDefault(menuId, List.of()).stream())
-                .map(authoritiesById::get)
-                .filter(Objects::nonNull)
-                .map(Authority::code)
-                .collect(Collectors.toUnmodifiableSet());
-        return new RoleAuthorization(
-            role.id(),
-            true,
-            role.code(),
-            role.status(),
-            authorityCodes,
-            permissionsByRole.getOrDefault(roleId, List.of()));
     }
 }

@@ -1,4 +1,4 @@
-package wiki.chiu.micro.user.adapter.out.persistence.mapping;
+package wiki.chiu.micro.user.adapter.out.persistence.convertor;
 
 import java.util.List;
 
@@ -10,6 +10,7 @@ import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleMenuEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserRoleEntity;
+import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.domain.Authority;
 import wiki.chiu.micro.user.domain.Menu;
 import wiki.chiu.micro.user.domain.MenuAuthority;
@@ -23,9 +24,9 @@ import wiki.chiu.micro.user.domain.UserRole;
  * Translates between the persisted entities and the framework-free domain model, so only this
  * adapter knows the JPA mapping.
  */
-public final class UserPersistenceMapper {
+public final class UserPersistenceConvertor {
 
-    private UserPersistenceMapper() {
+    private UserPersistenceConvertor() {
     }
 
     public static User toDomain(UserEntity entity) {
@@ -45,7 +46,7 @@ public final class UserPersistenceMapper {
     }
 
     public static List<User> toUsers(List<UserEntity> entities) {
-        return entities.stream().map(UserPersistenceMapper::toDomain).toList();
+        return entities.stream().map(UserPersistenceConvertor::toDomain).toList();
     }
 
     public static UserEntity toEntity(User user) {
@@ -76,7 +77,7 @@ public final class UserPersistenceMapper {
     }
 
     public static List<Role> toRoles(List<RoleEntity> entities) {
-        return entities.stream().map(UserPersistenceMapper::toDomain).toList();
+        return entities.stream().map(UserPersistenceConvertor::toDomain).toList();
     }
 
     public static RoleEntity toEntity(Role role) {
@@ -102,7 +103,7 @@ public final class UserPersistenceMapper {
     }
 
     public static List<Menu> toMenus(List<MenuEntity> entities) {
-        return entities.stream().map(UserPersistenceMapper::toDomain).toList();
+        return entities.stream().map(UserPersistenceConvertor::toDomain).toList();
     }
 
     public static MenuEntity toEntity(Menu menu) {
@@ -138,7 +139,7 @@ public final class UserPersistenceMapper {
     }
 
     public static List<Authority> toAuthorities(List<AuthorityEntity> entities) {
-        return entities.stream().map(UserPersistenceMapper::toDomain).toList();
+        return entities.stream().map(UserPersistenceConvertor::toDomain).toList();
     }
 
     public static AuthorityEntity toEntity(Authority authority) {
@@ -164,7 +165,7 @@ public final class UserPersistenceMapper {
     }
 
     public static List<UserRole> toUserRoles(List<UserRoleEntity> entities) {
-        return entities.stream().map(UserPersistenceMapper::toDomain).toList();
+        return entities.stream().map(UserPersistenceConvertor::toDomain).toList();
     }
 
     public static UserRoleEntity toEntity(UserRole userRole) {
@@ -180,7 +181,7 @@ public final class UserPersistenceMapper {
     }
 
     public static List<RoleMenu> toRoleMenus(List<RoleMenuEntity> entities) {
-        return entities.stream().map(UserPersistenceMapper::toDomain).toList();
+        return entities.stream().map(UserPersistenceConvertor::toDomain).toList();
     }
 
     public static RoleMenuEntity toEntity(RoleMenu roleMenu) {
@@ -196,7 +197,7 @@ public final class UserPersistenceMapper {
     }
 
     public static List<MenuAuthority> toMenuAuthorities(List<MenuAuthorityEntity> entities) {
-        return entities.stream().map(UserPersistenceMapper::toDomain).toList();
+        return entities.stream().map(UserPersistenceConvertor::toDomain).toList();
     }
 
     public static MenuAuthorityEntity toEntity(MenuAuthority menuAuthority) {
@@ -213,10 +214,15 @@ public final class UserPersistenceMapper {
 
     public static List<RoleDataPermission> toRoleDataPermissions(
         List<RoleDataPermissionEntity> entities) {
-        return entities.stream().map(UserPersistenceMapper::toDomain).toList();
+        return entities.stream().map(UserPersistenceConvertor::toDomain).toList();
     }
 
     public static RoleDataPermissionEntity toEntity(RoleDataPermission permission) {
         return new RoleDataPermissionEntity(permission.roleId(), permission.permission());
+    }
+
+    public static <T> Page<T> toPage(org.springframework.data.domain.Page<T> page) {
+        return new Page<>(page.getContent(), page.getTotalElements(),
+            page.getNumber(), page.getSize(), page.isFirst(), page.isLast(), page.isEmpty(), page.getTotalPages());
     }
 }

@@ -10,7 +10,7 @@ import wiki.chiu.micro.common.enums.AuthTypeEnum;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
-import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
+import wiki.chiu.micro.user.adapter.out.persistence.convertor.UserPersistenceConvertor;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.AuthorityRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
 import wiki.chiu.micro.user.application.port.out.AuthorityWriter;
@@ -41,7 +41,7 @@ public class MenuAuthorityWrapper implements AuthorityWriter {
         menuAuthorityRepository.deleteByMenuId(menuId);
         menuAuthorityRepository.saveAll(
             menuAuthorities.stream()
-                .map(authority -> UserPersistenceMapper.toEntity(authority.onMenu(menuId)))
+                .map(authority -> UserPersistenceConvertor.toEntity(authority.onMenu(menuId)))
                 .toList());
         enqueueRoleEviction(roleIds, false);
     }
@@ -61,7 +61,7 @@ public class MenuAuthorityWrapper implements AuthorityWriter {
         if (authorityId != null && AuthTypeEnum.WHITE_LIST.getCode().equals(authority.type())) {
             menuAuthorityRepository.deleteByAuthorityId(authorityId);
         }
-        var entity = UserPersistenceMapper.toEntity(authority);
+        var entity = UserPersistenceConvertor.toEntity(authority);
         if (authorityId == null) {
             authorityRepository.save(entity);
         } else if (authorityRepository.updateDetails(entity, LocalDateTime.now()) != 1) {

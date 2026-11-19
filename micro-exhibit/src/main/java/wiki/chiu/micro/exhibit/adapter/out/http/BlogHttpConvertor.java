@@ -14,16 +14,16 @@ import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
 /**
  * Turns search service payloads into the exhibit service's own model.
  */
-public final class BlogHttpMapper {
+public final class BlogHttpConvertor {
 
-    private BlogHttpMapper() {
+    private BlogHttpConvertor() {
     }
 
     public static RecommendationFeed toRecommendationFeed(
         RecommendationFeedRpcVo feed) {
         return new RecommendationFeed(
             feed.content().stream()
-                .map(BlogHttpMapper::toRecommendation)
+                .map(BlogHttpConvertor::toRecommendation)
                 .toList(),
             feed.nextCursor(),
             feed.hasMore(),

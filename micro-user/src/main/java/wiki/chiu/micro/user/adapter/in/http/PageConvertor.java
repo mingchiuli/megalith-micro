@@ -9,9 +9,9 @@ import wiki.chiu.micro.user.application.model.Page;
  * Renders a use-case page as the page envelope clients receive. This is the boundary where the core
  * page becomes the shared wire shape.
  */
-final class PageResponse {
+final class PageConvertor {
 
-    private PageResponse() {
+    private PageConvertor() {
     }
 
     static <T> PageAdapter<T> of(Page<?> page, List<T> content) {

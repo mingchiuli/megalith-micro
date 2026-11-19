@@ -1,9 +1,5 @@
 package wiki.chiu.micro.search.adapter.out.elasticsearch;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -19,6 +15,10 @@ import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.Query;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import tools.jackson.databind.json.JsonMapper;
 
@@ -100,7 +100,7 @@ public final class ElasticsearchBlogQueryAdapter implements BlogSearchIndex {
                     query.keywords(), query.page(), publicPageSize, query.allInfo()),
                 BlogDocument.class,
                 IndexCoordinates.of(indexName));
-        return toPage(hits, query.page(), publicPageSize);
+        return BlogDocumentConvertor.toPage(hits, query.page(), publicPageSize);
     }
 
     @Override
@@ -130,18 +130,7 @@ public final class ElasticsearchBlogQueryAdapter implements BlogSearchIndex {
         boolean draftMode =
             query.draftOnly()
                 || Objects.equals(query.status(), BlogStatusEnum.DRAFT.getCode());
-        int totalPages = pageCount(hits.getTotalHits(), query.pageSize());
-        return new Page<>(
-            hits.getSearchHits().stream()
-                .map(hit -> BlogDocumentMapper.adminRead(hit.getContent(), draftMode))
-                .toList(),
-            hits.getTotalHits(),
-            query.page(),
-            query.pageSize(),
-            query.page() == 1,
-            hits.getTotalHits() == 0 || query.page() >= totalPages,
-            hits.getTotalHits() == 0,
-            totalPages);
+        return BlogDocumentConvertor.toAdminPage(hits, query, draftMode);
     }
 
     @Override
@@ -158,56 +147,7 @@ public final class ElasticsearchBlogQueryAdapter implements BlogSearchIndex {
                 BlogSearchQueryFactory.revision(query),
                 AdminRevisionDocument.class,
                 IndexCoordinates.of(revisionIndexName));
-        int totalPages = pageCount(hits.getTotalHits(), query.pageSize());
-        return new Page<>(
-            hits.getSearchHits().stream()
-                .map(
-                    hit ->
-                        BlogDocumentMapper.revisionRead(
-                            hit.getContent(), currentPublishedRevisionId))
-                .toList(),
-            hits.getTotalHits(),
-            query.page(),
-            query.pageSize(),
-            query.page() == 1,
-            hits.getTotalHits() == 0 || query.page() >= totalPages,
-            hits.getTotalHits() == 0,
-            totalPages);
-    }
-
-    private static Page<BlogSearchHit> toPage(
-        SearchHits<@NonNull BlogDocument> hits, int page, int pageSize) {
-        long totalElements = hits.getTotalHits();
-        int totalPages = pageCount(totalElements, pageSize);
-        return new Page<>(
-            hits.getSearchHits().stream()
-                .map(
-                    hit -> {
-                        BlogDocument document = hit.getContent();
-                        return new BlogSearchHit(
-                            document.getId(),
-                            document.getUserId(),
-                            document.getStatus(),
-                            document.getTitle(),
-                            document.getDescription(),
-                            document.getContent(),
-                            document.getLink(),
-                            document.getCreated().toLocalDateTime(),
-                            hit.getScore(),
-                            hit.getHighlightFields());
-                    })
-                .toList(),
-            totalElements,
-            page,
-            pageSize,
-            page == 1,
-            totalElements == 0 || page >= totalPages,
-            totalElements == 0,
-            totalPages);
-    }
-
-    private static int pageCount(long total, int pageSize) {
-        return (int) ((total + pageSize - 1) / pageSize);
+        return BlogDocumentConvertor.toRevisionPage(hits, query, currentPublishedRevisionId);
     }
 
     private RecommendationFeed recommendationFeed(
@@ -267,7 +207,7 @@ public final class ElasticsearchBlogQueryAdapter implements BlogSearchIndex {
         }
         return new RecommendationFeed(
             returned.stream()
-                .map(hit -> BlogDocumentMapper.publicRead(hit.getContent()))
+                .map(hit -> BlogDocumentConvertor.publicRead(hit.getContent()))
                 .toList(),
             nextCursor,
             hasMore,

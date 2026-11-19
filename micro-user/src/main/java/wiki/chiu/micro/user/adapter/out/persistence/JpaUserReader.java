@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
+import wiki.chiu.micro.user.adapter.out.persistence.convertor.UserPersistenceConvertor;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserEntity;
-import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRepository;
 import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.application.port.out.UserReader;
@@ -23,22 +23,22 @@ public class JpaUserReader implements UserReader {
 
     @Override
     public Optional<User> findById(Long id) {
-        return users.findById(id).map(UserPersistenceMapper::toDomain);
+        return users.findById(id).map(UserPersistenceConvertor::toDomain);
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return users.findByEmail(email).map(UserPersistenceMapper::toDomain);
+        return users.findByEmail(email).map(UserPersistenceConvertor::toDomain);
     }
 
     @Override
     public Optional<User> findByPhone(String phone) {
-        return users.findByPhone(phone).map(UserPersistenceMapper::toDomain);
+        return users.findByPhone(phone).map(UserPersistenceConvertor::toDomain);
     }
 
     @Override
     public Optional<User> findByUsername(String username) {
-        return users.findByUsername(username).map(UserPersistenceMapper::toDomain);
+        return users.findByUsername(username).map(UserPersistenceConvertor::toDomain);
     }
 
     @Override
@@ -46,12 +46,12 @@ public class JpaUserReader implements UserReader {
         String username, String email, String phone) {
         return users
             .findByUsernameOrEmailOrPhone(username, email, phone)
-            .map(UserPersistenceMapper::toDomain);
+            .map(UserPersistenceConvertor::toDomain);
     }
 
     @Override
     public List<User> findAll() {
-        return UserPersistenceMapper.toUsers(users.findAll());
+        return UserPersistenceConvertor.toUsers(users.findAll());
     }
 
     @Override
@@ -62,6 +62,6 @@ public class JpaUserReader implements UserReader {
     @Override
     public Page<User> findPage(int pageNumber, int pageSize) {
         Page<UserEntity> page = users.findPage(pageNumber, pageSize);
-        return page.withContent(UserPersistenceMapper.toUsers(page.content()));
+        return page.withContent(UserPersistenceConvertor.toUsers(page.content()));
     }
 }

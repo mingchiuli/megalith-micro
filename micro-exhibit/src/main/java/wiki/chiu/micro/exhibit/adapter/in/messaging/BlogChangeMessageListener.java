@@ -3,19 +3,18 @@ package wiki.chiu.micro.exhibit.adapter.in.messaging;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.rabbitmq.client.Channel;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+
+import com.rabbitmq.client.Channel;
 
 import wiki.chiu.micro.cache.handler.CacheEvictor;
 import wiki.chiu.micro.cache.key.CacheDescriptor;
 import wiki.chiu.micro.cache.key.CacheKeyFactory;
 import wiki.chiu.micro.common.constant.Const;
-import wiki.chiu.micro.common.enums.BlogOperateEnum;
 import wiki.chiu.micro.common.message.BlogChangedMessage;
 import wiki.chiu.micro.common.messaging.RetryingMessageRecoverer;
-import wiki.chiu.micro.exhibit.application.model.BlogChange;
 import wiki.chiu.micro.exhibit.application.port.in.BlogChangeMaintenance;
 import wiki.chiu.micro.exhibit.domain.PublishedContentCache;
 
@@ -50,9 +49,7 @@ public class BlogChangeMessageListener {
         executor = "mqExecutor")
     public void handler(BlogChangedMessage message, Channel channel, Message msg) {
         try {
-            blogChangeMaintenance.apply(new BlogChange(
-                message.blogSnapshot().id(), BlogOperateEnum.of(message.operation()),
-                message.revision(), message.blogSnapshot().status()));
+            blogChangeMaintenance.apply(BlogMessageConvertor.toCommand(message));
             // Even late events can name a superseded version that needs eviction.
             evictContent(message);
             channel.basicAck(msg.getMessageProperties().getDeliveryTag(), false);

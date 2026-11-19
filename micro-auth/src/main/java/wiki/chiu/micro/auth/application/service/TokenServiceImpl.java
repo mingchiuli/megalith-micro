@@ -42,7 +42,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public UserInfo userinfo(Long userId) {
         UserAccount user = users.findById(userId);
-        return new UserInfo(user.id(), user.nickname(), user.avatar());
+        return AuthModelConvertor.toUserInfo(user);
     }
 
     @Override

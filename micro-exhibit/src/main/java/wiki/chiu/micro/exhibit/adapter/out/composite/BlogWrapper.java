@@ -10,8 +10,8 @@ import wiki.chiu.micro.blog.api.vo.BlogPublicationRpcVo;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.RemoteServiceException;
 import wiki.chiu.micro.common.rpc.RemoteResult;
-import wiki.chiu.micro.exhibit.adapter.out.http.BlogExhibitMapper;
-import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpMapper;
+import wiki.chiu.micro.exhibit.adapter.out.http.BlogExhibitConvertor;
+import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpConvertor;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.UserHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
@@ -61,7 +61,7 @@ public class BlogWrapper implements BlogReader {
         }
 
         UserEntityRpcVo user = userHttpServiceWrapper.findById(publication.userId());
-        return BlogExhibitMapper.toModel(publication, content, user);
+        return BlogExhibitConvertor.toModel(publication, content, user);
     }
 
     @Override
@@ -74,6 +74,6 @@ public class BlogWrapper implements BlogReader {
         RecommendationFeedRpcVo page =
             RemoteResult.requireSuccess(
                 () -> searchHttpService.recommendationFeed(cursor, blogPageSize));
-        return BlogHttpMapper.toRecommendationFeed(page);
+        return BlogHttpConvertor.toRecommendationFeed(page);
     }
 }

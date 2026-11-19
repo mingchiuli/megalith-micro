@@ -85,7 +85,7 @@ public class UserInternalHttpHandler implements UserHttpService {
 
     @Override
     public Result<UserEntityRpcVo> findById(Long userId) {
-        return Result.success(() -> UserViewMapper.toRpc(userIdentityService.findById(userId)));
+        return Result.success(() -> UserViewConvertor.toRpc(userIdentityService.findById(userId)));
     }
 
     @Override
@@ -100,31 +100,31 @@ public class UserInternalHttpHandler implements UserHttpService {
 
     @Override
     public Result<UserEntityRpcVo> findByEmail(String email) {
-        return Result.success(() -> UserViewMapper.toRpc(userIdentityService.findByEmail(email)));
+        return Result.success(() -> UserViewConvertor.toRpc(userIdentityService.findByEmail(email)));
     }
 
     @Override
     public Result<UserEntityRpcVo> findByPhone(String phone) {
-        return Result.success(() -> UserViewMapper.toRpc(userIdentityService.findByPhone(phone)));
+        return Result.success(() -> UserViewConvertor.toRpc(userIdentityService.findByPhone(phone)));
     }
 
     @Override
     public Result<UserAccessRpcVo> findUserAccess(Long userId) {
-        return Result.success(() -> UserViewMapper.toRpc(userIdentityService.findUserAccess(userId)));
+        return Result.success(() -> UserViewConvertor.toRpc(userIdentityService.findUserAccess(userId)));
     }
 
     @Override
     public Result<List<RoleAuthorizationRpcVo>> findAllRoleAuthorizations() {
-        return Result.success(() -> UserViewMapper.toRpcs(roleService.findAllRoleAuthorizations()));
+        return Result.success(() -> UserViewConvertor.toRpcs(roleService.findAllRoleAuthorizations()));
     }
 
     @Override
     public Result<List<RoleAuthorizationRpcVo>> findRoleAuthorizations(List<Long> roleIds) {
-        return Result.success(() -> UserViewMapper.toRpcs(roleService.findRoleAuthorizations(roleIds)));
+        return Result.success(() -> UserViewConvertor.toRpcs(roleService.findRoleAuthorizations(roleIds)));
     }
 
     @Override
     public Result<UserEntityRpcVo> findByUsernameOrEmailOrPhone(String username) {
-        return Result.success(() -> UserViewMapper.toRpc(userIdentityService.findByLogin(username)));
+        return Result.success(() -> UserViewConvertor.toRpc(userIdentityService.findByLogin(username)));
     }
 }

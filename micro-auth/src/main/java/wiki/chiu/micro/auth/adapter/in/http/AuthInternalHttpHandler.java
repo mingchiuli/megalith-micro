@@ -35,7 +35,7 @@ public class AuthInternalHttpHandler implements AuthHttpService {
     public ServerResponse getAuthorityRoute(ServerRequest request) throws Exception {
         return ok(
             getAuthorityRoute(
-                AuthRequestConverter.toAuthorityRouteReq(request),
+                AuthRequestConvertor.toAuthorityRouteReq(request),
                 requiredHeader(request, HttpHeaders.AUTHORIZATION)));
     }
 
@@ -43,15 +43,15 @@ public class AuthInternalHttpHandler implements AuthHttpService {
         String encodedPrincipal = request.headers().firstHeader(InternalHttpHeaders.PRINCIPAL);
         return ok(
             issueWebSocketTicket(
-                AuthRequestConverter.toWebSocketTicketReq(request), encodedPrincipal));
+                AuthRequestConvertor.toWebSocketTicketReq(request), encodedPrincipal));
     }
 
     @Override
     public Result<AuthorityRouteRpcVo> getAuthorityRoute(AuthorityRouteReq req, String token) {
         return Result.success(
             () ->
-                AuthResponseMapper.toRpc(
-                    authService.authorizeRoute(AuthRequestConverter.toRouteQuery(req), token)));
+                AuthResponseConvertor.toRpc(
+                    authService.authorizeRoute(AuthRequestConvertor.toRouteQuery(req), token)));
     }
 
     @Override

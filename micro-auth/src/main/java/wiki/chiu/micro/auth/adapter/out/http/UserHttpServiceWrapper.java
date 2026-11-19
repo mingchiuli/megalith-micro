@@ -40,13 +40,13 @@ public class UserHttpServiceWrapper implements UserDirectory, FreshAuthorization
 
     @Override
     public UserAccount findById(Long userId) {
-        return UserRpcMapper.toAccount(
+        return UserRpcConvertor.toAccount(
             RemoteResult.requireSuccess(() -> userHttpService.findById(userId)));
     }
 
     @Override
     public UserAccount findByLoginName(String loginName) {
-        return UserRpcMapper.toAccount(
+        return UserRpcConvertor.toAccount(
             RemoteResult.requireSuccess(() -> userHttpService.findByUsernameOrEmailOrPhone(loginName)));
     }
 
@@ -62,7 +62,7 @@ public class UserHttpServiceWrapper implements UserDirectory, FreshAuthorization
 
     @Override
     public UserAccess findUserAccess(Long userId) {
-        return UserRpcMapper.toAccess(
+        return UserRpcConvertor.toAccess(
             RemoteResult.requireSuccess(() -> userHttpService.findUserAccess(userId)));
     }
 
@@ -103,12 +103,12 @@ public class UserHttpServiceWrapper implements UserDirectory, FreshAuthorization
 
     @Override
     public List<Authority> freshAuthorities() {
-        return UserRpcMapper.toAuthorities(getSystemAuthorities());
+        return UserRpcConvertor.toAuthorities(getSystemAuthorities());
     }
 
     @Override
     public List<RoleAuthorization> freshRoleAuthorizations(List<Long> roleIds) {
-        return UserRpcMapper.toRoleAuthorizations(findRoleAuthorizations(roleIds));
+        return UserRpcConvertor.toRoleAuthorizations(findRoleAuthorizations(roleIds));
     }
 
     private static List<String> enabledCodes(List<RoleAuthorizationRpcVo> roles) {

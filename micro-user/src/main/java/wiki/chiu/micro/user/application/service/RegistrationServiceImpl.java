@@ -1,4 +1,5 @@
 package wiki.chiu.micro.user.application.service;
+
 import static wiki.chiu.micro.common.constant.Const.USER;
 import static wiki.chiu.micro.common.enums.StatusEnum.NORMAL;
 
@@ -78,8 +79,8 @@ public class RegistrationServiceImpl implements RegistrationService {
         List<String> roles = List.of(USER);
         return users
             .findByUsername(request.username())
-            .map(user -> request.toUserDraft(user.id(), NORMAL.getCode(), roles))
-            .orElseGet(() -> request.toUserDraft(null, NORMAL.getCode(), roles));
+            .map(user -> UserModelConvertor.toUserDraft(request, user.id(), NORMAL.getCode(), roles))
+            .orElseGet(() -> UserModelConvertor.toUserDraft(request, null, NORMAL.getCode(), roles));
     }
 
     private static boolean hasLength(String value) {

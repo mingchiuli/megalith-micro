@@ -40,7 +40,7 @@ public class UserDraftPersister {
                 ? userDraft.withPassword(dealUser.password())
                 : userDraft.withPassword(passwordHasher.hash(userDraft.password()));
 
-        User user = userReq.mergeInto(dealUser);
+        User user = UserModelConvertor.mergeInto(userReq, dealUser);
 
         List<UserRole> userRoles =
             roles.findByCodeIn(userDraft.roles()).stream()

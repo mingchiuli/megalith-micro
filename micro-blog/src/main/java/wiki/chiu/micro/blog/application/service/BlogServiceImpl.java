@@ -3,13 +3,11 @@ package wiki.chiu.micro.blog.application.service;
 import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import wiki.chiu.micro.blog.application.model.BlogContentCommand;
 import wiki.chiu.micro.blog.application.model.BlogDeletionTarget;
 import wiki.chiu.micro.blog.application.model.BlogDraft;
 import wiki.chiu.micro.blog.application.model.BlogDraftDeleteCommand;
@@ -37,19 +35,15 @@ import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
 import wiki.chiu.micro.blog.application.port.out.BlogWriter;
-import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
-import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
-import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.exception.MissException;
-import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 
 public class BlogServiceImpl implements BlogService {
 
@@ -110,7 +104,7 @@ public class BlogServiceImpl implements BlogService {
             new BlogDraftWriteCommand(
                 prepared.identity(),
                 prepared.draft(),
-                command(blog),
+                BlogModelConvertor.command(blog),
                 prepared.publishedRevision(),
                 userId,
                 LocalDateTime.now()));
@@ -143,7 +137,7 @@ public class BlogServiceImpl implements BlogService {
             new BlogVersionWriteCommand(
                 prepared.identity(),
                 prepared.draft(),
-                command(blog),
+                BlogModelConvertor.command(blog),
                 prepared.publishedRevision(),
                 nextVersion,
                 userId,
@@ -299,27 +293,6 @@ public class BlogServiceImpl implements BlogService {
             "blog revision conflict: " + blogId);
     }
 
-    private static BlogContentCommand command(BlogDraft blog) {
-        BlogRenderMode renderMode =
-            blog.status() != null
-                    && blog.status()
-                        == BlogStatusEnum.SENSITIVE_FILTER.getCode()
-                ? BlogRenderMode.SENSITIVE_FILTER
-                : BlogRenderMode.NORMAL;
-        return new BlogContentCommand(
-            blog.title(),
-            blog.description(),
-            blog.content(),
-            blog.link(),
-            renderMode,
-            blog.sensitiveContentList().stream()
-                .map(
-                    span ->
-                        new BlogSensitiveSpan(
-                            span.startIndex(), span.endIndex(), span.type()))
-                .toList());
-    }
-
     @Override
     public Page<BlogListItem> findAllBlogs(
         BlogQuery query, Long userId, List<DataPermissionEnum> dataPermissions) {
@@ -342,19 +315,7 @@ public class BlogServiceImpl implements BlogService {
             result.content().stream()
                 .map(
                     item ->
-                        new BlogListItem(
-                            item.id(),
-                            item.title(),
-                            item.description(),
-                            item.content(),
-                            item.link(),
-                            item.readCount(),
-                            recent.getOrDefault(item.id(), 0),
-                            item.created(),
-                            item.updated(),
-                            item.status(),
-                            item.hasDraft(),
-                            item.draftNewer()))
+                        BlogModelConvertor.withRecentReadCount(item, recent.getOrDefault(item.id(), 0)))
                 .toList());
     }
 
@@ -364,41 +325,14 @@ public class BlogServiceImpl implements BlogService {
         DeletedBlogPage deleted =
             runtimeStore.deletedBlogs(
                 userId, currentPage, size, LocalDateTime.now().minusDays(RECYCLE_RETENTION_DAYS));
-        int totalPages = (int) (deleted.total() % size == 0 ? deleted.total() / size : deleted.total() / size + 1);
-        List<DeletedBlogItem> content = new ArrayList<>();
-        for (DeletedBlogEntry entry : deleted.entries()) {
-            Blog item = entry.blog();
-            content.add(
-                new DeletedBlogItem(
-                    item.id(),
-                    item.userId(),
-                    item.title(),
-                    item.description(),
-                    item.content(),
-                    item.created(),
-                    item.updated(),
-                    item.status(),
-                    entry.recoveryId(),
-                    item.link(),
-                    item.readCount()));
-        }
-
-        return new Page<>(
-            content,
-            deleted.total(),
-            currentPage,
-            size,
-            currentPage == 1,
-            deleted.total() == 0 || currentPage >= totalPages,
-            content.isEmpty(),
-            totalPages);
+        return BlogModelConvertor.toDeletedPage(deleted, currentPage, size);
     }
 
     @Override
     public void recoverDeletedBlog(String recoveryId, Long userId) {
         DeletedBlogEntry deleted = runtimeStore.deletedBlog(
             userId, recoveryId, LocalDateTime.now().minusDays(RECYCLE_RETENTION_DAYS))
-            .orElseThrow(() -> new MissException(wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND));
+            .orElseThrow(() -> new MissException(NO_FOUND));
         blogWrapper.recoverDeletedBlog(
             deleted.blog(), new BlogEventContext(BlogOperateEnum.CREATE, userId));
         runtimeStore.removeDeletedBlog(userId, deleted.receipt());
@@ -433,5 +367,4 @@ public class BlogServiceImpl implements BlogService {
         BlogWorkingDraft draft,
         BlogVersion publishedRevision) {
     }
-
 }

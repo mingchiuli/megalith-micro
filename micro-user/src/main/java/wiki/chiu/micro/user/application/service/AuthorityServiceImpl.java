@@ -1,4 +1,5 @@
 package wiki.chiu.micro.user.application.service;
+
 import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
 
 import java.util.List;
@@ -58,7 +59,7 @@ public class AuthorityServiceImpl implements AuthorityService {
                 ? Authority.blank()
                 : authorityRepository.findById(req.id()).orElseGet(Authority::blank);
 
-        menuAuthorityWrapper.saveAuthorityEntity(req.mergeInto(dealAuthority), findAllRoleIds());
+        menuAuthorityWrapper.saveAuthorityEntity(UserModelConvertor.mergeInto(req, dealAuthority), findAllRoleIds());
     }
 
     @Override

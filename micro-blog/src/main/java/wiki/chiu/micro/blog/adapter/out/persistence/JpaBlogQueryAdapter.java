@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import wiki.chiu.micro.blog.adapter.out.persistence.convertor.BlogPersistenceConvertor;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogDraftEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogRevisionEntity;
-import wiki.chiu.micro.blog.adapter.out.persistence.mapping.BlogPersistenceMapper;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftSensitiveContentRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
@@ -23,11 +23,7 @@ import wiki.chiu.micro.blog.application.model.BlogDeletionTarget;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.domain.Blog;
-import wiki.chiu.micro.blog.domain.BlogIdentity;
-import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.model.BlogAdminIndexSnapshot;
-import wiki.chiu.micro.common.model.BlogAdminSnapshot;
-import wiki.chiu.micro.common.model.BlogDraftSnapshot;
 import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
 import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 import wiki.chiu.micro.common.model.BlogSnapshot;
@@ -88,7 +84,7 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
                     Collectors.groupingBy(
                         span -> span.getRevisionId(),
                         Collectors.mapping(
-                            BlogPersistenceMapper::toSpan, Collectors.toList())));
+                            BlogPersistenceConvertor::toSpan, Collectors.toList())));
         return entities.stream()
             .map(
                 blog -> {
@@ -97,7 +93,7 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
                     if (revision == null) {
                         return null;
                     }
-                    return snapshot(
+                    return BlogPersistenceConvertor.snapshot(
                         blog,
                         revision,
                         spansByRevision.getOrDefault(revision.getId(), List.of()));
@@ -133,7 +129,7 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
                         Collectors.groupingBy(
                             span -> span.getRevisionId(),
                             Collectors.mapping(
-                                BlogPersistenceMapper::toSpan, Collectors.toList())));
+                                BlogPersistenceConvertor::toSpan, Collectors.toList())));
         Map<Long, BlogDraftEntity> draftsByBlog =
             drafts.findByBlogIdIn(blogIds).stream()
                 .collect(Collectors.toMap(BlogDraftEntity::getBlogId, Function.identity()));
@@ -143,7 +139,7 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
                     Collectors.groupingBy(
                         span -> span.getBlogId(),
                         Collectors.mapping(
-                            BlogPersistenceMapper::toSpan, Collectors.toList())));
+                            BlogPersistenceConvertor::toSpan, Collectors.toList())));
 
         return entities.stream()
             .map(
@@ -151,19 +147,13 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
                     BlogRevisionEntity revision =
                         revisionsById.get(blog.getPublishedRevisionId());
                     BlogRevisionSnapshot publishedRevision =
-                        revisionSnapshot(
+                        BlogPersistenceConvertor.revisionSnapshot(
                             revision,
                             revision == null
                                 ? List.of()
                                 : spansByRevision.getOrDefault(revision.getId(), List.of()));
                     BlogDraftEntity draft = draftsByBlog.get(blog.getId());
-                    return new BlogAdminIndexSnapshot(
-                        adminSnapshot(blog),
-                        draftSnapshot(
-                            draft,
-                            spansByDraft.getOrDefault(blog.getId(), List.of())),
-                        publishedRevision,
-                        publishedRevision);
+                    return BlogPersistenceConvertor.toAdminIndexSnapshot(blog, draft, spansByDraft.getOrDefault(blog.getId(), List.of()), publishedRevision);
                 })
             .toList();
     }
@@ -184,11 +174,11 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
                     Collectors.groupingBy(
                         span -> span.getRevisionId(),
                         Collectors.mapping(
-                            BlogPersistenceMapper::toSpan, Collectors.toList())));
+                            BlogPersistenceConvertor::toSpan, Collectors.toList())));
         return entities.stream()
             .map(
                 revision ->
-                    revisionSnapshot(
+                    BlogPersistenceConvertor.revisionSnapshot(
                         revision,
                         spansByRevision.getOrDefault(revision.getId(), List.of())))
             .toList();
@@ -221,87 +211,8 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
         return revisions.findById(blog.getPublishedRevisionId())
             .map(
                 revision ->
-                    BlogPersistenceMapper.toPublishedBlog(
+                    BlogPersistenceConvertor.toPublishedBlog(
                         blog, revision, spans(revision.getId())));
-    }
-
-    private static BlogSnapshot snapshot(
-        BlogEntity blog,
-        BlogRevisionEntity revision,
-        List<BlogSensitiveSpan> sensitive) {
-        return new BlogSnapshot(
-            blog.getId(),
-            blog.getUserId(),
-            revision.getTitle(),
-            revision.getDescription(),
-            revision.getContent(),
-            blog.getCreated(),
-            revision.getFirstPublishedAt(),
-            BlogPersistenceMapper.status(blog, revision),
-            revision.getLink(),
-            blog.getReadCount(),
-            blog.getPublicationRevision(),
-            revision.getId(),
-            blog.getPublishedAt(),
-            blog.getOfflineAt(),
-            blog.getAccessMode(),
-            revision.getRenderMode().getCode(),
-            sensitive);
-    }
-
-    private static BlogAdminSnapshot adminSnapshot(BlogEntity blog) {
-        return new BlogAdminSnapshot(
-            blog.getId(),
-            blog.getUserId(),
-            blog.getPublishedRevisionId(),
-            blog.getPublishedAt(),
-            blog.getOfflineAt(),
-            blog.getAccessMode(),
-            blog.getPublicationRevision(),
-            blog.getAdminRevision(),
-            blog.getReadCount(),
-            blog.getCreated());
-    }
-
-    private static BlogDraftSnapshot draftSnapshot(
-        BlogDraftEntity draft, List<BlogSensitiveSpan> spans) {
-        if (draft == null) {
-            return null;
-        }
-        return new BlogDraftSnapshot(
-            draft.getBlogId(),
-            draft.getDraftRevision(),
-            draft.getBasePublishedRevisionId(),
-            draft.getTitle(),
-            draft.getDescription(),
-            draft.getContent(),
-            draft.getLink(),
-            draft.getRenderMode(),
-            draft.getUpdatedBy(),
-            draft.getUpdatedAt(),
-            spans);
-    }
-
-    private static BlogRevisionSnapshot revisionSnapshot(
-        BlogRevisionEntity revision, List<BlogSensitiveSpan> spans) {
-        if (revision == null) {
-            return null;
-        }
-        return new BlogRevisionSnapshot(
-            revision.getId(),
-            revision.getBlogId(),
-            revision.getVersionNo(),
-            revision.getOrigin(),
-            revision.getBaseRevisionId(),
-            revision.getTitle(),
-            revision.getDescription(),
-            revision.getContent(),
-            revision.getLink(),
-            revision.getRenderMode(),
-            revision.getFirstPublishedAt(),
-            revision.getCreatedBy(),
-            revision.getCreatedAt(),
-            spans);
     }
 
     private List<BlogDeletionTarget> deletionTargets(List<BlogEntity> entities) {
@@ -325,7 +236,7 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
                 : revisionSensitive.findByRevisionIdIn(revisionIds).stream()
                     .collect(Collectors.groupingBy(
                         span -> span.getRevisionId(),
-                        Collectors.mapping(BlogPersistenceMapper::toSpan, Collectors.toList())));
+                        Collectors.mapping(BlogPersistenceConvertor::toSpan, Collectors.toList())));
         List<Long> draftIds =
             entities.stream()
                 .filter(blog -> blog.getPublishedRevisionId() == null
@@ -342,49 +253,16 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
                 BlogRevisionEntity revision = entity.getPublishedRevisionId() == null
                     ? null : revisionsById.get(entity.getPublishedRevisionId());
                 BlogDraftEntity draft = draftsByBlog.get(entity.getId());
-                Blog blog;
-                if (revision != null) {
-                    blog = BlogPersistenceMapper.toPublishedBlog(
-                        entity, revision, spansByRevision.getOrDefault(revision.getId(), List.of()));
-                } else if (draft != null) {
-                    blog = draftProjection(entity, draft);
-                } else {
-                    blog = new Blog(
-                        entity.getId(), entity.getUserId(), "", "", "", entity.getCreated(),
-                        entity.getCreated(), BlogStatusEnum.DRAFT.getCode(), "", entity.getReadCount(),
-                        entity.getAdminRevision());
-                }
-                BlogIdentity identity = BlogPersistenceMapper.toIdentity(entity);
-                return new BlogDeletionTarget(
-                    blog,
-                    new BlogIdentity(
-                        identity.id(), identity.userId(), identity.created(), identity.readCount(),
-                        identity.publishedRevisionId(), identity.publishedAt(), identity.offlineAt(),
-                        identity.accessMode(),
-                        identity.publicationRevision() == null ? 0L : identity.publicationRevision(),
-                        identity.adminRevision() == null ? 0L : identity.adminRevision(), identity.collaborationEpoch()));
+                return BlogPersistenceConvertor.toDeletionTarget(
+                    entity, revision, draft,
+                    revision == null ? List.of() : spansByRevision.getOrDefault(revision.getId(), List.of()));
             })
             .toList();
     }
 
-    private Blog draftProjection(BlogEntity blog, BlogDraftEntity draft) {
-        return new Blog(
-            blog.getId(),
-            blog.getUserId(),
-            draft.getTitle(),
-            draft.getDescription(),
-            draft.getContent(),
-            blog.getCreated(),
-            draft.getUpdatedAt(),
-            BlogStatusEnum.DRAFT.getCode(),
-            draft.getLink(),
-            blog.getReadCount(),
-            blog.getAdminRevision());
-    }
-
     private List<BlogSensitiveSpan> spans(Long revisionId) {
         return revisionSensitive.findByRevisionId(revisionId).stream()
-            .map(BlogPersistenceMapper::toSpan)
+            .map(BlogPersistenceConvertor::toSpan)
             .toList();
     }
 }

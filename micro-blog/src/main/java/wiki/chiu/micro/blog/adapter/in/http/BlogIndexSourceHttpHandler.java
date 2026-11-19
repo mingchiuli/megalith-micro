@@ -55,14 +55,7 @@ public class BlogIndexSourceHttpHandler implements BlogIndexSourceHttpService {
     @Override
     public Result<BlogIndexSourceStatus> indexSourceStatus() {
         return Result.success(
-            () -> {
-                var status = source.status();
-                return new BlogIndexSourceStatus(
-                    status.readOnly(),
-                    status.readyEvents(),
-                    status.pausedEvents(),
-                    status.total(), status.publishedTotal());
-            });
+            () -> BlogViewConvertor.toIndexSourceStatus(source.status()));
     }
 
     @Override

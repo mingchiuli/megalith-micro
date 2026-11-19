@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
+import wiki.chiu.micro.user.adapter.out.persistence.convertor.UserPersistenceConvertor;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
-import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleDataPermissionRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleRepository;
@@ -43,7 +43,7 @@ public class RoleWrapper implements RoleWriter {
     @Transactional
     @Override
     public void saveOrUpdate(Role role, List<String> affectedCodes) {
-        RoleEntity entity = UserPersistenceMapper.toEntity(role);
+        RoleEntity entity = UserPersistenceConvertor.toEntity(role);
         Long roleId = role.id();
         if (roleId == null) {
             roleId = roles.save(entity).getId();

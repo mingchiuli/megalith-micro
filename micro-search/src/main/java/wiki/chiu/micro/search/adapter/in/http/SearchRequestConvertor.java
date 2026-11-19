@@ -1,9 +1,16 @@
 package wiki.chiu.micro.search.adapter.in.http;
 
+import java.util.List;
+
 import org.springframework.web.servlet.function.ServerRequest;
 
 import wiki.chiu.micro.common.web.ValidatedRequest;
+import wiki.chiu.micro.search.api.req.BlogReadCountReq;
+import wiki.chiu.micro.search.api.req.BlogRevisionSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
+import wiki.chiu.micro.search.application.model.BlogReadCount;
+import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
+import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
 
 public final class SearchRequestConvertor {
 
@@ -29,4 +36,25 @@ public final class SearchRequestConvertor {
         return req;
     }
 
+    public static PrivateBlogSearchQuery toQuery(BlogSysSearchReq req) {
+        return new PrivateBlogSearchQuery(
+            req.page(),
+            req.pageSize(),
+            req.keywords(),
+            req.status(),
+            req.createStart(),
+            req.createEnd(),
+            req.userId(),
+            req.allData(),
+            Boolean.TRUE.equals(req.draftOnly()));
+    }
+
+    public static RevisionSearchQuery toQuery(BlogRevisionSearchReq req) {
+        return new RevisionSearchQuery(req.blogId(), req.page(), req.pageSize(), req.keywords(),
+            req.userId(), Boolean.TRUE.equals(req.allData()));
+    }
+
+    public static List<BlogReadCount> toReadCounts(List<BlogReadCountReq> counts) {
+        return counts.stream().map(count -> new BlogReadCount(count.blogId(), count.readCount())).toList();
+    }
 }

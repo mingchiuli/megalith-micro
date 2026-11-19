@@ -6,6 +6,7 @@ import java.util.Locale;
 
 import org.springframework.data.domain.PageRequest;
 
+import wiki.chiu.micro.common.outbox.adapter.out.persistence.convertor.OutboxPersistenceConvertor;
 import wiki.chiu.micro.common.outbox.adapter.out.persistence.entity.OutboxEventEntity;
 import wiki.chiu.micro.common.outbox.adapter.out.persistence.repository.OutboxEventRepository;
 import wiki.chiu.micro.common.outbox.application.model.OutboxRecord;
@@ -30,24 +31,15 @@ public class OutboxStoreAdapter implements OutboxStore {
         String eventType,
         String payload) {
         LocalDateTime now = LocalDateTime.now();
-        OutboxEventEntity entity = new OutboxEventEntity();
-        entity.setEventId(eventId);
-        entity.setProducer(producer);
-        entity.setAggregateType(aggregateType);
-        entity.setAggregateId(aggregateId);
-        entity.setEventType(eventType);
-        entity.setPayload(payload);
-        entity.setState("READY");
-        entity.setAttempts(0);
-        entity.setAvailableAt(now);
-        entity.setCreatedAt(now);
+        OutboxEventEntity entity = OutboxPersistenceConvertor.toEntity(
+            eventId, producer, aggregateType, aggregateId, eventType, payload, now);
         repository.save(entity);
     }
 
     @Override
     public List<OutboxRecord> findReady(OutboxProducer producer, int limit) {
         return repository.findReady(producer, LocalDateTime.now(), PageRequest.ofSize(limit)).stream()
-            .map(OutboxStoreAdapter::toRecord)
+            .map(OutboxPersistenceConvertor::toRecord)
             .toList();
     }
 
@@ -84,19 +76,6 @@ public class OutboxStoreAdapter implements OutboxStore {
             case "discard" -> repository.discard(eventId, producer) == 1;
             default -> throw new IllegalArgumentException("Unsupported outbox action: " + action);
         };
-    }
-
-    private static OutboxRecord toRecord(OutboxEventEntity entity) {
-        return new OutboxRecord(
-            entity.getId(),
-            entity.getEventId(),
-            entity.getProducer(),
-            entity.getAggregateType(),
-            entity.getAggregateId(),
-            entity.getEventType(),
-            entity.getPayload(),
-            entity.getAttempts(),
-            entity.getAvailableAt());
     }
 
     private static String truncate(String error) {

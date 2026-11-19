@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
-import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
+import wiki.chiu.micro.user.adapter.out.persistence.convertor.UserPersistenceConvertor;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
 import wiki.chiu.micro.user.application.port.out.RoleMenuWriter;
 import wiki.chiu.micro.user.domain.RoleMenu;
@@ -29,7 +29,7 @@ public class RoleMenuWrapper implements RoleMenuWriter {
         roleMenuRepository.deleteByRoleId(roleId);
         roleMenuRepository.saveAll(
             roleMenus.stream()
-                .map(roleMenu -> UserPersistenceMapper.toEntity(roleMenu.onRole(roleId)))
+                .map(roleMenu -> UserPersistenceConvertor.toEntity(roleMenu.onRole(roleId)))
                 .toList());
         cacheEvictions.enqueue(List.of(), List.of(roleId), List.of(roleCode), true, false);
     }

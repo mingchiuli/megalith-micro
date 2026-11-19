@@ -10,9 +10,9 @@ import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 /**
  * Turns the blog and user service payloads into the exhibit service's own model.
  */
-public final class BlogExhibitMapper {
+public final class BlogExhibitConvertor {
 
-    private BlogExhibitMapper() {
+    private BlogExhibitConvertor() {
     }
 
     public static BlogExhibit toModel(

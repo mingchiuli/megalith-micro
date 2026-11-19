@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import wiki.chiu.micro.blog.adapter.out.persistence.convertor.BlogPersistenceConvertor;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogRevisionEntity;
-import wiki.chiu.micro.blog.adapter.out.persistence.mapping.BlogPersistenceMapper;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftSensitiveContentRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
@@ -43,14 +43,14 @@ public class JpaBlogAuthoringReader implements BlogAuthoringReader {
 
     @Override
     public Optional<BlogIdentity> findIdentity(Long blogId) {
-        return blogs.findById(blogId).map(BlogPersistenceMapper::toIdentity);
+        return blogs.findById(blogId).map(BlogPersistenceConvertor::toIdentity);
     }
 
     @Override
     public List<BlogIdentity> findIdentities(List<Long> blogIds) {
         return blogIds.isEmpty()
             ? List.of()
-            : blogs.findAllById(blogIds).stream().map(BlogPersistenceMapper::toIdentity).toList();
+            : blogs.findAllById(blogIds).stream().map(BlogPersistenceConvertor::toIdentity).toList();
     }
 
     @Override
@@ -60,7 +60,7 @@ public class JpaBlogAuthoringReader implements BlogAuthoringReader {
         }
         List<BlogRevisionEntity> entities =
             revisions.findByBlogIdInOrderByBlogIdAscVersionNoAsc(blogIds);
-        return BlogPersistenceMapper.toVersions(
+        return BlogPersistenceConvertor.toVersions(
             entities,
             entities.isEmpty()
                 ? List.of()
@@ -74,10 +74,10 @@ public class JpaBlogAuthoringReader implements BlogAuthoringReader {
             .findByBlogId(blogId)
             .map(
                 draft ->
-                    BlogPersistenceMapper.toDraft(
+                    BlogPersistenceConvertor.toDraft(
                         draft,
                         draftSensitive.findByBlogId(blogId).stream()
-                            .map(BlogPersistenceMapper::toSpan)
+                            .map(BlogPersistenceConvertor::toSpan)
                             .toList()));
     }
 
@@ -123,7 +123,7 @@ public class JpaBlogAuthoringReader implements BlogAuthoringReader {
     @Override
     public List<BlogVersion> findVersions(Long blogId) {
         List<BlogRevisionEntity> entities = revisions.findByBlogIdOrderByVersionNoAsc(blogId);
-        return BlogPersistenceMapper.toVersions(
+        return BlogPersistenceConvertor.toVersions(
             entities,
             entities.isEmpty()
                 ? List.of()
@@ -132,10 +132,10 @@ public class JpaBlogAuthoringReader implements BlogAuthoringReader {
     }
 
     private BlogVersion version(BlogRevisionEntity revision) {
-        return BlogPersistenceMapper.toVersion(
+        return BlogPersistenceConvertor.toVersion(
             revision,
             revisionSensitive.findByRevisionId(revision.getId()).stream()
-                .map(BlogPersistenceMapper::toSpan)
+                .map(BlogPersistenceConvertor::toSpan)
                 .toList());
     }
 }

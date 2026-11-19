@@ -260,7 +260,7 @@ carry no Spring annotations and are declared as beans there.
 
 Messaging input adapters translate shared queue envelopes into application commands before invoking
 use cases. Domain models do not construct or consume aggregate transport snapshots; conversion lives
-in adapter mappers. Shared business enums, value objects, and application read projections remain
+in adapter convertors. Shared business enums, value objects, and application read projections remain
 available through `common-contract`.
 
 Input adapters call ports, and application services call output ports. Spring Data, Redisson,
@@ -274,7 +274,8 @@ the shared dependency, transaction, and package-layout rules for every applicati
 adds only the rules it needs on top. Transaction checks identify persistence writers by their
 method/class annotations, follow persistence helpers and method references, and reject Spring Data
 repository reads without relying on a `Wrapper` class-name suffix. Read-only transactions and reads
-outside write transactions remain supported.
+outside write transactions remain supported. Data conversion belongs in dedicated adapter
+`*Convertor` classes.
 
 ### Rust application boundaries
 

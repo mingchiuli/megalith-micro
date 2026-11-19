@@ -1,4 +1,5 @@
 package wiki.chiu.micro.user.application.service;
+
 import static wiki.chiu.micro.common.enums.StatusEnum.NORMAL;
 
 import java.util.List;
@@ -10,7 +11,6 @@ import wiki.chiu.micro.user.application.port.out.AuthorityReader;
 import wiki.chiu.micro.user.application.port.out.AuthorityWriter;
 import wiki.chiu.micro.user.application.port.out.MenuAuthorityReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
-import wiki.chiu.micro.user.domain.Authority;
 import wiki.chiu.micro.user.domain.MenuAuthority;
 import wiki.chiu.micro.user.domain.Role;
 
@@ -54,12 +54,7 @@ public class MenuAuthorityServiceImpl implements MenuAuthorityService {
         return authorityRepository.findByStatusAndType(
                 NORMAL.getCode(), AuthTypeEnum.NEED_AUTH.getCode())
             .stream()
-            .map(authority -> toView(authority, ids))
+            .map(authority -> UserModelConvertor.toView(authority, ids))
             .toList();
-    }
-
-    private static MenuAuthorityView toView(Authority authority, List<Long> ids) {
-        return new MenuAuthorityView(
-            authority.id(), authority.code(), ids.contains(authority.id()));
     }
 }

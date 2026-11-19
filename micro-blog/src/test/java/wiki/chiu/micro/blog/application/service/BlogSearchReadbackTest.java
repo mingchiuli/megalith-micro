@@ -85,7 +85,7 @@ class BlogSearchReadbackTest {
         assertThat(pages.getFirst().blogs())
             .extracting(row -> row.blog().id())
             .containsExactly(3L, 1L);
-        assertThat(pages.getFirst().sensitiveContent()).isEmpty();
+        assertThat(pages.getFirst().revisions()).isEmpty();
         verify(authoring).findVersionsByBlogIds(List.of(3L, 1L));
         verify(authoring, never()).findIdentity(any());
         verify(authoring, never()).findVersions(any());

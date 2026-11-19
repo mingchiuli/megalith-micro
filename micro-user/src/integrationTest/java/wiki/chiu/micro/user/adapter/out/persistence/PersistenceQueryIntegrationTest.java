@@ -44,6 +44,7 @@ import wiki.chiu.micro.common.outbox.application.service.OutboxServiceImpl;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.adapter.out.messaging.UserDeletionOutbox;
+import wiki.chiu.micro.user.adapter.out.persistence.convertor.UserPersistenceConvertor;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.AuthorityEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuAuthorityEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuEntity;
@@ -52,7 +53,6 @@ import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleMenuEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserRoleEntity;
-import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.AuthorityRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuRepository;
@@ -289,9 +289,9 @@ class PersistenceQueryIntegrationTest {
 
         transaction.executeWithoutResult(status -> {
             userWriter.saveOrUpdate(prepared, List.of());
-            roleWriter.saveOrUpdate(UserPersistenceMapper.toDomain(role).withRemark("edited"), List.of());
-            menuWriter.saveMenus(List.of(UserPersistenceMapper.toDomain(menu).withStatus(0)), List.of(), List.of());
-            authorityWriter.saveAuthorityEntity(UserPersistenceMapper.toDomain(authority), List.of());
+            roleWriter.saveOrUpdate(UserPersistenceConvertor.toDomain(role).withRemark("edited"), List.of());
+            menuWriter.saveMenus(List.of(UserPersistenceConvertor.toDomain(menu).withStatus(0)), List.of(), List.of());
+            authorityWriter.saveAuthorityEntity(UserPersistenceConvertor.toDomain(authority), List.of());
         });
 
         assertThat(SqlCapture.statements()).noneMatch(sql -> sql.toLowerCase().startsWith("select"));
@@ -319,7 +319,7 @@ class PersistenceQueryIntegrationTest {
             throw new IllegalStateException("outbox unavailable");
         }));
         var failingWriter = new UserRoleWrapper(users, userRoles, failing, mock(UserDeletionOutbox.class));
-        User prepared = UserPersistenceMapper.toDomain(stored).withStatus(1);
+        User prepared = UserPersistenceConvertor.toDomain(stored).withStatus(1);
         long count = outbox.count();
 
         assertThatThrownBy(() -> transaction.executeWithoutResult(status -> {

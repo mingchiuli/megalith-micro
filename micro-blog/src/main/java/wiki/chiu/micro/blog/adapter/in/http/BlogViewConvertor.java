@@ -2,25 +2,31 @@ package wiki.chiu.micro.blog.adapter.in.http;
 
 import java.util.List;
 
+import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationContentRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationRpcVo;
 import wiki.chiu.micro.blog.application.model.BlogEdit;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
 import wiki.chiu.micro.blog.application.model.BlogVersionComparison;
+import wiki.chiu.micro.blog.application.model.BlogVersionSummary;
 import wiki.chiu.micro.blog.application.model.DeletedBlogItem;
+import wiki.chiu.micro.blog.application.model.IndexSourceStatus;
 import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.model.SavedBlogVersion;
+import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.common.page.PageAdapter;
 
 /**
  * Renders the blog use-case results as HTTP response bodies.
  */
-public final class BlogViewMapper {
+public final class BlogViewConvertor {
 
-    private BlogViewMapper() {
+    private BlogViewConvertor() {
     }
 
     public static PageAdapter<BlogEntityVo> toVo(Page<BlogListItem> page) {
-        return PageResponse.of(page, page.content().stream().map(BlogViewMapper::toVo).toList());
+        return PageConvertor.of(page, page.content().stream().map(BlogViewConvertor::toVo).toList());
     }
 
     public static BlogEntityVo toVo(BlogListItem blog) {
@@ -41,8 +47,8 @@ public final class BlogViewMapper {
     }
 
     public static PageAdapter<BlogDeleteVo> toDeletedVo(Page<DeletedBlogItem> page) {
-        return PageResponse.of(
-            page, page.content().stream().map(BlogViewMapper::toDeletedVo).toList());
+        return PageConvertor.of(
+            page, page.content().stream().map(BlogViewConvertor::toDeletedVo).toList());
     }
 
     public static BlogDeleteVo toDeletedVo(DeletedBlogItem blog) {
@@ -123,5 +129,45 @@ public final class BlogViewMapper {
     public static BlogVersionComparisonVo toVo(BlogVersionComparison comparison) {
         return new BlogVersionComparisonVo(
             toVo(comparison.previous()), toVo(comparison.current()));
+    }
+
+    public static BlogIdVo createdBlog(BlogIdentity identity) {
+        return new BlogIdVo(identity.id(), identity.collaborationEpoch());
+    }
+
+    public static PageAdapter<BlogVersionSummaryVo> toVersionSummaries(
+        Page<BlogVersionSummary> page) {
+        return PageConvertor.of(
+            page,
+            page.content().stream()
+                .map(
+                    version ->
+                        new BlogVersionSummaryVo(
+                            version.id(),
+                            version.blogId(),
+                            version.versionNo(),
+                            version.origin(),
+                            version.baseRevisionId(),
+                            version.title(),
+                            version.firstPublishedAt(),
+                            version.createdBy(),
+                            version.createdAt(),
+                            version.currentPublished()))
+                .toList());
+    }
+
+    public static BlogPublicationRpcVo toPublicationRpc(BlogIdentity identity) {
+        return new BlogPublicationRpcVo(identity.publishedRevisionId(), identity.userId(),
+            identity.accessMode(), identity.created(), identity.publishedAt(), identity.readCount());
+    }
+
+    public static BlogPublicationContentRpcVo toPublicationContentRpc(BlogVersion version) {
+        return new BlogPublicationContentRpcVo(version.title(), version.description(),
+            version.content(), version.renderMode(), version.sensitiveContent());
+    }
+
+    public static BlogIndexSourceStatus toIndexSourceStatus(IndexSourceStatus status) {
+        return new BlogIndexSourceStatus(status.readOnly(), status.readyEvents(), status.pausedEvents(),
+            status.total(), status.publishedTotal());
     }
 }

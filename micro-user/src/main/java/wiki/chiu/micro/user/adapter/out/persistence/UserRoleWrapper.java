@@ -10,8 +10,8 @@ import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.user.adapter.out.messaging.AuthCacheEvictionOutbox;
 import wiki.chiu.micro.user.adapter.out.messaging.UserDeletionOutbox;
+import wiki.chiu.micro.user.adapter.out.persistence.convertor.UserPersistenceConvertor;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserEntity;
-import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRoleRepository;
 import wiki.chiu.micro.user.application.port.out.UserWriter;
@@ -44,7 +44,7 @@ public class UserRoleWrapper implements UserWriter {
     @Transactional
     @Override
     public void saveOrUpdate(User user, List<UserRole> roles) {
-        UserEntity entity = UserPersistenceMapper.toEntity(user);
+        UserEntity entity = UserPersistenceConvertor.toEntity(user);
         Long userId;
         if (user.id() == null) {
             userId = userRepository.save(entity).getId();
@@ -57,7 +57,7 @@ public class UserRoleWrapper implements UserWriter {
         }
         userRoleRepository.saveAll(
             roles.stream()
-                .map(role -> UserPersistenceMapper.toEntity(role.onUser(userId)))
+                .map(role -> UserPersistenceConvertor.toEntity(role.onUser(userId)))
                 .toList());
         cacheEvictions.enqueue(List.of(userId), List.of(), List.of(), false, false);
     }

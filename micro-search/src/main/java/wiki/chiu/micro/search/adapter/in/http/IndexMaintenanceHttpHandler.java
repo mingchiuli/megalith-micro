@@ -2,10 +2,6 @@ package wiki.chiu.micro.search.adapter.in.http;
 
 import static wiki.chiu.micro.common.web.FunctionalWeb.ok;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
-
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -14,11 +10,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.search.api.SearchIndexMaintenanceHttpService;
-import wiki.chiu.micro.search.api.vo.IndexRebuildRpcVo;
 import wiki.chiu.micro.search.api.vo.SearchIndexesRebuildRpcVo;
 import wiki.chiu.micro.search.application.model.IndexRebuildRejectedException;
 import wiki.chiu.micro.search.application.port.in.RebuildSearchIndex;
@@ -52,15 +51,7 @@ public class IndexMaintenanceHttpHandler implements SearchIndexMaintenanceHttpSe
             result.indexes().forEach(index -> processed.increment(index.documents()));
             lastSuccess.set(Instant.now().getEpochSecond());
             return Result.success(
-                new SearchIndexesRebuildRpcVo(
-                    result.indexes().stream()
-                        .map(
-                            index ->
-                                new IndexRebuildRpcVo(
-                                    index.previousIndex(),
-                                    index.index(),
-                                    index.documents()))
-                        .toList()));
+                SearchResponseConvertor.toRebuildResponse(result));
         } catch (IndexRebuildRejectedException rejected) {
             failures.increment();
             throw new BaseException(CommonErrorCode.CONFLICT, rejected.getMessage());

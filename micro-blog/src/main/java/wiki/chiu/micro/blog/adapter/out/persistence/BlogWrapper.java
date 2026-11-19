@@ -8,10 +8,9 @@ import java.util.Objects;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import wiki.chiu.micro.blog.adapter.out.persistence.convertor.BlogPersistenceConvertor;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogEntity;
 import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogRevisionEntity;
-import wiki.chiu.micro.blog.adapter.out.persistence.entity.BlogRevisionSensitiveContentEntity;
-import wiki.chiu.micro.blog.adapter.out.persistence.mapping.BlogPersistenceMapper;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftSensitiveContentRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
@@ -24,16 +23,9 @@ import wiki.chiu.micro.blog.application.port.out.BlogWriter;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.common.enums.BlogAccessMode;
-import wiki.chiu.micro.common.enums.BlogRenderMode;
-import wiki.chiu.micro.common.enums.BlogRevisionOrigin;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
 import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.BaseException;
-import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
-import wiki.chiu.micro.common.message.BlogChangedMessage;
-import wiki.chiu.micro.common.model.BlogAdminSnapshot;
-import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
-import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 import wiki.chiu.micro.common.model.BlogSnapshot;
 import wiki.chiu.micro.common.outbox.application.port.in.OutboxEvents;
 import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
@@ -82,9 +74,7 @@ public class BlogWrapper implements BlogWriter {
             Objects.equals(blog.status(), BlogStatusEnum.HIDE.getCode())
                 ? BlogAccessMode.RESTRICTED.getCode()
                 : BlogAccessMode.PUBLIC.getCode();
-        BlogEntity identity = new BlogEntity(
-            blog.id(), blog.userId(), blog.created(), blog.readCount(), null, null, null,
-            accessMode, safeRevision(blog.eventRevision()), recoveredAdminRevision);
+        BlogEntity identity = BlogPersistenceConvertor.toRecoveredEntity(blog, accessMode, recoveredAdminRevision);
         try {
             blogs.insertRecovered(
                 identity.getId(), identity.getUserId(), identity.getCreated(), identity.getReadCount(),
@@ -95,20 +85,7 @@ public class BlogWrapper implements BlogWriter {
 
         BlogRevisionEntity revision =
             revisions.save(
-                new BlogRevisionEntity(
-                    null,
-                    blog.id(),
-                    1L,
-                    BlogRevisionOrigin.PUBLICATION,
-                    null,
-                    blog.title(),
-                    blog.description(),
-                    blog.content(),
-                    blog.link(),
-                    BlogRenderMode.of(blog.status()),
-                    now,
-                    event.operatorUserId() == null ? blog.userId() : event.operatorUserId(),
-                    now));
+                BlogPersistenceConvertor.toRecoveredRevisionEntity(blog, event, now));
         identity.setPublishedRevisionId(revision.getId());
         identity.setPublishedAt(revision.getFirstPublishedAt());
         identity.setPublicationRevision(Math.max(1L, identity.getPublicationRevision()));
@@ -122,19 +99,14 @@ public class BlogWrapper implements BlogWriter {
                 .distinct()
                 .map(
                     span ->
-                        new BlogRevisionSensitiveContentEntity(
-                            null,
-                            revision.getId(),
-                            span.startIndex(),
-                            span.endIndex(),
-                            span.type()))
+                        BlogPersistenceConvertor.toRevisionSpanEntity(revision.getId(), span))
                 .toList());
         enqueue(
-            blogSnapshot(identity, revision, blog.sensitiveContent()),
+            BlogPersistenceConvertor.snapshot(identity, revision, blog.sensitiveContent()),
             event,
             recoveredAdminRevision);
         enqueueAdminRecovery(
-            blog, revision, BlogPersistenceMapper.toIdentity(identity), event);
+            blog, revision, BlogPersistenceConvertor.toIdentity(identity), event);
     }
 
     @Transactional
@@ -167,24 +139,7 @@ public class BlogWrapper implements BlogWriter {
                 throw conflict(blog.id());
             }
             enqueue(
-                new BlogSnapshot(
-                    blog.id(),
-                    blog.userId(),
-                    blog.title(),
-                    blog.description(),
-                    blog.content(),
-                    blog.created(),
-                    blog.updated(),
-                    blog.status(),
-                    blog.link(),
-                    blog.readCount(),
-                    publicationRevision,
-                    expected.publishedRevisionId(),
-                    expected.publishedAt(),
-                    expected.offlineAt(),
-                    expected.accessMode().getCode(),
-                    null,
-                    blog.sensitiveContent()),
+                BlogPersistenceConvertor.toDeletedSnapshot(blog, expected, publicationRevision),
                 event,
                 adminRevision);
             enqueueAdminDelete(blog, expected, adminRevision, event);
@@ -197,30 +152,6 @@ public class BlogWrapper implements BlogWriter {
         blogs.setReadCount(blogId);
     }
 
-    private BlogSnapshot blogSnapshot(
-        BlogEntity blog,
-        BlogRevisionEntity revision,
-        List<BlogSensitiveSpan> sensitiveContent) {
-        return new BlogSnapshot(
-            blog.getId(),
-            blog.getUserId(),
-            revision.getTitle(),
-            revision.getDescription(),
-            revision.getContent(),
-            blog.getCreated(),
-            revision.getFirstPublishedAt(),
-            BlogPersistenceMapper.status(blog, revision),
-            revision.getLink(),
-            blog.getReadCount(),
-            blog.getPublicationRevision(),
-            revision.getId(),
-            blog.getPublishedAt(),
-            blog.getOfflineAt(),
-            blog.getAccessMode(),
-            revision.getRenderMode().getCode(),
-            sensitiveContent);
-    }
-
     private void enqueue(
         BlogSnapshot snapshot, BlogEventContext event, Long adminRevision) {
         outbox.enqueue(
@@ -228,13 +159,7 @@ public class BlogWrapper implements BlogWriter {
             "BLOG",
             snapshot.id(),
             eventId ->
-                new BlogChangedMessage(
-                    eventId,
-                    event.operation().getCode(),
-                    snapshot.revision(),
-                    event.operatorUserId(),
-                    snapshot,
-                    adminRevision));
+                BlogPersistenceConvertor.toChangedMessage(eventId, event, snapshot, adminRevision));
     }
 
     private void enqueueAdminDelete(
@@ -244,23 +169,7 @@ public class BlogWrapper implements BlogWriter {
             "BLOG",
             blog.id(),
             eventId ->
-                new BlogAdminIndexMessage(
-                    eventId,
-                    "DELETE",
-                    new BlogAdminSnapshot(
-                        blog.id(),
-                        blog.userId(),
-                        null,
-                        null,
-                        null,
-                        BlogAccessMode.RESTRICTED.getCode(),
-                        identity.publicationRevision(),
-                        adminRevision,
-                        blog.readCount(),
-                        blog.created()),
-                    null,
-                    null,
-                    null));
+                BlogPersistenceConvertor.toAdminDeleteMessage(eventId, blog, identity, adminRevision));
     }
 
     private void enqueueAdminRecovery(
@@ -273,51 +182,7 @@ public class BlogWrapper implements BlogWriter {
             "BLOG",
             identity.id(),
             eventId ->
-                new BlogAdminIndexMessage(
-                    eventId,
-                    "RECOVER",
-                    new BlogAdminSnapshot(
-                        identity.id(),
-                        identity.userId(),
-                        identity.publishedRevisionId(),
-                        identity.publishedAt(),
-                        identity.offlineAt(),
-                        identity.accessMode().getCode(),
-                        identity.publicationRevision(),
-                        identity.adminRevision(),
-                        identity.readCount(),
-                        identity.created()),
-                    null,
-                    new BlogRevisionSnapshot(
-                        revision.getId(),
-                        revision.getBlogId(),
-                        revision.getVersionNo(),
-                        revision.getOrigin(),
-                        revision.getBaseRevisionId(),
-                        revision.getTitle(),
-                        revision.getDescription(),
-                        revision.getContent(),
-                        revision.getLink(),
-                        revision.getRenderMode(),
-                        revision.getFirstPublishedAt(),
-                        revision.getCreatedBy(),
-                        revision.getCreatedAt(),
-                        blog.sensitiveContent()),
-                    new BlogRevisionSnapshot(
-                        revision.getId(),
-                        revision.getBlogId(),
-                        revision.getVersionNo(),
-                        revision.getOrigin(),
-                        revision.getBaseRevisionId(),
-                        revision.getTitle(),
-                        revision.getDescription(),
-                        revision.getContent(),
-                        revision.getLink(),
-                        revision.getRenderMode(),
-                        revision.getFirstPublishedAt(),
-                        revision.getCreatedBy(),
-                        revision.getCreatedAt(),
-                        blog.sensitiveContent())));
+                BlogPersistenceConvertor.toAdminRecoveryMessage(eventId, blog, revision, identity));
     }
 
     private static long safeRevision(Long revision) {

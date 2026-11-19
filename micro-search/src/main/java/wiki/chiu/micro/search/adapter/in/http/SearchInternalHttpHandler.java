@@ -17,21 +17,14 @@ import wiki.chiu.micro.search.api.SearchHttpService;
 import wiki.chiu.micro.search.api.req.BlogReadCountReq;
 import wiki.chiu.micro.search.api.req.BlogRevisionSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
-import wiki.chiu.micro.search.api.vo.AdminBlogRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminBlogSearchRpcVo;
-import wiki.chiu.micro.search.api.vo.AdminRevisionRpcVo;
 import wiki.chiu.micro.search.api.vo.AdminRevisionSearchRpcVo;
-import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
 import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
 import wiki.chiu.micro.search.application.model.AdminBlogRead;
 import wiki.chiu.micro.search.application.model.AdminRevisionRead;
-import wiki.chiu.micro.search.application.model.BlogReadCount;
 import wiki.chiu.micro.search.application.model.Page;
-import wiki.chiu.micro.search.application.model.PrivateBlogSearchQuery;
-import wiki.chiu.micro.search.application.model.PublicBlogRead;
 import wiki.chiu.micro.search.application.model.RecommendationFeed;
 import wiki.chiu.micro.search.application.model.RecommendationFeedQuery;
-import wiki.chiu.micro.search.application.model.RevisionSearchQuery;
 import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
 
 @Component
@@ -76,16 +69,10 @@ public class SearchInternalHttpHandler implements SearchHttpService {
 
     @Override
     public Result<AdminBlogSearchRpcVo> searchAdminBlogs(BlogSysSearchReq req) {
-        Page<AdminBlogRead> page = searchBlogs.searchAdmin(toQuery(req));
+        Page<AdminBlogRead> page = searchBlogs.searchAdmin(SearchRequestConvertor.toQuery(req));
         return Result.success(
             () ->
-                new AdminBlogSearchRpcVo(
-                    page.totalElements(),
-                    page.pageNumber(),
-                    page.pageSize(),
-                    page.content().stream()
-                        .map(SearchInternalHttpHandler::toResponse)
-                        .toList()));
+                SearchResponseConvertor.toAdminResponse(page));
     }
 
     @Override
@@ -96,28 +83,16 @@ public class SearchInternalHttpHandler implements SearchHttpService {
         v.positive(req.userId(), "userId");
         Page<AdminRevisionRead> page =
             searchBlogs.searchRevisions(
-                new RevisionSearchQuery(
-                    req.blogId(),
-                    req.page(),
-                    req.pageSize(),
-                    req.keywords(),
-                    req.userId(),
-                    Boolean.TRUE.equals(req.allData())));
+                SearchRequestConvertor.toQuery(req));
         return Result.success(
             () ->
-                new AdminRevisionSearchRpcVo(
-                    page.totalElements(),
-                    page.pageNumber(),
-                    page.pageSize(),
-                    page.content().stream()
-                        .map(SearchInternalHttpHandler::toResponse)
-                        .toList()));
+                SearchResponseConvertor.toRevisionResponse(page));
     }
 
     @Override
     public Result<Void> updateReadCounts(List<BlogReadCountReq> counts) {
         return Result.success(() -> searchBlogs.updateReadCounts(
-            counts.stream().map(count -> new BlogReadCount(count.blogId(), count.readCount())).toList()));
+            SearchRequestConvertor.toReadCounts(counts)));
     }
 
     @Override
@@ -126,82 +101,7 @@ public class SearchInternalHttpHandler implements SearchHttpService {
             searchBlogs.recommendationFeed(new RecommendationFeedQuery(cursor, size));
         return Result.success(
             () ->
-                new RecommendationFeedRpcVo(
-                    result.content().stream()
-                        .map(SearchInternalHttpHandler::toResponse)
-                        .toList(),
-                    result.nextCursor(),
-                    result.hasMore(),
-                    result.restart()));
+                SearchResponseConvertor.toFeedResponse(result));
     }
 
-    private static PrivateBlogSearchQuery toQuery(BlogSysSearchReq req) {
-        return new PrivateBlogSearchQuery(
-            req.page(),
-            req.pageSize(),
-            req.keywords(),
-            req.status(),
-            req.createStart(),
-            req.createEnd(),
-            req.userId(),
-            req.allData(),
-            Boolean.TRUE.equals(req.draftOnly()));
-    }
-
-    private static PublicBlogRpcVo toResponse(PublicBlogRead blog) {
-        return new PublicBlogRpcVo(
-            blog.id(),
-            blog.userId(),
-            blog.publishedRevisionId(),
-            blog.versionNo(),
-            blog.title(),
-            blog.description(),
-            blog.content(),
-            blog.link(),
-            blog.readCount(),
-            blog.created(),
-            blog.publishedAt(),
-            blog.offlineAt(),
-            blog.accessMode(),
-            blog.renderMode(),
-            blog.sensitiveContent());
-    }
-
-    private static AdminBlogRpcVo toResponse(AdminBlogRead blog) {
-        return new AdminBlogRpcVo(
-            blog.id(),
-            blog.userId(),
-            blog.publishedRevisionId(),
-            blog.publicationRevision(),
-            blog.adminRevision(),
-            blog.title(),
-            blog.description(),
-            blog.content(),
-            blog.link(),
-            blog.readCount(),
-            blog.created(),
-            blog.updated(),
-            blog.status(),
-            blog.accessMode(),
-            blog.renderMode(),
-            blog.hasDraft(),
-            blog.draftNewer(),
-            blog.draftRevision(),
-            blog.basePublishedRevisionId(),
-            blog.draftUpdatedAt());
-    }
-
-    private static AdminRevisionRpcVo toResponse(AdminRevisionRead revision) {
-        return new AdminRevisionRpcVo(
-            revision.id(),
-            revision.blogId(),
-            revision.versionNo(),
-            revision.origin(),
-            revision.baseRevisionId(),
-            revision.title(),
-            revision.firstPublishedAt(),
-            revision.createdBy(),
-            revision.createdAt(),
-            revision.currentPublished());
-    }
 }

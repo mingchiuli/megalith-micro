@@ -26,7 +26,6 @@ import wiki.chiu.micro.blog.application.port.in.BlogAssetService;
 import wiki.chiu.micro.blog.application.port.in.BlogCollaborationService;
 import wiki.chiu.micro.blog.application.port.in.BlogExportService;
 import wiki.chiu.micro.blog.application.port.in.BlogService;
-import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.common.exception.ValidationException;
 import wiki.chiu.micro.common.result.Result;
 import wiki.chiu.micro.common.security.AuthPrincipal;
@@ -67,11 +66,7 @@ public class BlogHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    createdBlog(blogService.createDraftBlog(authInfo.userId()))));
-    }
-
-    private static BlogIdVo createdBlog(BlogIdentity identity) {
-        return new BlogIdVo(identity.id(), identity.collaborationEpoch());
+                    BlogViewConvertor.createdBlog(blogService.createDraftBlog(authInfo.userId()))));
     }
 
     public ServerResponse saveDraft(ServerRequest request) throws Exception {
@@ -95,7 +90,7 @@ public class BlogHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    BlogViewMapper.toSaveVo(
+                    BlogViewConvertor.toSaveVo(
                         blogService.saveDraftVersion(
                             blogId,
                             BlogRequestConvertor.toDraft(body),
@@ -125,23 +120,7 @@ public class BlogHttpHandler {
                             keywords,
                             authInfo.userId(),
                             authInfo.dataPermissions());
-                    return PageResponse.of(
-                        page,
-                        page.content().stream()
-                            .map(
-                                version ->
-                                    new BlogVersionSummaryVo(
-                                        version.id(),
-                                        version.blogId(),
-                                        version.versionNo(),
-                                        version.origin(),
-                                        version.baseRevisionId(),
-                                        version.title(),
-                                        version.firstPublishedAt(),
-                                        version.createdBy(),
-                                        version.createdAt(),
-                                        version.currentPublished()))
-                            .toList());
+                    return BlogViewConvertor.toVersionSummaries(page);
                 }));
     }
 
@@ -203,7 +182,7 @@ public class BlogHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    BlogViewMapper.toVo(
+                    BlogViewConvertor.toVo(
                         blogService.findVersion(
                             blogId,
                             revisionId,
@@ -219,7 +198,7 @@ public class BlogHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    BlogViewMapper.toVo(
+                    BlogViewConvertor.toVo(
                         blogService.compareVersion(
                             blogId,
                             revisionId,
@@ -251,7 +230,7 @@ public class BlogHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    BlogViewMapper.toVo(
+                    BlogViewConvertor.toVo(
                         blogService.findAllBlogs(
                             BlogRequestConvertor.toQuery(query),
                             authInfo.userId(),
@@ -266,7 +245,7 @@ public class BlogHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    BlogViewMapper.toDeletedVo(
+                    BlogViewConvertor.toDeletedVo(
                         blogService.findDeletedBlogs(
                             currentPage, size, authInfo.userId()))));
     }
@@ -339,7 +318,7 @@ public class BlogHttpHandler {
                                 response.getOutputStream(), StandardCharsets.UTF_8);
                         Iterator<BlogExportPage> export = pages.iterator();
                         while (export.hasNext()) {
-                            writer.write(SqlExportMapper.toSql(export.next()));
+                            writer.write(SqlExportConvertor.toSql(export.next()));
                         }
                         writer.flush();
                     }
@@ -356,7 +335,7 @@ public class BlogHttpHandler {
         return ok(
             Result.success(
                 () ->
-                    BlogViewMapper.toVo(
+                    BlogViewConvertor.toVo(
                         blogService.findEdit(blogId, authInfo.userId(), authInfo.dataPermissions()))));
     }
 }

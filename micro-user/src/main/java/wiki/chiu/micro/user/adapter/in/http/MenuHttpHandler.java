@@ -40,11 +40,11 @@ public class MenuHttpHandler {
 
     public ServerResponse info(ServerRequest request) {
         Long id = v.positive(pathVariable(request, "id", Long::valueOf), "id");
-        return ok(Result.success(() -> UserViewMapper.toVo(menuService.findById(id))));
+        return ok(Result.success(() -> UserViewConvertor.toVo(menuService.findById(id))));
     }
 
     public ServerResponse list(ServerRequest request) {
-        return ok(Result.success(() -> UserViewMapper.toMenuDisplayVos(menuService.tree())));
+        return ok(Result.success(() -> UserViewConvertor.toMenuDisplayVos(menuService.tree())));
     }
 
     public ServerResponse saveOrUpdate(ServerRequest request) throws Exception {
@@ -58,7 +58,7 @@ public class MenuHttpHandler {
     }
 
     public ServerResponse download(ServerRequest request) {
-        return ok(SqlExportMapper.toMenuSql(menuService.export()));
+        return ok(SqlExportConvertor.toMenuSql(menuService.export()));
     }
 
     public ServerResponse saveAuthority(ServerRequest request) throws Exception {
@@ -69,6 +69,6 @@ public class MenuHttpHandler {
 
     public ServerResponse getAuthoritiesInfo(ServerRequest request) {
         Long menuId = v.positive(pathVariable(request, "menuId", Long::valueOf), "menuId");
-        return ok(Result.success(() -> UserViewMapper.toMenuAuthorityVos(menuAuthorityService.getAuthoritiesInfo(menuId))));
+        return ok(Result.success(() -> UserViewConvertor.toMenuAuthorityVos(menuAuthorityService.getAuthoritiesInfo(menuId))));
     }
 }

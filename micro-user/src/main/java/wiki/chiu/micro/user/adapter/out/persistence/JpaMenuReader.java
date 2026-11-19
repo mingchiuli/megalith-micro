@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import wiki.chiu.micro.user.adapter.out.persistence.mapping.UserPersistenceMapper;
+import wiki.chiu.micro.user.adapter.out.persistence.convertor.UserPersistenceConvertor;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuRepository;
 import wiki.chiu.micro.user.application.port.out.MenuReader;
 import wiki.chiu.micro.user.domain.Menu;
@@ -21,27 +21,27 @@ public class JpaMenuReader implements MenuReader {
 
     @Override
     public Optional<Menu> findById(Long id) {
-        return menus.findById(id).map(UserPersistenceMapper::toDomain);
+        return menus.findById(id).map(UserPersistenceConvertor::toDomain);
     }
 
     @Override
     public List<Menu> findAll() {
-        return UserPersistenceMapper.toMenus(menus.findAll());
+        return UserPersistenceConvertor.toMenus(menus.findAll());
     }
 
     @Override
     public List<Menu> findAllById(Iterable<Long> ids) {
-        return UserPersistenceMapper.toMenus(menus.findAllById(ids));
+        return UserPersistenceConvertor.toMenus(menus.findAllById(ids));
     }
 
     @Override
     public List<Menu> findAllByOrderByOrderNumDesc() {
-        return UserPersistenceMapper.toMenus(menus.findAllByOrderByOrderNumDesc());
+        return UserPersistenceConvertor.toMenus(menus.findAllByOrderByOrderNumDesc());
     }
 
     @Override
     public List<Menu> findByParentId(Long parentId) {
-        return UserPersistenceMapper.toMenus(menus.findByParentId(parentId));
+        return UserPersistenceConvertor.toMenus(menus.findByParentId(parentId));
     }
 
     @Override

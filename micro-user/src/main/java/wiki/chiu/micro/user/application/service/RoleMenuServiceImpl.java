@@ -1,4 +1,5 @@
 package wiki.chiu.micro.user.application.service;
+
 import static wiki.chiu.micro.common.enums.StatusEnum.HIDE;
 import static wiki.chiu.micro.common.error.ExceptionMessage.ROLE_NOT_EXIST;
 
@@ -46,7 +47,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     public List<MenuSelection> getMenusInfo(Long roleId) {
         List<MenuNode> menusInfo = MenuTree.buildEnabled(menuRepository.findAll());
         List<Long> menuIdsByRole = roleMenuReader.findMenuIdsByRoleId(roleId);
-        return toSelections(menusInfo, menuIdsByRole);
+        return UserModelConvertor.toSelections(menusInfo, menuIdsByRole);
     }
 
     @Override
@@ -68,18 +69,5 @@ public class RoleMenuServiceImpl implements RoleMenuService {
                 .toList();
 
         roleMenuWrapper.saveMenu(roleId, role.code(), new ArrayList<>(roleMenus));
-    }
-
-    private static List<MenuSelection> toSelections(
-        List<MenuNode> nodes, List<Long> menuIdsByRole) {
-        return nodes.stream()
-            .map(
-                node ->
-                    new MenuSelection(
-                        node.menu().id(),
-                        node.menu().title(),
-                        menuIdsByRole.contains(node.menu().id()),
-                        toSelections(node.children(), menuIdsByRole)))
-            .toList();
     }
 }

@@ -3,18 +3,18 @@ package wiki.chiu.micro.user.adapter.in.http;
 import java.util.List;
 
 import wiki.chiu.micro.common.page.PageAdapter;
-import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
-import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
-import wiki.chiu.micro.user.application.model.RoleAuthorization;
-import wiki.chiu.micro.user.application.model.UserAccess;
 import wiki.chiu.micro.user.api.vo.AuthorityRpcVo;
 import wiki.chiu.micro.user.api.vo.MenuRpcVo;
+import wiki.chiu.micro.user.api.vo.RoleAuthorizationRpcVo;
+import wiki.chiu.micro.user.api.vo.UserAccessRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 import wiki.chiu.micro.user.application.model.MenuAuthorityView;
 import wiki.chiu.micro.user.application.model.MenuNode;
 import wiki.chiu.micro.user.application.model.MenuSelection;
 import wiki.chiu.micro.user.application.model.Page;
+import wiki.chiu.micro.user.application.model.RoleAuthorization;
 import wiki.chiu.micro.user.application.model.RoleView;
+import wiki.chiu.micro.user.application.model.UserAccess;
 import wiki.chiu.micro.user.application.model.UserView;
 import wiki.chiu.micro.user.domain.Authority;
 import wiki.chiu.micro.user.domain.Menu;
@@ -24,9 +24,9 @@ import wiki.chiu.micro.user.domain.User;
 /**
  * Renders the user use-case results as the HTTP bodies and published RPC payloads callers expect.
  */
-public final class UserViewMapper {
+public final class UserViewConvertor {
 
-    private UserViewMapper() {
+    private UserViewConvertor() {
     }
 
     public static AuthorityVo toVo(Authority authority) {
@@ -47,7 +47,7 @@ public final class UserViewMapper {
     }
 
     public static List<AuthorityVo> toAuthorityVos(List<Authority> authorities) {
-        return authorities.stream().map(UserViewMapper::toVo).toList();
+        return authorities.stream().map(UserViewConvertor::toVo).toList();
     }
 
     public static MenuEntityVo toVo(Menu menu) {
@@ -79,12 +79,12 @@ public final class UserViewMapper {
             .type(node.menu().type())
             .orderNum(node.menu().orderNum())
             .status(node.menu().status())
-            .children(node.children().stream().map(UserViewMapper::toVo).toList())
+            .children(node.children().stream().map(UserViewConvertor::toVo).toList())
             .build();
     }
 
     public static List<MenuDisplayVo> toMenuDisplayVos(List<MenuNode> nodes) {
-        return nodes.stream().map(UserViewMapper::toVo).toList();
+        return nodes.stream().map(UserViewConvertor::toVo).toList();
     }
 
     public static RoleEntityVo toVo(RoleView view) {
@@ -103,12 +103,12 @@ public final class UserViewMapper {
     public static List<RoleEntityVo> toRoleVos(List<Role> roles) {
         return roles.stream()
             .map(role -> new RoleView(role, List.of()))
-            .map(UserViewMapper::toVo)
+            .map(UserViewConvertor::toVo)
             .toList();
     }
 
     public static PageAdapter<RoleEntityVo> toRoleVos(Page<RoleView> page) {
-        return PageResponse.of(page, page.content().stream().map(UserViewMapper::toVo).toList());
+        return PageConvertor.of(page, page.content().stream().map(UserViewConvertor::toVo).toList());
     }
 
     public static RoleMenuVo toVo(MenuSelection selection) {
@@ -116,12 +116,12 @@ public final class UserViewMapper {
             .menuId(selection.menuId())
             .title(selection.title())
             .check(selection.selected())
-            .children(selection.children().stream().map(UserViewMapper::toVo).toList())
+            .children(selection.children().stream().map(UserViewConvertor::toVo).toList())
             .build();
     }
 
     public static List<RoleMenuVo> toRoleMenuVos(List<MenuSelection> selections) {
-        return selections.stream().map(UserViewMapper::toVo).toList();
+        return selections.stream().map(UserViewConvertor::toVo).toList();
     }
 
     public static MenuAuthorityVo toVo(MenuAuthorityView view) {
@@ -133,7 +133,7 @@ public final class UserViewMapper {
     }
 
     public static List<MenuAuthorityVo> toMenuAuthorityVos(List<MenuAuthorityView> views) {
-        return views.stream().map(UserViewMapper::toVo).toList();
+        return views.stream().map(UserViewConvertor::toVo).toList();
     }
 
     public static UserEntityVo toVo(UserView view) {
@@ -154,7 +154,7 @@ public final class UserViewMapper {
     }
 
     public static PageAdapter<UserEntityVo> toUserVos(Page<UserView> page) {
-        return PageResponse.of(page, page.content().stream().map(UserViewMapper::toVo).toList());
+        return PageConvertor.of(page, page.content().stream().map(UserViewConvertor::toVo).toList());
     }
 
     public static UserAccessRpcVo toRpc(UserAccess access) {
@@ -173,7 +173,7 @@ public final class UserViewMapper {
     }
 
     public static List<RoleAuthorizationRpcVo> toRpcs(List<RoleAuthorization> authorizations) {
-        return authorizations.stream().map(UserViewMapper::toRpc).toList();
+        return authorizations.stream().map(UserViewConvertor::toRpc).toList();
     }
 
     public static AuthorityRpcVo toRpc(Authority authority) {
@@ -192,7 +192,7 @@ public final class UserViewMapper {
     }
 
     public static List<AuthorityRpcVo> toAuthorityRpcs(List<Authority> authorities) {
-        return authorities.stream().map(UserViewMapper::toRpc).toList();
+        return authorities.stream().map(UserViewConvertor::toRpc).toList();
     }
 
     public static UserEntityRpcVo toRpc(User user) {
@@ -227,6 +227,6 @@ public final class UserViewMapper {
     }
 
     public static List<MenuRpcVo> toMenuRpcs(List<Menu> menus) {
-        return menus.stream().map(UserViewMapper::toRpc).toList();
+        return menus.stream().map(UserViewConvertor::toRpc).toList();
     }
 }
