@@ -2,6 +2,7 @@ package wiki.chiu.micro.blog.adapter.out.persistence;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 import org.hibernate.resource.jdbc.spi.StatementInspector;
 
@@ -10,10 +11,15 @@ import org.hibernate.resource.jdbc.spi.StatementInspector;
  */
 public class SqlCapture implements StatementInspector {
 
+    static final ScopedValue<Consumer<String>> BEFORE_STATEMENT = ScopedValue.newInstance();
+
     private static final List<String> STATEMENTS = new CopyOnWriteArrayList<>();
 
     @Override
     public String inspect(String sql) {
+        if (BEFORE_STATEMENT.isBound()) {
+            BEFORE_STATEMENT.get().accept(sql);
+        }
         STATEMENTS.add(sql);
         return sql;
     }

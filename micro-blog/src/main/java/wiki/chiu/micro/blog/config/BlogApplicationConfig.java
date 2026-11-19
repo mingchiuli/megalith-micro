@@ -81,9 +81,8 @@ public class BlogApplicationConfig {
     }
 
     @Bean
-    BlogEditor blogEditor(
-        BlogQueryStore blogs, BlogAuthoringReader reader, BlogAccessPolicy policy) {
-        return new BlogEditor(blogs, reader, policy);
+    BlogEditor blogEditor(BlogAuthoringReader reader, BlogAccessPolicy policy) {
+        return new BlogEditor(reader, policy);
     }
 
     @Bean

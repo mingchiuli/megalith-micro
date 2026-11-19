@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import wiki.chiu.micro.user.adapter.out.persistence.UserIdentityWrapper;
 import wiki.chiu.micro.user.application.model.UserAccess;
+import wiki.chiu.micro.user.application.port.out.AuthorizationReader;
 import wiki.chiu.micro.user.application.port.out.UserReader;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,7 +29,7 @@ class UserIdentityServiceImplTest {
     @Mock
     private UserIdentityWrapper identityWrapper;
     @Mock
-    private AuthorizationQueryService authorizationQueries;
+    private AuthorizationReader authorizationQueries;
 
     private UserIdentityServiceImpl service() {
         return new UserIdentityServiceImpl(

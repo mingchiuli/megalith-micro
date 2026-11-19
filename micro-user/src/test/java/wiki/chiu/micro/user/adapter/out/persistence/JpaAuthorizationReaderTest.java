@@ -1,4 +1,4 @@
-package wiki.chiu.micro.user.application.service;
+package wiki.chiu.micro.user.adapter.out.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -21,45 +21,45 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.common.enums.StatusEnum;
-import wiki.chiu.micro.user.application.port.out.AuthorityReader;
-import wiki.chiu.micro.user.application.port.out.MenuAuthorityReader;
-import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
-import wiki.chiu.micro.user.application.port.out.RoleMenuReader;
-import wiki.chiu.micro.user.application.port.out.RoleReader;
-import wiki.chiu.micro.user.application.port.out.UserReader;
-import wiki.chiu.micro.user.application.port.out.UserRoleReader;
-import wiki.chiu.micro.user.domain.Authority;
-import wiki.chiu.micro.user.domain.MenuAuthority;
-import wiki.chiu.micro.user.domain.RoleDataPermission;
-import wiki.chiu.micro.user.domain.Role;
-import wiki.chiu.micro.user.domain.RoleMenu;
-import wiki.chiu.micro.user.domain.User;
-import wiki.chiu.micro.user.domain.UserRole;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.AuthorityEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuAuthorityEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleDataPermissionEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleMenuEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.UserEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.entity.UserRoleEntity;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.AuthorityRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.MenuAuthorityRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleDataPermissionRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRepository;
+import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRoleRepository;
 
 @ExtendWith(MockitoExtension.class)
-class AuthorizationQueryServiceTest {
+class JpaAuthorizationReaderTest {
 
     @Mock
-    private UserReader users;
+    private UserRepository users;
     @Mock
-    private UserRoleReader userRoles;
+    private UserRoleRepository userRoles;
     @Mock
-    private RoleReader roles;
+    private RoleRepository roles;
     @Mock
-    private RoleMenuReader roleMenus;
+    private RoleMenuRepository roleMenus;
     @Mock
-    private MenuAuthorityReader menuAuthorities;
+    private MenuAuthorityRepository menuAuthorities;
     @Mock
-    private AuthorityReader authorities;
+    private AuthorityRepository authorities;
     @Mock
-    private RoleDataPermissionReader dataPermissions;
+    private RoleDataPermissionRepository dataPermissions;
     @InjectMocks
-    private AuthorizationQueryService queries;
+    private JpaAuthorizationReader queries;
 
     @Test
     void userAccessCombinesUserAndDistinctRoleIds() {
         var user =
-            new User(42L, "reader", null, null, null, null, null, StatusEnum.HIDE.getCode(), null, null, null, null);
+            new UserEntity(42L, "reader", null, null, null, null, null, StatusEnum.HIDE.getCode(), null, null, null, null);
         when(users.findById(42L)).thenReturn(Optional.of(user));
         when(userRoles.findByUserId(42L))
             .thenReturn(List.of(userRole(42L, 7L), userRole(42L, 8L), userRole(42L, 7L)));
@@ -179,27 +179,27 @@ class AuthorizationQueryServiceTest {
         verify(roles, never()).findAllById(List.of());
     }
 
-    private UserRole userRole(Long userId, Long roleId) {
-        return new UserRole(null, userId, roleId, null, null);
+    private UserRoleEntity userRole(Long userId, Long roleId) {
+        return new UserRoleEntity(null, userId, roleId, null, null);
     }
 
-    private Role role(Long id, String code) {
-        return new Role(id, null, code, null, null, null, StatusEnum.NORMAL.getCode());
+    private RoleEntity role(Long id, String code) {
+        return new RoleEntity(id, null, code, null, null, null, StatusEnum.NORMAL.getCode());
     }
 
-    private RoleMenu roleMenu(Long roleId, Long menuId) {
-        return new RoleMenu(null, roleId, menuId, null, null);
+    private RoleMenuEntity roleMenu(Long roleId, Long menuId) {
+        return new RoleMenuEntity(null, roleId, menuId, null, null);
     }
 
-    private MenuAuthority menuAuthority(Long menuId, Long authorityId) {
-        return new MenuAuthority(null, menuId, authorityId, null, null);
+    private MenuAuthorityEntity menuAuthority(Long menuId, Long authorityId) {
+        return new MenuAuthorityEntity(null, menuId, authorityId, null, null);
     }
 
-    private Authority authority(Long id, String code) {
-        return new Authority(id, code, null, null, null, null, null, null, null, null, null, StatusEnum.NORMAL.getCode());
+    private AuthorityEntity authority(Long id, String code) {
+        return new AuthorityEntity(id, code, null, null, null, null, null, null, null, null, null, StatusEnum.NORMAL.getCode());
     }
 
-    private RoleDataPermission permission(Long roleId, DataPermissionEnum permission) {
-        return new RoleDataPermission(null, roleId, permission, null, null);
+    private RoleDataPermissionEntity permission(Long roleId, DataPermissionEnum permission) {
+        return new RoleDataPermissionEntity(roleId, permission);
     }
 }

@@ -9,17 +9,22 @@ import jakarta.persistence.EntityManagerFactory;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -28,6 +33,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -61,6 +67,7 @@ import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleMenuRepositor
 import wiki.chiu.micro.user.adapter.out.persistence.repository.RoleRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRepository;
 import wiki.chiu.micro.user.adapter.out.persistence.repository.UserRoleRepository;
+import wiki.chiu.micro.user.application.port.out.AuthorizationReader;
 import wiki.chiu.micro.user.domain.RoleMenu;
 import wiki.chiu.micro.user.domain.User;
 
@@ -116,6 +123,51 @@ class PersistenceQueryIntegrationTest {
         if (context != null) {
             context.close();
         }
+    }
+
+    @Test
+    void userAccessReadsStatusAndMembershipFromOneSnapshot() {
+        var reader = context.getBean(AuthorizationReader.class);
+        Long userId = users.save(user("snapshot-reader", NOW)).getId();
+        Long roleId = roles.save(role("snapshot-role")).getId();
+
+        var access = ScopedValue.where(SqlCapture.BEFORE_STATEMENT, sql -> {
+            if (sql.contains(" from m_user_role ")) {
+                CompletableFuture.runAsync(() -> transaction.executeWithoutResult(status -> {
+                    jdbc.update("UPDATE m_user SET status = 1 WHERE id = ?", userId);
+                    userRoles.save(userRole(userId, roleId));
+                })).orTimeout(10, TimeUnit.SECONDS).join();
+            }
+        }).call(() -> reader.findUserAccess(userId));
+
+        assertThat(access.status()).isZero();
+        assertThat(access.roleIds()).isEmpty();
+        var updated = reader.findUserAccess(userId);
+        assertThat(updated.status()).isOne();
+        assertThat(updated.roleIds()).containsExactly(roleId);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void roleAuthorizationsReadRoleAndPermissionsFromOneSnapshot(boolean allRoles) {
+        var reader = context.getBean(AuthorizationReader.class);
+        var role = roles.save(role("snapshot-" + allRoles));
+        Long id = role.getId();
+        var result = ScopedValue.where(SqlCapture.BEFORE_STATEMENT, sql -> {
+            if (sql.contains(" from m_role_data_permission ")) {
+                CompletableFuture.runAsync(() -> transaction.executeWithoutResult(status -> {
+                    jdbc.update("UPDATE m_role SET code = ? WHERE id = ?", "updated-" + allRoles, id);
+                    dataPermissions.save(dataPermission(id));
+                })).orTimeout(10, TimeUnit.SECONDS).join();
+            }
+        }).call(() -> allRoles ? reader.findAllRoleAuthorizations() : reader.findRoleAuthorizations(List.of(id)));
+
+        var original = result.stream().filter(item -> id.equals(item.roleId())).findFirst().orElseThrow();
+        assertThat(original.code()).isEqualTo(role.getCode());
+        assertThat(original.dataPermissions()).isEmpty();
+        var updated = reader.findRoleAuthorizations(List.of(id)).getFirst();
+        assertThat(updated.code()).isEqualTo("updated-" + allRoles);
+        assertThat(updated.dataPermissions()).containsExactly(DataPermissionEnum.BLOG_VIEW_ALL);
     }
 
     @Test
@@ -482,6 +534,8 @@ class PersistenceQueryIntegrationTest {
     }
 
     @Configuration(proxyBeanMethods = false)
+    @EnableTransactionManagement
+    @Import(JpaAuthorizationReader.class)
     @EnableJpaRepositories(
         basePackages = {
             "wiki.chiu.micro.user.adapter.out.persistence.repository",

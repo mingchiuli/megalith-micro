@@ -82,7 +82,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public BlogEdit findEdit(Long id, Long userId, List<DataPermissionEnum> dataPermissions) {
-        return new BlogEditor(blogs, authoring, accessPolicy).loadEdit(id, userId, dataPermissions, false);
+        return new BlogEditor(authoring, accessPolicy).loadEdit(id, userId, dataPermissions, false);
     }
 
     @Override

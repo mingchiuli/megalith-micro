@@ -27,6 +27,7 @@ import org.mockito.Mockito;
 import wiki.chiu.micro.blog.adapter.out.persistence.BlogWrapper;
 import wiki.chiu.micro.blog.application.model.BlogDeletionTarget;
 import wiki.chiu.micro.blog.application.model.BlogDraft;
+import wiki.chiu.micro.blog.application.model.BlogEditorState;
 import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.model.BlogPublishCommand;
 import wiki.chiu.micro.blog.application.port.out.BlogAuthoringReader;
@@ -200,9 +201,7 @@ class BlogServiceImplTest {
                 42L,
                 publishedAt.plusMinutes(1),
                 List.of());
-        when(authoring.findIdentity(7L)).thenReturn(Optional.of(identity));
-        when(authoring.findDraft(7L)).thenReturn(Optional.of(draft));
-        when(blogs.findById(7L)).thenReturn(Optional.of(published));
+        when(authoring.findEditorState(7L)).thenReturn(Optional.of(new BlogEditorState(identity, published, draft)));
         BlogServiceImpl service =
             new BlogServiceImpl(
                 blogs,
@@ -261,9 +260,7 @@ class BlogServiceImplTest {
                 42L,
                 publishedAt.minusMinutes(1),
                 List.of());
-        when(authoring.findIdentity(7L)).thenReturn(Optional.of(identity));
-        when(authoring.findDraft(7L)).thenReturn(Optional.of(draft));
-        when(blogs.findById(7L)).thenReturn(Optional.of(published));
+        when(authoring.findEditorState(7L)).thenReturn(Optional.of(new BlogEditorState(identity, published, draft)));
         BlogServiceImpl service =
             new BlogServiceImpl(
                 blogs,

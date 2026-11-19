@@ -5,26 +5,26 @@ import static wiki.chiu.micro.common.error.ExceptionMessage.USER_MISS;
 
 import java.time.LocalDateTime;
 
-
 import wiki.chiu.micro.common.enums.StatusEnum;
 import wiki.chiu.micro.common.exception.MissException;
 import wiki.chiu.micro.user.application.model.UserAccess;
-import wiki.chiu.micro.user.domain.User;
 import wiki.chiu.micro.user.application.port.in.UserIdentityService;
+import wiki.chiu.micro.user.application.port.out.AuthorizationReader;
 import wiki.chiu.micro.user.application.port.out.UserIdentityWriter;
 import wiki.chiu.micro.user.application.port.out.UserReader;
+import wiki.chiu.micro.user.domain.User;
 
 public class UserIdentityServiceImpl implements UserIdentityService {
 
     private final UserReader users;
     private final UserIdentityWriter identityWrapper;
-    private final AuthorizationQueryService authorizationQueries;
+    private final AuthorizationReader authorizationQueries;
     private final int unlockBatchSize;
 
     public UserIdentityServiceImpl(
         UserReader users,
         UserIdentityWriter identityWrapper,
-        AuthorizationQueryService authorizationQueries,
+        AuthorizationReader authorizationQueries,
         int unlockBatchSize) {
         this.users = users;
         this.identityWrapper = identityWrapper;

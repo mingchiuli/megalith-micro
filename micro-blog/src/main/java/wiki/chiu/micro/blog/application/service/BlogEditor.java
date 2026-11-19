@@ -5,8 +5,8 @@ import static wiki.chiu.micro.common.error.ExceptionMessage.NO_FOUND;
 import java.util.List;
 
 import wiki.chiu.micro.blog.application.model.BlogEdit;
+import wiki.chiu.micro.blog.application.model.BlogEditorState;
 import wiki.chiu.micro.blog.application.port.out.BlogAuthoringReader;
-import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
@@ -17,12 +17,10 @@ import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 
 /** Shared editor selection for HTTP readback and collaboration initialization. */
 public final class BlogEditor {
-    private final BlogQueryStore blogs;
     private final BlogAuthoringReader authoring;
     private final BlogAccessPolicy accessPolicy;
 
-    public BlogEditor(BlogQueryStore blogs, BlogAuthoringReader authoring, BlogAccessPolicy accessPolicy) {
-        this.blogs = blogs;
+    public BlogEditor(BlogAuthoringReader authoring, BlogAccessPolicy accessPolicy) {
         this.authoring = authoring;
         this.accessPolicy = accessPolicy;
     }
@@ -33,10 +31,11 @@ public final class BlogEditor {
             return BlogModelConvertor.edit(blank, null, null, null, List.of(), accessPolicy.permissions(
                 blank, userId, dataPermissions));
         }
-        BlogIdentity identity =
-            authoring.findIdentity(id).orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
-        Blog published = blogs.findById(id).orElse(null);
-        BlogWorkingDraft draft = authoring.findDraft(id).orElse(null);
+        BlogEditorState state =
+            authoring.findEditorState(id).orElseThrow(() -> new MissException(NO_FOUND.getMsg()));
+        BlogIdentity identity = state.identity();
+        Blog published = state.published();
+        BlogWorkingDraft draft = state.draft();
         Blog permissionBlog =
             published == null ? BlogModelConvertor.draftBlog(identity, draft) : published;
         if (!(collaboration ? accessPolicy.canCollaborate(permissionBlog, userId, dataPermissions)

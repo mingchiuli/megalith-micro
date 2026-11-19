@@ -19,6 +19,7 @@ import wiki.chiu.micro.user.application.port.in.UserRoleService;
 import wiki.chiu.micro.user.application.port.in.UserService;
 import wiki.chiu.micro.user.application.port.out.AuthorityReader;
 import wiki.chiu.micro.user.application.port.out.AuthorityWriter;
+import wiki.chiu.micro.user.application.port.out.AuthorizationReader;
 import wiki.chiu.micro.user.application.port.out.MenuAuthorityReader;
 import wiki.chiu.micro.user.application.port.out.MenuReader;
 import wiki.chiu.micro.user.application.port.out.MenuWriter;
@@ -35,7 +36,6 @@ import wiki.chiu.micro.user.application.port.out.UserReader;
 import wiki.chiu.micro.user.application.port.out.UserRoleReader;
 import wiki.chiu.micro.user.application.port.out.UserWriter;
 import wiki.chiu.micro.user.application.service.AuthorityServiceImpl;
-import wiki.chiu.micro.user.application.service.AuthorizationQueryService;
 import wiki.chiu.micro.user.application.service.MenuAuthorityServiceImpl;
 import wiki.chiu.micro.user.application.service.MenuServiceImpl;
 import wiki.chiu.micro.user.application.service.RegistrationServiceImpl;
@@ -56,19 +56,6 @@ import wiki.chiu.micro.user.application.service.UserServiceImpl;
  */
 @Configuration(proxyBeanMethods = false)
 public class UserApplicationConfig {
-
-    @Bean
-    AuthorizationQueryService authorizationQueryService(
-        UserReader users,
-        UserRoleReader userRoles,
-        RoleReader roles,
-        RoleMenuReader roleMenus,
-        MenuAuthorityReader menuAuthorities,
-        AuthorityReader authorities,
-        RoleDataPermissionReader dataPermissions) {
-        return new AuthorizationQueryService(
-            users, userRoles, roles, roleMenus, menuAuthorities, authorities, dataPermissions);
-    }
 
     @Bean
     AuthorityService authorityService(
@@ -101,7 +88,7 @@ public class UserApplicationConfig {
         UserRoleReader userRoles,
         RoleDataPermissionReader dataPermissions,
         RoleWriter roleWriter,
-        AuthorizationQueryService authorizationQueries) {
+        AuthorizationReader authorizationQueries) {
         return new RoleServiceImpl(
             roles, roleMenus, userRoles, dataPermissions, roleWriter, authorizationQueries);
     }
@@ -154,7 +141,7 @@ public class UserApplicationConfig {
     UserIdentityService userIdentityService(
         UserReader users,
         UserIdentityWriter identityWriter,
-        AuthorizationQueryService authorizationQueries,
+        AuthorizationReader authorizationQueries,
         @Value("${megalith.user.password-lock.batch-size:100}") int unlockBatchSize) {
         return new UserIdentityServiceImpl(
             users, identityWriter, authorizationQueries, unlockBatchSize);

@@ -104,6 +104,8 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
    `@Transactional` to services or repository reads to transactional writers. `common-arch` identifies
    writable persistence transactions from method/class annotations and checks reachable Spring Data
    repository calls, including persistence helpers and method references, regardless of class names.
+   Read each user-access, role-authorization, or blog-editor projection in one read-only
+   `REPEATABLE_READ` persistence transaction. Initialize collaboration rooms after the editor read returns.
 8. **Transactional outbox.** User and blog changes commit to `m_outbox_event` before confirmed
    RabbitMQ publication. Cache eviction and Elasticsearch indexing consume those events. User
    deletion uses `UserDeletedMessage` on its dedicated fanout exchange; `micro-blog` consumes it to
@@ -156,6 +158,18 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
     `common-arch` owns `wiki.chiu.micro.common.arch` and holds the shared ArchUnit rules that define
     the application layout every service is verified against.
 
+## Transaction review findings (2026-11-19)
+
+The user and blog writers reviewed follow rules 7 and 8 for explicit repository reads and
+outbox inserts. The following consistency issues remain open.
+
+| Path | Finding |
+| --- | --- |
+| [RoleServiceImpl.saveOrUpdate](micro-user/src/main/java/wiki/chiu/micro/user/application/service/RoleServiceImpl.java) → [RoleWrapper](micro-user/src/main/java/wiki/chiu/micro/user/adapter/out/persistence/RoleWrapper.java) | A rename prepares the old and new role codes for eviction. The update matches only the role ID. Concurrent renames can omit the actual previous code from the later outbox event and leave its navigation cache stale. Include the expected old code in the write condition. |
+| [MenuServiceImpl.delete](micro-user/src/main/java/wiki/chiu/micro/user/application/service/MenuServiceImpl.java) and [RoleDataPermissionServiceImpl.saveDataPermissions](micro-user/src/main/java/wiki/chiu/micro/user/application/service/RoleDataPermissionServiceImpl.java) | Menu deletion checks for children before the write. Permission replacement checks that the role exists before the write. Concurrent child creation or role deletion can leave orphan rows under the repository's entity mappings. The corresponding parent references are scalar IDs without mapped foreign keys. |
+| [OutboxStoreAdapter.status](common-outbox/src/main/java/wiki/chiu/micro/common/outbox/adapter/out/persistence/OutboxStoreAdapter.java) | Separate READY and PAUSED counts can both return zero if a paused event resumes between reads. Blog index maintenance uses both counts to decide whether the outbox is empty. Compute them in one aggregate query or one repeatable-read snapshot. |
+| [UserIdentityWrapper](micro-user/src/main/java/wiki/chiu/micro/user/adapter/out/persistence/UserIdentityWrapper.java) | Lock and unlock counters increment before commit. A rollback leaves the metrics counting changes that never committed. Record successful transitions after commit. |
+
 ## Code Style
 
 - Review affected Java files individually. Put data conversion in dedicated `*Convertor` classes
@@ -171,6 +185,7 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
 
 - Java uses 4-space indentation, sorted imports, no unused imports, and the surrounding method and
   comment order. Preserve Chinese Javadoc conventions in `micro-user`.
+- In `micro-user` profile edits, a missing or empty password means to keep the existing password.
 - A Java source file's physical directory must match its declared package in both `src/main/java`
   and `src/test/java`; Gradle may compile mismatches, but JDTLS reports them as errors.
 - RPC models are records in `api-*`; preserve established hand-written builders such as

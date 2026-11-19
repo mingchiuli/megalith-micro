@@ -3,11 +3,14 @@ package wiki.chiu.micro.blog.application.port.out;
 import java.util.List;
 import java.util.Optional;
 
+import wiki.chiu.micro.blog.application.model.BlogEditorState;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
 
 public interface BlogAuthoringReader {
+
+    Optional<BlogEditorState> findEditorState(Long blogId);
 
     Optional<BlogIdentity> findIdentity(Long blogId);
 

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +20,7 @@ import org.mockito.Mockito;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -28,6 +30,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -51,6 +54,7 @@ import wiki.chiu.micro.blog.application.model.BlogEventContext;
 import wiki.chiu.micro.blog.application.model.BlogMaintenanceMode;
 import wiki.chiu.micro.blog.application.model.BlogPublishCommand;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
+import wiki.chiu.micro.blog.application.port.out.BlogAuthoringReader;
 import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.common.enums.BlogOperateEnum;
@@ -77,6 +81,35 @@ class BlogIndexQueriesIntegrationTest {
         result.addEnv("MARIADB_ROOT_PASSWORD", "test-password");
         result.addExposedPort(3306);
         return result;
+    }
+
+    @Test
+    void editorKeepsDraftTextAndSpansFromTheSameCommit() {
+        try (var context = new AnnotationConfigApplicationContext(PersistenceConfiguration.class)) {
+            var reader = context.getBean(BlogAuthoringReader.class);
+            var tx = new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
+            var jdbc = new JdbcTemplate(context.getBean(DataSource.class));
+            Long id = context.getBean(BlogRepository.class).save(blog(0, 0)).getId();
+            context.getBean(BlogDraftRepository.class).save(BlogDraftEntity.create(
+                id, null, "draft", "description", "old text", "", BlogRenderMode.NORMAL, 42L, LocalDateTime.now()));
+            context.getBean(BlogDraftSensitiveContentRepository.class)
+                .save(new BlogDraftSensitiveContentEntity(null, id, 0, 2, 3));
+
+            var state = ScopedValue.where(SqlCapture.BEFORE_STATEMENT, sql -> {
+                if (sql.contains(" from m_blog_draft_sensitive_content ")) {
+                    CompletableFuture.runAsync(() -> tx.executeWithoutResult(status -> {
+                        jdbc.update("UPDATE m_blog_draft SET content = 'new text' WHERE blog_id = ?", id);
+                        jdbc.update("UPDATE m_blog_draft_sensitive_content SET end_index = 6 WHERE blog_id = ?", id);
+                    })).orTimeout(10, TimeUnit.SECONDS).join();
+                }
+            }).call(() -> reader.findEditorState(id)).orElseThrow();
+
+            assertThat(state.draft().content()).isEqualTo("old text");
+            assertThat(state.draft().sensitiveContent()).containsExactly(new BlogSensitiveSpan(0, 2, 3));
+            var updated = reader.findEditorState(id).orElseThrow().draft();
+            assertThat(updated.content()).isEqualTo("new text");
+            assertThat(updated.sensitiveContent()).containsExactly(new BlogSensitiveSpan(0, 6, 3));
+        }
     }
 
     @Test
@@ -609,6 +642,8 @@ class BlogIndexQueriesIntegrationTest {
     }
 
     @Configuration(proxyBeanMethods = false)
+    @EnableTransactionManagement
+    @Import(JpaBlogAuthoringReader.class)
     @EnableJpaRepositories(basePackageClasses = {BlogRepository.class, OutboxEventRepository.class})
     static class PersistenceConfiguration {
 

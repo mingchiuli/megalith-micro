@@ -22,6 +22,7 @@ import wiki.chiu.micro.user.application.model.Page;
 import wiki.chiu.micro.user.application.model.RoleAuthorization;
 import wiki.chiu.micro.user.application.model.RoleDraft;
 import wiki.chiu.micro.user.application.model.RoleView;
+import wiki.chiu.micro.user.application.port.out.AuthorizationReader;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
 import wiki.chiu.micro.user.application.port.out.RoleMenuReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
@@ -43,7 +44,7 @@ class RoleServiceImplTest {
     @Mock
     private RoleWrapper roleWrapper;
     @Mock
-    private AuthorizationQueryService authorizationQueries;
+    private AuthorizationReader authorizationQueries;
     @InjectMocks
     private RoleServiceImpl service;
 

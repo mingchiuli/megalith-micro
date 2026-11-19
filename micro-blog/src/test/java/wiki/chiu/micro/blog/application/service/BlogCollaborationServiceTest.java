@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import wiki.chiu.micro.blog.application.model.BlogEditorState;
 import wiki.chiu.micro.blog.application.port.out.BlogAuthoringReader;
 import wiki.chiu.micro.blog.application.port.out.BlogQueryStore;
 import wiki.chiu.micro.blog.application.port.out.BlogRuntimeStore;
@@ -31,14 +32,14 @@ class BlogCollaborationServiceTest {
     private final CollaborationTicketGateway tickets = mock(CollaborationTicketGateway.class);
     private final BlogAccessPolicy policy = new BlogAccessPolicy();
     private final BlogCollaborationServiceImpl service = new BlogCollaborationServiceImpl(
-        blogs, policy, mock(BlogRuntimeStore.class), tickets, new BlogEditor(blogs, reader, policy), rooms);
+        blogs, policy, mock(BlogRuntimeStore.class), tickets, new BlogEditor(reader, policy), rooms);
 
     @Test
     void newUnpublishedArticlesUseIndependentRoomsAndInitializeBeforeSigning() {
         String firstEpoch = UUID.randomUUID().toString();
         String secondEpoch = UUID.randomUUID().toString();
-        when(reader.findIdentity(7L)).thenReturn(Optional.of(identity(7L, firstEpoch)));
-        when(reader.findIdentity(8L)).thenReturn(Optional.of(identity(8L, secondEpoch)));
+        when(reader.findEditorState(7L)).thenReturn(Optional.of(new BlogEditorState(identity(7L, firstEpoch), null, null)));
+        when(reader.findEditorState(8L)).thenReturn(Optional.of(new BlogEditorState(identity(8L, secondEpoch), null, null)));
         when(tickets.issueTicket(anyString(), anyLong())).thenReturn("Bearer ticket");
         long deadline = System.currentTimeMillis() + 45_000;
         var first = service.issueWebSocketTicket(7L, 42L, List.of(), deadline);

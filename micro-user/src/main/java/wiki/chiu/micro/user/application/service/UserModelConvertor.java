@@ -1,19 +1,13 @@
 package wiki.chiu.micro.user.application.service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.user.application.model.AuthorityDraft;
 import wiki.chiu.micro.user.application.model.MenuAuthorityView;
 import wiki.chiu.micro.user.application.model.MenuDraft;
 import wiki.chiu.micro.user.application.model.MenuNode;
 import wiki.chiu.micro.user.application.model.MenuSelection;
 import wiki.chiu.micro.user.application.model.RegistrationDraft;
-import wiki.chiu.micro.user.application.model.RoleAuthorization;
 import wiki.chiu.micro.user.application.model.RoleDraft;
 import wiki.chiu.micro.user.application.model.UserDraft;
 import wiki.chiu.micro.user.domain.Authority;
@@ -104,32 +98,5 @@ public final class UserModelConvertor {
                         menuIdsByRole.contains(node.menu().id()),
                         toSelections(node.children(), menuIdsByRole)))
             .toList();
-    }
-
-    public static RoleAuthorization toAuthorization(
-        Long roleId,
-        Map<Long, Role> rolesById,
-        Map<Long, List<Long>> menuIdsByRole,
-        Map<Long, List<Long>> authorityIdsByMenu,
-        Map<Long, Authority> authoritiesById,
-        Map<Long, List<DataPermissionEnum>> permissionsByRole) {
-        Role role = rolesById.get(roleId);
-        if (role == null) {
-            return RoleAuthorization.missing(roleId);
-        }
-        Set<String> authorityCodes =
-            menuIdsByRole.getOrDefault(roleId, List.of()).stream()
-                .flatMap(menuId -> authorityIdsByMenu.getOrDefault(menuId, List.of()).stream())
-                .map(authoritiesById::get)
-                .filter(Objects::nonNull)
-                .map(Authority::code)
-                .collect(Collectors.toUnmodifiableSet());
-        return new RoleAuthorization(
-            role.id(),
-            true,
-            role.code(),
-            role.status(),
-            authorityCodes,
-            permissionsByRole.getOrDefault(roleId, List.of()));
     }
 }

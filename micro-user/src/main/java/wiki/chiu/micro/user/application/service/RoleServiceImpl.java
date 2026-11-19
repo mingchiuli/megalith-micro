@@ -20,6 +20,7 @@ import wiki.chiu.micro.user.application.model.RoleDraft;
 import wiki.chiu.micro.user.application.model.RoleExport;
 import wiki.chiu.micro.user.application.model.RoleView;
 import wiki.chiu.micro.user.application.port.in.RoleService;
+import wiki.chiu.micro.user.application.port.out.AuthorizationReader;
 import wiki.chiu.micro.user.application.port.out.RoleDataPermissionReader;
 import wiki.chiu.micro.user.application.port.out.RoleMenuReader;
 import wiki.chiu.micro.user.application.port.out.RoleReader;
@@ -46,7 +47,7 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleWriter roleWrapper;
 
-    private final AuthorizationQueryService authorizationQueries;
+    private final AuthorizationReader authorizationQueries;
 
     public RoleServiceImpl(
         RoleReader roleRepository,
@@ -54,7 +55,7 @@ public class RoleServiceImpl implements RoleService {
         UserRoleReader userRoleReader,
         RoleDataPermissionReader roleDataPermissionRepository,
         RoleWriter roleWrapper,
-        AuthorizationQueryService authorizationQueries) {
+        AuthorizationReader authorizationQueries) {
         this.roleRepository = roleRepository;
         this.roleMenuReader = roleMenuReader;
         this.userRoleReader = userRoleReader;

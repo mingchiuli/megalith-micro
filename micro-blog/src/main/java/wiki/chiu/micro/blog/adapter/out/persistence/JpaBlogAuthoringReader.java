@@ -14,10 +14,13 @@ import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogDraftSensitiv
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionRepository;
 import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRevisionSensitiveContentRepository;
+import wiki.chiu.micro.blog.application.model.BlogEditorState;
 import wiki.chiu.micro.blog.application.port.out.BlogAuthoringReader;
+import wiki.chiu.micro.blog.domain.Blog;
 import wiki.chiu.micro.blog.domain.BlogIdentity;
 import wiki.chiu.micro.blog.domain.BlogVersion;
 import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
+import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 
 @Component
 public class JpaBlogAuthoringReader implements BlogAuthoringReader {
@@ -39,6 +42,19 @@ public class JpaBlogAuthoringReader implements BlogAuthoringReader {
         this.drafts = drafts;
         this.draftSensitive = draftSensitive;
         this.revisionSensitive = revisionSensitive;
+    }
+
+    @Override
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    public Optional<BlogEditorState> findEditorState(Long blogId) {
+        return blogs.findById(blogId).map(blog -> {
+            Blog published = Optional.ofNullable(blog.getPublishedRevisionId())
+                .flatMap(revisions::findById)
+                .map(revision -> BlogPersistenceConvertor.toPublishedBlog(blog, revision, spans(revision.getId())))
+                .orElse(null);
+            return new BlogEditorState(
+                BlogPersistenceConvertor.toIdentity(blog), published, findDraft(blogId).orElse(null));
+        });
     }
 
     @Override
@@ -132,10 +148,12 @@ public class JpaBlogAuthoringReader implements BlogAuthoringReader {
     }
 
     private BlogVersion version(BlogRevisionEntity revision) {
-        return BlogPersistenceConvertor.toVersion(
-            revision,
-            revisionSensitive.findByRevisionId(revision.getId()).stream()
-                .map(BlogPersistenceConvertor::toSpan)
-                .toList());
+        return BlogPersistenceConvertor.toVersion(revision, spans(revision.getId()));
+    }
+
+    private List<BlogSensitiveSpan> spans(Long revisionId) {
+        return revisionSensitive.findByRevisionId(revisionId).stream()
+            .map(BlogPersistenceConvertor::toSpan)
+            .toList();
     }
 }

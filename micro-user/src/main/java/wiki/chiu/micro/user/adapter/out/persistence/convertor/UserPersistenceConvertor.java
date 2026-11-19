@@ -1,7 +1,12 @@
 package wiki.chiu.micro.user.adapter.out.persistence.convertor;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import wiki.chiu.micro.common.enums.DataPermissionEnum;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.AuthorityEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuAuthorityEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.MenuEntity;
@@ -11,6 +16,8 @@ import wiki.chiu.micro.user.adapter.out.persistence.entity.RoleMenuEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserEntity;
 import wiki.chiu.micro.user.adapter.out.persistence.entity.UserRoleEntity;
 import wiki.chiu.micro.user.application.model.Page;
+import wiki.chiu.micro.user.application.model.RoleAuthorization;
+import wiki.chiu.micro.user.application.model.UserAccess;
 import wiki.chiu.micro.user.domain.Authority;
 import wiki.chiu.micro.user.domain.Menu;
 import wiki.chiu.micro.user.domain.MenuAuthority;
@@ -224,5 +231,37 @@ public final class UserPersistenceConvertor {
     public static <T> Page<T> toPage(org.springframework.data.domain.Page<T> page) {
         return new Page<>(page.getContent(), page.getTotalElements(),
             page.getNumber(), page.getSize(), page.isFirst(), page.isLast(), page.isEmpty(), page.getTotalPages());
+    }
+
+    public static UserAccess toUserAccess(UserEntity user, List<UserRoleEntity> roles) {
+        return new UserAccess(
+            user.getId(), true, user.getStatus(), roles.stream().map(UserRoleEntity::getRoleId).distinct().toList());
+    }
+
+    public static RoleAuthorization toAuthorization(
+        Long roleId,
+        Map<Long, RoleEntity> rolesById,
+        Map<Long, List<Long>> menuIdsByRole,
+        Map<Long, List<Long>> authorityIdsByMenu,
+        Map<Long, AuthorityEntity> authoritiesById,
+        Map<Long, List<DataPermissionEnum>> permissionsByRole) {
+        RoleEntity role = rolesById.get(roleId);
+        if (role == null) {
+            return RoleAuthorization.missing(roleId);
+        }
+        Set<String> authorityCodes =
+            menuIdsByRole.getOrDefault(roleId, List.of()).stream()
+                .flatMap(menuId -> authorityIdsByMenu.getOrDefault(menuId, List.of()).stream())
+                .map(authoritiesById::get)
+                .filter(Objects::nonNull)
+                .map(AuthorityEntity::getCode)
+                .collect(Collectors.toUnmodifiableSet());
+        return new RoleAuthorization(
+            role.getId(),
+            true,
+            role.getCode(),
+            role.getStatus(),
+            authorityCodes,
+            permissionsByRole.getOrDefault(roleId, List.of()));
     }
 }
