@@ -19,6 +19,7 @@ Relative imports need no editor-specific configuration.
 | `cache_release.py` | Cache/native-hints release tags, Maven Central version checks, joint publication, and finalization |
 | `wireguard.py` | Temporary runner VPN setup and cleanup |
 | `deploy.py` | Compose deployment, health checks, image cleanup, and nginx reload |
+| `sync_search.py` | Inspect the live BLOG outbox and search queues, or rebuild all three Meilisearch projections during a maintenance window |
 
 Changes under `scripts/` trigger the service workflow and select all services, except
 Markdown-only changes. Missing previous commits after rewritten history also
@@ -34,6 +35,13 @@ Workflow inputs and credentials are passed through environment variables. Build
 tools run as argument lists, and any failed command stops its step. Deployments
 remain sequential, wait for container health, and remove temporary Compose
 overrides even when a deployment fails.
+
+For the first Meilisearch deployment, a host can stage `megalith-ops/sync_search.py` and
+`megalith-ops/search-cutover.pending` beside its Compose files. When deploying `micro-search`,
+the deployment step pulls the release image, runs the staged synchronizer in maintenance mode
+and clears the marker after the index swap and service checks succeed. The synchronizer starts OpenObserve and the new search consumers,
+which process any queued blog changes before the rebuild. Select `all` in the first workflow dispatch so every exporter picks up the
+OpenObserve settings.
 
 Pull requests use their base/head merge base for change selection, falling back to all services when
 commits are unavailable. PRs run quality checks only; image publication and deployment jobs reject

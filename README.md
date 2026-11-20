@@ -26,7 +26,7 @@ separate JVM, JRE, Bun installation, build toolchain, or source tree.
 | `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
 | `micro-frontend` | Bun 1.4, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
-MariaDB, Redis, RabbitMQ, Elasticsearch, and the monitoring infrastructure use their standard
+MariaDB, Redis, RabbitMQ, Meilisearch, and OpenObserve use their standard
 container images.
 
 ## Architecture
@@ -64,7 +64,8 @@ the target service. Business services use that principal for identity and permis
 | MariaDB | `micro-user`, `micro-blog` | User and blog domain data, working drafts, immutable revisions, and transactional outbox rows |
 | Redis | Auth, blog, exhibit, search, and sync services | Tokens and caches, blog runtime state, existence indexes, distributed task locks, and collaboration Streams/state |
 | RabbitMQ | User/blog outbox publishers and event consumers | Confirmed domain-event delivery and cache-invalidation broadcasts |
-| Elasticsearch | `micro-search`, APM Server | Public/admin/revision search projections and observability storage |
+| Meilisearch | `micro-search` | Public, admin and revision search projections |
+| OpenObserve | Local Java, Rust and Bun OTLP exporters | Logs, traces and metrics |
 
 `micro-exhibit` reads article details from `micro-blog`, recommendations from `micro-search`, and
 author details from `micro-user`. It also calls `micro-blog` for visit counting and existence-index scans. `micro-blog`
@@ -77,9 +78,8 @@ Role status, authority codes, and data permissions come from those role authoriz
 
 ```mermaid
 flowchart LR
-    Services["Java / Rust / Bun services"] -->|OTLP| APM["APM Server"]
-    APM --> ES["Elasticsearch"]
-    Kibana["Kibana"] -->|Query over VPN| ES
+    Services["Local Java / Rust / Bun services"] -->|OTLP| Observe["OpenObserve"]
+    Browser["Local browser"] -->|localhost:5080| Observe
 ```
 
 All application services export correlated OpenTelemetry traces, metrics, and logs. Browser traffic
@@ -89,10 +89,8 @@ auth response omits it.
 
 ### Remote administration: WireGuard over WSS
 
-The platform uses a private network for remote monitoring and administration. Kibana runs in
-Docker on a developer workstation in mainland China and connects to Elasticsearch on the Canadian
-server through WireGuard. Elasticsearch is accessible over the VPN without exposing its API to
-the public Internet.
+The production Compose configuration binds the OpenObserve UI to the server's WireGuard address
+for remote monitoring and administration.
 
 The project uses [wstunnel](https://github.com/erebe/wstunnel/blob/v10.7.1/README.md#wireguard) to
 address Great Firewall (GFW) interference with cross-border WireGuard UDP connectivity. A
@@ -104,8 +102,8 @@ the filtered network. TCP retransmissions can add latency when packets are lost.
 The WSS connection terminates at a dedicated wstunnel listener on TCP `8443`, independently of nginx
 and the application gateway. The client verifies the server's TLS certificate, and the server
 requires a shared access token and restricts forwarding to its local WireGuard listener. Only the
-private subnet is routed through the VPN, where Kibana reaches Elasticsearch at
-`https://172.16.0.1:9200`.
+private subnet is routed through the VPN, where operators can access OpenObserve at
+`http://172.16.0.1:5080`.
 
 ### Message and outbox topology
 
@@ -157,16 +155,20 @@ exhaust their delayed retries are retained in dead-letter queues for investigati
 
 ### Search and caching
 
-Elasticsearch serves public search and recommendations from `blog_search`. Administration
+Meilisearch serves public search and recommendations from `blog_search`. Administration
 lists use `blog_admin_search`, and version search uses `blog_revision_search`. Editing and version
 diff payloads are read from MariaDB so index lag cannot affect the editor. Content events carry
 self-contained administration snapshots and monotonic projection revisions so consumers can reject
-out-of-order updates without reading potentially stale index state. The Elasticsearch repositories
-create any missing physical index and alias during startup; the maintenance rebuild replaces all
-three aliases together after both search queues are quiescent. `total` counts all article identities;
+out-of-order updates without reading potentially stale index state. The search adapter initializes the three serving indexes at startup. Writers serialize revisions
+per article across replicas and wait for the Meilisearch task before acknowledging the event.
+The maintenance rebuild validates staging indexes and swaps all three pairs atomically.
+The returned previous index UID holds the backup after the swap. Recommendation cursors use
+short-lived sorted snapshots in Redis. Public keyword results use Meilisearch relevance with read count and update time as tie breakers.
+The first recommendation page for an index generation reads the published
+documents and applies the read-count and publication-age formula. `total` counts all article identities;
 `publishedTotal` counts only identities with a published revision. Public and administration rebuilds
 validate against those respective counts. Article visits update MariaDB counters;
-cumulative counts are synchronized to Elasticsearch in batches through idempotent updates.
+cumulative counts are synchronized to Meilisearch in batches through idempotent updates.
 
 Both ordinary and read-token detail requests resolve the current online publication and read count
 in MariaDB through `micro-blog`. Exhibit caches the immutable content and its masking spans together
@@ -194,7 +196,7 @@ replica to serve any room without sticky sessions or a dedicated room owner.
 | `micro-user` | Users, roles, menus, authorities, and data permissions |
 | `micro-blog` | Blog content, recycle bin, domain events, and user-deletion cleanup |
 | `micro-exhibit` | Content presentation, visit statistics, and presentation state |
-| `micro-search` | Elasticsearch full-text search and index event consumption |
+| `micro-search` | Meilisearch full-text search and index event consumption |
 | `micro-sync-rs` | Stateless real-time collaboration backed by YRS CRDT and Redis |
 | `micro-frontend` | Vue 3 SSR, server prefetch, client hydration, and embedded static assets |
 
@@ -246,14 +248,14 @@ The five Java applications use the same ports-and-adapters layout for their core
 | `application.port.out` | Persistence, remote service, Redis, search, and object-storage capabilities required by use cases |
 | `application.service` | Use-case orchestration; depends on domain types and ports rather than adapters |
 | `adapter.in.*` | Functional WebMVC handlers/routes, the Spring Security filter chain, RabbitMQ consumers, and schedulers |
-| `adapter.out.*` | HTTP clients, Spring Data repositories and JPA entities, transactional writers, Redis, Elasticsearch, metrics, object storage, and token codecs |
+| `adapter.out.*` | HTTP clients, Spring Data repositories and JPA entities, transactional writers, Redis, Meilisearch, metrics, object storage, and token codecs |
 | `config` | Spring wiring, configuration properties, RabbitMQ topology, AOT hints, and application configuration |
 
 `api-<service>` shares its application's namespace (`wiki.chiu.micro.<service>.api`) but is a
 separate contract module: `application` must not depend on it, and only adapters bind it.
 
 `domain` and `application` are framework-free: no Spring, Hibernate, Redisson, Jackson, micrometer,
-or Elasticsearch type appears there, and neither layer names another service's wire contract.
+or search engine type appears there, and neither layer names another service's wire contract.
 Adapters may use those frameworks but never reach into `config` or across to the opposite adapter
 direction, and `config` is the only place that knows every implementation: application services
 carry no Spring annotations and are declared as beans there.
@@ -355,7 +357,7 @@ graceful shutdown, and exports correlated OpenTelemetry traces, metrics, and log
 | `SSR_API_BASE_URL` | `http://127.0.0.1:8088` / `http://micro-gateway-rs:8088` | Gateway used for SSR prefetch |
 | `APP_ORIGIN` | Incoming request origin | Origin forwarded for cookie-authenticated requests |
 | `OTEL_SERVICE_VERSION` | Package version / deployed Git SHA | Frontend release identifier |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://127.0.0.1:8200` / `http://apm-server:8200` | Base OTLP endpoint for traces, metrics, and logs |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://127.0.0.1:5080/api/default` / `http://openobserve:5080/api/default` | Base OTLP endpoint for traces, metrics, and logs |
 | `LOG_LEVEL` | `info` | Console and OTLP application log threshold |
 
 See the [SSR architecture](micro-frontend/docs/ssr-architecture.md) for request flow,
@@ -406,9 +408,15 @@ and both search queues, retries, and dead-letter queues; then stop all search co
 maintenance mode. Confirm source status and queue checks pass before calling the rebuild endpoint.
 Creation, draft/version saves, publication, draft deletion, status changes, deletion, and recovery all
 reject writes in maintenance mode. Visit counting remains available, and the existing statistics lock
-excludes concurrent read-count synchronization. A failed rebuild retains the old aliases; inspect
-ambiguous alias-switch outcomes before retrying. Restore consumers and writable replicas only after
+excludes concurrent read-count synchronization. If a swap response is lost, inspect the Meilisearch task before retrying. A successful swap leaves the previous data under the staging UIDs. Restore consumers and writable replicas only after
 validating all three indexes, including a dataset containing unpublished drafts.
+
+On a single Linux Compose host, run `python3 scripts/sync_search.py` from the deployment directory
+to inspect the source and queues. With the Meilisearch-backed search image configured and available
+locally, `python3 scripts/sync_search.py --apply` recreates the blog and search containers in
+maintenance mode, invokes the rebuild once, checks its counts, and restores consumers before
+writers. The script accepts `--compose` and `--infra` for other Compose filenames. If a rebuild
+request loses its response, inspect the Meilisearch swap task and serving indexes before retrying.
 
 ## Build
 
@@ -521,10 +529,13 @@ The frontend development server listens on `http://127.0.0.1:1919` and expects t
 `http://127.0.0.1:8088`. For local HTTP login, run `micro-auth` with
 `MEGALITH_AUTH_COOKIE_SECURE=false`.
 
-A complete local deployment also requires MariaDB, Redis, RabbitMQ, and Elasticsearch. Backend
-connection, port, and OpenTelemetry defaults are defined in each service's `application.yml`.
-Rust binaries embed this file at compile time and accept environment-variable overrides at runtime;
-frontend settings are listed above.
+The development profiles use MariaDB, Redis, RabbitMQ, Meilisearch on port 7700 and
+OpenObserve on port 5080. Supply the Meilisearch key to `micro-search` and inject the
+OTLP endpoints and authorization headers through the application environment.
+For an existing blog database follow the [search rebuild procedure](#collaboration-compatibility-and-search-rebuilds)
+and call `POST /inner/search/index/rebuild` on the local search service. Set
+`MEGALITH_SEARCH_INDEX_MAX_TOTAL_HITS` for the largest search result set to paginate
+(default one million).
 
 ### Recovery and login codes
 

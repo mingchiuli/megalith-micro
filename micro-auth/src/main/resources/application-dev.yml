@@ -38,13 +38,13 @@ management:
   otlp:
     metrics:
       export:
-        url: http://localhost:8200/v1/metrics
+        url: http://localhost:5080/api/default/v1/metrics
   opentelemetry:
     tracing:
       export:
         otlp:
-          endpoint: http://localhost:8200/v1/traces
+          endpoint: http://localhost:5080/api/default/v1/traces
     logging:
       export:
         otlp:
-          endpoint: http://localhost:8200/v1/logs
+          endpoint: http://localhost:5080/api/default/v1/logs

@@ -26,7 +26,7 @@ import wiki.chiu.micro.search.adapter.in.http.BlogDocumentVo;
 import wiki.chiu.micro.search.adapter.in.http.IndexMaintenanceHttpHandler;
 import wiki.chiu.micro.search.adapter.in.http.SearchInternalHttpHandler;
 import wiki.chiu.micro.search.adapter.in.messaging.BlogAdminMessageListener;
-import wiki.chiu.micro.search.adapter.out.elasticsearch.RecommendationCursor;
+import wiki.chiu.micro.search.adapter.out.meilisearch.RecommendationCursor;
 import wiki.chiu.micro.search.api.req.BlogReadCountReq;
 import wiki.chiu.micro.search.api.req.BlogRevisionSearchReq;
 import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
@@ -103,22 +103,6 @@ class SearchRuntimeHintsTest {
             RecommendationCursor.class)) {
             assertBinding(hints, type);
         }
-    }
-
-    @Test
-    void retainsScriptResources() {
-        RuntimeHints hints = new RuntimeHints();
-        new SearchRuntimeHints().registerHints(hints, getClass().getClassLoader());
-
-        assertThat(RuntimeHintsPredicates.resource().forResource("script/blog-admin-update.painless").test(hints))
-            .as("Resource hints for blog-admin-update.painless")
-            .isTrue();
-        assertThat(RuntimeHintsPredicates.resource().forResource("script/blog-content-update.painless").test(hints))
-            .as("Resource hints for blog-content-update.painless")
-            .isTrue();
-        assertThat(RuntimeHintsPredicates.resource().forResource("script/blog-read-count-update.painless").test(hints))
-            .as("Resource hints for blog-read-count-update.painless")
-            .isTrue();
     }
 
     private void assertBinding(RuntimeHints hints, Class<?> type) {

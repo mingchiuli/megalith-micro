@@ -107,7 +107,7 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
    Read each user-access, role-authorization, or blog-editor projection in one read-only
    `REPEATABLE_READ` persistence transaction. Initialize collaboration rooms after the editor read returns.
 8. **Transactional outbox.** User and blog changes commit to `m_outbox_event` before confirmed
-   RabbitMQ publication. Cache eviction and Elasticsearch indexing consume those events. User
+   RabbitMQ publication. Cache eviction and Meilisearch indexing consume those events. User
    deletion uses `UserDeletedMessage` on its dedicated fanout exchange; `micro-blog` consumes it to
    delete blogs owned by the deleted users. Never publish domain events outside the outbox.
 9. **JPMS.** `cache` exports only its public `annotation`, `handler`, and `key` packages. A new

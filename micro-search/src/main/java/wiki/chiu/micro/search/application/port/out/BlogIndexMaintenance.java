@@ -23,5 +23,5 @@ public interface BlogIndexMaintenance {
 
     long refreshAndCount(SearchIndexKind kind, String index);
 
-    void activate(List<IndexTransition> transitions);
+    List<IndexTransition> activate(List<IndexTransition> transitions);
 }

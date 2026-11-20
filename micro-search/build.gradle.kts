@@ -1,8 +1,8 @@
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-restclient")
     implementation("io.micrometer:micrometer-core")
     implementation(project(":api-search"))
     implementation(project(":api-blog"))
@@ -26,7 +26,7 @@ dependencies {
 
 tasks.register<Test>("integrationTest") {
     group = "verification"
-    description = "Verifies search update and rebuild semantics against an isolated Elasticsearch instance."
+    description = "Verifies search update and rebuild semantics against an isolated Meilisearch instance."
     testClassesDirs = integrationTest.output.classesDirs
     classpath = integrationTest.runtimeClasspath
     shouldRunAfter(tasks.test)

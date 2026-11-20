@@ -74,7 +74,6 @@ def compose_override(service: str, version: str) -> tuple[str, ComposeOverride]:
         config["environment"] = {
             "SSR_API_BASE_URL": "http://micro-gateway-rs:8088",
             "OTEL_SERVICE_VERSION": version,
-            "OTEL_EXPORTER_OTLP_ENDPOINT": "http://apm-server:8200",
         }
     elif service == "micro-blog":
         config["environment"] = {"MEGALITH_BLOG_SYNC_URL": "http://micro-sync-rs:8089"}
@@ -116,6 +115,12 @@ def deploy_service(service: str, version: str) -> None:
         )
         previous_id = previous.stdout.strip() if previous.returncode == 0 else ""
         _ = run("docker", "pull", image)
+        pending_cutover = Path("megalith-ops/search-cutover.pending")
+        if service == "micro-search" and pending_cutover.is_file():
+            _ = run(sys.executable, "megalith-ops/sync_search.py", "--compose", base_file,
+                    "--apply", "--first-release")
+            pending_cutover.unlink()
+            return
         _ = run(*compose, "rm", "-sf", service)
         _ = run(*compose, "up", "-d", "--no-deps", "--force-recreate", service)
         container = run(*compose, "ps", "-q", service, capture=True).stdout.strip()

@@ -325,6 +325,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
+          command_timeout: 75m
           script: ${{ steps.deploy-script.outputs.script }}
 
       - name: Disconnect WireGuard

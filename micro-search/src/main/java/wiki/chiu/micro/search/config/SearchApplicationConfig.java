@@ -1,23 +1,22 @@
 package wiki.chiu.micro.search.config;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-
-import io.micrometer.core.instrument.MeterRegistry;
-
 import java.time.Duration;
 
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
-import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
+import org.springframework.web.client.RestClient;
 
 import tools.jackson.databind.json.JsonMapper;
 
-import wiki.chiu.micro.search.adapter.out.elasticsearch.AliasInitializingElasticsearchRepository;
-import wiki.chiu.micro.search.adapter.out.elasticsearch.ElasticsearchBlogIndexWriter;
-import wiki.chiu.micro.search.adapter.out.elasticsearch.ElasticsearchBlogQueryAdapter;
-import wiki.chiu.micro.search.adapter.out.elasticsearch.ElasticsearchIndexMaintenanceAdapter;
+import wiki.chiu.micro.common.scheduling.RedisTaskLock;
+import wiki.chiu.micro.search.adapter.out.meilisearch.MeilisearchBlogIndexWriter;
+import wiki.chiu.micro.search.adapter.out.meilisearch.MeilisearchBlogQueryAdapter;
+import wiki.chiu.micro.search.adapter.out.meilisearch.MeilisearchClient;
+import wiki.chiu.micro.search.adapter.out.meilisearch.MeilisearchIndexes;
+import wiki.chiu.micro.search.adapter.out.meilisearch.RecommendationSnapshots;
 import wiki.chiu.micro.search.application.port.in.ApplyBlogIndexChangeUseCase;
 import wiki.chiu.micro.search.application.port.in.RebuildSearchIndex;
 import wiki.chiu.micro.search.application.port.in.SearchBlogsUseCase;
@@ -31,54 +30,48 @@ import wiki.chiu.micro.search.application.service.IndexRebuildService;
 import wiki.chiu.micro.search.application.service.SearchApplicationService;
 
 @Configuration(proxyBeanMethods = false)
-@EnableElasticsearchRepositories(
-    basePackages = "wiki.chiu.micro.search.adapter.out.elasticsearch",
-    repositoryBaseClass = AliasInitializingElasticsearchRepository.class)
 public class SearchApplicationConfig {
 
     @Bean
-    ElasticsearchBlogQueryAdapter elasticsearchBlogQueryAdapter(
-        ElasticsearchTemplate elasticsearchTemplate,
-        @Value("${megalith.blog.blog-page-size}") int publicPageSize,
-        @Value("${megalith.search.index.alias:blog_search}") String alias,
-        @Value("${megalith.search.index.admin-alias:blog_admin_search}") String adminAlias,
-        @Value("${megalith.search.index.revision-alias:blog_revision_search}")
-            String revisionAlias,
-        @Value("${megalith.search.recommendation.pit-keep-alive:2m}")
-            Duration recommendationPitKeepAlive,
-        JsonMapper jsonMapper,
-        MeterRegistry meterRegistry) {
-        return new ElasticsearchBlogQueryAdapter(
-            elasticsearchTemplate,
-            publicPageSize,
-            alias,
-            adminAlias,
-            revisionAlias,
-            recommendationPitKeepAlive,
-            jsonMapper,
-            meterRegistry);
+    MeilisearchClient meilisearchClient(RestClient.Builder builder, JsonMapper json,
+        @Value("${megalith.search.meilisearch.url:http://127.0.0.1:7700}") String url,
+        @Value("${megalith.search.meilisearch.key:${MEILI_MASTER_KEY:}}") String key,
+        @Value("${megalith.search.meilisearch.task-timeout:2m}") Duration timeout) {
+        if (!key.isBlank()) {
+            builder.defaultHeader("Authorization", "Bearer " + key);
+        }
+        return new MeilisearchClient(builder.baseUrl(url).build(), json, timeout);
     }
 
     @Bean
-    ElasticsearchBlogIndexWriter elasticsearchBlogIndexWriter(
-        ElasticsearchTemplate elasticsearchTemplate,
-        @Value("${megalith.search.index.alias:blog_search}") String alias,
-        @Value("${megalith.search.index.admin-alias:blog_admin_search}") String adminAlias,
-        @Value("${megalith.search.index.revision-alias:blog_revision_search}")
-            String revisionAlias) {
-        return new ElasticsearchBlogIndexWriter(
-            elasticsearchTemplate, alias, adminAlias, revisionAlias);
+    MeilisearchIndexes indexes(MeilisearchClient client,
+        @Value("${megalith.search.index.alias:blog_search}") String blogs,
+        @Value("${megalith.search.index.admin-alias:blog_admin_search}") String admin,
+        @Value("${megalith.search.index.revision-alias:blog_revision_search}") String revisions,
+        @Value("${megalith.search.index.max-total-hits:1000000}") int maxHits) {
+        return new MeilisearchIndexes(client, blogs, admin, revisions, maxHits);
     }
 
     @Bean
-    ElasticsearchIndexMaintenanceAdapter indexMaintenance(
-        ElasticsearchClient client, ElasticsearchTemplate template,
-        @Value("${megalith.search.index.alias:blog_search}") String alias,
-        @Value("${megalith.search.index.admin-alias:blog_admin_search}") String adminAlias,
-        @Value("${megalith.search.index.revision-alias:blog_revision_search}")
-            String revisionAlias) {
-        return new ElasticsearchIndexMaintenanceAdapter(
-            client, template, alias, adminAlias, revisionAlias);
+    SmartInitializingSingleton initializeIndexes(MeilisearchIndexes indexes, RedisTaskLock lock) {
+        return () -> lock.run("search:index-rebuild", () -> {
+            indexes.initialize();
+            return null;
+        });
+    }
+
+    @Bean
+    MeilisearchBlogIndexWriter blogIndexWriter(MeilisearchClient client, MeilisearchIndexes indexes,
+        RedissonClient redis, JsonMapper json) {
+        return new MeilisearchBlogIndexWriter(client, indexes, redis, json);
+    }
+
+    @Bean
+    BlogSearchIndex blogSearchIndex(MeilisearchClient client, MeilisearchIndexes indexes, RedissonClient redis,
+        JsonMapper json, @Value("${megalith.blog.blog-page-size}") int size,
+        @Value("${megalith.search.recommendation.snapshot-ttl:2m}") Duration ttl) {
+        var snapshots = new RecommendationSnapshots(client, indexes, redis, json, ttl);
+        return new MeilisearchBlogQueryAdapter(client, indexes, snapshots, json, size);
     }
 
     @Bean

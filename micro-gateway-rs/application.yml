@@ -7,11 +7,11 @@ otel:
   exporter:
     otlp:
       traces:
-        endpoint: http://localhost:8200/v1/traces
+        endpoint: http://localhost:5080/api/default/v1/traces
       metrics:
-        endpoint: http://localhost:8200/v1/metrics
+        endpoint: http://localhost:5080/api/default/v1/metrics
       logs:
-        endpoint: http://localhost:8200/v1/logs
+        endpoint: http://localhost:5080/api/default/v1/logs
 
 megalith:
   blog:

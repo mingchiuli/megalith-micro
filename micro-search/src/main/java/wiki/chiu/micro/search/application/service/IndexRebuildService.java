@@ -59,8 +59,7 @@ public final class IndexRebuildService implements RebuildSearchIndex {
                 "blog source changed during search index rebuild");
         }
         control.requireQuiescent();
-        indexes.activate(targets);
-        return new SearchIndexRebuildResult(targets);
+        return new SearchIndexRebuildResult(indexes.activate(targets));
     }
 
     private IndexTransition rebuildPublic(String previous, long expectedDocuments) {

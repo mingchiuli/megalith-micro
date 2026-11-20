@@ -11,7 +11,7 @@ import {
 import packageJson from '../package.json' with { type: 'json' }
 import { registerBunRuntimeMetrics } from './runtime-metrics.js'
 
-process.env.OTEL_EXPORTER_OTLP_ENDPOINT ||= 'http://127.0.0.1:8200'
+process.env.OTEL_EXPORTER_OTLP_ENDPOINT ||= 'http://127.0.0.1:5080/api/default'
 process.env.OTEL_EXPORTER_OTLP_PROTOCOL ||= 'http/protobuf'
 process.env.OTEL_TRACES_SAMPLER ||= 'parentbased_traceidratio'
 process.env.OTEL_TRACES_SAMPLER_ARG ||= '0.05'

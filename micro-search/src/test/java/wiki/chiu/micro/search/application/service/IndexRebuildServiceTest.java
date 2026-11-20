@@ -41,6 +41,7 @@ class IndexRebuildServiceTest {
 
     @BeforeEach
     void configureLock() {
+        when(indexes.activate(any())).thenAnswer(call -> call.getArgument(0));
         when(control.runExclusive(any())).thenAnswer(call -> ((Supplier<?>) call.getArgument(0)).get());
     }
 
