@@ -50,11 +50,41 @@ pub fn millis(value: &str) -> Result<i64> {
         .as_millisecond())
 }
 
-pub fn public_document(blog: &Value, revision: i64, remove: bool) -> Result<Value> {
-    let id = number(blog, "id")?;
-    if remove {
-        return Ok(json!({"id":id,"revision":revision,"deleted":true}));
+#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[serde(try_from = "i64")]
+pub enum BlogOperation {
+    Create,
+    Update,
+    Remove,
+}
+
+impl TryFrom<i64> for BlogOperation {
+    type Error = &'static str;
+
+    fn try_from(code: i64) -> Result<Self, Self::Error> {
+        match code {
+            1 => Ok(Self::Create),
+            2 => Ok(Self::Update),
+            3 => Ok(Self::Remove),
+            _ => Err("unknown blog operation"),
+        }
     }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PublicChange {
+    pub operation: BlogOperation,
+    pub revision: i64,
+    pub blog_snapshot: Value,
+}
+
+pub fn public_tombstone(id: i64, revision: i64) -> Value {
+    json!({"id": id, "revision": revision, "deleted": true})
+}
+
+pub fn public_document(blog: &Value, revision: i64) -> Result<Value> {
+    number(blog, "id")?;
     let mut doc = select(
         blog,
         &[
@@ -343,10 +373,23 @@ mod tests {
     use super::*;
 
     #[test]
+    fn public_event_operation_matches_the_wire_contract() {
+        use BlogOperation::{Create, Remove, Update};
+
+        for (code, expected) in [(1, Create), (2, Update), (3, Remove)] {
+            let event: PublicChange = serde_json::from_value(json!({
+                "operation": code, "revision": 4, "blogSnapshot": {"id": 1}
+            }))
+            .unwrap();
+            assert_eq!(event.operation, expected);
+        }
+        assert!(serde_json::from_value::<BlogOperation>(json!(4)).is_err());
+    }
+
+    #[test]
     fn tombstones_only_keep_identity_and_revision() {
-        let blog = json!({"id":1,"content":"obsolete","status":0});
         assert_eq!(
-            public_document(&blog, 4, true).unwrap(),
+            public_tombstone(1, 4),
             json!({"id":1,"revision":4,"deleted":true})
         );
     }

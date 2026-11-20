@@ -2,9 +2,9 @@ use crate::domain::IndexKind;
 use crate::{
     adapter::outbound::{meili::Meili, store::Store},
     config::Settings,
-    domain::{self, AdminChange, number},
+    domain::{self, AdminChange, BlogOperation, PublicChange, number},
 };
-use anyhow::{Context, Result, ensure};
+use anyhow::{Context, Result};
 use reqwest::{Client, Method};
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -46,12 +46,10 @@ impl Search {
             })
             .await
     }
-    pub async fn public_event(&self, event: Value) -> Result<()> {
-        let blog = &event["blogSnapshot"];
+    pub async fn public_event(&self, event: PublicChange) -> Result<()> {
+        let blog = &event.blog_snapshot;
         let id = number(blog, "id")?;
-        let revision = number(&event, "revision")?;
-        let op = number(&event, "operation")?;
-        ensure!((1..=3).contains(&op), "unknown blog operation");
+        let revision = event.revision;
         let index = self.cfg.index_uid(IndexKind::Public);
         self.store
             .locked(self.public_lock(), true, async {
@@ -60,14 +58,20 @@ impl Search {
                 if old["revision"].as_i64().is_some_and(|v| v >= revision) {
                     return Ok(());
                 }
-                let mut doc = domain::public_document(blog, revision, op == 3)?;
-                if op != 3 && !old.is_null() {
-                    doc["readCount"] = old["readCount"]
-                        .as_i64()
-                        .unwrap_or(0)
-                        .max(doc["readCount"].as_i64().unwrap_or(0))
-                        .into();
-                }
+                let doc = match event.operation {
+                    BlogOperation::Create | BlogOperation::Update => {
+                        let mut doc = domain::public_document(blog, revision)?;
+                        if !old.is_null() {
+                            doc["readCount"] = old["readCount"]
+                                .as_i64()
+                                .unwrap_or(0)
+                                .max(doc["readCount"].as_i64().unwrap_or(0))
+                                .into();
+                        }
+                        doc
+                    }
+                    BlogOperation::Remove => domain::public_tombstone(id, revision),
+                };
                 self.engine.write(index, vec![doc]).await
             })
             .await

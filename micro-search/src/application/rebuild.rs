@@ -106,7 +106,7 @@ impl Search {
                         IndexKind::Public => {
                             let rev = domain::number(row, "revision")?;
                             ensure!(rev > 0, Conflict("invalid publication revision".into()));
-                            domain::public_document(row, rev, false)?
+                            domain::public_document(row, rev)?
                         }
                         IndexKind::Admin => domain::admin_document(
                             &serde_json::from_value(row.clone())?,

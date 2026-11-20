@@ -10,7 +10,6 @@ use lapin::{
     options::*,
     types::{AMQPValue, FieldTable},
 };
-use serde_json::Value;
 use tracing::{Instrument, error, warn};
 
 const RETRY: &str = "x-megalith-retry-count";
@@ -84,8 +83,7 @@ async fn consume(app: Search, admin: bool, ch: Channel) -> Result<()> {
                 if admin {
                     app.admin_event(serde_json::from_slice(&d.data)?).await
                 } else {
-                    app.public_event(serde_json::from_slice::<Value>(&d.data)?)
-                        .await
+                    app.public_event(serde_json::from_slice(&d.data)?).await
                 }
             }
             .await;
