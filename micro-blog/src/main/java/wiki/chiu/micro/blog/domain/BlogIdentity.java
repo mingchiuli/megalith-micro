@@ -15,7 +15,15 @@ public record BlogIdentity(
     BlogAccessMode accessMode,
     Long publicationRevision,
     Long adminRevision,
-    String collaborationEpoch) {
+    String collaborationEpoch,
+    long historyGeneration) {
+
+    public BlogIdentity(Long id, Long userId, LocalDateTime created, Long readCount, Long publishedRevisionId,
+        LocalDateTime publishedAt, LocalDateTime offlineAt, BlogAccessMode accessMode, Long publicationRevision,
+        Long adminRevision, String collaborationEpoch) {
+        this(id, userId, created, readCount, publishedRevisionId, publishedAt, offlineAt, accessMode,
+            publicationRevision, adminRevision, collaborationEpoch, 0L);
+    }
 
     public boolean published() {
         return publishedRevisionId != null;

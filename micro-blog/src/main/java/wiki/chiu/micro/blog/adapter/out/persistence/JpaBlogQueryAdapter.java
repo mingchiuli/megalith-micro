@@ -151,7 +151,8 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
                             revision,
                             revision == null
                                 ? List.of()
-                                : spansByRevision.getOrDefault(revision.getId(), List.of()));
+                                : spansByRevision.getOrDefault(revision.getId(), List.of()),
+                            blog.getHistoryGeneration());
                     BlogDraftEntity draft = draftsByBlog.get(blog.getId());
                     return BlogPersistenceConvertor.toAdminIndexSnapshot(blog, draft, spansByDraft.getOrDefault(blog.getId(), List.of()), publishedRevision);
                 })
@@ -167,6 +168,9 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
         if (entities.isEmpty()) {
             return List.of();
         }
+        List<Long> blogIds = entities.stream().map(BlogRevisionEntity::getBlogId).distinct().toList();
+        var generations = blogs.findAllById(blogIds).stream()
+            .collect(Collectors.toMap(BlogEntity::getId, BlogEntity::getHistoryGeneration));
         List<Long> revisionIds = entities.stream().map(BlogRevisionEntity::getId).toList();
         Map<Long, List<BlogSensitiveSpan>> spansByRevision =
             revisionSensitive.findByRevisionIdIn(revisionIds).stream()
@@ -180,7 +184,8 @@ public class JpaBlogQueryAdapter implements BlogQueryStore {
                 revision ->
                     BlogPersistenceConvertor.revisionSnapshot(
                         revision,
-                        spansByRevision.getOrDefault(revision.getId(), List.of())))
+                        spansByRevision.getOrDefault(revision.getId(), List.of()),
+                        generations.get(revision.getBlogId())))
             .toList();
     }
 

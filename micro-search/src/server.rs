@@ -1,7 +1,7 @@
 use crate::{
     adapter::{
         inbound::{http, rabbit},
-        outbound::{meili::Meili, store::Store},
+        outbound::{blog::BlogSource, meili::Meili, redis::Store},
     },
     application::Search,
     config::Settings,
@@ -12,11 +12,7 @@ use tokio::net::TcpListener;
 
 pub async fn serve(cfg: Settings) -> Result<()> {
     let cfg = Arc::new(cfg);
-    let store = Store(
-        redis::Client::open(cfg.redis.as_str())?
-            .get_connection_manager()
-            .await?,
-    );
+    let store = Store::connect(cfg.redis.as_str()).await?;
     let client = reqwest::Client::builder()
         .connect_timeout(Duration::from_secs(5))
         .timeout(Duration::from_secs(60))
@@ -24,7 +20,10 @@ pub async fn serve(cfg: Settings) -> Result<()> {
     let app = Search {
         cfg: cfg.clone(),
         engine: Meili::new(client.clone(), &cfg),
-        http: client,
+        source: BlogSource {
+            client,
+            base: cfg.blog.clone(),
+        },
         broker: crate::adapter::outbound::broker::Broker::default(),
         store,
     };

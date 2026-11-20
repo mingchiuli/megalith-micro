@@ -20,5 +20,6 @@ public record BlogRevisionSnapshot(
     LocalDateTime firstPublishedAt,
     Long createdBy,
     LocalDateTime createdAt,
-    List<BlogSensitiveSpan> sensitiveContent) {
+    List<BlogSensitiveSpan> sensitiveContent,
+    long historyGeneration) {
 }

@@ -261,7 +261,8 @@ class BlogIndexQueriesIntegrationTest {
             Mockito.when(administration.status()).thenReturn(
                 new OutboxStatus(
                     OutboxProducer.BLOG, 0, 0, 0));
-            var status = new BlogIndexSourceStateAdapter(new BlogMaintenanceMode(true), blogs, administration).status();
+            var status = new BlogIndexSourceStateAdapter(new BlogMaintenanceMode(true), blogs, revisions, administration).status();
+            assertThat(status.revisionTotal()).isEqualTo(2);
             assertThat(status.total()).isEqualTo(3);
             assertThat(status.publishedTotal()).isEqualTo(2);
             assertThat(queryAdapter(context).findPublishedSnapshotsAfter(0, 10)).hasSize(2);
@@ -544,6 +545,12 @@ class BlogIndexQueriesIntegrationTest {
             assertThat(recovered.getReadCount()).isEqualTo(9L);
             assertThat(recovered.getPublicationRevision()).isEqualTo(3L);
             assertThat(recovered.getAdminRevision()).isEqualTo(8L);
+            assertThat(recovered.getHistoryGeneration()).isEqualTo(recovered.getPublishedRevisionId());
+            var source = queryAdapter(context);
+            assertThat(source.findRevisionSnapshotsAfter(0, 10).getFirst().historyGeneration())
+                .isEqualTo(recovered.getHistoryGeneration());
+            assertThat(source.findAdminSnapshotsAfter(0, 10).getFirst().blog().historyGeneration())
+                .isEqualTo(recovered.getHistoryGeneration());
             assertThat(recovered.getAccessMode()).isEqualTo(1);
             assertThat(queryAdapter(context).findById(700L).orElseThrow().sensitiveContent())
                 .containsExactly(new BlogSensitiveSpan(1, 3, 3));

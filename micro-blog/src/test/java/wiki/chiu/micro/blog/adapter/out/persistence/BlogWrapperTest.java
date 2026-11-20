@@ -135,6 +135,8 @@ class BlogWrapperTest {
         assertThat(publicEvent.blogSnapshot().sensitiveContent()).containsExactly(sensitive);
         assertThat(publicEvent.adminRevision()).isEqualTo(12L);
         assertThat(adminEvent.operation()).isEqualTo("RECOVER");
+        assertThat(adminEvent.blog().historyGeneration()).isEqualTo(11L);
+        assertThat(adminEvent.revision().historyGeneration()).isEqualTo(11L);
         assertThat(adminEvent.blog().accessMode()).isEqualTo(1);
         assertThat(adminEvent.blog().adminRevision()).isEqualTo(12L);
         assertThat(adminEvent.revision().sensitiveContent()).containsExactly(sensitive);

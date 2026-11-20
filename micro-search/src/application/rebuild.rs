@@ -1,8 +1,7 @@
 use super::Search;
 use crate::domain::IndexKind;
 use crate::{adapter::outbound::broker, domain};
-use anyhow::{Context, Result, ensure};
-use reqwest::Method;
+use anyhow::{Result, ensure};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use uuid::Uuid;
@@ -17,35 +16,24 @@ impl std::fmt::Display for Conflict {
 impl std::error::Error for Conflict {}
 #[derive(Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
-struct Status {
+pub(crate) struct Status {
     read_only: bool,
     ready_events: u64,
     paused_events: u64,
-    total: u64,
-    published_total: u64,
+    pub total: u64,
+    pub published_total: u64,
+    pub revision_total: u64,
 }
 impl Search {
-    async fn source(&self, suffix: &str) -> Result<Value> {
-        let body: Value = self
-            .http
-            .get(format!("{}/blog/index/{suffix}", self.cfg.blog))
-            .headers(megalith_otel::trace_headers())
-            .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?;
-        ensure!(body["code"] == 200, "blog source rejected snapshot read");
-        Ok(body["data"].clone())
-    }
-    async fn status(&self) -> Result<Status> {
-        let status: Status = serde_json::from_value(self.source("status").await?)?;
+    async fn ready_source(&self) -> Result<Status> {
+        let status = self.source.status().await?;
         ensure!(
             status.read_only && status.ready_events == 0 && status.paused_events == 0,
             Conflict("blog source must be read-only with an empty BLOG outbox".into())
         );
         Ok(status)
     }
+
     pub async fn rebuild(&self) -> Result<Value> {
         ensure!(
             self.cfg.maintenance,
@@ -65,30 +53,47 @@ impl Search {
     }
     async fn rebuild_locked(&self) -> Result<Value> {
         broker::quiescent(&self.broker).await?;
-        let before = self.status().await?;
+        let before = self.ready_source().await?;
+        let mut stages = Vec::new();
+        let mut swap_started = false;
+        let result = async {
+            let report = self.prepare_stages(&before, &mut stages).await?;
+            self.store
+                .locked(self.public_lock(), true, async {
+                    swap_started = true;
+                    self.engine.swap(&stages).await
+                })
+                .await?;
+            Ok(json!({"indexes":report}))
+        }
+        .await;
+        if result.is_err() && !swap_started {
+            for (_, stage) in &stages {
+                if let Err(cleanup) = self.engine.delete_stage(stage).await {
+                    tracing::error!(stage, %cleanup, "could not remove staging index");
+                }
+            }
+        }
+        result
+    }
+
+    async fn prepare_stages(
+        &self,
+        before: &Status,
+        stages: &mut Vec<(String, String)>,
+    ) -> Result<Vec<Value>> {
         let mut result = Vec::new();
-        let mut swaps = Vec::new();
         for kind in IndexKind::ALL {
-            let route = kind.snapshot_route();
             let live = self.cfg.index_uid(kind);
             let stage = format!("{live}-{}", Uuid::new_v4());
+            stages.push((live.to_owned(), stage.clone()));
             self.engine
                 .configure(kind, &stage, self.cfg.max_hits)
                 .await?;
-            let cursor = if matches!(kind, IndexKind::Revision) {
-                "afterRevisionId"
-            } else {
-                "afterId"
-            };
             let mut after = 0;
             let mut copied = 0;
             loop {
-                let response = self
-                    .source(&format!(
-                        "{route}?{cursor}={after}&limit={}",
-                        self.cfg.batch
-                    ))
-                    .await?;
+                let response = self.source.page(kind, after, self.cfg.batch).await?;
                 let rows = domain::rows(&response)?;
                 if rows.is_empty() {
                     break;
@@ -112,36 +117,32 @@ impl Search {
                             &serde_json::from_value(row.clone())?,
                             &Value::Null,
                         )?,
-                        IndexKind::Revision => domain::revision_document(row)?,
+                        IndexKind::Revision => domain::revision_document(
+                            row,
+                            domain::number(row, "historyGeneration")?,
+                            &Value::Null,
+                        )?,
                     });
                 }
                 copied += docs.len() as u64;
                 self.engine.write(&stage, docs).await?;
             }
-            let stats = self.engine.get(&format!("/indexes/{stage}/stats")).await?;
             ensure!(
-                stats["numberOfDocuments"]
-                    .as_u64()
-                    .context("missing index count")?
-                    == copied
+                self.engine.document_count(&stage).await? == copied
                     && match kind {
                         IndexKind::Public => copied == before.published_total,
                         IndexKind::Admin => copied == before.total,
-                        IndexKind::Revision => true,
+                        IndexKind::Revision => copied == before.revision_total,
                     },
                 Conflict("source and rebuilt index counts do not agree".into())
             );
-            swaps.push(json!({"indexes":[live,stage]}));
             result.push(json!({"previousIndex":stage,"index":live,"documents":copied}));
         }
         ensure!(
-            before == self.status().await?,
+            *before == self.ready_source().await?,
             Conflict("blog source changed during rebuild".into())
         );
         broker::quiescent(&self.broker).await?;
-        self.engine
-            .task(Method::POST, "/swap-indexes", Value::Array(swaps))
-            .await?;
-        Ok(json!({"indexes":result}))
+        Ok(result)
     }
 }

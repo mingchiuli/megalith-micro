@@ -46,7 +46,7 @@ public class BlogIndexSourceService implements BlogIndexSourceQueries {
     }
 
     private void requireReady() {
-        if (!state.status().ready()) {
+        if (!state.ready()) {
             throw new BaseException(
                 CommonErrorCode.CONFLICT,
                 "index snapshots require read-only maintenance and an empty BLOG outbox");

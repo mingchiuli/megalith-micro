@@ -12,5 +12,6 @@ public record BlogAdminSnapshot(
     Long publicationRevision,
     Long adminRevision,
     Long readCount,
-    LocalDateTime createdAt) {
+    LocalDateTime createdAt,
+    long historyGeneration) {
 }

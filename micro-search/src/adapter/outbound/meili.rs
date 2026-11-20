@@ -97,9 +97,55 @@ impl Meili {
             .send(method, path, Some(&body), None)
             .await?
             .context("missing task")?;
-        self.wait(r["taskUid"].as_u64().context("missing task UID")?)
-            .await
+        let uid = r["taskUid"].as_u64().context("missing task UID")?;
+        if path == "/swap-indexes" {
+            tracing::info!(uid, "index swap task accepted");
+        }
+        self.wait(uid).await
     }
+    pub async fn swap(&self, stages: &[(String, String)]) -> Result<()> {
+        let swaps: Vec<_> = stages
+            .iter()
+            .map(|(live, stage)| json!({"indexes":[live,stage]}))
+            .collect();
+        tracing::info!(?stages, "submitting index swap");
+        self.task(Method::POST, "/swap-indexes", swaps.into()).await
+    }
+
+    pub async fn document_count(&self, index: &str) -> Result<u64> {
+        self.get(&format!("/indexes/{index}/stats")).await?["numberOfDocuments"]
+            .as_u64()
+            .context("missing index count")
+    }
+
+    pub async fn generation(&self, index: &str) -> Result<String> {
+        self.drain(index).await?;
+        Ok(self.get(&format!("/indexes/{index}")).await?["updatedAt"]
+            .as_str()
+            .context("missing index generation")?
+            .to_owned())
+    }
+
+    pub async fn recommendation_candidates(&self, index: &str) -> Result<Vec<Value>> {
+        let mut rows = Vec::new();
+        loop {
+            let batch = self
+                .post(
+                    &format!("/indexes/{index}/documents/fetch"),
+                    json!({
+                        "filter":"deleted = false AND status = 0", "offset":rows.len(), "limit":256,
+                        "fields": crate::domain::RECOMMENDATION_FIELDS
+                    }),
+                )
+                .await?;
+            let docs = crate::domain::rows(&batch["results"])?;
+            rows.extend_from_slice(docs);
+            if docs.len() < 256 {
+                return Ok(rows);
+            }
+        }
+    }
+
     pub async fn drain(&self, index: &str) -> Result<()> {
         let tasks = self
             .get(&format!(
@@ -116,6 +162,35 @@ impl Meili {
         }
         Ok(())
     }
+    pub async fn delete_stage(&self, index: &str) -> Result<()> {
+        if let Some(task) = self
+            .send(
+                Method::DELETE,
+                &format!("/indexes/{index}"),
+                None,
+                Some("index_not_found"),
+            )
+            .await?
+        {
+            self.wait(
+                task["taskUid"]
+                    .as_u64()
+                    .context("missing deletion task UID")?,
+            )
+            .await?;
+        }
+        Ok(())
+    }
+
+    pub async fn delete_history(&self, index: &str, article: i64, generation: i64) -> Result<()> {
+        self.task(
+            Method::POST,
+            &format!("/indexes/{index}/documents/delete"),
+            json!({"filter": format!("articleKey = b{article} AND historyKey = g{generation}")}),
+        )
+        .await
+    }
+
     pub async fn write(&self, index: &str, rows: Vec<Value>) -> Result<()> {
         if !rows.is_empty() {
             self.task(
@@ -192,7 +267,7 @@ impl Meili {
                 ]),
             ),
             IndexKind::Revision => (
-                json!(["articleKey", "ownerKey"]),
+                json!(["articleKey", "historyKey"]),
                 json!(["versionNo"]),
                 json!([
                     "sort",

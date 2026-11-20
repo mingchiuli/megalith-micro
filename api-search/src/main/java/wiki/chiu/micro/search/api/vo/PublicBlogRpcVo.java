@@ -8,18 +8,16 @@ import wiki.chiu.micro.common.model.BlogSensitiveSpan;
 
 public record PublicBlogRpcVo(
     Long id,
-    Long userId,
-    Long publishedRevisionId,
-    Long versionNo,
     String title,
     String description,
-    String content,
     String link,
     Long readCount,
     LocalDateTime created,
     LocalDateTime publishedAt,
-    LocalDateTime offlineAt,
-    Integer accessMode,
     BlogRenderMode renderMode,
     List<BlogSensitiveSpan> sensitiveContent) {
+
+    public PublicBlogRpcVo {
+        sensitiveContent = sensitiveContent == null ? List.of() : List.copyOf(sensitiveContent);
+    }
 }

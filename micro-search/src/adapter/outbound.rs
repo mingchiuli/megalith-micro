@@ -1,3 +1,4 @@
+pub(crate) mod blog;
 pub(crate) mod broker;
 pub(crate) mod meili;
-pub(crate) mod store;
+pub(crate) mod redis;

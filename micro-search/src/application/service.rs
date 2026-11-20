@@ -1,11 +1,11 @@
 use crate::domain::IndexKind;
 use crate::{
-    adapter::outbound::{meili::Meili, store::Store},
+    adapter::outbound::{blog::BlogSource, meili::Meili, redis::Store},
     config::Settings,
-    domain::{self, AdminChange, BlogOperation, PublicChange, number},
+    domain::{self, AdminChange, AdminUpdate, BlogOperation, PublicChange, number},
 };
 use anyhow::{Context, Result};
-use reqwest::{Client, Method};
+use reqwest::Method;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::{collections::BTreeMap, sync::Arc};
@@ -15,7 +15,7 @@ pub struct Search {
     pub cfg: Arc<Settings>,
     pub engine: Meili,
     pub store: Store,
-    pub http: Client,
+    pub source: BlogSource,
     pub broker: crate::adapter::outbound::broker::Broker,
 }
 #[derive(Deserialize)]
@@ -82,26 +82,53 @@ impl Search {
         let id = number(&event.blog, "id")?;
         self.store
             .locked(format!("megalith:search:{admin}:{id}:lock"), false, async {
-                let mut versions = Vec::new();
-                for row in [event.revision.as_ref(), event.published_revision.as_ref()]
-                    .into_iter()
-                    .flatten()
-                {
-                    if !versions.iter().any(|v: &Value| v["id"] == row["id"]) {
-                        versions.push(domain::revision_document(row)?);
-                    }
-                }
-                self.engine.write(rev, versions).await?;
                 self.engine.drain(admin).await?;
+                self.engine.drain(rev).await?;
                 let old = self.engine.doc(admin, id).await?;
-                let incoming = number(&event.blog, "adminRevision")?;
-                if old["adminRevision"].as_i64().is_some_and(|v| {
-                    v > incoming || (v == incoming && event.operation != "RECOVER")
-                }) {
+                let generation = domain::history_generation(&event.blog)?;
+                let update =
+                    domain::admin_update(&old, generation, number(&event.blog, "adminRevision")?)?;
+                if event.operation == "DELETE" && update != AdminUpdate::MergeVersions {
+                    // Even a delayed delete must clean up its own history after recovery.
+                    self.engine.delete_history(rev, id, generation).await?;
+                }
+                if update == AdminUpdate::Ignore {
                     return Ok(());
                 }
+                if event.operation != "DELETE" {
+                    let mut versions = BTreeMap::new();
+                    for row in [event.revision.as_ref(), event.published_revision.as_ref()]
+                        .into_iter()
+                        .flatten()
+                    {
+                        anyhow::ensure!(
+                            number(row, "blogId")? == id,
+                            "revision belongs to another article"
+                        );
+                        let revision_id = number(row, "id")?;
+                        let previous = match versions.remove(&revision_id) {
+                            Some(doc) => doc,
+                            None => self.engine.doc(rev, revision_id).await?,
+                        };
+                        versions.insert(
+                            revision_id,
+                            domain::revision_document(row, generation, &previous)?,
+                        );
+                    }
+                    self.engine
+                        .write(rev, versions.into_values().collect())
+                        .await?;
+                }
+                if update == AdminUpdate::MergeVersions {
+                    return Ok(());
+                }
+                let previous = if generation == domain::history_generation(&old)? {
+                    &old
+                } else {
+                    &Value::Null
+                };
                 self.engine
-                    .write(admin, vec![domain::admin_document(&event, &old)?])
+                    .write(admin, vec![domain::admin_document(&event, previous)?])
                     .await
             })
             .await

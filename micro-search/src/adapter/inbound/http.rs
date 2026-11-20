@@ -75,10 +75,8 @@ async fn trace(req: Request, next: Next) -> Response {
     response
 }
 async fn health(State(s): State<Search>) -> impl IntoResponse {
-    let redis = redis::cmd("PING")
-        .query_async::<String>(&mut s.store.0.clone())
-        .await;
-    let ok = redis.is_ok() && s.broker.ready().await && s.engine.get("/health").await.is_ok();
+    let ok =
+        s.store.ready().await && s.broker.ready().await && s.engine.get("/health").await.is_ok();
     (
         if ok {
             StatusCode::OK

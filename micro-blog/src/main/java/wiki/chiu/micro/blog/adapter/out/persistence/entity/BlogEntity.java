@@ -66,6 +66,17 @@ public class BlogEntity {
     @Column(name = "collaboration_epoch", nullable = false, length = 36)
     private String collaborationEpoch = UUID.randomUUID().toString();
 
+    @Column(name = "history_generation", nullable = false)
+    private long historyGeneration;
+
+    public long getHistoryGeneration() {
+        return historyGeneration;
+    }
+
+    public void setHistoryGeneration(long historyGeneration) {
+        this.historyGeneration = historyGeneration;
+    }
+
     protected BlogEntity() {
     }
 

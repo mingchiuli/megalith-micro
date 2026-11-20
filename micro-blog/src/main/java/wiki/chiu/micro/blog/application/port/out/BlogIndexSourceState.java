@@ -4,5 +4,7 @@ import wiki.chiu.micro.blog.application.model.IndexSourceStatus;
 
 public interface BlogIndexSourceState {
 
+    boolean ready();
+
     IndexSourceStatus status();
 }

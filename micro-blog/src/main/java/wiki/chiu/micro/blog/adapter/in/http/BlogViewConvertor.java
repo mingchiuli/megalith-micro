@@ -168,6 +168,6 @@ public final class BlogViewConvertor {
 
     public static BlogIndexSourceStatus toIndexSourceStatus(IndexSourceStatus status) {
         return new BlogIndexSourceStatus(status.readOnly(), status.readyEvents(), status.pausedEvents(),
-            status.total(), status.publishedTotal());
+            status.total(), status.publishedTotal(), status.revisionTotal());
     }
 }

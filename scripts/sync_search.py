@@ -39,6 +39,7 @@ class SourceStatus(TypedDict):
     pausedEvents: int
     total: int
     publishedTotal: int
+    revisionTotal: int
 
 
 class RebuiltIndex(TypedDict):
@@ -161,6 +162,8 @@ def synchronize(args: Arguments) -> None:
             up(base, "micro-search")
             _ = wait_ready(base, "micro-search", 8085)
         source = drain(blog, broker, args.drain_timeout)
+        if "revisionTotal" not in source:
+            raise RuntimeError("The blog source must report revisionTotal before the index swap")
         up(maintenance, "micro-search")
         search = wait_ready(base, "micro-search", 8085)
         if any(consumers or messages for messages, consumers in queue_counts(broker).values()):
@@ -170,7 +173,7 @@ def synchronize(args: Arguments) -> None:
                       data(search + "/inner/search/index/rebuild", "POST", args.rebuild_timeout))
         indexes = result["indexes"]
         if (len(indexes) != 3 or len({row["index"] for row in indexes}) != 3
-                or [row["documents"] for row in indexes[:2]] != [source["publishedTotal"], source["total"]]):
+                or [row["documents"] for row in indexes] != [source["publishedTotal"], source["total"], source["revisionTotal"]]):
             raise RuntimeError(f"Index count mismatch. Inspect rebuild result: {result}")
         print("Verified rebuilt indexes:", json.dumps(indexes), flush=True)
         up(base, "micro-search")

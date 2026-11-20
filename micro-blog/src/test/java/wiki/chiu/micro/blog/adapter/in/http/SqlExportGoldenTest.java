@@ -46,9 +46,9 @@ class SqlExportGoldenTest {
 
         assertEquals(
             "INSERT INTO m_blog (id, user_id, created, read_count, published_revision_id,"
-                + " published_at, offline_at, access_mode, publication_revision, admin_revision)"
+                + " published_at, offline_at, access_mode, publication_revision, admin_revision, history_generation)"
                 + " VALUES (1, 42, '2026-09-19 10:11:12', 7, 2, '2026-09-19 10:11:12',"
-                + " NULL, 0, 1, 3);",
+                + " NULL, 0, 1, 3, 0);",
             SQLUtils.insertSql(page.blogs(), SqlTables.BLOG));
         assertEquals(
             "INSERT INTO m_blog_revision (id, blog_id, version_no, origin, base_revision_id,"

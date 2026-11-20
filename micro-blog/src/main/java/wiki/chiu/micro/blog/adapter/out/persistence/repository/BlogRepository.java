@@ -29,8 +29,8 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
     @Query(
         """
         INSERT INTO BlogEntity
-            (id, userId, created, readCount, accessMode, publicationRevision, adminRevision, collaborationEpoch)
-        VALUES (:id, :userId, :created, :readCount, :accessMode, :publicationRevision, :adminRevision, :collaborationEpoch)
+            (id, userId, created, readCount, accessMode, publicationRevision, adminRevision, collaborationEpoch, historyGeneration)
+        VALUES (:id, :userId, :created, :readCount, :accessMode, :publicationRevision, :adminRevision, :collaborationEpoch, 0L)
         """)
     int insertRecovered(
         @Param("id") Long id,
@@ -49,7 +49,8 @@ public interface BlogRepository extends JpaRepository<@NonNull BlogEntity, @NonN
     @Query(
         """
         UPDATE BlogEntity blog
-        SET blog.publishedRevisionId = :revisionId,
+        SET blog.historyGeneration = :revisionId,
+            blog.publishedRevisionId = :revisionId,
             blog.publishedAt = :publishedAt,
             blog.publicationRevision = :publicationRevision
         WHERE blog.id = :id AND blog.publishedRevisionId IS NULL

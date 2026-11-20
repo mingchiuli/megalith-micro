@@ -18,18 +18,12 @@ class BlogHttpConvertorTest {
         PublicBlogRpcVo blog =
             new PublicBlogRpcVo(
                 7L,
-                42L,
-                1L,
-                1L,
                 "safe secret",
                 "public secret",
-                "body",
                 "https://cdn.example/7.png",
                 10L,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                null,
-                0,
                 BlogRenderMode.SENSITIVE_FILTER,
                 List.of(
                     new BlogSensitiveSpan(5, 11, 1),

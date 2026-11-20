@@ -27,7 +27,8 @@ public final class SqlTables {
             SqlColumn.of("offline_at", row -> row.blog().offlineAt()),
             SqlColumn.of("access_mode", row -> row.blog().accessMode().getCode()),
             SqlColumn.of("publication_revision", row -> row.blog().publicationRevision()),
-            SqlColumn.of("admin_revision", row -> row.blog().adminRevision()));
+            SqlColumn.of("admin_revision", row -> row.blog().adminRevision()),
+            SqlColumn.of("history_generation", row -> row.blog().historyGeneration()));
 
     public static final SqlTable<BlogVersion> BLOG_REVISION =
         SqlTable.of(

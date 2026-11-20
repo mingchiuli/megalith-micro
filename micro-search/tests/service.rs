@@ -47,16 +47,16 @@ impl Fixture {
         let listener = TcpListener::bind("127.0.0.1:0").await?;
         let blog = format!("http://{}", listener.local_addr()?);
         let advertised = std::sync::Arc::new(std::sync::atomic::AtomicU64::new(1));
-        let published = advertised.clone();
+        let revision_count = advertised.clone();
         let source = Router::new()
             .route(
                 "/blog/index/status",
                 get(move || {
-                    let count = published.load(std::sync::atomic::Ordering::Relaxed);
+                    let count = revision_count.load(std::sync::atomic::Ordering::Relaxed);
                     async move {
                         Json(json!({"code":200, "data":{
                             "readOnly":true, "readyEvents":0, "pausedEvents":0, "total":2,
-                            "publishedTotal":count
+                            "publishedTotal":1, "revisionTotal":count
                         }}))
                     }
                 }),
@@ -98,6 +98,9 @@ impl Fixture {
         format!("http://127.0.0.1:{}{path}", self.port)
     }
     async fn launch(&self, maintenance: bool) -> Result<Process> {
+        self.launch_with_engine(maintenance, &self.meili).await
+    }
+    async fn launch_with_engine(&self, maintenance: bool, engine: &str) -> Result<Process> {
         let child = Command::new(env!("CARGO_BIN_EXE_micro-search"))
             .env("SERVER_PORT", self.port.to_string())
             .env("SERVER_ADDRESS", "127.0.0.1")
@@ -107,7 +110,7 @@ impl Fixture {
             .env("SPRING_RABBITMQ_VIRTUAL_HOST", "search-test")
             .env("SPRING_RABBITMQ_USERNAME", "integration")
             .env("SPRING_RABBITMQ_PASSWORD", "integration")
-            .env("MEGALITH_SEARCH_MEILISEARCH_URL", &self.meili)
+            .env("MEGALITH_SEARCH_MEILISEARCH_URL", engine)
             .env("MEGALITH_SEARCH_MEILISEARCH_KEY", &self.key)
             .env("MEGALITH_SEARCH_INDEX_ALIAS", &self.public)
             .env("MEGALITH_SEARCH_INDEX_ADMIN_ALIAS", &self.admin)
@@ -139,6 +142,24 @@ impl Fixture {
             sleep(Duration::from_millis(100)).await;
         }
         anyhow::bail!("search readiness timeout")
+    }
+    async fn index_uids(&self) -> Result<std::collections::BTreeSet<String>> {
+        let list: Value = self
+            .http
+            .get(format!("{}/indexes?limit=10000", self.meili))
+            .bearer_auth(&self.key)
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?;
+        Ok(list["results"]
+            .as_array()
+            .context("missing index list")?
+            .iter()
+            .filter_map(|v| v["uid"].as_str())
+            .map(str::to_owned)
+            .collect())
     }
     async fn post(&self, path: &str, body: Value) -> Result<Value> {
         let v: Value = self
@@ -186,16 +207,17 @@ fn batch(q: &HashMap<String, String>, cursor: &str, rows: Vec<Value>, nested: bo
     Json(json!({"code":200,"data":rows}))
 }
 fn blog_row(id: i64, rev: i64, title: &str) -> Value {
-    json!({"id":id,"userId":42,"title":title,"link":"cover","readCount":id,"revision":rev,"status":0,"created":"2026-01-01T08:00:00","publishedAt":"2026-01-01T08:00:00"})
+    json!({"id":id,"userId":42,"title":title,"link":"cover","readCount":id,"revision":rev,"content":"full article body","status":0,"created":"2026-01-01T08:00:00","publishedAt":"2026-01-01T08:00:00"})
 }
 fn revision() -> Value {
-    json!({"id":11,"blogId":1,"versionNo":1,"title":"published","createdBy":42,"renderMode":"NORMAL"})
+    json!({"id":11,"blogId":1,"versionNo":1,"title":"published","createdBy":90,"historyGeneration":0,"renderMode":"NORMAL"})
 }
 fn admin_row(id: i64) -> Value {
     let mut data = json!({"blog":{"id":id,"userId":42,"adminRevision":8,"createdAt":"2026-01-01T00:00:00"},"draft":{"title":"草稿","draftRevision":2}});
     if id == 1 {
         data["blog"]["publishedRevisionId"] = 11.into();
         data["publishedRevision"] = revision();
+        data["publishedRevision"]["firstPublishedAt"] = "2026-01-15T08:00:00".into();
     }
     data
 }
@@ -252,6 +274,7 @@ async fn contracts_events_cursors_and_rebuild() -> Result<()> {
     );
     drop(normal);
     let _maintenance = f.launch(true).await?;
+    let indexes_before = f.index_uids().await?;
     f.advertised.store(3, std::sync::atomic::Ordering::Relaxed);
     assert_eq!(
         f.http
@@ -262,6 +285,7 @@ async fn contracts_events_cursors_and_rebuild() -> Result<()> {
         409
     );
     f.await_doc(&f.public, 1, "deleted", true.into()).await?;
+    assert_eq!(f.index_uids().await?, indexes_before);
     f.advertised.store(1, std::sync::atomic::Ordering::Relaxed);
     let rebuilt = f.post("/inner/search/index/rebuild", Value::Null).await?;
     let indexes = rebuilt["indexes"]
@@ -277,6 +301,70 @@ async fn contracts_events_cursors_and_rebuild() -> Result<()> {
     f.await_doc(&f.public, 1, "title", "rebuilt".into()).await?;
     let old = indexes[0]["previousIndex"].as_str().unwrap();
     f.await_doc(old, 1, "deleted", true.into()).await?;
+    drop(_maintenance);
+    verify_lost_swap_response(&f).await?;
+    Ok(())
+}
+
+// Forward the swap to the engine, then lose its response at the HTTP boundary.
+async fn verify_lost_swap_response(f: &Fixture) -> Result<()> {
+    use axum::{
+        body::Bytes,
+        http::{Method, StatusCode, Uri},
+        response::IntoResponse,
+    };
+    use std::sync::{Arc, Mutex};
+    let observed = Arc::new(Mutex::new(Vec::<Value>::new()));
+    let swaps = observed.clone();
+    let engine = f.meili.clone();
+    let key = f.key.clone();
+    let client = f.http.clone();
+    let proxy = Router::new().fallback(move |method: Method, uri: Uri, body: Bytes| {
+        let (client, engine, key, swaps) =
+            (client.clone(), engine.clone(), key.clone(), swaps.clone());
+        async move {
+            let response = client
+                .request(method, format!("{engine}{uri}"))
+                .bearer_auth(key)
+                .header("content-type", "application/json")
+                .body(body.clone())
+                .send()
+                .await
+                .unwrap();
+            if uri.path() == "/swap-indexes" {
+                assert!(response.status().is_success());
+                swaps
+                    .lock()
+                    .unwrap()
+                    .push(serde_json::from_slice(&body).unwrap());
+                return (
+                    StatusCode::BAD_GATEWAY,
+                    Json(json!({"code":"lost_response"})),
+                )
+                    .into_response();
+            }
+            (response.status(), response.bytes().await.unwrap()).into_response()
+        }
+    });
+    let socket = TcpListener::bind("127.0.0.1:0").await?;
+    let url = format!("http://{}", socket.local_addr()?);
+    let listener = tokio::spawn(async move { axum::serve(socket, proxy).await.unwrap() });
+    let _process = f.launch_with_engine(true, &url).await?;
+    assert_eq!(
+        f.http
+            .post(f.url("/inner/search/index/rebuild"))
+            .send()
+            .await?
+            .status(),
+        500
+    );
+    let swaps = observed.lock().unwrap().clone();
+    assert_eq!(swaps.len(), 1);
+    let existing = f.index_uids().await?;
+    for pair in swaps[0].as_array().unwrap() {
+        assert!(existing.contains(pair["indexes"][1].as_str().unwrap()));
+    }
+    listener.abort();
     Ok(())
 }
 
@@ -335,6 +423,7 @@ async fn verify_public_search_and_cursor(f: &Fixture, ch: &lapin::Channel) -> Re
         .json()
         .await?;
     assert_eq!(first["data"]["content"][0]["id"], 5);
+    assert!(first["data"]["content"][0].get("content").is_none());
     let cursor = first["data"]["nextCursor"]
         .as_str()
         .context("missing cursor")?;
@@ -484,9 +573,69 @@ async fn verify_admin_and_versions(f: &Fixture, ch: &lapin::Channel) -> Result<(
     let mut stale = admin_row(1);
     stale["blog"]["adminRevision"] = 7.into();
     stale["draft"]["title"] = "old".into();
+    stale["revision"] = revision();
+    stale["revision"]["id"] = 12.into();
+    stale["publishedRevision"]
+        .as_object_mut()
+        .unwrap()
+        .remove("firstPublishedAt");
     publish(ch, true, stale).await?;
+    // This version is only delivered by the late event. Wait for its writer to release the article.
+    f.await_doc(&f.versions, 12, "articleKey", "b1".into())
+        .await?;
+    wait_article_unlock(f, 1).await?;
+    f.await_doc(
+        &f.versions,
+        11,
+        "firstPublishedAt",
+        "2026-01-15T08:00:00".into(),
+    )
+    .await?;
     let doc = f.await_doc(&f.admin, 1, "adminRevision", 8.into()).await?;
     assert_eq!(doc["draftTitle"], "草稿");
+
+    let mut recovered = admin_row(1);
+    recovered["operation"] = "RECOVER".into();
+    recovered["blog"]["historyGeneration"] = 50.into();
+    recovered["blog"]["publishedRevisionId"] = 50.into();
+    recovered["publishedRevision"]["id"] = 50.into();
+    publish(ch, true, recovered).await?;
+    f.await_doc(&f.admin, 1, "historyGeneration", 50.into())
+        .await?;
+
+    let mut delete = admin_row(1);
+    delete["operation"] = "DELETE".into();
+    publish(ch, true, delete).await?;
+    f.await_doc(&f.versions, 12, "code", "document_not_found".into())
+        .await?;
+    wait_article_unlock(f, 1).await?;
+    let after = f
+        .post(
+            "/inner/blog/revisions/search",
+            json!({"blogId":1,"userId":42,"page":1,"pageSize":10}),
+        )
+        .await?;
+    assert_eq!(after["total"], 1);
+    assert_eq!(after["content"][0]["id"], 50);
+    Ok(())
+}
+
+async fn wait_article_unlock(f: &Fixture, article: i64) -> Result<()> {
+    let mut conn = redis::Client::open(format!("redis://127.0.0.1:{}/", f.redis))?
+        .get_multiplexed_async_connection()
+        .await?;
+    let key = format!("megalith:search:{}:{article}:lock", f.admin);
+    tokio::time::timeout(Duration::from_secs(10), async {
+        while redis::cmd("EXISTS")
+            .arg(&key)
+            .query_async::<bool>(&mut conn)
+            .await?
+        {
+            sleep(Duration::from_millis(10)).await;
+        }
+        Ok::<_, redis::RedisError>(())
+    })
+    .await??;
     Ok(())
 }
 

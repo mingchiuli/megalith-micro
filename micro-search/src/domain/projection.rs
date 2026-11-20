@@ -13,14 +13,6 @@ pub enum IndexKind {
 
 impl IndexKind {
     pub const ALL: [Self; 3] = [Self::Public, Self::Admin, Self::Revision];
-
-    pub fn snapshot_route(self) -> &'static str {
-        match self {
-            Self::Public => "snapshots",
-            Self::Admin => "admin-snapshots",
-            Self::Revision => "revision-snapshots",
-        }
-    }
 }
 
 pub fn number(doc: &Value, key: &str) -> Result<i64> {
@@ -130,8 +122,45 @@ pub struct AdminChange {
     pub published_revision: Option<Value>,
 }
 
-pub fn revision_document(row: &Value) -> Result<Value> {
+// Messages written before the history migration belong to the original article.
+pub fn history_generation(doc: &Value) -> Result<i64> {
+    match doc.get("historyGeneration") {
+        None => Ok(0),
+        Some(value) => value
+            .as_i64()
+            .filter(|n| *n >= 0)
+            .context("invalid history generation"),
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum AdminUpdate {
+    Ignore,
+    MergeVersions,
+    ReplaceArticle,
+}
+
+pub fn admin_update(current: &Value, generation: i64, revision: i64) -> Result<AdminUpdate> {
+    let previous_generation = history_generation(current)?;
+    if generation < previous_generation
+        || (generation == previous_generation && current["deleted"] == true)
+    {
+        return Ok(AdminUpdate::Ignore);
+    }
+    if generation == previous_generation
+        && current["adminRevision"]
+            .as_i64()
+            .is_some_and(|r| r >= revision)
+    {
+        return Ok(AdminUpdate::MergeVersions);
+    }
+    Ok(AdminUpdate::ReplaceArticle)
+}
+
+pub fn revision_document(row: &Value, generation: i64, previous: &Value) -> Result<Value> {
     number(row, "id")?;
+    number(row, "createdBy")?;
+    ensure!(generation >= 0, "invalid history generation");
     let mut doc = select(
         row,
         &[
@@ -151,7 +180,10 @@ pub fn revision_document(row: &Value) -> Result<Value> {
         ],
     );
     doc["articleKey"] = format!("b{}", number(row, "blogId")?).into();
-    doc["ownerKey"] = format!("u{}", number(row, "createdBy")?).into();
+    doc["historyKey"] = format!("g{generation}").into();
+    if !previous["firstPublishedAt"].is_null() {
+        doc["firstPublishedAt"] = previous["firstPublishedAt"].clone();
+    }
     Ok(doc)
 }
 
@@ -173,6 +205,7 @@ pub fn admin_document(change: &AdminChange, current: &Value) -> Result<Value> {
     number(blog, "id")?;
     number(blog, "adminRevision")?;
     doc["ownerKey"] = format!("u{}", number(blog, "userId")?).into();
+    doc["historyGeneration"] = history_generation(blog)?.into();
     let published = blog["publishedRevisionId"]
         .as_i64()
         .or(current["publishedRevisionId"].as_i64());
@@ -228,31 +261,34 @@ pub fn admin_document(change: &AdminChange, current: &Value) -> Result<Value> {
     Ok(doc)
 }
 
-pub fn public_read(doc: &Value) -> Value {
-    let mut result = select(
-        doc,
-        &[
-            "id",
-            "userId",
-            "publishedRevisionId",
-            "versionNo",
-            "title",
-            "description",
-            "content",
-            "link",
-            "readCount",
-            "created",
-            "publishedAt",
-            "offlineAt",
-            "accessMode",
-            "renderMode",
-            "sensitiveContent",
-        ],
-    );
-    if result["sensitiveContent"].is_null() {
-        result["sensitiveContent"] = json!([]);
+pub const RECOMMENDATION_FIELDS: &[&str] = &[
+    "id",
+    "title",
+    "description",
+    "link",
+    "readCount",
+    "created",
+    "publishedAt",
+    "renderMode",
+    "sensitiveContent",
+];
+
+pub fn rank_recommendations(rows: Vec<Value>, now: i64) -> Result<Vec<Value>> {
+    let mut ranked = Vec::with_capacity(rows.len());
+    for doc in rows {
+        let published = doc["publishedAt"]
+            .as_str()
+            .map(millis)
+            .transpose()?
+            .unwrap_or(now);
+        let days = now.abs_diff(published) as f64 / 86_400_000.;
+        let distance = (days - 30.).max(0.) / 180.;
+        let reads = doc["readCount"].as_u64().unwrap_or(0);
+        let score = (reads as f64).ln_1p() * 0.5f64.powf(distance * distance);
+        ranked.push((score, number(&doc, "id")?, doc));
     }
-    result
+    ranked.sort_by(|a, b| b.0.total_cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
+    Ok(ranked.into_iter().map(|(_, _, row)| row).collect())
 }
 
 pub fn admin_read(doc: &Value, draft: bool) -> Value {
@@ -384,6 +420,36 @@ mod tests {
             assert_eq!(event.operation, expected);
         }
         assert!(serde_json::from_value::<BlogOperation>(json!(4)).is_err());
+    }
+
+    #[test]
+    fn late_edits_cannot_reopen_a_deleted_or_recovered_history() {
+        let deleted = json!({"historyGeneration":0,"adminRevision":10,"deleted":true});
+        assert_eq!(admin_update(&deleted, 0, 9).unwrap(), AdminUpdate::Ignore);
+        assert_eq!(
+            admin_update(&deleted, 50, 10).unwrap(),
+            AdminUpdate::ReplaceArticle
+        );
+        let recovered = json!({"historyGeneration":50,"adminRevision":11,"deleted":false});
+        assert_eq!(
+            admin_update(&recovered, 0, 10).unwrap(),
+            AdminUpdate::Ignore
+        );
+        assert_eq!(
+            admin_update(&recovered, 50, 10).unwrap(),
+            AdminUpdate::MergeVersions
+        );
+    }
+
+    #[test]
+    fn late_revision_creation_preserves_first_publication() {
+        let draft = json!({"id":11,"blogId":7,"createdBy":42});
+        let mut published = draft.clone();
+        published["firstPublishedAt"] = "2026-11-01T00:00:00".into();
+        let created = revision_document(&draft, 7, &Value::Null).unwrap();
+        let first = revision_document(&published, 7, &created).unwrap();
+        assert_eq!(revision_document(&draft, 7, &first).unwrap(), first);
+        assert_eq!(first["firstPublishedAt"], published["firstPublishedAt"]);
     }
 
     #[test]

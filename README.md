@@ -411,6 +411,16 @@ a coordinated maintenance window when old and new replicas are incompatible:
 4. Verify independent new drafts, cross-replica collaboration, historical restoration, 409 on old-epoch
    writes, automatic renewal, and forced closure of a raw client at ticket expiry before restoring traffic.
 
+For the version-history migration, put all blog replicas in read-only mode and drain the BLOG
+outbox, search queues, retries and dead letters using the previous consumers. Stop those consumers,
+apply [the history generation migration](docs/sql/blog-history-generation.sql) to MariaDB, and start
+the updated blog and search services in maintenance mode. Existing rows and newly created articles
+start at generation zero. Each recovery uses the new revision's database-generated ID as its history
+generation. Rebuild before serving version lists, then resume the search consumers before blog writes.
+The rebuild checks the revision index against the source's `revisionTotal` in addition to the public
+and admin counts. If the swap outcome is uncertain, keep all three staging UIDs and check the
+Meilisearch task before retrying or removing an index.
+
 For a search rebuild, set `megalith.blog.maintenance.read-only=true` on **every** blog replica and wait
 for old writable replicas and in-flight writes to finish. Drain the BLOG outbox (including paused rows)
 and both search queues, retries, and dead-letter queues; then stop all search consumers using search

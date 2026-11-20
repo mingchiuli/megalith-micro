@@ -87,6 +87,7 @@ public class BlogWrapper implements BlogWriter {
             revisions.save(
                 BlogPersistenceConvertor.toRecoveredRevisionEntity(blog, event, now));
         identity.setPublishedRevisionId(revision.getId());
+        identity.setHistoryGeneration(revision.getId());
         identity.setPublishedAt(revision.getFirstPublishedAt());
         identity.setPublicationRevision(Math.max(1L, identity.getPublicationRevision()));
         if (blogs.attachRecoveredPublication(

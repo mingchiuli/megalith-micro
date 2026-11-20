@@ -107,15 +107,22 @@ impl Search {
         Ok(json!({"total":total, "currentPage":q.page, "size":q.page_size, "content":content}))
     }
     pub async fn revisions(&self, q: RevisionQuery) -> Result<Value> {
-        let published = self
+        let article = self
             .engine
             .doc(self.cfg.index_uid(IndexKind::Admin), q.blog_id)
-            .await?["publishedRevisionId"]
-            .as_i64();
-        let mut filters = vec![format!("articleKey = b{}", q.blog_id)];
-        if q.all_data != Some(true) {
-            filters.push(format!("ownerKey = u{}", q.user_id));
+            .await?;
+        if article.is_null()
+            || article["deleted"] == true
+            || (q.all_data != Some(true) && article["userId"].as_i64() != Some(q.user_id))
+        {
+            return Ok(json!({"total":0,"currentPage":q.page,"size":q.page_size,"content":[]}));
         }
+        let published = article["publishedRevisionId"].as_i64();
+        let generation = domain::history_generation(&article)?;
+        let filters = [
+            format!("articleKey = b{}", q.blog_id),
+            format!("historyKey = g{generation}"),
+        ];
         let params = json!({
             "q": q.keywords.unwrap_or_default(), "page": q.page, "hitsPerPage": q.page_size,
             "filter": filters, "sort": ["versionNo:desc"]

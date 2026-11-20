@@ -52,7 +52,7 @@ public final class BlogPersistenceConvertor {
             entity.getOfflineAt(),
             BlogAccessMode.of(entity.getAccessMode()),
             entity.getPublicationRevision(),
-            entity.getAdminRevision(), entity.getCollaborationEpoch());
+            entity.getAdminRevision(), entity.getCollaborationEpoch(), entity.getHistoryGeneration());
     }
 
     public static Blog toPublishedBlog(
@@ -182,7 +182,7 @@ public final class BlogPersistenceConvertor {
             blog.getPublicationRevision(),
             blog.getAdminRevision(),
             blog.getReadCount(),
-            blog.getCreated());
+            blog.getCreated(), blog.getHistoryGeneration());
     }
 
     public static BlogDraftSnapshot draftSnapshot(
@@ -205,7 +205,7 @@ public final class BlogPersistenceConvertor {
     }
 
     public static BlogRevisionSnapshot revisionSnapshot(
-        BlogRevisionEntity revision, List<BlogSensitiveSpan> spans) {
+        BlogRevisionEntity revision, List<BlogSensitiveSpan> spans, long historyGeneration) {
         if (revision == null) {
             return null;
         }
@@ -223,7 +223,7 @@ public final class BlogPersistenceConvertor {
             revision.getFirstPublishedAt(),
             revision.getCreatedBy(),
             revision.getCreatedAt(),
-            spans);
+            spans, historyGeneration);
     }
 
     public static Blog draftProjection(BlogEntity blog, BlogDraftEntity draft) {
@@ -274,7 +274,7 @@ public final class BlogPersistenceConvertor {
             identity.publicationRevision(),
             identity.adminRevision(),
             identity.readCount(),
-            identity.created());
+            identity.created(), identity.historyGeneration());
     }
 
     public static BlogDraftSnapshot draftSnapshot(BlogWorkingDraft draft) {
@@ -295,7 +295,7 @@ public final class BlogPersistenceConvertor {
             draft.sensitiveContent());
     }
 
-    public static BlogRevisionSnapshot revisionSnapshot(BlogVersion version) {
+    public static BlogRevisionSnapshot revisionSnapshot(BlogVersion version, long historyGeneration) {
         if (version == null) {
             return null;
         }
@@ -313,7 +313,7 @@ public final class BlogPersistenceConvertor {
             version.firstPublishedAt(),
             version.createdBy(),
             version.createdAt(),
-            version.sensitiveContent());
+            version.sensitiveContent(), historyGeneration);
     }
 
     public static BlogVersion withFirstPublishedAt(
@@ -375,7 +375,7 @@ public final class BlogPersistenceConvertor {
             identity.offlineAt(),
             identity.accessMode(),
             identity.publicationRevision(),
-            adminRevision, identity.collaborationEpoch());
+            adminRevision, identity.collaborationEpoch(), identity.historyGeneration());
     }
 
     public static BlogRevisionEntity toDraftRevisionEntity(BlogVersionWriteCommand command) {
@@ -444,8 +444,8 @@ public final class BlogPersistenceConvertor {
             operation,
             adminSnapshot(identity),
             draftSnapshot(draft),
-            revisionSnapshot(revision),
-            revisionSnapshot(publishedRevision));
+            revisionSnapshot(revision, identity.historyGeneration()),
+            revisionSnapshot(publishedRevision, identity.historyGeneration()));
     }
 
     public static BlogChangedMessage toPublicMessage(
@@ -481,7 +481,7 @@ public final class BlogPersistenceConvertor {
             null,
             BlogAccessMode.of(accessMode),
             safeRevision(original.publicationRevision()) + 1,
-            safeRevision(original.adminRevision()) + 1, nextEpoch);
+            safeRevision(original.adminRevision()) + 1, nextEpoch, original.historyGeneration());
     }
 
     public static BlogIdentity toStatusIdentity(
@@ -498,7 +498,7 @@ public final class BlogPersistenceConvertor {
             offlineAt,
             original.accessMode(),
             safeRevision(original.publicationRevision()) + 1,
-            safeRevision(original.adminRevision()) + 1, original.collaborationEpoch());
+            safeRevision(original.adminRevision()) + 1, original.collaborationEpoch(), original.historyGeneration());
     }
 
     public static BlogEntity toRecoveredEntity(Blog blog, int accessMode, long recoveredAdminRevision) {
@@ -580,7 +580,7 @@ public final class BlogPersistenceConvertor {
                 identity.publicationRevision(),
                 adminRevision,
                 blog.readCount(),
-                blog.created()),
+                blog.created(), identity.historyGeneration()),
             null,
             null,
             null);
@@ -596,8 +596,8 @@ public final class BlogPersistenceConvertor {
             "RECOVER",
             adminSnapshot(identity),
             null,
-            revisionSnapshot(revision, blog.sensitiveContent()),
-            revisionSnapshot(revision, blog.sensitiveContent()));
+            revisionSnapshot(revision, blog.sensitiveContent(), identity.historyGeneration()),
+            revisionSnapshot(revision, blog.sensitiveContent(), identity.historyGeneration()));
     }
 
     public static BlogDeletionTarget toDeletionTarget(
@@ -620,7 +620,7 @@ public final class BlogPersistenceConvertor {
                 identity.id(), identity.userId(), identity.created(), identity.readCount(),
                 identity.publishedRevisionId(), identity.publishedAt(), identity.offlineAt(),
                 identity.accessMode(), safeRevision(identity.publicationRevision()),
-                safeRevision(identity.adminRevision()), identity.collaborationEpoch()));
+                safeRevision(identity.adminRevision()), identity.collaborationEpoch(), identity.historyGeneration()));
     }
 
     public static BlogAdminIndexSnapshot toAdminIndexSnapshot(
