@@ -34,6 +34,8 @@ class CustomRuntimeHintsTest {
 
         for (Class<?> type : List.of(
             Result.class,
+            BlogPublicationContentRpcVo.class,
+            BlogPublicationRpcVo.class,
             PublicBlogRpcVo.class)) {
             assertBinding(hints, type);
         }
@@ -45,8 +47,6 @@ class CustomRuntimeHintsTest {
         new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
 
         for (Class<?> type : List.of(
-            BlogPublicationContentRpcVo.class,
-            BlogPublicationRpcVo.class,
             ReadTokenReq.class,
             BlogExhibitVo.class,
             BlogRecommendationVo.class,

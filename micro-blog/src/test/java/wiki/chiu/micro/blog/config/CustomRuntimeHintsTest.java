@@ -74,6 +74,8 @@ class CustomRuntimeHintsTest {
 
         for (Class<?> type : List.of(
             Result.class,
+            BlogPublicationContentRpcVo.class,
+            BlogPublicationRpcVo.class,
             BlogIndexSourceStatus.class,
             BlogAdminIndexSnapshot.class,
             BlogSnapshot.class,
@@ -112,8 +114,6 @@ class CustomRuntimeHintsTest {
         new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
 
         for (Class<?> type : List.of(
-            BlogPublicationContentRpcVo.class,
-            BlogPublicationRpcVo.class,
             PageAdapter.class,
             BlogEntityReq.class,
             BlogIdVo.class,
