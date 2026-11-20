@@ -1,16 +1,9 @@
 use micro_sync_rs::{
     config::{self, ConfigKey, init_config},
-    init_logger_provider, init_meter_provider, init_tracer_provider, set_route, shutdown_signal,
-    trace_context_middleware,
+    set_route, shutdown_signal, trace_context_middleware,
 };
-use opentelemetry::{global, propagation::TextMapCompositePropagator, trace::TracerProvider};
-use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
-use opentelemetry_sdk::propagation::{BaggagePropagator, TraceContextPropagator};
-use std::env;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
-use tracing_opentelemetry::OpenTelemetryLayer;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 const LOGO: &str = r#"
     _
@@ -25,35 +18,14 @@ fn main() {
         eprintln!("Failed to load config: {:?}", err);
         std::process::exit(1);
     });
-    // Initialize logging
-    unsafe {
-        env::set_var("RUST_LOG", config::get_config(ConfigKey::RustLog));
-    }
-
-    let http_client = reqwest::blocking::Client::new();
-
-    // Initialize OpenTelemetry BEFORE entering async runtime (blocking clients)
-    let tracer_provider = init_tracer_provider(&http_client);
-    global::set_tracer_provider(tracer_provider.clone());
-    let tracer = tracer_provider.tracer(config::get_config(ConfigKey::ServerName));
-
-    let meter_provider = init_meter_provider(&http_client);
-    global::set_meter_provider(meter_provider.clone());
-
-    global::set_text_map_propagator(TextMapCompositePropagator::new(vec![
-        Box::new(TraceContextPropagator::new()),
-        Box::new(BaggagePropagator::new()),
-    ]));
-
-    let logger_provider = init_logger_provider(&http_client);
-
-    // Setup tracing subscriber with OpenTelemetry layers
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer())
-        .with(tracing_subscriber::EnvFilter::from_default_env())
-        .with(OpenTelemetryLayer::new(tracer))
-        .with(OpenTelemetryTracingBridge::new(&logger_provider))
-        .init();
+    let telemetry = config::otlp_config()
+        .init(
+            &config::get_config(ConfigKey::ServerName),
+            env!("CARGO_PKG_VERSION"),
+            &config::get_config(ConfigKey::RustLog),
+            0.05,
+        )
+        .expect("initialize OpenTelemetry");
 
     // Build the Tokio runtime
     let runtime = tokio::runtime::Builder::new_multi_thread()
@@ -90,10 +62,7 @@ fn main() {
         .expect("Server error");
     });
 
-    // Shutdown OpenTelemetry providers AFTER runtime is done (outside async context)
-    let _ = tracer_provider.shutdown();
-    let _ = meter_provider.shutdown();
-    let _ = logger_provider.shutdown();
+    telemetry.shutdown();
 
     println!("Server shutdown completed");
 }

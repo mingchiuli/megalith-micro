@@ -8,7 +8,6 @@ use axum::{
 use serde::Deserialize;
 use std::sync::Arc;
 use tracing::Instrument;
-use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 #[derive(Deserialize)]
 pub(crate) struct InitializeRoom {
@@ -28,11 +27,8 @@ pub(crate) async fn initialize<S: CollaborationStore>(
     {
         return Err(StatusCode::BAD_REQUEST);
     }
-    let parent = opentelemetry::global::get_text_map_propagator(|propagator| {
-        propagator.extract(&crate::extractor::AxumHeaderExtractor(&headers))
-    });
     let span = tracing::info_span!("initialize_collaboration_room");
-    let _ = span.set_parent(parent);
+    megalith_otel::set_parent_from_headers(&span, &headers);
     manager
         .initialize_room(&room_id, &body.content)
         .instrument(span)

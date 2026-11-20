@@ -17,9 +17,8 @@ JAVA_SERVICES = (
     "micro-auth",
     "micro-blog",
     "micro-exhibit",
-    "micro-search",
 )
-RUST_SERVICES = ("micro-sync-rs", "micro-gateway-rs")
+RUST_SERVICES = ("micro-search", "micro-sync-rs", "micro-gateway-rs")
 FRONTEND = "megalith-frontend"
 SERVICE_ORDER = (*JAVA_SERVICES, *RUST_SERVICES, FRONTEND)
 JAVA_DIRECTORIES = (
@@ -73,7 +72,7 @@ def services_for_paths(paths: Iterable[str]) -> set[str]:
             selected.add(FRONTEND)
         elif path.startswith(JAVA_DIRECTORIES) or path in JAVA_FILES:
             selected.update(JAVA_SERVICES)
-        elif path in {"Cargo.toml", "Cargo.lock", ".dockerignore"}:
+        elif path.startswith("crates/") or path in {"Cargo.toml", "Cargo.lock", ".dockerignore"}:
             selected.update(RUST_SERVICES)
         else:
             selected.update(

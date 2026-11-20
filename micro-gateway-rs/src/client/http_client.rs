@@ -1,3 +1,4 @@
+use megalith_otel::inject_trace_context;
 use std::time::Duration;
 
 use axum::http::request::Builder;
@@ -13,10 +14,7 @@ use hyper_util::{
     client::legacy::{Client, connect::HttpConnector},
     rt::TokioExecutor,
 };
-use opentelemetry::global;
-use opentelemetry_http::HeaderInjector;
 use serde::{Serialize, de::DeserializeOwned};
-use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use crate::exception::ClientError;
 
@@ -52,13 +50,6 @@ async fn parse_request(
         request_headers.extend(headers);
     }
     Ok(request)
-}
-
-fn inject_trace_context(headers: &mut HeaderMap) {
-    global::get_text_map_propagator(|propagator| {
-        let current_context = tracing::Span::current().context();
-        propagator.inject_context(&current_context, &mut HeaderInjector(headers));
-    });
 }
 
 pub(crate) async fn post<T: DeserializeOwned>(

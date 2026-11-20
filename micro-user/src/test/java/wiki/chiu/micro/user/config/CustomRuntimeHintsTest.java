@@ -7,9 +7,9 @@ import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.aot.generate.ClassNameGenerator;
 import org.springframework.aot.generate.DefaultGenerationContext;
 import org.springframework.aot.generate.InMemoryGeneratedFiles;
+import org.springframework.aot.generate.NameGenerator;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.annotation.ReflectiveRuntimeHintsRegistrar;
@@ -83,7 +83,7 @@ class CustomRuntimeHintsTest {
         try (var context = new AnnotationConfigApplicationContext()) {
             context.register(JpaProjectionConfiguration.class);
             var generation = new DefaultGenerationContext(
-                new ClassNameGenerator(ClassName.get(getClass())), new InMemoryGeneratedFiles());
+                new NameGenerator(ClassName.get(getClass())), new InMemoryGeneratedFiles());
 
             new ApplicationContextAotGenerator().processAheadOfTime(context, generation);
 

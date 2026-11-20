@@ -1,0 +1,29 @@
+[package]
+name = "micro-search"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+megalith-otel.workspace = true
+axum.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+redis.workspace = true
+reqwest = { workspace = true, features = ["json"] }
+config.workspace = true
+tracing.workspace = true
+opentelemetry.workspace = true
+base64.workspace = true
+url.workspace = true
+futures-util.workspace = true
+anyhow.workspace = true
+jiff = "0.2"
+uuid = { version = "1", features = ["v4", "serde"] }
+lapin = "4.12.3"
+
+[dev-dependencies]
+reqwest = { workspace = true, features = ["query"] }

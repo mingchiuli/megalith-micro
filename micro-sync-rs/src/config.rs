@@ -1,4 +1,5 @@
 use config::{Config, ConfigError, Environment};
+use megalith_otel::OtlpConfig;
 use serde::Deserialize;
 use std::sync::OnceLock;
 
@@ -51,28 +52,6 @@ struct OtelConfig {
 #[derive(Clone, Deserialize)]
 struct ExporterConfig {
     otlp: OtlpConfig,
-}
-
-#[derive(Clone, Deserialize)]
-struct OtlpConfig {
-    traces: TracesConfig,
-    metrics: MetricsConfig,
-    logs: LogsConfig,
-}
-
-#[derive(Clone, Deserialize)]
-struct TracesConfig {
-    endpoint: String,
-}
-
-#[derive(Clone, Deserialize)]
-struct MetricsConfig {
-    endpoint: String,
-}
-
-#[derive(Clone, Deserialize)]
-struct LogsConfig {
-    endpoint: String,
 }
 
 #[derive(Clone, Deserialize)]
@@ -151,4 +130,9 @@ pub fn sync_config() -> SyncConfig {
 
 pub fn worker_config() -> WorkerConfig {
     get_app_config().worker.clone()
+}
+
+/// Signal endpoints from the embedded configuration and environment overrides.
+pub fn otlp_config() -> &'static OtlpConfig {
+    &get_app_config().otel.exporter.otlp
 }

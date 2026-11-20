@@ -1,4 +1,5 @@
 use config::{Config, ConfigError, Environment};
+use megalith_otel::OtlpConfig;
 use serde::Deserialize;
 use std::sync::OnceLock;
 
@@ -21,31 +22,9 @@ struct OtelConfig {
     exporter: ExporterConfig,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct ExporterConfig {
     otlp: OtlpConfig,
-}
-
-#[derive(Debug, Deserialize)]
-struct OtlpConfig {
-    traces: TracesConfig,
-    metrics: MetricsConfig,
-    logs: LogsConfig,
-}
-
-#[derive(Debug, Deserialize)]
-struct TracesConfig {
-    endpoint: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct MetricsConfig {
-    endpoint: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct LogsConfig {
-    endpoint: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -142,4 +121,9 @@ pub fn get_config(key: ConfigKey) -> String {
 /// 服务名静态引用，直接从全局配置借用，无需 clone 或泄漏
 pub fn server_name() -> &'static str {
     get_app_config().server.name.as_str()
+}
+
+/// Signal endpoints from the embedded configuration and environment overrides.
+pub fn otlp_config() -> &'static OtlpConfig {
+    &get_app_config().otel.exporter.otlp
 }

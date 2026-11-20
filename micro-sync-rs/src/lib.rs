@@ -2,15 +2,9 @@ mod adapter;
 mod application;
 pub mod config;
 mod domain;
-mod extractor;
 mod middleware;
-mod otel;
 mod route;
 mod shutdown;
-
-pub use otel::init_logger_provider;
-pub use otel::init_meter_provider;
-pub use otel::init_tracer_provider;
 
 pub use middleware::trace_context_middleware;
 

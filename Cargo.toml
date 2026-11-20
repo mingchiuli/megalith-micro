@@ -1,5 +1,5 @@
 [workspace]
-members = ["micro-gateway-rs", "micro-sync-rs"]
+members = ["micro-gateway-rs", "micro-sync-rs", "micro-search", "crates/otel"]
 resolver = "2"
 
 [workspace.package]
@@ -10,6 +10,8 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/mingchiuli/megalith-micro"
 
 [workspace.dependencies]
+megalith-otel = { path = "crates/otel" }
+anyhow = "1"
 # Async runtime
 tokio = { version = "1.52.3", features = ["full"] }
 

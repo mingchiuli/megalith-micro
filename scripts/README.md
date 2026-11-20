@@ -45,9 +45,10 @@ OpenObserve settings.
 
 Pull requests use their base/head merge base for change selection, falling back to all services when
 commits are unavailable. PRs run quality checks only; image publication and deployment jobs reject
-PR events. Java quality checks include auth, user, blog, exhibit, search, and cache integration tests.
+PR events. Java quality checks include auth, user, blog, exhibit, and cache integration tests.
 The exhibit image build also verifies native startup and Redis queries over Docker DNS with an
 isolated Redis/RabbitMQ network. The fixture declares the blog-owned exchange and exhibit queue
 before startup, matching production deployment order.
+Rust quality also starts the search binary against Redis, RabbitMQ and Meilisearch and tests its HTTP and message contracts.
 Frontend quality runs the full `frontend:check`, including SSR builds and smoke tests. Workflow
 selection/guard tests run through `python3 -m unittest discover -s scripts/tests`.

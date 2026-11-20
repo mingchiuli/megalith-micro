@@ -1,0 +1,16 @@
+*
+!Cargo.toml
+!Cargo.lock
+!micro-gateway-rs/
+!micro-gateway-rs/**
+!micro-sync-rs/
+!micro-sync-rs/**
+
+!micro-search/
+micro-search/**
+!micro-search/Cargo.toml
+!micro-search/src/
+!micro-search/src/**
+!micro-search/application.yml
+!crates/
+!crates/**

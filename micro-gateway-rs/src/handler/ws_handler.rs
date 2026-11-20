@@ -4,6 +4,7 @@ use axum::extract::ws::{CloseFrame, Message, WebSocket};
 use axum::response::{IntoResponse, Response};
 use futures_util::{SinkExt, StreamExt};
 use hyper::Uri;
+use megalith_otel::inject_trace_context;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tokio::time::{Instant, timeout, timeout_at};
 use tokio_tungstenite::connect_async;
@@ -13,8 +14,7 @@ use tracing::{Instrument, Span, instrument};
 use crate::constant;
 use crate::exception::{ClientError, HandlerError};
 use crate::proxy::{
-    AuthorizedRoute, inject_trace_context, parse_url, principal_header_value, to_axum_message,
-    to_tungstenite_message,
+    AuthorizedRoute, parse_url, principal_header_value, to_axum_message, to_tungstenite_message,
 };
 
 const CLOSE_DOWNSTREAM_UNAVAILABLE: u16 = 4503;

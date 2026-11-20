@@ -26,7 +26,7 @@ tasks.register<Test>("integrationTest") {
 
 dependencies {
     runtimeOnly(project(":common-native-hints"))
-    implementation("org.springframework.boot:spring-boot-starter-amqp")
+    implementation("org.springframework.boot:spring-boot-starter-rabbitmq")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation(project(":api-user"))

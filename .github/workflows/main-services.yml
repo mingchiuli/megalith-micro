@@ -35,6 +35,7 @@ on:
       - 'gradlew'
       - 'gradlew.bat'
       - 'gradle.properties'
+      - 'crates/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'package.json'
@@ -120,6 +121,31 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
+      rabbitmq:
+        image: rabbitmq:4.3.4-management
+        env:
+          RABBITMQ_DEFAULT_USER: integration
+          RABBITMQ_DEFAULT_PASS: integration
+          RABBITMQ_DEFAULT_VHOST: search-test
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      meilisearch:
+        image: getmeili/meilisearch:v1.57.0
+        env:
+          MEILI_MASTER_KEY: integration-test-key
+          MEILI_NO_ANALYTICS: "true"
+        ports:
+          - 7700:7700
+        options: >-
+          --health-cmd "curl -fsS http://localhost:7700/health"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -138,6 +164,9 @@ jobs:
         run: python3 -m scripts.checks rust-redis
         env:
           MICRO_SYNC_TEST_REDIS_URL: redis://127.0.0.1:6379/
+
+      - name: Test search contracts, message delivery and index rebuild
+        run: python3 -m scripts.checks search-integration
 
   quality-frontend:
     name: Frontend Quality Gate

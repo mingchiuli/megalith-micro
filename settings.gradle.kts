@@ -4,7 +4,6 @@ include(
         "micro-auth",
         "micro-blog",
         "micro-user",
-        "micro-search",
         "micro-exhibit",
         "api-auth",
         "api-user",

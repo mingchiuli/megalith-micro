@@ -36,6 +36,9 @@ class ServiceSelectionTest(unittest.TestCase):
             "common-native-hints/src/main/java/wiki/chiu/micro/common/nativehints/config/NettyRuntimeHints.java"
         ]))
 
+    def test_shared_rust_telemetry_builds_every_rust_service(self) -> None:
+        self.assertEqual(set(services.RUST_SERVICES), services.services_for_paths(["crates/otel/src/lib.rs"]))
+
     def test_pr_cannot_enter_any_publish_or_deploy_job(self) -> None:
         workflow = Path(".github/workflows/main-services.yml").read_text()
         for name in ("build-java", "build-rust", "build-frontend", "deploy"):

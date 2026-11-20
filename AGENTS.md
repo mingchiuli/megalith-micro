@@ -6,11 +6,11 @@ this file records the implementation constraints that are easy to miss.
 
 ## Toolchain
 
-- Java 25 (GraalVM 25.5 Innovation HotSpot), Spring Boot 4.1.2, Hibernate ORM
-  enhancer plugin 7.4.15.Final, Redisson 4.8.0, and Caffeine. Runtime dependencies use the
+- Java 25 (GraalVM 25.5 Innovation HotSpot), Spring Boot 4.2.0, Hibernate ORM
+  enhancer plugin 7.4.16.Final, Redisson 4.8.0, and Caffeine. Runtime dependencies use the
   Spring Boot BOM; the Hibernate plugin version is pinned separately in `build.gradle.kts`.
 - Gradle 9.9.1 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
-- Rust 2024 for `micro-gateway-rs` and `micro-sync-rs`.
+- Rust 2024 for `micro-gateway-rs`, `micro-sync-rs`, and `micro-search`.
 - Bun 1.4.4, Vue 3, and Vite for the standalone `micro-frontend` service; `tsrs` with the
   Vize content mapper checks TypeScript and Vue types. The frontend Docker builder uses Bun 1.4.4.
 
@@ -27,7 +27,7 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.5.5.0.3+1.1/Conten
 ./gradlew :micro-auth:test
 # Separate Testcontainers suites; requires Docker, not included in build/check.
 ./gradlew :micro-auth:integrationTest :micro-user:integrationTest :micro-blog:integrationTest \
-  :micro-exhibit:integrationTest :micro-search:integrationTest :cache:integrationTest
+  :micro-exhibit:integrationTest :cache:integrationTest
 ./gradlew :micro-auth:nativeCompile
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
@@ -49,8 +49,8 @@ Rust toolchain, Bun runtime, or source tree in a production image.
 
 | Area | Modules | Responsibility |
 | --- | --- | --- |
-| Applications | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java native services |
-| Rust applications | `micro-gateway-rs`, `micro-sync-rs` | Gateway proxy and Redis-backed collaboration |
+| Applications | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit` | Java native services |
+| Rust applications | `micro-gateway-rs`, `micro-sync-rs`, `micro-search` | Gateway, Redis-backed collaboration, and Meilisearch projections |
 | Frontend | `micro-frontend` | Vue SSR, hydration, and embedded static assets |
 | Contracts | `api-auth`, `api-user`, `api-blog`, `api-search` | Typed HTTP interfaces and RPC models |
 | Shared Java | `common-*` | Contract, RPC, web, auth, observability, messaging, scheduling, outbox, export, shared layering rules |
@@ -139,7 +139,10 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
 14. **Rust boundaries match service responsibilities.** `micro-sync-rs` keeps protocol and state in
     `domain`, orchestration and store traits in `application`, Axum delivery in `adapter.inbound`, and
     Redis connections, errors, keys, Stream IDs, workers, and Lua calls in `adapter.outbound.redis`.
-    Inbound adapters call `RoomManager` rather than the concrete store. `micro-gateway-rs` remains a
+    Inbound adapters call `RoomManager` rather than the concrete store. `micro-search` keeps article
+    projections in `domain`, query and rebuild orchestration in `application`, and HTTP, Redis,
+    Meilisearch, and RabbitMQ in `adapter`. Declare Rust modules in same-name `.rs` files.
+    Shared OTLP providers and W3C header propagation live in `crates/otel`. `micro-gateway-rs` remains a
     transport-oriented edge service: authentication belongs to `client`, no-I/O forwarding rules
     belong to `proxy`, and handlers/middleware coordinate them without an artificial domain layer.
 15. **Common module packages.** Shared infrastructure modules use dedicated roots under

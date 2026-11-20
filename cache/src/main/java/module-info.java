@@ -27,7 +27,7 @@ module wiki.chiu.micro.cache {
     requires spring.boot.autoconfigure;
     requires static spring.amqp;
     requires static spring.rabbit;
-    requires static spring.boot.amqp;
+    requires static spring.boot.rabbitmq;
     requires jakarta.annotation;
     requires org.jspecify;
     requires tools.jackson.databind;

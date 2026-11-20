@@ -21,8 +21,10 @@ RUN apt-get update \
 WORKDIR /usr/src/app
 
 COPY Cargo.toml Cargo.lock ./
+COPY crates ./crates
 COPY micro-gateway-rs ./micro-gateway-rs
 COPY micro-sync-rs ./micro-sync-rs
+COPY micro-search ./micro-search
 
 RUN cargo build --locked --release -p micro-gateway-rs
 

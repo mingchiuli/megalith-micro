@@ -4,15 +4,11 @@ mod constant;
 mod exception;
 mod handler;
 mod middleware;
-mod otel;
 mod proxy;
 mod result;
 mod shutdown;
 
 pub use middleware::trace_context_middleware;
-pub use otel::init_logger_provider;
-pub use otel::init_meter_provider;
-pub use otel::init_tracer_provider;
 
 pub use client::GatewayState;
 pub use middleware::auth_process;

@@ -5,10 +5,8 @@ use axum::extract::{Path, State};
 use axum::http::HeaderMap;
 use axum::response::IntoResponse;
 use futures_util::StreamExt;
-use opentelemetry::global;
 use tokio::sync::broadcast;
 use tracing::Instrument;
-use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use crate::application::error::StoreResult;
 use crate::application::port::CollaborationStore;
@@ -17,7 +15,7 @@ use crate::domain::protocol::{
     ClientMessage, decode_client_message, encode_awareness, initial_messages,
     merge_awareness_updates, sync_step2,
 };
-use crate::extractor::AxumHeaderExtractor;
+use megalith_otel::set_parent_from_headers;
 
 const CLOSE_PROTOCOL_ERROR: u16 = 1002;
 const CLOSE_TRY_AGAIN_LATER: u16 = 1013;
@@ -31,15 +29,12 @@ pub(crate) async fn ws_handler<S>(
 where
     S: CollaborationStore,
 {
-    let parent_context = global::get_text_map_propagator(|propagator| {
-        propagator.extract(&AxumHeaderExtractor(&headers))
-    });
     let span = tracing::info_span!(
         "websocket_connection",
         room_id = %room_id,
         otel.name = format!("WebSocket: /rooms/{room_id}")
     );
-    let _ = span.set_parent(parent_context);
+    set_parent_from_headers(&span, &headers);
     ws.on_upgrade(move |socket| peer(socket, room_manager, room_id).instrument(span))
 }
 

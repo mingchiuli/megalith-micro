@@ -7,6 +7,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+megalith-otel.workspace = true
 # CRDT specific
 yrs.workspace = true
 redis.workspace = true
@@ -17,17 +18,8 @@ tokio.workspace = true
 serde = { workspace = true, features = ["rc"] }
 serde_json.workspace = true
 tracing.workspace = true
-tracing-subscriber.workspace = true
 futures-util = { workspace = true, features = ["sink"] }
 bytes.workspace = true
-
-# OpenTelemetry
-opentelemetry.workspace = true
-opentelemetry_sdk.workspace = true
-opentelemetry-otlp.workspace = true
-tracing-opentelemetry.workspace = true
-opentelemetry-appender-tracing.workspace = true
-reqwest.workspace = true
 
 # Config
 config.workspace = true

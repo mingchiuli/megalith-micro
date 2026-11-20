@@ -198,9 +198,9 @@ dependencies {
     api("com.github.ben-manes.caffeine:caffeine")
     api("org.aspectj:aspectjweaver")
     api("io.micrometer:micrometer-core")
-    compileOnly("org.springframework.boot:spring-boot-amqp")
+    compileOnly("org.springframework.boot:spring-boot-rabbitmq")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    testImplementation("org.springframework.boot:spring-boot-amqp")
+    testImplementation("org.springframework.boot:spring-boot-rabbitmq")
     testImplementation("com.tngtech.archunit:archunit-junit5")
     testImplementation(project(":common-arch"))
     add(

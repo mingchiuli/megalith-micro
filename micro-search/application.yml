@@ -1,0 +1,34 @@
+server:
+  port: 8085
+  address: 0.0.0.0
+spring:
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: 123456
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+megalith:
+  blog:
+    blog-url: http://127.0.0.1:8082/inner
+    blog-page-size: 5
+  search:
+    meilisearch:
+      url: http://127.0.0.1:7700
+      key: ""
+      task-timeout: 2m
+    maintenance:
+      enabled: false
+    index:
+      alias: blog_search
+      admin-alias: blog_admin_search
+      revision-alias: blog_revision_search
+      rebuild-batch-size: 500
+      max-total-hits: 1000000
+    recommendation:
+      snapshot-ttl: 2m

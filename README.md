@@ -1,20 +1,20 @@
 # Megalith Micro
 
 [![GraalVM](https://img.shields.io/badge/GraalVM-25.5%20Innovation-f29111.svg)](https://www.graalvm.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-6db33f.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.2-6db33f.svg)](https://spring.io/projects/spring-boot)
 [![Rust](https://img.shields.io/badge/Rust-2024-000000.svg)](https://www.rust-lang.org/)
 [![Bun](https://img.shields.io/badge/Bun-1.4-000000.svg?logo=bun&logoColor=white)](https://bun.sh/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 Megalith Micro is a cloud-native blogging and content-management platform with public publishing,
 administration, full-text search, and collaborative editing. This monorepo brings together Java
-business services, a Rust gateway and collaboration service, and a Vue SSR frontend.
+business services, Rust services for routing, search, and collaboration, and a Vue SSR frontend.
 
 > Inspired by Zhiming Zhou's _The Phoenix Architecture_ (《凤凰架构》), the project explores
 > software architecture through a working application, evolving from a monolith through
 > distributed systems and microservices to a cloud-native deployment.
 
-Every application is delivered as a **single native executable in its own OCI image**. The five
+Every application is delivered as a **single native executable in its own OCI image**. The four
 Spring Boot services compile ahead of time with GraalVM Native Image, the Rust services build as
 release binaries, and Bun packages the frontend server and assets into a standalone executable.
 Production application images contain the executable and minimal OS runtime files, without a
@@ -22,8 +22,8 @@ separate JVM, JRE, Bun installation, build toolchain, or source tree.
 
 | Applications | Technology | Production artifact |
 | --- | --- | --- |
-| `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit`, `micro-search` | Java 25, Spring Boot 4.1.2, GraalVM 25.5 Innovation | GraalVM Native Image executable |
-| `micro-gateway-rs`, `micro-sync-rs` | Rust 2024, Tokio, Axum | Rust release executable |
+| `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit` | Java 25, Spring Boot 4.2.0, GraalVM 25.5 Innovation | GraalVM Native Image executable |
+| `micro-gateway-rs`, `micro-sync-rs`, `micro-search` | Rust 2024, Tokio, Axum | Rust release executable |
 | `micro-frontend` | Bun 1.4, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
 MariaDB, Redis, RabbitMQ, Meilisearch, and OpenObserve use their standard
@@ -238,7 +238,7 @@ with the same `cache-v` release version.
 
 ### Java application boundaries
 
-The five Java applications use the same ports-and-adapters layout for their core code:
+The four Java applications use the same ports-and-adapters layout for their core code:
 
 | Package | Responsibility |
 | --- | --- |
@@ -280,6 +280,15 @@ outside write transactions remain supported. Data conversion belongs in dedicate
 `*Convertor` classes.
 
 ### Rust application boundaries
+
+`micro-search` runs on Tokio and Axum at port 8085. Its HTTP service name, Java
+`api-search` contracts, Meilisearch index UIDs, Redis recommendation cursors and RabbitMQ
+queues are shared with existing deployments. The binary embeds `micro-search/application.yml`. All three Rust services use the
+`megalith-otel` workspace crate in `crates/otel` for OTLP traces, metrics, logs and W3C propagation.
+Compose may supply the existing dotted Spring configuration keys or their uppercase environment
+forms, including the Redis password, RabbitMQ credentials and Meilisearch key. Public writes,
+read-count batches and recommendation snapshots coordinate across replicas in Redis.
+
 
 The collaboration service separates protocol, application, and infrastructure concerns. The
 gateway organizes its code around authentication, forwarding policies, and HTTP/WebSocket delivery:
@@ -441,10 +450,12 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.5.5.0.3+1.1/Conten
 ./gradlew build
 # Docker is required for these separate Testcontainers suites.
 ./gradlew :micro-auth:integrationTest :micro-user:integrationTest :micro-blog:integrationTest \
-  :micro-exhibit:integrationTest :micro-search:integrationTest :cache:integrationTest
+  :micro-exhibit:integrationTest :cache:integrationTest
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
+# Isolated Redis, RabbitMQ and Meilisearch, with credentials from the Rust CI job.
+python3 -m scripts.checks search-integration
 # Requires a Redis 8 instance on localhost.
 MICRO_SYNC_TEST_REDIS_URL=redis://127.0.0.1:6379/ \
   cargo test -p micro-sync-rs redis_store_round_trip_when_configured -- --ignored
@@ -454,7 +465,7 @@ bun run frontend:check
 
 `./gradlew build` covers unit tests, ArchUnit boundaries, and Spring test AOT processing.
 The separate `integrationTest` tasks above are not attached to `build` or `check`.
-CI also runs all six Java integration suites on pull requests and before image publication.
+CI also runs all five Java integration suites on pull requests and before image publication.
 Pull requests run quality checks without publishing images or deploying. The blog startup integration
 test boots the real application with MariaDB, Redis, and RabbitMQ, then checks health, draft creation,
 collaboration initialization, and outbound trace propagation. To smoke-test the actual Native Image as well:
@@ -503,6 +514,7 @@ Spring Boot Buildpacks build and publish each Java service as a GraalVM Native I
 The Rust and Bun services use multi-stage Dockerfiles:
 
 ```bash
+docker build -t megalith-micro-search:latest -f micro-search/Dockerfile .
 docker build -t megalith-micro-gateway-rs:latest -f micro-gateway-rs/Dockerfile .
 docker build -t megalith-micro-sync-rs:latest -f micro-sync-rs/Dockerfile .
 docker build -t mingchiuli/megalith-frontend:latest -f micro-frontend/Dockerfile .
@@ -522,6 +534,7 @@ Run individual services with their development toolchains:
 ```bash
 ./gradlew :micro-auth:bootRun
 cargo run -p micro-gateway-rs
+cargo run -p micro-search
 bun run frontend:dev
 ```
 
@@ -529,7 +542,7 @@ The frontend development server listens on `http://127.0.0.1:1919` and expects t
 `http://127.0.0.1:8088`. For local HTTP login, run `micro-auth` with
 `MEGALITH_AUTH_COOKIE_SECURE=false`.
 
-The development profiles use MariaDB, Redis, RabbitMQ, Meilisearch on port 7700 and
+The development defaults use MariaDB, Redis, RabbitMQ, Meilisearch on port 7700 and
 OpenObserve on port 5080. Supply the Meilisearch key to `micro-search` and inject the
 OTLP endpoints and authorization headers through the application environment.
 For an existing blog database follow the [search rebuild procedure](#collaboration-compatibility-and-search-rebuilds)

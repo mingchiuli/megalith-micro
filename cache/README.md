@@ -102,7 +102,7 @@ The application must provide a configured `RedissonClient` bean. The starter int
 own Redis addresses, credentials, topology, or client lifecycle. A Spring Boot `JsonMapper` is also
 required and is provided by `spring-boot-starter-jackson`.
 
-RabbitMQ eviction additionally requires `spring-boot-starter-amqp`, a `ConnectionFactory` with
+RabbitMQ eviction additionally requires `spring-boot-starter-rabbitmq`, a `ConnectionFactory` with
 publisher confirms and returns enabled, and the Rabbit properties below. `AUTO` selects Rabbit only
 when those Rabbit cache properties and a connection factory are present; otherwise it uses the Redis
 reliable topic transport.

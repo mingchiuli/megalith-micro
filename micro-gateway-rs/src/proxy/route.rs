@@ -5,9 +5,6 @@ use axum::{
 };
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use hyper::{HeaderMap, Method, Uri, body::Incoming, header};
-use opentelemetry::global;
-use opentelemetry_http::HeaderInjector;
-use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use super::model::{AuthPrincipal, AuthRouteRequest, AuthorizedRoute};
 use super::request::{REFRESH_TOKEN_COOKIE, cookie_value, get_ip_from_headers};
@@ -120,13 +117,6 @@ fn remove_hop_by_hop_headers(headers: &mut HeaderMap) {
     ] {
         headers.remove(name);
     }
-}
-
-pub(crate) fn inject_trace_context(headers: &mut HeaderMap) {
-    global::get_text_map_propagator(|propagator| {
-        let current_context = tracing::Span::current().context();
-        propagator.inject_context(&current_context, &mut HeaderInjector(headers));
-    });
 }
 
 #[cfg(test)]
