@@ -123,16 +123,8 @@ public class BlogDraftEntity {
         return draftRevision;
     }
 
-    public void setDraftRevision(Long draftRevision) {
-        this.draftRevision = draftRevision;
-    }
-
     public Long getBasePublishedRevisionId() {
         return basePublishedRevisionId;
-    }
-
-    public void setBasePublishedRevisionId(Long basePublishedRevisionId) {
-        this.basePublishedRevisionId = basePublishedRevisionId;
     }
 
     public String getTitle() {
@@ -147,48 +139,24 @@ public class BlogDraftEntity {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public String getContent() {
         return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
     }
 
     public String getLink() {
         return link;
     }
 
-    public void setLink(String link) {
-        this.link = link;
-    }
-
     public BlogRenderMode getRenderMode() {
         return renderMode;
-    }
-
-    public void setRenderMode(BlogRenderMode renderMode) {
-        this.renderMode = renderMode;
     }
 
     public Long getUpdatedBy() {
         return updatedBy;
     }
 
-    public void setUpdatedBy(Long updatedBy) {
-        this.updatedBy = updatedBy;
-    }
-
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     @Override

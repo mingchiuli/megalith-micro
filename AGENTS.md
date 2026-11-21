@@ -10,7 +10,8 @@ this file records the implementation constraints that are easy to miss.
   enhancer plugin 7.4.16.Final, Redisson 4.8.0, and Caffeine. Runtime dependencies use the
   Spring Boot BOM; the Hibernate plugin version is pinned separately in `build.gradle.kts`.
 - Gradle 9.9.1 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
-- Rust 2024 for `micro-gateway-rs`, `micro-sync-rs`, and `micro-search`.
+- Rust 2024 for `micro-gateway-rs`, `micro-sync-rs`, and `micro-search-rs`. Use the `-rs` suffix
+  for Rust service directories and Cargo package names. Shared libraries under `crates/` omit it.
 - Bun 1.4.4, Vue 3, and Vite for the standalone `micro-frontend` service; `tsrs` with the
   Vize content mapper checks TypeScript and Vue types. The frontend Docker builder uses Bun 1.4.4.
 
@@ -50,9 +51,9 @@ Rust toolchain, Bun runtime, or source tree in a production image.
 | Area | Modules | Responsibility |
 | --- | --- | --- |
 | Applications | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit` | Java native services |
-| Rust applications | `micro-gateway-rs`, `micro-sync-rs`, `micro-search` | Gateway, Redis-backed collaboration, and Meilisearch projections |
+| Rust applications | `micro-gateway-rs`, `micro-sync-rs`, `micro-search-rs` | Gateway, Redis-backed collaboration, and Meilisearch projections |
 | Frontend | `micro-frontend` | Vue SSR, hydration, and embedded static assets |
-| Contracts | `api-auth`, `api-user`, `api-blog`, `api-search` | Typed HTTP interfaces and RPC models |
+| Java service contracts | `api-auth`, `api-user`, `api-blog` | Typed HTTP interfaces and RPC models |
 | Shared Java | `common-*` | Contract, RPC, web, auth, observability, messaging, scheduling, outbox, export, shared layering rules |
 | Cache | `cache` | Caffeine L1, Redis L2, and distributed eviction |
 
@@ -139,7 +140,7 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
 14. **Rust boundaries match service responsibilities.** `micro-sync-rs` keeps protocol and state in
     `domain`, orchestration and store traits in `application`, Axum delivery in `adapter.inbound`, and
     Redis connections, errors, keys, Stream IDs, workers, and Lua calls in `adapter.outbound.redis`.
-    Inbound adapters call `RoomManager` rather than the concrete store. `micro-search` keeps article
+    Inbound adapters call `RoomManager` rather than the concrete store. `micro-search-rs` keeps article
     projections in `domain`, query and rebuild orchestration in `application`, and HTTP, Redis,
     Meilisearch, and RabbitMQ in `adapter`. Declare Rust modules in same-name `.rs` files.
     Shared OTLP providers and W3C header propagation live in `crates/otel`. `micro-gateway-rs` remains a
@@ -196,7 +197,9 @@ outbox inserts. The following consistency issues remain open.
 - Nullability uses `org.jspecify` `@NonNull`. Jackson is Jackson 3's `tools.jackson.databind.JsonMapper`,
   not `com.fasterxml.jackson`.
 - Server WebMVC is functional: use `*Handler` with `RouterFunctions`, keep internal routes under
-  `/inner/...`, and declare HTTP contracts in `api-*` with `@GetExchange`/`@PostExchange`. Keep client
+  `/inner/...`, and declare Java service contracts in `api-*` with `@GetExchange`/`@PostExchange`.
+  The Rust search service owns its contract. Its Java clients declare their HTTP interfaces and
+  payload records under `adapter.out.http.search`. Keep client
   paths such as `/role/authorizations` aligned with server routes such as `/inner/role/authorizations`.
 - Rust changes follow Rust 2024 conventions and must pass `rustfmt`; preserve existing async, error,
   and tracing patterns.

@@ -23,7 +23,7 @@ separate JVM, JRE, Bun installation, build toolchain, or source tree.
 | Applications | Technology | Production artifact |
 | --- | --- | --- |
 | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit` | Java 25, Spring Boot 4.2.0, GraalVM 25.5 Innovation | GraalVM Native Image executable |
-| `micro-gateway-rs`, `micro-sync-rs`, `micro-search` | Rust 2024, Tokio, Axum | Rust release executable |
+| `micro-gateway-rs`, `micro-sync-rs`, `micro-search-rs` | Rust 2024, Tokio, Axum | Rust release executable |
 | `micro-frontend` | Bun 1.4, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
 MariaDB, Redis, RabbitMQ, Meilisearch, and OpenObserve use their standard
@@ -204,7 +204,7 @@ replica to serve any room without sticky sessions or a dedicated room owner.
 
 | Module | Responsibility |
 | --- | --- |
-| `api-auth`, `api-user`, `api-blog`, `api-search` | Typed HTTP contracts and RPC records |
+| `api-auth`, `api-user`, `api-blog` | Typed HTTP contracts and RPC records for Java services |
 | `cache` | Caffeine L1 + Redis L2 caching, exact eviction, and replica-wide invalidation |
 | `common-contract` | Result, error, paging, validation, security, and message contracts |
 | `common-rpc` | HTTP clients, principal propagation, and external service adapters |
@@ -281,10 +281,11 @@ outside write transactions remain supported. Data conversion belongs in dedicate
 
 ### Rust application boundaries
 
-`micro-search` runs on Tokio and Axum at port 8085. Its HTTP service name, Java
-`api-search` contracts, Meilisearch index UIDs, Redis recommendation cursors and RabbitMQ
-queues are shared with existing deployments. The binary embeds `micro-search/application.yml`. All three Rust services use the
-`megalith-otel` workspace crate in `crates/otel` for OTLP traces, metrics, logs and W3C propagation.
+`micro-search-rs` runs on Tokio and Axum at port 8085. It owns the search HTTP contract.
+`micro-blog` and `micro-exhibit` keep their typed clients in their outbound HTTP adapters.
+The deployment uses `micro-search` as the service name and image suffix. The binary embeds
+`micro-search-rs/application.yml`. All three Rust services use the `megalith-otel` workspace
+crate in `crates/otel` for OTLP traces, metrics, logs and W3C propagation.
 Compose may supply the existing dotted Spring configuration keys or their uppercase environment
 forms, including the Redis password, RabbitMQ credentials and Meilisearch key. Public writes,
 read-count batches and recommendation snapshots coordinate across replicas in Redis.
@@ -521,7 +522,7 @@ Spring Boot Buildpacks build and publish each Java service as a GraalVM Native I
 The Rust and Bun services use multi-stage Dockerfiles:
 
 ```bash
-docker build -t megalith-micro-search:latest -f micro-search/Dockerfile .
+docker build -t megalith-micro-search:latest -f micro-search-rs/Dockerfile .
 docker build -t megalith-micro-gateway-rs:latest -f micro-gateway-rs/Dockerfile .
 docker build -t megalith-micro-sync-rs:latest -f micro-sync-rs/Dockerfile .
 docker build -t mingchiuli/megalith-frontend:latest -f micro-frontend/Dockerfile .
@@ -541,7 +542,7 @@ Run individual services with their development toolchains:
 ```bash
 ./gradlew :micro-auth:bootRun
 cargo run -p micro-gateway-rs
-cargo run -p micro-search
+cargo run -p micro-search-rs
 bun run frontend:dev
 ```
 

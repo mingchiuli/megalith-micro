@@ -31,7 +31,7 @@ COMMANDS = {
         ("cargo", "clippy", "--workspace", "--all-targets", "--", "-D", "warnings"),
     ),
     "rust-test": (("cargo", "test", "--workspace"),),
-    "search-integration": (("cargo", "test", "-p", "micro-search", "--test", "service", "--", "--ignored"),),
+    "search-integration": (("cargo", "test", "-p", "micro-search-rs", "--test", "service", "--", "--ignored"),),
     "rust-redis": (
         (
             "cargo",

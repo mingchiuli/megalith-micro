@@ -62,9 +62,6 @@ struct LogConfig {
 pub enum ConfigKey {
     ServerName,
     ServerPort,
-    OtelExporterOtlpTracesEndpoint,
-    OtelExporterOtlpMetricsEndpoint,
-    OtelExporterOtlpLogsEndpoint,
     RustLog,
 }
 
@@ -104,20 +101,8 @@ pub fn get_config(key: ConfigKey) -> String {
     match key {
         ConfigKey::ServerName => config.server.name.clone(),
         ConfigKey::ServerPort => config.server.port.to_string(),
-        ConfigKey::OtelExporterOtlpTracesEndpoint => {
-            config.otel.exporter.otlp.traces.endpoint.clone()
-        }
-        ConfigKey::OtelExporterOtlpMetricsEndpoint => {
-            config.otel.exporter.otlp.metrics.endpoint.clone()
-        }
-        ConfigKey::OtelExporterOtlpLogsEndpoint => config.otel.exporter.otlp.logs.endpoint.clone(),
         ConfigKey::RustLog => config.log.level.clone(),
     }
-}
-
-/// 获取静态字符串引用
-pub fn get_static_value(key: ConfigKey) -> &'static str {
-    Box::leak(get_config(key).into_boxed_str())
 }
 
 pub fn redis_config() -> RedisConfig {

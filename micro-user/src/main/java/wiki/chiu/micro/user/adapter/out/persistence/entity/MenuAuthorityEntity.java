@@ -86,10 +86,6 @@ public class MenuAuthorityEntity {
         this.menuId = menuId;
     }
 
-    public void setAuthorityId(Long authorityId) {
-        this.authorityId = authorityId;
-    }
-
     public void setCreated(LocalDateTime created) {
         this.created = created;
     }

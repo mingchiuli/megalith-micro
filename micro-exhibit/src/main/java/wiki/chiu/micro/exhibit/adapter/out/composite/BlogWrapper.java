@@ -14,11 +14,11 @@ import wiki.chiu.micro.exhibit.adapter.out.http.BlogExhibitConvertor;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpConvertor;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.UserHttpServiceWrapper;
+import wiki.chiu.micro.exhibit.adapter.out.http.search.RecommendationFeedRpcVo;
+import wiki.chiu.micro.exhibit.adapter.out.http.search.SearchHttpService;
 import wiki.chiu.micro.exhibit.application.model.BlogExhibit;
 import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.application.port.out.BlogReader;
-import wiki.chiu.micro.search.api.SearchHttpService;
-import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 @Component

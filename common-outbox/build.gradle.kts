@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":common-contract"))
     implementation(project(":common-scheduling"))
     implementation("org.springframework.boot:spring-boot-starter-rabbitmq")
     implementation("org.springframework.boot:spring-boot-starter-actuator")

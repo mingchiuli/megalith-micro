@@ -8,7 +8,7 @@ on:
       - 'micro-auth/**'
       - 'micro-blog/**'
       - 'micro-exhibit/**'
-      - 'micro-search/**'
+      - 'micro-search-rs/**'
       - 'micro-user/**'
       - 'micro-gateway-rs/**'
       - 'micro-sync-rs/**'
@@ -27,7 +27,6 @@ on:
       - 'api-auth/**'
       - 'api-user/**'
       - 'api-blog/**'
-      - 'api-search/**'
       - 'cache/**'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
@@ -239,7 +238,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: ${{ fromJson(needs.changes.outputs.rust-services) }}
+        include: ${{ fromJson(needs.changes.outputs.rust-services) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -262,7 +261,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ${{ matrix.service }}/Dockerfile
+          file: ${{ matrix.directory }}/Dockerfile
           push: true
           tags: mingchiuli/megalith-${{ matrix.service }}:latest
 

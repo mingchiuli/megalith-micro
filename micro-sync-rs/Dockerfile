@@ -24,7 +24,7 @@ COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 COPY micro-gateway-rs ./micro-gateway-rs
 COPY micro-sync-rs ./micro-sync-rs
-COPY micro-search ./micro-search
+COPY micro-search-rs ./micro-search-rs
 
 RUN cargo build --locked --release -p micro-sync-rs
 

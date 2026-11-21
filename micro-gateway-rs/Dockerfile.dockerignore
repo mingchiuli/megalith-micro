@@ -6,11 +6,11 @@
 !micro-sync-rs/
 !micro-sync-rs/**
 
-!micro-search/
-micro-search/**
-!micro-search/Cargo.toml
-!micro-search/src/
-!micro-search/src/**
-!micro-search/application.yml
+!micro-search-rs/
+micro-search-rs/**
+!micro-search-rs/Cargo.toml
+!micro-search-rs/src/
+!micro-search-rs/src/**
+!micro-search-rs/application.yml
 !crates/
 !crates/**

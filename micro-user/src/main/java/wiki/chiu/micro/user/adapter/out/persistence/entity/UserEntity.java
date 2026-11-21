@@ -168,22 +168,6 @@ public class UserEntity {
         this.username = username;
     }
 
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
     public void setPassword(String password) {
         this.password = password;
     }
@@ -192,20 +176,12 @@ public class UserEntity {
         this.status = status;
     }
 
-    public void setPasswordLockedUntil(LocalDateTime passwordLockedUntil) {
-        this.passwordLockedUntil = passwordLockedUntil;
-    }
-
     public void setCreated(LocalDateTime created) {
         this.created = created;
     }
 
     public void setUpdated(LocalDateTime updated) {
         this.updated = updated;
-    }
-
-    public void setLastLogin(LocalDateTime lastLogin) {
-        this.lastLogin = lastLogin;
     }
 
     @Override

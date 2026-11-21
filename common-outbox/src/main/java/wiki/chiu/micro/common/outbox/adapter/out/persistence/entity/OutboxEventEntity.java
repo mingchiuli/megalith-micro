@@ -95,10 +95,6 @@ public class OutboxEventEntity {
         return payload;
     }
 
-    public String getState() {
-        return state;
-    }
-
     public int getAttempts() {
         return attempts;
     }
@@ -109,10 +105,6 @@ public class OutboxEventEntity {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public String getLastError() {
-        return lastError;
     }
 
     public void setEventId(String eventId) {
@@ -153,9 +145,5 @@ public class OutboxEventEntity {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public void setLastError(String lastError) {
-        this.lastError = lastError;
     }
 }

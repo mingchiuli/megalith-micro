@@ -58,9 +58,6 @@ struct FrontendConfig {
 pub enum ConfigKey {
     ServerName,
     ServerPort,
-    OtelExporterOtlpTracesEndpoint,
-    OtelExporterOtlpMetricsEndpoint,
-    OtelExporterOtlpLogsEndpoint,
     AuthUrlKey,
     AuthTimeoutMs,
     AuthMaxInflight,
@@ -103,13 +100,6 @@ pub fn get_config(key: ConfigKey) -> String {
     match key {
         ConfigKey::ServerName => config.server.name.clone(),
         ConfigKey::ServerPort => config.server.port.to_string(),
-        ConfigKey::OtelExporterOtlpTracesEndpoint => {
-            config.otel.exporter.otlp.traces.endpoint.clone()
-        }
-        ConfigKey::OtelExporterOtlpMetricsEndpoint => {
-            config.otel.exporter.otlp.metrics.endpoint.clone()
-        }
-        ConfigKey::OtelExporterOtlpLogsEndpoint => config.otel.exporter.otlp.logs.endpoint.clone(),
         ConfigKey::AuthUrlKey => config.megalith.blog.auth.url.clone(),
         ConfigKey::AuthTimeoutMs => config.megalith.blog.auth.timeout_ms.to_string(),
         ConfigKey::AuthMaxInflight => config.megalith.blog.auth.max_inflight.to_string(),

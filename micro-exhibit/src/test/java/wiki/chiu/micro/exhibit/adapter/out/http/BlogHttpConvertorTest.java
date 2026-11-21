@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.model.BlogSensitiveSpan;
-import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
+import wiki.chiu.micro.exhibit.adapter.out.http.search.PublicBlogRpcVo;
 
 class BlogHttpConvertorTest {
 

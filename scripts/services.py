@@ -18,14 +18,18 @@ JAVA_SERVICES = (
     "micro-blog",
     "micro-exhibit",
 )
-RUST_SERVICES = ("micro-search", "micro-sync-rs", "micro-gateway-rs")
+RUST_MODULES = {
+    "micro-search": "micro-search-rs",
+    "micro-sync-rs": "micro-sync-rs",
+    "micro-gateway-rs": "micro-gateway-rs",
+}
+RUST_SERVICES = tuple(RUST_MODULES)
 FRONTEND = "megalith-frontend"
 SERVICE_ORDER = (*JAVA_SERVICES, *RUST_SERVICES, FRONTEND)
 JAVA_DIRECTORIES = (
     "api-auth/",
     "api-user/",
     "api-blog/",
-    "api-search/",
     "common-contract/",
     "common-arch/",
     "common-rpc/",
@@ -76,7 +80,9 @@ def services_for_paths(paths: Iterable[str]) -> set[str]:
             selected.update(RUST_SERVICES)
         else:
             selected.update(
-                service for service in SERVICE_ORDER if path.startswith(f"{service}/")
+                service
+                for service in SERVICE_ORDER
+                if path.startswith(f"{RUST_MODULES.get(service, service)}/")
             )
     return selected
 
@@ -117,7 +123,11 @@ def changed_services(before: str | None, after: str) -> set[str]:
 
 def service_outputs(selected: AbstractSet[str]) -> dict[str, str]:
     java = [service for service in JAVA_SERVICES if service in selected]
-    rust = [service for service in RUST_SERVICES if service in selected]
+    rust = [
+        {"service": service, "directory": directory}
+        for service, directory in RUST_MODULES.items()
+        if service in selected
+    ]
     ordered = [service for service in SERVICE_ORDER if service in selected]
     return {
         "java-services": json.dumps(java, separators=(",", ":")),

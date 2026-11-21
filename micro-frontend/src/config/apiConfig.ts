@@ -73,7 +73,6 @@ const BLOG_ADMIN_API = {
   GET_DELETED_BLOGS: '/sys/blog/deleted',
   CREATE_DRAFT_BLOG: '/sys/blog/draft/new',
   SAVE_DRAFT: (id: number) => `/sys/blog/${id}/draft`,
-  DELETE_DRAFT: (id: number) => `/sys/blog/${id}/draft`,
   SAVE_VERSION: (id: number) => `/sys/blog/${id}/versions`,
   GET_VERSIONS: (id: number) => `/sys/blog/${id}/versions`,
   GET_VERSION: (id: number, revisionId: number) => `/sys/blog/${id}/versions/${revisionId}`,
@@ -187,7 +186,6 @@ export const API_ENDPOINTS = {
   ROLE_ADMIN: ROLE_ADMIN_API,
   MENU_ADMIN: MENU_ADMIN_API,
   AUTHORITY_ADMIN: AUTHORITY_ADMIN_API,
-  SEARCH: SEARCH_API,
   COLLABORATION: COLLABORATION_API,
   AI: AI_API
 }

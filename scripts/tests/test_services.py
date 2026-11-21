@@ -1,3 +1,4 @@
+import json
 import re
 import subprocess
 import unittest
@@ -38,6 +39,17 @@ class ServiceSelectionTest(unittest.TestCase):
 
     def test_shared_rust_telemetry_builds_every_rust_service(self) -> None:
         self.assertEqual(set(services.RUST_SERVICES), services.services_for_paths(["crates/otel/src/lib.rs"]))
+
+    def test_search_module_selects_the_existing_deployment_service(self) -> None:
+        selected = services.services_for_paths(["micro-search-rs/src/lib.rs"])
+        self.assertEqual({"micro-search"}, selected)
+        self.assertEqual({"micro-search"}, services.requested_services("micro-search"))
+        outputs = services.service_outputs(selected)
+        self.assertEqual("micro-search", outputs["deploy-services"])
+        self.assertEqual(
+            [{"service": "micro-search", "directory": "micro-search-rs"}],
+            json.loads(outputs["rust-services"]),
+        )
 
     def test_pr_cannot_enter_any_publish_or_deploy_job(self) -> None:
         workflow = Path(".github/workflows/main-services.yml").read_text()

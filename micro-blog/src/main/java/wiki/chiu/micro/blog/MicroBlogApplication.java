@@ -9,9 +9,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.service.registry.ImportHttpServices;
 
 import wiki.chiu.micro.auth.api.AuthHttpService;
+import wiki.chiu.micro.blog.adapter.out.http.search.SearchHttpService;
 import wiki.chiu.micro.blog.config.CustomRuntimeHints;
 import wiki.chiu.micro.common.rpc.OssHttpService;
-import wiki.chiu.micro.search.api.SearchHttpService;
 import wiki.chiu.micro.user.api.UserHttpService;
 
 @SpringBootApplication(proxyBeanMethods = false)

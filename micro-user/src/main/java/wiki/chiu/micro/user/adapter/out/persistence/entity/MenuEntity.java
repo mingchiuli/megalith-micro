@@ -151,10 +151,6 @@ public class MenuEntity {
         this.id = id;
     }
 
-    public void setParentId(Long parentId) {
-        this.parentId = parentId;
-    }
-
     public void setTitle(String title) {
         this.title = title;
     }
@@ -163,24 +159,8 @@ public class MenuEntity {
         this.name = name;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public void setComponent(String component) {
-        this.component = component;
-    }
-
     public void setType(Integer type) {
         this.type = type;
-    }
-
-    public void setIcon(String icon) {
-        this.icon = icon;
-    }
-
-    public void setOrderNum(Integer orderNum) {
-        this.orderNum = orderNum;
     }
 
     public void setStatus(Integer status) {

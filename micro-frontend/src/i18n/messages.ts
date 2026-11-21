@@ -10,7 +10,6 @@ export const messages = {
       deleteSuccess: '删除成功',
       batchDeleteSuccess: '批量删除成功',
       restoreSuccess: '恢复成功',
-      save: '保存',
       submit: '提交',
       confirm: '确定',
       search: '搜索',
@@ -42,7 +41,6 @@ export const messages = {
       uploadProgress: '上传进度',
       imageFormatError: '图片必须为 JPG 或 PNG 格式',
       imageSizeError: '图片大小不能超过 5MB',
-      noRecords: '暂无记录',
       url: 'URL'
     },
     validation: {
@@ -73,7 +71,6 @@ export const messages = {
       imageUploadSuccess: '图片上传成功',
       readCode: '阅读码',
       readCodePlaceholder: '请输入阅读码',
-      readCodeError: '阅读码错误',
       sessionExpiredTitle: '登录已过期',
       sessionExpiredMessage: '登录状态已过期，请重新登录后继续编辑。当前草稿已保留。',
       loginAgain: '重新登录'
@@ -83,7 +80,6 @@ export const messages = {
       searchScore: '搜索得分：{score}',
       author: '作者：{name}',
       readCount: '阅读数：{count}',
-      anonymousArticle: '匿名文章',
       totalReadCount: '总阅读数：{count}',
       weeklyReadCount: '本周阅读数：{count}',
       loadingMore: '正在加载...',
@@ -218,7 +214,6 @@ export const messages = {
       deleteSuccess: 'Deleted successfully',
       batchDeleteSuccess: 'Items deleted successfully',
       restoreSuccess: 'Restored successfully',
-      save: 'Save',
       submit: 'Submit',
       confirm: 'Confirm',
       search: 'Search',
@@ -250,7 +245,6 @@ export const messages = {
       uploadProgress: 'Upload progress',
       imageFormatError: 'Image must be in JPG or PNG format',
       imageSizeError: 'Image size cannot exceed 5MB',
-      noRecords: 'No records',
       url: 'URL'
     },
     validation: {
@@ -281,7 +275,6 @@ export const messages = {
       imageUploadSuccess: 'Image uploaded successfully',
       readCode: 'Access code',
       readCodePlaceholder: 'Enter access code',
-      readCodeError: 'Invalid access code',
       sessionExpiredTitle: 'Session expired',
       sessionExpiredMessage:
         'Your session has expired. Log in again to continue editing. Your draft is preserved.',
@@ -292,7 +285,6 @@ export const messages = {
       searchScore: 'Search score: {score}',
       author: 'Author: {name}',
       readCount: 'Reads: {count}',
-      anonymousArticle: 'Untitled article',
       totalReadCount: 'Total reads: {count}',
       weeklyReadCount: 'Reads this week: {count}',
       loadingMore: 'Loading...',

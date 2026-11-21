@@ -84,11 +84,4 @@ public final class ValidatedRequest {
         }
         return value;
     }
-
-    public <T extends Collection<String>> T notBlankElements(T value, String name) {
-        if (value == null || value.stream().anyMatch(item -> item == null || item.isBlank())) {
-            throw new IllegalArgumentException(name + " must contain only non-blank values");
-        }
-        return value;
-    }
 }

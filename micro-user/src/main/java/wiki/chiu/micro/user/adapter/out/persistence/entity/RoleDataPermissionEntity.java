@@ -65,10 +65,6 @@ public class RoleDataPermissionEntity {
         return roleId;
     }
 
-    public String getPermissionCode() {
-        return permissionCode;
-    }
-
     public LocalDateTime getCreated() {
         return created;
     }

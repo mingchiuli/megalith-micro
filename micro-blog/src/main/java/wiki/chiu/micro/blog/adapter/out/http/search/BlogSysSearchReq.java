@@ -1,0 +1,110 @@
+package wiki.chiu.micro.blog.adapter.out.http.search;
+
+import java.time.LocalDateTime;
+
+public record BlogSysSearchReq(
+    Integer page,
+    Integer pageSize,
+    String keywords,
+    Integer status,
+    LocalDateTime createStart,
+    LocalDateTime createEnd,
+    Long userId,
+    Boolean allData,
+    Boolean draftOnly) {
+
+    public BlogSysSearchReq(
+        Integer page,
+        Integer pageSize,
+        String keywords,
+        Integer status,
+        LocalDateTime createStart,
+        LocalDateTime createEnd,
+        Long userId,
+        Boolean allData) {
+        this(
+            page,
+            pageSize,
+            keywords,
+            status,
+            createStart,
+            createEnd,
+            userId,
+            allData,
+            false);
+    }
+
+    public static BlogSysSearchReq.BlogSearchReqBuilder builder() {
+        return new BlogSysSearchReq.BlogSearchReqBuilder();
+    }
+
+    public static class BlogSearchReqBuilder {
+        private Integer page;
+        private Integer pageSize;
+        private String keywords;
+        private Integer status;
+        private LocalDateTime createStart;
+        private LocalDateTime createEnd;
+        private Long userId;
+        private Boolean allData;
+        private Boolean draftOnly;
+
+        public BlogSysSearchReq.BlogSearchReqBuilder page(Integer page) {
+            this.page = page;
+            return this;
+        }
+
+        public BlogSysSearchReq.BlogSearchReqBuilder pageSize(Integer pageSize) {
+            this.pageSize = pageSize;
+            return this;
+        }
+
+        public BlogSysSearchReq.BlogSearchReqBuilder keywords(String keywords) {
+            this.keywords = keywords;
+            return this;
+        }
+
+        public BlogSysSearchReq.BlogSearchReqBuilder status(Integer status) {
+            this.status = status;
+            return this;
+        }
+
+        public BlogSysSearchReq.BlogSearchReqBuilder createStart(LocalDateTime createStart) {
+            this.createStart = createStart;
+            return this;
+        }
+
+        public BlogSysSearchReq.BlogSearchReqBuilder createEnd(LocalDateTime createEnd) {
+            this.createEnd = createEnd;
+            return this;
+        }
+
+        public BlogSysSearchReq.BlogSearchReqBuilder userId(Long userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public BlogSysSearchReq.BlogSearchReqBuilder allData(Boolean allData) {
+            this.allData = allData;
+            return this;
+        }
+
+        public BlogSysSearchReq.BlogSearchReqBuilder draftOnly(Boolean draftOnly) {
+            this.draftOnly = draftOnly;
+            return this;
+        }
+
+        public BlogSysSearchReq build() {
+            return new BlogSysSearchReq(
+                page,
+                pageSize,
+                keywords,
+                status,
+                createStart,
+                createEnd,
+                userId,
+                allData,
+                draftOnly);
+        }
+    }
+}

@@ -20,7 +20,7 @@ import wiki.chiu.micro.exhibit.adapter.in.http.BlogRecommendationFeedVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.BlogRecommendationVo;
 import wiki.chiu.micro.exhibit.adapter.in.http.ReadTokenReq;
 import wiki.chiu.micro.exhibit.adapter.in.http.VisitStatisticsVo;
-import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
+import wiki.chiu.micro.exhibit.adapter.out.http.search.PublicBlogRpcVo;
 
 class CustomRuntimeHintsTest {
 

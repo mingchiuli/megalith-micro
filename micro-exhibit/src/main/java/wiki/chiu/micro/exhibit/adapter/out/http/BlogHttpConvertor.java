@@ -4,12 +4,12 @@ import java.util.List;
 
 import wiki.chiu.micro.common.enums.BlogRenderMode;
 import wiki.chiu.micro.common.enums.SensitiveTypeEnum;
+import wiki.chiu.micro.exhibit.adapter.out.http.search.PublicBlogRpcVo;
+import wiki.chiu.micro.exhibit.adapter.out.http.search.RecommendationFeedRpcVo;
 import wiki.chiu.micro.exhibit.application.model.BlogRecommendation;
 import wiki.chiu.micro.exhibit.application.model.RecommendationFeed;
 import wiki.chiu.micro.exhibit.domain.SensitiveContentMasker;
 import wiki.chiu.micro.exhibit.domain.SensitiveSpan;
-import wiki.chiu.micro.search.api.vo.PublicBlogRpcVo;
-import wiki.chiu.micro.search.api.vo.RecommendationFeedRpcVo;
 
 /**
  * Turns search service payloads into the exhibit service's own model.

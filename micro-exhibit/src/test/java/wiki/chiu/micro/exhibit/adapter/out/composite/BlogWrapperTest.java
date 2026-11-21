@@ -22,7 +22,7 @@ import wiki.chiu.micro.common.error.CommonErrorCode;
 import wiki.chiu.micro.common.exception.RemoteServiceException;
 import wiki.chiu.micro.exhibit.adapter.out.http.BlogHttpServiceWrapper;
 import wiki.chiu.micro.exhibit.adapter.out.http.UserHttpServiceWrapper;
-import wiki.chiu.micro.search.api.SearchHttpService;
+import wiki.chiu.micro.exhibit.adapter.out.http.search.SearchHttpService;
 import wiki.chiu.micro.user.api.vo.UserEntityRpcVo;
 
 class BlogWrapperTest {

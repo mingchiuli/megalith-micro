@@ -1,17 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import {
-  debounce,
-  render,
-  diff,
-  findMenuByPath,
-  cleanJsonResponse,
-  checkButtonAuth,
-  getButtonType,
-  getButtonTitle
-} from '@/utils/tools'
 import { buttonStore } from '@/stores'
 import { RoutesEnum, RoutesStatus, type Button, type Menu, type MenuNode } from '@/type/entity'
+import { cleanJsonResponse, debounce, diff, findMenuByPath } from '@/utils/common'
+import { render } from '@/utils/markdown'
+import { checkButtonAuth, getButtonTitle, getButtonType } from '@/utils/permissions'
 
 const menuNode = (overrides: Partial<Menu> = {}): Menu => ({
   id: 1,
@@ -40,7 +33,7 @@ const buttonNode = (overrides: Partial<Button> = {}): Button => ({
   ...overrides
 })
 
-describe('utils/tools', () => {
+describe('frontend utilities', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()

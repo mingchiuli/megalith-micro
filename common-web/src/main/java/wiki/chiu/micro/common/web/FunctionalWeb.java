@@ -84,16 +84,6 @@ public final class FunctionalWeb {
         return file;
     }
 
-    public static Boolean strictBoolean(String value) {
-        if ("true".equalsIgnoreCase(value)) {
-            return true;
-        }
-        if ("false".equalsIgnoreCase(value)) {
-            return false;
-        }
-        throw new IllegalArgumentException("Expected true or false");
-    }
-
     public static ServerResponse ok(Object body) {
         return ServerResponse.ok().body(body);
     }

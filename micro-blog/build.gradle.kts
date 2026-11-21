@@ -14,7 +14,6 @@ dependencies {
     implementation(project(":api-auth"))
     implementation(project(":api-user"))
     implementation(project(":api-blog"))
-    implementation(project(":api-search"))
     implementation(project(":common-contract"))
     implementation(project(":common-rpc"))
     implementation(project(":common-web"))

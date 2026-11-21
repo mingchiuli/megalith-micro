@@ -1,5 +1,5 @@
 [workspace]
-members = ["micro-gateway-rs", "micro-sync-rs", "micro-search", "crates/otel"]
+members = ["micro-gateway-rs", "micro-sync-rs", "micro-search-rs", "crates/otel"]
 resolver = "2"
 
 [workspace.package]

@@ -3,17 +3,17 @@ package wiki.chiu.micro.blog.adapter.out.http;
 import java.util.List;
 import java.util.Objects;
 
+import wiki.chiu.micro.blog.adapter.out.http.search.AdminBlogSearchRpcVo;
+import wiki.chiu.micro.blog.adapter.out.http.search.AdminRevisionSearchRpcVo;
+import wiki.chiu.micro.blog.adapter.out.http.search.BlogReadCountReq;
+import wiki.chiu.micro.blog.adapter.out.http.search.BlogRevisionSearchReq;
+import wiki.chiu.micro.blog.adapter.out.http.search.BlogSysSearchReq;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
 import wiki.chiu.micro.blog.application.model.BlogSearchQuery;
 import wiki.chiu.micro.blog.application.model.BlogVersionSummary;
 import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.common.enums.BlogStatusEnum;
-import wiki.chiu.micro.search.api.req.BlogReadCountReq;
-import wiki.chiu.micro.search.api.req.BlogRevisionSearchReq;
-import wiki.chiu.micro.search.api.req.BlogSysSearchReq;
-import wiki.chiu.micro.search.api.vo.AdminBlogSearchRpcVo;
-import wiki.chiu.micro.search.api.vo.AdminRevisionSearchRpcVo;
 
 /**
  * Translates between the search service payloads and this service's own search model.

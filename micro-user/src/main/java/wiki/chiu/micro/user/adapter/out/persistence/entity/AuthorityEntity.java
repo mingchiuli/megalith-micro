@@ -158,26 +158,6 @@ public class AuthorityEntity {
         this.remark = remark;
     }
 
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public void setMethodType(String methodType) {
-        this.methodType = methodType;
-    }
-
-    public void setRoutePattern(String routePattern) {
-        this.routePattern = routePattern;
-    }
-
-    public void setServiceHost(String serviceHost) {
-        this.serviceHost = serviceHost;
-    }
-
-    public void setServicePort(Integer servicePort) {
-        this.servicePort = servicePort;
-    }
-
     public void setCreated(LocalDateTime created) {
         this.created = created;
     }

@@ -7,8 +7,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.service.registry.ImportHttpServices;
 
 import wiki.chiu.micro.blog.api.BlogHttpService;
+import wiki.chiu.micro.exhibit.adapter.out.http.search.SearchHttpService;
 import wiki.chiu.micro.exhibit.config.CustomRuntimeHints;
-import wiki.chiu.micro.search.api.SearchHttpService;
 import wiki.chiu.micro.user.api.UserHttpService;
 
 @SpringBootApplication(proxyBeanMethods = false)

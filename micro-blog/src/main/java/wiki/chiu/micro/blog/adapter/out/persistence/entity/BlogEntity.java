@@ -197,10 +197,6 @@ public class BlogEntity {
         return adminRevision;
     }
 
-    public void setAdminRevision(Long adminRevision) {
-        this.adminRevision = adminRevision;
-    }
-
     @Override
     public final boolean equals(Object value) {
         if (this == value) {

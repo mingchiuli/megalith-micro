@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import wiki.chiu.micro.blog.adapter.out.http.search.AdminBlogSearchRpcVo;
+import wiki.chiu.micro.blog.adapter.out.http.search.AdminRevisionSearchRpcVo;
+import wiki.chiu.micro.blog.adapter.out.http.search.SearchHttpService;
 import wiki.chiu.micro.blog.application.model.BlogListItem;
 import wiki.chiu.micro.blog.application.model.BlogReadCount;
 import wiki.chiu.micro.blog.application.model.BlogSearchQuery;
@@ -12,9 +15,6 @@ import wiki.chiu.micro.blog.application.model.Page;
 import wiki.chiu.micro.blog.application.port.out.BlogSearchGateway;
 import wiki.chiu.micro.blog.application.port.out.BlogStatisticsGateway;
 import wiki.chiu.micro.common.rpc.RemoteResult;
-import wiki.chiu.micro.search.api.SearchHttpService;
-import wiki.chiu.micro.search.api.vo.AdminBlogSearchRpcVo;
-import wiki.chiu.micro.search.api.vo.AdminRevisionSearchRpcVo;
 
 @Component
 public class SearchHttpServiceWrapper implements BlogSearchGateway, BlogStatisticsGateway {
