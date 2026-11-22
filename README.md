@@ -443,7 +443,7 @@ request loses its response, inspect the Meilisearch swap task and serving indexe
   Espresso JVM
 - Gradle 9.9.1 through the included Wrapper
 - Rust stable with 2024 edition support
-- Bun 1.4.4 for workspace development, CI, and the frontend Docker builder
+- Bun 1.4.5 for workspace development, CI, and the frontend Docker builder
 - Docker for OCI image builds
 
 Example on macOS:

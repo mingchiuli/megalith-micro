@@ -179,7 +179,7 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.4
+          bun-version: 1.4.5
       - name: Install dependencies
         run: python3 -m scripts.checks frontend-install
       - name: Verify frontend quality, SSR build, and smoke tests
@@ -278,7 +278,7 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.4
+          bun-version: 1.4.5
       - name: Install dependencies
         run: python3 -m scripts.checks frontend-install
       - name: Build and smoke test

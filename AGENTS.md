@@ -12,8 +12,8 @@ this file records the implementation constraints that are easy to miss.
 - Gradle 9.9.1 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
 - Rust 2024 for `micro-gateway-rs`, `micro-sync-rs`, and `micro-search-rs`. Use the `-rs` suffix
   for Rust service directories and Cargo package names. Shared libraries under `crates/` omit it.
-- Bun 1.4.4, Vue 3, and Vite for the standalone `micro-frontend` service; `tsrs` with the
-  Vize content mapper checks TypeScript and Vue types. The frontend Docker builder uses Bun 1.4.4.
+- Bun 1.4.5, Vue 3, and Vite for the standalone `micro-frontend` service; `tsrs` with the
+  Vize content mapper checks TypeScript and Vue types. The frontend Docker builder uses Bun 1.4.5.
 
 `JAVA_HOME` must point to a GraalVM HotSpot JDK, not the Espresso JVM. On macOS, for example:
 
