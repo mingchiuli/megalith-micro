@@ -59,6 +59,8 @@ export default defineConfig({
 
   // Vitest 单元测试配置
   test: {
+    // Vitest's fork watchdog uses child.channel.unref(), which Bun doesn't implement.
+    pool: 'threads',
     globals: true,
     environment: 'happy-dom',
     environmentOptions: {
