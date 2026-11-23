@@ -24,7 +24,6 @@ import org.springframework.web.service.registry.ImportHttpServices;
 
 import wiki.chiu.micro.blog.MicroBlogApplication;
 import wiki.chiu.micro.blog.adapter.in.http.BlogDeleteVo;
-import wiki.chiu.micro.blog.adapter.in.http.BlogDownloadReq;
 import wiki.chiu.micro.blog.adapter.in.http.BlogEditVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogEntityReq;
 import wiki.chiu.micro.blog.adapter.in.http.BlogEntityVo;
@@ -32,7 +31,6 @@ import wiki.chiu.micro.blog.adapter.in.http.BlogIdVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogIndexSourceHttpHandler;
 import wiki.chiu.micro.blog.adapter.in.http.BlogInternalHttpHandler;
 import wiki.chiu.micro.blog.adapter.in.http.BlogPermissionsVo;
-import wiki.chiu.micro.blog.adapter.in.http.BlogQueryReq;
 import wiki.chiu.micro.blog.adapter.in.http.BlogVersionComparisonVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSaveVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSummaryVo;
@@ -118,9 +116,7 @@ class CustomRuntimeHintsTest {
             BlogEntityReq.class,
             BlogIdVo.class,
             SensitiveContentReq.class,
-            BlogQueryReq.class,
             PublishBlogReq.class,
-            BlogDownloadReq.class,
             OssDeleteReq.class,
             BlogEntityVo.class,
             BlogDeleteVo.class,

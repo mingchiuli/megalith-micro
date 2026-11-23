@@ -6,12 +6,10 @@ import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
 import wiki.chiu.micro.blog.adapter.in.http.BlogDeleteVo;
-import wiki.chiu.micro.blog.adapter.in.http.BlogDownloadReq;
 import wiki.chiu.micro.blog.adapter.in.http.BlogEditVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogEntityReq;
 import wiki.chiu.micro.blog.adapter.in.http.BlogEntityVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogIdVo;
-import wiki.chiu.micro.blog.adapter.in.http.BlogQueryReq;
 import wiki.chiu.micro.blog.adapter.in.http.BlogVersionComparisonVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSaveVo;
 import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSummaryVo;
@@ -35,9 +33,7 @@ public class CustomRuntimeHints implements RuntimeHintsRegistrar {
                 CollaborationTicket.class,
                 BlogEntityReq.class,
                 BlogIdVo.class,
-                BlogQueryReq.class,
                 PublishBlogReq.class,
-                BlogDownloadReq.class,
                 OssDeleteReq.class,
                 BlogEntityVo.class,
                 BlogDeleteVo.class,

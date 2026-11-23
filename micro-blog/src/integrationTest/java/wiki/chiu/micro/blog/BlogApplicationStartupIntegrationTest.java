@@ -160,7 +160,32 @@ class BlogApplicationStartupIntegrationTest {
         assertThat(json.readTree(downstream.ticket.get()).get("roomId").asString()).isEqualTo(ticket.get("roomId").asString());
         assertThat(get(base + "/inner/blog/" + blogId + "/publication").statusCode()).isEqualTo(404);
         verifyDraftRoundTrip(base, principal, blogId, epoch);
+        verifySearchAndDownload(base, principal, downstream);
         verifyRecycleRoundTrip(base, principal, blogId);
+    }
+
+    private void verifySearchAndDownload(String base, String principal, Downstream downstream) throws Exception {
+        var list = client.send(HttpRequest.newBuilder(
+                URI.create(base + "/sys/blog/blogs?currentPage=2&size=10&keywords=reading&status=1"))
+            .header(InternalHttpHeaders.PRINCIPAL, principal)
+            .timeout(Duration.ofSeconds(5)).build(), HttpResponse.BodyHandlers.ofString());
+        assertThat(list.statusCode()).as(list.body()).isEqualTo(200);
+        assertThat(json.readTree(list.body()).get("data").get("pageNumber").asInt()).isEqualTo(2);
+        var search = json.readTree(downstream.search.get());
+        assertThat(search.get("pageSize").asInt()).isEqualTo(10);
+        assertThat(search.get("keywords").asString()).isEqualTo("reading");
+        assertThat(search.get("status").asInt()).isEqualTo(1);
+
+        var download = client.send(HttpRequest.newBuilder(
+                URI.create(base + "/sys/blog/download?keywords=export&status=2"))
+            .header(InternalHttpHeaders.PRINCIPAL, principal)
+            .timeout(Duration.ofSeconds(5)).build(), HttpResponse.BodyHandlers.ofString());
+        assertThat(download.statusCode()).as(download.body()).isEqualTo(200);
+        assertThat(download.headers().firstValue("Content-Disposition"))
+            .contains("attachment; filename=blogs.sql");
+        var export = json.readTree(downstream.search.get());
+        assertThat(export.get("keywords").asString()).isEqualTo("export");
+        assertThat(export.get("status").asInt()).isEqualTo(2);
     }
 
     private void verifyDraftRoundTrip(String base, String principal, long blogId, String epoch) throws Exception {
@@ -300,6 +325,7 @@ class BlogApplicationStartupIntegrationTest {
             "--spring.rabbitmq.username=test", "--spring.rabbitmq.password=test-password",
             "--megalith.blog.sync-url=" + downstream,
             "--megalith.blog.auth-url=" + downstream + "/inner",
+            "--megalith.blog.search-url=" + downstream + "/inner",
             "--megalith.blog.statistics-sync.enabled=false",
             "--management.otlp.metrics.export.enabled=false",
             "--management.opentelemetry.tracing.export.otlp.endpoint=" + downstream + "/v1/traces",
@@ -313,6 +339,7 @@ class BlogApplicationStartupIntegrationTest {
         private final AtomicReference<String> content = new AtomicReference<>();
         private final AtomicReference<String> traceparent = new AtomicReference<>();
         private final AtomicReference<String> ticket = new AtomicReference<>();
+        private final AtomicReference<String> search = new AtomicReference<>();
 
         private Downstream() throws IOException {
             server.createContext("/inner/rooms/", exchange -> {
@@ -333,6 +360,20 @@ class BlogApplicationStartupIntegrationTest {
             server.createContext("/v1/", exchange -> {
                 exchange.getRequestBody().readAllBytes();
                 exchange.sendResponseHeaders(200, -1);
+                exchange.close();
+            });
+            server.createContext("/inner/blog/admin/search", exchange -> {
+                String request = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                search.set(request);
+                var query = JsonMapper.builder().build().readTree(request);
+                int page = query.get("page").asInt();
+                int size = query.get("pageSize").asInt();
+                byte[] body = """
+                    {"code":200,"msg":"success","data":{"total":0,"currentPage":%d,"size":%d,"content":[]}}
+                    """.formatted(page, size).getBytes(StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.sendResponseHeaders(200, body.length);
+                exchange.getResponseBody().write(body);
                 exchange.close();
             });
             server.start();
