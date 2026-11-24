@@ -33,7 +33,7 @@
     "@opentelemetry/semantic-conventions": "^1.45.0",
     "@unhead/vue": "^3.4.3",
     "@vavt/v3-extension": "^6.0.0",
-    "@vue/server-renderer": "^3.5.45",
+    "@vue/server-renderer": "^3.5.46",
     "axios": "^1.21.1",
     "devalue": "^6.0.3",
     "diff": "^9.0.0",
@@ -45,7 +45,7 @@
     "ollama": "^0.6.4",
     "pinia": "^4.1.0",
     "sanitize-html": "^2.18.2",
-    "vue": "^3.5.45",
+    "vue": "^3.5.46",
     "vue-i18n": "^11.4.23",
     "vue-router": "^5.5.1",
     "y-codemirror.next": "^0.3.6",
@@ -64,11 +64,11 @@
     "happy-dom": "^21.0.4",
     "oxfmt": "^0.79.0",
     "oxlint": "^1.94.0",
-    "tsrs": "7.1.0-beta.tsrs3",
+    "tsrs": "7.1.0-beta.tsrs4",
     "unplugin-auto-import": "^21.1.0",
     "unplugin-vue-components": "^32.1.0",
     "vite": "^8.3.8",
     "vitest": "^5.1.1",
-    "vize": "0.784.0"
+    "vize": "0.787.0"
   }
 }
