@@ -14,3 +14,7 @@ micro-search-rs/**
 !micro-search-rs/application.yml
 !crates/
 !crates/**
+!micro-auth-rs/
+!micro-auth-rs/**
+!micro-exhibit-rs/
+!micro-exhibit-rs/**

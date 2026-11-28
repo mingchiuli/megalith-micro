@@ -132,7 +132,7 @@ def synchronize(args: Arguments) -> None:
     base = ["docker", "compose", "-f", str(args.compose.resolve())]
     infra = ["docker", "compose", "-f", str(args.infra.resolve())]
     broker = container(infra, "rabbitmq")
-    blog = wait_ready(base, "micro-blog", 8082)
+    blog = wait_ready(base, "micro-base", 8082)
     print("Source:", source_status(blog), flush=True)
     print("Search queues (messages, consumers):", queue_counts(broker), flush=True)
     if not args.apply:
@@ -140,12 +140,12 @@ def synchronize(args: Arguments) -> None:
     with tempfile.TemporaryDirectory(dir=args.compose.resolve().parent) as temp:
         override = Path(temp) / "maintenance.json"
         _ = override.write_text(json.dumps({"services": {
-            "micro-blog": {"environment": {"MEGALITH_BLOG_MAINTENANCE_READ_ONLY": "true"}},
+            "micro-base": {"environment": {"MEGALITH_BLOG_MAINTENANCE_READ_ONLY": "true"}},
             "micro-search": {"environment": {"MEGALITH_SEARCH_MAINTENANCE_ENABLED": "true"}},
         }}))
         maintenance = [*base, "-f", str(override)]
-        up(maintenance, "micro-blog")
-        blog = wait_ready(base, "micro-blog", 8082)
+        up(maintenance, "micro-base")
+        blog = wait_ready(base, "micro-base", 8082)
         if args.first_release:
             up(infra, "openobserve")
             observe = address(infra, "openobserve", 5080)
@@ -185,8 +185,8 @@ def synchronize(args: Arguments) -> None:
             time.sleep(1)
         else:
             raise RuntimeError("Search consumers have not resumed")
-        up(base, "micro-blog")
-        blog = wait_ready(base, "micro-blog", 8082)
+        up(base, "micro-base")
+        blog = wait_ready(base, "micro-base", 8082)
         if source_status(blog)["readOnly"]:
             raise RuntimeError("The blog service is still read-only")
         print("Search consumers and blog writes are active.", flush=True)

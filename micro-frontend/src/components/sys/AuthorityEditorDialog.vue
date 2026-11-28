@@ -18,8 +18,7 @@ const { t } = useI18n()
 const formRef = ref<FormInstance>()
 const formModel = reactive(props.form)
 const services = [
-  { host: 'micro-blog', port: 8082 },
-  { host: 'micro-user', port: 8086 },
+  { host: 'micro-base', port: 8082 },
   { host: 'micro-auth', port: 8081 },
   { host: 'micro-search', port: 8085 },
   { host: 'micro-exhibit', port: 8083 },

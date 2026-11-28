@@ -79,6 +79,7 @@ pub fn init_config() -> Result<(), ConfigError> {
             config::FileFormat::Yaml,
         ))
         .add_source(Environment::default().separator("_").try_parsing(true))
+        .add_source(Environment::default().separator("__").try_parsing(true))
         .build()?;
 
     let app_config: AppConfig = config.try_deserialize()?;

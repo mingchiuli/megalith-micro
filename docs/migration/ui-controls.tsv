@@ -1,0 +1,222 @@
+control_id	view_or_component	line	element	action_or_binding	condition	browser_case	verification	notes
+UI-001	micro-frontend/src/App.vue	42	el-dialog			e2e/recovery.spec.ts	direct action	""
+UI-002	micro-frontend/src/App.vue	52	el-button	"@click=""continueToLogin"""		e2e/recovery.spec.ts	direct action	""
+UI-003	micro-frontend/src/components/CatalogueItem.vue	177	el-tree	"@node-click=""handleNodeClick"""		e2e/article-list.spec.ts	partial	Catalogue selection and scroll are asserted when the table of contents is visible.
+UI-004	micro-frontend/src/components/DiscussItem.vue	53	el-tabs	"v-model=""activeName"""		e2e-live/integrations.spec.ts	live pending	Dedicated external provider or image-generation capability required.
+UI-005	micro-frontend/src/components/InfiniteScrollFooter.vue	50	el-link	"@click=""emit('retry')"""	error	e2e/recovery.spec.ts	direct action	""
+UI-006	micro-frontend/src/components/LocaleSwitcher.vue	23	select	"v-model=""selectedLocale"""		e2e/navigation.spec.ts	direct action	""
+UI-007	micro-frontend/src/components/LocaleSwitcher.vue	40	select	"v-model=""selectedLocale"""		e2e/navigation.spec.ts	direct action	""
+UI-008	micro-frontend/src/components/MyFooterItem.vue	4	a			e2e/shell.spec.ts	direct action	""
+UI-009	micro-frontend/src/components/ReadTokenItem.vue	48	el-dialog	"v-model=""readTokenDialogVisible"""		e2e/reading.spec.ts	API only	Public search filters to normal articles and recommendation cards are always public. The existing feed has no route to this dialog; real gateway code redemption is tested.
+UI-010	micro-frontend/src/components/ReadTokenItem.vue	54	el-input	"v-model=""input"""		e2e/reading.spec.ts	API only	Public search filters to normal articles and recommendation cards are always public. The existing feed has no route to this dialog; real gateway code redemption is tested.
+UI-011	micro-frontend/src/components/ReadTokenItem.vue	62	el-button	"@click=""submit"""		e2e/reading.spec.ts	API only	Public search filters to normal articles and recommendation cards are always public. The existing feed has no route to this dialog; real gateway code redemption is tested.
+UI-012	micro-frontend/src/components/SearchItem.vue	164	el-dialog	"v-model=""searchDialogVisible"""		e2e/public.spec.ts	direct action	""
+UI-013	micro-frontend/src/components/SearchItem.vue	174	el-autocomplete	"v-model=""keywords"" | @select=""handleSelect"" | @keyup.enter=""searchAllInfo(keywords!)"" | @clear=""clearSearch"""		e2e/list-interactions.spec.ts	direct action	Cleared the search input; editor-controls.spec.ts covers autocomplete selection and public.spec.ts full search.
+UI-014	micro-frontend/src/components/SearchItem.vue	225	el-button	"@click=""searchAllInfo(keywords!)"""		e2e/public.spec.ts	direct action	""
+UI-015	micro-frontend/src/components/sys/AuthButton.vue	25	el-button	"@click=""emit('click')"""	hasAuth()	e2e/publishing.spec.ts	workflow assertion	End-to-end lifecycle; see the case assertions for the branches exercised.
+UI-016	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	40	el-dialog	"@update:model-value=""emit('update:visible', $event)"""		e2e/management.spec.ts	direct action	""
+UI-017	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	49	el-input	"v-model=""formModel.code"""		e2e/management.spec.ts	direct action	""
+UI-018	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	52	el-input	"v-model=""formModel.remark"""		e2e/management.spec.ts	direct action	""
+UI-019	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	55	el-select	"v-model=""formModel.protocol"""		e2e/management.spec.ts	direct action	""
+UI-020	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	61	el-select	"v-model=""formModel.methodType"""		e2e/management.spec.ts	direct action	""
+UI-021	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	67	el-input	"v-model=""formModel.routePattern"""		e2e/management.spec.ts	direct action	""
+UI-022	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	70	el-select	"v-model=""formModel.serviceHost"" | @change=""handleServiceChange"""		e2e/management.spec.ts	direct action	""
+UI-023	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	84	el-input	"v-model=""formModel.servicePort"""		e2e/list-interactions.spec.ts	direct action	Entered and checked a custom service port before canceling the route edit.
+UI-024	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	87	el-radio-group	"v-model=""formModel.status"""		e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-025	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	88	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-026	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	89	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-027	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	93	el-radio-group	"v-model=""formModel.type"""		e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-028	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	94	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-029	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	95	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-030	micro-frontend/src/components/sys/AuthorityEditorDialog.vue	99	el-button	"@click=""submit"""	checkButtonAuth(ButtonAuth.SYS_AUTHORITY_SAVE)	e2e/management.spec.ts	direct action	""
+UI-031	micro-frontend/src/components/sys/BackHeaderItem.vue	40	el-dropdown-item	"@click=""goToHome"""		e2e/shell.spec.ts	direct action	""
+UI-032	micro-frontend/src/components/sys/BackHeaderItem.vue	41	el-dropdown-item	"@click=""handleLogout"""		e2e/administration.spec.ts	direct action	""
+UI-033	micro-frontend/src/components/sys/BlogAiActions.vue	21	el-select	"v-model=""model"""		e2e-live/integrations.spec.ts	live partial	Installed model generated article metadata; cover request returned HTTP 400.
+UI-034	micro-frontend/src/components/sys/BlogAiActions.vue	24	el-button	"@click=""emit('generate')"""	checkButtonAuth(ButtonAuth.SYS_EDIT_AI)	e2e-live/integrations.spec.ts	live partial	Installed model generated article metadata; cover request returned HTTP 400.
+UI-035	micro-frontend/src/components/sys/BlogAiPanel.vue	62	el-collapse	"v-model=""thinkingCollapse"""	visible	e2e-live/integrations.spec.ts	live pending	Requires the live AI panel and a separate thinking-panel assertion.
+UI-036	micro-frontend/src/components/sys/BlogCoverField.vue	99	el-upload	"v-model:file-list=""fileList"""	checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)	e2e-live/integrations.spec.ts	live pending	Dedicated external provider or image-generation capability required.
+UI-037	micro-frontend/src/components/sys/BlogCoverField.vue	114	el-dialog	"v-model=""previewVisible"""		e2e-live/integrations.spec.ts	live pending	Dedicated external provider or image-generation capability required.
+UI-038	micro-frontend/src/components/sys/BlogCoverField.vue	118	el-dialog	"v-model=""generatedDialogVisible"""		e2e-live/integrations.spec.ts	live pending	Dedicated external provider or image-generation capability required.
+UI-039	micro-frontend/src/components/sys/BlogCoverField.vue	142	el-button	"@click=""emit('regenerate')"""	checkButtonAuth(ButtonAuth.SYS_EDIT_AI)	e2e-live/integrations.spec.ts	live pending	Dedicated external provider or image-generation capability required.
+UI-040	micro-frontend/src/components/sys/BlogCoverField.vue	149	el-button	"@click=""confirmGeneratedImage"""	checkButtonAuth(ButtonAuth.SYS_BLOG_UPLOAD)	e2e-live/integrations.spec.ts	live pending	Dedicated external provider or image-generation capability required.
+UI-041	micro-frontend/src/components/sys/BlogMetadataFields.vue	34	el-input	"v-model=""title"" | @select=""emitSelection(titleRef!.input!, SensitiveType.TITLE)"""		e2e/masking.spec.ts	direct action	""
+UI-042	micro-frontend/src/components/sys/BlogMetadataFields.vue	46	el-input	"v-model=""description"" | @select=""emitSelection(descRef!.textarea!, SensitiveType.DESCRIPTION)"""		e2e/editor-controls.spec.ts	direct action	Selected a description span and specified the second match in the repeated-body-text dialog.
+UI-043	micro-frontend/src/components/sys/BlogMetadataFields.vue	64	el-radio-group	"v-model=""status"""		e2e/masking.spec.ts	direct action	""
+UI-044	micro-frontend/src/components/sys/BlogMetadataFields.vue	65	el-radio			e2e/masking.spec.ts	direct action	Selected publication modes and removed and recreated a UTF-16 span.
+UI-045	micro-frontend/src/components/sys/BlogMetadataFields.vue	66	el-radio			e2e/reading.spec.ts	direct action	""
+UI-046	micro-frontend/src/components/sys/BlogMetadataFields.vue	67	el-radio			e2e/masking.spec.ts	direct action	""
+UI-047	micro-frontend/src/components/sys/BlogMetadataFields.vue	80	el-tag	"@close=""emit('removeSensitive', tag.element.type, tag.element.startIndex)"""	status === Status.SENSITIVE_FILTER	e2e/masking.spec.ts	direct action	Selected publication modes and removed and recreated a UTF-16 span.
+UI-048	micro-frontend/src/components/sys/BlogVersionPanel.vue	230	el-drawer	"v-model=""visible"""		e2e/versions.spec.ts	direct action	""
+UI-049	micro-frontend/src/components/sys/BlogVersionPanel.vue	237	el-input	"v-model=""keyword"" | @keyup.enter=""searchVersions"""		e2e/editor-controls.spec.ts	direct action	""
+UI-050	micro-frontend/src/components/sys/BlogVersionPanel.vue	244	el-button	"@click=""searchVersions"""		e2e/versions.spec.ts	direct action	""
+UI-051	micro-frontend/src/components/sys/BlogVersionPanel.vue	263	el-button	"@click=""viewVersion(row as BlogVersionSummary)"""	checkButtonAuth(ButtonAuth.SYS_EDIT_VERSION_VIEW)	e2e/versions.spec.ts	direct action	""
+UI-052	micro-frontend/src/components/sys/BlogVersionPanel.vue	270	el-button	"@click=""restoreVersion(row as BlogVersionSummary)"""	row.firstPublishedAt && !row.currentPublished && checkButtonAuth(ButtonAuth.SYS_EDIT_RESTORE_VERSION)	e2e/versions.spec.ts	direct action	""
+UI-053	micro-frontend/src/components/sys/BlogVersionPanel.vue	283	el-button	"@click=""compareWithPrevious(row as BlogVersionSummary)"""	checkButtonAuth(ButtonAuth.SYS_EDIT_VERSION_COMPARE)	e2e/versions.spec.ts	direct action	""
+UI-054	micro-frontend/src/components/sys/BlogVersionPanel.vue	295	el-pagination	"v-model:current-page=""page"" | @current-change=""loadVersions"""		e2e/editor-controls.spec.ts	direct action	""
+UI-055	micro-frontend/src/components/sys/BlogVersionPanel.vue	304	el-dialog	"v-model=""viewVisible"""		e2e/versions.spec.ts	direct action	""
+UI-056	micro-frontend/src/components/sys/BlogVersionPanel.vue	328	el-dialog	"v-model=""compareVisible"""		e2e/versions.spec.ts	direct action	""
+UI-057	micro-frontend/src/components/sys/BlogVersionPanel.vue	340	el-radio-group	"v-model=""mode"""		e2e/versions.spec.ts	direct action	""
+UI-058	micro-frontend/src/components/sys/BlogVersionPanel.vue	341	el-radio-button			e2e/versions.spec.ts	workflow assertion	Initial side-by-side diff checked before switching to unified.
+UI-059	micro-frontend/src/components/sys/BlogVersionPanel.vue	342	el-radio-button			e2e/versions.spec.ts	direct action	""
+UI-060	micro-frontend/src/components/sys/EditorItem.vue	657	el-dialog	"v-model=""showSensitiveListDialog"""		e2e/editor-controls.spec.ts	direct action	Selected a description span and specified the second match in the repeated-body-text dialog.
+UI-061	micro-frontend/src/components/sys/EditorItem.vue	663	el-table	"@row-click=""selectWord"""		e2e/editor-controls.spec.ts	direct action	Selected a description span and specified the second match in the repeated-body-text dialog.
+UI-062	micro-frontend/src/components/sys/EditorItem.vue	704	el-button	"@click=""retryCollaboration"""	(authorizationPaused || (collaborationPhase === 'failed' && !collaborationReady)) && !sessionExpired	e2e/editor-controls.spec.ts	direct action	""
+UI-063	micro-frontend/src/components/sys/EditorItem.vue	714	MdEditor	"v-model=""content"" | @on-upload-img=""onUploadImg"""		e2e/publishing.spec.ts	partial	Text editing and collaboration; toolbar file upload needs OSS.
+UI-064	micro-frontend/src/components/sys/EditorItem.vue	728	ExportPDF	"v-model=""content"""		e2e/editor-controls.spec.ts	partial	Real print preview on all engines; Chromium also rendered a PDF through its print API.
+UI-065	micro-frontend/src/components/sys/HeaderTabsItem.vue	38	el-tabs	"v-model=""editableTabsValue"" | @tab-remove=""removeTab"" | @tab-click=""clickTab"""		e2e/shell.spec.ts	direct action	""
+UI-066	micro-frontend/src/components/sys/InfiniteMenuItem.vue	25	el-menu-item	"@click=""selectMenu(item)"""	item.type === RoutesEnum.MENU	e2e/shell.spec.ts	direct action	""
+UI-067	micro-frontend/src/components/sys/MenuDialogs.vue	50	el-dialog	"@update:model-value=""emit('update:editorVisible', $event)"""		e2e/management.spec.ts	direct action	""
+UI-068	micro-frontend/src/components/sys/MenuDialogs.vue	59	el-tree-select	"v-model=""formModel.parentId"""		e2e/administration.spec.ts	direct action	Selected an existing parent and exercised editable menu fields in the dialog.
+UI-069	micro-frontend/src/components/sys/MenuDialogs.vue	67	el-input	"v-model=""formModel.title"""		e2e/management.spec.ts	direct action	""
+UI-070	micro-frontend/src/components/sys/MenuDialogs.vue	70	el-input	"v-model=""formModel.icon"""		e2e/administration.spec.ts	direct action	Selected an existing parent and exercised editable menu fields in the dialog.
+UI-071	micro-frontend/src/components/sys/MenuDialogs.vue	73	el-input	"v-model=""formModel.url"""		e2e/administration.spec.ts	direct action	Selected an existing parent and exercised editable menu fields in the dialog.
+UI-072	micro-frontend/src/components/sys/MenuDialogs.vue	76	el-input	"v-model=""formModel.name"""		e2e/management.spec.ts	direct action	""
+UI-073	micro-frontend/src/components/sys/MenuDialogs.vue	79	el-input	"v-model=""formModel.component"""		e2e/administration.spec.ts	direct action	Selected an existing parent and exercised editable menu fields in the dialog.
+UI-074	micro-frontend/src/components/sys/MenuDialogs.vue	82	el-radio-group	"v-model=""formModel.type"""		e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-075	micro-frontend/src/components/sys/MenuDialogs.vue	83	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-076	micro-frontend/src/components/sys/MenuDialogs.vue	84	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-077	micro-frontend/src/components/sys/MenuDialogs.vue	85	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-078	micro-frontend/src/components/sys/MenuDialogs.vue	89	el-radio-group	"v-model=""formModel.status"""		e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-079	micro-frontend/src/components/sys/MenuDialogs.vue	90	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-080	micro-frontend/src/components/sys/MenuDialogs.vue	91	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-081	micro-frontend/src/components/sys/MenuDialogs.vue	95	el-input-number	"v-model=""formModel.orderNum"""		e2e/management.spec.ts	direct action	""
+UI-082	micro-frontend/src/components/sys/MenuDialogs.vue	98	el-button	"@click=""emit('saveMenu', formRef!)"""	checkButtonAuth(ButtonAuth.SYS_MENU_SAVE)	e2e/management.spec.ts	direct action	""
+UI-083	micro-frontend/src/components/sys/MenuDialogs.vue	109	el-dialog	"@update:model-value=""emit('update:authorityVisible', $event)"""		e2e/management.spec.ts	direct action	""
+UI-084	micro-frontend/src/components/sys/MenuDialogs.vue	118	el-checkbox	"v-model=""item.check"""		e2e/management.spec.ts	direct action	""
+UI-085	micro-frontend/src/components/sys/MenuDialogs.vue	121	el-button	"@click=""emit('saveAuthority')"""	checkButtonAuth(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)	e2e/management.spec.ts	direct action	""
+UI-086	micro-frontend/src/components/sys/RoleDialogs.vue	52	el-dialog	"@update:model-value=""emit('update:editorVisible', $event)"""		e2e/management.spec.ts	direct action	""
+UI-087	micro-frontend/src/components/sys/RoleDialogs.vue	61	el-input	"v-model=""formModel.name"""		e2e/management.spec.ts	direct action	""
+UI-088	micro-frontend/src/components/sys/RoleDialogs.vue	64	el-input	"v-model=""formModel.code"""		e2e/management.spec.ts	direct action	""
+UI-089	micro-frontend/src/components/sys/RoleDialogs.vue	67	el-input	"v-model=""formModel.remark"""		e2e/management.spec.ts	direct action	""
+UI-090	micro-frontend/src/components/sys/RoleDialogs.vue	73	el-radio-group	"v-model=""formModel.status"""		e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-091	micro-frontend/src/components/sys/RoleDialogs.vue	74	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-092	micro-frontend/src/components/sys/RoleDialogs.vue	75	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-093	micro-frontend/src/components/sys/RoleDialogs.vue	79	el-button	"@click=""emit('saveRole', formRef!)"""	checkButtonAuth(ButtonAuth.SYS_ROLE_SAVE)	e2e/management.spec.ts	direct action	""
+UI-094	micro-frontend/src/components/sys/RoleDialogs.vue	90	el-dialog	"@update:model-value=""emit('update:menuVisible', $event)"""		e2e/management.spec.ts	direct action	""
+UI-095	micro-frontend/src/components/sys/RoleDialogs.vue	98	el-tree			e2e/management.spec.ts	direct action	""
+UI-096	micro-frontend/src/components/sys/RoleDialogs.vue	108	el-button	"@click=""emit('saveMenu', menuTreeRef!)"""	checkButtonAuth(ButtonAuth.SYS_MENU_AUTHORITY_SAVE)	e2e/management.spec.ts	direct action	""
+UI-097	micro-frontend/src/components/sys/RoleDialogs.vue	119	el-dialog	"@update:model-value=""emit('update:permissionVisible', $event)"""		e2e/management.spec.ts	direct action	""
+UI-098	micro-frontend/src/components/sys/RoleDialogs.vue	128	el-checkbox-group	"v-model=""selectedPermissions"""		e2e/management.spec.ts	direct action	""
+UI-099	micro-frontend/src/components/sys/RoleDialogs.vue	129	el-checkbox			e2e/management.spec.ts	direct action	""
+UI-100	micro-frontend/src/components/sys/RoleDialogs.vue	135	el-button	"@click=""emit('savePermission')"""	checkButtonAuth(ButtonAuth.SYS_ROLE_DATA_SAVE)	e2e/management.spec.ts	direct action	""
+UI-101	micro-frontend/src/components/sys/SideMenuItem.vue	33	el-button	"@click=""reverseCollapse"""		e2e/shell.spec.ts	direct action	""
+UI-102	micro-frontend/src/components/sys/UserEditorDialog.vue	37	el-dialog	"@update:model-value=""emit('update:visible', $event)"""		e2e/management.spec.ts	direct action	""
+UI-103	micro-frontend/src/components/sys/UserEditorDialog.vue	51	el-input	"v-model=""formModel.username"""		e2e/management.spec.ts	direct action	""
+UI-104	micro-frontend/src/components/sys/UserEditorDialog.vue	59	el-input	"v-model=""formModel.nickname"""		e2e/management.spec.ts	direct action	""
+UI-105	micro-frontend/src/components/sys/UserEditorDialog.vue	67	el-input	"v-model=""formModel.password"""		e2e/management.spec.ts	direct action	""
+UI-106	micro-frontend/src/components/sys/UserEditorDialog.vue	70	el-input	"v-model=""formModel.avatar"""		e2e/management.spec.ts	direct action	""
+UI-107	micro-frontend/src/components/sys/UserEditorDialog.vue	73	el-input	"v-model=""formModel.email"""		e2e/management.spec.ts	direct action	""
+UI-108	micro-frontend/src/components/sys/UserEditorDialog.vue	76	el-input	"v-model=""formModel.phone"""		e2e/management.spec.ts	direct action	""
+UI-109	micro-frontend/src/components/sys/UserEditorDialog.vue	79	el-select	"v-model=""formModel.roles"""		e2e/management.spec.ts	direct action	""
+UI-110	micro-frontend/src/components/sys/UserEditorDialog.vue	89	el-radio-group	"v-model=""formModel.status"""		e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-111	micro-frontend/src/components/sys/UserEditorDialog.vue	90	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-112	micro-frontend/src/components/sys/UserEditorDialog.vue	91	el-radio			e2e/administration.spec.ts	direct action	Each displayed radio option was selected and verified before canceling the edit.
+UI-113	micro-frontend/src/components/sys/UserEditorDialog.vue	95	el-button	"@click=""emit('save', formRef!)"""	checkButtonAuth(ButtonAuth.SYS_USER_SAVE)	e2e/management.spec.ts	direct action	""
+UI-114	micro-frontend/src/views/404View.vue	8	el-calendar	"v-model=""value"""		e2e/shell.spec.ts	direct action	""
+UI-115	micro-frontend/src/views/BlogView.vue	113	CatalogueItem	"v-model:loading-catalogue=""loadingCatalogue"""	loadingCatalogue && showCatalogue	e2e/article-list.spec.ts	partial	Catalogue selection and scroll are asserted when the table of contents is visible.
+UI-116	micro-frontend/src/views/BlogView.vue	139	md-preview	"v-model=""blog.content"" | @on-html-changed=""renderCatalogue"""	!loading	e2e/publishing.spec.ts	workflow assertion	End-to-end lifecycle; see the case assertions for the branches exercised.
+UI-117	micro-frontend/src/views/BlogsView.vue	262	ReadTokenItem	"v-model:read-token-dialog-visible=""readTokenDialogVisible"""		e2e/reading.spec.ts	API only	Public search filters to normal articles and recommendation cards are always public. The existing feed has no route to this dialog; real gateway code redemption is tested.
+UI-118	micro-frontend/src/views/BlogsView.vue	264	el-button	"@click=""search"""		e2e/public.spec.ts	direct action	""
+UI-119	micro-frontend/src/views/BlogsView.vue	267	el-button	"@click=""theme.toggleTheme"""		e2e/public.spec.ts	direct action	""
+UI-120	micro-frontend/src/views/BlogsView.vue	273	SearchItem	"@trans-search-data=""fillSearchData"" | @refresh=""clearSearch"" | @search-error=""feedError = true"" | v-model:loading=""requestLoading"" | v-model:search-dialog-visible=""searchDialogVisible"""		e2e/list-interactions.spec.ts	direct action	Search input clear, suggestion selection, full-search results and feed reset across the three suites.
+UI-121	micro-frontend/src/views/BlogsView.vue	282	el-link	"@click=""goToBack"""	login && menuStore().menuTree	e2e/shell.spec.ts	direct action	""
+UI-122	micro-frontend/src/views/BlogsView.vue	290	el-link	"@click=""clearSearch"""	keywords	e2e/public.spec.ts	direct action	""
+UI-123	micro-frontend/src/views/BlogsView.vue	309	el-card	"@click=""to(blog.id, blog.status)"""	!skeletonLoading	e2e/article-list.spec.ts	direct action	Public card navigation or management filtering, export, pagination and two-row deletion.
+UI-124	micro-frontend/src/views/BlogsView.vue	310	el-image	"@load=""settleImage(blog.id)"" | @error=""settleImage(blog.id)"""	!skeletonLoading && blog.link	e2e/editor-controls.spec.ts	direct action	Verified successful browser image decoding and the visible failed-cover state on a second result.
+UI-125	micro-frontend/src/views/BlogsView.vue	320	el-link		!skeletonLoading	e2e/article-list.spec.ts	workflow assertion	Verified a search result title and opened its enclosing article card.
+UI-126	micro-frontend/src/views/BlogsView.vue	352	InfiniteScrollFooter	"@load=""loadMore"" | @retry=""retryFeed"""	(hasContent || feedError) && !skeletonLoading	e2e/list-interactions.spec.ts	direct action	Followed a recommendation cursor and verified the appended title. article-list.spec.ts covers search pages and recovery.spec.ts covers retry.
+UI-127	micro-frontend/src/views/IntroView.vue	22	router-link			e2e/public.spec.ts	direct action	""
+UI-128	micro-frontend/src/views/IntroView.vue	25	a			e2e/public.spec.ts	workflow assertion	Asserted the external GitHub link target.
+UI-129	micro-frontend/src/views/LoginView.vue	105	el-radio-group	"v-model=""radioSelect"""		e2e/navigation.spec.ts	direct action	""
+UI-130	micro-frontend/src/views/LoginView.vue	106	el-radio-button	"@change=""handleLoginTypeChange"""		e2e/navigation.spec.ts	direct action	""
+UI-131	micro-frontend/src/views/LoginView.vue	111	el-radio-button	"@change=""handleLoginTypeChange"""		e2e/navigation.spec.ts	direct action	""
+UI-132	micro-frontend/src/views/LoginView.vue	112	el-radio-button	"@change=""handleLoginTypeChange"""		e2e/navigation.spec.ts	direct action	""
+UI-133	micro-frontend/src/views/LoginView.vue	116	el-input	"v-model=""loginInfo.username"""		e2e/navigation.spec.ts	direct action	""
+UI-134	micro-frontend/src/views/LoginView.vue	119	el-input	"v-model=""loginInfo.password"" | @keyup.enter=""triggerSubmitLogin(loginInfo.username, loginInfo.password)"""		e2e/navigation.spec.ts	direct action	""
+UI-135	micro-frontend/src/views/LoginView.vue	129	el-button	"@click=""triggerSubmitLogin(loginInfo.username, loginInfo.password)"""		e2e/public.spec.ts	partial	Password success and email/SMS login failures; delivery success is in the live suite.
+UI-136	micro-frontend/src/views/LoginView.vue	136	el-button	"@click=""sendCode('email')"""	radioEmail	e2e/public.spec.ts	partial	Password success and email/SMS login failures; delivery success is in the live suite.
+UI-137	micro-frontend/src/views/LoginView.vue	143	el-button	"@click=""sendCode('sms')"""	radioSMS	e2e/public.spec.ts	partial	Password success and email/SMS login failures; delivery success is in the live suite.
+UI-138	micro-frontend/src/views/RegisterView.vue	206	el-input	"v-model=""form.username"""		e2e/public.spec.ts	workflow assertion	Bound invitation locks the username and consumes the link.
+UI-139	micro-frontend/src/views/RegisterView.vue	214	el-input	"v-model=""form.nickname"""		e2e/public.spec.ts	direct action	""
+UI-140	micro-frontend/src/views/RegisterView.vue	218	el-input	"v-model=""form.password"""		e2e/public.spec.ts	direct action	""
+UI-141	micro-frontend/src/views/RegisterView.vue	226	el-input	"v-model=""form.confirmPassword"""		e2e/public.spec.ts	direct action	""
+UI-142	micro-frontend/src/views/RegisterView.vue	231	el-upload	"v-model:file-list=""fileList"""		e2e-live/integrations.spec.ts	live pending	Dedicated external provider or image-generation capability required.
+UI-143	micro-frontend/src/views/RegisterView.vue	246	el-dialog	"v-model=""dialogVisible"""		e2e-live/integrations.spec.ts	live pending	Dedicated external provider or image-generation capability required.
+UI-144	micro-frontend/src/views/RegisterView.vue	261	el-input	"v-model=""form.email"""		e2e/public.spec.ts	direct action	""
+UI-145	micro-frontend/src/views/RegisterView.vue	265	el-input	"v-model=""form.phone"""		e2e/public.spec.ts	direct action	Bound invitation with a phone number.
+UI-146	micro-frontend/src/views/RegisterView.vue	269	el-button	"@click=""submitForm"""		e2e/public.spec.ts	direct action	""
+UI-147	micro-frontend/src/views/sys/AuthorityView.vue	194	el-form	@submit.prevent		e2e/administration.spec.ts	workflow assertion	Form submission, validation or export exercised from the page.
+UI-148	micro-frontend/src/views/sys/AuthorityView.vue	196	el-button	"@click=""dialogVisible = true"""	checkButtonAuth(ButtonAuth.SYS_AUTHORITY_CREATE)	e2e/administration.spec.ts	direct action	""
+UI-149	micro-frontend/src/views/sys/AuthorityView.vue	204	el-popconfirm	"@confirm=""delBatch"""	checkButtonAuth(ButtonAuth.SYS_AUTHORITY_BATCH_DEL)	e2e/batch.spec.ts	direct action	""
+UI-150	micro-frontend/src/views/sys/AuthorityView.vue	206	el-button		checkButtonAuth(ButtonAuth.SYS_AUTHORITY_BATCH_DEL)	e2e/batch.spec.ts	direct action	""
+UI-151	micro-frontend/src/views/sys/AuthorityView.vue	216	el-button	"@click=""download"""	checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DOWNLOAD)	e2e/administration.spec.ts	direct action	""
+UI-152	micro-frontend/src/views/sys/AuthorityView.vue	228	el-table	"@selection-change=""handleSelectionChange"""		e2e/batch.spec.ts	direct action	""
+UI-153	micro-frontend/src/views/sys/AuthorityView.vue	301	el-button	"@click=""handleEdit(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_AUTHORITY_EDIT)	e2e/management.spec.ts	direct action	""
+UI-154	micro-frontend/src/views/sys/AuthorityView.vue	310	el-popconfirm	"@confirm=""handleDelete(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DELETE)	e2e/management.spec.ts	direct action	""
+UI-155	micro-frontend/src/views/sys/AuthorityView.vue	312	el-button		checkButtonAuth(ButtonAuth.SYS_AUTHORITY_DELETE)	e2e/management.spec.ts	direct action	""
+UI-156	micro-frontend/src/views/sys/AuthorityView.vue	322	AuthorityEditorDialog	"v-model:visible=""dialogVisible"" | @close=""handleClose"" | @save=""submitForm"""		e2e/management.spec.ts	direct action	""
+UI-157	micro-frontend/src/views/sys/BlogsView.vue	211	el-form	@submit.prevent		e2e/article-list.spec.ts	workflow assertion	The search form accepts Enter and returns a filtered result.
+UI-158	micro-frontend/src/views/sys/BlogsView.vue	213	el-input	"v-model=""input"" | @clear=""clearQueryBlogs"" | @keyup.enter=""searchBlogsAction"""		e2e/list-interactions.spec.ts	direct action	Submitted the article keyword, then cleared it and checked the outgoing request.
+UI-159	micro-frontend/src/views/sys/BlogsView.vue	225	el-date-picker	"v-model=""dateTimeScope"" | @clear=""clearDatePicker"""		e2e/editor-controls.spec.ts	direct action	""
+UI-160	micro-frontend/src/views/sys/BlogsView.vue	237	el-select	"v-model=""status"" | @clear=""clearSelect"""		e2e/list-interactions.spec.ts	direct action	Selected a status and cleared it with the inline control.
+UI-161	micro-frontend/src/views/sys/BlogsView.vue	254	el-button	"@click=""searchBlogsAction"""	checkButtonAuth(ButtonAuth.SYS_BLOG_SEARCH)	e2e/article-list.spec.ts	direct action	Public card navigation or management filtering, export, pagination and two-row deletion.
+UI-162	micro-frontend/src/views/sys/BlogsView.vue	262	el-popconfirm	"@confirm=""delBatch"""	checkButtonAuth(ButtonAuth.SYS_BLOG_BATCH_DEL)	e2e/article-list.spec.ts	direct action	Public card navigation or management filtering, export, pagination and two-row deletion.
+UI-163	micro-frontend/src/views/sys/BlogsView.vue	264	el-button		checkButtonAuth(ButtonAuth.SYS_BLOG_BATCH_DEL)	e2e/article-list.spec.ts	direct action	Public card navigation or management filtering, export, pagination and two-row deletion.
+UI-164	micro-frontend/src/views/sys/BlogsView.vue	274	el-button	"@click=""download"""	checkButtonAuth(ButtonAuth.SYS_BLOG_DOWNLOAD)	e2e/article-list.spec.ts	direct action	Public card navigation or management filtering, export, pagination and two-row deletion.
+UI-165	micro-frontend/src/views/sys/BlogsView.vue	286	el-table	"@selection-change=""handleSelectionChange"""		e2e/article-list.spec.ts	direct action	Public card navigation or management filtering, export, pagination and two-row deletion.
+UI-166	micro-frontend/src/views/sys/BlogsView.vue	356	el-button	"@click=""handleCheck(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_BLOG_CHECK)	e2e/article-list.spec.ts	direct action	Public card navigation or management filtering, export, pagination and two-row deletion.
+UI-167	micro-frontend/src/views/sys/BlogsView.vue	365	el-button	"@click=""handleEdit(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_BLOG_EDIT)	e2e/article-list.spec.ts	direct action	Public card navigation or management filtering, export, pagination and two-row deletion.
+UI-168	micro-frontend/src/views/sys/BlogsView.vue	374	el-button	"@click=""handleVersions(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_EDIT_VERSIONS)	e2e/publishing.spec.ts	workflow assertion	End-to-end lifecycle; see the case assertions for the branches exercised.
+UI-169	micro-frontend/src/views/sys/BlogsView.vue	382	el-button	"@click=""handleStatus(scope.row)"""	scope.row.status !== Status.DRAFT && checkButtonAuth(ButtonAuth.SYS_EDIT_STATUS)	e2e/publishing.spec.ts	workflow assertion	End-to-end lifecycle; see the case assertions for the branches exercised.
+UI-170	micro-frontend/src/views/sys/BlogsView.vue	396	el-button	"@click=""handlePassword(scope.row)"""	scope.row.status === Status.BLOCK && checkButtonAuth(ButtonAuth.SYS_BLOG_PASSWORD)	e2e/reading.spec.ts	direct action	""
+UI-171	micro-frontend/src/views/sys/BlogsView.vue	405	el-popconfirm	"@confirm=""handleDelete(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_BLOG_DELETE)	e2e/publishing.spec.ts	workflow assertion	End-to-end lifecycle; see the case assertions for the branches exercised.
+UI-172	micro-frontend/src/views/sys/BlogsView.vue	407	el-button		checkButtonAuth(ButtonAuth.SYS_BLOG_DELETE)	e2e/publishing.spec.ts	workflow assertion	End-to-end lifecycle; see the case assertions for the branches exercised.
+UI-173	micro-frontend/src/views/sys/BlogsView.vue	418	el-pagination	"@size-change=""handleSizeChange"" | @current-change=""handleCurrentChange"""		e2e/article-list.spec.ts	direct action	Public card navigation or management filtering, export, pagination and two-row deletion.
+UI-174	micro-frontend/src/views/sys/BlogsView.vue	428	BlogVersionPanel	"v-model:visible=""versionPanelVisible"" | @restored=""handleVersionRestored"""	versionBlogId	e2e/publishing.spec.ts	workflow assertion	End-to-end lifecycle; see the case assertions for the branches exercised.
+UI-175	micro-frontend/src/views/sys/DeleteView.vue	81	el-table	"@selection-change=""handleSelectionChange"""		e2e/article-list.spec.ts	workflow assertion	Inspected both deleted rows across pages. The recycle-bin table has no selection column.
+UI-176	micro-frontend/src/views/sys/DeleteView.vue	165	AuthButton	"@click=""handleResume(scope.row)"""		e2e/publishing.spec.ts	workflow assertion	End-to-end lifecycle; see the case assertions for the branches exercised.
+UI-177	micro-frontend/src/views/sys/DeleteView.vue	174	el-pagination	"@size-change=""handleSizeChange"" | @current-change=""handleCurrentChange"""		e2e/article-list.spec.ts	partial	Browsed the recycle-bin pages when the requested articles were on different pages.
+UI-178	micro-frontend/src/views/sys/EditView.vue	535	el-button	"@click=""createDraft"""	draftCreationFailed	e2e/recovery.spec.ts	direct action	""
+UI-179	micro-frontend/src/views/sys/EditView.vue	541	el-input		recoveryDrafts.length	e2e/editor-controls.spec.ts	direct action	""
+UI-180	micro-frontend/src/views/sys/EditView.vue	542	el-input		recoveryDrafts.length	e2e/editor-controls.spec.ts	direct action	""
+UI-181	micro-frontend/src/views/sys/EditView.vue	547	el-input		recoveryDrafts.length	e2e/editor-controls.spec.ts	direct action	""
+UI-182	micro-frontend/src/views/sys/EditView.vue	558	BlogMetadataFields	"v-model:title=""form.title"" | v-model:description=""form.description"" | v-model:status=""form.status"" | @sensitive=""dealSensitive"" | @remove-sensitive=""handleTagClose"""		e2e/masking.spec.ts	workflow assertion	Input values, publication and reader-specific output.
+UI-183	micro-frontend/src/views/sys/EditView.vue	568	BlogAiActions	"v-model:model=""aiModel"" | @generate=""handleAiGenerate"""		e2e-live/integrations.spec.ts	live partial	Installed model generated article metadata; cover request returned HTTP 400.
+UI-184	micro-frontend/src/views/sys/EditView.vue	593	BlogCoverField	"v-model:link=""form.link"" | v-model:generated-dialog-visible=""generatedImageDialogVisible"" | @regenerate=""regenerateImage"""		e2e-live/integrations.spec.ts	live pending	Dedicated external provider or image-generation capability required.
+UI-185	micro-frontend/src/views/sys/EditView.vue	606	CustomEditorItem	"@epoch-changed=""handleEpochChanged"" | @authorization-paused=""collaborationReady = false"" | v-model:content=""form.content"" | @ready=""collaborationReady = true"" | @sensitive=""dealSensitive"""	!loadContent && editorReady && form.id && form.collaborationEpoch	e2e/publishing.spec.ts	workflow assertion	End-to-end lifecycle; see the case assertions for the branches exercised.
+UI-186	micro-frontend/src/views/sys/EditView.vue	624	el-button	"@click=""saveVersion(formRef!)"""	checkButtonAuth(ButtonAuth.SYS_EDIT_COMMIT)	e2e/publishing.spec.ts	workflow assertion	End-to-end lifecycle; see the case assertions for the branches exercised.
+UI-187	micro-frontend/src/views/sys/EditView.vue	632	el-button	"@click=""publish(formRef!)"""	checkButtonAuth(ButtonAuth.SYS_EDIT_PUBLISH)	e2e/publishing.spec.ts	workflow assertion	End-to-end lifecycle; see the case assertions for the branches exercised.
+UI-188	micro-frontend/src/views/sys/MenusView.vue	210	el-form	@submit.prevent		e2e/administration.spec.ts	workflow assertion	Form submission, validation or export exercised from the page.
+UI-189	micro-frontend/src/views/sys/MenusView.vue	212	el-button	"@click=""dialogVisible = true"""	checkButtonAuth(ButtonAuth.SYS_MENU_CREATE)	e2e/administration.spec.ts	direct action	""
+UI-190	micro-frontend/src/views/sys/MenusView.vue	220	el-button	"@click=""download"""	checkButtonAuth(ButtonAuth.SYS_MENU_DOWNLOAD)	e2e/administration.spec.ts	direct action	""
+UI-191	micro-frontend/src/views/sys/MenusView.vue	295	el-button	"@click=""handleEdit(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_MENU_EDIT)	e2e/management.spec.ts	direct action	""
+UI-192	micro-frontend/src/views/sys/MenusView.vue	304	el-button	"@click=""handleAuthority(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_MENUS_AUTHORITY_PERM)	e2e/management.spec.ts	direct action	""
+UI-193	micro-frontend/src/views/sys/MenusView.vue	313	el-popconfirm	"@confirm=""handleDelete(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_MENU_DELETE)	e2e/management.spec.ts	direct action	""
+UI-194	micro-frontend/src/views/sys/MenusView.vue	315	el-button		checkButtonAuth(ButtonAuth.SYS_MENU_DELETE)	e2e/management.spec.ts	direct action	""
+UI-195	micro-frontend/src/views/sys/MenusView.vue	325	MenuDialogs	"v-model:editor-visible=""dialogVisible"" | v-model:authority-visible=""authorityDialogVisible"" | @close-editor=""handleClose"" | @close-authority=""authorityHandleClose"" | @save-menu=""submitForm"" | @save-authority=""submitAuthorityFormHandle"""		e2e/management.spec.ts	direct action	""
+UI-196	micro-frontend/src/views/sys/RolesView.vue	224	el-form	@submit.prevent		e2e/administration.spec.ts	workflow assertion	Form submission, validation or export exercised from the page.
+UI-197	micro-frontend/src/views/sys/RolesView.vue	226	el-button	"@click=""dialogVisible = true"""	checkButtonAuth(ButtonAuth.SYS_ROLE_CREATE)	e2e/administration.spec.ts	direct action	""
+UI-198	micro-frontend/src/views/sys/RolesView.vue	234	el-popconfirm	"@confirm=""delBatch"""	checkButtonAuth(ButtonAuth.SYS_ROLE_BATCH_DEL)	e2e/batch.spec.ts	direct action	""
+UI-199	micro-frontend/src/views/sys/RolesView.vue	236	el-button		checkButtonAuth(ButtonAuth.SYS_ROLE_BATCH_DEL)	e2e/batch.spec.ts	direct action	""
+UI-200	micro-frontend/src/views/sys/RolesView.vue	246	el-button	"@click=""download"""	checkButtonAuth(ButtonAuth.SYS_ROLE_DOWNLOAD)	e2e/administration.spec.ts	direct action	""
+UI-201	micro-frontend/src/views/sys/RolesView.vue	258	el-table	"@selection-change=""handleSelectionChange"""		e2e/batch.spec.ts	direct action	""
+UI-202	micro-frontend/src/views/sys/RolesView.vue	313	el-button	"@click=""handleEdit(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_ROLE_EDIT)	e2e/management.spec.ts	direct action	""
+UI-203	micro-frontend/src/views/sys/RolesView.vue	322	el-button	"@click=""handleMenu(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_ROLE_MENU_PERM)	e2e/management.spec.ts	direct action	""
+UI-204	micro-frontend/src/views/sys/RolesView.vue	331	el-button	"@click=""handleDataPermission(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_ROLE_DATA_PERM)	e2e/management.spec.ts	direct action	""
+UI-205	micro-frontend/src/views/sys/RolesView.vue	340	el-popconfirm	"@confirm=""handleDelete(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_ROLE_DELETE)	e2e/management.spec.ts	direct action	""
+UI-206	micro-frontend/src/views/sys/RolesView.vue	342	el-button		checkButtonAuth(ButtonAuth.SYS_ROLE_DELETE)	e2e/management.spec.ts	direct action	""
+UI-207	micro-frontend/src/views/sys/RolesView.vue	352	el-pagination	"@size-change=""handleSizeChange"" | @current-change=""handleCurrentChange"""		e2e/list-interactions.spec.ts	direct action	Entered page 2 in the page jumper after changing the size to 5; batch.spec.ts also exercises size 50.
+UI-208	micro-frontend/src/views/sys/RolesView.vue	362	RoleDialogs	"v-model:editor-visible=""dialogVisible"" | v-model:menu-visible=""menuDialogVisible"" | v-model:permission-visible=""dataPermissionDialogVisible"" | v-model:selected-permissions=""selectedDataPermissions"" | @close-editor=""handleClose"" | @close-menu=""menuHandleClose"" | @close-permission=""dataPermissionHandleClose"" | @save-role=""submitForm"" | @save-menu=""submitmenuFormHandle"" | @save-permission=""submitDataPermission"""		e2e/management.spec.ts	direct action	""
+UI-209	micro-frontend/src/views/sys/UsersView.vue	165	el-form	@submit.prevent		e2e/administration.spec.ts	workflow assertion	Form submission, validation or export exercised from the page.
+UI-210	micro-frontend/src/views/sys/UsersView.vue	167	el-button	"@click=""dialogVisible = true"""	checkButtonAuth(ButtonAuth.SYS_USER_CREATE)	e2e/administration.spec.ts	direct action	""
+UI-211	micro-frontend/src/views/sys/UsersView.vue	175	el-popconfirm	"@confirm=""delBatch"""	checkButtonAuth(ButtonAuth.SYS_USER_BATCH_DEL)	e2e/batch.spec.ts	direct action	""
+UI-212	micro-frontend/src/views/sys/UsersView.vue	177	el-button		checkButtonAuth(ButtonAuth.SYS_USER_BATCH_DEL)	e2e/batch.spec.ts	direct action	""
+UI-213	micro-frontend/src/views/sys/UsersView.vue	187	el-button	"@click=""getRegisterLink('')"""	checkButtonAuth(ButtonAuth.SYS_USER_REGISTER)		baseline issue	Unbound registration link is rejected by the existing username requirement.
+UI-214	micro-frontend/src/views/sys/UsersView.vue	195	el-button	"@click=""download"""	checkButtonAuth(ButtonAuth.SYS_USER_DOWNLOAD)	e2e/administration.spec.ts	direct action	""
+UI-215	micro-frontend/src/views/sys/UsersView.vue	207	el-table	"@selection-change=""handleSelectionChange"""		e2e/batch.spec.ts	direct action	""
+UI-216	micro-frontend/src/views/sys/UsersView.vue	265	el-button	"@click=""handleEdit(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_USER_EDIT)	e2e/management.spec.ts	direct action	""
+UI-217	micro-frontend/src/views/sys/UsersView.vue	274	el-popconfirm	"@confirm=""handleDelete(scope.row)"""	checkButtonAuth(ButtonAuth.SYS_USER_DELETE)	e2e/management.spec.ts	direct action	""
+UI-218	micro-frontend/src/views/sys/UsersView.vue	276	el-button		checkButtonAuth(ButtonAuth.SYS_USER_DELETE)	e2e/management.spec.ts	direct action	""
+UI-219	micro-frontend/src/views/sys/UsersView.vue	284	el-button	"@click=""getRegisterLink(scope.row.username)"""	checkButtonAuth(ButtonAuth.SYS_USER_MODIFY_REGISTER)	e2e/public.spec.ts	direct action	""
+UI-220	micro-frontend/src/views/sys/UsersView.vue	295	el-pagination	"@size-change=""handleSizeChange"" | @current-change=""handleCurrentChange"""		e2e/list-interactions.spec.ts	direct action	Entered page 2 in the page jumper after changing the size to 5; batch.spec.ts also exercises size 50.
+UI-221	micro-frontend/src/views/sys/UsersView.vue	305	UserEditorDialog	"v-model:visible=""dialogVisible"" | @close=""handleClose"" | @save=""submitForm"""		e2e/management.spec.ts	direct action	""

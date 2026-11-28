@@ -1,0 +1,189 @@
+package wiki.chiu.micro.blog.config;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import jakarta.persistence.EntityManagerFactory;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.aot.generate.DefaultGenerationContext;
+import org.springframework.aot.generate.InMemoryGeneratedFiles;
+import org.springframework.aot.generate.NameGenerator;
+import org.springframework.aot.hint.MemberCategory;
+import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.aot.hint.annotation.ReflectiveRuntimeHintsRegistrar;
+import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.aot.ApplicationContextAotGenerator;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.javapoet.ClassName;
+import org.springframework.web.service.registry.ImportHttpServices;
+
+import wiki.chiu.micro.base.MicroBaseApplication;
+import wiki.chiu.micro.blog.adapter.in.http.BlogDeleteVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogEditVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogEntityReq;
+import wiki.chiu.micro.blog.adapter.in.http.BlogEntityVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogIdVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogIndexSourceHttpHandler;
+import wiki.chiu.micro.blog.adapter.in.http.BlogInternalHttpHandler;
+import wiki.chiu.micro.blog.adapter.in.http.BlogPermissionsVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogVersionComparisonVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSaveVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogVersionSummaryVo;
+import wiki.chiu.micro.blog.adapter.in.http.BlogVersionVo;
+import wiki.chiu.micro.blog.adapter.in.http.OssDeleteReq;
+import wiki.chiu.micro.blog.adapter.in.http.PublishBlogReq;
+import wiki.chiu.micro.blog.adapter.in.http.SensitiveContentReq;
+import wiki.chiu.micro.blog.adapter.in.messaging.BlogRecycleMessageListener;
+import wiki.chiu.micro.blog.adapter.out.persistence.repository.BlogRepository;
+import wiki.chiu.micro.blog.api.vo.BlogIndexSourceStatus;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationContentRpcVo;
+import wiki.chiu.micro.blog.api.vo.BlogPublicationRpcVo;
+import wiki.chiu.micro.blog.domain.Blog;
+import wiki.chiu.micro.blog.domain.BlogWorkingDraft;
+import wiki.chiu.micro.common.message.BlogAdminIndexMessage;
+import wiki.chiu.micro.common.message.BlogChangedMessage;
+import wiki.chiu.micro.common.model.BlogAdminIndexSnapshot;
+import wiki.chiu.micro.common.model.BlogAdminSnapshot;
+import wiki.chiu.micro.common.model.BlogDraftSnapshot;
+import wiki.chiu.micro.common.model.BlogRevisionSnapshot;
+import wiki.chiu.micro.common.model.BlogSensitiveSpan;
+import wiki.chiu.micro.common.model.BlogSnapshot;
+import wiki.chiu.micro.common.page.PageAdapter;
+import wiki.chiu.micro.common.result.Result;
+
+class CustomRuntimeHintsTest {
+
+    @Test
+    void httpServiceInterfacesCoverRemovedManualBindings() {
+        RuntimeHints hints = new RuntimeHints();
+        var registrar = new ReflectiveRuntimeHintsRegistrar();
+        for (var group : MicroBaseApplication.class.getAnnotationsByType(ImportHttpServices.class)) {
+            registrar.registerRuntimeHints(hints, group.types());
+        }
+        registrar.registerRuntimeHints(
+            hints,
+            BlogInternalHttpHandler.class,
+            BlogIndexSourceHttpHandler.class);
+
+        for (Class<?> type : List.of(
+            Result.class,
+            BlogPublicationContentRpcVo.class,
+            BlogPublicationRpcVo.class,
+            BlogIndexSourceStatus.class,
+            BlogAdminIndexSnapshot.class,
+            BlogSnapshot.class,
+            BlogAdminSnapshot.class,
+            BlogDraftSnapshot.class,
+            BlogRevisionSnapshot.class,
+            BlogSensitiveSpan.class)) {
+            assertBinding(hints, type);
+        }
+    }
+
+    @Test
+    void rabbitListenerCoversRemovedMessageBindings() {
+        RuntimeHints hints = new RuntimeHints();
+        new ReflectiveRuntimeHintsRegistrar().registerRuntimeHints(hints, BlogRecycleMessageListener.class);
+
+        assertBinding(hints, BlogChangedMessage.class);
+    }
+
+    @Test
+    void springDataCoversRemovedProjectionBinding() {
+        try (var context = new AnnotationConfigApplicationContext()) {
+            context.register(JpaProjectionConfiguration.class);
+            var generation = new DefaultGenerationContext(
+                new NameGenerator(ClassName.get(getClass())), new InMemoryGeneratedFiles());
+
+            new ApplicationContextAotGenerator().processAheadOfTime(context, generation);
+
+            assertBinding(generation.getRuntimeHints(), BlogRepository.BlogId.class);
+        }
+    }
+
+    @Test
+    void retainsBindingsForFunctionalRoutesAndManualSerialization() {
+        RuntimeHints hints = new RuntimeHints();
+        new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
+
+        for (Class<?> type : List.of(
+            PageAdapter.class,
+            BlogEntityReq.class,
+            BlogIdVo.class,
+            SensitiveContentReq.class,
+            PublishBlogReq.class,
+            OssDeleteReq.class,
+            BlogEntityVo.class,
+            BlogDeleteVo.class,
+            BlogEditVo.class,
+            BlogVersionVo.class,
+            BlogVersionSaveVo.class,
+            BlogVersionSummaryVo.class,
+            BlogVersionComparisonVo.class,
+            BlogPermissionsVo.class,
+            BlogWorkingDraft.class,
+            Blog.class,
+            BlogAdminIndexMessage.class)) {
+            assertBinding(hints, type);
+        }
+    }
+
+    @Test
+    void retainsScriptResources() {
+        RuntimeHints hints = new RuntimeHints();
+        new CustomRuntimeHints().registerHints(hints, getClass().getClassLoader());
+
+        assertThat(RuntimeHintsPredicates.resource().forResource("script/blog-delete-list.lua").test(hints))
+            .as("Resource hints for blog-delete-list.lua")
+            .isTrue();
+        assertThat(RuntimeHintsPredicates.resource().forResource("script/blog-recycle.lua").test(hints))
+            .as("Resource hints for blog-recycle.lua")
+            .isTrue();
+        assertThat(RuntimeHintsPredicates.resource().forResource("script/hot-blogs.lua").test(hints))
+            .as("Resource hints for hot-blogs.lua")
+            .isTrue();
+    }
+
+    private void assertBinding(RuntimeHints hints, Class<?> type) {
+        if (type.isEnum()) {
+            assertThat(RuntimeHintsPredicates.reflection()
+                .onType(type)
+                .withMemberCategory(MemberCategory.INVOKE_DECLARED_METHODS)
+                .or(RuntimeHintsPredicates.reflection().onMethodInvocation(type, "values"))
+                .test(hints))
+                .as("Enum binding hints for %s", type.getName())
+                .isTrue();
+            return;
+        }
+        assertThat(RuntimeHintsPredicates.reflection()
+            .onType(type)
+            .withMemberCategory(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS)
+            .test(hints))
+            .as("Binding constructor hints for %s", type.getName())
+            .isTrue();
+        for (var component : type.getRecordComponents()) {
+            assertThat(RuntimeHintsPredicates.reflection()
+                .onType(type)
+                .withMemberCategory(MemberCategory.INVOKE_DECLARED_METHODS)
+                .or(RuntimeHintsPredicates.reflection().onMethodInvocation(component.getAccessor()))
+                .test(hints))
+                .as("Binding accessor hints for %s.%s", type.getName(), component.getName())
+                .isTrue();
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @EnableJpaRepositories(basePackageClasses = BlogRepository.class)
+    static class JpaProjectionConfiguration {
+
+        @Bean
+        EntityManagerFactory entityManagerFactory() {
+            throw new IllegalStateException("Only the bean type is needed for AOT processing");
+        }
+    }
+}

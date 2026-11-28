@@ -7,6 +7,8 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+megalith-messaging.workspace = true
+megalith-api.workspace = true
 megalith-otel.workspace = true
 axum.workspace = true
 tokio.workspace = true

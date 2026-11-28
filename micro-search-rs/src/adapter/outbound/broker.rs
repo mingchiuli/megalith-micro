@@ -1,10 +1,6 @@
 use crate::application::rebuild::Conflict;
 use anyhow::{Context, Result, ensure};
-use lapin::{
-    Channel, ExchangeKind,
-    options::*,
-    types::{AMQPValue, FieldTable},
-};
+use lapin::{Channel, options::*, types::FieldTable};
 
 pub(crate) const QUEUES: [(&str, &str); 2] = [
     ("blog.change.queue.es", "blog.change.fanout.exchange"),
@@ -13,75 +9,9 @@ pub(crate) const QUEUES: [(&str, &str); 2] = [
         "blog.admin.change.fanout.exchange",
     ),
 ];
-fn table(args: Vec<(&str, AMQPValue)>) -> FieldTable {
-    let mut t = FieldTable::default();
-    for (k, v) in args {
-        t.insert(k.into(), v);
-    }
-    t
-}
 pub async fn topology(ch: &Channel) -> Result<()> {
-    let queue = QueueDeclareOptions {
-        durable: true,
-        ..Default::default()
-    };
-    let exchange = ExchangeDeclareOptions {
-        durable: true,
-        ..Default::default()
-    };
-    for (q, fanout) in QUEUES {
-        ch.exchange_declare(
-            fanout.into(),
-            ExchangeKind::Fanout,
-            exchange,
-            FieldTable::default(),
-        )
-        .await?;
-        ch.queue_declare(q.into(), queue, FieldTable::default())
-            .await?;
-        ch.queue_bind(
-            q.into(),
-            fanout.into(),
-            "".into(),
-            Default::default(),
-            FieldTable::default(),
-        )
-        .await?;
-        let retry = format!("{q}.retry.exchange");
-        ch.exchange_declare(
-            retry.clone().into(),
-            ExchangeKind::Direct,
-            exchange,
-            FieldTable::default(),
-        )
-        .await?;
-        for (i, ttl) in [5000, 30000, 300000].into_iter().enumerate() {
-            let route = format!("retry.{}", i + 1);
-            let name = format!("{q}.{route}");
-            let args = table(vec![
-                ("x-message-ttl", AMQPValue::LongInt(ttl)),
-                ("x-dead-letter-exchange", AMQPValue::LongString("".into())),
-                ("x-dead-letter-routing-key", AMQPValue::LongString(q.into())),
-            ]);
-            ch.queue_declare(name.clone().into(), queue, args).await?;
-            ch.queue_bind(
-                name.into(),
-                retry.clone().into(),
-                route.into(),
-                Default::default(),
-                FieldTable::default(),
-            )
-            .await?;
-        }
-        ch.queue_declare(
-            format!("{q}.dlq").into(),
-            queue,
-            table(vec![(
-                "x-message-ttl",
-                AMQPValue::LongInt(14 * 86400 * 1000),
-            )]),
-        )
-        .await?;
+    for (queue, exchange) in QUEUES {
+        megalith_messaging::declare_topology(ch, queue, exchange).await?;
     }
     Ok(())
 }

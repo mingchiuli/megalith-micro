@@ -145,20 +145,21 @@ export const createCollaborationSession = async (
     onEvent({ type: 'persistence-error' })
   }
 
-  const provider = new WebsocketProvider(
+  const roomsUrl = new URL(
     `${API_CONFIG.BASE_WS_URL}${API_ENDPOINTS.COLLABORATION.WS_ROOMS}`,
-    roomId,
-    ydoc,
-    {
-      params: {
-        token: collaborationToken
-      },
-      connect: false,
-      resyncInterval: 3000,
-      maxBackoffTime: 10000,
-      disableBc: false
-    }
+    window.location.href
   )
+  if (roomsUrl.protocol === 'https:') roomsUrl.protocol = 'wss:'
+  if (roomsUrl.protocol === 'http:') roomsUrl.protocol = 'ws:'
+  const provider = new WebsocketProvider(roomsUrl.href, roomId, ydoc, {
+    params: {
+      token: collaborationToken
+    },
+    connect: false,
+    resyncInterval: 3000,
+    maxBackoffTime: 10000,
+    disableBc: false
+  })
   let destroyed = false
 
   provider.on('sync', (isSynced: boolean) => {

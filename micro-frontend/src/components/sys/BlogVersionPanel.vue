@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { diffLines } from 'diff'
+import { getCurrentInstance } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useHttp } from '@/http/http'
 import { API_ENDPOINTS } from '@/config/apiConfig'
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const appContext = getCurrentInstance()?.appContext
 const { GET, POST } = useHttp()
 const visible = computed({
   get: () => props.visible,
@@ -105,7 +107,8 @@ const restoreVersion = async (version: BlogVersionSummary) => {
   const confirmed = await ElMessageBox.confirm(
     t('admin.restoreVersionConfirm', { version: version.versionNo }),
     t('common.confirm'),
-    { type: 'warning' }
+    { type: 'warning' },
+    appContext
   ).catch(() => false)
   if (!confirmed) return
   restoringVersionId.value = version.id

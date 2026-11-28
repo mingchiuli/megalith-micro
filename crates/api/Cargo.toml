@@ -1,0 +1,24 @@
+[package]
+name = "megalith-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+serde.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[dependencies.reqwest]
+workspace = true
+features = ["json", "query"]
+optional = true
+
+[dependencies.megalith-otel]
+workspace = true
+optional = true
+
+[features]
+client = ["dep:reqwest", "dep:megalith-otel"]

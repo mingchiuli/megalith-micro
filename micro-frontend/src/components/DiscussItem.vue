@@ -10,10 +10,16 @@ const createGiscusScript = (): HTMLScriptElement => {
   const giscus = document.createElement('script')
   giscus.type = 'text/javascript'
   giscus.async = true
-  giscus.setAttribute('data-repo', 'mingchiuli/megalith-talk-repo')
-  giscus.setAttribute('data-repo-id', 'R_kgDOGoA_3A')
-  giscus.setAttribute('data-category', 'Announcements')
-  giscus.setAttribute('data-category-id', 'DIC_kwDOGoA_3M4CiCk5')
+  giscus.setAttribute(
+    'data-repo',
+    import.meta.env.VITE_GISCUS_REPO || 'mingchiuli/megalith-talk-repo'
+  )
+  giscus.setAttribute('data-repo-id', import.meta.env.VITE_GISCUS_REPO_ID || 'R_kgDOGoA_3A')
+  giscus.setAttribute('data-category', import.meta.env.VITE_GISCUS_CATEGORY || 'Announcements')
+  giscus.setAttribute(
+    'data-category-id',
+    import.meta.env.VITE_GISCUS_CATEGORY_ID || 'DIC_kwDOGoA_3M4CiCk5'
+  )
   giscus.setAttribute('data-mapping', 'pathname')
   giscus.setAttribute('data-strict', '0')
   giscus.setAttribute('data-reactions-enabled', '1')
@@ -28,7 +34,7 @@ const createGiscusScript = (): HTMLScriptElement => {
 
 const createDisqusScript = (): HTMLScriptElement => {
   const disqus = document.createElement('script')
-  disqus.src = 'https://chiu-1.disqus.com/embed.js'
+  disqus.src = `https://${import.meta.env.VITE_DISQUS_SHORTNAME || 'chiu-1'}.disqus.com/embed.js`
   disqus.setAttribute('data-timestamp', new Date().toString())
   return disqus
 }

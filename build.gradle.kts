@@ -52,8 +52,17 @@ subprojects {
     if (name.startsWith("micro-")) {
         plugins.apply("org.graalvm.buildtools.native")
 
-        if (name == "micro-user" || name == "micro-blog") {
+        if (name == "micro-base") {
             plugins.apply("org.hibernate.orm")
+            configure<org.hibernate.orm.tooling.gradle.HibernateOrmSpec> {
+                enhancement {
+                    classNames.set(listOf(
+                        "wiki.chiu.micro.user.adapter.out.persistence.entity.MenuEntity",
+                        "wiki.chiu.micro.user.adapter.out.persistence.entity.RoleEntity",
+                        "wiki.chiu.micro.user.adapter.out.persistence.entity.RoleDataPermissionEntity"
+                    ))
+                }
+            }
         }
 
         // Configure GraalVM Native Image compilation (仅用于本地测试)

@@ -40,8 +40,7 @@ class OutboxEventPublisherTest {
 
     @BeforeEach
     void setUp() {
-        properties.setProducer(OutboxProducer.BLOG);
-        properties.setExchange("blog.exchange");
+        properties.setExchanges(Map.of(OutboxProducer.BLOG, "blog.exchange"));
         properties.setPublisherConcurrency(1);
         properties.setConfirmTimeoutMillis(100);
         RLock lock = mock(RLock.class);
@@ -119,11 +118,11 @@ class OutboxEventPublisherTest {
             store,
             rabbitTemplate,
             new RedisTaskLock(redisson, new TaskLockProperties()),
-            properties.getProducer(),
+            OutboxProducer.BLOG,
             properties.getBatchSize(),
             properties.getPublisherConcurrency(),
             properties.getConfirmTimeoutMillis(),
-            properties.getExchange(),
+            properties.defaultExchange(OutboxProducer.BLOG),
             properties.getEventExchanges(),
             new SimpleMeterRegistry());
     }

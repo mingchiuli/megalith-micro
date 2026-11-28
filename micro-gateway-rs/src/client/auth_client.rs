@@ -44,7 +44,7 @@ impl AuthClient {
             .parse()
             .expect("auth max_inflight must be a positive integer");
         let mut auth_url = config::get_config(ConfigKey::AuthUrlKey);
-        auth_url.push_str("/auth/route");
+        auth_url.push_str(megalith_api::auth::AUTH_ROUTE);
         Self::with_settings(
             client,
             auth_url.parse().expect("invalid auth URL"),

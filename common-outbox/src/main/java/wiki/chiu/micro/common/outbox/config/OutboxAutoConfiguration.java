@@ -21,13 +21,12 @@ import wiki.chiu.micro.common.outbox.application.port.out.OutboxEventSerializer;
 import wiki.chiu.micro.common.outbox.application.port.out.OutboxStore;
 import wiki.chiu.micro.common.outbox.application.service.OutboxAdministrationServiceImpl;
 import wiki.chiu.micro.common.outbox.application.service.OutboxServiceImpl;
+import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 import wiki.chiu.micro.common.scheduling.RedisTaskLock;
 
 @AutoConfiguration
 @EnableConfigurationProperties(OutboxProperties.class)
-@ConditionalOnProperty(
-    prefix = "megalith.outbox",
-    name = {"producer", "exchange"})
+@ConditionalOnProperty(prefix = "megalith.outbox", name = "enabled", havingValue = "true")
 public class OutboxAutoConfiguration {
 
     @Bean
@@ -46,12 +45,32 @@ public class OutboxAutoConfiguration {
     }
 
     @Bean
-    OutboxAdministration outboxAdministration(OutboxStore store, OutboxProperties properties) {
-        return new OutboxAdministrationServiceImpl(store, properties.getProducer());
+    OutboxAdministration outboxAdministration(OutboxStore store) {
+        return new OutboxAdministrationServiceImpl(store);
     }
 
     @Bean
-    OutboxEventPublisher outboxEventPublisher(
+    OutboxEventPublisher userOutboxPublisher(
+        OutboxStore store,
+        RabbitTemplate rabbitTemplate,
+        RedisTaskLock taskLock,
+        OutboxProperties properties,
+        MeterRegistry meterRegistry) {
+        return publisher(OutboxProducer.USER, store, rabbitTemplate, taskLock, properties, meterRegistry);
+    }
+
+    @Bean
+    OutboxEventPublisher blogOutboxPublisher(
+        OutboxStore store,
+        RabbitTemplate rabbitTemplate,
+        RedisTaskLock taskLock,
+        OutboxProperties properties,
+        MeterRegistry meterRegistry) {
+        return publisher(OutboxProducer.BLOG, store, rabbitTemplate, taskLock, properties, meterRegistry);
+    }
+
+    private OutboxEventPublisher publisher(
+        OutboxProducer producer,
         OutboxStore store,
         RabbitTemplate rabbitTemplate,
         RedisTaskLock taskLock,
@@ -61,18 +80,18 @@ public class OutboxAutoConfiguration {
             store,
             rabbitTemplate,
             taskLock,
-            properties.getProducer(),
+            producer,
             properties.getBatchSize(),
             properties.getPublisherConcurrency(),
             properties.getConfirmTimeoutMillis(),
-            properties.getExchange(),
+            properties.defaultExchange(producer),
             properties.getEventExchanges(),
             meterRegistry);
     }
 
     @Bean
     OutboxEndpoint outboxEndpoint(
-        OutboxAdministration administration, OutboxProperties properties, RedisTaskLock taskLock) {
-        return new OutboxEndpoint(administration, properties.getProducer(), taskLock);
+        OutboxAdministration administration, RedisTaskLock taskLock) {
+        return new OutboxEndpoint(administration, taskLock);
     }
 }

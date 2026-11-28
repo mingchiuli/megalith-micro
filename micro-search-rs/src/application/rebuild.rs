@@ -2,7 +2,7 @@ use super::Search;
 use crate::domain::IndexKind;
 use crate::{adapter::outbound::broker, domain};
 use anyhow::{Result, ensure};
-use serde::Deserialize;
+pub(crate) use megalith_api::blog::BlogIndexSourceStatus as Status;
 use serde_json::{Value, json};
 use uuid::Uuid;
 
@@ -14,21 +14,11 @@ impl std::fmt::Display for Conflict {
     }
 }
 impl std::error::Error for Conflict {}
-#[derive(Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct Status {
-    read_only: bool,
-    ready_events: u64,
-    paused_events: u64,
-    pub total: u64,
-    pub published_total: u64,
-    pub revision_total: u64,
-}
 impl Search {
     async fn ready_source(&self) -> Result<Status> {
         let status = self.source.status().await?;
         ensure!(
-            status.read_only && status.ready_events == 0 && status.paused_events == 0,
+            status.ready(),
             Conflict("blog source must be read-only with an empty BLOG outbox".into())
         );
         Ok(status)

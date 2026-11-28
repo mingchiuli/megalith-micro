@@ -8,13 +8,8 @@ pluginManagement {
 rootProject.name = "megalith-micro"
 
 include(
-        "micro-auth",
-        "micro-blog",
-        "micro-user",
-        "micro-exhibit",
-        "api-auth",
-        "api-user",
-        "api-blog",
+        "micro-base",
+        "api-base",
         "common-arch",
         "common-contract",
         "common-rpc",

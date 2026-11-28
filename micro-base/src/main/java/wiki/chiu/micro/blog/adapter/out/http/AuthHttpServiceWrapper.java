@@ -1,0 +1,24 @@
+package wiki.chiu.micro.blog.adapter.out.http;
+
+import org.springframework.stereotype.Component;
+
+import wiki.chiu.micro.blog.adapter.out.http.auth.AuthHttpService;
+import wiki.chiu.micro.blog.adapter.out.http.auth.WebSocketTicketReq;
+import wiki.chiu.micro.blog.application.port.out.CollaborationTicketGateway;
+import wiki.chiu.micro.common.rpc.RemoteResult;
+
+@Component
+public class AuthHttpServiceWrapper implements CollaborationTicketGateway {
+
+    private final AuthHttpService authHttpService;
+
+    public AuthHttpServiceWrapper(AuthHttpService authHttpService) {
+        this.authHttpService = authHttpService;
+    }
+
+    @Override
+    public String issueTicket(String roomId, long expiresAt) {
+        return RemoteResult.requireSuccess(
+            () -> authHttpService.issueWebSocketTicket(new WebSocketTicketReq(roomId, expiresAt), null));
+    }
+}

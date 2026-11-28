@@ -15,24 +15,22 @@ import wiki.chiu.micro.common.scheduling.RedisTaskLock;
 public class OutboxEndpoint {
 
     private final OutboxAdministration administration;
-    private final OutboxProducer producer;
     private final RedisTaskLock taskLock;
 
     public OutboxEndpoint(
-        OutboxAdministration administration, OutboxProducer producer, RedisTaskLock taskLock) {
+        OutboxAdministration administration, RedisTaskLock taskLock) {
         this.administration = administration;
-        this.producer = producer;
         this.taskLock = taskLock;
     }
 
     @ReadOperation
-    public OutboxStatus status() {
-        return administration.status();
+    public OutboxStatus status(@Selector OutboxProducer producer) {
+        return administration.status(producer);
     }
 
     @WriteOperation
-    public boolean manage(@Selector String eventId, String action) {
+    public boolean manage(@Selector OutboxProducer producer, @Selector String eventId, String action) {
         return taskLock.run(
-            OutboxLockNames.publisher(producer.name()), () -> administration.manage(eventId, action));
+            OutboxLockNames.publisher(producer.name()), () -> administration.manage(producer, eventId, action));
     }
 }

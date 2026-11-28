@@ -9,20 +9,17 @@ public class OutboxAdministrationServiceImpl implements OutboxAdministration {
 
     private final OutboxStore store;
 
-    private final OutboxProducer producer;
-
-    public OutboxAdministrationServiceImpl(OutboxStore store, OutboxProducer producer) {
+    public OutboxAdministrationServiceImpl(OutboxStore store) {
         this.store = store;
-        this.producer = producer;
     }
 
     @Override
-    public OutboxStatus status() {
+    public OutboxStatus status(OutboxProducer producer) {
         return store.status(producer);
     }
 
     @Override
-    public boolean manage(String eventId, String action) {
+    public boolean manage(OutboxProducer producer, String eventId, String action) {
         return store.manage(eventId, producer, action);
     }
 }

@@ -55,7 +55,7 @@ const compactLocaleLabel = computed(() => (locale.value === 'zh-CN' ? '中' : 'E
   position: fixed;
   right: 32px;
   bottom: 16px;
-  z-index: 2100;
+  z-index: 1900;
   width: 96px;
 }
 

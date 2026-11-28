@@ -18,9 +18,8 @@ from pathlib import Path
 from typing import TypedDict
 
 SERVICE_ORDER = (
-    "micro-user",
+    "micro-base",
     "micro-auth",
-    "micro-blog",
     "micro-exhibit",
     "micro-search",
     "micro-sync-rs",
@@ -75,7 +74,7 @@ def compose_override(service: str, version: str) -> tuple[str, ComposeOverride]:
             "SSR_API_BASE_URL": "http://micro-gateway-rs:8088",
             "OTEL_SERVICE_VERSION": version,
         }
-    elif service == "micro-blog":
+    elif service == "micro-base":
         config["environment"] = {"MEGALITH_BLOG_SYNC_URL": "http://micro-sync-rs:8089"}
     # JSON is also YAML and safely preserves values without a YAML dependency.
     return image, {"services": {service: config}}

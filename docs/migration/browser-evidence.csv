@@ -1,0 +1,153 @@
+file,case,browser,status,attempts,duration_ms
+administration.spec.ts,"administration.spec.ts / password login creates HttpOnly cookies, restores SSR identity, then logs out",chromium,passed,1,2064
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export users",chromium,passed,1,1798
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export roles",chromium,passed,1,2345
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export menus",chromium,passed,1,2886
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export authorities",chromium,passed,1,2141
+article-list.spec.ts,"article-list.spec.ts / readers search and page through indexed articles, and administrators filter, export and batch delete them",chromium,passed,1,6602
+batch.spec.ts,"batch.spec.ts / select, cancel and confirm a two-row deletion in users",chromium,passed,1,2248
+batch.spec.ts,"batch.spec.ts / select, cancel and confirm a two-row deletion in roles",chromium,passed,1,2308
+batch.spec.ts,"batch.spec.ts / select, cancel and confirm a two-row deletion in authorities",chromium,passed,1,1969
+editor-controls.spec.ts,editor-controls.spec.ts / a retained article draft from the legacy browser database opens as a read-only recovery copy,chromium,passed,1,1332
+editor-controls.spec.ts,"editor-controls.spec.ts / retrying a failed collaboration ticket unlocks editing, and the PDF preview renders the draft",chromium,passed,1,3546
+editor-controls.spec.ts,editor-controls.spec.ts / the administrator applies and clears a creation-date range,chromium,passed,1,1372
+editor-controls.spec.ts,editor-controls.spec.ts / the version drawer pages through eleven revisions and searches for a single earlier edition,chromium,passed,1,5213
+editor-controls.spec.ts,editor-controls.spec.ts / an editor selects a description span and chooses between repeated words in the body,chromium,passed,1,2000
+editor-controls.spec.ts,editor-controls.spec.ts / search cards handle loaded and missing covers and autocomplete opens the matching article,chromium,passed,1,13018
+interop.spec.ts,interop.spec.ts / the peer release serves an existing session and rotates only the access cookie,chromium,passed,1,751
+list-interactions.spec.ts,list-interactions.spec.ts / public recommendations continue from a cursor and the search and article filters can be cleared,chromium,passed,1,2779
+list-interactions.spec.ts,list-interactions.spec.ts / users and roles accept an explicit page jump and a new route accepts a custom service port,chromium,passed,1,3191
+management.spec.ts,"management.spec.ts / role create, rename, menu assignment, data permissions, deletion",chromium,passed,1,7507
+management.spec.ts,"management.spec.ts / user creation, profile edit with an empty password, and deletion",chromium,passed,1,4957
+management.spec.ts,"management.spec.ts / create, edit, and delete one authority route",chromium,passed,1,4705
+management.spec.ts,"management.spec.ts / create, edit, assign an authority to, and delete a root menu",chromium,passed,1,4563
+masking.spec.ts,masking.spec.ts / published spans use UTF-16 offsets and the author and public reader see different titles,chromium,passed,1,1948
+navigation.spec.ts,navigation.spec.ts / the login form switches credentials across all three channels,chromium,passed,1,327
+navigation.spec.ts,navigation.spec.ts / language survives a full document reload,chromium,passed,1,299
+navigation.spec.ts,navigation.spec.ts / an unknown URL renders the 404 page on a direct SSR request,chromium,passed,1,199
+permissions.spec.ts,permissions.spec.ts / an existing browser session picks up an administrator’s menu grant and revocation,chromium,passed,1,3719
+public.spec.ts,"public.spec.ts / homepage, theme, empty search, clear search, back and forward",chromium,passed,1,1229
+public.spec.ts,"public.spec.ts / invited visitor validates, registers, signs in and consumes the single-use link",chromium,passed,1,2123
+public.spec.ts,public.spec.ts / unknown email and SMS login codes show a failure and keep the form usable,chromium,passed,1,869
+publishing.spec.ts,"publishing.spec.ts / two editors synchronize, save a version, publish, browse, take offline and restore",chromium,passed,1,10485
+reading.spec.ts,reading.spec.ts / an author issues a reading code and a guest can consume it exactly once,chromium,passed,1,2730
+recovery.spec.ts,recovery.spec.ts / recommendation feed retries a dropped browser request through the gateway,chromium,passed,1,706
+recovery.spec.ts,recovery.spec.ts / draft allocation can be retried after a network interruption,chromium,passed,1,786
+recovery.spec.ts,recovery.spec.ts / session expiry in an open admin page offers sign-in with the original destination,chromium,passed,1,910
+shell.spec.ts,"shell.spec.ts / sidebar collapse, dynamic menus, tab selection, tab close and return to the public site",chromium,passed,1,2813
+shell.spec.ts,"shell.spec.ts / 404 calendar changes months, selects a date and links back to the homepage",chromium,passed,1,715
+versions.spec.ts,versions.spec.ts / history displays and compares two published revisions and restores the earlier public content,chromium,passed,1,6149
+administration.spec.ts,"administration.spec.ts / password login creates HttpOnly cookies, restores SSR identity, then logs out",firefox,passed,1,2015
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export users",firefox,passed,1,1965
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export roles",firefox,passed,1,1923
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export menus",firefox,passed,1,4176
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export authorities",firefox,passed,1,3742
+article-list.spec.ts,"article-list.spec.ts / readers search and page through indexed articles, and administrators filter, export and batch delete them",firefox,passed,1,7724
+batch.spec.ts,"batch.spec.ts / select, cancel and confirm a two-row deletion in users",firefox,passed,1,3641
+batch.spec.ts,"batch.spec.ts / select, cancel and confirm a two-row deletion in roles",firefox,passed,1,3192
+batch.spec.ts,"batch.spec.ts / select, cancel and confirm a two-row deletion in authorities",firefox,passed,1,2831
+editor-controls.spec.ts,editor-controls.spec.ts / a retained article draft from the legacy browser database opens as a read-only recovery copy,firefox,passed,1,1411
+editor-controls.spec.ts,"editor-controls.spec.ts / retrying a failed collaboration ticket unlocks editing, and the PDF preview renders the draft",firefox,passed,1,1359
+editor-controls.spec.ts,editor-controls.spec.ts / the administrator applies and clears a creation-date range,firefox,passed,1,1472
+editor-controls.spec.ts,editor-controls.spec.ts / the version drawer pages through eleven revisions and searches for a single earlier edition,firefox,passed,1,5025
+editor-controls.spec.ts,editor-controls.spec.ts / an editor selects a description span and chooses between repeated words in the body,firefox,passed,1,1966
+editor-controls.spec.ts,editor-controls.spec.ts / search cards handle loaded and missing covers and autocomplete opens the matching article,firefox,passed,1,13380
+interop.spec.ts,interop.spec.ts / the peer release serves an existing session and rotates only the access cookie,firefox,passed,1,1200
+list-interactions.spec.ts,list-interactions.spec.ts / public recommendations continue from a cursor and the search and article filters can be cleared,firefox,passed,1,2852
+list-interactions.spec.ts,list-interactions.spec.ts / users and roles accept an explicit page jump and a new route accepts a custom service port,firefox,passed,1,3442
+management.spec.ts,"management.spec.ts / role create, rename, menu assignment, data permissions, deletion",firefox,passed,1,8878
+management.spec.ts,"management.spec.ts / user creation, profile edit with an empty password, and deletion",firefox,passed,1,5904
+management.spec.ts,"management.spec.ts / create, edit, and delete one authority route",firefox,passed,1,5771
+management.spec.ts,"management.spec.ts / create, edit, assign an authority to, and delete a root menu",firefox,passed,1,4888
+masking.spec.ts,masking.spec.ts / published spans use UTF-16 offsets and the author and public reader see different titles,firefox,passed,1,10519
+navigation.spec.ts,navigation.spec.ts / the login form switches credentials across all three channels,firefox,passed,1,479
+navigation.spec.ts,navigation.spec.ts / language survives a full document reload,firefox,passed,1,444
+navigation.spec.ts,navigation.spec.ts / an unknown URL renders the 404 page on a direct SSR request,firefox,passed,1,244
+permissions.spec.ts,permissions.spec.ts / an existing browser session picks up an administrator’s menu grant and revocation,firefox,passed,1,2842
+public.spec.ts,"public.spec.ts / homepage, theme, empty search, clear search, back and forward",firefox,passed,1,1439
+public.spec.ts,"public.spec.ts / invited visitor validates, registers, signs in and consumes the single-use link",firefox,passed,1,2731
+public.spec.ts,public.spec.ts / unknown email and SMS login codes show a failure and keep the form usable,firefox,passed,1,743
+publishing.spec.ts,"publishing.spec.ts / two editors synchronize, save a version, publish, browse, take offline and restore",firefox,passed,1,12424
+reading.spec.ts,reading.spec.ts / an author issues a reading code and a guest can consume it exactly once,firefox,passed,1,4560
+recovery.spec.ts,recovery.spec.ts / recommendation feed retries a dropped browser request through the gateway,firefox,passed,1,569
+recovery.spec.ts,recovery.spec.ts / draft allocation can be retried after a network interruption,firefox,passed,1,1466
+recovery.spec.ts,recovery.spec.ts / session expiry in an open admin page offers sign-in with the original destination,firefox,passed,1,1366
+shell.spec.ts,"shell.spec.ts / sidebar collapse, dynamic menus, tab selection, tab close and return to the public site",firefox,passed,1,3128
+shell.spec.ts,"shell.spec.ts / 404 calendar changes months, selects a date and links back to the homepage",firefox,passed,1,825
+versions.spec.ts,versions.spec.ts / history displays and compares two published revisions and restores the earlier public content,firefox,passed,1,12749
+administration.spec.ts,"administration.spec.ts / password login creates HttpOnly cookies, restores SSR identity, then logs out",webkit,passed,1,2421
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export users",webkit,passed,1,1952
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export roles",webkit,passed,1,2344
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export menus",webkit,passed,1,3147
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export authorities",webkit,passed,1,2472
+article-list.spec.ts,"article-list.spec.ts / readers search and page through indexed articles, and administrators filter, export and batch delete them",webkit,passed,1,6843
+batch.spec.ts,"batch.spec.ts / select, cancel and confirm a two-row deletion in users",webkit,passed,1,2514
+batch.spec.ts,"batch.spec.ts / select, cancel and confirm a two-row deletion in roles",webkit,passed,1,2690
+batch.spec.ts,"batch.spec.ts / select, cancel and confirm a two-row deletion in authorities",webkit,passed,1,2341
+editor-controls.spec.ts,editor-controls.spec.ts / a retained article draft from the legacy browser database opens as a read-only recovery copy,webkit,passed,1,1279
+editor-controls.spec.ts,"editor-controls.spec.ts / retrying a failed collaboration ticket unlocks editing, and the PDF preview renders the draft",webkit,passed,1,1381
+editor-controls.spec.ts,editor-controls.spec.ts / the administrator applies and clears a creation-date range,webkit,passed,1,1958
+editor-controls.spec.ts,editor-controls.spec.ts / the version drawer pages through eleven revisions and searches for a single earlier edition,webkit,passed,1,5896
+editor-controls.spec.ts,editor-controls.spec.ts / an editor selects a description span and chooses between repeated words in the body,webkit,passed,1,2237
+editor-controls.spec.ts,editor-controls.spec.ts / search cards handle loaded and missing covers and autocomplete opens the matching article,webkit,passed,1,13744
+interop.spec.ts,interop.spec.ts / the peer release serves an existing session and rotates only the access cookie,webkit,passed,1,1340
+list-interactions.spec.ts,list-interactions.spec.ts / public recommendations continue from a cursor and the search and article filters can be cleared,webkit,passed,1,3719
+list-interactions.spec.ts,list-interactions.spec.ts / users and roles accept an explicit page jump and a new route accepts a custom service port,webkit,passed,1,3210
+management.spec.ts,"management.spec.ts / role create, rename, menu assignment, data permissions, deletion",webkit,passed,1,7836
+management.spec.ts,"management.spec.ts / user creation, profile edit with an empty password, and deletion",webkit,passed,1,5419
+management.spec.ts,"management.spec.ts / create, edit, and delete one authority route",webkit,passed,1,5119
+management.spec.ts,"management.spec.ts / create, edit, assign an authority to, and delete a root menu",webkit,passed,1,4087
+masking.spec.ts,masking.spec.ts / published spans use UTF-16 offsets and the author and public reader see different titles,webkit,passed,1,2563
+navigation.spec.ts,navigation.spec.ts / the login form switches credentials across all three channels,webkit,passed,1,498
+navigation.spec.ts,navigation.spec.ts / language survives a full document reload,webkit,passed,1,478
+navigation.spec.ts,navigation.spec.ts / an unknown URL renders the 404 page on a direct SSR request,webkit,passed,1,298
+permissions.spec.ts,permissions.spec.ts / an existing browser session picks up an administrator’s menu grant and revocation,webkit,passed,1,4112
+public.spec.ts,"public.spec.ts / homepage, theme, empty search, clear search, back and forward",webkit,passed,1,1389
+public.spec.ts,"public.spec.ts / invited visitor validates, registers, signs in and consumes the single-use link",webkit,passed,1,2475
+public.spec.ts,public.spec.ts / unknown email and SMS login codes show a failure and keep the form usable,webkit,passed,1,942
+publishing.spec.ts,"publishing.spec.ts / two editors synchronize, save a version, publish, browse, take offline and restore",webkit,passed,1,10935
+reading.spec.ts,reading.spec.ts / an author issues a reading code and a guest can consume it exactly once,webkit,passed,1,3552
+recovery.spec.ts,recovery.spec.ts / recommendation feed retries a dropped browser request through the gateway,webkit,passed,1,455
+recovery.spec.ts,recovery.spec.ts / draft allocation can be retried after a network interruption,webkit,passed,1,978
+recovery.spec.ts,recovery.spec.ts / session expiry in an open admin page offers sign-in with the original destination,webkit,passed,1,1387
+shell.spec.ts,"shell.spec.ts / sidebar collapse, dynamic menus, tab selection, tab close and return to the public site",webkit,passed,1,2986
+shell.spec.ts,"shell.spec.ts / 404 calendar changes months, selects a date and links back to the homepage",webkit,passed,1,873
+versions.spec.ts,versions.spec.ts / history displays and compares two published revisions and restores the earlier public content,webkit,passed,1,6681
+administration.spec.ts,"administration.spec.ts / password login creates HttpOnly cookies, restores SSR identity, then logs out",mobile,passed,1,2460
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export users",mobile,passed,1,2930
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export roles",mobile,passed,1,2638
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export menus",mobile,passed,1,3226
+administration.spec.ts,"administration.spec.ts / open, validate, cancel, and export authorities",mobile,passed,1,2650
+article-list.spec.ts,"article-list.spec.ts / readers search and page through indexed articles, and administrators filter, export and batch delete them",mobile,passed,1,8196
+batch.spec.ts,"batch.spec.ts / select, cancel and confirm a two-row deletion in users",mobile,passed,1,3815
+batch.spec.ts,"batch.spec.ts / select, cancel and confirm a two-row deletion in roles",mobile,passed,1,3494
+batch.spec.ts,"batch.spec.ts / select, cancel and confirm a two-row deletion in authorities",mobile,passed,1,3493
+editor-controls.spec.ts,editor-controls.spec.ts / a retained article draft from the legacy browser database opens as a read-only recovery copy,mobile,passed,1,1884
+editor-controls.spec.ts,"editor-controls.spec.ts / retrying a failed collaboration ticket unlocks editing, and the PDF preview renders the draft",mobile,passed,1,1612
+editor-controls.spec.ts,editor-controls.spec.ts / the administrator applies and clears a creation-date range,mobile,passed,1,2235
+editor-controls.spec.ts,editor-controls.spec.ts / the version drawer pages through eleven revisions and searches for a single earlier edition,mobile,passed,1,5512
+editor-controls.spec.ts,editor-controls.spec.ts / an editor selects a description span and chooses between repeated words in the body,mobile,passed,1,1975
+editor-controls.spec.ts,editor-controls.spec.ts / search cards handle loaded and missing covers and autocomplete opens the matching article,mobile,passed,1,13167
+interop.spec.ts,interop.spec.ts / the peer release serves an existing session and rotates only the access cookie,mobile,passed,1,1020
+list-interactions.spec.ts,list-interactions.spec.ts / public recommendations continue from a cursor and the search and article filters can be cleared,mobile,passed,1,2996
+list-interactions.spec.ts,list-interactions.spec.ts / users and roles accept an explicit page jump and a new route accepts a custom service port,mobile,passed,1,3998
+management.spec.ts,"management.spec.ts / role create, rename, menu assignment, data permissions, deletion",mobile,passed,1,8667
+management.spec.ts,"management.spec.ts / user creation, profile edit with an empty password, and deletion",mobile,passed,1,5666
+management.spec.ts,"management.spec.ts / create, edit, and delete one authority route",mobile,passed,1,5843
+management.spec.ts,"management.spec.ts / create, edit, assign an authority to, and delete a root menu",mobile,passed,1,4850
+masking.spec.ts,masking.spec.ts / published spans use UTF-16 offsets and the author and public reader see different titles,mobile,passed,1,2271
+navigation.spec.ts,navigation.spec.ts / the login form switches credentials across all three channels,mobile,passed,1,464
+navigation.spec.ts,navigation.spec.ts / language survives a full document reload,mobile,passed,1,747
+navigation.spec.ts,navigation.spec.ts / an unknown URL renders the 404 page on a direct SSR request,mobile,passed,1,291
+permissions.spec.ts,permissions.spec.ts / an existing browser session picks up an administrator’s menu grant and revocation,mobile,passed,1,3725
+public.spec.ts,"public.spec.ts / homepage, theme, empty search, clear search, back and forward",mobile,passed,1,1388
+public.spec.ts,"public.spec.ts / invited visitor validates, registers, signs in and consumes the single-use link",mobile,passed,1,2585
+public.spec.ts,public.spec.ts / unknown email and SMS login codes show a failure and keep the form usable,mobile,passed,1,685
+publishing.spec.ts,"publishing.spec.ts / two editors synchronize, save a version, publish, browse, take offline and restore",mobile,passed,1,11097
+reading.spec.ts,reading.spec.ts / an author issues a reading code and a guest can consume it exactly once,mobile,passed,1,3790
+recovery.spec.ts,recovery.spec.ts / recommendation feed retries a dropped browser request through the gateway,mobile,passed,1,405
+recovery.spec.ts,recovery.spec.ts / draft allocation can be retried after a network interruption,mobile,passed,1,1309
+recovery.spec.ts,recovery.spec.ts / session expiry in an open admin page offers sign-in with the original destination,mobile,passed,1,1375
+shell.spec.ts,"shell.spec.ts / sidebar collapse, dynamic menus, tab selection, tab close and return to the public site",mobile,passed,1,3464
+shell.spec.ts,"shell.spec.ts / 404 calendar changes months, selects a date and links back to the homepage",mobile,passed,1,557
+versions.spec.ts,versions.spec.ts / history displays and compares two published revisions and restores the earlier public content,mobile,passed,1,6799

@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 
 @ConfigurationProperties("megalith.blog")
 public record HttpClientProperties(
-    @DefaultValue("http://127.0.0.1:8086/inner") String userUrl,
+    @DefaultValue("http://127.0.0.1:8082/inner") String userUrl,
     @DefaultValue("http://127.0.0.1:8081/inner") String authUrl,
     @DefaultValue("http://127.0.0.1:8085/inner") String searchUrl,
     @DefaultValue("http://127.0.0.1:8082/inner") String blogUrl,

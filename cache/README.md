@@ -160,8 +160,16 @@ Micrometer meters are emitted when a `MeterRegistry` is available:
 
 Increase the annotation version and update the shared descriptor when changing cached arguments
 or payloads incompatibly. Deploy cached reads and eviction consumers together so they use the same
-contract. In this repository, `micro-auth` owns the cached authorization reads; `micro-exhibit`
-reads search projections directly and does not use this starter.
+contract. Auth owns four authorization and navigation contracts. Exhibit caches immutable published content by
+article and revision for five minutes. Their Rust services use the repository-local `cache-rs` crate
+and carry the same descriptors, key format, and eviction protocol. Rust methods use
+`#[cache_rs::cache(CONTRACT)]` on an async method returning `anyhow::Result<Option<T>>`.
+The macro reads through `self.cache`, using every method argument in declaration order to form
+the typed key. The shared `Contract` supplies the namespace, version, TTL and key tracking for
+both reads and eviction. Errors and absent values leave the cache empty. Fresh authorization reads
+call the source directly. See the [attribute definition](../crates/cache-rs/macros/src/lib.rs),
+[auth methods](../micro-auth-rs/src/adapter/outbound/directory.rs), and
+[exhibit method](../micro-exhibit-rs/src/adapter/outbound/directory.rs).
 
 For tracked-cache upgrades that change registry semantics, stop replicas using the affected
 contracts and let their maximum L1/L2 TTL expire before starting incompatible replicas. Retire old

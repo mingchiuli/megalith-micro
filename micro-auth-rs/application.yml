@@ -1,0 +1,43 @@
+server:
+  port: 8081
+spring:
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+  mail:
+    host: smtp.163.com
+    port: 465
+megalith:
+  cache:
+    eviction:
+      transport: RABBIT
+      rabbit:
+        queue-prefix: cache.user.evict.queue.
+        exchange: cache.user.evict.fanout.exchange
+  auth:
+    code:
+      max-attempts: 3
+    password-failures:
+      max-attempts: 3
+      window: 15m
+    jwt:
+      access-token-expire: 900
+      refresh-token-expire: 604800
+      websocket-token-expire: 60
+      issuer: micro-auth
+      audience: megalith-api
+    cookie:
+      path: /
+      secure: true
+      same-site: Strict
+  blog:
+    user-url: http://127.0.0.1:8082/inner
+    sms:
+      base-url: https://dysmsapi.aliyuncs.com

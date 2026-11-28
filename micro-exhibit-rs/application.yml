@@ -1,0 +1,31 @@
+server:
+  port: 8083
+spring:
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+megalith:
+  cache:
+    local:
+      initial-capacity: 8
+      maximum-entries: 32
+    eviction:
+      transport: RABBIT
+      rabbit:
+        queue-prefix: cache.exhibit.evict.queue.
+        exchange: cache.exhibit.evict.fanout.exchange
+  blog:
+    blog-url: http://127.0.0.1:8082/inner
+    search-url: http://127.0.0.1:8085/inner
+    blog-page-size: 5
+    existence-index:
+      batch-size: 1000
+      initial-delay: 0s
+      reconcile-delay: 30s

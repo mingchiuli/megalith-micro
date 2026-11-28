@@ -74,7 +74,7 @@ describe('authority editor', () => {
     await selectOption('protocol', 'http')
     await selectOption('methodType', 'POST')
     await fillInput('routePattern', '/sys/blog/deleted')
-    await selectOption('serviceHost', 'micro-user')
+    await selectOption('serviceHost', 'micro-base')
 
     const save = wrapper
       .findAll('button')
@@ -91,8 +91,8 @@ describe('authority editor', () => {
       protocol: 'http',
       methodType: 'POST',
       routePattern: '/sys/blog/deleted',
-      serviceHost: 'micro-user',
-      servicePort: 8086,
+      serviceHost: 'micro-base',
+      servicePort: 8082,
       status: 0,
       type: 0
     })

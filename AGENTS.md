@@ -7,11 +7,11 @@ this file records the implementation constraints that are easy to miss.
 ## Toolchain
 
 - Java 25 (GraalVM 25.5 Innovation HotSpot), Spring Boot 4.2.0, Hibernate ORM
-  enhancer plugin 7.4.16.Final, Redisson 4.8.0, and Caffeine. Runtime dependencies use the
+  enhancer plugin 7.4.17.Final, Redisson 4.8.0, and Caffeine. Runtime dependencies use the
   Spring Boot BOM; the Hibernate plugin version is pinned separately in `build.gradle.kts`.
 - Gradle 9.9.1 Kotlin DSL; the root `build.gradle.kts` configures all Java subprojects.
 - Rust 2024 for `micro-gateway-rs`, `micro-sync-rs`, and `micro-search-rs`. Use the `-rs` suffix
-  for Rust service directories and Cargo package names. Shared libraries under `crates/` omit it.
+  for Rust service directories and Cargo package names. Shared libraries under `crates/` omit it except for the in-workspace port `crates/cache-rs`.
 - Bun 1.4.5, Vue 3, and Vite for the standalone `micro-frontend` service; `tsrs` with the
   Vize content mapper checks TypeScript and Vue types. The frontend Docker builder uses Bun 1.4.5.
 
@@ -25,11 +25,10 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.5.5.0.3+1.1/Conten
 
 ```bash
 ./gradlew build
-./gradlew :micro-auth:test
+./gradlew :micro-base:test
 # Separate Testcontainers suites; requires Docker, not included in build/check.
-./gradlew :micro-auth:integrationTest :micro-user:integrationTest :micro-blog:integrationTest \
-  :micro-exhibit:integrationTest :cache:integrationTest
-./gradlew :micro-auth:nativeCompile
+./gradlew :micro-base:integrationTest :cache:integrationTest
+./gradlew :micro-base:nativeCompile
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
@@ -50,10 +49,10 @@ Rust toolchain, Bun runtime, or source tree in a production image.
 
 | Area | Modules | Responsibility |
 | --- | --- | --- |
-| Applications | `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit` | Java native services |
-| Rust applications | `micro-gateway-rs`, `micro-sync-rs`, `micro-search-rs` | Gateway, Redis-backed collaboration, and Meilisearch projections |
+| Java application | `micro-base` | GraalVM native user and blog domains |
+| Rust applications | `micro-gateway-rs`, `micro-sync-rs`, `micro-search-rs`, `micro-auth-rs`, `micro-exhibit-rs` | Gateway, collaboration, search projections, authorization and presentation |
 | Frontend | `micro-frontend` | Vue SSR, hydration, and embedded static assets |
-| Java service contracts | `api-auth`, `api-user`, `api-blog` | Typed HTTP interfaces and RPC models |
+| Java service contracts | `api-base` | Typed HTTP interfaces and RPC models |
 | Shared Java | `common-*` | Contract, RPC, web, auth, observability, messaging, scheduling, outbox, export, shared layering rules |
 | Cache | `cache` | Caffeine L1, Redis L2, and distributed eviction |
 
@@ -165,14 +164,14 @@ in `micro-frontend/package.json` and the single root `bun.lock`; do not reintrod
 ## Transaction review findings (2026-11-19)
 
 The user and blog writers reviewed follow rules 7 and 8 for explicit repository reads and
-outbox inserts. The following consistency issues remain open.
+outbox inserts. The base migration addresses the four findings below. The MariaDB integration suite includes regression checks.
 
 | Path | Finding |
 | --- | --- |
-| [RoleServiceImpl.saveOrUpdate](micro-user/src/main/java/wiki/chiu/micro/user/application/service/RoleServiceImpl.java) → [RoleWrapper](micro-user/src/main/java/wiki/chiu/micro/user/adapter/out/persistence/RoleWrapper.java) | A rename prepares the old and new role codes for eviction. The update matches only the role ID. Concurrent renames can omit the actual previous code from the later outbox event and leave its navigation cache stale. Include the expected old code in the write condition. |
-| [MenuServiceImpl.delete](micro-user/src/main/java/wiki/chiu/micro/user/application/service/MenuServiceImpl.java) and [RoleDataPermissionServiceImpl.saveDataPermissions](micro-user/src/main/java/wiki/chiu/micro/user/application/service/RoleDataPermissionServiceImpl.java) | Menu deletion checks for children before the write. Permission replacement checks that the role exists before the write. Concurrent child creation or role deletion can leave orphan rows under the repository's entity mappings. The corresponding parent references are scalar IDs without mapped foreign keys. |
+| [RoleServiceImpl.saveOrUpdate](micro-base/src/main/java/wiki/chiu/micro/user/application/service/RoleServiceImpl.java) → [RoleWrapper](micro-base/src/main/java/wiki/chiu/micro/user/adapter/out/persistence/RoleWrapper.java) | A rename prepares the old and new role codes for eviction. The update matches only the role ID. Concurrent renames can omit the actual previous code from the later outbox event and leave its navigation cache stale. Include the expected old code in the write condition. |
+| [MenuServiceImpl.delete](micro-base/src/main/java/wiki/chiu/micro/user/application/service/MenuServiceImpl.java) and [RoleDataPermissionServiceImpl.saveDataPermissions](micro-base/src/main/java/wiki/chiu/micro/user/application/service/RoleDataPermissionServiceImpl.java) | Menu deletion checks for children before the write. Permission replacement checks that the role exists before the write. Concurrent child creation or role deletion can leave orphan rows under the repository's entity mappings. The corresponding parent references are scalar IDs without mapped foreign keys. |
 | [OutboxStoreAdapter.status](common-outbox/src/main/java/wiki/chiu/micro/common/outbox/adapter/out/persistence/OutboxStoreAdapter.java) | Separate READY and PAUSED counts can both return zero if a paused event resumes between reads. Blog index maintenance uses both counts to decide whether the outbox is empty. Compute them in one aggregate query or one repeatable-read snapshot. |
-| [UserIdentityWrapper](micro-user/src/main/java/wiki/chiu/micro/user/adapter/out/persistence/UserIdentityWrapper.java) | Lock and unlock counters increment before commit. A rollback leaves the metrics counting changes that never committed. Record successful transitions after commit. |
+| [UserIdentityWrapper](micro-base/src/main/java/wiki/chiu/micro/user/adapter/out/persistence/UserIdentityWrapper.java) | Lock and unlock counters increment before commit. A rollback leaves the metrics counting changes that never committed. Record successful transitions after commit. |
 
 ## Code Style
 

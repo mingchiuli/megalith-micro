@@ -10,27 +10,26 @@ import wiki.chiu.micro.common.outbox.domain.OutboxProducer;
 @ConfigurationProperties("megalith.outbox")
 public class OutboxProperties {
 
-    private OutboxProducer producer;
-    private String exchange;
+    private Map<OutboxProducer, String> exchanges = new HashMap<>();
     private Map<String, String> eventExchanges = new HashMap<>();
     private int batchSize = 50;
     private int publisherConcurrency = 16;
     private long confirmTimeoutMillis = 5000;
 
-    public OutboxProducer getProducer() {
-        return producer;
+    public Map<OutboxProducer, String> getExchanges() {
+        return exchanges;
     }
 
-    public void setProducer(OutboxProducer producer) {
-        this.producer = producer;
+    public void setExchanges(Map<OutboxProducer, String> exchanges) {
+        this.exchanges = Map.copyOf(exchanges);
     }
 
-    public String getExchange() {
+    public String defaultExchange(OutboxProducer producer) {
+        String exchange = exchanges.get(producer);
+        if (exchange == null || exchange.isBlank()) {
+            throw new IllegalArgumentException("Missing outbox exchange for " + producer);
+        }
         return exchange;
-    }
-
-    public void setExchange(String exchange) {
-        this.exchange = exchange;
     }
 
     public Map<String, String> getEventExchanges() {
@@ -39,10 +38,6 @@ public class OutboxProperties {
 
     public void setEventExchanges(Map<String, String> eventExchanges) {
         this.eventExchanges = eventExchanges == null ? new HashMap<>() : new HashMap<>(eventExchanges);
-    }
-
-    public String exchangeFor(String eventType) {
-        return eventExchanges.getOrDefault(eventType, exchange);
     }
 
     public int getBatchSize() {

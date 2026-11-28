@@ -184,6 +184,14 @@ tasks.named("check") {
 tasks.register<Test>("integrationTest") {
     group = "verification"
     description = "Runs cache integration tests against Redis and RabbitMQ containers."
+    val rustInterop = providers.environmentVariable("CACHE_RUST_INTEROP").orElse("0")
+    inputs.property("rustInterop", rustInterop)
+    if (rustInterop.get() == "1") {
+        inputs.files(rootProject.file("Cargo.toml"), rootProject.file("Cargo.lock"))
+        inputs.files(rootProject.fileTree("crates/cache-rs") {
+            include("Cargo.toml", "src/**", "script/**", "tests/**")
+        })
+    }
     testClassesDirs = integrationTest.output.classesDirs
     classpath = integrationTest.runtimeClasspath
     shouldRunAfter(tasks.test)

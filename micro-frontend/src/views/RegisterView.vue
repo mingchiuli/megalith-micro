@@ -123,7 +123,7 @@ const formRules = computed<FormRules<Form>>(() => ({
   ]
 }))
 
-const formRef = useTemplateRef<FormInstance>('form')
+const formRef = ref<FormInstance>()
 
 const upload = async (image: UploadRequestOptions) => {
   await uploadFile(image.file)
@@ -164,28 +164,23 @@ const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
   return true
 }
 
-const submitForm = async (ref: FormInstance) => {
+const submitForm = async () => {
+  if (!formRef.value || saveLoading.value) return
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
   saveLoading.value = true
-  await ref.validate(async (valid) => {
-    if (!valid) {
-      saveLoading.value = false
-      return
-    }
-    if (valid) {
-      try {
-        await POST<null>(API_ENDPOINTS.AUTH.REGISTER_SAVE, form)
-        ElNotification({
-          title: t('common.operationSuccess'),
-          message: t('common.editSuccess'),
-          type: 'success'
-        })
-        clearLoginState()
-        await submitLogin('PASSWORD', form.username, form.password)
-      } finally {
-        saveLoading.value = false
-      }
-    }
-  })
+  try {
+    await POST<null>(API_ENDPOINTS.AUTH.REGISTER_SAVE, form)
+    ElNotification({
+      title: t('common.operationSuccess'),
+      message: t('common.editSuccess'),
+      type: 'success'
+    })
+    clearLoginState()
+    await submitLogin('PASSWORD', form.username, form.password)
+  } finally {
+    saveLoading.value = false
+  }
 }
 
 const handlePictureCardPreview = (file: UploadFile) => {
@@ -206,7 +201,7 @@ const handleRemove = async () => {
 
 <template>
   <div class="front">
-    <el-form :model="form" :rules="formRules" ref="form" class="father">
+    <el-form :model="form" :rules="formRules" ref="formRef" class="father">
       <el-form-item :label="t('auth.username')" label-width="80" prop="username" class="username">
         <el-input
           v-model="form.username"
@@ -275,7 +270,7 @@ const handleRemove = async () => {
           type="primary"
           :loading="saveLoading"
           :disabled="saveLoading"
-          @click="submitForm(formRef!)"
+          @click="submitForm"
           >{{ t('common.submit') }}</el-button
         >
       </div>

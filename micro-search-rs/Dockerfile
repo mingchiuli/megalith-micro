@@ -3,6 +3,8 @@ FROM ${BUILDER_IMAGE} AS builder
 WORKDIR /usr/src/app
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
+COPY micro-exhibit-rs ./micro-exhibit-rs
+COPY micro-auth-rs ./micro-auth-rs
 COPY micro-search-rs ./micro-search-rs
 COPY micro-gateway-rs ./micro-gateway-rs
 COPY micro-sync-rs ./micro-sync-rs

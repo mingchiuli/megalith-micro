@@ -1,0 +1,16 @@
+[package]
+name = "megalith-messaging"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+megalith-otel.workspace = true
+anyhow.workspace = true
+futures-util.workspace = true
+reqwest.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+tracing.workspace = true
+lapin = "4.12.3"

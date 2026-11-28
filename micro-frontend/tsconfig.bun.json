@@ -1,5 +1,12 @@
 {
-  "include": ["vite.config.*", "server/**/*.ts", "scripts/**/*.ts"],
+  "include": [
+    "vite.config.*",
+    "playwright*.config.ts",
+    "e2e/**/*.ts",
+    "e2e-live/**/*.ts",
+    "server/**/*.ts",
+    "scripts/**/*.ts"
+  ],
   "exclude": ["dist", "node_modules"],
   "compilerOptions": {
     "composite": true,

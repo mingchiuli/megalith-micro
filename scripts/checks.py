@@ -10,19 +10,16 @@ COMMANDS = {
     "java-integration": (
         (
             "./gradlew",
-            ":micro-auth:integrationTest",
-            ":micro-user:integrationTest",
-            ":micro-blog:integrationTest",
-            ":micro-exhibit:integrationTest",
+            ":micro-base:integrationTest",
             ":cache:integrationTest",
         ),
     ),
-    "exhibit-native-smoke": (
+    "base-native-smoke": (
         (
             "./gradlew",
-            ":micro-exhibit:integrationTest",
+            ":micro-base:integrationTest",
             "--tests",
-            "*ExhibitNativeImageIntegrationTest",
+            "*BlogApplicationStartupIntegrationTest",
         ),
     ),
     "scripts": (("python3", "-m", "unittest", "discover", "-s", "scripts/tests"),),
@@ -59,8 +56,8 @@ COMMANDS = {
 
 def main() -> None:
     command = parse_command(__doc__, [*COMMANDS, "java-aot", "java-image"])
-    if command == "exhibit-native-smoke" and not os.environ.get("MICRO_EXHIBIT_NATIVE_IMAGE"):
-        raise ValueError("MICRO_EXHIBIT_NATIVE_IMAGE is required for the native image smoke test")
+    if command == "base-native-smoke" and not os.environ.get("MICRO_BASE_NATIVE_EXECUTABLE"):
+        raise ValueError("MICRO_BASE_NATIVE_EXECUTABLE is required for the native image smoke test")
     if command in {"java-aot", "java-image"}:
         service = os.environ["SERVICE"]
         if service not in JAVA_SERVICES:

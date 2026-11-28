@@ -61,10 +61,8 @@ public class OutboxStoreAdapter implements OutboxStore {
 
     @Override
     public OutboxStatus status(OutboxProducer producer) {
-        long ready = repository.countByProducerAndState(producer, "READY");
-        long paused = repository.countByProducerAndState(producer, "PAUSED");
-        int maxAttempts = repository.maxAttempts(producer);
-        return new OutboxStatus(producer, ready, paused, maxAttempts);
+        var counts = repository.counts(producer);
+        return new OutboxStatus(producer, counts.getReady(), counts.getPaused(), counts.getMaximumAttempts());
     }
 
     @Override

@@ -41,11 +41,11 @@ DDL 独立提交；集成测试在隔离数据库中验证脚本行为，不代�
 ## 验证
 
 ```bash
-./gradlew :micro-user:check :micro-blog:check :common-outbox:check \
-  :micro-user:integrationTest :micro-blog:integrationTest
+./gradlew :micro-base:check :common-outbox:check \
+  :micro-base:integrationTest
 SPRING_JPA_PROPERTIES_HIBERNATE_HBM2DDL_AUTO=none \
 SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.MariaDBDialect \
-  ./gradlew :micro-user:compileAotJava :micro-blog:compileAotJava
+  ./gradlew :micro-base:compileAotJava
 ```
 
 MariaDB 持久化集成测试覆盖实际 SELECT 数量、无 SELECT 的更新和删除、

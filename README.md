@@ -14,16 +14,16 @@ business services, Rust services for routing, search, and collaboration, and a V
 > software architecture through a working application, evolving from a monolith through
 > distributed systems and microservices to a cloud-native deployment.
 
-Every application is delivered as a **single native executable in its own OCI image**. The four
-Spring Boot services compile ahead of time with GraalVM Native Image, the Rust services build as
+Every application is delivered as a **single native executable in its own OCI image**. The base
+Spring Boot service compiles ahead of time with GraalVM Native Image, the Rust services build as
 release binaries, and Bun packages the frontend server and assets into a standalone executable.
 Production application images contain the executable and minimal OS runtime files, without a
 separate JVM, JRE, Bun installation, build toolchain, or source tree.
 
 | Applications | Technology | Production artifact |
 | --- | --- | --- |
-| `micro-auth`, `micro-user`, `micro-blog`, `micro-exhibit` | Java 25, Spring Boot 4.2.0, GraalVM 25.5 Innovation | GraalVM Native Image executable |
-| `micro-gateway-rs`, `micro-sync-rs`, `micro-search-rs` | Rust 2024, Tokio, Axum | Rust release executable |
+| `micro-base` | Java 25, Spring Boot 4.2.0, GraalVM 25.5 Innovation | GraalVM Native Image executable |
+| `micro-gateway-rs`, `micro-sync-rs`, `micro-search-rs`, `micro-auth-rs`, `micro-exhibit-rs` | Rust 2024, Tokio, Axum | Rust release executable |
 | `micro-frontend` | Bun 1.4, Vue 3.5, Vite 8, SSR | Bun standalone executable with embedded assets |
 
 MariaDB, Redis, RabbitMQ, Meilisearch, and OpenObserve use their standard
@@ -41,7 +41,7 @@ flowchart TB
     Frontend["micro-frontend<br/>SSR + static assets"]
     Gateway["micro-gateway-rs<br/>HTTP / WebSocket proxy"]
     Auth["micro-auth<br/>Authorization + routing"]
-    APIs["Business HTTP APIs<br/>micro-user<br/>micro-blog<br/>micro-exhibit<br/>micro-search"]
+    APIs["Business HTTP APIs<br/>micro-base<br/>micro-exhibit<br/>micro-search"]
     Sync["micro-sync-rs<br/>Collaborative editing"]
 
     Browser --> Nginx
@@ -61,17 +61,17 @@ the target service. Business services use that principal for identity and permis
 
 | Resource | Owners / clients | Responsibility |
 | --- | --- | --- |
-| MariaDB | `micro-user`, `micro-blog` | User and blog domain data, working drafts, immutable revisions, and transactional outbox rows |
+| MariaDB | `micro-base` | User and blog domain data, working drafts, immutable revisions, and transactional outbox rows |
 | Redis | Auth, blog, exhibit, search, and sync services | Tokens and caches, blog runtime state, existence indexes, distributed task locks, and collaboration Streams/state |
 | RabbitMQ | User/blog outbox publishers and event consumers | Confirmed domain-event delivery and cache-invalidation broadcasts |
 | Meilisearch | `micro-search` | Public, admin and revision search projections |
 | OpenObserve | Local Java, Rust and Bun OTLP exporters | Logs, traces and metrics |
 
-`micro-exhibit` reads article details from `micro-blog`, recommendations from `micro-search`, and
-author details from `micro-user`. It also calls `micro-blog` for visit counting and existence-index scans. `micro-blog`
+`micro-exhibit` reads article details from `micro-base`, recommendations from `micro-search`, and
+author details from `micro-base`. It also calls `micro-base` for visit counting and existence-index scans. `micro-base`
 uses `micro-search` for search/list projections and batched read-count updates. Search maintenance
-reads authoritative snapshots from `micro-blog`. Auth cache misses fetch user access and role
-authorization snapshots from `micro-user`; collaboration tickets use fresh authorization reads.
+reads authoritative snapshots from `micro-base`. Auth cache misses fetch user access and role
+authorization snapshots from `micro-base`; collaboration tickets use fresh authorization reads.
 Role status, authority codes, and data permissions come from those role authorization snapshots.
 
 ### Monitoring
@@ -113,13 +113,13 @@ content cleanup.
 
 ```mermaid
 flowchart TB
-    UserOutbox["micro-user<br/>Domain writes + USER outbox"]
+    UserOutbox["micro-base (user)<br/>Domain writes + USER outbox"]
     Auth["micro-auth<br/>Cache eviction"]
-    Delete["micro-blog<br/>User-deletion cleanup"]
-    BlogOutbox["micro-blog<br/>Domain writes + BLOG outbox"]
+    Delete["micro-base (blog)<br/>User-deletion cleanup"]
+    BlogOutbox["micro-base (blog)<br/>Domain writes + BLOG outbox"]
     Search["micro-search<br/>Search projections"]
     Exhibit["micro-exhibit<br/>Presentation state"]
-    Recycle["micro-blog<br/>Recycle metadata"]
+    Recycle["micro-base (blog)<br/>Recycle metadata"]
 
     UserOutbox -->|AuthCacheEvictMessage| Auth
     UserOutbox -->|UserDeletedMessage| Delete
@@ -141,12 +141,12 @@ publication boundary. The durable fanout exchanges and consumer queues are:
 
 | Event | Producer | Consumer | Responsibility |
 | --- | --- | --- | --- |
-| `AuthCacheEvictMessage` | `micro-user` | `micro-auth` | Invalidate authorization, menu, and route caches |
-| `UserDeletedMessage` | `micro-user` | `micro-blog` | Delete the user's blogs and emit the corresponding blog events |
-| `BlogChangedMessage` | `micro-blog` | `micro-search` | Update the search index |
-| `BlogAdminIndexMessage` | `micro-blog` | `micro-search` | Update admin blog and immutable revision projections |
-| `BlogChangedMessage` | `micro-blog` | `micro-exhibit` | Evict published content and maintain existence, read tokens, and weekly counts |
-| `BlogChangedMessage` | `micro-blog` | `micro-blog` | Retain recycle-bin metadata for operator removals |
+| `AuthCacheEvictMessage` | `micro-base` | `micro-auth` | Invalidate authorization, menu, and route caches |
+| `UserDeletedMessage` | `micro-base` | `micro-base` | Delete the user's blogs and emit the corresponding blog events |
+| `BlogChangedMessage` | `micro-base` | `micro-search` | Update the search index |
+| `BlogAdminIndexMessage` | `micro-base` | `micro-search` | Update admin blog and immutable revision projections |
+| `BlogChangedMessage` | `micro-base` | `micro-exhibit` | Evict published content and maintain existence, read tokens, and weekly counts |
+| `BlogChangedMessage` | `micro-base` | `micro-base` | Retain recycle-bin metadata for operator removals |
 
 Domain writes and outbox entries commit in the same database transaction. The publisher removes
 an outbox entry after RabbitMQ confirms publication and retries failed publications with bounded
@@ -171,7 +171,7 @@ validate against those respective counts. Article visits update MariaDB counters
 cumulative counts are synchronized to Meilisearch in batches through idempotent updates.
 
 Both ordinary and read-token detail requests resolve the current online publication and read count
-in MariaDB through `micro-blog`. Exhibit caches the immutable content and its masking spans together
+in MariaDB through `micro-base`. Exhibit caches the immutable content and its masking spans together
 by article and revision ID, then applies the reader's permissions and adds the author's details.
 The `blog.change.queue.cache` consumer evicts affected versions across exhibit replicas and maintains
 the existence bitmap, read tokens, and weekly counts.
@@ -193,8 +193,7 @@ replica to serve any room without sticky sessions or a dedicated room owner.
 | --- | --- |
 | `micro-gateway-rs` | Streaming HTTP/WebSocket proxy, origin checks, centralized authorization entry point, and dynamic routing |
 | `micro-auth` | JWT, login, route authorization, and authorization snapshot caches |
-| `micro-user` | Users, roles, menus, authorities, and data permissions |
-| `micro-blog` | Blog content, recycle bin, domain events, and user-deletion cleanup |
+| `micro-base` | Users, roles, menus, authorities, data permissions, blog content, versions, recycle bin, and both transactional outboxes |
 | `micro-exhibit` | Content presentation, visit statistics, and presentation state |
 | `micro-search` | Meilisearch full-text search and index event consumption |
 | `micro-sync-rs` | Stateless real-time collaboration backed by YRS CRDT and Redis |
@@ -204,7 +203,7 @@ replica to serve any room without sticky sessions or a dedicated room owner.
 
 | Module | Responsibility |
 | --- | --- |
-| `api-auth`, `api-user`, `api-blog` | Typed HTTP contracts and RPC records for Java services |
+| `api-base` | Typed user and blog HTTP contracts and RPC records |
 | `cache` | Caffeine L1 + Redis L2 caching, exact eviction, and replica-wide invalidation |
 | `common-contract` | Result, error, paging, validation, security, and message contracts |
 | `common-rpc` | HTTP clients, principal propagation, and external service adapters |
@@ -229,8 +228,8 @@ validators. `common-arch` owns
 `wiki.chiu.micro.common.arch` and holds the ArchUnit rules that give every application the same
 layer rules instead of one hand-written rule set per service.
 
-`common-native-hints` owns `wiki.chiu.micro.common.nativehints`. The cache starter,
-`common-scheduling`, and `micro-exhibit` bring it onto the runtime classpath so Redisson's Netty
+`common-native-hints` owns `wiki.chiu.micro.common.nativehints`. The cache starter and
+`common-scheduling` bring it onto the runtime classpath so Redisson's Netty
 transport receives the same native hints. It does not pull Netty into applications that do not use
 it. Caffeine and cache serialization hints stay in `cache`; HTTP payloads and service resources
 stay in each service's registrar. The native-hints artifact is published alongside the cache starter
@@ -238,7 +237,7 @@ with the same `cache-v` release version.
 
 ### Java application boundaries
 
-The four Java applications use the same ports-and-adapters layout for their core code:
+Both domains in the base application use the same ports-and-adapters layout:
 
 | Package | Responsibility |
 | --- | --- |
@@ -279,12 +278,24 @@ repository reads without relying on a `Wrapper` class-name suffix. Read-only tra
 outside write transactions remain supported. Data conversion belongs in dedicated adapter
 `*Convertor` classes.
 
+The base application imports the typed auth client from its blog outbound adapter.
+The two domain namespaces are retained in `api-base`. The outbox publisher and management
+endpoint select USER or BLOG explicitly. The search source inspects only the BLOG backlog.
+
 ### Rust application boundaries
 
+`micro-auth-rs` and `micro-exhibit-rs` are deployed as `micro-auth:8081` and
+`micro-exhibit:8083`. Both use the workspace path dependency `crates/cache-rs`, the
+typed contracts in `crates/api`, service wiring in `crates/service-runtime`, and the
+same confirmed RabbitMQ retry/dead-letter protocol as search through `crates/messaging`. Auth explicitly registers the JSON password, email, and SMS
+`POST /login` handler previously installed by Spring Security. See the
+[base cutover instructions](docs/migration/cutover.md) and the
+[migration acceptance report](docs/migration/acceptance.md).
+
 `micro-search-rs` runs on Tokio and Axum at port 8085. It owns the search HTTP contract.
-`micro-blog` and `micro-exhibit` keep their typed clients in their outbound HTTP adapters.
+`micro-base` and `micro-exhibit` keep their typed clients in their outbound HTTP adapters.
 The deployment uses `micro-search` as the service name and image suffix. The binary embeds
-`micro-search-rs/application.yml`. All three Rust services use the `megalith-otel` workspace
+`micro-search-rs/application.yml`. The Rust services use the `megalith-otel` workspace
 crate in `crates/otel` for OTLP traces, metrics, logs and W3C propagation.
 Compose may supply the existing dotted Spring configuration keys or their uppercase environment
 forms, including the Redis password, RabbitMQ credentials and Meilisearch key. Public writes,
@@ -457,8 +468,7 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/graalvm-25.5.5.0.3+1.1/Conten
 ```bash
 ./gradlew build
 # Docker is required for these separate Testcontainers suites.
-./gradlew :micro-auth:integrationTest :micro-user:integrationTest :micro-blog:integrationTest \
-  :micro-exhibit:integrationTest :cache:integrationTest
+./gradlew :micro-base:integrationTest :cache:integrationTest
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
@@ -479,9 +489,9 @@ test boots the real application with MariaDB, Redis, and RabbitMQ, then checks h
 collaboration initialization, and outbound trace propagation. To smoke-test the actual Native Image as well:
 
 ```bash
-./gradlew :micro-blog:nativeCompile
-MICRO_BLOG_NATIVE_EXECUTABLE="$PWD/micro-blog/build/native/nativeCompile/micro-blog" \
-  ./gradlew :micro-blog:integrationTest --tests '*BlogApplicationStartupIntegrationTest'
+./gradlew :micro-base:nativeCompile
+MICRO_BASE_NATIVE_EXECUTABLE="$PWD/micro-base/build/native/nativeCompile/micro-base" \
+  ./gradlew :micro-base:integrationTest --tests '*BlogApplicationStartupIntegrationTest'
 ```
 
 Rust checks cover formatting, linting, and service behavior; frontend checks cover linting, types,
@@ -497,7 +507,7 @@ See the [frontend type-checking guide](micro-frontend/docs/type-checking.md) for
 
 ```bash
 # Java / GraalVM Native Image
-./gradlew :micro-auth:nativeCompile
+./gradlew :micro-base:nativeCompile
 
 # Rust
 cargo build --workspace --release
@@ -516,12 +526,14 @@ Spring Boot Buildpacks build and publish each Java service as a GraalVM Native I
 `DOCKER_USERNAME` and `DOCKER_PWD` before running the task:
 
 ```bash
-./gradlew :micro-auth:bootBuildImage
+./gradlew :micro-base:bootBuildImage
 ```
 
 The Rust and Bun services use multi-stage Dockerfiles:
 
 ```bash
+docker build -t megalith-micro-auth:latest -f micro-auth-rs/Dockerfile .
+docker build -t megalith-micro-exhibit:latest -f micro-exhibit-rs/Dockerfile .
 docker build -t megalith-micro-search:latest -f micro-search-rs/Dockerfile .
 docker build -t megalith-micro-gateway-rs:latest -f micro-gateway-rs/Dockerfile .
 docker build -t megalith-micro-sync-rs:latest -f micro-sync-rs/Dockerfile .
@@ -540,7 +552,9 @@ SSH deployment host require Python 3.9+; application container images do not nee
 Run individual services with their development toolchains:
 
 ```bash
-./gradlew :micro-auth:bootRun
+./gradlew :micro-base:bootRun
+cargo run -p micro-auth-rs
+cargo run -p micro-exhibit-rs
 cargo run -p micro-gateway-rs
 cargo run -p micro-search-rs
 bun run frontend:dev

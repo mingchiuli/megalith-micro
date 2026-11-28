@@ -63,8 +63,7 @@ const mountDialog = (serviceHost = '', servicePort = 8081) => {
 
 describe('authority service selection', () => {
   it.each([
-    ['micro-blog', 8082],
-    ['micro-user', 8086],
+    ['micro-base', 8082],
     ['micro-auth', 8081],
     ['micro-search', 8085],
     ['micro-exhibit', 8083],
@@ -82,7 +81,7 @@ describe('authority service selection', () => {
     expect(form.routePattern).toBe('/public/blog/info/*')
   })
 
-  it.each(['micro-blog', 'custom-blog-host'])(
+  it.each(['micro-base', 'custom-blog-host'])(
     'preserves an existing custom port for %s when opening the dialog',
     async (host) => {
       const { form, setVisible } = mountDialog(host, 9100)
@@ -102,9 +101,9 @@ describe('authority service selection', () => {
   )
 
   it('preserves manual edits until the user selects another service', async () => {
-    const { form, field, setVisible, selectService } = mountDialog('micro-blog', 9100)
-    await selectService('micro-user')
-    expect(form.servicePort).toBe(8086)
+    const { form, field, setVisible, selectService } = mountDialog('micro-base', 9100)
+    await selectService('micro-auth')
+    expect(form.servicePort).toBe(8081)
 
     const port = field('servicePort').getComponent(ElInput).get('input')
     await port.setValue('9300')

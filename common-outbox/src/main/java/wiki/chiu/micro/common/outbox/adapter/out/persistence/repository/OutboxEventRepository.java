@@ -37,13 +37,21 @@ public interface OutboxEventRepository extends JpaRepository<OutboxEventEntity, 
 
     long countByProducerAndState(OutboxProducer producer, String state);
 
+    interface Counts {
+        long getReady();
+        long getPaused();
+        int getMaximumAttempts();
+    }
+
     @Query(
         """
-            SELECT COALESCE(MAX(e.attempts), 0)
+            SELECT COUNT(CASE WHEN e.state = 'READY' THEN 1 END) AS ready,
+                   COUNT(CASE WHEN e.state = 'PAUSED' THEN 1 END) AS paused,
+                   COALESCE(MAX(e.attempts), 0) AS maximumAttempts
             FROM OutboxEventEntity e
             WHERE e.producer = :producer
             """)
-    int maxAttempts(@Param("producer") OutboxProducer producer);
+    Counts counts(@Param("producer") OutboxProducer producer);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Transactional

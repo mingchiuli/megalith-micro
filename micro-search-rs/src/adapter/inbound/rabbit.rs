@@ -2,17 +2,16 @@ use crate::{
     adapter::outbound::broker::{QUEUES, topology},
     application::Search,
 };
-use anyhow::{Context, Result, bail, ensure};
+use anyhow::{Context, Result, bail};
 use futures_util::StreamExt;
 use lapin::{
     Channel,
-    message::Delivery,
     options::*,
     types::{AMQPValue, FieldTable},
 };
 use tracing::{Instrument, error, warn};
 
-const RETRY: &str = "x-megalith-retry-count";
+use megalith_messaging::republish;
 
 pub async fn supervise(app: Search) {
     loop {
@@ -106,45 +105,4 @@ async fn consume(app: Search, admin: bool, ch: Channel) -> Result<()> {
         .await?;
     }
     bail!("RabbitMQ consumer cancelled: {q}")
-}
-async fn republish(ch: &Channel, q: &str, d: &Delivery) -> Result<()> {
-    let mut headers = d.properties.headers().clone().unwrap_or_default();
-    let previous = match headers.inner().get(RETRY) {
-        Some(AMQPValue::LongInt(n)) => *n,
-        Some(AMQPValue::LongLongInt(n)) => i32::try_from(*n).unwrap_or(i32::MAX),
-        Some(AMQPValue::ShortInt(n)) => i32::from(*n),
-        _ => 0,
-    };
-    let attempt = previous.saturating_add(1);
-    headers.insert(RETRY.into(), AMQPValue::LongInt(attempt));
-    let (exchange, route) = if attempt <= 3 {
-        (format!("{q}.retry.exchange"), format!("retry.{attempt}"))
-    } else {
-        (String::new(), format!("{q}.dlq"))
-    };
-    let mut properties = d.properties.clone().with_headers(headers);
-    if properties.message_id().is_none() {
-        properties = properties.with_message_id(d.delivery_tag.to_string().into());
-    }
-    let confirm = tokio::time::timeout(std::time::Duration::from_secs(5), async {
-        ch.basic_publish(
-            exchange.into(),
-            route.into(),
-            BasicPublishOptions {
-                mandatory: true,
-                ..Default::default()
-            },
-            &d.data,
-            properties,
-        )
-        .await?
-        .await
-    })
-    .await
-    .context("retry confirm timed out")??;
-    ensure!(
-        confirm.is_ack() && confirm.take_message().is_none(),
-        "retry publication was not routed and confirmed"
-    );
-    Ok(())
 }

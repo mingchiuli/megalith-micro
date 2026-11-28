@@ -5,11 +5,10 @@ on:
     branches:
       - 'main'
     paths:
-      - 'micro-auth/**'
-      - 'micro-blog/**'
-      - 'micro-exhibit/**'
+      - 'micro-auth-rs/**'
+      - 'micro-base/**'
+      - 'micro-exhibit-rs/**'
       - 'micro-search-rs/**'
-      - 'micro-user/**'
       - 'micro-gateway-rs/**'
       - 'micro-sync-rs/**'
       - 'micro-frontend/**'
@@ -24,9 +23,8 @@ on:
       - 'common-native-hints/**'
       - 'common-scheduling/**'
       - 'common-auth-web/**'
-      - 'api-auth/**'
-      - 'api-user/**'
-      - 'api-blog/**'
+      - 'api-base/**'
+      - 'docs/sql/base/**'
       - 'cache/**'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
@@ -104,6 +102,19 @@ jobs:
       - name: Verify all Java middleware integration suites
         run: python3 -m scripts.checks java-integration
 
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Verify Java and Rust cache wire interoperability
+        run: ./gradlew :cache:integrationTest --tests '*CacheRustInteropIntegrationTest'
+        env:
+          CACHE_RUST_INTEROP: '1'
+
+      - name: Verify the base native executable with isolated middleware
+        run: |
+          ./gradlew :micro-base:nativeCompile
+          python3 -m scripts.checks base-native-smoke
+        env:
+          MICRO_BASE_NATIVE_EXECUTABLE: ${{ github.workspace }}/micro-base/build/native/nativeCompile/micro-base
+
   quality-rust:
     name: Rust Quality Gate
     runs-on: ubuntu-latest
@@ -164,6 +175,18 @@ jobs:
         env:
           MICRO_SYNC_TEST_REDIS_URL: redis://127.0.0.1:6379/
 
+      - name: Verify cross-replica Rust cache eviction with both transports
+        run: |
+          cargo test --locked -p cache-rs --test replicas -- --ignored
+          cargo test --locked -p micro-auth-rs --test code_store -- --ignored
+          cargo test --locked -p megalith-messaging --test shutdown -- --ignored
+          for script in cache/src/main/resources/script/*.lua; do
+            cmp "$script" "crates/cache-rs/script/$(basename "$script")"
+          done
+        env:
+          CACHE_TEST_REDIS_URL: redis://127.0.0.1:6379/
+          CACHE_TEST_AMQP_URL: amqp://integration:integration@127.0.0.1:5672/search-test
+
       - name: Test search contracts, message delivery and index rebuild
         run: python3 -m scripts.checks search-integration
 
@@ -221,12 +244,6 @@ jobs:
           SERVICE: ${{ matrix.service }}
           DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKER_PWD: ${{ secrets.DOCKERHUB_PWD }}
-
-      - name: Verify native exhibit startup over Docker DNS
-        if: ${{ matrix.service == 'micro-exhibit' }}
-        run: python3 -m scripts.checks exhibit-native-smoke
-        env:
-          MICRO_EXHIBIT_NATIVE_IMAGE: mingchiuli/megalith-micro-exhibit:latest
 
   build-rust:
     name: Build Rust Service

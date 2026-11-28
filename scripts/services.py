@@ -12,13 +12,10 @@ from typing import cast
 
 from .common import entrypoint, run, write_outputs
 
-JAVA_SERVICES = (
-    "micro-user",
-    "micro-auth",
-    "micro-blog",
-    "micro-exhibit",
-)
+JAVA_SERVICES = ("micro-base",)
 RUST_MODULES = {
+    "micro-auth": "micro-auth-rs",
+    "micro-exhibit": "micro-exhibit-rs",
     "micro-search": "micro-search-rs",
     "micro-sync-rs": "micro-sync-rs",
     "micro-gateway-rs": "micro-gateway-rs",
@@ -27,9 +24,8 @@ RUST_SERVICES = tuple(RUST_MODULES)
 FRONTEND = "megalith-frontend"
 SERVICE_ORDER = (*JAVA_SERVICES, *RUST_SERVICES, FRONTEND)
 JAVA_DIRECTORIES = (
-    "api-auth/",
-    "api-user/",
-    "api-blog/",
+    "api-base/",
+    "docs/sql/base/",
     "common-contract/",
     "common-arch/",
     "common-rpc/",
